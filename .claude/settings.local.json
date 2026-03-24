@@ -13,7 +13,15 @@
       "mcp__filesystem__read_text_file",
       "mcp__filesystem__read_multiple_files",
       "Bash(python -c:*)",
-      "Bash(PYTHONIOENCODING=utf-8 python main.py:*)"
+      "Bash(PYTHONIOENCODING=utf-8 python main.py:*)",
+      "Bash(gpg --version:*)",
+      "Bash(gpg:*)",
+      "Bash(git config:*)",
+      "Bash(gh gpg-key add:*)",
+      "Bash(clip)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\sun47\\Documents\\카카오톡 받은 파일"
     ]
   }
 }

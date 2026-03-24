@@ -8,6 +8,7 @@ SDACS — 군집드론 공역통제 자동화 시스템
     python main.py scenario weather_disturbance --runs 3
     python main.py monte-carlo --mode quick
     python main.py visualize             # 3D 대시보드 실행
+    python main.py visualize-3d          # Three.js 3D 시뮬레이터
 """
 from __future__ import annotations
 
@@ -129,6 +130,22 @@ def cmd_visualize(args: argparse.Namespace) -> None:
     launch_dashboard(metrics.trajectory_log, port=port)
 
 
+# ── visualize-3d ────────────────────────────────────────────
+
+def cmd_visualize_3d(args: argparse.Namespace) -> None:
+    import webbrowser
+    from pathlib import Path
+
+    html_path = Path(__file__).parent / "visualization" / "swarm_3d_simulator.html"
+    if not html_path.exists():
+        print("❌ swarm_3d_simulator.html 파일을 찾을 수 없습니다.")
+        return
+
+    url = html_path.as_uri()
+    print(f"\n🌐 Three.js 3D 시뮬레이터 열기: {url}\n")
+    webbrowser.open(url)
+
+
 # ── main ─────────────────────────────────────────────────────
 
 def main() -> None:
@@ -166,13 +183,17 @@ def main() -> None:
     p_vis.add_argument("--drones",   type=int,   default=30, help="데모 드론 수")
     p_vis.add_argument("--log-level", default="INFO")
 
+    # ── visualize-3d ─────────────────────────────────────────────
+    p_v3d = sub.add_parser("visualize-3d", help="Three.js 3D 시뮬레이터 (브라우저)")
+
     args = parser.parse_args()
 
     dispatch = {
-        "simulate":    cmd_simulate,
-        "scenario":    cmd_scenario,
-        "monte-carlo": cmd_monte_carlo,
-        "visualize":   cmd_visualize,
+        "simulate":      cmd_simulate,
+        "scenario":      cmd_scenario,
+        "monte-carlo":   cmd_monte_carlo,
+        "visualize":     cmd_visualize,
+        "visualize-3d":  cmd_visualize_3d,
     }
     dispatch[args.command](args)
 

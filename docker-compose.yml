@@ -1,0 +1,79 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --notify-keyspace-events KEA
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  vllm:
+    image: vllm/vllm-openai:latest
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    ports:
+      - "8000:8000"
+    command: >
+      --model Qwen/Qwen2.5-7B-Instruct
+      --max-model-len 2048
+      --dtype half
+      --gpu-memory-utilization 0.85
+      --max-num-seqs 16
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    profiles:
+      - full
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - VLLM_URL=http://vllm:8000
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
+    volumes:
+      - ./backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8080 --reload
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      - BACKEND_URL=http://backend:8080
+
+  # Gazebo SITL - simulation profile only
+  sitl:
+    image: px4io/px4-dev-ros2-humble:latest
+    network_mode: host
+    environment:
+      - PX4_HOME_LAT=35.1595
+      - PX4_HOME_LON=126.8526
+      - PX4_HOME_ALT=30.0
+    volumes:
+      - ./simulation/gazebo_sitl:/workspace
+    profiles:
+      - simulation

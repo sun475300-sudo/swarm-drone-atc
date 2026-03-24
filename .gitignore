@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+.venv/
+env/
+
+# Data outputs (large files)
+data/results/
+data/reports/
+
+# Model cache
+~/.cache/huggingface/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.env
+discord_webhook.txt
+
+# Logs
+*.log
+logs/
+
+# PX4 build
+PX4-Autopilot/build/
+
+# Gazebo
+/gazebo_models/

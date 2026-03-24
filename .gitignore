@@ -43,3 +43,6 @@ PX4-Autopilot/build/
 
 # Gazebo
 /gazebo_models/
+
+# Claude local settings (machine-specific, should not be tracked)
+.claude/settings.local.json

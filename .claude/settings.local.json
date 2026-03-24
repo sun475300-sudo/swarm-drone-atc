@@ -10,7 +10,9 @@
       "Bash(find:*)",
       "Bash(python simulation/simulator.py:*)",
       "Bash(python main.py:*)",
-      "mcp__filesystem__read_text_file"
+      "mcp__filesystem__read_text_file",
+      "mcp__filesystem__read_multiple_files",
+      "Bash(python -c:*)"
     ]
   }
 }

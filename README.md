@@ -501,7 +501,6 @@ pytest tests/test_apf.py tests/test_resolution_advisory.py -v
 - 2021 전주시장배 전국드론축구대회 **장려상**
 
 ### 관련 연구
-- GIST AI융합학과 안창욱 교수 연구실 연계
 - SC2 게임 AI를 활용한 군집 알고리즘 검증 방법론
 - 10년 비전: 광주시 분산형 드론 군집 ATC 시스템 구축
 

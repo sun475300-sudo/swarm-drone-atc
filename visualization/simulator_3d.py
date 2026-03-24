@@ -574,7 +574,6 @@ def build_figure(sim: SimState) -> go.Figure:
         if not grp:
             continue
         size = 10 if phase == FlightPhase.EVADING else (
-               8  if phase == FlightPhase.EMERGENCY else
                7  if phase == FlightPhase.FAILED   else 6)
         hover = [
             f"<b>{d.drone_id}</b><br>"
@@ -906,10 +905,10 @@ if __name__ == "__main__":
     bg.start()
 
     print("=" * 60)
-    print("  군집드론 공역통제 자동화 시스템 — 3D 시뮬레이터")
-    print("  브라우저 접속: http://localhost:8050")
+    print("  3D Simulator starting...")
+    print("  Browser: http://localhost:8050")
     print("=" * 60)
-    print("  [▶ 시작] 버튼을 누르면 시뮬레이션이 시작됩니다.")
+    print("  Press [Start] button to begin simulation.")
     print("=" * 60)
 
     app.run(debug=False, host="0.0.0.0", port=8050)

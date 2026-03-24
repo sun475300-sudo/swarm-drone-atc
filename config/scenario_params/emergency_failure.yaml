@@ -1,0 +1,20 @@
+scenario: s02_emergency_drone_failure
+description: "비행 중 드론 장애 — 비상착륙 우선순위 및 장애 처리 검증"
+
+base_drone_count: 80
+simulation_duration_min: 10
+failure_injection:
+  start_time_min: 3.0          # 장애 주입 시작 시각
+  end_time_min: 7.0
+  failure_rate_pct: 5.0        # 전체 드론의 5%
+  failure_types:
+    MOTOR_FAILURE: 0.3         # 즉각 하강
+    BATTERY_CRITICAL: 0.4      # 비상 착륙
+    GPS_LOSS: 0.2              # 현재 위치 유지
+    COMMS_LOSS: 0.1            # 자율 복귀
+
+success_criteria:
+  collision_count: 0
+  emergency_response_p50_s: 2.0
+  emergency_response_p99_s: 10.0
+  clearance_time_s: 60.0       # 장애 구역 비움 목표 시간

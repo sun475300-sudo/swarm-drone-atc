@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "swarm-drone-atc"
+version = "0.1.0"
+description = "군집드론 공역통제 자동화 시스템 (SDACS)"
+authors = [
+    {name = "jangsunwoo", email = "sun475300@gmail.com"}
+]
+requires-python = ">=3.11"
+readme = "README.md"
+license = {text = "MIT"}
+
+[project.urls]
+Repository = "https://github.com/sun475300-sudo/-----------------"
+Demo = "https://heartfelt-axolotl-2f9af2.netlify.app"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"

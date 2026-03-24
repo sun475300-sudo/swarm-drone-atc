@@ -4,7 +4,11 @@
       "mcp__filesystem__directory_tree",
       "mcp__filesystem__list_directory_with_sizes",
       "mcp__filesystem__list_directory",
-      "mcp__context7__resolve-library-id"
+      "mcp__context7__resolve-library-id",
+      "Bash(git -C \"C:/Users/sun47/Desktop/군집드론 공역통제 자동화 시스템/swarm-drone-atc\" diff HEAD -- .claude/settings.local.json)",
+      "Bash(git -C \"C:/Users/sun47/Desktop/군집드론 공역통제 자동화 시스템/swarm-drone-atc\" status --short)",
+      "Bash(git -C \"C:/Users/sun47/Desktop/군집드론 공역통제 자동화 시스템/swarm-drone-atc/.claude/worktrees/quizzical-shamir\" status --short)",
+      "Bash(git -C \"C:/Users/sun47/Desktop/군집드론 공역통제 자동화 시스템/swarm-drone-atc/.claude/worktrees/quizzical-shamir\" diff HEAD --stat)"
     ]
   }
 }

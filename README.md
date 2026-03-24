@@ -123,7 +123,23 @@ GitHub 서버에서 공개키로 서명 검증
 
 ## GPG 서명 설정 방법
 
-### 1단계: GPG 키 생성
+### 자동 설정 스크립트 사용 (권장)
+
+저장소에 포함된 스크립트를 실행하면 GPG 키 생성부터 `git config` 설정까지 자동으로 처리됩니다.
+
+```bash
+chmod +x scripts/setup-gpg-signing.sh
+./scripts/setup-gpg-signing.sh
+```
+
+스크립트가 완료되면 GitHub에 등록할 공개키가 터미널에 출력됩니다.  
+**GitHub → Settings → SSH and GPG keys → New GPG key** 에 해당 내용을 붙여넣으면 됩니다.
+
+---
+
+### 수동 설정
+
+#### 1단계: GPG 키 생성
 
 ```bash
 gpg --full-generate-key
@@ -134,7 +150,7 @@ gpg --full-generate-key
 - 유효기간: 적절히 설정
 - 이름/이메일: GitHub 계정 이메일과 **동일하게** 입력
 
-### 2단계: 생성된 키 ID 확인
+#### 2단계: 생성된 키 ID 확인
 
 ```bash
 gpg --list-secret-keys --keyid-format=long
@@ -147,7 +163,7 @@ sec   rsa4096/ABCD1234EFGH5678 2024-01-01 [SC]
 
 `ABCD1234EFGH5678` 부분이 키 ID입니다.
 
-### 3단계: 공개키를 GitHub에 등록
+#### 3단계: 공개키를 GitHub에 등록
 
 ```bash
 # 공개키 출력
@@ -157,7 +173,7 @@ gpg --armor --export ABCD1234EFGH5678
 출력된 `-----BEGIN PGP PUBLIC KEY BLOCK-----` 내용을 복사하여:  
 **GitHub → Settings → SSH and GPG keys → New GPG key** 에 붙여넣기
 
-### 4단계: Git에 GPG 서명 설정
+#### 4단계: Git에 GPG 서명 설정
 
 ```bash
 # 서명에 사용할 키 ID 등록
@@ -167,7 +183,7 @@ git config --global user.signingkey ABCD1234EFGH5678
 git config --global commit.gpgsign true
 ```
 
-### 5단계: 설정 확인
+#### 5단계: 설정 확인
 
 ```bash
 # 서명된 테스트 커밋 생성
@@ -176,27 +192,26 @@ git commit --allow-empty -m "test: GPG 서명 테스트"
 # GitHub에 push 후 커밋 목록에서 ✅ Verified 확인
 ```
 
-### macOS에서 GPG Suite 사용 시
+#### macOS에서 GPG Suite 사용 시
 
 ```bash
 brew install gnupg pinentry-mac
 echo "pinentry-program $(brew --prefix)/bin/pinentry-mac" >> ~/.gnupg/gpg-agent.conf
 ```
 
+---
+
 ### GitHub Actions에서 서명된 커밋 만들기
 
-워크플로우에서 봇 커밋을 서명하려면 `actions/checkout`에 `commit-signing`을 활성화하거나,
-GPG 키를 Repository Secret에 저장하고 서명 단계를 추가합니다.
+`.github/workflows/python-app.yml` 에 이미 GPG 서명 단계가 포함되어 있습니다.  
+CI 커밋을 Verified로 만들려면 저장소 Secrets에 다음 두 값을 등록하면 됩니다.
 
-```yaml
-- name: Import GPG key
-  uses: crazy-max/ghaction-import-gpg@v6
-  with:
-    gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-    passphrase: ${{ secrets.GPG_PASSPHRASE }}
-    git_user_signingkey: true
-    git_commit_gpgsign: true
-```
+| Secret 이름 | 값 |
+|-------------|-----|
+| `GPG_PRIVATE_KEY` | `gpg --armor --export-secret-keys ABCD1234EFGH5678` 출력값 |
+| `GPG_PASSPHRASE` | GPG 키 생성 시 사용한 패스프레이즈 (없으면 빈 값) |
+
+**Secrets 등록 경로:** GitHub 저장소 → Settings → Secrets and variables → Actions → New repository secret
 
 ---
 

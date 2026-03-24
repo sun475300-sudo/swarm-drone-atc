@@ -4,6 +4,8 @@
 
 <div align="center">
 
+![Hero Banner](docs/images/hero_banner.svg)
+
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-green)](https://simpy.readthedocs.io/)
 [![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?logo=plotly)](https://dash.plotly.com/)
@@ -58,6 +60,24 @@ Layer 1 · 드론       → _DroneAgent · APF 회피 · 텔레메트리
 ### 드론 비행 상태 기계 (FlightPhase FSM)
 
 ![Flight Phase FSM](docs/images/flight_phase_fsm.svg)
+
+---
+
+## 🎯 탐지 → 퇴각 자동 대응 파이프라인
+
+![Detection Pipeline](docs/images/detection_pipeline.svg)
+
+---
+
+## 📡 센서 퓨전 프로세스
+
+![Sensor Fusion](docs/images/sensor_fusion.svg)
+
+---
+
+## 📈 성능 비교: 기존 방식 vs SDACS
+
+![Performance Comparison](docs/images/performance_comparison.svg)
 
 | 상태 | 설명 | 전이 조건 |
 |------|------|-----------|

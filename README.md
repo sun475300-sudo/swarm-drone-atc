@@ -61,6 +61,17 @@ Layer 1 · 드론       → _DroneAgent · APF 회피 · 텔레메트리
 
 ![Flight Phase FSM](docs/images/flight_phase_fsm.svg)
 
+| 상태 | 설명 | 전이 조건 |
+|------|------|-----------|
+| `GROUNDED` | 지상 대기 | 허가(Clearance) 수신 → TAKEOFF |
+| `TAKEOFF` | 이륙 중 | 순항고도 도달 → ENROUTE |
+| `ENROUTE` | 순항 | 목적지 도달 → LANDING, 충돌위협 → EVADING |
+| `HOLDING` | 대기 선회 | 대기 지시 → HOLDING, 재개 → ENROUTE |
+| `EVADING` | APF 회피 | 어드바이저리 수신, 완료 → ENROUTE |
+| `LANDING` | 착륙 중 | 완료 → GROUNDED |
+| `RTL` | 귀환 | 배터리 임계치 초과 |
+| `FAILED` | 장애 발생 | 모터/배터리/GPS 장애 주입 |
+
 ---
 
 ## 🎯 탐지 → 퇴각 자동 대응 파이프라인
@@ -78,17 +89,6 @@ Layer 1 · 드론       → _DroneAgent · APF 회피 · 텔레메트리
 ## 📈 성능 비교: 기존 방식 vs SDACS
 
 ![Performance Comparison](docs/images/performance_comparison.svg)
-
-| 상태 | 설명 | 전이 조건 |
-|------|------|-----------|
-| `GROUNDED` | 지상 대기 | 허가(Clearance) 수신 → TAKEOFF |
-| `TAKEOFF` | 이륙 중 | 순항고도 도달 → ENROUTE |
-| `ENROUTE` | 순항 | 목적지 도달 → LANDING, 충돌위협 → EVADING |
-| `HOLDING` | 대기 선회 | 대기 지시 → HOLDING, 재개 → ENROUTE |
-| `EVADING` | APF 회피 | 어드바이저리 수신, 완료 → ENROUTE |
-| `LANDING` | 착륙 중 | 완료 → GROUNDED |
-| `RTL` | 귀환 | 배터리 임계치 초과 |
-| `FAILED` | 장애 발생 | 모터/배터리/GPS 장애 주입 |
 
 ---
 

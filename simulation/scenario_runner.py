@@ -18,6 +18,12 @@ import os
 import sys
 import time
 from pathlib import Path
+
+# Windows cp949 터미널 한글 깨짐 방지
+if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf-8-sig"):
+    import io as _io
+    sys.stdout = _io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stderr = _io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 from typing import Any
 
 import numpy as np
@@ -101,6 +107,7 @@ def run_scenario(
     n_runs: int = 1,
     seed: int = 42,
     verbose: bool = True,
+    duration_override_s: float | None = None,
 ) -> list[dict[str, Any]]:
     """
     명명된 시나리오를 n_runs 회 실행하고 결과 dict 리스트를 반환한다.
@@ -119,7 +126,9 @@ def run_scenario(
         raw = yaml.safe_load(f)
 
     scenario_cfg = _translate_scenario(raw)
-    duration_s   = float(scenario_cfg.pop("_duration_s", 600.0))
+    duration_s   = float(duration_override_s
+                         if duration_override_s is not None
+                         else scenario_cfg.pop("_duration_s", 600.0))
 
     if verbose:
         print(f"\n{'='*60}")

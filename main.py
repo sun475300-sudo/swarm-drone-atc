@@ -15,6 +15,13 @@ import argparse
 import os
 import sys
 
+# Windows cp949 터미널에서 한글 깨짐 방지
+if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf-8-sig"):
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+import sys
+
 _ROOT = os.path.dirname(os.path.abspath(__file__))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
@@ -48,7 +55,8 @@ def cmd_scenario(args: argparse.Namespace) -> None:
                 raw = yaml.safe_load(f)
             print(f"  {name:<40} {raw.get('description', '').replace(chr(0x2014), '-')}")
         return
-    run_scenario(args.name, n_runs=args.runs, seed=args.seed)
+    run_scenario(args.name, n_runs=args.runs, seed=args.seed,
+                 duration_override_s=args.duration)
 
 
 def cmd_monte_carlo(args: argparse.Namespace) -> None:
@@ -89,9 +97,11 @@ def main() -> None:
     # ── scenario ────────────────────────────────────────────────
     p_sc = sub.add_parser("scenario", help="명명된 시나리오 실행")
     p_sc.add_argument("name", nargs="?", help="시나리오 이름")
-    p_sc.add_argument("--list",  "-l", action="store_true")
-    p_sc.add_argument("--runs",  "-n", type=int, default=1)
-    p_sc.add_argument("--seed",        type=int, default=42)
+    p_sc.add_argument("--list",     "-l", action="store_true")
+    p_sc.add_argument("--runs",     "-n", type=int,   default=1)
+    p_sc.add_argument("--seed",           type=int,   default=42)
+    p_sc.add_argument("--duration", "-d", type=float, default=None,
+                      help="시뮬레이션 시간(초) 오버라이드 (기본: YAML 값)")
 
     # ── monte-carlo ─────────────────────────────────────────────
     p_mc = sub.add_parser("monte-carlo", help="Monte Carlo 파라미터 스윕")

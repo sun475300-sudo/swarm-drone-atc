@@ -9,7 +9,8 @@
       "Read(//c/Users/sun47/Desktop/군집드론 공역통제 자동화 시스템/swarm-drone-atc/**)",
       "Bash(find:*)",
       "Bash(python simulation/simulator.py:*)",
-      "Bash(python main.py:*)"
+      "Bash(python main.py:*)",
+      "mcp__filesystem__read_text_file"
     ]
   }
 }

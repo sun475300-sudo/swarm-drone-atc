@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 import heapq
+import uuid
 import numpy as np
 from dataclasses import dataclass, field
 from typing import Optional
@@ -96,6 +97,57 @@ class FlightPathPlanner:
             waypoints.insert(2, Waypoint(position=detour))
 
         return waypoints
+
+    def replan_avoiding(
+        self,
+        drone_id: str,
+        origin: np.ndarray,
+        destination: np.ndarray,
+        blocked_node,
+        priority: int = 3,
+        route_id: Optional[str] = None,
+    ) -> Route:
+        """충돌 제약 노드를 피해 경로를 재계획한다 (CBS 연동용).
+
+        Parameters
+        ----------
+        drone_id:     드론 식별자
+        origin:       현재 위치 (m, [x, y, z])
+        destination:  목표 위치 (m, [x, y, z])
+        blocked_node: 회피해야 할 GridNode (CBS Constraint)
+        priority:     경로 우선순위
+        route_id:     경로 식별자 (없으면 자동 생성)
+        """
+        from simulation.cbs_planner.cbs import GRID_RESOLUTION
+
+        if route_id is None:
+            route_id = f"R-{uuid.uuid4().hex[:6].upper()}"
+
+        # blocked_node 의 월드 좌표를 임시 NFZ 로 취급해 A* 실행
+        blocked_pos = blocked_node.to_position(GRID_RESOLUTION)
+        extra_nfz = [{"center": blocked_pos, "radius_m": GRID_RESOLUTION}]
+        waypoints = self._astar_with_extra_nfz(origin, destination, extra_nfz)
+
+        return Route(
+            route_id=route_id,
+            drone_id=drone_id,
+            waypoints=waypoints,
+            priority=priority,
+        )
+
+    def _astar_with_extra_nfz(
+        self,
+        start: np.ndarray,
+        goal: np.ndarray,
+        extra_nfz: list[dict],
+    ) -> list[Waypoint]:
+        """추가 NFZ 목록을 합산해 A* 탐색을 수행한다 (인스턴스 상태 불변)."""
+        orig_nfz = self.no_fly_zones
+        self.no_fly_zones = orig_nfz + extra_nfz
+        try:
+            return self._astar(start, goal)
+        finally:
+            self.no_fly_zones = orig_nfz
 
     def estimate_cost(self, route: Route, cruise_speed_ms: float = 8.0) -> RouteCost:
         dist = route.total_distance_m

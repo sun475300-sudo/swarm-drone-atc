@@ -12,7 +12,8 @@
       "Bash(python main.py:*)",
       "mcp__filesystem__read_text_file",
       "mcp__filesystem__read_multiple_files",
-      "Bash(python -c:*)"
+      "Bash(python -c:*)",
+      "Bash(PYTHONIOENCODING=utf-8 python main.py:*)"
     ]
   }
 }

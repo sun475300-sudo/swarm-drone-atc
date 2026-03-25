@@ -2,6 +2,14 @@
 
 **Swarm Drone Airspace Control System**
 
+## 변경 이력 (Changelog)
+
+| 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
+| --- | --- | --- | --- |
+| 2026-03-26 08:19 | `b1a8b2f` | fix: ROGUE advisory guard, clearance NFZ validation, dead import removal | simulation/simulator.py, src/airspace_control/controller/airspace_controller.py |
+
+---
+
 <div align="center">
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
@@ -535,6 +543,14 @@ Python 3.10+
 ## 라이선스
 
 MIT License — 학술 및 교육 목적으로 개발되었습니다.
+
+---
+
+## 변경 이력 (Changelog)
+
+| 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
+| --- | --- | --- | --- |
+| 2026-03-26 08:19 | `b1a8b2f` | fix: ROGUE advisory guard, clearance NFZ validation, dead import removal | simulation/simulator.py, src/airspace_control/controller/airspace_controller.py |
 
 ---
 

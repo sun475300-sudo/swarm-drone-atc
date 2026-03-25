@@ -40,6 +40,8 @@ def compute_voronoi_partition(
     Returns:
         {drone_id: AirspaceCell}
     """
+    if not drone_positions:
+        return {}
     if len(drone_positions) < 2:
         # 드론이 1기면 전체 공역 할당
         only_id = list(drone_positions.keys())[0]

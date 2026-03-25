@@ -138,11 +138,12 @@ class _DroneAgent:
             # 6. 비행 단계 상태 머신
             self._state_machine(drone, dt, profile, force, wind, t, sim)
 
-            # 7. 위치 적분
-            if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
+            # 7. 위치 적분 (TAKEOFF/LANDING은 state_machine에서 직접 처리)
+            if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED,
+                                           FlightPhase.TAKEOFF, FlightPhase.LANDING):
                 drone.velocity += force * dt
-                drone.velocity  = _clamp_speed(drone.velocity, profile.max_speed_ms)
                 drone.velocity[:2] += wind[:2]
+                drone.velocity  = _clamp_speed(drone.velocity, profile.max_speed_ms)
                 drone.position += drone.velocity * dt
                 drone.position[0] = float(np.clip(drone.position[0],
                                                    -sim.bounds_m, sim.bounds_m))
@@ -151,7 +152,8 @@ class _DroneAgent:
                 drone.position[2] = float(np.clip(drone.position[2], 0.0, 120.0))
                 drone.distance_flown_m += float(np.linalg.norm(drone.velocity * dt))
 
-            drone.flight_time_s += dt
+            if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
+                drone.flight_time_s += dt
             drone.last_update_s  = t
 
             # 8. 텔레메트리 송신 (5틱마다 ≈ 0.5 s)
@@ -217,7 +219,11 @@ class _DroneAgent:
 
         elif phase == FlightPhase.HOLDING:
             drone.velocity = np.zeros(3)
-            if t > drone.last_update_s + 5.0:
+            # _hold_start_s: HOLDING 진입 시각 기록
+            if not hasattr(drone, '_hold_start_s') or drone._hold_start_s is None:
+                drone._hold_start_s = t
+            if t > drone._hold_start_s + 5.0:
+                drone._hold_start_s = None
                 drone.flight_phase = FlightPhase.ENROUTE
 
         elif phase == FlightPhase.LANDING:
@@ -476,7 +482,20 @@ class SwarmSimulator:
             if evading:
                 states = [_drone_to_apf(d) for d in evading]
                 goals  = {d.drone_id: d.goal.copy() for d in evading}
-                self.apf_forces = batch_compute_forces(states, goals, nfz_centers)
+
+                # 각 드론 위치의 바람 속도 계산 (강풍 조건 APF 파라미터 자동 선택용)
+                wind_speeds = {}
+                t = float(self.env.now)
+                for d in evading:
+                    # 모든 wind_models의 바람 벡터를 합산
+                    wind_vec = np.zeros(3)
+                    for wm in self.wind_models:
+                        wind_vec += wm.get_wind_vector(d.position, t)
+                    # 바람 속도 (m/s) 계산
+                    wind_speeds[d.drone_id] = float(np.linalg.norm(wind_vec))
+
+                self.apf_forces = batch_compute_forces(states, goals, nfz_centers,
+                                                      wind_speeds=wind_speeds)
             else:
                 self.apf_forces = {}
 

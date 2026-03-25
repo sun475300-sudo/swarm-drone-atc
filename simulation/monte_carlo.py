@@ -34,10 +34,14 @@ def _run_single(args: tuple) -> dict:
         drone_count=config_combo.get("drone_density", 100),
         scenario_overrides=config_combo,
     )
-    # 기상 오버라이드
+    # 기상 오버라이드 (WindModel 통합)
     wind = config_combo.get("wind_speed_ms", 0)
     if wind > 0:
-        engine._wind_force = np.array([wind * 0.3, 0, 0])
+        from simulation.weather import build_wind_models
+        engine.wind_models = build_wind_models(
+            {"wind_models": [{"type": "constant", "speed_ms": wind, "direction_deg": 0}]},
+            engine.rng,
+        )
 
     metrics = engine.run()
 

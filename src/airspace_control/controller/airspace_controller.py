@@ -159,6 +159,7 @@ class AirspaceController:
             # Voronoi 셀 충돌 경고: 목적지가 다른 드론의 셀에 침범하는지 확인
             voronoi_conflict = self._check_voronoi_conflict(req.drone_id, req.destination)
             if voronoi_conflict:
+                approved = False
                 reason = f"voronoi_conflict:{voronoi_conflict}"
 
             resp = ClearanceResponse(

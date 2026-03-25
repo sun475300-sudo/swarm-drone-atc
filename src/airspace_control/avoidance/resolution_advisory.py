@@ -162,8 +162,8 @@ class AdvisoryGenerator:
         rel_pos = threat.position - target.position
         dz      = float(rel_pos[2])
 
-        # 수직 분리: 여유 공간이 있을 때
-        if abs(dz) < 50.0:
+        # 수직 분리: 수직 이격이 부족할 때 수직 기동 지시
+        if abs(dz) < self.sep_vert:
             if dz >= 0.0:
                 return self.DESCEND, self.DEFAULT_CLIMB_M
             else:

@@ -224,29 +224,37 @@ def _step(sim: SimState) -> None:
         for drone in drones.values():
             _update(drone, forces, sim, dt)
 
-        # 근접/충돌 감지 (활성 드론만)
+        # 근접/충돌 감지 (활성 드론만) — 쌍 기반 추적으로 중복 카운트 방지
         active = [(did, d.position.copy())
                   for did, d in drones.items() if d.is_active]
         n = len(active)
+        if not hasattr(sim, '_active_conflict_pairs'):
+            sim._active_conflict_pairs = set()
+        current_conflicts = set()
         for i in range(n):
             id_a, pa = active[i]
             for j in range(i + 1, n):
                 id_b, pb = active[j]
+                pair = frozenset((id_a, id_b))
                 dist = float(np.linalg.norm(pa - pb))
                 if dist < 5.0:
                     sim.collisions += 1
                     drones[id_a].flight_phase = FlightPhase.FAILED
                     drones[id_b].flight_phase = FlightPhase.FAILED
                 elif dist < 10.0:
-                    sim.near_misses += 1
+                    if pair not in sim._active_conflict_pairs:
+                        sim.near_misses += 1
+                    current_conflicts.add(pair)
                 elif dist < 50.0:
-                    if drones[id_a].flight_phase == FlightPhase.ENROUTE:
-                        drones[id_a].flight_phase = FlightPhase.EVADING
+                    current_conflicts.add(pair)
+                    if pair not in sim._active_conflict_pairs:
+                        sim.conflicts += 1
                         sim.advisories += 1
-                    if drones[id_b].flight_phase == FlightPhase.ENROUTE:
-                        drones[id_b].flight_phase = FlightPhase.EVADING
-                        sim.advisories += 1
-                    sim.conflicts += 1
+                        if drones[id_a].flight_phase == FlightPhase.ENROUTE:
+                            drones[id_a].flight_phase = FlightPhase.EVADING
+                        if drones[id_b].flight_phase == FlightPhase.ENROUTE:
+                            drones[id_b].flight_phase = FlightPhase.EVADING
+        sim._active_conflict_pairs = current_conflicts
 
         sim.t += dt
 
@@ -351,7 +359,8 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
             drone.position[2] = max(0.0, drone.position[2] - 1.5 * dt)
 
     drone.last_update_s = sim.t
-    drone.flight_time_s += dt
+    if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
+        drone.flight_time_s += dt
 
     # 트레일 갱신
     trail = sim.trails.get(drone.drone_id, [])

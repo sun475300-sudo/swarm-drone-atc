@@ -128,6 +128,7 @@ class _DroneAgent:
                 (m.get_wind_vector(drone.position, t) for m in sim.wind_models),
                 np.zeros(3),
             )
+            wind_speed = float(np.linalg.norm(wind))  # 바람 속도 계산
 
             # 5. APF (EVADING 모드만)
             if drone.flight_phase == FlightPhase.EVADING:
@@ -143,7 +144,11 @@ class _DroneAgent:
                                            FlightPhase.TAKEOFF, FlightPhase.LANDING):
                 drone.velocity += force * dt
                 drone.velocity[:2] += wind[:2]
-                drone.velocity  = _clamp_speed(drone.velocity, profile.max_speed_ms)
+                # 비상 속도 모드: EVADING 모드이면서 강풍일 때만 활성화
+                if drone.flight_phase == FlightPhase.EVADING and wind_speed > 10.0:
+                    drone.velocity  = _clamp_speed(drone.velocity, profile.max_speed_ms, wind_speed)
+                else:
+                    drone.velocity  = _clamp_speed(drone.velocity, profile.max_speed_ms)
                 drone.position += drone.velocity * dt
                 drone.position[0] = float(np.clip(drone.position[0],
                                                    -sim.bounds_m, sim.bounds_m))
@@ -274,10 +279,28 @@ class _DroneAgent:
             drone.velocity = np.zeros(3)
 
 
-def _clamp_speed(vel: np.ndarray, max_spd: float) -> np.ndarray:
+def _clamp_speed(vel: np.ndarray, max_spd: float, wind_speed: float = 0.0) -> np.ndarray:
+    """
+    속도 클램핑 (강풍 조건에서 비상 속도 모드 활성화)
+
+    Args:
+        vel: 속도 벡터
+        max_spd: 기본 최대 속도
+        wind_speed: 현재 바람 속도 (m/s)
+
+    Returns:
+        클램핑된 속도 벡터
+    """
+    # 강풍 조건(10 m/s 이상)에서 비상 속도 모드
+    # 바람 속도보다 최소 5 m/s 빠르게 비행할 수 있도록 보장
+    if wind_speed > 10.0:
+        effective_max_spd = max(max_spd, wind_speed + 5.0)
+    else:
+        effective_max_spd = max_spd
+
     spd = float(np.linalg.norm(vel))
-    if spd > max_spd:
-        return vel / spd * max_spd
+    if spd > effective_max_spd:
+        return vel / spd * effective_max_spd
     return vel
 
 

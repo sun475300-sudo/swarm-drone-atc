@@ -116,6 +116,7 @@ class _DroneAgent:
             elif adv.advisory_type == AdvisoryGenerator.HOLD:
                 self.drone.flight_phase = FlightPhase.HOLDING
                 self.drone.hold_start_s = None
+                self.drone.evade_end_s  = None  # 잔류 EVADING 타이머 초기화
 
     def run(self):
         drone   = self.drone
@@ -162,7 +163,9 @@ class _DroneAgent:
             # 7. 위치 적분 (TAKEOFF/LANDING은 state_machine에서 직접 처리)
             if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED,
                                            FlightPhase.TAKEOFF, FlightPhase.LANDING):
-                drone.velocity += force * dt
+                # APF force는 여전히 EVADING 상태일 때만 적용 (state machine 전환 후 재확인)
+                if drone.flight_phase == FlightPhase.EVADING:
+                    drone.velocity += force * dt
                 drone.velocity[:2] += wind[:2]
                 # 비상 속도 모드: EVADING 모드이면서 강풍일 때만 활성화
                 if drone.flight_phase == FlightPhase.EVADING and wind_speed > 10.0:

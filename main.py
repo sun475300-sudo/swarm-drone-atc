@@ -57,7 +57,7 @@ def cmd_simulate(args: argparse.Namespace) -> None:
 
 def cmd_scenario(args: argparse.Namespace) -> None:
     _setup_logging(getattr(args, "log_level", "INFO"))
-    from simulation.scenario_runner import list_scenarios, run_scenario, aggregate_results
+    from simulation.scenario_runner import list_scenarios, run_scenario
 
     if args.list or not args.name:
         scenarios = list_scenarios()
@@ -66,8 +66,12 @@ def cmd_scenario(args: argparse.Namespace) -> None:
         print("  │ 시나리오                  │ 설명                                           │")
         print("  ├──────────────────────────┼────────────────────────────────────────────────┤")
         for s in scenarios:
-            n = s["name"]
-            d = s["description"][:44]
+            if isinstance(s, dict):
+                n = s.get("name", str(s))
+                d = s.get("description", "")[:44]
+            else:
+                n = str(s)
+                d = ""
             print(f"  │ {n:<24} │ {d:<46} │")
         print("  └──────────────────────────┴────────────────────────────────────────────────┘")
         print()
@@ -76,20 +80,25 @@ def cmd_scenario(args: argparse.Namespace) -> None:
     name = args.name
     runs = args.runs
     seed = args.seed
-    print(f"\n🚀 시나리오 [{name}] — {runs}회 실행 (seed={seed})\n")
+    print(f"\n시나리오 [{name}] - {runs}회 실행 (seed={seed})\n")
 
-    results = run_scenario(name, runs=runs, base_seed=seed)
+    results = run_scenario(name, n_runs=runs, seed=seed)
 
-    for i, m in enumerate(results):
-        print(f"── Run #{i+1} ──")
-        print(m.summary_table())
+    for i, row in enumerate(results):
+        print(f"-- Run #{i+1} --")
+        for k, v in row.items():
+            if k not in ("run_idx", "config_params"):
+                print(f"  {k}: {v}")
         print()
 
     if runs > 1:
-        agg = aggregate_results(results)
-        print("━━━━ 집계 결과 ━━━━")
-        for k, v in agg.items():
-            print(f"  {k}: {v}")
+        import numpy as np
+        numeric_keys = [k for k, v in results[0].items()
+                        if isinstance(v, (int, float)) and k != "run_idx"]
+        print("==== 집계 결과 ====")
+        for k in numeric_keys:
+            vals = [r[k] for r in results if k in r]
+            print(f"  {k}: mean={np.mean(vals):.3f}  std={np.std(vals):.3f}")
         print()
 
 

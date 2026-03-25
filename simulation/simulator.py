@@ -106,11 +106,9 @@ class _DroneAgent:
         adv = msg.payload
         phase = self.drone.flight_phase
         if phase in (FlightPhase.ENROUTE, FlightPhase.HOLDING, FlightPhase.EVADING):
-            if adv.advisory_type in (AdvisoryGenerator.EVADE_APF, AdvisoryGenerator.CLIMB,
-                                     AdvisoryGenerator.DESCEND, AdvisoryGenerator.TURN_LEFT,
-                                     AdvisoryGenerator.TURN_RIGHT):
+            if adv.advisory_type in AdvisoryGenerator.EVASION_TYPES:
                 self.drone.flight_phase = FlightPhase.EVADING
-                new_end = float(self.env.now) + float(adv.duration_s)
+                new_end = float(self.env.now) + adv.duration_s
                 if self.drone.evade_end_s is None or new_end > self.drone.evade_end_s:
                     self.drone.evade_end_s = new_end
             elif adv.advisory_type == AdvisoryGenerator.HOLD:
@@ -206,8 +204,6 @@ class _DroneAgent:
                     channel="telemetry",
                 ))
 
-            # 9. 분석: 궤적 스냅샷은 _analytics_loop에서 1 Hz 일괄 처리
-            #    (개별 10 Hz 기록은 _analytics_loop 1 Hz와 중복 — Bug C 수정)
 
     # ── 상태 머신 ──────────────────────────────────────────────
 

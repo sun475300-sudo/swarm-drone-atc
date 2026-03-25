@@ -123,8 +123,9 @@ def repulsive_force_obstacle(
     if dist_center < 1e-3 or dist >= d0:
         return np.zeros(3)
 
-    n   = diff / dist_center               # 중심에서 벗어나는 방향
-    mag = k_rep * (1.0 / max(dist, 1e-3) - 1.0 / d0) / (max(dist, 1e-3) ** 2)
+    n         = diff / dist_center               # 중심에서 벗어나는 방향
+    safe_dist = max(dist, 1e-3)
+    mag = k_rep * (1.0 / safe_dist - 1.0 / d0) / (safe_dist ** 2)
     return mag * n
 
 
@@ -255,11 +256,10 @@ def batch_compute_forces(
             neighbor_indices = [j for j in kdtree.query_ball_point(own.position[:2], comm_range)
                                 if pool[j].drone_id != own.drone_id]
         else:
-            # NumPy 벡터화: O(M)
+            # NumPy 벡터화: O(M) — dists > 0 가 자기 자신(dist=0) 제외
             diffs = pool_positions - own.position       # (M, 3)
             dists = np.linalg.norm(diffs, axis=1)       # (M,)
-            neighbor_indices = [j for j in np.where((dists < comm_range) & (dists > 0))[0]
-                                if pool[j].drone_id != own.drone_id]
+            neighbor_indices = list(np.where((dists < comm_range) & (dists > 0))[0])
 
         neighbors = [
             APFState(pool_positions[j], pool_velocities[j], pool[j].drone_id)

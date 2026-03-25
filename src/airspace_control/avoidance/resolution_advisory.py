@@ -32,6 +32,9 @@ class AdvisoryGenerator:
     EVADE_APF   = "EVADE_APF"
     RTL         = "RTL"
 
+    # 회피 기동 어드바이저리 집합 (HOLD/RTL 제외)
+    EVASION_TYPES: frozenset[str] = frozenset([CLIMB, DESCEND, TURN_LEFT, TURN_RIGHT, EVADE_APF])
+
     DEFAULT_CLIMB_M    = 20.0
     DEFAULT_TURN_DEG   = 30.0
     DEFAULT_DURATION_S = 30.0

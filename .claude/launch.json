@@ -2,40 +2,28 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "3D Visualizer (Dash)",
+      "name": "3D 실시간 대시보드 (Dash/Plotly)",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["visualization/simulator_3d.py"],
+      "runtimeArgs": ["main.py", "visualize", "--port", "8050", "--drones", "30"],
       "port": 8050
     },
     {
-      "name": "Backend (FastAPI / uvicorn)",
-      "runtimeExecutable": "uvicorn",
-      "runtimeArgs": ["main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"],
-      "port": 8080
+      "name": "Three.js 3D 시뮬레이터 (브라우저)",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["main.py", "visualize-3d"],
+      "port": 0
     },
     {
-      "name": "Redis",
-      "runtimeExecutable": "docker",
-      "runtimeArgs": ["compose", "up", "redis"],
-      "port": 6379
+      "name": "기본 시뮬레이션 (100대, 600초)",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["main.py", "simulate", "--duration", "600", "--seed", "42"],
+      "port": 0
     },
     {
-      "name": "Dashboard",
-      "runtimeExecutable": "docker",
-      "runtimeArgs": ["compose", "up", "dashboard"],
-      "port": 3000
-    },
-    {
-      "name": "vLLM (Qwen2.5-7B, GPU 필요)",
-      "runtimeExecutable": "docker",
-      "runtimeArgs": ["compose", "--profile", "full", "up", "vllm"],
-      "port": 8000
-    },
-    {
-      "name": "PX4 SITL (Gazebo + ROS2)",
-      "runtimeExecutable": "docker",
-      "runtimeArgs": ["compose", "--profile", "simulation", "up", "sitl"],
-      "port": 14550
+      "name": "Monte Carlo Quick 스윕",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["main.py", "monte-carlo", "--mode", "quick"],
+      "port": 0
     }
   ]
 }

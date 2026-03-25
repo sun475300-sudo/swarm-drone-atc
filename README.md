@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
 [![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
-[![Tests](https://img.shields.io/badge/Tests-147%20passed-brightgreen?style=for-the-badge)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-173%20passed-brightgreen?style=for-the-badge)](tests/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 **국립 목포대학교 드론기계공학과 캡스톤 디자인 (2026)**
@@ -95,7 +95,7 @@
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Layer 4 — 사용자 인터페이스                                   │
-│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 147개          │
+│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 173개          │
 └───────────────────────────┬──────────────────────────────────┘
                             │ 명령 / 결과
 ┌───────────────────────────▼──────────────────────────────────┐
@@ -494,7 +494,7 @@ swarm-drone-atc/
 │   ├── report/SDACS_Technical_Report.docx  # A4 한국어 기술 보고서
 │   └── images/                             # 성능 차트 + SVG 다이어그램
 │
-└── tests/                              # pytest 147개 (16 모듈)
+└── tests/                              # pytest 173개 (18 모듈)
     ├── test_apf.py                     # APF 포텐셜 장 (10)
     ├── test_cbs.py                     # CBS 격자 노드 (8)
     ├── test_resolution_advisory.py     # 어드바이저리 분류 (6)
@@ -510,7 +510,9 @@ swarm-drone-atc/
     ├── test_metrics.py                 # SimulationMetrics (12)
     ├── test_voronoi.py                 # Voronoi 분할 + 클리핑 (5)
     ├── test_priority_queue.py          # 우선순위 허가 큐 (9)
-    └── test_message_types.py           # 메시지 타입 (6)
+    ├── test_message_types.py           # 메시지 타입 (6)
+    ├── test_monte_carlo.py             # MC 스윕 검증 (10)
+    └── test_scenario_runner.py         # 시나리오 변환/실행 (16)
 ```
 
 ---
@@ -522,7 +524,7 @@ pytest tests/ -v              # 전체 실행
 pytest tests/test_apf.py -v   # 특정 파일
 ```
 
-### 테스트 커버리지 (147개 / 16모듈)
+### 테스트 커버리지 (173개 / 18모듈)
 
 | 파일 | 수 | 대상 |
 |------|---|------|
@@ -541,8 +543,10 @@ pytest tests/test_apf.py -v   # 특정 파일
 | `test_resolution_advisory.py` | 6 | 어드바이저리 6종 분류 |
 | `test_comm_bus.py` | 6 | CommunicationBus 지연·손실 |
 | `test_message_types.py` | 6 | 메시지 타입 6종 직렬화 |
+| `test_monte_carlo.py` | 10 | MC 스윕·_run_single 검증 |
+| `test_scenario_runner.py` | 16 | 시나리오 변환·실행·목록 |
 | `test_voronoi.py` | 5 | Voronoi 분할·클리핑·충돌감지 |
-| **합계** | **147** | **16 모듈 · 100% pass** |
+| **합계** | **173** | **18 모듈 · 100% pass** |
 
 ---
 
@@ -570,7 +574,7 @@ pytest tests/test_apf.py -v   # 특정 파일
 | 단계 | 기간 | 주요 산출물 | 상태 |
 |------|------|------------|------|
 | Phase 1: 설계 | 2026.01~03 | 아키텍처 설계, 알고리즘 설계 | 완료 |
-| Phase 2: 구현 | 2026.04~05 | SimPy 시뮬레이터, 147개 pytest, SC2 검증 | 완료 |
+| Phase 2: 구현 | 2026.04~05 | SimPy 시뮬레이터, 173개 pytest, SC2 검증 | 완료 |
 | Phase 3: 검증 | 2026.05~06 | Monte Carlo, 3D 대시보드, 7개 시나리오 전량 실행 | 완료 |
 | Phase 4: 문서화 | 2026.06 | 기술 보고서(DOCX), 성능 차트, README | 완료 |
 
@@ -635,6 +639,21 @@ Python 3.10+
 4. NASA UTM Project. (2023). *UAS Traffic Management Documentation.*
 5. 국토교통부. (2023). *드론 교통관리체계(K-UTM) 구축 및 운영 계획.*
 6. 장선우. (2026). *군집드론 공역통제 자동화 시스템.* 국립 목포대학교 캡스톤 디자인.
+
+---
+
+## 업데이트 이력
+
+| 날짜 | 시간 | 주요 변경 사항 |
+|------|------|---------------|
+| 2026-03-25 | 22:30 KST | 데드코드 삭제 + 테스트 26개 추가 (147→173), config 필드명 통일, CLAUDE.md 생성 |
+| 2026-03-25 | 21:45 KST | monte_carlo SwarmSimulator 일원화, simulator_3d HOLDING/RTL 처리, 의존성 정리 |
+| 2026-03-25 | 21:15 KST | README 전면 업데이트 — 시각자료 9종 삽입, 테스트 74→147개 반영 |
+| 2026-03-25 | 20:30 KST | simulator.py APF 기상적응 바람속도 전달 + 최종보고서 PDF 추가 |
+| 2026-03-25 | 19:50 KST | weather_disturbance 시나리오 개선 + 충돌해결률 공식 수정 |
+| 2026-03-25 | 19:00 KST | 8개 신규 테스트 모듈 추가 (74→147 테스트) |
+| 2026-03-25 | 18:15 KST | analytics 음수 해결률 + CBS 빈입력 크래시 + APF 기상적응 + engine 리네임 |
+| 2026-03-25 | 17:30 KST | 14건 버그 수정 (CRITICAL 4 + HIGH 6 + MEDIUM 4) |
 
 ---
 

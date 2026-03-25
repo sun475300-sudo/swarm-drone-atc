@@ -35,8 +35,19 @@ RED    = "#C0392B"
 GRAY   = "#95A5A6"
 LIGHT  = "#F4F6F9"
 
+import matplotlib.font_manager as fm
+
+# 한글 폰트 설정 (Windows: Malgun Gothic, Mac: AppleGothic, Linux: NanumGothic)
+_KR_FONTS = ["Malgun Gothic", "맑은 고딕", "NanumGothic", "AppleGothic"]
+_found_font = None
+for _f in _KR_FONTS:
+    if any(_f.lower() in f.name.lower() for f in fm.fontManager.ttflist):
+        _found_font = _f
+        break
+
 plt.rcParams.update({
-    "font.family":        "DejaVu Sans",
+    "font.family":        _found_font or "DejaVu Sans",
+    "axes.unicode_minus": False,
     "axes.spines.top":    False,
     "axes.spines.right":  False,
     "axes.facecolor":     LIGHT,

@@ -19,7 +19,8 @@
       "Bash(git config:*)",
       "Bash(gh gpg-key add:*)",
       "Bash(clip)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(git add:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\sun47\\Documents\\카카오톡 받은 파일"

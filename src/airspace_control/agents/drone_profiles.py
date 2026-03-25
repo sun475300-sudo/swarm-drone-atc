@@ -35,4 +35,9 @@ DRONE_PROFILES: dict[str, DroneProfile] = {
         max_altitude_m=120.0, battery_wh=30.0, endurance_min=15.0,
         comm_range_m=500.0, priority=3,
     ),
+    "ROGUE": DroneProfile(
+        name="미등록/위협 드론", max_speed_ms=15.0, cruise_speed_ms=8.0,
+        max_altitude_m=120.0, battery_wh=50.0, endurance_min=25.0,
+        comm_range_m=0.0, priority=99,
+    ),
 }

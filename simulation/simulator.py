@@ -253,7 +253,7 @@ class _DroneAgent:
             drone.velocity = np.zeros(3)
             if drone.hold_start_s is None:
                 drone.hold_start_s = t
-            if t > drone.hold_start_s + 5.0:
+            if t >= drone.hold_start_s + 5.0:
                 drone.hold_start_s = None
                 drone.flight_phase = FlightPhase.ENROUTE
 

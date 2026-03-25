@@ -86,7 +86,7 @@
 
 <div align="center">
 
-![System Architecture](docs/images/system_architecture_4layer.png)
+![System Architecture](docs/images/architecture.svg)
 
 *SDACS 4계층 시스템 아키텍처*
 
@@ -129,6 +129,16 @@ AirspaceController (1 Hz)
     ├── ROGUE 감지 → IntrusionAlert (BROADCAST)
     └── 10 s 주기 Voronoi 공역 갱신
 ```
+
+### 센서 퓨전 프로세스
+
+<div align="center">
+
+![Sensor Fusion](docs/images/sensor_fusion.svg)
+
+*Camera (YOLO) + LiDAR + RF Scanner → Kalman Filter Fusion*
+
+</div>
 
 ### 드론 비행 상태 기계 (FlightPhase FSM)
 
@@ -360,6 +370,16 @@ python main.py monte-carlo --mode full    # ~3시간 (16코어)
 ---
 
 ## 성능 분석
+
+### 기존 방식 vs SDACS 비교
+
+<div align="center">
+
+![Performance Comparison](docs/images/performance_comparison.svg)
+
+*기존 Rule-based ATC 대비 SDACS 핵심 지표 비교*
+
+</div>
 
 ### O(N²) 처리량 vs KDTree 최적화
 
@@ -646,6 +666,7 @@ Python 3.10+
 
 | 날짜 | 시간 | 주요 변경 사항 |
 |------|------|---------------|
+| 2026-03-25 | 23:50 KST | SVG 한글 폰트 수정 (Malgun Gothic 추가), hero_banner/architecture 테스트 수 173개 반영, 빈 PNG→SVG 교체 |
 | 2026-03-25 | 22:30 KST | 데드코드 삭제 + 테스트 26개 추가 (147→173), config 필드명 통일, CLAUDE.md 생성 |
 | 2026-03-25 | 21:45 KST | monte_carlo SwarmSimulator 일원화, simulator_3d HOLDING/RTL 처리, 의존성 정리 |
 | 2026-03-25 | 21:15 KST | README 전면 업데이트 — 시각자료 9종 삽입, 테스트 74→147개 반영 |

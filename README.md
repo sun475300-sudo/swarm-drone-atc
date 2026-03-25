@@ -468,6 +468,23 @@ python main.py visualize
 | KPI 패널 | 우측 — 충돌수, 해결률, 경로효율 실시간 집계 |
 | 비행 상태 색상 | ENROUTE(파랑), EVADING(빨강), TAKEOFF(초록), FAILED(회색) |
 
+### Standalone HTML 시뮬레이터
+
+Python 설치 없이 브라우저에서 바로 실행 가능한 **공유용 3D 시뮬레이터**:
+
+```
+visualization/sdacs_standalone.html   ← 더블클릭으로 실행
+```
+
+| 기능 | 설명 |
+|------|------|
+| Three.js 3D | WebGL 기반 실시간 3D 렌더링 |
+| FlightPhase 상태머신 | 8단계 비행 상태 완전 구현 |
+| APF 충돌 회피 | 근접 드론 간 척력 기반 자동 회피 |
+| NFZ / 회랑 / 패드 | 비행금지구역, 항로, 착륙패드 시각화 |
+| 시나리오 선택 | 고밀도/비상/동시이착륙/경로충돌 등 5종 |
+| 속도 조절 | 0.25x ~ 5x 실시간 속도 배율 |
+
 ---
 
 ## 프로젝트 구조
@@ -668,6 +685,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 시간 | 주요 변경 사항 |
 |------|------|---------------|
+| 2026-03-26 | 10:00 KST | Standalone HTML 3D 시뮬레이터, 안전 이슈 3건 수정(LANDING 충돌 제외, goal=None 방어, evade_end_s 타이머), 코드 리뷰 반영, Voronoi staleness 문서화 |
 | 2026-03-26 | 01:15 KST | DOCX 기술 보고서 생성, GitHub Actions CI 추가, 차트 DPI 300 업그레이드, 시뮬레이터 속도 조절 슬라이더 |
 | 2026-03-25 | 23:50 KST | SVG 한글 폰트 수정 (Malgun Gothic 추가), hero_banner/architecture 테스트 수 173개 반영, 빈 PNG→SVG 교체 |
 | 2026-03-25 | 22:30 KST | 데드코드 삭제 + 테스트 26개 추가 (147→173), config 필드명 통일, CLAUDE.md 생성 |

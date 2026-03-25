@@ -96,7 +96,8 @@ class TestSimulationAnalytics:
         analytics.record_event("CONFLICT", 2.0)
         analytics.record_event("COLLISION", 2.5)
         result = analytics.finalize()
-        assert result.conflict_resolution_rate_pct == pytest.approx(50.0)
+        # 공식: 1 - collisions/(conflicts + collisions) = 1 - 1/3 ≈ 66.7%
+        assert result.conflict_resolution_rate_pct == pytest.approx(66.667, abs=0.1)
 
     def test_max_events_cap(self, analytics):
         for i in range(SimulationAnalytics.MAX_EVENTS + 100):

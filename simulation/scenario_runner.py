@@ -53,7 +53,7 @@ def _translate_scenario(raw: dict[str, Any]) -> dict[str, Any]:
              or raw.get("base_drone_count")
              or raw.get("base_traffic", {}).get("drone_count"))
     if count is not None:
-        cfg.setdefault("drones", {})["count"] = int(count)
+        cfg.setdefault("drones", {})["default_count"] = int(count)
 
     # 시뮬레이션 시간
     dur_s = raw.get("simulation_duration_s")

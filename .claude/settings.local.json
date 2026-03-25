@@ -22,7 +22,8 @@
       "mcp__filesystem__list_allowed_directories",
       "Bash(GIT_WORK_TREE=/c/Users/sun47/Desktop/swarm-drone-atc/swarm-drone-atc/.claude/worktrees/quizzical-shamir GIT_DIR=/c/Users/sun47/Desktop/swarm-drone-atc/swarm-drone-atc/.git/worktrees/quizzical-shamir git log:*)",
       "Bash(GIT_WORK_TREE=/c/Users/sun47/Desktop/swarm-drone-atc/swarm-drone-atc/.claude/worktrees/quizzical-shamir GIT_DIR=/c/Users/sun47/Desktop/swarm-drone-atc/swarm-drone-atc/.git/worktrees/quizzical-shamir git branch:*)",
-      "Bash(GIT_WORK_TREE=/c/Users/sun47/Desktop/swarm-drone-atc/swarm-drone-atc/.claude/worktrees/quizzical-shamir GIT_DIR=/c/Users/sun47/Desktop/swarm-drone-atc/swarm-drone-atc/.git/worktrees/quizzical-shamir git diff:*)"
+      "Bash(GIT_WORK_TREE=/c/Users/sun47/Desktop/swarm-drone-atc/swarm-drone-atc/.claude/worktrees/quizzical-shamir GIT_DIR=/c/Users/sun47/Desktop/swarm-drone-atc/swarm-drone-atc/.git/worktrees/quizzical-shamir git diff:*)",
+      "Bash(python -m pytest:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\sun47\\Documents\\카카오톡 받은 파일"

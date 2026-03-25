@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 import simpy
 
 from src.airspace_control.agents.drone_state import DroneState, FlightPhase
+from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
 from src.airspace_control.comms.communication_bus import CommunicationBus, CommMessage
 from src.airspace_control.comms.message_types import (
     TelemetryMessage, ClearanceRequest, ClearanceResponse,
@@ -26,6 +27,16 @@ from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
 from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
 from src.airspace_control.utils.geo_math import closest_approach, distance_3d
 from simulation.voronoi_airspace.voronoi_partition import compute_voronoi_partition
+
+try:
+    from scipy.spatial import KDTree as _KDTree
+    _SCIPY_AVAILABLE = True
+except ImportError:
+    _KDTree = None
+    _SCIPY_AVAILABLE = False
+
+# 모든 드론 프로파일 중 최대 속도 (KDTree 필터 반경 계산용)
+_MAX_DRONE_SPEED_MS: float = max(p.max_speed_ms for p in DRONE_PROFILES.values())
 
 if TYPE_CHECKING:
     from simulation.analytics import SimulationAnalytics
@@ -219,29 +230,18 @@ class AirspaceController:
             if adv.conflict_pair:
                 covered.add(frozenset([adv.target_drone_id, adv.conflict_pair]))
 
-        # KDTree 사전 필터 (N >= 50): lookahead 거리 내 쌍만 CPA 계산
-        # lookahead_radius = 드론 최대 속도 × lookahead 시간 (사전 필터 범위)
-        candidate_pairs: list[tuple[int, int]] = []
-        use_kdtree = n >= 50
+        # KDTree 사전 필터 (N >= 50, scipy 사용 가능 시): lookahead 거리 내 쌍만 CPA 계산
+        use_kdtree = n >= 50 and _SCIPY_AVAILABLE
         if use_kdtree:
-            try:
-                from scipy.spatial import KDTree as _KDTree
-                positions_2d = np.array([d.position[:2] for _, d in active])
-                tree = _KDTree(positions_2d)
-                # CPA lookahead 동안 이동 가능한 최대 거리 기반 반경
-                max_speed_ms = 25.0
-                filter_radius = max_speed_ms * self._lookahead + self._lat_min
-                pairs_set: set[tuple[int, int]] = set()
-                for i in range(n):
-                    neighbors = tree.query_ball_point(positions_2d[i], filter_radius)
-                    for j in neighbors:
-                        if j > i:
-                            pairs_set.add((i, j))
-                candidate_pairs = list(pairs_set)
-            except ImportError:
-                use_kdtree = False
-
-        if not use_kdtree:
+            positions_2d = np.array([d.position[:2] for _, d in active])
+            tree = _KDTree(positions_2d)
+            filter_radius = _MAX_DRONE_SPEED_MS * self._lookahead + self._lat_min
+            candidate_pairs: list[tuple[int, int]] = []
+            for i in range(n):
+                for j in tree.query_ball_point(positions_2d[i], filter_radius):
+                    if j > i:
+                        candidate_pairs.append((i, j))
+        else:
             candidate_pairs = [(i, j) for i in range(n) for j in range(i + 1, n)]
 
         for i, j in candidate_pairs:
@@ -293,7 +293,6 @@ class AirspaceController:
 
     def _pick_target(self, da: DroneState, db: DroneState) -> DroneState:
         """어드바이저리를 받을 드론 선택 (낮은 우선순위)"""
-        from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         pri_a = DRONE_PROFILES.get(da.profile_name,
                                     DRONE_PROFILES["COMMERCIAL_DELIVERY"]).priority
         pri_b = DRONE_PROFILES.get(db.profile_name,

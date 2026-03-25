@@ -107,13 +107,14 @@ class _DroneAgent:
         adv = msg.payload
         phase = self.drone.flight_phase
         if phase in (FlightPhase.ENROUTE, FlightPhase.HOLDING):
-            if adv.advisory_type in ("EVADE_APF", "CLIMB", "DESCEND",
-                                     "TURN_LEFT", "TURN_RIGHT"):
+            if adv.advisory_type in (AdvisoryGenerator.EVADE_APF, AdvisoryGenerator.CLIMB,
+                                     AdvisoryGenerator.DESCEND, AdvisoryGenerator.TURN_LEFT,
+                                     AdvisoryGenerator.TURN_RIGHT):
                 self.drone.flight_phase = FlightPhase.EVADING
-                self.drone._evade_end_s = float(self.env.now) + float(adv.duration_s)
-            elif adv.advisory_type == "HOLD":
+                self.drone.evade_end_s = float(self.env.now) + float(adv.duration_s)
+            elif adv.advisory_type == AdvisoryGenerator.HOLD:
                 self.drone.flight_phase = FlightPhase.HOLDING
-                self.drone._hold_start_s = None
+                self.drone.hold_start_s = None
 
     def run(self):
         drone   = self.drone
@@ -180,7 +181,7 @@ class _DroneAgent:
             drone.last_update_s  = t
 
             # 통신 버스에 최신 위치 업데이트 (범위 계산용)
-            sim.comm_bus.update_position(drone.drone_id, drone.position.copy())
+            sim.comm_bus.update_position(drone.drone_id, drone.position)
 
             # 8. 텔레메트리 송신 (5틱마다 ≈ 0.5 s)
             tick = int(round(t / dt))
@@ -240,18 +241,16 @@ class _DroneAgent:
 
         elif phase == FlightPhase.EVADING:
             # APF 처리는 위에서 force로 전달됨 — 속도는 적분 단계에서 갱신
-            evade_end = getattr(drone, '_evade_end_s', None)
-            if evade_end is None or t >= evade_end:
-                drone._evade_end_s = None
+            if drone.evade_end_s is None or t >= drone.evade_end_s:
+                drone.evade_end_s = None
                 drone.flight_phase = FlightPhase.ENROUTE
 
         elif phase == FlightPhase.HOLDING:
             drone.velocity = np.zeros(3)
-            # _hold_start_s: HOLDING 진입 시각 기록
-            if not hasattr(drone, '_hold_start_s') or drone._hold_start_s is None:
-                drone._hold_start_s = t
-            if t > drone._hold_start_s + 5.0:
-                drone._hold_start_s = None
+            if drone.hold_start_s is None:
+                drone.hold_start_s = t
+            if t > drone.hold_start_s + 5.0:
+                drone.hold_start_s = None
                 drone.flight_phase = FlightPhase.ENROUTE
 
         elif phase == FlightPhase.LANDING:

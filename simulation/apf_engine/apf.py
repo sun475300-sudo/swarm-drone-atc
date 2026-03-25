@@ -12,6 +12,13 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass
 
+try:
+    from scipy.spatial import KDTree as _KDTree
+    _SCIPY_AVAILABLE = True
+except ImportError:
+    _KDTree = None
+    _SCIPY_AVAILABLE = False
+
 
 # SC2 14,200회 검증에서 최적화된 파라미터 (공역 단위: 미터)
 APF_PARAMS = {
@@ -216,15 +223,9 @@ def batch_compute_forces(
     if wind_speeds is None:
         wind_speeds = {}
 
-    # KDTree 빌드 (N >= 100 일 때만 — 소규모에서는 오버헤드가 더 큼)
-    use_kdtree = n >= 100
-    kdtree = None
-    if use_kdtree:
-        try:
-            from scipy.spatial import KDTree
-            kdtree = KDTree(positions[:, :2])   # 2D XY 평면에서 이웃 탐색
-        except ImportError:
-            use_kdtree = False
+    # KDTree 빌드 (N >= 100, scipy 사용 가능 시 — 소규모에서는 오버헤드가 더 큼)
+    use_kdtree = n >= 100 and _SCIPY_AVAILABLE
+    kdtree = _KDTree(positions[:, :2]) if use_kdtree else None  # 2D XY 평면 이웃 탐색
 
     for i, own in enumerate(states):
         goal = goals.get(own.drone_id)
@@ -233,12 +234,8 @@ def batch_compute_forces(
             continue
 
         # 이웃 탐색
-        if use_kdtree and kdtree is not None:
-            # KDTree: O(log N) 쿼리
-            neighbor_indices = kdtree.query_ball_point(
-                own.position[:2], comm_range
-            )
-            neighbor_indices = [j for j in neighbor_indices if j != i]
+        if use_kdtree:
+            neighbor_indices = [j for j in kdtree.query_ball_point(own.position[:2], comm_range) if j != i]
         else:
             # NumPy 벡터화: O(N)
             diffs = positions - own.position       # (N, 3)

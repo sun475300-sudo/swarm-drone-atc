@@ -193,10 +193,16 @@ class TestMainCmdSimulate:
 
         called_with = {}
 
+        from simulation.analytics import SimulationAnalytics
+        from unittest.mock import MagicMock
+
         class MockSim:
             def __init__(self, seed, scenario_cfg):
                 called_with["seed"] = seed
                 called_with["cfg"] = scenario_cfg
+                self.analytics = SimulationAnalytics({})
+                self._drones = {}
+                self.comm_bus = MagicMock(stats={"sent": 0, "delivered": 0, "dropped": 0})
 
             def run(self, duration_s):
                 called_with["duration"] = duration_s

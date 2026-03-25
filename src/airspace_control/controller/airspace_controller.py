@@ -26,6 +26,10 @@ from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
 from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
 from src.airspace_control.utils.geo_math import closest_approach, distance_3d
 from simulation.voronoi_airspace.voronoi_partition import compute_voronoi_partition
+from simulation.spatial_hash import SpatialHash
+from simulation.cbs_planner.cbs import (
+    cbs_plan, position_to_grid, GridNode, GRID_RESOLUTION,
+)
 
 if TYPE_CHECKING:
     from simulation.analytics import SimulationAnalytics
@@ -73,6 +77,7 @@ class AirspaceController:
         self._advisories:    dict[str, ResolutionAdvisory] = {}  # adv_id → adv
         self._intruders:     set[str]               = set()
         self._voronoi_cells: dict                   = {}
+        self._spatial_hash = SpatialHash(cell_size=50.0)
 
         self._lat_min   = float(config.get("separation_standards", {})
                                 .get("lateral_min_m", 50.0))
@@ -140,32 +145,48 @@ class AirspaceController:
             self.pq.push(req, req.timestamp_s)
         self._pending.clear()
 
-        processed = 0
-        while processed < self._max_clear:
+        # 배치 수집: 최대 max_clear 건 꺼내기
+        batch: list[ClearanceRequest] = []
+        while len(batch) < self._max_clear:
             item = self.pq.pop()
             if item is None:
                 break
-            req: ClearanceRequest = item
+            batch.append(item)
+
+        if not batch:
+            return
+
+        # CBS 멀티에이전트 경로 계획 (3건 이상 동시 요청 시)
+        cbs_waypoints: dict[str, list] = {}
+        if len(batch) >= 3:
+            cbs_waypoints = self._cbs_plan_batch(batch)
+
+        for req in batch:
             route = self.planner.plan_route(
                 drone_id=req.drone_id,
                 origin=req.origin,
                 destination=req.destination,
                 priority=req.priority,
             )
-            cost = self.planner.estimate_cost(route)
             approved = True
             reason   = ""
 
-            # Voronoi 셀 충돌 경고: 목적지가 다른 드론의 셀에 침범하는지 확인
+            # Voronoi 셀 충돌 경고
             voronoi_conflict = self._check_voronoi_conflict(req.drone_id, req.destination)
             if voronoi_conflict:
                 approved = False
                 reason = f"voronoi_conflict:{voronoi_conflict}"
 
+            # CBS 경로가 있으면 우선 사용
+            if req.drone_id in cbs_waypoints:
+                waypoints = cbs_waypoints[req.drone_id]
+            else:
+                waypoints = [wp.position for wp in route.waypoints]
+
             resp = ClearanceResponse(
                 drone_id=req.drone_id,
                 approved=approved,
-                assigned_waypoints=[wp.position for wp in route.waypoints],
+                assigned_waypoints=waypoints,
                 altitude_band=(30.0, 120.0),
                 timestamp_s=t,
                 reason=reason,
@@ -183,7 +204,40 @@ class AirspaceController:
                 event = "CLEARANCE_APPROVED" if approved else "CLEARANCE_DENIED"
                 self.analytics.record_event(event, t, drone_id=req.drone_id,
                                             voronoi_conflict=voronoi_conflict)
-            processed += 1
+
+    def _cbs_plan_batch(self, batch: list) -> dict[str, list]:
+        """CBS로 동시 요청 배치의 충돌 없는 경로 세트 계산"""
+        bounds_m = max(
+            abs(self.config.get("airspace", {})
+                .get("bounds_km", {}).get("x", [-5, 5])[1]) * 1000,
+            5000.0,
+        )
+        grid_bounds = {
+            "x": [int(-bounds_m / GRID_RESOLUTION), int(bounds_m / GRID_RESOLUTION)],
+            "y": [int(-bounds_m / GRID_RESOLUTION), int(bounds_m / GRID_RESOLUTION)],
+            "z": [0, int(120.0 / GRID_RESOLUTION)],
+        }
+        starts = {}
+        goals = {}
+        for req in batch:
+            starts[req.drone_id] = position_to_grid(req.origin)
+            goals[req.drone_id] = position_to_grid(req.destination)
+
+        try:
+            paths = cbs_plan(starts, goals, grid_bounds, max_ct_nodes=500)
+        except Exception:
+            return {}
+
+        result: dict[str, list] = {}
+        for did, grid_path in paths.items():
+            # GridNode → 연속 좌표 변환 (웨이포인트 간소화: 10스텝마다)
+            wp_list = []
+            for i, node in enumerate(grid_path):
+                if i % 10 == 0 or i == len(grid_path) - 1:
+                    wp_list.append(node.to_position().tolist())
+            result[did] = wp_list
+
+        return result
 
     def _check_voronoi_conflict(self, drone_id: str, destination: np.ndarray) -> str:
         """
@@ -207,10 +261,9 @@ class AirspaceController:
     # ── 충돌 스캔 ────────────────────────────────────────────
 
     def _scan_conflicts(self, t: float) -> None:
-        active = [(did, d) for did, d in self._active_drones.items()
-                  if d.is_active]
-        n = len(active)
-        if n < 2:
+        active = {did: d for did, d in self._active_drones.items()
+                  if d.is_active}
+        if len(active) < 2:
             return
 
         # 이미 어드바이저리가 발령된 쌍 추적
@@ -219,53 +272,86 @@ class AirspaceController:
             if adv.conflict_pair:
                 covered.add(frozenset([adv.target_drone_id, adv.conflict_pair]))
 
-        for i in range(n):
-            id_a, da = active[i]
-            for j in range(i + 1, n):
-                id_b, db = active[j]
-                pair = frozenset([id_a, id_b])
-                if pair in covered:
-                    continue
+        # Spatial Hash로 근접 쌍만 추출 — O(N·k) (분리기준의 2배 범위)
+        scan_radius = self._lat_min * 2.0
+        self._spatial_hash.clear()
+        for did, d in active.items():
+            self._spatial_hash.insert(did, d.position)
 
-                cpa_dist, cpa_t = closest_approach(
-                    da.position, da.velocity,
-                    db.position, db.velocity,
-                    lookahead_s=self._lookahead,
-                )
-                cur_dist = distance_3d(da.position, db.position)
+        for id_a, id_b, cur_dist in self._spatial_hash.query_pairs_with_dist(scan_radius):
+            pair = frozenset([id_a, id_b])
+            if pair in covered:
+                continue
 
-                # 근접 경고 로그
-                if cur_dist < self._near_lat:
-                    if self.analytics:
-                        self.analytics.record_event("NEAR_MISS", t,
-                                                    drone_a=id_a, drone_b=id_b,
-                                                    dist_m=cur_dist)
+            da = active[id_a]
+            db = active[id_b]
 
-                # 충돌 예측 → 어드바이저리 발령
-                if cpa_dist < self._lat_min and cpa_t < self._lookahead:
-                    if self.analytics:
-                        self.analytics.record_event("CONFLICT", t,
-                                                    drone_a=id_a, drone_b=id_b,
-                                                    cpa_dist_m=cpa_dist,
-                                                    cpa_t_s=cpa_t)
-                    # 낮은 우선순위 드론에 어드바이저리 발령
-                    target = self._pick_target(da, db)
-                    threat = db if target.drone_id == id_a else da
-                    adv = self.advisory_gen.generate(target, threat, cpa_dist, cpa_t, t)
-                    self._advisories[adv.advisory_id] = adv
-                    self.comm_bus.send(CommMessage(
-                        sender_id="CONTROLLER",
-                        receiver_id=target.drone_id,
-                        payload=adv,
-                        sent_time=t,
-                        channel="advisory",
-                    ))
-                    covered.add(pair)
-                    if self.analytics:
-                        self.analytics.record_event("ADVISORY_ISSUED", t,
-                                                    advisory_id=adv.advisory_id,
-                                                    target=target.drone_id,
-                                                    type=adv.advisory_type)
+            cpa_dist, cpa_t = closest_approach(
+                da.position, da.velocity,
+                db.position, db.velocity,
+                lookahead_s=self._lookahead,
+            )
+
+            # 근접 경고 로그
+            if cur_dist < self._near_lat:
+                if self.analytics:
+                    self.analytics.record_event("NEAR_MISS", t,
+                                                drone_a=id_a, drone_b=id_b,
+                                                dist_m=cur_dist)
+
+            # 충돌 예측 → 어드바이저리 발령
+            if cpa_dist < self._lat_min and cpa_t < self._lookahead:
+                if self.analytics:
+                    self.analytics.record_event("CONFLICT", t,
+                                                drone_a=id_a, drone_b=id_b,
+                                                cpa_dist_m=cpa_dist,
+                                                cpa_t_s=cpa_t)
+                # 낮은 우선순위 드론에 어드바이저리 발령
+                target = self._pick_target(da, db)
+                threat = db if target.drone_id == id_a else da
+                adv = self.advisory_gen.generate(target, threat, cpa_dist, cpa_t, t)
+                self._advisories[adv.advisory_id] = adv
+                self.comm_bus.send(CommMessage(
+                    sender_id="CONTROLLER",
+                    receiver_id=target.drone_id,
+                    payload=adv,
+                    sent_time=t,
+                    channel="advisory",
+                ))
+                covered.add(pair)
+                if self.analytics:
+                    self.analytics.record_event("ADVISORY_ISSUED", t,
+                                                advisory_id=adv.advisory_id,
+                                                target=target.drone_id,
+                                                type=adv.advisory_type)
+
+                # Dynamic rerouting: 위협 위치를 피해 경로 재계획
+                if target.goal is not None:
+                    blocked = position_to_grid(threat.position)
+                    try:
+                        reroute = self.planner.replan_avoiding(
+                            drone_id=target.drone_id,
+                            current_pos=target.position,
+                            destination=target.goal,
+                            blocked_node=blocked,
+                        )
+                        reroute_wps = [wp.position for wp in reroute.waypoints]
+                        self.comm_bus.send(CommMessage(
+                            sender_id="CONTROLLER",
+                            receiver_id=target.drone_id,
+                            payload=ClearanceResponse(
+                                drone_id=target.drone_id,
+                                approved=True,
+                                assigned_waypoints=reroute_wps,
+                                altitude_band=(30.0, 120.0),
+                                timestamp_s=t,
+                                reason="reroute_conflict_avoidance",
+                            ),
+                            sent_time=t,
+                            channel="clearance",
+                        ))
+                    except Exception:
+                        pass
 
     def _pick_target(self, da: DroneState, db: DroneState) -> DroneState:
         """어드바이저리를 받을 드론 선택 (낮은 우선순위)"""
@@ -342,9 +428,13 @@ class AirspaceController:
                     .get("bounds_km", {}).get("x", [-5, 5])[1]) * 1000,
                 5000.0,
             )
+            bounds_dict = {
+                "x": [-bounds_m, bounds_m],
+                "y": [-bounds_m, bounds_m],
+            }
             try:
                 self._voronoi_cells = compute_voronoi_partition(
-                    positions, bounds_m
+                    positions, bounds_dict
                 )
             except Exception:
                 pass

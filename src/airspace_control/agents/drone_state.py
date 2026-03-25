@@ -60,6 +60,9 @@ class DroneState:
     # 드론 프로파일 참조
     profile_name: str = "COMMERCIAL_DELIVERY"
 
+    # HOLDING 진입 시각 (HOLDING → ENROUTE 복귀 타이머)
+    _hold_start_s: Optional[float] = None
+
     # 타임스탬프
     last_update_s: float = 0.0
 

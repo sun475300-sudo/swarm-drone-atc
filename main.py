@@ -39,6 +39,7 @@ def _setup_logging(level: str = "INFO"):
 
 def cmd_simulate(args: argparse.Namespace) -> None:
     _setup_logging(getattr(args, "log_level", "INFO"))
+    import time as _time
     from simulation.simulator import SwarmSimulator
 
     duration = args.duration
@@ -46,12 +47,48 @@ def cmd_simulate(args: argparse.Namespace) -> None:
     drones = getattr(args, "drones", 100)
     print(f"\n🛸 시뮬레이션 시작: seed={seed}, drones={drones}, duration={duration}s\n")
 
+    t0 = _time.monotonic()
     override = {"drones": {"default_count": drones}}
     sim = SwarmSimulator(seed=seed, scenario_cfg=override)
     result = sim.run(duration_s=duration)
+    elapsed = _time.monotonic() - t0
 
+    # KPI 요약 테이블
     print(result.summary_table())
-    print(f"\n✅ 시뮬레이션 완료 ({duration:.0f}s, {drones}기)\n")
+
+    # 이벤트 타임라인 요약
+    events = sim.analytics.events
+    event_counts: dict[str, int] = {}
+    for ev in events:
+        event_counts[ev["type"]] = event_counts.get(ev["type"], 0) + 1
+
+    if event_counts:
+        print("\n┌──────────────────────────────┬──────────────────┐")
+        print("│ 이벤트 유형                  │ 발생 횟수        │")
+        print("├──────────────────────────────┼──────────────────┤")
+        for etype, cnt in sorted(event_counts.items(), key=lambda x: -x[1]):
+            print(f"│ {etype:<28} │ {cnt:>16} │")
+        print("└──────────────────────────────┴──────────────────┘")
+
+    # 비행 단계별 최종 분포
+    phase_counts: dict[str, int] = {}
+    for d in sim._drones.values():
+        name = d.flight_phase.name
+        phase_counts[name] = phase_counts.get(name, 0) + 1
+
+    print("\n┌──────────────────────────────┬──────────────────┐")
+    print("│ 비행 단계                    │ 드론 수          │")
+    print("├──────────────────────────────┼──────────────────┤")
+    for phase, cnt in sorted(phase_counts.items(), key=lambda x: -x[1]):
+        bar = "█" * min(cnt, 30)
+        print(f"│ {phase:<28} │ {cnt:>5}  {bar:<10}│")
+    print("└──────────────────────────────┴──────────────────┘")
+
+    # 통신 버스 통계
+    cs = sim.comm_bus.stats
+    print(f"\n📡 통신: sent={cs['sent']}  delivered={cs['delivered']}  dropped={cs['dropped']}")
+
+    print(f"\n✅ 시뮬레이션 완료 ({duration:.0f}s, {drones}기, 실행시간 {elapsed:.1f}s)\n")
 
 
 # ── scenario ─────────────────────────────────────────────────

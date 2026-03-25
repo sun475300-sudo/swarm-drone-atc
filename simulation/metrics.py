@@ -1,6 +1,10 @@
 """
-시뮬레이션 KPI 수집기
+시뮬레이션 KPI 수집기 (DEPRECATED)
 충돌률, 근접 위반, 경로 효율성, 배터리 소모 통계
+
+.. deprecated::
+    이 모듈은 simulation.analytics.SimulationAnalytics로 대체되었습니다.
+    새 코드에서는 analytics.py를 사용하세요.
 """
 from __future__ import annotations
 

@@ -41,13 +41,14 @@ from src.airspace_control.agents.drone_state import (
 from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
 from src.airspace_control.comms.communication_bus import CommunicationBus, CommMessage
 from src.airspace_control.comms.message_types import (
-    TelemetryMessage, ClearanceRequest,
+    TelemetryMessage, ClearanceRequest, ClearanceResponse, ResolutionAdvisory,
 )
 from src.airspace_control.controller.priority_queue import FlightPriorityQueue
 from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
 from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
 from src.airspace_control.controller.airspace_controller import AirspaceController
 from src.airspace_control.utils.geo_math import distance_3d
+from simulation.spatial_hash import SpatialHash
 
 
 # ─────────────────────────────────────────────────────────────
@@ -96,6 +97,24 @@ class _DroneAgent:
         self.drone = drone
         self.sim   = sim
         self.dt    = dt
+
+        # CommunicationBus 메시지 수신 등록
+        sim.comm_bus.subscribe(drone.drone_id, self._on_message)
+
+    def _on_message(self, msg: CommMessage) -> None:
+        """컨트롤러로부터 Advisory/Clearance 수신 처리"""
+        payload = msg.payload
+        drone = self.drone
+
+        if isinstance(payload, ResolutionAdvisory):
+            # 충돌 회피 어드바이저리 → EVADING 전환
+            if drone.flight_phase in (FlightPhase.ENROUTE, FlightPhase.HOLDING):
+                drone.flight_phase = FlightPhase.EVADING
+
+        elif isinstance(payload, ClearanceResponse):
+            if payload.approved and payload.assigned_waypoints:
+                drone.waypoints = [np.array(wp) for wp in payload.assigned_waypoints]
+                drone.current_waypoint_idx = 0
 
     def run(self):
         drone   = self.drone
@@ -161,6 +180,9 @@ class _DroneAgent:
                 drone.flight_time_s += dt
             drone.last_update_s  = t
 
+            # 통신 범위 계산용 위치 업데이트
+            sim.comm_bus.update_position(drone.drone_id, drone.position.copy())
+
             # 8. 텔레메트리 송신 (5틱마다 ≈ 0.5 s)
             tick = int(round(t / dt))
             if tick % 5 == 0:
@@ -224,8 +246,7 @@ class _DroneAgent:
 
         elif phase == FlightPhase.HOLDING:
             drone.velocity = np.zeros(3)
-            # _hold_start_s: HOLDING 진입 시각 기록
-            if not hasattr(drone, '_hold_start_s') or drone._hold_start_s is None:
+            if drone._hold_start_s is None:
                 drone._hold_start_s = t
             if t > drone._hold_start_s + 5.0:
                 drone._hold_start_s = None
@@ -525,22 +546,22 @@ class SwarmSimulator:
     # ── 분석 루프 ─────────────────────────────────────────────
 
     def _analytics_loop(self):
-        """1 Hz: 전체 드론 스냅샷 + 충돌 감지"""
+        """1 Hz: 전체 드론 스냅샷 + 충돌 감지 (Spatial Hash 기반)"""
+        sh = SpatialHash(cell_size=50.0)
         while True:
             yield self.env.timeout(1.0)
             t = float(self.env.now)
             self.analytics.record_snapshot(self._drones, t)
 
-            # 실제 충돌 감지 (5 m 이내)
-            active = [(did, d) for did, d in self._drones.items() if d.is_active]
-            n = len(active)
-            for i in range(n):
-                id_a, da = active[i]
-                for j in range(i + 1, n):
-                    id_b, db = active[j]
-                    if distance_3d(da.position, db.position) < 5.0:
-                        self.analytics.record_event("COLLISION", t,
-                                                    drone_a=id_a, drone_b=id_b)
+            # Spatial Hash로 충돌 감지 (5 m 이내) — O(N·k)
+            sh.clear()
+            for did, d in self._drones.items():
+                if d.is_active:
+                    sh.insert(did, d.position)
+
+            for id_a, id_b, dist in sh.query_pairs_with_dist(5.0):
+                self.analytics.record_event("COLLISION", t,
+                                            drone_a=id_a, drone_b=id_b)
 
     # ── 유틸리티 ─────────────────────────────────────────────
 

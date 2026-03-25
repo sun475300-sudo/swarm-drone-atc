@@ -72,7 +72,7 @@ def _translate_scenario(raw: dict[str, Any]) -> dict[str, Any]:
     intrusion = raw.get("intrusion")
     if intrusion:
         count_i = int(intrusion.get("count", 1))
-        cfg.setdefault("drones", {})["rogue_count"] = count_i
+        cfg.setdefault("scenario", {}).setdefault("drones", {})["n_rogue"] = count_i
 
     # 통신 두절
     comms = raw.get("comms_loss", {})

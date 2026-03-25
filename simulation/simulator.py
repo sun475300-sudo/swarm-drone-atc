@@ -41,7 +41,7 @@ from src.airspace_control.agents.drone_state import (
 from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
 from src.airspace_control.comms.communication_bus import CommunicationBus, CommMessage
 from src.airspace_control.comms.message_types import (
-    TelemetryMessage, ClearanceRequest,
+    TelemetryMessage, ClearanceRequest, ResolutionAdvisory,
 )
 from src.airspace_control.controller.priority_queue import FlightPriorityQueue
 from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
@@ -101,17 +101,18 @@ class _DroneAgent:
 
     def _on_advisory(self, msg) -> None:
         """컨트롤러로부터 ResolutionAdvisory 수신 처리"""
-        from src.airspace_control.comms.message_types import ResolutionAdvisory
         if not isinstance(msg.payload, ResolutionAdvisory):
             return
         adv = msg.payload
         phase = self.drone.flight_phase
-        if phase in (FlightPhase.ENROUTE, FlightPhase.HOLDING):
+        if phase in (FlightPhase.ENROUTE, FlightPhase.HOLDING, FlightPhase.EVADING):
             if adv.advisory_type in (AdvisoryGenerator.EVADE_APF, AdvisoryGenerator.CLIMB,
                                      AdvisoryGenerator.DESCEND, AdvisoryGenerator.TURN_LEFT,
                                      AdvisoryGenerator.TURN_RIGHT):
                 self.drone.flight_phase = FlightPhase.EVADING
-                self.drone.evade_end_s = float(self.env.now) + float(adv.duration_s)
+                new_end = float(self.env.now) + float(adv.duration_s)
+                if self.drone.evade_end_s is None or new_end > self.drone.evade_end_s:
+                    self.drone.evade_end_s = new_end
             elif adv.advisory_type == AdvisoryGenerator.HOLD:
                 self.drone.flight_phase = FlightPhase.HOLDING
                 self.drone.hold_start_s = None
@@ -539,8 +540,10 @@ class SwarmSimulator:
                     # 바람 속도 (m/s) 계산
                     wind_speeds[d.drone_id] = float(np.linalg.norm(wind_vec))
 
+                all_active = [_drone_to_apf(d) for d in self._drones.values() if d.is_active]
                 self.apf_forces = batch_compute_forces(states, goals, nfz_centers,
-                                                      wind_speeds=wind_speeds)
+                                                      wind_speeds=wind_speeds,
+                                                      neighbor_states=all_active)
             else:
                 self.apf_forces = {}
 

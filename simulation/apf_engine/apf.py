@@ -202,6 +202,7 @@ def batch_compute_forces(
     comm_range: float = 2000.0,
     params: dict | None = None,
     wind_speeds: dict[str, float] | None = None,
+    neighbor_states: list[APFState] | None = None,
 ) -> dict[str, np.ndarray]:
     """
     전체 드론에 대한 APF 합력 배치 계산 (KDTree 공간 인덱스 최적화)
@@ -210,40 +211,47 @@ def batch_compute_forces(
     소규모(N < 100)는 NumPy 벡터화 O(N²) 사용.
 
     Args:
-        wind_speeds: {drone_id: wind_speed} 딕셔너리 (각 드론 위치의 바람 속도)
+        wind_speeds:     {drone_id: wind_speed} 딕셔너리 (각 드론 위치의 바람 속도)
+        neighbor_states: 이웃 탐색 풀 (None이면 states 자체를 사용).
+                         EVADING 드론만 states에 전달할 때 전체 활성 드론을 이웃 풀로
+                         지정하여 비-EVADING 드론도 장애물로 인식하게 한다.
 
     Returns:
         {drone_id: force_vector} 딕셔너리
     """
     forces = {}
-    n = len(states)
-    positions = np.array([s.position for s in states])   # (N, 3)
-    velocities = np.array([s.velocity for s in states])  # (N, 3)
 
     if wind_speeds is None:
         wind_speeds = {}
 
-    # KDTree 빌드 (N >= 100, scipy 사용 가능 시 — 소규모에서는 오버헤드가 더 큼)
-    use_kdtree = n >= 100 and _SCIPY_AVAILABLE
-    kdtree = _KDTree(positions[:, :2]) if use_kdtree else None  # 2D XY 평면 이웃 탐색
+    # 이웃 탐색 풀: 별도 지정 시 해당 풀, 없으면 states 자체
+    pool = neighbor_states if neighbor_states is not None else states
+    pool_positions  = np.array([s.position for s in pool])   # (M, 3)
+    pool_velocities = np.array([s.velocity for s in pool])   # (M, 3)
 
-    for i, own in enumerate(states):
+    # KDTree 빌드 (풀 크기 기준, scipy 사용 가능 시)
+    use_kdtree = len(pool) >= 100 and _SCIPY_AVAILABLE
+    kdtree = _KDTree(pool_positions[:, :2]) if use_kdtree else None  # 2D XY 평면 이웃 탐색
+
+    for own in states:
         goal = goals.get(own.drone_id)
         if goal is None:
             forces[own.drone_id] = np.zeros(3)
             continue
 
-        # 이웃 탐색
+        # 이웃 탐색 (자기 자신 제외)
         if use_kdtree:
-            neighbor_indices = [j for j in kdtree.query_ball_point(own.position[:2], comm_range) if j != i]
+            neighbor_indices = [j for j in kdtree.query_ball_point(own.position[:2], comm_range)
+                                if pool[j].drone_id != own.drone_id]
         else:
-            # NumPy 벡터화: O(N)
-            diffs = positions - own.position       # (N, 3)
-            dists = np.linalg.norm(diffs, axis=1)  # (N,)
-            neighbor_indices = list(np.where((dists < comm_range) & (dists > 0))[0])
+            # NumPy 벡터화: O(M)
+            diffs = pool_positions - own.position       # (M, 3)
+            dists = np.linalg.norm(diffs, axis=1)       # (M,)
+            neighbor_indices = [j for j in np.where((dists < comm_range) & (dists > 0))[0]
+                                if pool[j].drone_id != own.drone_id]
 
         neighbors = [
-            APFState(positions[j], velocities[j], states[j].drone_id)
+            APFState(pool_positions[j], pool_velocities[j], pool[j].drone_id)
             for j in neighbor_indices
         ]
 

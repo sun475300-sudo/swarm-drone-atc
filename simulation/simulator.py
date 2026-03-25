@@ -31,7 +31,7 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from simulation.apf_engine.apf import (
-    APFState, batch_compute_forces, force_to_velocity,
+    APFState, batch_compute_forces,
 )
 from simulation.weather import WindModel, build_wind_models
 from simulation.analytics import SimulationAnalytics, SimulationResult
@@ -229,6 +229,8 @@ class _DroneAgent:
         elif phase == FlightPhase.ENROUTE:
             if drone.goal is None:
                 drone.flight_phase = FlightPhase.LANDING
+                sim.analytics.record_event("DRONE_LANDING", t,
+                                           drone_id=drone.drone_id, reason="no_goal")
                 return
             diff    = drone.goal - drone.position
             dist_xy = float(np.linalg.norm(diff[:2]))

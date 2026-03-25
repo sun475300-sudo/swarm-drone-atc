@@ -130,6 +130,7 @@ class AirspaceController:
                 drone_id=tm.drone_id,
                 position=np.array(tm.position, dtype=float),
                 velocity=np.array(tm.velocity, dtype=float),
+                profile_name="ROGUE" if not tm.is_registered else "COMMERCIAL_DELIVERY",
             )
             self._active_drones[tm.drone_id] = drone
         else:
@@ -171,11 +172,20 @@ class AirspaceController:
             approved = True
             reason   = ""
 
-            # Voronoi 셀 충돌 경고: 목적지가 다른 드론의 셀에 침범하는지 확인
-            voronoi_conflict = self._check_voronoi_conflict(req.drone_id, req.destination)
-            if voronoi_conflict:
+            # 목적지 NFZ/경계 검증
+            nfz_hit = self._destination_in_nfz(req.destination)
+            if nfz_hit:
                 approved = False
-                reason = f"voronoi_conflict:{voronoi_conflict}"
+                reason = f"destination_in_nfz:{nfz_hit}"
+            elif not self._destination_in_bounds(req.destination):
+                approved = False
+                reason = "destination_out_of_bounds"
+            else:
+                # Voronoi 셀 충돌 경고: 목적지가 다른 드론의 셀에 침범하는지 확인
+                voronoi_conflict = self._check_voronoi_conflict(req.drone_id, req.destination)
+                if voronoi_conflict:
+                    approved = False
+                    reason = f"voronoi_conflict:{voronoi_conflict}"
 
             resp = ClearanceResponse(
                 drone_id=req.drone_id,
@@ -197,8 +207,29 @@ class AirspaceController:
             if self.analytics:
                 event = "CLEARANCE_APPROVED" if approved else "CLEARANCE_DENIED"
                 self.analytics.record_event(event, t, drone_id=req.drone_id,
-                                            voronoi_conflict=voronoi_conflict)
+                                            reason=reason)
             processed += 1
+
+    def _destination_in_nfz(self, destination: np.ndarray) -> str:
+        """목적지가 NFZ 내부에 있으면 NFZ 식별 문자열 반환, 없으면 ''"""
+        import math
+        for i, nfz in enumerate(self.planner.nfz_list):
+            center = nfz["center"]
+            radius = float(nfz.get("radius_m", 0.0))
+            dx = float(destination[0]) - float(center[0])
+            dy = float(destination[1]) - float(center[1])
+            if math.hypot(dx, dy) < radius:
+                return f"NFZ-{i}"
+        return ""
+
+    def _destination_in_bounds(self, destination: np.ndarray) -> bool:
+        """목적지가 공역 경계 내부에 있으면 True"""
+        bounds = self.planner.bounds
+        bx = bounds.get("x", [-5000, 5000])
+        by = bounds.get("y", [-5000, 5000])
+        bz = bounds.get("z", [0.0, 120.0])
+        x, y, z = float(destination[0]), float(destination[1]), float(destination[2]) if len(destination) > 2 else 60.0
+        return bx[0] <= x <= bx[1] and by[0] <= y <= by[1] and bz[0] <= z <= bz[1]
 
     def _check_voronoi_conflict(self, drone_id: str, destination: np.ndarray) -> str:
         """
@@ -278,9 +309,18 @@ class AirspaceController:
                                                 drone_a=id_a, drone_b=id_b,
                                                 cpa_dist_m=cpa_dist,
                                                 cpa_t_s=cpa_t)
-                # 낮은 우선순위 드론에 어드바이저리 발령
-                target = self._pick_target(da, db)
-                threat = db if target.drone_id == id_a else da
+                # 낮은 우선순위 등록 드론에 어드바이저리 발령 (ROGUE는 협조 불가)
+                is_rogue_a = da.profile_name == "ROGUE"
+                is_rogue_b = db.profile_name == "ROGUE"
+                if is_rogue_a and is_rogue_b:
+                    continue  # 두 ROGUE 간 충돌 — 어드바이저리 불가
+                if is_rogue_a:
+                    target, threat = db, da  # ROGUE는 대상 제외
+                elif is_rogue_b:
+                    target, threat = da, db
+                else:
+                    target = self._pick_target(da, db)
+                    threat = db if target.drone_id == id_a else da
                 adv = self.advisory_gen.generate(target, threat, cpa_dist, cpa_t, t)
                 self._advisories[adv.advisory_id] = adv
                 self.comm_bus.send(CommMessage(

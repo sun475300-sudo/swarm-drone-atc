@@ -219,53 +219,77 @@ class AirspaceController:
             if adv.conflict_pair:
                 covered.add(frozenset([adv.target_drone_id, adv.conflict_pair]))
 
-        for i in range(n):
+        # KDTree 사전 필터 (N >= 50): lookahead 거리 내 쌍만 CPA 계산
+        # lookahead_radius = 드론 최대 속도 × lookahead 시간 (사전 필터 범위)
+        candidate_pairs: list[tuple[int, int]] = []
+        use_kdtree = n >= 50
+        if use_kdtree:
+            try:
+                from scipy.spatial import KDTree as _KDTree
+                positions_2d = np.array([d.position[:2] for _, d in active])
+                tree = _KDTree(positions_2d)
+                # CPA lookahead 동안 이동 가능한 최대 거리 기반 반경
+                max_speed_ms = 25.0
+                filter_radius = max_speed_ms * self._lookahead + self._lat_min
+                pairs_set: set[tuple[int, int]] = set()
+                for i in range(n):
+                    neighbors = tree.query_ball_point(positions_2d[i], filter_radius)
+                    for j in neighbors:
+                        if j > i:
+                            pairs_set.add((i, j))
+                candidate_pairs = list(pairs_set)
+            except ImportError:
+                use_kdtree = False
+
+        if not use_kdtree:
+            candidate_pairs = [(i, j) for i in range(n) for j in range(i + 1, n)]
+
+        for i, j in candidate_pairs:
             id_a, da = active[i]
-            for j in range(i + 1, n):
-                id_b, db = active[j]
-                pair = frozenset([id_a, id_b])
-                if pair in covered:
-                    continue
+            id_b, db = active[j]
+            pair = frozenset([id_a, id_b])
+            if pair in covered:
+                continue
 
-                cpa_dist, cpa_t = closest_approach(
-                    da.position, da.velocity,
-                    db.position, db.velocity,
-                    lookahead_s=self._lookahead,
-                )
-                cur_dist = distance_3d(da.position, db.position)
+            cpa_dist, cpa_t = closest_approach(
+                da.position, da.velocity,
+                db.position, db.velocity,
+                lookahead_s=self._lookahead,
+            )
+            cur_dist = distance_3d(da.position, db.position)
 
-                # 근접 경고 로그
-                if cur_dist < self._near_lat:
-                    if self.analytics:
-                        self.analytics.record_event("NEAR_MISS", t,
-                                                    drone_a=id_a, drone_b=id_b,
-                                                    dist_m=cur_dist)
+            # 근접 경고 로그
+            if cur_dist < self._near_lat:
+                if self.analytics:
+                    self.analytics.record_event("NEAR_MISS", t,
+                                                drone_a=id_a, drone_b=id_b,
+                                                dist_m=cur_dist)
 
-                # 충돌 예측 → 어드바이저리 발령
-                if cpa_dist < self._lat_min and cpa_t < self._lookahead:
-                    if self.analytics:
-                        self.analytics.record_event("CONFLICT", t,
-                                                    drone_a=id_a, drone_b=id_b,
-                                                    cpa_dist_m=cpa_dist,
-                                                    cpa_t_s=cpa_t)
-                    # 낮은 우선순위 드론에 어드바이저리 발령
-                    target = self._pick_target(da, db)
-                    threat = db if target.drone_id == id_a else da
-                    adv = self.advisory_gen.generate(target, threat, cpa_dist, cpa_t, t)
-                    self._advisories[adv.advisory_id] = adv
-                    self.comm_bus.send(CommMessage(
-                        sender_id="CONTROLLER",
-                        receiver_id=target.drone_id,
-                        payload=adv,
-                        sent_time=t,
-                        channel="advisory",
-                    ))
-                    covered.add(pair)
-                    if self.analytics:
-                        self.analytics.record_event("ADVISORY_ISSUED", t,
-                                                    advisory_id=adv.advisory_id,
-                                                    target=target.drone_id,
-                                                    type=adv.advisory_type)
+            # 충돌 예측 → 어드바이저리 발령
+            if cpa_dist < self._lat_min and cpa_t < self._lookahead:
+                if self.analytics:
+                    self.analytics.record_event("CONFLICT", t,
+                                                drone_a=id_a, drone_b=id_b,
+                                                cpa_dist_m=cpa_dist,
+                                                cpa_t_s=cpa_t)
+                # 낮은 우선순위 드론에 어드바이저리 발령
+                target = self._pick_target(da, db)
+                threat = db if target.drone_id == id_a else da
+                adv = self.advisory_gen.generate(target, threat, cpa_dist, cpa_t, t)
+                self._advisories[adv.advisory_id] = adv
+                self.comm_bus.send(CommMessage(
+                    sender_id="CONTROLLER",
+                    receiver_id=target.drone_id,
+                    payload=adv,
+                    sent_time=t,
+                    channel="advisory",
+                ))
+                covered.add(pair)
+                if self.analytics:
+                    self.analytics.record_event("ADVISORY_ISSUED", t,
+                                                advisory_id=adv.advisory_id,
+                                                target=target.drone_id,
+                                                type=adv.advisory_type)
 
     def _pick_target(self, da: DroneState, db: DroneState) -> DroneState:
         """어드바이저리를 받을 드론 선택 (낮은 우선순위)"""

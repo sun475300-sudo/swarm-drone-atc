@@ -27,6 +27,8 @@ data/reports/
 
 # Claude Code worktrees
 .claude/worktrees/
+# 로컬 머신 전용 설정 (PII/절대 경로 포함 가능)
+.claude/settings.local.json
 
 # OS
 .DS_Store

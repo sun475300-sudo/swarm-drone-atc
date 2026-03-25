@@ -197,7 +197,10 @@ def batch_compute_forces(
     wind_speeds: dict[str, float] | None = None,
 ) -> dict[str, np.ndarray]:
     """
-    전체 드론에 대한 APF 합력 배치 계산 (NumPy 벡터화)
+    전체 드론에 대한 APF 합력 배치 계산 (KDTree 공간 인덱스 최적화)
+
+    N >= 100 이면 scipy KDTree로 이웃 탐색 O(N log N),
+    소규모(N < 100)는 NumPy 벡터화 O(N²) 사용.
 
     Args:
         wind_speeds: {drone_id: wind_speed} 딕셔너리 (각 드론 위치의 바람 속도)
@@ -206,11 +209,22 @@ def batch_compute_forces(
         {drone_id: force_vector} 딕셔너리
     """
     forces = {}
+    n = len(states)
     positions = np.array([s.position for s in states])   # (N, 3)
     velocities = np.array([s.velocity for s in states])  # (N, 3)
 
     if wind_speeds is None:
         wind_speeds = {}
+
+    # KDTree 빌드 (N >= 100 일 때만 — 소규모에서는 오버헤드가 더 큼)
+    use_kdtree = n >= 100
+    kdtree = None
+    if use_kdtree:
+        try:
+            from scipy.spatial import KDTree
+            kdtree = KDTree(positions[:, :2])   # 2D XY 평면에서 이웃 탐색
+        except ImportError:
+            use_kdtree = False
 
     for i, own in enumerate(states):
         goal = goals.get(own.drone_id)
@@ -218,18 +232,24 @@ def batch_compute_forces(
             forces[own.drone_id] = np.zeros(3)
             continue
 
-        # 통신 범위 내 이웃 탐색 (벡터화)
-        diffs = positions - own.position           # (N, 3)
-        dists = np.linalg.norm(diffs, axis=1)     # (N,)
-        neighbor_mask = (dists < comm_range) & (dists > 0)
-        neighbor_indices = np.where(neighbor_mask)[0]
+        # 이웃 탐색
+        if use_kdtree and kdtree is not None:
+            # KDTree: O(log N) 쿼리
+            neighbor_indices = kdtree.query_ball_point(
+                own.position[:2], comm_range
+            )
+            neighbor_indices = [j for j in neighbor_indices if j != i]
+        else:
+            # NumPy 벡터화: O(N)
+            diffs = positions - own.position       # (N, 3)
+            dists = np.linalg.norm(diffs, axis=1)  # (N,)
+            neighbor_indices = list(np.where((dists < comm_range) & (dists > 0))[0])
 
         neighbors = [
             APFState(positions[j], velocities[j], states[j].drone_id)
             for j in neighbor_indices
         ]
 
-        # 바람 속도 가져오기
         wind_speed = wind_speeds.get(own.drone_id, 0.0)
 
         forces[own.drone_id] = compute_total_force(

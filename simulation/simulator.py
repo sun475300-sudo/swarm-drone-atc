@@ -96,6 +96,24 @@ class _DroneAgent:
         self.drone = drone
         self.sim   = sim
         self.dt    = dt
+        # 어드바이저리 수신을 위해 통신 버스 구독
+        sim.comm_bus.subscribe(drone.drone_id, self._on_advisory)
+
+    def _on_advisory(self, msg) -> None:
+        """컨트롤러로부터 ResolutionAdvisory 수신 처리"""
+        from src.airspace_control.comms.message_types import ResolutionAdvisory
+        if not isinstance(msg.payload, ResolutionAdvisory):
+            return
+        adv = msg.payload
+        phase = self.drone.flight_phase
+        if phase in (FlightPhase.ENROUTE, FlightPhase.HOLDING):
+            if adv.advisory_type in ("EVADE_APF", "CLIMB", "DESCEND",
+                                     "TURN_LEFT", "TURN_RIGHT"):
+                self.drone.flight_phase = FlightPhase.EVADING
+                self.drone._evade_end_s = float(self.env.now) + float(adv.duration_s)
+            elif adv.advisory_type == "HOLD":
+                self.drone.flight_phase = FlightPhase.HOLDING
+                self.drone._hold_start_s = None
 
     def run(self):
         drone   = self.drone
@@ -161,6 +179,9 @@ class _DroneAgent:
                 drone.flight_time_s += dt
             drone.last_update_s  = t
 
+            # 통신 버스에 최신 위치 업데이트 (범위 계산용)
+            sim.comm_bus.update_position(drone.drone_id, drone.position.copy())
+
             # 8. 텔레메트리 송신 (5틱마다 ≈ 0.5 s)
             tick = int(round(t / dt))
             if tick % 5 == 0:
@@ -219,7 +240,9 @@ class _DroneAgent:
 
         elif phase == FlightPhase.EVADING:
             # APF 처리는 위에서 force로 전달됨 — 속도는 적분 단계에서 갱신
-            if random.random() < 0.03:
+            evade_end = getattr(drone, '_evade_end_s', None)
+            if evade_end is None or t >= evade_end:
+                drone._evade_end_s = None
                 drone.flight_phase = FlightPhase.ENROUTE
 
         elif phase == FlightPhase.HOLDING:

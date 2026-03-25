@@ -91,6 +91,11 @@ def _translate_scenario(raw: dict[str, Any]) -> dict[str, Any]:
     if llp:
         cfg["lost_link_protocol"] = llp
 
+    # 분리 기준 오버라이드 (강풍 시나리오 등)
+    sep = raw.get("separation_standards", {})
+    if sep:
+        cfg["separation_standards"] = sep
+
     return cfg
 
 

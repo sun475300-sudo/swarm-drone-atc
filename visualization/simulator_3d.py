@@ -406,11 +406,13 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
 
 
 def _sim_loop(sim: SimState) -> None:
-    """백그라운드 시뮬레이션 스레드 (20 Hz)"""
+    """백그라운드 시뮬레이션 스레드 (20 Hz 기준, 속도 배율 적용)"""
     while True:
         if sim.running:
-            _step(sim)
-        time.sleep(0.05)
+            spd = max(0.25, sim.speed_multiplier)
+            for _ in range(max(1, int(spd))):
+                _step(sim)
+        time.sleep(0.05 / max(0.25, sim.speed_multiplier))
 
 
 # ─────────────────────────────────────────────────────────────
@@ -829,6 +831,19 @@ app.layout = html.Div(
                                 value=[],
                                 style={"color": "#c9d1d9", "fontSize": "11px",
                                        "marginTop": "14px"},
+                            ),
+                        ]),
+
+                        # 속도 조절
+                        html.Div([
+                            html.Div("⏩ 시뮬레이션 속도",
+                                     style={"color": "#c9d1d9", "fontSize": "11px",
+                                            "marginTop": "14px", "marginBottom": "4px"}),
+                            dcc.Slider(
+                                id="slider-speed",
+                                min=0.25, max=5.0, step=0.25, value=1.0,
+                                marks={0.25: "0.25x", 1: "1x", 2: "2x", 3: "3x", 5: "5x"},
+                                tooltip={"placement": "bottom", "always_visible": False},
                             ),
                         ]),
 

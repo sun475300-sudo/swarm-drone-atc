@@ -948,6 +948,16 @@ def _wind(value):
 
 
 @app.callback(
+    Output("slider-speed", "className"),
+    Input("slider-speed", "value"),
+    prevent_initial_call=True,
+)
+def _speed(value):
+    SIM.speed_multiplier = float(value or 1.0)
+    return ""
+
+
+@app.callback(
     Output("_dummy-scenario", "children"),
     Input("dropdown-scenario", "value"),
     prevent_initial_call=True,

@@ -96,7 +96,7 @@
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Layer 4 — 사용자 인터페이스                                   │
-│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 173개          │
+│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 205개          │
 └───────────────────────────┬──────────────────────────────────┘
                             │ 명령 / 결과
 ┌───────────────────────────▼──────────────────────────────────┐
@@ -564,10 +564,12 @@ pytest tests/ -v              # 전체 실행
 pytest tests/test_apf.py -v   # 특정 파일
 ```
 
-### 테스트 커버리지 (173개 / 18모듈)
+### 테스트 커버리지 (205개 / 19모듈)
 
 | 파일 | 수 | 대상 |
 |------|---|------|
+| `test_safety_fixes.py` | 32 | A1~A3 안전 수정·ROGUE 가드·NFZ·상태 전이 |
+| `test_scenario_runner.py` | 16 | 시나리오 변환·실행·목록 |
 | `test_analytics.py` | 14 | 이벤트 수집·KPI·합격 판정 |
 | `test_geo_math.py` | 13 | CPA·거리·방위각·해발고도 |
 | `test_metrics.py` | 12 | SimulationMetrics 집계 |
@@ -575,6 +577,7 @@ pytest tests/test_apf.py -v   # 특정 파일
 | `test_weather.py` | 11 | WindModel 3종 (constant/gust/shear) |
 | `test_engine_integration.py` | 11 | SwarmSimulator E2E·Voronoi |
 | `test_apf.py` | 10 | APF 포텐셜 장·강풍 모드 |
+| `test_monte_carlo.py` | 10 | MC 스윕·_run_single 검증 |
 | `test_airspace_controller.py` | 9 | 1 Hz 제어 루프·허가 |
 | `test_priority_queue.py` | 9 | 우선순위 허가 큐·FIFO |
 | `test_cbs.py` | 8 | CBS 격자 노드·해시 |
@@ -583,10 +586,8 @@ pytest tests/test_apf.py -v   # 특정 파일
 | `test_resolution_advisory.py` | 6 | 어드바이저리 6종 분류 |
 | `test_comm_bus.py` | 6 | CommunicationBus 지연·손실 |
 | `test_message_types.py` | 6 | 메시지 타입 6종 직렬화 |
-| `test_monte_carlo.py` | 10 | MC 스윕·_run_single 검증 |
-| `test_scenario_runner.py` | 16 | 시나리오 변환·실행·목록 |
 | `test_voronoi.py` | 5 | Voronoi 분할·클리핑·충돌감지 |
-| **합계** | **173** | **18 모듈 · 100% pass** |
+| **합계** | **205** | **19 모듈 · 100% pass** |
 
 ---
 
@@ -614,7 +615,7 @@ pytest tests/test_apf.py -v   # 특정 파일
 | 단계 | 기간 | 주요 산출물 | 상태 |
 |------|------|------------|------|
 | Phase 1: 설계 | 2026.01~03 | 아키텍처 설계, 알고리즘 설계 | 완료 |
-| Phase 2: 구현 | 2026.04~05 | SimPy 시뮬레이터, 173개 pytest, SC2 검증 | 준비중 |
+| Phase 2: 구현 | 2026.04~05 | SimPy 시뮬레이터, 205개 pytest, SC2 검증 | 준비중 |
 | Phase 3: 검증 | 2026.05~06 | Monte Carlo, 3D 대시보드, 7개 시나리오 전량 실행 | 준비중 |
 | Phase 4: 문서화 | 2026.06 | 기술 보고서(DOCX), 성능 차트, README | 준비중 |
 

@@ -206,8 +206,8 @@ class _DroneAgent:
                     channel="telemetry",
                 ))
 
-            # 9. 분석
-            sim.analytics.record_snapshot({drone.drone_id: drone}, t)
+            # 9. 분석: 궤적 스냅샷은 _analytics_loop에서 1 Hz 일괄 처리
+            #    (개별 10 Hz 기록은 _analytics_loop 1 Hz와 중복 — Bug C 수정)
 
     # ── 상태 머신 ──────────────────────────────────────────────
 
@@ -523,7 +523,7 @@ class SwarmSimulator:
     def _apf_batch_loop(self):
         """10 Hz: EVADING 드론에 대해 APF 힘 배치 계산"""
         dt = 0.1
-        nfz_centers = [n["center"] for n in self.NFZ]
+        nfz_obstacles = [(n["center"], float(n.get("radius_m", 0.0))) for n in self.NFZ]
         while True:
             yield self.env.timeout(dt)
             evading = [d for d in self._drones.values()
@@ -544,7 +544,7 @@ class SwarmSimulator:
                     wind_speeds[d.drone_id] = float(np.linalg.norm(wind_vec))
 
                 all_active = [_drone_to_apf(d) for d in self._drones.values() if d.is_active]
-                self.apf_forces = batch_compute_forces(states, goals, nfz_centers,
+                self.apf_forces = batch_compute_forces(states, goals, nfz_obstacles,
                                                       wind_speeds=wind_speeds,
                                                       neighbor_states=all_active)
             else:

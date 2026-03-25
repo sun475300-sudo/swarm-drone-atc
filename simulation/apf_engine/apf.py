@@ -62,11 +62,13 @@ def attractive_force(pos: np.ndarray, goal: np.ndarray, k_att: float = APF_PARAM
     dist = np.linalg.norm(diff)
     if dist < 0.1:
         return np.zeros(3)
-    # 거리 가중: 멀면 강하게, 가까우면 약하게 (quadratic attractive)
+    # 거리 가중: 멀면 강하게, 가까우면 약하게
+    # dist > 10m: 크기 = k_att (일정) — dist ≤ 10m: 크기 = k_att * dist/10 (선형 감소)
+    # 경계(10m)에서 양쪽 모두 k_att*diff/10 → 연속 보장 (이전: 10× 급변 발진 유발)
     if dist > 10.0:
-        return k_att * diff / dist          # 단위 벡터 (원거리)
+        return k_att * diff / dist          # 원거리: 크기=k_att
     else:
-        return k_att * diff                 # 이차 인력 (근거리)
+        return k_att * diff / 10.0          # 근거리: 크기=k_att*dist/10 (0→k_att)
 
 
 def repulsive_force_drone(
@@ -104,18 +106,25 @@ def repulsive_force_drone(
 def repulsive_force_obstacle(
     pos: np.ndarray,
     obs_pos: np.ndarray,
+    radius: float = 0.0,
     k_rep: float = APF_PARAMS["k_rep_obs"],
     d0: float = APF_PARAMS["d0_obs"],
 ) -> np.ndarray:
-    """고정 장애물 (건물, NFZ 경계) 척력"""
-    diff = pos - obs_pos
-    dist = np.linalg.norm(diff)
+    """고정 장애물 (건물, NFZ 경계) 척력
 
-    if dist < 1e-3 or dist >= d0:
+    Args:
+        radius: 장애물 구체 반경 (m). 실효거리 = dist_to_center - radius.
+                NFZ처럼 구체형 금지 구역은 경계 표면부터 d0 이내에서 척력 발생.
+    """
+    diff = pos - obs_pos
+    dist_center = np.linalg.norm(diff)
+    dist = max(0.0, dist_center - radius)   # 구체 표면까지 실효거리
+
+    if dist_center < 1e-3 or dist >= d0:
         return np.zeros(3)
 
-    n = diff / dist
-    mag = k_rep * (1.0 / dist - 1.0 / d0) / (dist ** 2)
+    n   = diff / dist_center               # 중심에서 벗어나는 방향
+    mag = k_rep * (1.0 / max(dist, 1e-3) - 1.0 / d0) / (max(dist, 1e-3) ** 2)
     return mag * n
 
 
@@ -123,7 +132,7 @@ def compute_total_force(
     own: APFState,
     goal: np.ndarray,
     neighbors: list[APFState],
-    obstacles: list[np.ndarray],
+    obstacles: list[tuple[np.ndarray, float]],
     params: dict | None = None,
     wind_speed: float = 0.0,
 ) -> np.ndarray:
@@ -134,7 +143,7 @@ def compute_total_force(
         own:       자신의 상태
         goal:      목표 위치 [x, y, z]
         neighbors: 통신 범위 내 이웃 드론 상태 리스트
-        obstacles: 장애물 위치 리스트
+        obstacles: (center, radius_m) 튜플 리스트 — NFZ/건물 등 구체형 장애물
         params:    APF 파라미터 딕셔너리 (None이면 바람 조건에 따라 자동 선택)
         wind_speed: 현재 바람 속도 (m/s) - 파라미터 자동 선택에 사용
 
@@ -161,11 +170,13 @@ def compute_total_force(
             params["k_rep_drone"], params["d0_drone"]
         )
 
-    # 3. 장애물 척력
-    for obs in obstacles:
+    # 3. 장애물 척력 — obstacles = [(center, radius), ...]
+    for obs_center, obs_radius in obstacles:
         F_total += repulsive_force_obstacle(
-            own.position, obs,
-            params["k_rep_obs"], params["d0_obs"]
+            own.position, obs_center,
+            radius=obs_radius,
+            k_rep=params["k_rep_obs"],
+            d0=params["d0_obs"],
         )
 
     # 4. 고도 보정 (비행 고도 유지)
@@ -198,7 +209,7 @@ def force_to_velocity(
 def batch_compute_forces(
     states: list[APFState],
     goals: dict[str, np.ndarray],
-    obstacles: list[np.ndarray],
+    obstacles: list[tuple[np.ndarray, float]],
     comm_range: float = 2000.0,
     params: dict | None = None,
     wind_speeds: dict[str, float] | None = None,

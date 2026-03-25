@@ -235,7 +235,9 @@ class AirspaceController:
         if use_kdtree:
             positions_2d = np.array([d.position[:2] for _, d in active])
             tree = _KDTree(positions_2d)
-            filter_radius = _MAX_DRONE_SPEED_MS * self._lookahead + self._lat_min
+            # 두 드론이 정면 접근 시 합산 상대속도 = 2 × max_speed
+            # 단방향 max_speed × lookahead로는 head-on 쌍을 놓칠 수 있음 (Bug D 수정)
+            filter_radius = 2.0 * _MAX_DRONE_SPEED_MS * self._lookahead + self._lat_min
             candidate_pairs: list[tuple[int, int]] = []
             for i in range(n):
                 for j in tree.query_ball_point(positions_2d[i], filter_radius):

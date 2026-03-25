@@ -143,6 +143,10 @@ class AirspaceController:
         except KeyError:
             pass
 
+        # 착지 완료 드론 제거 — 재이륙 시 새 텔레메트리로 재등록
+        if drone.flight_phase == FlightPhase.GROUNDED:
+            self._active_drones.pop(tm.drone_id, None)
+
     # ── 허가 처리 ────────────────────────────────────────────
 
     def _process_clearances(self, t: float) -> None:

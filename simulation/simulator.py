@@ -164,7 +164,9 @@ class _DroneAgent:
                 # APF force는 여전히 EVADING 상태일 때만 적용 (state machine 전환 후 재확인)
                 if drone.flight_phase == FlightPhase.EVADING:
                     drone.velocity += force * dt
-                drone.velocity[:2] += wind[:2]
+                # HOLDING 드론은 능동적으로 위치 유지 — wind 편류 제외
+                if drone.flight_phase != FlightPhase.HOLDING:
+                    drone.velocity[:2] += wind[:2]
                 # 비상 속도 모드: EVADING 모드이면서 강풍일 때만 활성화
                 if drone.flight_phase == FlightPhase.EVADING and wind_speed > 10.0:
                     drone.velocity  = _clamp_speed(drone.velocity, profile.max_speed_ms, wind_speed)
@@ -419,6 +421,9 @@ class SwarmSimulator:
         # APF 힘 캐시 (배치 계산 → 각 드론 프로세스 참조)
         self.apf_forces: dict[str, np.ndarray] = {}
 
+        # 충돌 중복 기록 방지: 현재 충돌 중인 쌍 추적
+        self._active_collision_pairs: set[frozenset] = set()
+
         # 드론 관리
         self._drones:  dict[str, DroneState]  = {}
         self._n_drones = int(self.cfg.get("drones", {}).get("default_count", 30))
@@ -555,16 +560,21 @@ class SwarmSimulator:
             t = float(self.env.now)
             self.analytics.record_snapshot(self._drones, t)
 
-            # 실제 충돌 감지 (5 m 이내)
+            # 실제 충돌 감지 (5 m 이내) — 동일 쌍 중복 기록 방지
             active = [(did, d) for did, d in self._drones.items() if d.is_active]
             n = len(active)
+            current_collisions: set[frozenset] = set()
             for i in range(n):
                 id_a, da = active[i]
                 for j in range(i + 1, n):
                     id_b, db = active[j]
                     if distance_3d(da.position, db.position) < 5.0:
-                        self.analytics.record_event("COLLISION", t,
-                                                    drone_a=id_a, drone_b=id_b)
+                        pair = frozenset([id_a, id_b])
+                        current_collisions.add(pair)
+                        if pair not in self._active_collision_pairs:
+                            self.analytics.record_event("COLLISION", t,
+                                                        drone_a=id_a, drone_b=id_b)
+            self._active_collision_pairs = current_collisions
 
     # ── 유틸리티 ─────────────────────────────────────────────
 

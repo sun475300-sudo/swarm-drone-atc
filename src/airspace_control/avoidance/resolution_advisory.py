@@ -166,11 +166,13 @@ class AdvisoryGenerator:
         dz      = float(rel_pos[2])
 
         # 수직 분리: 수직 이격이 부족할 때 수직 기동 지시
+        # dz = threat.z - target.z: 양수 → threat이 위(위협이 위), 음수 → threat이 아래
+        # target은 threat 반대 방향으로 이동: 위협이 위 → 하강, 위협이 아래 → 상승
         if abs(dz) < self.sep_vert:
             if dz >= 0.0:
-                return self.DESCEND, self.DEFAULT_CLIMB_M
+                return self.DESCEND, self.DEFAULT_CLIMB_M  # threat이 위 → target 하강
             else:
-                return self.CLIMB, self.DEFAULT_CLIMB_M
+                return self.CLIMB, self.DEFAULT_CLIMB_M    # threat이 아래 → target 상승
 
         # 수평 기동 분류
         heading = math.atan2(target.velocity[1], target.velocity[0])

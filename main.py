@@ -39,17 +39,18 @@ def _setup_logging(level: str = "INFO"):
 
 def cmd_simulate(args: argparse.Namespace) -> None:
     _setup_logging(getattr(args, "log_level", "INFO"))
-    from simulation.engine import SimulationEngine
+    from simulation.simulator import SwarmSimulator
 
     duration = args.duration
     seed = args.seed
     drones = getattr(args, "drones", 100)
     print(f"\n🛸 시뮬레이션 시작: seed={seed}, drones={drones}, duration={duration}s\n")
 
-    engine = SimulationEngine(seed=seed, duration_s=duration, drone_count=drones)
-    metrics = engine.run()
+    override = {"drones": {"default_count": drones}}
+    sim = SwarmSimulator(seed=seed, scenario_cfg=override)
+    result = sim.run(duration_s=duration)
 
-    print(metrics.summary_table())
+    print(result.summary_table())
     print(f"\n✅ 시뮬레이션 완료 ({duration:.0f}s, {drones}기)\n")
 
 
@@ -122,21 +123,19 @@ def cmd_monte_carlo(args: argparse.Namespace) -> None:
 
 def cmd_visualize(args: argparse.Namespace) -> None:
     _setup_logging(getattr(args, "log_level", "INFO"))
-    from simulation.engine import SimulationEngine
-    from visualization.dashboard import launch_dashboard
+    import threading
+    from visualization.simulator_3d import SIM, _sim_loop, app
 
     port = getattr(args, "port", 8050)
-    seed = getattr(args, "seed", 42)
-    duration = getattr(args, "duration", 120)
     drones = getattr(args, "drones", 30)
 
-    print(f"\n🛸 데모 시뮬레이션 실행 중 ({drones}기, {duration}s)...")
-    engine = SimulationEngine(seed=seed, duration_s=duration, drone_count=drones)
-    metrics = engine.run()
+    SIM.reset(drones)
+    bg = threading.Thread(target=_sim_loop, args=(SIM,), daemon=True)
+    bg.start()
 
-    print(metrics.summary_table())
-    print(f"\n🌐 대시보드 시작: http://127.0.0.1:{port}\n")
-    launch_dashboard(metrics.trajectory_log, port=port)
+    print(f"\n🛸 3D 실시간 대시보드 시작: http://127.0.0.1:{port}")
+    print("  ▶ 시작 버튼을 눌러 시뮬레이션을 실행하세요.\n")
+    app.run(debug=False, host="0.0.0.0", port=port)
 
 
 # ── visualize-3d ────────────────────────────────────────────

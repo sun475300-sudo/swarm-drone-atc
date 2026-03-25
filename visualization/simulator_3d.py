@@ -756,6 +756,29 @@ app.layout = html.Div(
                             tooltip={"placement": "bottom", "always_visible": False},
                         ),
 
+                        # 시나리오 선택
+                        html.Label("시나리오",
+                                   style={"color": "#8b949e", "fontSize": "11px",
+                                          "display": "block", "marginTop": "12px",
+                                          "marginBottom": "4px"}),
+                        dcc.Dropdown(
+                            id="dropdown-scenario",
+                            options=[
+                                {"label": "기본 (랜덤)",          "value": "default"},
+                                {"label": "고밀도 교통",          "value": "high_density"},
+                                {"label": "비상 장애",            "value": "emergency_failure"},
+                                {"label": "동시 이착륙",          "value": "mass_takeoff"},
+                                {"label": "경로 충돌",            "value": "route_conflict"},
+                                {"label": "통신 두절",            "value": "comms_loss"},
+                                {"label": "기상 교란",            "value": "weather_disturbance"},
+                                {"label": "침입 드론",            "value": "adversarial_intrusion"},
+                            ],
+                            value="default",
+                            clearable=False,
+                            style={"backgroundColor": "#161b22", "color": "#c9d1d9",
+                                   "fontSize": "11px", "border": "1px solid #30363d"},
+                        ),
+
                         # 바람 토글
                         html.Div([
                             dcc.Checklist(
@@ -798,10 +821,30 @@ app.layout = html.Div(
             ],
         ),
 
+        # ── 경보 로그 (하단 바)
+        html.Div(
+            id="alert-log",
+            style={
+                "backgroundColor": "#0d1117",
+                "borderTop": "1px solid #21262d",
+                "padding": "6px 16px",
+                "fontSize": "11px",
+                "fontFamily": "monospace",
+                "color": "#8b949e",
+                "flexShrink": "0",
+                "height": "28px",
+                "overflow": "hidden",
+                "whiteSpace": "nowrap",
+            },
+            children="경보 없음",
+        ),
+
         # 인터벌 & 상태 저장소
         dcc.Interval(id="interval", interval=200, n_intervals=0),
         dcc.Store(id="store-run", data=False),
+        dcc.Store(id="store-alerts", data=[]),
         html.Div(id="_dummy-wind", style={"display": "none"}),
+        html.Div(id="_dummy-scenario", style={"display": "none"}),
     ],
 )
 
@@ -848,9 +891,33 @@ def _wind(value):
 
 
 @app.callback(
+    Output("_dummy-scenario", "children"),
+    Input("dropdown-scenario", "value"),
+    prevent_initial_call=True,
+)
+def _apply_scenario(scenario: str):
+    """시나리오 선택 시 드론 수 조정 및 시뮬레이션 리셋"""
+    drone_counts = {
+        "default":                30,
+        "high_density":           80,
+        "emergency_failure":      40,
+        "mass_takeoff":           60,
+        "route_conflict":         20,
+        "comms_loss":             30,
+        "weather_disturbance":    25,
+        "adversarial_intrusion":  35,
+    }
+    n = drone_counts.get(scenario, 30)
+    SIM.running = False
+    SIM.reset(n)
+    return ""
+
+
+@app.callback(
     Output("graph-3d",  "figure"),
     Output("hdr-time",  "children"),
     Output("stats",     "children"),
+    Output("alert-log", "children"),
     Input("interval",   "n_intervals"),
 )
 def _refresh(_n):
@@ -892,7 +959,19 @@ def _refresh(_n):
         *[_stat(k, str(v)) for k, v in sorted(phase_cnt.items())],
     ])
 
-    return fig, time_str, stats_div
+    # 경보 로그 텍스트 구성
+    alerts = []
+    if collisions > 0:
+        alerts.append(f"🔴 충돌 {collisions}건")
+    if near_miss > 0:
+        alerts.append(f"🟠 근접경고 {near_miss}건")
+    if evading > 0:
+        alerts.append(f"🟡 회피기동 {evading}기")
+    if advisories > 0:
+        alerts.append(f"🔵 어드바이저리 {advisories}건")
+    alert_str = "   |   ".join(alerts) if alerts else "✅ 경보 없음"
+
+    return fig, time_str, stats_div, alert_str
 
 
 # ─────────────────────────────────────────────────────────────

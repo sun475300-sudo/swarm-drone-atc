@@ -57,6 +57,30 @@ class SimulationResult:
             d[f_name] = v
         return d
 
+    def summary_table(self) -> str:
+        rows = [
+            ("충돌 수",            str(self.collision_count)),
+            ("근접 경고",          str(self.near_miss_count)),
+            ("충돌 감지 총계",     str(self.conflicts_total)),
+            ("어드바이저리 발령",  str(self.advisories_issued)),
+            ("충돌 해결률",        f"{self.conflict_resolution_rate_pct:.1f} %"),
+            ("경로 효율 (평균)",   f"{self.route_efficiency_mean:.3f}"),
+            ("경로 효율 (최대)",   f"{self.route_efficiency_max:.3f}"),
+            ("허가 승인",          str(self.clearances_approved)),
+            ("총 비행 거리",       f"{self.total_distance_km:.1f} km"),
+            ("어드바이저리 P50",   f"{self.advisory_latency_p50:.2f} s"),
+            ("어드바이저리 P99",   f"{self.advisory_latency_p99:.2f} s"),
+        ]
+        lines = [
+            "┌──────────────────────────────┬──────────────────┐",
+            "│ KPI                          │ 값               │",
+            "├──────────────────────────────┼──────────────────┤",
+        ]
+        for k, v in rows:
+            lines.append(f"│ {k:<28} │ {v:>16} │")
+        lines.append("└──────────────────────────────┴──────────────────┘")
+        return "\n".join(lines)
+
     def check_acceptance(self, thresholds: dict) -> dict[str, bool]:
         """monte_carlo.yaml acceptance_thresholds 대비 합격 여부"""
         checks: dict[str, bool] = {}

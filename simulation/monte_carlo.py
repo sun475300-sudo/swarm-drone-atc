@@ -24,36 +24,46 @@ def _load_mc_config() -> dict:
 
 
 def _run_single(args: tuple) -> dict:
-    """단일 설정 실행 (joblib 워커용)"""
-    from simulation.engine_legacy import SimulationEngine
+    """단일 설정 실행 (joblib 워커용) — SwarmSimulator 기반"""
+    from simulation.simulator import SwarmSimulator
 
     config_combo, seed = args
-    engine = SimulationEngine(
-        seed=seed,
-        duration_s=600.0,
-        drone_count=config_combo.get("drone_density", 100),
-        scenario_overrides=config_combo,
-    )
-    # 기상 오버라이드 (WindModel 통합)
+    drone_count = config_combo.get("drone_density", 100)
+
+    # 시나리오 오버라이드 구성
+    scenario_cfg: dict = {
+        "drones": {"default_count": drone_count},
+    }
+
+    # 기상 오버라이드
     wind = config_combo.get("wind_speed_ms", 0)
     if wind > 0:
-        from simulation.weather import build_wind_models
-        engine.wind_models = build_wind_models(
-            {"wind_models": [{"type": "constant", "speed_ms": wind, "direction_deg": 0}]},
-            engine.rng,
-        )
+        scenario_cfg["weather"] = {
+            "wind_models": [{"type": "constant", "speed_ms": wind, "direction_deg": 0}],
+        }
 
-    metrics = engine.run()
+    # 장애율 오버라이드
+    failure_rate = config_combo.get("failure_rate_pct", 0)
+    if failure_rate > 0:
+        scenario_cfg.setdefault("failure_injection", {})["drone_failure_rate"] = failure_rate / 100.0
+
+    # 통신 손실 오버라이드
+    comms_loss = config_combo.get("comms_loss_rate", 0)
+    if comms_loss > 0:
+        scenario_cfg.setdefault("failure_injection", {})["comms_loss_rate"] = comms_loss
+
+    sim = SwarmSimulator(seed=seed, scenario_cfg=scenario_cfg)
+    result = sim.run(duration_s=600.0)
 
     return {
         **config_combo,
         "seed": seed,
-        "collision_count": metrics.collision_count,
-        "near_miss_count": metrics.near_miss_count,
-        "conflict_resolution_rate": metrics.conflict_resolution_rate,
-        "route_efficiency": metrics.route_efficiency,
-        "avg_battery_pct": metrics.avg_battery_remaining_pct,
-        "routes_completed": metrics.routes_completed,
+        "collision_count": result.collision_count,
+        "near_miss_count": result.near_miss_count,
+        "conflict_resolution_rate": result.conflict_resolution_rate_pct,
+        "route_efficiency": result.route_efficiency_mean,
+        "total_flight_time_s": result.total_flight_time_s,
+        "total_distance_km": result.total_distance_km,
     }
 
 
@@ -127,12 +137,21 @@ def summarize_results(results: list[dict]) -> str:
     if not existing_cols:
         return df.describe().to_string()
 
-    summary = df.groupby(existing_cols).agg({
-        "collision_count": ["mean", "std", "max"],
-        "near_miss_count": ["mean", "max"],
-        "conflict_resolution_rate": "mean",
-        "route_efficiency": "mean",
-        "avg_battery_pct": "mean",
-    }).round(4)
+    agg_cols = {}
+    for col, aggs in [
+        ("collision_count", ["mean", "std", "max"]),
+        ("near_miss_count", ["mean", "max"]),
+        ("conflict_resolution_rate", ["mean"]),
+        ("route_efficiency", ["mean"]),
+        ("total_flight_time_s", ["mean"]),
+        ("total_distance_km", ["mean"]),
+    ]:
+        if col in df.columns:
+            agg_cols[col] = aggs
+
+    if not agg_cols:
+        return df.describe().to_string()
+
+    summary = df.groupby(existing_cols).agg(agg_cols).round(4)
 
     return summary.to_string()

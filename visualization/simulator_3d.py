@@ -353,6 +353,38 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
             drone.battery_pct = min(100.0, drone.battery_pct + 40.0)
             _assign_goal(drone)
 
+    # ── 공중 대기 (HOLDING) — Lost-Link Phase 1
+    elif phase == FlightPhase.HOLDING:
+        drone.velocity = np.zeros(3)
+        # 5초 후 고도 상승(RTL 준비)으로 전이
+        if not hasattr(drone, '_hold_start_s') or drone._hold_start_s is None:
+            drone._hold_start_s = sim.t
+        if sim.t > drone._hold_start_s + 5.0:
+            drone._hold_start_s = None
+            drone.flight_phase = FlightPhase.RTL
+
+    # ── 귀환 (RTL)
+    elif phase == FlightPhase.RTL:
+        # 가장 가까운 착륙 패드로 귀환
+        if drone.goal is None or drone.goal[2] > 0.1:
+            nearest = min(_PAD_LIST, key=lambda p: float(np.linalg.norm(p[:2] - drone.position[:2])))
+            drone.goal = nearest.copy()
+            drone.goal[2] = 0.0
+
+        diff = drone.goal - drone.position
+        dist = float(np.linalg.norm(diff[:2]))
+        if dist < 50.0:
+            drone.flight_phase = FlightPhase.LANDING
+        else:
+            spd = profile.cruise_speed_ms * 0.7  # 감속 귀환
+            direction = diff / (np.linalg.norm(diff) + 1e-6)
+            drone.velocity = direction * spd
+            drone.position += drone.velocity * dt
+            drone.position[0] = float(np.clip(drone.position[0], -BOUNDS_M, BOUNDS_M))
+            drone.position[1] = float(np.clip(drone.position[1], -BOUNDS_M, BOUNDS_M))
+            drone.position[2] = float(np.clip(drone.position[2], ALT_MIN, ALT_MAX))
+            drone.distance_flown_m += float(np.linalg.norm(drone.velocity[:2])) * dt
+
     # ── 장애 발생
     elif phase == FlightPhase.FAILED:
         if drone.position[2] > 0.0:

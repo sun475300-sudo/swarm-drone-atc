@@ -22,7 +22,6 @@ dependencies = [
     "joblib>=1.3",
     "tqdm>=4.66",
     "pandas>=2.1",
-    "pyarrow>=14.0",
 ]
 
 [project.optional-dependencies]
@@ -35,7 +34,7 @@ dev = [
 sdacs = "main:main"
 
 [project.urls]
-Repository = "https://github.com/sun475300-sudo/-----------------"
+Repository = "https://github.com/sun475300-sudo/swarm-drone-atc"
 Demo = "https://heartfelt-axolotl-2f9af2.netlify.app"
 
 [tool.pytest.ini_options]

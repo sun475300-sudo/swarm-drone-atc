@@ -137,7 +137,6 @@ class AirspaceController:
     def _process_clearances(self, t: float) -> None:
         # 대기 중 요청을 우선순위 큐에 삽입
         for req in self._pending:
-            # 임시 Route stub으로 우선순위 결정
             self.pq.push(req, req.timestamp_s)
         self._pending.clear()
 
@@ -157,6 +156,11 @@ class AirspaceController:
             approved = True
             reason   = ""
 
+            # Voronoi 셀 충돌 경고: 목적지가 다른 드론의 셀에 침범하는지 확인
+            voronoi_conflict = self._check_voronoi_conflict(req.drone_id, req.destination)
+            if voronoi_conflict:
+                reason = f"voronoi_conflict:{voronoi_conflict}"
+
             resp = ClearanceResponse(
                 drone_id=req.drone_id,
                 approved=approved,
@@ -175,9 +179,29 @@ class AirspaceController:
             if approved:
                 self._active_routes[req.drone_id] = route
             if self.analytics:
-                self.analytics.record_event("CLEARANCE_APPROVED" if approved else "CLEARANCE_DENIED",
-                                            t, drone_id=req.drone_id)
+                event = "CLEARANCE_APPROVED" if approved else "CLEARANCE_DENIED"
+                self.analytics.record_event(event, t, drone_id=req.drone_id,
+                                            voronoi_conflict=voronoi_conflict)
             processed += 1
+
+    def _check_voronoi_conflict(self, drone_id: str, destination: np.ndarray) -> str:
+        """
+        Voronoi 셀을 활용하여 목적지가 다른 드론의 할당 셀에 진입하는지 확인.
+        충돌하는 드론 ID를 반환, 없으면 빈 문자열.
+        """
+        if not self._voronoi_cells:
+            return ""
+        dest_2d = destination[:2]
+        for owner_id, cell in self._voronoi_cells.items():
+            if owner_id == drone_id:
+                continue
+            vertices = getattr(cell, "vertices", None)
+            if vertices is None or len(vertices) < 3:
+                continue
+            # 점이 볼록 다각형 내부에 있는지 판정 (winding number)
+            if _point_in_polygon(dest_2d, vertices):
+                return owner_id
+        return ""
 
     # ── 충돌 스캔 ────────────────────────────────────────────
 
@@ -301,6 +325,8 @@ class AirspaceController:
 
     # ── Voronoi 갱신 ─────────────────────────────────────────
 
+    # ── 유틸리티 ─────────────────────────────────────────────
+
     def _refresh_voronoi(self) -> None:
         if not self._active_drones:
             return
@@ -321,3 +347,28 @@ class AirspaceController:
                 )
             except Exception:
                 pass
+
+
+# ── 모듈 수준 유틸리티 ─────────────────────────────────────────
+
+def _point_in_polygon(point: np.ndarray, vertices) -> bool:
+    """
+    2D Ray-casting 알고리즘으로 점이 다각형 내부에 있는지 판정.
+
+    Parameters
+    ----------
+    point:    [x, y] ndarray
+    vertices: iterable of [x, y] (polygon vertices in order)
+    """
+    px, py = float(point[0]), float(point[1])
+    verts = [(float(v[0]), float(v[1])) for v in vertices]
+    n = len(verts)
+    inside = False
+    j = n - 1
+    for i in range(n):
+        xi, yi = verts[i]
+        xj, yj = verts[j]
+        if ((yi > py) != (yj > py)) and (px < (xj - xi) * (py - yi) / (yj - yi + 1e-12) + xi):
+            inside = not inside
+        j = i
+    return inside

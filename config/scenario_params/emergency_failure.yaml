@@ -1,7 +1,7 @@
 scenario: s02_emergency_drone_failure
 description: "비행 중 드론 장애 — 비상착륙 우선순위 및 장애 처리 검증"
 
-base_drone_count: 80
+drone_count: 80
 simulation_duration_min: 10
 failure_injection:
   start_time_min: 3.0          # 장애 주입 시작 시각

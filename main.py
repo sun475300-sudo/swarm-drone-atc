@@ -186,8 +186,6 @@ def main() -> None:
     # ── visualize ───────────────────────────────────────────────
     p_vis = sub.add_parser("visualize", help="3D 대시보드 실행 (Dash/Plotly)")
     p_vis.add_argument("--port",     type=int,   default=8050, help="대시보드 포트")
-    p_vis.add_argument("--seed",     type=int,   default=42)
-    p_vis.add_argument("--duration", type=float, default=120, help="데모 시뮬레이션 시간")
     p_vis.add_argument("--drones",   type=int,   default=30, help="데모 드론 수")
     p_vis.add_argument("--log-level", default="INFO")
 

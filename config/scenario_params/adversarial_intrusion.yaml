@@ -1,7 +1,7 @@
 scenario: s07_adversarial_intrusion
 description: "적대적 드론 침입 — 탐지 지연시간 및 오탐율 검증"
 
-base_drone_count: 50
+drone_count: 50
 simulation_duration_min: 15
 intrusion:
   count: 3                     # 침입 드론 수

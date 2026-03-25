@@ -1,8 +1,7 @@
 scenario: s05_comms_loss
 description: "통신 두절 시나리오 — Lost-link 프로토콜 검증"
 
-base_traffic:
-  drone_count: 50
+drone_count: 50
 
 comms_loss:
   trigger_time_range: [30, 300]

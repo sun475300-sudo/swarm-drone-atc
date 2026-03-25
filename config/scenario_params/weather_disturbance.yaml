@@ -1,8 +1,7 @@
 scenario: s06_weather_disturbance
 description: "기상 교란 시나리오 — 바람 하 경로 추적 강건성"
 
-base_traffic:
-  drone_count: 100
+drone_count: 100
 
 weather:
   wind_models:

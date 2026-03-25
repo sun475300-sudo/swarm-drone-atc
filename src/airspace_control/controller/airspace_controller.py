@@ -51,7 +51,10 @@ class AirspaceController:
     """
 
     CONTROL_HZ = 1.0           # 제어 루프 주파수
-    VORONOI_INTERVAL_S = 10.0  # Voronoi 갱신 주기
+    # B2: Voronoi 갱신 10s 주기 — clearance 요청 시점에 최대 10s stale 가능.
+    # 고속 드론(20 m/s) 기준 최대 200m 편차이나, Voronoi 셀 크기가 수 km이므로
+    # 실제 충돌 위험은 극히 낮음. 성능상 10s 유지.
+    VORONOI_INTERVAL_S = 10.0
 
     def __init__(
         self,

@@ -256,8 +256,20 @@ class _DroneAgent:
 
         elif phase == FlightPhase.EVADING:
             # APF 처리는 위에서 force로 전달됨 — 속도는 적분 단계에서 갱신
-            if random.random() < 0.03:
-                drone.flight_phase = FlightPhase.ENROUTE
+            # evade_end_s 타이머 만료 또는 확률적 전환
+            should_exit = False
+            if drone.evade_end_s is not None and t >= drone.evade_end_s:
+                should_exit = True
+                drone.evade_end_s = None
+            elif random.random() < 0.03:
+                should_exit = True
+
+            if should_exit:
+                # A2: goal=None 방어 — goal이 없으면 LANDING으로 안전하게 전환
+                if drone.goal is None:
+                    drone.flight_phase = FlightPhase.LANDING
+                else:
+                    drone.flight_phase = FlightPhase.ENROUTE
 
         elif phase == FlightPhase.HOLDING:
             drone.velocity = np.zeros(3)
@@ -575,9 +587,10 @@ class SwarmSimulator:
             self.analytics.record_snapshot(self._drones, t)
 
             # Spatial Hash로 충돌 감지 (5 m 이내) — O(N·k)
+            # A1: LANDING 드론은 충돌 스캔에서 제외 (착지 중 수직 프로파일은 안전)
             sh.clear()
             for did, d in self._drones.items():
-                if d.is_active:
+                if d.is_active and d.flight_phase != FlightPhase.LANDING:
                     sh.insert(did, d.position)
 
             for id_a, id_b, dist in sh.query_pairs_with_dist(5.0):

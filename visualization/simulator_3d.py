@@ -123,6 +123,7 @@ class SimState:
 
         self.wind = np.zeros(3)
         self.n_drones = 30
+        self.speed_multiplier = 1.0  # 시뮬레이션 속도 배율 (0.25x ~ 5x)
 
         # 통계
         self.conflicts = 0

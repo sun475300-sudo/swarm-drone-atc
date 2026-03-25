@@ -63,7 +63,7 @@
 
 <div align="center">
 
-![Hero Banner](docs/images/hero_banner.svg)
+<img src="docs/images/hero_banner.svg" alt="Hero Banner" width="100%">
 
 </div>
 
@@ -87,7 +87,7 @@
 
 <div align="center">
 
-![System Architecture](docs/images/architecture.svg)
+<img src="docs/images/architecture.svg" alt="System Architecture" width="100%">
 
 *SDACS 4계층 시스템 아키텍처*
 
@@ -135,7 +135,7 @@ AirspaceController (1 Hz)
 
 <div align="center">
 
-![Sensor Fusion](docs/images/sensor_fusion.svg)
+<img src="docs/images/sensor_fusion.svg" alt="Sensor Fusion" width="100%">
 
 *Camera (YOLO) + LiDAR + RF Scanner → Kalman Filter Fusion*
 
@@ -145,7 +145,7 @@ AirspaceController (1 Hz)
 
 <div align="center">
 
-![Flight Phase FSM](docs/images/flight_phase_fsm.svg)
+<img src="docs/images/flight_phase_fsm.svg" alt="Flight Phase FSM" width="100%">
 
 *8가지 비행 상태 간 전이 다이어그램*
 
@@ -170,7 +170,7 @@ FAILED ◄──[장애 주입]
 
 <div align="center">
 
-![Algorithm Flow](docs/images/algorithm_flow.svg)
+<img src="docs/images/algorithm_flow.svg" alt="Algorithm Flow" width="100%">
 
 </div>
 
@@ -290,7 +290,7 @@ Low Level: 시공간 A* (개별 드론)
 
 <div align="center">
 
-![Detection Pipeline](docs/images/detection_pipeline.svg)
+<img src="docs/images/detection_pipeline.svg" alt="Detection Pipeline" width="100%">
 
 *위협 탐지 → 어드바이저리 발령 → 회피 기동 파이프라인*
 
@@ -376,7 +376,7 @@ python main.py monte-carlo --mode full    # ~3시간 (16코어)
 
 <div align="center">
 
-![Performance Comparison](docs/images/performance_comparison.svg)
+<img src="docs/images/performance_comparison.svg" alt="Performance Comparison" width="100%">
 
 *기존 Rule-based ATC 대비 SDACS 핵심 지표 비교*
 

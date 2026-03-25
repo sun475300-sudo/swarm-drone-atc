@@ -14,11 +14,9 @@ SimPy 기반 이산 이벤트 시뮬레이션.
   print(result.to_dict())
 """
 from __future__ import annotations
-import math
 import os
 import random
 import sys
-import uuid
 from typing import Any
 
 import numpy as np
@@ -214,8 +212,9 @@ class _DroneAgent:
                     channel="telemetry",
                 ))
 
-            # 9. 분석
-            sim.analytics.record_snapshot({drone.drone_id: drone}, t)
+            # 9. 분석 — EVADING 고주파 현상 추적용 조건부 스냅샷
+            if drone.flight_phase == FlightPhase.EVADING or getattr(sim, '_debug_snapshot', False):
+                sim.analytics.record_snapshot({drone.drone_id: drone}, t)
 
     # ── 상태 머신 ──────────────────────────────────────────────
 

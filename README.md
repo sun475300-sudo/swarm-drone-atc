@@ -8,6 +8,7 @@
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
 [![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
 [![Tests](https://img.shields.io/badge/Tests-173%20passed-brightgreen?style=for-the-badge)](tests/)
+[![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 **국립 목포대학교 드론기계공학과 캡스톤 디자인 (2026)**
@@ -462,6 +463,7 @@ python main.py visualize
 |------|------|
 | 3D 드론 추적 | Plotly.js 실시간 위치·속도·고도 표시 |
 | 시나리오 전환 | 7개 시나리오 드롭다운 즉시 실행 |
+| 속도 조절 | 0.25x ~ 5x 시뮬레이션 속도 슬라이더 |
 | 경보 로그 | 하단 패널 — 충돌/근접경고/회피기동/어드바이저리 실시간 표시 |
 | KPI 패널 | 우측 — 충돌수, 해결률, 경로효율 실시간 집계 |
 | 비행 상태 색상 | ENROUTE(파랑), EVADING(빨강), TAKEOFF(초록), FAILED(회색) |
@@ -647,7 +649,7 @@ dash>=2.17    plotly>=5.20   joblib>=1.3
 pyyaml>=6.0   matplotlib>=3.8  pytest>=7.4
 ```
 
-Python 3.10+
+Python 3.10+ (CI: Python 3.11 / 3.12)
 
 ---
 
@@ -666,6 +668,7 @@ Python 3.10+
 
 | 날짜 | 시간 | 주요 변경 사항 |
 |------|------|---------------|
+| 2026-03-26 | 01:15 KST | DOCX 기술 보고서 생성, GitHub Actions CI 추가, 차트 DPI 300 업그레이드, 시뮬레이터 속도 조절 슬라이더 |
 | 2026-03-25 | 23:50 KST | SVG 한글 폰트 수정 (Malgun Gothic 추가), hero_banner/architecture 테스트 수 173개 반영, 빈 PNG→SVG 교체 |
 | 2026-03-25 | 22:30 KST | 데드코드 삭제 + 테스트 26개 추가 (147→173), config 필드명 통일, CLAUDE.md 생성 |
 | 2026-03-25 | 21:45 KST | monte_carlo SwarmSimulator 일원화, simulator_3d HOLDING/RTL 처리, 의존성 정리 |

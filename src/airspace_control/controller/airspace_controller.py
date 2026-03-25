@@ -105,7 +105,7 @@ class AirspaceController:
             self._scan_conflicts(t)
             self._detect_intruders(t)
             self._expire_advisories(t)
-            if int(t) % int(self.VORONOI_INTERVAL_S) == 0:
+            if int(round(t)) % int(self.VORONOI_INTERVAL_S) == 0:
                 self._refresh_voronoi()
 
     # ── 메시지 수신 ──────────────────────────────────────────
@@ -350,17 +350,24 @@ class AirspaceController:
                             sent_time=t,
                             channel="clearance",
                         ))
-                    except Exception:
+                    except Exception as e:
+                        if self.analytics:
+                            self.analytics.record_event(
+                                "REROUTE_FAILED", t,
+                                drone_id=adv.drone_id, error=str(e))
                         pass
 
     def _pick_target(self, da: DroneState, db: DroneState) -> DroneState:
-        """어드바이저리를 받을 드론 선택 (낮은 우선순위)"""
+        """어드바이저리를 받을 드론 선택 (낮은 우선순위, 동률 시 ID 기반 타이브레이크)"""
         from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         pri_a = DRONE_PROFILES.get(da.profile_name,
                                     DRONE_PROFILES["COMMERCIAL_DELIVERY"]).priority
         pri_b = DRONE_PROFILES.get(db.profile_name,
                                     DRONE_PROFILES["COMMERCIAL_DELIVERY"]).priority
-        return da if pri_a >= pri_b else db
+        if pri_a != pri_b:
+            return da if pri_a > pri_b else db
+        # 동일 우선순위: ID가 큰 드론이 회피 (공정한 결정론적 타이브레이크)
+        return da if da.drone_id > db.drone_id else db
 
     # ── 침입 탐지 ────────────────────────────────────────────
 

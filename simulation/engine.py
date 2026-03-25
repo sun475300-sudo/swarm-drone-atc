@@ -17,6 +17,7 @@ import yaml
 
 from simulation.apf_engine import APFState, batch_compute_forces, force_to_velocity
 from simulation.metrics import SimulationMetrics
+from simulation.weather import WindModel, build_wind_models
 from src.airspace_control.agents.drone_state import (
     DroneState, FlightPhase, CommsStatus, FailureType,
 )
@@ -127,9 +128,11 @@ class SimulationEngine:
         # 드론 상태
         self.drones: dict[str, DroneState] = {}
 
-        # 기상 / 장애 주입 (시나리오별)
-        self._wind_force = np.zeros(3)
+        # 기상 모델 (WindModel 사용)
+        self.wind_models: list[WindModel] = []
         self._failure_schedule: list[dict] = []
+        # 충돌 추적: 감지된 쌍 → 해결 여부 추적
+        self._active_conflicts: dict[frozenset, float] = {}  # pair → first_detected_t
 
         logger.info(
             "SimulationEngine 초기화: seed=%d, drones=%d, duration=%.0fs",
@@ -174,18 +177,9 @@ class SimulationEngine:
         """시나리오별 특수 설정 적용"""
         self.scenario_overrides.update(scenario_params)
 
-        # 기상 교란
+        # 기상 교란 — WindModel 통합
         weather = scenario_params.get("weather", {})
-        wind_models = weather.get("wind_models", [])
-        if wind_models:
-            first_wind = wind_models[0]
-            speed = first_wind.get("speed_ms", first_wind.get("mean_speed_ms", 0))
-            direction_rad = np.radians(first_wind.get("direction_deg", 0))
-            self._wind_force = np.array([
-                speed * np.cos(direction_rad),
-                speed * np.sin(direction_rad),
-                0.0,
-            ]) * 0.3  # 바람 → 가속도 변환 (스케일 팩터)
+        self.wind_models = build_wind_models(weather, self.rng)
 
         # 장애 주입 스케줄
         failure = scenario_params.get("failure_injection", {})
@@ -252,7 +246,12 @@ class SimulationEngine:
             # 위치 / 속도 업데이트
             for drone in active_drones:
                 f = forces.get(drone.drone_id, np.zeros(3))
-                f += self._wind_force  # 기상 영향
+                # 기상 영향 (WindModel 기반)
+                wind = sum(
+                    (m.get_wind_vector(drone.position, t) for m in self.wind_models),
+                    np.zeros(3),
+                )
+                f += wind * 0.3  # 바람 → 가속도 변환 스케일
 
                 drone.velocity = force_to_velocity(
                     drone.velocity, f, self.dt, self.max_speed
@@ -314,15 +313,19 @@ class SimulationEngine:
             step += 1
 
     def _check_separation(self, drones: list[DroneState], t: float):
-        """드론 쌍 간 이격 거리 확인"""
+        """드론 쌍 간 이격 거리 확인 + 충돌 해결률 추적"""
         positions = np.array([d.position for d in drones])
         n = len(drones)
         if n < 2:
             return
 
+        current_conflicts: set[frozenset] = set()
+
         for i in range(n):
             for j in range(i + 1, n):
                 dist = float(np.linalg.norm(positions[i] - positions[j]))
+                pair = frozenset((drones[i].drone_id, drones[j].drone_id))
+
                 if dist < self.near_miss_lateral:
                     self.metrics.record_event(
                         t, "collision",
@@ -337,8 +340,17 @@ class SimulationEngine:
                         drone_b=drones[j].drone_id,
                         distance_m=dist,
                     )
-                    self.metrics.record_event(t, "conflict_detected")
-                    self.metrics.record_event(t, "conflict_resolved")
+                    current_conflicts.add(pair)
+                    # 새로 감지된 충돌만 카운트
+                    if pair not in self._active_conflicts:
+                        self._active_conflicts[pair] = t
+                        self.metrics.record_event(t, "conflict_detected")
+
+        # 이전에 활성이었으나 현재 해소된 쌍 → conflict_resolved
+        resolved_pairs = [p for p in self._active_conflicts if p not in current_conflicts]
+        for pair in resolved_pairs:
+            self.metrics.record_event(t, "conflict_resolved")
+            del self._active_conflicts[pair]
 
     def _check_failure_injection(self, t: float):
         for sched in self._failure_schedule:

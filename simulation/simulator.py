@@ -108,8 +108,18 @@ class _DroneAgent:
 
         if isinstance(payload, ResolutionAdvisory):
             # 충돌 회피 어드바이저리 → EVADING 전환
-            if drone.flight_phase in (FlightPhase.ENROUTE, FlightPhase.HOLDING):
-                drone.flight_phase = FlightPhase.EVADING
+            if drone.flight_phase in (FlightPhase.ENROUTE, FlightPhase.HOLDING, FlightPhase.EVADING):
+                t_now = float(self.env.now)
+                if payload.advisory_type in ("EVADE_APF", "CLIMB", "DESCEND",
+                                              "TURN_LEFT", "TURN_RIGHT"):
+                    drone.flight_phase = FlightPhase.EVADING
+                    new_end = t_now + float(getattr(payload, 'duration_s', 10.0))
+                    if drone.evade_end_s is None or new_end > drone.evade_end_s:
+                        drone.evade_end_s = new_end
+                elif payload.advisory_type == "HOLD":
+                    drone.flight_phase = FlightPhase.HOLDING
+                    drone.hold_start_s = None
+                    drone.evade_end_s = None  # 잔류 EVADING 타이머 초기화
 
         elif isinstance(payload, ClearanceResponse):
             if payload.approved and payload.assigned_waypoints:
@@ -161,7 +171,9 @@ class _DroneAgent:
             # 7. 위치 적분 (TAKEOFF/LANDING은 state_machine에서 직접 처리)
             if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED,
                                            FlightPhase.TAKEOFF, FlightPhase.LANDING):
-                drone.velocity += force * dt
+                # APF force는 EVADING 상태일 때만 적용 (state machine 전환 후 재확인)
+                if drone.flight_phase == FlightPhase.EVADING:
+                    drone.velocity += force * dt
                 drone.velocity[:2] += wind[:2]
                 # 비상 속도 모드: EVADING 모드이면서 강풍일 때만 활성화
                 if drone.flight_phase == FlightPhase.EVADING and wind_speed > 10.0:
@@ -538,8 +550,10 @@ class SwarmSimulator:
                     # 바람 속도 (m/s) 계산
                     wind_speeds[d.drone_id] = float(np.linalg.norm(wind_vec))
 
+                all_active = [_drone_to_apf(d) for d in self._drones.values() if d.is_active]
                 self.apf_forces = batch_compute_forces(states, goals, nfz_centers,
-                                                      wind_speeds=wind_speeds)
+                                                      wind_speeds=wind_speeds,
+                                                      neighbor_states=all_active)
             else:
                 self.apf_forces = {}
 

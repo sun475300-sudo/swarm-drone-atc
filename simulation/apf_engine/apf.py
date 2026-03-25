@@ -195,37 +195,44 @@ def batch_compute_forces(
     comm_range: float = 2000.0,
     params: dict | None = None,
     wind_speeds: dict[str, float] | None = None,
+    neighbor_states: list[APFState] | None = None,
 ) -> dict[str, np.ndarray]:
     """
     전체 드론에 대한 APF 합력 배치 계산 (NumPy 벡터화)
 
     Args:
-        wind_speeds: {drone_id: wind_speed} 딕셔너리 (각 드론 위치의 바람 속도)
+        wind_speeds:     {drone_id: wind_speed} 딕셔너리 (각 드론 위치의 바람 속도)
+        neighbor_states: 이웃 탐색 풀 (None이면 states 자체를 사용).
+                         EVADING 드론만 states에 전달할 때 전체 활성 드론을 이웃 풀로
+                         지정하여 비-EVADING 드론도 장애물로 인식하게 한다.
 
     Returns:
         {drone_id: force_vector} 딕셔너리
     """
     forces = {}
-    positions = np.array([s.position for s in states])   # (N, 3)
-    velocities = np.array([s.velocity for s in states])  # (N, 3)
 
     if wind_speeds is None:
         wind_speeds = {}
 
-    for i, own in enumerate(states):
+    # 이웃 탐색 풀: 별도 지정 시 해당 풀, 없으면 states 자체
+    pool = neighbor_states if neighbor_states is not None else states
+    pool_positions = np.array([s.position for s in pool])    # (M, 3)
+    pool_velocities = np.array([s.velocity for s in pool])   # (M, 3)
+
+    for own in states:
         goal = goals.get(own.drone_id)
         if goal is None:
             forces[own.drone_id] = np.zeros(3)
             continue
 
-        # 통신 범위 내 이웃 탐색 (벡터화)
-        diffs = positions - own.position           # (N, 3)
-        dists = np.linalg.norm(diffs, axis=1)     # (N,)
-        neighbor_mask = (dists < comm_range) & (dists > 0)
-        neighbor_indices = np.where(neighbor_mask)[0]
+        # 통신 범위 내 이웃 탐색 (자기 자신 제외)
+        diffs = pool_positions - own.position            # (M, 3)
+        dists = np.linalg.norm(diffs, axis=1)            # (M,)
+        neighbor_indices = [j for j in np.where((dists < comm_range) & (dists > 0))[0]
+                            if pool[j].drone_id != own.drone_id]
 
         neighbors = [
-            APFState(positions[j], velocities[j], states[j].drone_id)
+            APFState(pool_positions[j], pool_velocities[j], pool[j].drone_id)
             for j in neighbor_indices
         ]
 

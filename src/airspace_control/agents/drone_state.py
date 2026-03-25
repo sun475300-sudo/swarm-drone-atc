@@ -63,6 +63,9 @@ class DroneState:
     # HOLDING 진입 시각 (HOLDING → ENROUTE 복귀 타이머)
     _hold_start_s: Optional[float] = None
 
+    # EVADING 종료 시각 (evade_end_s 타이머 만료 → ENROUTE 복귀)
+    evade_end_s: Optional[float] = None
+
     # 타임스탬프
     last_update_s: float = 0.0
 

@@ -159,8 +159,8 @@ class _DroneAgent:
             )
             wind_speed = float(np.linalg.norm(wind))  # 바람 속도 계산
 
-            # 5. APF (EVADING 모드만)
-            if drone.flight_phase == FlightPhase.EVADING:
+            # 5. APF (EVADING/RTL 모드)
+            if drone.flight_phase in (FlightPhase.EVADING, FlightPhase.RTL):
                 force = sim.apf_forces.get(drone.drone_id, np.zeros(3))
             else:
                 force = np.zeros(3)
@@ -171,8 +171,8 @@ class _DroneAgent:
             # 7. 위치 적분 (TAKEOFF/LANDING은 state_machine에서 직접 처리)
             if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED,
                                            FlightPhase.TAKEOFF, FlightPhase.LANDING):
-                # APF force는 EVADING 상태일 때만 적용 (state machine 전환 후 재확인)
-                if drone.flight_phase == FlightPhase.EVADING:
+                # APF force는 EVADING/RTL 상태일 때 적용
+                if drone.flight_phase in (FlightPhase.EVADING, FlightPhase.RTL):
                     drone.velocity += force * dt
                 drone.velocity[:2] += wind[:2]
                 # 비상 속도 모드: EVADING 모드이면서 강풍일 때만 활성화
@@ -238,6 +238,10 @@ class _DroneAgent:
 
         elif phase == FlightPhase.ENROUTE:
             if drone.goal is None:
+                # L-1: goal 없이 LANDING 전환 시 analytics 이벤트 기록
+                if sim.analytics:
+                    sim.analytics.record_event("ENROUTE_NO_GOAL_LANDING", t,
+                                               drone_id=drone.drone_id)
                 drone.flight_phase = FlightPhase.LANDING
                 return
             diff    = drone.goal - drone.position
@@ -528,13 +532,15 @@ class SwarmSimulator:
     # ── APF 배치 루프 ─────────────────────────────────────────
 
     def _apf_batch_loop(self):
-        """10 Hz: EVADING 드론에 대해 APF 힘 배치 계산"""
+        """10 Hz: EVADING/RTL 드론에 대해 APF 힘 배치 계산"""
         dt = 0.1
         nfz_centers = [n["center"] for n in self.NFZ]
         while True:
             yield self.env.timeout(dt)
+            # L-3: RTL 드론도 APF 회피 대상에 포함
             evading = [d for d in self._drones.values()
-                       if d.flight_phase == FlightPhase.EVADING and d.goal is not None]
+                       if d.flight_phase in (FlightPhase.EVADING, FlightPhase.RTL)
+                       and d.goal is not None]
             if evading:
                 states = [_drone_to_apf(d) for d in evading]
                 goals  = {d.drone_id: d.goal.copy() for d in evading}
@@ -550,6 +556,8 @@ class SwarmSimulator:
                     # 바람 속도 (m/s) 계산
                     wind_speeds[d.drone_id] = float(np.linalg.norm(wind_vec))
 
+                # L-2 설계 결정: all_active에 TAKEOFF/LANDING 포함 (이웃 풀로 가시)
+                # → 다른 드론이 이착륙 드론을 피하지만, 이착륙 드론 자체는 고정 수직 프로파일 유지
                 all_active = [_drone_to_apf(d) for d in self._drones.values() if d.is_active]
                 self.apf_forces = batch_compute_forces(states, goals, nfz_centers,
                                                       wind_speeds=wind_speeds,

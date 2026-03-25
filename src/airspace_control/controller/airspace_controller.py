@@ -171,6 +171,15 @@ class AirspaceController:
             approved = True
             reason   = ""
 
+            # M-1: 목적지가 NFZ 내부인지 검증
+            for nfz in self.planner.nfz_list:
+                dist_to_nfz = float(np.linalg.norm(
+                    req.destination[:2] - nfz['center'][:2]))
+                if dist_to_nfz < nfz['radius_m']:
+                    approved = False
+                    reason = f"destination_in_nfz:{dist_to_nfz:.0f}m"
+                    break
+
             # Voronoi 셀 충돌 경고
             voronoi_conflict = self._check_voronoi_conflict(req.drone_id, req.destination)
             if voronoi_conflict:
@@ -276,7 +285,10 @@ class AirspaceController:
         scan_radius = self._lat_min * 2.0
         self._spatial_hash.clear()
         for did, d in active.items():
-            self._spatial_hash.insert(did, d.position)
+            # 텔레메트리 지연 보정된 위치로 공간 해시 삽입
+            lag = max(0.0, t - d.last_update_s) if d.last_update_s > 0 else 0.0
+            ext_pos = d.position + d.velocity * lag if lag > 0 else d.position
+            self._spatial_hash.insert(did, ext_pos)
 
         for id_a, id_b, cur_dist in self._spatial_hash.query_pairs_with_dist(scan_radius):
             pair = frozenset([id_a, id_b])
@@ -286,9 +298,15 @@ class AirspaceController:
             da = active[id_a]
             db = active[id_b]
 
+            # H-1: 텔레메트리 지연 보정 — 마지막 수신 이후 경과 시간만큼 위치 외삽
+            lag_a = max(0.0, t - da.last_update_s) if da.last_update_s > 0 else 0.0
+            lag_b = max(0.0, t - db.last_update_s) if db.last_update_s > 0 else 0.0
+            pos_a = da.position + da.velocity * lag_a if lag_a > 0 else da.position
+            pos_b = db.position + db.velocity * lag_b if lag_b > 0 else db.position
+
             cpa_dist, cpa_t = closest_approach(
-                da.position, da.velocity,
-                db.position, db.velocity,
+                pos_a, da.velocity,
+                pos_b, db.velocity,
                 lookahead_s=self._lookahead,
             )
 
@@ -309,6 +327,16 @@ class AirspaceController:
                 # 낮은 우선순위 드론에 어드바이저리 발령
                 target = self._pick_target(da, db)
                 threat = db if target.drone_id == id_a else da
+
+                # M-2: ROGUE 드론은 어드바이저리를 수신하지 않으므로 발송 스킵
+                if getattr(target, 'profile_name', '') == 'ROGUE':
+                    # ROGUE 대신 상대방에게 회피 지시 (등록 드론이면)
+                    if getattr(threat, 'profile_name', '') != 'ROGUE':
+                        target, threat = threat, target
+                    else:
+                        covered.add(pair)
+                        continue
+
                 adv = self.advisory_gen.generate(target, threat, cpa_dist, cpa_t, t)
                 self._advisories[adv.advisory_id] = adv
                 self.comm_bus.send(CommMessage(

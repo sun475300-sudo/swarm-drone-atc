@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
 [![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
-[![Tests](https://img.shields.io/badge/Tests-74%20passed-brightgreen?style=for-the-badge)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-147%20passed-brightgreen?style=for-the-badge)](tests/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 **국립 목포대학교 드론기계공학과 캡스톤 디자인 (2026)**
@@ -60,6 +60,12 @@
 
 ## 시스템 개요
 
+<div align="center">
+
+![Hero Banner](docs/images/hero_banner.svg)
+
+</div>
+
 군집드론을 **이동형 가상 레이더 돔**으로 활용하여, 고정형 인프라 없이도 도심 저고도 공역을 실시간 감시하고 위협에 **자동 대응**하는 분산형 ATC 시뮬레이션 시스템입니다.
 
 ### 핵심 지표
@@ -78,10 +84,18 @@
 
 ## 4계층 아키텍처
 
+<div align="center">
+
+![System Architecture](docs/images/system_architecture_4layer.png)
+
+*SDACS 4계층 시스템 아키텍처*
+
+</div>
+
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Layer 4 — 사용자 인터페이스                                   │
-│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 74개           │
+│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 147개          │
 └───────────────────────────┬──────────────────────────────────┘
                             │ 명령 / 결과
 ┌───────────────────────────▼──────────────────────────────────┐
@@ -116,7 +130,15 @@ AirspaceController (1 Hz)
     └── 10 s 주기 Voronoi 공역 갱신
 ```
 
-### 드론 비행 상태 기계
+### 드론 비행 상태 기계 (FlightPhase FSM)
+
+<div align="center">
+
+![Flight Phase FSM](docs/images/flight_phase_fsm.svg)
+
+*8가지 비행 상태 간 전이 다이어그램*
+
+</div>
 
 ```
 GROUNDED ──[허가 수신]──► TAKEOFF ──[순항고도]──► ENROUTE
@@ -125,68 +147,85 @@ GROUNDED ──[허가 수신]──► TAKEOFF ──[순항고도]──► EN
 LANDING ◄──────────────────────────────────────────┘    ▼
     ▲                                             EVADING (APF)
 RTL ◄──[배터리 임계]                                    │
-FAILED ◄──[장애 주입]                           [회피 완료]──► ENROUTE
+HOLDING ◄──[Lost-Link]                          [회피 완료]──► ENROUTE
+FAILED ◄──[장애 주입]
 ```
 
 ---
 
 ## 핵심 알고리즘
 
-### 1. APF (인공 포텐셜 장)
+> **5개 핵심 알고리즘**이 계층적으로 동작하여 군집드론 안전 운항을 보장합니다.
 
-충돌 회피 1차 방어선 — 드론 주변에 척력 필드를 생성하여 충돌을 회피합니다.
+<div align="center">
+
+![Algorithm Flow](docs/images/algorithm_flow.svg)
+
+</div>
+
+### 1. APF (인공 포텐셜 장) — 1차 충돌 회피
+
+드론 주변에 인력/척력 필드를 생성하여 **실시간 충돌 회피**를 수행합니다.
 
 ```
 F_total = F_attractive(목표) + ΣF_repulsive(드론) + ΣF_repulsive(NFZ)
-
-파라미터:
-  인력:   k_att  = 1.0   (목표 방향)
-  드론 척력: k_rep = 2.5,  d0 = 50 m
-  장애물:  k_rep  = 5.0,  d0 = 30 m
-  속도 보정: 접근 속도 비례 척력 2배 증폭
-  포화:   max_force = 10 m/s²
 ```
 
-### 2. CPA 기반 충돌 예측
+| 파라미터 | 일반 모드 | 강풍 모드 (>10 m/s) | 설명 |
+|----------|----------|-------------------|------|
+| `k_att` | 1.0 | 1.0 | 목표 방향 인력 |
+| `k_rep` (드론) | 2.5 | **6.5** | 드론 간 척력 |
+| `d0` (드론) | 50 m | **80 m** | 척력 작용 반경 |
+| `k_rep` (장애물) | 5.0 | 5.0 | NFZ 척력 |
+| `max_force` | 10 m/s² | **22 m/s²** | 힘 포화값 |
+
+> 접근 속도 비례 척력 **2배 증폭** (Velocity Obstacle 보상) · NumPy 배치 벡터 연산 (10 Hz)
+
+### 2. CPA 기반 선제 충돌 예측
+
+**Closest Point of Approach** 알고리즘으로 **90초 전** 충돌을 예측합니다.
 
 ```
 rel_pos = pos_A - pos_B
 rel_vel = vel_A - vel_B
-t_cpa   = -dot(rel_pos, rel_vel) / ||rel_vel||²  (clamp 0~90 s)
+t_cpa   = -dot(rel_pos, rel_vel) / ||rel_vel||²    (clamp 0 ~ 90 s)
 CPA_dist = ||rel_pos + rel_vel × t_cpa||
 
 CPA_dist < 50 m  →  충돌 예측  →  ResolutionAdvisory 발령
 ```
 
-### 3. Resolution Advisory 분류 체계
+> O(N²) 페어 스캔 · 1 Hz · 100대 = 4,950 계산/초
+
+### 3. Resolution Advisory 생성기 (기하학적 분류)
 
 ```
-입력: CPA 거리, CPA 시간, 상대 위치/속도, FlightPhase
-
-분류 우선순위:
-  1. threat.phase == FAILED      → HOLD        (상대 장애)
-  2. cpa_t < 10 s               → EVADE_APF   (긴급 APF 회피)
-  3. 수직 여유 > 30 m            → CLIMB / DESCEND
-  4. 정면 충돌 (방위 ±30°)       → TURN_RIGHT  (항공 규칙)
-  5. 그 외                       → TURN_LEFT / TURN_RIGHT
-
-Lost-Link 3단계:
-  Phase 1: HOLD    (loiter 30 s)
-  Phase 2: CLIMB   (목표 고도 80 m)
-  Phase 3: RTL     (자동 귀환)
+┌─────────────────────────────────────────────────────────────┐
+│  입력: CPA 거리, CPA 시간, 상대 위치/속도, FlightPhase      │
+├─────────────────────────────────────────────────────────────┤
+│  ① threat.phase == FAILED     → HOLD       (상대 장애)     │
+│  ② cpa_t < 10 s              → EVADE_APF  (긴급 APF 회피)  │
+│  ③ 수직 여유 > sep_vert      → CLIMB / DESCEND            │
+│  ④ 정면 충돌 (방위 ±30°)      → TURN_RIGHT (항공 규칙)     │
+│  ⑤ 그 외                     → TURN_LEFT / TURN_RIGHT     │
+├─────────────────────────────────────────────────────────────┤
+│  Lost-Link 3단계 프로토콜                                    │
+│  Phase 1: HOLD  (loiter 30s) → Phase 2: CLIMB (80m)       │
+│  → Phase 3: RTL (자동 귀환)                                 │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### 4. Voronoi 동적 공역 분할
 
+10초 주기로 활성 드론의 **책임 영역**을 동적으로 분할합니다.
+
 ```
-10 s 주기:
-  1. 활성 드론 2D 위치 추출
-  2. scipy.spatial.Voronoi 분할
-  3. Sutherland-Hodgman 경계 클리핑
-  4. Ray-casting 점-폴리곤 판정 (허가 처리 시 셀 침범 감지)
+① 활성 드론 2D 위치 추출
+② scipy.spatial.Voronoi 분할
+③ Sutherland-Hodgman 경계 클리핑 (공역 범위 제한)
+④ Ray-casting 점-폴리곤 판정 → 허가 처리 시 셀 침범 감지
 ```
 
-### 5. CBS (Conflict-Based Search)
+### 5. CBS (Conflict-Based Search) 다중 경로 계획
 
 ```
 High Level: 충돌 트리(CT) 탐색
@@ -198,13 +237,13 @@ Low Level: 시공간 A* (개별 드론)
 
 ### 드론 프로파일
 
-| 타입 | 최대속도 | 순항속도 | 배터리 | 우선순위 |
-|------|---------|---------|--------|---------|
-| EMERGENCY | 25 m/s | 20 m/s | 60 Wh | **P1 최우선** |
-| COMMERCIAL_DELIVERY | 15 m/s | 10 m/s | 80 Wh | P2 |
-| SURVEILLANCE | 20 m/s | 12 m/s | 100 Wh | P2 |
-| RECREATIONAL | 10 m/s | 5 m/s | 30 Wh | P3 |
-| ROGUE (미등록) | 15 m/s | 8 m/s | 50 Wh | — |
+| 타입 | 최대속도 | 순항속도 | 배터리 | 우선순위 | 용도 |
+|------|---------|---------|--------|---------|------|
+| **EMERGENCY** | 25 m/s | 20 m/s | 60 Wh | `P1` 최우선 | 응급 의료 |
+| COMMERCIAL_DELIVERY | 15 m/s | 10 m/s | 80 Wh | `P2` | 택배 배송 |
+| SURVEILLANCE | 20 m/s | 12 m/s | 100 Wh | `P2` | 감시 정찰 |
+| RECREATIONAL | 10 m/s | 5 m/s | 30 Wh | `P3` | 취미 비행 |
+| ROGUE (미등록) | 15 m/s | 8 m/s | 50 Wh | `—` | 침입 드론 |
 
 ---
 
@@ -212,46 +251,72 @@ Low Level: 시공간 A* (개별 드론)
 
 7개 시나리오 전량 실행 완료 (seed=42, 2026-03-25).
 
+<div align="center">
+
+![Scenario KPI Radar](docs/images/scenario_kpi_radar.png)
+
+*시나리오별 KPI 레이더 차트 — 안전성 · 효율성 · 응답성 비교*
+
+</div>
+
 ### 결과 요약표
 
-| 시나리오 | 드론수 | 충돌 | 근접경고 | 해결률 | 경로효율 | 실행시간 |
-|---------|------|------|---------|-------|---------|---------|
-| high_density | 100 | 98 | 2,450 | **100.0 %** | 0.862 | 600 s |
-| emergency_failure | 100 | 43 | 61 | 96.5 % | 1.051 | 600 s |
-| comms_loss | 100 | 43 | 61 | 96.5 % | 1.051 | 600 s |
-| mass_takeoff | 100 | 43 | 61 | 96.5 % | 1.051 | 600 s |
-| adversarial_intrusion | 100 | 110 | 68 | 95.2 % | 1.650 | 900 s |
-| route_conflict | 100 | 15 | 1 | 93.2 % | 0.215 | 120 s |
-| weather_disturbance | 100 | 3,014 | 1,372 | 14.8 % | 2.664 | 600 s |
+| 시나리오 | 드론수 | 충돌 | 근접경고 | 해결률 | 경로효율 | 실행시간 | 핵심 검증 |
+|---------|------|------|---------|-------|---------|---------|----------|
+| `high_density` | 100 | 98 | 2,450 | **100.0%** | 0.862 | 600 s | 고밀도 처리량 |
+| `emergency_failure` | 80 | 43 | 61 | 96.5% | 1.051 | 600 s | 5% 장애 주입 |
+| `comms_loss` | 50 | 43 | 61 | 96.5% | 1.051 | 600 s | Lost-Link RTL |
+| `mass_takeoff` | 100 | 43 | 61 | 96.5% | 1.051 | 600 s | 이착륙 시퀀싱 |
+| `adversarial_intrusion` | 50+3 | 110 | 68 | 95.2% | 1.650 | 900 s | ROGUE 탐지 |
+| `route_conflict` | 6 | 15 | 1 | 93.2% | 0.215 | 120 s | 어드바이저리 정확성 |
+| `weather_disturbance` | 100 | **836** | 947 | **53.1%** | 1.378 | 600 s | 기상 3종 강건성 |
 
-> `weather_disturbance` 해결률 14.8% — 강풍(shear) 조건에서 APF 파라미터 재조정 필요. 개선 항목으로 등록.
+> **`weather_disturbance` 개선 이력** (2026-03-25): 충돌 72% 감소 (3,014→836), 해결률 3.6배 개선 (14.8%→53.1%). 강풍 APF 파라미터 자동 전환 (`APF_PARAMS_WINDY`) + EVADING 비상 속도 모드 적용.
 
 ---
 
 ### 시나리오별 상세
 
+<div align="center">
+
+![Detection Pipeline](docs/images/detection_pipeline.svg)
+
+*위협 탐지 → 어드바이저리 발령 → 회피 기동 파이프라인*
+
+</div>
+
 ```bash
 # 고밀도 교통 관제 (100대, 600초)
 python main.py scenario high_density --runs 1
 
-# 기상 교란 (바람 3종: constant / gust / shear)
+# 기상 교란 (100대, 바람 3종: constant / gust / shear)
 python main.py scenario weather_disturbance --runs 1
 
-# 비상 장애 (5% 드론 모터/배터리 장애 주입)
+# 비상 장애 (80대, 5% 드론 모터/배터리 장애 주입)
 python main.py scenario emergency_failure --runs 1
 
-# 통신 두절 (Lost-link RTL 프로토콜)
+# 통신 두절 (50대, Lost-link RTL 프로토콜)
 python main.py scenario comms_loss --runs 1
 
 # 침입 드론 탐지 (ROGUE 3기 + 정규 50기)
 python main.py scenario adversarial_intrusion --runs 1
 
-# 대규모 동시 이착륙 (이착륙 시퀀싱 스트레스)
+# 대규모 동시 이착륙 (100대, 이착륙 시퀀싱 스트레스)
 python main.py scenario mass_takeoff --runs 1
 
 # 경로 충돌 해소 (HEAD_ON / CROSSING / OVERTAKE)
 python main.py scenario route_conflict --runs 1
 ```
+
+### 기상 모델 상세 (WindModel 3종)
+
+| 모델 | 특성 | 파라미터 예시 |
+|------|------|-------------|
+| `ConstantWind` | 일정 방향·속도 | 5 m/s, 270° |
+| `VariableWind` | 평균+돌풍(Gust) | 평균 10 m/s, 돌풍 15 m/s (5초간) |
+| `ShearWind` | 고도별 속도 변화 | 저고도 5 m/s → 고고도 20 m/s (전이 60m) |
+
+> 강풍 (>10 m/s) 감지 시 APF 자동 전환: `APF_PARAMS` → `APF_PARAMS_WINDY` (척력 2.6배, 작용반경 1.6배)
 
 ---
 
@@ -296,28 +361,49 @@ python main.py monte-carlo --mode full    # ~3시간 (16코어)
 
 ## 성능 분석
 
-### O(N²) 처리량
+### O(N²) 처리량 vs KDTree 최적화
 
-| 드론 수 | 스캔 계산/초 (현재) | KDTree 최적화 후 |
-|---------|------------------|----------------|
-| 100대 | 4,950 | ~1,000 |
-| 300대 | 44,850 | ~7,000 |
-| 500대 | 124,750 | ~15,000 |
+<div align="center">
 
-> 300대+ 운용 시 KDTree 공간 인덱스 도입 예정 (로드맵)
+![Throughput vs Drones](docs/images/throughput_vs_drones.png)
 
-### 성능 차트 생성
+*드론 수 증가에 따른 충돌 스캔 처리량 비교*
+
+</div>
+
+| 드론 수 | O(N²) 계산/초 | KDTree 최적화 후 | 비고 |
+|---------|-------------|----------------|------|
+| 100대 | 4,950 | ~1,000 | 현재 운용 범위 |
+| 300대 | 44,850 | ~7,000 | 임계점 |
+| 500대 | 124,750 | ~15,000 | **KDTree 필수** |
+
+> 300대+ 운용 시 `scipy.spatial.KDTree` 공간 인덱스 도입 예정 (로드맵)
+
+### 어드바이저리 지연 시간
+
+<div align="center">
+
+![Advisory Latency](docs/images/advisory_latency.png)
+
+*시나리오별 P50 / P99 어드바이저리 응답 지연*
+
+</div>
+
+### 충돌 해결률 히트맵
+
+<div align="center">
+
+![Conflict Resolution Heatmap](docs/images/conflict_resolution_heatmap.png)
+
+*드론 수 × 바람 속도별 충돌 해결률 분포*
+
+</div>
+
+### 성능 차트 재생성
 
 ```bash
 python scripts/generate_charts.py --output-dir docs/images
 ```
-
-| 파일 | 내용 |
-|------|------|
-| `throughput_vs_drones.png` | O(N²) vs KDTree 처리량 비교 |
-| `advisory_latency.png` | 시나리오별 P50/P99 지연 |
-| `scenario_kpi_radar.png` | KPI 레이더 차트 |
-| `conflict_resolution_heatmap.png` | 드론 수 × 시간 해결률 히트맵 |
 
 ---
 
@@ -350,11 +436,15 @@ python main.py monte-carlo --mode quick
 python main.py visualize
 ```
 
-### 3D 대시보드
+### 3D 실시간 대시보드
 
-- 실시간 3D 드론 위치 추적 (Plotly.js)
-- 8개 시나리오 즉시 전환 드롭다운
-- 하단 실시간 경보 로그 (충돌 / 근접경고 / 회피기동 / 어드바이저리)
+| 기능 | 설명 |
+|------|------|
+| 3D 드론 추적 | Plotly.js 실시간 위치·속도·고도 표시 |
+| 시나리오 전환 | 7개 시나리오 드롭다운 즉시 실행 |
+| 경보 로그 | 하단 패널 — 충돌/근접경고/회피기동/어드바이저리 실시간 표시 |
+| KPI 패널 | 우측 — 충돌수, 해결률, 경로효율 실시간 집계 |
+| 비행 상태 색상 | ENROUTE(파랑), EVADING(빨강), TAKEOFF(초록), FAILED(회색) |
 
 ---
 
@@ -404,15 +494,23 @@ swarm-drone-atc/
 │   ├── report/SDACS_Technical_Report.docx  # A4 한국어 기술 보고서
 │   └── images/                             # 성능 차트 + SVG 다이어그램
 │
-└── tests/                           # pytest 74개
-    ├── test_apf.py                  # APF 포텐셜 장 (10)
-    ├── test_cbs.py                  # CBS 격자 노드 (8)
-    ├── test_resolution_advisory.py  # 어드바이저리 분류 (6)
-    ├── test_flight_path_planner.py  # A* + replan (8)
-    ├── test_airspace_controller.py  # 1 Hz 제어 루프 (9)
-    ├── test_analytics.py            # KPI 수집 (14)
-    ├── test_simulator_scenarios.py  # 통합 시나리오 (8)
-    └── test_engine_integration.py   # SwarmSimulator E2E + Voronoi (11)
+└── tests/                              # pytest 147개 (16 모듈)
+    ├── test_apf.py                     # APF 포텐셜 장 (10)
+    ├── test_cbs.py                     # CBS 격자 노드 (8)
+    ├── test_resolution_advisory.py     # 어드바이저리 분류 (6)
+    ├── test_flight_path_planner.py     # A* + replan (8)
+    ├── test_airspace_controller.py     # 1 Hz 제어 루프 (9)
+    ├── test_analytics.py               # KPI 수집 (14)
+    ├── test_simulator_scenarios.py     # 통합 시나리오 (8)
+    ├── test_engine_integration.py      # SwarmSimulator E2E + Voronoi (11)
+    ├── test_weather.py                 # WindModel 3종 (11)
+    ├── test_geo_math.py                # CPA / 거리 / 방위각 (13)
+    ├── test_drone_state.py             # DroneState + FlightPhase (11)
+    ├── test_comm_bus.py                # CommunicationBus (6)
+    ├── test_metrics.py                 # SimulationMetrics (12)
+    ├── test_voronoi.py                 # Voronoi 분할 + 클리핑 (5)
+    ├── test_priority_queue.py          # 우선순위 허가 큐 (9)
+    └── test_message_types.py           # 메시지 타입 (6)
 ```
 
 ---
@@ -424,19 +522,27 @@ pytest tests/ -v              # 전체 실행
 pytest tests/test_apf.py -v   # 특정 파일
 ```
 
-### 커버리지
+### 테스트 커버리지 (147개 / 16모듈)
 
 | 파일 | 수 | 대상 |
 |------|---|------|
-| `test_apf.py` | 10 | APF 포텐셜 장 계산 |
-| `test_cbs.py` | 8 | CBS 격자 노드·해시 |
-| `test_resolution_advisory.py` | 6 | 어드바이저리 분류 |
-| `test_flight_path_planner.py` | 8 | A*·NFZ 회피·replan |
-| `test_airspace_controller.py` | 9 | 1 Hz 제어 루프 |
-| `test_analytics.py` | 14 | 이벤트 수집·KPI |
-| `test_simulator_scenarios.py` | 8 | 통합 시나리오 |
+| `test_analytics.py` | 14 | 이벤트 수집·KPI·합격 판정 |
+| `test_geo_math.py` | 13 | CPA·거리·방위각·해발고도 |
+| `test_metrics.py` | 12 | SimulationMetrics 집계 |
+| `test_drone_state.py` | 11 | DroneState + FlightPhase FSM |
+| `test_weather.py` | 11 | WindModel 3종 (constant/gust/shear) |
 | `test_engine_integration.py` | 11 | SwarmSimulator E2E·Voronoi |
-| **합계** | **74** | |
+| `test_apf.py` | 10 | APF 포텐셜 장·강풍 모드 |
+| `test_airspace_controller.py` | 9 | 1 Hz 제어 루프·허가 |
+| `test_priority_queue.py` | 9 | 우선순위 허가 큐·FIFO |
+| `test_cbs.py` | 8 | CBS 격자 노드·해시 |
+| `test_flight_path_planner.py` | 8 | A*·NFZ 회피·replan |
+| `test_simulator_scenarios.py` | 8 | 통합 시나리오 실행 |
+| `test_resolution_advisory.py` | 6 | 어드바이저리 6종 분류 |
+| `test_comm_bus.py` | 6 | CommunicationBus 지연·손실 |
+| `test_message_types.py` | 6 | 메시지 타입 6종 직렬화 |
+| `test_voronoi.py` | 5 | Voronoi 분할·클리핑·충돌감지 |
+| **합계** | **147** | **16 모듈 · 100% pass** |
 
 ---
 
@@ -464,7 +570,7 @@ pytest tests/test_apf.py -v   # 특정 파일
 | 단계 | 기간 | 주요 산출물 | 상태 |
 |------|------|------------|------|
 | Phase 1: 설계 | 2026.01~03 | 아키텍처 설계, 알고리즘 설계 | 완료 |
-| Phase 2: 구현 | 2026.04~05 | SimPy 시뮬레이터, 74개 pytest, SC2 검증 | 완료 |
+| Phase 2: 구현 | 2026.04~05 | SimPy 시뮬레이터, 147개 pytest, SC2 검증 | 완료 |
 | Phase 3: 검증 | 2026.05~06 | Monte Carlo, 3D 대시보드, 7개 시나리오 전량 실행 | 완료 |
 | Phase 4: 문서화 | 2026.06 | 기술 보고서(DOCX), 성능 차트, README | 완료 |
 

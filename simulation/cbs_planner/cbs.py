@@ -156,6 +156,8 @@ def detect_conflict(
 ) -> Optional[Conflict]:
     """모든 드론 쌍에서 첫 번째 충돌 탐지"""
     drone_ids = list(paths.keys())
+    if not paths:
+        return None
     max_t = max(len(p) for p in paths.values())
 
     for i in range(len(drone_ids)):

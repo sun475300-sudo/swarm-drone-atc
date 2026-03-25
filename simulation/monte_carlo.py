@@ -25,7 +25,7 @@ def _load_mc_config() -> dict:
 
 def _run_single(args: tuple) -> dict:
     """단일 설정 실행 (joblib 워커용)"""
-    from simulation.engine import SimulationEngine
+    from simulation.engine_legacy import SimulationEngine
 
     config_combo, seed = args
     engine = SimulationEngine(

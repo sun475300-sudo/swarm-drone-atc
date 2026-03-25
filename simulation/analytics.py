@@ -199,9 +199,9 @@ class SimulationAnalytics:
         eff_mean = float(np.mean(efficiencies))  if efficiencies else 1.0
         eff_max  = float(np.max(efficiencies))   if efficiencies else 1.0
 
-        # 충돌 해결률
+        # 충돌 해결률 (음수 방지: 충돌 > 충돌예측 시 0% 클램프)
         if self._conflicts_total > 0:
-            res_rate = 100.0 * (1.0 - self._collision_count / self._conflicts_total)
+            res_rate = max(0.0, 100.0 * (1.0 - self._collision_count / self._conflicts_total))
         else:
             res_rate = 100.0
 

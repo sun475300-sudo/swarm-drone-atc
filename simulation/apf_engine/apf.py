@@ -24,6 +24,18 @@ APF_PARAMS = {
     "altitude_k": 0.5,      # 고도 보정 게인
 }
 
+# 강풍 조건용 파라미터 (weather_disturbance 시나리오 개선)
+# 2차 최적화: 더 공격적인 충돌 회피
+APF_PARAMS_WINDY = {
+    "k_att": 1.0,           # 인력 게인 (목표 추적, 척력과 균형)
+    "k_rep_drone": 6.5,     # 드론 간 척력 게인 (2차 개선: 4.5 → 6.5)
+    "k_rep_obs": 7.0,       # 장애물 척력 게인
+    "d0_drone": 80.0,       # 드론 간 영향 거리 (m) - 더 조기 회피 (70 → 80)
+    "d0_obs": 45.0,         # 장애물 영향 거리 (m)
+    "max_force": 22.0,      # 최대 합력 (m/s²) - 강풍 저항 강화 (18 → 22)
+    "altitude_k": 1.0,      # 고도 보정 게인 (윈드 시어 대응)
+}
+
 
 @dataclass
 class APFState:
@@ -105,7 +117,8 @@ def compute_total_force(
     goal: np.ndarray,
     neighbors: list[APFState],
     obstacles: list[np.ndarray],
-    params: dict = APF_PARAMS,
+    params: dict | None = None,
+    wind_speed: float = 0.0,
 ) -> np.ndarray:
     """
     드론 1기의 합력 계산 (분산 제어 - 이웃 정보만 사용)
@@ -115,10 +128,19 @@ def compute_total_force(
         goal:      목표 위치 [x, y, z]
         neighbors: 통신 범위 내 이웃 드론 상태 리스트
         obstacles: 장애물 위치 리스트
+        params:    APF 파라미터 딕셔너리 (None이면 바람 조건에 따라 자동 선택)
+        wind_speed: 현재 바람 속도 (m/s) - 파라미터 자동 선택에 사용
 
     Returns:
         합력 벡터 [fx, fy, fz] (m/s²)
     """
+    # 바람 조건에 따라 파라미터 자동 선택
+    if params is None:
+        if wind_speed > 10.0:  # 강풍 (10 m/s 이상, 2차 개선: 12 → 10)
+            params = APF_PARAMS_WINDY
+        else:
+            params = APF_PARAMS
+
     F_total = np.zeros(3)
 
     # 1. 인력 (목표 방향)
@@ -171,10 +193,14 @@ def batch_compute_forces(
     goals: dict[str, np.ndarray],
     obstacles: list[np.ndarray],
     comm_range: float = 2000.0,
-    params: dict = APF_PARAMS,
+    params: dict | None = None,
+    wind_speeds: dict[str, float] | None = None,
 ) -> dict[str, np.ndarray]:
     """
     전체 드론에 대한 APF 합력 배치 계산 (NumPy 벡터화)
+
+    Args:
+        wind_speeds: {drone_id: wind_speed} 딕셔너리 (각 드론 위치의 바람 속도)
 
     Returns:
         {drone_id: force_vector} 딕셔너리
@@ -182,6 +208,9 @@ def batch_compute_forces(
     forces = {}
     positions = np.array([s.position for s in states])   # (N, 3)
     velocities = np.array([s.velocity for s in states])  # (N, 3)
+
+    if wind_speeds is None:
+        wind_speeds = {}
 
     for i, own in enumerate(states):
         goal = goals.get(own.drone_id)
@@ -200,8 +229,11 @@ def batch_compute_forces(
             for j in neighbor_indices
         ]
 
+        # 바람 속도 가져오기
+        wind_speed = wind_speeds.get(own.drone_id, 0.0)
+
         forces[own.drone_id] = compute_total_force(
-            own, goal, neighbors, obstacles, params
+            own, goal, neighbors, obstacles, params, wind_speed
         )
 
     return forces

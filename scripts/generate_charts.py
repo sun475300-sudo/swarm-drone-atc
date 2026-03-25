@@ -80,7 +80,7 @@ def chart_throughput(out: str) -> None:
     ax.grid(True)
 
     plt.tight_layout()
-    plt.savefig(out, dpi=150, bbox_inches="tight")
+    plt.savefig(out, dpi=300, bbox_inches="tight")
     plt.close(fig)
     print(f"  [OK] {out}")
 
@@ -125,7 +125,7 @@ def chart_latency(out: str) -> None:
                 f"{bar.get_height():.2f}", ha="center", va="bottom", fontsize=8, color=ORANGE)
 
     plt.tight_layout()
-    plt.savefig(out, dpi=150, bbox_inches="tight")
+    plt.savefig(out, dpi=300, bbox_inches="tight")
     plt.close(fig)
     print(f"  [OK] {out}")
 
@@ -166,7 +166,7 @@ def chart_scenario_radar(out: str) -> None:
     ax.legend(loc="upper right", bbox_to_anchor=(1.35, 1.1), fontsize=9)
 
     plt.tight_layout()
-    plt.savefig(out, dpi=150, bbox_inches="tight")
+    plt.savefig(out, dpi=300, bbox_inches="tight")
     plt.close(fig)
     print(f"  [OK] {out}")
 
@@ -212,7 +212,7 @@ def chart_resolution_heatmap(out: str) -> None:
     ax.text(3.55, 4.35, "SLA 기준\n(100대)", color=BLUE, fontsize=8, ha="right")
 
     plt.tight_layout()
-    plt.savefig(out, dpi=150, bbox_inches="tight")
+    plt.savefig(out, dpi=300, bbox_inches="tight")
     plt.close(fig)
     print(f"  [OK] {out}")
 

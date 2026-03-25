@@ -53,7 +53,6 @@ def distance_3d(a: np.ndarray, b: np.ndarray) -> float:
 def closest_approach(
     pos_a: np.ndarray, vel_a: np.ndarray,
     pos_b: np.ndarray, vel_b: np.ndarray,
-    dt: float = 0.1,
     lookahead_s: float = 90.0,
 ) -> tuple[float, float]:
     """

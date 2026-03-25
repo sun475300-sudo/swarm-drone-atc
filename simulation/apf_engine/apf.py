@@ -162,7 +162,7 @@ def compute_total_force(
         )
 
     # 4. 고도 보정 (비행 고도 유지)
-    target_alt = 60.0  # 기본 순항 고도 (m)
+    target_alt = params.get("target_alt", 60.0)  # 순항 고도 (m), 파라미터로 설정 가능
     alt_error = target_alt - own.position[2]
     F_total[2] += params["altitude_k"] * alt_error
 

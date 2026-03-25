@@ -249,7 +249,8 @@ def cbs_plan(
                 )
                 heapq.heappush(open_list, (child.cost, id(child), child))
 
-    # 최대 탐색 노드 초과 → 현재 최선의 경로 반환
+    # 최대 탐색 노드 초과 → 현재 최선의 경로 반환 (충돌 미해결 가능)
+    # 호출자는 반환된 경로에 잔여 충돌이 있을 수 있음을 인지해야 함
     return current_ct.paths
 
 

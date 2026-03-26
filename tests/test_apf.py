@@ -73,7 +73,7 @@ class TestBatchComputeForces:
     def test_obstacle_repulsion(self):
         """드론이 장애물 근처에 있으면 장애물에서 멀어지는 힘이 발생해야 한다."""
         s = _make_state(5.0, 0.0, did="A")
-        obstacle = (np.array([0.0, 0.0, 60.0]), 0.0)  # (center, radius)
+        obstacle = np.array([0.0, 0.0, 60.0])  # NFZ center position
         forces = batch_compute_forces([s], goals=_goals(s),
                                        obstacles=[obstacle])
         f = forces["A"]

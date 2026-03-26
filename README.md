@@ -542,8 +542,8 @@ MIT License — 학술 및 교육 목적으로 개발되었습니다.
 
 | 날짜 (KST) | 커밋 | 분류 | 작업 내용 | 주요 파일 |
 | --- | --- | --- | --- | --- |
-| 2026-03-26 11:56 | `ea4ef27` | docs: README 변경 이력 전체 커밋 기준으로 재정리 | README.md |
-| 2026-03-26 | `8d0d493` | **fix** | 3D 시각화 버튼 동작 수정 (Dash 4.x `ctx.triggered_id` 적용), HTML 내보내기 버튼 추가, 시나리오 8→11개 확장 (초고밀도·배터리위기·복합재난) | visualization/simulator_3d.py |
+| 2026-03-26 | `a09dea7` | **feat** | 3D 시각화 업데이트 — 배속 슬라이더(1×~10×), 실시간 이벤트 로그, 저배터리 경고 색상, 드론 클릭 상세정보 패널, 해결률 대형 표시 | visualization/simulator_3d.py |
+| 2026-03-26 | `8d0d493` | **fix** | 3D 시각화 버튼 동작 수정 (Dash 4.x `ctx.triggered_id`), HTML 내보내기, 시나리오 11개 확장 | visualization/simulator_3d.py |
 | 2026-03-26 | `40af8a9` | **fix** | FAILED 드론 GROUNDED 전환 누락 수정, ENROUTE/RTL norm epsilon 제거 (0.1m 조기 착륙 조건), 선회 로직 중복 분기 정리 | simulator.py, resolution_advisory.py, airspace_controller.py |
 | 2026-03-26 | `ac1bc7a` | **fix** | NFZ 내부 진입 시 APF 척력 폭주 방지 (`safe_dist` 1e-3 → 1.0m), Voronoi ray-casting 주석 보강 | apf.py, airspace_controller.py |
 | 2026-03-26 | `37121f3` | **fix** | 비기동(LANDING/TAKEOFF/RTL) 드론 어드바이저리 재배정, HOLDING step7 wind 최적화, 테스트 8건 추가 | simulator.py, airspace_controller.py, tests/ |

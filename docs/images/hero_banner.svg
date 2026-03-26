@@ -71,7 +71,7 @@
   <!-- Drone 1 (top-right arc) -->
   <path d="M 820 100 Q 750 140 700 160" stroke="#60a5fa" stroke-width="1.5" fill="none" opacity="0.5" stroke-dasharray="4,3"/>
   <circle cx="700" cy="160" r="5" fill="#60a5fa" opacity="0.9" filter="url(#softGlow)"/>
-  <text x="700" cy="160" x="694" y="154" fill="#93c5fd" font-size="16" filter="url(#softGlow)">🚁</text>
+  <text x="694" y="154" fill="#93c5fd" font-size="16" filter="url(#softGlow)">🚁</text>
 
   <!-- Drone 2 (right) -->
   <path d="M 900 190 Q 840 195 800 195" stroke="#34d399" stroke-width="1.5" fill="none" opacity="0.5" stroke-dasharray="4,3"/>

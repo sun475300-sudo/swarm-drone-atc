@@ -286,7 +286,7 @@ const COLLISION_DIST = 50; // meters - collision
 const NEAR_MISS_DIST = 150; // meters - near miss
 
 // ===== State =====
-let simRunning = true;
+let simRunning = false;  // 시작 버튼 클릭 시 true
 let simSpeed = 1.0;
 let simTime = 0;
 let drones = [];
@@ -294,11 +294,11 @@ let stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
 
 // ===== Three.js Setup =====
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x030508, 0.006);
+scene.fog = new THREE.FogExp2(0x030508, 0.003);  // 안개 줄여 시야 확보
 
-const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 500);
-camera.position.set(55, 40, 55);
-camera.lookAt(0, 2, 0);
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 800);
+camera.position.set(70, 50, 70);
+camera.lookAt(0, 3, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setSize(innerWidth, innerHeight);
@@ -553,7 +553,7 @@ function initDrones(scenario) {
   for (let i = 0; i < count; i++) {
     const pad = LANDING_PADS[i % LANDING_PADS.length];
     const d = createDrone(i + 1, pad);
-    d.groundDelay = scenario === 'mass_takeoff' ? Math.random() * 5 : Math.random() * 20;
+    d.groundDelay = scenario === 'mass_takeoff' ? Math.random() * 2 : Math.random() * 8;
     if (scenario === 'emergency_failure' && Math.random() < 0.15) {
       d.willFail = true;
       d.failTime = 10 + Math.random() * 30;
@@ -616,7 +616,7 @@ function updateDrone(d, dt) {
         d.goalX = d.goalPad.x;
         d.goalZ = d.goalPad.z;
         d.targetAlt = 40 + Math.random() * 70;
-        d.groundDelay = 3 + Math.random() * 8;
+        d.groundDelay = 2 + Math.random() * 5;
         d.battery = Math.min(100, d.battery + 30);
       }
       break;

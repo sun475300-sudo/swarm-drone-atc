@@ -712,6 +712,7 @@ def build_figure(sim: SimState) -> go.Figure:
 # 전역 시뮬레이션 인스턴스
 # ─────────────────────────────────────────────────────────────
 SIM = SimState()
+SIM.reset(30)  # 초기 드론 배치 (3D scene 즉시 렌더링용)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -868,6 +869,7 @@ app.layout = html.Div(
                 # ── 3D 뷰포트
                 dcc.Graph(
                     id="graph-3d",
+                    figure=build_figure(SIM),  # 초기 3D scene 즉시 렌더링
                     style={"flex": "1", "height": "100%"},
                     config={
                         "displayModeBar": True,

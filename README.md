@@ -683,44 +683,28 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 ---
 
-## 업데이트 이력
+## 변경 이력
 
-| 날짜 | 시간 | 주요 변경 사항 |
-|------|------|---------------|
-| 2026-03-26 | 10:00 KST | Standalone HTML 3D 시뮬레이터, 안전 이슈 3건 수정(LANDING 충돌 제외, goal=None 방어, evade_end_s 타이머), 코드 리뷰 반영, Voronoi staleness 문서화 |
-| 2026-03-26 | 01:15 KST | DOCX 기술 보고서 생성, GitHub Actions CI 추가, 차트 DPI 300 업그레이드, 시뮬레이터 속도 조절 슬라이더 |
-| 2026-03-25 | 23:50 KST | SVG 한글 폰트 수정 (Malgun Gothic 추가), hero_banner/architecture 테스트 수 173개 반영, 빈 PNG→SVG 교체 |
-| 2026-03-25 | 22:30 KST | 데드코드 삭제 + 테스트 26개 추가 (147→173), config 필드명 통일, CLAUDE.md 생성 |
-| 2026-03-25 | 21:45 KST | monte_carlo SwarmSimulator 일원화, simulator_3d HOLDING/RTL 처리, 의존성 정리 |
-| 2026-03-25 | 21:15 KST | README 전면 업데이트 — 시각자료 9종 삽입, 테스트 74→147개 반영 |
-| 2026-03-25 | 20:30 KST | simulator.py APF 기상적응 바람속도 전달 + 최종보고서 PDF 추가 |
-| 2026-03-25 | 19:50 KST | weather_disturbance 시나리오 개선 + 충돌해결률 공식 수정 |
-| 2026-03-25 | 19:00 KST | 8개 신규 테스트 모듈 추가 (74→147 테스트) |
-| 2026-03-25 | 18:15 KST | analytics 음수 해결률 + CBS 빈입력 크래시 + APF 기상적응 + engine 리네임 |
-| 2026-03-25 | 17:30 KST | 14건 버그 수정 (CRITICAL 4 + HIGH 6 + MEDIUM 4) |
+| 날짜 | 시간 | 주요 변경 사항 | 커밋 |
+|------|------|---------------|------|
+| 2026-03-26 | 10:30 KST | 브랜치 병합 완료, 테스트 obstacle 형식 수정, 3D 시뮬레이터 초기화 개선 | `84fc1ed` |
+| 2026-03-26 | 10:00 KST | Standalone HTML 3D 시뮬레이터, 안전 이슈 3건 수정, 코드 리뷰 반영, Voronoi staleness 문서화 | `dd7f1b1` |
+| 2026-03-26 | 01:15 KST | DOCX 기술 보고서, GitHub Actions CI, 차트 DPI 300, 속도 조절 슬라이더 | `a923ac5` |
+| 2026-03-25 | 23:50 KST | SVG 한글 폰트 수정, hero_banner/architecture 테스트 수 173개 반영 | `f76386b` |
+| 2026-03-25 | 22:30 KST | 데드코드 삭제 + 테스트 26개 추가 (147→173), config 필드명 통일, CLAUDE.md 생성 | — |
+| 2026-03-25 | 21:45 KST | monte_carlo SwarmSimulator 일원화, simulator_3d HOLDING/RTL 처리 | — |
+| 2026-03-25 | 21:15 KST | README 전면 업데이트 — 시각자료 9종 삽입, 테스트 74→147개 반영 | — |
+| 2026-03-25 | 20:30 KST | APF 기상적응 바람속도 전달 + 최종보고서 PDF 추가 | — |
+| 2026-03-25 | 19:50 KST | weather_disturbance 시나리오 개선 + 충돌해결률 공식 수정 | — |
+| 2026-03-25 | 19:00 KST | 8개 신규 테스트 모듈 추가 (74→147 테스트) | — |
+| 2026-03-25 | 18:15 KST | analytics 음수 해결률 + CBS 빈입력 크래시 + APF 기상적응 + engine 리네임 | — |
+| 2026-03-25 | 17:30 KST | 14건 버그 수정 (CRITICAL 4 + HIGH 6 + MEDIUM 4) | — |
 
 ---
 
 ## 라이선스
 
 MIT License — 학술 및 교육 목적으로 개발되었습니다.
-
----
-
-## 변경 이력 (Changelog)
-
-| 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
-| --- | --- | --- | --- |
-| 2026-03-26 08:41 | `7e26412` | docs: README 변경 이력 섹션 추가 및 자동 업데이트 훅 설정 | .claude/settings.json, .claude/update-changelog.py, README.md |
-| 2026-03-26 08:19 | `b1a8b2f` | fix: ROGUE advisory guard, clearance NFZ validation, dead import removal | simulation/simulator.py, src/airspace_control/controller/airspace_controller.py |
-| 2026-03-25 21:03 | `7cf7841` | fix: HOLDING wind drift, COLLISION duplicate, _active_drones leak | simulation/simulator.py, src/airspace_control/avoidance/resolution_advisory.py, src/airspace_control/controller/airspace_controller.py |
-| 2026-03-25 20:46 | `f6c5ede` | refactor: 코드 품질 개선 5건 (simplify 리뷰 반영) | simulation/simulator.py, simulation/apf_engine/apf.py, src/airspace_control/avoidance/resolution_advisory.py |
-| 2026-03-25 20:40 | `7e10de0` | fix: HOLDING 5초 타이머 경계값 비교 수정 (> → >=) | simulation/simulator.py |
-| 2026-03-25 20:37 | `c4583e1` | fix: NFZ 구체 표면 기준 척력, 인력 불연속, 중복 분석 기록, KDTree 필터 반경 수정 | simulation/apf_engine/apf.py, simulation/simulator.py, src/airspace_control/controller/airspace_controller.py |
-| 2026-03-25 20:22 | `fbbbe72` | fix: EVADING→ENROUTE 전환 후 APF force 오적용 및 evade_end_s 미초기화 버그 수정 | simulation/simulator.py, src/airspace_control/agents/drone_state.py |
-| 2026-03-25 20:17 | `9007cf2` | fix: APF 이웃 탐색 범위 확장 및 EVADING 어드바이저리 갱신 버그 수정 | simulation/apf_engine/apf.py, simulation/simulator.py, src/airspace_control/avoidance/resolution_advisory.py |
-| 2026-03-25 19:58 | `2311fb5` | refactor: 코드 품질 개선 7건 (simplify 리뷰 반영) | simulation/apf_engine/apf.py, simulation/simulator.py, tests/test_apf.py |
-| 2026-03-25 18:48 | `9b489ee` | feat: 어드바이저리 통합, KDTree 최적화, weather_disturbance 개선, PII 제거 | simulation/simulator.py, simulation/apf_engine/apf.py, config/scenario_params/weather_disturbance.yaml |
 
 ---
 

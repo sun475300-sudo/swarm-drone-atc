@@ -262,10 +262,12 @@ def _step(sim: SimState) -> None:
                 pair = frozenset((id_a, id_b))
                 dist = float(np.linalg.norm(pa - pb))
                 if dist < 5.0:
-                    sim.collisions += 1
+                    if pair not in sim._active_conflict_pairs:
+                        sim.collisions += 1
+                        _log_event(sim, f"💥 충돌  {id_a} ↔ {id_b}  ({dist:.1f}m)")
+                    current_conflicts.add(pair)
                     drones[id_a].flight_phase = FlightPhase.FAILED
                     drones[id_b].flight_phase = FlightPhase.FAILED
-                    _log_event(sim, f"💥 충돌  {id_a} ↔ {id_b}  ({dist:.1f}m)")
                 elif dist < 10.0:
                     if pair not in sim._active_conflict_pairs:
                         sim.near_misses += 1

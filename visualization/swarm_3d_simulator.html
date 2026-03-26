@@ -212,14 +212,30 @@
     <div style="margin-bottom:8px;">
       <label class="ctrl-label">시나리오 선택</label>
       <select class="ctrl-select" id="scenario-select">
-        <option value="default">기본 (30대)</option>
-        <option value="high_density">고밀도 (80대)</option>
-        <option value="emergency_failure">비상 장애 (40대)</option>
-        <option value="mass_takeoff">대규모 이륙 (60대)</option>
-        <option value="route_conflict">경로 충돌 (50대)</option>
-        <option value="comms_loss">통신 두절 (30대)</option>
-        <option value="weather_disturbance">기상 교란 (25대)</option>
-        <option value="adversarial_intrusion">침입 드론 (35대)</option>
+        <optgroup label="기본">
+          <option value="default">기본 (30대)</option>
+          <option value="high_density">고밀도 (80대)</option>
+          <option value="mass_takeoff">대규모 이륙 (60대)</option>
+        </optgroup>
+        <optgroup label="장애/위기">
+          <option value="emergency_failure">비상 장애 (40대)</option>
+          <option value="battery_critical">배터리 위기 (50대)</option>
+          <option value="cascade_failure">연쇄 장애 (45대)</option>
+          <option value="comms_loss">통신 두절 (30대)</option>
+        </optgroup>
+        <optgroup label="교통/공역">
+          <option value="route_conflict">경로 충돌 (50대)</option>
+          <option value="nfz_saturate">NFZ 포화 (70대)</option>
+          <option value="mixed_traffic">혼합 교통 (60대)</option>
+        </optgroup>
+        <optgroup label="환경/위협">
+          <option value="weather_disturbance">기상 교란 (25대)</option>
+          <option value="adversarial_intrusion">침입 드론 (35대)</option>
+          <option value="search_rescue">수색 구조 (20대)</option>
+        </optgroup>
+        <optgroup label="극한">
+          <option value="extreme_stress">극한 스트레스 (100대)</option>
+        </optgroup>
       </select>
     </div>
     <div style="margin-bottom:8px;">
@@ -318,14 +334,20 @@ const PHASES = {
 };
 
 const SCENARIOS = {
-  default:              { count: 30, label: '기본',          wind: false, failRate: 0,    rogueRate: 0 },
-  high_density:         { count: 80, label: '고밀도',        wind: false, failRate: 0,    rogueRate: 0 },
-  emergency_failure:    { count: 40, label: '비상 장애',     wind: false, failRate: 0.20, rogueRate: 0 },
-  mass_takeoff:         { count: 60, label: '대규모 이륙',   wind: false, failRate: 0,    rogueRate: 0 },
-  route_conflict:       { count: 50, label: '경로 충돌',     wind: false, failRate: 0,    rogueRate: 0 },
-  comms_loss:           { count: 30, label: '통신 두절',     wind: false, failRate: 0.10, rogueRate: 0 },
-  weather_disturbance:  { count: 25, label: '기상 교란',     wind: true,  failRate: 0.05, rogueRate: 0 },
-  adversarial_intrusion:{ count: 35, label: '침입 드론',     wind: false, failRate: 0,    rogueRate: 0.15 },
+  default:              { count: 30, label: '기본',            wind: false, failRate: 0,    rogueRate: 0 },
+  high_density:         { count: 80, label: '고밀도',          wind: false, failRate: 0,    rogueRate: 0 },
+  emergency_failure:    { count: 40, label: '비상 장애',       wind: false, failRate: 0.20, rogueRate: 0 },
+  mass_takeoff:         { count: 60, label: '대규모 이륙',     wind: false, failRate: 0,    rogueRate: 0 },
+  route_conflict:       { count: 50, label: '경로 충돌',       wind: false, failRate: 0,    rogueRate: 0 },
+  comms_loss:           { count: 30, label: '통신 두절',       wind: false, failRate: 0.10, rogueRate: 0 },
+  weather_disturbance:  { count: 25, label: '기상 교란',       wind: true,  failRate: 0.05, rogueRate: 0 },
+  adversarial_intrusion:{ count: 35, label: '침입 드론',       wind: false, failRate: 0,    rogueRate: 0.15 },
+  battery_critical:     { count: 50, label: '배터리 위기',     wind: false, failRate: 0,    rogueRate: 0 },
+  cascade_failure:      { count: 45, label: '연쇄 장애',       wind: true,  failRate: 0.35, rogueRate: 0 },
+  nfz_saturate:         { count: 70, label: 'NFZ 포화',        wind: false, failRate: 0,    rogueRate: 0 },
+  mixed_traffic:        { count: 60, label: '혼합 교통',       wind: false, failRate: 0.05, rogueRate: 0.08 },
+  search_rescue:        { count: 20, label: '수색 구조',       wind: true,  failRate: 0.10, rogueRate: 0 },
+  extreme_stress:       { count: 100,label: '극한 스트레스',   wind: true,  failRate: 0.15, rogueRate: 0.10 },
 };
 
 const LANDING_PADS = [
@@ -627,26 +649,75 @@ function initDrones(scenario) {
     // 시나리오별 특화
     switch (scenario) {
       case 'mass_takeoff':
-        d.groundDelay = Math.random() * 2;  // 빠른 동시 이륙
+        d.groundDelay = Math.random() * 2;
         break;
       case 'route_conflict':
-        // 모든 드론을 NFZ 관통 경로로 배치 → 충돌 유발
         d.goalX = -d.startPad.x;
         d.goalZ = -d.startPad.z;
         d.groundDelay = Math.random() * 3;
         break;
       case 'weather_disturbance':
         d.groundDelay = Math.random() * 5;
-        d.speed *= 0.85;  // 강풍 감속
+        d.speed *= 0.85;
         break;
       case 'adversarial_intrusion':
         if (Math.random() < cfg.rogueRate) {
           d.isRogue = true;
-          d.speed *= 1.4;  // 침입 드론 고속
+          d.speed *= 1.4;
           d.groundDelay = 0;
-          // NFZ 안으로 직행
           d.goalX = (Math.random() - 0.5) * 800;
           d.goalZ = (Math.random() - 0.5) * 800;
+        }
+        break;
+      case 'battery_critical':
+        // 대부분 드론 배터리 20~40% 시작 → 빠르게 RTL 발생
+        d.battery = 15 + Math.random() * 25;
+        d.groundDelay = Math.random() * 4;
+        break;
+      case 'cascade_failure':
+        // 장애가 시간차 연쇄 발생 (5~40초 사이 집중)
+        if (d.willFail) d.failTime = 5 + (i / count) * 35;
+        d.groundDelay = Math.random() * 3;
+        break;
+      case 'nfz_saturate':
+        // 모든 드론이 NFZ 주변으로 집중 → 회피 폭주
+        d.goalX = (Math.random() - 0.5) * 1200;
+        d.goalZ = (Math.random() - 0.5) * 1200;
+        d.groundDelay = Math.random() * 4;
+        break;
+      case 'mixed_traffic':
+        // 속도/고도 편차 크게
+        d.speed = 4 + Math.random() * 14;  // 4~18 m/s
+        d.targetAlt = 30 + Math.random() * 90;  // 30~120m
+        d.groundDelay = Math.random() * 6;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true;
+          d.speed *= 1.3;
+          d.groundDelay = 0;
+        }
+        break;
+      case 'search_rescue':
+        // 소수 드론이 좁은 영역을 집중 수색 (원형 패턴)
+        {
+          const angle = (i / count) * Math.PI * 2;
+          const radius = 800 + Math.random() * 600;
+          d.goalX = Math.cos(angle) * radius;
+          d.goalZ = Math.sin(angle) * radius;
+          d.targetAlt = 50 + Math.random() * 30;  // 저고도 수색
+          d.speed = 5 + Math.random() * 4;  // 저속
+          d.groundDelay = i * 0.5;  // 순차 투입
+        }
+        break;
+      case 'extreme_stress':
+        // 100대 + 바람 + 장애 + 침입 = 최악 상황
+        d.groundDelay = Math.random() * 3;
+        d.speed = 6 + Math.random() * 12;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true;
+          d.speed *= 1.5;
+          d.groundDelay = 0;
+          d.goalX = (Math.random() - 0.5) * 1000;
+          d.goalZ = (Math.random() - 0.5) * 1000;
         }
         break;
       default:

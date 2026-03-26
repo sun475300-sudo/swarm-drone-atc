@@ -9,6 +9,8 @@ SDACS — 군집드론 공역통제 자동화 시스템
     python main.py monte-carlo --mode quick
     python main.py visualize             # 3D 대시보드 실행
     python main.py visualize-3d          # Three.js 3D 시뮬레이터
+    python main.py chatbot               # 보세전시장 민원상담 챗봇
+    python main.py chatbot-sim           # 챗봇 CLI 시뮬레이터
 """
 from __future__ import annotations
 
@@ -191,6 +193,29 @@ def cmd_visualize_3d(args: argparse.Namespace) -> None:
     webbrowser.open(url)
 
 
+# ── chatbot ────────────────────────────────────────────────
+
+def cmd_chatbot(args: argparse.Namespace) -> None:
+    _setup_logging(getattr(args, "log_level", "INFO"))
+    from chatbot.app import run_chatbot
+
+    port = getattr(args, "port", 8051)
+    engine_type = getattr(args, "engine", "rule")
+
+    print(f"\n보세전시장 민원상담 챗봇 시작: http://127.0.0.1:{port}")
+    print("  브라우저에서 접속하여 질문하세요.\n")
+    run_chatbot(port=port, engine_type=engine_type)
+
+
+# ── chatbot-sim ───────────────────────────────────────────────
+
+def cmd_chatbot_sim(args: argparse.Namespace) -> None:
+    _setup_logging(getattr(args, "log_level", "INFO"))
+    from chatbot.simulator import run_simulator
+
+    run_simulator()
+
+
 # ── main ─────────────────────────────────────────────────────
 
 def main() -> None:
@@ -229,6 +254,19 @@ def main() -> None:
     # ── visualize-3d ─────────────────────────────────────────────
     p_v3d = sub.add_parser("visualize-3d", help="Three.js 3D 시뮬레이터 (브라우저)")
 
+    # ── chatbot ────────────────────────────────────────────────
+    p_chat = sub.add_parser("chatbot", help="보세전시장 민원상담 챗봇")
+    p_chat.add_argument("--port", type=int, default=8051, help="챗봇 포트")
+    p_chat.add_argument(
+        "--engine", default="rule", choices=["rule", "llm"],
+        help="응답 엔진 (rule: 규칙기반, llm: vLLM)",
+    )
+    p_chat.add_argument("--log-level", default="INFO")
+
+    # ── chatbot-sim ─────────────────────────────────────────────
+    p_chatsim = sub.add_parser("chatbot-sim", help="보세전시장 챗봇 CLI 시뮬레이터 (터미널)")
+    p_chatsim.add_argument("--log-level", default="INFO")
+
     args = parser.parse_args()
 
     dispatch = {
@@ -237,6 +275,8 @@ def main() -> None:
         "monte-carlo":   cmd_monte_carlo,
         "visualize":     cmd_visualize,
         "visualize-3d":  cmd_visualize_3d,
+        "chatbot":       cmd_chatbot,
+        "chatbot-sim":   cmd_chatbot_sim,
     }
     dispatch[args.command](args)
 

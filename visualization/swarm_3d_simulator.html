@@ -450,6 +450,38 @@ const COLLISION_DIST = 50; // meters - collision
 const NEAR_MISS_DIST = 150; // meters - near miss
 const SEPARATION_ALT = 20; // meters - 수직 분리 최소 고도차
 
+// ===== 정밀 비행 역학 상수 =====
+const PHYSICS = {
+  maxAccel: 3.0,        // m/s² 최대 가속도
+  maxDecel: 4.0,        // m/s² 최대 감속도
+  maxTurnRate: 25,      // °/s 최대 선회율
+  maxClimbRate: 5.0,    // m/s 최대 상승률
+  maxDescentRate: 3.0,  // m/s 최대 하강률
+  dragCoeff: 0.02,      // 항력 계수
+  mass: 2.5,            // kg 기본 질량
+  uamMass: 25.0,        // kg UAM 질량
+};
+
+// ===== 분리 기준 (UTM 참조) =====
+const SEPARATION = {
+  horizontal: 100,    // meters 수평 최소 분리
+  vertical: 20,       // meters 수직 최소 분리
+  landing: 200,       // meters 착륙 시퀀스 간격
+  uamHorizontal: 200, // meters UAM 수평 분리 (대형)
+};
+
+// ===== 우선순위 (낮을수록 높은 우선순위) =====
+const PRIORITY = {
+  emergency: 0, medevac: 0, fire: 1,
+  uam_taxi: 2, uam_shuttle: 2,
+  patrol: 3, recon: 3, military: 3,
+  delivery: 5, logistics: 5, food: 5,
+  camera: 6, media: 6, mapping: 6,
+  agri: 7, forestry: 7, environ: 7,
+  construction: 7, inspection: 7, mining: 7,
+  research: 8, telecom: 8,
+};
+
 // ===== State =====
 let simRunning = false;  // 시작 버튼 클릭 시 true
 let simSpeed = 1.0;
@@ -963,6 +995,7 @@ function createDrone(id, startPad) {
     if (glow) glow.scale.set(2.2, 2.2, 1);
   }
 
+  const maxSpd = isUAM ? (15 + Math.random() * 10) : (8 + Math.random() * 7);
   const drone = {
     id: `DR-${String(id).padStart(3,'0')}`,
     role,
@@ -975,10 +1008,28 @@ function createDrone(id, startPad) {
     goalX: destPad.x, goalZ: destPad.z,
     goalPad: destPad,
     startPad,
-    speed: isUAM ? (15 + Math.random() * 10) : (8 + Math.random() * 7), // UAM: 15-25 m/s, 일반: 8-15 m/s
-    groundDelay: Math.random() * 15, // wait before takeoff
+    speed: 0,              // 현재 속도 (0에서 가속)
+    maxSpeed: maxSpd,      // 최대 순항 속도
+    groundDelay: Math.random() * 15,
     evadeTimer: 0,
     failed: false,
+    // 정밀 비행 역학
+    vx: 0, vy: 0, vz: 0,        // 속도 벡터 (m/s)
+    heading: Math.random() * 360, // 기수 방향 (°)
+    targetHeading: 0,             // 목표 기수 방향
+    throttle: 0,                  // 추력 (0~1)
+    mass: isUAM ? PHYSICS.uamMass : PHYSICS.mass,
+    priority: PRIORITY[role.id] ?? 9,
+    // 텔레메트리
+    distanceTraveled: 0,          // 총 비행 거리 (m)
+    flightTime: 0,                // 비행 시간 (s)
+    maxAltReached: 0,             // 최대 도달 고도
+    waypointHits: 0,              // 경유점 도달 횟수
+    evasionCount: 0,              // 회피 횟수
+    // 착륙 시퀀스
+    landingQueued: false,         // 착륙 대기열 등록 여부
+    landingSlot: -1,              // 착륙 슬롯 번호
+    holdingOrbitAngle: 0,         // 홀딩 패턴 각도
   };
 
   group.userData = drone;
@@ -1000,6 +1051,7 @@ function initDrones(scenario) {
   drones = [];
   stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
   simTime = 0;
+  landingManager.clear();
 
   const cfg = SCENARIOS[scenario] || SCENARIOS.default;
   windEnabled = cfg.wind;
@@ -1261,35 +1313,104 @@ function inNFZ(wx, wz) {
   return Math.abs(wx) < 500 && Math.abs(wz) < 500;
 }
 
-// ===== Simulation Logic =====
+// ===== 착륙 시퀀스 관리자 =====
+const landingManager = {
+  queues: {},  // padName → [drone, ...]
+  init() { LANDING_PADS.forEach(p => this.queues[p.name] = []); },
+  request(drone) {
+    const padName = drone.goalPad.name;
+    const q = this.queues[padName];
+    if (!q.includes(drone)) {
+      q.push(drone);
+      q.sort((a, b) => a.priority - b.priority); // 우선순위 정렬
+      drone.landingQueued = true;
+      drone.landingSlot = q.indexOf(drone);
+    }
+    return q[0] === drone; // 첫 번째면 착륙 허가
+  },
+  release(drone) {
+    const padName = drone.goalPad.name;
+    const q = this.queues[padName];
+    const idx = q.indexOf(drone);
+    if (idx >= 0) q.splice(idx, 1);
+    drone.landingQueued = false;
+    drone.landingSlot = -1;
+  },
+  clear() { LANDING_PADS.forEach(p => this.queues[p.name] = []); },
+};
+landingManager.init();
+
+// ===== 정밀 비행 역학 헬퍼 =====
+function calcHeading(dx, dz) {
+  return ((Math.atan2(dx, dz) * 180 / Math.PI) + 360) % 360;
+}
+
+function turnToward(current, target, maxRate, dt) {
+  let diff = ((target - current + 540) % 360) - 180;
+  const turn = Math.sign(diff) * Math.min(Math.abs(diff), maxRate * dt);
+  return ((current + turn) + 360) % 360;
+}
+
+function accelToward(currentSpd, targetSpd, accel, decel, dt) {
+  if (currentSpd < targetSpd) return Math.min(currentSpd + accel * dt, targetSpd);
+  if (currentSpd > targetSpd) return Math.max(currentSpd - decel * dt, targetSpd);
+  return currentSpd;
+}
+
+// ===== Simulation Logic (정밀 비행 역학) =====
 function updateDrone(d, dt) {
   if (!simRunning) return;
   const sDt = dt * simSpeed;
+  const isFlying = d.phase !== 'GROUNDED' && d.phase !== 'FAILED';
 
-  d.battery = Math.max(0, d.battery - sDt * 0.03);
+  // 정밀 배터리 모델: 고도·속도·바람에 따른 차등 소모
+  if (isFlying) {
+    const altCost = 0.01 * (d.wy / 100);            // 고고도 = 추가 소모
+    const spdCost = 0.008 * (d.speed / d.maxSpeed);  // 고속 = 추가 소모
+    const windPenalty = windEnabled ? 0.005 : 0;      // 바람 저항
+    d.battery = Math.max(0, d.battery - sDt * (0.02 + altCost + spdCost + windPenalty));
+    d.flightTime += sDt;
+    d.distanceTraveled += d.speed * sDt;
+    d.maxAltReached = Math.max(d.maxAltReached, d.wy);
+  } else {
+    d.battery = Math.max(0, d.battery - sDt * 0.005); // 지상 대기 소모
+  }
 
   // 동적 기상 효과
   const w = getWindAt(d.wx, d.wy, d.wz);
   const windX = w.x * sDt;
   const windZ = w.z * sDt;
   const windY = w.y * sDt;
-  // 수직 바람 적용 (열 상승기류 등)
-  if (d.phase !== 'GROUNDED' && Math.abs(windY) > 0.01) {
+  if (isFlying && Math.abs(windY) > 0.01) {
     d.wy = Math.max(5, Math.min(180, d.wy + windY));
   }
 
   switch (d.phase) {
     case 'GROUNDED':
       d.groundDelay -= sDt;
+      d.speed = 0;
+      d.vx = 0; d.vz = 0; d.vy = 0;
       if (d.groundDelay <= 0 && d.battery > 10) {
         d.phase = 'TAKEOFF';
+        d.throttle = 0.8;
+        logEvent('takeoff', `${d.id} [${d.role.label}] 이륙 개시`);
       }
       break;
 
-    case 'TAKEOFF':
-      d.wy = Math.min(d.wy + d.speed * 0.5 * sDt, d.targetAlt);
-      if (d.wy >= d.targetAlt - 1) d.phase = 'ENROUTE';
+    case 'TAKEOFF': {
+      // 점진적 상승 (가속 → 순항 고도)
+      const climbSpd = accelToward(d.vy, PHYSICS.maxClimbRate, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
+      d.vy = climbSpd;
+      d.wy = Math.min(d.wy + climbSpd * sDt, d.targetAlt);
+      // 수평 속도도 서서히 증가
+      d.speed = accelToward(d.speed, d.maxSpeed * 0.3, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
+      d.heading = calcHeading(d.goalX - d.wx, d.goalZ - d.wz);
+      if (d.wy >= d.targetAlt - 1) {
+        d.phase = 'ENROUTE';
+        d.vy = 0;
+      }
       break;
+    }
 
     case 'ENROUTE': {
       // NFZ 진입 감지 → 회피 전환 (ROGUE 제외)
@@ -1298,6 +1419,7 @@ function updateDrone(d, dt) {
       if (!d.isRogue && (inNFZ(d.wx, d.wz) || inNFZ(lookaheadX, lookaheadZ))) {
         d.phase = 'EVADING';
         d.evadeTimer = 3.0;
+        d.evasionCount++;
         const pushX = d.wx > 0 ? 1 : -1;
         const pushZ = d.wz > 0 ? 1 : -1;
         d.wx += pushX * 80;
@@ -1307,23 +1429,58 @@ function updateDrone(d, dt) {
         break;
       }
 
-      const dx = d.goalX - d.wx;
-      const dz = d.goalZ - d.wz;
+      const dx = d.goalX - d.wx, dz = d.goalZ - d.wz;
       const dist = Math.sqrt(dx * dx + dz * dz);
-      if (dist < 100) {
-        d.phase = 'LANDING';
-      } else {
-        d.wx += (dx / dist) * d.speed * sDt + windX;
-        d.wz += (dz / dist) * d.speed * sDt + windZ;
-        d.wx = Math.max(-WORLD, Math.min(WORLD, d.wx));
-        d.wz = Math.max(-WORLD, Math.min(WORLD, d.wz));
+
+      if (dist < 150) {
+        // 착륙 접근: 감속 + 착륙 시퀀스 진입
+        d.speed = accelToward(d.speed, d.maxSpeed * 0.2, PHYSICS.maxAccel, PHYSICS.maxDecel * 1.5, sDt);
+        if (dist < 100) {
+          d.waypointHits++;
+          if (landingManager.request(d)) {
+            d.phase = 'LANDING';
+            logEvent('landing', `${d.id} 착륙 허가 → ${d.goalPad.name}`);
+          } else {
+            // 착륙 대기 → 홀딩 패턴
+            d.phase = 'HOLDING';
+            d._holdStart = simTime;
+            d._holdForLanding = true;
+            logEvent('info', `${d.id} 착륙 대기 (슬롯 #${d.landingSlot + 1})`);
+          }
+          break;
+        }
       }
+
+      // 정밀 선회: 목표 방향으로 부드럽게 회전
+      d.targetHeading = calcHeading(dx, dz);
+      d.heading = turnToward(d.heading, d.targetHeading, PHYSICS.maxTurnRate, sDt);
+
+      // 가속/감속
+      d.speed = accelToward(d.speed, d.maxSpeed, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
+
+      // 속도 벡터 기반 이동 (heading 방향)
+      const rad = d.heading * Math.PI / 180;
+      d.vx = Math.sin(rad) * d.speed;
+      d.vz = Math.cos(rad) * d.speed;
+      d.wx += d.vx * sDt + windX;
+      d.wz += d.vz * sDt + windZ;
+
+      // 고도 유지 (목표 고도와 차이가 있으면 보정)
+      if (Math.abs(d.wy - d.targetAlt) > 2) {
+        const altDir = d.targetAlt > d.wy ? 1 : -1;
+        const rate = altDir > 0 ? PHYSICS.maxClimbRate : PHYSICS.maxDescentRate;
+        d.wy += altDir * rate * sDt * 0.5;
+      }
+
+      d.wx = Math.max(-WORLD, Math.min(WORLD, d.wx));
+      d.wz = Math.max(-WORLD, Math.min(WORLD, d.wz));
       break;
     }
 
     case 'EVADING':
       d.evadeTimer -= sDt;
-      // APF: NFZ 중심에서 멀어지는 방향으로 이동
+      d.speed = accelToward(d.speed, d.maxSpeed * 0.8, PHYSICS.maxAccel * 1.5, PHYSICS.maxDecel, sDt);
+
       if (inNFZ(d.wx, d.wz)) {
         const repX = d.wx / (Math.abs(d.wx) + 1);
         const repZ = d.wz / (Math.abs(d.wz) + 1);
@@ -1334,8 +1491,11 @@ function updateDrone(d, dt) {
         const gx = d.goalX - d.wx, gz = d.goalZ - d.wz;
         const gd = Math.sqrt(gx * gx + gz * gz);
         if (gd > 50) {
-          d.wx += (gx / gd) * d.speed * 0.3 * sDt;
-          d.wz += (gz / gd) * d.speed * 0.3 * sDt;
+          d.targetHeading = calcHeading(gx, gz);
+          d.heading = turnToward(d.heading, d.targetHeading, PHYSICS.maxTurnRate * 1.5, sDt);
+          const rad = d.heading * Math.PI / 180;
+          d.wx += Math.sin(rad) * d.speed * 0.3 * sDt;
+          d.wz += Math.cos(rad) * d.speed * 0.3 * sDt;
         }
       }
       d.wx += windX;
@@ -1343,53 +1503,107 @@ function updateDrone(d, dt) {
       if (d.evadeTimer <= 0 && !inNFZ(d.wx, d.wz)) d.phase = 'ENROUTE';
       break;
 
-    case 'HOLDING':
-      // 통신 두절 → 5초 체공 후 RTL
+    case 'HOLDING': {
+      // 원형 홀딩 패턴 (반경 200m, 일정 속도 선회)
+      d.speed = accelToward(d.speed, d.maxSpeed * 0.3, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
+      d.holdingOrbitAngle += (d.speed / 200) * sDt;  // 반경 200m 기준 각속도
+      const holdCenterX = d.goalX || d.wx;
+      const holdCenterZ = d.goalZ || d.wz;
+      const orbitR = 200;
+      const targetX = holdCenterX + Math.cos(d.holdingOrbitAngle) * orbitR;
+      const targetZ = holdCenterZ + Math.sin(d.holdingOrbitAngle) * orbitR;
+      const hdx = targetX - d.wx, hdz = targetZ - d.wz;
+      const hd = Math.sqrt(hdx * hdx + hdz * hdz);
+      if (hd > 5) {
+        d.wx += (hdx / hd) * d.speed * sDt;
+        d.wz += (hdz / hd) * d.speed * sDt;
+      }
+
+      // 통신 두절 체공: 8초 후 RTL
       if (!d._holdStart) d._holdStart = simTime;
-      if (simTime - d._holdStart > 5.0) {
+      if (d._holdForLanding) {
+        // 착륙 대기 중 → 슬롯 확인
+        if (landingManager.request(d)) {
+          d.phase = 'LANDING';
+          d._holdForLanding = false;
+          logEvent('landing', `${d.id} 착륙 허가 → ${d.goalPad.name}`);
+        } else if (simTime - d._holdStart > 30) {
+          // 30초 대기 후 다른 패드로 변경
+          d.goalPad = randomPad();
+          d.goalX = d.goalPad.x;
+          d.goalZ = d.goalPad.z;
+          d._holdForLanding = false;
+          d._holdStart = null;
+          d.phase = 'ENROUTE';
+          landingManager.release(d);
+          logEvent('info', `${d.id} 착륙 대기 초과 → 대체 패드`);
+        }
+      } else if (simTime - d._holdStart > 8.0) {
         d._holdStart = null;
         d.phase = 'RTL';
       }
       break;
+    }
 
-    case 'LANDING':
-      d.wy = Math.max(0, d.wy - d.speed * 0.4 * sDt);
+    case 'LANDING': {
+      // 정밀 착륙: 점진 감속 + 수직 하강
+      d.speed = accelToward(d.speed, 0, PHYSICS.maxAccel, PHYSICS.maxDecel * 2, sDt);
+      const descentRate = d.wy > 20 ? PHYSICS.maxDescentRate : PHYSICS.maxDescentRate * 0.5;
+      d.wy = Math.max(0, d.wy - descentRate * sDt);
+      // 착륙 지점으로 수렴
+      const ldx = d.goalX - d.wx, ldz = d.goalZ - d.wz;
+      const ld = Math.sqrt(ldx * ldx + ldz * ldz);
+      if (ld > 5) {
+        d.wx += (ldx / ld) * Math.min(d.speed, 3) * sDt;
+        d.wz += (ldz / ld) * Math.min(d.speed, 3) * sDt;
+      }
       if (d.wy <= 0.5) {
         d.wy = 0;
+        d.speed = 0;
+        d.vx = 0; d.vz = 0; d.vy = 0;
         d.phase = 'GROUNDED';
+        landingManager.release(d);
         d.startPad = d.goalPad;
         d.goalPad = randomPad();
         d.goalX = d.goalPad.x;
         d.goalZ = d.goalPad.z;
-        d.targetAlt = 40 + Math.random() * 70;
-        d.groundDelay = 2 + Math.random() * 5;
-        d.battery = Math.min(100, d.battery + 30);
+        const isUAM = d.role.id === 'uam_taxi' || d.role.id === 'uam_shuttle';
+        d.targetAlt = isUAM ? (100 + Math.random() * 60) : (40 + Math.random() * 70);
+        d.groundDelay = 3 + Math.random() * 6;
+        d.battery = Math.min(100, d.battery + 25);
+        logEvent('landing', `${d.id} 착륙 완료 → ${d.startPad.name}`);
       }
       break;
+    }
 
     case 'FAILED':
       d.wy = Math.max(0, d.wy - 2 * sDt);
+      d.speed = accelToward(d.speed, 0, 0, PHYSICS.maxDecel, sDt);
       break;
 
     case 'RTL': {
-      const dx = d.startPad.x - d.wx;
-      const dz = d.startPad.z - d.wz;
+      const dx = d.startPad.x - d.wx, dz = d.startPad.z - d.wz;
       const dist = Math.sqrt(dx * dx + dz * dz);
+      d.targetHeading = calcHeading(dx, dz);
+      d.heading = turnToward(d.heading, d.targetHeading, PHYSICS.maxTurnRate, sDt);
+      d.speed = accelToward(d.speed, d.maxSpeed * 0.6, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
+
       if (dist < 80) {
         d.phase = 'LANDING';
         d.goalPad = d.startPad;
         d.goalX = d.startPad.x;
         d.goalZ = d.startPad.z;
       } else {
-        d.wx += (dx / dist) * d.speed * 0.7 * sDt + windX;
-        d.wz += (dz / dist) * d.speed * 0.7 * sDt + windZ;
+        const rad = d.heading * Math.PI / 180;
+        d.wx += Math.sin(rad) * d.speed * sDt + windX;
+        d.wz += Math.cos(rad) * d.speed * sDt + windZ;
       }
       break;
     }
   }
 
   // 열 상승기류 효과 — 불규칙 고도 변동
-  if (d.thermalDrift && d.phase !== 'GROUNDED' && d.phase !== 'FAILED') {
+  if (d.thermalDrift && isFlying) {
     d.wy += Math.sin(simTime * 2 + d.wx * 0.01) * sDt * 3;
     d.wy = Math.max(30, Math.min(MAX_ALT, d.wy));
   }
@@ -1404,7 +1618,7 @@ function updateDrone(d, dt) {
   if (d.willFail && !d.failed && simTime > d.failTime && d.phase !== 'GROUNDED') {
     d.phase = 'FAILED';
     d.failed = true;
-    logEvent('fail', `${d.id} 장애 발생! ALT ${Math.round(d.wy)}m`);
+    logEvent('fail', `${d.id} [${d.role.label}] 장애! ALT ${Math.round(d.wy)}m`);
   }
 
   // 통신 두절 → HOLDING 전환
@@ -1417,11 +1631,20 @@ function updateDrone(d, dt) {
   // Low battery -> RTL
   if (d.battery < 8 && d.phase === 'ENROUTE') {
     d.phase = 'RTL';
-    logEvent('advisory', `${d.id} 배터리 부족(${Math.round(d.battery)}%) → RTL`);
+    logEvent('advisory', `${d.id} 배터리 ${Math.round(d.battery)}% → RTL`);
+  }
+
+  // 배터리 완전 방전 → 강제 FAILED
+  if (d.battery <= 0 && isFlying && d.phase !== 'FAILED') {
+    d.phase = 'FAILED';
+    d.failed = true;
+    logEvent('fail', `${d.id} 배터리 방전 → 비상 착륙!`);
   }
 
   // Update 3D position
   d.group.position.set(d.wx * SCALE, d.wy * SCALE * 3, d.wz * SCALE);
+  // 기수 방향 회전
+  if (isFlying) d.group.rotation.y = -d.heading * Math.PI / 180;
 
   // Update visuals — 직군 색상 기반
   const phaseC = new THREE.Color(phaseColor(d.phase));
@@ -1644,7 +1867,7 @@ function updateFleetList() {
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span style="font-size:9px;color:#4a6785;font-family:'JetBrains Mono',monospace;">
-            ALT ${Math.round(d.wy)}m | SPD ${d.speed.toFixed(0)}m/s
+            ALT ${Math.round(d.wy)}m · SPD ${d.speed.toFixed(0)}m/s · HDG ${Math.round(d.heading)}°
           </span>
           <span style="font-size:9px;color:${batColor};font-family:'JetBrains Mono',monospace;font-weight:600;">
             ${Math.round(d.battery)}%

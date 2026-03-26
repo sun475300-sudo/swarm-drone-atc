@@ -289,6 +289,13 @@
     <div class="legend-item"><div class="legend-dot" style="background:#ec407a;"></div><span class="legend-text">RTL (귀환)</span></div>
     <div style="border-top:1px solid rgba(0,229,255,0.1);margin:6px 0;"></div>
     <div class="legend-item"><div class="legend-dot" style="background:#00e5ff;width:10px;height:10px;box-shadow:0 0 6px #00e5ff;"></div><span class="legend-text" style="color:#00e5ff;font-weight:600;">ATC 관제 드론 (5대)</span></div>
+    <div style="border-top:1px solid rgba(255,255,255,0.05);margin:6px 0;"></div>
+    <span class="legend-text" style="color:#8899aa;font-size:8px;letter-spacing:1px;">직군별 드론</span>
+    <div class="legend-item"><div class="legend-dot" style="background:#f97316;"></div><span class="legend-text">📦 택배</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div><span class="legend-text">🌾 농업</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#a855f7;"></div><span class="legend-text">📷 촬영</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#eab308;"></div><span class="legend-text">🔍 정찰</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div><span class="legend-text">🚑 응급</span></div>
   </div>
 </div>
 
@@ -354,6 +361,15 @@ const PHASES = {
   FAILED:   { color: 0xef4444, label: '장애' },
   RTL:      { color: 0xec407a, label: '귀환' },
 };
+
+// ===== 드론 직군 (5종) =====
+const DRONE_ROLES = [
+  { id: 'delivery',  label: '택배',  color: 0xf97316, icon: '📦' },
+  { id: 'agri',      label: '농업',  color: 0x22c55e, icon: '🌾' },
+  { id: 'camera',    label: '촬영',  color: 0xa855f7, icon: '📷' },
+  { id: 'recon',     label: '정찰',  color: 0xeab308, icon: '🔍' },
+  { id: 'emergency', label: '응급',  color: 0xef4444, icon: '🚑' },
+];
 
 const SCENARIOS = {
   // ── 기본
@@ -827,6 +843,7 @@ function createDrone(id, startPad) {
 
   const drone = {
     id: `DR-${String(id).padStart(3,'0')}`,
+    role: DRONE_ROLES[id % DRONE_ROLES.length],
     group, body, rotor, glow: glow || null,
     phase: 'GROUNDED',
     battery: 85 + Math.random() * 15,
@@ -852,8 +869,11 @@ function initDrones(scenario) {
   while (droneGroup.children.length) droneGroup.remove(droneGroup.children[0]);
   while (trailGroup.children.length) {
     const c = trailGroup.children[0];
-    trailGroup.remove(c);
-    c.geometry.dispose(); c.material.dispose();
+    trailGroup.remove(c); c.geometry.dispose(); c.material.dispose();
+  }
+  while (atcLinkGroup.children.length) {
+    const c = atcLinkGroup.children[0];
+    atcLinkGroup.remove(c); c.geometry.dispose(); c.material.dispose();
   }
   drones = [];
   stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
@@ -1347,10 +1367,10 @@ function updateFleetList() {
         <div class="drone-card-header">
           <div class="drone-id">
             <div class="drone-status-dot" style="background:${color};"></div>
-            ${d.id}
+            ${d.role.icon} ${d.id}
           </div>
           <div class="drone-badge" style="color:${color};background:${color}18;border:1px solid ${color}40;">
-            ${ph.label}
+            ${d.role.label} · ${ph.label}
           </div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -1398,6 +1418,45 @@ document.getElementById('speed-slider').addEventListener('input', (e) => {
   simSpeed = parseFloat(e.target.value);
   document.getElementById('speed-label').textContent = simSpeed.toFixed(2) + 'x';
 });
+
+// ===== ATC 관제선 (탐지·통제 시각화) =====
+const atcLinkGroup = new THREE.Group();
+scene.add(atcLinkGroup);
+
+function updateATCLinks() {
+  while (atcLinkGroup.children.length) {
+    const c = atcLinkGroup.children[0];
+    atcLinkGroup.remove(c); c.geometry.dispose(); c.material.dispose();
+  }
+  if (_lightweight) return; // 대형 시나리오에서는 비활성
+
+  const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+  const maxLinks = 30;
+  let linkCount = 0;
+
+  atcDrones.forEach(atc => {
+    const ax = atc.x, az = atc.z, range = 2000; // 2000m 탐지 범위
+    airborne.forEach(d => {
+      if (linkCount >= maxLinks) return;
+      const dx = d.wx - ax, dz = d.wz - az;
+      const dist = Math.sqrt(dx*dx + dz*dz);
+      if (dist < range) {
+        const geo = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(atc.x * SCALE, atc.alt * SCALE * 3, atc.z * SCALE),
+          d.group.position.clone()
+        ]);
+        const isRogue = d.isRogue;
+        const line = new THREE.Line(geo, new THREE.LineBasicMaterial({
+          color: isRogue ? 0xff0000 : 0x00e5ff,
+          transparent: true,
+          opacity: isRogue ? 0.25 : 0.06,
+        }));
+        atcLinkGroup.add(line);
+        linkCount++;
+      }
+    });
+  });
+}
 
 // ===== Animation Loop =====
 const clock = new THREE.Clock();
@@ -1466,6 +1525,9 @@ function animate() {
     // 레이더 펄스
     atc.radarEdge.material.opacity = 0.1 + Math.sin(t * 1.5 + idx * 0.8) * 0.08;
   });
+
+  // ATC 관제선 (매 30프레임) — 범위 내 드론 탐지 시각화
+  if (simRunning && frameCount % 30 === 0) updateATCLinks();
 
   // Trails (매 5프레임, ROGUE만)
   if (simRunning && frameCount % 5 === 0) updateTrails();

@@ -542,6 +542,7 @@ MIT License — 학술 및 교육 목적으로 개발되었습니다.
 
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-03-26 09:39 | `37121f3` | fix: 비기동 드론 어드바이저리 재배정, HOLDING 최적화, 테스트 8건 추가 | simulation/simulator.py, src/airspace_control/controller/airspace_controller.py, tests/test_airspace_controller.py |
 | 2026-03-26 08:41 | `7e26412` | docs: README 변경 이력 섹션 추가 및 자동 업데이트 훅 설정 | .claude/settings.json, .claude/update-changelog.py, README.md |
 | 2026-03-26 08:19 | `b1a8b2f` | fix: ROGUE advisory guard, clearance NFZ validation, dead import removal | simulation/simulator.py, src/airspace_control/controller/airspace_controller.py |
 | 2026-03-25 21:03 | `7cf7841` | fix: HOLDING wind drift, COLLISION duplicate, _active_drones leak | simulation/simulator.py, src/airspace_control/avoidance/resolution_advisory.py, src/airspace_control/controller/airspace_controller.py |

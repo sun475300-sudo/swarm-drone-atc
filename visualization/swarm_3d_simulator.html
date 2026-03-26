@@ -357,38 +357,38 @@ const PHASES = {
 
 const SCENARIOS = {
   // ── 기본
-  default:              { count: 30,  label: '기본',            wind: false, failRate: 0,    rogueRate: 0 },
-  high_density:         { count: 80,  label: '고밀도',          wind: false, failRate: 0,    rogueRate: 0 },
-  mass_takeoff:         { count: 60,  label: '대규모 이륙',     wind: false, failRate: 0,    rogueRate: 0 },
-  ultra_swarm:          { count: 150, label: '초대형 군집',     wind: false, failRate: 0,    rogueRate: 0 },
+  default:              { count: 50,  label: '기본',            wind: false, failRate: 0,    rogueRate: 0 },
+  high_density:         { count: 150, label: '고밀도',          wind: false, failRate: 0,    rogueRate: 0 },
+  mass_takeoff:         { count: 100, label: '대규모 이륙',     wind: false, failRate: 0,    rogueRate: 0 },
+  ultra_swarm:          { count: 250, label: '초대형 군집',     wind: false, failRate: 0,    rogueRate: 0 },
   // ── 장애/위기
-  emergency_failure:    { count: 40,  label: '비상 장애',       wind: false, failRate: 0.20, rogueRate: 0 },
-  battery_critical:     { count: 50,  label: '배터리 위기',     wind: false, failRate: 0,    rogueRate: 0 },
-  cascade_failure:      { count: 45,  label: '연쇄 장애',       wind: true,  failRate: 0.35, rogueRate: 0 },
-  comms_loss:           { count: 30,  label: '통신 두절',       wind: false, failRate: 0.10, rogueRate: 0 },
-  multi_failure:        { count: 60,  label: '복합 장애',       wind: true,  failRate: 0.25, rogueRate: 0.05 },
+  emergency_failure:    { count: 80,  label: '비상 장애',       wind: false, failRate: 0.20, rogueRate: 0 },
+  battery_critical:     { count: 100, label: '배터리 위기',     wind: false, failRate: 0,    rogueRate: 0 },
+  cascade_failure:      { count: 80,  label: '연쇄 장애',       wind: true,  failRate: 0.35, rogueRate: 0 },
+  comms_loss:           { count: 60,  label: '통신 두절',       wind: false, failRate: 0.10, rogueRate: 0 },
+  multi_failure:        { count: 100, label: '복합 장애',       wind: true,  failRate: 0.25, rogueRate: 0.05 },
   // ── 교통/공역
-  route_conflict:       { count: 50,  label: '경로 충돌',       wind: false, failRate: 0,    rogueRate: 0 },
-  nfz_saturate:         { count: 70,  label: 'NFZ 포화',        wind: false, failRate: 0,    rogueRate: 0 },
-  mixed_traffic:        { count: 60,  label: '혼합 교통',       wind: false, failRate: 0.05, rogueRate: 0.08 },
-  corridor_congestion:  { count: 80,  label: '회랑 혼잡',       wind: false, failRate: 0,    rogueRate: 0 },
-  cross_traffic:        { count: 60,  label: '교차 교통',       wind: false, failRate: 0,    rogueRate: 0 },
+  route_conflict:       { count: 100, label: '경로 충돌',       wind: false, failRate: 0,    rogueRate: 0 },
+  nfz_saturate:         { count: 120, label: 'NFZ 포화',        wind: false, failRate: 0,    rogueRate: 0 },
+  mixed_traffic:        { count: 100, label: '혼합 교통',       wind: false, failRate: 0.05, rogueRate: 0.08 },
+  corridor_congestion:  { count: 150, label: '회랑 혼잡',       wind: false, failRate: 0,    rogueRate: 0 },
+  cross_traffic:        { count: 100, label: '교차 교통',       wind: false, failRate: 0,    rogueRate: 0 },
   // ── 자연/환경
-  weather_disturbance:  { count: 25,  label: '기상 교란',       wind: true,  failRate: 0.05, rogueRate: 0 },
-  heavy_storm:          { count: 30,  label: '강풍 폭우',       wind: true,  failRate: 0.15, rogueRate: 0 },
-  fog_low_vis:          { count: 35,  label: '안개 저시정',     wind: false, failRate: 0.08, rogueRate: 0 },
-  thermal_updraft:      { count: 40,  label: '열 상승기류',     wind: true,  failRate: 0,    rogueRate: 0 },
+  weather_disturbance:  { count: 50,  label: '기상 교란',       wind: true,  failRate: 0.05, rogueRate: 0 },
+  heavy_storm:          { count: 60,  label: '강풍 폭우',       wind: true,  failRate: 0.15, rogueRate: 0 },
+  fog_low_vis:          { count: 70,  label: '안개 저시정',     wind: false, failRate: 0.08, rogueRate: 0 },
+  thermal_updraft:      { count: 80,  label: '열 상승기류',     wind: true,  failRate: 0,    rogueRate: 0 },
   // ── 위협/보안
-  adversarial_intrusion:{ count: 35,  label: '침입 드론',       wind: false, failRate: 0,    rogueRate: 0.15 },
-  swarm_attack:         { count: 50,  label: '군집 침입',       wind: false, failRate: 0,    rogueRate: 0.30 },
-  gps_spoofing:         { count: 40,  label: 'GPS 스푸핑',      wind: false, failRate: 0.10, rogueRate: 0 },
+  adversarial_intrusion:{ count: 70,  label: '침입 드론',       wind: false, failRate: 0,    rogueRate: 0.15 },
+  swarm_attack:         { count: 100, label: '군집 침입',       wind: false, failRate: 0,    rogueRate: 0.30 },
+  gps_spoofing:         { count: 80,  label: 'GPS 스푸핑',      wind: false, failRate: 0.10, rogueRate: 0 },
   // ── 임무
-  search_rescue:        { count: 20,  label: '수색 구조',       wind: true,  failRate: 0.10, rogueRate: 0 },
-  delivery_rush:        { count: 80,  label: '택배 러시',       wind: false, failRate: 0.03, rogueRate: 0 },
-  formation_flight:     { count: 25,  label: '편대 비행',       wind: false, failRate: 0,    rogueRate: 0 },
+  search_rescue:        { count: 40,  label: '수색 구조',       wind: true,  failRate: 0.10, rogueRate: 0 },
+  delivery_rush:        { count: 150, label: '택배 러시',       wind: false, failRate: 0.03, rogueRate: 0 },
+  formation_flight:     { count: 50,  label: '편대 비행',       wind: false, failRate: 0,    rogueRate: 0 },
   // ── 극한
-  extreme_stress:       { count: 120, label: '극한 스트레스',   wind: true,  failRate: 0.15, rogueRate: 0.10 },
-  apocalypse:           { count: 120, label: '최종 시험',       wind: true,  failRate: 0.20, rogueRate: 0.20 },
+  extreme_stress:       { count: 200, label: '극한 스트레스',   wind: true,  failRate: 0.15, rogueRate: 0.10 },
+  apocalypse:           { count: 250, label: '최종 시험',       wind: true,  failRate: 0.20, rogueRate: 0.20 },
 };
 
 const LANDING_PADS = [

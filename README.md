@@ -761,6 +761,7 @@ MIT License — 학술 및 교육 목적으로 개발되었습니다.
 
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-03-26 11:19 | `738bf13` | fix: 판매 관련 키워드 보강으로 '현장에서 판매' 쿼리 매칭 개선 | chatbot/knowledge/sales_and_display.yaml |
 | 2026-03-26 10:24 | `106ea45` | feat: 보세전시장 민원상담 챗봇 구축 | README.md, chatbot/__init__.py, chatbot/app.py, chatbot/assets/chatbot.css, chatbot/engine/__init__.py, chatbot/engine/base.py … |
 
 ---

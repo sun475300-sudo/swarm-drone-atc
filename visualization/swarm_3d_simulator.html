@@ -1650,7 +1650,6 @@ function updateDrone(d, dt) {
   const phaseC = new THREE.Color(phaseColor(d.phase));
   const roleC = new THREE.Color(d.role.color);
   // 비행 중: body=직군색, rotor=phase색 / 지상/장애: 전부 phase색
-  const isFlying = d.phase !== 'GROUNDED' && d.phase !== 'FAILED';
   const bodyC = isFlying ? roleC : phaseC;
   d.body.material.color.copy(bodyC);
   d.body.material.emissive.copy(bodyC);

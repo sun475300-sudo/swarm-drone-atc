@@ -297,7 +297,7 @@
   <div class="fleet-panel">
     <div class="fleet-header">
       <div class="fleet-header-dot"></div>
-      <div class="fleet-header-text">FLEET TRACKER</div>
+      <div class="fleet-header-text">편대 추적기</div>
     </div>
     <div class="fleet-list" id="fleet-list"></div>
   </div>
@@ -308,9 +308,9 @@
   <div class="event-log-panel">
     <div class="event-log-header">
       <div style="width:6px;height:6px;border-radius:50%;background:#f59e0b;"></div>
-      <div style="font-size:10px;font-weight:600;color:#f59e0b;font-family:'JetBrains Mono',monospace;letter-spacing:1.5px;">EVENT LOG</div>
+      <div style="font-size:10px;font-weight:600;color:#f59e0b;font-family:'JetBrains Mono',monospace;letter-spacing:1.5px;">이벤트 기록</div>
       <div style="flex:1;"></div>
-      <button id="btn-clear-log" style="background:none;border:1px solid rgba(255,255,255,0.1);color:#4a6785;font-size:8px;padding:2px 6px;border-radius:3px;cursor:pointer;font-family:'JetBrains Mono',monospace;">CLEAR</button>
+      <button id="btn-clear-log" style="background:none;border:1px solid rgba(255,255,255,0.1);color:#4a6785;font-size:8px;padding:2px 6px;border-radius:3px;cursor:pointer;font-family:'JetBrains Mono',monospace;">초기화</button>
     </div>
     <div class="event-log-list" id="event-log"></div>
   </div>
@@ -424,9 +424,9 @@ function logEvent(type, msg) {
 
 // ===== Three.js Setup =====
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x030508, 0.003);  // 안개 줄여 시야 확보
+scene.fog = new THREE.FogExp2(0x030508, 0.003);
 
-const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 800);
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1200);
 camera.position.set(70, 50, 70);
 camera.lookAt(0, 3, 0);
 
@@ -436,6 +436,97 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.2;
 document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+// ===== Starfield Background (경량) =====
+(function createStarfield() {
+  const n = 500;
+  const pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const th = Math.random() * Math.PI * 2;
+    const ph = Math.acos(Math.random());
+    const r = 400 + Math.random() * 200;
+    pos[i*3] = r * Math.sin(ph) * Math.cos(th);
+    pos[i*3+1] = r * Math.cos(ph);
+    pos[i*3+2] = r * Math.sin(ph) * Math.sin(th);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xaaccff, size: 0.5, transparent: true, opacity: 0.5 })));
+})();
+
+// ===== Collision Particle System (경량) =====
+const collisionParticles = [];
+function spawnCollisionParticles(x, y, z) {
+  if (collisionParticles.length > 5) return; // 동시 파티클 제한
+  const n = 10;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(n * 3);
+  const vel = [];
+  for (let i = 0; i < n; i++) {
+    pos[i*3] = x; pos[i*3+1] = y; pos[i*3+2] = z;
+    vel.push({ vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3, vz: (Math.random()-0.5)*3 });
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const pts = new THREE.Points(geo, new THREE.PointsMaterial({
+    color: 0xff4400, size: 0.35, transparent: true, opacity: 1, blending: THREE.AdditiveBlending,
+  }));
+  scene.add(pts);
+  collisionParticles.push({ pts, vel, life: 1.0, age: 0 });
+}
+
+function updateCollisionParticles(dt) {
+  for (let i = collisionParticles.length - 1; i >= 0; i--) {
+    const p = collisionParticles[i];
+    p.age += dt;
+    if (p.age >= p.life) {
+      scene.remove(p.pts); p.pts.geometry.dispose(); p.pts.material.dispose();
+      collisionParticles.splice(i, 1); continue;
+    }
+    const arr = p.pts.geometry.attributes.position.array;
+    for (let j = 0; j < p.vel.length; j++) {
+      arr[j*3] += p.vel[j].vx * dt; arr[j*3+1] += p.vel[j].vy * dt; arr[j*3+2] += p.vel[j].vz * dt;
+      p.vel[j].vy -= 1.5 * dt;
+    }
+    p.pts.geometry.attributes.position.needsUpdate = true;
+    p.pts.material.opacity = 1.0 - (p.age / p.life);
+  }
+}
+
+// ===== Drone Trail System (경량 — ROGUE만 트레일) =====
+const trailGroup = new THREE.Group();
+scene.add(trailGroup);
+const TRAIL_MAX = 20;
+
+function updateTrails() {
+  const rogues = drones.filter(d => d.isRogue && d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+  // 최대 10개만 트레일
+  const targets = rogues.slice(0, 10);
+
+  while (trailGroup.children.length > targets.length) {
+    const old = trailGroup.children[trailGroup.children.length - 1];
+    trailGroup.remove(old); old.geometry.dispose(); old.material.dispose();
+  }
+
+  targets.forEach((d, idx) => {
+    if (!d._trail) d._trail = [];
+    d._trail.push(d.group.position.clone());
+    if (d._trail.length > TRAIL_MAX) d._trail.shift();
+    if (d._trail.length < 2) return;
+    const geo = new THREE.BufferGeometry().setFromPoints(d._trail);
+    if (trailGroup.children[idx]) {
+      trailGroup.children[idx].geometry.dispose();
+      trailGroup.children[idx].geometry = geo;
+    } else {
+      trailGroup.add(new THREE.Line(geo, new THREE.LineBasicMaterial({
+        color: 0xff2200, transparent: true, opacity: 0.35
+      })));
+    }
+  });
+}
+
+// ===== Camera Shake =====
+let cameraShake = 0;
+function triggerCameraShake(intensity) { cameraShake = Math.min(cameraShake + intensity, 0.5); }
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -569,6 +660,34 @@ for (let i = 0; i < 3; i++) {
   scanRings.push(ring);
 }
 
+// ===== Helpers (moved before ATC to avoid TDZ) =====
+function createGlowTexture() {
+  const c = document.createElement('canvas');
+  c.width = 128; c.height = 128;
+  const ctx = c.getContext('2d');
+  const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grad.addColorStop(0, 'rgba(255,255,255,0.6)');
+  grad.addColorStop(0.3, 'rgba(255,255,255,0.2)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+}
+const glowTex = createGlowTexture();
+
+function makeTextSprite(text, color, fontSize) {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 64;
+  const ctx = c.getContext('2d');
+  ctx.font = `bold ${fontSize || 10}px JetBrains Mono, monospace`;
+  ctx.fillStyle = color || '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 128, 32);
+  const tex = new THREE.CanvasTexture(c);
+  return new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+}
+
 // ===== ATC Control Drones (관제 드론) =====
 const ATC_POSITIONS = [
   { name: 'ATC-01', x: 0, z: 0, alt: 110, role: '중앙 관제' },
@@ -653,33 +772,7 @@ const boundaryGeo = new THREE.BufferGeometry().setFromPoints([
 ]);
 scene.add(new THREE.Line(boundaryGeo, new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.15 })));
 
-// ===== Helpers =====
-function createGlowTexture() {
-  const c = document.createElement('canvas');
-  c.width = 128; c.height = 128;
-  const ctx = c.getContext('2d');
-  const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-  grad.addColorStop(0, 'rgba(255,255,255,0.6)');
-  grad.addColorStop(0.3, 'rgba(255,255,255,0.2)');
-  grad.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 128, 128);
-  return new THREE.CanvasTexture(c);
-}
-const glowTex = createGlowTexture();
-
-function makeTextSprite(text, color, fontSize) {
-  const c = document.createElement('canvas');
-  c.width = 256; c.height = 64;
-  const ctx = c.getContext('2d');
-  ctx.font = `bold ${fontSize || 10}px JetBrains Mono, monospace`;
-  ctx.fillStyle = color || '#ffffff';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(text, 128, 32);
-  const tex = new THREE.CanvasTexture(c);
-  return new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
-}
+// ===== Helpers (defined above, before ATC section) =====
 
 function phaseColor(phase) {
   return PHASES[phase] ? PHASES[phase].color : 0x888888;
@@ -757,6 +850,11 @@ function createDrone(id, startPad) {
 function initDrones(scenario) {
   // Clear
   while (droneGroup.children.length) droneGroup.remove(droneGroup.children[0]);
+  while (trailGroup.children.length) {
+    const c = trailGroup.children[0];
+    trailGroup.remove(c);
+    c.geometry.dispose(); c.material.dispose();
+  }
   drones = [];
   stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
   simTime = 0;
@@ -764,7 +862,16 @@ function initDrones(scenario) {
   const cfg = SCENARIOS[scenario] || SCENARIOS.default;
   windEnabled = cfg.wind;
   const count = cfg.count;
-  _lightweight = count > 100;  // 100대 초과 시 경량 렌더링
+  _lightweight = count > 100;
+
+  // 시나리오별 분위기 조절
+  if (scenario === 'fog_low_vis') {
+    scene.fog = new THREE.FogExp2(0x1a1a2e, 0.012);  // 짙은 안개
+  } else if (scenario === 'heavy_storm') {
+    scene.fog = new THREE.FogExp2(0x0a0a18, 0.006);   // 폭풍
+  } else {
+    scene.fog = new THREE.FogExp2(0x030508, 0.003);   // 기본
+  }
 
   for (let i = 0; i < count; i++) {
     const pad = LANDING_PADS[i % LANDING_PADS.length];
@@ -1149,6 +1256,12 @@ function apfCollisionAvoidance() {
       if (dist < COLLISION_DIST) {
         frameCollisions++;
         if (lineCount < maxLines) { addProximityLine(a, b, 0xff0000, 0.6); lineCount++; }
+        // Collision VFX
+        const midX = (a.group.position.x + b.group.position.x) / 2;
+        const midY = (a.group.position.y + b.group.position.y) / 2;
+        const midZ = (a.group.position.z + b.group.position.z) / 2;
+        spawnCollisionParticles(midX, midY, midZ);
+        triggerCameraShake(0.3);
         logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist)}m)`);
       } else if (dist < NEAR_MISS_DIST) {
         frameNear++;
@@ -1354,12 +1467,27 @@ function animate() {
     atc.radarEdge.material.opacity = 0.1 + Math.sin(t * 1.5 + idx * 0.8) * 0.08;
   });
 
+  // Trails (매 5프레임, ROGUE만)
+  if (simRunning && frameCount % 5 === 0) updateTrails();
+
+  // Collision particles
+  if (collisionParticles.length > 0) updateCollisionParticles(dt);
+
   // NFZ pulse
   nfzMat.opacity = 0.06 + Math.sin(t * 1.5) * 0.03;
 
   // Point light orbit
   pointLight.position.x = Math.sin(t * 0.2) * 10;
   pointLight.position.z = Math.cos(t * 0.2) * 10;
+
+  // Camera shake decay
+  if (cameraShake > 0.01) {
+    camera.position.x += (Math.random() - 0.5) * cameraShake;
+    camera.position.y += (Math.random() - 0.5) * cameraShake * 0.5;
+    cameraShake *= 0.92;
+  } else {
+    cameraShake = 0;
+  }
 
   controls.update();
   renderer.render(scene, camera);

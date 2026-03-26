@@ -24,6 +24,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["main.py", "monte-carlo", "--mode", "quick"],
       "port": 0
+    },
+    {
+      "name": "HTML 시뮬레이터",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8080", "--directory", "visualization"],
+      "port": 8080
     }
   ]
 }

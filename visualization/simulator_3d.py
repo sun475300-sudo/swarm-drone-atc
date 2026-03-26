@@ -135,6 +135,12 @@ class SimState:
         # 이벤트 로그 (최근 15건)
         self.event_log: list[str] = []
 
+        # 시계열 히스토리 (200 포인트 유지)
+        self.history_t:   list[float] = []
+        self.history_col: list[int]   = []   # 누적 충돌
+        self.history_adv: list[int]   = []   # 누적 어드바이저리
+        self._last_hist_t: float = -1.0      # 마지막 기록 시각
+
     def reset(self, n_drones: int | None = None) -> None:
         if n_drones is not None:
             self.n_drones = n_drones
@@ -186,6 +192,10 @@ class SimState:
             self.advisories = 0
             self.collisions = 0
             self.event_log = []
+            self.history_t   = []
+            self.history_col = []
+            self.history_adv = []
+            self._last_hist_t = -1.0
 
 
 # ─────────────────────────────────────────────────────────────
@@ -274,6 +284,17 @@ def _step(sim: SimState) -> None:
         sim._active_conflict_pairs = current_conflicts
 
         sim.t += dt
+
+        # 1초마다 시계열 히스토리 기록
+        if sim.t - sim._last_hist_t >= 1.0:
+            sim._last_hist_t = sim.t
+            sim.history_t.append(round(sim.t, 1))
+            sim.history_col.append(sim.collisions)
+            sim.history_adv.append(sim.advisories)
+            if len(sim.history_t) > 200:
+                sim.history_t   = sim.history_t[-200:]
+                sim.history_col = sim.history_col[-200:]
+                sim.history_adv = sim.history_adv[-200:]
 
 
 def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
@@ -577,21 +598,30 @@ def build_figure(sim: SimState) -> go.Figure:
     # 착륙 패드
     fig.add_trace(_pad_trace())
 
-    # 드론 트레일
+    # 드론 트레일 (페이드 효과: 오래된 궤적일수록 투명)
     for drone in drones:
         trail = trails.get(drone.drone_id, [])
         if len(trail) < 2 or not drone.is_active:
             continue
         color = PHASE_COLORS[drone.flight_phase]
-        fig.add_trace(go.Scatter3d(
-            x=[p[0] for p in trail],
-            y=[p[1] for p in trail],
-            z=[p[2] for p in trail],
-            mode="lines",
-            line=dict(color=color, width=1.5),
-            opacity=0.3,
-            showlegend=False, hoverinfo="skip",
-        ))
+        n_seg = len(trail) - 1
+        # 궤적을 4구간으로 분할해 점진적 투명도 적용
+        segs = max(1, n_seg // 4)
+        for k, alpha in enumerate([0.08, 0.15, 0.25, 0.45]):
+            s = k * segs
+            e = (k + 1) * segs + 1
+            chunk = trail[s:e]
+            if len(chunk) < 2:
+                continue
+            fig.add_trace(go.Scatter3d(
+                x=[p[0] for p in chunk],
+                y=[p[1] for p in chunk],
+                z=[p[2] for p in chunk],
+                mode="lines",
+                line=dict(color=color, width=1.5),
+                opacity=alpha,
+                showlegend=False, hoverinfo="skip",
+            ))
 
     # 드론 마커 — 비행 단계별로 묶어서 렌더
     phase_groups: dict[FlightPhase, list[DroneState]] = {p: [] for p in FlightPhase}
@@ -601,8 +631,8 @@ def build_figure(sim: SimState) -> go.Figure:
     for phase, grp in phase_groups.items():
         if not grp:
             continue
-        size = 10 if phase == FlightPhase.EVADING else (
-               7  if phase == FlightPhase.FAILED   else 6)
+        size = 13 if phase == FlightPhase.FAILED  else (
+               11 if phase == FlightPhase.EVADING else 6)
         # 저배터리(<20%) 드론은 주황색으로 경고 표시
         colors = [
             "#FF6600" if (d.battery_pct < 20.0 and phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED))
@@ -633,8 +663,8 @@ def build_figure(sim: SimState) -> go.Figure:
             hovertemplate="%{text}<extra></extra>",
         ))
 
-    # 속도 화살표 (활성 드론 최대 20기)
-    active = [d for d in drones if d.is_active and d.speed > 0.5][:20]
+    # 속도 화살표 (활성 드론 최대 50기)
+    active = [d for d in drones if d.is_active and d.speed > 0.5][:50]
     if active:
         arr_x, arr_y, arr_z = [], [], []
         for d in active:
@@ -853,6 +883,19 @@ app.layout = html.Div(
                                  style={"color": "#58a6ff", "fontSize": "12px",
                                         "fontWeight": "600", "marginBottom": "8px"}),
                         html.Div(id="stats"),
+
+                        # 단계 분포 바 차트
+                        dcc.Graph(id="chart-phase",
+                                  style={"height": "130px", "marginTop": "8px"},
+                                  config={"displayModeBar": False}),
+
+                        # 충돌·어드바이저리 시계열 차트
+                        html.Div("📈 충돌/어드바이저리 추이",
+                                 style={"color": "#58a6ff", "fontSize": "12px",
+                                        "fontWeight": "600", "margin": "10px 0 4px"}),
+                        dcc.Graph(id="chart-history",
+                                  style={"height": "110px"},
+                                  config={"displayModeBar": False}),
 
                         html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
 
@@ -1099,12 +1142,14 @@ def _drone_click(click_data):
 
 
 @app.callback(
-    Output("graph-3d",   "figure"),
-    Output("hdr-time",   "children"),
-    Output("stats",      "children"),
-    Output("alert-log",  "children"),
-    Output("event-log",  "children"),
-    Input("interval",    "n_intervals"),
+    Output("graph-3d",      "figure"),
+    Output("hdr-time",      "children"),
+    Output("stats",         "children"),
+    Output("alert-log",     "children"),
+    Output("event-log",     "children"),
+    Output("chart-phase",   "figure"),
+    Output("chart-history", "figure"),
+    Input("interval",       "n_intervals"),
 )
 def _refresh(_n):
     fig = build_figure(SIM)
@@ -1118,6 +1163,9 @@ def _refresh(_n):
         collisions = SIM.collisions
         event_log  = list(SIM.event_log)
         speed_mult = SIM.speed_mult
+        hist_t     = list(SIM.history_t)
+        hist_col   = list(SIM.history_col)
+        hist_adv   = list(SIM.history_adv)
 
     active    = sum(1 for d in drones if d.is_active)
     low_bat   = sum(1 for d in drones if d.battery_pct < 20 and d.is_active)
@@ -1180,7 +1228,56 @@ def _refresh(_n):
         for e in reversed(event_log)
     ] if event_log else [html.Div("이벤트 없음", style={"color": "#484f58"})]
 
-    return fig, time_str, stats_div, alert_str, log_items
+    # ── 단계 분포 가로 바 차트
+    phase_labels = list(phase_cnt.keys())
+    phase_vals   = list(phase_cnt.values())
+    phase_colors_list = [
+        PHASE_COLORS.get(next((p for p in FlightPhase if PHASE_KO[p] == k), FlightPhase.GROUNDED), "#888")
+        for k in phase_labels
+    ]
+    chart_phase = go.Figure(go.Bar(
+        x=phase_vals, y=phase_labels, orientation="h",
+        marker_color=phase_colors_list,
+        text=phase_vals, textposition="inside",
+        insidetextanchor="middle",
+        textfont=dict(color="white", size=10),
+    ))
+    chart_phase.update_layout(
+        paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
+        margin=dict(l=0, r=4, t=4, b=4),
+        xaxis=dict(showgrid=False, showticklabels=False, color="#8b949e"),
+        yaxis=dict(color="#8b949e", tickfont=dict(size=10)),
+        showlegend=False,
+    )
+
+    # ── 충돌·어드바이저리 시계열 차트
+    chart_hist = go.Figure()
+    if hist_t:
+        chart_hist.add_trace(go.Scatter(
+            x=hist_t, y=hist_adv,
+            fill="tozeroy", mode="lines",
+            line=dict(color="#58a6ff", width=1.5),
+            fillcolor="rgba(88,166,255,0.15)",
+            name="어드바이저리",
+        ))
+        chart_hist.add_trace(go.Scatter(
+            x=hist_t, y=hist_col,
+            fill="tozeroy", mode="lines",
+            line=dict(color="#f85149", width=1.5),
+            fillcolor="rgba(248,81,73,0.2)",
+            name="충돌",
+        ))
+    chart_hist.update_layout(
+        paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
+        margin=dict(l=4, r=4, t=4, b=20),
+        xaxis=dict(color="#484f58", tickfont=dict(size=9), gridcolor="#21262d"),
+        yaxis=dict(color="#484f58", tickfont=dict(size=9), gridcolor="#21262d"),
+        legend=dict(font=dict(color="#8b949e", size=9), bgcolor="rgba(0,0,0,0)",
+                    x=0.02, y=0.98, orientation="h"),
+        showlegend=True,
+    )
+
+    return fig, time_str, stats_div, alert_str, log_items, chart_phase, chart_hist
 
 
 # ─────────────────────────────────────────────────────────────

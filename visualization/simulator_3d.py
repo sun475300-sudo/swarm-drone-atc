@@ -124,12 +124,16 @@ class SimState:
 
         self.wind = np.zeros(3)
         self.n_drones = 30
+        self.speed_mult = 1  # 배속 (1/2/5/10)
 
         # 통계
         self.conflicts = 0
         self.near_misses = 0
         self.advisories = 0
         self.collisions = 0
+
+        # 이벤트 로그 (최근 15건)
+        self.event_log: list[str] = []
 
     def reset(self, n_drones: int | None = None) -> None:
         if n_drones is not None:
@@ -181,6 +185,7 @@ class SimState:
             self.near_misses = 0
             self.advisories = 0
             self.collisions = 0
+            self.event_log = []
 
 
 # ─────────────────────────────────────────────────────────────
@@ -203,6 +208,14 @@ def _assign_goal(drone: DroneState, rng: np.random.Generator | None = None) -> N
     if abs(goal[0]) < 700 and abs(goal[1]) < 700:
         goal[0] += float(rng.choice([-900.0, 900.0]))
     drone.goal = goal
+
+
+def _log_event(sim: SimState, msg: str) -> None:
+    """이벤트 로그에 항목 추가 (최대 15건 유지)"""
+    mins, secs = divmod(int(sim.t), 60)
+    sim.event_log.append(f"T+{mins:02d}:{secs:02d}  {msg}")
+    if len(sim.event_log) > 15:
+        sim.event_log = sim.event_log[-15:]
 
 
 def _step(sim: SimState) -> None:
@@ -242,15 +255,18 @@ def _step(sim: SimState) -> None:
                     sim.collisions += 1
                     drones[id_a].flight_phase = FlightPhase.FAILED
                     drones[id_b].flight_phase = FlightPhase.FAILED
+                    _log_event(sim, f"💥 충돌  {id_a} ↔ {id_b}  ({dist:.1f}m)")
                 elif dist < 10.0:
                     if pair not in sim._active_conflict_pairs:
                         sim.near_misses += 1
+                        _log_event(sim, f"🟠 근접  {id_a} ↔ {id_b}  ({dist:.1f}m)")
                     current_conflicts.add(pair)
                 elif dist < 50.0:
                     current_conflicts.add(pair)
                     if pair not in sim._active_conflict_pairs:
                         sim.conflicts += 1
                         sim.advisories += 1
+                        _log_event(sim, f"🔵 어드바이저리  {id_a} → 회피")
                         if drones[id_a].flight_phase == FlightPhase.ENROUTE:
                             drones[id_a].flight_phase = FlightPhase.EVADING
                         if drones[id_b].flight_phase == FlightPhase.ENROUTE:
@@ -374,10 +390,12 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
 
 
 def _sim_loop(sim: SimState) -> None:
-    """백그라운드 시뮬레이션 스레드 (20 Hz)"""
+    """백그라운드 시뮬레이션 스레드 (20 Hz 기준, 배속 적용)"""
     while True:
         if sim.running:
-            _step(sim)
+            steps = max(1, sim.speed_mult)
+            for _ in range(steps):
+                _step(sim)
         time.sleep(0.05)
 
 
@@ -585,6 +603,12 @@ def build_figure(sim: SimState) -> go.Figure:
             continue
         size = 10 if phase == FlightPhase.EVADING else (
                7  if phase == FlightPhase.FAILED   else 6)
+        # 저배터리(<20%) 드론은 주황색으로 경고 표시
+        colors = [
+            "#FF6600" if (d.battery_pct < 20.0 and phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED))
+            else PHASE_COLORS[phase]
+            for d in grp
+        ]
         hover = [
             f"<b>{d.drone_id}</b><br>"
             f"프로파일: {d.profile_name}<br>"
@@ -600,7 +624,7 @@ def build_figure(sim: SimState) -> go.Figure:
             mode="markers",
             marker=dict(
                 size=size,
-                color=PHASE_COLORS[phase],
+                color=colors,
                 opacity=0.95,
                 line=dict(color="white", width=0.5),
             ),
@@ -772,6 +796,19 @@ app.layout = html.Div(
                             tooltip={"placement": "bottom", "always_visible": False},
                         ),
 
+                        # 배속 슬라이더
+                        html.Label("시뮬레이션 배속",
+                                   style={"color": "#8b949e", "fontSize": "11px",
+                                          "display": "block", "marginTop": "12px",
+                                          "marginBottom": "4px"}),
+                        dcc.Slider(
+                            id="slider-speed", min=1, max=10, step=1, value=1,
+                            marks={i: {"label": f"{i}×",
+                                       "style": {"color": "#6e7681", "fontSize": "10px"}}
+                                   for i in [1, 2, 5, 10]},
+                            tooltip={"placement": "bottom", "always_visible": False},
+                        ),
+
                         # 시나리오 선택
                         html.Label("시나리오",
                                    style={"color": "#8b949e", "fontSize": "11px",
@@ -824,18 +861,65 @@ app.layout = html.Div(
                                  style={"color": "#58a6ff", "fontSize": "12px",
                                         "fontWeight": "600", "marginBottom": "8px"}),
                         html.Div([_legend_row(p) for p in FlightPhase]),
+                        html.Div([
+                            html.Span("🟠", style={"fontSize": "11px", "marginRight": "7px"}),
+                            html.Span("저배터리 경고 (<20%)",
+                                      style={"color": "#c9d1d9", "fontSize": "11px"}),
+                        ], style={"marginTop": "5px"}),
+
+                        html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
+
+                        # 이벤트 로그
+                        html.Div("📋 이벤트 로그",
+                                 style={"color": "#58a6ff", "fontSize": "12px",
+                                        "fontWeight": "600", "marginBottom": "6px"}),
+                        html.Div(id="event-log",
+                                 style={
+                                     "fontFamily": "monospace",
+                                     "fontSize": "10px",
+                                     "color": "#8b949e",
+                                     "maxHeight": "160px",
+                                     "overflowY": "auto",
+                                     "lineHeight": "1.6",
+                                 }),
                     ],
                 ),
 
-                # ── 3D 뷰포트
-                dcc.Graph(
-                    id="graph-3d",
-                    style={"flex": "1", "height": "100%"},
-                    config={
-                        "displayModeBar": True,
-                        "scrollZoom": True,
-                        "modeBarButtonsToRemove": ["toImage"],
-                    },
+                # ── 중앙 영역 (3D + 드론 상세정보)
+                html.Div(
+                    style={"flex": "1", "display": "flex", "flexDirection": "column",
+                           "overflow": "hidden"},
+                    children=[
+
+                        # ── 3D 뷰포트
+                        dcc.Graph(
+                            id="graph-3d",
+                            style={"flex": "1"},
+                            config={
+                                "displayModeBar": True,
+                                "scrollZoom": True,
+                                "modeBarButtonsToRemove": ["toImage"],
+                            },
+                        ),
+
+                        # ── 드론 상세정보 바 (클릭 시 표시)
+                        html.Div(
+                            id="drone-detail",
+                            style={
+                                "backgroundColor": "#0d1117",
+                                "borderTop": "1px solid #21262d",
+                                "padding": "6px 16px",
+                                "fontSize": "11px",
+                                "fontFamily": "monospace",
+                                "color": "#c9d1d9",
+                                "flexShrink": "0",
+                                "height": "26px",
+                                "overflow": "hidden",
+                                "whiteSpace": "nowrap",
+                            },
+                            children="드론을 클릭하면 상세정보가 표시됩니다",
+                        ),
+                    ],
                 ),
             ],
         ),
@@ -861,9 +945,9 @@ app.layout = html.Div(
         # 인터벌 & 상태 저장소
         dcc.Interval(id="interval", interval=200, n_intervals=0),
         dcc.Store(id="store-run", data=False),
-        dcc.Store(id="store-alerts", data=[]),
         html.Div(id="_dummy-wind", style={"display": "none"}),
         html.Div(id="_dummy-scenario", style={"display": "none"}),
+        html.Div(id="_dummy-speed", style={"display": "none"}),
     ],
 )
 
@@ -975,11 +1059,52 @@ def _export_html(_n):
 
 
 @app.callback(
-    Output("graph-3d",  "figure"),
-    Output("hdr-time",  "children"),
-    Output("stats",     "children"),
-    Output("alert-log", "children"),
-    Input("interval",   "n_intervals"),
+    Output("_dummy-speed", "children"),
+    Input("slider-speed", "value"),
+    prevent_initial_call=True,
+)
+def _set_speed(value):
+    SIM.speed_mult = int(value or 1)
+    return ""
+
+
+@app.callback(
+    Output("drone-detail", "children"),
+    Input("graph-3d", "clickData"),
+    prevent_initial_call=True,
+)
+def _drone_click(click_data):
+    if not click_data:
+        return "드론을 클릭하면 상세정보가 표시됩니다"
+    pts = click_data.get("points", [])
+    if not pts:
+        return "드론을 클릭하면 상세정보가 표시됩니다"
+    text = pts[0].get("text", "")
+    if not text:
+        return "드론을 클릭하면 상세정보가 표시됩니다"
+    # hover text에서 drone_id 추출 (첫 줄 <b>DR001</b>)
+    drone_id = text.split("<b>")[1].split("</b>")[0] if "<b>" in text else ""
+    with SIM.lock:
+        d = SIM.drones.get(drone_id)
+    if d is None:
+        return f"드론 {drone_id} 정보 없음"
+    return (
+        f"[ {d.drone_id} ]  "
+        f"단계: {PHASE_KO[d.flight_phase]}  |  "
+        f"위치: ({d.position[0]:.0f}, {d.position[1]:.0f}, {d.position[2]:.0f})m  |  "
+        f"속도: {d.speed:.1f} m/s  |  "
+        f"배터리: {d.battery_pct:.0f}%  |  "
+        f"프로파일: {d.profile_name}"
+    )
+
+
+@app.callback(
+    Output("graph-3d",   "figure"),
+    Output("hdr-time",   "children"),
+    Output("stats",      "children"),
+    Output("alert-log",  "children"),
+    Output("event-log",  "children"),
+    Input("interval",    "n_intervals"),
 )
 def _refresh(_n):
     fig = build_figure(SIM)
@@ -991,10 +1116,15 @@ def _refresh(_n):
         near_miss  = SIM.near_misses
         advisories = SIM.advisories
         collisions = SIM.collisions
+        event_log  = list(SIM.event_log)
+        speed_mult = SIM.speed_mult
 
-    active = sum(1 for d in drones if d.is_active)
-    avg_bat = sum(d.battery_pct for d in drones) / max(len(drones), 1)
-    evading = sum(1 for d in drones if d.flight_phase == FlightPhase.EVADING)
+    active    = sum(1 for d in drones if d.is_active)
+    low_bat   = sum(1 for d in drones if d.battery_pct < 20 and d.is_active)
+    avg_bat   = sum(d.battery_pct for d in drones) / max(len(drones), 1)
+    evading   = sum(1 for d in drones if d.flight_phase == FlightPhase.EVADING)
+    total_ev  = conflicts + collisions
+    res_rate  = (1.0 - collisions / total_ev) * 100 if total_ev > 0 else 100.0
 
     phase_cnt: dict[str, int] = {}
     for d in drones:
@@ -1004,23 +1134,34 @@ def _refresh(_n):
     mins, secs = divmod(int(t), 60)
     time_str = (
         f"T+{mins:02d}:{secs:02d}  |  "
-        f"{'▶ 실행 중' if SIM.running else '⏸ 일시정지'}"
+        f"{'▶ 실행 중' if SIM.running else '⏸ 일시정지'}  |  "
+        f"{speed_mult}× 배속"
     )
 
+    res_color = "#00E676" if res_rate >= 95 else ("#FF9800" if res_rate >= 80 else "#F44336")
     stats_div = html.Div([
+        # 해결률 대형 표시
+        html.Div([
+            html.Span("해결률 ", style={"color": "#8b949e", "fontSize": "11px"}),
+            html.Span(f"{res_rate:.1f}%",
+                      style={"color": res_color, "fontSize": "22px", "fontWeight": "700"}),
+        ], style={"textAlign": "center", "marginBottom": "10px",
+                  "padding": "6px", "borderRadius": "4px",
+                  "backgroundColor": "#161b22"}),
         _stat("전체 드론",      f"{len(drones)}"),
         _stat("활성",           f"{active}"),
+        _stat("저배터리",       f"{low_bat}", warn=low_bat > 0),
         _stat("회피 기동",      f"{evading}", warn=evading > 0),
-        _stat("충돌 경보 누적", f"{conflicts}", warn=conflicts > 0),
-        _stat("근접 경고 누적", f"{near_miss}", warn=near_miss > 0),
+        _stat("충돌 경보",      f"{conflicts}", warn=conflicts > 0),
+        _stat("근접 경고",      f"{near_miss}", warn=near_miss > 0),
         _stat("실제 충돌",      f"{collisions}", warn=collisions > 0),
         _stat("어드바이저리",   f"{advisories}"),
-        _stat("평균 배터리",    f"{avg_bat:.0f} %"),
+        _stat("평균 배터리",    f"{avg_bat:.0f} %", warn=avg_bat < 30),
         html.Hr(style={"borderColor": "#21262d", "margin": "8px 0"}),
         *[_stat(k, str(v)) for k, v in sorted(phase_cnt.items())],
     ])
 
-    # 경보 로그 텍스트 구성
+    # 하단 경보 바
     alerts = []
     if collisions > 0:
         alerts.append(f"🔴 충돌 {collisions}건")
@@ -1032,7 +1173,14 @@ def _refresh(_n):
         alerts.append(f"🔵 어드바이저리 {advisories}건")
     alert_str = "   |   ".join(alerts) if alerts else "✅ 경보 없음"
 
-    return fig, time_str, stats_div, alert_str
+    # 이벤트 로그 (최신이 위)
+    log_items = [
+        html.Div(e, style={"color": "#e6edf3" if "💥" in e else
+                            "#FF9800" if "🟠" in e else "#58a6ff"})
+        for e in reversed(event_log)
+    ] if event_log else [html.Div("이벤트 없음", style={"color": "#484f58"})]
+
+    return fig, time_str, stats_div, alert_str, log_items
 
 
 # ─────────────────────────────────────────────────────────────

@@ -182,6 +182,10 @@
         <option value="high_density">고밀도 (80대)</option>
         <option value="emergency_failure">비상 장애 (40대)</option>
         <option value="mass_takeoff">대규모 이륙 (60대)</option>
+        <option value="route_conflict">경로 충돌 (50대)</option>
+        <option value="comms_loss">통신 두절 (30대)</option>
+        <option value="weather_disturbance">기상 교란 (25대)</option>
+        <option value="adversarial_intrusion">침입 드론 (35대)</option>
       </select>
     </div>
     <div style="margin-bottom:8px;">
@@ -267,10 +271,14 @@ const PHASES = {
 };
 
 const SCENARIOS = {
-  default:            { count: 30, label: '기본' },
-  high_density:       { count: 80, label: '고밀도' },
-  emergency_failure:  { count: 40, label: '비상 장애' },
-  mass_takeoff:       { count: 60, label: '대규모 이륙' },
+  default:              { count: 30, label: '기본',          wind: false, failRate: 0,    rogueRate: 0 },
+  high_density:         { count: 80, label: '고밀도',        wind: false, failRate: 0,    rogueRate: 0 },
+  emergency_failure:    { count: 40, label: '비상 장애',     wind: false, failRate: 0.20, rogueRate: 0 },
+  mass_takeoff:         { count: 60, label: '대규모 이륙',   wind: false, failRate: 0,    rogueRate: 0 },
+  route_conflict:       { count: 50, label: '경로 충돌',     wind: false, failRate: 0,    rogueRate: 0 },
+  comms_loss:           { count: 30, label: '통신 두절',     wind: false, failRate: 0.10, rogueRate: 0 },
+  weather_disturbance:  { count: 25, label: '기상 교란',     wind: true,  failRate: 0.05, rogueRate: 0 },
+  adversarial_intrusion:{ count: 35, label: '침입 드론',     wind: false, failRate: 0,    rogueRate: 0.15 },
 };
 
 const LANDING_PADS = [
@@ -291,6 +299,8 @@ let simSpeed = 1.0;
 let simTime = 0;
 let drones = [];
 let stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
+let windEnabled = false;
+const WIND_VEC = { x: 2.0, z: -1.5 }; // 동남풍 2 m/s
 
 // ===== Three.js Setup =====
 const scene = new THREE.Scene();
@@ -549,17 +559,62 @@ function initDrones(scenario) {
   stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
   simTime = 0;
 
-  const count = SCENARIOS[scenario].count;
+  const cfg = SCENARIOS[scenario] || SCENARIOS.default;
+  windEnabled = cfg.wind;
+  const count = cfg.count;
+
   for (let i = 0; i < count; i++) {
     const pad = LANDING_PADS[i % LANDING_PADS.length];
     const d = createDrone(i + 1, pad);
-    d.groundDelay = scenario === 'mass_takeoff' ? Math.random() * 2 : Math.random() * 8;
-    if (scenario === 'emergency_failure' && Math.random() < 0.15) {
-      d.willFail = true;
-      d.failTime = 10 + Math.random() * 30;
+
+    // 시나리오별 특화
+    switch (scenario) {
+      case 'mass_takeoff':
+        d.groundDelay = Math.random() * 2;  // 빠른 동시 이륙
+        break;
+      case 'route_conflict':
+        // 모든 드론을 NFZ 관통 경로로 배치 → 충돌 유발
+        d.goalX = -d.startPad.x;
+        d.goalZ = -d.startPad.z;
+        d.groundDelay = Math.random() * 3;
+        break;
+      case 'weather_disturbance':
+        d.groundDelay = Math.random() * 5;
+        d.speed *= 0.85;  // 강풍 감속
+        break;
+      case 'adversarial_intrusion':
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true;
+          d.speed *= 1.4;  // 침입 드론 고속
+          d.groundDelay = 0;
+          // NFZ 안으로 직행
+          d.goalX = (Math.random() - 0.5) * 800;
+          d.goalZ = (Math.random() - 0.5) * 800;
+        }
+        break;
+      default:
+        d.groundDelay = Math.random() * 8;
     }
+
+    // 장애 주입
+    if (cfg.failRate > 0 && Math.random() < cfg.failRate) {
+      d.willFail = true;
+      d.failTime = 8 + Math.random() * 25;
+    }
+
+    // 통신 두절 (HOLDING 강제 전환)
+    if (scenario === 'comms_loss' && Math.random() < 0.15) {
+      d.willLoseComms = true;
+      d.commsLossTime = 5 + Math.random() * 20;
+    }
+
     drones.push(d);
   }
+}
+
+// ===== NFZ Check =====
+function inNFZ(wx, wz) {
+  return Math.abs(wx) < 500 && Math.abs(wz) < 500;
 }
 
 // ===== Simulation Logic =====
@@ -568,6 +623,10 @@ function updateDrone(d, dt) {
   const sDt = dt * simSpeed;
 
   d.battery = Math.max(0, d.battery - sDt * 0.03);
+
+  // 바람 효과
+  const windX = windEnabled ? WIND_VEC.x * sDt : 0;
+  const windZ = windEnabled ? WIND_VEC.z * sDt : 0;
 
   switch (d.phase) {
     case 'GROUNDED':
@@ -583,17 +642,29 @@ function updateDrone(d, dt) {
       break;
 
     case 'ENROUTE': {
+      // NFZ 진입 감지 → 회피 전환 (ROGUE 제외)
+      const lookaheadX = d.wx + (d.goalX - d.wx) * 0.02;
+      const lookaheadZ = d.wz + (d.goalZ - d.wz) * 0.02;
+      if (!d.isRogue && (inNFZ(d.wx, d.wz) || inNFZ(lookaheadX, lookaheadZ))) {
+        d.phase = 'EVADING';
+        d.evadeTimer = 3.0;
+        // NFZ 바깥으로 밀어내기
+        const pushX = d.wx > 0 ? 1 : -1;
+        const pushZ = d.wz > 0 ? 1 : -1;
+        d.wx += pushX * 80;
+        d.wz += pushZ * 80;
+        stats.advisories++;
+        break;
+      }
+
       const dx = d.goalX - d.wx;
       const dz = d.goalZ - d.wz;
       const dist = Math.sqrt(dx * dx + dz * dz);
       if (dist < 100) {
         d.phase = 'LANDING';
       } else {
-        const vx = (dx / dist) * d.speed * sDt;
-        const vz = (dz / dist) * d.speed * sDt;
-        d.wx += vx;
-        d.wz += vz;
-        // Clamp to world
+        d.wx += (dx / dist) * d.speed * sDt + windX;
+        d.wz += (dz / dist) * d.speed * sDt + windZ;
         d.wx = Math.max(-WORLD, Math.min(WORLD, d.wx));
         d.wz = Math.max(-WORLD, Math.min(WORLD, d.wz));
       }
@@ -602,7 +673,25 @@ function updateDrone(d, dt) {
 
     case 'EVADING':
       d.evadeTimer -= sDt;
-      if (d.evadeTimer <= 0) d.phase = 'ENROUTE';
+      // APF: NFZ 중심에서 멀어지는 방향으로 이동
+      if (inNFZ(d.wx, d.wz)) {
+        const repX = d.wx / (Math.abs(d.wx) + 1);
+        const repZ = d.wz / (Math.abs(d.wz) + 1);
+        d.wx += repX * d.speed * sDt * 1.5;
+        d.wz += repZ * d.speed * sDt * 1.5;
+      }
+      d.wx += windX;
+      d.wz += windZ;
+      if (d.evadeTimer <= 0 && !inNFZ(d.wx, d.wz)) d.phase = 'ENROUTE';
+      break;
+
+    case 'HOLDING':
+      // 통신 두절 → 5초 체공 후 RTL
+      if (!d._holdStart) d._holdStart = simTime;
+      if (simTime - d._holdStart > 5.0) {
+        d._holdStart = null;
+        d.phase = 'RTL';
+      }
       break;
 
     case 'LANDING':
@@ -610,7 +699,6 @@ function updateDrone(d, dt) {
       if (d.wy <= 0.5) {
         d.wy = 0;
         d.phase = 'GROUNDED';
-        // Assign new goal
         d.startPad = d.goalPad;
         d.goalPad = randomPad();
         d.goalX = d.goalPad.x;
@@ -635,8 +723,8 @@ function updateDrone(d, dt) {
         d.goalX = d.startPad.x;
         d.goalZ = d.startPad.z;
       } else {
-        d.wx += (dx / dist) * d.speed * sDt;
-        d.wz += (dz / dist) * d.speed * sDt;
+        d.wx += (dx / dist) * d.speed * 0.7 * sDt + windX;
+        d.wz += (dz / dist) * d.speed * 0.7 * sDt + windZ;
       }
       break;
     }
@@ -646,6 +734,12 @@ function updateDrone(d, dt) {
   if (d.willFail && !d.failed && simTime > d.failTime && d.phase !== 'GROUNDED') {
     d.phase = 'FAILED';
     d.failed = true;
+  }
+
+  // 통신 두절 → HOLDING 전환
+  if (d.willLoseComms && !d.commsLost && simTime > d.commsLossTime && d.phase === 'ENROUTE') {
+    d.phase = 'HOLDING';
+    d.commsLost = true;
   }
 
   // Low battery -> RTL
@@ -662,6 +756,12 @@ function updateDrone(d, dt) {
   d.body.material.emissive.copy(c);
   d.rotor.material.color.copy(c);
   d.glow.material.color.copy(c);
+
+  // ROGUE 드론 특수 시각효과 — 더 크고 빨간 글로우
+  if (d.isRogue && d.phase !== 'GROUNDED') {
+    d.glow.material.color.set(0xff0000);
+    d.glow.scale.set(2.5, 2.5, 1);
+  }
 }
 
 function apfCollisionAvoidance() {
@@ -736,7 +836,7 @@ function updateStatsUI() {
 function updateFleetList() {
   const list = document.getElementById('fleet-list');
   // Show first 30 sorted by phase priority
-  const phasePriority = { EVADING: 0, FAILED: 1, RTL: 2, LANDING: 3, TAKEOFF: 4, ENROUTE: 5, HOLDING: 6, GROUNDED: 7 };
+  const phasePriority = { EVADING: 0, FAILED: 1, HOLDING: 2, RTL: 3, LANDING: 4, TAKEOFF: 5, ENROUTE: 6, GROUNDED: 7 };
   const sorted = [...drones].sort((a, b) => (phasePriority[a.phase] || 9) - (phasePriority[b.phase] || 9));
   const shown = sorted.slice(0, 30);
 
@@ -797,8 +897,8 @@ initDrones('default');
 
 function animate() {
   requestAnimationFrame(animate);
-  const t = clock.getElapsedTime();
   const dt = Math.min(clock.getDelta(), 0.1);
+  const t = clock.elapsedTime;  // getDelta 후 읽어야 올바른 값
 
   // FPS
   frameCount++;

@@ -441,9 +441,10 @@ const LANDING_PADS = [
   { name: 'PAD_CENTER', x: 0, z: 0 },
 ];
 
-const EVADE_DIST = 300;  // meters - APF trigger distance
+const EVADE_DIST = 400;  // meters - APF trigger distance (확대)
 const COLLISION_DIST = 50; // meters - collision
 const NEAR_MISS_DIST = 150; // meters - near miss
+const SEPARATION_ALT = 20; // meters - 수직 분리 최소 고도차
 
 // ===== State =====
 let simRunning = false;  // 시작 버튼 클릭 시 true
@@ -1195,6 +1196,14 @@ function updateDrone(d, dt) {
         const repZ = d.wz / (Math.abs(d.wz) + 1);
         d.wx += repX * d.speed * sDt * 1.5;
         d.wz += repZ * d.speed * sDt * 1.5;
+      } else {
+        // 회피 중에도 목표 방향으로 30% 속도로 복귀
+        const gx = d.goalX - d.wx, gz = d.goalZ - d.wz;
+        const gd = Math.sqrt(gx * gx + gz * gz);
+        if (gd > 50) {
+          d.wx += (gx / gd) * d.speed * 0.3 * sDt;
+          d.wz += (gz / gd) * d.speed * 0.3 * sDt;
+        }
       }
       d.wx += windX;
       d.wz += windZ;
@@ -1303,11 +1312,15 @@ function updateDrone(d, dt) {
 function apfCollisionAvoidance() {
   // Clear proximity lines
   while (proximityLines.children.length) proximityLines.remove(proximityLines.children[0]);
-  const maxLines = drones.length > 100 ? 30 : 100;  // 대형 시나리오 라인 제한
+  const maxLines = drones.length > 100 ? 30 : 100;
   let lineCount = 0;
 
   let frameConflicts = 0, frameNear = 0, frameCollisions = 0;
   const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+
+  // 각 드론에 누적 회피 벡터 초기화
+  const repForce = new Map();
+  airborne.forEach(d => repForce.set(d, { fx: 0, fz: 0, fy: 0 }));
 
   for (let i = 0; i < airborne.length; i++) {
     for (let j = i + 1; j < airborne.length; j++) {
@@ -1318,41 +1331,83 @@ function apfCollisionAvoidance() {
       if (dist < COLLISION_DIST) {
         frameCollisions++;
         if (lineCount < maxLines) { addProximityLine(a, b, 0xff0000, 0.6); lineCount++; }
-        // Collision VFX
         const midX = (a.group.position.x + b.group.position.x) / 2;
         const midY = (a.group.position.y + b.group.position.y) / 2;
         const midZ = (a.group.position.z + b.group.position.z) / 2;
         spawnCollisionParticles(midX, midY, midZ);
         triggerCameraShake(0.3);
         logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist)}m)`);
+
+        // 긴급 회피: 강한 반발력 + 수직 분리
+        const emergencyPush = 80;
+        const safeDist = Math.max(dist, 1);
+        const fa = repForce.get(a), fb = repForce.get(b);
+        fa.fx += (dx / safeDist) * emergencyPush;
+        fa.fz += (dz / safeDist) * emergencyPush;
+        fb.fx -= (dx / safeDist) * emergencyPush;
+        fb.fz -= (dz / safeDist) * emergencyPush;
+        // 수직 분리: 위아래로 밀어냄
+        fa.fy += (dy >= 0 ? 1 : -1) * 25;
+        fb.fy -= (dy >= 0 ? 1 : -1) * 25;
       } else if (dist < NEAR_MISS_DIST) {
         frameNear++;
         if (lineCount < maxLines) { addProximityLine(a, b, 0xff6600, 0.3); lineCount++; }
         if (eventLog.length < 80) logEvent('near', `${a.id} ↔ ${b.id} 근접경고 (${Math.round(dist)}m)`);
+
+        // 강한 APF 반발력 (거리 반비례)
+        const strength = 60 * (1 - dist / NEAR_MISS_DIST);
+        const fa = repForce.get(a), fb = repForce.get(b);
+        fa.fx += (dx / dist) * strength;
+        fa.fz += (dz / dist) * strength;
+        fb.fx -= (dx / dist) * strength;
+        fb.fz -= (dz / dist) * strength;
+        // 수직 분리
+        if (Math.abs(dy) < SEPARATION_ALT) {
+          fa.fy += (dy >= 0 ? 1 : -1) * strength * 0.3;
+          fb.fy -= (dy >= 0 ? 1 : -1) * strength * 0.3;
+        }
       } else if (dist < EVADE_DIST) {
         frameConflicts++;
         if (lineCount < maxLines) { addProximityLine(a, b, 0xffaa00, 0.15); lineCount++; }
 
-        // APF evasion: push apart
-        if (a.phase === 'ENROUTE') {
-          a.phase = 'EVADING';
-          a.evadeTimer = 1.5;
-          a.wx += (dx / dist) * 30;
-          a.wz += (dz / dist) * 30;
-          stats.advisories++;
-          logEvent('evade', `${a.id} → 회피 기동 (${b.id} 접근)`);
-        }
-        if (b.phase === 'ENROUTE') {
-          b.phase = 'EVADING';
-          b.evadeTimer = 1.5;
-          b.wx -= (dx / dist) * 30;
-          b.wz -= (dz / dist) * 30;
-          stats.advisories++;
-          logEvent('evade', `${b.id} → 회피 기동 (${a.id} 접근)`);
-        }
+        // 부드러운 APF 반발력 (거리 반비례)
+        const strength = 35 * (1 - dist / EVADE_DIST);
+        const fa = repForce.get(a), fb = repForce.get(b);
+        fa.fx += (dx / dist) * strength;
+        fa.fz += (dz / dist) * strength;
+        fb.fx -= (dx / dist) * strength;
+        fb.fz -= (dz / dist) * strength;
       }
     }
   }
+
+  // 누적 회피 벡터 적용 — 모든 비행 상태에 적용 (GROUNDED/FAILED 제외)
+  airborne.forEach(d => {
+    const f = repForce.get(d);
+    const mag = Math.sqrt(f.fx * f.fx + f.fz * f.fz);
+    if (mag > 1) {
+      // 최대 이동량 제한 (프레임당 100m)
+      const clamp = Math.min(mag, 100);
+      d.wx += (f.fx / mag) * clamp;
+      d.wz += (f.fz / mag) * clamp;
+      d.wx = Math.max(-WORLD, Math.min(WORLD, d.wx));
+      d.wz = Math.max(-WORLD, Math.min(WORLD, d.wz));
+
+      // 수직 분리 적용 (고도 범위 제한)
+      if (Math.abs(f.fy) > 1) {
+        d.wy = Math.max(10, Math.min(180, d.wy + Math.sign(f.fy) * Math.min(Math.abs(f.fy), 15)));
+      }
+
+      // ENROUTE → EVADING 전환 (가까운 드론이 있을 때)
+      if (d.phase === 'ENROUTE' && mag > 30) {
+        d.phase = 'EVADING';
+        d.evadeTimer = 2.0;
+        stats.advisories++;
+        logEvent('evade', `${d.id} → APF 회피 기동`);
+      }
+    }
+  });
+
   stats.conflicts += frameConflicts;
   stats.nearMisses += frameNear;
   stats.collisions += frameCollisions;
@@ -1555,8 +1610,8 @@ function animate() {
   if (simRunning) simTime += dt * simSpeed;
   drones.forEach(d => updateDrone(d, dt));
 
-  // APF check — 대형 시나리오는 빈도 낮춤
-  const apfRate = drones.length > 100 ? 3 : 10;  // 100대 초과 시 3Hz, 이하 10Hz
+  // APF check — 충돌 회피 빈도 향상
+  const apfRate = drones.length > 150 ? 5 : 10;  // 150대 초과 시 5Hz, 이하 10Hz
   if (simRunning && Math.floor(t * apfRate) > uiTick) {
     uiTick = Math.floor(t * apfRate);
     apfCollisionAvoidance();

@@ -205,6 +205,11 @@
   </div>
 </div>
 
+<!-- HUD: 직군별 드론 현황 바 -->
+<div class="hud-overlay" style="top:58px;left:0;right:0;padding:0 20px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
+  <div id="role-stats" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+</div>
+
 <!-- HUD: Left Panel -->
 <div class="hud-overlay hud-left hud-interactive">
   <!-- Controls -->
@@ -290,12 +295,8 @@
     <div style="border-top:1px solid rgba(0,229,255,0.1);margin:6px 0;"></div>
     <div class="legend-item"><div class="legend-dot" style="background:#00e5ff;width:10px;height:10px;box-shadow:0 0 6px #00e5ff;"></div><span class="legend-text" style="color:#00e5ff;font-weight:600;">ATC 관제 드론 (5대)</span></div>
     <div style="border-top:1px solid rgba(255,255,255,0.05);margin:6px 0;"></div>
-    <span class="legend-text" style="color:#8899aa;font-size:8px;letter-spacing:1px;">직군별 드론</span>
-    <div class="legend-item"><div class="legend-dot" style="background:#f97316;"></div><span class="legend-text">📦 택배</span></div>
-    <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div><span class="legend-text">🌾 농업</span></div>
-    <div class="legend-item"><div class="legend-dot" style="background:#a855f7;"></div><span class="legend-text">📷 촬영</span></div>
-    <div class="legend-item"><div class="legend-dot" style="background:#eab308;"></div><span class="legend-text">🔍 정찰</span></div>
-    <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div><span class="legend-text">🚑 응급</span></div>
+    <span class="legend-text" style="color:#8899aa;font-size:8px;letter-spacing:1px;">직군별 드론 (20종)</span>
+    <div id="role-legend" style="display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:3px;"></div>
   </div>
 </div>
 
@@ -362,13 +363,35 @@ const PHASES = {
   RTL:      { color: 0xec407a, label: '귀환' },
 };
 
-// ===== 드론 직군 (5종) =====
+// ===== 드론 직군 (20종) =====
 const DRONE_ROLES = [
-  { id: 'delivery',  label: '택배',  color: 0xf97316, icon: '📦' },
-  { id: 'agri',      label: '농업',  color: 0x22c55e, icon: '🌾' },
-  { id: 'camera',    label: '촬영',  color: 0xa855f7, icon: '📷' },
-  { id: 'recon',     label: '정찰',  color: 0xeab308, icon: '🔍' },
-  { id: 'emergency', label: '응급',  color: 0xef4444, icon: '🚑' },
+  // 물류·배송
+  { id: 'delivery',    label: '택배',    color: 0xf97316, icon: '📦' },
+  { id: 'logistics',   label: '물류',    color: 0x06b6d4, icon: '🚚' },
+  { id: 'food',        label: '음식배달', color: 0xfbbf24, icon: '🍔' },
+  // 농업·환경
+  { id: 'agri',        label: '농업',    color: 0x22c55e, icon: '🌾' },
+  { id: 'forestry',    label: '산림',    color: 0x15803d, icon: '🌲' },
+  { id: 'environ',     label: '환경감시', color: 0x84cc16, icon: '🌍' },
+  // 촬영·미디어
+  { id: 'camera',      label: '촬영',    color: 0xa855f7, icon: '📷' },
+  { id: 'media',       label: '방송',    color: 0xec4899, icon: '🎥' },
+  { id: 'mapping',     label: '측량',    color: 0x8b5cf6, icon: '🗺️' },
+  // 보안·군사
+  { id: 'recon',       label: '정찰',    color: 0xeab308, icon: '🔍' },
+  { id: 'patrol',      label: '순찰',    color: 0x3b82f6, icon: '🛡️' },
+  { id: 'military',    label: '군사',    color: 0x65a30d, icon: '⚔️' },
+  // 긴급·의료
+  { id: 'emergency',   label: '응급',    color: 0xef4444, icon: '🚑' },
+  { id: 'medevac',     label: '의료수송', color: 0xf43f5e, icon: '💊' },
+  { id: 'fire',        label: '소방',    color: 0xdc2626, icon: '🚒' },
+  // 산업·건설
+  { id: 'construction',label: '건설',    color: 0x78716c, icon: '🏗️' },
+  { id: 'inspection',  label: '시설점검', color: 0xa3a3a3, icon: '🔧' },
+  { id: 'mining',      label: '광업',    color: 0x92400e, icon: '⛏️' },
+  // 연구·기타
+  { id: 'research',    label: '연구',    color: 0x14b8a6, icon: '🔬' },
+  { id: 'telecom',     label: '통신중계', color: 0x0ea5e9, icon: '📡' },
 ];
 
 const SCENARIOS = {
@@ -1244,12 +1267,17 @@ function updateDrone(d, dt) {
   // Update 3D position
   d.group.position.set(d.wx * SCALE, d.wy * SCALE * 3, d.wz * SCALE);
 
-  // Update visuals
-  const c = new THREE.Color(phaseColor(d.phase));
-  d.body.material.color.copy(c);
-  d.body.material.emissive.copy(c);
-  d.rotor.material.color.copy(c);
-  if (d.glow) d.glow.material.color.copy(c);
+  // Update visuals — 직군 색상 기반
+  const phaseC = new THREE.Color(phaseColor(d.phase));
+  const roleC = new THREE.Color(d.role.color);
+  // 비행 중: body=직군색, rotor=phase색 / 지상/장애: 전부 phase색
+  const isFlying = d.phase !== 'GROUNDED' && d.phase !== 'FAILED';
+  const bodyC = isFlying ? roleC : phaseC;
+  d.body.material.color.copy(bodyC);
+  d.body.material.emissive.copy(bodyC);
+  d.body.material.emissiveIntensity = isFlying ? 0.8 : 0.4;
+  d.rotor.material.color.copy(phaseC);
+  if (d.glow) d.glow.material.color.copy(isFlying ? roleC : phaseC);
 
   // ROGUE 드론 특수 시각효과 — 더 크고 빨간 글로우
   if (d.isRogue && d.phase !== 'GROUNDED' && d.glow) {
@@ -1336,6 +1364,25 @@ function updateStatsUI() {
   document.getElementById('stat-battery').textContent = Math.round(avgBat) + '%';
   const m = Math.floor(simTime / 60), s = Math.floor(simTime % 60);
   document.getElementById('sim-time').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+  // 직군별 현황
+  const roleEl = document.getElementById('role-stats');
+  if (roleEl) {
+    const counts = {};
+    DRONE_ROLES.forEach(r => counts[r.id] = { total: 0, flying: 0, role: r });
+    drones.forEach(d => {
+      counts[d.role.id].total++;
+      if (d.phase !== 'GROUNDED' && d.phase !== 'FAILED') counts[d.role.id].flying++;
+    });
+    roleEl.innerHTML = DRONE_ROLES.map(r => {
+      const c = counts[r.id];
+      const hex = '#' + r.color.toString(16).padStart(6, '0');
+      return `<div style="padding:2px 8px;border:1px solid ${hex}40;border-radius:4px;background:${hex}12;display:flex;align-items:center;gap:4px;">
+        <span style="font-size:10px;">${r.icon}</span>
+        <span style="font-size:9px;color:${hex};font-family:'JetBrains Mono',monospace;font-weight:600;">${c.flying}/${c.total}</span>
+      </div>`;
+    }).join('');
+  }
 }
 
 function updateEventLog() {

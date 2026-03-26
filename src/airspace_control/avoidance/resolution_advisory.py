@@ -179,9 +179,10 @@ class AdvisoryGenerator:
         bearing = math.atan2(rel_pos[1], rel_pos[0])
         angle_diff = _wrap_angle(bearing - heading)
 
-        if abs(angle_diff) < math.radians(30):
-            return self.TURN_RIGHT, self.DEFAULT_TURN_DEG
-        if angle_diff > 0:
+        # angle_diff > 0: 위협이 우측 → 우회전
+        # angle_diff <= 0: 위협이 좌측 → 좌회전
+        # |angle_diff| < 30°(정면): 우회전 우선 (ICAO 관례)
+        if angle_diff >= 0 or abs(angle_diff) < math.radians(30):
             return self.TURN_RIGHT, self.DEFAULT_TURN_DEG
         return self.TURN_LEFT, self.DEFAULT_TURN_DEG
 

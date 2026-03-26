@@ -237,8 +237,11 @@ class _DroneAgent:
             if dist_xy < self.WAYPOINT_TOL:
                 drone.flight_phase = FlightPhase.LANDING
                 return
-            spd      = profile.cruise_speed_ms
-            norm     = np.linalg.norm(diff) + 1e-6
+            spd  = profile.cruise_speed_ms
+            norm = float(np.linalg.norm(diff))
+            if norm < 0.1:
+                drone.flight_phase = FlightPhase.LANDING
+                return
             drone.velocity = diff / norm * spd
             # 고도 유지
             drone.velocity[2] = (self.CRUISE_ALT - drone.position[2]) * 0.4
@@ -275,6 +278,12 @@ class _DroneAgent:
             if drone.position[2] > 0.0:
                 drone.position[2] = max(0.0, drone.position[2] - 1.5 * dt)
                 drone.velocity     = np.zeros(3)
+            else:
+                # 추락 완료 → GROUNDED 전환 (장기 시뮬레이션 메모리 누수 방지)
+                drone.position[2]  = 0.0
+                drone.velocity     = np.zeros(3)
+                drone.flight_phase = FlightPhase.GROUNDED
+                sim.analytics.record_event("DRONE_CRASH_LANDED", t, drone_id=drone.drone_id)
 
         elif phase == FlightPhase.RTL:
             # 귀환: 80m 상승 → 출발 패드로
@@ -288,9 +297,10 @@ class _DroneAgent:
                 if float(np.linalg.norm(diff[:2])) < 100.0:
                     drone.flight_phase = FlightPhase.LANDING
                 else:
-                    spd = profile.cruise_speed_ms
-                    norm = np.linalg.norm(diff) + 1e-6
-                    drone.velocity = diff / norm * spd
+                    spd  = profile.cruise_speed_ms
+                    norm = float(np.linalg.norm(diff))
+                    if norm > 1e-3:
+                        drone.velocity = diff / norm * spd
 
     def _handle_comms(self, drone, t, profile):
         if drone.comms_status == CommsStatus.LOST:

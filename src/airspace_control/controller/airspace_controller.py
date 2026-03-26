@@ -439,6 +439,13 @@ def _point_in_polygon(point: np.ndarray, vertices) -> bool:
     ----------
     point:    [x, y] ndarray
     vertices: iterable of [x, y] (polygon vertices in order)
+
+    Notes
+    -----
+    - 분모에 1e-12 epsilon 적용 → 수평 엣지(yi == yj) 시 ZeroDivisionError 방지
+    - 꼭짓점 위에 정확히 놓인 점은 inside/outside가 구현마다 다를 수 있음.
+      Voronoi 셀은 연속 좌표계이므로 정확히 꼭짓점에 목적지가 겹칠 확률이 극히 낮아
+      실운용 영향 없음.
     """
     px, py = float(point[0]), float(point[1])
     verts = [(float(v[0]), float(v[1])) for v in vertices]

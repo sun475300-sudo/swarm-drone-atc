@@ -30,8 +30,9 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 import dash
-from dash import dcc, html, Input, Output, State, callback_context
+from dash import dcc, html, Input, Output, State, ctx
 import plotly.graph_objects as go
+import plotly.io as pio
 
 from simulation.apf_engine.apf import (
     APFState, batch_compute_forces, force_to_velocity, APF_PARAMS,
@@ -751,6 +752,12 @@ app.layout = html.Div(
                             html.Button("↺",         id="btn-reset", n_clicks=0,
                                         style=_btn("↺", "#b62324",
                                                    marginLeft="6px", width="36px")),
+                        ], style={"marginBottom": "8px"}),
+                        html.Div([
+                            html.Button("📥 HTML 저장", id="btn-export", n_clicks=0,
+                                        style=_btn("HTML", "#0969da", width="100%",
+                                                   fontSize="11px")),
+                            dcc.Download(id="download-html"),
                         ], style={"marginBottom": "14px"}),
 
                         # 드론 수 슬라이더
@@ -773,14 +780,17 @@ app.layout = html.Div(
                         dcc.Dropdown(
                             id="dropdown-scenario",
                             options=[
-                                {"label": "기본 (랜덤)",          "value": "default"},
-                                {"label": "고밀도 교통",          "value": "high_density"},
-                                {"label": "비상 장애",            "value": "emergency_failure"},
-                                {"label": "동시 이착륙",          "value": "mass_takeoff"},
-                                {"label": "경로 충돌",            "value": "route_conflict"},
-                                {"label": "통신 두절",            "value": "comms_loss"},
-                                {"label": "기상 교란",            "value": "weather_disturbance"},
-                                {"label": "침입 드론",            "value": "adversarial_intrusion"},
+                                {"label": "🎯 기본 (랜덤)",          "value": "default"},
+                                {"label": "🚦 고밀도 교통",          "value": "high_density"},
+                                {"label": "🔥 초고밀도 (150대)",     "value": "extreme_density"},
+                                {"label": "⚠️ 비상 장애",            "value": "emergency_failure"},
+                                {"label": "🛫 동시 이착륙",          "value": "mass_takeoff"},
+                                {"label": "↔️ 경로 충돌",            "value": "route_conflict"},
+                                {"label": "📡 통신 두절",            "value": "comms_loss"},
+                                {"label": "🌬 기상 교란",            "value": "weather_disturbance"},
+                                {"label": "🚨 침입 드론",            "value": "adversarial_intrusion"},
+                                {"label": "🔋 배터리 위기",          "value": "battery_crisis"},
+                                {"label": "🌀 복합 재난",            "value": "compound_disaster"},
                             ],
                             value="default",
                             clearable=False,
@@ -871,10 +881,9 @@ app.layout = html.Div(
     prevent_initial_call=True,
 )
 def _ctrl(start, pause, reset, n_drones, running):
-    ctx = callback_context
-    if not ctx.triggered:
+    btn = ctx.triggered_id
+    if not btn:
         return running
-    btn = ctx.triggered[0]["prop_id"].split(".")[0]
     if btn == "btn-start":
         SIM.running = True
         return True
@@ -909,17 +918,60 @@ def _apply_scenario(scenario: str):
     drone_counts = {
         "default":                30,
         "high_density":           80,
+        "extreme_density":       150,
         "emergency_failure":      40,
         "mass_takeoff":           60,
         "route_conflict":         20,
         "comms_loss":             30,
         "weather_disturbance":    25,
         "adversarial_intrusion":  35,
+        "battery_crisis":         50,
+        "compound_disaster":      70,
     }
     n = drone_counts.get(scenario, 30)
     SIM.running = False
     SIM.reset(n)
+
+    # 시나리오별 초기 상태 조정
+    with SIM.lock:
+        if scenario == "battery_crisis":
+            # 절반 드론을 저배터리로 설정
+            for i, d in enumerate(list(SIM.drones.values())):
+                if i % 2 == 0:
+                    d.battery_pct = float(np.random.uniform(5.0, 20.0))
+        elif scenario == "compound_disaster":
+            # 일부 드론에 장애 유발 + 저배터리 혼합
+            for i, d in enumerate(list(SIM.drones.values())):
+                if i % 5 == 0:
+                    d.flight_phase = FlightPhase.FAILED
+                elif i % 5 == 1:
+                    d.battery_pct = float(np.random.uniform(5.0, 15.0))
+        elif scenario == "weather_disturbance":
+            SIM.wind = np.array([3.0, -2.0, 0.0])  # 자동 바람 설정
+
     return ""
+
+
+@app.callback(
+    Output("download-html", "data"),
+    Input("btn-export", "n_clicks"),
+    prevent_initial_call=True,
+)
+def _export_html(_n):
+    """현재 3D 뷰를 독립 실행형 HTML로 내보내기"""
+    fig = build_figure(SIM)
+    with SIM.lock:
+        t = SIM.t
+        n = len(SIM.drones)
+    mins, secs = divmod(int(t), 60)
+    fname = f"sdacs_T{mins:02d}{secs:02d}_{n}drones.html"
+    html_str = pio.to_html(
+        fig,
+        include_plotlyjs="cdn",
+        full_html=True,
+        config={"scrollZoom": True, "displayModeBar": True},
+    )
+    return dcc.send_string(html_str, fname)
 
 
 @app.callback(

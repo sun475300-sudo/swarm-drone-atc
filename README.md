@@ -542,8 +542,9 @@ MIT License — 학술 및 교육 목적으로 개발되었습니다.
 
 | 날짜 (KST) | 분류 | 작업 내용 | 주요 파일 |
 | --- | --- | --- | --- |
-| 2026-03-26 11:20 | `40af8a9` | fix: FAILED 페이즈 GROUNDED 전환, epsilon 보정, 선회 로직 정리 | simulation/simulator.py, src/airspace_control/avoidance/resolution_advisory.py, src/airspace_control/controller/airspace_controller.py |
-| 2026-03-26 09:53 | `ac1bc7a` | fix: NFZ 내부 척력 폭주 방지 (safe_dist 1e-3→1.0m), README 변경이력 통합 | README.md, simulation/apf_engine/apf.py |
+| 2026-03-26 | **fix** | 3D 시각화 버튼 동작 불가 수정 (Dash 4.x `ctx.triggered_id` 적용), HTML 내보내기 추가, 시나리오 8→11개 확장 | visualization/simulator_3d.py |
+| 2026-03-26 | **fix** | FAILED 드론 GROUNDED 전환 누락, ENROUTE/RTL norm epsilon 제거, 선회 로직 중복 분기 정리 | simulator.py, resolution_advisory.py, airspace_controller.py |
+| 2026-03-26 | **fix** | NFZ 내부 척력 폭주 방지 (safe_dist 1e-3→1.0m), README 변경이력 통합 | apf.py, README.md |
 | 2026-03-26 | **fix** | ROGUE 드론 어드바이저리 차단, 비기동(LANDING/TAKEOFF/RTL) 드론 재배정, clearance NFZ/경계 목적지 검증 | airspace_controller.py, tests/ |
 | 2026-03-26 | **fix** | HOLDING 드론 wind drift 제거·step7 최적화, COLLISION 이벤트 중복 방지, GROUNDED 드론 _active_drones 누수 수정 | simulator.py, airspace_controller.py |
 | 2026-03-25 | **fix** | NFZ 구체 표면 기준 척력(radius 파라미터), 인력 10m 경계 불연속 해소, KDTree 필터 반경 2× 보정, 중복 analytics 스냅샷 제거 | apf.py, simulator.py, airspace_controller.py |

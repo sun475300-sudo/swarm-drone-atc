@@ -198,6 +198,10 @@
       <div class="stat-label">평균 배터리</div>
       <div class="stat-value" id="stat-battery" style="color:#10b981;">100%</div>
     </div>
+    <div class="stat-box" style="border-color:rgba(0,229,255,0.4);">
+      <div class="stat-label">관제 드론</div>
+      <div class="stat-value" style="color:#00e5ff;">5</div>
+    </div>
   </div>
 </div>
 
@@ -283,6 +287,8 @@
     <div class="legend-item"><div class="legend-dot" style="background:#ff3d00;"></div><span class="legend-text">EVADING (회피)</span></div>
     <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div><span class="legend-text">FAILED (장애)</span></div>
     <div class="legend-item"><div class="legend-dot" style="background:#ec407a;"></div><span class="legend-text">RTL (귀환)</span></div>
+    <div style="border-top:1px solid rgba(0,229,255,0.1);margin:6px 0;"></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00e5ff;width:10px;height:10px;box-shadow:0 0 6px #00e5ff;"></div><span class="legend-text" style="color:#00e5ff;font-weight:600;">ATC 관제 드론 (5대)</span></div>
   </div>
 </div>
 
@@ -562,6 +568,81 @@ for (let i = 0; i < 3; i++) {
   scene.add(ring);
   scanRings.push(ring);
 }
+
+// ===== ATC Control Drones (관제 드론) =====
+const ATC_POSITIONS = [
+  { name: 'ATC-01', x: 0, z: 0, alt: 110, role: '중앙 관제' },
+  { name: 'ATC-02', x: -2500, z: 2500, alt: 100, role: 'NW 구역' },
+  { name: 'ATC-03', x: 2500, z: 2500, alt: 100, role: 'NE 구역' },
+  { name: 'ATC-04', x: -2500, z: -2500, alt: 100, role: 'SW 구역' },
+  { name: 'ATC-05', x: 2500, z: -2500, alt: 100, role: 'SE 구역' },
+];
+const atcDrones = [];
+
+ATC_POSITIONS.forEach(atc => {
+  const grp = new THREE.Group();
+  const px = atc.x * SCALE, pz = atc.z * SCALE, py = atc.alt * SCALE * 3;
+
+  // Body — 더 큰 다이아몬드 형태
+  const bodyGeo = new THREE.OctahedronGeometry(0.4, 1);
+  const bodyMat = new THREE.MeshPhongMaterial({
+    color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.8,
+    transparent: true, opacity: 0.9,
+  });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  grp.add(body);
+
+  // 외곽 링 (레이더 디쉬)
+  const dish = new THREE.Mesh(
+    new THREE.TorusGeometry(0.7, 0.03, 8, 32),
+    new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.5 })
+  );
+  dish.rotation.x = Math.PI / 2;
+  grp.add(dish);
+
+  // 레이더 범위 원 (지면 투영)
+  const radarGeo = new THREE.RingGeometry(0, 2000 * SCALE, 64);
+  const radarMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.04, side: THREE.DoubleSide });
+  const radar = new THREE.Mesh(radarGeo, radarMat);
+  radar.rotation.x = -Math.PI / 2;
+  radar.position.set(px, 0.02, pz);
+  scene.add(radar);
+
+  // 레이더 범위 외곽선
+  const radarEdge = new THREE.Mesh(
+    new THREE.RingGeometry(2000 * SCALE - 0.05, 2000 * SCALE, 64),
+    new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.15, side: THREE.DoubleSide })
+  );
+  radarEdge.rotation.x = -Math.PI / 2;
+  radarEdge.position.set(px, 0.03, pz);
+  scene.add(radarEdge);
+
+  // 연결선 (지면→관제 드론)
+  const connGeo = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(px, 0.1, pz),
+    new THREE.Vector3(px, py, pz),
+  ]);
+  scene.add(new THREE.Line(connGeo, new THREE.LineDashedMaterial({
+    color: 0x00e5ff, transparent: true, opacity: 0.2, dashSize: 0.3, gapSize: 0.2,
+  })));
+
+  // Glow
+  const glow = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: glowTex, color: 0x00e5ff, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending })
+  );
+  glow.scale.set(3, 3, 1);
+  grp.add(glow);
+
+  // Label
+  const lbl = makeTextSprite(`${atc.name} [${atc.role}]`, '#00e5ff', 9);
+  lbl.position.set(0, 1.2, 0);
+  lbl.scale.set(5, 1.2, 1);
+  grp.add(lbl);
+
+  grp.position.set(px, py, pz);
+  scene.add(grp);
+  atcDrones.push({ grp, body, dish, glow, radar, radarEdge, ...atc });
+});
 
 // ===== Boundary markers =====
 const boundaryGeo = new THREE.BufferGeometry().setFromPoints([
@@ -1258,6 +1339,18 @@ function animate() {
       ring.material.opacity = 0.2 * (1 - progress);
     });
   }
+
+  // ATC 관제 드론 애니메이션
+  atcDrones.forEach((atc, idx) => {
+    // 천천히 회전
+    atc.grp.rotation.y = t * 0.3 + idx * 1.2;
+    // 디쉬 스핀
+    atc.dish.rotation.z = t * 2;
+    // 글로우 호흡 효과
+    atc.glow.material.opacity = 0.4 + Math.sin(t * 2 + idx) * 0.15;
+    // 레이더 펄스
+    atc.radarEdge.material.opacity = 0.1 + Math.sin(t * 1.5 + idx * 0.8) * 0.08;
+  });
 
   // NFZ pulse
   nfzMat.opacity = 0.06 + Math.sin(t * 1.5) * 0.03;

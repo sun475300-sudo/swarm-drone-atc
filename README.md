@@ -542,6 +542,7 @@ MIT License — 학술 및 교육 목적으로 개발되었습니다.
 
 | 날짜 (KST) | 분류 | 작업 내용 | 주요 파일 |
 | --- | --- | --- | --- |
+| 2026-03-26 11:43 | `8d0d493` | fix: 3D 시각화 버튼 동작 수정, HTML 내보내기, 시나리오 확장 | README.md, visualization/simulator_3d.py |
 | 2026-03-26 | **fix** | 3D 시각화 버튼 동작 불가 수정 (Dash 4.x `ctx.triggered_id` 적용), HTML 내보내기 추가, 시나리오 8→11개 확장 | visualization/simulator_3d.py |
 | 2026-03-26 | **fix** | FAILED 드론 GROUNDED 전환 누락, ENROUTE/RTL norm epsilon 제거, 선회 로직 중복 분기 정리 | simulator.py, resolution_advisory.py, airspace_controller.py |
 | 2026-03-26 | **fix** | NFZ 내부 척력 폭주 방지 (safe_dist 1e-3→1.0m), README 변경이력 통합 | apf.py, README.md |

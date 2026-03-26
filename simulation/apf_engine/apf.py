@@ -124,7 +124,7 @@ def repulsive_force_obstacle(
         return np.zeros(3)
 
     n         = diff / dist_center               # 중심에서 벗어나는 방향
-    safe_dist = max(dist, 1e-3)
+    safe_dist = max(dist, 1.0)                   # 1m 하한: 내부 진입 시 힘 폭주 방지
     mag = k_rep * (1.0 / safe_dist - 1.0 / d0) / (safe_dist ** 2)
     return mag * n
 

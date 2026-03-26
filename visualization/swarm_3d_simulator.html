@@ -87,6 +87,40 @@
   }
   .hud-info-text { font-size: 9px; color: #3a5575; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; }
 
+  /* Event log */
+  .event-log-panel {
+    background: rgba(6,10,19,0.92); border: 1px solid rgba(0,229,255,0.15);
+    border-radius: 10px; backdrop-filter: blur(12px); overflow: hidden;
+    display: flex; flex-direction: column; height: 100%;
+  }
+  .event-log-header {
+    padding: 8px 12px; border-bottom: 1px solid rgba(0,229,255,0.1);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .event-log-list {
+    flex: 1; overflow-y: auto; padding: 6px 10px; font-size: 9px;
+    font-family: 'JetBrains Mono', monospace; line-height: 1.6;
+  }
+  .event-log-list::-webkit-scrollbar { width: 3px; }
+  .event-log-list::-webkit-scrollbar-thumb { background: #1a2d4a; border-radius: 2px; }
+  .ev { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.02); }
+  .ev-time { color: #3a5575; margin-right: 6px; }
+  .ev-collision { color: #ef4444; }
+  .ev-near { color: #ff6d00; }
+  .ev-evade { color: #f59e0b; }
+  .ev-advisory { color: #a78bfa; }
+  .ev-comms { color: #3b82f6; }
+  .ev-fail { color: #ef4444; font-weight: 700; }
+  .ev-rogue { color: #ff0044; }
+  .ev-info { color: #4a6785; }
+  .ev-takeoff { color: #ffd700; }
+  .ev-landing { color: #f97316; }
+
+  /* Bottom event log bar */
+  .hud-bottom-log {
+    bottom: 32px; left: 12px; width: 380px; height: 200px;
+  }
+
   /* Left panel */
   .hud-left { top: 60px; left: 12px; width: 220px; }
   .ctrl-panel {
@@ -231,6 +265,19 @@
   </div>
 </div>
 
+<!-- HUD: Event Log -->
+<div class="hud-overlay hud-bottom-log hud-interactive">
+  <div class="event-log-panel">
+    <div class="event-log-header">
+      <div style="width:6px;height:6px;border-radius:50%;background:#f59e0b;"></div>
+      <div style="font-size:10px;font-weight:600;color:#f59e0b;font-family:'JetBrains Mono',monospace;letter-spacing:1.5px;">EVENT LOG</div>
+      <div style="flex:1;"></div>
+      <button id="btn-clear-log" style="background:none;border:1px solid rgba(255,255,255,0.1);color:#4a6785;font-size:8px;padding:2px 6px;border-radius:3px;cursor:pointer;font-family:'JetBrains Mono',monospace;">CLEAR</button>
+    </div>
+    <div class="event-log-list" id="event-log"></div>
+  </div>
+</div>
+
 <!-- HUD: Bottom Bar -->
 <div class="hud-overlay hud-bottom">
   <div class="hud-info-text">SDACS v2.0 — APF 충돌 회피 | NFZ 비행금지구역 | 복도 공역 제어</div>
@@ -301,6 +348,16 @@ let drones = [];
 let stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
 let windEnabled = false;
 const WIND_VEC = { x: 2.0, z: -1.5 }; // 동남풍 2 m/s
+
+// ===== Event Log =====
+const eventLog = [];
+const MAX_LOG = 200;
+function logEvent(type, msg) {
+  const m = Math.floor(simTime / 60), s = Math.floor(simTime % 60);
+  const ts = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  eventLog.unshift({ ts, type, msg });
+  if (eventLog.length > MAX_LOG) eventLog.length = MAX_LOG;
+}
 
 // ===== Three.js Setup =====
 const scene = new THREE.Scene();
@@ -648,12 +705,12 @@ function updateDrone(d, dt) {
       if (!d.isRogue && (inNFZ(d.wx, d.wz) || inNFZ(lookaheadX, lookaheadZ))) {
         d.phase = 'EVADING';
         d.evadeTimer = 3.0;
-        // NFZ 바깥으로 밀어내기
         const pushX = d.wx > 0 ? 1 : -1;
         const pushZ = d.wz > 0 ? 1 : -1;
         d.wx += pushX * 80;
         d.wz += pushZ * 80;
         stats.advisories++;
+        logEvent('advisory', `${d.id} NFZ 접근 → 회피 기동`);
         break;
       }
 
@@ -734,17 +791,20 @@ function updateDrone(d, dt) {
   if (d.willFail && !d.failed && simTime > d.failTime && d.phase !== 'GROUNDED') {
     d.phase = 'FAILED';
     d.failed = true;
+    logEvent('fail', `${d.id} 장애 발생! ALT ${Math.round(d.wy)}m`);
   }
 
   // 통신 두절 → HOLDING 전환
   if (d.willLoseComms && !d.commsLost && simTime > d.commsLossTime && d.phase === 'ENROUTE') {
     d.phase = 'HOLDING';
     d.commsLost = true;
+    logEvent('comms', `${d.id} 통신 두절 → 체공 대기`);
   }
 
   // Low battery -> RTL
   if (d.battery < 8 && d.phase === 'ENROUTE') {
     d.phase = 'RTL';
+    logEvent('advisory', `${d.id} 배터리 부족(${Math.round(d.battery)}%) → RTL`);
   }
 
   // Update 3D position
@@ -779,11 +839,12 @@ function apfCollisionAvoidance() {
 
       if (dist < COLLISION_DIST) {
         frameCollisions++;
-        // Draw red line
         addProximityLine(a, b, 0xff0000, 0.6);
+        logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist)}m)`);
       } else if (dist < NEAR_MISS_DIST) {
         frameNear++;
         addProximityLine(a, b, 0xff6600, 0.3);
+        logEvent('near', `${a.id} ↔ ${b.id} 근접경고 (${Math.round(dist)}m)`);
       } else if (dist < EVADE_DIST) {
         frameConflicts++;
         addProximityLine(a, b, 0xffaa00, 0.15);
@@ -795,6 +856,7 @@ function apfCollisionAvoidance() {
           a.wx += (dx / dist) * 30;
           a.wz += (dz / dist) * 30;
           stats.advisories++;
+          logEvent('evade', `${a.id} → 회피 기동 (${b.id} 접근)`);
         }
         if (b.phase === 'ENROUTE') {
           b.phase = 'EVADING';
@@ -802,6 +864,7 @@ function apfCollisionAvoidance() {
           b.wx -= (dx / dist) * 30;
           b.wz -= (dz / dist) * 30;
           stats.advisories++;
+          logEvent('evade', `${b.id} → 회피 기동 (${a.id} 접근)`);
         }
       }
     }
@@ -831,6 +894,18 @@ function updateStatsUI() {
   document.getElementById('stat-battery').textContent = Math.round(avgBat) + '%';
   const m = Math.floor(simTime / 60), s = Math.floor(simTime % 60);
   document.getElementById('sim-time').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function updateEventLog() {
+  const el = document.getElementById('event-log');
+  const typeClass = { collision: 'ev-collision', near: 'ev-near', evade: 'ev-evade',
+    advisory: 'ev-advisory', comms: 'ev-comms', fail: 'ev-fail', rogue: 'ev-rogue',
+    info: 'ev-info', takeoff: 'ev-takeoff', landing: 'ev-landing' };
+  const typeIcon = { collision: '💥', near: '⚠️', evade: '↪️', advisory: '📡',
+    comms: '📵', fail: '🔴', rogue: '🚨', info: 'ℹ️', takeoff: '🛫', landing: '🛬' };
+  el.innerHTML = eventLog.slice(0, 50).map(e =>
+    `<div class="ev"><span class="ev-time">[${e.ts}]</span><span class="${typeClass[e.type] || 'ev-info'}">${typeIcon[e.type] || ''} ${e.msg}</span></div>`
+  ).join('');
 }
 
 function updateFleetList() {
@@ -876,13 +951,26 @@ function updateFleetList() {
 }
 
 // ===== Controls =====
-document.getElementById('btn-start').addEventListener('click', () => { simRunning = true; });
-document.getElementById('btn-pause').addEventListener('click', () => { simRunning = !simRunning; });
+document.getElementById('btn-clear-log').addEventListener('click', () => { eventLog.length = 0; });
+document.getElementById('btn-start').addEventListener('click', () => {
+  simRunning = true;
+  logEvent('info', '시뮬레이션 시작');
+});
+document.getElementById('btn-pause').addEventListener('click', () => {
+  simRunning = !simRunning;
+  logEvent('info', simRunning ? '시뮬레이션 재개' : '시뮬레이션 일시정지');
+});
 document.getElementById('btn-reset').addEventListener('click', () => {
-  initDrones(document.getElementById('scenario-select').value);
+  const sc = document.getElementById('scenario-select').value;
+  initDrones(sc);
+  eventLog.length = 0;
+  logEvent('info', `시뮬레이션 초기화 (${SCENARIOS[sc].label} ${SCENARIOS[sc].count}대)`);
 });
 document.getElementById('scenario-select').addEventListener('change', (e) => {
   initDrones(e.target.value);
+  eventLog.length = 0;
+  const cfg = SCENARIOS[e.target.value];
+  logEvent('info', `시나리오 변경: ${cfg.label} (${cfg.count}대)${cfg.wind ? ' [바람]' : ''}`);
 });
 document.getElementById('speed-slider').addEventListener('input', (e) => {
   simSpeed = parseFloat(e.target.value);
@@ -957,6 +1045,7 @@ function animate() {
 setInterval(() => {
   updateStatsUI();
   updateFleetList();
+  updateEventLog();
 }, 500);
 
 animate();

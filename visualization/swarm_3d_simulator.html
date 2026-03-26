@@ -733,11 +733,17 @@ function makeTextSprite(text, color, fontSize) {
 
 // ===== ATC Control Drones (관제 드론) =====
 const ATC_POSITIONS = [
-  { name: 'ATC-01', x: 0, z: 0, alt: 110, role: '중앙 관제' },
-  { name: 'ATC-02', x: -2500, z: 2500, alt: 100, role: 'NW 구역' },
-  { name: 'ATC-03', x: 2500, z: 2500, alt: 100, role: 'NE 구역' },
-  { name: 'ATC-04', x: -2500, z: -2500, alt: 100, role: 'SW 구역' },
-  { name: 'ATC-05', x: 2500, z: -2500, alt: 100, role: 'SE 구역' },
+  { name: 'ATC-01', x: 0, z: 0, alt: 120, role: '중앙 관제' },
+  // 사분면 관제 (4대)
+  { name: 'ATC-02', x: -2500, z: 2500, alt: 105, role: 'NW 구역' },
+  { name: 'ATC-03', x: 2500, z: 2500, alt: 105, role: 'NE 구역' },
+  { name: 'ATC-04', x: -2500, z: -2500, alt: 105, role: 'SW 구역' },
+  { name: 'ATC-05', x: 2500, z: -2500, alt: 105, role: 'SE 구역' },
+  // 축 방향 중간 관제 (4대) — 회랑 커버
+  { name: 'ATC-06', x: 0, z: 2800, alt: 95, role: 'N 회랑' },
+  { name: 'ATC-07', x: 0, z: -2800, alt: 95, role: 'S 회랑' },
+  { name: 'ATC-08', x: -2800, z: 0, alt: 95, role: 'W 회랑' },
+  { name: 'ATC-09', x: 2800, z: 0, alt: 95, role: 'E 회랑' },
 ];
 const atcDrones = [];
 

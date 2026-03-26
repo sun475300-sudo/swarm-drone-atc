@@ -165,3 +165,132 @@ class TestAdvisoryExpiry:
         controller._advisories["ADV-002"] = adv
         controller._expire_advisories(5.0)
         assert "ADV-002" in controller._advisories
+
+
+class TestROGUEGuard:
+    """ROGUE 드론 어드바이저리 차단 테스트"""
+
+    def test_rogue_not_advisory_target(self, env, comm_bus, controller):
+        """ROGUE+등록 쌍 → 등록 드론만 어드바이저리 수신"""
+        from src.airspace_control.agents.drone_state import FlightPhase
+        _send_telemetry(env, comm_bus, "REG1", [0.0, 0.0, 60.0],
+                        vel=[10.0, 0.0, 0.0])
+        _send_telemetry(env, comm_bus, "ROGUE1", [40.0, 0.0, 60.0],
+                        vel=[-10.0, 0.0, 0.0], phase="ENROUTE")
+        controller._active_drones["REG1"].flight_phase = FlightPhase.ENROUTE
+        controller._active_drones["ROGUE1"].flight_phase = FlightPhase.ENROUTE
+        controller._active_drones["ROGUE1"].profile_name = "ROGUE"
+        controller._scan_conflicts(0.0)
+        for adv in controller._advisories.values():
+            assert adv.target_drone_id == "REG1"
+
+    def test_rogue_rogue_skip(self, env, comm_bus, controller):
+        """두 ROGUE 드론 간 충돌 → 어드바이저리 없음"""
+        from src.airspace_control.agents.drone_state import FlightPhase
+        _send_telemetry(env, comm_bus, "R1", [0.0, 0.0, 60.0],
+                        vel=[10.0, 0.0, 0.0])
+        _send_telemetry(env, comm_bus, "R2", [40.0, 0.0, 60.0],
+                        vel=[-10.0, 0.0, 0.0])
+        controller._active_drones["R1"].flight_phase = FlightPhase.ENROUTE
+        controller._active_drones["R2"].flight_phase = FlightPhase.ENROUTE
+        controller._active_drones["R1"].profile_name = "ROGUE"
+        controller._active_drones["R2"].profile_name = "ROGUE"
+        controller._scan_conflicts(0.0)
+        assert len(controller._advisories) == 0
+
+
+class TestNonManeuverableGuard:
+    """LANDING/TAKEOFF/RTL 드론 어드바이저리 재배정 테스트"""
+
+    def test_landing_drone_not_target(self, env, comm_bus, controller):
+        """LANDING 드론 + ENROUTE 드론 → ENROUTE 드론이 어드바이저리 수신"""
+        from src.airspace_control.agents.drone_state import FlightPhase
+        _send_telemetry(env, comm_bus, "LAND1", [0.0, 0.0, 60.0],
+                        vel=[0.0, 0.0, -2.0], phase="LANDING")
+        _send_telemetry(env, comm_bus, "FLY1", [40.0, 0.0, 60.0],
+                        vel=[-10.0, 0.0, 0.0])
+        controller._active_drones["LAND1"].flight_phase = FlightPhase.LANDING
+        controller._active_drones["FLY1"].flight_phase = FlightPhase.ENROUTE
+        controller._scan_conflicts(0.0)
+        for adv in controller._advisories.values():
+            assert adv.target_drone_id == "FLY1"
+
+    def test_both_landing_skip(self, env, comm_bus, controller):
+        """두 LANDING 드론 → 어드바이저리 없음"""
+        from src.airspace_control.agents.drone_state import FlightPhase
+        _send_telemetry(env, comm_bus, "L1", [0.0, 0.0, 30.0],
+                        vel=[0.0, 0.0, -2.0], phase="LANDING")
+        _send_telemetry(env, comm_bus, "L2", [4.0, 0.0, 30.0],
+                        vel=[0.0, 0.0, -2.0], phase="LANDING")
+        controller._active_drones["L1"].flight_phase = FlightPhase.LANDING
+        controller._active_drones["L2"].flight_phase = FlightPhase.LANDING
+        controller._scan_conflicts(0.0)
+        assert len(controller._advisories) == 0
+
+
+class TestDestinationValidation:
+    """clearance 목적지 NFZ/경계 검증 테스트"""
+
+    def test_destination_in_nfz_rejected(self, env, comm_bus, controller):
+        """NFZ 내부 목적지 → clearance 거부"""
+        controller.planner.nfz_list = [
+            {"center": np.array([0.0, 0.0, 60.0]), "radius_m": 500.0},
+        ]
+        received = []
+        comm_bus.subscribe("DN", lambda m: received.append(m))
+        req = ClearanceRequest(
+            drone_id="DN", origin=np.array([-2000.0, 0.0, 0.0]),
+            destination=np.array([100.0, 100.0, 60.0]),
+            priority=3, timestamp_s=0.0,
+        )
+        comm_bus.send(CommMessage("DN", "CONTROLLER", req, 0.0, "clearance"))
+        env.run(until=0.1)
+        controller._process_clearances(1.0)
+        env.run(until=1.5)
+        resp = [m for m in received if hasattr(m.payload, 'approved')]
+        assert len(resp) >= 1
+        assert resp[0].payload.approved is False
+
+    def test_destination_out_of_bounds_rejected(self, env, comm_bus, controller):
+        """경계 외부 목적지 → clearance 거부"""
+        received = []
+        comm_bus.subscribe("DO", lambda m: received.append(m))
+        req = ClearanceRequest(
+            drone_id="DO", origin=np.array([0.0, 0.0, 0.0]),
+            destination=np.array([99999.0, 0.0, 60.0]),
+            priority=3, timestamp_s=0.0,
+        )
+        comm_bus.send(CommMessage("DO", "CONTROLLER", req, 0.0, "clearance"))
+        env.run(until=0.1)
+        controller._process_clearances(1.0)
+        env.run(until=1.5)
+        resp = [m for m in received if hasattr(m.payload, 'approved')]
+        assert len(resp) >= 1
+        assert resp[0].payload.approved is False
+
+    def test_valid_destination_approved(self, env, comm_bus, controller):
+        """정상 목적지 → clearance 승인"""
+        received = []
+        comm_bus.subscribe("DV", lambda m: received.append(m))
+        req = ClearanceRequest(
+            drone_id="DV", origin=np.array([0.0, 0.0, 0.0]),
+            destination=np.array([500.0, 500.0, 60.0]),
+            priority=3, timestamp_s=0.0,
+        )
+        comm_bus.send(CommMessage("DV", "CONTROLLER", req, 0.0, "clearance"))
+        env.run(until=0.1)
+        controller._process_clearances(1.0)
+        env.run(until=1.5)
+        resp = [m for m in received if hasattr(m.payload, 'approved')]
+        assert len(resp) >= 1
+        assert resp[0].payload.approved is True
+
+
+class TestGroundedDroneCleanup:
+    """착지 드론 _active_drones 제거 테스트"""
+
+    def test_grounded_drone_removed(self, env, comm_bus, controller):
+        _send_telemetry(env, comm_bus, "GD1", [0.0, 0.0, 60.0], phase="ENROUTE")
+        assert "GD1" in controller._active_drones
+        _send_telemetry(env, comm_bus, "GD1", [0.0, 0.0, 0.0], phase="GROUNDED")
+        assert "GD1" not in controller._active_drones

@@ -321,6 +321,16 @@ class AirspaceController:
                 else:
                     target = self._pick_target(da, db)
                     threat = db if target.drone_id == id_a else da
+
+                # 비기동 단계 드론에게 어드바이저리 발령해도 무시됨 → 상대 드론에 재배정
+                _NON_MANEUVERABLE = (FlightPhase.LANDING, FlightPhase.TAKEOFF, FlightPhase.RTL)
+                target_nm = target.flight_phase in _NON_MANEUVERABLE
+                threat_nm = threat.flight_phase in _NON_MANEUVERABLE
+                if target_nm and threat_nm:
+                    continue  # 두 드론 모두 비기동 — 어드바이저리 불가
+                if target_nm:
+                    target, threat = threat, target  # 기동 가능한 드론으로 재배정
+
                 adv = self.advisory_gen.generate(target, threat, cpa_dist, cpa_t, t)
                 self._advisories[adv.advisory_id] = adv
                 self.comm_bus.send(CommMessage(

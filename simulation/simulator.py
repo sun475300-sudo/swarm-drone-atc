@@ -161,18 +161,18 @@ class _DroneAgent:
             # 7. 위치 적분 (TAKEOFF/LANDING은 state_machine에서 직접 처리)
             if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED,
                                            FlightPhase.TAKEOFF, FlightPhase.LANDING):
-                # APF force는 여전히 EVADING 상태일 때만 적용 (state machine 전환 후 재확인)
-                if drone.flight_phase == FlightPhase.EVADING:
-                    drone.velocity += force * dt
-                # HOLDING 드론은 능동적으로 위치 유지 — wind 편류 제외
-                if drone.flight_phase != FlightPhase.HOLDING:
-                    drone.velocity[:2] += wind[:2]
-                # 비상 속도 모드: EVADING 모드이면서 강풍일 때만 활성화
-                if drone.flight_phase == FlightPhase.EVADING and wind_speed > 10.0:
-                    drone.velocity  = _clamp_speed(drone.velocity, profile.max_speed_ms, wind_speed)
+                # HOLDING은 velocity=0 고정 — wind/force/clamping 불필요
+                if drone.flight_phase == FlightPhase.HOLDING:
+                    drone.position += drone.velocity * dt  # 0 × dt = 이동 없음
                 else:
-                    drone.velocity  = _clamp_speed(drone.velocity, profile.max_speed_ms)
-                drone.position += drone.velocity * dt
+                    if drone.flight_phase == FlightPhase.EVADING:
+                        drone.velocity += force * dt
+                    drone.velocity[:2] += wind[:2]
+                    if drone.flight_phase == FlightPhase.EVADING and wind_speed > 10.0:
+                        drone.velocity = _clamp_speed(drone.velocity, profile.max_speed_ms, wind_speed)
+                    else:
+                        drone.velocity = _clamp_speed(drone.velocity, profile.max_speed_ms)
+                    drone.position += drone.velocity * dt
                 drone.position[0] = float(np.clip(drone.position[0],
                                                    -sim.bounds_m, sim.bounds_m))
                 drone.position[1] = float(np.clip(drone.position[1],

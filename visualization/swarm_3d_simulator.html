@@ -200,7 +200,11 @@
     </div>
     <div class="stat-box" style="border-color:rgba(0,229,255,0.4);">
       <div class="stat-label">관제 드론</div>
-      <div class="stat-value" style="color:#00e5ff;">5</div>
+      <div class="stat-value" style="color:#00e5ff;">9</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">풍속</div>
+      <div class="stat-value" id="stat-wind" style="color:#60a5fa;">0.0</div>
     </div>
   </div>
 </div>
@@ -293,7 +297,7 @@
     <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div><span class="legend-text">FAILED (장애)</span></div>
     <div class="legend-item"><div class="legend-dot" style="background:#ec407a;"></div><span class="legend-text">RTL (귀환)</span></div>
     <div style="border-top:1px solid rgba(0,229,255,0.1);margin:6px 0;"></div>
-    <div class="legend-item"><div class="legend-dot" style="background:#00e5ff;width:10px;height:10px;box-shadow:0 0 6px #00e5ff;"></div><span class="legend-text" style="color:#00e5ff;font-weight:600;">ATC 관제 드론 (5대)</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00e5ff;width:10px;height:10px;box-shadow:0 0 6px #00e5ff;"></div><span class="legend-text" style="color:#00e5ff;font-weight:600;">ATC 관제 드론 (9대)</span></div>
     <div style="border-top:1px solid rgba(255,255,255,0.05);margin:6px 0;"></div>
     <span class="legend-text" style="color:#8899aa;font-size:8px;letter-spacing:1px;">직군별 드론 (20종)</span>
     <div id="role-legend" style="display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:3px;"></div>
@@ -453,7 +457,81 @@ let simTime = 0;
 let drones = [];
 let stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
 let windEnabled = false;
-const WIND_VEC = { x: 2.0, z: -1.5 }; // 동남풍 2 m/s
+
+// ===== 확장 기상 시스템 =====
+const weather = {
+  baseWind: { x: 2.0, z: -1.5 },  // 기본 풍향 (동남풍)
+  gustIntensity: 0,    // 돌풍 강도 (0~5)
+  gustTimer: 0,        // 돌풍 타이머
+  gustDir: { x: 0, z: 0 },
+  turbulence: 0,       // 난기류 강도 (0~3)
+  windShearAlt: 80,    // 풍속 전단 고도 (m)
+  precipitation: 0,    // 강수 강도 (0: 없음, 1: 약, 2: 보통, 3: 폭우)
+  visibility: 1.0,     // 시정 (0~1)
+  thermalZones: [],    // 열 상승기류 구역
+};
+
+// 동적 기상 업데이트 (매 프레임)
+function updateWeather(dt) {
+  if (!windEnabled) return;
+  const sDt = dt * simSpeed;
+
+  // 돌풍 발생: 랜덤 간격 (5~15초)으로 갑작스런 강풍
+  weather.gustTimer -= sDt;
+  if (weather.gustTimer <= 0) {
+    weather.gustIntensity = 1 + Math.random() * 4; // 1~5 m/s
+    const angle = Math.random() * Math.PI * 2;
+    weather.gustDir = { x: Math.cos(angle), z: Math.sin(angle) };
+    weather.gustTimer = 5 + Math.random() * 10;
+    if (weather.gustIntensity > 3) {
+      logEvent('advisory', `⚡ 돌풍 경보: ${weather.gustIntensity.toFixed(1)} m/s`);
+    }
+  }
+  // 돌풍 감쇠
+  weather.gustIntensity *= (1 - sDt * 0.5);
+
+  // 풍향 서서히 변화 (사인파)
+  const windAngle = simTime * 0.02; // 매우 느린 회전
+  weather.baseWind.x = 2.0 * Math.cos(windAngle) + 0.5 * Math.sin(windAngle * 3.7);
+  weather.baseWind.z = -1.5 * Math.sin(windAngle) + 0.3 * Math.cos(windAngle * 2.3);
+}
+
+// 특정 위치·고도의 실효 바람 벡터 계산
+function getWindAt(wx, wy, wz) {
+  if (!windEnabled) return { x: 0, z: 0, y: 0 };
+  // 기본 바람
+  let wx_ = weather.baseWind.x;
+  let wz_ = weather.baseWind.z;
+  let wy_ = 0;
+
+  // 고도별 풍속 전단 (고도가 높을수록 강풍)
+  const altFactor = 0.7 + (wy / 150) * 0.6; // 0.7x ~ 1.3x
+  wx_ *= altFactor;
+  wz_ *= altFactor;
+
+  // 돌풍 추가
+  wx_ += weather.gustDir.x * weather.gustIntensity;
+  wz_ += weather.gustDir.z * weather.gustIntensity;
+
+  // 난기류 (랜덤 요동)
+  if (weather.turbulence > 0) {
+    const turb = weather.turbulence;
+    wx_ += (Math.random() - 0.5) * turb * 2;
+    wz_ += (Math.random() - 0.5) * turb * 2;
+    wy_ += (Math.random() - 0.5) * turb * 0.5;
+  }
+
+  // 열 상승기류 구역
+  weather.thermalZones.forEach(tz => {
+    const dx = wx - tz.x, dz = wz - tz.z;
+    const d = Math.sqrt(dx*dx + dz*dz);
+    if (d < tz.radius) {
+      wy_ += tz.strength * (1 - d / tz.radius); // 중심에 가까울수록 강한 상승
+    }
+  });
+
+  return { x: wx_, z: wz_, y: wy_ };
+}
 
 // ===== Event Log =====
 const eventLog = [];
@@ -928,13 +1006,56 @@ function initDrones(scenario) {
   const count = cfg.count;
   _lightweight = count > 100;
 
-  // 시나리오별 분위기 조절
+  // 기상 시스템 초기화
+  weather.gustIntensity = 0;
+  weather.gustTimer = 5;
+  weather.turbulence = 0;
+  weather.precipitation = 0;
+  weather.visibility = 1.0;
+  weather.thermalZones = [];
+
+  // 시나리오별 기상·분위기
   if (scenario === 'fog_low_vis') {
-    scene.fog = new THREE.FogExp2(0x1a1a2e, 0.012);  // 짙은 안개
+    scene.fog = new THREE.FogExp2(0x1a1a2e, 0.012);
+    weather.visibility = 0.3;
+    weather.turbulence = 0.5;
   } else if (scenario === 'heavy_storm') {
-    scene.fog = new THREE.FogExp2(0x0a0a18, 0.006);   // 폭풍
+    scene.fog = new THREE.FogExp2(0x0a0a18, 0.006);
+    weather.turbulence = 2.5;
+    weather.precipitation = 3;
+    weather.gustTimer = 2; // 돌풍 빈번
+  } else if (scenario === 'weather_disturbance') {
+    scene.fog = new THREE.FogExp2(0x0a0a18, 0.004);
+    weather.turbulence = 1.5;
+    weather.precipitation = 1;
+    weather.gustTimer = 3;
+  } else if (scenario === 'thermal_updraft') {
+    scene.fog = new THREE.FogExp2(0x030508, 0.003);
+    weather.turbulence = 1.0;
+    // 열 상승기류 구역 5개 배치
+    for (let t = 0; t < 5; t++) {
+      weather.thermalZones.push({
+        x: (Math.random() - 0.5) * 6000,
+        z: (Math.random() - 0.5) * 6000,
+        radius: 500 + Math.random() * 800,
+        strength: 2 + Math.random() * 4,  // m/s 상승
+      });
+    }
+  } else if (scenario === 'extreme_stress' || scenario === 'apocalypse') {
+    scene.fog = new THREE.FogExp2(0x0a0a14, 0.005);
+    weather.turbulence = 2.0;
+    weather.precipitation = 2;
+    weather.gustTimer = 1;
+    for (let t = 0; t < 3; t++) {
+      weather.thermalZones.push({
+        x: (Math.random() - 0.5) * 4000,
+        z: (Math.random() - 0.5) * 4000,
+        radius: 400 + Math.random() * 600,
+        strength: 3 + Math.random() * 3,
+      });
+    }
   } else {
-    scene.fog = new THREE.FogExp2(0x030508, 0.003);   // 기본
+    scene.fog = new THREE.FogExp2(0x030508, 0.003);
   }
 
   for (let i = 0; i < count; i++) {
@@ -1147,9 +1268,15 @@ function updateDrone(d, dt) {
 
   d.battery = Math.max(0, d.battery - sDt * 0.03);
 
-  // 바람 효과
-  const windX = windEnabled ? WIND_VEC.x * sDt : 0;
-  const windZ = windEnabled ? WIND_VEC.z * sDt : 0;
+  // 동적 기상 효과
+  const w = getWindAt(d.wx, d.wy, d.wz);
+  const windX = w.x * sDt;
+  const windZ = w.z * sDt;
+  const windY = w.y * sDt;
+  // 수직 바람 적용 (열 상승기류 등)
+  if (d.phase !== 'GROUNDED' && Math.abs(windY) > 0.01) {
+    d.wy = Math.max(5, Math.min(180, d.wy + windY));
+  }
 
   switch (d.phase) {
     case 'GROUNDED':
@@ -1437,6 +1564,13 @@ function updateStatsUI() {
   document.getElementById('stat-advisories').textContent = stats.advisories;
   const avgBat = drones.length ? (drones.reduce((s, d) => s + d.battery, 0) / drones.length) : 0;
   document.getElementById('stat-battery').textContent = Math.round(avgBat) + '%';
+  // 풍속 표시
+  const windSpd = Math.sqrt(weather.baseWind.x**2 + weather.baseWind.z**2) + weather.gustIntensity;
+  const windEl = document.getElementById('stat-wind');
+  if (windEl) {
+    windEl.textContent = windEnabled ? windSpd.toFixed(1) : '—';
+    windEl.style.color = windSpd > 4 ? '#ef4444' : windSpd > 2 ? '#fbbf24' : '#60a5fa';
+  }
   const m = Math.floor(simTime / 60), s = Math.floor(simTime % 60);
   document.getElementById('sim-time').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 
@@ -1563,33 +1697,80 @@ function updateATCLinks() {
     const c = atcLinkGroup.children[0];
     atcLinkGroup.remove(c); c.geometry.dispose(); c.material.dispose();
   }
-  if (_lightweight) return; // 대형 시나리오에서는 비활성
 
   const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
-  const maxLinks = 30;
+  const maxLinks = _lightweight ? 20 : 50;
   let linkCount = 0;
 
+  // ATC 탐지 범위별 드론 수집
   atcDrones.forEach(atc => {
-    const ax = atc.x, az = atc.z, range = 2000; // 2000m 탐지 범위
+    const ax = atc.x, az = atc.z, range = 2200; // 2200m 탐지 범위
+    const monitored = [];
     airborne.forEach(d => {
-      if (linkCount >= maxLinks) return;
       const dx = d.wx - ax, dz = d.wz - az;
       const dist = Math.sqrt(dx*dx + dz*dz);
-      if (dist < range) {
-        const geo = new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(atc.x * SCALE, atc.alt * SCALE * 3, atc.z * SCALE),
-          d.group.position.clone()
-        ]);
-        const isRogue = d.isRogue;
-        const line = new THREE.Line(geo, new THREE.LineBasicMaterial({
-          color: isRogue ? 0xff0000 : 0x00e5ff,
-          transparent: true,
-          opacity: isRogue ? 0.25 : 0.06,
-        }));
-        atcLinkGroup.add(line);
-        linkCount++;
-      }
+      if (dist < range) monitored.push({ drone: d, dist });
     });
+
+    // 시각화: 탐지선
+    monitored.forEach(({ drone: d, dist }) => {
+      if (linkCount >= maxLinks) return;
+      const geo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(atc.x * SCALE, atc.alt * SCALE * 3, atc.z * SCALE),
+        d.group.position.clone()
+      ]);
+      const isRogue = d.isRogue;
+      const isClose = dist < 600; // 근거리 감시 강조
+      const line = new THREE.Line(geo, new THREE.LineBasicMaterial({
+        color: isRogue ? 0xff0000 : (isClose ? 0x00ff88 : 0x00e5ff),
+        transparent: true,
+        opacity: isRogue ? 0.3 : (isClose ? 0.12 : 0.05),
+      }));
+      atcLinkGroup.add(line);
+      linkCount++;
+    });
+
+    // 능동 관제: CPA(최근접점) 예측 기반 선제 회피 명령
+    for (let i = 0; i < monitored.length; i++) {
+      for (let j = i + 1; j < monitored.length; j++) {
+        const a = monitored[i].drone, b = monitored[j].drone;
+        if (a.phase === 'GROUNDED' || b.phase === 'GROUNDED') continue;
+        const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
+        const dist3d = Math.sqrt(dx*dx + dz*dz + dy*dy);
+
+        // CPA 예측: 현재 속도 벡터 기반 10초 후 위치 추정
+        if (dist3d < 600 && dist3d > COLLISION_DIST) {
+          const aVx = a.phase === 'ENROUTE' ? (a.goalX - a.wx) : 0;
+          const aVz = a.phase === 'ENROUTE' ? (a.goalZ - a.wz) : 0;
+          const bVx = b.phase === 'ENROUTE' ? (b.goalX - b.wx) : 0;
+          const bVz = b.phase === 'ENROUTE' ? (b.goalZ - b.wz) : 0;
+          const aMag = Math.sqrt(aVx*aVx + aVz*aVz) || 1;
+          const bMag = Math.sqrt(bVx*bVx + bVz*bVz) || 1;
+
+          // 10초 후 예측 위치
+          const futureAx = a.wx + (aVx/aMag) * a.speed * 10;
+          const futureAz = a.wz + (aVz/aMag) * a.speed * 10;
+          const futureBx = b.wx + (bVx/bMag) * b.speed * 10;
+          const futureBz = b.wz + (bVz/bMag) * b.speed * 10;
+          const futureDist = Math.sqrt((futureAx-futureBx)**2 + (futureAz-futureBz)**2);
+
+          // 수렴 중이고 미래 거리가 위험하면 선제 고도 분리 명령
+          if (futureDist < NEAR_MISS_DIST && futureDist < dist3d) {
+            // 고도 분리: 홀수 ID는 올리고 짝수 ID는 내림
+            const aIdx = parseInt(a.id.replace('DR-', ''));
+            const bIdx = parseInt(b.id.replace('DR-', ''));
+            if (Math.abs(a.wy - b.wy) < SEPARATION_ALT * 2) {
+              a.targetAlt = Math.min(170, a.wy + (aIdx % 2 === 0 ? 15 : -15));
+              b.targetAlt = Math.min(170, b.wy + (bIdx % 2 === 0 ? 15 : -15));
+              a.wy += (a.targetAlt > a.wy ? 1 : -1) * 2;
+              b.wy += (b.targetAlt > b.wy ? 1 : -1) * 2;
+              a.wy = Math.max(10, a.wy);
+              b.wy = Math.max(10, b.wy);
+            }
+          }
+        }
+      }
+    }
   });
 }
 
@@ -1612,8 +1793,11 @@ function animate() {
     lastFpsTime = t;
   }
 
-  // Update drones
-  if (simRunning) simTime += dt * simSpeed;
+  // Update weather & drones
+  if (simRunning) {
+    simTime += dt * simSpeed;
+    updateWeather(dt);
+  }
   drones.forEach(d => updateDrone(d, dt));
 
   // APF check — 충돌 회피 빈도 향상

@@ -250,7 +250,7 @@
         </optgroup>
         <optgroup label="극한">
           <option value="extreme_stress">극한 스트레스 (120대)</option>
-          <option value="apocalypse">최종 시험 (200대)</option>
+          <option value="apocalypse">최종 시험 (120대)</option>
         </optgroup>
       </select>
     </div>
@@ -382,7 +382,7 @@ const SCENARIOS = {
   formation_flight:     { count: 25,  label: '편대 비행',       wind: false, failRate: 0,    rogueRate: 0 },
   // ── 극한
   extreme_stress:       { count: 120, label: '극한 스트레스',   wind: true,  failRate: 0.15, rogueRate: 0.10 },
-  apocalypse:           { count: 200, label: '최종 시험',       wind: true,  failRate: 0.20, rogueRate: 0.20 },
+  apocalypse:           { count: 120, label: '최종 시험',       wind: true,  failRate: 0.20, rogueRate: 0.20 },
 };
 
 const LANDING_PADS = [
@@ -612,31 +612,36 @@ scene.add(droneGroup);
 const proximityLines = new THREE.Group();
 scene.add(proximityLines);
 
+let _lightweight = false; // 100대 초과 시 경량 모드
+
 function createDrone(id, startPad) {
   const group = new THREE.Group();
   const color = new THREE.Color(PHASES.GROUNDED.color);
 
-  // Body
+  // Body — 경량모드: 낮은 디테일
   const body = new THREE.Mesh(
-    new THREE.OctahedronGeometry(0.2, 0),
+    _lightweight ? new THREE.TetrahedronGeometry(0.2, 0) : new THREE.OctahedronGeometry(0.2, 0),
     new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: 0.6 })
   );
   group.add(body);
 
-  // Rotor ring
+  // Rotor ring — 경량모드: 세그먼트 줄임
   const rotor = new THREE.Mesh(
-    new THREE.TorusGeometry(0.35, 0.015, 8, 24),
+    new THREE.TorusGeometry(0.35, 0.015, _lightweight ? 4 : 8, _lightweight ? 12 : 24),
     new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.4 })
   );
   rotor.rotation.x = Math.PI / 2;
   group.add(rotor);
 
-  // Glow
-  const glow = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending })
-  );
-  glow.scale.set(1.5, 1.5, 1);
-  group.add(glow);
+  // Glow — 경량모드: 비활성
+  let glow;
+  if (!_lightweight) {
+    glow = new THREE.Sprite(
+      new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending })
+    );
+    glow.scale.set(1.5, 1.5, 1);
+    group.add(glow);
+  }
 
   const px = startPad.x * SCALE, pz = startPad.z * SCALE;
   group.position.set(px, 0.1, pz);
@@ -646,7 +651,7 @@ function createDrone(id, startPad) {
 
   const drone = {
     id: `DR-${String(id).padStart(3,'0')}`,
-    group, body, rotor, glow,
+    group, body, rotor, glow: glow || null,
     phase: 'GROUNDED',
     battery: 85 + Math.random() * 15,
     // World coordinates in meters
@@ -676,6 +681,7 @@ function initDrones(scenario) {
   const cfg = SCENARIOS[scenario] || SCENARIOS.default;
   windEnabled = cfg.wind;
   const count = cfg.count;
+  _lightweight = count > 100;  // 100대 초과 시 경량 렌더링
 
   for (let i = 0; i < count; i++) {
     const pad = LANDING_PADS[i % LANDING_PADS.length];
@@ -1033,10 +1039,10 @@ function updateDrone(d, dt) {
   d.body.material.color.copy(c);
   d.body.material.emissive.copy(c);
   d.rotor.material.color.copy(c);
-  d.glow.material.color.copy(c);
+  if (d.glow) d.glow.material.color.copy(c);
 
   // ROGUE 드론 특수 시각효과 — 더 크고 빨간 글로우
-  if (d.isRogue && d.phase !== 'GROUNDED') {
+  if (d.isRogue && d.phase !== 'GROUNDED' && d.glow) {
     d.glow.material.color.set(0xff0000);
     d.glow.scale.set(2.5, 2.5, 1);
   }
@@ -1045,6 +1051,8 @@ function updateDrone(d, dt) {
 function apfCollisionAvoidance() {
   // Clear proximity lines
   while (proximityLines.children.length) proximityLines.remove(proximityLines.children[0]);
+  const maxLines = drones.length > 100 ? 30 : 100;  // 대형 시나리오 라인 제한
+  let lineCount = 0;
 
   let frameConflicts = 0, frameNear = 0, frameCollisions = 0;
   const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
@@ -1057,15 +1065,15 @@ function apfCollisionAvoidance() {
 
       if (dist < COLLISION_DIST) {
         frameCollisions++;
-        addProximityLine(a, b, 0xff0000, 0.6);
+        if (lineCount < maxLines) { addProximityLine(a, b, 0xff0000, 0.6); lineCount++; }
         logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist)}m)`);
       } else if (dist < NEAR_MISS_DIST) {
         frameNear++;
-        addProximityLine(a, b, 0xff6600, 0.3);
-        logEvent('near', `${a.id} ↔ ${b.id} 근접경고 (${Math.round(dist)}m)`);
+        if (lineCount < maxLines) { addProximityLine(a, b, 0xff6600, 0.3); lineCount++; }
+        if (eventLog.length < 80) logEvent('near', `${a.id} ↔ ${b.id} 근접경고 (${Math.round(dist)}m)`);
       } else if (dist < EVADE_DIST) {
         frameConflicts++;
-        addProximityLine(a, b, 0xffaa00, 0.15);
+        if (lineCount < maxLines) { addProximityLine(a, b, 0xffaa00, 0.15); lineCount++; }
 
         // APF evasion: push apart
         if (a.phase === 'ENROUTE') {
@@ -1218,9 +1226,10 @@ function animate() {
   if (simRunning) simTime += dt * simSpeed;
   drones.forEach(d => updateDrone(d, dt));
 
-  // APF check every few frames
-  if (simRunning && Math.floor(t * 10) > uiTick) {
-    uiTick = Math.floor(t * 10);
+  // APF check — 대형 시나리오는 빈도 낮춤
+  const apfRate = drones.length > 100 ? 3 : 10;  // 100대 초과 시 3Hz, 이하 10Hz
+  if (simRunning && Math.floor(t * apfRate) > uiTick) {
+    uiTick = Math.floor(t * apfRate);
     apfCollisionAvoidance();
   }
 
@@ -1228,25 +1237,27 @@ function animate() {
   drones.forEach(d => {
     if (d.phase !== 'GROUNDED') {
       d.rotor.rotation.z = t * 10;
-      d.glow.material.opacity = 0.25 + Math.sin(t * 3 + d.wx * 0.01) * 0.1;
+      if (d.glow) d.glow.material.opacity = 0.25 + Math.sin(t * 3 + d.wx * 0.01) * 0.1;
     } else {
-      d.glow.material.opacity = 0.1;
+      if (d.glow) d.glow.material.opacity = 0.1;
     }
     // Failed blink
     if (d.phase === 'FAILED') {
       d.body.material.opacity = Math.sin(t * 8) > 0 ? 1 : 0.2;
-      d.glow.material.opacity = Math.sin(t * 8) > 0 ? 0.4 : 0.05;
+      if (d.glow) d.glow.material.opacity = Math.sin(t * 8) > 0 ? 0.4 : 0.05;
     }
   });
 
-  // Scan rings
-  scanRings.forEach(ring => {
-    const phase = (t * 0.4 + ring.userData.phase) % (Math.PI * 2);
-    const progress = phase / (Math.PI * 2);
-    const scale = 1 + progress * W * 0.8;
-    ring.scale.set(scale, scale, 1);
-    ring.material.opacity = 0.2 * (1 - progress);
-  });
+  // Scan rings (경량모드 시 비활성)
+  if (!_lightweight) {
+    scanRings.forEach(ring => {
+      const phase = (t * 0.4 + ring.userData.phase) % (Math.PI * 2);
+      const progress = phase / (Math.PI * 2);
+      const scale = 1 + progress * W * 0.8;
+      ring.scale.set(scale, scale, 1);
+      ring.material.opacity = 0.2 * (1 - progress);
+    });
+  }
 
   // NFZ pulse
   nfzMat.opacity = 0.06 + Math.sin(t * 1.5) * 0.03;
@@ -1260,10 +1271,13 @@ function animate() {
 }
 
 // UI refresh at lower rate
+let uiUpdateCount = 0;
 setInterval(() => {
   updateStatsUI();
-  updateFleetList();
   updateEventLog();
+  uiUpdateCount++;
+  // Fleet list는 무거우므로 대형 시나리오 시 빈도 낮춤
+  if (drones.length <= 80 || uiUpdateCount % 3 === 0) updateFleetList();
 }, 500);
 
 animate();

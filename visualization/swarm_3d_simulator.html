@@ -3,228 +3,130 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Swarm-Net 3D Airspace Simulator</title>
+<title>SDACS — 군집드론 공역통제 3D 시뮬레이터</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #030508; overflow: hidden; font-family: 'Inter', sans-serif; }
 
-  #canvas-container {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
-  }
+  #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
-  /* ===== HUD Overlay ===== */
-  .hud-overlay {
-    position: fixed; z-index: 10; pointer-events: none;
-  }
+  .hud-overlay { position: fixed; z-index: 10; pointer-events: none; }
   .hud-interactive { pointer-events: auto; }
 
-  /* Top bar */
   .hud-top {
-    top: 0; left: 0; right: 0;
-    padding: 16px 24px;
+    top: 0; left: 0; right: 0; padding: 12px 20px;
     background: linear-gradient(to bottom, rgba(3,5,8,0.95), transparent);
     display: flex; align-items: center; justify-content: space-between;
   }
-
   .hud-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px; font-weight: 700;
-    color: #00e5ff; letter-spacing: 3px;
-    text-shadow: 0 0 20px rgba(0,229,255,0.4);
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700;
+    color: #00e5ff; letter-spacing: 2px; text-shadow: 0 0 20px rgba(0,229,255,0.4);
   }
   .hud-subtitle {
-    font-size: 10px; color: #4a6785;
-    letter-spacing: 2px; margin-top: 2px;
+    font-size: 9px; color: #4a6785; letter-spacing: 1.5px; margin-top: 2px;
     font-family: 'JetBrains Mono', monospace;
   }
-
-  /* Stats bar */
-  .hud-stats {
-    display: flex; gap: 16px;
-  }
+  .hud-stats { display: flex; gap: 10px; flex-wrap: wrap; }
   .stat-box {
-    padding: 6px 14px;
-    border: 1px solid rgba(0,229,255,0.2);
-    border-radius: 6px;
-    background: rgba(0,229,255,0.05);
-    text-align: center;
+    padding: 4px 10px; border: 1px solid rgba(0,229,255,0.2); border-radius: 6px;
+    background: rgba(0,229,255,0.05); text-align: center;
   }
-  .stat-label {
-    font-size: 9px; color: #4a6785;
-    letter-spacing: 1.5px; font-family: 'JetBrains Mono', monospace;
-  }
-  .stat-value {
-    font-size: 18px; font-weight: 700; color: #00e5ff;
-    font-family: 'JetBrains Mono', monospace;
-  }
+  .stat-label { font-size: 8px; color: #4a6785; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; }
+  .stat-value { font-size: 15px; font-weight: 700; color: #00e5ff; font-family: 'JetBrains Mono', monospace; }
 
-  /* Right panel — Fleet list */
-  .hud-right {
-    top: 70px; right: 16px; bottom: 80px;
-    width: 280px;
-  }
+  .hud-right { top: 60px; right: 12px; bottom: 50px; width: 260px; }
   .fleet-panel {
-    background: rgba(6,10,19,0.92);
-    border: 1px solid rgba(0,229,255,0.15);
-    border-radius: 10px;
-    overflow: hidden;
-    height: 100%;
-    display: flex; flex-direction: column;
-    backdrop-filter: blur(12px);
+    background: rgba(6,10,19,0.92); border: 1px solid rgba(0,229,255,0.15);
+    border-radius: 10px; overflow: hidden; height: 100%;
+    display: flex; flex-direction: column; backdrop-filter: blur(12px);
   }
   .fleet-header {
-    padding: 12px 16px;
-    border-bottom: 1px solid rgba(0,229,255,0.1);
+    padding: 10px 14px; border-bottom: 1px solid rgba(0,229,255,0.1);
     display: flex; align-items: center; gap: 8px;
   }
   .fleet-header-dot { width: 6px; height: 6px; border-radius: 50%; background: #00e5ff; }
   .fleet-header-text {
-    font-size: 11px; font-weight: 600; color: #00e5ff;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 1.5px;
+    font-size: 10px; font-weight: 600; color: #00e5ff;
+    font-family: 'JetBrains Mono', monospace; letter-spacing: 1.5px;
   }
-  .fleet-list {
-    flex: 1; overflow-y: auto; padding: 8px;
-  }
+  .fleet-list { flex: 1; overflow-y: auto; padding: 6px; }
   .fleet-list::-webkit-scrollbar { width: 4px; }
   .fleet-list::-webkit-scrollbar-thumb { background: #1a2d4a; border-radius: 2px; }
 
   .drone-card {
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.06);
-    margin-bottom: 6px;
-    background: rgba(255,255,255,0.02);
-    transition: all 0.2s;
-    cursor: pointer;
+    padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 4px; background: rgba(255,255,255,0.02); transition: all 0.2s; cursor: pointer;
+    font-size: 10px;
   }
-  .drone-card:hover {
-    background: rgba(0,229,255,0.05);
-    border-color: rgba(0,229,255,0.2);
-  }
-  .drone-card-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 6px;
-  }
+  .drone-card:hover { background: rgba(0,229,255,0.05); border-color: rgba(0,229,255,0.2); }
+  .drone-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
   .drone-id {
-    font-size: 11px; font-weight: 700; color: #e0e8f0;
-    font-family: 'JetBrains Mono', monospace;
-    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; font-weight: 700; color: #e0e8f0;
+    font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 5px;
   }
-  .drone-status-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-  }
+  .drone-status-dot { width: 6px; height: 6px; border-radius: 50%; }
   .drone-badge {
-    font-size: 9px; padding: 2px 8px;
-    border-radius: 10px; font-weight: 600;
+    font-size: 8px; padding: 1px 6px; border-radius: 10px; font-weight: 600;
     font-family: 'JetBrains Mono', monospace;
   }
-  .drone-timer {
-    font-size: 16px; font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .drone-progress {
-    height: 3px; border-radius: 2px;
-    background: rgba(255,255,255,0.05);
-    margin-top: 6px; overflow: hidden;
-  }
-  .drone-progress-bar {
-    height: 100%; border-radius: 2px;
-    transition: width 1s linear;
-  }
+  .drone-progress { height: 2px; border-radius: 2px; background: rgba(255,255,255,0.05); margin-top: 4px; overflow: hidden; }
+  .drone-progress-bar { height: 100%; border-radius: 2px; transition: width 0.5s linear; }
 
-  /* Blink for expired drones */
   @keyframes blink-card {
     0%, 100% { opacity: 1; border-color: rgba(239,68,68,0.4); }
     50% { opacity: 0.5; border-color: rgba(239,68,68,0.8); }
   }
-  .drone-card-expired {
-    animation: blink-card 0.7s ease-in-out infinite;
-    background: rgba(239,68,68,0.06) !important;
-  }
+  .drone-card-expired { animation: blink-card 0.7s ease-in-out infinite; background: rgba(239,68,68,0.06) !important; }
 
-  /* Warning pulse */
-  @keyframes warning-card {
-    0%, 100% { border-color: rgba(245,158,11,0.2); }
-    50% { border-color: rgba(245,158,11,0.5); }
-  }
-  .drone-card-warning {
-    animation: warning-card 1.5s ease-in-out infinite;
-    background: rgba(245,158,11,0.03) !important;
-  }
-
-  /* Bottom bar */
   .hud-bottom {
-    bottom: 0; left: 0; right: 0;
-    padding: 12px 24px;
+    bottom: 0; left: 0; right: 0; padding: 10px 20px;
     background: linear-gradient(to top, rgba(3,5,8,0.95), transparent);
     display: flex; align-items: center; justify-content: space-between;
   }
-  .hud-info-text {
-    font-size: 10px; color: #3a5575;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 1px;
-  }
+  .hud-info-text { font-size: 9px; color: #3a5575; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; }
 
-  /* Comm flow indicator */
-  .comm-flow {
-    display: flex; align-items: center; gap: 4px;
+  /* Left panel */
+  .hud-left { top: 60px; left: 12px; width: 220px; }
+  .ctrl-panel {
+    background: rgba(6,10,19,0.92); border: 1px solid rgba(0,229,255,0.15);
+    border-radius: 10px; padding: 12px; backdrop-filter: blur(12px); margin-bottom: 10px;
   }
-  .comm-step {
-    padding: 4px 10px; border-radius: 4px;
-    font-size: 9px; font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
-    border: 1px solid transparent;
-    transition: all 0.4s;
+  .ctrl-title {
+    font-size: 9px; color: #00e5ff; font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
   }
-  .comm-step-active {
-    border-color: currentColor;
-    box-shadow: 0 0 8px currentColor;
-  }
-  .comm-arrow {
-    color: #1a2d4a; font-size: 12px;
-  }
+  .ctrl-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .ctrl-label { font-size: 9px; color: #4a6785; }
+  .ctrl-value { font-size: 9px; color: #c8d6e5; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
 
-  /* Left panel - radar info */
-  .hud-left {
-    top: 70px; left: 16px;
-    width: 200px;
-  }
-  .radar-info {
-    background: rgba(6,10,19,0.92);
-    border: 1px solid rgba(0,229,255,0.15);
-    border-radius: 10px;
-    padding: 14px;
-    backdrop-filter: blur(12px);
-  }
-  .radar-info-title {
-    font-size: 10px; color: #00e5ff;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 1.5px;
-    margin-bottom: 10px;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .radar-info-row {
-    display: flex; justify-content: space-between;
-    padding: 4px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
-  }
-  .radar-info-label { font-size: 10px; color: #4a6785; }
-  .radar-info-value { font-size: 10px; color: #c8d6e5; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .legend-item { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+  .legend-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .legend-text { font-size: 9px; color: #6a8baa; }
 
-  /* Legend */
-  .legend {
-    margin-top: 12px; padding-top: 10px;
-    border-top: 1px solid rgba(255,255,255,0.05);
+  /* Controls */
+  .ctrl-btn {
+    padding: 5px 10px; border: 1px solid rgba(0,229,255,0.3); border-radius: 4px;
+    background: rgba(0,229,255,0.08); color: #00e5ff; font-size: 10px; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; transition: all 0.2s;
   }
-  .legend-item {
-    display: flex; align-items: center; gap: 8px;
-    padding: 3px 0;
+  .ctrl-btn:hover { background: rgba(0,229,255,0.2); }
+  .ctrl-btn.active { background: rgba(0,229,255,0.25); box-shadow: 0 0 8px rgba(0,229,255,0.3); }
+  .ctrl-btn.danger { border-color: rgba(239,68,68,0.4); color: #ef4444; background: rgba(239,68,68,0.08); }
+  .ctrl-btn.danger:hover { background: rgba(239,68,68,0.2); }
+
+  .ctrl-select, .ctrl-range {
+    width: 100%; padding: 4px 6px; border: 1px solid rgba(0,229,255,0.2); border-radius: 4px;
+    background: rgba(0,229,255,0.05); color: #c8d6e5; font-size: 10px;
+    font-family: 'JetBrains Mono', monospace; margin-top: 4px;
   }
-  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
-  .legend-text { font-size: 10px; color: #6a8baa; }
+  .ctrl-select option { background: #0a1628; }
+  .ctrl-range { -webkit-appearance: none; height: 4px; padding: 0; cursor: pointer; }
+  .ctrl-range::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%;
+    background: #00e5ff; cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -234,82 +136,87 @@
 <!-- HUD: Top Bar -->
 <div class="hud-overlay hud-top">
   <div>
-    <div class="hud-title">SWARM-NET AIRSPACE MANAGER</div>
-    <div class="hud-subtitle">3D SIMULATION — REAL-TIME MONITORING</div>
+    <div class="hud-title">SDACS — 군집드론 공역통제 3D 시뮬레이터</div>
+    <div class="hud-subtitle">Swarm Drone Airspace Control System — Capstone: Mokpo National University</div>
   </div>
   <div class="hud-stats">
     <div class="stat-box">
-      <div class="stat-label">SWARM</div>
-      <div class="stat-value" id="stat-swarm">6</div>
+      <div class="stat-label">활성 드론</div>
+      <div class="stat-value" id="stat-active">0</div>
     </div>
     <div class="stat-box">
-      <div class="stat-label">TRACKED</div>
-      <div class="stat-value" id="stat-tracked">7</div>
+      <div class="stat-label">충돌 위험</div>
+      <div class="stat-value" id="stat-conflicts" style="color:#f59e0b;">0</div>
     </div>
-    <div class="stat-box" style="border-color: rgba(245,158,11,0.3);">
-      <div class="stat-label">WARNINGS</div>
-      <div class="stat-value" id="stat-warn" style="color:#f59e0b;">0</div>
+    <div class="stat-box">
+      <div class="stat-label">근접 경고</div>
+      <div class="stat-value" id="stat-near" style="color:#ff6d00;">0</div>
     </div>
-    <div class="stat-box" style="border-color: rgba(239,68,68,0.3);">
-      <div class="stat-label">ALERTS</div>
-      <div class="stat-value" id="stat-alert" style="color:#ef4444;">0</div>
+    <div class="stat-box" style="border-color:rgba(239,68,68,0.3);">
+      <div class="stat-label">충돌</div>
+      <div class="stat-value" id="stat-collisions" style="color:#ef4444;">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">회피 명령</div>
+      <div class="stat-value" id="stat-advisories" style="color:#a78bfa;">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">평균 배터리</div>
+      <div class="stat-value" id="stat-battery" style="color:#10b981;">100%</div>
     </div>
   </div>
 </div>
 
 <!-- HUD: Left Panel -->
 <div class="hud-overlay hud-left hud-interactive">
-  <div class="radar-info">
-    <div class="radar-info-title">
+  <!-- Controls -->
+  <div class="ctrl-panel">
+    <div class="ctrl-title">
       <div style="width:6px;height:6px;border-radius:50%;background:#00e5ff;"></div>
-      RADAR STATUS
+      시뮬레이션 제어
     </div>
-    <div class="radar-info-row">
-      <span class="radar-info-label">Dome Status</span>
-      <span class="radar-info-value" style="color:#10b981;">ACTIVE</span>
+    <div style="margin-bottom:8px;">
+      <label class="ctrl-label">시나리오 선택</label>
+      <select class="ctrl-select" id="scenario-select">
+        <option value="default">기본 (30대)</option>
+        <option value="high_density">고밀도 (80대)</option>
+        <option value="emergency_failure">비상 장애 (40대)</option>
+        <option value="mass_takeoff">대규모 이륙 (60대)</option>
+      </select>
     </div>
-    <div class="radar-info-row">
-      <span class="radar-info-label">Formation</span>
-      <span class="radar-info-value">Hexagon</span>
+    <div style="margin-bottom:8px;">
+      <label class="ctrl-label">시뮬레이션 속도: <span id="speed-label">1.0x</span></label>
+      <input type="range" class="ctrl-range" id="speed-slider" min="0.25" max="5" step="0.25" value="1">
     </div>
-    <div class="radar-info-row">
-      <span class="radar-info-label">Radius</span>
-      <span class="radar-info-value">120m</span>
+    <div style="display:flex;gap:6px;">
+      <button class="ctrl-btn active" id="btn-start">시작</button>
+      <button class="ctrl-btn" id="btn-pause">일시정지</button>
+      <button class="ctrl-btn danger" id="btn-reset">초기화</button>
     </div>
-    <div class="radar-info-row">
-      <span class="radar-info-label">Altitude</span>
-      <span class="radar-info-value">50~80m</span>
+    <div class="ctrl-row" style="margin-top:8px;">
+      <span class="ctrl-label">경과 시간</span>
+      <span class="ctrl-value" id="sim-time">00:00</span>
     </div>
-    <div class="radar-info-row">
-      <span class="radar-info-label">Mesh Links</span>
-      <span class="radar-info-value" id="mesh-links">15</span>
+  </div>
+
+  <!-- Legend -->
+  <div class="ctrl-panel">
+    <div class="ctrl-title">
+      <div style="width:6px;height:6px;border-radius:50%;background:#00e5ff;"></div>
+      비행 상태 범례
     </div>
-    <div class="radar-info-row">
-      <span class="radar-info-label">Scan Rate</span>
-      <span class="radar-info-value">10 Hz</span>
-    </div>
-    <div class="legend">
-      <div class="legend-item">
-        <div class="legend-dot" style="background:#00e5ff;"></div>
-        <span class="legend-text">군집 드론 (Swarm Node)</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-dot" style="background:#10b981;"></div>
-        <span class="legend-text">정상 비행 (Normal)</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-dot" style="background:#f59e0b;"></div>
-        <span class="legend-text">시간 임박 (Warning)</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-dot" style="background:#ef4444;"></div>
-        <span class="legend-text">시간 초과 (Expired)</span>
-      </div>
-    </div>
+    <div class="legend-item"><div class="legend-dot" style="background:#888;"></div><span class="legend-text">GROUNDED (지상 대기)</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ffd700;"></div><span class="legend-text">TAKEOFF (이륙)</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#10b981;"></div><span class="legend-text">ENROUTE (비행 중)</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;"></div><span class="legend-text">HOLDING (체공)</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f97316;"></div><span class="legend-text">LANDING (착륙)</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff3d00;"></div><span class="legend-text">EVADING (회피)</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div><span class="legend-text">FAILED (장애)</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ec407a;"></div><span class="legend-text">RTL (귀환)</span></div>
   </div>
 </div>
 
-<!-- HUD: Right Panel (Fleet List) -->
+<!-- HUD: Right Panel -->
 <div class="hud-overlay hud-right hud-interactive">
   <div class="fleet-panel">
     <div class="fleet-header">
@@ -322,12 +229,9 @@
 
 <!-- HUD: Bottom Bar -->
 <div class="hud-overlay hud-bottom">
+  <div class="hud-info-text">SDACS v2.0 — APF 충돌 회피 | NFZ 비행금지구역 | 복도 공역 제어</div>
   <div class="hud-info-text">
-    Swarm-Net Airspace Manager — Capstone: SC2 Swarm Control → Drone ATC
-  </div>
-  <div class="comm-flow" id="comm-flow"></div>
-  <div class="hud-info-text">
-    <span id="fps-counter">60</span> FPS | Drag to rotate | Scroll to zoom
+    <span id="fps-counter">60</span> FPS | 드래그: 회전 | 스크롤: 줌 | 우클릭: 이동
   </div>
 </div>
 
@@ -344,32 +248,61 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// ===== Configuration =====
-const SWARM_COUNT = 6;
-const SWARM_RADIUS = 12;
-const SWARM_HEIGHT = 6;
+// ===== Constants =====
+const SCALE = 1 / 100; // 5000m -> 50 units
+const WORLD = 5000;    // +-5000m
+const W = WORLD * SCALE; // 50 units
+const MAX_ALT = 120;
+const ALT_SCALE = MAX_ALT * SCALE * 3; // exaggerate altitude for visibility
 
-const USER_DRONES = [
-  { id: 'UD-1001', name: 'Delivery-A', timeLeft: 540, totalTime: 600, pos: [2, 5, 1], vel: [0.01, 0, 0.005] },
-  { id: 'UD-1002', name: 'Survey-B', timeLeft: 180, totalTime: 900, pos: [-3, 4.5, 3], vel: [-0.005, 0, 0.01] },
-  { id: 'UD-1003', name: 'Medical-C', timeLeft: 90, totalTime: 600, pos: [4, 6, -2], vel: [0.008, 0, -0.006] },
-  { id: 'UD-1004', name: 'Patrol-D', timeLeft: 30, totalTime: 300, pos: [-1, 5.5, -4], vel: [-0.003, 0, -0.008] },
-  { id: 'UD-1005', name: 'Cargo-E', timeLeft: 0, totalTime: 600, pos: [0, 4, 5], vel: [0.006, 0, 0.003] },
-  { id: 'UD-1006', name: 'Recon-F', timeLeft: 420, totalTime: 900, pos: [-5, 5, 0], vel: [-0.007, 0, 0.004] },
-  { id: 'UD-1007', name: 'Express-G', timeLeft: 15, totalTime: 300, pos: [3, 6.5, 3], vel: [0.004, 0, -0.009] },
+const PHASES = {
+  GROUNDED: { color: 0x888888, label: '지상 대기' },
+  TAKEOFF:  { color: 0xffd700, label: '이륙' },
+  ENROUTE:  { color: 0x10b981, label: '비행 중' },
+  HOLDING:  { color: 0x3b82f6, label: '체공' },
+  LANDING:  { color: 0xf97316, label: '착륙' },
+  EVADING:  { color: 0xff3d00, label: '회피' },
+  FAILED:   { color: 0xef4444, label: '장애' },
+  RTL:      { color: 0xec407a, label: '귀환' },
+};
+
+const SCENARIOS = {
+  default:            { count: 30, label: '기본' },
+  high_density:       { count: 80, label: '고밀도' },
+  emergency_failure:  { count: 40, label: '비상 장애' },
+  mass_takeoff:       { count: 60, label: '대규모 이륙' },
+};
+
+const LANDING_PADS = [
+  { name: 'PAD_NW', x: -3000, z: 3000 },
+  { name: 'PAD_NE', x: 3000,  z: 3000 },
+  { name: 'PAD_SW', x: -3000, z: -3000 },
+  { name: 'PAD_SE', x: 3000,  z: -3000 },
+  { name: 'PAD_CENTER', x: 0, z: 0 },
 ];
+
+const EVADE_DIST = 300;  // meters - APF trigger distance
+const COLLISION_DIST = 50; // meters - collision
+const NEAR_MISS_DIST = 150; // meters - near miss
+
+// ===== State =====
+let simRunning = true;
+let simSpeed = 1.0;
+let simTime = 0;
+let drones = [];
+let stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
 
 // ===== Three.js Setup =====
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x030508, 0.015);
+scene.fog = new THREE.FogExp2(0x030508, 0.006);
 
-const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 500);
-camera.position.set(20, 18, 20);
-camera.lookAt(0, 4, 0);
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 500);
+camera.position.set(55, 40, 55);
+camera.lookAt(0, 2, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.2;
 document.getElementById('canvas-container').appendChild(renderer.domElement);
@@ -377,177 +310,127 @@ document.getElementById('canvas-container').appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
-controls.target.set(0, 4, 0);
-controls.minDistance = 10;
-controls.maxDistance = 50;
+controls.target.set(0, 2, 0);
+controls.minDistance = 15;
+controls.maxDistance = 120;
 controls.maxPolarAngle = Math.PI / 2.1;
 
 // ===== Lighting =====
-const ambientLight = new THREE.AmbientLight(0x112233, 0.5);
-scene.add(ambientLight);
-
+scene.add(new THREE.AmbientLight(0x112233, 0.6));
 const dirLight = new THREE.DirectionalLight(0x4488cc, 0.8);
-dirLight.position.set(10, 20, 10);
+dirLight.position.set(30, 40, 20);
 scene.add(dirLight);
-
-const pointLight = new THREE.PointLight(0x00e5ff, 1.5, 40);
-pointLight.position.set(0, 8, 0);
+const pointLight = new THREE.PointLight(0x00e5ff, 1.5, 80);
+pointLight.position.set(0, 10, 0);
 scene.add(pointLight);
 
-// ===== Ground Grid =====
-const gridHelper = new THREE.GridHelper(60, 60, 0x0a1628, 0x0a1628);
-gridHelper.material.opacity = 0.4;
-gridHelper.material.transparent = true;
-scene.add(gridHelper);
+// ===== Ground =====
+const gridH = new THREE.GridHelper(W * 2, 40, 0x0a1628, 0x0a1628);
+gridH.material.opacity = 0.4;
+gridH.material.transparent = true;
+scene.add(gridH);
 
-// Ground plane (subtle glow)
-const groundGeo = new THREE.CircleGeometry(30, 64);
-const groundMat = new THREE.MeshBasicMaterial({
-  color: 0x00e5ff, transparent: true, opacity: 0.02, side: THREE.DoubleSide
-});
+const groundGeo = new THREE.PlaneGeometry(W * 2, W * 2);
+const groundMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.015, side: THREE.DoubleSide });
 const ground = new THREE.Mesh(groundGeo, groundMat);
 ground.rotation.x = -Math.PI / 2;
 ground.position.y = 0.01;
 scene.add(ground);
 
-// ===== Swarm Drones (Hexagonal Formation) =====
-const swarmGroup = new THREE.Group();
-const swarmPositions = [];
+// ===== NFZ (No-Fly Zone) =====
+const nfzW = 500 * SCALE, nfzH = 120 * SCALE * 3;
+const nfzGeo = new THREE.BoxGeometry(nfzW * 2, nfzH, nfzW * 2);
+const nfzMat = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.08, side: THREE.DoubleSide });
+const nfz = new THREE.Mesh(nfzGeo, nfzMat);
+nfz.position.y = nfzH / 2;
+scene.add(nfz);
+// NFZ wireframe
+const nfzEdge = new THREE.LineSegments(
+  new THREE.EdgesGeometry(nfzGeo),
+  new THREE.LineBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.4 })
+);
+nfzEdge.position.copy(nfz.position);
+scene.add(nfzEdge);
+// NFZ label
+const nfzLabel = makeTextSprite('NFZ 비행금지구역', '#ff4444', 10);
+nfzLabel.position.set(0, nfzH + 0.5, 0);
+nfzLabel.scale.set(6, 1.5, 1);
+scene.add(nfzLabel);
 
-for (let i = 0; i < SWARM_COUNT; i++) {
-  const angle = (i / SWARM_COUNT) * Math.PI * 2;
-  const x = Math.cos(angle) * SWARM_RADIUS;
-  const z = Math.sin(angle) * SWARM_RADIUS;
-  const y = SWARM_HEIGHT + Math.sin(angle * 2) * 0.5;
-
-  swarmPositions.push(new THREE.Vector3(x, y, z));
-
-  // Drone body
-  const droneGroup = new THREE.Group();
-
-  // Core sphere
-  const core = new THREE.Mesh(
-    new THREE.SphereGeometry(0.3, 16, 16),
-    new THREE.MeshPhongMaterial({ color: 0x00e5ff, emissive: 0x004466, emissiveIntensity: 0.8 })
-  );
-  droneGroup.add(core);
-
-  // Arms (cross shape)
-  const armGeo = new THREE.CylinderGeometry(0.03, 0.03, 1.2, 8);
-  const armMat = new THREE.MeshPhongMaterial({ color: 0x1a3a5a });
-  for (let a = 0; a < 4; a++) {
-    const arm = new THREE.Mesh(armGeo, armMat);
-    arm.rotation.z = Math.PI / 2;
-    arm.rotation.y = (a / 4) * Math.PI;
-    droneGroup.add(arm);
+// ===== Corridors =====
+function makeCorridor(altitude, axis, color, labelText) {
+  const h = altitude * SCALE * 3;
+  const thickness = 0.15;
+  const width = 400 * SCALE; // 400m wide
+  let geo, pos;
+  if (axis === 'EW') {
+    geo = new THREE.BoxGeometry(W * 2, thickness, width);
+    pos = new THREE.Vector3(0, h, 0);
+  } else {
+    geo = new THREE.BoxGeometry(width, thickness, W * 2);
+    pos = new THREE.Vector3(0, h, 0);
   }
+  const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.06, side: THREE.DoubleSide });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.copy(pos);
+  scene.add(mesh);
+  // Edge lines
+  const edge = new THREE.LineSegments(
+    new THREE.EdgesGeometry(geo),
+    new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.25 })
+  );
+  edge.position.copy(pos);
+  scene.add(edge);
+  // Label
+  const lbl = makeTextSprite(labelText, '#' + color.toString(16).padStart(6, '0'), 8);
+  lbl.position.set(axis === 'EW' ? -W + 3 : 0, h + 0.8, axis === 'NS' ? -W + 3 : 0);
+  lbl.scale.set(5, 1.2, 1);
+  scene.add(lbl);
+}
+makeCorridor(60, 'EW', 0x3b82f6, '동서 회랑 (60m)');
+makeCorridor(80, 'NS', 0x10b981, '남북 회랑 (80m)');
 
-  // Propeller discs
-  for (let a = 0; a < 4; a++) {
-    const pAngle = (a / 4) * Math.PI * 2;
-    const disc = new THREE.Mesh(
-      new THREE.RingGeometry(0.15, 0.35, 16),
-      new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.3, side: THREE.DoubleSide })
+// ===== Landing Pads =====
+LANDING_PADS.forEach(pad => {
+  const px = pad.x * SCALE, pz = pad.z * SCALE;
+  // Pad circle
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(0.8, 1.2, 32),
+    new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.4, side: THREE.DoubleSide })
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.set(px, 0.05, pz);
+  scene.add(ring);
+  // Inner circle
+  const inner = new THREE.Mesh(
+    new THREE.CircleGeometry(0.5, 16),
+    new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.15, side: THREE.DoubleSide })
+  );
+  inner.rotation.x = -Math.PI / 2;
+  inner.position.set(px, 0.04, pz);
+  scene.add(inner);
+  // Cross marker
+  for (let r = 0; r < 2; r++) {
+    const line = new THREE.Mesh(
+      new THREE.BoxGeometry(1.6, 0.02, 0.08),
+      new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.5 })
     );
-    disc.position.set(Math.cos(pAngle) * 0.6, 0.1, Math.sin(pAngle) * 0.6);
-    disc.rotation.x = -Math.PI / 2;
-    droneGroup.add(disc);
+    line.rotation.y = r * Math.PI / 2;
+    line.position.set(px, 0.06, pz);
+    scene.add(line);
   }
-
-  // Glow sprite
-  const glowTexture = createGlowTexture();
-  const glow = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: glowTexture, color: 0x00e5ff, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending })
-  );
-  glow.scale.set(3, 3, 1);
-  droneGroup.add(glow);
-
-  droneGroup.position.set(x, y, z);
-  droneGroup.userData = { baseY: y, index: i };
-  swarmGroup.add(droneGroup);
-}
-scene.add(swarmGroup);
-
-// ===== Mesh Network Lines =====
-const meshLinesGroup = new THREE.Group();
-for (let i = 0; i < SWARM_COUNT; i++) {
-  for (let j = i + 1; j < SWARM_COUNT; j++) {
-    const dist = swarmPositions[i].distanceTo(swarmPositions[j]);
-    if (dist < SWARM_RADIUS * 2.2) {
-      const geo = new THREE.BufferGeometry().setFromPoints([swarmPositions[i], swarmPositions[j]]);
-      const mat = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.15 });
-      const line = new THREE.Line(geo, mat);
-      meshLinesGroup.add(line);
-    }
-  }
-}
-scene.add(meshLinesGroup);
-document.getElementById('mesh-links').textContent = meshLinesGroup.children.length;
-
-// ===== Hexagonal Boundary (Radar Dome) =====
-// Bottom hex ring
-const hexShape = new THREE.Shape();
-for (let i = 0; i <= SWARM_COUNT; i++) {
-  const angle = (i / SWARM_COUNT) * Math.PI * 2;
-  const x = Math.cos(angle) * SWARM_RADIUS;
-  const z = Math.sin(angle) * SWARM_RADIUS;
-  if (i === 0) hexShape.moveTo(x, z);
-  else hexShape.lineTo(x, z);
-}
-
-// Bottom boundary line
-const hexPoints = [];
-for (let i = 0; i <= SWARM_COUNT; i++) {
-  const angle = (i / SWARM_COUNT) * Math.PI * 2;
-  hexPoints.push(new THREE.Vector3(
-    Math.cos(angle) * SWARM_RADIUS, 0.1, Math.sin(angle) * SWARM_RADIUS
-  ));
-}
-const hexLineGeo = new THREE.BufferGeometry().setFromPoints(hexPoints);
-const hexLine = new THREE.Line(hexLineGeo,
-  new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.3 })
-);
-scene.add(hexLine);
-
-// Top boundary at drone height
-const hexTopPoints = hexPoints.map(p => new THREE.Vector3(p.x, SWARM_HEIGHT, p.z));
-const hexTopGeo = new THREE.BufferGeometry().setFromPoints(hexTopPoints);
-const hexTopLine = new THREE.Line(hexTopGeo,
-  new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.2 })
-);
-scene.add(hexTopLine);
-
-// Vertical pillars at each vertex
-for (let i = 0; i < SWARM_COUNT; i++) {
-  const angle = (i / SWARM_COUNT) * Math.PI * 2;
-  const x = Math.cos(angle) * SWARM_RADIUS;
-  const z = Math.sin(angle) * SWARM_RADIUS;
-  const pillarGeo = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(x, 0.1, z),
-    new THREE.Vector3(x, SWARM_HEIGHT, z)
-  ]);
-  scene.add(new THREE.Line(pillarGeo,
-    new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.1 })
-  ));
-}
-
-// Semi-transparent dome surface
-const domeGeo = new THREE.CylinderGeometry(SWARM_RADIUS, SWARM_RADIUS, SWARM_HEIGHT, SWARM_COUNT, 1, true);
-const domeMat = new THREE.MeshBasicMaterial({
-  color: 0x00e5ff, transparent: true, opacity: 0.02, side: THREE.DoubleSide,
-  wireframe: false
+  // Label
+  const lbl = makeTextSprite(pad.name, '#ffd700', 8);
+  lbl.position.set(px, 0.8, pz);
+  lbl.scale.set(3, 0.8, 1);
+  scene.add(lbl);
 });
-const dome = new THREE.Mesh(domeGeo, domeMat);
-dome.position.y = SWARM_HEIGHT / 2;
-scene.add(dome);
 
-// ===== Radar Scan Ring (expanding ring on ground) =====
+// ===== Scan Rings =====
 const scanRings = [];
 for (let i = 0; i < 3; i++) {
   const ringGeo = new THREE.RingGeometry(0.5, 0.7, 64);
-  const ringMat = new THREE.MeshBasicMaterial({
-    color: 0x00e5ff, transparent: true, opacity: 0.3, side: THREE.DoubleSide
-  });
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
   const ring = new THREE.Mesh(ringGeo, ringMat);
   ring.rotation.x = -Math.PI / 2;
   ring.position.y = 0.05;
@@ -556,101 +439,14 @@ for (let i = 0; i < 3; i++) {
   scanRings.push(ring);
 }
 
-// ===== User Drones =====
-const userDroneObjects = [];
+// ===== Boundary markers =====
+const boundaryGeo = new THREE.BufferGeometry().setFromPoints([
+  new THREE.Vector3(-W, 0, -W), new THREE.Vector3(W, 0, -W),
+  new THREE.Vector3(W, 0, W), new THREE.Vector3(-W, 0, W), new THREE.Vector3(-W, 0, -W)
+]);
+scene.add(new THREE.Line(boundaryGeo, new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.15 })));
 
-USER_DRONES.forEach(drone => {
-  const group = new THREE.Group();
-
-  const status = getStatus(drone.timeLeft);
-  const color = new THREE.Color(getColor(status));
-
-  // Drone body — slightly different shape from swarm
-  const body = new THREE.Mesh(
-    new THREE.OctahedronGeometry(0.25, 0),
-    new THREE.MeshPhongMaterial({ color: color, emissive: color, emissiveIntensity: 0.5 })
-  );
-  group.add(body);
-
-  // Rotor ring
-  const rotor = new THREE.Mesh(
-    new THREE.TorusGeometry(0.4, 0.02, 8, 32),
-    new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.4 })
-  );
-  rotor.rotation.x = Math.PI / 2;
-  group.add(rotor);
-
-  // Glow
-  const glowTexture = createGlowTexture();
-  const glow = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: glowTexture, color: color, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending })
-  );
-  glow.scale.set(2, 2, 1);
-  group.add(glow);
-
-  // Timer label (using sprite)
-  const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 64;
-  const ctx = canvas.getContext('2d');
-  const labelTexture = new THREE.CanvasTexture(canvas);
-  const label = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: labelTexture, transparent: true })
-  );
-  label.scale.set(2.5, 0.6, 1);
-  label.position.y = 1.2;
-  group.add(label);
-
-  group.position.set(...drone.pos);
-
-  group.userData = {
-    droneData: { ...drone },
-    body, rotor, glow, label, labelTexture, canvas, ctx,
-    originalColor: color.clone(),
-  };
-
-  scene.add(group);
-  userDroneObjects.push(group);
-});
-
-// ===== Helper Functions =====
-function getStatus(timeLeft) {
-  if (timeLeft <= 0) return 'expired';
-  if (timeLeft <= 120) return 'warning';
-  return 'normal';
-}
-
-function getColor(status) {
-  switch (status) {
-    case 'normal': return 0x10b981;
-    case 'warning': return 0xf59e0b;
-    case 'expired': return 0xef4444;
-  }
-}
-
-function getColorHex(status) {
-  switch (status) {
-    case 'normal': return '#10b981';
-    case 'warning': return '#f59e0b';
-    case 'expired': return '#ef4444';
-  }
-}
-
-function getStatusLabel(status) {
-  switch (status) {
-    case 'normal': return '정상 비행';
-    case 'warning': return '시간 임박';
-    case 'expired': return '비행 종료';
-  }
-}
-
-function formatTime(sec) {
-  if (sec <= 0) return '00:00';
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-}
-
+// ===== Helpers =====
 function createGlowTexture() {
   const c = document.createElement('canvas');
   c.width = 128; c.height = 128;
@@ -663,253 +459,414 @@ function createGlowTexture() {
   ctx.fillRect(0, 0, 128, 128);
   return new THREE.CanvasTexture(c);
 }
+const glowTex = createGlowTexture();
 
-function updateDroneLabel(obj) {
-  const { droneData, ctx, canvas, labelTexture } = obj.userData;
-  const status = getStatus(droneData.timeLeft);
-  const color = getColorHex(status);
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Background
-  ctx.fillStyle = 'rgba(6,10,19,0.85)';
-  ctx.beginPath();
-  ctx.roundRect(4, 4, canvas.width - 8, canvas.height - 8, 8);
-  ctx.fill();
-
-  // Border
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.roundRect(4, 4, canvas.width - 8, canvas.height - 8, 8);
-  ctx.stroke();
-
-  // ID text
-  ctx.font = 'bold 18px JetBrains Mono';
-  ctx.fillStyle = '#e0e8f0';
-  ctx.fillText(droneData.id, 14, 28);
-
-  // Timer text
-  ctx.font = 'bold 22px JetBrains Mono';
-  ctx.fillStyle = color;
-  ctx.textAlign = 'right';
-  ctx.fillText(formatTime(droneData.timeLeft), canvas.width - 14, 28);
-  ctx.textAlign = 'left';
-
-  // Status bar
-  ctx.font = '12px Inter';
-  ctx.fillStyle = color;
-  ctx.fillText(getStatusLabel(status), 14, 48);
-
-  // Progress bar background
-  ctx.fillStyle = 'rgba(255,255,255,0.1)';
-  ctx.fillRect(110, 38, 130, 6);
-  // Progress bar fill
-  const pct = droneData.totalTime > 0 ? (droneData.totalTime - droneData.timeLeft) / droneData.totalTime : 1;
-  ctx.fillStyle = color;
-  ctx.fillRect(110, 38, 130 * pct, 6);
-
-  labelTexture.needsUpdate = true;
+function makeTextSprite(text, color, fontSize) {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 64;
+  const ctx = c.getContext('2d');
+  ctx.font = `bold ${fontSize || 10}px JetBrains Mono, monospace`;
+  ctx.fillStyle = color || '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 128, 32);
+  const tex = new THREE.CanvasTexture(c);
+  return new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
 }
 
-// ===== Fleet List UI =====
+function phaseColor(phase) {
+  return PHASES[phase] ? PHASES[phase].color : 0x888888;
+}
+
+function randomPad() {
+  return LANDING_PADS[Math.floor(Math.random() * LANDING_PADS.length)];
+}
+
+// ===== Drone Factory =====
+const droneGroup = new THREE.Group();
+scene.add(droneGroup);
+const proximityLines = new THREE.Group();
+scene.add(proximityLines);
+
+function createDrone(id, startPad) {
+  const group = new THREE.Group();
+  const color = new THREE.Color(PHASES.GROUNDED.color);
+
+  // Body
+  const body = new THREE.Mesh(
+    new THREE.OctahedronGeometry(0.2, 0),
+    new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: 0.6 })
+  );
+  group.add(body);
+
+  // Rotor ring
+  const rotor = new THREE.Mesh(
+    new THREE.TorusGeometry(0.35, 0.015, 8, 24),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.4 })
+  );
+  rotor.rotation.x = Math.PI / 2;
+  group.add(rotor);
+
+  // Glow
+  const glow = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending })
+  );
+  glow.scale.set(1.5, 1.5, 1);
+  group.add(glow);
+
+  const px = startPad.x * SCALE, pz = startPad.z * SCALE;
+  group.position.set(px, 0.1, pz);
+
+  const destPad = randomPad();
+  const cruiseAlt = 40 + Math.random() * 70; // 40-110m
+
+  const drone = {
+    id: `DR-${String(id).padStart(3,'0')}`,
+    group, body, rotor, glow,
+    phase: 'GROUNDED',
+    battery: 85 + Math.random() * 15,
+    // World coordinates in meters
+    wx: startPad.x, wy: 0, wz: startPad.z,
+    targetAlt: cruiseAlt,
+    goalX: destPad.x, goalZ: destPad.z,
+    goalPad: destPad,
+    startPad,
+    speed: 8 + Math.random() * 7, // 8-15 m/s
+    groundDelay: Math.random() * 15, // wait before takeoff
+    evadeTimer: 0,
+    failed: false,
+  };
+
+  group.userData = drone;
+  droneGroup.add(group);
+  return drone;
+}
+
+function initDrones(scenario) {
+  // Clear
+  while (droneGroup.children.length) droneGroup.remove(droneGroup.children[0]);
+  drones = [];
+  stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
+  simTime = 0;
+
+  const count = SCENARIOS[scenario].count;
+  for (let i = 0; i < count; i++) {
+    const pad = LANDING_PADS[i % LANDING_PADS.length];
+    const d = createDrone(i + 1, pad);
+    d.groundDelay = scenario === 'mass_takeoff' ? Math.random() * 5 : Math.random() * 20;
+    if (scenario === 'emergency_failure' && Math.random() < 0.15) {
+      d.willFail = true;
+      d.failTime = 10 + Math.random() * 30;
+    }
+    drones.push(d);
+  }
+}
+
+// ===== Simulation Logic =====
+function updateDrone(d, dt) {
+  if (!simRunning) return;
+  const sDt = dt * simSpeed;
+
+  d.battery = Math.max(0, d.battery - sDt * 0.03);
+
+  switch (d.phase) {
+    case 'GROUNDED':
+      d.groundDelay -= sDt;
+      if (d.groundDelay <= 0 && d.battery > 10) {
+        d.phase = 'TAKEOFF';
+      }
+      break;
+
+    case 'TAKEOFF':
+      d.wy = Math.min(d.wy + d.speed * 0.5 * sDt, d.targetAlt);
+      if (d.wy >= d.targetAlt - 1) d.phase = 'ENROUTE';
+      break;
+
+    case 'ENROUTE': {
+      const dx = d.goalX - d.wx;
+      const dz = d.goalZ - d.wz;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      if (dist < 100) {
+        d.phase = 'LANDING';
+      } else {
+        const vx = (dx / dist) * d.speed * sDt;
+        const vz = (dz / dist) * d.speed * sDt;
+        d.wx += vx;
+        d.wz += vz;
+        // Clamp to world
+        d.wx = Math.max(-WORLD, Math.min(WORLD, d.wx));
+        d.wz = Math.max(-WORLD, Math.min(WORLD, d.wz));
+      }
+      break;
+    }
+
+    case 'EVADING':
+      d.evadeTimer -= sDt;
+      if (d.evadeTimer <= 0) d.phase = 'ENROUTE';
+      break;
+
+    case 'LANDING':
+      d.wy = Math.max(0, d.wy - d.speed * 0.4 * sDt);
+      if (d.wy <= 0.5) {
+        d.wy = 0;
+        d.phase = 'GROUNDED';
+        // Assign new goal
+        d.startPad = d.goalPad;
+        d.goalPad = randomPad();
+        d.goalX = d.goalPad.x;
+        d.goalZ = d.goalPad.z;
+        d.targetAlt = 40 + Math.random() * 70;
+        d.groundDelay = 3 + Math.random() * 8;
+        d.battery = Math.min(100, d.battery + 30);
+      }
+      break;
+
+    case 'FAILED':
+      d.wy = Math.max(0, d.wy - 2 * sDt);
+      break;
+
+    case 'RTL': {
+      const dx = d.startPad.x - d.wx;
+      const dz = d.startPad.z - d.wz;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      if (dist < 80) {
+        d.phase = 'LANDING';
+        d.goalPad = d.startPad;
+        d.goalX = d.startPad.x;
+        d.goalZ = d.startPad.z;
+      } else {
+        d.wx += (dx / dist) * d.speed * sDt;
+        d.wz += (dz / dist) * d.speed * sDt;
+      }
+      break;
+    }
+  }
+
+  // Emergency failure trigger
+  if (d.willFail && !d.failed && simTime > d.failTime && d.phase !== 'GROUNDED') {
+    d.phase = 'FAILED';
+    d.failed = true;
+  }
+
+  // Low battery -> RTL
+  if (d.battery < 8 && d.phase === 'ENROUTE') {
+    d.phase = 'RTL';
+  }
+
+  // Update 3D position
+  d.group.position.set(d.wx * SCALE, d.wy * SCALE * 3, d.wz * SCALE);
+
+  // Update visuals
+  const c = new THREE.Color(phaseColor(d.phase));
+  d.body.material.color.copy(c);
+  d.body.material.emissive.copy(c);
+  d.rotor.material.color.copy(c);
+  d.glow.material.color.copy(c);
+}
+
+function apfCollisionAvoidance() {
+  // Clear proximity lines
+  while (proximityLines.children.length) proximityLines.remove(proximityLines.children[0]);
+
+  let frameConflicts = 0, frameNear = 0, frameCollisions = 0;
+  const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+
+  for (let i = 0; i < airborne.length; i++) {
+    for (let j = i + 1; j < airborne.length; j++) {
+      const a = airborne[i], b = airborne[j];
+      const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
+      const dist = Math.sqrt(dx * dx + dz * dz + dy * dy);
+
+      if (dist < COLLISION_DIST) {
+        frameCollisions++;
+        // Draw red line
+        addProximityLine(a, b, 0xff0000, 0.6);
+      } else if (dist < NEAR_MISS_DIST) {
+        frameNear++;
+        addProximityLine(a, b, 0xff6600, 0.3);
+      } else if (dist < EVADE_DIST) {
+        frameConflicts++;
+        addProximityLine(a, b, 0xffaa00, 0.15);
+
+        // APF evasion: push apart
+        if (a.phase === 'ENROUTE') {
+          a.phase = 'EVADING';
+          a.evadeTimer = 1.5;
+          a.wx += (dx / dist) * 30;
+          a.wz += (dz / dist) * 30;
+          stats.advisories++;
+        }
+        if (b.phase === 'ENROUTE') {
+          b.phase = 'EVADING';
+          b.evadeTimer = 1.5;
+          b.wx -= (dx / dist) * 30;
+          b.wz -= (dz / dist) * 30;
+          stats.advisories++;
+        }
+      }
+    }
+  }
+  stats.conflicts += frameConflicts;
+  stats.nearMisses += frameNear;
+  stats.collisions += frameCollisions;
+}
+
+function addProximityLine(a, b, color, opacity) {
+  const geo = new THREE.BufferGeometry().setFromPoints([
+    a.group.position.clone(), b.group.position.clone()
+  ]);
+  const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color, transparent: true, opacity }));
+  proximityLines.add(line);
+}
+
+// ===== UI Updates =====
+function updateStatsUI() {
+  const airborne = drones.filter(d => d.phase !== 'GROUNDED');
+  document.getElementById('stat-active').textContent = airborne.length;
+  document.getElementById('stat-conflicts').textContent = stats.conflicts;
+  document.getElementById('stat-near').textContent = stats.nearMisses;
+  document.getElementById('stat-collisions').textContent = stats.collisions;
+  document.getElementById('stat-advisories').textContent = stats.advisories;
+  const avgBat = drones.length ? (drones.reduce((s, d) => s + d.battery, 0) / drones.length) : 0;
+  document.getElementById('stat-battery').textContent = Math.round(avgBat) + '%';
+  const m = Math.floor(simTime / 60), s = Math.floor(simTime % 60);
+  document.getElementById('sim-time').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
 function updateFleetList() {
   const list = document.getElementById('fleet-list');
-  const sorted = [...userDroneObjects].sort((a, b) => a.userData.droneData.timeLeft - b.userData.droneData.timeLeft);
+  // Show first 30 sorted by phase priority
+  const phasePriority = { EVADING: 0, FAILED: 1, RTL: 2, LANDING: 3, TAKEOFF: 4, ENROUTE: 5, HOLDING: 6, GROUNDED: 7 };
+  const sorted = [...drones].sort((a, b) => (phasePriority[a.phase] || 9) - (phasePriority[b.phase] || 9));
+  const shown = sorted.slice(0, 30);
 
-  list.innerHTML = sorted.map(obj => {
-    const d = obj.userData.droneData;
-    const status = getStatus(d.timeLeft);
-    const color = getColorHex(status);
-    const label = getStatusLabel(status);
-    const pct = d.totalTime > 0 ? ((d.totalTime - d.timeLeft) / d.totalTime * 100) : 100;
-    const cardClass = status === 'expired' ? 'drone-card-expired' : status === 'warning' ? 'drone-card-warning' : '';
-
+  list.innerHTML = shown.map(d => {
+    const ph = PHASES[d.phase] || PHASES.GROUNDED;
+    const color = '#' + ph.color.toString(16).padStart(6, '0');
+    const cardClass = d.phase === 'FAILED' ? 'drone-card-expired' : '';
+    const batColor = d.battery < 20 ? '#ef4444' : d.battery < 50 ? '#f59e0b' : '#10b981';
     return `
       <div class="drone-card ${cardClass}">
         <div class="drone-card-header">
           <div class="drone-id">
-            <div class="drone-status-dot" style="background:${color};${status==='expired'?'box-shadow:0 0 6px '+color+';':''}"></div>
+            <div class="drone-status-dot" style="background:${color};"></div>
             ${d.id}
-            <span style="font-size:9px;color:#4a6785;font-weight:400;">${d.name}</span>
           </div>
           <div class="drone-badge" style="color:${color};background:${color}18;border:1px solid ${color}40;">
-            ${label}
+            ${ph.label}
           </div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div class="drone-timer" style="color:${color};">${formatTime(d.timeLeft)}</div>
-          ${status === 'expired' ? '<span style="font-size:10px;color:#ef4444;font-weight:600;">⚠ 복귀 명령</span>' : ''}
-          ${status === 'warning' ? '<span style="font-size:10px;color:#f59e0b;">⏱ 주의</span>' : ''}
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:9px;color:#4a6785;font-family:'JetBrains Mono',monospace;">
+            ALT ${Math.round(d.wy)}m | SPD ${d.speed.toFixed(0)}m/s
+          </span>
+          <span style="font-size:9px;color:${batColor};font-family:'JetBrains Mono',monospace;font-weight:600;">
+            ${Math.round(d.battery)}%
+          </span>
         </div>
         <div class="drone-progress">
-          <div class="drone-progress-bar" style="width:${pct}%;background:${color};box-shadow:0 0 4px ${color};"></div>
+          <div class="drone-progress-bar" style="width:${d.battery}%;background:${batColor};box-shadow:0 0 4px ${batColor};"></div>
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
+  if (drones.length > 30) {
+    list.innerHTML += `<div style="text-align:center;padding:6px;font-size:9px;color:#4a6785;font-family:'JetBrains Mono',monospace;">
+      ... 외 ${drones.length - 30}대</div>`;
+  }
 }
 
-// ===== Comm Flow UI =====
-let commStep = 0;
-function updateCommFlow() {
-  const steps = [
-    { label: 'SCAN', color: '#00e5ff' },
-    { label: 'PROCESS', color: '#a78bfa' },
-    { label: 'TIMER', color: '#f59e0b' },
-    { label: 'NOTIFY', color: '#10b981' },
-  ];
-  const el = document.getElementById('comm-flow');
-  el.innerHTML = steps.map((s, i) => `
-    <div class="comm-step ${i === commStep ? 'comm-step-active' : ''}"
-         style="color:${i === commStep ? s.color : '#1a2d4a'};border-color:${i === commStep ? s.color : 'transparent'};${i===commStep?'background:'+s.color+'12;text-shadow:0 0 6px '+s.color+';':''}">
-      ${s.label}
-    </div>
-    ${i < steps.length - 1 ? '<span class="comm-arrow">›</span>' : ''}
-  `).join('');
-}
-
-// ===== Stats Update =====
-function updateStats() {
-  let warn = 0, alert = 0;
-  userDroneObjects.forEach(obj => {
-    const s = getStatus(obj.userData.droneData.timeLeft);
-    if (s === 'warning') warn++;
-    if (s === 'expired') alert++;
-  });
-  document.getElementById('stat-warn').textContent = warn;
-  document.getElementById('stat-alert').textContent = alert;
-}
-
-// ===== Timer Countdown =====
-setInterval(() => {
-  userDroneObjects.forEach(obj => {
-    if (obj.userData.droneData.timeLeft > 0) {
-      obj.userData.droneData.timeLeft--;
-    }
-  });
-  updateFleetList();
-  updateStats();
-  commStep = (commStep + 1) % 4;
-  updateCommFlow();
-}, 1000);
-
-// Initial UI render
-updateFleetList();
-updateCommFlow();
-updateStats();
+// ===== Controls =====
+document.getElementById('btn-start').addEventListener('click', () => { simRunning = true; });
+document.getElementById('btn-pause').addEventListener('click', () => { simRunning = !simRunning; });
+document.getElementById('btn-reset').addEventListener('click', () => {
+  initDrones(document.getElementById('scenario-select').value);
+});
+document.getElementById('scenario-select').addEventListener('change', (e) => {
+  initDrones(e.target.value);
+});
+document.getElementById('speed-slider').addEventListener('input', (e) => {
+  simSpeed = parseFloat(e.target.value);
+  document.getElementById('speed-label').textContent = simSpeed.toFixed(2) + 'x';
+});
 
 // ===== Animation Loop =====
 const clock = new THREE.Clock();
-let frameCount = 0;
-let lastFpsUpdate = 0;
+let frameCount = 0, lastFpsTime = 0, uiTick = 0;
+
+initDrones('default');
 
 function animate() {
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
-  const dt = clock.getDelta();
+  const dt = Math.min(clock.getDelta(), 0.1);
 
-  // FPS counter
+  // FPS
   frameCount++;
-  if (t - lastFpsUpdate >= 1) {
+  if (t - lastFpsTime >= 1) {
     document.getElementById('fps-counter').textContent = frameCount;
     frameCount = 0;
-    lastFpsUpdate = t;
+    lastFpsTime = t;
   }
 
-  // Swarm drone hover animation
-  swarmGroup.children.forEach((drone, i) => {
-    drone.position.y = drone.userData.baseY + Math.sin(t * 1.5 + i * 1.2) * 0.15;
-    // Slow rotation
-    drone.rotation.y = t * 0.3 + i;
-  });
+  // Update drones
+  if (simRunning) simTime += dt * simSpeed;
+  drones.forEach(d => updateDrone(d, dt));
 
-  // Mesh line opacity pulsing
-  meshLinesGroup.children.forEach((line, i) => {
-    line.material.opacity = 0.1 + Math.sin(t * 2 + i * 0.5) * 0.08;
-  });
+  // APF check every few frames
+  if (simRunning && Math.floor(t * 10) > uiTick) {
+    uiTick = Math.floor(t * 10);
+    apfCollisionAvoidance();
+  }
 
-  // Scan rings animation
-  scanRings.forEach(ring => {
-    const phase = (t * 0.5 + ring.userData.phase) % (Math.PI * 2);
-    const progress = phase / (Math.PI * 2);
-    const scale = 1 + progress * SWARM_RADIUS;
-    ring.scale.set(scale, scale, 1);
-    ring.material.opacity = 0.25 * (1 - progress);
-  });
-
-  // Dome pulse
-  domeMat.opacity = 0.015 + Math.sin(t * 0.8) * 0.01;
-
-  // User drone animation
-  userDroneObjects.forEach(obj => {
-    const data = obj.userData.droneData;
-    const status = getStatus(data.timeLeft);
-    const color = new THREE.Color(getColor(status));
-
-    // Move drone within bounds
-    const pos = obj.position;
-    pos.x += data.vel[0] * 60 * 0.016;
-    pos.z += data.vel[2] * 60 * 0.016;
-
-    // Bounce off hexagonal boundary (simplified circular)
-    const dist = Math.sqrt(pos.x * pos.x + pos.z * pos.z);
-    if (dist > SWARM_RADIUS * 0.8) {
-      data.vel[0] *= -1;
-      data.vel[2] *= -1;
-      pos.x += data.vel[0] * 2;
-      pos.z += data.vel[2] * 2;
-    }
-
-    // Hover bob
-    pos.y = data.pos[1] + Math.sin(t * 2 + pos.x) * 0.2;
-
-    // Update colors
-    obj.userData.body.material.color.copy(color);
-    obj.userData.body.material.emissive.copy(color);
-    obj.userData.rotor.material.color.copy(color);
-    obj.userData.glow.material.color.copy(color);
-
-    // Expired blink effect
-    if (status === 'expired') {
-      const blink = Math.sin(t * 8) > 0 ? 1 : 0.15;
-      obj.userData.body.material.opacity = blink;
-      obj.userData.glow.material.opacity = blink * 0.4;
-      obj.userData.rotor.material.opacity = blink * 0.4;
-    } else if (status === 'warning') {
-      const pulse = 0.5 + Math.sin(t * 4) * 0.5;
-      obj.userData.glow.material.opacity = 0.2 + pulse * 0.3;
+  // Rotor spin
+  drones.forEach(d => {
+    if (d.phase !== 'GROUNDED') {
+      d.rotor.rotation.z = t * 10;
+      d.glow.material.opacity = 0.25 + Math.sin(t * 3 + d.wx * 0.01) * 0.1;
     } else {
-      obj.userData.glow.material.opacity = 0.4;
+      d.glow.material.opacity = 0.1;
     }
-
-    // Rotate rotor
-    obj.userData.rotor.rotation.z = t * 8;
-
-    // Update label
-    updateDroneLabel(obj);
-
-    // Make label face camera
-    obj.userData.label.quaternion.copy(camera.quaternion);
+    // Failed blink
+    if (d.phase === 'FAILED') {
+      d.body.material.opacity = Math.sin(t * 8) > 0 ? 1 : 0.2;
+      d.glow.material.opacity = Math.sin(t * 8) > 0 ? 0.4 : 0.05;
+    }
   });
 
-  // Slowly rotate point light for dynamic lighting
-  pointLight.position.x = Math.sin(t * 0.2) * 5;
-  pointLight.position.z = Math.cos(t * 0.2) * 5;
+  // Scan rings
+  scanRings.forEach(ring => {
+    const phase = (t * 0.4 + ring.userData.phase) % (Math.PI * 2);
+    const progress = phase / (Math.PI * 2);
+    const scale = 1 + progress * W * 0.8;
+    ring.scale.set(scale, scale, 1);
+    ring.material.opacity = 0.2 * (1 - progress);
+  });
+
+  // NFZ pulse
+  nfzMat.opacity = 0.06 + Math.sin(t * 1.5) * 0.03;
+
+  // Point light orbit
+  pointLight.position.x = Math.sin(t * 0.2) * 10;
+  pointLight.position.z = Math.cos(t * 0.2) * 10;
 
   controls.update();
   renderer.render(scene, camera);
 }
 
+// UI refresh at lower rate
+setInterval(() => {
+  updateStatsUI();
+  updateFleetList();
+}, 500);
+
 animate();
 
-// ===== Resize Handler =====
+// ===== Resize =====
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(innerWidth, innerHeight);
 });
 </script>
-
 </body>
 </html>

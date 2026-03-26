@@ -468,22 +468,26 @@ python main.py visualize
 | KPI 패널 | 우측 — 충돌수, 해결률, 경로효율 실시간 집계 |
 | 비행 상태 색상 | ENROUTE(파랑), EVADING(빨강), TAKEOFF(초록), FAILED(회색) |
 
-### Standalone HTML 시뮬레이터
+### Standalone HTML 3D 시뮬레이터
 
-Python 설치 없이 브라우저에서 바로 실행 가능한 **공유용 3D 시뮬레이터**:
+> **Python 설치 없이** 브라우저에서 바로 실행 — 파일 하나만 공유하면 누구나 체험 가능!
 
 ```
-visualization/sdacs_standalone.html   ← 더블클릭으로 실행
+visualization/swarm_3d_simulator.html   ← 더블클릭으로 실행
 ```
+
+👉 **[바로 체험하기 (GitHub Pages)](https://sun475300-sudo.github.io/swarm-drone-atc/visualization/swarm_3d_simulator.html)**
 
 | 기능 | 설명 |
 |------|------|
-| Three.js 3D | WebGL 기반 실시간 3D 렌더링 |
-| FlightPhase 상태머신 | 8단계 비행 상태 완전 구현 |
-| APF 충돌 회피 | 근접 드론 간 척력 기반 자동 회피 |
-| NFZ / 회랑 / 패드 | 비행금지구역, 항로, 착륙패드 시각화 |
-| 시나리오 선택 | 고밀도/비상/동시이착륙/경로충돌 등 5종 |
-| 속도 조절 | 0.25x ~ 5x 실시간 속도 배율 |
+| Three.js 3D | WebGL 기반 실시간 3D 렌더링 (60 FPS) |
+| FlightPhase 상태머신 | GROUNDED → TAKEOFF → ENROUTE → HOLDING → LANDING → RTL → EVADING → FAILED 8단계 |
+| APF 충돌 회피 | 근접 드론 간 척력 기반 자동 회피, 근접경고/충돌 실시간 추적 |
+| NFZ / 회랑 / 패드 | 비행금지구역(적색 박스), 동서/남북 항로, 착륙패드 5개소 시각화 |
+| 시나리오 선택 | 기본(30대), 고밀도(80대), 비상장애(40대), 동시이착륙(60대) |
+| 속도 조절 | 0.25x ~ 5x 실시간 속도 배율 슬라이더 |
+| Fleet Tracker | 우측 패널 — 드론별 고도/속도/배터리 실시간 모니터링 |
+| 시작/정지/초기화 | 시뮬레이션 제어 버튼 + 경과 시간 표시 |
 
 ---
 
@@ -687,6 +691,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 시간 | 주요 변경 사항 | 커밋 |
 |------|------|---------------|------|
+| 2026-03-26 | 11:00 KST | HTML 3D 시뮬레이터 v2 — SDACS 전체 기능 반영 (8단계 FlightPhase, APF 회피, NFZ/회랑/패드, 4개 시나리오) | — |
 | 2026-03-26 | 10:30 KST | 브랜치 병합 완료, 테스트 obstacle 형식 수정, 3D 시뮬레이터 초기화 개선 | `84fc1ed` |
 | 2026-03-26 | 10:00 KST | Standalone HTML 3D 시뮬레이터, 안전 이슈 3건 수정, 코드 리뷰 반영, Voronoi staleness 문서화 | `dd7f1b1` |
 | 2026-03-26 | 01:15 KST | DOCX 기술 보고서, GitHub Actions CI, 차트 DPI 300, 속도 조절 슬라이더 | `a923ac5` |

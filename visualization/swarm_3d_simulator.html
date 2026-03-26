@@ -622,9 +622,11 @@ ATC_POSITIONS.forEach(atc => {
     new THREE.Vector3(px, 0.1, pz),
     new THREE.Vector3(px, py, pz),
   ]);
-  scene.add(new THREE.Line(connGeo, new THREE.LineDashedMaterial({
+  const connLine = new THREE.Line(connGeo, new THREE.LineDashedMaterial({
     color: 0x00e5ff, transparent: true, opacity: 0.2, dashSize: 0.3, gapSize: 0.2,
-  })));
+  }));
+  connLine.computeLineDistances();
+  scene.add(connLine);
 
   // Glow
   const glow = new THREE.Sprite(

@@ -284,8 +284,10 @@ class AirspaceController:
             if adv.conflict_pair:
                 covered.add(frozenset([adv.target_drone_id, adv.conflict_pair]))
 
-        # Spatial Hash로 근접 쌍만 추출 — O(N·k) (분리기준의 2배 범위)
-        scan_radius = self._lat_min * 2.0
+        # Spatial Hash로 근접 쌍만 추출 — O(N·k)
+        # 드론 수에 따른 적응형 스캔 반경 (고밀도 시 확대)
+        density_factor = min(len(active) / 50.0, 3.0)  # 50대 기준 최대 3x
+        scan_radius = self._lat_min * max(2.0, 1.5 + density_factor * 0.5)
         self._spatial_hash.clear()
         for did, d in active.items():
             # 텔레메트리 지연 보정된 위치로 공간 해시 삽입
@@ -307,10 +309,17 @@ class AirspaceController:
             pos_a = da.position + da.velocity * lag_a if lag_a > 0 else da.position
             pos_b = db.position + db.velocity * lag_b if lag_b > 0 else db.position
 
+            # 적응형 CPA lookahead: 상대 접근 속도에 비례 (최소 30s, 최대 120s)
+            rel_vel = np.linalg.norm(da.velocity - db.velocity)
+            adaptive_lookahead = max(30.0, min(
+                self._lookahead,
+                self._lat_min * 3.0 / max(rel_vel, 0.5)  # 분리기준 3배 거리 / 접근 속도
+            ))
+
             cpa_dist, cpa_t = closest_approach(
                 pos_a, da.velocity,
                 pos_b, db.velocity,
-                lookahead_s=self._lookahead,
+                lookahead_s=adaptive_lookahead,
             )
 
             # 근접 경고 로그

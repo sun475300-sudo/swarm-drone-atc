@@ -151,39 +151,87 @@ class AdvisoryGenerator:
     # ── 내부 분류 로직 ────────────────────────────────────────
 
     def _classify(self, target, threat, cpa_t_s: float) -> tuple[str, float]:
-        """충돌 기하학에 따른 어드바이저리 유형 결정."""
+        """
+        3D 기하학 기반 어드바이저리 분류 (개선 v2).
+
+        분류 계층:
+        1. FAILED 위협 → HOLD
+        2. CPA < 8s  → EVADE_APF (긴박)
+        3. 수직 분리 부족 + 수평 접근 → 복합 기동 (수직 우선)
+        4. 상대 방위·접근 각도 기반 정밀 수평 기동
+        """
         from src.airspace_control.agents.drone_state import FlightPhase
 
         # 위협 드론이 FAILED 상태이면 HOLD
         if hasattr(threat, 'flight_phase') and threat.flight_phase == FlightPhase.FAILED:
             return self.HOLD, 0.0
 
-        # 매우 긴박한 CPA (< 10s) → APF 위임
-        if cpa_t_s < 10.0:
+        # 매우 긴박한 CPA (< 8s) → APF 위임 (기존 10s → 8s, APF가 더 잘 처리)
+        if cpa_t_s < 8.0:
             return self.EVADE_APF, 0.0
 
         rel_pos = threat.position - target.position
-        dz      = float(rel_pos[2])
+        dz = float(rel_pos[2])
+        dx = float(rel_pos[0])
+        dy = float(rel_pos[1])
+        horiz_dist = math.sqrt(dx * dx + dy * dy)
 
-        # 수직 분리: 수직 이격이 부족할 때 수직 기동 지시
-        # dz = threat.z - target.z: 양수 → threat이 위(위협이 위), 음수 → threat이 아래
-        # target은 threat 반대 방향으로 이동: 위협이 위 → 하강, 위협이 아래 → 상승
+        # 상대 속도 분석
+        rel_vel = threat.velocity - target.velocity
+        closing_speed = -float(np.dot(rel_vel, rel_pos / max(np.linalg.norm(rel_pos), 1e-3)))
+
+        # ── 수직 분리 부족: 수직 기동 ──
         if abs(dz) < self.sep_vert:
-            if dz >= 0.0:
-                return self.DESCEND, self.DEFAULT_CLIMB_M  # threat이 위 → target 하강
-            else:
-                return self.CLIMB, self.DEFAULT_CLIMB_M    # threat이 아래 → target 상승
+            # 고도 기동량: 분리 기준의 1.5배 (안전 여유)
+            climb_mag = self.sep_vert * 1.5
 
-        # 수평 기동 분류
+            # 위협이 위 → 하강, 위협이 아래 → 상승
+            if dz >= 0.0:
+                return self.DESCEND, climb_mag
+            else:
+                return self.CLIMB, climb_mag
+
+        # ── 수평 기동: 360° 정밀 방위 분류 ──
+        target_speed = float(np.linalg.norm(target.velocity[:2]))
+        if target_speed < 0.5:
+            # 거의 정지 상태 → 빠른 회피
+            return self.TURN_RIGHT, 45.0
+
         heading = math.atan2(target.velocity[1], target.velocity[0])
-        bearing = math.atan2(rel_pos[1], rel_pos[0])
+        bearing = math.atan2(dy, dx)
         angle_diff = _wrap_angle(bearing - heading)
 
-        if abs(angle_diff) < math.radians(30):
-            return self.TURN_RIGHT, self.DEFAULT_TURN_DEG
-        if angle_diff > 0:
-            return self.TURN_RIGHT, self.DEFAULT_TURN_DEG
-        return self.TURN_LEFT, self.DEFAULT_TURN_DEG
+        # 접근 각도에 따른 선회 크기 조절
+        # 정면 접근 (±30°) → 큰 선회 (45°)
+        # 측면 접근 (30°~90°) → 중간 선회 (30°)
+        # 후방 접근 (>90°) → 작은 선회 또는 속도 조절
+        abs_angle = abs(angle_diff)
+
+        if abs_angle < math.radians(30):
+            # 정면 충돌 — 큰 선회 + 접근속도 비례 증가
+            turn_deg = min(45.0 + closing_speed * 1.5, 60.0)
+            # 우측 통행 규칙 (ICAO 준수): 정면 접근 시 우선회
+            return self.TURN_RIGHT, turn_deg
+        elif abs_angle < math.radians(90):
+            # 측면 접근 — 위협 반대 방향으로 선회
+            turn_deg = 30.0 + closing_speed * 0.8
+            if angle_diff > 0:
+                return self.TURN_LEFT, min(turn_deg, 45.0)  # 위협이 우측 → 좌선회
+            else:
+                return self.TURN_RIGHT, min(turn_deg, 45.0)  # 위협이 좌측 → 우선회
+        elif abs_angle < math.radians(150):
+            # 후측면 교차 — 소폭 선회
+            turn_deg = 20.0
+            if angle_diff > 0:
+                return self.TURN_LEFT, turn_deg
+            else:
+                return self.TURN_RIGHT, turn_deg
+        else:
+            # 후방 추월 — 수직 분리로 해결
+            if dz >= 0:
+                return self.DESCEND, self.sep_vert
+            else:
+                return self.CLIMB, self.sep_vert
 
 
 def _wrap_angle(a: float) -> float:

@@ -474,31 +474,7 @@ python main.py monte-carlo --mode quick
 # 3D 실시간 대시보드 → http://127.0.0.1:8050
 python main.py visualize
 
-# 보세전시장 민원상담 챗봇 → http://127.0.0.1:8051
-python main.py chatbot
 ```
-
-### 보세전시장 민원상담 챗봇
-
-관세법 및 관세청 공식 자료 기반 보세전시장 민원 안내 챗봇입니다.
-
-| 기능 | 설명 |
-|------|------|
-| 규칙 기반 엔진 | 한국어 조사 제거 + IDF 가중치 키워드 매칭 |
-| 5개 카테고리 | 제도 일반, 특허/운영, 반입/반출, 판매/전시/시식, 보수작업 |
-| 24개 Q&A | 관세법 제190조, 시행령 제101·102조, 고시 기반 |
-| 에스컬레이션 | 유권해석·불복·전산 이슈 자동 감지 → 담당기관 안내 |
-| 법적 근거 표시 | 모든 답변에 관세법/고시 조문 명시 |
-| 답변 템플릿 | 결론→설명→근거→관할세관 확인 필요 여부 |
-
-```bash
-python main.py chatbot                  # 기본 실행 (port 8051)
-python main.py chatbot --port 9000      # 포트 변경
-python main.py chatbot --engine llm     # vLLM 엔진 (향후)
-python main.py chatbot-sim              # CLI 시뮬레이터 (터미널 테스트)
-```
-
-**CLI 시뮬레이터:** 브라우저 없이 터미널에서 바로 챗봇을 테스트할 수 있습니다. 카테고리 번호 입력, `/help`, `/questions` 등 명령어를 지원합니다.
 
 ### 3D 실시간 대시보드
 
@@ -599,21 +575,6 @@ swarm-drone-atc/
 │   │   └── message_types.py         # 메시지 타입 6종
 │   └── utils/geo_math.py            # CPA / 거리 / 방위각
 │
-├── chatbot/
-│   ├── app.py                       # Dash 챗봇 웹 UI (port 8051)
-│   ├── engine/
-│   │   ├── base.py                  # ChatResponse + BaseEngine + 시스템 프롬프트
-│   │   ├── rule_engine.py           # 키워드 매칭 규칙 엔진
-│   │   └── llm_engine.py           # vLLM 연동 스텁 (향후 확장)
-│   ├── knowledge/
-│   │   ├── loader.py                # YAML 로더 + IDF 인덱스 빌더
-│   │   ├── general_system.yaml      # 제도 일반 (5 Q&A)
-│   │   ├── permit_requirements.yaml # 특허/운영 (5 Q&A)
-│   │   ├── import_export_procedures.yaml # 반입/반출 (5 Q&A)
-│   │   ├── sales_and_display.yaml   # 판매/전시/시식 (6 Q&A)
-│   │   └── maintenance_scope.yaml   # 보수작업 (3 Q&A)
-│   └── assets/chatbot.css           # 챗봇 UI 스타일
-│
 ├── visualization/
 │   └── simulator_3d.py              # Dash 3D 실시간 대시보드
 │
@@ -625,8 +586,6 @@ swarm-drone-atc/
 │   └── images/                             # 성능 차트 + SVG 다이어그램
 │
 └── tests/                              # pytest 235개 (21 모듈)
-    ├── test_chatbot_engine.py          # 챗봇 엔진 (21)
-    ├── test_knowledge_loader.py        # 지식베이스 로더 (9)
     ├── test_apf.py                     # APF 포텐셜 장 (10)
     ├── test_cbs.py                     # CBS 격자 노드 (8)
     ├── test_resolution_advisory.py     # 어드바이저리 분류 (6)
@@ -680,9 +639,7 @@ pytest tests/test_apf.py -v   # 특정 파일
 | `test_comm_bus.py` | 6 | CommunicationBus 지연·손실 |
 | `test_message_types.py` | 6 | 메시지 타입 6종 직렬화 |
 | `test_voronoi.py` | 5 | Voronoi 분할·클리핑·충돌감지 |
-| `test_chatbot_engine.py` | 21 | 챗봇 엔진·키워드 매칭·에스컬레이션 |
-| `test_knowledge_loader.py` | 9 | 지식베이스 로딩·인덱스·참조 무결성 |
-| **합계** | **235** | **21 모듈 · 100% pass** |
+| **합계** | **205** | **19 모듈 · 100% pass** |
 
 ---
 
@@ -789,7 +746,6 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 | 2026-03-26 | 19:50 KST | GitHub Pages 배포 — 시뮬레이터 공유 링크 활성화 | `686e630` |
 | 2026-03-26 | 19:45 KST | 시각화 극대화 — 별 배경, 충돌 파티클, ROGUE 트레일, 카메라 쉐이크, UI 한글화, 성능 최적화 | `c0b18d0` |
 | 2026-03-26 | 19:00 KST | ATC 관제 드론 5대, 시나리오 26개 확장 (7카테고리), 이벤트 기록, 경량 렌더링, 비전공자 친화 README | `1b1125a` |
-| 2026-03-26 | 14:00 KST | 보세전시장 민원상담 챗봇 구축 — 규칙기반 엔진, 5개 카테고리 24개 Q&A, Dash UI, 시스템 프롬프트/답변 템플릿/에스컬레이션 규칙 반영, 테스트 30개 통과 | — |
 | 2026-03-26 | 11:00 KST | HTML 3D 시뮬레이터 v2 — SDACS 전체 기능 반영 (8단계 FlightPhase, APF 회피, NFZ/회랑/패드, 4개 시나리오) | — |
 | 2026-03-26 | 10:30 KST | 브랜치 병합 완료, 테스트 obstacle 형식 수정, 3D 시뮬레이터 초기화 개선 | `84fc1ed` |
 | 2026-03-26 | 10:00 KST | Standalone HTML 3D 시뮬레이터, 안전 이슈 3건 수정, 코드 리뷰 반영, Voronoi staleness 문서화 | `dd7f1b1` |
@@ -815,8 +771,6 @@ MIT License — 학술 및 교육 목적으로 개발되었습니다.
 
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
-| 2026-03-26 11:19 | `738bf13` | fix: 판매 관련 키워드 보강으로 '현장에서 판매' 쿼리 매칭 개선 | chatbot/knowledge/sales_and_display.yaml |
-| 2026-03-26 10:24 | `106ea45` | feat: 보세전시장 민원상담 챗봇 구축 | README.md, chatbot/__init__.py, chatbot/app.py, chatbot/assets/chatbot.css, chatbot/engine/__init__.py, chatbot/engine/base.py … |
 
 ---
 

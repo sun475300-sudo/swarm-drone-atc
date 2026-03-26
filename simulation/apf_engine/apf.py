@@ -85,11 +85,13 @@ def repulsive_force_drone(
     # 기본 척력
     mag = k_rep * (1.0 / dist - 1.0 / d0) / (dist ** 2)
 
-    # 속도 기반 보정: 접근 중이면 척력 증폭
+    # 속도 기반 보정: 접근 중이면 척력 증폭 (closing speed 기반)
     relative_vel = own_vel - other_vel
     closing_speed = -np.dot(relative_vel, n)  # 양수 = 접근 중
     if closing_speed > 0:
-        mag *= (1.0 + closing_speed / 5.0)   # 최대 2× 증폭
+        # 접근 속도에 비례하여 최대 3× 증폭 (기존 2× → 3×)
+        amplification = min(1.0 + closing_speed / 4.0, 3.0)
+        mag *= amplification
 
     return mag * n
 
@@ -134,10 +136,17 @@ def compute_total_force(
     Returns:
         합력 벡터 [fx, fy, fz] (m/s²)
     """
-    # 바람 조건에 따라 파라미터 자동 선택
+    # 바람 조건에 따라 파라미터 점진적 블렌딩 (hard switch → smooth interpolation)
     if params is None:
-        if wind_speed > 10.0:  # 강풍 (10 m/s 이상, 2차 개선: 12 → 10)
+        if wind_speed > 12.0:
             params = APF_PARAMS_WINDY
+        elif wind_speed > 6.0:
+            # 6~12 m/s 구간: 선형 보간으로 점진 전환
+            t = (wind_speed - 6.0) / 6.0  # 0.0 ~ 1.0
+            params = {
+                k: APF_PARAMS[k] * (1 - t) + APF_PARAMS_WINDY[k] * t
+                for k in APF_PARAMS
+            }
         else:
             params = APF_PARAMS
 
@@ -166,7 +175,24 @@ def compute_total_force(
     alt_error = target_alt - own.position[2]
     F_total[2] += params["altitude_k"] * alt_error
 
-    # 5. 최대 합력 클리핑
+    # 5. 교착 감지 및 탈출 (local minima escape)
+    # 합력이 거의 0이지만 목표에 도달하지 않은 경우 → 횡방향 섭동
+    mag = np.linalg.norm(F_total)
+    goal_dist = np.linalg.norm(goal - own.position)
+    if mag < 0.5 and goal_dist > 20.0:
+        # 목표 방향과 수직인 벡터로 횡방향 탈출
+        goal_dir = (goal - own.position) / max(goal_dist, 1e-3)
+        perp = np.array([-goal_dir[1], goal_dir[0], 0.0])
+        perp_mag = np.linalg.norm(perp)
+        if perp_mag > 1e-3:
+            perp /= perp_mag
+        else:
+            perp = np.array([1.0, 0.0, 0.0])
+        # 드론 ID 해시 기반 방향 결정 (일관된 탈출 방향)
+        sign = 1.0 if hash(own.drone_id) % 2 == 0 else -1.0
+        F_total += sign * perp * params["k_att"] * 2.0
+
+    # 6. 최대 합력 클리핑
     mag = np.linalg.norm(F_total)
     if mag > params["max_force"]:
         F_total = F_total / mag * params["max_force"]

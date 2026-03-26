@@ -542,6 +542,7 @@ MIT License — 학술 및 교육 목적으로 개발되었습니다.
 
 | 날짜 (KST) | 분류 | 작업 내용 | 주요 파일 |
 | --- | --- | --- | --- |
+| 2026-03-26 11:20 | `40af8a9` | fix: FAILED 페이즈 GROUNDED 전환, epsilon 보정, 선회 로직 정리 | simulation/simulator.py, src/airspace_control/avoidance/resolution_advisory.py, src/airspace_control/controller/airspace_controller.py |
 | 2026-03-26 09:53 | `ac1bc7a` | fix: NFZ 내부 척력 폭주 방지 (safe_dist 1e-3→1.0m), README 변경이력 통합 | README.md, simulation/apf_engine/apf.py |
 | 2026-03-26 | **fix** | ROGUE 드론 어드바이저리 차단, 비기동(LANDING/TAKEOFF/RTL) 드론 재배정, clearance NFZ/경계 목적지 검증 | airspace_controller.py, tests/ |
 | 2026-03-26 | **fix** | HOLDING 드론 wind drift 제거·step7 최적화, COLLISION 이벤트 중복 방지, GROUNDED 드론 _active_drones 누수 수정 | simulator.py, airspace_controller.py |

@@ -540,18 +540,18 @@ MIT License — 학술 및 교육 목적으로 개발되었습니다.
 
 ## 변경 이력 (Changelog)
 
-| 날짜 (KST) | 분류 | 작업 내용 | 주요 파일 |
-| --- | --- | --- | --- |
-| 2026-03-26 11:43 | `8d0d493` | fix: 3D 시각화 버튼 동작 수정, HTML 내보내기, 시나리오 확장 | README.md, visualization/simulator_3d.py |
-| 2026-03-26 | **fix** | 3D 시각화 버튼 동작 불가 수정 (Dash 4.x `ctx.triggered_id` 적용), HTML 내보내기 추가, 시나리오 8→11개 확장 | visualization/simulator_3d.py |
-| 2026-03-26 | **fix** | FAILED 드론 GROUNDED 전환 누락, ENROUTE/RTL norm epsilon 제거, 선회 로직 중복 분기 정리 | simulator.py, resolution_advisory.py, airspace_controller.py |
-| 2026-03-26 | **fix** | NFZ 내부 척력 폭주 방지 (safe_dist 1e-3→1.0m), README 변경이력 통합 | apf.py, README.md |
-| 2026-03-26 | **fix** | ROGUE 드론 어드바이저리 차단, 비기동(LANDING/TAKEOFF/RTL) 드론 재배정, clearance NFZ/경계 목적지 검증 | airspace_controller.py, tests/ |
-| 2026-03-26 | **fix** | HOLDING 드론 wind drift 제거·step7 최적화, COLLISION 이벤트 중복 방지, GROUNDED 드론 _active_drones 누수 수정 | simulator.py, airspace_controller.py |
-| 2026-03-25 | **fix** | NFZ 구체 표면 기준 척력(radius 파라미터), 인력 10m 경계 불연속 해소, KDTree 필터 반경 2× 보정, 중복 analytics 스냅샷 제거 | apf.py, simulator.py, airspace_controller.py |
-| 2026-03-25 | **fix** | EVADING→ENROUTE 전환 후 APF force 오적용·evade_end_s 미초기화, APF 이웃 탐색 범위 확장, HOLDING 타이머 경계값 수정 | simulator.py, drone_state.py, apf.py |
-| 2026-03-25 | **refactor** | 코드 품질 개선 12건 (simplify 리뷰 반영), dead import 제거 | simulator.py, apf.py, resolution_advisory.py, tests/ |
-| 2026-03-25 | **feat** | 어드바이저리 통합, KDTree O(N log N) 최적화, weather_disturbance 시나리오 개선, PII 제거 | simulator.py, apf.py, weather_disturbance.yaml |
+| 날짜 (KST) | 커밋 | 분류 | 작업 내용 | 주요 파일 |
+| --- | --- | --- | --- | --- |
+| 2026-03-26 | `8d0d493` | **fix** | 3D 시각화 버튼 동작 수정 (Dash 4.x `ctx.triggered_id` 적용), HTML 내보내기 버튼 추가, 시나리오 8→11개 확장 (초고밀도·배터리위기·복합재난) | visualization/simulator_3d.py |
+| 2026-03-26 | `40af8a9` | **fix** | FAILED 드론 GROUNDED 전환 누락 수정, ENROUTE/RTL norm epsilon 제거 (0.1m 조기 착륙 조건), 선회 로직 중복 분기 정리 | simulator.py, resolution_advisory.py, airspace_controller.py |
+| 2026-03-26 | `ac1bc7a` | **fix** | NFZ 내부 진입 시 APF 척력 폭주 방지 (`safe_dist` 1e-3 → 1.0m), Voronoi ray-casting 주석 보강 | apf.py, airspace_controller.py |
+| 2026-03-26 | `37121f3` | **fix** | 비기동(LANDING/TAKEOFF/RTL) 드론 어드바이저리 재배정, HOLDING step7 wind 최적화, 테스트 8건 추가 | simulator.py, airspace_controller.py, tests/ |
+| 2026-03-26 | `b1a8b2f` | **fix** | ROGUE 드론 어드바이저리 차단, clearance NFZ/공역 경계 목적지 검증, dead import 제거 | airspace_controller.py, simulator.py |
+| 2026-03-25 | `7cf7841` | **fix** | HOLDING wind drift 제거, COLLISION 이벤트 중복 방지 (`frozenset` dedup), GROUNDED 드론 `_active_drones` 누수 | simulator.py, airspace_controller.py |
+| 2026-03-25 | `c4583e1` | **fix** | NFZ 구체 표면 기준 척력 (`radius` 파라미터), 인력 10m 경계 불연속 해소, KDTree 필터 반경 2× 보정, 중복 snapshot 제거 | apf.py, simulator.py |
+| 2026-03-25 | `fbbbe72` | **fix** | EVADING→ENROUTE 전환 후 APF force 오적용, `evade_end_s` 미초기화, APF 이웃 탐색 범위 확장 | simulator.py, drone_state.py, apf.py |
+| 2026-03-25 | `2311fb5` | **refactor** | 코드 품질 개선 12건 (simplify 리뷰 반영), HOLDING 타이머 경계값 수정, dead import 제거 | simulator.py, apf.py, resolution_advisory.py |
+| 2026-03-25 | `9b489ee` | **feat** | 어드바이저리 통합, KDTree O(N log N) 최적화, weather_disturbance 시나리오 개선, PII 제거 | simulator.py, apf.py, weather_disturbance.yaml |
 
 ---
 

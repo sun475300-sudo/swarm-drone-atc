@@ -137,10 +137,12 @@ class _DroneAgent:
             yield self.env.timeout(dt)
             t = float(self.env.now)
 
-            # 1. 배터리
-            if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
+            # 1. 배터리 (2Hz: 매 5틱마다 계산, dt_bat = 0.5s)
+            tick_count = int(round(t / dt))
+            if tick_count % 5 == 0 and drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
+                dt_bat = dt * 5
                 pw = _estimate_power_w(drone.speed, profile)
-                drone.battery_pct -= (pw * dt) / (profile.battery_wh * 3600.0) * 100.0
+                drone.battery_pct -= (pw * dt_bat) / (profile.battery_wh * 3600.0) * 100.0
                 drone.battery_pct  = max(0.0, drone.battery_pct)
                 if drone.battery_pct < 5.0 and drone.failure_type == FailureType.NONE:
                     drone.failure_type = FailureType.BATTERY_CRITICAL
@@ -315,6 +317,10 @@ class _DroneAgent:
             if drone.position[2] > 0.0:
                 drone.position[2] = max(0.0, drone.position[2] - 1.5 * dt)
                 drone.velocity     = np.zeros(3)
+            else:
+                drone.position[2]  = 0.0
+                drone.velocity     = np.zeros(3)
+                drone.flight_phase = FlightPhase.GROUNDED
 
         elif phase == FlightPhase.RTL:
             # 귀환: 80m 상승 → 가장 가까운 패드로

@@ -134,6 +134,9 @@ class AirspaceController:
             )
             self._active_drones[tm.drone_id] = drone
         else:
+            # 타임스탬프 단조성 검증: 오래된 텔레메트리 무시
+            if tm.timestamp_s < drone.last_update_s:
+                return
             drone.position = np.array(tm.position, dtype=float)
             drone.velocity = np.array(tm.velocity, dtype=float)
             drone.battery_pct = float(tm.battery_pct)

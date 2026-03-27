@@ -75,8 +75,10 @@ def compute_voronoi_partition(
 
     try:
         vor = Voronoi(mirrored)
-    except Exception:
+    except Exception as e:
         # 점이 collinear인 경우 균등 분할 폴백
+        import logging
+        logging.getLogger(__name__).warning("Voronoi 계산 실패 (폴백): %s", e)
         return _uniform_fallback(drone_ids, drone_positions, bounds_m)
 
     # 고도 밴드 계산

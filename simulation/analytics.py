@@ -103,6 +103,7 @@ class SimulationAnalytics:
     """
 
     MAX_EVENTS = 50_000
+    MAX_SNAPSHOTS = 100_000  # 메모리 제한: ~100대 × 600초 / 5초 간격
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
@@ -169,6 +170,8 @@ class SimulationAnalytics:
                 self._flight_time[did] = float(d.flight_time_s)
             return
         self._last_snapshot_t = t
+        if len(self._snapshots) >= self.MAX_SNAPSHOTS:
+            return  # 메모리 제한 도달
         for did, d in drones.items():
             self._snapshots.append({
                 "t":       t,

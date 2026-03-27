@@ -1,0 +1,2514 @@
+
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ===== Constants =====
+const SCALE = 1 / 100; // 5000m -> 50 units
+const WORLD = 5000;    // +-5000m
+const W = WORLD * SCALE; // 50 units
+const MAX_ALT = 180;
+const ALT_SCALE = MAX_ALT * SCALE * 3; // exaggerate altitude for visibility
+
+const PHASES = {
+  GROUNDED: { color: 0x888888, label: '지상 대기' },
+  TAKEOFF:  { color: 0xffd700, label: '이륙' },
+  ENROUTE:  { color: 0x10b981, label: '비행 중' },
+  HOLDING:  { color: 0x3b82f6, label: '체공' },
+  LANDING:  { color: 0xf97316, label: '착륙' },
+  EVADING:  { color: 0xff3d00, label: '회피' },
+  FAILED:   { color: 0xef4444, label: '장애' },
+  RTL:      { color: 0xec407a, label: '귀환' },
+};
+
+// ===== 드론 직군 (22종) =====
+const DRONE_ROLES = [
+  // 물류·배송
+  { id: 'delivery',    label: '택배',    color: 0xf97316, icon: '📦' },
+  { id: 'logistics',   label: '물류',    color: 0x06b6d4, icon: '🚚' },
+  { id: 'food',        label: '음식배달', color: 0xfbbf24, icon: '🍔' },
+  // 농업·환경
+  { id: 'agri',        label: '농업',    color: 0x22c55e, icon: '🌾' },
+  { id: 'forestry',    label: '산림',    color: 0x15803d, icon: '🌲' },
+  { id: 'environ',     label: '환경감시', color: 0x84cc16, icon: '🌍' },
+  // 촬영·미디어
+  { id: 'camera',      label: '촬영',    color: 0xa855f7, icon: '📷' },
+  { id: 'media',       label: '방송',    color: 0xec4899, icon: '🎥' },
+  { id: 'mapping',     label: '측량',    color: 0x8b5cf6, icon: '🗺️' },
+  // 보안·군사
+  { id: 'recon',       label: '정찰',    color: 0xeab308, icon: '🔍' },
+  { id: 'patrol',      label: '순찰',    color: 0x3b82f6, icon: '🛡️' },
+  { id: 'military',    label: '군사',    color: 0x65a30d, icon: '⚔️' },
+  // 긴급·의료
+  { id: 'emergency',   label: '응급',    color: 0xef4444, icon: '🚑' },
+  { id: 'medevac',     label: '의료수송', color: 0xf43f5e, icon: '💊' },
+  { id: 'fire',        label: '소방',    color: 0xdc2626, icon: '🚒' },
+  // 산업·건설
+  { id: 'construction',label: '건설',    color: 0x78716c, icon: '🏗️' },
+  { id: 'inspection',  label: '시설점검', color: 0xa3a3a3, icon: '🔧' },
+  { id: 'mining',      label: '광업',    color: 0x92400e, icon: '⛏️' },
+  // UAM·모빌리티
+  { id: 'uam_taxi',    label: 'UAM택시', color: 0x7c3aed, icon: '🚖' },
+  { id: 'uam_shuttle', label: 'UAM셔틀', color: 0x2563eb, icon: '🛩️' },
+  // 연구·기타
+  { id: 'research',    label: '연구',    color: 0x14b8a6, icon: '🔬' },
+  { id: 'telecom',     label: '통신중계', color: 0x0ea5e9, icon: '📡' },
+];
+
+const SCENARIOS = {
+  // ── 기본
+  default:              { count: 50,  label: '기본',            wind: false, failRate: 0,    rogueRate: 0 },
+  high_density:         { count: 150, label: '고밀도',          wind: false, failRate: 0,    rogueRate: 0 },
+  mass_takeoff:         { count: 100, label: '대규모 이륙',     wind: false, failRate: 0,    rogueRate: 0 },
+  ultra_swarm:          { count: 250, label: '초대형 군집',     wind: false, failRate: 0,    rogueRate: 0 },
+  // ── 장애/위기
+  emergency_failure:    { count: 80,  label: '비상 장애',       wind: false, failRate: 0.20, rogueRate: 0 },
+  battery_critical:     { count: 100, label: '배터리 위기',     wind: false, failRate: 0,    rogueRate: 0 },
+  cascade_failure:      { count: 80,  label: '연쇄 장애',       wind: true,  failRate: 0.35, rogueRate: 0 },
+  comms_loss:           { count: 60,  label: '통신 두절',       wind: false, failRate: 0.10, rogueRate: 0 },
+  multi_failure:        { count: 100, label: '복합 장애',       wind: true,  failRate: 0.25, rogueRate: 0.05 },
+  // ── 교통/공역
+  route_conflict:       { count: 100, label: '경로 충돌',       wind: false, failRate: 0,    rogueRate: 0 },
+  nfz_saturate:         { count: 120, label: 'NFZ 포화',        wind: false, failRate: 0,    rogueRate: 0 },
+  mixed_traffic:        { count: 100, label: '혼합 교통',       wind: false, failRate: 0.05, rogueRate: 0.08 },
+  corridor_congestion:  { count: 150, label: '회랑 혼잡',       wind: false, failRate: 0,    rogueRate: 0 },
+  cross_traffic:        { count: 100, label: '교차 교통',       wind: false, failRate: 0,    rogueRate: 0 },
+  // ── 자연/환경
+  weather_disturbance:  { count: 50,  label: '기상 교란',       wind: true,  failRate: 0.05, rogueRate: 0 },
+  heavy_storm:          { count: 60,  label: '강풍 폭우',       wind: true,  failRate: 0.15, rogueRate: 0 },
+  fog_low_vis:          { count: 70,  label: '안개 저시정',     wind: false, failRate: 0.08, rogueRate: 0 },
+  thermal_updraft:      { count: 80,  label: '열 상승기류',     wind: true,  failRate: 0,    rogueRate: 0 },
+  // ── 위협/보안
+  adversarial_intrusion:{ count: 70,  label: '침입 드론',       wind: false, failRate: 0,    rogueRate: 0.15 },
+  swarm_attack:         { count: 100, label: '군집 침입',       wind: false, failRate: 0,    rogueRate: 0.30 },
+  gps_spoofing:         { count: 80,  label: 'GPS 스푸핑',      wind: false, failRate: 0.10, rogueRate: 0 },
+  // ── 임무
+  search_rescue:        { count: 40,  label: '수색 구조',       wind: true,  failRate: 0.10, rogueRate: 0 },
+  delivery_rush:        { count: 150, label: '택배 러시',       wind: false, failRate: 0.03, rogueRate: 0 },
+  formation_flight:     { count: 50,  label: '편대 비행',       wind: false, failRate: 0,    rogueRate: 0 },
+  // ── 극한
+  extreme_stress:       { count: 200, label: '극한 스트레스',   wind: true,  failRate: 0.15, rogueRate: 0.10 },
+  apocalypse:           { count: 250, label: '최종 시험',       wind: true,  failRate: 0.20, rogueRate: 0.20 },
+  // ── 극한 기상 정밀 테스트
+  weather_hell:         { count: 200, label: '극한기상 지옥',   wind: true,  failRate: 0.25, rogueRate: 0.05 },
+  microburst_storm:     { count: 150, label: '마이크로버스트',   wind: true,  failRate: 0.20, rogueRate: 0 },
+  typhoon:              { count: 200, label: '태풍급 강풍',     wind: true,  failRate: 0.30, rogueRate: 0 },
+  ice_storm:            { count: 150, label: '결빙 폭풍',       wind: true,  failRate: 0.35, rogueRate: 0 },
+  multi_cell_storm:     { count: 200, label: '다중셀 폭풍',     wind: true,  failRate: 0.20, rogueRate: 0.05 },
+  // ── 대규모 확장 시나리오
+  mega_swarm:           { count: 500, label: '메가 군집',       wind: false, failRate: 0,    rogueRate: 0 },
+  mega_storm:           { count: 500, label: '메가 폭풍',       wind: true,  failRate: 0.15, rogueRate: 0.05 },
+  city_rush_hour:       { count: 400, label: '도심 러시아워',   wind: false, failRate: 0.05, rogueRate: 0.03 },
+  military_exercise:    { count: 300, label: '군사 훈련',       wind: true,  failRate: 0.10, rogueRate: 0.15 },
+  disaster_response:    { count: 350, label: '재난 대응',       wind: true,  failRate: 0.20, rogueRate: 0 },
+  uam_corridor:         { count: 200, label: 'UAM 회랑',       wind: false, failRate: 0.05, rogueRate: 0 },
+  night_ops:            { count: 150, label: '야간 작전',       wind: true,  failRate: 0.10, rogueRate: 0.10 },
+  multi_agency:         { count: 300, label: '다기관 합동',     wind: false, failRate: 0.08, rogueRate: 0.05 },
+  mega_delivery:        { count: 500, label: '대규모 택배',     wind: false, failRate: 0.05, rogueRate: 0 },
+  full_spectrum:        { count: 400, label: '전영역 종합',     wind: true,  failRate: 0.20, rogueRate: 0.15 },
+  total_war:            { count: 500, label: '총력전',           wind: true,  failRate: 0.30, rogueRate: 0.25 },
+};
+
+const LANDING_PADS = [
+  { name: 'PAD_NW', x: -3000, z: 3000 },
+  { name: 'PAD_NE', x: 3000,  z: 3000 },
+  { name: 'PAD_SW', x: -3000, z: -3000 },
+  { name: 'PAD_SE', x: 3000,  z: -3000 },
+  { name: 'PAD_CENTER', x: 0, z: 0 },
+];
+
+const EVADE_DIST = 500;  // meters - APF trigger distance (확대)
+const COLLISION_DIST = 30; // meters - collision (현실적 기체 크기)
+const NEAR_MISS_DIST = 100; // meters - near miss (UTM 수평 분리 기준)
+const SEPARATION_ALT = 20; // meters - 수직 분리 최소 고도차
+const CPA_LOOKAHEAD = 12;  // seconds - 최근접점 예측 시간
+const ALTITUDE_LAYERS = [40, 55, 70, 85, 100, 115, 130, 145, 160]; // 고도 레이어 (9개)
+
+// ===== 정밀 비행 역학 상수 =====
+const PHYSICS = {
+  maxAccel: 3.0,        // m/s² 최대 가속도
+  maxDecel: 4.0,        // m/s² 최대 감속도
+  maxTurnRate: 25,      // °/s 최대 선회율
+  maxClimbRate: 5.0,    // m/s 최대 상승률
+  maxDescentRate: 3.0,  // m/s 최대 하강률
+  dragCoeff: 0.02,      // 항력 계수
+  mass: 2.5,            // kg 기본 질량
+  uamMass: 25.0,        // kg UAM 질량
+};
+
+// ===== 분리 기준 (UTM 참조) =====
+const SEPARATION = {
+  horizontal: 100,    // meters 수평 최소 분리
+  vertical: 20,       // meters 수직 최소 분리
+  landing: 200,       // meters 착륙 시퀀스 간격
+  uamHorizontal: 200, // meters UAM 수평 분리 (대형)
+};
+
+// ===== 우선순위 (낮을수록 높은 우선순위) =====
+const PRIORITY = {
+  emergency: 0, medevac: 0, fire: 1,
+  uam_taxi: 2, uam_shuttle: 2,
+  patrol: 3, recon: 3, military: 3,
+  delivery: 5, logistics: 5, food: 5,
+  camera: 6, media: 6, mapping: 6,
+  agri: 7, forestry: 7, environ: 7,
+  construction: 7, inspection: 7, mining: 7,
+  research: 8, telecom: 8,
+};
+
+// ===== State =====
+let simRunning = false;  // 시작 버튼 클릭 시 true
+let simSpeed = 1.0;
+let simTime = 0;
+let drones = [];
+let stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
+let windEnabled = false;
+
+// ===== 확장 기상 시스템 (정밀 모델) =====
+const weather = {
+  baseWind: { x: 2.0, z: -1.5 },  // 기본 풍향 (동남풍)
+  gustIntensity: 0,    // 돌풍 강도 (0~5)
+  gustTimer: 0,        // 돌풍 타이머
+  gustDir: { x: 0, z: 0 },
+  turbulence: 0,       // 난기류 강도 (0~3)
+  windShearAlt: 80,    // 풍속 전단 고도 (m)
+  precipitation: 0,    // 강수 강도 (0: 없음, 1: 약, 2: 보통, 3: 폭우)
+  visibility: 1.0,     // 시정 (0~1)
+  thermalZones: [],    // 열 상승기류 구역
+  // ── 극한 기상 확장 ──
+  microbursts: [],     // 마이크로버스트 (급강하풍) [{x,z,radius,strength,life,maxLife}]
+  stormCells: [],      // 이동 폭풍셀 [{x,z,vx,vz,radius,intensity,rotation}]
+  windShearLayers: [], // 풍속 전단 레이어 [{alt,windX,windZ}]
+  icing: 0,            // 결빙 강도 (0~3) — 속도·기동 저하
+  typhoonWind: 0,      // 태풍 풍속 기본값 (m/s)
+  typhoonAngle: 0,     // 태풍 회전각
+};
+
+// 동적 기상 업데이트 (매 프레임) — 극한 기상 확장
+function updateWeather(dt) {
+  if (!windEnabled) return;
+  const sDt = dt * simSpeed;
+
+  // 돌풍 발생: 랜덤 간격으로 갑작스런 강풍
+  weather.gustTimer -= sDt;
+  if (weather.gustTimer <= 0) {
+    weather.gustIntensity = 1 + Math.random() * 4;
+    const angle = Math.random() * Math.PI * 2;
+    weather.gustDir = { x: Math.cos(angle), z: Math.sin(angle) };
+    weather.gustTimer = 5 + Math.random() * 10;
+    if (weather.gustIntensity > 3) {
+      logEvent('advisory', `⚡ 돌풍 경보: ${weather.gustIntensity.toFixed(1)} m/s`);
+    }
+  }
+  weather.gustIntensity *= (1 - sDt * 0.5);
+
+  // 풍향 서서히 변화 (사인파)
+  const windAngle = simTime * 0.02;
+  const baseX = 2.0 * Math.cos(windAngle) + 0.5 * Math.sin(windAngle * 3.7);
+  const baseZ = -1.5 * Math.sin(windAngle) + 0.3 * Math.cos(windAngle * 2.3);
+  // 태풍 모드: 회전 강풍 추가
+  if (weather.typhoonWind > 0) {
+    weather.typhoonAngle += sDt * 0.3; // 천천히 회전
+    const tw = weather.typhoonWind;
+    weather.baseWind.x = baseX + tw * Math.cos(weather.typhoonAngle);
+    weather.baseWind.z = baseZ + tw * Math.sin(weather.typhoonAngle);
+    // 태풍은 돌풍도 증폭
+    if (weather.gustTimer <= 0) weather.gustIntensity = Math.max(weather.gustIntensity, tw * 0.6);
+  } else {
+    weather.baseWind.x = baseX;
+    weather.baseWind.z = baseZ;
+  }
+
+  // ── 마이크로버스트 업데이트 (수명 감소, 새로 생성) ──
+  weather.microbursts = weather.microbursts.filter(mb => {
+    mb.life -= sDt;
+    // 강도는 수명 중반에 최대
+    const lifeRatio = mb.life / mb.maxLife;
+    mb.currentStrength = mb.strength * Math.sin(lifeRatio * Math.PI);
+    return mb.life > 0;
+  });
+  // 확률적 마이크로버스트 생성 (극한 시나리오에서)
+  if (weather.microbursts.length < 5 && weather.turbulence >= 2.0) {
+    if (Math.random() < sDt * 0.08) { // ~8% per second
+      const mb = {
+        x: (Math.random() - 0.5) * 6000,
+        z: (Math.random() - 0.5) * 6000,
+        radius: 300 + Math.random() * 500,
+        strength: 8 + Math.random() * 12, // 8~20 m/s 하강풍
+        currentStrength: 0,
+      };
+      mb.life = 8 + Math.random() * 12;
+      mb.maxLife = mb.life;
+      weather.microbursts.push(mb);
+      logEvent('advisory', `🌪️ 마이크로버스트 감지! (${Math.round(mb.strength)}m/s, R=${Math.round(mb.radius)}m)`);
+    }
+  }
+
+  // ── 이동 폭풍셀 업데이트 ──
+  weather.stormCells.forEach(sc => {
+    sc.x += sc.vx * sDt;
+    sc.z += sc.vz * sDt;
+    sc.rotation += sDt * 0.5;
+    // 월드 밖으로 나가면 반대편에서 재진입
+    if (sc.x > 5000) sc.x = -5000;
+    if (sc.x < -5000) sc.x = 5000;
+    if (sc.z > 5000) sc.z = -5000;
+    if (sc.z < -5000) sc.z = 5000;
+  });
+}
+
+// 특정 위치·고도의 실효 바람 벡터 계산 (정밀 모델)
+function getWindAt(wx, wy, wz) {
+  if (!windEnabled) return { x: 0, z: 0, y: 0 };
+  let wx_ = weather.baseWind.x;
+  let wz_ = weather.baseWind.z;
+  let wy_ = 0;
+
+  // 고도별 풍속 전단 (고도가 높을수록 강풍)
+  const safeAlt = Math.max(0, wy);
+  const altFactor = 0.7 + (safeAlt / 150) * 0.6;
+  wx_ *= altFactor;
+  wz_ *= altFactor;
+
+  // ── 풍속 전단 레이어: 고도별 급격한 풍향 변화 ──
+  weather.windShearLayers.forEach(layer => {
+    const altDiff = Math.abs(wy - layer.alt);
+    if (altDiff < 30) {
+      const influence = 1 - altDiff / 30;
+      wx_ += layer.windX * influence;
+      wz_ += layer.windZ * influence;
+      // 전단 경계에서 난기류 증가
+      wy_ += (Math.random() - 0.5) * influence * 3;
+    }
+  });
+
+  // 돌풍 추가
+  wx_ += weather.gustDir.x * weather.gustIntensity;
+  wz_ += weather.gustDir.z * weather.gustIntensity;
+
+  // 난기류 (랜덤 요동)
+  if (weather.turbulence > 0) {
+    const turb = weather.turbulence;
+    wx_ += (Math.random() - 0.5) * turb * 2;
+    wz_ += (Math.random() - 0.5) * turb * 2;
+    wy_ += (Math.random() - 0.5) * turb * 0.5;
+  }
+
+  // ── 마이크로버스트: 급강하풍 + 수평 발산 ──
+  weather.microbursts.forEach(mb => {
+    const dx = wx - mb.x, dz = wz - mb.z;
+    const d = Math.sqrt(dx * dx + dz * dz);
+    if (d < mb.radius && mb.currentStrength > 0) {
+      const ratio = 1 - d / mb.radius;
+      // 중심부: 강한 하강풍, 외곽: 수평 발산풍
+      if (d < mb.radius * 0.4) {
+        // 코어: 하강풍 지배적
+        wy_ -= mb.currentStrength * ratio;
+        // 약한 수평 발산
+        const spread = mb.currentStrength * 0.3 * ratio;
+        if (d > 1) { wx_ += (dx / d) * spread; wz_ += (dz / d) * spread; }
+      } else {
+        // 외곽: 수평 폭풍풍 (outflow) — 지면 근처에서 강해짐
+        const outflow = mb.currentStrength * ratio * Math.max(0.3, 1 - wy / 100);
+        if (d > 1) { wx_ += (dx / d) * outflow; wz_ += (dz / d) * outflow; }
+        wy_ -= mb.currentStrength * ratio * 0.3;
+      }
+    }
+  });
+
+  // ── 이동 폭풍셀: 회전풍 + 난기류 ──
+  weather.stormCells.forEach(sc => {
+    const dx = wx - sc.x, dz = wz - sc.z;
+    const d = Math.sqrt(dx * dx + dz * dz);
+    if (d < sc.radius) {
+      const ratio = 1 - d / sc.radius;
+      const intensity = sc.intensity * ratio;
+      // 회전풍 (사이클론)
+      const angle = Math.atan2(dz, dx) + Math.PI * 0.5 + sc.rotation;
+      wx_ += Math.cos(angle) * intensity;
+      wz_ += Math.sin(angle) * intensity;
+      // 수직 불안정 (상승+하강 혼재)
+      wy_ += (Math.sin(d * 0.01 + simTime * 2) * intensity * 0.5);
+      // 추가 난기류
+      wx_ += (Math.random() - 0.5) * intensity * 0.8;
+      wz_ += (Math.random() - 0.5) * intensity * 0.8;
+    }
+  });
+
+  // 열 상승기류 구역
+  weather.thermalZones.forEach(tz => {
+    const dx = wx - tz.x, dz = wz - tz.z;
+    const d = Math.sqrt(dx * dx + dz * dz);
+    if (d < tz.radius) {
+      wy_ += tz.strength * (1 - d / tz.radius);
+    }
+  });
+
+  return { x: wx_, z: wz_, y: wy_ };
+}
+
+// ===== Event Log =====
+const eventLog = [];
+const MAX_LOG = 200;
+function logEvent(type, msg) {
+  const m = Math.floor(simTime / 60), s = Math.floor(simTime % 60);
+  const ts = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  eventLog.unshift({ ts, type, msg });
+  if (eventLog.length > MAX_LOG) eventLog.length = MAX_LOG;
+}
+
+// ===== Three.js Setup =====
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x030508, 0.003);
+
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1200);
+camera.position.set(70, 50, 70);
+camera.lookAt(0, 3, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+// ===== Starfield Background (경량) =====
+(function createStarfield() {
+  const n = 500;
+  const pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const th = Math.random() * Math.PI * 2;
+    const ph = Math.acos(Math.random());
+    const r = 400 + Math.random() * 200;
+    pos[i*3] = r * Math.sin(ph) * Math.cos(th);
+    pos[i*3+1] = r * Math.cos(ph);
+    pos[i*3+2] = r * Math.sin(ph) * Math.sin(th);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xaaccff, size: 0.5, transparent: true, opacity: 0.5 })));
+})();
+
+// ===== Collision Particle System (경량) =====
+const collisionParticles = [];
+function spawnCollisionParticles(x, y, z) {
+  if (collisionParticles.length > 5) return; // 동시 파티클 제한
+  const n = 10;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(n * 3);
+  const vel = [];
+  for (let i = 0; i < n; i++) {
+    pos[i*3] = x; pos[i*3+1] = y; pos[i*3+2] = z;
+    vel.push({ vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3, vz: (Math.random()-0.5)*3 });
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const pts = new THREE.Points(geo, new THREE.PointsMaterial({
+    color: 0xff4400, size: 0.35, transparent: true, opacity: 1, blending: THREE.AdditiveBlending,
+  }));
+  scene.add(pts);
+  collisionParticles.push({ pts, vel, life: 1.0, age: 0 });
+}
+
+function updateCollisionParticles(dt) {
+  for (let i = collisionParticles.length - 1; i >= 0; i--) {
+    const p = collisionParticles[i];
+    p.age += dt;
+    if (p.age >= p.life) {
+      scene.remove(p.pts); p.pts.geometry.dispose(); p.pts.material.dispose();
+      collisionParticles.splice(i, 1); continue;
+    }
+    const arr = p.pts.geometry.attributes.position.array;
+    for (let j = 0; j < p.vel.length; j++) {
+      arr[j*3] += p.vel[j].vx * dt; arr[j*3+1] += p.vel[j].vy * dt; arr[j*3+2] += p.vel[j].vz * dt;
+      p.vel[j].vy -= 1.5 * dt;
+    }
+    p.pts.geometry.attributes.position.needsUpdate = true;
+    p.pts.material.opacity = 1.0 - (p.age / p.life);
+  }
+}
+
+// ===== Drone Trail System (경량 — ROGUE만 트레일) =====
+const trailGroup = new THREE.Group();
+scene.add(trailGroup);
+const TRAIL_MAX = 20;
+
+function updateTrails() {
+  const rogues = drones.filter(d => d.isRogue && d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+  // 최대 10개만 트레일
+  const targets = rogues.slice(0, 10);
+
+  while (trailGroup.children.length > targets.length) {
+    const old = trailGroup.children[trailGroup.children.length - 1];
+    trailGroup.remove(old); old.geometry.dispose(); old.material.dispose();
+  }
+
+  targets.forEach((d, idx) => {
+    if (!d._trail) d._trail = [];
+    d._trail.push(d.group.position.clone());
+    if (d._trail.length > TRAIL_MAX) d._trail.shift();
+    if (d._trail.length < 2) return;
+    const geo = new THREE.BufferGeometry().setFromPoints(d._trail);
+    if (trailGroup.children[idx]) {
+      trailGroup.children[idx].geometry.dispose();
+      trailGroup.children[idx].geometry = geo;
+    } else {
+      trailGroup.add(new THREE.Line(geo, new THREE.LineBasicMaterial({
+        color: 0xff2200, transparent: true, opacity: 0.35
+      })));
+    }
+  });
+}
+
+// ===== Camera Shake =====
+let cameraShake = 0;
+function triggerCameraShake(intensity) { cameraShake = Math.min(cameraShake + intensity, 0.5); }
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.target.set(0, 2, 0);
+controls.minDistance = 15;
+controls.maxDistance = 120;
+controls.maxPolarAngle = Math.PI / 2.1;
+
+// ===== Lighting =====
+scene.add(new THREE.AmbientLight(0x112233, 0.6));
+const dirLight = new THREE.DirectionalLight(0x4488cc, 0.8);
+dirLight.position.set(30, 40, 20);
+scene.add(dirLight);
+const pointLight = new THREE.PointLight(0x00e5ff, 1.5, 80);
+pointLight.position.set(0, 10, 0);
+scene.add(pointLight);
+
+// ===== Ground =====
+const gridH = new THREE.GridHelper(W * 2, 40, 0x0a1628, 0x0a1628);
+gridH.material.opacity = 0.4;
+gridH.material.transparent = true;
+scene.add(gridH);
+
+const groundGeo = new THREE.PlaneGeometry(W * 2, W * 2);
+const groundMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.015, side: THREE.DoubleSide });
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = 0.01;
+scene.add(ground);
+
+// ===== NFZ (No-Fly Zone) =====
+const nfzW = 500 * SCALE, nfzH = 120 * SCALE * 3;
+const nfzGeo = new THREE.BoxGeometry(nfzW * 2, nfzH, nfzW * 2);
+const nfzMat = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.08, side: THREE.DoubleSide });
+const nfz = new THREE.Mesh(nfzGeo, nfzMat);
+nfz.position.y = nfzH / 2;
+scene.add(nfz);
+// NFZ wireframe
+const nfzEdge = new THREE.LineSegments(
+  new THREE.EdgesGeometry(nfzGeo),
+  new THREE.LineBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.4 })
+);
+nfzEdge.position.copy(nfz.position);
+scene.add(nfzEdge);
+// NFZ label
+const nfzLabel = makeTextSprite('NFZ 비행금지구역', '#ff4444', 10);
+nfzLabel.position.set(0, nfzH + 0.5, 0);
+nfzLabel.scale.set(6, 1.5, 1);
+scene.add(nfzLabel);
+
+// ===== Corridors =====
+function makeCorridor(altitude, axis, color, labelText) {
+  const h = altitude * SCALE * 3;
+  const thickness = 0.15;
+  const width = 400 * SCALE; // 400m wide
+  let geo, pos;
+  if (axis === 'EW') {
+    geo = new THREE.BoxGeometry(W * 2, thickness, width);
+    pos = new THREE.Vector3(0, h, 0);
+  } else {
+    geo = new THREE.BoxGeometry(width, thickness, W * 2);
+    pos = new THREE.Vector3(0, h, 0);
+  }
+  const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.06, side: THREE.DoubleSide });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.copy(pos);
+  scene.add(mesh);
+  // Edge lines
+  const edge = new THREE.LineSegments(
+    new THREE.EdgesGeometry(geo),
+    new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.25 })
+  );
+  edge.position.copy(pos);
+  scene.add(edge);
+  // Label
+  const lbl = makeTextSprite(labelText, '#' + color.toString(16).padStart(6, '0'), 8);
+  lbl.position.set(axis === 'EW' ? -W + 3 : 0, h + 0.8, axis === 'NS' ? -W + 3 : 0);
+  lbl.scale.set(5, 1.2, 1);
+  scene.add(lbl);
+}
+makeCorridor(60, 'EW', 0x3b82f6, '동서 회랑 (60m)');
+makeCorridor(80, 'NS', 0x10b981, '남북 회랑 (80m)');
+
+// ===== Landing Pads =====
+LANDING_PADS.forEach(pad => {
+  const px = pad.x * SCALE, pz = pad.z * SCALE;
+  // Pad circle
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(0.8, 1.2, 32),
+    new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.4, side: THREE.DoubleSide })
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.set(px, 0.05, pz);
+  scene.add(ring);
+  // Inner circle
+  const inner = new THREE.Mesh(
+    new THREE.CircleGeometry(0.5, 16),
+    new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.15, side: THREE.DoubleSide })
+  );
+  inner.rotation.x = -Math.PI / 2;
+  inner.position.set(px, 0.04, pz);
+  scene.add(inner);
+  // Cross marker
+  for (let r = 0; r < 2; r++) {
+    const line = new THREE.Mesh(
+      new THREE.BoxGeometry(1.6, 0.02, 0.08),
+      new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.5 })
+    );
+    line.rotation.y = r * Math.PI / 2;
+    line.position.set(px, 0.06, pz);
+    scene.add(line);
+  }
+  // Label
+  const lbl = makeTextSprite(pad.name, '#ffd700', 8);
+  lbl.position.set(px, 0.8, pz);
+  lbl.scale.set(3, 0.8, 1);
+  scene.add(lbl);
+});
+
+// ===== Scan Rings =====
+const scanRings = [];
+for (let i = 0; i < 3; i++) {
+  const ringGeo = new THREE.RingGeometry(0.5, 0.7, 64);
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.05;
+  ring.userData = { phase: i * (Math.PI * 2 / 3) };
+  scene.add(ring);
+  scanRings.push(ring);
+}
+
+// ===== Helpers (moved before ATC to avoid TDZ) =====
+function createGlowTexture() {
+  const c = document.createElement('canvas');
+  c.width = 128; c.height = 128;
+  const ctx = c.getContext('2d');
+  const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grad.addColorStop(0, 'rgba(255,255,255,0.6)');
+  grad.addColorStop(0.3, 'rgba(255,255,255,0.2)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+}
+const glowTex = createGlowTexture();
+
+function makeTextSprite(text, color, fontSize) {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 64;
+  const ctx = c.getContext('2d');
+  ctx.font = `bold ${fontSize || 10}px JetBrains Mono, monospace`;
+  ctx.fillStyle = color || '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 128, 32);
+  const tex = new THREE.CanvasTexture(c);
+  return new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+}
+
+// ===== ATC Control Drones (관제 드론) =====
+const ATC_POSITIONS = [
+  { name: 'ATC-01', x: 0, z: 0, alt: 130, role: '중앙 총괄 관제' },
+  // 사분면 관제 (4대) — 구역 감시
+  { name: 'ATC-02', x: -2500, z: 2500, alt: 115, role: 'NW 구역' },
+  { name: 'ATC-03', x: 2500, z: 2500, alt: 115, role: 'NE 구역' },
+  { name: 'ATC-04', x: -2500, z: -2500, alt: 115, role: 'SW 구역' },
+  { name: 'ATC-05', x: 2500, z: -2500, alt: 115, role: 'SE 구역' },
+  // 축 방향 중간 관제 (4대) — 회랑 커버
+  { name: 'ATC-06', x: 0, z: 2800, alt: 100, role: 'N 회랑' },
+  { name: 'ATC-07', x: 0, z: -2800, alt: 100, role: 'S 회랑' },
+  { name: 'ATC-08', x: -2800, z: 0, alt: 100, role: 'W 회랑' },
+  { name: 'ATC-09', x: 2800, z: 0, alt: 100, role: 'E 회랑' },
+  // 착륙장 관제 (4대) — 패드 근접 감시·착륙 시퀀스 제어
+  { name: 'ATC-10', x: -3000, z: 3000, alt: 85, role: 'PAD_NW 관제' },
+  { name: 'ATC-11', x: 3000, z: 3000, alt: 85, role: 'PAD_NE 관제' },
+  { name: 'ATC-12', x: -3000, z: -3000, alt: 85, role: 'PAD_SW 관제' },
+  { name: 'ATC-13', x: 3000, z: -3000, alt: 85, role: 'PAD_SE 관제' },
+  // 내부 링 관제 (4대) — 중심부 교차 교통 관리
+  { name: 'ATC-14', x: -1200, z: 1200, alt: 110, role: 'NW 내부' },
+  { name: 'ATC-15', x: 1200, z: 1200, alt: 110, role: 'NE 내부' },
+  { name: 'ATC-16', x: -1200, z: -1200, alt: 110, role: 'SW 내부' },
+  { name: 'ATC-17', x: 1200, z: -1200, alt: 110, role: 'SE 내부' },
+  // 고고도 광역 감시 (2대) — 전체 조감 + 장거리 CPA
+  { name: 'ATC-18', x: -1500, z: 0, alt: 155, role: '서측 광역 감시' },
+  { name: 'ATC-19', x: 1500, z: 0, alt: 155, role: '동측 광역 감시' },
+  // 패드 CENTER 전담 + 대각선 순찰 (2대)
+  { name: 'ATC-20', x: 0, z: 0, alt: 90, role: 'PAD_CENTER 관제' },
+  { name: 'ATC-21', x: 0, z: 1500, alt: 120, role: '중앙 순찰' },
+];
+const atcDrones = [];
+
+ATC_POSITIONS.forEach(atc => {
+  const grp = new THREE.Group();
+  const px = atc.x * SCALE, pz = atc.z * SCALE, py = atc.alt * SCALE * 3;
+
+  // Body — 더 큰 다이아몬드 형태
+  const bodyGeo = new THREE.OctahedronGeometry(0.4, 1);
+  const bodyMat = new THREE.MeshPhongMaterial({
+    color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.8,
+    transparent: true, opacity: 0.9,
+  });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  grp.add(body);
+
+  // 외곽 링 (레이더 디쉬)
+  const dish = new THREE.Mesh(
+    new THREE.TorusGeometry(0.7, 0.03, 8, 32),
+    new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.5 })
+  );
+  dish.rotation.x = Math.PI / 2;
+  grp.add(dish);
+
+  // 레이더 범위 원 (지면 투영)
+  const radarGeo = new THREE.RingGeometry(0, 2000 * SCALE, 64);
+  const radarMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.04, side: THREE.DoubleSide });
+  const radar = new THREE.Mesh(radarGeo, radarMat);
+  radar.rotation.x = -Math.PI / 2;
+  radar.position.set(px, 0.02, pz);
+  scene.add(radar);
+
+  // 레이더 범위 외곽선
+  const radarEdge = new THREE.Mesh(
+    new THREE.RingGeometry(2000 * SCALE - 0.05, 2000 * SCALE, 64),
+    new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.15, side: THREE.DoubleSide })
+  );
+  radarEdge.rotation.x = -Math.PI / 2;
+  radarEdge.position.set(px, 0.03, pz);
+  scene.add(radarEdge);
+
+  // 연결선 (지면→관제 드론)
+  const connGeo = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(px, 0.1, pz),
+    new THREE.Vector3(px, py, pz),
+  ]);
+  const connLine = new THREE.Line(connGeo, new THREE.LineDashedMaterial({
+    color: 0x00e5ff, transparent: true, opacity: 0.2, dashSize: 0.3, gapSize: 0.2,
+  }));
+  connLine.computeLineDistances();
+  scene.add(connLine);
+
+  // Glow
+  const glow = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: glowTex, color: 0x00e5ff, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending })
+  );
+  glow.scale.set(3, 3, 1);
+  grp.add(glow);
+
+  // Label
+  const lbl = makeTextSprite(`${atc.name} [${atc.role}]`, '#00e5ff', 9);
+  lbl.position.set(0, 1.2, 0);
+  lbl.scale.set(5, 1.2, 1);
+  grp.add(lbl);
+
+  grp.position.set(px, py, pz);
+  scene.add(grp);
+  atcDrones.push({ grp, body, dish, glow, radar, radarEdge, ...atc });
+});
+
+// ===== Boundary markers =====
+const boundaryGeo = new THREE.BufferGeometry().setFromPoints([
+  new THREE.Vector3(-W, 0, -W), new THREE.Vector3(W, 0, -W),
+  new THREE.Vector3(W, 0, W), new THREE.Vector3(-W, 0, W), new THREE.Vector3(-W, 0, -W)
+]);
+scene.add(new THREE.Line(boundaryGeo, new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.15 })));
+
+// ===== Helpers (defined above, before ATC section) =====
+
+function phaseColor(phase) {
+  return PHASES[phase] ? PHASES[phase].color : 0x888888;
+}
+
+function randomPad() {
+  return LANDING_PADS[Math.floor(Math.random() * LANDING_PADS.length)];
+}
+
+// ===== Drone Factory =====
+const droneGroup = new THREE.Group();
+scene.add(droneGroup);
+const proximityLines = new THREE.Group();
+scene.add(proximityLines);
+// 근접선 오브젝트 풀 (GC 압력 방지)
+const _linePool = [];
+let _linePoolIdx = 0;
+
+let _lightweight = false; // 100대 초과 시 경량 모드
+
+function createDrone(id, startPad) {
+  const group = new THREE.Group();
+  const color = new THREE.Color(PHASES.GROUNDED.color);
+
+  // Body — 경량모드: 낮은 디테일
+  const body = new THREE.Mesh(
+    _lightweight ? new THREE.TetrahedronGeometry(0.2, 0) : new THREE.OctahedronGeometry(0.2, 0),
+    new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: 0.6 })
+  );
+  group.add(body);
+
+  // Rotor ring — 경량모드: 세그먼트 줄임
+  const rotor = new THREE.Mesh(
+    new THREE.TorusGeometry(0.35, 0.015, _lightweight ? 4 : 8, _lightweight ? 12 : 24),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.4 })
+  );
+  rotor.rotation.x = Math.PI / 2;
+  group.add(rotor);
+
+  // Glow — 경량모드: 비활성
+  let glow;
+  if (!_lightweight) {
+    glow = new THREE.Sprite(
+      new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending })
+    );
+    glow.scale.set(1.5, 1.5, 1);
+    group.add(glow);
+  }
+
+  const px = startPad.x * SCALE, pz = startPad.z * SCALE;
+  group.position.set(px, 0.1, pz);
+
+  const destPad = randomPad();
+  const role = DRONE_ROLES[id % DRONE_ROLES.length];
+  const isUAM = role.id === 'uam_taxi' || role.id === 'uam_shuttle';
+  // 고도 레이어 할당: ID 기반 분산 (충돌 방지)
+  const layerIdx = id % ALTITUDE_LAYERS.length;
+  const baseLayerAlt = ALTITUDE_LAYERS[layerIdx];
+  const cruiseAlt = isUAM ? (100 + Math.random() * 60) : (baseLayerAlt + (Math.random() - 0.5) * 10); // UAM: 100-160m, 일반: 40-110m
+
+  // UAM은 크기 1.6배
+  if (isUAM) {
+    body.geometry.dispose();
+    body.geometry = _lightweight ? new THREE.TetrahedronGeometry(0.32, 0) : new THREE.OctahedronGeometry(0.32, 0);
+    rotor.geometry.dispose();
+    rotor.geometry = new THREE.TorusGeometry(0.56, 0.02, _lightweight ? 4 : 8, _lightweight ? 12 : 24);
+    if (glow) glow.scale.set(2.2, 2.2, 1);
+  }
+
+  const maxSpd = isUAM ? (15 + Math.random() * 10) : (8 + Math.random() * 7);
+  const drone = {
+    id: `DR-${String(id).padStart(3,'0')}`,
+    role,
+    group, body, rotor, glow: glow || null,
+    phase: 'GROUNDED',
+    battery: 85 + Math.random() * 15,
+    // World coordinates in meters
+    wx: startPad.x, wy: 0, wz: startPad.z,
+    targetAlt: cruiseAlt,
+    goalX: destPad.x, goalZ: destPad.z,
+    goalPad: destPad,
+    startPad,
+    speed: 0,              // 현재 속도 (0에서 가속)
+    maxSpeed: maxSpd,      // 최대 순항 속도
+    groundDelay: Math.random() * 15,
+    evadeTimer: 0,
+    failed: false,
+    // 정밀 비행 역학
+    vx: 0, vy: 0, vz: 0,        // 속도 벡터 (m/s)
+    heading: Math.random() * 360, // 기수 방향 (°)
+    targetHeading: 0,             // 목표 기수 방향
+    throttle: 0,                  // 추력 (0~1)
+    mass: isUAM ? PHYSICS.uamMass : PHYSICS.mass,
+    priority: PRIORITY[role.id] ?? 9,
+    // 텔레메트리
+    distanceTraveled: 0,          // 총 비행 거리 (m)
+    flightTime: 0,                // 비행 시간 (s)
+    maxAltReached: 0,             // 최대 도달 고도
+    waypointHits: 0,              // 경유점 도달 횟수
+    evasionCount: 0,              // 회피 횟수
+    // 착륙 시퀀스
+    landingQueued: false,         // 착륙 대기열 등록 여부
+    landingSlot: -1,              // 착륙 슬롯 번호
+    holdingOrbitAngle: 0,         // 홀딩 패턴 각도
+    // APF 회피 벡터 (속도 보정)
+    apfVx: 0, apfVz: 0, apfVy: 0,
+  };
+
+  group.userData = drone;
+  droneGroup.add(group);
+  return drone;
+}
+
+function initDrones(scenario) {
+  // Clear (geometry/material 해제 — GPU 메모리 누수 방지)
+  while (droneGroup.children.length) {
+    const grp = droneGroup.children[0];
+    grp.traverse(child => {
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) { if (child.material.map) child.material.map.dispose(); child.material.dispose(); }
+    });
+    droneGroup.remove(grp);
+  }
+  while (trailGroup.children.length) {
+    const c = trailGroup.children[0];
+    trailGroup.remove(c); c.geometry.dispose(); c.material.dispose();
+  }
+  while (atcLinkGroup.children.length) {
+    const c = atcLinkGroup.children[0];
+    atcLinkGroup.remove(c); c.geometry.dispose(); c.material.dispose();
+  }
+  drones = [];
+  stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
+  simTime = 0;
+  landingManager.clear();
+  takeoffController.clear();
+  // APF 충돌 쿨다운 초기화
+  if (apfCollisionAvoidance._cooldown) apfCollisionAvoidance._cooldown.clear();
+  if (apfCollisionAvoidance._nearCooldown) apfCollisionAvoidance._nearCooldown.clear();
+  if (apfCollisionAvoidance._conflictCooldown) apfCollisionAvoidance._conflictCooldown.clear();
+  // 근접선 풀 숨기기
+  for (let li = 0; li < _linePoolIdx; li++) _linePool[li].visible = false;
+  _linePoolIdx = 0;
+
+  const cfg = SCENARIOS[scenario] || SCENARIOS.default;
+  windEnabled = cfg.wind;
+  const count = cfg.count;
+  _lightweight = count > 100;
+
+  // 기상 시스템 초기화 (전체 리셋)
+  weather.gustIntensity = 0;
+  weather.gustTimer = 5;
+  weather.turbulence = 0;
+  weather.precipitation = 0;
+  weather.visibility = 1.0;
+  weather.thermalZones = [];
+  weather.microbursts = [];
+  weather.stormCells = [];
+  weather.windShearLayers = [];
+  weather.icing = 0;
+  weather.typhoonWind = 0;
+  weather.typhoonAngle = 0;
+
+  // 시나리오별 기상·분위기
+  if (scenario === 'fog_low_vis') {
+    scene.fog = new THREE.FogExp2(0x1a1a2e, 0.012);
+    weather.visibility = 0.3;
+    weather.turbulence = 0.5;
+  } else if (scenario === 'heavy_storm') {
+    scene.fog = new THREE.FogExp2(0x0a0a18, 0.006);
+    weather.turbulence = 2.5;
+    weather.precipitation = 3;
+    weather.gustTimer = 2; // 돌풍 빈번
+  } else if (scenario === 'weather_disturbance') {
+    scene.fog = new THREE.FogExp2(0x0a0a18, 0.004);
+    weather.turbulence = 1.5;
+    weather.precipitation = 1;
+    weather.gustTimer = 3;
+  } else if (scenario === 'thermal_updraft') {
+    scene.fog = new THREE.FogExp2(0x030508, 0.003);
+    weather.turbulence = 1.0;
+    // 열 상승기류 구역 5개 배치
+    for (let t = 0; t < 5; t++) {
+      weather.thermalZones.push({
+        x: (Math.random() - 0.5) * 6000,
+        z: (Math.random() - 0.5) * 6000,
+        radius: 500 + Math.random() * 800,
+        strength: 2 + Math.random() * 4,  // m/s 상승
+      });
+    }
+  } else if (scenario === 'extreme_stress' || scenario === 'apocalypse') {
+    scene.fog = new THREE.FogExp2(0x0a0a14, 0.005);
+    weather.turbulence = 2.0;
+    weather.precipitation = 2;
+    weather.gustTimer = 1;
+    for (let t = 0; t < 3; t++) {
+      weather.thermalZones.push({
+        x: (Math.random() - 0.5) * 4000,
+        z: (Math.random() - 0.5) * 4000,
+        radius: 400 + Math.random() * 600,
+        strength: 3 + Math.random() * 3,
+      });
+    }
+  } else if (scenario === 'mega_storm' || scenario === 'total_war') {
+    scene.fog = new THREE.FogExp2(0x080812, 0.006);
+    weather.turbulence = 2.5;
+    weather.precipitation = 3;
+    weather.gustTimer = 1;
+    weather.typhoonWind = 10;
+    weather.icing = 1;
+    for (let m = 0; m < 3; m++) {
+      weather.microbursts.push({
+        x: (Math.random() - 0.5) * 6000, z: (Math.random() - 0.5) * 6000,
+        radius: 400 + Math.random() * 500, strength: 10 + Math.random() * 10,
+        currentStrength: 0,
+      });
+      const _mb1 = weather.microbursts[weather.microbursts.length - 1]; _mb1.life = 15 + Math.random() * 10; _mb1.maxLife = _mb1.life;
+    }
+    for (let s = 0; s < 3; s++) {
+      weather.stormCells.push({
+        x: (Math.random() - 0.5) * 5000, z: (Math.random() - 0.5) * 5000,
+        vx: (Math.random() - 0.5) * 25, vz: (Math.random() - 0.5) * 25,
+        radius: 700 + Math.random() * 700, intensity: 8 + Math.random() * 8,
+        rotation: Math.random() * Math.PI * 2,
+      });
+    }
+  } else if (scenario === 'disaster_response' || scenario === 'military_exercise') {
+    scene.fog = new THREE.FogExp2(0x0a0a18, 0.004);
+    weather.turbulence = 1.5;
+    weather.precipitation = 1;
+    weather.gustTimer = 3;
+  } else if (scenario === 'full_spectrum') {
+    scene.fog = new THREE.FogExp2(0x080814, 0.005);
+    weather.turbulence = 2.0;
+    weather.precipitation = 2;
+    weather.gustTimer = 1.5;
+    weather.icing = 1;
+    weather.typhoonWind = 6;
+    for (let s = 0; s < 2; s++) {
+      weather.stormCells.push({
+        x: (Math.random() - 0.5) * 4000, z: (Math.random() - 0.5) * 4000,
+        vx: (Math.random() - 0.5) * 20, vz: (Math.random() - 0.5) * 20,
+        radius: 600 + Math.random() * 600, intensity: 8 + Math.random() * 6,
+        rotation: Math.random() * Math.PI * 2,
+      });
+    }
+  } else if (scenario === 'night_ops') {
+    scene.fog = new THREE.FogExp2(0x050510, 0.005);
+    weather.turbulence = 1.0;
+    weather.visibility = 0.4;
+    weather.gustTimer = 4;
+  } else if (scenario === 'weather_hell') {
+    // ── 극한기상 지옥: 모든 기상현상 동시 발동 ──
+    scene.fog = new THREE.FogExp2(0x080810, 0.008);
+    weather.turbulence = 3.0;
+    weather.precipitation = 3;
+    weather.gustTimer = 0.5;
+    weather.icing = 2;
+    weather.typhoonWind = 8;
+    // 마이크로버스트 3개 즉시 배치
+    for (let m = 0; m < 3; m++) {
+      weather.microbursts.push({
+        x: (Math.random() - 0.5) * 5000,
+        z: (Math.random() - 0.5) * 5000,
+        radius: 400 + Math.random() * 400,
+        strength: 12 + Math.random() * 8,
+        currentStrength: 0,
+      });
+      const _mb2 = weather.microbursts[weather.microbursts.length - 1]; _mb2.life = 15 + Math.random() * 10; _mb2.maxLife = _mb2.life;
+    }
+    // 이동 폭풍셀 2개
+    for (let s = 0; s < 2; s++) {
+      weather.stormCells.push({
+        x: (Math.random() - 0.5) * 4000,
+        z: (Math.random() - 0.5) * 4000,
+        vx: (Math.random() - 0.5) * 30,
+        vz: (Math.random() - 0.5) * 30,
+        radius: 800 + Math.random() * 600,
+        intensity: 8 + Math.random() * 6,
+        rotation: Math.random() * Math.PI * 2,
+      });
+    }
+    // 풍속 전단 레이어 4개
+    for (let l = 0; l < 4; l++) {
+      weather.windShearLayers.push({
+        alt: 40 + l * 35,
+        windX: (Math.random() - 0.5) * 15,
+        windZ: (Math.random() - 0.5) * 15,
+      });
+    }
+    // 열 상승기류 구역
+    for (let t = 0; t < 4; t++) {
+      weather.thermalZones.push({
+        x: (Math.random() - 0.5) * 5000,
+        z: (Math.random() - 0.5) * 5000,
+        radius: 500 + Math.random() * 500,
+        strength: 4 + Math.random() * 6,
+      });
+    }
+  } else if (scenario === 'microburst_storm') {
+    // ── 마이크로버스트 집중: 다수의 급강하풍 ──
+    scene.fog = new THREE.FogExp2(0x0a0a18, 0.006);
+    weather.turbulence = 2.5;
+    weather.precipitation = 3;
+    weather.gustTimer = 1;
+    for (let m = 0; m < 5; m++) {
+      weather.microbursts.push({
+        x: (Math.random() - 0.5) * 6000,
+        z: (Math.random() - 0.5) * 6000,
+        radius: 300 + Math.random() * 500,
+        strength: 10 + Math.random() * 10,
+        currentStrength: 0,
+      });
+      const _mb3 = weather.microbursts[weather.microbursts.length - 1]; _mb3.life = 10 + Math.random() * 15; _mb3.maxLife = _mb3.life;
+    }
+  } else if (scenario === 'typhoon') {
+    // ── 태풍급 회전 강풍 ──
+    scene.fog = new THREE.FogExp2(0x080812, 0.007);
+    weather.turbulence = 3.0;
+    weather.precipitation = 3;
+    weather.gustTimer = 0.5;
+    weather.typhoonWind = 15; // 15 m/s 기본 + 돌풍
+    weather.icing = 1;
+    // 풍속 전단 레이어
+    for (let l = 0; l < 3; l++) {
+      weather.windShearLayers.push({
+        alt: 50 + l * 40,
+        windX: (Math.random() - 0.5) * 20,
+        windZ: (Math.random() - 0.5) * 20,
+      });
+    }
+  } else if (scenario === 'ice_storm') {
+    // ── 결빙 폭풍: 기체 성능 대폭 저하 ──
+    scene.fog = new THREE.FogExp2(0x101020, 0.005);
+    weather.turbulence = 2.0;
+    weather.precipitation = 2;
+    weather.gustTimer = 2;
+    weather.icing = 3; // 최대 결빙
+    weather.visibility = 0.2;
+    // 풍속 전단
+    for (let l = 0; l < 5; l++) {
+      weather.windShearLayers.push({
+        alt: 30 + l * 30,
+        windX: (Math.random() - 0.5) * 12,
+        windZ: (Math.random() - 0.5) * 12,
+      });
+    }
+  } else if (scenario === 'multi_cell_storm') {
+    // ── 다중셀 폭풍: 여러 개의 이동하는 폭풍 ──
+    scene.fog = new THREE.FogExp2(0x0a0a14, 0.006);
+    weather.turbulence = 2.5;
+    weather.precipitation = 3;
+    weather.gustTimer = 1;
+    weather.icing = 1;
+    for (let s = 0; s < 4; s++) {
+      weather.stormCells.push({
+        x: (Math.random() - 0.5) * 5000,
+        z: (Math.random() - 0.5) * 5000,
+        vx: 15 + Math.random() * 25,
+        vz: (Math.random() - 0.5) * 20,
+        radius: 600 + Math.random() * 800,
+        intensity: 10 + Math.random() * 8,
+        rotation: Math.random() * Math.PI * 2,
+      });
+    }
+    // 마이크로버스트 2개
+    for (let m = 0; m < 2; m++) {
+      weather.microbursts.push({
+        x: (Math.random() - 0.5) * 5000,
+        z: (Math.random() - 0.5) * 5000,
+        radius: 350 + Math.random() * 400,
+        strength: 10 + Math.random() * 8,
+        currentStrength: 0,
+      });
+      const _mb4 = weather.microbursts[weather.microbursts.length - 1]; _mb4.life = 12 + Math.random() * 10; _mb4.maxLife = _mb4.life;
+    }
+  } else {
+    scene.fog = new THREE.FogExp2(0x030508, 0.003);
+  }
+
+  for (let i = 0; i < count; i++) {
+    const pad = LANDING_PADS[i % LANDING_PADS.length];
+    const d = createDrone(i + 1, pad);
+
+    // 시나리오별 특화
+    switch (scenario) {
+      case 'mass_takeoff':
+        d.groundDelay = Math.random() * 2;
+        break;
+      case 'route_conflict':
+        d.goalX = -d.startPad.x;
+        d.goalZ = -d.startPad.z;
+        d.groundDelay = Math.random() * 3;
+        break;
+      case 'weather_disturbance':
+        d.groundDelay = Math.random() * 5;
+        d.maxSpeed *= 0.85;
+        break;
+      case 'adversarial_intrusion':
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true;
+          d.maxSpeed *= 1.4;
+          d.groundDelay = 0;
+          d.goalX = (Math.random() - 0.5) * 800;
+          d.goalZ = (Math.random() - 0.5) * 800;
+        }
+        break;
+      case 'battery_critical':
+        // 대부분 드론 배터리 20~40% 시작 → 빠르게 RTL 발생
+        d.battery = 15 + Math.random() * 25;
+        d.groundDelay = Math.random() * 4;
+        break;
+      case 'cascade_failure':
+        // 장애가 시간차 연쇄 발생 (5~40초 사이 집중)
+        d.willFail = true; // 모든 드론에 장애 주입
+        d.failTime = 5 + (i / count) * 35; // 시간차 연쇄
+        d.groundDelay = Math.random() * 3;
+        break;
+      case 'nfz_saturate':
+        // 모든 드론이 NFZ 주변으로 집중 → 회피 폭주
+        d.goalX = (Math.random() - 0.5) * 1200;
+        d.goalZ = (Math.random() - 0.5) * 1200;
+        d.groundDelay = Math.random() * 4;
+        break;
+      case 'mixed_traffic':
+        // 속도/고도 편차 크게
+        d.maxSpeed = 4 + Math.random() * 14;  // 4~18 m/s
+        d.targetAlt = 30 + Math.random() * 90;  // 30~120m
+        d.groundDelay = Math.random() * 6;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true;
+          d.maxSpeed *= 1.3;
+          d.groundDelay = 0;
+        }
+        break;
+      case 'search_rescue':
+        // 소수 드론이 좁은 영역을 집중 수색 (원형 패턴)
+        {
+          const angle = (i / count) * Math.PI * 2;
+          const radius = 800 + Math.random() * 600;
+          d.goalX = Math.cos(angle) * radius;
+          d.goalZ = Math.sin(angle) * radius;
+          d.targetAlt = 50 + Math.random() * 30;  // 저고도 수색
+          d.maxSpeed = 5 + Math.random() * 4;  // 저속
+          d.groundDelay = i * 0.5;  // 순차 투입
+        }
+        break;
+      case 'ultra_swarm':
+        d.groundDelay = Math.random() * 5;
+        d.maxSpeed = 6 + Math.random() * 10;
+        break;
+      case 'multi_failure':
+        // 바람 + 장애 + 일부 침입 동시
+        d.groundDelay = Math.random() * 4;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true;
+          d.speed *= 1.3;
+          d.groundDelay = 0;
+        }
+        break;
+      case 'corridor_congestion':
+        // 모든 드론이 동서/남북 회랑으로 집중
+        {
+          const useEW = i % 2 === 0;
+          d.goalX = useEW ? (Math.random() > 0.5 ? 4500 : -4500) : (Math.random() - 0.5) * 600;
+          d.goalZ = useEW ? (Math.random() - 0.5) * 600 : (Math.random() > 0.5 ? 4500 : -4500);
+          d.targetAlt = useEW ? 60 : 80;
+          d.groundDelay = Math.random() * 4;
+        }
+        break;
+      case 'cross_traffic':
+        // 대각선 교차 경로 → 중앙부 충돌 집중
+        {
+          const quadrant = i % 4;
+          const corners = [[-4000,-4000],[4000,-4000],[4000,4000],[-4000,4000]];
+          const opp = (quadrant + 2) % 4;
+          d.wx = corners[quadrant][0] + (Math.random()-0.5)*500;
+          d.wz = corners[quadrant][1] + (Math.random()-0.5)*500;
+          d.goalX = corners[opp][0] + (Math.random()-0.5)*500;
+          d.goalZ = corners[opp][1] + (Math.random()-0.5)*500;
+          d.group.position.set(d.wx * SCALE, 0.1, d.wz * SCALE);
+          d.groundDelay = Math.random() * 3;
+        }
+        break;
+      case 'heavy_storm':
+        d.speed *= 0.7;  // 강풍 대폭 감속
+        d.groundDelay = Math.random() * 6;
+        break;
+      case 'fog_low_vis':
+        // 저시정 → 감지 범위 축소 효과 (저속 + 저고도)
+        d.speed *= 0.75;
+        d.targetAlt = 35 + Math.random() * 25;
+        d.groundDelay = Math.random() * 5;
+        break;
+      case 'thermal_updraft':
+        // 열 상승기류 → 불규칙 고도 변동
+        d.thermalDrift = true;
+        d.groundDelay = Math.random() * 4;
+        break;
+      case 'swarm_attack':
+        // 다수 ROGUE가 NFZ 중심 집중 공격
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true;
+          d.speed *= 1.6;
+          d.groundDelay = 0;
+          d.goalX = (Math.random() - 0.5) * 500;
+          d.goalZ = (Math.random() - 0.5) * 500;
+        } else {
+          d.groundDelay = Math.random() * 5;
+        }
+        break;
+      case 'gps_spoofing':
+        // GPS 교란 → 위치 오차 드리프트
+        d.gpsDrift = true;
+        d.groundDelay = Math.random() * 5;
+        break;
+      case 'delivery_rush':
+        // 고속 택배 배송 — 빠른 이륙, 짧은 대기
+        d.maxSpeed = 10 + Math.random() * 8;
+        d.groundDelay = Math.random() * 2;
+        break;
+      case 'formation_flight':
+        // 편대 비행 — 일렬 배치, 같은 고도
+        {
+          const row = Math.floor(i / 5);
+          const col = i % 5;
+          d.wx = -2000 + col * 200;
+          d.wz = -2000 + row * 300;
+          d.goalX = 2000 + col * 200;
+          d.goalZ = 2000 + row * 300;
+          d.targetAlt = 60;
+          d.maxSpeed = 8;  // 동일 속도
+          d.group.position.set(d.wx * SCALE, 0.1, d.wz * SCALE);
+          d.groundDelay = row * 0.5;  // 열별 순차 이륙
+        }
+        break;
+      case 'extreme_stress':
+        d.groundDelay = Math.random() * 3;
+        d.maxSpeed = 6 + Math.random() * 12;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true;
+          d.maxSpeed *= 1.5;
+          d.groundDelay = 0;
+          d.goalX = (Math.random() - 0.5) * 1000;
+          d.goalZ = (Math.random() - 0.5) * 1000;
+        }
+        break;
+      case 'apocalypse':
+        // 200대 + 전부 동시 — 바람/장애/침입/NFZ
+        d.groundDelay = Math.random() * 2;
+        d.maxSpeed = 5 + Math.random() * 13;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true;
+          d.maxSpeed *= 1.5;
+          d.groundDelay = 0;
+          d.goalX = (Math.random() - 0.5) * 800;
+          d.goalZ = (Math.random() - 0.5) * 800;
+        }
+        break;
+      // ── 극한 기상 시나리오 드론 설정 ──
+      case 'weather_hell':
+        d.groundDelay = Math.random() * 3;
+        d.maxSpeed = 5 + Math.random() * 10;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true; d.maxSpeed *= 1.3; d.groundDelay = 0;
+        }
+        break;
+      case 'microburst_storm':
+        d.groundDelay = Math.random() * 4;
+        d.maxSpeed = 6 + Math.random() * 8;
+        break;
+      case 'typhoon':
+        d.groundDelay = Math.random() * 5;
+        d.maxSpeed = 4 + Math.random() * 8; // 태풍에선 저속 비행
+        break;
+      case 'ice_storm':
+        d.groundDelay = Math.random() * 4;
+        d.maxSpeed = 3 + Math.random() * 7; // 결빙 시 더 저속
+        break;
+      case 'multi_cell_storm':
+        d.groundDelay = Math.random() * 3;
+        d.maxSpeed = 5 + Math.random() * 10;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true; d.maxSpeed *= 1.3; d.groundDelay = 0;
+        }
+        break;
+      // ── 대규모 확장 시나리오 ──
+      case 'mega_swarm':
+      case 'mega_delivery':
+        d.groundDelay = Math.random() * 10; // 시간차 이륙
+        d.maxSpeed = 5 + Math.random() * 10;
+        break;
+      case 'mega_storm':
+        d.groundDelay = Math.random() * 8;
+        d.maxSpeed = 4 + Math.random() * 8;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true; d.maxSpeed *= 1.3; d.groundDelay = 0;
+        }
+        break;
+      case 'city_rush_hour':
+        d.groundDelay = Math.random() * 6;
+        d.maxSpeed = 8 + Math.random() * 10; // 고속 도심 비행
+        if (Math.random() < cfg.rogueRate) { d.isRogue = true; d.groundDelay = 0; }
+        break;
+      case 'military_exercise':
+        d.groundDelay = (i / count) * 5; // 순차 이륙
+        d.maxSpeed = 10 + Math.random() * 8; // 고속 군용
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true; d.maxSpeed *= 1.5; d.groundDelay = 0;
+          d.goalX = (Math.random() - 0.5) * 2000;
+          d.goalZ = (Math.random() - 0.5) * 2000;
+        }
+        break;
+      case 'disaster_response':
+        d.groundDelay = Math.random() * 5;
+        d.maxSpeed = 6 + Math.random() * 8;
+        d.goalX = (Math.random() - 0.5) * 3000; // 넓은 수색 범위
+        d.goalZ = (Math.random() - 0.5) * 3000;
+        break;
+      case 'uam_corridor':
+        d.groundDelay = Math.random() * 4;
+        d.maxSpeed = 12 + Math.random() * 8; // UAM 고속
+        break;
+      case 'night_ops':
+        d.groundDelay = Math.random() * 5;
+        d.maxSpeed = 5 + Math.random() * 8;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true; d.maxSpeed *= 1.4; d.groundDelay = 0;
+        }
+        break;
+      case 'multi_agency':
+        d.groundDelay = Math.random() * 6;
+        d.maxSpeed = 6 + Math.random() * 10;
+        if (Math.random() < cfg.rogueRate) { d.isRogue = true; d.groundDelay = 0; }
+        break;
+      case 'full_spectrum':
+        d.groundDelay = Math.random() * 5;
+        d.maxSpeed = 5 + Math.random() * 12;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true; d.maxSpeed *= 1.5; d.groundDelay = 0;
+          d.goalX = (Math.random() - 0.5) * 1500;
+          d.goalZ = (Math.random() - 0.5) * 1500;
+        }
+        break;
+      case 'total_war':
+        d.groundDelay = Math.random() * 3;
+        d.maxSpeed = 5 + Math.random() * 13;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true; d.maxSpeed *= 1.5; d.groundDelay = 0;
+          d.goalX = (Math.random() - 0.5) * 1000;
+          d.goalZ = (Math.random() - 0.5) * 1000;
+        }
+        break;
+      default:
+        d.groundDelay = Math.random() * 8;
+    }
+
+    // 장애 주입
+    if (cfg.failRate > 0 && Math.random() < cfg.failRate) {
+      d.willFail = true;
+      d.failTime = 8 + Math.random() * 25;
+    }
+
+    // 통신 두절 (HOLDING 강제 전환)
+    if (scenario === 'comms_loss' && Math.random() < 0.15) {
+      d.willLoseComms = true;
+      d.commsLossTime = 5 + Math.random() * 20;
+    }
+
+    drones.push(d);
+  }
+}
+
+// ===== NFZ Check =====
+function inNFZ(wx, wz) {
+  return Math.abs(wx) < 500 && Math.abs(wz) < 500;
+}
+
+// ===== 착륙 시퀀스 관리자 =====
+const landingManager = {
+  queues: {},  // padName → [drone, ...]
+  init() { LANDING_PADS.forEach(p => this.queues[p.name] = []); },
+  request(drone) {
+    const padName = drone.goalPad.name;
+    const q = this.queues[padName];
+    if (!q.includes(drone)) {
+      q.push(drone);
+      q.sort((a, b) => a.priority - b.priority);
+      drone.landingQueued = true;
+      drone.landingSlot = q.indexOf(drone);
+    }
+    return q[0] === drone;
+  },
+  release(drone) {
+    const padName = drone.goalPad.name;
+    const q = this.queues[padName];
+    const idx = q.indexOf(drone);
+    if (idx >= 0) q.splice(idx, 1);
+    drone.landingQueued = false;
+    drone.landingSlot = -1;
+  },
+  clear() { LANDING_PADS.forEach(p => this.queues[p.name] = []); },
+};
+landingManager.init();
+
+// ===== 이륙 흐름 제어 (Staggered Takeoff Controller) =====
+// 패드별 동시 이륙 제한 + 이륙 간격 보장 → 패드 밀집 충돌 방지
+const takeoffController = {
+  maxConcurrentPerPad: 3,  // 패드당 동시 비행중인 저고도(<40m) 드론 제한
+  minInterval: 2.0,        // 최소 이륙 간격 (초)
+  lastTakeoff: {},         // padName → 마지막 이륙 simTime
+  init() { LANDING_PADS.forEach(p => this.lastTakeoff[p.name] = -999); },
+  canTakeoff(drone) {
+    const padName = drone.startPad.name;
+    // 최소 간격 확인
+    if (simTime - (this.lastTakeoff[padName] || 0) < this.minInterval) return false;
+    // 패드 근처(<500m) 저고도(<40m) 비행 중인 드론 수 확인
+    const pad = drone.startPad;
+    let nearbyLow = 0;
+    for (const d of drones) {
+      if (d === drone) continue;
+      if (d.phase === 'GROUNDED' || d.phase === 'FAILED') continue;
+      if (d.wy > 40) continue; // 고도 40m 이상은 제외
+      const dx = d.wx - pad.x, dz = d.wz - pad.z;
+      if (dx * dx + dz * dz < 500 * 500) nearbyLow++;
+    }
+    return nearbyLow < this.maxConcurrentPerPad;
+  },
+  recordTakeoff(drone) {
+    this.lastTakeoff[drone.startPad.name] = simTime;
+  },
+  clear() { LANDING_PADS.forEach(p => this.lastTakeoff[p.name] = -999); },
+};
+takeoffController.init();
+
+// ===== 항로 고도 분리 시스템 (Heading-Based Altitude Layering) =====
+// 비행 방향별 고도 레이어 할당 → 교차 항로 충돌 방지
+function getHeadingAltLayer(heading) {
+  // 8방위(45° 간격)별 고도 레이어 할당
+  // N(0°)=40m, NE(45°)=55m, E(90°)=70m, SE(135°)=85m,
+  // S(180°)=100m, SW(225°)=115m, W(270°)=130m, NW(315°)=145m
+  const sector = Math.floor(((heading + 22.5) % 360) / 45);
+  return ALTITUDE_LAYERS[sector] || 70;
+}
+
+// ===== 정밀 비행 역학 헬퍼 =====
+function calcHeading(dx, dz) {
+  return ((Math.atan2(dx, dz) * 180 / Math.PI) + 360) % 360;
+}
+
+function turnToward(current, target, maxRate, dt) {
+  let diff = ((target - current + 540) % 360) - 180;
+  const turn = Math.sign(diff) * Math.min(Math.abs(diff), maxRate * dt);
+  return ((current + turn) + 360) % 360;
+}
+
+function accelToward(currentSpd, targetSpd, accel, decel, dt) {
+  if (currentSpd < targetSpd) return Math.min(currentSpd + accel * dt, targetSpd);
+  if (currentSpd > targetSpd) return Math.max(currentSpd - decel * dt, targetSpd);
+  return currentSpd;
+}
+
+// ===== Simulation Logic (정밀 비행 역학) =====
+function updateDrone(d, dt) {
+  if (!simRunning) return;
+  const sDt = dt * simSpeed;
+  const isFlying = d.phase !== 'GROUNDED' && d.phase !== 'FAILED';
+
+  // 정밀 배터리 모델: 고도·속도·바람에 따른 차등 소모
+  if (isFlying) {
+    const altCost = 0.01 * (d.wy / 100);            // 고고도 = 추가 소모
+    const spdCost = 0.008 * (d.speed / d.maxSpeed);  // 고속 = 추가 소모
+    const windPenalty = windEnabled ? 0.005 : 0;      // 바람 저항
+    d.battery = Math.max(0, d.battery - sDt * (0.02 + altCost + spdCost + windPenalty));
+    d.flightTime += sDt;
+    d.distanceTraveled += d.speed * sDt;
+    d.maxAltReached = Math.max(d.maxAltReached, d.wy);
+  } else {
+    d.battery = Math.max(0, d.battery - sDt * 0.005); // 지상 대기 소모
+  }
+
+  // ── 정밀 기상 대항 알고리즘 (Weather Counteraction System) ──
+  const w = getWindAt(d.wx, d.wy, d.wz);
+
+  // 결빙 효과: 기체 성능 저하 (가속·선회·상승 능력 감소)
+  const iceFactor = weather.icing > 0 ? Math.max(0.3, 1 - weather.icing * 0.2) : 1.0;
+  // 결빙 시 추가 배터리 소모 (히터 작동)
+  if (isFlying && weather.icing > 0) {
+    d.battery = Math.max(0, d.battery - sDt * weather.icing * 0.008);
+  }
+
+  // 풍속 보상 계수: 강풍일수록 더 적극적으로 보상
+  const rawWindSpd = Math.sqrt(w.x * w.x + w.z * w.z);
+  // 풍속 이력 저장 (이동평균 → 난기류 감쇠)
+  if (!d._windHistory) d._windHistory = [];
+  d._windHistory.push({ x: w.x, z: w.z, y: w.y });
+  if (d._windHistory.length > 10) d._windHistory.shift();
+  // 이동평균 바람 (난기류 고주파 필터링)
+  const avgWind = d._windHistory.reduce((a, v) => ({ x: a.x + v.x, z: a.z + v.z, y: a.y + v.y }), { x: 0, z: 0, y: 0 });
+  avgWind.x /= d._windHistory.length;
+  avgWind.z /= d._windHistory.length;
+  avgWind.y /= d._windHistory.length;
+
+  // 보상된 바람 벡터: 예측 가능한 바람은 사전 상쇄, 난기류만 잔여
+  const windCompensation = Math.min(0.7, rawWindSpd * 0.04); // 최대 70% 보상
+  const effectiveWindX = (w.x - avgWind.x * windCompensation) * sDt;
+  const effectiveWindZ = (w.z - avgWind.z * windCompensation) * sDt;
+  const effectiveWindY = (w.y - avgWind.y * windCompensation * 0.5) * sDt;
+
+  // 마이크로버스트 감지 및 긴급 회피
+  let inMicroburst = false;
+  let mbEscapeVx = 0, mbEscapeVz = 0;
+  if (isFlying && weather.microbursts.length > 0) {
+    for (const mb of weather.microbursts) {
+      const mdx = d.wx - mb.x, mdz = d.wz - mb.z;
+      const mDist = Math.sqrt(mdx * mdx + mdz * mdz);
+      if (mDist < mb.radius * 1.3 && mb.currentStrength > 2) {
+        inMicroburst = true;
+        // 탈출 벡터: 마이크로버스트 중심에서 반대 방향 + 상승
+        const escapeDist = Math.max(mDist, 1);
+        const escapeForce = mb.currentStrength * (1 - mDist / (mb.radius * 1.3));
+        mbEscapeVx += (mdx / escapeDist) * escapeForce * 2;
+        mbEscapeVz += (mdz / escapeDist) * escapeForce * 2;
+        // 긴급 상승 (하강풍 대항)
+        if (d.wy < 120) d.wy += Math.min(escapeForce * 0.5, PHYSICS.maxClimbRate) * sDt;
+        if (!d._mbWarned) {
+          logEvent('advisory', `🌪️ ${d.id} 마이크로버스트 진입! 긴급 회피`);
+          d._mbWarned = true;
+        }
+      }
+    }
+    if (!inMicroburst) d._mbWarned = false;
+  }
+
+  // 폭풍셀 감지 및 우회
+  let inStormCell = false;
+  let scAvoidVx = 0, scAvoidVz = 0;
+  if (isFlying && weather.stormCells.length > 0) {
+    for (const sc of weather.stormCells) {
+      const sdx = d.wx - sc.x, sdz = d.wz - sc.z;
+      const sDist = Math.sqrt(sdx * sdx + sdz * sdz);
+      // 폭풍셀 외곽 1.2배 거리에서부터 회피 시작
+      if (sDist < sc.radius * 1.2) {
+        inStormCell = true;
+        const avoidForce = sc.intensity * (1 - sDist / (sc.radius * 1.2)) * 0.8;
+        const safeDist = Math.max(sDist, 1);
+        scAvoidVx += (sdx / safeDist) * avoidForce;
+        scAvoidVz += (sdz / safeDist) * avoidForce;
+      }
+    }
+  }
+
+  // 강풍 시 자동 속도 제한 (Wind Speed Limit)
+  const windSpeedLimit = rawWindSpd > 10 ? d.maxSpeed * Math.max(0.3, 1 - (rawWindSpd - 10) * 0.05) : d.maxSpeed;
+
+  const windX = effectiveWindX;
+  const windZ = effectiveWindZ;
+  const windY = effectiveWindY;
+  if (isFlying && Math.abs(windY) > 0.01) {
+    d.wy = Math.max(5, Math.min(180, d.wy + windY));
+  }
+
+  switch (d.phase) {
+    case 'GROUNDED':
+      d.groundDelay -= sDt;
+      d.speed = 0;
+      d.vx = 0; d.vz = 0; d.vy = 0;
+      if (d.groundDelay <= 0 && d.battery > 10 && takeoffController.canTakeoff(d)) {
+        d.phase = 'TAKEOFF';
+        d.throttle = 0.8;
+        takeoffController.recordTakeoff(d);
+        logEvent('takeoff', `${d.id} [${d.role.label}] 이륙 개시`);
+      }
+      break;
+
+    case 'TAKEOFF': {
+      // 점진적 상승 (가속 → 순항 고도)
+      const climbSpd = accelToward(d.vy, PHYSICS.maxClimbRate * iceFactor, PHYSICS.maxAccel * iceFactor, PHYSICS.maxDecel, sDt);
+      d.vy = climbSpd;
+      d.wy = Math.min(d.wy + climbSpd * sDt, d.targetAlt);
+      // 수평 분산: 이륙 직후 목표 방향으로 빠르게 이동 (패드 밀집 해소)
+      const takeoffSpeedTarget = d.maxSpeed * (d.wy > 15 ? 0.6 : 0.3); // 15m 이상이면 60%까지 가속
+      d.speed = accelToward(d.speed, takeoffSpeedTarget, PHYSICS.maxAccel * iceFactor, PHYSICS.maxDecel, sDt);
+      d.heading = calcHeading(d.goalX - d.wx, d.goalZ - d.wz);
+      // 이륙 시 목표 방향으로 수평 이동 (패드 탈출 가속)
+      const tkRad = d.heading * Math.PI / 180;
+      d.wx += Math.sin(tkRad) * d.speed * sDt + windX;
+      d.wz += Math.cos(tkRad) * d.speed * sDt + windZ;
+      if (d.wy >= d.targetAlt - 1) {
+        d.phase = 'ENROUTE';
+        d.vy = 0;
+      }
+      break;
+    }
+
+    case 'ENROUTE': {
+      // NFZ 진입 감지 → 회피 전환 (ROGUE 제외)
+      const lookaheadX = d.wx + (d.goalX - d.wx) * 0.02;
+      const lookaheadZ = d.wz + (d.goalZ - d.wz) * 0.02;
+      if (!d.isRogue && (inNFZ(d.wx, d.wz) || inNFZ(lookaheadX, lookaheadZ))) {
+        d.phase = 'EVADING';
+        d.evadeTimer = 3.0;
+        d.evasionCount++;
+        const pushX = d.wx > 0 ? 1 : -1;
+        const pushZ = d.wz > 0 ? 1 : -1;
+        d.wx += pushX * 80;
+        d.wz += pushZ * 80;
+        stats.advisories++;
+        logEvent('advisory', `${d.id} NFZ 접근 → 회피 기동`);
+        break;
+      }
+
+      const dx = d.goalX - d.wx, dz = d.goalZ - d.wz;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+
+      if (dist < 150) {
+        // 착륙 접근: 감속 + 착륙 시퀀스 진입
+        d.speed = accelToward(d.speed, d.maxSpeed * 0.2, PHYSICS.maxAccel, PHYSICS.maxDecel * 1.5, sDt);
+        if (dist < 100) {
+          d.waypointHits++;
+          if (landingManager.request(d)) {
+            d.phase = 'LANDING';
+            logEvent('landing', `${d.id} 착륙 허가 → ${d.goalPad.name}`);
+          } else {
+            // 착륙 대기 → 홀딩 패턴
+            d.phase = 'HOLDING';
+            d._holdStart = simTime;
+            d._holdForLanding = true;
+            logEvent('info', `${d.id} 착륙 대기 (슬롯 #${d.landingSlot + 1})`);
+          }
+          break;
+        }
+      }
+
+      // 정밀 선회: 목표 방향으로 부드럽게 회전 (결빙 시 선회율 저하)
+      d.targetHeading = calcHeading(dx, dz);
+      d.heading = turnToward(d.heading, d.targetHeading, PHYSICS.maxTurnRate * iceFactor, sDt);
+
+      // ─── 항로 고도 분리: 비행 방향별 고도 레이어 동적 할당 ───
+      const isUAMd = d.role.id === 'uam_taxi' || d.role.id === 'uam_shuttle';
+      if (!isUAMd && !d.isRogue) {
+        const headingAlt = getHeadingAltLayer(d.heading);
+        // 목표 고도를 방향 레이어로 부드럽게 전환 (급변 방지)
+        d.targetAlt += (headingAlt - d.targetAlt) * 0.02;
+      }
+
+      // 가속/감속 (ATC 속도 제한 + 강풍 속도 제한 + 결빙 성능 저하 통합)
+      const atcLimit = (d._atcSpeedLimit && simTime < d._atcSpeedExpiry) ? d._atcSpeedLimit : d.maxSpeed;
+      const effMaxSpeed = Math.min(atcLimit, windSpeedLimit) * iceFactor;
+      d.speed = accelToward(d.speed, effMaxSpeed, PHYSICS.maxAccel * iceFactor, PHYSICS.maxDecel, sDt);
+
+      // 속도 벡터 기반 이동 (heading 방향) + APF + 기상 회피 벡터 통합
+      const rad = d.heading * Math.PI / 180;
+      d.vx = Math.sin(rad) * d.speed + d.apfVx + mbEscapeVx + scAvoidVx;
+      d.vz = Math.cos(rad) * d.speed + d.apfVz + mbEscapeVz + scAvoidVz;
+      d.wx += d.vx * sDt + windX;
+      d.wz += d.vz * sDt + windZ;
+      // APF 수직 보정
+      if (Math.abs(d.apfVy) > 0.1) {
+        d.wy = Math.max(10, Math.min(MAX_ALT, d.wy + d.apfVy * sDt));
+      }
+
+      // 고도 유지 (목표 고도와 차이가 있으면 보정)
+      if (Math.abs(d.wy - d.targetAlt) > 2) {
+        const altDir = d.targetAlt > d.wy ? 1 : -1;
+        const rate = altDir > 0 ? PHYSICS.maxClimbRate : PHYSICS.maxDescentRate;
+        d.wy += altDir * rate * sDt * 0.5;
+      }
+
+      d.wx = Math.max(-WORLD, Math.min(WORLD, d.wx));
+      d.wz = Math.max(-WORLD, Math.min(WORLD, d.wz));
+      break;
+    }
+
+    case 'EVADING':
+      d.evadeTimer -= sDt;
+      d.speed = accelToward(d.speed, d.maxSpeed * 0.8, PHYSICS.maxAccel * 1.5, PHYSICS.maxDecel, sDt);
+
+      if (inNFZ(d.wx, d.wz)) {
+        const repX = d.wx / (Math.abs(d.wx) + 1);
+        const repZ = d.wz / (Math.abs(d.wz) + 1);
+        d.wx += repX * d.speed * sDt * 1.5;
+        d.wz += repZ * d.speed * sDt * 1.5;
+      } else {
+        // APF 회피 벡터 우선 적용 + 목표 방향 복귀 혼합
+        const gx = d.goalX - d.wx, gz = d.goalZ - d.wz;
+        const gd = Math.sqrt(gx * gx + gz * gz);
+        // APF 회피 (70%) + 목표 복귀 (30%) 혼합
+        const apfMag = Math.sqrt(d.apfVx * d.apfVx + d.apfVz * d.apfVz);
+        if (apfMag > 0.5) {
+          d.wx += d.apfVx * 0.7 * sDt;
+          d.wz += d.apfVz * 0.7 * sDt;
+          if (Math.abs(d.apfVy) > 0.1) {
+            d.wy = Math.max(10, Math.min(MAX_ALT, d.wy + d.apfVy * sDt));
+          }
+        }
+        if (gd > 50) {
+          d.targetHeading = calcHeading(gx, gz);
+          d.heading = turnToward(d.heading, d.targetHeading, PHYSICS.maxTurnRate * 1.5, sDt);
+          const rad = d.heading * Math.PI / 180;
+          d.wx += Math.sin(rad) * d.speed * 0.3 * sDt;
+          d.wz += Math.cos(rad) * d.speed * 0.3 * sDt;
+        }
+      }
+      d.wx += windX;
+      d.wz += windZ;
+      if (d.evadeTimer <= 0 && !inNFZ(d.wx, d.wz)) d.phase = 'ENROUTE';
+      break;
+
+    case 'HOLDING': {
+      // HOLDING 진입 시 타이머 리셋 (재진입 시에도 정상 작동)
+      if (!d._holdActive) { d._holdStart = simTime; d._holdActive = true; }
+      // 원형 홀딩 패턴 (반경 200m, 일정 속도 선회)
+      d.speed = accelToward(d.speed, d.maxSpeed * 0.3, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
+      d.holdingOrbitAngle += (d.speed / 200) * sDt;  // 반경 200m 기준 각속도
+      const holdCenterX = d.goalX ?? d.wx;
+      const holdCenterZ = d.goalZ ?? d.wz;
+      const orbitR = 200;
+      const targetX = holdCenterX + Math.cos(d.holdingOrbitAngle) * orbitR;
+      const targetZ = holdCenterZ + Math.sin(d.holdingOrbitAngle) * orbitR;
+      const hdx = targetX - d.wx, hdz = targetZ - d.wz;
+      const hd = Math.sqrt(hdx * hdx + hdz * hdz);
+      if (hd > 5) {
+        d.wx += (hdx / hd) * d.speed * sDt;
+        d.wz += (hdz / hd) * d.speed * sDt;
+      }
+
+      // 통신 두절 체공: 8초 후 RTL
+      if (!d._holdStart) d._holdStart = simTime;
+      if (d._holdForLanding) {
+        // 착륙 대기 중 → 슬롯 확인
+        if (landingManager.request(d)) {
+          d.phase = 'LANDING';
+          d._holdForLanding = false;
+          d._holdActive = false;
+          logEvent('landing', `${d.id} 착륙 허가 → ${d.goalPad.name}`);
+        } else if (simTime - d._holdStart > 30) {
+          // 30초 대기 후 다른 패드로 변경
+          d.goalPad = randomPad();
+          d.goalX = d.goalPad.x;
+          d.goalZ = d.goalPad.z;
+          d._holdForLanding = false;
+          d._holdStart = null;
+          d._holdActive = false;
+          d.phase = 'ENROUTE';
+          landingManager.release(d);
+          logEvent('info', `${d.id} 착륙 대기 초과 → 대체 패드`);
+        }
+      } else if (simTime - d._holdStart > 8.0) {
+        d._holdStart = null;
+        d._holdActive = false;
+        d.phase = 'RTL';
+      }
+      break;
+    }
+
+    case 'LANDING': {
+      // 정밀 착륙: 점진 감속 + 수직 하강
+      d.speed = accelToward(d.speed, 0, PHYSICS.maxAccel, PHYSICS.maxDecel * 2, sDt);
+      const descentRate = d.wy > 20 ? PHYSICS.maxDescentRate : PHYSICS.maxDescentRate * 0.5;
+      d.wy = Math.max(0, d.wy - descentRate * sDt);
+      // 착륙 지점으로 수렴 + 바람 적용
+      const ldx = d.goalX - d.wx, ldz = d.goalZ - d.wz;
+      const ld = Math.sqrt(ldx * ldx + ldz * ldz);
+      if (ld > 5) {
+        d.wx += (ldx / ld) * Math.min(d.speed, 3) * sDt;
+        d.wz += (ldz / ld) * Math.min(d.speed, 3) * sDt;
+      }
+      d.wx += windX * 0.5; d.wz += windZ * 0.5; // 착륙 중 바람 (50% 감쇄)
+      if (d.wy <= 1.0) { // 고속 simSpeed 스킵 방지 (0.5→1.0)
+        d.wy = 0;
+        d.speed = 0;
+        d.vx = 0; d.vz = 0; d.vy = 0;
+        d.phase = 'GROUNDED';
+        landingManager.release(d);
+        d.startPad = d.goalPad;
+        d.goalPad = randomPad();
+        d.goalX = d.goalPad.x;
+        d.goalZ = d.goalPad.z;
+        const isUAM = d.role.id === 'uam_taxi' || d.role.id === 'uam_shuttle';
+        d.targetAlt = isUAM ? (100 + Math.random() * 60) : (40 + Math.random() * 70);
+        d.groundDelay = 3 + Math.random() * 6;
+        d.battery = Math.min(100, d.battery + 25);
+        logEvent('landing', `${d.id} 착륙 완료 → ${d.startPad.name}`);
+      }
+      break;
+    }
+
+    case 'FAILED':
+      d.wy = Math.max(0, d.wy - 2 * sDt);
+      d.speed = accelToward(d.speed, 0, 0, PHYSICS.maxDecel, sDt);
+      break;
+
+    case 'RTL': {
+      const dx = d.startPad.x - d.wx, dz = d.startPad.z - d.wz;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      d.targetHeading = calcHeading(dx, dz);
+      d.heading = turnToward(d.heading, d.targetHeading, PHYSICS.maxTurnRate, sDt);
+      d.speed = accelToward(d.speed, d.maxSpeed * 0.6, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
+
+      if (dist < 80) {
+        d.phase = 'LANDING';
+        d.goalPad = d.startPad;
+        d.goalX = d.startPad.x;
+        d.goalZ = d.startPad.z;
+      } else {
+        const rad = d.heading * Math.PI / 180;
+        d.wx += Math.sin(rad) * d.speed * sDt + windX;
+        d.wz += Math.cos(rad) * d.speed * sDt + windZ;
+      }
+      break;
+    }
+  }
+
+  // 열 상승기류 효과 — 불규칙 고도 변동
+  if (d.thermalDrift && isFlying) {
+    d.wy += Math.sin(simTime * 2 + d.wx * 0.01) * sDt * 3;
+    d.wy = Math.max(30, Math.min(MAX_ALT, d.wy));
+  }
+
+  // GPS 스푸핑 — 위치 드리프트
+  if (d.gpsDrift && d.phase === 'ENROUTE') {
+    d.wx += (Math.sin(simTime * 0.5 + d.wz * 0.005) * 2) * sDt;
+    d.wz += (Math.cos(simTime * 0.5 + d.wx * 0.005) * 2) * sDt;
+  }
+
+  // Emergency failure trigger
+  if (d.willFail && !d.failed && simTime > d.failTime && d.phase !== 'GROUNDED') {
+    if (d.landingQueued) landingManager.release(d); // 착륙 대기열 해제
+    d.phase = 'FAILED';
+    d.failed = true;
+    logEvent('fail', `${d.id} [${d.role.label}] 장애! ALT ${Math.round(d.wy)}m`);
+  }
+
+  // 통신 두절 → HOLDING 전환
+  if (d.willLoseComms && !d.commsLost && simTime > d.commsLossTime && d.phase === 'ENROUTE') {
+    d.phase = 'HOLDING';
+    d.commsLost = true;
+    logEvent('comms', `${d.id} 통신 두절 → 체공 대기`);
+  }
+
+  // Low battery -> RTL (ENROUTE, HOLDING, EVADING 모두 적용)
+  if (d.battery < 8 && (d.phase === 'ENROUTE' || d.phase === 'HOLDING' || d.phase === 'EVADING')) {
+    if (d.landingQueued) landingManager.release(d);
+    d.phase = 'RTL';
+    logEvent('advisory', `${d.id} 배터리 ${Math.round(d.battery)}% → RTL`);
+  }
+
+  // 배터리 완전 방전 → 강제 FAILED
+  if (d.battery <= 0 && isFlying && d.phase !== 'FAILED') {
+    if (d.landingQueued) landingManager.release(d);
+    d.phase = 'FAILED';
+    d.failed = true;
+    logEvent('fail', `${d.id} 배터리 방전 → 비상 착륙!`);
+  }
+
+  // Update 3D position
+  d.group.position.set(d.wx * SCALE, d.wy * SCALE * 3, d.wz * SCALE);
+  // 기수 방향 회전
+  if (isFlying) d.group.rotation.y = -d.heading * Math.PI / 180;
+
+  // Update visuals — 직군 색상 기반 (Color 재사용으로 GC 부담 최소화)
+  if (!d._phaseColor) d._phaseColor = new THREE.Color();
+  if (!d._roleColor) d._roleColor = new THREE.Color();
+  d._phaseColor.set(phaseColor(d.phase));
+  d._roleColor.set(d.role.color);
+  const phaseC = d._phaseColor, roleC = d._roleColor;
+  // 비행 중: body=직군색, rotor=phase색 / 지상/장애: 전부 phase색
+  const bodyC = isFlying ? roleC : phaseC;
+  d.body.material.color.copy(bodyC);
+  d.body.material.emissive.copy(bodyC);
+  d.body.material.emissiveIntensity = isFlying ? 0.8 : 0.4;
+  d.rotor.material.color.copy(phaseC);
+  if (d.glow) d.glow.material.color.copy(isFlying ? roleC : phaseC);
+
+  // ROGUE 드론 특수 시각효과 — 더 크고 빨간 글로우
+  if (d.isRogue && d.phase !== 'GROUNDED' && d.glow) {
+    d.glow.material.color.set(0xff0000);
+    d.glow.scale.set(2.5, 2.5, 1);
+  }
+}
+
+function apfCollisionAvoidance() {
+  // 풀 기반 근접선 리셋: 기존 라인 숨기기 (dispose 없이 재사용)
+  for (let li = 0; li < _linePoolIdx; li++) {
+    _linePool[li].visible = false;
+  }
+  _linePoolIdx = 0;
+  const maxLines = drones.length > 100 ? 30 : 100;
+  let lineCount = 0;
+
+  let frameConflicts = 0, frameNear = 0, frameCollisions = 0;
+  const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+
+  // ── 강풍 모드: 풍속에 따라 APF 반발력 증폭 ──
+  const windSpd = Math.sqrt(weather.baseWind.x ** 2 + weather.baseWind.z ** 2) + weather.gustIntensity;
+  const windyBoost = windSpd > 5 ? 1 + (windSpd - 5) * 0.1 : 1.0; // 5m/s 초과 시 10%/m/s 증폭
+
+  // 충돌/근접/충돌 중복 방지: 같은 쌍은 쿨다운
+  if (!apfCollisionAvoidance._cooldown) apfCollisionAvoidance._cooldown = new Map();
+  if (!apfCollisionAvoidance._nearCooldown) apfCollisionAvoidance._nearCooldown = new Map();
+  if (!apfCollisionAvoidance._conflictCooldown) apfCollisionAvoidance._conflictCooldown = new Map();
+  const cooldown = apfCollisionAvoidance._cooldown;
+  const nearCooldown = apfCollisionAvoidance._nearCooldown;
+  const conflictCooldown = apfCollisionAvoidance._conflictCooldown;
+
+  // ─── Spatial Hash: O(N·k) 이웃 탐색 ───
+  const cellSize = EVADE_DIST;
+  const grid = new Map();
+  airborne.forEach(d => {
+    const cx = Math.floor(d.wx / cellSize), cz = Math.floor(d.wz / cellSize);
+    const key = `${cx},${cz}`;
+    if (!grid.has(key)) grid.set(key, []);
+    grid.get(key).push(d);
+  });
+
+  // 각 드론에 누적 회피 벡터 초기화 (속도 보정용)
+  const repForce = new Map();
+  airborne.forEach(d => repForce.set(d, { fx: 0, fz: 0, fy: 0 }));
+  const processed = new Set(); // 중복 쌍 방지
+
+  airborne.forEach(a => {
+    const cx = Math.floor(a.wx / cellSize), cz = Math.floor(a.wz / cellSize);
+    // 3x3 인접 셀 탐색
+    for (let di = -1; di <= 1; di++) {
+      for (let dj = -1; dj <= 1; dj++) {
+        const neighbors = grid.get(`${cx+di},${cz+dj}`);
+        if (!neighbors) continue;
+        for (const b of neighbors) {
+          if (a === b) continue;
+          const pairKey = a.id < b.id ? `${a.id}-${b.id}` : `${b.id}-${a.id}`;
+          if (processed.has(pairKey)) continue;
+          processed.add(pairKey);
+
+          const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
+          const hDist = Math.sqrt(dx * dx + dz * dz);
+          const dist3d = Math.sqrt(dx * dx + dz * dz + dy * dy);
+
+          // ─── 3D CPA 예측: 수평+수직 속도 벡터 기반 미래 최근접점 ───
+          const radA = a.heading * Math.PI / 180, radB = b.heading * Math.PI / 180;
+          const avx = Math.sin(radA) * a.speed, avz = Math.cos(radA) * a.speed;
+          const bvx = Math.sin(radB) * b.speed, bvz = Math.cos(radB) * b.speed;
+          const avy = a.vy || 0, bvy = b.vy || 0; // 수직 속도 포함
+          const dvx = avx - bvx, dvz = avz - bvz, dvy = avy - bvy;
+          const relV2 = dvx * dvx + dvz * dvz + dvy * dvy; // 3D 상대속도
+          let tCPA = 0, cpaDist = dist3d;
+          if (relV2 > 0.1) {
+            tCPA = Math.max(0, Math.min(CPA_LOOKAHEAD, -(dx * dvx + dz * dvz + dy * dvy) / relV2));
+            const fpx = dx + dvx * tCPA, fpz = dz + dvz * tCPA, fpy = dy + dvy * tCPA;
+            cpaDist = Math.sqrt(fpx * fpx + fpz * fpz + fpy * fpy);
+          }
+
+          // 유효 거리: 현재 거리와 CPA 중 더 위험한 쪽 사용
+          const effectiveDist = Math.min(dist3d, cpaDist);
+          const isConverging = cpaDist < dist3d;
+          const closingSpeed = Math.sqrt(relV2);
+
+          // ─── 우선순위 기반 양보 계수 ───
+          const aYield = a.priority >= b.priority ? 0.7 : 0.3;
+          const bYield = 1.0 - aYield;
+
+          const fa = repForce.get(a), fb = repForce.get(b);
+          const safeDist = Math.max(hDist, 1);
+
+          if (dist3d < COLLISION_DIST) {
+            // 충돌 카운트: 같은 쌍은 2초 쿨다운 (중복 방지)
+            const collKey = pairKey;
+            const lastColl = cooldown.get(collKey) || 0;
+            if (simTime - lastColl > 2.0) {
+              frameCollisions++;
+              cooldown.set(collKey, simTime);
+              if (lineCount < maxLines) { addProximityLine(a, b, 0xff0000, 0.6); lineCount++; }
+              const midX = (a.group.position.x + b.group.position.x) / 2;
+              const midY = (a.group.position.y + b.group.position.y) / 2;
+              const midZ = (a.group.position.z + b.group.position.z) / 2;
+              spawnCollisionParticles(midX, midY, midZ);
+              triggerCameraShake(0.3);
+              logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist3d)}m)`);
+            }
+
+            // 긴급 회피: 강한 반발 + 수직 분리 (강풍 증폭)
+            const push = 40 * windyBoost * (1 + closingSpeed * 0.5);
+            fa.fx += (dx / safeDist) * push * aYield;
+            fa.fz += (dz / safeDist) * push * aYield;
+            fb.fx -= (dx / safeDist) * push * bYield;
+            fb.fz -= (dz / safeDist) * push * bYield;
+            // 수직 강제 분리 (ID 기반 결정론적)
+            const aUp = (parseInt(a.id.replace('DR-','')) % 2 === 0) ? 1 : -1;
+            fa.fy += aUp * 20; fb.fy -= aUp * 20;
+          } else if (dist3d < NEAR_MISS_DIST || (isConverging && cpaDist < NEAR_MISS_DIST)) {
+            const nearKey = pairKey;
+            const lastNear = nearCooldown.get(nearKey) || 0;
+            if (simTime - lastNear > 3.0) {
+              frameNear++;
+              nearCooldown.set(nearKey, simTime);
+              if (lineCount < maxLines) { addProximityLine(a, b, 0xff6600, 0.3); lineCount++; }
+              if (eventLog.length < 80) logEvent('near', `${a.id} ↔ ${b.id} 근접경고 (${Math.round(effectiveDist)}m)`);
+            }
+
+            // 지수 반발력 (가까울수록 급격히 증가, 강풍 증폭)
+            const ratio = 1 - effectiveDist / NEAR_MISS_DIST;
+            const strength = 25 * windyBoost * ratio * ratio * (1 + closingSpeed * 0.3);
+            fa.fx += (dx / safeDist) * strength * aYield;
+            fa.fz += (dz / safeDist) * strength * aYield;
+            fb.fx -= (dx / safeDist) * strength * bYield;
+            fb.fz -= (dz / safeDist) * strength * bYield;
+            // 수직 분리
+            if (Math.abs(dy) < SEPARATION_ALT * 2) {
+              const aUp = (parseInt(a.id.replace('DR-','')) % 2 === 0) ? 1 : -1;
+              fa.fy += aUp * strength * 0.5; fb.fy -= aUp * strength * 0.5;
+            }
+          } else if (dist3d < EVADE_DIST || (isConverging && cpaDist < EVADE_DIST * 0.7)) {
+            const confKey = pairKey;
+            const lastConf = conflictCooldown.get(confKey) || 0;
+            if (simTime - lastConf > 5.0) {
+              frameConflicts++;
+              conflictCooldown.set(confKey, simTime);
+            }
+            if (lineCount < maxLines) { addProximityLine(a, b, 0xffaa00, 0.15); lineCount++; }
+
+            // 부드러운 APF 반발력 (CPA 기반, 강풍 증폭)
+            const ratio = 1 - effectiveDist / EVADE_DIST;
+            const strength = 12 * windyBoost * ratio * (1 + closingSpeed * 0.15);
+            fa.fx += (dx / safeDist) * strength * aYield;
+            fa.fz += (dz / safeDist) * strength * aYield;
+            fb.fx -= (dx / safeDist) * strength * bYield;
+            fb.fz -= (dz / safeDist) * strength * bYield;
+          }
+        }
+      }
+    }
+  });
+
+  // ─── 하이브리드 회피: 긴급=위치 직접 보정, 일반=속도 보정 ───
+  const apfDt = 1 / 60; // 프레임 레이트 독립 보정 기준
+  airborne.forEach(d => {
+    const f = repForce.get(d);
+    const mag = Math.sqrt(f.fx * f.fx + f.fz * f.fz);
+    if (mag > 0.5) {
+      // 긴급 구간 (충돌·근접): 위치 직접 이동 (dt 스케일링 적용)
+      if (mag > 5) {
+        const pushDist = Math.min(mag * 3 * apfDt * 60, 60); // dt 보정, 최대 60m
+        d.wx += (f.fx / mag) * pushDist;
+        d.wz += (f.fz / mag) * pushDist;
+        d.wx = Math.max(-WORLD, Math.min(WORLD, d.wx));
+        d.wz = Math.max(-WORLD, Math.min(WORLD, d.wz));
+      }
+      // 수직 분리 (물리 제한 적용: maxClimbRate * dt 기반)
+      if (Math.abs(f.fy) > 0.5) {
+        const vertPush = Math.sign(f.fy) * Math.min(Math.abs(f.fy), PHYSICS.maxClimbRate * 3) * apfDt * 60;
+        d.wy = Math.max(10, Math.min(MAX_ALT, d.wy + vertPush));
+      }
+      // 속도 보정 (부드러운 회피 — ENROUTE에서 적용됨)
+      const clampedMag = Math.min(mag, d.maxSpeed * 1.2);
+      d.apfVx = (f.fx / mag) * clampedMag;
+      d.apfVz = (f.fz / mag) * clampedMag;
+      d.apfVy = Math.sign(f.fy) * Math.min(Math.abs(f.fy), PHYSICS.maxClimbRate);
+
+      // ENROUTE → EVADING 전환
+      if (d.phase === 'ENROUTE' && mag > 6) {
+        d.phase = 'EVADING';
+        d.evadeTimer = 1.5;
+        d.evasionCount++;
+        stats.advisories++;
+        logEvent('evade', `${d.id} → APF 회피 기동`);
+      }
+    } else {
+      // 회피력 감쇠
+      d.apfVx *= 0.7;
+      d.apfVz *= 0.7;
+      d.apfVy *= 0.7;
+    }
+  });
+
+  stats.conflicts += frameConflicts;
+  stats.nearMisses += frameNear;
+  stats.collisions += frameCollisions;
+
+  // 쿨다운 맵 정리: 10초 이상 오래된 항목 제거 (메모리 누수 방지)
+  if (simTime % 10 < 0.02) {
+    for (const map of [cooldown, nearCooldown, conflictCooldown]) {
+      for (const [k, t] of map) {
+        if (simTime - t > 10) map.delete(k);
+      }
+    }
+  }
+}
+
+function addProximityLine(a, b, color, opacity) {
+  let line;
+  if (_linePoolIdx < _linePool.length) {
+    // 풀에서 재사용
+    line = _linePool[_linePoolIdx];
+    const pos = line.geometry.attributes.position.array;
+    pos[0] = a.group.position.x; pos[1] = a.group.position.y; pos[2] = a.group.position.z;
+    pos[3] = b.group.position.x; pos[4] = b.group.position.y; pos[5] = b.group.position.z;
+    line.geometry.attributes.position.needsUpdate = true;
+    line.material.color.set(color);
+    line.material.opacity = opacity;
+    line.visible = true;
+  } else {
+    // 새로 생성하여 풀에 추가
+    const geo = new THREE.BufferGeometry();
+    const positions = new Float32Array(6);
+    positions[0] = a.group.position.x; positions[1] = a.group.position.y; positions[2] = a.group.position.z;
+    positions[3] = b.group.position.x; positions[4] = b.group.position.y; positions[5] = b.group.position.z;
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color, transparent: true, opacity }));
+    proximityLines.add(line);
+    _linePool.push(line);
+  }
+  _linePoolIdx++;
+}
+
+// ===== UI Updates =====
+function updateStatsUI() {
+  const airborne = drones.filter(d => d.phase !== 'GROUNDED');
+  document.getElementById('stat-active').textContent = airborne.length;
+  document.getElementById('stat-conflicts').textContent = stats.conflicts;
+  document.getElementById('stat-near').textContent = stats.nearMisses;
+  document.getElementById('stat-collisions').textContent = stats.collisions;
+  document.getElementById('stat-advisories').textContent = stats.advisories;
+  const avgBat = drones.length ? (drones.reduce((s, d) => s + d.battery, 0) / drones.length) : 0;
+  document.getElementById('stat-battery').textContent = Math.round(avgBat) + '%';
+  // 풍속 표시 (마이크로버스트·결빙 상태 포함)
+  const windSpd = Math.sqrt(weather.baseWind.x**2 + weather.baseWind.z**2) + weather.gustIntensity;
+  const windEl = document.getElementById('stat-wind');
+  if (windEl) {
+    let windText = windEnabled ? windSpd.toFixed(1) : '—';
+    if (weather.microbursts.length > 0) windText += ' MB' + weather.microbursts.length;
+    if (weather.icing > 0) windText += ' ICE';
+    if (weather.stormCells.length > 0) windText += ' SC' + weather.stormCells.length;
+    windEl.textContent = windText;
+    windEl.style.color = windSpd > 8 ? '#dc2626' : windSpd > 4 ? '#ef4444' : windSpd > 2 ? '#fbbf24' : '#60a5fa';
+    windEl.style.fontSize = windSpd > 8 ? '13px' : '15px'; // 데이터 많으면 축소
+  }
+  const m = Math.floor(simTime / 60), s = Math.floor(simTime % 60);
+  document.getElementById('sim-time').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+  // 직군별 현황
+  const roleEl = document.getElementById('role-stats');
+  if (roleEl) {
+    const counts = {};
+    DRONE_ROLES.forEach(r => counts[r.id] = { total: 0, flying: 0, role: r });
+    drones.forEach(d => {
+      counts[d.role.id].total++;
+      if (d.phase !== 'GROUNDED' && d.phase !== 'FAILED') counts[d.role.id].flying++;
+    });
+    roleEl.innerHTML = DRONE_ROLES.map(r => {
+      const c = counts[r.id];
+      const hex = '#' + r.color.toString(16).padStart(6, '0');
+      return `<div style="padding:2px 8px;border:1px solid ${hex}40;border-radius:4px;background:${hex}12;display:flex;align-items:center;gap:4px;">
+        <span style="font-size:10px;">${r.icon}</span>
+        <span style="font-size:9px;color:${hex};font-family:'JetBrains Mono',monospace;font-weight:600;">${c.flying}/${c.total}</span>
+      </div>`;
+    }).join('');
+
+    // 직군 범례 (사이드패널)
+    const legendEl = document.getElementById('role-legend');
+    if (legendEl && !legendEl.dataset.init) {
+      legendEl.dataset.init = '1';
+      legendEl.innerHTML = DRONE_ROLES.map(r => {
+        const hex = '#' + r.color.toString(16).padStart(6, '0');
+        return `<div style="display:flex;align-items:center;gap:3px;padding:1px 4px;">
+          <span style="width:6px;height:6px;border-radius:50%;background:${hex};display:inline-block;"></span>
+          <span style="font-size:8px;color:${hex};font-family:'JetBrains Mono',monospace;">${r.icon} ${r.label}</span>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
+function updateEventLog() {
+  const el = document.getElementById('event-log');
+  const typeClass = { collision: 'ev-collision', near: 'ev-near', evade: 'ev-evade',
+    advisory: 'ev-advisory', comms: 'ev-comms', fail: 'ev-fail', rogue: 'ev-rogue',
+    info: 'ev-info', takeoff: 'ev-takeoff', landing: 'ev-landing' };
+  const typeIcon = { collision: '💥', near: '⚠️', evade: '↪️', advisory: '📡',
+    comms: '📵', fail: '🔴', rogue: '🚨', info: 'ℹ️', takeoff: '🛫', landing: '🛬' };
+  el.innerHTML = eventLog.slice(0, 50).map(e =>
+    `<div class="ev"><span class="ev-time">[${e.ts}]</span><span class="${typeClass[e.type] || 'ev-info'}">${typeIcon[e.type] || ''} ${e.msg}</span></div>`
+  ).join('');
+}
+
+function updateFleetList() {
+  const list = document.getElementById('fleet-list');
+  // Show first 30 sorted by phase priority
+  const phasePriority = { EVADING: 0, FAILED: 1, HOLDING: 2, RTL: 3, LANDING: 4, TAKEOFF: 5, ENROUTE: 6, GROUNDED: 7 };
+  const sorted = [...drones].sort((a, b) => (phasePriority[a.phase] || 9) - (phasePriority[b.phase] || 9));
+  const shown = sorted.slice(0, 30);
+
+  list.innerHTML = shown.map(d => {
+    const ph = PHASES[d.phase] || PHASES.GROUNDED;
+    const color = '#' + ph.color.toString(16).padStart(6, '0');
+    const cardClass = d.phase === 'FAILED' ? 'drone-card-expired' : '';
+    const batColor = d.battery < 20 ? '#ef4444' : d.battery < 50 ? '#f59e0b' : '#10b981';
+    return `
+      <div class="drone-card ${cardClass}">
+        <div class="drone-card-header">
+          <div class="drone-id">
+            <div class="drone-status-dot" style="background:${color};"></div>
+            ${d.role.icon} ${d.id}
+          </div>
+          <div class="drone-badge" style="color:${color};background:${color}18;border:1px solid ${color}40;">
+            ${d.role.label} · ${ph.label}
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:9px;color:#4a6785;font-family:'JetBrains Mono',monospace;">
+            ALT ${Math.round(d.wy)}m · SPD ${d.speed.toFixed(0)}m/s · HDG ${Math.round(d.heading)}°
+          </span>
+          <span style="font-size:9px;color:${batColor};font-family:'JetBrains Mono',monospace;font-weight:600;">
+            ${Math.round(d.battery)}%
+          </span>
+        </div>
+        <div class="drone-progress">
+          <div class="drone-progress-bar" style="width:${d.battery}%;background:${batColor};box-shadow:0 0 4px ${batColor};"></div>
+        </div>
+      </div>`;
+  }).join('');
+  if (drones.length > 30) {
+    list.innerHTML += `<div style="text-align:center;padding:6px;font-size:9px;color:#4a6785;font-family:'JetBrains Mono',monospace;">
+      ... 외 ${drones.length - 30}대</div>`;
+  }
+}
+
+// ===== Controls =====
+document.getElementById('btn-clear-log').addEventListener('click', () => { eventLog.length = 0; });
+document.getElementById('btn-start').addEventListener('click', () => {
+  simRunning = true;
+  logEvent('info', '시뮬레이션 시작');
+});
+document.getElementById('btn-pause').addEventListener('click', () => {
+  simRunning = !simRunning;
+  logEvent('info', simRunning ? '시뮬레이션 재개' : '시뮬레이션 일시정지');
+});
+document.getElementById('btn-reset').addEventListener('click', () => {
+  const sc = document.getElementById('scenario-select').value;
+  initDrones(sc);
+  eventLog.length = 0;
+  logEvent('info', `시뮬레이션 초기화 (${SCENARIOS[sc].label} ${SCENARIOS[sc].count}대)`);
+});
+document.getElementById('scenario-select').addEventListener('change', (e) => {
+  initDrones(e.target.value);
+  eventLog.length = 0;
+  const cfg = SCENARIOS[e.target.value];
+  logEvent('info', `시나리오 변경: ${cfg.label} (${cfg.count}대)${cfg.wind ? ' [바람]' : ''}`);
+});
+document.getElementById('speed-slider').addEventListener('input', (e) => {
+  simSpeed = parseFloat(e.target.value);
+  document.getElementById('speed-label').textContent = simSpeed.toFixed(2) + 'x';
+});
+
+// ===== ATC 관제선 (탐지·통제 시각화) =====
+const atcLinkGroup = new THREE.Group();
+scene.add(atcLinkGroup);
+
+function updateATCLinks() {
+  while (atcLinkGroup.children.length) {
+    const c = atcLinkGroup.children[0];
+    atcLinkGroup.remove(c); c.geometry.dispose(); c.material.dispose();
+  }
+
+  const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+  const maxLinks = _lightweight ? 20 : 50;
+  let linkCount = 0;
+  const atcProcessed = new Set(); // ATC 중복 쌍 처리 방지
+
+  // ATC 탐지 범위별 드론 수집
+  atcDrones.forEach(atc => {
+    const ax = atc.x, az = atc.z, range = 2200; // 2200m 탐지 범위
+    const monitored = [];
+    airborne.forEach(d => {
+      const dx = d.wx - ax, dz = d.wz - az;
+      const dist = Math.sqrt(dx*dx + dz*dz);
+      if (dist < range) monitored.push({ drone: d, dist });
+    });
+
+    // 시각화: 탐지선
+    monitored.forEach(({ drone: d, dist }) => {
+      if (linkCount >= maxLinks) return;
+      const geo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(atc.x * SCALE, atc.alt * SCALE * 3, atc.z * SCALE),
+        d.group.position.clone()
+      ]);
+      const isRogue = d.isRogue;
+      const isClose = dist < 600; // 근거리 감시 강조
+      const line = new THREE.Line(geo, new THREE.LineBasicMaterial({
+        color: isRogue ? 0xff0000 : (isClose ? 0x00ff88 : 0x00e5ff),
+        transparent: true,
+        opacity: isRogue ? 0.3 : (isClose ? 0.12 : 0.05),
+      }));
+      atcLinkGroup.add(line);
+      linkCount++;
+    });
+
+    // ─── 능동 관제: CPA + 속도 벡터 기반 선제 분리 ───
+    for (let i = 0; i < monitored.length; i++) {
+      for (let j = i + 1; j < monitored.length; j++) {
+        const a = monitored[i].drone, b = monitored[j].drone;
+        if (a.phase === 'GROUNDED' || b.phase === 'GROUNDED') continue;
+        const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
+        const dist3d = Math.sqrt(dx*dx + dz*dz + dy*dy);
+
+        if (dist3d < 800 && dist3d > COLLISION_DIST && !a.failed && !b.failed) {
+          const atcPairKey = a.id < b.id ? `${a.id}-${b.id}` : `${b.id}-${a.id}`;
+          if (atcProcessed.has(atcPairKey)) continue;
+          atcProcessed.add(atcPairKey);
+          // 실제 속도 벡터 기반 CPA 계산
+          const radA = a.heading * Math.PI / 180, radB = b.heading * Math.PI / 180;
+          const avx = Math.sin(radA) * a.speed, avz = Math.cos(radA) * a.speed;
+          const bvx = Math.sin(radB) * b.speed, bvz = Math.cos(radB) * b.speed;
+          const dvx = avx - bvx, dvz = avz - bvz;
+          const relV2 = dvx * dvx + dvz * dvz;
+
+          if (relV2 > 0.5) {
+            const tCPA = Math.max(0, Math.min(CPA_LOOKAHEAD, -(dx * dvx + dz * dvz) / relV2));
+            const fpx = dx + dvx * tCPA, fpz = dz + dvz * tCPA;
+            const cpaDist = Math.sqrt(fpx * fpx + fpz * fpz);
+
+            // 수렴 + CPA 위험 → 선제 분리 명령
+            if (cpaDist < SEPARATION.horizontal && cpaDist < dist3d * 0.8) {
+              const aIdx = parseInt(a.id.replace('DR-', ''));
+              const bIdx = parseInt(b.id.replace('DR-', ''));
+              // 우선순위 기반: 높은 우선순위 드론은 고도 유지, 낮은 쪽이 양보
+              if (Math.abs(dy) < SEPARATION_ALT * 2) {
+                const altShift = SEPARATION_ALT + 5;
+                if (a.priority <= b.priority) {
+                  // a 우선 → b가 양보
+                  b.targetAlt = Math.max(20, Math.min(MAX_ALT, b.wy + (bIdx % 2 === 0 ? altShift : -altShift)));
+                  b.wy += (b.targetAlt > b.wy ? 1 : -1) * PHYSICS.maxClimbRate * 0.3 * apfDt * 60;
+                } else {
+                  a.targetAlt = Math.max(20, Math.min(MAX_ALT, a.wy + (aIdx % 2 === 0 ? altShift : -altShift)));
+                  a.wy += (a.targetAlt > a.wy ? 1 : -1) * PHYSICS.maxClimbRate * 0.3 * apfDt * 60;
+                }
+                a.wy = Math.max(10, Math.min(MAX_ALT, a.wy));
+                b.wy = Math.max(10, Math.min(MAX_ALT, b.wy));
+              }
+
+              // 속도 감속 명령 → maxSpeed 일시 제한 (updateDrone이 재가속 방지)
+              const urgency = 1 - cpaDist / SEPARATION.horizontal;
+              if (urgency > 0.5 && tCPA < 6) {
+                const slower = a.priority > b.priority ? a : b;
+                slower._atcSpeedLimit = Math.max(slower.maxSpeed * (1 - urgency * 0.4), slower.maxSpeed * 0.2);
+                slower._atcSpeedExpiry = simTime + 3; // 3초간 유효
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ===== Animation Loop =====
+const clock = new THREE.Clock();
+let frameCount = 0, lastFpsTime = 0;
+
+initDrones('default');
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.1);
+  const t = clock.elapsedTime;  // getDelta 후 읽어야 올바른 값
+
+  // FPS (리셋 후 0 방지: 증분 전에 표시)
+  if (t - lastFpsTime >= 1) {
+    document.getElementById('fps-counter').textContent = frameCount;
+    frameCount = 0;
+    lastFpsTime = t;
+  }
+  frameCount++;
+
+  // Update weather & drones
+  if (simRunning) {
+    simTime += dt * simSpeed;
+    updateWeather(dt);
+  }
+  drones.forEach(d => updateDrone(d, dt));
+
+  // APF check — 매 프레임 실행 (Spatial Hash로 O(N·k) 성능 보장)
+  if (simRunning) apfCollisionAvoidance();
+
+  // Rotor spin
+  drones.forEach(d => {
+    if (d.phase !== 'GROUNDED') {
+      d.rotor.rotation.z = t * 10;
+      if (d.glow) d.glow.material.opacity = 0.25 + Math.sin(t * 3 + d.wx * 0.01) * 0.1;
+    } else {
+      if (d.glow) d.glow.material.opacity = 0.1;
+    }
+    // Failed blink
+    if (d.phase === 'FAILED') {
+      d.body.material.opacity = Math.sin(t * 8) > 0 ? 1 : 0.2;
+      if (d.glow) d.glow.material.opacity = Math.sin(t * 8) > 0 ? 0.4 : 0.05;
+    }
+  });
+
+  // Scan rings (경량모드 시 비활성)
+  if (!_lightweight) {
+    scanRings.forEach(ring => {
+      const phase = (t * 0.4 + ring.userData.phase) % (Math.PI * 2);
+      const progress = phase / (Math.PI * 2);
+      const scale = 1 + progress * W * 0.8;
+      ring.scale.set(scale, scale, 1);
+      ring.material.opacity = 0.2 * (1 - progress);
+    });
+  }
+
+  // ATC 관제 드론 애니메이션
+  atcDrones.forEach((atc, idx) => {
+    // 천천히 회전
+    atc.grp.rotation.y = t * 0.3 + idx * 1.2;
+    // 디쉬 스핀
+    atc.dish.rotation.z = t * 2;
+    // 글로우 호흡 효과
+    atc.glow.material.opacity = 0.4 + Math.sin(t * 2 + idx) * 0.15;
+    // 레이더 펄스
+    atc.radarEdge.material.opacity = 0.1 + Math.sin(t * 1.5 + idx * 0.8) * 0.08;
+  });
+
+  // ATC 관제선 (매 30프레임) — 범위 내 드론 탐지 시각화
+  if (simRunning && frameCount % 30 === 0) updateATCLinks();
+
+  // Trails (매 5프레임, ROGUE만)
+  if (simRunning && frameCount % 5 === 0) updateTrails();
+
+  // Collision particles
+  if (collisionParticles.length > 0) updateCollisionParticles(dt);
+
+  // NFZ pulse
+  nfzMat.opacity = 0.06 + Math.sin(t * 1.5) * 0.03;
+
+  // Point light orbit
+  pointLight.position.x = Math.sin(t * 0.2) * 10;
+  pointLight.position.z = Math.cos(t * 0.2) * 10;
+
+  // Camera shake decay
+  if (cameraShake > 0.01) {
+    camera.position.x += (Math.random() - 0.5) * cameraShake;
+    camera.position.y += (Math.random() - 0.5) * cameraShake * 0.5;
+    cameraShake *= 0.92;
+  } else {
+    cameraShake = 0;
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+// UI refresh at lower rate
+let uiUpdateCount = 0;
+setInterval(() => {
+  updateStatsUI();
+  updateEventLog();
+  uiUpdateCount++;
+  // Fleet list는 무거우므로 대형 시나리오 시 빈도 낮춤
+  if (drones.length <= 80 || uiUpdateCount % 3 === 0) updateFleetList();
+}, 500);
+
+animate();
+
+// ===== Resize =====
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// ── 자동 테스트 API (외부 접근용) ──
+window._sdacs = {
+  get stats() { return { ...stats }; },
+  get simTime() { return simTime; },
+  get simRunning() { return simRunning; },
+  get droneCount() { return drones.length; },
+  get weather() { return { icing: weather.icing, microbursts: weather.microbursts.length, stormCells: weather.stormCells.length, typhoonWind: weather.typhoonWind, turbulence: weather.turbulence, windSpd: Math.sqrt(weather.baseWind.x**2 + weather.baseWind.z**2) + weather.gustIntensity }; },
+  get airborne() { return drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED').length; },
+  get failed() { return drones.filter(d => d.phase === 'FAILED').length; },
+  get landed() { return drones.filter(d => d.phase === 'GROUNDED').length; },
+  startSim() { simRunning = true; },
+  stopSim() { simRunning = false; },
+  selectScenario(name) { document.getElementById('scenario-select').value = name; document.getElementById('scenario-select').dispatchEvent(new Event('change')); },
+};

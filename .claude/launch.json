@@ -30,6 +30,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8080", "--directory", "visualization"],
       "port": 8080
+    },
+    {
+      "name": "capstone-sim",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8090", "--directory", "C:/Users/sun47/Desktop/swarm-drone-atc/swarm-drone-atc/visualization"],
+      "port": 8090
     }
   ]
 }

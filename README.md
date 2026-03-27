@@ -542,6 +542,7 @@ MIT License — 학술 및 교육 목적으로 개발되었습니다.
 
 | 날짜 (KST) | 커밋 | 분류 | 작업 내용 | 주요 파일 |
 | --- | --- | --- | --- | --- |
+| 2026-03-27 19:07 | `9ec18cf` | feat: 성능·기능 개선 11건 + 테스트 15건 추가 (180/180 통과) | config/monte_carlo.yaml, simulation/apf_engine/apf.py, simulation/monte_carlo.py, simulation/simulator.py, src/airspace_control/agents/drone_profiles.py, src/airspace_control/agents/drone_state.py … |
 | 2026-03-27 14:50 | `99a9edf` | fix: 버그 8건·기능 개선 4건·테스트 보강 (165/165 통과) | simulation/analytics.py, simulation/apf_engine/apf.py, simulation/monte_carlo.py, simulation/simulator.py, src/airspace_control/agents/drone_state.py, src/airspace_control/controller/airspace_controller.py … |
 | 2026-03-27 11:57 | `8096d44` | fix: 전체 리뷰 기반 버그 8건 수정 (H1-H5, M1-M3) | simulation/apf_engine/apf.py, src/airspace_control/avoidance/resolution_advisory.py, src/airspace_control/controller/airspace_controller.py, visualization/simulator_3d.py |
 | 2026-03-26 16:20 | `2c0e4e8` | fix(viz): 충돌 카운터 중복 증가 버그 수정 (B5) | visualization/simulator_3d.py |

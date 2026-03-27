@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
 [![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
-[![Tests](https://img.shields.io/badge/Tests-270%20passed-brightgreen?style=for-the-badge)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-292%20passed-brightgreen?style=for-the-badge)](tests/)
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
@@ -109,9 +109,9 @@
 <details>
 <summary><b>Step 5: Results / 5단계: 결과</b></summary>
 
-**EN:** 270 automated tests passed, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), 99.9% collision reduction in all scenarios. A complete capstone project.
+**EN:** 292 automated tests passed, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), 99.9% collision reduction in all scenarios. A complete capstone project.
 
-**KR:** 270개 테스트 통과, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모로 완성된 캡스톤 프로젝트입니다.
+**KR:** 292개 테스트 통과, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모로 완성된 캡스톤 프로젝트입니다.
 </details>
 
 ---
@@ -181,7 +181,7 @@ A distributed ATC simulation system that uses swarm drones as **mobile virtual r
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Layer 4 — 사용자 인터페이스                                   │
-│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 270개          │
+│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 292개          │
 └───────────────────────────┬──────────────────────────────────┘
                             │ 명령 / 결과
 ┌───────────────────────────▼──────────────────────────────────┐
@@ -781,7 +781,7 @@ swarm-drone-atc/
 │   ├── report/SDACS_Technical_Report.docx  # A4 한국어 기술 보고서
 │   └── images/                             # 성능 차트 + SVG 다이어그램
 │
-└── tests/                              # pytest 270개 (24 모듈)
+└── tests/                              # pytest 292개 (24 모듈)
     ├── test_apf.py                     # APF 포텐셜 장 (10)
     ├── test_cbs.py                     # CBS 격자 노드 (8)
     ├── test_resolution_advisory.py     # 어드바이저리 분류 (6)
@@ -812,7 +812,7 @@ pytest tests/ -v              # Run all / 전체 실행
 pytest tests/test_apf.py -v   # Specific module / 특정 파일
 ```
 
-### 테스트 커버리지 (270개 / 24모듈)
+### 테스트 커버리지 (292개 / 25모듈)
 
 | 파일 | 수 | 대상 |
 |------|---|------|
@@ -840,7 +840,8 @@ pytest tests/test_apf.py -v   # Specific module / 특정 파일
 | `test_chatbot_simulator.py` | 4 | 챗봇 시뮬레이터 통합 테스트 |
 | `test_boundary_conditions.py` | 17 | 경계조건·배터리·속도·통신 |
 | `test_apf_wind_blend.py` | 14 | APF 풍속 블렌딩·지면회피 |
-| **합계** | **270** | **24 모듈 · 100% pass** |
+| `test_ra_edge_cases.py` | 22 | RA 엣지케이스·Lost-Link·ICAO·경계값 |
+| **합계** | **292** | **25 모듈 · 100% pass** |
 
 ---
 
@@ -870,7 +871,7 @@ Before hardware testing, swarm algorithms were validated in a StarCraft II envir
 | 단계 | 기간 | 주요 산출물 | 상태 |
 |------|------|------------|------|
 | Phase 1: 설계 | 2026.01~03 | 아키텍처 설계, 알고리즘 설계 | ✅ 완료 |
-| Phase 2: 구현 | 2026.03 | SimPy 시뮬레이터, pytest 270개, SC2 14,200회 검증 | ✅ 완료 |
+| Phase 2: 구현 | 2026.03 | SimPy 시뮬레이터, pytest 292개, SC2 14,200회 검증 | ✅ 완료 |
 | Phase 3: 검증 | 2026.03 | Monte Carlo 38,400회, 3D 대시보드, **42개 시나리오** 전량 실행 | ✅ 완료 |
 | Phase 4: 문서화 | 2026.03 | 기술 보고서(DOCX), 성능 차트, README 920줄, 발표 스크립트 | ✅ 완료 |
 

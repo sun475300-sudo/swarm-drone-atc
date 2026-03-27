@@ -25,15 +25,17 @@
 2. [시스템 개요](#시스템-개요)
 3. [4계층 아키텍처](#4계층-아키텍처)
 4. [핵심 알고리즘](#핵심-알고리즘)
-5. [시나리오 검증 결과](#시나리오-검증-결과)
-6. [Monte Carlo SLA](#monte-carlo-sla)
-7. [빠른 시작](#빠른-시작)
-8. [프로젝트 구조](#프로젝트-구조)
-9. [테스트](#테스트)
-10. [SC2 테스트베드](#sc2-테스트베드)
-11. [개발 일정](#개발-일정)
-12. [팀 정보](#팀-정보)
-13. [참고 문헌](#참고-문헌)
+5. [알고리즘 계층 구조](#알고리즘-계층-구조)
+6. [기존 시스템 비교 분석](#기존-시스템-비교-분석)
+7. [시나리오 검증 결과](#시나리오-검증-결과)
+8. [Monte Carlo SLA](#monte-carlo-sla)
+9. [빠른 시작](#빠른-시작)
+10. [프로젝트 구조](#프로젝트-구조)
+11. [테스트](#테스트)
+12. [SC2 테스트베드](#sc2-테스트베드)
+13. [개발 일정](#개발-일정)
+14. [팀 정보](#팀-정보)
+15. [참고 문헌](#참고-문헌)
 
 ---
 
@@ -275,6 +277,125 @@ Low Level: 시공간 A* (개별 드론)
 | SURVEILLANCE | 20 m/s | 12 m/s | 100 Wh | `P2` | 감시 정찰 |
 | RECREATIONAL | 10 m/s | 5 m/s | 30 Wh | `P3` | 취미 비행 |
 | ROGUE (미등록) | 15 m/s | 8 m/s | 50 Wh | `—` | 침입 드론 |
+
+---
+
+## 알고리즘 계층 구조
+
+> **9개 핵심 알고리즘**이 4개 계층에서 계층적으로 동작합니다. (Python 2,649줄 + HTML/JS 2,897줄)
+
+```
+Layer 1: 드론 에이전트 (10 Hz, SimPy)
+├── APF 충돌 회피 ─── 인력(목표) + 척력(드론/장애물) + 속도장애물 보정
+│   ├── 일반 모드: k_rep=2.5, d0=50m
+│   ├── 강풍 모드: k_rep=6.5, d0=80m (풍속 >10 m/s 자동 전환)
+│   └── Spatial Hash O(N·k) 이웃 탐색
+├── 비행 단계 FSM ─── 8단계 (GROUNDED → TAKEOFF → ENROUTE → HOLDING → LANDING)
+└── 텔레메트리 브로드캐스팅 (10 Hz)
+
+Layer 2: 공역 제어기 (1 Hz, AirspaceController)
+├── CPA 선제 충돌 예측 ─── 90초 룩어헤드, O(N²) 페어 스캔
+├── Resolution Advisory 생성 ─── 6종 회피 명령 + ICAO 우측 회피 규칙
+│   ├── CLIMB / DESCEND (수직 분리)
+│   ├── TURN_LEFT / TURN_RIGHT (수평 회피)
+│   ├── HOLD (제자리 대기)
+│   ├── EVADE_APF (긴급 APF 위임)
+│   └── Lost-Link 3단계: HOLD(30s) → CLIMB(80m) → RTL
+├── 우선순위 클리어런스 ─── EMERGENCY > MEDICAL > COMMERCIAL > RECREATIONAL
+├── Voronoi 동적 공역 분할 ─── 10초 갱신, 셀 침범 감지
+└── A* 경로 재계획 (NFZ 회피)
+
+Layer 3: 시뮬레이션 엔진
+├── CBS 다중 에이전트 경로 최적화 (충돌 트리 + 시공간 A*)
+├── 기상 모델 ─── 3종 (일정풍 / 변동풍+Poisson 돌풍 / 전단풍)
+│   └── 극한 기상: 마이크로버스트, 태풍, 결빙, 폭풍셀, 풍속전단
+├── Spatial Hash O(log N) 근방 탐색
+├── Monte Carlo 38,400회 SLA 검증 (384 configs × 100 seeds)
+└── 42개 시나리오 배치 실행
+
+Layer 4: 3D 시각화 (Three.js, 독립 구현)
+├── APF 충돌 회피 (Spatial Hash + 3D CPA 12초 예측)
+├── 동적 기상 시스템 (매 프레임 풍속 보간)
+├── 500대 드론 실시간 렌더링 + 오브젝트 풀링
+└── 42개 시나리오 인터랙티브 시뮬레이션
+```
+
+### 알고리즘 파일 매핑
+
+| # | 알고리즘 | 파일 | 줄 수 | 역할 |
+|---|---------|------|-------|------|
+| 1 | APF (인공 포텐셜 장) | `simulation/apf_engine/apf.py` | 272 | 실시간 충돌 회피 (인력+척력+풍속 증폭) |
+| 2 | CPA (최근접점 예측) | `src/airspace_control/utils/geo_math.py` | 75 | 90초 전 충돌 위치 사전 계산 |
+| 3 | Resolution Advisory | `src/airspace_control/avoidance/resolution_advisory.py` | 242 | 6종 회피 명령 + Lost-Link 3단계 |
+| 4 | CBS (Conflict-Based Search) | `simulation/cbs_planner/cbs.py` | 263 | 다중 에이전트 전역 경로 최적화 |
+| 5 | Voronoi 공역 분할 | `simulation/voronoi_airspace/voronoi_partition.py` | 241 | 동적 2D 공역 분할 (10초 갱신) |
+| 6 | A* 경로 계획 | `src/airspace_control/planning/flight_path_planner.py` | 262 | 비행금지구역(NFZ) 회피 그리드 탐색 |
+| 7 | 기상 대항 시스템 | `simulation/weather.py` | 152 | 3종 풍속 모델 + 돌풍 시뮬레이션 |
+| 8 | AirspaceController | `src/airspace_control/controller/airspace_controller.py` | 512 | 1Hz 전역 관제 루프 |
+| 9 | SwarmSimulator | `simulation/simulator.py` | 630 | 10Hz 드론 에이전트 + SimPy 엔진 |
+
+### Python vs HTML/JS 이중 구현 비교
+
+| 알고리즘 | Python (SimPy, 고정밀) | HTML (Three.js, 실시간) | 비고 |
+|---------|----------------------|------------------------|------|
+| APF | O(N²), 10Hz, NumPy 벡터 연산 | Spatial Hash O(N·k), 60fps | 병렬 독립 구현 |
+| CPA | 90초 룩어헤드 | 12초 룩어헤드 | HTML은 간소화 |
+| RA 생성 | 6종 기하학적 분류 | APF에 위임 | Python 전용 |
+| 기상 | Poisson 돌풍 + 전단풍 | 단순 보간 모델 | HTML은 간소화 |
+| CBS | 완전 구현 | 없음 | Python 전용 |
+| Voronoi | scipy.spatial 기반 | 없음 | Python 전용 |
+
+---
+
+## 기존 시스템 비교 분석
+
+### SDACS vs 주요 경쟁 시스템
+
+| 시스템 | 개발 | 유형 | 동시 관제 | 반응 시간 | 배치 시간 | 특징 |
+|--------|------|------|----------|----------|----------|------|
+| **SDACS (본 프로젝트)** | 목포대 | 분산형 자율관제 | **500대+** | **1초** | **30분** | 드론이 드론을 관제, 고정 인프라 불필요 |
+| NASA UTM | NASA/FAA | 중앙집중 프레임워크 | 국가급 | 분 단위 | 년 단위 | UTM 표준 기초, 사전 경로 승인 방식 |
+| K-UTM | KARI/국토부 | 중앙집중 서버 | 수백 대 | 분 단위 | 월 단위 | 단일 장애점 취약, 사전 승인 |
+| AirMap | AirMap Inc. | 클라우드 UTM | 수천 대 | 초~분 | 주 단위 | 30개국+ 운영, LAANC 연동 |
+| DJI FlightHub 2 | DJI | 함대관리 | 수백 대 | 초 단위 | 즉시 | DJI 전용, 충돌 회피 미지원 |
+| DARPA OFFSET | DARPA | 군사 군집 | 250대+ | 실시간 | 즉시 | 도시환경 전투, 게임 인터페이스 |
+| Shield AI Hivemind | Shield AI | AI 자율비행 | 편대급 | 실시간 | 즉시 | GPS-denied 환경, 미군 실전 |
+| Altitude Angel | Altitude Angel | 클라우드 UTM | 국가급 | 초 단위 | 주 단위 | Pop-Up UTM, 자동 분리 |
+
+### SDACS의 차별점
+
+```
+기존 시스템의 한계                          SDACS의 해결
+─────────────────────────────────────────────────────────
+고정 레이더 (수억원, 6개월)         →  드론 자체가 레이더 (30분 배치)
+중앙 서버 단일 장애점               →  분산형 자율 관제 (ATC 21대)
+사전 경로 승인 (수분 지연)          →  실시간 충돌 예측 (90초 전, 1초 반응)
+수동 관제 (24시간 5명)              →  AI 완전 자동화 (1명 감시)
+소규모 (20대 이하)                  →  대규모 군집 (500대+ 검증)
+기상 미대응                         →  극한 기상 5종 자동 대응
+```
+
+### 글로벌 드론 관제 시장 현황
+
+| 분류 | 주요 시스템 | 시장 규모 |
+|------|-----------|----------|
+| **정부/군사 UTM** | NASA UTM, K-UTM, SESAR U-space, CAAC UTMISS | 국가 예산 |
+| **상용 UTM 플랫폼** | AirMap, Altitude Angel, Unifly, OneSky, Wing, ANRA | $2.6B (2030) |
+| **군집드론 제어** | DARPA OFFSET, Shield AI, EHang, Elbit Legion-X | $5.3B (2030) |
+| **대드론(C-UAS)** | Dedrone, DroneShield, Rafael Drone Dome, D-Fend EnforceAir | $4.6B (2030) |
+| **UAM/도심항공** | Joby, Volocopter, Supernal, Airbus | $28.5B (2035) |
+| **함대관리 SW** | DJI FlightHub, FlytBase, Skydio Cloud, Auterion | $1.8B (2030) |
+| **오픈소스** | ArduPilot, PX4, Crazyswarm2, QGroundControl | 커뮤니티 기반 |
+
+### SDACS 타겟 시장
+
+| 우선순위 | 분야 | 대상 | 진입 전략 |
+|---------|------|------|----------|
+| 1 | **국방/군사** | ADD, 한화시스템, LIG넥스원 | 군집드론 자동 관제 R&D 과제 |
+| 2 | **UAM/도심항공** | 현대 Supernal, KOTI | UAM 실증특구 참여 |
+| 3 | **물류/배송** | 쿠팡, 파블로항공 | 드론 택배 대규모 관제 모듈 |
+| 4 | **공공안전** | 소방청, 경찰청 | 재난현장 다수 드론 관제 |
+| 5 | **드론쇼/엔터** | 군집 비행 기업 | 500대+ 안전 관리 시스템 |
 
 ---
 
@@ -747,6 +868,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 시간 | 주요 변경 사항 | 커밋 |
 |------|------|---------------|------|
+| 2026-03-27 | 21:00 KST | 알고리즘 계층구조 총정리(9종 매핑), 기존 시스템 비교분석(47개 글로벌 시스템), 타겟 시장 분석, 코드리뷰 #10/#12 추가 수정 | `565abab` |
 | 2026-03-27 | 19:30 KST | 코드리뷰 7건 수정(오브젝트 풀링·dt스케일링·maxSpeed·메모리누수), 한글 기술보고서 DOCX 전면 업데이트(10장 구성), 발표용 스크립트 작성 | `6bcae18` |
 | 2026-03-27 | 18:00 KST | 스태거드 이륙 제어(패드별 동시 3대/2초 간격) + ATC 21대 확장(내부링4+광역2+CENTER1+순찰1) + 42개 시나리오 대규모 확장 → **전 시나리오 충돌 99.9% 감소** (500대 메가 군집: 58,038→19) | — |
 | 2026-03-27 | 17:00 KST | 극한 기상 정밀 테스트 5종 시나리오 추가 (극한기상 지옥/마이크로버스트/태풍/결빙/다중셀), 기상 대항 알고리즘(WCS): 풍속 이동평균 필터링+마이크로버스트 감지 긴급회피+폭풍셀 우회+결빙 성능저하+강풍 자동속도제한+APF 강풍증폭 | — |

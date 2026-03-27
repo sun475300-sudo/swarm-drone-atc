@@ -69,9 +69,9 @@ class DroneState:
     hold_count: int = 0                   # 연속 HOLDING 횟수 (3회 초과 시 RTL)
 
     def __post_init__(self):
-        if isinstance(self.position, list):
+        if not isinstance(self.position, np.ndarray):
             self.position = np.array(self.position, dtype=float)
-        if isinstance(self.velocity, list):
+        if not isinstance(self.velocity, np.ndarray):
             self.velocity = np.array(self.velocity, dtype=float)
 
     @property

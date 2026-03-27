@@ -153,6 +153,14 @@ class AdvisoryGenerator:
     def _classify(self, target, threat, cpa_t_s: float) -> tuple[str, float]:
         """충돌 기하학에 따른 어드바이저리 유형 결정."""
         from src.airspace_control.agents.drone_state import FlightPhase
+        from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
+
+        # 프로파일별 기동 크기 (없으면 기본값 사용)
+        profile = DRONE_PROFILES.get(
+            getattr(target, 'profile_name', ''), None
+        )
+        climb_m  = profile.avoidance_climb_m  if profile else self.DEFAULT_CLIMB_M
+        turn_deg = profile.avoidance_turn_deg if profile else self.DEFAULT_TURN_DEG
 
         # 위협 드론이 FAILED 상태이면 HOLD
         if hasattr(threat, 'flight_phase') and threat.flight_phase == FlightPhase.FAILED:
@@ -170,9 +178,9 @@ class AdvisoryGenerator:
         # target은 threat 반대 방향으로 이동: 위협이 위 → 하강, 위협이 아래 → 상승
         if abs(dz) < self.sep_vert:
             if dz >= 0.0:
-                return self.DESCEND, self.DEFAULT_CLIMB_M  # threat이 위 → target 하강
+                return self.DESCEND, climb_m  # threat이 위 → target 하강
             else:
-                return self.CLIMB, self.DEFAULT_CLIMB_M    # threat이 아래 → target 상승
+                return self.CLIMB, climb_m    # threat이 아래 → target 상승
 
         # 수평 기동 분류
         # 속도=0 (HOLDING 등) 이면 헤딩 미정 → EVADE_APF 위임
@@ -188,13 +196,9 @@ class AdvisoryGenerator:
         # angle_diff <= 0: 위협이 좌측 → 좌회전
         # |angle_diff| < 30°(정면): 우회전 우선 (ICAO 관례)
         if angle_diff >= 0 or abs(angle_diff) < math.radians(30):
-            return self.TURN_RIGHT, self.DEFAULT_TURN_DEG
-        return self.TURN_LEFT, self.DEFAULT_TURN_DEG
+            return self.TURN_RIGHT, turn_deg
+        return self.TURN_LEFT, turn_deg
 
 
 def _wrap_angle(a: float) -> float:
-    while a > math.pi:
-        a -= 2 * math.pi
-    while a < -math.pi:
-        a += 2 * math.pi
-    return a
+    return ((a + math.pi) % (2 * math.pi)) - math.pi

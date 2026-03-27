@@ -74,6 +74,38 @@ class TestAdvisoryGenerator:
         assert "HOLD" in types
         assert "CLIMB" in types
 
+    def test_profile_climb_magnitude(self):
+        """A-01: EMERGENCY 프로파일은 기본 COMMERCIAL보다 큰 climb_m을 가져야 한다."""
+        from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
+        emg = DRONE_PROFILES["EMERGENCY"]
+        com = DRONE_PROFILES["COMMERCIAL_DELIVERY"]
+        assert emg.avoidance_climb_m >= com.avoidance_climb_m, (
+            "EMERGENCY climb_m이 COMMERCIAL 이상이어야 함"
+        )
+
+    def test_emergency_profile_advisory_uses_larger_magnitude(self):
+        """EMERGENCY 프로파일 드론의 어드바이저리 magnitude가 더 커야 한다."""
+        from src.airspace_control.agents.drone_state import DroneState, FlightPhase
+
+        def make_drone(did, profile_name):
+            d = DroneState(drone_id=did, position=[0., 0., 60.],
+                           velocity=[5., 0., 0.])
+            d.profile_name = profile_name
+            d.flight_phase = FlightPhase.ENROUTE
+            return d
+
+        own_emg = make_drone("EMG", "EMERGENCY")
+        own_com = make_drone("COM", "COMMERCIAL_DELIVERY")
+        threat  = make_drone("T",   "COMMERCIAL_DELIVERY")
+        threat.position = np.array([80., 0., 60.])
+
+        adv_emg = self.gen.generate(own_emg, threat, cpa_dist_m=30.0, cpa_t_s=20.0, now=0.0)
+        adv_com = self.gen.generate(own_com, threat, cpa_dist_m=30.0, cpa_t_s=20.0, now=0.0)
+
+        if adv_emg.advisory_type in ("CLIMB", "DESCEND"):
+            from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
+            assert adv_emg.magnitude >= adv_com.magnitude
+
     def test_zero_velocity_target_returns_evade_apf(self):
         """BUG-H3 회귀: velocity=0 드론에 대해 EVADE_APF를 반환해야 한다 (atan2(0,0) 오류 방지)"""
         own    = _drone("A", [0.0, 0.0, 60.0], [5.0, 0.0, 0.0])

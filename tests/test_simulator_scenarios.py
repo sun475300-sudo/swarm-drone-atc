@@ -187,3 +187,69 @@ class TestHoldingRTL:
         )
         assert hasattr(drone, "hold_count")
         assert isinstance(drone.hold_count, int)
+
+
+class TestLostLinkProtocol:
+    """F-01: Lost-Link 3단계 시퀀스 검증"""
+
+    def test_lost_link_sequence_has_three_phases(self):
+        """generate_lost_link_sequence()는 3개 어드바이저리를 반환해야 한다."""
+        from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
+        from src.airspace_control.agents.drone_state import DroneState
+        gen   = AdvisoryGenerator()
+        drone = DroneState(drone_id="LL1", position=[100., 200., 60.], velocity=[5., 0., 0.])
+        seq   = gen.generate_lost_link_sequence(drone, loiter_s=30.0, rtl_alt_m=80.0, now=0.0)
+        assert len(seq) == 3
+        types = [a.advisory_type for a in seq]
+        assert "HOLD" in types
+        assert "CLIMB" in types
+        assert "RTL" in types
+
+    def test_lost_link_timing(self):
+        """HOLD → CLIMB → RTL 타임스탬프가 순서대로 증가해야 한다."""
+        import numpy as np
+        from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
+        from src.airspace_control.agents.drone_state import DroneState
+        gen   = AdvisoryGenerator()
+        drone = DroneState(drone_id="LL2", position=np.zeros(3), velocity=np.zeros(3))
+        seq   = gen.generate_lost_link_sequence(drone, loiter_s=30.0, rtl_alt_m=80.0, now=10.0)
+        ts = [a.timestamp_s for a in seq]
+        assert ts[0] < ts[1] < ts[2]
+
+
+class TestMonteCarloConfig:
+    """A-02: Monte Carlo YAML duration 제어 검증"""
+
+    def test_duration_read_from_config(self):
+        """monte_carlo.yaml quick_sweep에 duration_s=120.0이 설정되어야 한다."""
+        from simulation.monte_carlo import _load_mc_config
+        cfg = _load_mc_config()
+        quick = cfg.get("quick_sweep", {})
+        assert "duration_s" in quick, "quick_sweep에 duration_s가 없음"
+        assert float(quick["duration_s"]) == 120.0
+
+    def test_full_sweep_duration(self):
+        """full_sweep duration_s=600.0이어야 한다."""
+        from simulation.monte_carlo import _load_mc_config
+        cfg  = _load_mc_config()
+        full = cfg.get("full_sweep", {})
+        assert float(full.get("duration_s", 600.0)) == 600.0
+
+
+class TestDroneProfileMobility:
+    """A-01: 드론 프로파일별 기동 크기 검증"""
+
+    def test_all_profiles_have_avoidance_fields(self):
+        from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
+        for name, profile in DRONE_PROFILES.items():
+            assert hasattr(profile, "avoidance_climb_m"), f"{name} avoidance_climb_m 없음"
+            assert hasattr(profile, "avoidance_turn_deg"), f"{name} avoidance_turn_deg 없음"
+            assert profile.avoidance_climb_m > 0
+            assert profile.avoidance_turn_deg > 0
+
+    def test_emergency_has_highest_mobility(self):
+        from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
+        emg = DRONE_PROFILES["EMERGENCY"]
+        rec = DRONE_PROFILES["RECREATIONAL"]
+        assert emg.avoidance_climb_m > rec.avoidance_climb_m
+        assert emg.avoidance_turn_deg > rec.avoidance_turn_deg

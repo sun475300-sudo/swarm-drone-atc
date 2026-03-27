@@ -27,12 +27,12 @@ def _run_single(args: tuple) -> dict:
     """단일 설정 실행 (joblib 워커용)"""
     from simulation.simulator import SwarmSimulator
 
-    config_combo, seed = args
+    config_combo, seed, duration_s = args
     wind = config_combo.get("wind_speed_ms", 0)
 
     scenario_cfg: dict = {
         "simulation": {
-            "duration_s": 600.0,
+            "duration_s": duration_s,
             "n_drones": config_combo.get("drone_density", 100),
         },
     }
@@ -71,6 +71,12 @@ def run_monte_carlo(mode: str = "quick") -> list[dict]:
     parallel_cfg = mc_cfg.get("parallel", {})
     master_seed = mc_cfg.get("master_seed", 42)
 
+    # duration_s: 스윕별 설정 → 공통 설정 → 기본값 600s
+    duration_s = float(
+        sweep_cfg.get("duration_s",
+        mc_cfg.get("simulation", {}).get("duration_s", 600.0))
+    )
+
     # 파라미터 조합 생성
     param_names = ["drone_density", "area_size_km2", "failure_rate_pct",
                    "comms_loss_rate", "wind_speed_ms"]
@@ -82,8 +88,8 @@ def run_monte_carlo(mode: str = "quick") -> list[dict]:
     total_runs = total_configs * n_per_config
 
     logger.info(
-        "Monte Carlo [%s]: %d configs × %d runs = %d 총 실행",
-        mode, total_configs, n_per_config, total_runs,
+        "Monte Carlo [%s]: %d configs × %d runs = %d 총 실행 (duration=%.0fs)",
+        mode, total_configs, n_per_config, total_runs, duration_s,
     )
 
     # 실행 작업 목록 생성
@@ -93,7 +99,7 @@ def run_monte_carlo(mode: str = "quick") -> list[dict]:
         combo_dict = dict(zip(param_names, combo))
         for run_i in range(n_per_config):
             seed = int(rng.integers(0, 2**31))
-            tasks.append((combo_dict, seed))
+            tasks.append((combo_dict, seed, duration_s))
 
     # 병렬 실행
     n_workers = parallel_cfg.get("n_workers", -1)

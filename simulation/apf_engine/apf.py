@@ -188,6 +188,12 @@ def compute_total_force(
     alt_error = _alt - own.position[2]
     F_total[2] += params["altitude_k"] * alt_error
 
+    # 4b. 지면 회피: z < 5m 이면 수직 상승 반발력 추가
+    ground_clearance = float(own.position[2])
+    if ground_clearance < 5.0:
+        safe_gc = max(ground_clearance, 0.1)
+        F_total[2] += params["k_rep_obs"] * (1.0 / safe_gc - 1.0 / 5.0) / (safe_gc ** 2)
+
     # 5. 최대 합력 클리핑
     mag = np.linalg.norm(F_total)
     if mag > params["max_force"]:

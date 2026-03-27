@@ -142,6 +142,37 @@ class TestClosingSpeedCap:
         assert abs(np.linalg.norm(f) - np.linalg.norm(f_base)) < 1e-6
 
 
+class TestGroundAvoidance:
+    """F-02: z < 5m 지면 회피 반발력 검증"""
+
+    def test_ground_repulsion_below_5m(self):
+        """고도 2m 드론 → z 방향 합력이 양수(상승)여야 한다."""
+        from simulation.apf_engine.apf import compute_total_force, APFState
+
+        own = APFState(
+            position=np.array([0.0, 0.0, 2.0]),   # 지면 2m
+            velocity=np.zeros(3),
+            drone_id="G0",
+        )
+        goal = np.array([1000.0, 0.0, 60.0])
+        f = compute_total_force(own, goal, [], [], target_alt=60.0)
+        assert f[2] > 0, "z<5m 에서 지면 회피 힘이 양수(상승)여야 함"
+
+    def test_no_ground_repulsion_above_5m(self):
+        """고도 10m 드론 → 지면 반발력 없음 (고도 보정만)"""
+        from simulation.apf_engine.apf import compute_total_force, APFState
+
+        own10 = APFState(position=np.array([0.0, 0.0, 10.0]), velocity=np.zeros(3), drone_id="G1")
+        own2  = APFState(position=np.array([0.0, 0.0, 2.0]),  velocity=np.zeros(3), drone_id="G2")
+        goal  = np.array([1000.0, 0.0, 10.0])
+
+        f10 = compute_total_force(own10, goal, [], [], target_alt=10.0)
+        f2  = compute_total_force(own2,  goal, [], [], target_alt=10.0)
+
+        # 지면 근처(2m)가 높이(10m)보다 z 힘이 더 커야 함
+        assert f2[2] > f10[2], "지면 가까울수록 상승력이 더 강해야 함"
+
+
 class TestTargetAlt:
     """target_alt 파라미터 전달 검증"""
 

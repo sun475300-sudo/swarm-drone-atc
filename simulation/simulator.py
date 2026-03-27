@@ -36,6 +36,12 @@ if _ROOT not in sys.path:
 from simulation.apf_engine.apf import (
     APFState, batch_compute_forces,
 )
+try:
+    from scipy.spatial import KDTree as _KDTree
+    _SCIPY_AVAILABLE = True
+except ImportError:
+    _KDTree = None
+    _SCIPY_AVAILABLE = False
 from simulation.weather import WindModel, build_wind_models
 from simulation.analytics import SimulationAnalytics, SimulationResult
 from src.airspace_control.agents.drone_state import (
@@ -103,7 +109,15 @@ class _DroneAgent:
         sim.comm_bus.subscribe(drone.drone_id, self._on_advisory)
 
     def _on_advisory(self, msg) -> None:
-        """컨트롤러로부터 ResolutionAdvisory 수신 처리"""
+        """컨트롤러로부터 메시지 수신 처리 (ClearanceResponse / ResolutionAdvisory)"""
+        from src.airspace_control.comms.message_types import ClearanceResponse
+        # ClearanceResponse: 허가된 웨이포인트 설정
+        if isinstance(msg.payload, ClearanceResponse):
+            resp = msg.payload
+            if resp.approved and resp.assigned_waypoints:
+                self.drone.waypoints            = list(resp.assigned_waypoints)
+                self.drone.current_waypoint_idx = 0
+            return
         if not isinstance(msg.payload, ResolutionAdvisory):
             return
         adv = msg.payload
@@ -130,10 +144,13 @@ class _DroneAgent:
             yield self.env.timeout(dt)
             t = float(self.env.now)
 
-            # 1. 배터리
-            if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
+            # 1. 배터리 (2 Hz 갱신 — 5틱마다: CPU 80% 절감)
+            tick = int(round(t / dt))
+            if (tick % 5 == 0 and
+                    drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED)):
                 pw = _estimate_power_w(drone.speed, profile)
-                drone.battery_pct -= (pw * dt) / (profile.battery_wh * 3600.0) * 100.0
+                # 5틱(0.5s) 누적 소비량 한꺼번에 차감
+                drone.battery_pct -= (pw * dt * 5) / (profile.battery_wh * 3600.0) * 100.0
                 drone.battery_pct  = max(0.0, drone.battery_pct)
                 if drone.battery_pct < 5.0 and drone.failure_type == FailureType.NONE:
                     drone.failure_type = FailureType.BATTERY_CRITICAL
@@ -191,7 +208,6 @@ class _DroneAgent:
             sim.comm_bus.update_position(drone.drone_id, drone.position)
 
             # 8. 텔레메트리 송신 (5틱마다 ≈ 0.5 s)
-            tick = int(round(t / dt))
             if tick % 5 == 0:
                 sim.comm_bus.send(CommMessage(
                     sender_id=drone.drone_id,
@@ -231,14 +247,30 @@ class _DroneAgent:
 
         elif phase == FlightPhase.ENROUTE:
             drone.hold_count = 0   # ENROUTE 진입 시 HOLDING 카운터 리셋
-            if drone.goal is None:
+
+            # 웨이포인트 추적: ClearanceResponse에 assigned_waypoints가 있으면 순서대로 경유
+            if drone.waypoints:
+                wp_idx = min(drone.current_waypoint_idx, len(drone.waypoints) - 1)
+                target = drone.waypoints[wp_idx]
+                if float(np.linalg.norm((target - drone.position)[:2])) < self.WAYPOINT_TOL:
+                    drone.current_waypoint_idx = wp_idx + 1
+                    if drone.current_waypoint_idx >= len(drone.waypoints):
+                        # 모든 웨이포인트 통과 → 최종 목표로 전환
+                        drone.waypoints = []
+                        drone.current_waypoint_idx = 0
+                    else:
+                        target = drone.waypoints[drone.current_waypoint_idx]
+            else:
+                target = drone.goal
+
+            if target is None:
                 drone.flight_phase = FlightPhase.LANDING
                 sim.analytics.record_event("DRONE_LANDING", t,
                                            drone_id=drone.drone_id, reason="no_goal")
                 return
-            diff    = drone.goal - drone.position
+            diff    = target - drone.position
             dist_xy = float(np.linalg.norm(diff[:2]))
-            if dist_xy < self.WAYPOINT_TOL:
+            if dist_xy < self.WAYPOINT_TOL and not drone.waypoints:
                 drone.flight_phase = FlightPhase.LANDING
                 return
             spd  = profile.cruise_speed_ms
@@ -320,8 +352,27 @@ class _DroneAgent:
     def _handle_comms(self, drone, t, profile):
         if drone.comms_status == CommsStatus.LOST:
             if drone.flight_phase not in (FlightPhase.RTL, FlightPhase.LANDING,
-                                           FlightPhase.FAILED, FlightPhase.GROUNDED):
-                drone.flight_phase = FlightPhase.RTL
+                                           FlightPhase.FAILED, FlightPhase.GROUNDED,
+                                           FlightPhase.HOLDING):
+                # Lost-Link 3단계 시퀀스 시작: HOLD(30s) → RTL
+                if getattr(drone, '_lost_link_stage', 0) == 0:
+                    drone._lost_link_stage = 1       # 1=HOLD 진행 중
+                    drone._lost_link_ts    = t
+                    drone.flight_phase     = FlightPhase.HOLDING
+                    drone.hold_start_s     = t
+                    logger.info("Lost-Link 시작 [%s] t=%.1f — HOLD 30s", drone.drone_id, t)
+            elif drone.flight_phase == FlightPhase.HOLDING:
+                stage = getattr(drone, '_lost_link_stage', 0)
+                ts    = getattr(drone, '_lost_link_ts', t)
+                if stage == 1 and t >= ts + 30.0:   # 30초 대기 완료 → RTL
+                    drone._lost_link_stage = 2
+                    drone.flight_phase     = FlightPhase.RTL
+                    logger.info("Lost-Link HOLD 완료 [%s] t=%.1f — RTL 개시", drone.drone_id, t)
+        else:
+            # 통신 복구 시 Lost-Link 상태 초기화
+            if getattr(drone, '_lost_link_stage', 0) > 0:
+                drone._lost_link_stage = 0
+                logger.info("통신 복구 [%s] t=%.1f — Lost-Link 해제", drone.drone_id, t)
 
     def _handle_failure(self, drone, t):
         if drone.failure_type == FailureType.MOTOR_FAILURE:
@@ -587,20 +638,33 @@ class SwarmSimulator:
             t = float(self.env.now)
             self.analytics.record_snapshot(self._drones, t)
 
-            # 실제 충돌 감지 (5 m 이내) — 동일 쌍 중복 기록 방지
+            # 실제 충돌 감지 (5 m 이내) — KDTree O(N log N) 최적화
             active = [(did, d) for did, d in self._drones.items() if d.is_active]
             n = len(active)
             current_collisions: set[frozenset] = set()
-            for i in range(n):
-                id_a, da = active[i]
-                for j in range(i + 1, n):
-                    id_b, db = active[j]
-                    if distance_3d(da.position, db.position) < 5.0:
-                        pair = frozenset([id_a, id_b])
+            if n >= 2:
+                positions = np.array([d.position for _, d in active])
+                ids       = [did for did, _ in active]
+                if _SCIPY_AVAILABLE and n >= 20:
+                    tree    = _KDTree(positions)
+                    pairs   = tree.query_pairs(5.0)  # 5m 이내 쌍 전체
+                    for i, j in pairs:
+                        pair = frozenset([ids[i], ids[j]])
                         current_collisions.add(pair)
                         if pair not in self._active_collision_pairs:
                             self.analytics.record_event("COLLISION", t,
-                                                        drone_a=id_a, drone_b=id_b)
+                                                        drone_a=ids[i], drone_b=ids[j])
+                else:
+                    for i in range(n):
+                        for j in range(i + 1, n):
+                            if distance_3d(active[i][1].position,
+                                           active[j][1].position) < 5.0:
+                                pair = frozenset([ids[i], ids[j]])
+                                current_collisions.add(pair)
+                                if pair not in self._active_collision_pairs:
+                                    self.analytics.record_event("COLLISION", t,
+                                                                drone_a=ids[i],
+                                                                drone_b=ids[j])
             self._active_collision_pairs = current_collisions
 
     # ── 유틸리티 ─────────────────────────────────────────────

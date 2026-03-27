@@ -845,17 +845,22 @@ function makeTextSprite(text, color, fontSize) {
 
 // ===== ATC Control Drones (관제 드론) =====
 const ATC_POSITIONS = [
-  { name: 'ATC-01', x: 0, z: 0, alt: 120, role: '중앙 관제' },
-  // 사분면 관제 (4대)
-  { name: 'ATC-02', x: -2500, z: 2500, alt: 105, role: 'NW 구역' },
-  { name: 'ATC-03', x: 2500, z: 2500, alt: 105, role: 'NE 구역' },
-  { name: 'ATC-04', x: -2500, z: -2500, alt: 105, role: 'SW 구역' },
-  { name: 'ATC-05', x: 2500, z: -2500, alt: 105, role: 'SE 구역' },
+  { name: 'ATC-01', x: 0, z: 0, alt: 130, role: '중앙 총괄 관제' },
+  // 사분면 관제 (4대) — 구역 감시
+  { name: 'ATC-02', x: -2500, z: 2500, alt: 115, role: 'NW 구역' },
+  { name: 'ATC-03', x: 2500, z: 2500, alt: 115, role: 'NE 구역' },
+  { name: 'ATC-04', x: -2500, z: -2500, alt: 115, role: 'SW 구역' },
+  { name: 'ATC-05', x: 2500, z: -2500, alt: 115, role: 'SE 구역' },
   // 축 방향 중간 관제 (4대) — 회랑 커버
-  { name: 'ATC-06', x: 0, z: 2800, alt: 95, role: 'N 회랑' },
-  { name: 'ATC-07', x: 0, z: -2800, alt: 95, role: 'S 회랑' },
-  { name: 'ATC-08', x: -2800, z: 0, alt: 95, role: 'W 회랑' },
-  { name: 'ATC-09', x: 2800, z: 0, alt: 95, role: 'E 회랑' },
+  { name: 'ATC-06', x: 0, z: 2800, alt: 100, role: 'N 회랑' },
+  { name: 'ATC-07', x: 0, z: -2800, alt: 100, role: 'S 회랑' },
+  { name: 'ATC-08', x: -2800, z: 0, alt: 100, role: 'W 회랑' },
+  { name: 'ATC-09', x: 2800, z: 0, alt: 100, role: 'E 회랑' },
+  // 착륙장 관제 (4대) — 패드 근접 감시·착륙 시퀀스 제어
+  { name: 'ATC-10', x: -3000, z: 3000, alt: 85, role: 'PAD_NW 관제' },
+  { name: 'ATC-11', x: 3000, z: 3000, alt: 85, role: 'PAD_NE 관제' },
+  { name: 'ATC-12', x: -3000, z: -3000, alt: 85, role: 'PAD_SW 관제' },
+  { name: 'ATC-13', x: 3000, z: -3000, alt: 85, role: 'PAD_SE 관제' },
 ];
 const atcDrones = [];
 
@@ -986,7 +991,10 @@ function createDrone(id, startPad) {
   const destPad = randomPad();
   const role = DRONE_ROLES[id % DRONE_ROLES.length];
   const isUAM = role.id === 'uam_taxi' || role.id === 'uam_shuttle';
-  const cruiseAlt = isUAM ? (100 + Math.random() * 60) : (40 + Math.random() * 70); // UAM: 100-160m, 일반: 40-110m
+  // 고도 레이어 할당: ID 기반 분산 (충돌 방지)
+  const layerIdx = id % ALTITUDE_LAYERS.length;
+  const baseLayerAlt = ALTITUDE_LAYERS[layerIdx];
+  const cruiseAlt = isUAM ? (100 + Math.random() * 60) : (baseLayerAlt + (Math.random() - 0.5) * 10); // UAM: 100-160m, 일반: 40-110m
 
   // UAM은 크기 1.6배
   if (isUAM) {
@@ -1690,6 +1698,10 @@ function apfCollisionAvoidance() {
   let frameConflicts = 0, frameNear = 0, frameCollisions = 0;
   const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
 
+  // 충돌 중복 방지: 같은 쌍은 2초 쿨다운
+  if (!apfCollisionAvoidance._cooldown) apfCollisionAvoidance._cooldown = new Map();
+  const cooldown = apfCollisionAvoidance._cooldown;
+
   // ─── Spatial Hash: O(N·k) 이웃 탐색 ───
   const cellSize = EVADE_DIST;
   const grid = new Map();
@@ -1748,24 +1760,30 @@ function apfCollisionAvoidance() {
           const safeDist = Math.max(hDist, 1);
 
           if (dist3d < COLLISION_DIST) {
-            frameCollisions++;
-            if (lineCount < maxLines) { addProximityLine(a, b, 0xff0000, 0.6); lineCount++; }
-            const midX = (a.group.position.x + b.group.position.x) / 2;
-            const midY = (a.group.position.y + b.group.position.y) / 2;
-            const midZ = (a.group.position.z + b.group.position.z) / 2;
-            spawnCollisionParticles(midX, midY, midZ);
-            triggerCameraShake(0.3);
-            logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist3d)}m)`);
+            // 충돌 카운트: 같은 쌍은 2초 쿨다운 (중복 방지)
+            const collKey = pairKey;
+            const lastColl = cooldown.get(collKey) || 0;
+            if (simTime - lastColl > 2.0) {
+              frameCollisions++;
+              cooldown.set(collKey, simTime);
+              if (lineCount < maxLines) { addProximityLine(a, b, 0xff0000, 0.6); lineCount++; }
+              const midX = (a.group.position.x + b.group.position.x) / 2;
+              const midY = (a.group.position.y + b.group.position.y) / 2;
+              const midZ = (a.group.position.z + b.group.position.z) / 2;
+              spawnCollisionParticles(midX, midY, midZ);
+              triggerCameraShake(0.3);
+              logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist3d)}m)`);
+            }
 
             // 긴급 회피: 강한 반발 + 수직 분리
-            const push = 12 * (1 + closingSpeed * 0.3); // 속도 비례
+            const push = 40 * (1 + closingSpeed * 0.5); // 강한 비례 반발
             fa.fx += (dx / safeDist) * push * aYield;
             fa.fz += (dz / safeDist) * push * aYield;
             fb.fx -= (dx / safeDist) * push * bYield;
             fb.fz -= (dz / safeDist) * push * bYield;
             // 수직 강제 분리 (ID 기반 결정론적)
             const aUp = (parseInt(a.id.replace('DR-','')) % 2 === 0) ? 1 : -1;
-            fa.fy += aUp * 8; fb.fy -= aUp * 8;
+            fa.fy += aUp * 20; fb.fy -= aUp * 20;
           } else if (dist3d < NEAR_MISS_DIST || (isConverging && cpaDist < NEAR_MISS_DIST)) {
             frameNear++;
             if (lineCount < maxLines) { addProximityLine(a, b, 0xff6600, 0.3); lineCount++; }
@@ -1773,7 +1791,7 @@ function apfCollisionAvoidance() {
 
             // 지수 반발력 (가까울수록 급격히 증가)
             const ratio = 1 - effectiveDist / NEAR_MISS_DIST;
-            const strength = 8 * ratio * ratio * (1 + closingSpeed * 0.2);
+            const strength = 25 * ratio * ratio * (1 + closingSpeed * 0.3);
             fa.fx += (dx / safeDist) * strength * aYield;
             fa.fz += (dz / safeDist) * strength * aYield;
             fb.fx -= (dx / safeDist) * strength * bYield;
@@ -1781,7 +1799,7 @@ function apfCollisionAvoidance() {
             // 수직 분리
             if (Math.abs(dy) < SEPARATION_ALT * 2) {
               const aUp = (parseInt(a.id.replace('DR-','')) % 2 === 0) ? 1 : -1;
-              fa.fy += aUp * strength * 0.4; fb.fy -= aUp * strength * 0.4;
+              fa.fy += aUp * strength * 0.5; fb.fy -= aUp * strength * 0.5;
             }
           } else if (dist3d < EVADE_DIST || (isConverging && cpaDist < EVADE_DIST * 0.7)) {
             frameConflicts++;
@@ -1789,7 +1807,7 @@ function apfCollisionAvoidance() {
 
             // 부드러운 APF 반발력 (CPA 기반)
             const ratio = 1 - effectiveDist / EVADE_DIST;
-            const strength = 4 * ratio * (1 + closingSpeed * 0.1);
+            const strength = 12 * ratio * (1 + closingSpeed * 0.15);
             fa.fx += (dx / safeDist) * strength * aYield;
             fa.fz += (dz / safeDist) * strength * aYield;
             fb.fx -= (dx / safeDist) * strength * bYield;
@@ -1800,18 +1818,30 @@ function apfCollisionAvoidance() {
     }
   });
 
-  // ─── 누적 회피 벡터 → 속도 보정 (위치 텔레포트 대신) ───
+  // ─── 하이브리드 회피: 긴급=위치 직접 보정, 일반=속도 보정 ───
   airborne.forEach(d => {
     const f = repForce.get(d);
     const mag = Math.sqrt(f.fx * f.fx + f.fz * f.fz);
     if (mag > 0.5) {
-      // 속도 보정값으로 저장 (updateDrone에서 적용)
-      const clampedMag = Math.min(mag, d.maxSpeed * 1.5);
+      // 긴급 구간 (충돌·근접): 위치 직접 이동 (즉각 반응)
+      if (mag > 5) {
+        const pushDist = Math.min(mag * 3, 60); // 최대 60m 직접 밀기
+        d.wx += (f.fx / mag) * pushDist;
+        d.wz += (f.fz / mag) * pushDist;
+        d.wx = Math.max(-WORLD, Math.min(WORLD, d.wx));
+        d.wz = Math.max(-WORLD, Math.min(WORLD, d.wz));
+      }
+      // 수직 분리: 직접 적용
+      if (Math.abs(f.fy) > 0.5) {
+        d.wy = Math.max(10, Math.min(MAX_ALT, d.wy + Math.sign(f.fy) * Math.min(Math.abs(f.fy) * 2, 20)));
+      }
+      // 속도 보정 (부드러운 회피 — ENROUTE에서 적용됨)
+      const clampedMag = Math.min(mag, d.maxSpeed * 1.2);
       d.apfVx = (f.fx / mag) * clampedMag;
       d.apfVz = (f.fz / mag) * clampedMag;
       d.apfVy = Math.sign(f.fy) * Math.min(Math.abs(f.fy), PHYSICS.maxClimbRate);
 
-      // ENROUTE → EVADING 전환 (강한 회피력)
+      // ENROUTE → EVADING 전환
       if (d.phase === 'ENROUTE' && mag > 6) {
         d.phase = 'EVADING';
         d.evadeTimer = 1.5;
@@ -1820,10 +1850,10 @@ function apfCollisionAvoidance() {
         logEvent('evade', `${d.id} → APF 회피 기동`);
       }
     } else {
-      // 회피력 감쇠 (부드러운 복귀)
-      d.apfVx *= 0.8;
-      d.apfVz *= 0.8;
-      d.apfVy *= 0.8;
+      // 회피력 감쇠
+      d.apfVx *= 0.7;
+      d.apfVz *= 0.7;
+      d.apfVy *= 0.7;
     }
   });
 

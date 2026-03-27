@@ -857,6 +857,17 @@ app.layout = html.Div(
                             ),
                         ]),
 
+                        # APF 벡터 필드 토글
+                        html.Div([
+                            dcc.Checklist(
+                                id="apf-field-check",
+                                options=[{"label": " 🧲 APF 벡터 필드", "value": "on"}],
+                                value=[],
+                                style={"color": "#c9d1d9", "fontSize": "11px",
+                                       "marginTop": "4px"},
+                            ),
+                        ]),
+
                         # 속도 조절
                         html.Div([
                             html.Div("⏩ 시뮬레이션 속도",

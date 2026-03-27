@@ -542,6 +542,7 @@ MIT License — 학술 및 교육 목적으로 개발되었습니다.
 
 | 날짜 (KST) | 커밋 | 분류 | 작업 내용 | 주요 파일 |
 | --- | --- | --- | --- | --- |
+| 2026-03-27 11:57 | `8096d44` | fix: 전체 리뷰 기반 버그 8건 수정 (H1-H5, M1-M3) | simulation/apf_engine/apf.py, src/airspace_control/avoidance/resolution_advisory.py, src/airspace_control/controller/airspace_controller.py, visualization/simulator_3d.py |
 | 2026-03-26 16:20 | `2c0e4e8` | fix(viz): 충돌 카운터 중복 증가 버그 수정 (B5) | visualization/simulator_3d.py |
 | 2026-03-26 14:57 | `4649bc4` | feat: 3D 시각화 2차 업데이트 (차트·트레일·강조) | visualization/simulator_3d.py |
 | 2026-03-26 12:01 | `b038437` | docs: README 변경 이력에 시각화 업데이트 커밋 반영 | README.md |

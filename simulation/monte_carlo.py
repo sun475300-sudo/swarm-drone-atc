@@ -25,35 +25,34 @@ def _load_mc_config() -> dict:
 
 def _run_single(args: tuple) -> dict:
     """단일 설정 실행 (joblib 워커용)"""
-    from simulation.engine_legacy import SimulationEngine
+    from simulation.simulator import SwarmSimulator
 
     config_combo, seed = args
-    engine = SimulationEngine(
-        seed=seed,
-        duration_s=600.0,
-        drone_count=config_combo.get("drone_density", 100),
-        scenario_overrides=config_combo,
-    )
-    # 기상 오버라이드 (WindModel 통합)
     wind = config_combo.get("wind_speed_ms", 0)
-    if wind > 0:
-        from simulation.weather import build_wind_models
-        engine.wind_models = build_wind_models(
-            {"wind_models": [{"type": "constant", "speed_ms": wind, "direction_deg": 0}]},
-            engine.rng,
-        )
 
-    metrics = engine.run()
+    scenario_cfg: dict = {
+        "simulation": {
+            "duration_s": 600.0,
+            "n_drones": config_combo.get("drone_density", 100),
+        },
+    }
+    if wind > 0:
+        scenario_cfg["wind_models"] = [
+            {"type": "constant", "speed_ms": wind, "direction_deg": 0}
+        ]
+
+    sim = SwarmSimulator(seed=seed, scenario_cfg=scenario_cfg)
+    result = sim.run()
 
     return {
         **config_combo,
         "seed": seed,
-        "collision_count": metrics.collision_count,
-        "near_miss_count": metrics.near_miss_count,
-        "conflict_resolution_rate": metrics.conflict_resolution_rate,
-        "route_efficiency": metrics.route_efficiency,
-        "avg_battery_pct": metrics.avg_battery_remaining_pct,
-        "routes_completed": metrics.routes_completed,
+        "collision_count": result.collision_count,
+        "near_miss_count": result.near_miss_count,
+        "conflict_resolution_rate": result.conflict_resolution_rate_pct,
+        "route_efficiency": result.route_efficiency_mean,
+        "avg_battery_pct": result.avg_battery_remaining_pct,
+        "routes_completed": result.clearances_approved,
     }
 
 

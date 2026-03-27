@@ -73,3 +73,13 @@ class TestAdvisoryGenerator:
         types = [a.advisory_type for a in seq]
         assert "HOLD" in types
         assert "CLIMB" in types
+
+    def test_zero_velocity_target_returns_evade_apf(self):
+        """BUG-H3 회귀: velocity=0 드론에 대해 EVADE_APF를 반환해야 한다 (atan2(0,0) 오류 방지)"""
+        own    = _drone("A", [0.0, 0.0, 60.0], [5.0, 0.0, 0.0])
+        # 정지 드론 (velocity = [0,0,0])
+        threat = _drone("B", [20.0, 0.0, 60.0], [0.0, 0.0, 0.0])
+        adv = self.gen.generate(own, threat, cpa_dist_m=10.0, cpa_t_s=3.0, now=0.0)
+        assert adv.advisory_type == "EVADE_APF", (
+            f"정지 드론에 대해 EVADE_APF 기대, 실제: {adv.advisory_type}"
+        )

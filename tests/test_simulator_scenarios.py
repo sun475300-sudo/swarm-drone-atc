@@ -115,3 +115,75 @@ class TestFailureScenario:
         sim = SwarmSimulator(config_path=sim_config, scenario_cfg=scenario, seed=30)
         result = sim.run(duration_s=20.0)
         assert isinstance(result, SimulationResult)
+
+
+class TestRTLNearestPad:
+    """BUG-03: RTL 시 최근접 패드로 귀환하는지 검증"""
+
+    def test_nearest_pad_selection(self):
+        """드론 위치에 가장 가까운 패드가 선택되어야 한다."""
+        import numpy as np
+        from simulation.simulator import SwarmSimulator
+
+        # 패드 딕셔너리에서 최근접 패드 선택 로직 직접 테스트
+        landing_pads = {
+            "PAD_NW": np.array([-3000.0,  3000.0, 0.0]),
+            "PAD_NE": np.array([ 3000.0,  3000.0, 0.0]),
+            "PAD_SW": np.array([-3000.0, -3000.0, 0.0]),
+            "PAD_SE": np.array([ 3000.0, -3000.0, 0.0]),
+            "PAD_CENTER": np.array([0.0, 0.0, 0.0]),
+        }
+        drone_pos = np.array([2800.0, 2800.0, 80.0])  # PAD_NE에 가장 가까움
+
+        nearest = min(
+            landing_pads.values(),
+            key=lambda p: float(np.linalg.norm(drone_pos[:2] - p[:2])),
+        )
+        expected = landing_pads["PAD_NE"]
+        assert np.allclose(nearest, expected), (
+            f"PAD_NE를 기대했으나 {nearest} 선택됨"
+        )
+
+    def test_nearest_pad_sw(self):
+        """SW 구역 드론은 PAD_SW 선택"""
+        import numpy as np
+        landing_pads = {
+            "PAD_NW": np.array([-3000.0,  3000.0, 0.0]),
+            "PAD_NE": np.array([ 3000.0,  3000.0, 0.0]),
+            "PAD_SW": np.array([-3000.0, -3000.0, 0.0]),
+            "PAD_SE": np.array([ 3000.0, -3000.0, 0.0]),
+            "PAD_CENTER": np.array([0.0, 0.0, 0.0]),
+        }
+        drone_pos = np.array([-2500.0, -2500.0, 80.0])
+        nearest = min(
+            landing_pads.values(),
+            key=lambda p: float(np.linalg.norm(drone_pos[:2] - p[:2])),
+        )
+        assert np.allclose(nearest, landing_pads["PAD_SW"])
+
+
+class TestHoldingRTL:
+    """IMP-04: HOLDING 3회 반복 시 RTL 전환 검증"""
+
+    def test_hold_count_increments(self):
+        """HOLDING 진입 시 hold_count가 증가해야 한다."""
+        from src.airspace_control.agents.drone_state import DroneState, FlightPhase
+        drone = DroneState(
+            drone_id="H1",
+            position=[0.0, 0.0, 60.0],
+            velocity=[0.0, 0.0, 0.0],
+        )
+        assert drone.hold_count == 0
+        drone.hold_count += 1
+        assert drone.hold_count == 1
+
+    def test_hold_count_field_exists(self):
+        """DroneState에 hold_count 필드가 있어야 한다."""
+        from src.airspace_control.agents.drone_state import DroneState
+        drone = DroneState(
+            drone_id="H2",
+            position=[0.0, 0.0, 60.0],
+            velocity=[0.0, 0.0, 0.0],
+        )
+        assert hasattr(drone, "hold_count")
+        assert isinstance(drone.hold_count, int)

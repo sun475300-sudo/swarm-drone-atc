@@ -96,3 +96,71 @@ class TestForceToVelocity:
         force = np.array([1000.0, 0.0, 0.0])
         v = force_to_velocity(np.zeros(3), force, dt=1.0, max_speed=8.0)
         assert np.linalg.norm(v) <= 8.0 + 1e-6
+
+
+class TestClosingSpeedCap:
+    """BUG-05: closing_speed 2× 명시적 캡 검증"""
+
+    def test_closing_speed_cap_at_2x(self):
+        """closing_speed=10.0 (> 5.0) 이어도 증폭은 2× 이하여야 한다."""
+        from simulation.apf_engine.apf import repulsive_force_drone, APF_PARAMS
+
+        # 두 드론이 10m 간격으로 정면 충돌 접근 (closing_speed ≈ 20 m/s)
+        own_pos   = np.array([0.0, 0.0, 60.0])
+        other_pos = np.array([10.0, 0.0, 60.0])
+        own_vel   = np.array([10.0, 0.0, 0.0])   # 상대방 방향으로 이동
+        other_vel = np.array([-10.0, 0.0, 0.0])  # 나 방향으로 이동
+
+        f_high = repulsive_force_drone(own_pos, other_pos, own_vel, other_vel)
+
+        # closing_speed = 0 인 경우 (상대속도 없음)
+        f_zero = repulsive_force_drone(
+            own_pos, other_pos,
+            np.zeros(3), np.zeros(3),
+        )
+
+        mag_high = float(np.linalg.norm(f_high))
+        mag_zero = float(np.linalg.norm(f_zero))
+
+        if mag_zero > 1e-6:
+            ratio = mag_high / mag_zero
+            assert ratio <= 2.0 + 1e-6, f"closing_speed 증폭이 2× 초과: {ratio:.3f}"
+
+    def test_no_amplification_when_moving_away(self):
+        """멀어지는 방향(closing_speed < 0)이면 증폭 없음"""
+        from simulation.apf_engine.apf import repulsive_force_drone
+
+        own_pos   = np.array([0.0, 0.0, 60.0])
+        other_pos = np.array([10.0, 0.0, 60.0])
+        own_vel   = np.array([-5.0, 0.0, 0.0])   # 멀어지는 방향
+        other_vel = np.zeros(3)
+
+        f = repulsive_force_drone(own_pos, other_pos, own_vel, other_vel)
+        f_base = repulsive_force_drone(own_pos, other_pos, np.zeros(3), np.zeros(3))
+
+        # 멀어지는 경우 기본 척력과 크기가 같아야 함
+        assert abs(np.linalg.norm(f) - np.linalg.norm(f_base)) < 1e-6
+
+
+class TestTargetAlt:
+    """target_alt 파라미터 전달 검증"""
+
+    def test_target_alt_influences_z_force(self):
+        """goal[2]와 다른 target_alt 적용 시 고도력이 goal[2] 기준이 아닌 target_alt 기준"""
+        from simulation.apf_engine.apf import compute_total_force, APFState
+
+        own = APFState(
+            position=np.array([0.0, 0.0, 50.0]),  # 현재 고도 50m
+            velocity=np.zeros(3),
+            drone_id="T0",
+        )
+        goal = np.array([1000.0, 0.0, 60.0])  # goal 고도 60m
+
+        # target_alt=80m → 고도력이 위 방향(80-50=30m 오차)
+        f_80 = compute_total_force(own, goal, [], [], target_alt=80.0)
+        # target_alt=40m → 고도력이 아래 방향(40-50=-10m 오차)
+        f_40 = compute_total_force(own, goal, [], [], target_alt=40.0)
+
+        # target_alt=80 → z 방향 힘 양수, target_alt=40 → z 방향 힘 음수
+        assert f_80[2] > 0, "target_alt=80m 일 때 z 힘이 위쪽이어야 함"
+        assert f_40[2] < 0, "target_alt=40m 일 때 z 힘이 아래쪽이어야 함"

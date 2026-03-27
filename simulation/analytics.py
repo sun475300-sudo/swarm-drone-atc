@@ -37,6 +37,9 @@ class SimulationResult:
     clearances_approved: int   = 0
     clearances_denied:   int   = 0
 
+    # 배터리
+    avg_battery_remaining_pct: float = 0.0
+
     # 지연 (s)
     advisory_latency_p50: float = 0.0
     advisory_latency_p99: float = 0.0
@@ -123,6 +126,7 @@ class SimulationAnalytics:
         self._dist_actual:  dict[str, float] = {}  # drone_id → actual km
         self._dist_planned: dict[str, float] = {}
         self._flight_time:  dict[str, float] = {}
+        self._last_battery: dict[str, float] = {}  # drone_id → 마지막 배터리 %
 
         self._start_wall = time.monotonic()
 
@@ -175,6 +179,7 @@ class SimulationAnalytics:
             # 거리 누적
             self._dist_actual[did] = float(d.distance_flown_m)
             self._flight_time[did] = float(d.flight_time_s)
+            self._last_battery[did] = float(d.battery_pct)
 
     def record_planned_distance(self, drone_id: str, dist_m: float) -> None:
         self._dist_planned[drone_id] = dist_m
@@ -214,6 +219,8 @@ class SimulationAnalytics:
 
         total_flight_s  = sum(self._flight_time.values())
         total_dist_km   = sum(self._dist_actual.values()) / 1000.0
+        avg_bat = (float(np.mean(list(self._last_battery.values())))
+                   if self._last_battery else 0.0)
 
         return SimulationResult(
             collision_count=self._collision_count,
@@ -225,6 +232,7 @@ class SimulationAnalytics:
             route_efficiency_max=eff_max,
             total_flight_time_s=total_flight_s,
             total_distance_km=total_dist_km,
+            avg_battery_remaining_pct=avg_bat,
             clearances_approved=self._clearances_ok,
             clearances_denied=self._clearances_no,
             advisory_latency_p50=p50,

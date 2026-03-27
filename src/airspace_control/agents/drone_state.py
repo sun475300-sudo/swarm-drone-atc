@@ -66,6 +66,7 @@ class DroneState:
     # 회피/대기 단계 타이밍 (시뮬레이터 관리)
     evade_end_s: Optional[float] = None    # EVADING 단계 종료 시각
     hold_start_s: Optional[float] = None  # HOLDING 단계 시작 시각
+    hold_count: int = 0                   # 연속 HOLDING 횟수 (3회 초과 시 RTL)
 
     def __post_init__(self):
         if isinstance(self.position, list):

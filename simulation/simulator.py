@@ -14,12 +14,15 @@ SimPy 기반 이산 이벤트 시뮬레이션.
   print(result.to_dict())
 """
 from __future__ import annotations
+import logging
 import math
 import os
 import random
 import sys
 import uuid
 from typing import Any
+
+logger = logging.getLogger("sdacs.simulator")
 
 import numpy as np
 import simpy
@@ -227,6 +230,7 @@ class _DroneAgent:
                 drone.flight_phase = FlightPhase.ENROUTE
 
         elif phase == FlightPhase.ENROUTE:
+            drone.hold_count = 0   # ENROUTE 진입 시 HOLDING 카운터 리셋
             if drone.goal is None:
                 drone.flight_phase = FlightPhase.LANDING
                 sim.analytics.record_event("DRONE_LANDING", t,
@@ -256,9 +260,14 @@ class _DroneAgent:
             drone.velocity = np.zeros(3)
             if drone.hold_start_s is None:
                 drone.hold_start_s = t
+                drone.hold_count  += 1
             if t >= drone.hold_start_s + 5.0:
                 drone.hold_start_s = None
-                drone.flight_phase = FlightPhase.ENROUTE
+                if drone.hold_count >= 3:
+                    drone.hold_count   = 0
+                    drone.flight_phase = FlightPhase.RTL
+                else:
+                    drone.flight_phase = FlightPhase.ENROUTE
 
         elif phase == FlightPhase.LANDING:
             if drone.position[2] > 1.5:
@@ -292,7 +301,13 @@ class _DroneAgent:
                 drone.velocity = np.array([0.0, 0.0, self.TAKEOFF_RATE])
             else:
                 drone.position[2]  = rtl_alt
-                home = sim.landing_pads.get("PAD_CENTER", np.zeros(3))
+                if sim.landing_pads:
+                    home = min(
+                        sim.landing_pads.values(),
+                        key=lambda p: float(np.linalg.norm(drone.position[:2] - p[:2])),
+                    )
+                else:
+                    home = np.zeros(3)
                 diff = home - drone.position
                 if float(np.linalg.norm(diff[:2])) < 100.0:
                     drone.flight_phase = FlightPhase.LANDING
@@ -605,6 +620,7 @@ class SwarmSimulator:
 
 if __name__ == "__main__":
     import argparse, json
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     parser = argparse.ArgumentParser(description="군집드론 시뮬레이터")
     parser.add_argument("--config",   default="config/default_simulation.yaml")
     parser.add_argument("--duration", type=float, default=None, help="시뮬레이션 시간 (초)")
@@ -618,4 +634,4 @@ if __name__ == "__main__":
 
     sim    = SwarmSimulator(args.config, scenario_cfg=override or None, seed=args.seed)
     result = sim.run(args.duration)
-    print(json.dumps(result.to_dict(), indent=2, ensure_ascii=False))
+    logger.info("결과:\n%s", json.dumps(result.to_dict(), indent=2, ensure_ascii=False))

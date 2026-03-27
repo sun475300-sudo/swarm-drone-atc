@@ -83,7 +83,8 @@ class AirspaceController:
         self._pending:       list[ClearanceRequest] = []
         self._advisories:    dict[str, ResolutionAdvisory] = {}  # adv_id → adv
         self._intruders:     set[str]               = set()
-        self._voronoi_cells: dict                   = {}
+        self._voronoi_cells:      dict               = {}
+        self._voronoi_cells_prev: dict               = {}  # 실패 시 폴백용
 
         self._lat_min   = float(config.get("separation_standards", {})
                                 .get("lateral_min_m", 50.0))
@@ -138,7 +139,6 @@ class AirspaceController:
             drone.velocity = np.array(tm.velocity, dtype=float)
             drone.battery_pct = float(tm.battery_pct)
         drone.last_update_s = float(tm.timestamp_s)
-        from src.airspace_control.agents.drone_state import FlightPhase
         try:
             drone.flight_phase = FlightPhase[tm.flight_phase]
         except KeyError:
@@ -151,9 +151,12 @@ class AirspaceController:
     # ── 허가 처리 ────────────────────────────────────────────
 
     def _process_clearances(self, t: float) -> None:
-        # 대기 중 요청을 우선순위 큐에 삽입
+        # 대기 중 요청을 우선순위 큐에 삽입 (EMERGENCY는 최우선 처리)
         for req in self._pending:
-            self.pq.push(req, req.timestamp_s)
+            priority_val = req.timestamp_s
+            if req.priority <= 1:   # EMERGENCY = 1 (낮을수록 높은 우선순위)
+                priority_val = -1e9 + req.timestamp_s
+            self.pq.push(req, priority_val)
         self._pending.clear()
 
         processed = 0
@@ -429,11 +432,13 @@ class AirspaceController:
                 self._voronoi_cells = compute_voronoi_partition(
                     positions, bounds_m
                 )
+                self._voronoi_cells_prev = self._voronoi_cells.copy()
             except Exception as exc:  # noqa: BLE001
                 import logging as _logging
                 _logging.getLogger("sdacs.controller").warning(
-                    "Voronoi 계산 실패 (드론 수=%d): %s", len(positions), exc
+                    "Voronoi 계산 실패 (드론 수=%d): %s — 이전 셀 유지", len(positions), exc
                 )
+                self._voronoi_cells = self._voronoi_cells_prev  # 폴백
 
 
 # ── 모듈 수준 유틸리티 ─────────────────────────────────────────

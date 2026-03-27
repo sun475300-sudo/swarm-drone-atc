@@ -98,7 +98,7 @@ def repulsive_force_drone(
     relative_vel = own_vel - other_vel
     closing_speed = -np.dot(relative_vel, n)  # 양수 = 접근 중
     if closing_speed > 0:
-        mag *= (1.0 + closing_speed / 5.0)   # 최대 2× 증폭
+        mag *= min(2.0, 1.0 + closing_speed / 5.0)   # 명시적 2× 캡
 
     return mag * n
 

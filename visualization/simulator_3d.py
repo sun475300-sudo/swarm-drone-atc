@@ -15,12 +15,15 @@
 """
 
 from __future__ import annotations
+import logging
 import sys
 import os
 import threading
 import time
 import math
 import random
+
+logger = logging.getLogger("sdacs.viz")
 
 import numpy as np
 
@@ -354,7 +357,11 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
             drone.flight_phase = FlightPhase.LANDING
         else:
             spd = profile.cruise_speed_ms
-            direction = diff / (np.linalg.norm(diff) + 1e-6)
+            norm = float(np.linalg.norm(diff))
+            if norm < 0.1:
+                drone.flight_phase = FlightPhase.LANDING
+                return
+            direction = diff / norm
             drone.velocity = direction * spd + sim.wind
             # 고도 유지
             drone.velocity[2] += (CRUISE_ALT - drone.position[2]) * 0.4
@@ -381,8 +388,8 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
         drone.position[2] = float(np.clip(drone.position[2], ALT_MIN, ALT_MAX))
         drone.distance_flown_m += float(np.linalg.norm(drone.velocity[:2])) * dt
 
-        # NFZ 밖이면 ENROUTE 복귀
-        if not _in_nfz(drone.position) and random.random() < 0.04:
+        # NFZ 밖이고 APF 합력이 충분히 작으면 ENROUTE 복귀
+        if not _in_nfz(drone.position) and float(np.linalg.norm(force)) < 1.0:
             drone.flight_phase = FlightPhase.ENROUTE
 
     # ── 착륙
@@ -1291,10 +1298,17 @@ def _refresh(_n):
             fillcolor="rgba(248,81,73,0.2)",
             name="충돌",
         ))
+    # X축 틱: 60초 간격 hh:mm 레이블
+    tick_vals = hist_t[::60] if len(hist_t) > 60 else hist_t
+    tick_text = [f"{int(v//60):02d}:{int(v%60):02d}" for v in tick_vals]
     chart_hist.update_layout(
         paper_bgcolor="#0d1117", plot_bgcolor="#0d1117",
         margin=dict(l=4, r=4, t=4, b=20),
-        xaxis=dict(color="#484f58", tickfont=dict(size=9), gridcolor="#21262d"),
+        xaxis=dict(
+            color="#484f58", tickfont=dict(size=9), gridcolor="#21262d",
+            title_text="경과 시간",
+            tickvals=tick_vals, ticktext=tick_text,
+        ),
         yaxis=dict(color="#484f58", tickfont=dict(size=9), gridcolor="#21262d"),
         legend=dict(font=dict(color="#8b949e", size=9), bgcolor="rgba(0,0,0,0)",
                     x=0.02, y=0.98, orientation="h"),
@@ -1313,11 +1327,8 @@ if __name__ == "__main__":
     bg = threading.Thread(target=_sim_loop, args=(SIM,), daemon=True)
     bg.start()
 
-    print("=" * 60)
-    print("  3D Simulator starting...")
-    print("  Browser: http://localhost:8050")
-    print("=" * 60)
-    print("  Press [Start] button to begin simulation.")
-    print("=" * 60)
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    logger.info("3D Simulator starting... Browser: http://localhost:8050")
+    logger.info("Press [Start] button to begin simulation.")
 
     app.run(debug=False, host="0.0.0.0", port=8050)

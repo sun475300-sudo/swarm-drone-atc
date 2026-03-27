@@ -1007,6 +1007,17 @@ const ATC_POSITIONS = [
   { name: 'ATC-11', x: 3000, z: 3000, alt: 85, role: 'PAD_NE 관제' },
   { name: 'ATC-12', x: -3000, z: -3000, alt: 85, role: 'PAD_SW 관제' },
   { name: 'ATC-13', x: 3000, z: -3000, alt: 85, role: 'PAD_SE 관제' },
+  // 내부 링 관제 (4대) — 중심부 교차 교통 관리
+  { name: 'ATC-14', x: -1200, z: 1200, alt: 110, role: 'NW 내부' },
+  { name: 'ATC-15', x: 1200, z: 1200, alt: 110, role: 'NE 내부' },
+  { name: 'ATC-16', x: -1200, z: -1200, alt: 110, role: 'SW 내부' },
+  { name: 'ATC-17', x: 1200, z: -1200, alt: 110, role: 'SE 내부' },
+  // 고고도 광역 감시 (2대) — 전체 조감 + 장거리 CPA
+  { name: 'ATC-18', x: -1500, z: 0, alt: 155, role: '서측 광역 감시' },
+  { name: 'ATC-19', x: 1500, z: 0, alt: 155, role: '동측 광역 감시' },
+  // 패드 CENTER 전담 + 대각선 순찰 (2대)
+  { name: 'ATC-20', x: 0, z: 0, alt: 90, role: 'PAD_CENTER 관제' },
+  { name: 'ATC-21', x: 0, z: 1500, alt: 120, role: '중앙 순찰' },
 ];
 const atcDrones = [];
 
@@ -1217,6 +1228,7 @@ function initDrones(scenario) {
   stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
   simTime = 0;
   landingManager.clear();
+  takeoffController.clear();
   // APF 충돌 쿨다운 초기화
   if (apfCollisionAvoidance._cooldown) apfCollisionAvoidance._cooldown.clear();
   if (apfCollisionAvoidance._nearCooldown) apfCollisionAvoidance._nearCooldown.clear();
@@ -1767,11 +1779,11 @@ const landingManager = {
     const q = this.queues[padName];
     if (!q.includes(drone)) {
       q.push(drone);
-      q.sort((a, b) => a.priority - b.priority); // 우선순위 정렬
+      q.sort((a, b) => a.priority - b.priority);
       drone.landingQueued = true;
       drone.landingSlot = q.indexOf(drone);
     }
-    return q[0] === drone; // 첫 번째면 착륙 허가
+    return q[0] === drone;
   },
   release(drone) {
     const padName = drone.goalPad.name;
@@ -1784,6 +1796,36 @@ const landingManager = {
   clear() { LANDING_PADS.forEach(p => this.queues[p.name] = []); },
 };
 landingManager.init();
+
+// ===== 이륙 흐름 제어 (Staggered Takeoff Controller) =====
+// 패드별 동시 이륙 제한 + 이륙 간격 보장 → 패드 밀집 충돌 방지
+const takeoffController = {
+  maxConcurrentPerPad: 3,  // 패드당 동시 비행중인 저고도(<40m) 드론 제한
+  minInterval: 2.0,        // 최소 이륙 간격 (초)
+  lastTakeoff: {},         // padName → 마지막 이륙 simTime
+  init() { LANDING_PADS.forEach(p => this.lastTakeoff[p.name] = -999); },
+  canTakeoff(drone) {
+    const padName = drone.startPad.name;
+    // 최소 간격 확인
+    if (simTime - (this.lastTakeoff[padName] || 0) < this.minInterval) return false;
+    // 패드 근처(<500m) 저고도(<40m) 비행 중인 드론 수 확인
+    const pad = drone.startPad;
+    let nearbyLow = 0;
+    for (const d of drones) {
+      if (d === drone) continue;
+      if (d.phase === 'GROUNDED' || d.phase === 'FAILED') continue;
+      if (d.wy > 40) continue; // 고도 40m 이상은 제외
+      const dx = d.wx - pad.x, dz = d.wz - pad.z;
+      if (dx * dx + dz * dz < 500 * 500) nearbyLow++;
+    }
+    return nearbyLow < this.maxConcurrentPerPad;
+  },
+  recordTakeoff(drone) {
+    this.lastTakeoff[drone.startPad.name] = simTime;
+  },
+  clear() { LANDING_PADS.forEach(p => this.lastTakeoff[p.name] = -999); },
+};
+takeoffController.init();
 
 // ===== 항로 고도 분리 시스템 (Heading-Based Altitude Layering) =====
 // 비행 방향별 고도 레이어 할당 → 교차 항로 충돌 방지
@@ -1917,22 +1959,27 @@ function updateDrone(d, dt) {
       d.groundDelay -= sDt;
       d.speed = 0;
       d.vx = 0; d.vz = 0; d.vy = 0;
-      if (d.groundDelay <= 0 && d.battery > 10) {
+      if (d.groundDelay <= 0 && d.battery > 10 && takeoffController.canTakeoff(d)) {
         d.phase = 'TAKEOFF';
         d.throttle = 0.8;
+        takeoffController.recordTakeoff(d);
         logEvent('takeoff', `${d.id} [${d.role.label}] 이륙 개시`);
       }
       break;
 
     case 'TAKEOFF': {
       // 점진적 상승 (가속 → 순항 고도)
-      const climbSpd = accelToward(d.vy, PHYSICS.maxClimbRate, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
+      const climbSpd = accelToward(d.vy, PHYSICS.maxClimbRate * iceFactor, PHYSICS.maxAccel * iceFactor, PHYSICS.maxDecel, sDt);
       d.vy = climbSpd;
       d.wy = Math.min(d.wy + climbSpd * sDt, d.targetAlt);
-      // 수평 속도도 서서히 증가 + 바람 적용
-      d.speed = accelToward(d.speed, d.maxSpeed * 0.3, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
+      // 수평 분산: 이륙 직후 목표 방향으로 빠르게 이동 (패드 밀집 해소)
+      const takeoffSpeedTarget = d.maxSpeed * (d.wy > 15 ? 0.6 : 0.3); // 15m 이상이면 60%까지 가속
+      d.speed = accelToward(d.speed, takeoffSpeedTarget, PHYSICS.maxAccel * iceFactor, PHYSICS.maxDecel, sDt);
       d.heading = calcHeading(d.goalX - d.wx, d.goalZ - d.wz);
-      d.wx += windX; d.wz += windZ; // 이륙 중 바람 영향
+      // 이륙 시 목표 방향으로 수평 이동 (패드 탈출 가속)
+      const tkRad = d.heading * Math.PI / 180;
+      d.wx += Math.sin(tkRad) * d.speed * sDt + windX;
+      d.wz += Math.cos(tkRad) * d.speed * sDt + windZ;
       if (d.wy >= d.targetAlt - 1) {
         d.phase = 'ENROUTE';
         d.vy = 0;

@@ -733,7 +733,7 @@ const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 12
 camera.position.set(70, 50, 70);
 camera.lookAt(0, 3, 0);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -2891,6 +2891,8 @@ window._sdacs = {
   startSim() { simRunning = true; },
   stopSim() { simRunning = false; },
   selectScenario(name) { document.getElementById('scenario-select').value = name; document.getElementById('scenario-select').dispatchEvent(new Event('change')); },
+  camera, renderer, scene, controls,
+  captureScreenshot() { renderer.render(scene, camera); return renderer.domElement.toDataURL('image/png'); },
 };
 </script>
 </body>

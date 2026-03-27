@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="Malgun Gothic, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E8F4FD"/><stop offset="100%" stop-color="#F8FBFE"/></linearGradient>
+    <linearGradient id="radar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FF6B6B"/><stop offset="100%" stop-color="#EE5A24"/></linearGradient>
+    <linearGradient id="drone" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2E75B6"/><stop offset="100%" stop-color="#1B3A5C"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.15"/></filter>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg1)" rx="12"/>
+  <text x="400" y="40" text-anchor="middle" font-size="22" font-weight="bold" fill="#1B3A5C">아이디어 1: 드론이 드론을 관제한다</text>
+
+  <!-- 기존 방식 (왼쪽) -->
+  <rect x="30" y="70" width="340" height="390" rx="10" fill="white" stroke="#FF6B6B" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="30" y="70" width="340" height="40" rx="10" fill="url(#radar)"/>
+  <text x="200" y="97" text-anchor="middle" font-size="16" font-weight="bold" fill="white">기존: 고정형 레이더</text>
+
+  <!-- 레이더 타워 -->
+  <rect x="160" y="170" width="80" height="120" fill="#DDD" stroke="#999" stroke-width="2" rx="4"/>
+  <circle cx="200" cy="155" r="30" fill="none" stroke="#FF6B6B" stroke-width="3" stroke-dasharray="5,3"/>
+  <circle cx="200" cy="155" r="50" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-dasharray="5,3" opacity="0.5"/>
+  <circle cx="200" cy="155" r="70" fill="none" stroke="#FF6B6B" stroke-width="1" stroke-dasharray="5,3" opacity="0.3"/>
+  <text x="200" y="215" text-anchor="middle" font-size="11" fill="#666">레이더</text>
+
+  <!-- 문제점 -->
+  <text x="200" y="320" text-anchor="middle" font-size="13" fill="#E74C3C" font-weight="bold">수억원 + 6개월 설치</text>
+  <text x="200" y="345" text-anchor="middle" font-size="13" fill="#E74C3C" font-weight="bold">고정 위치, 이동 불가</text>
+  <text x="200" y="370" text-anchor="middle" font-size="13" fill="#E74C3C" font-weight="bold">소형 드론 탐지 한계</text>
+  <text x="200" y="395" text-anchor="middle" font-size="13" fill="#E74C3C" font-weight="bold">긴급 배치 불가</text>
+  <text x="200" y="435" text-anchor="middle" font-size="28" fill="#E74C3C">X</text>
+
+  <!-- 화살표 -->
+  <path d="M 390 260 L 430 260" stroke="#1B3A5C" stroke-width="3" marker-end="url(#arrow)"/>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1B3A5C"/></marker></defs>
+
+  <!-- SDACS 방식 (오른쪽) -->
+  <rect x="430" y="70" width="340" height="390" rx="10" fill="white" stroke="#2E75B6" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="430" y="70" width="340" height="40" rx="10" fill="url(#drone)"/>
+  <text x="600" y="97" text-anchor="middle" font-size="16" font-weight="bold" fill="white">SDACS: ATC 드론 21대</text>
+
+  <!-- ATC 드론들 -->
+  <circle cx="600" cy="200" r="12" fill="#2E75B6"/><text x="600" y="204" text-anchor="middle" font-size="9" fill="white">C</text>
+  <circle cx="530" cy="160" r="10" fill="#4A90D9"/><text x="530" y="164" text-anchor="middle" font-size="8" fill="white">1</text>
+  <circle cx="670" cy="160" r="10" fill="#4A90D9"/><text x="670" y="164" text-anchor="middle" font-size="8" fill="white">2</text>
+  <circle cx="530" cy="240" r="10" fill="#4A90D9"/><text x="530" y="244" text-anchor="middle" font-size="8" fill="white">3</text>
+  <circle cx="670" cy="240" r="10" fill="#4A90D9"/><text x="670" y="244" text-anchor="middle" font-size="8" fill="white">4</text>
+  <circle cx="500" cy="200" r="8" fill="#6BB5FF"/><circle cx="700" cy="200" r="8" fill="#6BB5FF"/>
+  <circle cx="560" cy="140" r="8" fill="#6BB5FF"/><circle cx="640" cy="140" r="8" fill="#6BB5FF"/>
+  <circle cx="560" cy="260" r="8" fill="#6BB5FF"/><circle cx="640" cy="260" r="8" fill="#6BB5FF"/>
+
+  <!-- 가상 레이더 돔 -->
+  <ellipse cx="600" cy="200" rx="120" ry="90" fill="none" stroke="#2E75B6" stroke-width="2" stroke-dasharray="8,4" opacity="0.6"/>
+  <text x="600" y="280" text-anchor="middle" font-size="10" fill="#2E75B6" font-style="italic">가상 레이더 돔</text>
+
+  <!-- 장점 -->
+  <text x="600" y="320" text-anchor="middle" font-size="13" fill="#27AE60" font-weight="bold">30분 긴급 배치</text>
+  <text x="600" y="345" text-anchor="middle" font-size="13" fill="#27AE60" font-weight="bold">이동형, 위치 자유</text>
+  <text x="600" y="370" text-anchor="middle" font-size="13" fill="#27AE60" font-weight="bold">드론 추가 = 관제 확장</text>
+  <text x="600" y="395" text-anchor="middle" font-size="13" fill="#27AE60" font-weight="bold">비용 90%+ 절감</text>
+  <text x="600" y="435" text-anchor="middle" font-size="28" fill="#27AE60">O</text>
+</svg>

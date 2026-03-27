@@ -194,11 +194,11 @@ def _in_nfz(pos: np.ndarray) -> bool:
 def _assign_goal(drone: DroneState, rng: np.random.Generator | None = None) -> None:
     """착륙 후 새 목적지 무작위 배정"""
     rng = rng or np.random.default_rng()
-    goal = random.choice(_PAD_LIST).copy()
+    goal = _PAD_LIST[rng.integers(len(_PAD_LIST))].copy()
     for _ in range(10):
         if np.linalg.norm(goal[:2] - drone.position[:2]) > 1500:
             break
-        goal = random.choice(_PAD_LIST).copy()
+        goal = _PAD_LIST[rng.integers(len(_PAD_LIST))].copy()
     goal[2] = CRUISE_ALT
     if abs(goal[0]) < 700 and abs(goal[1]) < 700:
         goal[0] += float(rng.choice([-900.0, 900.0]))
@@ -309,7 +309,11 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
             drone.flight_phase = FlightPhase.LANDING
         else:
             spd = profile.cruise_speed_ms
-            direction = diff / (np.linalg.norm(diff) + 1e-6)
+            norm = float(np.linalg.norm(diff))
+            if norm < 0.1:
+                drone.flight_phase = FlightPhase.LANDING
+                return
+            direction = diff / norm
             drone.velocity = direction * spd + sim.wind
             # 고도 유지
             drone.velocity[2] += (CRUISE_ALT - drone.position[2]) * 0.4
@@ -336,9 +340,19 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
         drone.position[2] = float(np.clip(drone.position[2], ALT_MIN, ALT_MAX))
         drone.distance_flown_m += float(np.linalg.norm(drone.velocity[:2])) * dt
 
-        # NFZ 밖이면 ENROUTE 복귀
-        if not _in_nfz(drone.position) and random.random() < 0.04:
-            drone.flight_phase = FlightPhase.ENROUTE
+        # NFZ 밖이면 ENROUTE 복귀 (evade_end_s 타이머 또는 확률적 전환)
+        should_exit = False
+        if hasattr(drone, 'evade_end_s') and drone.evade_end_s is not None and sim.t >= drone.evade_end_s:
+            should_exit = True
+            drone.evade_end_s = None
+        elif not _in_nfz(drone.position) and random.random() < 0.04 * dt * 10:
+            should_exit = True
+
+        if should_exit:
+            if drone.goal is None:
+                drone.flight_phase = FlightPhase.LANDING
+            else:
+                drone.flight_phase = FlightPhase.ENROUTE
 
     # ── 착륙
     elif phase == FlightPhase.LANDING:
@@ -378,7 +392,11 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
             drone.flight_phase = FlightPhase.LANDING
         else:
             spd = profile.cruise_speed_ms * 0.7  # 감속 귀환
-            direction = diff / (np.linalg.norm(diff) + 1e-6)
+            norm = float(np.linalg.norm(diff))
+            if norm < 0.1:
+                drone.flight_phase = FlightPhase.LANDING
+                return
+            direction = diff / norm
             drone.velocity = direction * spd
             drone.position += drone.velocity * dt
             drone.position[0] = float(np.clip(drone.position[0], -BOUNDS_M, BOUNDS_M))

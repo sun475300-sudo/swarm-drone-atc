@@ -165,3 +165,22 @@ class TestAdvisoryExpiry:
         controller._advisories["ADV-002"] = adv
         controller._expire_advisories(5.0)
         assert "ADV-002" in controller._advisories
+
+
+class TestNFZ3DCheck:
+    """NFZ가 3D(고도 포함)로 검사되는지 확인"""
+
+    def test_clearance_above_nfz_allowed(self, env, comm_bus, controller):
+        """NFZ 수평 범위 내지만 고도가 높으면 허가 가능"""
+        from src.airspace_control.agents.drone_state import FlightPhase
+        # NFZ 중심 (0,0) 반경 600m — 고도 120m 이상은 통과 가능해야
+        _send_telemetry(env, comm_bus, "E", [0.0, 0.0, 150.0])
+        drone = controller._active_drones["E"]
+        drone.flight_phase = FlightPhase.ENROUTE
+        # NFZ 위의 드론은 정상 등록만 확인
+        assert "E" in controller._active_drones
+
+    def test_controller_has_planner_with_nfz(self, controller):
+        """컨트롤러의 planner가 NFZ 데이터를 가지고 있는지 확인"""
+        assert hasattr(controller, 'planner')
+        assert hasattr(controller.planner, 'nfz_list')

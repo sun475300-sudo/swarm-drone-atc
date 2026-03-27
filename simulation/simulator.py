@@ -299,13 +299,14 @@ class _DroneAgent:
                 drone.velocity     = np.zeros(3)
 
         elif phase == FlightPhase.RTL:
-            # 귀환: 80m 상승 → 출발 패드로
+            # 귀환: 80m 상승 → 가장 가까운 패드로
             rtl_alt = 80.0
             if drone.position[2] < rtl_alt - 2.0:
                 drone.velocity = np.array([0.0, 0.0, self.TAKEOFF_RATE])
             else:
-                drone.position[2]  = rtl_alt
-                home = sim.landing_pads.get("PAD_CENTER", np.zeros(3))
+                drone.position[2] = rtl_alt
+                pads = list(sim.landing_pads.values())
+                home = min(pads, key=lambda p: float(np.linalg.norm(p[:2] - drone.position[:2])))
                 diff = home - drone.position
                 if float(np.linalg.norm(diff[:2])) < 100.0:
                     drone.flight_phase = FlightPhase.LANDING
@@ -508,11 +509,11 @@ class SwarmSimulator:
 
     def _assign_goal(self, drone: DroneState) -> None:
         pad_list = list(self.LANDING_PADS.values())
-        goal     = random.choice(pad_list).copy()
+        goal     = pad_list[self.rng.integers(len(pad_list))].copy()
         for _ in range(10):
             if np.linalg.norm(goal[:2] - drone.position[:2]) > 1500:
                 break
-            goal = random.choice(pad_list).copy()
+            goal = pad_list[self.rng.integers(len(pad_list))].copy()
         goal[2] = 60.0  # 순항 고도
         # NFZ 회피
         if abs(goal[0]) < 700 and abs(goal[1]) < 700:

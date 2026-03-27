@@ -26,6 +26,7 @@ from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
 from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
 from src.airspace_control.utils.geo_math import closest_approach, distance_3d
 from simulation.voronoi_airspace.voronoi_partition import compute_voronoi_partition
+from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
 from simulation.spatial_hash import SpatialHash
 from simulation.cbs_planner.cbs import (
     cbs_plan, position_to_grid, GridNode, GRID_RESOLUTION,
@@ -134,7 +135,6 @@ class AirspaceController:
             drone.velocity = np.array(tm.velocity, dtype=float)
             drone.battery_pct = float(tm.battery_pct)
         drone.last_update_s = float(tm.timestamp_s)
-        from src.airspace_control.agents.drone_state import FlightPhase
         try:
             drone.flight_phase = FlightPhase[tm.flight_phase]
         except KeyError:
@@ -399,7 +399,6 @@ class AirspaceController:
 
     def _pick_target(self, da: DroneState, db: DroneState) -> DroneState:
         """어드바이저리를 받을 드론 선택 (낮은 우선순위, 동률 시 ID 기반 타이브레이크)"""
-        from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         pri_a = DRONE_PROFILES.get(da.profile_name,
                                     DRONE_PROFILES["COMMERCIAL_DELIVERY"]).priority
         pri_b = DRONE_PROFILES.get(db.profile_name,

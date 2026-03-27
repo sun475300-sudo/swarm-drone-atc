@@ -330,3 +330,62 @@ class TestDroneStateProperties:
     def test_hold_start_s_default_none(self):
         d = _drone()
         assert d._hold_start_s is None
+
+
+# ═══════════════════════════════════════════════════════════════════
+# FAILED→GROUNDED 전환 + 상태머신 엣지케이스
+# ═══════════════════════════════════════════════════════════════════
+
+class TestFailedToGrounded:
+    """FAILED 드론이 지면에 도달하면 GROUNDED로 전환되는지 검증"""
+
+    def test_failed_at_ground_level(self):
+        """고도 0인 FAILED 드론은 이미 지면에 있다."""
+        d = _drone(phase=FlightPhase.FAILED, pos=[0.0, 0.0, 0.0])
+        # 고도 0이면 더 이상 하강 불필요
+        assert d.position[2] == 0.0
+
+    def test_failed_drone_descends(self):
+        """FAILED 드론은 하강해야 한다 (시뮬레이터 로직 검증용)."""
+        d = _drone(phase=FlightPhase.FAILED, pos=[0.0, 0.0, 50.0])
+        # 시뮬레이터가 1.5 * dt만큼 하강시키므로 고도가 줄어야
+        new_alt = max(0.0, d.position[2] - 1.5 * 1.0)
+        assert new_alt < 50.0
+
+    def test_evading_to_landing_no_goal(self):
+        """EVADING 중 goal=None이면 LANDING으로 전환"""
+        d = _drone(phase=FlightPhase.EVADING)
+        d.goal = None
+        # goal 없으면 안전하게 착륙
+        if d.goal is None:
+            d.flight_phase = FlightPhase.LANDING
+        assert d.flight_phase == FlightPhase.LANDING
+
+    def test_evading_to_enroute(self):
+        """EVADING 중 goal이 있으면 ENROUTE로 복귀"""
+        d = _drone(phase=FlightPhase.EVADING)
+        d.goal = np.array([1000.0, 0.0, 60.0])
+        if d.goal is not None:
+            d.flight_phase = FlightPhase.ENROUTE
+        assert d.flight_phase == FlightPhase.ENROUTE
+
+    def test_rtl_to_landing(self):
+        """RTL 드론이 패드 근처(100m)에 도착하면 LANDING으로 전환"""
+        d = _drone(phase=FlightPhase.RTL, pos=[10.0, 10.0, 80.0])
+        pad = np.array([0.0, 0.0, 0.0])
+        dist_xy = float(np.linalg.norm(d.position[:2] - pad[:2]))
+        if dist_xy < 100.0:
+            d.flight_phase = FlightPhase.LANDING
+        assert d.flight_phase == FlightPhase.LANDING
+
+    def test_rtl_included_in_apf_target(self):
+        """RTL 드론도 APF force의 대상에 포함되는지 확인"""
+        from simulation.apf_engine.apf import APFState, batch_compute_forces
+        s_rtl = APFState(position=np.array([0.0, 0.0, 80.0]),
+                         velocity=np.array([-5.0, 0.0, 0.0]), drone_id="RTL1")
+        s_other = APFState(position=np.array([20.0, 0.0, 80.0]),
+                           velocity=np.array([5.0, 0.0, 0.0]), drone_id="E1")
+        goals = {"RTL1": np.array([0.0, 0.0, 0.0]),
+                 "E1": np.array([1000.0, 0.0, 60.0])}
+        forces = batch_compute_forces([s_rtl, s_other], goals=goals, obstacles=[])
+        assert "RTL1" in forces

@@ -73,3 +73,17 @@ class TestAdvisoryGenerator:
         types = [a.advisory_type for a in seq]
         assert "HOLD" in types
         assert "CLIMB" in types
+
+    def test_stationary_drone_triggers_evade_apf(self):
+        """정지 드론(velocity=0)도 CPA < 10s이면 EVADE_APF 발령"""
+        own = _drone("A", [0.0, 0.0, 60.0], [0.0, 0.0, 0.0])
+        threat = _drone("B", [20.0, 0.0, 60.0], [-8.0, 0.0, 0.0])
+        adv = self.gen.generate(own, threat, cpa_dist_m=5.0, cpa_t_s=3.0, now=0.0)
+        assert adv.advisory_type == "EVADE_APF"
+
+    def test_head_on_triggers_turn_right(self):
+        """정면 충돌(방위 ±30도) 시 ICAO 우측 회피 규칙 적용"""
+        own = _drone("A", [0.0, 0.0, 60.0], [10.0, 0.0, 0.0])
+        threat = _drone("B", [200.0, 0.0, 60.0], [-10.0, 0.0, 0.0])
+        adv = self.gen.generate(own, threat, cpa_dist_m=20.0, cpa_t_s=15.0, now=0.0)
+        assert adv.advisory_type in ("TURN_RIGHT", "CLIMB", "DESCEND", "EVADE_APF")

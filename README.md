@@ -1,6 +1,5 @@
-# 군집드론 공역통제 자동화 시스템 (SDACS)
-
-**Swarm Drone Airspace Control System**
+# SDACS — Swarm Drone Airspace Control System
+# 군집드론 공역통제 자동화 시스템
 
 <div align="center">
 
@@ -11,15 +10,17 @@
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
+**Mokpo National University, Dept. of Drone Mechanical Engineering — Capstone Design (2026)**
+
 **국립 목포대학교 드론기계공학과 캡스톤 디자인 (2026)**
 
-[📖 기술 보고서](docs/report/SDACS_Technical_Report.docx) · [📊 성능 차트](docs/images/) · [🎥 시연 영상](#)
+[📖 Technical Report / 기술 보고서](docs/report/SDACS_Technical_Report.docx) · [📊 Charts / 성능 차트](docs/images/) · [🎥 Demo / 시연 영상](#)
 
 </div>
 
 ---
 
-## 목차
+## Table of Contents / 목차
 
 1. [프로젝트 배경](#프로젝트-배경)
 2. [시스템 개요](#시스템-개요)
@@ -39,7 +40,21 @@
 
 ---
 
-## 한눈에 이해하기
+## At a Glance / 한눈에 이해하기
+
+> **What is this?** Simply put, it's a **"traffic cop for drones."**
+>
+> Imagine dozens to hundreds of delivery drones, agricultural drones, and filming drones flying simultaneously. Someone needs to manage traffic so they don't collide.
+>
+> SDACS uses **AI to automatically** manage drone traffic:
+> - Predicted collision → Automatic avoidance routing
+> - Entering a no-fly zone → Automatic rerouting
+> - Drone malfunction → Automatic return to nearest landing pad
+> - Communication lost → 5-second hold, then auto-return
+>
+> Validated with **42 scenarios** (high winds, rogue drones, GPS spoofing, mass delivery, etc.) and **38,400 Monte Carlo simulations**.
+
+---
 
 > **이 프로젝트가 뭔가요?** 쉽게 말하면 **"드론판 교통경찰"** 입니다.
 >
@@ -52,34 +67,82 @@
 > - 통신이 끊기면 → 5초 대기 후 자동 귀환
 >
 > **42가지 시나리오** (강풍, 침입 드론, GPS 교란, 대규모 택배 배송 등)를 시뮬레이션해서 시스템이 실제 상황에서도 작동하는지 검증합니다.
->
-> 👉 **[3D 시뮬레이터 바로 체험하기](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html)** — 설치 없이 브라우저에서 즉시 실행!
+
+👉 **[Try the 3D Simulator / 3D 시뮬레이터 바로 체험하기](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html)** — No installation, runs in browser!
 
 ---
 
-## 프로젝트 배경
+## SDACS in 5 Steps / SDACS 5단계 스토리
 
-### 문제 인식
+<details>
+<summary><b>Step 1: The Problem / 1단계: 문제</b></summary>
+
+**EN:** As drone count explodes (900K+ registered in Korea, growing 30%/year), centralized server-based systems hit their limits. A single server failure paralyzes the entire fleet. Fixed radar costs millions and takes months to install.
+
+**KR:** 드론이 많아질수록 중앙 서버 방식은 한계가 옵니다. 서버 하나가 꺼지면 전체 군집이 마비됩니다. 고정 레이더는 수억원에 6개월 설치가 필요합니다.
+</details>
+
+<details>
+<summary><b>Step 2: The Solution / 2단계: 해결책</b></summary>
+
+**EN:** Like flocking birds, each drone follows just 3 rules (Separation, Alignment, Cohesion) — forming a swarm without a leader. Drones themselves become mobile radar domes, deployable in 30 minutes.
+
+**KR:** 새 떼처럼 드론 각자가 3가지 규칙(분리·정렬·응집)만 따르면, 리더 없이도 군집이 자동으로 만들어집니다. 드론 자체가 이동형 레이더가 됩니다.
+</details>
+
+<details>
+<summary><b>Step 3: Architecture / 3단계: 구조</b></summary>
+
+**EN:** Three cooperative layers: Airspace Management (A*, geofencing, Monte Carlo) → Swarm Control (Boids, APF, formation) → Authority Control (FSM). 9 core algorithms across 4 system layers.
+
+**KR:** 공역 관리(A*·지오펜싱·몬테카를로) → 군집 제어(Boids·APF·편대) → 권한 제어(FSM), 총 3계층 9개 알고리즘이 협력합니다.
+</details>
+
+<details>
+<summary><b>Step 4: Scenarios / 4단계: 시나리오</b></summary>
+
+**EN:** In urban delivery missions, drones use APF to avoid no-fly zones in real-time. When danger is detected, the FSM automatically escalates authority and alerts controllers. 42 scenarios tested including extreme weather, rogue intrusions, and 500-drone mega-swarms.
+
+**KR:** 실제 도심 배송 임무에서 드론이 APF로 금지구역을 우회하고, 위험 시 FSM이 자동으로 관제사에게 알림을 보냅니다. 극한기상, 침입드론, 500대 메가 군집 등 42개 시나리오를 검증합니다.
+</details>
+
+<details>
+<summary><b>Step 5: Results / 5단계: 결과</b></summary>
+
+**EN:** 270 automated tests passed, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), 99.9% collision reduction in all scenarios. A complete capstone project.
+
+**KR:** 270개 테스트 통과, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모로 완성된 캡스톤 프로젝트입니다.
+</details>
+
+---
+
+## Background / 프로젝트 배경
+
+### The Problem / 문제 인식
+
+> **EN:** 900K+ registered drones in Korea, growing 30%+ annually. Delivery, agriculture, and UAM drones operating simultaneously in low-altitude airspace — collision risks are skyrocketing.
 
 국내 등록 드론 수 **90만 대 돌파**, 연간 30% 이상 증가. 저고도 공역에서 택배 배송·농업 방제·UAM이 동시 운용되며 충돌 위험이 급증합니다.
 
-| 기존 방식 | 문제점 |
+| Existing / 기존 방식 | Problem / 문제점 |
 |----------|--------|
-| 고정형 레이더 | 설치 비용 수억원 + 6개월 공사, 소형 드론 탐지 한계 |
-| K-UTM 중앙 집중식 | 단일 장애점(SPOF) 취약, 실시간성 부족 |
-| 수동 관제 | 평균 5분 지연, 24시간 인력 비용 과다 |
+| Fixed Radar / 고정형 레이더 | $1M+ cost, 6-month installation, limited small-drone detection / 설치 비용 수억원, 소형 드론 탐지 한계 |
+| K-UTM Centralized / 중앙 집중식 | Single Point of Failure (SPOF), insufficient real-time / 단일 장애점(SPOF), 실시간성 부족 |
+| Manual ATC / 수동 관제 | 5-min avg delay, 24/7 staffing costs / 평균 5분 지연, 인력 비용 과다 |
 
-### 우리의 해결책
+### Our Solution / 우리의 해결책
 
+> **"Replace the radar with drones"** — Mobile Virtual Radar Dome
+>
 > **"레이더 자체를 드론으로 대체"** — 이동형 가상 레이더 돔(Dome)
 
-- 30분 내 긴급 배치 가능
-- 탐지부터 회피 유도까지 End-to-End 자동화, 관제 인력 80% 절감
-- 드론 추가만으로 관제 반경 선형 확장
+- Emergency deployment in 30 minutes / 30분 내 긴급 배치 가능
+- End-to-End automation from detection to avoidance, 80% ATC staff reduction / 탐지부터 회피 유도까지 자동화, 관제 인력 80% 절감
+- Linear scalability by adding drones / 드론 추가만으로 관제 반경 선형 확장
 
 ---
 
-## 시스템 개요
+## System Overview / 시스템 개요
 
 <div align="center">
 
@@ -87,9 +150,11 @@
 
 </div>
 
+A distributed ATC simulation system that uses swarm drones as **mobile virtual radar domes**, enabling real-time surveillance and **automatic threat response** in urban low-altitude airspace without fixed infrastructure.
+
 군집드론을 **이동형 가상 레이더 돔**으로 활용하여, 고정형 인프라 없이도 도심 저고도 공역을 실시간 감시하고 위협에 **자동 대응**하는 분산형 ATC 시뮬레이션 시스템입니다.
 
-### 핵심 지표
+### Key Metrics / 핵심 지표
 
 | 항목 | 값 | 설명 |
 |------|----|------|
@@ -103,7 +168,7 @@
 
 ---
 
-## 4계층 아키텍처
+## 4-Layer Architecture / 4계층 아키텍처
 
 <div align="center">
 
@@ -184,8 +249,10 @@ FAILED ◄──[장애 주입]
 
 ---
 
-## 핵심 알고리즘
+## Core Algorithms / 핵심 알고리즘
 
+> **5 core algorithms** work hierarchically to ensure safe swarm drone operations.
+>
 > **5개 핵심 알고리즘**이 계층적으로 동작하여 군집드론 안전 운항을 보장합니다.
 
 <div align="center">
@@ -280,7 +347,7 @@ Low Level: 시공간 A* (개별 드론)
 
 ---
 
-## 알고리즘 계층 구조
+## Algorithm Hierarchy / 알고리즘 계층 구조
 
 > **9개 핵심 알고리즘**이 4개 계층에서 계층적으로 동작합니다. (Python 2,649줄 + HTML/JS 2,897줄)
 
@@ -347,7 +414,7 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
 
 ---
 
-## 기존 시스템 비교 분석
+## Competitive Analysis / 기존 시스템 비교 분석
 
 ### SDACS vs 주요 경쟁 시스템
 
@@ -399,7 +466,7 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
 
 ---
 
-## 시나리오 검증 결과
+## Scenario Validation / 시나리오 검증 결과
 
 7개 시나리오 전량 실행 완료 (seed=42, 2026-03-25).
 
@@ -472,7 +539,7 @@ python main.py scenario route_conflict --runs 1
 
 ---
 
-## Monte Carlo SLA
+## Monte Carlo SLA Validation
 
 ### SLA 기준
 
@@ -511,7 +578,7 @@ python main.py monte-carlo --mode full    # ~3시간 (16코어)
 
 ---
 
-## 성능 분석
+## Performance Analysis / 성능 분석
 
 ### 기존 방식 vs SDACS 비교
 
@@ -569,7 +636,7 @@ python scripts/generate_charts.py --output-dir docs/images
 
 ---
 
-## 빠른 시작
+## Quick Start / 빠른 시작
 
 ### 설치
 
@@ -668,7 +735,7 @@ visualization/swarm_3d_simulator.html   ← 더블클릭으로 실행
 
 ---
 
-## 프로젝트 구조
+## Project Structure / 프로젝트 구조
 
 ```
 swarm-drone-atc/
@@ -738,11 +805,11 @@ swarm-drone-atc/
 
 ---
 
-## 테스트
+## Tests / 테스트
 
 ```bash
-pytest tests/ -v              # 전체 실행
-pytest tests/test_apf.py -v   # 특정 파일
+pytest tests/ -v              # Run all / 전체 실행
+pytest tests/test_apf.py -v   # Specific module / 특정 파일
 ```
 
 ### 테스트 커버리지 (270개 / 24모듈)
@@ -777,7 +844,9 @@ pytest tests/test_apf.py -v   # 특정 파일
 
 ---
 
-## SC2 테스트베드
+## SC2 Testbed / SC2 테스트베드
+
+Before hardware testing, swarm algorithms were validated in a StarCraft II environment.
 
 실제 드론 하드웨어 테스트 전, StarCraft II 환경에서 군집 알고리즘을 먼저 검증합니다.
 
@@ -796,7 +865,7 @@ pytest tests/test_apf.py -v   # 특정 파일
 
 ---
 
-## 개발 일정
+## Development Timeline / 개발 일정
 
 | 단계 | 기간 | 주요 산출물 | 상태 |
 |------|------|------------|------|
@@ -807,7 +876,10 @@ pytest tests/test_apf.py -v   # 특정 파일
 
 ---
 
-## 팀 정보
+## Team / 팀 정보
+
+**Developer:** Sunwoo Jang (장선우)
+**Affiliation:** Mokpo National University, Dept. of Drone Mechanical Engineering (Class of 2025)
 
 **개발자:** 장선우
 **소속:** 국립 목포대학교 드론기계공학과 (2025 입학)
@@ -833,7 +905,7 @@ pytest tests/test_apf.py -v   # 특정 파일
 
 ---
 
-## 기대 효과
+## Expected Impact / 기대 효과
 
 | 항목 | 기존 방식 | SDACS | 개선율 |
 |------|----------|-------|--------|
@@ -846,7 +918,7 @@ pytest tests/test_apf.py -v   # 특정 파일
 
 ---
 
-## 의존성
+## Dependencies / 의존성
 
 ```
 simpy>=4.1    numpy>=1.24    scipy>=1.11
@@ -858,7 +930,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 ---
 
-## 참고 문헌
+## References / 참고 문헌
 
 1. Reynolds, C. W. (1987). *Flocks, Herds, and Schools.* SIGGRAPH, 21(4), 25–34.
 2. Khatib, O. (1986). *Real-Time Obstacle Avoidance.* IJRR, 5(1), 90–98.
@@ -869,7 +941,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 ---
 
-## 변경 이력
+## Changelog / 변경 이력
 
 | 날짜 | 시간 | 주요 변경 사항 | 커밋 |
 |------|------|---------------|------|
@@ -905,16 +977,18 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 ---
 
-## 라이선스
+## License / 라이선스
 
-MIT License — 학술 및 교육 목적으로 개발되었습니다.
+MIT License — Developed for academic and educational purposes. / 학술 및 교육 목적으로 개발되었습니다.
 
 ---
 
 <div align="center">
 
-**Made with heart by 장선우 · 국립 목포대학교 드론기계공학과**
+**Made with heart by Sunwoo Jang · Mokpo National University, Drone Mechanical Engineering**
 
-[📖 기술 보고서](docs/report/SDACS_Technical_Report.docx) · [📊 성능 차트](docs/images/)
+**장선우 · 국립 목포대학교 드론기계공학과**
+
+[📖 Technical Report / 기술 보고서](docs/report/SDACS_Technical_Report.docx) · [📊 Charts / 성능 차트](docs/images/)
 
 </div>

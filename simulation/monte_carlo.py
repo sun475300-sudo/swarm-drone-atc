@@ -37,9 +37,10 @@ def _run_single(args: tuple) -> dict:
 
     # 기상 오버라이드
     wind = config_combo.get("wind_speed_ms", 0)
+    wind_dir = config_combo.get("wind_direction_deg", 0)
     if wind > 0:
         scenario_cfg["weather"] = {
-            "wind_models": [{"type": "constant", "speed_ms": wind, "direction_deg": 0}],
+            "wind_models": [{"type": "constant", "speed_ms": wind, "direction_deg": wind_dir}],
         }
 
     # 장애율 오버라이드
@@ -52,8 +53,9 @@ def _run_single(args: tuple) -> dict:
     if comms_loss > 0:
         scenario_cfg.setdefault("failure_injection", {})["comms_loss_rate"] = comms_loss
 
+    duration = config_combo.get("duration_s", 600)
     sim = SwarmSimulator(seed=seed, scenario_cfg=scenario_cfg)
-    result = sim.run(duration_s=600.0)
+    result = sim.run(duration_s=float(duration))
 
     return {
         **config_combo,
@@ -84,7 +86,8 @@ def run_monte_carlo(mode: str = "quick") -> list[dict]:
 
     # 파라미터 조합 생성
     param_names = ["drone_density", "area_size_km2", "failure_rate_pct",
-                   "comms_loss_rate", "wind_speed_ms"]
+                   "comms_loss_rate", "wind_speed_ms", "wind_direction_deg",
+                   "duration_s"]
     param_values = [sweep_cfg.get(p, [0]) for p in param_names]
     n_per_config = sweep_cfg.get("n_per_config", 30)
 

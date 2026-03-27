@@ -161,6 +161,14 @@ class SimulationAnalytics:
     ) -> None:
         if not self._save_traj:
             return
+        # 메모리 최적화: 5초 간격 샘플링 (1Hz 전체 → 0.2Hz)
+        if hasattr(self, '_last_snapshot_t') and t - self._last_snapshot_t < 5.0:
+            # 거리/시간만 갱신 (경로 효율 계산용)
+            for did, d in drones.items():
+                self._dist_actual[did] = float(d.distance_flown_m)
+                self._flight_time[did] = float(d.flight_time_s)
+            return
+        self._last_snapshot_t = t
         for did, d in drones.items():
             self._snapshots.append({
                 "t":       t,

@@ -9,6 +9,8 @@ full_sweep:
   failure_rate_pct: [0, 1, 5, 10]        # 4 levels
   comms_loss_rate: [0.0, 0.01, 0.05]     # 3 levels
   wind_speed_ms: [0, 5, 15, 25]          # 4 levels
+  wind_direction_deg: [0]                # 바람 방향 (0=북, 90=동)
+  duration_s: [600]                      # 시뮬레이션 시간 (초)
   n_per_config: 100
   # total_configs: 384 (4x2x4x3x4)
   # total_runs: 38,400
@@ -20,6 +22,8 @@ quick_sweep:
   failure_rate_pct: [0, 5]
   comms_loss_rate: [0.0, 0.05]
   wind_speed_ms: [0, 15]
+  wind_direction_deg: [0]
+  duration_s: [600]
   n_per_config: 30
   # total_configs: 32 (2x1x2x2x2)
   # total_runs: 960

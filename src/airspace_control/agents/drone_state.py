@@ -60,24 +60,19 @@ class DroneState:
     # 드론 프로파일 참조
     profile_name: str = "COMMERCIAL_DELIVERY"
 
-    # HOLDING 진입 시각 (HOLDING → ENROUTE 복귀 타이머)
-    _hold_start_s: Optional[float] = None
-
-    # EVADING 종료 시각 (evade_end_s 타이머 만료 → ENROUTE 복귀)
-    evade_end_s: Optional[float] = None
-
     # 타임스탬프
     last_update_s: float = 0.0
 
     # 회피/대기 단계 타이밍 (시뮬레이터 관리)
     evade_end_s: Optional[float] = None    # EVADING 단계 종료 시각
-    hold_start_s: Optional[float] = None  # HOLDING 단계 시작 시각
+    hold_start_s: Optional[float] = None   # HOLDING 단계 시작 시각
 
     def __post_init__(self):
-        if isinstance(self.position, list):
+        if not isinstance(self.position, np.ndarray):
             self.position = np.array(self.position, dtype=float)
-        if isinstance(self.velocity, list):
+        if not isinstance(self.velocity, np.ndarray):
             self.velocity = np.array(self.velocity, dtype=float)
+        self.battery_pct = float(np.clip(self.battery_pct, 0.0, 100.0))
 
     @property
     def is_active(self) -> bool:

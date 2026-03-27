@@ -20,7 +20,6 @@ import os
 import threading
 import time
 import math
-import random
 
 import numpy as np
 
@@ -124,6 +123,7 @@ class SimState:
         self.wind = np.zeros(3)
         self.n_drones = 30
         self.speed_multiplier = 1.0  # 시뮬레이션 속도 배율 (0.25x ~ 5x)
+        self.rng = np.random.default_rng(42)  # 재현성 보장 RNG
 
         # 통계
         self.conflicts = 0
@@ -135,7 +135,8 @@ class SimState:
         if n_drones is not None:
             self.n_drones = n_drones
 
-        rng = np.random.default_rng(42)
+        self.rng = np.random.default_rng(42)
+        rng = self.rng
         profiles = ["COMMERCIAL_DELIVERY", "SURVEILLANCE", "EMERGENCY", "RECREATIONAL"]
         weights   = [0.55, 0.25, 0.10, 0.10]
 
@@ -225,36 +226,39 @@ def _step(sim: SimState) -> None:
         for drone in drones.values():
             _update(drone, forces, sim, dt)
 
-        # 근접/충돌 감지 (활성 드론만) — 쌍 기반 추적으로 중복 카운트 방지
-        active = [(did, d.position.copy())
-                  for did, d in drones.items() if d.is_active]
-        n = len(active)
+        # 근접/충돌 감지 — SpatialHash O(N·k)
+        if not hasattr(sim, '_spatial_hash'):
+            from simulation.spatial_hash import SpatialHash
+            sim._spatial_hash = SpatialHash(cell_size=50.0)
         if not hasattr(sim, '_active_conflict_pairs'):
             sim._active_conflict_pairs = set()
+
+        sh = sim._spatial_hash
+        sh.clear()
+        for did, d in drones.items():
+            if d.is_active:
+                sh.insert(did, d.position)
+
         current_conflicts = set()
-        for i in range(n):
-            id_a, pa = active[i]
-            for j in range(i + 1, n):
-                id_b, pb = active[j]
-                pair = frozenset((id_a, id_b))
-                dist = float(np.linalg.norm(pa - pb))
-                if dist < 5.0:
-                    sim.collisions += 1
-                    drones[id_a].flight_phase = FlightPhase.FAILED
-                    drones[id_b].flight_phase = FlightPhase.FAILED
-                elif dist < 10.0:
-                    if pair not in sim._active_conflict_pairs:
-                        sim.near_misses += 1
-                    current_conflicts.add(pair)
-                elif dist < 50.0:
-                    current_conflicts.add(pair)
-                    if pair not in sim._active_conflict_pairs:
-                        sim.conflicts += 1
-                        sim.advisories += 1
-                        if drones[id_a].flight_phase == FlightPhase.ENROUTE:
-                            drones[id_a].flight_phase = FlightPhase.EVADING
-                        if drones[id_b].flight_phase == FlightPhase.ENROUTE:
-                            drones[id_b].flight_phase = FlightPhase.EVADING
+        for id_a, id_b, dist in sh.query_pairs_with_dist(50.0):
+            pair = frozenset((id_a, id_b))
+            if dist < 5.0:
+                sim.collisions += 1
+                drones[id_a].flight_phase = FlightPhase.FAILED
+                drones[id_b].flight_phase = FlightPhase.FAILED
+            elif dist < 10.0:
+                if pair not in sim._active_conflict_pairs:
+                    sim.near_misses += 1
+                current_conflicts.add(pair)
+            else:
+                current_conflicts.add(pair)
+                if pair not in sim._active_conflict_pairs:
+                    sim.conflicts += 1
+                    sim.advisories += 1
+                    if drones[id_a].flight_phase == FlightPhase.ENROUTE:
+                        drones[id_a].flight_phase = FlightPhase.EVADING
+                    if drones[id_b].flight_phase == FlightPhase.ENROUTE:
+                        drones[id_b].flight_phase = FlightPhase.EVADING
         sim._active_conflict_pairs = current_conflicts
 
         sim.t += dt
@@ -277,7 +281,7 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
 
     # ── 지상 대기
     if phase == FlightPhase.GROUNDED:
-        if drone.battery_pct > 20.0 and random.random() < 0.015:
+        if drone.battery_pct > 20.0 and sim.rng.random() < 0.015:
             drone.flight_phase = FlightPhase.TAKEOFF
 
     # ── 이륙
@@ -345,7 +349,7 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
         if hasattr(drone, 'evade_end_s') and drone.evade_end_s is not None and sim.t >= drone.evade_end_s:
             should_exit = True
             drone.evade_end_s = None
-        elif not _in_nfz(drone.position) and random.random() < 0.04 * dt * 10:
+        elif not _in_nfz(drone.position) and sim.rng.random() < 0.04 * dt * 10:
             should_exit = True
 
         if should_exit:
@@ -366,16 +370,16 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
             drone.failure_type = FailureType.NONE
             # 배터리 부분 충전
             drone.battery_pct = min(100.0, drone.battery_pct + 40.0)
-            _assign_goal(drone)
+            _assign_goal(drone, sim.rng)
 
     # ── 공중 대기 (HOLDING) — Lost-Link Phase 1
     elif phase == FlightPhase.HOLDING:
         drone.velocity = np.zeros(3)
         # 5초 후 고도 상승(RTL 준비)으로 전이
-        if not hasattr(drone, '_hold_start_s') or drone._hold_start_s is None:
-            drone._hold_start_s = sim.t
-        if sim.t > drone._hold_start_s + 5.0:
-            drone._hold_start_s = None
+        if not hasattr(drone, 'hold_start_s') or drone.hold_start_s is None:
+            drone.hold_start_s = sim.t
+        if sim.t > drone.hold_start_s + 5.0:
+            drone.hold_start_s = None
             drone.flight_phase = FlightPhase.RTL
 
     # ── 귀환 (RTL)

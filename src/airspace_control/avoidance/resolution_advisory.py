@@ -235,8 +235,5 @@ class AdvisoryGenerator:
 
 
 def _wrap_angle(a: float) -> float:
-    while a > math.pi:
-        a -= 2 * math.pi
-    while a < -math.pi:
-        a += 2 * math.pi
-    return a
+    """각도를 (-π, π] 범위로 정규화 (O(1) 모듈러 연산)"""
+    return (a + math.pi) % (2 * math.pi) - math.pi

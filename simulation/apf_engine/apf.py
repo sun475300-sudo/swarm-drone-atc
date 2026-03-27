@@ -55,11 +55,13 @@ def attractive_force(pos: np.ndarray, goal: np.ndarray, k_att: float = APF_PARAM
     dist = np.linalg.norm(diff)
     if dist < 0.1:
         return np.zeros(3)
-    # 거리 가중: 멀면 강하게, 가까우면 약하게 (quadratic attractive)
-    if dist > 10.0:
-        return k_att * diff / dist          # 단위 벡터 (원거리)
-    else:
+    # 연속 인력: 근거리 이차 → 원거리 단위 벡터로 매끄러운 전환
+    # 전환점 d_t=10m에서 양쪽 함수값이 일치: k_att * diff = k_att * diff/dist * dist
+    d_t = 10.0
+    if dist <= d_t:
         return k_att * diff                 # 이차 인력 (근거리)
+    else:
+        return k_att * diff / dist * d_t    # 연속 단위 벡터 (크기 보존)
 
 
 def repulsive_force_drone(
@@ -174,6 +176,12 @@ def compute_total_force(
     target_alt = params.get("target_alt", 60.0)  # 순항 고도 (m), 파라미터로 설정 가능
     alt_error = target_alt - own.position[2]
     F_total[2] += params["altitude_k"] * alt_error
+
+    # 4a. 지면 회피: z < 5m 시 강한 수직 반발력 (CFIT 방지)
+    ground_clearance = own.position[2]
+    if ground_clearance < 5.0:
+        ground_repulsion = params["k_rep_obs"] * (1.0 / max(ground_clearance, 0.1) - 1.0 / 5.0)
+        F_total[2] += ground_repulsion
 
     # 5. 교착 감지 및 탈출 (local minima escape)
     # 합력이 거의 0이지만 목표에 도달하지 않은 경우 → 횡방향 섭동

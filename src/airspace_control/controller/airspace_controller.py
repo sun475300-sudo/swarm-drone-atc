@@ -9,9 +9,12 @@
   - 어드바이저리 만료 관리
 """
 from __future__ import annotations
+import logging
 import uuid
 import numpy as np
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 import simpy
 
@@ -238,6 +241,7 @@ class AirspaceController:
         try:
             paths = cbs_plan(starts, goals, grid_bounds, max_ct_nodes=500)
         except Exception:
+            logger.warning("CBS planning failed for batch of %d drones", len(batch))
             return {}
 
         result: dict[str, list] = {}
@@ -391,11 +395,11 @@ class AirspaceController:
                             channel="clearance",
                         ))
                     except Exception as e:
+                        logger.warning("Reroute failed for %s: %s", target.drone_id, e)
                         if self.analytics:
                             self.analytics.record_event(
                                 "REROUTE_FAILED", t,
-                                drone_id=adv.drone_id, error=str(e))
-                        pass
+                                drone_id=target.drone_id, error=str(e))
 
     def _pick_target(self, da: DroneState, db: DroneState) -> DroneState:
         """어드바이저리를 받을 드론 선택 (낮은 우선순위, 동률 시 ID 기반 타이브레이크)"""
@@ -483,7 +487,7 @@ class AirspaceController:
                     positions, bounds_dict
                 )
             except Exception:
-                pass
+                logger.warning("Voronoi partition failed with %d drones", len(positions))
 
 
 # ── 모듈 수준 유틸리티 ─────────────────────────────────────────

@@ -14,10 +14,12 @@ SimPy 기반 이산 이벤트 시뮬레이션.
   print(result.to_dict())
 """
 from __future__ import annotations
+import logging
 import os
-import random
 import sys
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 import numpy as np
 import simpy
@@ -172,6 +174,7 @@ class _DroneAgent:
                 # APF force는 EVADING/RTL 상태일 때 적용
                 if drone.flight_phase in (FlightPhase.EVADING, FlightPhase.RTL):
                     drone.velocity += force * dt
+                # wind는 속도 벡터(m/s)로서 직접 가산 (force가 아니므로 dt 미적용)
                 drone.velocity[:2] += wind[:2]
                 # 비상 속도 모드: EVADING 모드이면서 강풍일 때만 활성화
                 if drone.flight_phase == FlightPhase.EVADING and wind_speed > 10.0:
@@ -222,7 +225,7 @@ class _DroneAgent:
         phase = drone.flight_phase
 
         if phase == FlightPhase.GROUNDED:
-            if drone.battery_pct > 20.0 and random.random() < 0.012:
+            if drone.battery_pct > 20.0 and sim.rng.random() < 0.012:
                 drone.flight_phase = FlightPhase.TAKEOFF
                 sim._request_clearance(drone, t)
 
@@ -237,13 +240,28 @@ class _DroneAgent:
 
         elif phase == FlightPhase.ENROUTE:
             if drone.goal is None:
-                # L-1: goal 없이 LANDING 전환 시 analytics 이벤트 기록
                 if sim.analytics:
                     sim.analytics.record_event("ENROUTE_NO_GOAL_LANDING", t,
                                                drone_id=drone.drone_id)
                 drone.flight_phase = FlightPhase.LANDING
                 return
-            diff    = drone.goal - drone.position
+            # 웨이포인트 추종: 할당된 경로가 있으면 순차 비행
+            target = drone.goal
+            if drone.waypoints and drone.current_waypoint_idx < len(drone.waypoints):
+                wp = drone.waypoints[drone.current_waypoint_idx]
+                if not isinstance(wp, np.ndarray):
+                    wp = np.array(wp, dtype=float)
+                wp_dist = float(np.linalg.norm(wp[:2] - drone.position[:2]))
+                if wp_dist < self.WAYPOINT_TOL:
+                    drone.current_waypoint_idx += 1
+                    if drone.current_waypoint_idx >= len(drone.waypoints):
+                        target = drone.goal  # 마지막 웨이포인트 → 최종 목표
+                    else:
+                        target = np.array(drone.waypoints[drone.current_waypoint_idx], dtype=float)
+                else:
+                    target = wp
+
+            diff    = target - drone.position
             dist_xy = float(np.linalg.norm(diff[:2]))
             if dist_xy < self.WAYPOINT_TOL:
                 drone.flight_phase = FlightPhase.LANDING
@@ -261,7 +279,7 @@ class _DroneAgent:
             if drone.evade_end_s is not None and t >= drone.evade_end_s:
                 should_exit = True
                 drone.evade_end_s = None
-            elif random.random() < 0.03:
+            elif sim.rng.random() < 0.03:
                 should_exit = True
 
             if should_exit:
@@ -273,10 +291,10 @@ class _DroneAgent:
 
         elif phase == FlightPhase.HOLDING:
             drone.velocity = np.zeros(3)
-            if drone._hold_start_s is None:
-                drone._hold_start_s = t
-            if t > drone._hold_start_s + 5.0:
-                drone._hold_start_s = None
+            if drone.hold_start_s is None:
+                drone.hold_start_s = t
+            if t > drone.hold_start_s + 5.0:
+                drone.hold_start_s = None
                 drone.flight_phase = FlightPhase.ENROUTE
 
         elif phase == FlightPhase.LANDING:
@@ -318,8 +336,11 @@ class _DroneAgent:
     def _handle_comms(self, drone, t, profile):
         if drone.comms_status == CommsStatus.LOST:
             if drone.flight_phase not in (FlightPhase.RTL, FlightPhase.LANDING,
-                                           FlightPhase.FAILED, FlightPhase.GROUNDED):
-                drone.flight_phase = FlightPhase.RTL
+                                           FlightPhase.FAILED, FlightPhase.GROUNDED,
+                                           FlightPhase.HOLDING):
+                # Lost-Link 3단계: HOLDING(30s) → CLIMB(RTL_ALT) → RTL
+                drone.flight_phase = FlightPhase.HOLDING
+                drone.hold_start_s = None  # 타이머 시작
 
     def _handle_failure(self, drone, t):
         if drone.failure_type == FailureType.MOTOR_FAILURE:
@@ -385,13 +406,14 @@ class SwarmSimulator:
     ) -> None:
         self.seed     = seed
         self.rng      = np.random.default_rng(seed)
-        random.seed(seed)
 
         # YAML 로드
         base_cfg_path = os.path.join(os.path.dirname(os.path.dirname(__file__)),
                                      config_path)
         if not os.path.exists(base_cfg_path):
             base_cfg_path = config_path
+        if not os.path.exists(base_cfg_path):
+            logger.warning("Config file not found: %s — using defaults", base_cfg_path)
         self.cfg: dict = _load_yaml(base_cfg_path) if os.path.exists(base_cfg_path) else {}
         if scenario_cfg:
             self._deep_merge(self.cfg, scenario_cfg)
@@ -409,7 +431,8 @@ class SwarmSimulator:
             env=self.env,
             rng=self.rng,
             latency_ms_mean=20.0,
-            packet_loss_rate=float(self.cfg.get("comms_loss_rate", 0.0)),
+            packet_loss_rate=float(np.clip(
+                float(self.cfg.get("comms_loss_rate", 0.0)), 0.0, 1.0)),
             comm_range_m=float(comms_cfg.get("comm_range_m", 2000.0)),
         )
         airspace_bounds = {
@@ -515,9 +538,14 @@ class SwarmSimulator:
                 break
             goal = pad_list[self.rng.integers(len(pad_list))].copy()
         goal[2] = 60.0  # 순항 고도
-        # NFZ 회피
-        if abs(goal[0]) < 700 and abs(goal[1]) < 700:
-            goal[0] += float(self.rng.choice([-900.0, 900.0]))
+        # NFZ 회피: 모든 NFZ에 대해 검증
+        for nfz in self.NFZ:
+            if np.linalg.norm(goal[:2] - nfz["center"][:2]) < nfz["radius_m"]:
+                goal[0] += float(self.rng.choice([-900.0, 900.0]))
+                break
+        # 범위 클램핑
+        goal[0] = float(np.clip(goal[0], -self.bounds_m + 200, self.bounds_m - 200))
+        goal[1] = float(np.clip(goal[1], -self.bounds_m + 200, self.bounds_m - 200))
         drone.goal = goal
         drone.planned_distance_m = float(np.linalg.norm(goal - drone.position))
         self.analytics.record_planned_distance(drone.drone_id, drone.planned_distance_m)

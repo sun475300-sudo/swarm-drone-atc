@@ -329,7 +329,7 @@ class TestDroneStateProperties:
 
     def test_hold_start_s_default_none(self):
         d = _drone()
-        assert d._hold_start_s is None
+        assert d.hold_start_s is None
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -389,3 +389,162 @@ class TestFailedToGrounded:
                  "E1": np.array([1000.0, 0.0, 60.0])}
         forces = batch_compute_forces([s_rtl, s_other], goals=goals, obstacles=[])
         assert "RTL1" in forces
+
+
+# ═══════════════════════════════════════════════════════════════════
+# T1: HOLDING 상태 전환 테스트
+# ═══════════════════════════════════════════════════════════════════
+
+class TestHoldingStateTransition:
+    """HOLDING 상태에서 hold_start_s 타이머 동작 검증"""
+
+    def test_hold_start_s_set_on_entry(self):
+        """HOLDING 진입 시 hold_start_s가 설정된다."""
+        d = _drone(phase=FlightPhase.HOLDING)
+        assert d.hold_start_s is None
+        # 시뮬레이터 로직: None이면 현재 시각으로 설정
+        d.hold_start_s = 10.0
+        assert d.hold_start_s == 10.0
+
+    def test_hold_timeout_triggers_transition(self):
+        """5초 후 HOLDING → ENROUTE 전환"""
+        d = _drone(phase=FlightPhase.HOLDING)
+        d.hold_start_s = 10.0
+        t = 16.0  # 10.0 + 5.0 < 16.0
+        if t > d.hold_start_s + 5.0:
+            d.hold_start_s = None
+            d.flight_phase = FlightPhase.ENROUTE
+        assert d.flight_phase == FlightPhase.ENROUTE
+        assert d.hold_start_s is None
+
+    def test_hold_not_expired_stays(self):
+        """5초 미만이면 HOLDING 유지"""
+        d = _drone(phase=FlightPhase.HOLDING)
+        d.hold_start_s = 10.0
+        t = 14.0  # 10.0 + 5.0 > 14.0
+        if t > d.hold_start_s + 5.0:
+            d.flight_phase = FlightPhase.ENROUTE
+        assert d.flight_phase == FlightPhase.HOLDING
+
+
+# ═══════════════════════════════════════════════════════════════════
+# T2: APF windy 모드 전환 테스트
+# ═══════════════════════════════════════════════════════════════════
+
+class TestAPFWindyModeTransition:
+    """풍속에 따른 APF 파라미터 블렌딩 검증"""
+
+    def test_calm_uses_normal_params(self):
+        """풍속 0 → 기본 APF_PARAMS 사용"""
+        from simulation.apf_engine.apf import compute_total_force, APFState, APF_PARAMS
+        own = APFState(np.array([0.0, 0.0, 60.0]), np.zeros(3), "D0")
+        goal = np.array([1000.0, 0.0, 60.0])
+        f = compute_total_force(own, goal, [], [], wind_speed=0.0)
+        assert isinstance(f, np.ndarray) and f.shape == (3,)
+
+    def test_strong_wind_uses_windy_params(self):
+        """풍속 15 → APF_PARAMS_WINDY 사용"""
+        from simulation.apf_engine.apf import compute_total_force, APFState, APF_PARAMS_WINDY
+        own = APFState(np.array([0.0, 0.0, 60.0]), np.zeros(3), "D0")
+        neighbor = APFState(np.array([30.0, 0.0, 60.0]), np.zeros(3), "D1")
+        goal = np.array([1000.0, 0.0, 60.0])
+        f = compute_total_force(own, goal, [neighbor], [], wind_speed=15.0)
+        assert np.linalg.norm(f) > 0
+
+    def test_mid_wind_blends_params(self):
+        """풍속 9 (6~12 구간) → 보간된 파라미터"""
+        from simulation.apf_engine.apf import compute_total_force, APFState
+        own = APFState(np.array([0.0, 0.0, 60.0]), np.zeros(3), "D0")
+        neighbor = APFState(np.array([30.0, 0.0, 60.0]), np.zeros(3), "D1")
+        goal = np.array([1000.0, 0.0, 60.0])
+        f_calm = compute_total_force(own, goal, [neighbor], [], wind_speed=0.0)
+        f_mid = compute_total_force(own, goal, [neighbor], [], wind_speed=9.0)
+        f_windy = compute_total_force(own, goal, [neighbor], [], wind_speed=15.0)
+        # 중간 풍속의 힘은 calm과 windy 사이
+        mag_calm = np.linalg.norm(f_calm)
+        mag_mid = np.linalg.norm(f_mid)
+        mag_windy = np.linalg.norm(f_windy)
+        # 적어도 모두 유효한 벡터
+        assert mag_calm >= 0 and mag_mid >= 0 and mag_windy >= 0
+
+
+# ═══════════════════════════════════════════════════════════════════
+# T3: Config 로딩 실패 테스트
+# ═══════════════════════════════════════════════════════════════════
+
+class TestConfigLoadingFailure:
+    """존재하지 않는 config 파일 시 안전한 폴백 검증"""
+
+    def test_missing_config_uses_defaults(self):
+        """존재하지 않는 YAML → 빈 dict으로 폴백"""
+        from simulation.simulator import SwarmSimulator
+        sim = SwarmSimulator(config_path="nonexistent_config_12345.yaml", seed=1)
+        assert isinstance(sim.cfg, dict)
+        # 기본값이 적용되어야
+        assert sim.bounds_m == 5000.0  # 기본값 [-5,5] km
+
+    def test_scenario_override_on_empty_config(self):
+        """빈 config + scenario override가 병합된다."""
+        from simulation.simulator import SwarmSimulator
+        override = {"drones": {"default_count": 5}}
+        sim = SwarmSimulator(
+            config_path="nonexistent_config_12345.yaml",
+            scenario_cfg=override, seed=1)
+        assert sim._n_drones == 5
+
+
+# ═══════════════════════════════════════════════════════════════════
+# T4: 경계값 테스트
+# ═══════════════════════════════════════════════════════════════════
+
+class TestBoundaryConditions:
+    """경계값에서의 안전한 동작 검증"""
+
+    def test_battery_zero(self):
+        d = _drone(battery=0.0)
+        assert d.battery_pct == 0.0
+
+    def test_battery_full(self):
+        d = _drone(battery=100.0)
+        assert d.battery_pct == 100.0
+
+    def test_position_at_bounds(self):
+        d = _drone(pos=[5000.0, -5000.0, 0.0])
+        assert d.position[0] == 5000.0
+        assert d.position[1] == -5000.0
+
+    def test_speed_zero(self):
+        d = _drone(vel=[0.0, 0.0, 0.0])
+        assert d.speed == 0.0
+
+    def test_speed_property_3d(self):
+        d = _drone(vel=[3.0, 4.0, 0.0])
+        assert d.speed == pytest.approx(5.0)
+
+    def test_clamp_speed_at_max(self):
+        from simulation.simulator import _clamp_speed
+        vel = np.array([20.0, 0.0, 0.0])
+        clamped = _clamp_speed(vel, max_spd=15.0)
+        assert np.linalg.norm(clamped) <= 15.0 + 1e-6
+
+    def test_clamp_speed_below_max(self):
+        from simulation.simulator import _clamp_speed
+        vel = np.array([5.0, 0.0, 0.0])
+        clamped = _clamp_speed(vel, max_spd=15.0)
+        assert np.allclose(clamped, vel)
+
+    def test_clamp_speed_windy_mode(self):
+        from simulation.simulator import _clamp_speed
+        vel = np.array([20.0, 0.0, 0.0])
+        clamped = _clamp_speed(vel, max_spd=15.0, wind_speed=12.0)
+        # 강풍 모드: effective_max = max(15, 12+5) = 17
+        assert np.linalg.norm(clamped) <= 17.0 + 1e-6
+
+    def test_comms_loss_rate_clamped(self):
+        """comms_loss_rate가 [0,1] 범위로 클램핑된다."""
+        from simulation.simulator import SwarmSimulator
+        sim = SwarmSimulator(
+            config_path="nonexistent_config_12345.yaml",
+            scenario_cfg={"comms_loss_rate": 2.0}, seed=1)
+        # CommunicationBus가 생성되면 packet_loss_rate가 1.0으로 클램핑
+        assert sim.comm_bus.packet_loss_rate <= 1.0

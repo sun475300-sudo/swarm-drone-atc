@@ -211,14 +211,18 @@ class AirspaceController:
             processed += 1
 
     def _destination_in_nfz(self, destination: np.ndarray) -> str:
-        """목적지가 NFZ 내부에 있으면 NFZ 식별 문자열 반환, 없으면 ''"""
-        import math
+        """목적지가 NFZ 내부에 있으면 NFZ 식별 문자열 반환, 없으면 ''
+
+        NFZ는 구체(sphere)이므로 3D 거리로 판정한다.
+        2D hypot 사용 시 고도가 다른 목적지를 잘못 통과시키는 버그 수정.
+        """
         for i, nfz in enumerate(self.planner.nfz_list):
             center = nfz["center"]
             radius = float(nfz.get("radius_m", 0.0))
             dx = float(destination[0]) - float(center[0])
             dy = float(destination[1]) - float(center[1])
-            if math.hypot(dx, dy) < radius:
+            dz = float(destination[2]) - float(center[2]) if len(destination) > 2 else 0.0
+            if (dx*dx + dy*dy + dz*dz) ** 0.5 < radius:
                 return f"NFZ-{i}"
         return ""
 
@@ -425,8 +429,11 @@ class AirspaceController:
                 self._voronoi_cells = compute_voronoi_partition(
                     positions, bounds_m
                 )
-            except Exception:
-                pass
+            except Exception as exc:  # noqa: BLE001
+                import logging as _logging
+                _logging.getLogger("sdacs.controller").warning(
+                    "Voronoi 계산 실패 (드론 수=%d): %s", len(positions), exc
+                )
 
 
 # ── 모듈 수준 유틸리티 ─────────────────────────────────────────

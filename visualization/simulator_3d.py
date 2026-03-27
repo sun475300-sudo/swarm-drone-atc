@@ -136,10 +136,14 @@ class SimState:
         self.event_log: list[str] = []
 
         # 시계열 히스토리 (200 포인트 유지)
-        self.history_t:   list[float] = []
-        self.history_col: list[int]   = []   # 누적 충돌
-        self.history_adv: list[int]   = []   # 누적 어드바이저리
-        self._last_hist_t: float = -1.0      # 마지막 기록 시각
+        self.history_t:    list[float] = []
+        self.history_col:  list[int]   = []   # 누적 충돌
+        self.history_adv:  list[int]   = []   # 누적 어드바이저리
+        self.history_near: list[int]   = []   # 누적 근접 경고
+        self._last_hist_t: float = -1.0       # 마지막 기록 시각
+
+        # 충돌/근접 쌍 추적 (중복 카운트 방지) — __init__에서 정식 선언
+        self._active_conflict_pairs: set = set()
 
     def reset(self, n_drones: int | None = None) -> None:
         if n_drones is not None:
@@ -192,10 +196,12 @@ class SimState:
             self.advisories = 0
             self.collisions = 0
             self.event_log = []
-            self.history_t   = []
-            self.history_col = []
-            self.history_adv = []
+            self.history_t    = []
+            self.history_col  = []
+            self.history_adv  = []
+            self.history_near = []
             self._last_hist_t = -1.0
+            self._active_conflict_pairs = set()
 
 
 # ─────────────────────────────────────────────────────────────
@@ -252,8 +258,6 @@ def _step(sim: SimState) -> None:
         active = [(did, d.position.copy())
                   for did, d in drones.items() if d.is_active]
         n = len(active)
-        if not hasattr(sim, '_active_conflict_pairs'):
-            sim._active_conflict_pairs = set()
         current_conflicts = set()
         for i in range(n):
             id_a, pa = active[i]
@@ -293,10 +297,12 @@ def _step(sim: SimState) -> None:
             sim.history_t.append(round(sim.t, 1))
             sim.history_col.append(sim.collisions)
             sim.history_adv.append(sim.advisories)
+            sim.history_near.append(sim.near_misses)
             if len(sim.history_t) > 200:
-                sim.history_t   = sim.history_t[-200:]
-                sim.history_col = sim.history_col[-200:]
-                sim.history_adv = sim.history_adv[-200:]
+                sim.history_t    = sim.history_t[-200:]
+                sim.history_col  = sim.history_col[-200:]
+                sim.history_adv  = sim.history_adv[-200:]
+                sim.history_near = sim.history_near[-200:]
 
 
 def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
@@ -393,10 +399,18 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
             drone.battery_pct = min(100.0, drone.battery_pct + 40.0)
             _assign_goal(drone)
 
-    # ── 장애 발생
+    # ── 장애 발생 (추락 → 착지 후 GROUNDED 전환으로 재이륙 허용)
     elif phase == FlightPhase.FAILED:
         if drone.position[2] > 0.0:
             drone.position[2] = max(0.0, drone.position[2] - 1.5 * dt)
+            drone.velocity = np.zeros(3)
+        else:
+            drone.position[2] = 0.0
+            drone.velocity     = np.zeros(3)
+            drone.flight_phase = FlightPhase.GROUNDED
+            drone.failure_type = FailureType.NONE
+            drone.battery_pct  = min(100.0, drone.battery_pct + 40.0)
+            _assign_goal(drone)
 
     drone.last_update_s = sim.t
     if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
@@ -1168,6 +1182,7 @@ def _refresh(_n):
         hist_t     = list(SIM.history_t)
         hist_col   = list(SIM.history_col)
         hist_adv   = list(SIM.history_adv)
+        hist_near  = list(SIM.history_near)
 
     active    = sum(1 for d in drones if d.is_active)
     low_bat   = sum(1 for d in drones if d.battery_pct < 20 and d.is_active)
@@ -1252,7 +1267,7 @@ def _refresh(_n):
         showlegend=False,
     )
 
-    # ── 충돌·어드바이저리 시계열 차트
+    # ── 충돌·어드바이저리·근접경고 시계열 차트
     chart_hist = go.Figure()
     if hist_t:
         chart_hist.add_trace(go.Scatter(
@@ -1261,6 +1276,13 @@ def _refresh(_n):
             line=dict(color="#58a6ff", width=1.5),
             fillcolor="rgba(88,166,255,0.15)",
             name="어드바이저리",
+        ))
+        chart_hist.add_trace(go.Scatter(
+            x=hist_t, y=hist_near,
+            fill="tozeroy", mode="lines",
+            line=dict(color="#FF9800", width=1.5),
+            fillcolor="rgba(255,152,0,0.15)",
+            name="근접경고",
         ))
         chart_hist.add_trace(go.Scatter(
             x=hist_t, y=hist_col,

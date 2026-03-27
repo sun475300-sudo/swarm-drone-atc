@@ -136,6 +136,7 @@ def compute_total_force(
     obstacles: list[tuple[np.ndarray, float]],
     params: dict | None = None,
     wind_speed: float = 0.0,
+    target_alt: float | None = None,
 ) -> np.ndarray:
     """
     드론 1기의 합력 계산 (분산 제어 - 이웃 정보만 사용)
@@ -180,9 +181,11 @@ def compute_total_force(
             d0=params["d0_obs"],
         )
 
-    # 4. 고도 보정 (비행 고도 유지)
-    target_alt = 60.0  # 기본 순항 고도 (m)
-    alt_error = target_alt - own.position[2]
+    # 4. 고도 보정 — goal[2]를 기준으로 사용, 없으면 60m 기본값
+    # ATC가 부여한 고도를 goal에서 읽어 APF가 해당 고도를 유지하도록 함.
+    # target_alt를 외부에서 명시 전달 시 해당 값 우선 사용.
+    _alt = target_alt if target_alt is not None else float(goal[2]) if len(goal) > 2 else 60.0
+    alt_error = _alt - own.position[2]
     F_total[2] += params["altitude_k"] * alt_error
 
     # 5. 최대 합력 클리핑
@@ -241,9 +244,9 @@ def batch_compute_forces(
     pool_positions  = np.array([s.position for s in pool])   # (M, 3)
     pool_velocities = np.array([s.velocity for s in pool])   # (M, 3)
 
-    # KDTree 빌드 (풀 크기 기준, scipy 사용 가능 시)
+    # KDTree 빌드 (풀 크기 기준, scipy 사용 가능 시) — 3D 좌표로 수직 분리 정확 탐지
     use_kdtree = len(pool) >= 100 and _SCIPY_AVAILABLE
-    kdtree = _KDTree(pool_positions[:, :2]) if use_kdtree else None  # 2D XY 평면 이웃 탐색
+    kdtree = _KDTree(pool_positions) if use_kdtree else None  # 3D 이웃 탐색
 
     for own in states:
         goal = goals.get(own.drone_id)
@@ -253,7 +256,7 @@ def batch_compute_forces(
 
         # 이웃 탐색 (자기 자신 제외)
         if use_kdtree:
-            neighbor_indices = [j for j in kdtree.query_ball_point(own.position[:2], comm_range)
+            neighbor_indices = [j for j in kdtree.query_ball_point(own.position, comm_range)
                                 if pool[j].drone_id != own.drone_id]
         else:
             # NumPy 벡터화: O(M) — dists > 0 가 자기 자신(dist=0) 제외
@@ -268,8 +271,10 @@ def batch_compute_forces(
 
         wind_speed = wind_speeds.get(own.drone_id, 0.0)
 
+        # goal[2]를 목표 고도로 전달 — ATC 부여 고도 반영
         forces[own.drone_id] = compute_total_force(
-            own, goal, neighbors, obstacles, params, wind_speed
+            own, goal, neighbors, obstacles, params, wind_speed,
+            target_alt=float(goal[2]) if len(goal) > 2 else None,
         )
 
     return forces

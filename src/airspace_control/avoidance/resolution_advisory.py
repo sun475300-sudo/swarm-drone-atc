@@ -175,6 +175,11 @@ class AdvisoryGenerator:
                 return self.CLIMB, self.DEFAULT_CLIMB_M    # threat이 아래 → target 상승
 
         # 수평 기동 분류
+        # 속도=0 (HOLDING 등) 이면 헤딩 미정 → EVADE_APF 위임
+        spd_xy = math.hypot(float(target.velocity[0]), float(target.velocity[1]))
+        if spd_xy < 0.1:
+            return self.EVADE_APF, 0.0
+
         heading = math.atan2(target.velocity[1], target.velocity[0])
         bearing = math.atan2(rel_pos[1], rel_pos[0])
         angle_diff = _wrap_angle(bearing - heading)

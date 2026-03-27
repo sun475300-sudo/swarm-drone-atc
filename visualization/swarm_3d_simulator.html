@@ -200,7 +200,7 @@
     </div>
     <div class="stat-box" style="border-color:rgba(0,229,255,0.4);">
       <div class="stat-label">관제 드론</div>
-      <div class="stat-value" style="color:#00e5ff;">9</div>
+      <div class="stat-value" style="color:#00e5ff;">13</div>
     </div>
     <div class="stat-box">
       <div class="stat-label">풍속</div>
@@ -226,44 +226,44 @@
       <label class="ctrl-label">시나리오 선택</label>
       <select class="ctrl-select" id="scenario-select">
         <optgroup label="기본">
-          <option value="default">기본 (30대)</option>
-          <option value="high_density">고밀도 (80대)</option>
-          <option value="mass_takeoff">대규모 이륙 (60대)</option>
-          <option value="ultra_swarm">초대형 군집 (150대)</option>
+          <option value="default">기본 (50대)</option>
+          <option value="high_density">고밀도 (150대)</option>
+          <option value="mass_takeoff">대규모 이륙 (100대)</option>
+          <option value="ultra_swarm">초대형 군집 (250대)</option>
         </optgroup>
         <optgroup label="장애/위기">
-          <option value="emergency_failure">비상 장애 (40대)</option>
-          <option value="battery_critical">배터리 위기 (50대)</option>
-          <option value="cascade_failure">연쇄 장애 (45대)</option>
-          <option value="comms_loss">통신 두절 (30대)</option>
-          <option value="multi_failure">복합 장애 (60대)</option>
+          <option value="emergency_failure">비상 장애 (80대)</option>
+          <option value="battery_critical">배터리 위기 (100대)</option>
+          <option value="cascade_failure">연쇄 장애 (80대)</option>
+          <option value="comms_loss">통신 두절 (60대)</option>
+          <option value="multi_failure">복합 장애 (100대)</option>
         </optgroup>
         <optgroup label="교통/공역">
-          <option value="route_conflict">경로 충돌 (50대)</option>
-          <option value="nfz_saturate">NFZ 포화 (70대)</option>
-          <option value="mixed_traffic">혼합 교통 (60대)</option>
-          <option value="corridor_congestion">회랑 혼잡 (80대)</option>
-          <option value="cross_traffic">교차 교통 (60대)</option>
+          <option value="route_conflict">경로 충돌 (100대)</option>
+          <option value="nfz_saturate">NFZ 포화 (120대)</option>
+          <option value="mixed_traffic">혼합 교통 (120대)</option>
+          <option value="corridor_congestion">회랑 혼잡 (150대)</option>
+          <option value="cross_traffic">교차 교통 (120대)</option>
         </optgroup>
         <optgroup label="자연/환경">
-          <option value="weather_disturbance">기상 교란 (25대)</option>
-          <option value="heavy_storm">강풍 폭우 (30대)</option>
-          <option value="fog_low_vis">안개 저시정 (35대)</option>
-          <option value="thermal_updraft">열 상승기류 (40대)</option>
+          <option value="weather_disturbance">기상 교란 (50대)</option>
+          <option value="heavy_storm">강풍 폭우 (60대)</option>
+          <option value="fog_low_vis">안개 저시정 (70대)</option>
+          <option value="thermal_updraft">열 상승기류 (80대)</option>
         </optgroup>
         <optgroup label="위협/보안">
-          <option value="adversarial_intrusion">침입 드론 (35대)</option>
-          <option value="swarm_attack">군집 침입 (50대)</option>
-          <option value="gps_spoofing">GPS 스푸핑 (40대)</option>
+          <option value="adversarial_intrusion">침입 드론 (70대)</option>
+          <option value="swarm_attack">군집 침입 (100대)</option>
+          <option value="gps_spoofing">GPS 스푸핑 (80대)</option>
         </optgroup>
         <optgroup label="임무">
-          <option value="search_rescue">수색 구조 (20대)</option>
-          <option value="delivery_rush">택배 러시 (80대)</option>
-          <option value="formation_flight">편대 비행 (25대)</option>
+          <option value="search_rescue">수색 구조 (40대)</option>
+          <option value="delivery_rush">택배 러시 (150대)</option>
+          <option value="formation_flight">편대 비행 (50대)</option>
         </optgroup>
         <optgroup label="극한">
-          <option value="extreme_stress">극한 스트레스 (120대)</option>
-          <option value="apocalypse">최종 시험 (120대)</option>
+          <option value="extreme_stress">극한 스트레스 (200대)</option>
+          <option value="apocalypse">최종 시험 (250대)</option>
         </optgroup>
       </select>
     </div>
@@ -1050,8 +1050,15 @@ function createDrone(id, startPad) {
 }
 
 function initDrones(scenario) {
-  // Clear
-  while (droneGroup.children.length) droneGroup.remove(droneGroup.children[0]);
+  // Clear (geometry/material 해제 — GPU 메모리 누수 방지)
+  while (droneGroup.children.length) {
+    const grp = droneGroup.children[0];
+    grp.traverse(child => {
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) { if (child.material.map) child.material.map.dispose(); child.material.dispose(); }
+    });
+    droneGroup.remove(grp);
+  }
   while (trailGroup.children.length) {
     const c = trailGroup.children[0];
     trailGroup.remove(c); c.geometry.dispose(); c.material.dispose();
@@ -1064,6 +1071,9 @@ function initDrones(scenario) {
   stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
   simTime = 0;
   landingManager.clear();
+  // APF 충돌 쿨다운 초기화
+  if (apfCollisionAvoidance._cooldown) apfCollisionAvoidance._cooldown.clear();
+  if (apfCollisionAvoidance._conflictCooldown) apfCollisionAvoidance._conflictCooldown.clear();
 
   const cfg = SCENARIOS[scenario] || SCENARIOS.default;
   windEnabled = cfg.wind;
@@ -1138,7 +1148,7 @@ function initDrones(scenario) {
         break;
       case 'weather_disturbance':
         d.groundDelay = Math.random() * 5;
-        d.speed *= 0.85;
+        d.maxSpeed *= 0.85;
         break;
       case 'adversarial_intrusion':
         if (Math.random() < cfg.rogueRate) {
@@ -1156,7 +1166,8 @@ function initDrones(scenario) {
         break;
       case 'cascade_failure':
         // 장애가 시간차 연쇄 발생 (5~40초 사이 집중)
-        if (d.willFail) d.failTime = 5 + (i / count) * 35;
+        d.willFail = true; // 모든 드론에 장애 주입
+        d.failTime = 5 + (i / count) * 35; // 시간차 연쇄
         d.groundDelay = Math.random() * 3;
         break;
       case 'nfz_saturate':
@@ -1352,6 +1363,16 @@ const landingManager = {
 };
 landingManager.init();
 
+// ===== 항로 고도 분리 시스템 (Heading-Based Altitude Layering) =====
+// 비행 방향별 고도 레이어 할당 → 교차 항로 충돌 방지
+function getHeadingAltLayer(heading) {
+  // 8방위(45° 간격)별 고도 레이어 할당
+  // N(0°)=40m, NE(45°)=55m, E(90°)=70m, SE(135°)=85m,
+  // S(180°)=100m, SW(225°)=115m, W(270°)=130m, NW(315°)=145m
+  const sector = Math.floor(((heading + 22.5) % 360) / 45);
+  return ALTITUDE_LAYERS[sector] || 70;
+}
+
 // ===== 정밀 비행 역학 헬퍼 =====
 function calcHeading(dx, dz) {
   return ((Math.atan2(dx, dz) * 180 / Math.PI) + 360) % 360;
@@ -1467,6 +1488,14 @@ function updateDrone(d, dt) {
       d.targetHeading = calcHeading(dx, dz);
       d.heading = turnToward(d.heading, d.targetHeading, PHYSICS.maxTurnRate, sDt);
 
+      // ─── 항로 고도 분리: 비행 방향별 고도 레이어 동적 할당 ───
+      const isUAMd = d.role.id === 'uam_taxi' || d.role.id === 'uam_shuttle';
+      if (!isUAMd && !d.isRogue) {
+        const headingAlt = getHeadingAltLayer(d.heading);
+        // 목표 고도를 방향 레이어로 부드럽게 전환 (급변 방지)
+        d.targetAlt += (headingAlt - d.targetAlt) * 0.02;
+      }
+
       // 가속/감속
       d.speed = accelToward(d.speed, d.maxSpeed, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
 
@@ -1532,8 +1561,8 @@ function updateDrone(d, dt) {
       // 원형 홀딩 패턴 (반경 200m, 일정 속도 선회)
       d.speed = accelToward(d.speed, d.maxSpeed * 0.3, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
       d.holdingOrbitAngle += (d.speed / 200) * sDt;  // 반경 200m 기준 각속도
-      const holdCenterX = d.goalX || d.wx;
-      const holdCenterZ = d.goalZ || d.wz;
+      const holdCenterX = d.goalX ?? d.wx;
+      const holdCenterZ = d.goalZ ?? d.wz;
       const orbitR = 200;
       const targetX = holdCenterX + Math.cos(d.holdingOrbitAngle) * orbitR;
       const targetZ = holdCenterZ + Math.sin(d.holdingOrbitAngle) * orbitR;
@@ -1641,6 +1670,7 @@ function updateDrone(d, dt) {
 
   // Emergency failure trigger
   if (d.willFail && !d.failed && simTime > d.failTime && d.phase !== 'GROUNDED') {
+    if (d.landingQueued) landingManager.release(d); // 착륙 대기열 해제
     d.phase = 'FAILED';
     d.failed = true;
     logEvent('fail', `${d.id} [${d.role.label}] 장애! ALT ${Math.round(d.wy)}m`);
@@ -1653,14 +1683,16 @@ function updateDrone(d, dt) {
     logEvent('comms', `${d.id} 통신 두절 → 체공 대기`);
   }
 
-  // Low battery -> RTL
-  if (d.battery < 8 && d.phase === 'ENROUTE') {
+  // Low battery -> RTL (ENROUTE, HOLDING, EVADING 모두 적용)
+  if (d.battery < 8 && (d.phase === 'ENROUTE' || d.phase === 'HOLDING' || d.phase === 'EVADING')) {
+    if (d.landingQueued) landingManager.release(d);
     d.phase = 'RTL';
     logEvent('advisory', `${d.id} 배터리 ${Math.round(d.battery)}% → RTL`);
   }
 
   // 배터리 완전 방전 → 강제 FAILED
   if (d.battery <= 0 && isFlying && d.phase !== 'FAILED') {
+    if (d.landingQueued) landingManager.release(d);
     d.phase = 'FAILED';
     d.failed = true;
     logEvent('fail', `${d.id} 배터리 방전 → 비상 착륙!`);
@@ -1690,17 +1722,24 @@ function updateDrone(d, dt) {
 }
 
 function apfCollisionAvoidance() {
-  // Clear proximity lines
-  while (proximityLines.children.length) proximityLines.remove(proximityLines.children[0]);
+  // Clear proximity lines (geometry + material 해제 — 메모리 누수 방지)
+  while (proximityLines.children.length) {
+    const c = proximityLines.children[0];
+    proximityLines.remove(c); c.geometry.dispose(); c.material.dispose();
+  }
   const maxLines = drones.length > 100 ? 30 : 100;
   let lineCount = 0;
 
   let frameConflicts = 0, frameNear = 0, frameCollisions = 0;
   const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
 
-  // 충돌 중복 방지: 같은 쌍은 2초 쿨다운
+  // 충돌/근접/충돌 중복 방지: 같은 쌍은 쿨다운
   if (!apfCollisionAvoidance._cooldown) apfCollisionAvoidance._cooldown = new Map();
+  if (!apfCollisionAvoidance._nearCooldown) apfCollisionAvoidance._nearCooldown = new Map();
+  if (!apfCollisionAvoidance._conflictCooldown) apfCollisionAvoidance._conflictCooldown = new Map();
   const cooldown = apfCollisionAvoidance._cooldown;
+  const nearCooldown = apfCollisionAvoidance._nearCooldown;
+  const conflictCooldown = apfCollisionAvoidance._conflictCooldown;
 
   // ─── Spatial Hash: O(N·k) 이웃 탐색 ───
   const cellSize = EVADE_DIST;
@@ -1785,9 +1824,14 @@ function apfCollisionAvoidance() {
             const aUp = (parseInt(a.id.replace('DR-','')) % 2 === 0) ? 1 : -1;
             fa.fy += aUp * 20; fb.fy -= aUp * 20;
           } else if (dist3d < NEAR_MISS_DIST || (isConverging && cpaDist < NEAR_MISS_DIST)) {
-            frameNear++;
-            if (lineCount < maxLines) { addProximityLine(a, b, 0xff6600, 0.3); lineCount++; }
-            if (eventLog.length < 80) logEvent('near', `${a.id} ↔ ${b.id} 근접경고 (${Math.round(effectiveDist)}m)`);
+            const nearKey = pairKey;
+            const lastNear = nearCooldown.get(nearKey) || 0;
+            if (simTime - lastNear > 3.0) {
+              frameNear++;
+              nearCooldown.set(nearKey, simTime);
+              if (lineCount < maxLines) { addProximityLine(a, b, 0xff6600, 0.3); lineCount++; }
+              if (eventLog.length < 80) logEvent('near', `${a.id} ↔ ${b.id} 근접경고 (${Math.round(effectiveDist)}m)`);
+            }
 
             // 지수 반발력 (가까울수록 급격히 증가)
             const ratio = 1 - effectiveDist / NEAR_MISS_DIST;
@@ -1802,7 +1846,12 @@ function apfCollisionAvoidance() {
               fa.fy += aUp * strength * 0.5; fb.fy -= aUp * strength * 0.5;
             }
           } else if (dist3d < EVADE_DIST || (isConverging && cpaDist < EVADE_DIST * 0.7)) {
-            frameConflicts++;
+            const confKey = pairKey;
+            const lastConf = conflictCooldown.get(confKey) || 0;
+            if (simTime - lastConf > 5.0) {
+              frameConflicts++;
+              conflictCooldown.set(confKey, simTime);
+            }
             if (lineCount < maxLines) { addProximityLine(a, b, 0xffaa00, 0.15); lineCount++; }
 
             // 부드러운 APF 반발력 (CPA 기반)
@@ -2017,6 +2066,7 @@ function updateATCLinks() {
   const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
   const maxLinks = _lightweight ? 20 : 50;
   let linkCount = 0;
+  const atcProcessed = new Set(); // ATC 중복 쌍 처리 방지
 
   // ATC 탐지 범위별 드론 수집
   atcDrones.forEach(atc => {
@@ -2054,7 +2104,10 @@ function updateATCLinks() {
         const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
         const dist3d = Math.sqrt(dx*dx + dz*dz + dy*dy);
 
-        if (dist3d < 800 && dist3d > COLLISION_DIST) {
+        if (dist3d < 800 && dist3d > COLLISION_DIST && !a.failed && !b.failed) {
+          const atcPairKey = a.id < b.id ? `${a.id}-${b.id}` : `${b.id}-${a.id}`;
+          if (atcProcessed.has(atcPairKey)) continue;
+          atcProcessed.add(atcPairKey);
           // 실제 속도 벡터 기반 CPA 계산
           const radA = a.heading * Math.PI / 180, radB = b.heading * Math.PI / 180;
           const avx = Math.sin(radA) * a.speed, avz = Math.cos(radA) * a.speed;
@@ -2102,7 +2155,7 @@ function updateATCLinks() {
 
 // ===== Animation Loop =====
 const clock = new THREE.Clock();
-let frameCount = 0, lastFpsTime = 0, uiTick = 0;
+let frameCount = 0, lastFpsTime = 0;
 
 initDrones('default');
 

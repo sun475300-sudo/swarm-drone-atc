@@ -265,6 +265,26 @@
           <option value="extreme_stress">극한 스트레스 (200대)</option>
           <option value="apocalypse">최종 시험 (250대)</option>
         </optgroup>
+        <optgroup label="극한 기상 정밀">
+          <option value="weather_hell">극한기상 지옥 (200대)</option>
+          <option value="microburst_storm">마이크로버스트 (150대)</option>
+          <option value="typhoon">태풍급 강풍 (200대)</option>
+          <option value="ice_storm">결빙 폭풍 (150대)</option>
+          <option value="multi_cell_storm">다중셀 폭풍 (200대)</option>
+        </optgroup>
+        <optgroup label="대규모 확장">
+          <option value="mega_swarm">메가 군집 (500대)</option>
+          <option value="mega_storm">메가 폭풍 (500대)</option>
+          <option value="city_rush_hour">도심 러시아워 (400대)</option>
+          <option value="military_exercise">군사 훈련 (300대)</option>
+          <option value="disaster_response">재난 대응 (350대)</option>
+          <option value="uam_corridor">UAM 회랑 (200대)</option>
+          <option value="night_ops">야간 작전 (150대)</option>
+          <option value="multi_agency">다기관 합동 (300대)</option>
+          <option value="mega_delivery">대규모 택배 (500대)</option>
+          <option value="full_spectrum">전영역 종합 (400대)</option>
+          <option value="total_war">총력전 (500대)</option>
+        </optgroup>
       </select>
     </div>
     <div style="margin-bottom:8px;">
@@ -435,6 +455,24 @@ const SCENARIOS = {
   // ── 극한
   extreme_stress:       { count: 200, label: '극한 스트레스',   wind: true,  failRate: 0.15, rogueRate: 0.10 },
   apocalypse:           { count: 250, label: '최종 시험',       wind: true,  failRate: 0.20, rogueRate: 0.20 },
+  // ── 극한 기상 정밀 테스트
+  weather_hell:         { count: 200, label: '극한기상 지옥',   wind: true,  failRate: 0.25, rogueRate: 0.05 },
+  microburst_storm:     { count: 150, label: '마이크로버스트',   wind: true,  failRate: 0.20, rogueRate: 0 },
+  typhoon:              { count: 200, label: '태풍급 강풍',     wind: true,  failRate: 0.30, rogueRate: 0 },
+  ice_storm:            { count: 150, label: '결빙 폭풍',       wind: true,  failRate: 0.35, rogueRate: 0 },
+  multi_cell_storm:     { count: 200, label: '다중셀 폭풍',     wind: true,  failRate: 0.20, rogueRate: 0.05 },
+  // ── 대규모 확장 시나리오
+  mega_swarm:           { count: 500, label: '메가 군집',       wind: false, failRate: 0,    rogueRate: 0 },
+  mega_storm:           { count: 500, label: '메가 폭풍',       wind: true,  failRate: 0.15, rogueRate: 0.05 },
+  city_rush_hour:       { count: 400, label: '도심 러시아워',   wind: false, failRate: 0.05, rogueRate: 0.03 },
+  military_exercise:    { count: 300, label: '군사 훈련',       wind: true,  failRate: 0.10, rogueRate: 0.15 },
+  disaster_response:    { count: 350, label: '재난 대응',       wind: true,  failRate: 0.20, rogueRate: 0 },
+  uam_corridor:         { count: 200, label: 'UAM 회랑',       wind: false, failRate: 0.05, rogueRate: 0 },
+  night_ops:            { count: 150, label: '야간 작전',       wind: true,  failRate: 0.10, rogueRate: 0.10 },
+  multi_agency:         { count: 300, label: '다기관 합동',     wind: false, failRate: 0.08, rogueRate: 0.05 },
+  mega_delivery:        { count: 500, label: '대규모 택배',     wind: false, failRate: 0.05, rogueRate: 0 },
+  full_spectrum:        { count: 400, label: '전영역 종합',     wind: true,  failRate: 0.20, rogueRate: 0.15 },
+  total_war:            { count: 500, label: '총력전',           wind: true,  failRate: 0.30, rogueRate: 0.25 },
 };
 
 const LANDING_PADS = [
@@ -492,7 +530,7 @@ let drones = [];
 let stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
 let windEnabled = false;
 
-// ===== 확장 기상 시스템 =====
+// ===== 확장 기상 시스템 (정밀 모델) =====
 const weather = {
   baseWind: { x: 2.0, z: -1.5 },  // 기본 풍향 (동남풍)
   gustIntensity: 0,    // 돌풍 강도 (0~5)
@@ -503,17 +541,24 @@ const weather = {
   precipitation: 0,    // 강수 강도 (0: 없음, 1: 약, 2: 보통, 3: 폭우)
   visibility: 1.0,     // 시정 (0~1)
   thermalZones: [],    // 열 상승기류 구역
+  // ── 극한 기상 확장 ──
+  microbursts: [],     // 마이크로버스트 (급강하풍) [{x,z,radius,strength,life,maxLife}]
+  stormCells: [],      // 이동 폭풍셀 [{x,z,vx,vz,radius,intensity,rotation}]
+  windShearLayers: [], // 풍속 전단 레이어 [{alt,windX,windZ}]
+  icing: 0,            // 결빙 강도 (0~3) — 속도·기동 저하
+  typhoonWind: 0,      // 태풍 풍속 기본값 (m/s)
+  typhoonAngle: 0,     // 태풍 회전각
 };
 
-// 동적 기상 업데이트 (매 프레임)
+// 동적 기상 업데이트 (매 프레임) — 극한 기상 확장
 function updateWeather(dt) {
   if (!windEnabled) return;
   const sDt = dt * simSpeed;
 
-  // 돌풍 발생: 랜덤 간격 (5~15초)으로 갑작스런 강풍
+  // 돌풍 발생: 랜덤 간격으로 갑작스런 강풍
   weather.gustTimer -= sDt;
   if (weather.gustTimer <= 0) {
-    weather.gustIntensity = 1 + Math.random() * 4; // 1~5 m/s
+    weather.gustIntensity = 1 + Math.random() * 4;
     const angle = Math.random() * Math.PI * 2;
     weather.gustDir = { x: Math.cos(angle), z: Math.sin(angle) };
     weather.gustTimer = 5 + Math.random() * 10;
@@ -521,27 +566,87 @@ function updateWeather(dt) {
       logEvent('advisory', `⚡ 돌풍 경보: ${weather.gustIntensity.toFixed(1)} m/s`);
     }
   }
-  // 돌풍 감쇠
   weather.gustIntensity *= (1 - sDt * 0.5);
 
   // 풍향 서서히 변화 (사인파)
-  const windAngle = simTime * 0.02; // 매우 느린 회전
-  weather.baseWind.x = 2.0 * Math.cos(windAngle) + 0.5 * Math.sin(windAngle * 3.7);
-  weather.baseWind.z = -1.5 * Math.sin(windAngle) + 0.3 * Math.cos(windAngle * 2.3);
+  const windAngle = simTime * 0.02;
+  const baseX = 2.0 * Math.cos(windAngle) + 0.5 * Math.sin(windAngle * 3.7);
+  const baseZ = -1.5 * Math.sin(windAngle) + 0.3 * Math.cos(windAngle * 2.3);
+  // 태풍 모드: 회전 강풍 추가
+  if (weather.typhoonWind > 0) {
+    weather.typhoonAngle += sDt * 0.3; // 천천히 회전
+    const tw = weather.typhoonWind;
+    weather.baseWind.x = baseX + tw * Math.cos(weather.typhoonAngle);
+    weather.baseWind.z = baseZ + tw * Math.sin(weather.typhoonAngle);
+    // 태풍은 돌풍도 증폭
+    if (weather.gustTimer <= 0) weather.gustIntensity = Math.max(weather.gustIntensity, tw * 0.6);
+  } else {
+    weather.baseWind.x = baseX;
+    weather.baseWind.z = baseZ;
+  }
+
+  // ── 마이크로버스트 업데이트 (수명 감소, 새로 생성) ──
+  weather.microbursts = weather.microbursts.filter(mb => {
+    mb.life -= sDt;
+    // 강도는 수명 중반에 최대
+    const lifeRatio = mb.life / mb.maxLife;
+    mb.currentStrength = mb.strength * Math.sin(lifeRatio * Math.PI);
+    return mb.life > 0;
+  });
+  // 확률적 마이크로버스트 생성 (극한 시나리오에서)
+  if (weather.microbursts.length < 5 && weather.turbulence >= 2.0) {
+    if (Math.random() < sDt * 0.08) { // ~8% per second
+      const mb = {
+        x: (Math.random() - 0.5) * 6000,
+        z: (Math.random() - 0.5) * 6000,
+        radius: 300 + Math.random() * 500,
+        strength: 8 + Math.random() * 12, // 8~20 m/s 하강풍
+        life: 8 + Math.random() * 12,
+        maxLife: 8 + Math.random() * 12,
+        currentStrength: 0,
+      };
+      mb.maxLife = mb.life;
+      weather.microbursts.push(mb);
+      logEvent('advisory', `🌪️ 마이크로버스트 감지! (${Math.round(mb.strength)}m/s, R=${Math.round(mb.radius)}m)`);
+    }
+  }
+
+  // ── 이동 폭풍셀 업데이트 ──
+  weather.stormCells.forEach(sc => {
+    sc.x += sc.vx * sDt;
+    sc.z += sc.vz * sDt;
+    sc.rotation += sDt * 0.5;
+    // 월드 밖으로 나가면 반대편에서 재진입
+    if (sc.x > 5000) sc.x = -5000;
+    if (sc.x < -5000) sc.x = 5000;
+    if (sc.z > 5000) sc.z = -5000;
+    if (sc.z < -5000) sc.z = 5000;
+  });
 }
 
-// 특정 위치·고도의 실효 바람 벡터 계산
+// 특정 위치·고도의 실효 바람 벡터 계산 (정밀 모델)
 function getWindAt(wx, wy, wz) {
   if (!windEnabled) return { x: 0, z: 0, y: 0 };
-  // 기본 바람
   let wx_ = weather.baseWind.x;
   let wz_ = weather.baseWind.z;
   let wy_ = 0;
 
   // 고도별 풍속 전단 (고도가 높을수록 강풍)
-  const altFactor = 0.7 + (wy / 150) * 0.6; // 0.7x ~ 1.3x
+  const altFactor = 0.7 + (wy / 150) * 0.6;
   wx_ *= altFactor;
   wz_ *= altFactor;
+
+  // ── 풍속 전단 레이어: 고도별 급격한 풍향 변화 ──
+  weather.windShearLayers.forEach(layer => {
+    const altDiff = Math.abs(wy - layer.alt);
+    if (altDiff < 30) {
+      const influence = 1 - altDiff / 30;
+      wx_ += layer.windX * influence;
+      wz_ += layer.windZ * influence;
+      // 전단 경계에서 난기류 증가
+      wy_ += (Math.random() - 0.5) * influence * 3;
+    }
+  });
 
   // 돌풍 추가
   wx_ += weather.gustDir.x * weather.gustIntensity;
@@ -555,12 +660,53 @@ function getWindAt(wx, wy, wz) {
     wy_ += (Math.random() - 0.5) * turb * 0.5;
   }
 
+  // ── 마이크로버스트: 급강하풍 + 수평 발산 ──
+  weather.microbursts.forEach(mb => {
+    const dx = wx - mb.x, dz = wz - mb.z;
+    const d = Math.sqrt(dx * dx + dz * dz);
+    if (d < mb.radius && mb.currentStrength > 0) {
+      const ratio = 1 - d / mb.radius;
+      // 중심부: 강한 하강풍, 외곽: 수평 발산풍
+      if (d < mb.radius * 0.4) {
+        // 코어: 하강풍 지배적
+        wy_ -= mb.currentStrength * ratio;
+        // 약한 수평 발산
+        const spread = mb.currentStrength * 0.3 * ratio;
+        if (d > 1) { wx_ += (dx / d) * spread; wz_ += (dz / d) * spread; }
+      } else {
+        // 외곽: 수평 폭풍풍 (outflow) — 지면 근처에서 강해짐
+        const outflow = mb.currentStrength * ratio * Math.max(0.3, 1 - wy / 100);
+        if (d > 1) { wx_ += (dx / d) * outflow; wz_ += (dz / d) * outflow; }
+        wy_ -= mb.currentStrength * ratio * 0.3;
+      }
+    }
+  });
+
+  // ── 이동 폭풍셀: 회전풍 + 난기류 ──
+  weather.stormCells.forEach(sc => {
+    const dx = wx - sc.x, dz = wz - sc.z;
+    const d = Math.sqrt(dx * dx + dz * dz);
+    if (d < sc.radius) {
+      const ratio = 1 - d / sc.radius;
+      const intensity = sc.intensity * ratio;
+      // 회전풍 (사이클론)
+      const angle = Math.atan2(dz, dx) + Math.PI * 0.5 + sc.rotation;
+      wx_ += Math.cos(angle) * intensity;
+      wz_ += Math.sin(angle) * intensity;
+      // 수직 불안정 (상승+하강 혼재)
+      wy_ += (Math.sin(d * 0.01 + simTime * 2) * intensity * 0.5);
+      // 추가 난기류
+      wx_ += (Math.random() - 0.5) * intensity * 0.8;
+      wz_ += (Math.random() - 0.5) * intensity * 0.8;
+    }
+  });
+
   // 열 상승기류 구역
   weather.thermalZones.forEach(tz => {
     const dx = wx - tz.x, dz = wz - tz.z;
-    const d = Math.sqrt(dx*dx + dz*dz);
+    const d = Math.sqrt(dx * dx + dz * dz);
     if (d < tz.radius) {
-      wy_ += tz.strength * (1 - d / tz.radius); // 중심에 가까울수록 강한 상승
+      wy_ += tz.strength * (1 - d / tz.radius);
     }
   });
 
@@ -1073,6 +1219,7 @@ function initDrones(scenario) {
   landingManager.clear();
   // APF 충돌 쿨다운 초기화
   if (apfCollisionAvoidance._cooldown) apfCollisionAvoidance._cooldown.clear();
+  if (apfCollisionAvoidance._nearCooldown) apfCollisionAvoidance._nearCooldown.clear();
   if (apfCollisionAvoidance._conflictCooldown) apfCollisionAvoidance._conflictCooldown.clear();
 
   const cfg = SCENARIOS[scenario] || SCENARIOS.default;
@@ -1080,13 +1227,19 @@ function initDrones(scenario) {
   const count = cfg.count;
   _lightweight = count > 100;
 
-  // 기상 시스템 초기화
+  // 기상 시스템 초기화 (전체 리셋)
   weather.gustIntensity = 0;
   weather.gustTimer = 5;
   weather.turbulence = 0;
   weather.precipitation = 0;
   weather.visibility = 1.0;
   weather.thermalZones = [];
+  weather.microbursts = [];
+  weather.stormCells = [];
+  weather.windShearLayers = [];
+  weather.icing = 0;
+  weather.typhoonWind = 0;
+  weather.typhoonAngle = 0;
 
   // 시나리오별 기상·분위기
   if (scenario === 'fog_low_vis') {
@@ -1126,6 +1279,181 @@ function initDrones(scenario) {
         z: (Math.random() - 0.5) * 4000,
         radius: 400 + Math.random() * 600,
         strength: 3 + Math.random() * 3,
+      });
+    }
+  } else if (scenario === 'mega_storm' || scenario === 'total_war') {
+    scene.fog = new THREE.FogExp2(0x080812, 0.006);
+    weather.turbulence = 2.5;
+    weather.precipitation = 3;
+    weather.gustTimer = 1;
+    weather.typhoonWind = 10;
+    weather.icing = 1;
+    for (let m = 0; m < 3; m++) {
+      weather.microbursts.push({
+        x: (Math.random() - 0.5) * 6000, z: (Math.random() - 0.5) * 6000,
+        radius: 400 + Math.random() * 500, strength: 10 + Math.random() * 10,
+        life: 15 + Math.random() * 10, maxLife: 15 + Math.random() * 10, currentStrength: 0,
+      });
+    }
+    for (let s = 0; s < 3; s++) {
+      weather.stormCells.push({
+        x: (Math.random() - 0.5) * 5000, z: (Math.random() - 0.5) * 5000,
+        vx: (Math.random() - 0.5) * 25, vz: (Math.random() - 0.5) * 25,
+        radius: 700 + Math.random() * 700, intensity: 8 + Math.random() * 8,
+        rotation: Math.random() * Math.PI * 2,
+      });
+    }
+  } else if (scenario === 'disaster_response' || scenario === 'military_exercise') {
+    scene.fog = new THREE.FogExp2(0x0a0a18, 0.004);
+    weather.turbulence = 1.5;
+    weather.precipitation = 1;
+    weather.gustTimer = 3;
+  } else if (scenario === 'full_spectrum') {
+    scene.fog = new THREE.FogExp2(0x080814, 0.005);
+    weather.turbulence = 2.0;
+    weather.precipitation = 2;
+    weather.gustTimer = 1.5;
+    weather.icing = 1;
+    weather.typhoonWind = 6;
+    for (let s = 0; s < 2; s++) {
+      weather.stormCells.push({
+        x: (Math.random() - 0.5) * 4000, z: (Math.random() - 0.5) * 4000,
+        vx: (Math.random() - 0.5) * 20, vz: (Math.random() - 0.5) * 20,
+        radius: 600 + Math.random() * 600, intensity: 8 + Math.random() * 6,
+        rotation: Math.random() * Math.PI * 2,
+      });
+    }
+  } else if (scenario === 'night_ops') {
+    scene.fog = new THREE.FogExp2(0x050510, 0.005);
+    weather.turbulence = 1.0;
+    weather.visibility = 0.4;
+    weather.gustTimer = 4;
+  } else if (scenario === 'weather_hell') {
+    // ── 극한기상 지옥: 모든 기상현상 동시 발동 ──
+    scene.fog = new THREE.FogExp2(0x080810, 0.008);
+    weather.turbulence = 3.0;
+    weather.precipitation = 3;
+    weather.gustTimer = 0.5;
+    weather.icing = 2;
+    weather.typhoonWind = 8;
+    // 마이크로버스트 3개 즉시 배치
+    for (let m = 0; m < 3; m++) {
+      weather.microbursts.push({
+        x: (Math.random() - 0.5) * 5000,
+        z: (Math.random() - 0.5) * 5000,
+        radius: 400 + Math.random() * 400,
+        strength: 12 + Math.random() * 8,
+        life: 15 + Math.random() * 10,
+        maxLife: 15 + Math.random() * 10,
+        currentStrength: 0,
+      });
+    }
+    // 이동 폭풍셀 2개
+    for (let s = 0; s < 2; s++) {
+      weather.stormCells.push({
+        x: (Math.random() - 0.5) * 4000,
+        z: (Math.random() - 0.5) * 4000,
+        vx: (Math.random() - 0.5) * 30,
+        vz: (Math.random() - 0.5) * 30,
+        radius: 800 + Math.random() * 600,
+        intensity: 8 + Math.random() * 6,
+        rotation: Math.random() * Math.PI * 2,
+      });
+    }
+    // 풍속 전단 레이어 4개
+    for (let l = 0; l < 4; l++) {
+      weather.windShearLayers.push({
+        alt: 40 + l * 35,
+        windX: (Math.random() - 0.5) * 15,
+        windZ: (Math.random() - 0.5) * 15,
+      });
+    }
+    // 열 상승기류 구역
+    for (let t = 0; t < 4; t++) {
+      weather.thermalZones.push({
+        x: (Math.random() - 0.5) * 5000,
+        z: (Math.random() - 0.5) * 5000,
+        radius: 500 + Math.random() * 500,
+        strength: 4 + Math.random() * 6,
+      });
+    }
+  } else if (scenario === 'microburst_storm') {
+    // ── 마이크로버스트 집중: 다수의 급강하풍 ──
+    scene.fog = new THREE.FogExp2(0x0a0a18, 0.006);
+    weather.turbulence = 2.5;
+    weather.precipitation = 3;
+    weather.gustTimer = 1;
+    for (let m = 0; m < 5; m++) {
+      weather.microbursts.push({
+        x: (Math.random() - 0.5) * 6000,
+        z: (Math.random() - 0.5) * 6000,
+        radius: 300 + Math.random() * 500,
+        strength: 10 + Math.random() * 10,
+        life: 10 + Math.random() * 15,
+        maxLife: 10 + Math.random() * 15,
+        currentStrength: 0,
+      });
+    }
+  } else if (scenario === 'typhoon') {
+    // ── 태풍급 회전 강풍 ──
+    scene.fog = new THREE.FogExp2(0x080812, 0.007);
+    weather.turbulence = 3.0;
+    weather.precipitation = 3;
+    weather.gustTimer = 0.5;
+    weather.typhoonWind = 15; // 15 m/s 기본 + 돌풍
+    weather.icing = 1;
+    // 풍속 전단 레이어
+    for (let l = 0; l < 3; l++) {
+      weather.windShearLayers.push({
+        alt: 50 + l * 40,
+        windX: (Math.random() - 0.5) * 20,
+        windZ: (Math.random() - 0.5) * 20,
+      });
+    }
+  } else if (scenario === 'ice_storm') {
+    // ── 결빙 폭풍: 기체 성능 대폭 저하 ──
+    scene.fog = new THREE.FogExp2(0x101020, 0.005);
+    weather.turbulence = 2.0;
+    weather.precipitation = 2;
+    weather.gustTimer = 2;
+    weather.icing = 3; // 최대 결빙
+    weather.visibility = 0.2;
+    // 풍속 전단
+    for (let l = 0; l < 5; l++) {
+      weather.windShearLayers.push({
+        alt: 30 + l * 30,
+        windX: (Math.random() - 0.5) * 12,
+        windZ: (Math.random() - 0.5) * 12,
+      });
+    }
+  } else if (scenario === 'multi_cell_storm') {
+    // ── 다중셀 폭풍: 여러 개의 이동하는 폭풍 ──
+    scene.fog = new THREE.FogExp2(0x0a0a14, 0.006);
+    weather.turbulence = 2.5;
+    weather.precipitation = 3;
+    weather.gustTimer = 1;
+    weather.icing = 1;
+    for (let s = 0; s < 4; s++) {
+      weather.stormCells.push({
+        x: (Math.random() - 0.5) * 5000,
+        z: (Math.random() - 0.5) * 5000,
+        vx: 15 + Math.random() * 25,
+        vz: (Math.random() - 0.5) * 20,
+        radius: 600 + Math.random() * 800,
+        intensity: 10 + Math.random() * 8,
+        rotation: Math.random() * Math.PI * 2,
+      });
+    }
+    // 마이크로버스트 2개
+    for (let m = 0; m < 2; m++) {
+      weather.microbursts.push({
+        x: (Math.random() - 0.5) * 5000,
+        z: (Math.random() - 0.5) * 5000,
+        radius: 350 + Math.random() * 400,
+        strength: 10 + Math.random() * 8,
+        life: 12 + Math.random() * 10,
+        maxLife: 12 + Math.random() * 10,
+        currentStrength: 0,
       });
     }
   } else {
@@ -1311,6 +1639,100 @@ function initDrones(scenario) {
           d.goalZ = (Math.random() - 0.5) * 800;
         }
         break;
+      // ── 극한 기상 시나리오 드론 설정 ──
+      case 'weather_hell':
+        d.groundDelay = Math.random() * 3;
+        d.speed = 5 + Math.random() * 10;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true; d.speed *= 1.3; d.groundDelay = 0;
+        }
+        break;
+      case 'microburst_storm':
+        d.groundDelay = Math.random() * 4;
+        d.speed = 6 + Math.random() * 8;
+        break;
+      case 'typhoon':
+        d.groundDelay = Math.random() * 5;
+        d.speed = 4 + Math.random() * 8; // 태풍에선 저속 비행
+        break;
+      case 'ice_storm':
+        d.groundDelay = Math.random() * 4;
+        d.speed = 3 + Math.random() * 7; // 결빙 시 더 저속
+        break;
+      case 'multi_cell_storm':
+        d.groundDelay = Math.random() * 3;
+        d.speed = 5 + Math.random() * 10;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true; d.speed *= 1.3; d.groundDelay = 0;
+        }
+        break;
+      // ── 대규모 확장 시나리오 ──
+      case 'mega_swarm':
+      case 'mega_delivery':
+        d.groundDelay = Math.random() * 10; // 시간차 이륙
+        d.speed = 5 + Math.random() * 10;
+        break;
+      case 'mega_storm':
+        d.groundDelay = Math.random() * 8;
+        d.speed = 4 + Math.random() * 8;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true; d.speed *= 1.3; d.groundDelay = 0;
+        }
+        break;
+      case 'city_rush_hour':
+        d.groundDelay = Math.random() * 6;
+        d.speed = 8 + Math.random() * 10; // 고속 도심 비행
+        if (Math.random() < cfg.rogueRate) { d.isRogue = true; d.groundDelay = 0; }
+        break;
+      case 'military_exercise':
+        d.groundDelay = (i / count) * 5; // 순차 이륙
+        d.speed = 10 + Math.random() * 8; // 고속 군용
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true; d.speed *= 1.5; d.groundDelay = 0;
+          d.goalX = (Math.random() - 0.5) * 2000;
+          d.goalZ = (Math.random() - 0.5) * 2000;
+        }
+        break;
+      case 'disaster_response':
+        d.groundDelay = Math.random() * 5;
+        d.speed = 6 + Math.random() * 8;
+        d.goalX = (Math.random() - 0.5) * 3000; // 넓은 수색 범위
+        d.goalZ = (Math.random() - 0.5) * 3000;
+        break;
+      case 'uam_corridor':
+        d.groundDelay = Math.random() * 4;
+        d.speed = 12 + Math.random() * 8; // UAM 고속
+        break;
+      case 'night_ops':
+        d.groundDelay = Math.random() * 5;
+        d.speed = 5 + Math.random() * 8;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true; d.speed *= 1.4; d.groundDelay = 0;
+        }
+        break;
+      case 'multi_agency':
+        d.groundDelay = Math.random() * 6;
+        d.speed = 6 + Math.random() * 10;
+        if (Math.random() < cfg.rogueRate) { d.isRogue = true; d.groundDelay = 0; }
+        break;
+      case 'full_spectrum':
+        d.groundDelay = Math.random() * 5;
+        d.speed = 5 + Math.random() * 12;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true; d.speed *= 1.5; d.groundDelay = 0;
+          d.goalX = (Math.random() - 0.5) * 1500;
+          d.goalZ = (Math.random() - 0.5) * 1500;
+        }
+        break;
+      case 'total_war':
+        d.groundDelay = Math.random() * 3;
+        d.speed = 5 + Math.random() * 13;
+        if (Math.random() < cfg.rogueRate) {
+          d.isRogue = true; d.speed *= 1.5; d.groundDelay = 0;
+          d.goalX = (Math.random() - 0.5) * 1000;
+          d.goalZ = (Math.random() - 0.5) * 1000;
+        }
+        break;
       default:
         d.groundDelay = Math.random() * 8;
     }
@@ -1409,11 +1831,83 @@ function updateDrone(d, dt) {
     d.battery = Math.max(0, d.battery - sDt * 0.005); // 지상 대기 소모
   }
 
-  // 동적 기상 효과
+  // ── 정밀 기상 대항 알고리즘 (Weather Counteraction System) ──
   const w = getWindAt(d.wx, d.wy, d.wz);
-  const windX = w.x * sDt;
-  const windZ = w.z * sDt;
-  const windY = w.y * sDt;
+
+  // 결빙 효과: 기체 성능 저하 (가속·선회·상승 능력 감소)
+  const iceFactor = weather.icing > 0 ? Math.max(0.3, 1 - weather.icing * 0.2) : 1.0;
+  // 결빙 시 추가 배터리 소모 (히터 작동)
+  if (isFlying && weather.icing > 0) {
+    d.battery = Math.max(0, d.battery - sDt * weather.icing * 0.008);
+  }
+
+  // 풍속 보상 계수: 강풍일수록 더 적극적으로 보상
+  const rawWindSpd = Math.sqrt(w.x * w.x + w.z * w.z);
+  // 풍속 이력 저장 (이동평균 → 난기류 감쇠)
+  if (!d._windHistory) d._windHistory = [];
+  d._windHistory.push({ x: w.x, z: w.z, y: w.y });
+  if (d._windHistory.length > 10) d._windHistory.shift();
+  // 이동평균 바람 (난기류 고주파 필터링)
+  const avgWind = d._windHistory.reduce((a, v) => ({ x: a.x + v.x, z: a.z + v.z, y: a.y + v.y }), { x: 0, z: 0, y: 0 });
+  avgWind.x /= d._windHistory.length;
+  avgWind.z /= d._windHistory.length;
+  avgWind.y /= d._windHistory.length;
+
+  // 보상된 바람 벡터: 예측 가능한 바람은 사전 상쇄, 난기류만 잔여
+  const windCompensation = Math.min(0.7, rawWindSpd * 0.04); // 최대 70% 보상
+  const effectiveWindX = (w.x - avgWind.x * windCompensation) * sDt;
+  const effectiveWindZ = (w.z - avgWind.z * windCompensation) * sDt;
+  const effectiveWindY = (w.y - avgWind.y * windCompensation * 0.5) * sDt;
+
+  // 마이크로버스트 감지 및 긴급 회피
+  let inMicroburst = false;
+  let mbEscapeVx = 0, mbEscapeVz = 0;
+  if (isFlying && weather.microbursts.length > 0) {
+    for (const mb of weather.microbursts) {
+      const mdx = d.wx - mb.x, mdz = d.wz - mb.z;
+      const mDist = Math.sqrt(mdx * mdx + mdz * mdz);
+      if (mDist < mb.radius * 1.3 && mb.currentStrength > 2) {
+        inMicroburst = true;
+        // 탈출 벡터: 마이크로버스트 중심에서 반대 방향 + 상승
+        const escapeDist = Math.max(mDist, 1);
+        const escapeForce = mb.currentStrength * (1 - mDist / (mb.radius * 1.3));
+        mbEscapeVx += (mdx / escapeDist) * escapeForce * 2;
+        mbEscapeVz += (mdz / escapeDist) * escapeForce * 2;
+        // 긴급 상승 (하강풍 대항)
+        if (d.wy < 120) d.wy += Math.min(escapeForce * 0.5, PHYSICS.maxClimbRate) * sDt;
+        if (!d._mbWarned) {
+          logEvent('advisory', `🌪️ ${d.id} 마이크로버스트 진입! 긴급 회피`);
+          d._mbWarned = true;
+        }
+      }
+    }
+    if (!inMicroburst) d._mbWarned = false;
+  }
+
+  // 폭풍셀 감지 및 우회
+  let inStormCell = false;
+  let scAvoidVx = 0, scAvoidVz = 0;
+  if (isFlying && weather.stormCells.length > 0) {
+    for (const sc of weather.stormCells) {
+      const sdx = d.wx - sc.x, sdz = d.wz - sc.z;
+      const sDist = Math.sqrt(sdx * sdx + sdz * sdz);
+      // 폭풍셀 외곽 1.2배 거리에서부터 회피 시작
+      if (sDist < sc.radius * 1.2) {
+        inStormCell = true;
+        const avoidForce = sc.intensity * (1 - sDist / (sc.radius * 1.2)) * 0.8;
+        const safeDist = Math.max(sDist, 1);
+        scAvoidVx += (sdx / safeDist) * avoidForce;
+        scAvoidVz += (sdz / safeDist) * avoidForce;
+      }
+    }
+  }
+
+  // 강풍 시 자동 속도 제한 (Wind Speed Limit)
+  const windSpeedLimit = rawWindSpd > 10 ? d.maxSpeed * Math.max(0.3, 1 - (rawWindSpd - 10) * 0.05) : d.maxSpeed;
+
+  const windX = effectiveWindX;
+  const windZ = effectiveWindZ;
+  const windY = effectiveWindY;
   if (isFlying && Math.abs(windY) > 0.01) {
     d.wy = Math.max(5, Math.min(180, d.wy + windY));
   }
@@ -1435,9 +1929,10 @@ function updateDrone(d, dt) {
       const climbSpd = accelToward(d.vy, PHYSICS.maxClimbRate, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
       d.vy = climbSpd;
       d.wy = Math.min(d.wy + climbSpd * sDt, d.targetAlt);
-      // 수평 속도도 서서히 증가
+      // 수평 속도도 서서히 증가 + 바람 적용
       d.speed = accelToward(d.speed, d.maxSpeed * 0.3, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
       d.heading = calcHeading(d.goalX - d.wx, d.goalZ - d.wz);
+      d.wx += windX; d.wz += windZ; // 이륙 중 바람 영향
       if (d.wy >= d.targetAlt - 1) {
         d.phase = 'ENROUTE';
         d.vy = 0;
@@ -1484,9 +1979,9 @@ function updateDrone(d, dt) {
         }
       }
 
-      // 정밀 선회: 목표 방향으로 부드럽게 회전
+      // 정밀 선회: 목표 방향으로 부드럽게 회전 (결빙 시 선회율 저하)
       d.targetHeading = calcHeading(dx, dz);
-      d.heading = turnToward(d.heading, d.targetHeading, PHYSICS.maxTurnRate, sDt);
+      d.heading = turnToward(d.heading, d.targetHeading, PHYSICS.maxTurnRate * iceFactor, sDt);
 
       // ─── 항로 고도 분리: 비행 방향별 고도 레이어 동적 할당 ───
       const isUAMd = d.role.id === 'uam_taxi' || d.role.id === 'uam_shuttle';
@@ -1496,13 +1991,15 @@ function updateDrone(d, dt) {
         d.targetAlt += (headingAlt - d.targetAlt) * 0.02;
       }
 
-      // 가속/감속
-      d.speed = accelToward(d.speed, d.maxSpeed, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
+      // 가속/감속 (ATC 속도 제한 + 강풍 속도 제한 + 결빙 성능 저하 통합)
+      const atcLimit = (d._atcSpeedLimit && simTime < d._atcSpeedExpiry) ? d._atcSpeedLimit : d.maxSpeed;
+      const effMaxSpeed = Math.min(atcLimit, windSpeedLimit) * iceFactor;
+      d.speed = accelToward(d.speed, effMaxSpeed, PHYSICS.maxAccel * iceFactor, PHYSICS.maxDecel, sDt);
 
-      // 속도 벡터 기반 이동 (heading 방향) + APF 회피 벡터 통합
+      // 속도 벡터 기반 이동 (heading 방향) + APF + 기상 회피 벡터 통합
       const rad = d.heading * Math.PI / 180;
-      d.vx = Math.sin(rad) * d.speed + d.apfVx;
-      d.vz = Math.cos(rad) * d.speed + d.apfVz;
+      d.vx = Math.sin(rad) * d.speed + d.apfVx + mbEscapeVx + scAvoidVx;
+      d.vz = Math.cos(rad) * d.speed + d.apfVz + mbEscapeVz + scAvoidVz;
       d.wx += d.vx * sDt + windX;
       d.wz += d.vz * sDt + windZ;
       // APF 수직 보정
@@ -1558,6 +2055,8 @@ function updateDrone(d, dt) {
       break;
 
     case 'HOLDING': {
+      // HOLDING 진입 시 타이머 리셋 (재진입 시에도 정상 작동)
+      if (!d._holdActive) { d._holdStart = simTime; d._holdActive = true; }
       // 원형 홀딩 패턴 (반경 200m, 일정 속도 선회)
       d.speed = accelToward(d.speed, d.maxSpeed * 0.3, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
       d.holdingOrbitAngle += (d.speed / 200) * sDt;  // 반경 200m 기준 각속도
@@ -1580,6 +2079,7 @@ function updateDrone(d, dt) {
         if (landingManager.request(d)) {
           d.phase = 'LANDING';
           d._holdForLanding = false;
+          d._holdActive = false;
           logEvent('landing', `${d.id} 착륙 허가 → ${d.goalPad.name}`);
         } else if (simTime - d._holdStart > 30) {
           // 30초 대기 후 다른 패드로 변경
@@ -1588,12 +2088,14 @@ function updateDrone(d, dt) {
           d.goalZ = d.goalPad.z;
           d._holdForLanding = false;
           d._holdStart = null;
+          d._holdActive = false;
           d.phase = 'ENROUTE';
           landingManager.release(d);
           logEvent('info', `${d.id} 착륙 대기 초과 → 대체 패드`);
         }
       } else if (simTime - d._holdStart > 8.0) {
         d._holdStart = null;
+        d._holdActive = false;
         d.phase = 'RTL';
       }
       break;
@@ -1604,14 +2106,15 @@ function updateDrone(d, dt) {
       d.speed = accelToward(d.speed, 0, PHYSICS.maxAccel, PHYSICS.maxDecel * 2, sDt);
       const descentRate = d.wy > 20 ? PHYSICS.maxDescentRate : PHYSICS.maxDescentRate * 0.5;
       d.wy = Math.max(0, d.wy - descentRate * sDt);
-      // 착륙 지점으로 수렴
+      // 착륙 지점으로 수렴 + 바람 적용
       const ldx = d.goalX - d.wx, ldz = d.goalZ - d.wz;
       const ld = Math.sqrt(ldx * ldx + ldz * ldz);
       if (ld > 5) {
         d.wx += (ldx / ld) * Math.min(d.speed, 3) * sDt;
         d.wz += (ldz / ld) * Math.min(d.speed, 3) * sDt;
       }
-      if (d.wy <= 0.5) {
+      d.wx += windX * 0.5; d.wz += windZ * 0.5; // 착륙 중 바람 (50% 감쇄)
+      if (d.wy <= 1.0) { // 고속 simSpeed 스킵 방지 (0.5→1.0)
         d.wy = 0;
         d.speed = 0;
         d.vx = 0; d.vz = 0; d.vy = 0;
@@ -1703,9 +2206,12 @@ function updateDrone(d, dt) {
   // 기수 방향 회전
   if (isFlying) d.group.rotation.y = -d.heading * Math.PI / 180;
 
-  // Update visuals — 직군 색상 기반
-  const phaseC = new THREE.Color(phaseColor(d.phase));
-  const roleC = new THREE.Color(d.role.color);
+  // Update visuals — 직군 색상 기반 (Color 재사용으로 GC 부담 최소화)
+  if (!d._phaseColor) d._phaseColor = new THREE.Color();
+  if (!d._roleColor) d._roleColor = new THREE.Color();
+  d._phaseColor.set(phaseColor(d.phase));
+  d._roleColor.set(d.role.color);
+  const phaseC = d._phaseColor, roleC = d._roleColor;
   // 비행 중: body=직군색, rotor=phase색 / 지상/장애: 전부 phase색
   const bodyC = isFlying ? roleC : phaseC;
   d.body.material.color.copy(bodyC);
@@ -1732,6 +2238,10 @@ function apfCollisionAvoidance() {
 
   let frameConflicts = 0, frameNear = 0, frameCollisions = 0;
   const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+
+  // ── 강풍 모드: 풍속에 따라 APF 반발력 증폭 ──
+  const windSpd = Math.sqrt(weather.baseWind.x ** 2 + weather.baseWind.z ** 2) + weather.gustIntensity;
+  const windyBoost = windSpd > 5 ? 1 + (windSpd - 5) * 0.1 : 1.0; // 5m/s 초과 시 10%/m/s 증폭
 
   // 충돌/근접/충돌 중복 방지: 같은 쌍은 쿨다운
   if (!apfCollisionAvoidance._cooldown) apfCollisionAvoidance._cooldown = new Map();
@@ -1773,17 +2283,18 @@ function apfCollisionAvoidance() {
           const hDist = Math.sqrt(dx * dx + dz * dz);
           const dist3d = Math.sqrt(dx * dx + dz * dz + dy * dy);
 
-          // ─── CPA 예측: 속도 벡터 기반 미래 최근접점 ───
+          // ─── 3D CPA 예측: 수평+수직 속도 벡터 기반 미래 최근접점 ───
           const radA = a.heading * Math.PI / 180, radB = b.heading * Math.PI / 180;
           const avx = Math.sin(radA) * a.speed, avz = Math.cos(radA) * a.speed;
           const bvx = Math.sin(radB) * b.speed, bvz = Math.cos(radB) * b.speed;
-          const dvx = avx - bvx, dvz = avz - bvz;
-          const relV2 = dvx * dvx + dvz * dvz;
+          const avy = a.vy || 0, bvy = b.vy || 0; // 수직 속도 포함
+          const dvx = avx - bvx, dvz = avz - bvz, dvy = avy - bvy;
+          const relV2 = dvx * dvx + dvz * dvz + dvy * dvy; // 3D 상대속도
           let tCPA = 0, cpaDist = dist3d;
           if (relV2 > 0.1) {
-            tCPA = Math.max(0, Math.min(CPA_LOOKAHEAD, -(dx * dvx + dz * dvz) / relV2));
-            const fpx = dx + dvx * tCPA, fpz = dz + dvz * tCPA;
-            cpaDist = Math.sqrt(fpx * fpx + fpz * fpz + dy * dy);
+            tCPA = Math.max(0, Math.min(CPA_LOOKAHEAD, -(dx * dvx + dz * dvz + dy * dvy) / relV2));
+            const fpx = dx + dvx * tCPA, fpz = dz + dvz * tCPA, fpy = dy + dvy * tCPA;
+            cpaDist = Math.sqrt(fpx * fpx + fpz * fpz + fpy * fpy);
           }
 
           // 유효 거리: 현재 거리와 CPA 중 더 위험한 쪽 사용
@@ -1814,8 +2325,8 @@ function apfCollisionAvoidance() {
               logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist3d)}m)`);
             }
 
-            // 긴급 회피: 강한 반발 + 수직 분리
-            const push = 40 * (1 + closingSpeed * 0.5); // 강한 비례 반발
+            // 긴급 회피: 강한 반발 + 수직 분리 (강풍 증폭)
+            const push = 40 * windyBoost * (1 + closingSpeed * 0.5);
             fa.fx += (dx / safeDist) * push * aYield;
             fa.fz += (dz / safeDist) * push * aYield;
             fb.fx -= (dx / safeDist) * push * bYield;
@@ -1833,9 +2344,9 @@ function apfCollisionAvoidance() {
               if (eventLog.length < 80) logEvent('near', `${a.id} ↔ ${b.id} 근접경고 (${Math.round(effectiveDist)}m)`);
             }
 
-            // 지수 반발력 (가까울수록 급격히 증가)
+            // 지수 반발력 (가까울수록 급격히 증가, 강풍 증폭)
             const ratio = 1 - effectiveDist / NEAR_MISS_DIST;
-            const strength = 25 * ratio * ratio * (1 + closingSpeed * 0.3);
+            const strength = 25 * windyBoost * ratio * ratio * (1 + closingSpeed * 0.3);
             fa.fx += (dx / safeDist) * strength * aYield;
             fa.fz += (dz / safeDist) * strength * aYield;
             fb.fx -= (dx / safeDist) * strength * bYield;
@@ -1854,9 +2365,9 @@ function apfCollisionAvoidance() {
             }
             if (lineCount < maxLines) { addProximityLine(a, b, 0xffaa00, 0.15); lineCount++; }
 
-            // 부드러운 APF 반발력 (CPA 기반)
+            // 부드러운 APF 반발력 (CPA 기반, 강풍 증폭)
             const ratio = 1 - effectiveDist / EVADE_DIST;
-            const strength = 12 * ratio * (1 + closingSpeed * 0.15);
+            const strength = 12 * windyBoost * ratio * (1 + closingSpeed * 0.15);
             fa.fx += (dx / safeDist) * strength * aYield;
             fa.fz += (dz / safeDist) * strength * aYield;
             fb.fx -= (dx / safeDist) * strength * bYield;
@@ -1929,12 +2440,17 @@ function updateStatsUI() {
   document.getElementById('stat-advisories').textContent = stats.advisories;
   const avgBat = drones.length ? (drones.reduce((s, d) => s + d.battery, 0) / drones.length) : 0;
   document.getElementById('stat-battery').textContent = Math.round(avgBat) + '%';
-  // 풍속 표시
+  // 풍속 표시 (마이크로버스트·결빙 상태 포함)
   const windSpd = Math.sqrt(weather.baseWind.x**2 + weather.baseWind.z**2) + weather.gustIntensity;
   const windEl = document.getElementById('stat-wind');
   if (windEl) {
-    windEl.textContent = windEnabled ? windSpd.toFixed(1) : '—';
-    windEl.style.color = windSpd > 4 ? '#ef4444' : windSpd > 2 ? '#fbbf24' : '#60a5fa';
+    let windText = windEnabled ? windSpd.toFixed(1) : '—';
+    if (weather.microbursts.length > 0) windText += ' MB' + weather.microbursts.length;
+    if (weather.icing > 0) windText += ' ICE';
+    if (weather.stormCells.length > 0) windText += ' SC' + weather.stormCells.length;
+    windEl.textContent = windText;
+    windEl.style.color = windSpd > 8 ? '#dc2626' : windSpd > 4 ? '#ef4444' : windSpd > 2 ? '#fbbf24' : '#60a5fa';
+    windEl.style.fontSize = windSpd > 8 ? '13px' : '15px'; // 데이터 많으면 축소
   }
   const m = Math.floor(simTime / 60), s = Math.floor(simTime % 60);
   document.getElementById('sim-time').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
@@ -2139,11 +2655,12 @@ function updateATCLinks() {
                 b.wy = Math.max(10, Math.min(MAX_ALT, b.wy));
               }
 
-              // 속도 감속 명령 (긴급성에 비례)
+              // 속도 감속 명령 → maxSpeed 일시 제한 (updateDrone이 재가속 방지)
               const urgency = 1 - cpaDist / SEPARATION.horizontal;
               if (urgency > 0.5 && tCPA < 6) {
                 const slower = a.priority > b.priority ? a : b;
-                slower.speed = Math.max(slower.speed * (1 - urgency * 0.3), slower.maxSpeed * 0.2);
+                slower._atcSpeedLimit = Math.max(slower.maxSpeed * (1 - urgency * 0.4), slower.maxSpeed * 0.2);
+                slower._atcSpeedExpiry = simTime + 3; // 3초간 유효
               }
             }
           }
@@ -2164,13 +2681,13 @@ function animate() {
   const dt = Math.min(clock.getDelta(), 0.1);
   const t = clock.elapsedTime;  // getDelta 후 읽어야 올바른 값
 
-  // FPS
-  frameCount++;
+  // FPS (리셋 후 0 방지: 증분 전에 표시)
   if (t - lastFpsTime >= 1) {
     document.getElementById('fps-counter').textContent = frameCount;
     frameCount = 0;
     lastFpsTime = t;
   }
+  frameCount++;
 
   // Update weather & drones
   if (simRunning) {
@@ -2267,6 +2784,21 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });
+
+// ── 자동 테스트 API (외부 접근용) ──
+window._sdacs = {
+  get stats() { return { ...stats }; },
+  get simTime() { return simTime; },
+  get simRunning() { return simRunning; },
+  get droneCount() { return drones.length; },
+  get weather() { return { icing: weather.icing, microbursts: weather.microbursts.length, stormCells: weather.stormCells.length, typhoonWind: weather.typhoonWind, turbulence: weather.turbulence, windSpd: Math.sqrt(weather.baseWind.x**2 + weather.baseWind.z**2) + weather.gustIntensity }; },
+  get airborne() { return drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED').length; },
+  get failed() { return drones.filter(d => d.phase === 'FAILED').length; },
+  get landed() { return drones.filter(d => d.phase === 'GROUNDED').length; },
+  startSim() { simRunning = true; },
+  stopSim() { simRunning = false; },
+  selectScenario(name) { document.getElementById('scenario-select').value = name; document.getElementById('scenario-select').dispatchEvent(new Event('change')); },
+};
 </script>
 </body>
 </html>

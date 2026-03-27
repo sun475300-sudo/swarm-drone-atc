@@ -716,11 +716,13 @@ function getWindAt(wx, wy, wz) {
 // ===== Event Log =====
 const eventLog = [];
 const MAX_LOG = 200;
+let _eventLogDirty = false;
 function logEvent(type, msg) {
   const m = Math.floor(simTime / 60), s = Math.floor(simTime % 60);
   const ts = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   eventLog.unshift({ ts, type, msg });
   if (eventLog.length > MAX_LOG) eventLog.length = MAX_LOG;
+  _eventLogDirty = true;
 }
 
 // ===== Three.js Setup =====
@@ -813,11 +815,20 @@ function updateTrails() {
     d._trail.push(d.group.position.clone());
     if (d._trail.length > TRAIL_MAX) d._trail.shift();
     if (d._trail.length < 2) return;
-    const geo = new THREE.BufferGeometry().setFromPoints(d._trail);
+
     if (trailGroup.children[idx]) {
-      trailGroup.children[idx].geometry.dispose();
-      trailGroup.children[idx].geometry = geo;
+      // 기존 라인 재사용: BufferAttribute 직접 갱신 (dispose 없이)
+      const line = trailGroup.children[idx];
+      const posArr = new Float32Array(d._trail.length * 3);
+      d._trail.forEach((p, i) => { posArr[i*3]=p.x; posArr[i*3+1]=p.y; posArr[i*3+2]=p.z; });
+      line.geometry.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+      line.geometry.setDrawRange(0, d._trail.length);
     } else {
+      const posArr = new Float32Array(TRAIL_MAX * 3);
+      d._trail.forEach((p, i) => { posArr[i*3]=p.x; posArr[i*3+1]=p.y; posArr[i*3+2]=p.z; });
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+      geo.setDrawRange(0, d._trail.length);
       trailGroup.add(new THREE.Line(geo, new THREE.LineBasicMaterial({
         color: 0xff2200, transparent: true, opacity: 0.35
       })));
@@ -2569,6 +2580,8 @@ function updateStatsUI() {
 }
 
 function updateEventLog() {
+  if (!_eventLogDirty) return; // 변경 없으면 DOM 재생성 스킵
+  _eventLogDirty = false;
   const el = document.getElementById('event-log');
   const typeClass = { collision: 'ev-collision', near: 'ev-near', evade: 'ev-evade',
     advisory: 'ev-advisory', comms: 'ev-comms', fail: 'ev-fail', rogue: 'ev-rogue',

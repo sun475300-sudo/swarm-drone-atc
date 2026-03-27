@@ -353,7 +353,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const SCALE = 1 / 100; // 5000m -> 50 units
 const WORLD = 5000;    // +-5000m
 const W = WORLD * SCALE; // 50 units
-const MAX_ALT = 120;
+const MAX_ALT = 180;
 const ALT_SCALE = MAX_ALT * SCALE * 3; // exaggerate altitude for visibility
 
 const PHASES = {
@@ -445,10 +445,12 @@ const LANDING_PADS = [
   { name: 'PAD_CENTER', x: 0, z: 0 },
 ];
 
-const EVADE_DIST = 400;  // meters - APF trigger distance (확대)
-const COLLISION_DIST = 50; // meters - collision
-const NEAR_MISS_DIST = 150; // meters - near miss
+const EVADE_DIST = 500;  // meters - APF trigger distance (확대)
+const COLLISION_DIST = 30; // meters - collision (현실적 기체 크기)
+const NEAR_MISS_DIST = 100; // meters - near miss (UTM 수평 분리 기준)
 const SEPARATION_ALT = 20; // meters - 수직 분리 최소 고도차
+const CPA_LOOKAHEAD = 12;  // seconds - 최근접점 예측 시간
+const ALTITUDE_LAYERS = [40, 55, 70, 85, 100, 115, 130, 145, 160]; // 고도 레이어 (9개)
 
 // ===== 정밀 비행 역학 상수 =====
 const PHYSICS = {
@@ -1030,6 +1032,8 @@ function createDrone(id, startPad) {
     landingQueued: false,         // 착륙 대기열 등록 여부
     landingSlot: -1,              // 착륙 슬롯 번호
     holdingOrbitAngle: 0,         // 홀딩 패턴 각도
+    // APF 회피 벡터 (속도 보정)
+    apfVx: 0, apfVz: 0, apfVy: 0,
   };
 
   group.userData = drone;
@@ -1458,12 +1462,16 @@ function updateDrone(d, dt) {
       // 가속/감속
       d.speed = accelToward(d.speed, d.maxSpeed, PHYSICS.maxAccel, PHYSICS.maxDecel, sDt);
 
-      // 속도 벡터 기반 이동 (heading 방향)
+      // 속도 벡터 기반 이동 (heading 방향) + APF 회피 벡터 통합
       const rad = d.heading * Math.PI / 180;
-      d.vx = Math.sin(rad) * d.speed;
-      d.vz = Math.cos(rad) * d.speed;
+      d.vx = Math.sin(rad) * d.speed + d.apfVx;
+      d.vz = Math.cos(rad) * d.speed + d.apfVz;
       d.wx += d.vx * sDt + windX;
       d.wz += d.vz * sDt + windZ;
+      // APF 수직 보정
+      if (Math.abs(d.apfVy) > 0.1) {
+        d.wy = Math.max(10, Math.min(MAX_ALT, d.wy + d.apfVy * sDt));
+      }
 
       // 고도 유지 (목표 고도와 차이가 있으면 보정)
       if (Math.abs(d.wy - d.targetAlt) > 2) {
@@ -1487,9 +1495,18 @@ function updateDrone(d, dt) {
         d.wx += repX * d.speed * sDt * 1.5;
         d.wz += repZ * d.speed * sDt * 1.5;
       } else {
-        // 회피 중에도 목표 방향으로 30% 속도로 복귀
+        // APF 회피 벡터 우선 적용 + 목표 방향 복귀 혼합
         const gx = d.goalX - d.wx, gz = d.goalZ - d.wz;
         const gd = Math.sqrt(gx * gx + gz * gz);
+        // APF 회피 (70%) + 목표 복귀 (30%) 혼합
+        const apfMag = Math.sqrt(d.apfVx * d.apfVx + d.apfVz * d.apfVz);
+        if (apfMag > 0.5) {
+          d.wx += d.apfVx * 0.7 * sDt;
+          d.wz += d.apfVz * 0.7 * sDt;
+          if (Math.abs(d.apfVy) > 0.1) {
+            d.wy = Math.max(10, Math.min(MAX_ALT, d.wy + d.apfVy * sDt));
+          }
+        }
         if (gd > 50) {
           d.targetHeading = calcHeading(gx, gz);
           d.heading = turnToward(d.heading, d.targetHeading, PHYSICS.maxTurnRate * 1.5, sDt);
@@ -1673,93 +1690,140 @@ function apfCollisionAvoidance() {
   let frameConflicts = 0, frameNear = 0, frameCollisions = 0;
   const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
 
-  // 각 드론에 누적 회피 벡터 초기화
+  // ─── Spatial Hash: O(N·k) 이웃 탐색 ───
+  const cellSize = EVADE_DIST;
+  const grid = new Map();
+  airborne.forEach(d => {
+    const cx = Math.floor(d.wx / cellSize), cz = Math.floor(d.wz / cellSize);
+    const key = `${cx},${cz}`;
+    if (!grid.has(key)) grid.set(key, []);
+    grid.get(key).push(d);
+  });
+
+  // 각 드론에 누적 회피 벡터 초기화 (속도 보정용)
   const repForce = new Map();
   airborne.forEach(d => repForce.set(d, { fx: 0, fz: 0, fy: 0 }));
+  const processed = new Set(); // 중복 쌍 방지
 
-  for (let i = 0; i < airborne.length; i++) {
-    for (let j = i + 1; j < airborne.length; j++) {
-      const a = airborne[i], b = airborne[j];
-      const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
-      const dist = Math.sqrt(dx * dx + dz * dz + dy * dy);
+  airborne.forEach(a => {
+    const cx = Math.floor(a.wx / cellSize), cz = Math.floor(a.wz / cellSize);
+    // 3x3 인접 셀 탐색
+    for (let di = -1; di <= 1; di++) {
+      for (let dj = -1; dj <= 1; dj++) {
+        const neighbors = grid.get(`${cx+di},${cz+dj}`);
+        if (!neighbors) continue;
+        for (const b of neighbors) {
+          if (a === b) continue;
+          const pairKey = a.id < b.id ? `${a.id}-${b.id}` : `${b.id}-${a.id}`;
+          if (processed.has(pairKey)) continue;
+          processed.add(pairKey);
 
-      if (dist < COLLISION_DIST) {
-        frameCollisions++;
-        if (lineCount < maxLines) { addProximityLine(a, b, 0xff0000, 0.6); lineCount++; }
-        const midX = (a.group.position.x + b.group.position.x) / 2;
-        const midY = (a.group.position.y + b.group.position.y) / 2;
-        const midZ = (a.group.position.z + b.group.position.z) / 2;
-        spawnCollisionParticles(midX, midY, midZ);
-        triggerCameraShake(0.3);
-        logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist)}m)`);
+          const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
+          const hDist = Math.sqrt(dx * dx + dz * dz);
+          const dist3d = Math.sqrt(dx * dx + dz * dz + dy * dy);
 
-        // 긴급 회피: 강한 반발력 + 수직 분리
-        const emergencyPush = 80;
-        const safeDist = Math.max(dist, 1);
-        const fa = repForce.get(a), fb = repForce.get(b);
-        fa.fx += (dx / safeDist) * emergencyPush;
-        fa.fz += (dz / safeDist) * emergencyPush;
-        fb.fx -= (dx / safeDist) * emergencyPush;
-        fb.fz -= (dz / safeDist) * emergencyPush;
-        // 수직 분리: 위아래로 밀어냄
-        fa.fy += (dy >= 0 ? 1 : -1) * 25;
-        fb.fy -= (dy >= 0 ? 1 : -1) * 25;
-      } else if (dist < NEAR_MISS_DIST) {
-        frameNear++;
-        if (lineCount < maxLines) { addProximityLine(a, b, 0xff6600, 0.3); lineCount++; }
-        if (eventLog.length < 80) logEvent('near', `${a.id} ↔ ${b.id} 근접경고 (${Math.round(dist)}m)`);
+          // ─── CPA 예측: 속도 벡터 기반 미래 최근접점 ───
+          const radA = a.heading * Math.PI / 180, radB = b.heading * Math.PI / 180;
+          const avx = Math.sin(radA) * a.speed, avz = Math.cos(radA) * a.speed;
+          const bvx = Math.sin(radB) * b.speed, bvz = Math.cos(radB) * b.speed;
+          const dvx = avx - bvx, dvz = avz - bvz;
+          const relV2 = dvx * dvx + dvz * dvz;
+          let tCPA = 0, cpaDist = dist3d;
+          if (relV2 > 0.1) {
+            tCPA = Math.max(0, Math.min(CPA_LOOKAHEAD, -(dx * dvx + dz * dvz) / relV2));
+            const fpx = dx + dvx * tCPA, fpz = dz + dvz * tCPA;
+            cpaDist = Math.sqrt(fpx * fpx + fpz * fpz + dy * dy);
+          }
 
-        // 강한 APF 반발력 (거리 반비례)
-        const strength = 60 * (1 - dist / NEAR_MISS_DIST);
-        const fa = repForce.get(a), fb = repForce.get(b);
-        fa.fx += (dx / dist) * strength;
-        fa.fz += (dz / dist) * strength;
-        fb.fx -= (dx / dist) * strength;
-        fb.fz -= (dz / dist) * strength;
-        // 수직 분리
-        if (Math.abs(dy) < SEPARATION_ALT) {
-          fa.fy += (dy >= 0 ? 1 : -1) * strength * 0.3;
-          fb.fy -= (dy >= 0 ? 1 : -1) * strength * 0.3;
+          // 유효 거리: 현재 거리와 CPA 중 더 위험한 쪽 사용
+          const effectiveDist = Math.min(dist3d, cpaDist);
+          const isConverging = cpaDist < dist3d;
+          const closingSpeed = Math.sqrt(relV2);
+
+          // ─── 우선순위 기반 양보 계수 ───
+          const aYield = a.priority >= b.priority ? 0.7 : 0.3;
+          const bYield = 1.0 - aYield;
+
+          const fa = repForce.get(a), fb = repForce.get(b);
+          const safeDist = Math.max(hDist, 1);
+
+          if (dist3d < COLLISION_DIST) {
+            frameCollisions++;
+            if (lineCount < maxLines) { addProximityLine(a, b, 0xff0000, 0.6); lineCount++; }
+            const midX = (a.group.position.x + b.group.position.x) / 2;
+            const midY = (a.group.position.y + b.group.position.y) / 2;
+            const midZ = (a.group.position.z + b.group.position.z) / 2;
+            spawnCollisionParticles(midX, midY, midZ);
+            triggerCameraShake(0.3);
+            logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist3d)}m)`);
+
+            // 긴급 회피: 강한 반발 + 수직 분리
+            const push = 12 * (1 + closingSpeed * 0.3); // 속도 비례
+            fa.fx += (dx / safeDist) * push * aYield;
+            fa.fz += (dz / safeDist) * push * aYield;
+            fb.fx -= (dx / safeDist) * push * bYield;
+            fb.fz -= (dz / safeDist) * push * bYield;
+            // 수직 강제 분리 (ID 기반 결정론적)
+            const aUp = (parseInt(a.id.replace('DR-','')) % 2 === 0) ? 1 : -1;
+            fa.fy += aUp * 8; fb.fy -= aUp * 8;
+          } else if (dist3d < NEAR_MISS_DIST || (isConverging && cpaDist < NEAR_MISS_DIST)) {
+            frameNear++;
+            if (lineCount < maxLines) { addProximityLine(a, b, 0xff6600, 0.3); lineCount++; }
+            if (eventLog.length < 80) logEvent('near', `${a.id} ↔ ${b.id} 근접경고 (${Math.round(effectiveDist)}m)`);
+
+            // 지수 반발력 (가까울수록 급격히 증가)
+            const ratio = 1 - effectiveDist / NEAR_MISS_DIST;
+            const strength = 8 * ratio * ratio * (1 + closingSpeed * 0.2);
+            fa.fx += (dx / safeDist) * strength * aYield;
+            fa.fz += (dz / safeDist) * strength * aYield;
+            fb.fx -= (dx / safeDist) * strength * bYield;
+            fb.fz -= (dz / safeDist) * strength * bYield;
+            // 수직 분리
+            if (Math.abs(dy) < SEPARATION_ALT * 2) {
+              const aUp = (parseInt(a.id.replace('DR-','')) % 2 === 0) ? 1 : -1;
+              fa.fy += aUp * strength * 0.4; fb.fy -= aUp * strength * 0.4;
+            }
+          } else if (dist3d < EVADE_DIST || (isConverging && cpaDist < EVADE_DIST * 0.7)) {
+            frameConflicts++;
+            if (lineCount < maxLines) { addProximityLine(a, b, 0xffaa00, 0.15); lineCount++; }
+
+            // 부드러운 APF 반발력 (CPA 기반)
+            const ratio = 1 - effectiveDist / EVADE_DIST;
+            const strength = 4 * ratio * (1 + closingSpeed * 0.1);
+            fa.fx += (dx / safeDist) * strength * aYield;
+            fa.fz += (dz / safeDist) * strength * aYield;
+            fb.fx -= (dx / safeDist) * strength * bYield;
+            fb.fz -= (dz / safeDist) * strength * bYield;
+          }
         }
-      } else if (dist < EVADE_DIST) {
-        frameConflicts++;
-        if (lineCount < maxLines) { addProximityLine(a, b, 0xffaa00, 0.15); lineCount++; }
-
-        // 부드러운 APF 반발력 (거리 반비례)
-        const strength = 35 * (1 - dist / EVADE_DIST);
-        const fa = repForce.get(a), fb = repForce.get(b);
-        fa.fx += (dx / dist) * strength;
-        fa.fz += (dz / dist) * strength;
-        fb.fx -= (dx / dist) * strength;
-        fb.fz -= (dz / dist) * strength;
       }
     }
-  }
+  });
 
-  // 누적 회피 벡터 적용 — 모든 비행 상태에 적용 (GROUNDED/FAILED 제외)
+  // ─── 누적 회피 벡터 → 속도 보정 (위치 텔레포트 대신) ───
   airborne.forEach(d => {
     const f = repForce.get(d);
     const mag = Math.sqrt(f.fx * f.fx + f.fz * f.fz);
-    if (mag > 1) {
-      // 최대 이동량 제한 (프레임당 100m)
-      const clamp = Math.min(mag, 100);
-      d.wx += (f.fx / mag) * clamp;
-      d.wz += (f.fz / mag) * clamp;
-      d.wx = Math.max(-WORLD, Math.min(WORLD, d.wx));
-      d.wz = Math.max(-WORLD, Math.min(WORLD, d.wz));
+    if (mag > 0.5) {
+      // 속도 보정값으로 저장 (updateDrone에서 적용)
+      const clampedMag = Math.min(mag, d.maxSpeed * 1.5);
+      d.apfVx = (f.fx / mag) * clampedMag;
+      d.apfVz = (f.fz / mag) * clampedMag;
+      d.apfVy = Math.sign(f.fy) * Math.min(Math.abs(f.fy), PHYSICS.maxClimbRate);
 
-      // 수직 분리 적용 (고도 범위 제한)
-      if (Math.abs(f.fy) > 1) {
-        d.wy = Math.max(10, Math.min(180, d.wy + Math.sign(f.fy) * Math.min(Math.abs(f.fy), 15)));
-      }
-
-      // ENROUTE → EVADING 전환 (가까운 드론이 있을 때)
-      if (d.phase === 'ENROUTE' && mag > 30) {
+      // ENROUTE → EVADING 전환 (강한 회피력)
+      if (d.phase === 'ENROUTE' && mag > 6) {
         d.phase = 'EVADING';
-        d.evadeTimer = 2.0;
+        d.evadeTimer = 1.5;
+        d.evasionCount++;
         stats.advisories++;
         logEvent('evade', `${d.id} → APF 회피 기동`);
       }
+    } else {
+      // 회피력 감쇠 (부드러운 복귀)
+      d.apfVx *= 0.8;
+      d.apfVz *= 0.8;
+      d.apfVy *= 0.8;
     }
   });
 
@@ -1952,7 +2016,7 @@ function updateATCLinks() {
       linkCount++;
     });
 
-    // 능동 관제: CPA(최근접점) 예측 기반 선제 회피 명령
+    // ─── 능동 관제: CPA + 속도 벡터 기반 선제 분리 ───
     for (let i = 0; i < monitored.length; i++) {
       for (let j = i + 1; j < monitored.length; j++) {
         const a = monitored[i].drone, b = monitored[j].drone;
@@ -1960,34 +2024,44 @@ function updateATCLinks() {
         const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
         const dist3d = Math.sqrt(dx*dx + dz*dz + dy*dy);
 
-        // CPA 예측: 현재 속도 벡터 기반 10초 후 위치 추정
-        if (dist3d < 600 && dist3d > COLLISION_DIST) {
-          const aVx = a.phase === 'ENROUTE' ? (a.goalX - a.wx) : 0;
-          const aVz = a.phase === 'ENROUTE' ? (a.goalZ - a.wz) : 0;
-          const bVx = b.phase === 'ENROUTE' ? (b.goalX - b.wx) : 0;
-          const bVz = b.phase === 'ENROUTE' ? (b.goalZ - b.wz) : 0;
-          const aMag = Math.sqrt(aVx*aVx + aVz*aVz) || 1;
-          const bMag = Math.sqrt(bVx*bVx + bVz*bVz) || 1;
+        if (dist3d < 800 && dist3d > COLLISION_DIST) {
+          // 실제 속도 벡터 기반 CPA 계산
+          const radA = a.heading * Math.PI / 180, radB = b.heading * Math.PI / 180;
+          const avx = Math.sin(radA) * a.speed, avz = Math.cos(radA) * a.speed;
+          const bvx = Math.sin(radB) * b.speed, bvz = Math.cos(radB) * b.speed;
+          const dvx = avx - bvx, dvz = avz - bvz;
+          const relV2 = dvx * dvx + dvz * dvz;
 
-          // 10초 후 예측 위치
-          const futureAx = a.wx + (aVx/aMag) * a.speed * 10;
-          const futureAz = a.wz + (aVz/aMag) * a.speed * 10;
-          const futureBx = b.wx + (bVx/bMag) * b.speed * 10;
-          const futureBz = b.wz + (bVz/bMag) * b.speed * 10;
-          const futureDist = Math.sqrt((futureAx-futureBx)**2 + (futureAz-futureBz)**2);
+          if (relV2 > 0.5) {
+            const tCPA = Math.max(0, Math.min(CPA_LOOKAHEAD, -(dx * dvx + dz * dvz) / relV2));
+            const fpx = dx + dvx * tCPA, fpz = dz + dvz * tCPA;
+            const cpaDist = Math.sqrt(fpx * fpx + fpz * fpz);
 
-          // 수렴 중이고 미래 거리가 위험하면 선제 고도 분리 명령
-          if (futureDist < NEAR_MISS_DIST && futureDist < dist3d) {
-            // 고도 분리: 홀수 ID는 올리고 짝수 ID는 내림
-            const aIdx = parseInt(a.id.replace('DR-', ''));
-            const bIdx = parseInt(b.id.replace('DR-', ''));
-            if (Math.abs(a.wy - b.wy) < SEPARATION_ALT * 2) {
-              a.targetAlt = Math.min(170, a.wy + (aIdx % 2 === 0 ? 15 : -15));
-              b.targetAlt = Math.min(170, b.wy + (bIdx % 2 === 0 ? 15 : -15));
-              a.wy += (a.targetAlt > a.wy ? 1 : -1) * 2;
-              b.wy += (b.targetAlt > b.wy ? 1 : -1) * 2;
-              a.wy = Math.max(10, a.wy);
-              b.wy = Math.max(10, b.wy);
+            // 수렴 + CPA 위험 → 선제 분리 명령
+            if (cpaDist < SEPARATION.horizontal && cpaDist < dist3d * 0.8) {
+              const aIdx = parseInt(a.id.replace('DR-', ''));
+              const bIdx = parseInt(b.id.replace('DR-', ''));
+              // 우선순위 기반: 높은 우선순위 드론은 고도 유지, 낮은 쪽이 양보
+              if (Math.abs(dy) < SEPARATION_ALT * 2) {
+                const altShift = SEPARATION_ALT + 5;
+                if (a.priority <= b.priority) {
+                  // a 우선 → b가 양보
+                  b.targetAlt = Math.max(20, Math.min(MAX_ALT, b.wy + (bIdx % 2 === 0 ? altShift : -altShift)));
+                  b.wy += (b.targetAlt > b.wy ? 1 : -1) * PHYSICS.maxClimbRate * 0.3;
+                } else {
+                  a.targetAlt = Math.max(20, Math.min(MAX_ALT, a.wy + (aIdx % 2 === 0 ? altShift : -altShift)));
+                  a.wy += (a.targetAlt > a.wy ? 1 : -1) * PHYSICS.maxClimbRate * 0.3;
+                }
+                a.wy = Math.max(10, Math.min(MAX_ALT, a.wy));
+                b.wy = Math.max(10, Math.min(MAX_ALT, b.wy));
+              }
+
+              // 속도 감속 명령 (긴급성에 비례)
+              const urgency = 1 - cpaDist / SEPARATION.horizontal;
+              if (urgency > 0.5 && tCPA < 6) {
+                const slower = a.priority > b.priority ? a : b;
+                slower.speed = Math.max(slower.speed * (1 - urgency * 0.3), slower.maxSpeed * 0.2);
+              }
             }
           }
         }
@@ -2022,12 +2096,8 @@ function animate() {
   }
   drones.forEach(d => updateDrone(d, dt));
 
-  // APF check — 충돌 회피 빈도 향상
-  const apfRate = drones.length > 150 ? 5 : 10;  // 150대 초과 시 5Hz, 이하 10Hz
-  if (simRunning && Math.floor(t * apfRate) > uiTick) {
-    uiTick = Math.floor(t * apfRate);
-    apfCollisionAvoidance();
-  }
+  // APF check — 매 프레임 실행 (Spatial Hash로 O(N·k) 성능 보장)
+  if (simRunning) apfCollisionAvoidance();
 
   // Rotor spin
   drones.forEach(d => {

@@ -154,12 +154,16 @@ class _DroneAgent:
             # 3. 고장 처리
             self._handle_failure(drone, t)
 
-            # 4. 바람
-            wind = sum(
-                (m.get_wind_vector(drone.position, t) for m in sim.wind_models),
-                np.zeros(3),
-            )
-            wind_speed = float(np.linalg.norm(wind))  # 바람 속도 계산
+            # 4. 바람 (tick 캐시: 동일 tick에서 재계산 방지)
+            cache_key = round(t, 1)
+            if not hasattr(sim, '_wind_cache') or sim._wind_cache_tick != cache_key:
+                sim._wind_cache = sum(
+                    (m.get_wind_vector(np.zeros(3), t) for m in sim.wind_models),
+                    np.zeros(3),
+                )
+                sim._wind_cache_tick = cache_key
+            wind = sim._wind_cache.copy()
+            wind_speed = float(np.linalg.norm(wind))
 
             # 5. APF (EVADING/RTL 모드)
             if drone.flight_phase in (FlightPhase.EVADING, FlightPhase.RTL):

@@ -86,6 +86,11 @@ class AirspaceController:
         self._voronoi_cells: dict                   = {}
         self._spatial_hash = SpatialHash(cell_size=50.0)
 
+        # CBS vs A* 메트릭 추적
+        self._cbs_attempts  = 0
+        self._cbs_successes = 0
+        self._astar_count   = 0
+
         self._lat_min   = float(config.get("separation_standards", {})
                                 .get("lateral_min_m", 50.0))
         self._vert_min  = float(config.get("separation_standards", {})
@@ -111,6 +116,7 @@ class AirspaceController:
             self._process_clearances(t)
             self._scan_conflicts(t)
             self._detect_intruders(t)
+            self._detect_lost_link(t)
             self._expire_advisories(t)
             if int(round(t)) % int(self.VORONOI_INTERVAL_S) == 0:
                 self._refresh_voronoi()
@@ -168,7 +174,10 @@ class AirspaceController:
         # CBS 멀티에이전트 경로 계획 (3건 이상 동시 요청 시)
         cbs_waypoints: dict[str, list] = {}
         if len(batch) >= 3:
+            self._cbs_attempts += 1
             cbs_waypoints = self._cbs_plan_batch(batch)
+            if cbs_waypoints:
+                self._cbs_successes += 1
 
         for req in batch:
             route = self.planner.plan_route(
@@ -195,10 +204,11 @@ class AirspaceController:
                 approved = False
                 reason = f"voronoi_conflict:{voronoi_conflict}"
 
-            # CBS 경로가 있으면 우선 사용
+            # CBS 경로가 있으면 우선 사용, 아니면 A*
             if req.drone_id in cbs_waypoints:
                 waypoints = cbs_waypoints[req.drone_id]
             else:
+                self._astar_count += 1
                 waypoints = [wp.position for wp in route.waypoints]
 
             resp = ClearanceResponse(
@@ -414,6 +424,40 @@ class AirspaceController:
             return da if pri_a > pri_b else db
         # 동일 우선순위: ID가 큰 드론이 회피 (공정한 결정론적 타이브레이크)
         return da if da.drone_id > db.drone_id else db
+
+    # ── Lost-Link 탐지 ───────────────────────────────────────
+
+    def _detect_lost_link(self, t: float) -> None:
+        """텔레메트리 타임아웃으로 Lost-Link 감지 → 3-phase RA 시퀀스 발령"""
+        TIMEOUT_S = 10.0  # 텔레메트리 타임아웃 (초)
+        for did, drone in self._active_drones.items():
+            if not drone.is_active:
+                continue
+            if drone.flight_phase in (FlightPhase.GROUNDED, FlightPhase.FAILED):
+                continue
+            stale = t - drone.last_update_s
+            if stale > TIMEOUT_S:
+                # 이미 Lost-Link 어드바이저리 발령 중이면 스킵
+                existing = any(
+                    adv.target_drone_id == did and adv.advisory_type == "HOLD"
+                    for adv in self._advisories.values()
+                )
+                if existing:
+                    continue
+                # Lost-Link 3-phase 시퀀스 발령
+                seq = self.advisory_gen.generate_lost_link_sequence(drone, t)
+                for adv in seq:
+                    self._advisories[adv.advisory_id] = adv
+                    self.comm_bus.send(CommMessage(
+                        sender_id="CONTROLLER",
+                        receiver_id=did,
+                        payload=adv,
+                        sent_time=t,
+                        channel="advisory",
+                    ))
+                if self.analytics:
+                    self.analytics.record_event("LOST_LINK_DETECTED", t,
+                                                drone_id=did, stale_s=stale)
 
     # ── 침입 탐지 ────────────────────────────────────────────
 

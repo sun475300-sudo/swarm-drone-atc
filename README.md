@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
 [![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
-[![Tests](https://img.shields.io/badge/Tests-205%20passed-brightgreen?style=for-the-badge)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-239%20passed-brightgreen?style=for-the-badge)](tests/)
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
@@ -116,7 +116,7 @@
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Layer 4 — 사용자 인터페이스                                   │
-│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 205개          │
+│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 239개          │
 └───────────────────────────┬──────────────────────────────────┘
                             │ 명령 / 결과
 ┌───────────────────────────▼──────────────────────────────────┐
@@ -714,7 +714,7 @@ swarm-drone-atc/
 │   ├── report/SDACS_Technical_Report.docx  # A4 한국어 기술 보고서
 │   └── images/                             # 성능 차트 + SVG 다이어그램
 │
-└── tests/                              # pytest 235개 (21 모듈)
+└── tests/                              # pytest 239개 (22 모듈)
     ├── test_apf.py                     # APF 포텐셜 장 (10)
     ├── test_cbs.py                     # CBS 격자 노드 (8)
     ├── test_resolution_advisory.py     # 어드바이저리 분류 (6)
@@ -745,11 +745,12 @@ pytest tests/ -v              # 전체 실행
 pytest tests/test_apf.py -v   # 특정 파일
 ```
 
-### 테스트 커버리지 (205개 / 19모듈)
+### 테스트 커버리지 (239개 / 22모듈)
 
 | 파일 | 수 | 대상 |
 |------|---|------|
 | `test_safety_fixes.py` | 32 | A1~A3 안전 수정·ROGUE 가드·NFZ·상태 전이 |
+| `test_chatbot_engine.py` | 21 | 챗봇 엔진·질의응답·키워드 매칭 |
 | `test_scenario_runner.py` | 16 | 시나리오 변환·실행·목록 |
 | `test_analytics.py` | 14 | 이벤트 수집·KPI·합격 판정 |
 | `test_geo_math.py` | 13 | CPA·거리·방위각·해발고도 |
@@ -761,6 +762,7 @@ pytest tests/test_apf.py -v   # 특정 파일
 | `test_monte_carlo.py` | 10 | MC 스윕·_run_single 검증 |
 | `test_airspace_controller.py` | 9 | 1 Hz 제어 루프·허가 |
 | `test_priority_queue.py` | 9 | 우선순위 허가 큐·FIFO |
+| `test_knowledge_loader.py` | 9 | 지식 베이스 로더·카테고리 |
 | `test_cbs.py` | 8 | CBS 격자 노드·해시 |
 | `test_flight_path_planner.py` | 8 | A*·NFZ 회피·replan |
 | `test_simulator_scenarios.py` | 8 | 통합 시나리오 실행 |
@@ -768,7 +770,8 @@ pytest tests/test_apf.py -v   # 특정 파일
 | `test_comm_bus.py` | 6 | CommunicationBus 지연·손실 |
 | `test_message_types.py` | 6 | 메시지 타입 6종 직렬화 |
 | `test_voronoi.py` | 5 | Voronoi 분할·클리핑·충돌감지 |
-| **합계** | **205** | **19 모듈 · 100% pass** |
+| `test_chatbot_simulator.py` | 4 | 챗봇 시뮬레이터 통합 테스트 |
+| **합계** | **239** | **22 모듈 · 100% pass** |
 
 ---
 
@@ -796,9 +799,9 @@ pytest tests/test_apf.py -v   # 특정 파일
 | 단계 | 기간 | 주요 산출물 | 상태 |
 |------|------|------------|------|
 | Phase 1: 설계 | 2026.01~03 | 아키텍처 설계, 알고리즘 설계 | ✅ 완료 |
-| Phase 2: 구현 | 2026.04~05 | SimPy 시뮬레이터, pytest, SC2 검증 | 📋 예정 |
-| Phase 3: 검증 | 2026.05~06 | Monte Carlo, 3D 대시보드, 26개 시나리오 전량 실행 | 📋 예정 |
-| Phase 4: 문서화 | 2026.06 | 기술 보고서(DOCX), 성능 차트, README | 📋 예정 |
+| Phase 2: 구현 | 2026.03 | SimPy 시뮬레이터, pytest 239개, SC2 14,200회 검증 | ✅ 완료 |
+| Phase 3: 검증 | 2026.03 | Monte Carlo 38,400회, 3D 대시보드, **42개 시나리오** 전량 실행 | ✅ 완료 |
+| Phase 4: 문서화 | 2026.03 | 기술 보고서(DOCX), 성능 차트, README 920줄, 발표 스크립트 | ✅ 완료 |
 
 ---
 
@@ -901,12 +904,6 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 ## 라이선스
 
 MIT License — 학술 및 교육 목적으로 개발되었습니다.
-
-
-## 변경 이력 (Changelog)
-
-| 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
-| --- | --- | --- | --- |
 
 ---
 

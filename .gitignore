@@ -49,3 +49,5 @@ PX4-Autopilot/build/
 # Gazebo
 /gazebo_models/
 node_modules/
+package.json
+package-lock.json

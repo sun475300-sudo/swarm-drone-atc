@@ -57,6 +57,11 @@ def _run_single(args: tuple) -> dict:
     sim = SwarmSimulator(seed=seed, scenario_cfg=scenario_cfg)
     result = sim.run(duration_s=float(duration))
 
+    # SLA 임계값 검증
+    thresholds = _load_mc_config().get("acceptance_thresholds", {})
+    sla_checks = result.check_acceptance(thresholds) if thresholds else {}
+    sla_pass = all(sla_checks.values()) if sla_checks else True
+
     return {
         **config_combo,
         "seed": seed,
@@ -66,6 +71,10 @@ def _run_single(args: tuple) -> dict:
         "route_efficiency": result.route_efficiency_mean,
         "total_flight_time_s": result.total_flight_time_s,
         "total_distance_km": result.total_distance_km,
+        "energy_efficiency_wh_per_km": result.energy_efficiency_wh_per_km,
+        "failures_injected": result.failures_injected,
+        "sla_pass": sla_pass,
+        "sla_details": sla_checks,
     }
 
 

@@ -514,6 +514,20 @@ class SwarmSimulator:
             self.env.process(self._failure_injection_loop())
         self.env.run(until=dur)
 
+        # 컨트롤러/통신 통계 기록
+        self.analytics.record_controller_stats(
+            cbs_attempts=self.controller._cbs_attempts,
+            cbs_successes=self.controller._cbs_successes,
+            astar_count=self.controller._astar_count,
+            clearances_per_sec=self.controller._clearances_per_sec,
+        )
+        comm_stats = self.comm_bus.stats
+        self.analytics.record_comm_stats(
+            sent=comm_stats["sent"],
+            delivered=comm_stats["delivered"],
+            dropped=comm_stats["dropped"],
+        )
+
         return self.analytics.finalize(
             seed=self.seed,
             scenario=self._scenario_name,

@@ -39,6 +39,18 @@ class SimulationResult:
     # 컨트롤러 처리량
     clearances_approved: int   = 0
     clearances_denied:   int   = 0
+    clearances_per_sec:  float = 0.0  # 60초 윈도우 평균 처리율
+
+    # 경로 계획
+    cbs_attempts:   int = 0
+    cbs_successes:  int = 0
+    astar_fallbacks: int = 0
+
+    # 통신
+    comm_messages_sent:     int = 0
+    comm_messages_delivered: int = 0
+    comm_messages_dropped:  int = 0
+    comm_drop_rate:         float = 0.0
 
     # 지연 (s)
     advisory_latency_p50: float = 0.0
@@ -74,6 +86,11 @@ class SimulationResult:
             ("에너지 효율",        f"{self.energy_efficiency_wh_per_km:.2f} Wh/km"),
             ("고장 주입",          str(self.failures_injected)),
             ("통신 두절 주입",     str(self.comms_losses_injected)),
+            ("CBS 시도/성공",      f"{self.cbs_attempts}/{self.cbs_successes}"),
+            ("A* 폴백",            str(self.astar_fallbacks)),
+            ("허가 처리율",        f"{self.clearances_per_sec:.1f} /s"),
+            ("통신 전송/배달/손실", f"{self.comm_messages_sent}/{self.comm_messages_delivered}/{self.comm_messages_dropped}"),
+            ("통신 손실률",        f"{self.comm_drop_rate:.1%}"),
             ("어드바이저리 P50",   f"{self.advisory_latency_p50:.2f} s"),
             ("어드바이저리 P99",   f"{self.advisory_latency_p99:.2f} s"),
         ]
@@ -130,6 +147,14 @@ class SimulationAnalytics:
         self._dist_actual:  dict[str, float] = {}  # drone_id → actual km
         self._dist_planned: dict[str, float] = {}
         self._flight_time:  dict[str, float] = {}
+
+        self._cbs_attempts  = 0
+        self._cbs_successes = 0
+        self._astar_count   = 0
+        self._ctrl_cps      = 0.0
+        self._comm_sent      = 0
+        self._comm_delivered = 0
+        self._comm_dropped   = 0
 
         self._start_wall = time.monotonic()
 
@@ -196,6 +221,30 @@ class SimulationAnalytics:
     def record_planned_distance(self, drone_id: str, dist_m: float) -> None:
         self._dist_planned[drone_id] = dist_m
 
+    def record_controller_stats(
+        self,
+        cbs_attempts: int = 0,
+        cbs_successes: int = 0,
+        astar_count: int = 0,
+        clearances_per_sec: float = 0.0,
+    ) -> None:
+        """컨트롤러 통계 기록 (finalize 전 호출)"""
+        self._cbs_attempts = cbs_attempts
+        self._cbs_successes = cbs_successes
+        self._astar_count = astar_count
+        self._ctrl_cps = clearances_per_sec
+
+    def record_comm_stats(
+        self,
+        sent: int = 0,
+        delivered: int = 0,
+        dropped: int = 0,
+    ) -> None:
+        """통신 버스 통계 기록 (finalize 전 호출)"""
+        self._comm_sent = sent
+        self._comm_delivered = delivered
+        self._comm_dropped = dropped
+
     # ── 최종 결과 ────────────────────────────────────────────
 
     def finalize(
@@ -243,6 +292,10 @@ class SimulationAnalytics:
         fail_injected = sum(1 for ev in self._events if ev["type"] == "FAILURE_INJECTED")
         comms_injected = sum(1 for ev in self._events if ev["type"] == "COMMS_LOSS_INJECTED")
 
+        # 통신 드롭률
+        comm_total = self._comm_sent or 0
+        comm_drop_rate = self._comm_dropped / max(comm_total, 1)
+
         return SimulationResult(
             collision_count=self._collision_count,
             near_miss_count=self._near_miss_count,
@@ -258,6 +311,14 @@ class SimulationAnalytics:
             comms_losses_injected=comms_injected,
             clearances_approved=self._clearances_ok,
             clearances_denied=self._clearances_no,
+            clearances_per_sec=self._ctrl_cps,
+            cbs_attempts=self._cbs_attempts,
+            cbs_successes=self._cbs_successes,
+            astar_fallbacks=self._astar_count,
+            comm_messages_sent=self._comm_sent,
+            comm_messages_delivered=self._comm_delivered,
+            comm_messages_dropped=self._comm_dropped,
+            comm_drop_rate=comm_drop_rate,
             advisory_latency_p50=p50,
             advisory_latency_p99=p99,
             seed=seed,

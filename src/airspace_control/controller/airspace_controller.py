@@ -87,11 +87,15 @@ class AirspaceController:
         self._voronoi_cells: dict                   = {}
         self._spatial_hash = SpatialHash(cell_size=50.0)
         self._holding_queue: list[tuple[float, str]] = []  # (entry_time, drone_id)
+        self.MAX_HOLDING_QUEUE = 100  # HOLDING 큐 최대 크기
 
         # CBS vs A* 메트릭 추적
         self._cbs_attempts  = 0
         self._cbs_successes = 0
+        self._cbs_failures  = 0
         self._astar_count   = 0
+        self._clearances_per_sec: float = 0.0
+        self._clearance_count_window: list[float] = []  # 최근 처리 시각 리스트
 
         self._lat_min_base = float(config.get("separation_standards", {})
                                    .get("lateral_min_m", 50.0))
@@ -164,11 +168,21 @@ class AirspaceController:
         MAX_RELEASE_PER_TICK = 3
         MIN_HOLD_S = 5.0
 
-        # 새 HOLDING 드론 등록
+        # 새 HOLDING 드론 등록 (최대 큐 크기 제한)
         queued_ids = {did for _, did in self._holding_queue}
         for did, d in self._active_drones.items():
             if d.flight_phase == FlightPhase.HOLDING and did not in queued_ids:
-                heapq.heappush(self._holding_queue, (t, did))
+                if len(self._holding_queue) < self.MAX_HOLDING_QUEUE:
+                    heapq.heappush(self._holding_queue, (t, did))
+                else:
+                    # 큐 포화 → 즉시 RTL 전환 (안전)
+                    d.flight_phase = FlightPhase.RTL
+                    if self.analytics:
+                        self.analytics.record_event(
+                            "HOLDING_QUEUE_OVERFLOW", t,
+                            drone_id=did,
+                            queue_size=len(self._holding_queue),
+                        )
 
         # 더 이상 HOLDING이 아닌 드론 제거
         self._holding_queue = [
@@ -263,6 +277,13 @@ class AirspaceController:
             cbs_waypoints = self._cbs_plan_batch(batch)
             if cbs_waypoints:
                 self._cbs_successes += 1
+            else:
+                self._cbs_failures += 1
+                if self.analytics:
+                    self.analytics.record_event(
+                        "CBS_FALLBACK_ASTAR", t,
+                        batch_size=len(batch),
+                    )
 
         for req in batch:
             route = self.planner.plan_route(
@@ -311,6 +332,14 @@ class AirspaceController:
                 sent_time=t,
                 channel="clearance",
             ))
+            # 처리량 추적
+            self._clearance_count_window.append(t)
+            # 60초 윈도우 유지
+            self._clearance_count_window = [
+                ts for ts in self._clearance_count_window if t - ts <= 60.0
+            ]
+            self._clearances_per_sec = len(self._clearance_count_window) / 60.0
+
             if approved:
                 self._active_routes[req.drone_id] = route
             if self.analytics:
@@ -624,13 +653,14 @@ class AirspaceController:
         """
         Voronoi 셀 면적 기반 밀도 관리.
 
-        고밀도 셀(면적 < 2 km²)의 드론에게 분리간격 확대 어드바이저리 발령.
-        컨트롤러가 고밀도 지역을 인식하여 추가 어드바이저리를 예방적으로 발령.
+        - 고밀도 셀(면적 < 2 km²) 드론: 분리간격 추가 확대 + 고도 밴드 할당
+        - 밀도 정보를 _density_scores에 저장하여 허가 우선순위에 활용
         """
         if not self._voronoi_cells:
             return
 
-        HIGH_DENSITY_THRESHOLD_KM2 = 2.0  # 고밀도 기준 셀 면적
+        HIGH_DENSITY_THRESHOLD_KM2 = 2.0
+        self._density_scores: dict[str, float] = {}
 
         for did, cell in self._voronoi_cells.items():
             if cell.area_km2 <= 0:
@@ -638,12 +668,21 @@ class AirspaceController:
             drone = self._active_drones.get(did)
             if drone is None or not drone.is_active:
                 continue
+
+            # 밀도 점수: 면적이 작을수록 높음 (0.0~1.0)
+            density = max(0.0, min(1.0, 1.0 - cell.area_km2 / 10.0))
+            self._density_scores[did] = density
+
             if drone.flight_phase not in (FlightPhase.ENROUTE,):
                 continue
 
-            # 고밀도 셀 드론: 고도 밴드를 할당하여 수직 분리 유도
+            # 고밀도 셀 드론: 고도 밴드 + 분리 확대
             if cell.area_km2 < HIGH_DENSITY_THRESHOLD_KM2:
                 drone._voronoi_alt_band = cell.altitude_band
+
+    def _get_density_priority_boost(self, drone_id: str) -> float:
+        """고밀도 지역 드론의 허가 우선순위 부스트 (0.0~0.5)"""
+        return getattr(self, '_density_scores', {}).get(drone_id, 0.0) * 0.5
 
 
 # ── 모듈 수준 유틸리티 ─────────────────────────────────────────

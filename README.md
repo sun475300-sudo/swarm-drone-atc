@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
 [![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
-[![Tests](https://img.shields.io/badge/Tests-1007%20passed-brightgreen?style=for-the-badge)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-1111%20passed-brightgreen?style=for-the-badge)](tests/)
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
@@ -369,7 +369,7 @@ Low Level: 시공간 A* (개별 드론)
 
 ## Algorithm Hierarchy / 알고리즘 계층 구조
 
-> **83개 핵심 알고리즘**이 4개 계층에서 계층적으로 동작합니다. (Python 12,000+줄 + HTML/JS 2,897줄)
+> **107개 핵심 알고리즘**이 4개 계층에서 계층적으로 동작합니다. (Python 15,000+줄 + HTML/JS 2,897줄)
 
 ```
 Layer 1: 드론 에이전트 (10 Hz, SimPy)
@@ -481,6 +481,30 @@ Layer 3: 시뮬레이션 엔진
 ├── 임무 결과 평가 ─── 점수/등급(A~F) + 개선 권장 생성
 ├── 역할 기반 접근 제어 ─── 권한 매트릭스 + 감사 로그 + 거부 추적
 ├── 시스템 건강 모니터 ─── 역방향 지표(배터리) + 자가 진단 + 경보
+├── 강화학습 경로 선택 ─── Q-테이블 + epsilon-greedy + 보상 함수
+├── 예측 유지보수 ─── 비행시간/진동/사이클 잔여수명 + 정비 일정
+├── 다중 에이전트 협상 ─── 양보/교환 프로토콜 + 교착 탐지
+├── 적응형 파라미터 튜너 ─── 실시간 성능 피드백 → 자동 파라미터 조정
+├── 의사결정 트리 관제 ─── IF-THEN 규칙 기반 빠른 결정
+├── 공역 수요 예측 ─── 시간대별 패턴 학습 + 사전 자원 배치
+├── 경로 다양성 생성 ─── k-최단경로 + 유사도 분석 + 분산 최적화
+├── 동적 우선순위 재조정 ─── 배터리/시간/비상 컨텍스트 기반 조정
+├── GPS 스푸핑 탐지 ─── 다중 센서 교차 검증 + 위치 이상 탐지
+├── 암호화 통신 채널 ─── 키 교환 + 메시지 무결성 + 재전송 방지
+├── 침입 탐지 시스템 ─── 이상 트래픽 패턴 + 블랙리스트 + 격리
+├── 규제 동적 업데이트 ─── 버전 관리 + 자동 적용 + 준수 확인
+├── 통신 QoS 관리 ─── 우선순위별 대역폭 할당 + 트래픽 쉐이핑
+├── 드론 신원 인증 ─── PKI 인증서 + 만료/갱신 프로토콜
+├── 감사 추적 시스템 ─── 불변 로그 체인 + 무결성 해시
+├── 비상 방송 시스템 ─── 구역별 브로드캐스트 + 확인 응답
+├── 시나리오 난이도 평가 ─── 밀도/기상/NFZ/장애 복합 점수
+├── A/B 테스트 프레임워크 ─── 통계 유의성 검정 + 개선율 분석
+├── 실시간 리포트 스트림 ─── 이벤트 스트림 + 구독 + 버퍼 관리
+├── 다중 시뮬레이터 조율 ─── 병렬 실행 + 결과 집계 + 분산 시드
+├── 환경 영향 분석 ─── 소음/에너지 환경 점수 + 친환경 경로
+├── 비용 분석 엔진 ─── 에너지/정비/인프라 비용 + ROI 분석
+├── 학습 데이터 수집 ─── 경험 → 구조화된 학습 데이터셋
+├── 시스템 통합 검증 ─── 의존성 그래프 + 인터페이스 적합성 + 회귀 감지
 ├── Monte Carlo 38,400회 SLA 검증 (384 configs × 100 seeds)
 └── 42개 시나리오 배치 실행
 
@@ -578,6 +602,30 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
 | 81 | 임무 결과 평가 | `simulation/mission_evaluator.py` | 110+ | 점수/등급(A~F) + 개선 권장 |
 | 82 | 역할 기반 접근 제어 | `simulation/access_control.py` | 90+ | 권한 매트릭스 + 감사 로그 |
 | 83 | 시스템 건강 모니터 | `simulation/system_health.py` | 110+ | 역방향 지표 + 자가 진단 + 경보 |
+| 84 | 강화학습 경로 선택 | `simulation/rl_path_selector.py` | 100+ | Q-테이블 + epsilon-greedy + 보상 함수 |
+| 85 | 예측 유지보수 | `simulation/predictive_maintenance.py` | 130+ | 비행시간/진동/사이클 잔여수명 |
+| 86 | 다중 에이전트 협상 | `simulation/agent_negotiation.py` | 120+ | 양보/교환 프로토콜 + 교착 탐지 |
+| 87 | 적응형 파라미터 튜너 | `simulation/adaptive_tuner.py` | 140+ | 실시간 성능 → 자동 파라미터 조정 |
+| 88 | 의사결정 트리 관제 | `simulation/decision_tree_atc.py` | 120+ | IF-THEN 규칙 기반 빠른 결정 |
+| 89 | 공역 수요 예측 | `simulation/demand_forecaster.py` | 120+ | 시간대별 패턴 학습 + 사전 배치 |
+| 90 | 경로 다양성 생성 | `simulation/path_diversity.py` | 140+ | k-최단경로 + 유사도 + 분산 최적화 |
+| 91 | 동적 우선순위 재조정 | `simulation/priority_adjuster.py` | 130+ | 배터리/시간/비상 컨텍스트 기반 |
+| 92 | GPS 스푸핑 탐지 | `simulation/gps_spoof_detector.py` | 130+ | 다중 센서 교차 검증 + 이상 탐지 |
+| 93 | 암호화 통신 채널 | `simulation/secure_channel.py` | 120+ | 키 교환 + 무결성 + 재전송 방지 |
+| 94 | 침입 탐지 시스템 | `simulation/intrusion_detector.py` | 120+ | 이상 트래픽 + 블랙리스트 + 격리 |
+| 95 | 규제 동적 업데이트 | `simulation/regulation_updater.py` | 110+ | 버전 관리 + 자동 적용 + 준수 확인 |
+| 96 | 통신 QoS 관리 | `simulation/comm_qos.py` | 120+ | 우선순위별 대역폭 + 트래픽 쉐이핑 |
+| 97 | 드론 신원 인증 | `simulation/drone_identity.py` | 110+ | PKI 인증서 + 만료/갱신 |
+| 98 | 감사 추적 시스템 | `simulation/audit_trail.py` | 100+ | 불변 로그 체인 + 무결성 해시 |
+| 99 | 비상 방송 시스템 | `simulation/emergency_broadcast.py` | 110+ | 구역별 브로드캐스트 + 확인 응답 |
+| 100 | 시나리오 난이도 평가 | `simulation/difficulty_scorer.py` | 130+ | 밀도/기상/NFZ/장애 복합 점수 |
+| 101 | A/B 테스트 프레임워크 | `simulation/ab_test_framework.py` | 110+ | 통계 유의성 검정 + 개선율 분석 |
+| 102 | 실시간 리포트 스트림 | `simulation/report_stream.py` | 100+ | 이벤트 스트림 + 구독 + 버퍼 |
+| 103 | 다중 시뮬레이터 조율 | `simulation/multi_sim_coordinator.py` | 120+ | 병렬 실행 + 결과 집계 + 시드 |
+| 104 | 환경 영향 분석 | `simulation/environmental_impact.py` | 110+ | 소음/에너지 환경 점수 |
+| 105 | 비용 분석 엔진 | `simulation/cost_analyzer.py` | 120+ | 에너지/정비/인프라 + ROI |
+| 106 | 학습 데이터 수집 | `simulation/training_data_collector.py` | 110+ | 경험 → 학습 데이터셋 생성 |
+| 107 | 시스템 통합 검증 | `simulation/integration_verifier.py` | 130+ | 의존성 검증 + 회귀 감지 |
 
 ### Python vs HTML/JS 이중 구현 비교
 

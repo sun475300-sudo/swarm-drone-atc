@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
 [![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
-[![Tests](https://img.shields.io/badge/Tests-835%20passed-brightgreen?style=for-the-badge)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-935%20passed-brightgreen?style=for-the-badge)](tests/)
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
@@ -273,7 +273,7 @@ FAILED ◄──[장애 주입]
 
 > **27 core algorithms** work hierarchically to ensure safe swarm drone operations.
 >
-> **51개 핵심 알고리즘**이 계층적으로 동작하여 군집드론 안전 운항을 보장합니다.
+> **67개 핵심 알고리즘**이 계층적으로 동작하여 군집드론 안전 운항을 보장합니다.
 
 <div align="center">
 
@@ -369,7 +369,7 @@ Low Level: 시공간 A* (개별 드론)
 
 ## Algorithm Hierarchy / 알고리즘 계층 구조
 
-> **51개 핵심 알고리즘**이 4개 계층에서 계층적으로 동작합니다. (Python 10,000+줄 + HTML/JS 2,897줄)
+> **67개 핵심 알고리즘**이 4개 계층에서 계층적으로 동작합니다. (Python 10,000+줄 + HTML/JS 2,897줄)
 
 ```
 Layer 1: 드론 에이전트 (10 Hz, SimPy)
@@ -449,6 +449,22 @@ Layer 3: 시뮬레이션 엔진
 ├── 충전 인프라 관리 ─── 충전소 추천 + 대기열 + 충전 시간 추정
 ├── 규제 보고서 ─── K-UTM 준수 보고 + 감사 로그 + 위반 분석
 ├── 시나리오 자동 생성 ─── 랜덤/스트레스/기상/점진 시나리오 + 난이도 추정
+├── 자동 스케일링 ─── 드론 수 동적 조절 + 수요 예측 + 스케일 정책
+├── 경로 캐시 ─── LRU 캐시 + 히트율 + 지역 무효화
+├── 공역 예약 시스템 ─── 4D 시공간 슬롯 예약 + 우선순위 선점
+├── 드론 인증 관리 ─── 등록/인증/블랙리스트 + 비행 허가 검증
+├── 다중 목표 최적화 ─── 파레토 프론트 + 에너지/시간/안전 트레이드오프
+├── 이벤트 버스 ─── Pub/Sub 브로커 + 필터 + 이력 조회
+├── 공역 히트맵 ─── 시간대별 밀도 히트맵 + 핫스팟 예측 + 트렌드
+├── 드론 그룹 관리 ─── 그룹 생성/해체/병합 + 그룹별 명령
+├── 충돌 포렌식 ─── 근본원인 분석 + 기여도 + 재현 시퀀스
+├── 기상 위험 구역 ─── 동적 위험 구역 + 이동 추적 + 자동 회피
+├── 에너지 예산 관리 ─── 임무별 할당 + 소비 추적 + 예산 경고
+├── 네트워크 토폴로지 ─── 통신 그래프 + 중심성 + 취약 노드 감지
+├── 임무 우선순위 큐 ─── 우선순위 대기열 + SLA 기한 + 재할당
+├── 비행 복도 관리 ─── 단방향/양방향 복도 + 진입/이탈 프로토콜
+├── 센서 퓨전 ─── 역분산 가중 융합 + 센서 건강 + 신뢰도
+├── 시뮬레이션 벤치마크 ─── 성능 스위트 + 회귀 탐지 + 기준선 비교
 ├── Monte Carlo 38,400회 SLA 검증 (384 configs × 100 seeds)
 └── 42개 시나리오 배치 실행
 
@@ -514,6 +530,22 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
 | 49 | 충전 인프라 관리 | `simulation/power_grid.py` | 140+ | 충전소 추천 + 대기열 + 충전 시간 추정 |
 | 50 | 규제 보고서 | `simulation/regulatory_reporter.py` | 120+ | K-UTM 준수 보고 + 감사 로그 + 위반 분석 |
 | 51 | 시나리오 자동 생성 | `simulation/scenario_generator.py` | 140+ | 랜덤/스트레스/기상/점진 + 난이도 추정 |
+| 52 | 자동 스케일링 | `simulation/auto_scaler.py` | 130+ | 드론 수 동적 조절 + 수요 예측 + 스케일 정책 |
+| 53 | 경로 캐시 | `simulation/path_cache.py` | 130+ | LRU 캐시 + 히트율 + 지역 무효화 |
+| 54 | 공역 예약 | `simulation/airspace_reservation.py` | 140+ | 4D 시공간 슬롯 예약 + 우선순위 선점 |
+| 55 | 드론 인증 관리 | `simulation/drone_registry.py` | 130+ | 등록/인증/블랙리스트 + 비행 허가 검증 |
+| 56 | 다중 목표 최적화 | `simulation/multi_objective.py` | 140+ | 파레토 프론트 + 가중 합산 + 하이퍼볼륨 |
+| 57 | 이벤트 버스 | `simulation/event_bus.py` | 120+ | Pub/Sub 브로커 + 필터 + 이력 조회 |
+| 58 | 공역 히트맵 | `simulation/airspace_heatmap.py` | 150+ | 밀도 히트맵 + 핫스팟 예측 + 트렌드 |
+| 59 | 드론 그룹 관리 | `simulation/drone_group.py` | 120+ | 그룹 생성/해체/병합 + 그룹별 명령 |
+| 60 | 충돌 포렌식 | `simulation/collision_forensics.py` | 150+ | 근본원인 분석 + 기여도 + 재현 시퀀스 |
+| 61 | 기상 위험 구역 | `simulation/weather_hazard_zone.py` | 170+ | 동적 위험 구역 + 이동 추적 + 자동 회피 |
+| 62 | 에너지 예산 관리 | `simulation/energy_budget.py` | 130+ | 임무별 할당 + 소비 추적 + 예산 경고 |
+| 63 | 네트워크 토폴로지 | `simulation/network_topology.py` | 170+ | 통신 그래프 + 중심성 + 취약 노드 감지 |
+| 64 | 임무 우선순위 큐 | `simulation/mission_queue.py` | 120+ | 우선순위 대기열 + SLA 기한 + 재할당 |
+| 65 | 비행 복도 관리 | `simulation/flight_corridor.py` | 150+ | 단방향/양방향 복도 + 진입/이탈 프로토콜 |
+| 66 | 센서 퓨전 | `simulation/sensor_fusion.py` | 140+ | 역분산 가중 융합 + 센서 건강 + 신뢰도 |
+| 67 | 시뮬레이션 벤치마크 | `simulation/benchmark_suite.py` | 140+ | 성능 스위트 + 회귀 탐지 + 기준선 비교 |
 
 ### Python vs HTML/JS 이중 구현 비교
 
@@ -930,7 +962,7 @@ swarm-drone-atc/
 │   ├── report/SDACS_Technical_Report.docx  # A4 한국어 기술 보고서
 │   └── images/                             # 성능 차트 + SVG 다이어그램
 │
-└── tests/                              # pytest 835개 (36 모듈)
+└── tests/                              # pytest 935개 (37 모듈)
     ├── test_apf.py                     # APF 포텐셜 장 (10)
     ├── test_cbs.py                     # CBS 격자 노드 (8)
     ├── test_resolution_advisory.py     # 어드바이저리 분류 (6)
@@ -960,7 +992,8 @@ swarm-drone-atc/
     ├── test_phase44_51.py             # 행동분석·스케줄러·리플레이·기상예측·배터리·규제 (58)
     ├── test_phase52_59.py             # 통신품질·보고서·지오펜스·군집지능·중계·임무·용량·비상 (71)
     ├── test_phase60_67.py             # 소음·함대·경로탈충돌·텔레메트리·착륙·위험도·기상통합·건강 (65)
-    └── test_phase68_75.py             # 교통흐름·부하분산·웨이포인트·비상경로·감시추적·충전·규제·시나리오 (70)
+    ├── test_phase68_75.py             # 교통흐름·부하분산·웨이포인트·비상경로·감시추적·충전·규제·시나리오 (70)
+    └── test_phase76_91.py             # 스케일링·캐시·예약·인증·다중목표·이벤트·히트맵·그룹·포렌식·기상위험·에너지·토폴로지·임무큐·복도·센서·벤치마크 (100)
 ```
 
 ---
@@ -972,7 +1005,7 @@ pytest tests/ -v              # Run all / 전체 실행
 pytest tests/test_apf.py -v   # Specific module / 특정 파일
 ```
 
-### 테스트 커버리지 (835개 / 36모듈)
+### 테스트 커버리지 (935개 / 37모듈)
 
 | 파일 | 수 | 대상 |
 |------|---|------|
@@ -1012,7 +1045,8 @@ pytest tests/test_apf.py -v   # Specific module / 특정 파일
 | `test_phase52_59.py` | 71 | 통신품질·보고서·지오펜스·군집지능·중계·임무·용량·비상 |
 | `test_phase60_67.py` | 65 | 소음·함대·경로탈충돌·텔레메트리·착륙·위험도·기상통합·건강 |
 | `test_phase68_75.py` | 70 | 교통흐름·부하분산·웨이포인트·비상경로·감시추적·충전·규제·시나리오 |
-| **합계** | **835** | **36 모듈 · 100% pass** |
+| `test_phase76_91.py` | 100 | 스케일링·캐시·예약·인증·다중목표·이벤트·히트맵·그룹·포렌식·기상위험·에너지·토폴로지·임무큐·복도·센서·벤치마크 |
+| **합계** | **935** | **37 모듈 · 100% pass** |
 
 ---
 

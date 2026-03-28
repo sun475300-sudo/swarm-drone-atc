@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
 [![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
-[![Tests](https://img.shields.io/badge/Tests-700%20passed-brightgreen?style=for-the-badge)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-765%20passed-brightgreen?style=for-the-badge)](tests/)
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
@@ -273,7 +273,7 @@ FAILED ◄──[장애 주입]
 
 > **27 core algorithms** work hierarchically to ensure safe swarm drone operations.
 >
-> **35개 핵심 알고리즘**이 계층적으로 동작하여 군집드론 안전 운항을 보장합니다.
+> **43개 핵심 알고리즘**이 계층적으로 동작하여 군집드론 안전 운항을 보장합니다.
 
 <div align="center">
 
@@ -369,7 +369,7 @@ Low Level: 시공간 A* (개별 드론)
 
 ## Algorithm Hierarchy / 알고리즘 계층 구조
 
-> **35개 핵심 알고리즘**이 4개 계층에서 계층적으로 동작합니다. (Python 8,000+줄 + HTML/JS 2,897줄)
+> **43개 핵심 알고리즘**이 4개 계층에서 계층적으로 동작합니다. (Python 10,000+줄 + HTML/JS 2,897줄)
 
 ```
 Layer 1: 드론 에이전트 (10 Hz, SimPy)
@@ -433,6 +433,14 @@ Layer 3: 시뮬레이션 엔진
 ├── 다중 임무 할당 ─── 그리디 매칭 + 배터리/거리 제약 최적화
 ├── 공역 용량 분석 ─── 섹터별 수용량 + 포화도 예측 + 자동 유입 규제
 ├── 비상 프로토콜 ─── 6종 비상 시나리오 + 자동 대응 절차 + 에스컬레이션
+├── 소음 모델링 ─── 역제곱 감쇠 + 다중 소음원 합산 + 규제 검증
+├── 함대 최적화 ─── 효율 기반 그리디 배치 + 교대 스케줄 + ROI
+├── 경로 탈충돌 ─── 4D 경로 충돌 검사 + 시간 이동 해소
+├── 텔레메트리 녹화 ─── 상태 스냅샷 + 리와인드 + 두 시뮬 비교
+├── 착륙 관리 ─── 패드 할당 + 대기열 FIFO + 비상 착륙 오버라이드
+├── 위험도 평가 ─── 인구 밀도 + 낙하 확률 + 피해 반경 위험 지도
+├── 공역-기상 통합 ─── GREEN/YELLOW/ORANGE/RED 등급 자동 전환
+├── 드론 건강 모니터 ─── 진동 트렌드 + 온도 + 예방 정비 스케줄
 ├── Monte Carlo 38,400회 SLA 검증 (384 configs × 100 seeds)
 └── 42개 시나리오 배치 실행
 
@@ -482,6 +490,14 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
 | 33 | 다중 임무 할당 | `simulation/mission_planner.py` | 240+ | 그리디 매칭 + 배터리/거리 제약 최적화 |
 | 34 | 공역 용량 분석 | `simulation/airspace_capacity.py` | 230+ | 섹터별 수용량 + 포화도 예측 + 자동 규제 |
 | 35 | 비상 프로토콜 | `simulation/emergency_protocol.py` | 250+ | 6종 비상 시나리오 + 자동 대응 절차 |
+| 36 | 소음 모델링 | `simulation/noise_model.py` | 200+ | 역제곱 감쇠 + 소음 지도 + 규제 검증 |
+| 37 | 함대 최적화 | `simulation/fleet_optimizer.py` | 220+ | 그리디 배치 + 교대 스케줄 + ROI 분석 |
+| 38 | 경로 탈충돌기 | `simulation/path_deconflict.py` | 240+ | 4D 경로 충돌 검사 + 시간 분리 해소 |
+| 39 | 텔레메트리 녹화 | `simulation/telemetry_recorder.py` | 200+ | 스냅샷 기록 + 리와인드 + 비교 재생 |
+| 40 | 착륙 관리자 | `simulation/landing_manager.py` | 230+ | 패드 할당 + 대기열 + 비상 착륙 |
+| 41 | 위험도 평가 | `simulation/risk_assessor.py` | 210+ | 인구 밀도 + 낙하 확률 + 피해 반경 |
+| 42 | 공역-기상 통합 | `simulation/airspace_weather_integration.py` | 220+ | 기상 기반 공역 등급 + 동적 제한 |
+| 43 | 드론 건강 모니터 | `simulation/drone_health_monitor.py` | 230+ | 센서 진단 + 진동 트렌드 + 예방 정비 |
 
 ### Python vs HTML/JS 이중 구현 비교
 
@@ -860,6 +876,14 @@ swarm-drone-atc/
 │   ├── mission_planner.py           # 다중 임무 할당 (그리디 매칭)
 │   ├── airspace_capacity.py         # 공역 용량 분석 (섹터별 포화도)
 │   ├── emergency_protocol.py        # 비상 프로토콜 (6종 시나리오)
+│   ├── noise_model.py               # 소음 모델링 (역제곱 감쇠)
+│   ├── fleet_optimizer.py           # 함대 최적화 (ROI 분석)
+│   ├── path_deconflict.py           # 4D 경로 탈충돌기
+│   ├── telemetry_recorder.py        # 텔레메트리 녹화 + 리와인드
+│   ├── landing_manager.py           # 착륙 패드 관리 + 비상 착륙
+│   ├── risk_assessor.py             # 지상 위험도 평가
+│   ├── airspace_weather_integration.py  # 공역-기상 통합 관리
+│   ├── drone_health_monitor.py      # 드론 건강 모니터 + 정비
 │   ├── apf_engine/apf.py            # APF 배치 벡터 계산
 │   ├── cbs_planner/cbs.py           # CBS 다중 드론 경로 계획
 │   └── voronoi_airspace/            # Voronoi 2D 공역 분할
@@ -890,7 +914,7 @@ swarm-drone-atc/
 │   ├── report/SDACS_Technical_Report.docx  # A4 한국어 기술 보고서
 │   └── images/                             # 성능 차트 + SVG 다이어그램
 │
-└── tests/                              # pytest 700개 (34 모듈)
+└── tests/                              # pytest 765개 (35 모듈)
     ├── test_apf.py                     # APF 포텐셜 장 (10)
     ├── test_cbs.py                     # CBS 격자 노드 (8)
     ├── test_resolution_advisory.py     # 어드바이저리 분류 (6)
@@ -918,7 +942,8 @@ swarm-drone-atc/
     ├── test_phase32_35.py             # 에너지경로·위협평가·시나리오스크립터·스트레스테스트 (60)
     ├── test_phase36_43.py             # 위협연동·구역관제·SLA·이벤트·시각화통합 (35)
     ├── test_phase44_51.py             # 행동분석·스케줄러·리플레이·기상예측·배터리·규제 (58)
-    └── test_phase52_59.py             # 통신품질·보고서·지오펜스·군집지능·중계·임무·용량·비상 (71)
+    ├── test_phase52_59.py             # 통신품질·보고서·지오펜스·군집지능·중계·임무·용량·비상 (71)
+    └── test_phase60_67.py             # 소음·함대·경로탈충돌·텔레메트리·착륙·위험도·기상통합·건강 (65)
 ```
 
 ---
@@ -930,7 +955,7 @@ pytest tests/ -v              # Run all / 전체 실행
 pytest tests/test_apf.py -v   # Specific module / 특정 파일
 ```
 
-### 테스트 커버리지 (700개 / 34모듈)
+### 테스트 커버리지 (765개 / 35모듈)
 
 | 파일 | 수 | 대상 |
 |------|---|------|
@@ -968,7 +993,8 @@ pytest tests/test_apf.py -v   # Specific module / 특정 파일
 | `test_phase36_43.py` | 35 | 위협연동·구역관제·SLA·이벤트·시각화통합 |
 | `test_phase44_51.py` | 58 | 행동분석·스케줄러·리플레이·기상예측·배터리·규제 |
 | `test_phase52_59.py` | 71 | 통신품질·보고서·지오펜스·군집지능·중계·임무·용량·비상 |
-| **합계** | **700** | **34 모듈 · 100% pass** |
+| `test_phase60_67.py` | 65 | 소음·함대·경로탈충돌·텔레메트리·착륙·위험도·기상통합·건강 |
+| **합계** | **765** | **35 모듈 · 100% pass** |
 
 ---
 
@@ -1073,6 +1099,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 시간 | 주요 변경 사항 | 커밋 |
 |------|------|---------------|------|
+| 2026-03-28 | — | **Phase 60-67**: 소음 모델링(역제곱 감쇠+소음 지도+규제), 함대 최적화(그리디 배치+교대+ROI), 4D 경로 탈충돌기(시간 분리 해소), 텔레메트리 녹화(리와인드+비교 재생), 착륙 관리자(패드 할당+비상 오버라이드), 위험도 평가(인구 밀도+낙하+피해 반경), 공역-기상 통합(4등급 자동 전환+제한), 드론 건강 모니터(진동 트렌드+예방 정비), 테스트 700→765 (65개 추가) | — |
 | 2026-03-28 | — | **Phase 52-59**: 통신 품질 시뮬레이션(경로손실+패킷손실+링크버짓), 자동 보고서 생성기(KPI분석+권장사항), 동적 지오펜스(원형/다각형/회랑+시간별 활성화), 군집지능(Boids 분리/정렬/응집+PSO), 통신 중계 배치(커버리지 최적화+BFS 다중 홉), 다중 임무 할당(그리디 매칭+배터리 제약), 공역 용량 분석(섹터별 포화도+자동 규제), 비상 프로토콜(6종 시나리오+자동 대응), 테스트 629→700 (71개 추가) | — |
 | 2026-03-28 | — | **Phase 44-51**: 드론 행동 패턴 K-means 분석(이상치 z-score 탐지), 동적 우선순위 스케줄러(5레벨 혼잡도 기반 출발 조절), FDR 인과관계 리플레이 분석(근본원인 추적+자동 리포트), 이동평균+트렌드 기상 예측(DANGER/WARNING 경보), 다변수 배터리 수명 예측(풍속/고도/속도 보정), K-UTM/ICAO 규제 준수 검증(7규칙+준수점수), 테스트 571→629 (58개 추가) | — |
 | 2026-03-28 | — | **Phase 36-43**: 3D 대시보드 시각화 대폭 강화 — 실시간 위협 히트맵(4레벨 공역 틴트), 관제 구역 3D 오버레이(밀도 색상), SLA 상태 패널, 이벤트 타임라인 미니차트, 성능 모니터(틱 처리시간), 경보 로그 확장(스크롤+색상), 위협 평가 패널(점수+권장 조치), 구역별 현황 패널, 테스트 536→571 (35개 추가) | — |

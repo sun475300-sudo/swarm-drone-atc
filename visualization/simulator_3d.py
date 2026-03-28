@@ -40,6 +40,7 @@ from src.airspace_control.agents.drone_state import (
     DroneState, FlightPhase, CommsStatus, FailureType,
 )
 from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
+from visualization.metrics_stream import MetricsCollector
 
 # ─────────────────────────────────────────────────────────────
 # 공역 상수
@@ -133,6 +134,12 @@ class SimState:
         self.advisories = 0
         self.collisions = 0
 
+        # 메트릭 수집기
+        self.metrics = MetricsCollector(max_history=600)
+
+        # 동적 NFZ 목록 (런타임 추가/제거)
+        self.dynamic_nfzs: dict[str, dict] = {}  # id -> {x_range, y_range, z_range}
+
     def reset(self, n_drones: int | None = None) -> None:
         if n_drones is not None:
             self.n_drones = n_drones
@@ -184,6 +191,8 @@ class SimState:
             self.near_misses = 0
             self.advisories = 0
             self.collisions = 0
+            self.dynamic_nfzs = {}
+            self.metrics.reset()
 
 
 # ─────────────────────────────────────────────────────────────
@@ -264,6 +273,18 @@ def _step(sim: SimState) -> None:
         sim._active_conflict_pairs = current_conflicts
 
         sim.t += dt
+
+        # 메트릭 수집 (매 1초 = 10틱)
+        if int(sim.t * 10) % 10 == 0:
+            sim.metrics.record(
+                t=sim.t,
+                drones=list(drones.values()),
+                conflicts=sim.conflicts,
+                collisions=sim.collisions,
+                near_misses=sim.near_misses,
+                advisories=sim.advisories,
+                dt=dt,
+            )
 
 
 def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
@@ -1030,6 +1051,42 @@ app.layout = html.Div(
 
                         html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
 
+                        # 배터리 분포 차트
+                        html.Div("🔋 배터리 분포",
+                                 style={"color": "#58a6ff", "fontSize": "12px",
+                                        "fontWeight": "600", "marginBottom": "8px"}),
+                        dcc.Graph(
+                            id="chart-battery-dist",
+                            style={"height": "120px"},
+                            config={"displayModeBar": False},
+                        ),
+
+                        html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
+
+                        # 에너지 소모 시계열 차트
+                        html.Div("⚡ 에너지 소모 (Wh)",
+                                 style={"color": "#58a6ff", "fontSize": "12px",
+                                        "fontWeight": "600", "marginBottom": "8px"}),
+                        dcc.Graph(
+                            id="chart-energy-ts",
+                            style={"height": "120px"},
+                            config={"displayModeBar": False},
+                        ),
+
+                        html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
+
+                        # 충돌 해결률 시계열
+                        html.Div("🛡 충돌 해결률 (%)",
+                                 style={"color": "#58a6ff", "fontSize": "12px",
+                                        "fontWeight": "600", "marginBottom": "8px"}),
+                        dcc.Graph(
+                            id="chart-cr-rate",
+                            style={"height": "120px"},
+                            config={"displayModeBar": False},
+                        ),
+
+                        html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
+
                         # 범례
                         html.Div("🎨 비행 단계 범례",
                                  style={"color": "#58a6ff", "fontSize": "12px",
@@ -1166,12 +1223,30 @@ def _apply_scenario(scenario: str):
     return ""
 
 
+def _mini_chart_layout() -> dict:
+    """소형 차트 공통 레이아웃"""
+    return dict(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=30, r=8, t=4, b=20),
+        xaxis=dict(color="#6e7681", gridcolor="#21262d", showgrid=True,
+                   tickfont=dict(size=8)),
+        yaxis=dict(color="#6e7681", gridcolor="#21262d", showgrid=True,
+                   tickfont=dict(size=8)),
+        showlegend=False,
+        height=110,
+    )
+
+
 @app.callback(
-    Output("graph-3d",  "figure"),
-    Output("hdr-time",  "children"),
-    Output("stats",     "children"),
-    Output("alert-log", "children"),
-    Input("interval",   "n_intervals"),
+    Output("graph-3d",          "figure"),
+    Output("hdr-time",          "children"),
+    Output("stats",             "children"),
+    Output("alert-log",         "children"),
+    Output("chart-battery-dist", "figure"),
+    Output("chart-energy-ts",    "figure"),
+    Output("chart-cr-rate",      "figure"),
+    Input("interval",           "n_intervals"),
 )
 def _refresh(_n):
     fig = build_figure(SIM)
@@ -1199,6 +1274,10 @@ def _refresh(_n):
         f"{'▶ 실행 중' if SIM.running else '⏸ 일시정지'}"
     )
 
+    # 에너지 소모 표시
+    latest = SIM.metrics.latest
+    energy_wh = latest.total_energy_wh if latest else 0.0
+
     stats_div = html.Div([
         _stat("전체 드론",      f"{len(drones)}"),
         _stat("활성",           f"{active}"),
@@ -1208,6 +1287,7 @@ def _refresh(_n):
         _stat("실제 충돌",      f"{collisions}", warn=collisions > 0),
         _stat("어드바이저리",   f"{advisories}"),
         _stat("평균 배터리",    f"{avg_bat:.0f} %"),
+        _stat("에너지 소모",    f"{energy_wh:.1f} Wh"),
         html.Hr(style={"borderColor": "#21262d", "margin": "8px 0"}),
         *[_stat(k, str(v)) for k, v in sorted(phase_cnt.items())],
     ])
@@ -1224,7 +1304,43 @@ def _refresh(_n):
         alerts.append(f"🔵 어드바이저리 {advisories}건")
     alert_str = "   |   ".join(alerts) if alerts else "✅ 경보 없음"
 
-    return fig, time_str, stats_div, alert_str
+    # ── 배터리 분포 바 차트
+    bat_hist = SIM.metrics.battery_distribution()
+    bat_labels = [f"{i*10}-{i*10+10}%" for i in range(10)]
+    bat_colors = ["#F44336" if i < 2 else "#FF9800" if i < 4
+                  else "#4CAF50" for i in range(10)]
+    fig_bat = go.Figure(go.Bar(
+        x=bat_labels, y=bat_hist,
+        marker_color=bat_colors,
+    ))
+    fig_bat.update_layout(**_mini_chart_layout())
+
+    # ── 에너지 소모 시계열
+    ts_t, ts_e = SIM.metrics.time_series("total_energy_wh")
+    fig_energy = go.Figure(go.Scatter(
+        x=ts_t, y=ts_e,
+        mode="lines",
+        line=dict(color="#FFD700", width=1.5),
+        fill="tozeroy",
+        fillcolor="rgba(255,215,0,0.1)",
+    ))
+    fig_energy.update_layout(**_mini_chart_layout())
+    fig_energy.update_xaxes(title_text="시간 (s)", title_font_size=8)
+
+    # ── 충돌 해결률 시계열
+    ts_t2, ts_cr = SIM.metrics.time_series("conflict_resolution_rate")
+    fig_cr = go.Figure(go.Scatter(
+        x=ts_t2, y=ts_cr,
+        mode="lines",
+        line=dict(color="#00E676", width=1.5),
+        fill="tozeroy",
+        fillcolor="rgba(0,230,118,0.1)",
+    ))
+    fig_cr.update_layout(**_mini_chart_layout())
+    fig_cr.update_xaxes(title_text="시간 (s)", title_font_size=8)
+    fig_cr.update_yaxes(range=[0, 105])
+
+    return fig, time_str, stats_div, alert_str, fig_bat, fig_energy, fig_cr
 
 
 # ─────────────────────────────────────────────────────────────

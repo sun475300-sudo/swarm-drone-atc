@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
 [![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
-[![Tests](https://img.shields.io/badge/Tests-325%20passed-brightgreen?style=for-the-badge)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-373%20passed-brightgreen?style=for-the-badge)](tests/)
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
@@ -109,9 +109,9 @@
 <details>
 <summary><b>Step 5: Results / 5단계: 결과</b></summary>
 
-**EN:** 325 automated tests passed, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), 99.9% collision reduction in all scenarios. A complete capstone project.
+**EN:** 373 automated tests passed, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), 99.9% collision reduction in all scenarios. A complete capstone project.
 
-**KR:** 325개 테스트 통과, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모로 완성된 캡스톤 프로젝트입니다.
+**KR:** 373개 테스트 통과, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모로 완성된 캡스톤 프로젝트입니다.
 </details>
 
 ---
@@ -186,7 +186,7 @@ A distributed ATC simulation system that uses swarm drones as **mobile virtual r
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Layer 4 — 사용자 인터페이스                                   │
-│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 325개          │
+│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 373개          │
 └───────────────────────────┬──────────────────────────────────┘
                             │ 명령 / 결과
 ┌───────────────────────────▼──────────────────────────────────┐
@@ -619,7 +619,7 @@ python main.py monte-carlo --mode full    # ~3시간 (16코어)
 | 300대 | 44,850 | ~7,000 | 임계점 |
 | 500대 | 124,750 | ~15,000 | **KDTree 필수** |
 
-> 300대+ 운용 시 `scipy.spatial.KDTree` 공간 인덱스 도입 예정 (로드맵)
+> 200대+ 운용 시 `scipy.spatial.KDTree` 자동 전환 (구현 완료), 200대 미만은 SpatialHash 사용
 
 ### 어드바이저리 지연 시간
 
@@ -764,6 +764,7 @@ swarm-drone-atc/
 │   ├── weather.py                   # WindModel 3종 (constant/gust/shear)
 │   ├── scenario_runner.py           # YAML 시나리오 로더 + 실행기
 │   ├── monte_carlo.py               # 파라미터 스윕 (Joblib 병렬)
+│   ├── config_schema.py             # pydantic YAML 설정 검증
 │   ├── apf_engine/apf.py            # APF 배치 벡터 계산
 │   ├── cbs_planner/cbs.py           # CBS 다중 드론 경로 계획
 │   └── voronoi_airspace/            # Voronoi 2D 공역 분할
@@ -794,7 +795,7 @@ swarm-drone-atc/
 │   ├── report/SDACS_Technical_Report.docx  # A4 한국어 기술 보고서
 │   └── images/                             # 성능 차트 + SVG 다이어그램
 │
-└── tests/                              # pytest 325개 (26 모듈)
+└── tests/                              # pytest 373개 (27 모듈)
     ├── test_apf.py                     # APF 포텐셜 장 (10)
     ├── test_cbs.py                     # CBS 격자 노드 (8)
     ├── test_resolution_advisory.py     # 어드바이저리 분류 (6)
@@ -814,7 +815,8 @@ swarm-drone-atc/
     ├── test_message_types.py           # 메시지 타입 (6)
     ├── test_monte_carlo.py             # MC 스윕 검증 (10)
     ├── test_scenario_runner.py         # 시나리오 변환/실행 (16)
-    └── test_phase10_13.py             # Phase10-13 통합 (33)
+    ├── test_phase10_13.py             # Phase10-13 통합 (33)
+    └── test_phase16_17.py             # 설정검증·SpatialHash·KDTree·시뮬코어 (48)
 ```
 
 ---
@@ -826,7 +828,7 @@ pytest tests/ -v              # Run all / 전체 실행
 pytest tests/test_apf.py -v   # Specific module / 특정 파일
 ```
 
-### 테스트 커버리지 (325개 / 26모듈)
+### 테스트 커버리지 (373개 / 27모듈)
 
 | 파일 | 수 | 대상 |
 |------|---|------|
@@ -856,7 +858,8 @@ pytest tests/test_apf.py -v   # Specific module / 특정 파일
 | `test_apf_wind_blend.py` | 14 | APF 풍속 블렌딩·지면회피 |
 | `test_ra_edge_cases.py` | 22 | RA 엣지케이스·Lost-Link·ICAO·경계값 |
 | `test_phase10_13.py` | 33 | APF벡터장·동적분리·HOLDING큐·지오펜스·장애주입·통합 |
-| **합계** | **325** | **26 모듈 · 100% pass** |
+| `test_phase16_17.py` | 48 | SpatialHash·드론프로파일·설정검증·시뮬코어·KDTree·통신 |
+| **합계** | **373** | **27 모듈 · 100% pass** |
 
 ---
 
@@ -886,7 +889,7 @@ Before hardware testing, swarm algorithms were validated in a StarCraft II envir
 | 단계 | 기간 | 주요 산출물 | 상태 |
 |------|------|------------|------|
 | Phase 1: 설계 | 2026.01~03 | 아키텍처 설계, 알고리즘 설계 | ✅ 완료 |
-| Phase 2: 구현 | 2026.03 | SimPy 시뮬레이터, pytest 325개, SC2 14,200회 검증 | ✅ 완료 |
+| Phase 2: 구현 | 2026.03 | SimPy 시뮬레이터, pytest 373개, SC2 14,200회 검증 | ✅ 완료 |
 | Phase 3: 검증 | 2026.03 | Monte Carlo 38,400회, 3D 대시보드, **42개 시나리오** 전량 실행 | ✅ 완료 |
 | Phase 4: 문서화 | 2026.03 | 기술 보고서(DOCX), 성능 차트, README 920줄, 발표 스크립트 | ✅ 완료 |
 
@@ -961,6 +964,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 시간 | 주요 변경 사항 | 커밋 |
 |------|------|---------------|------|
+| 2026-03-28 | — | **Phase 16-19**: pydantic YAML 설정 검증, KDTree 적응형 충돌 스캔(200대+ 자동 전환), generate_charts --live 실측 데이터 모드, 에러 핸들링 강화, 테스트 325→373 (48개 추가: SpatialHash·드론프로파일·설정검증·시뮬코어·KDTree·통신) | — |
 | 2026-03-28 | — | **Phase 10-15**: APF 벡터장 시각화, 풍속 연동 동적 분리간격(1.0x~1.6x), HOLDING 큐 관리(MAX 100), CBS 메트릭 추적, 장애 주입 자동화(MOTOR/BATTERY/GPS+통신두절), 지오펜스 경계 보호, 에너지 효율 Wh/km, 통신 메트릭(전송/배달/손실), SimulationResult 15필드 확장, SLA 합격 판정 MC 연동, NFZ 근접경고, 테스트 292→325 (33개 추가) | — |
 | 2026-03-27 | 23:00 KST | 보고서 v2: 핵심 알고리즘 인터랙티브 시뮬레이션 섹션 4.4 추가 (Boids 3D, Authority Mode FSM, APF), 테스트 270개 반영, README 동기화 | — |
 | 2026-03-27 | 22:00 KST | Phase 4-6: 시뮬레이터 고도화 (SpatialHash, NFZ 검증, 웨이포인트 추적, Lost-Link 3-phase, APF 지면회피), 테스트 17개 추가 (255→270) | `6d87f65` |

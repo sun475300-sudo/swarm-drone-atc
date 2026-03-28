@@ -219,20 +219,133 @@ def chart_resolution_heatmap(out: str) -> None:
 
 # ── 메인 ────────────────────────────────────────────────────
 
+def _run_live_scenarios() -> dict[str, dict]:
+    """실제 시뮬레이션을 실행하여 시나리오별 결과를 수집"""
+    from simulation.scenario_runner import list_scenarios, run_scenario
+
+    scenarios = list_scenarios()
+    results = {}
+    for name in scenarios:
+        try:
+            run_results = run_scenario(name, n_runs=1, seed=42, verbose=False)
+            if run_results:
+                results[name] = run_results[0]
+        except Exception as e:
+            print(f"  [SKIP] {name}: {e}")
+    return results
+
+
+def chart_latency_live(out: str, live_data: dict[str, dict]) -> None:
+    """실제 시나리오 결과로 어드바이저리 지연 차트 생성"""
+    scenario_names = []
+    p50_vals = []
+    p99_vals = []
+    for name, data in live_data.items():
+        p50 = data.get("advisory_latency_p50", 0)
+        p99 = data.get("advisory_latency_p99", 0)
+        scenario_names.append(name.replace("_", "\n"))
+        p50_vals.append(p50)
+        p99_vals.append(p99)
+
+    if not scenario_names:
+        print(f"  [SKIP] latency chart — no data")
+        return
+
+    x = np.arange(len(scenario_names))
+    width = 0.35
+
+    fig, ax = plt.subplots(figsize=(11, 5))
+    ax.bar(x - width/2, p50_vals, width, label="P50 (실측)", color=BLUE, alpha=0.85)
+    ax.bar(x + width/2, p99_vals, width, label="P99 (실측)", color=ORANGE, alpha=0.85)
+    ax.axhline(2.0, color=BLUE, linestyle="--", linewidth=1.2, alpha=0.7, label="P50 SLA (2.0 s)")
+    ax.axhline(10.0, color=ORANGE, linestyle="--", linewidth=1.2, alpha=0.7, label="P99 SLA (10.0 s)")
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(scenario_names, fontsize=9)
+    ax.set_ylabel("지연 시간 (초)", fontsize=12)
+    ax.set_title("시나리오별 어드바이저리 지연 시간 [실측] (P50 / P99)", fontsize=14, fontweight="bold", pad=14)
+    ax.legend(fontsize=10)
+    ax.grid(True, axis="y")
+
+    plt.tight_layout()
+    plt.savefig(out, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  [OK] {out}")
+
+
+def chart_scenario_comparison_live(out: str, live_data: dict[str, dict]) -> None:
+    """실제 시나리오 결과로 KPI 비교 바 차트 생성"""
+    names = []
+    collisions = []
+    near_misses = []
+    res_rates = []
+
+    for name, data in live_data.items():
+        names.append(name.replace("_", "\n"))
+        collisions.append(data.get("collision_count", 0))
+        near_misses.append(data.get("near_miss_count", 0))
+        res_rates.append(data.get("conflict_resolution_rate_pct",
+                                  data.get("conflict_resolution_rate", 100)))
+
+    if not names:
+        print(f"  [SKIP] comparison chart — no data")
+        return
+
+    fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+
+    # 충돌 수
+    axes[0].barh(names, collisions, color=RED, alpha=0.8)
+    axes[0].set_title("충돌 수 [실측]", fontsize=12, fontweight="bold")
+    axes[0].set_xlabel("건수")
+
+    # 근접 경고
+    axes[1].barh(names, near_misses, color=ORANGE, alpha=0.8)
+    axes[1].set_title("근접 경고 [실측]", fontsize=12, fontweight="bold")
+    axes[1].set_xlabel("건수")
+
+    # 해결률
+    axes[2].barh(names, res_rates, color=GREEN, alpha=0.8)
+    axes[2].axvline(99.5, color=RED, linestyle="--", linewidth=1.5, label="SLA 99.5%")
+    axes[2].set_title("충돌 해결률 [실측]", fontsize=12, fontweight="bold")
+    axes[2].set_xlabel("%")
+    axes[2].legend()
+
+    plt.suptitle("SDACS 시나리오별 실측 KPI 비교", fontsize=14, fontweight="bold", y=1.02)
+    plt.tight_layout()
+    plt.savefig(out, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  [OK] {out}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="SDACS 성능 차트 생성")
     parser.add_argument("--output-dir", default="docs/images", help="출력 디렉터리")
+    parser.add_argument("--live", action="store_true",
+                        help="실제 시뮬레이션 실행 후 실측 데이터로 차트 생성")
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
     print(f"\n[SDACS] 차트 생성 → {args.output_dir}/\n")
 
+    # 기본 분석 차트 (항상 생성)
     chart_throughput(      os.path.join(args.output_dir, "throughput_vs_drones.png"))
     chart_latency(         os.path.join(args.output_dir, "advisory_latency.png"))
     chart_scenario_radar(  os.path.join(args.output_dir, "scenario_kpi_radar.png"))
     chart_resolution_heatmap(os.path.join(args.output_dir, "conflict_resolution_heatmap.png"))
 
-    print(f"\n[OK] 차트 4종 생성 완료\n")
+    # 실측 데이터 차트 (--live 플래그)
+    if args.live:
+        print("\n[LIVE] 시나리오 실행 중...\n")
+        live_data = _run_live_scenarios()
+        if live_data:
+            chart_latency_live(
+                os.path.join(args.output_dir, "advisory_latency_live.png"), live_data)
+            chart_scenario_comparison_live(
+                os.path.join(args.output_dir, "scenario_comparison_live.png"), live_data)
+        else:
+            print("  [WARN] 실측 데이터 없음 — live 차트 생략")
+
+    print(f"\n[OK] 차트 생성 완료\n")
 
 
 if __name__ == "__main__":

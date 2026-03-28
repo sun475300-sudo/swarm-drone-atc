@@ -249,7 +249,7 @@ class AirspaceController:
         try:
             drone.flight_phase = FlightPhase[tm.flight_phase]
         except KeyError:
-            pass
+            logger.warning("알 수 없는 FlightPhase: %s (drone=%s)", tm.flight_phase, tm.sender_id)
 
     # ── 허가 처리 ────────────────────────────────────────────
 
@@ -403,6 +403,9 @@ class AirspaceController:
 
     # ── 충돌 스캔 ────────────────────────────────────────────
 
+    # KDTree 드론 수 임계값: 이 수 이상이면 KDTree 사용
+    _KDTREE_THRESHOLD = 200
+
     def _scan_conflicts(self, t: float) -> None:
         active = {did: d for did, d in self._active_drones.items()
                   if d.is_active}
@@ -415,18 +418,26 @@ class AirspaceController:
             if adv.conflict_pair:
                 covered.add(frozenset([adv.target_drone_id, adv.conflict_pair]))
 
-        # Spatial Hash로 근접 쌍만 추출 — O(N·k)
         # 드론 수에 따른 적응형 스캔 반경 (고밀도 시 확대)
         density_factor = min(len(active) / 50.0, 3.0)  # 50대 기준 최대 3x
         scan_radius = self._lat_min * max(2.0, 1.5 + density_factor * 0.5)
-        self._spatial_hash.clear()
-        for did, d in active.items():
-            # 텔레메트리 지연 보정된 위치로 공간 해시 삽입
-            lag = max(0.0, t - d.last_update_s) if d.last_update_s > 0 else 0.0
-            ext_pos = d.position + d.velocity * lag if lag > 0 else d.position
-            self._spatial_hash.insert(did, ext_pos)
 
-        for id_a, id_b, cur_dist in self._spatial_hash.query_pairs_with_dist(scan_radius):
+        # 텔레메트리 지연 보정 위치 계산
+        ext_positions: dict[str, np.ndarray] = {}
+        for did, d in active.items():
+            lag = max(0.0, t - d.last_update_s) if d.last_update_s > 0 else 0.0
+            ext_positions[did] = d.position + d.velocity * lag if lag > 0 else d.position
+
+        # 적응형 공간 인덱스: 200대 이상이면 KDTree, 미만이면 SpatialHash
+        if len(active) >= self._KDTREE_THRESHOLD:
+            nearby_pairs = self._kdtree_query_pairs(ext_positions, scan_radius)
+        else:
+            self._spatial_hash.clear()
+            for did, pos in ext_positions.items():
+                self._spatial_hash.insert(did, pos)
+            nearby_pairs = list(self._spatial_hash.query_pairs_with_dist(scan_radius))
+
+        for id_a, id_b, cur_dist in nearby_pairs:
             pair = frozenset([id_a, id_b])
             if pair in covered:
                 continue
@@ -527,6 +538,27 @@ class AirspaceController:
                             self.analytics.record_event(
                                 "REROUTE_FAILED", t,
                                 drone_id=target.drone_id, error=str(e))
+
+    @staticmethod
+    def _kdtree_query_pairs(
+        positions: dict[str, np.ndarray], radius: float
+    ) -> list[tuple[str, str, float]]:
+        """KDTree 기반 근접 쌍 쿼리 — 200대+ 고밀도 환경에서 O(N log N)"""
+        if len(positions) < 2:
+            return []
+
+        from scipy.spatial import KDTree
+
+        ids = list(positions.keys())
+        pts = np.array([positions[did] for did in ids])
+        tree = KDTree(pts)
+        pairs_idx = tree.query_pairs(radius, output_type="ndarray")
+
+        result: list[tuple[str, str, float]] = []
+        for i, j in pairs_idx:
+            dist = float(np.linalg.norm(pts[i] - pts[j]))
+            result.append((ids[i], ids[j], dist))
+        return result
 
     def _pick_target(self, da: DroneState, db: DroneState) -> DroneState:
         """어드바이저리를 받을 드론 선택 (낮은 우선순위, 동률 시 ID 기반 타이브레이크)"""

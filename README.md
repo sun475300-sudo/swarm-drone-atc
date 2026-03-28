@@ -9,10 +9,10 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Tests](https://img.shields.io/badge/Tests-1111%20passed-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
-[![Algorithms](https://img.shields.io/badge/Algorithms-107-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
-[![Modules](https://img.shields.io/badge/Modules-80+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
-[![Lines](https://img.shields.io/badge/Python-15%2C000%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
+[![Tests](https://img.shields.io/badge/Tests-1206%20passed-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Algorithms](https://img.shields.io/badge/Algorithms-131-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
+[![Modules](https://img.shields.io/badge/Modules-104+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
+[![Lines](https://img.shields.io/badge/Python-17%2C500%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
 [![Monte Carlo](https://img.shields.io/badge/Monte%20Carlo-38%2C400%20runs-E91E63?style=for-the-badge&logo=chart.js&logoColor=white)](#monte-carlo-sla)
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
@@ -40,8 +40,8 @@
 | 🎯 지표 | 📊 결과 | 📝 설명 |
 |:---:|:---:|:---|
 | **충돌 감소율** | **99.9%** | 500대 메가 군집: 58,038 → 19 |
-| **자동 테스트** | **1,111개** | 39 모듈 · 100% pass |
-| **알고리즘** | **107개** | 4계층 15,000+줄 Python |
+| **자동 테스트** | **1,206개** | 40 모듈 · 100% pass |
+| **알고리즘** | **131개** | 4계층 17,500+줄 Python |
 | **MC 검증** | **38,400회** | 384 config × 100 seeds |
 | **시나리오** | **42종** | 극한기상·침입·GPS교란·대규모배송 |
 | **반응 시간** | **< 1초** | CPA 90초 선제 예측 |
@@ -141,7 +141,7 @@
 │  └─ DAG 위상정렬                                     │
 │                                                       │
 │  🎮 시각화             🧪 검증                        │
-│  ├─ Dash 3D 대시보드   ├─ 1,111 pytest               │
+│  ├─ Dash 3D 대시보드   ├─ 1,206 pytest               │
 │  ├─ Three.js HTML      ├─ 42 시나리오                 │
 │  ├─ 실시간 히트맵      ├─ 38,400 Monte Carlo          │
 │  └─ 궤적 리플레이      └─ 통합 검증기                 │
@@ -187,9 +187,9 @@
 <details>
 <summary><b>Step 5: Results / 5단계: 결과</b></summary>
 
-**EN:** 1,111 automated tests passed, 107 algorithms, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), 99.9% collision reduction in all scenarios. A complete capstone project.
+**EN:** 1,206 automated tests passed, 131 algorithms, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), 99.9% collision reduction in all scenarios. A complete capstone project.
 
-**KR:** 1,111개 테스트 통과, 107개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모로 완성된 캡스톤 프로젝트입니다.
+**KR:** 1,206개 테스트 통과, 131개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모로 완성된 캡스톤 프로젝트입니다.
 </details>
 
 ---
@@ -279,7 +279,7 @@ A distributed ATC simulation system that uses swarm drones as **mobile virtual r
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Layer 4 — 사용자 인터페이스                                   │
-│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 1,111개        │
+│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 1,206개        │
 └───────────────────────────┬──────────────────────────────────┘
                             │ 명령 / 결과
 ┌───────────────────────────▼──────────────────────────────────┐
@@ -447,7 +447,7 @@ Low Level: 시공간 A* (개별 드론)
 
 ## Algorithm Hierarchy / 알고리즘 계층 구조
 
-> **107개 핵심 알고리즘**이 4개 계층에서 계층적으로 동작합니다. (Python 15,000+줄 + HTML/JS 2,897줄)
+> **131개 핵심 알고리즘**이 4개 계층에서 계층적으로 동작합니다. (Python 17,500+줄 + HTML/JS 2,897줄)
 
 ```
 Layer 1: 드론 에이전트 (10 Hz, SimPy)
@@ -718,7 +718,7 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
 
 ---
 
-### 모듈 카테고리별 분포 (107개 알고리즘)
+### 모듈 카테고리별 분포 (131개 알고리즘)
 
 ```
   충돌 회피/경로 계획  (18) ████████████████████░░░░░░░░░░ 17%
@@ -741,8 +741,9 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
   Phase  68-91  ████████████████████ 완료 ✓  분석 엔진 (캐시·예약·히트맵·포렌식)
   Phase  92-107 ████████████████████ 완료 ✓  관리 체계 (리더·체인·고도·평가·접근)
   Phase 108-131 ████████████████████ 완료 ✓  AI/보안 (RL·협상·스푸핑·암호화·비용)
+  Phase 132-155 ████████████████████ 완료 ✓  산업화 (팩토리·배터리·풍동·MCTS·NLP·트윈)
   ─────────────────────────────────────────────────────
-  총 진행률: ██████████████████████████████ 100% (107/107 알고리즘)
+  총 진행률: ██████████████████████████████ 100% (131/131 알고리즘)
 ```
 
 ---
@@ -1194,7 +1195,7 @@ pytest tests/ -v              # Run all / 전체 실행
 pytest tests/test_apf.py -v   # Specific module / 특정 파일
 ```
 
-### 테스트 커버리지 (1,111개 / 39모듈)
+### 테스트 커버리지 (1,206개 / 39모듈)
 
 | 파일 | 수 | 대상 |
 |------|---|------|
@@ -1237,7 +1238,8 @@ pytest tests/test_apf.py -v   # Specific module / 특정 파일
 | `test_phase76_91.py` | 100 | 스케일링·캐시·예약·인증·다중목표·이벤트·히트맵·그룹·포렌식·기상위험·에너지·토폴로지·임무큐·복도·센서·벤치마크 |
 | `test_phase92_107.py` | 72 | 리더선출·밀도예측·임무체인·장애전파·고도관리·로그분석·충전최적화·페어링·비행검증·대시보드·배치·이력·성능프로필·임무평가·접근제어·건강모니터 |
 | `test_phase108_131.py` | 104 | RL경로·유지보수·협상·튜너·의사결정·수요예측·다양성·우선순위·GPS스푸핑·암호화·침입탐지·규제·QoS·신원·감사·방송·난이도·AB테스트·스트림·조율·환경·비용·학습·통합검증 |
-| **합계** | **1,111** | **39 모듈 · 100% pass** |
+| `test_phase132_155.py` | 95 | 드론팩토리·리밸런서·배터리열화·풍동·착륙패드·GPS멀티패스·동적장애물·페이로드·멀티테넌트·SLA·라이프사이클·스케줄·배송최적화·가격엔진·고객지표·함대구성·MCTS·연합학습·NLP·디지털트윈·미션플래너·센서융합·이벤트아키텍처·대시보드 |
+| **합계** | **1,206** | **40 모듈 · 100% pass** |
 
 ---
 
@@ -1342,6 +1344,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 시간 | 주요 변경 사항 | 커밋 |
 |------|------|---------------|------|
+| 2026-03-28 | — | **Phase 132-155**: 드론 팩토리(12종 프리셋), 실시간 리밸런서(그리드 밀도맵+재배치), 배터리 열화(사이클×온도 SoH), 3D 풍동(건물 차폐/터널/상승기류), 착륙 네트워크(거리+점유율 추천), GPS 멀티패스(반사체+HDOP), 동적 장애물(이동체 CPA+위협등급), 페이로드 관리(적재→성능 영향), 멀티테넌트(테넌트 격리+쿼터), SLA 계약(위반 추적+패널티), 드론 라이프사이클(구매→퇴역 TCO), 스케줄 최적화(시간대별 부하 분산), 배송 최적화(TSP+용량 제약), 동적 가격 엔진(수요/기상/거리), 고객 메트릭(정시율/만족도/손상률), 함대 구성(ROI 기반 배분), MCTS 경로 계획(UCB1+시뮬레이션 롤아웃), 연합 학습(가중 평균 집계), NLP 명령 파서(의도 분류), 디지털 트윈(상태 미러링+예측), 자율 미션 플래너(목표→미션 자동 생성), 멀티모달 센서 융합(신뢰도 가중), 이벤트 아키텍처(CQRS+소싱+리플레이), 시스템 대시보드(모듈 건강+KPI), 테스트 1111→1206 (95개 추가) | — |
 | 2026-03-28 | — | **Phase 108-131**: 강화학습 경로(Q-테이블+epsilon-greedy), 예측 유지보수(잔여수명+정비일정), 다중 에이전트 협상(양보/교환), 적응형 튜너(자동 파라미터 조정), 의사결정 트리(규칙 기반 관제), 수요 예측(시간대별 학습), 경로 다양성(k-최단+유사도), 우선순위 재조정(컨텍스트 기반), GPS 스푸핑 탐지(교차 검증), 암호화 통신(키 교환+무결성), 침입 탐지(이상 트래픽+격리), 규제 업데이트(버전+자동 적용), QoS(대역폭 할당), 드론 신원 인증(PKI), 감사 추적(불변 체인), 비상 방송(구역별+확인), 난이도 평가(복합 점수), A/B 테스트(유의성 검정), 리포트 스트림(이벤트+구독), 다중 시뮬 조율(병렬+집계), 환경 영향(소음/에너지), 비용 분석(ROI), 학습 데이터 수집, 통합 검증(의존성+회귀), 테스트 1007→1111 (104개 추가) | — |
 | 2026-03-28 | — | **Phase 92-107**: 분산 리더 선출(복합 점수+페일오버), 공역 밀도 예측(선형 트렌드+혼잡 사전조치), DAG 임무 체인(위상 정렬+임계 경로), 장애 전파 분석(BFS+격리+복원력), 동적 고도 관리(8방위 밴드+우선순위), 비행 로그 분석(z-score 이상+KPI), 충전 최적화(다중 충전소 비용), 드론 페어링(ESCORT/RELAY/SEARCH), 비행 계획 검증(NFZ/고도/거리+적합성 점수), 대시보드 데이터(KPI+경보+트렌드), 배치 시뮬레이터(다중 시나리오+통계), 공역 이력(스냅샷+비교), 성능 프로필(열화 추적+비교), 임무 평가(A~F 등급+권장), 역할 접근 제어(감사 로그), 시스템 건강 모니터(역방향 지표+자가 진단), 테스트 935→1007 (72개 추가) | — |
 | 2026-03-28 | — | **Phase 76-91**: 자동 스케일링(수요예측+동적 조절), 경로 LRU 캐시(히트율+지역 무효화), 4D 공역 예약(시공간 슬롯+우선순위 선점), 드론 인증(등록/블랙리스트+비행허가), 다중 목표 최적화(파레토+가중 합산), Pub/Sub 이벤트 버스(필터+이력), 공역 히트맵(밀도 예측+트렌드), 드론 그룹 관리(생성/해체/병합), 충돌 포렌식(근본원인+재현), 기상 위험 구역(이동+자동 회피), 에너지 예산(할당+소비+경고), 네트워크 토폴로지(중심성+취약 노드), 임무 큐(SLA+재할당), 비행 복도(진입/이탈 프로토콜), 센서 퓨전(역분산 가중), 벤치마크(회귀 탐지), 테스트 835→935 (100개 추가) | — |

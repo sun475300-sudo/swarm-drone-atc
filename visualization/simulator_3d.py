@@ -41,6 +41,10 @@ from src.airspace_control.agents.drone_state import (
 )
 from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
 from visualization.metrics_stream import MetricsCollector
+from simulation.threat_assessment import ThreatAssessmentEngine, ThreatLevel
+from simulation.multi_controller import MultiControllerManager
+from simulation.sla_monitor import SLAMonitor
+from simulation.event_timeline import EventTimeline
 
 # ─────────────────────────────────────────────────────────────
 # 공역 상수
@@ -140,6 +144,24 @@ class SimState:
         # 동적 NFZ 목록 (런타임 추가/제거)
         self.dynamic_nfzs: dict[str, dict] = {}  # id -> {x_range, y_range, z_range}
 
+        # 위협 평가 엔진
+        self.threat_engine = ThreatAssessmentEngine()
+        self.threat_matrix: dict = {}
+
+        # 다중 관제 구역
+        self.sector_mgr = MultiControllerManager(bounds=BOUNDS_M, n_sectors=4)
+
+        # SLA 모니터
+        self.sla_monitor = SLAMonitor()
+        self.sla_violations: list[dict] = []
+
+        # 이벤트 타임라인
+        self.timeline = EventTimeline()
+
+        # 성능 모니터
+        self.tick_times_ms: list[float] = []
+        self.max_tick_history = 300
+
     def reset(self, n_drones: int | None = None) -> None:
         if n_drones is not None:
             self.n_drones = n_drones
@@ -193,6 +215,13 @@ class SimState:
             self.collisions = 0
             self.dynamic_nfzs = {}
             self.metrics.reset()
+            self.threat_engine.clear()
+            self.threat_matrix = {}
+            self.sector_mgr = MultiControllerManager(bounds=BOUNDS_M, n_sectors=4)
+            self.sla_monitor = SLAMonitor()
+            self.sla_violations = []
+            self.timeline = EventTimeline()
+            self.tick_times_ms = []
 
 
 # ─────────────────────────────────────────────────────────────
@@ -274,6 +303,16 @@ def _step(sim: SimState) -> None:
 
         sim.t += dt
 
+        # 틱 성능 기록
+        import time as _time
+        _tick_end = _time.perf_counter()
+        if hasattr(sim, '_tick_start'):
+            tick_ms = (_tick_end - sim._tick_start) * 1000
+            sim.tick_times_ms.append(tick_ms)
+            if len(sim.tick_times_ms) > sim.max_tick_history:
+                sim.tick_times_ms = sim.tick_times_ms[-sim.max_tick_history:]
+        sim._tick_start = _tick_end
+
         # 메트릭 수집 (매 1초 = 10틱)
         if int(sim.t * 10) % 10 == 0:
             sim.metrics.record(
@@ -285,6 +324,58 @@ def _step(sim: SimState) -> None:
                 advisories=sim.advisories,
                 dt=dt,
             )
+
+            # 위협 평가 (매 1초)
+            evading_cnt = sum(1 for d in drones.values()
+                              if d.flight_phase == FlightPhase.EVADING)
+            failed_cnt = sum(1 for d in drones.values()
+                             if d.flight_phase == FlightPhase.FAILED)
+            low_bat_cnt = sum(1 for d in drones.values()
+                              if d.battery_pct < 20 and d.is_active)
+            wind_spd = float(np.linalg.norm(sim.wind[:2]))
+
+            threats = sim.threat_engine.assess(
+                collision_count=sim.collisions,
+                near_miss_count=sim.near_misses,
+                wind_speed=wind_spd,
+                failure_count=failed_cnt,
+                low_battery_count=low_bat_cnt,
+                evading_count=evading_cnt,
+            )
+            sim.threat_matrix = sim.threat_engine.priority_matrix(threats)
+
+            # 구역 업데이트
+            for did, d in drones.items():
+                if d.is_active:
+                    sim.sector_mgr.update_drone_position(did, d.position)
+
+            # SLA 체크
+            active_cnt = sum(1 for d in drones.values() if d.is_active)
+            cr_rate = 1.0 - (sim.collisions / max(sim.conflicts + sim.collisions, 1))
+            violations = sim.sla_monitor.check(
+                collision_rate=sim.collisions / max(active_cnt, 1),
+                resolution_rate=cr_rate,
+                near_miss_rate=sim.near_misses / max(active_cnt, 1),
+            )
+            if violations:
+                sim.sla_violations = violations
+
+            # 이벤트 타임라인 기록
+            if sim.collisions > 0 and (not sim.timeline._events or
+                    sim.timeline._events[-1].details.get("count") != sim.collisions):
+                sim.timeline.add(
+                    event_type="COLLISION",
+                    t=sim.t,
+                    severity="CRITICAL",
+                    details={"count": sim.collisions},
+                )
+            if evading_cnt > 0:
+                sim.timeline.add(
+                    event_type="EVADING",
+                    t=sim.t,
+                    severity="HIGH" if evading_cnt >= 3 else "MEDIUM",
+                    details={"count": evading_cnt},
+                )
 
 
 def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
@@ -717,6 +808,83 @@ def _wind_arrow(wind: np.ndarray) -> list[go.Scatter3d]:
     )]
 
 
+def _sector_overlay(sim: SimState) -> list[go.Scatter3d]:
+    """관제 구역 경계선 + 밀도 색상 3D 오버레이"""
+    traces = []
+    with sim.lock:
+        stats = sim.sector_mgr.sector_stats()
+        sectors = sim.sector_mgr.sectors
+
+    for sid, sector in sectors.items():
+        x0, x1 = sector.x_range
+        y0, y1 = sector.y_range
+        n_drones = stats[sid]["drones"]
+        density = stats[sid]["density"]
+
+        # 밀도 기반 색상 (초록→노랑→빨강)
+        if density > 4.0:
+            color = "#FF1744"
+        elif density > 2.0:
+            color = "#FF9100"
+        elif density > 1.0:
+            color = "#FFEA00"
+        else:
+            color = "#00E676"
+
+        # 구역 경계선
+        traces.append(go.Scatter3d(
+            x=[x0, x1, x1, x0, x0],
+            y=[y0, y0, y1, y1, y0],
+            z=[2, 2, 2, 2, 2],  # 지면 약간 위
+            mode="lines+text",
+            line=dict(color=color, width=3),
+            opacity=0.6,
+            text=[f"{sid} ({n_drones})", "", "", "", ""],
+            textposition="top center",
+            textfont=dict(color=color, size=9),
+            showlegend=False, hoverinfo="text",
+            hovertext=f"{sid}: {n_drones}기, 밀도 {density:.1f}/km²",
+        ))
+
+    return traces
+
+
+def _threat_heatmap_overlay(sim: SimState) -> list:
+    """위협 레벨에 따른 공역 히트맵 오버레이"""
+    with sim.lock:
+        matrix = sim.threat_matrix.copy() if sim.threat_matrix else {}
+
+    overall = matrix.get("overall_level", ThreatLevel.LOW)
+    if overall == ThreatLevel.LOW:
+        return []
+
+    # 위협 레벨 → 공역 전체 틴트 (경계 박스)
+    level_colors = {
+        ThreatLevel.MEDIUM: "rgba(255,234,0,0.03)",
+        ThreatLevel.HIGH: "rgba(255,152,0,0.05)",
+        ThreatLevel.CRITICAL: "rgba(244,67,54,0.07)",
+    }
+    color = level_colors.get(overall, "rgba(0,0,0,0)")
+
+    b = BOUNDS_M
+    vx = [-b, b, b, -b, -b, b, b, -b]
+    vy = [-b, -b, b, b, -b, -b, b, b]
+    vz = [0, 0, 0, 0, ALT_MAX, ALT_MAX, ALT_MAX, ALT_MAX]
+    ii = [0, 0, 4, 4, 0, 0, 2, 2, 0, 0, 1, 1]
+    jj = [1, 2, 5, 6, 1, 5, 3, 7, 3, 7, 2, 6]
+    kk = [2, 3, 6, 7, 5, 4, 7, 6, 7, 4, 6, 5]
+
+    return [go.Mesh3d(
+        x=vx, y=vy, z=vz,
+        i=ii, j=jj, k=kk,
+        color=color.replace("rgba", "rgb").rsplit(",", 1)[0] + ")",
+        opacity=float(color.split(",")[-1].rstrip(")")),
+        flatshading=True,
+        showlegend=False,
+        hoverinfo="skip",
+    )]
+
+
 def build_figure(sim: SimState) -> go.Figure:
     """3D 시각화 Figure 빌드"""
     with sim.lock:
@@ -750,6 +918,14 @@ def build_figure(sim: SimState) -> go.Figure:
     if show_apf:
         for t in _apf_vector_field(drones, wind):
             fig.add_trace(t)
+
+    # 관제 구역 오버레이
+    for t in _sector_overlay(sim):
+        fig.add_trace(t)
+
+    # 위협 히트맵 오버레이
+    for t in _threat_heatmap_overlay(sim):
+        fig.add_trace(t)
 
     # 드론 트레일
     for drone in drones:
@@ -1087,6 +1263,42 @@ app.layout = html.Div(
 
                         html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
 
+                        # 위협 레벨 패널
+                        html.Div("⚠ 위협 레벨",
+                                 style={"color": "#58a6ff", "fontSize": "12px",
+                                        "fontWeight": "600", "marginBottom": "8px"}),
+                        html.Div(id="threat-panel"),
+
+                        html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
+
+                        # SLA 상태 패널
+                        html.Div("📋 SLA 상태",
+                                 style={"color": "#58a6ff", "fontSize": "12px",
+                                        "fontWeight": "600", "marginBottom": "8px"}),
+                        html.Div(id="sla-panel"),
+
+                        html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
+
+                        # 구역별 현황
+                        html.Div("🗺 관제 구역",
+                                 style={"color": "#58a6ff", "fontSize": "12px",
+                                        "fontWeight": "600", "marginBottom": "8px"}),
+                        html.Div(id="sector-panel"),
+
+                        html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
+
+                        # 성능 모니터 차트
+                        html.Div("⏱ 틱 처리시간 (ms)",
+                                 style={"color": "#58a6ff", "fontSize": "12px",
+                                        "fontWeight": "600", "marginBottom": "8px"}),
+                        dcc.Graph(
+                            id="chart-tick-perf",
+                            style={"height": "100px"},
+                            config={"displayModeBar": False},
+                        ),
+
+                        html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
+
                         # 범례
                         html.Div("🎨 비행 단계 범례",
                                  style={"color": "#58a6ff", "fontSize": "12px",
@@ -1109,22 +1321,58 @@ app.layout = html.Div(
             ],
         ),
 
-        # ── 경보 로그 (하단 바)
+        # ── 경보 로그 + 이벤트 타임라인 (하단 바 — 확장형)
         html.Div(
-            id="alert-log",
             style={
                 "backgroundColor": "#0d1117",
                 "borderTop": "1px solid #21262d",
-                "padding": "6px 16px",
-                "fontSize": "11px",
-                "fontFamily": "monospace",
-                "color": "#8b949e",
                 "flexShrink": "0",
-                "height": "28px",
-                "overflow": "hidden",
-                "whiteSpace": "nowrap",
+                "height": "90px",
+                "display": "flex",
             },
-            children="경보 없음",
+            children=[
+                # 경보 로그 (왼쪽)
+                html.Div(
+                    style={
+                        "flex": "1",
+                        "padding": "6px 16px",
+                        "overflowY": "auto",
+                    },
+                    children=[
+                        html.Div("📜 경보 로그",
+                                 style={"color": "#58a6ff", "fontSize": "10px",
+                                        "fontWeight": "600", "marginBottom": "4px"}),
+                        html.Div(
+                            id="alert-log",
+                            style={
+                                "fontSize": "10px",
+                                "fontFamily": "monospace",
+                                "color": "#8b949e",
+                                "lineHeight": "1.4",
+                            },
+                            children="경보 없음",
+                        ),
+                    ],
+                ),
+                # 이벤트 타임라인 미니 차트 (오른쪽)
+                html.Div(
+                    style={
+                        "width": "350px",
+                        "borderLeft": "1px solid #21262d",
+                        "padding": "4px 8px",
+                    },
+                    children=[
+                        html.Div("📅 이벤트 타임라인",
+                                 style={"color": "#58a6ff", "fontSize": "10px",
+                                        "fontWeight": "600", "marginBottom": "2px"}),
+                        dcc.Graph(
+                            id="chart-timeline",
+                            style={"height": "65px"},
+                            config={"displayModeBar": False},
+                        ),
+                    ],
+                ),
+            ],
         ),
 
         # 인터벌 & 상태 저장소
@@ -1239,14 +1487,19 @@ def _mini_chart_layout() -> dict:
 
 
 @app.callback(
-    Output("graph-3d",          "figure"),
-    Output("hdr-time",          "children"),
-    Output("stats",             "children"),
-    Output("alert-log",         "children"),
+    Output("graph-3d",           "figure"),
+    Output("hdr-time",           "children"),
+    Output("stats",              "children"),
+    Output("alert-log",          "children"),
     Output("chart-battery-dist", "figure"),
     Output("chart-energy-ts",    "figure"),
     Output("chart-cr-rate",      "figure"),
-    Input("interval",           "n_intervals"),
+    Output("threat-panel",       "children"),
+    Output("sla-panel",          "children"),
+    Output("sector-panel",       "children"),
+    Output("chart-tick-perf",    "figure"),
+    Output("chart-timeline",     "figure"),
+    Input("interval",            "n_intervals"),
 )
 def _refresh(_n):
     fig = build_figure(SIM)
@@ -1258,6 +1511,11 @@ def _refresh(_n):
         near_miss  = SIM.near_misses
         advisories = SIM.advisories
         collisions = SIM.collisions
+        threat_mat = SIM.threat_matrix.copy() if SIM.threat_matrix else {}
+        sla_viols  = list(SIM.sla_violations)
+        sector_st  = SIM.sector_mgr.sector_stats()
+        tick_times = list(SIM.tick_times_ms)
+        timeline_events = SIM.timeline._events[-20:] if SIM.timeline._events else []
 
     active = sum(1 for d in drones if d.is_active)
     avg_bat = sum(d.battery_pct for d in drones) / max(len(drones), 1)
@@ -1292,17 +1550,32 @@ def _refresh(_n):
         *[_stat(k, str(v)) for k, v in sorted(phase_cnt.items())],
     ])
 
-    # 경보 로그 텍스트 구성
-    alerts = []
+    # ── 경보 로그 (최근 이벤트 기반)
+    alert_items = []
     if collisions > 0:
-        alerts.append(f"🔴 충돌 {collisions}건")
+        alert_items.append(
+            html.Div(f"[T+{mins:02d}:{secs:02d}] 🔴 충돌 {collisions}건 발생",
+                      style={"color": "#F44336"}))
     if near_miss > 0:
-        alerts.append(f"🟠 근접경고 {near_miss}건")
+        alert_items.append(
+            html.Div(f"[T+{mins:02d}:{secs:02d}] 🟠 근접경고 {near_miss}건",
+                      style={"color": "#FF9800"}))
     if evading > 0:
-        alerts.append(f"🟡 회피기동 {evading}기")
+        alert_items.append(
+            html.Div(f"[T+{mins:02d}:{secs:02d}] 🟡 회피기동 {evading}기",
+                      style={"color": "#FFEA00"}))
     if advisories > 0:
-        alerts.append(f"🔵 어드바이저리 {advisories}건")
-    alert_str = "   |   ".join(alerts) if alerts else "✅ 경보 없음"
+        alert_items.append(
+            html.Div(f"[T+{mins:02d}:{secs:02d}] 🔵 어드바이저리 {advisories}건",
+                      style={"color": "#42A5F5"}))
+    # 위협 정보 추가
+    overall_level = threat_mat.get("overall_level", ThreatLevel.LOW)
+    if overall_level >= ThreatLevel.HIGH:
+        level_name = overall_level.name if hasattr(overall_level, 'name') else str(overall_level)
+        alert_items.append(
+            html.Div(f"[T+{mins:02d}:{secs:02d}] ⚠ 위협 레벨: {level_name}",
+                      style={"color": "#FF5722" if overall_level >= ThreatLevel.CRITICAL else "#FF9800"}))
+    alert_div = html.Div(alert_items) if alert_items else "✅ 경보 없음"
 
     # ── 배터리 분포 바 차트
     bat_hist = SIM.metrics.battery_distribution()
@@ -1340,7 +1613,115 @@ def _refresh(_n):
     fig_cr.update_xaxes(title_text="시간 (s)", title_font_size=8)
     fig_cr.update_yaxes(range=[0, 105])
 
-    return fig, time_str, stats_div, alert_str, fig_bat, fig_energy, fig_cr
+    # ── 위협 레벨 패널
+    threat_color_map = {
+        ThreatLevel.LOW: "#00E676",
+        ThreatLevel.MEDIUM: "#FFEA00",
+        ThreatLevel.HIGH: "#FF9800",
+        ThreatLevel.CRITICAL: "#F44336",
+    }
+    threat_score = threat_mat.get("total_score", 0)
+    threat_count = threat_mat.get("threat_count", 0)
+    level_color = threat_color_map.get(overall_level, "#00E676")
+    level_name = overall_level.name if hasattr(overall_level, 'name') else "LOW"
+
+    threat_div = html.Div([
+        html.Div([
+            html.Span("●  ", style={"color": level_color, "fontSize": "16px"}),
+            html.Span(level_name,
+                      style={"color": level_color, "fontSize": "13px",
+                             "fontWeight": "700"}),
+        ]),
+        _stat("위협 점수", f"{threat_score}"),
+        _stat("위협 수", f"{threat_count}"),
+        # 권장 조치 (최대 2개)
+        *[html.Div(f"→ {action}",
+                   style={"color": "#c9d1d9", "fontSize": "9px",
+                          "marginTop": "2px", "lineHeight": "1.3"})
+          for action in threat_mat.get("recommended_actions", [])[:2]],
+    ])
+
+    # ── SLA 상태 패널
+    if sla_viols:
+        sla_items = []
+        for v in sla_viols[:3]:
+            name = v.threshold_name if hasattr(v, 'threshold_name') else str(v)
+            sla_items.append(
+                html.Div(f"❌ {name}",
+                         style={"color": "#F44336", "fontSize": "10px"}))
+        sla_div = html.Div(sla_items)
+    else:
+        sla_div = html.Div("✅ 모든 SLA 충족",
+                           style={"color": "#00E676", "fontSize": "10px"})
+
+    # ── 구역별 현황 패널
+    sector_items = []
+    for sid, st in sorted(sector_st.items()):
+        n_d = st["drones"]
+        ho = st["handoffs_in"] + st["handoffs_out"]
+        density = st["density"]
+        d_color = "#F44336" if density > 4.0 else "#FF9800" if density > 2.0 else "#c9d1d9"
+        sector_items.append(
+            html.Div([
+                html.Span(f"{sid}: ",
+                          style={"color": "#8b949e", "fontSize": "10px"}),
+                html.Span(f"{n_d}기",
+                          style={"color": d_color, "fontSize": "10px",
+                                 "fontWeight": "600"}),
+                html.Span(f" ({density:.1f}/km²) H:{ho}",
+                          style={"color": "#6e7681", "fontSize": "9px"}),
+            ], style={"marginBottom": "2px"}))
+    sector_div = html.Div(sector_items)
+
+    # ── 틱 처리시간 차트
+    fig_tick = go.Figure()
+    if tick_times:
+        fig_tick.add_trace(go.Scatter(
+            y=tick_times[-100:],
+            mode="lines",
+            line=dict(color="#AB47BC", width=1.2),
+            fill="tozeroy",
+            fillcolor="rgba(171,71,188,0.1)",
+        ))
+        avg_ms = sum(tick_times[-100:]) / len(tick_times[-100:])
+        fig_tick.add_hline(y=avg_ms, line_dash="dash",
+                          line_color="#6e7681", line_width=1)
+    fig_tick.update_layout(**_mini_chart_layout())
+    fig_tick.update_layout(height=90)
+    fig_tick.update_yaxes(title_text="ms", title_font_size=7)
+
+    # ── 이벤트 타임라인 미니 차트
+    fig_tl = go.Figure()
+    if timeline_events:
+        ev_times = [e.t for e in timeline_events]
+        ev_types = [e.event_type for e in timeline_events]
+        ev_colors_map = {
+            "COLLISION": "#F44336",
+            "EVADING": "#FF9800",
+            "NFZ_VIOLATION": "#FF1744",
+        }
+        ev_colors = [ev_colors_map.get(et, "#42A5F5") for et in ev_types]
+        fig_tl.add_trace(go.Scatter(
+            x=ev_times,
+            y=[1] * len(ev_times),
+            mode="markers",
+            marker=dict(size=8, color=ev_colors, symbol="diamond"),
+            text=ev_types,
+            hovertemplate="%{text} @ %{x:.1f}s<extra></extra>",
+        ))
+    fig_tl.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=20, r=8, t=2, b=15),
+        xaxis=dict(color="#6e7681", gridcolor="#21262d",
+                   tickfont=dict(size=7), title_text="시간(s)", title_font_size=7),
+        yaxis=dict(visible=False),
+        showlegend=False,
+        height=60,
+    )
+
+    return (fig, time_str, stats_div, alert_div, fig_bat, fig_energy, fig_cr,
+            threat_div, sla_div, sector_div, fig_tick, fig_tl)
 
 
 # ─────────────────────────────────────────────────────────────

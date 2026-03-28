@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
 [![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
-[![Tests](https://img.shields.io/badge/Tests-536%20passed-brightgreen?style=for-the-badge)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-571%20passed-brightgreen?style=for-the-badge)](tests/)
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
@@ -109,9 +109,9 @@
 <details>
 <summary><b>Step 5: Results / 5단계: 결과</b></summary>
 
-**EN:** 536 automated tests passed, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), 99.9% collision reduction in all scenarios. A complete capstone project.
+**EN:** 571 automated tests passed, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), 99.9% collision reduction in all scenarios. A complete capstone project.
 
-**KR:** 536개 테스트 통과, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모로 완성된 캡스톤 프로젝트입니다.
+**KR:** 571개 테스트 통과, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모로 완성된 캡스톤 프로젝트입니다.
 </details>
 
 ---
@@ -201,7 +201,7 @@ A distributed ATC simulation system that uses swarm drones as **mobile virtual r
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Layer 4 — 사용자 인터페이스                                   │
-│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 536개          │
+│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 571개          │
 └───────────────────────────┬──────────────────────────────────┘
                             │ 명령 / 결과
 ┌───────────────────────────▼──────────────────────────────────┐
@@ -848,7 +848,7 @@ swarm-drone-atc/
 │   ├── report/SDACS_Technical_Report.docx  # A4 한국어 기술 보고서
 │   └── images/                             # 성능 차트 + SVG 다이어그램
 │
-└── tests/                              # pytest 536개 (31 모듈)
+└── tests/                              # pytest 571개 (32 모듈)
     ├── test_apf.py                     # APF 포텐셜 장 (10)
     ├── test_cbs.py                     # CBS 격자 노드 (8)
     ├── test_resolution_advisory.py     # 어드바이저리 분류 (6)
@@ -873,7 +873,8 @@ swarm-drone-atc/
     ├── test_phase20_23.py             # 프로파일러·결과저장소·정밀배터리·동적NFZ (23)
     ├── test_phase24_27.py             # 메트릭수집·편대비행·메쉬네트워크·비교분석 (40)
     ├── test_phase28_31.py             # FDR·다중관제구역·SLA모니터·이벤트타임라인 (40)
-    └── test_phase32_35.py             # 에너지경로·위협평가·시나리오스크립터·스트레스테스트 (60)
+    ├── test_phase32_35.py             # 에너지경로·위협평가·시나리오스크립터·스트레스테스트 (60)
+    └── test_phase36_43.py             # 위협연동·구역관제·SLA·이벤트·시각화통합 (35)
 ```
 
 ---
@@ -885,7 +886,7 @@ pytest tests/ -v              # Run all / 전체 실행
 pytest tests/test_apf.py -v   # Specific module / 특정 파일
 ```
 
-### 테스트 커버리지 (536개 / 31모듈)
+### 테스트 커버리지 (571개 / 32모듈)
 
 | 파일 | 수 | 대상 |
 |------|---|------|
@@ -920,7 +921,8 @@ pytest tests/test_apf.py -v   # Specific module / 특정 파일
 | `test_phase24_27.py` | 40 | 메트릭수집·비교차트·HTML리포트·편대비행·메쉬네트워크 |
 | `test_phase28_31.py` | 40 | FDR·다중관제구역·SLA모니터·이벤트타임라인 |
 | `test_phase32_35.py` | 60 | 에너지경로·위협평가·시나리오스크립터·스트레스테스트 |
-| **합계** | **536** | **31 모듈 · 100% pass** |
+| `test_phase36_43.py` | 35 | 위협연동·구역관제·SLA·이벤트·시각화통합 |
+| **합계** | **571** | **32 모듈 · 100% pass** |
 
 ---
 
@@ -950,7 +952,7 @@ Before hardware testing, swarm algorithms were validated in a StarCraft II envir
 | 단계 | 기간 | 주요 산출물 | 상태 |
 |------|------|------------|------|
 | Phase 1: 설계 | 2026.01~03 | 아키텍처 설계, 알고리즘 설계 | ✅ 완료 |
-| Phase 2: 구현 | 2026.03 | SimPy 시뮬레이터, pytest 536개, SC2 14,200회 검증 | ✅ 완료 |
+| Phase 2: 구현 | 2026.03 | SimPy 시뮬레이터, pytest 571개, SC2 14,200회 검증 | ✅ 완료 |
 | Phase 3: 검증 | 2026.03 | Monte Carlo 38,400회, 3D 대시보드, **42개 시나리오** 전량 실행 | ✅ 완료 |
 | Phase 4: 문서화 | 2026.03 | 기술 보고서(DOCX), 성능 차트, README 920줄, 발표 스크립트 | ✅ 완료 |
 

@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
 [![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
-[![Tests](https://img.shields.io/badge/Tests-436%20passed-brightgreen?style=for-the-badge)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-476%20passed-brightgreen?style=for-the-badge)](tests/)
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
@@ -109,9 +109,9 @@
 <details>
 <summary><b>Step 5: Results / 5단계: 결과</b></summary>
 
-**EN:** 436 automated tests passed, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), 99.9% collision reduction in all scenarios. A complete capstone project.
+**EN:** 476 automated tests passed, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), 99.9% collision reduction in all scenarios. A complete capstone project.
 
-**KR:** 436개 테스트 통과, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모로 완성된 캡스톤 프로젝트입니다.
+**KR:** 476개 테스트 통과, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모로 완성된 캡스톤 프로젝트입니다.
 </details>
 
 ---
@@ -176,6 +176,10 @@ A distributed ATC simulation system that uses swarm drones as **mobile virtual r
 | 편대 비행 | 4패턴 | V자/라인/서클/그리드 리더-팔로워 |
 | 메쉬 네트워크 | 멀티홉 BFS | 파티션 감지 + 릴레이 제안 |
 | 비교 리포트 | HTML/차트 | A/B 비교 + 민감도 분석 |
+| 비행 데이터 레코더 | FDR 매틱 | 리플레이 + CSV 내보내기 |
+| 다중 관제 구역 | 4/9 섹터 | 핸드오프 프로토콜 + 구역 메트릭 |
+| SLA 모니터 | 7개 임계치 | 실시간 위반 감지 + 자가 튜닝 |
+| 이벤트 타임라인 | 시계열 저장 | 사고 조사 쿼리 인터페이스 |
 | SC2 알고리즘 검증 | 14,200 회 | 게임 AI 환경 사전 검증 |
 
 ---
@@ -193,7 +197,7 @@ A distributed ATC simulation system that uses swarm drones as **mobile virtual r
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Layer 4 — 사용자 인터페이스                                   │
-│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 436개          │
+│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 476개          │
 └───────────────────────────┬──────────────────────────────────┘
                             │ 명령 / 결과
 ┌───────────────────────────▼──────────────────────────────────┐
@@ -361,7 +365,7 @@ Low Level: 시공간 A* (개별 드론)
 
 ## Algorithm Hierarchy / 알고리즘 계층 구조
 
-> **13개 핵심 알고리즘**이 4개 계층에서 계층적으로 동작합니다. (Python 4,200+줄 + HTML/JS 2,897줄)
+> **17개 핵심 알고리즘**이 4개 계층에서 계층적으로 동작합니다. (Python 5,000+줄 + HTML/JS 2,897줄)
 
 ```
 Layer 1: 드론 에이전트 (10 Hz, SimPy)
@@ -403,6 +407,10 @@ Layer 3: 시뮬레이션 엔진
 ├── 결과 저장소 ─── JSON/CSV 내보내기 + 태그 기반 비교 분석
 ├── 편대 비행 알고리즘 ─── V자/라인/서클/그리드 4패턴 + 리더-팔로워
 ├── 메쉬 네트워크 ─── 멀티홉 릴레이 + 파티션 감지 + 릴레이 배치 제안
+├── 비행 데이터 레코더 ─── FDR 매틱 기록 + 리플레이 + CSV 내보내기
+├── 다중 관제 구역 ─── 구역 분할 + 핸드오프 프로토콜 + 구역별 메트릭
+├── SLA 모니터 ─── 실시간 위반 감지 + 자가 파라미터 튜닝
+├── 이벤트 타임라인 ─── 사고 조사 + 시간/타입/드론별 쿼리
 ├── Monte Carlo 38,400회 SLA 검증 (384 configs × 100 seeds)
 └── 42개 시나리오 배치 실행
 
@@ -430,6 +438,10 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
 | 11 | 결과 저장소 | `simulation/result_store.py` | 140+ | JSON/CSV 내보내기 + 차트 비교 + HTML 리포트 |
 | 12 | 편대 비행 제어 | `simulation/formation.py` | 170+ | V자/라인/서클/그리드 + 리더-팔로워 |
 | 13 | 메쉬 네트워크 | `simulation/mesh_network.py` | 200+ | 멀티홉 릴레이 + 파티션 감지 + 릴레이 제안 |
+| 14 | 비행 데이터 레코더 | `simulation/flight_data_recorder.py` | 170+ | FDR 매틱 기록 + 리플레이 + CSV |
+| 15 | 다중 관제 구역 | `simulation/multi_controller.py` | 180+ | 구역 분할 + 핸드오프 + 구역별 메트릭 |
+| 16 | SLA 모니터 | `simulation/sla_monitor.py` | 150+ | 실시간 위반 감지 + 자가 튜닝 |
+| 17 | 이벤트 타임라인 | `simulation/event_timeline.py` | 150+ | 사고 조사 + 시계열 쿼리 |
 
 ### Python vs HTML/JS 이중 구현 비교
 
@@ -786,6 +798,10 @@ swarm-drone-atc/
 │   ├── result_store.py              # JSON/CSV 결과 저장소 + 차트/HTML 비교
 │   ├── formation.py                 # 편대 비행 제어 (4패턴 + 리더-팔로워)
 │   ├── mesh_network.py              # 메쉬 네트워크 토폴로지 시뮬레이션
+│   ├── flight_data_recorder.py      # FDR 비행 데이터 기록 + 리플레이
+│   ├── multi_controller.py          # 다중 관제 구역 + 핸드오프
+│   ├── sla_monitor.py               # SLA 위반 감지 + 자가 튜닝
+│   ├── event_timeline.py            # 이벤트 시계열 + 사고 조사
 │   ├── apf_engine/apf.py            # APF 배치 벡터 계산
 │   ├── cbs_planner/cbs.py           # CBS 다중 드론 경로 계획
 │   └── voronoi_airspace/            # Voronoi 2D 공역 분할
@@ -816,7 +832,7 @@ swarm-drone-atc/
 │   ├── report/SDACS_Technical_Report.docx  # A4 한국어 기술 보고서
 │   └── images/                             # 성능 차트 + SVG 다이어그램
 │
-└── tests/                              # pytest 436개 (29 모듈)
+└── tests/                              # pytest 476개 (30 모듈)
     ├── test_apf.py                     # APF 포텐셜 장 (10)
     ├── test_cbs.py                     # CBS 격자 노드 (8)
     ├── test_resolution_advisory.py     # 어드바이저리 분류 (6)
@@ -839,7 +855,8 @@ swarm-drone-atc/
     ├── test_phase10_13.py             # Phase10-13 통합 (33)
     ├── test_phase16_17.py             # 설정검증·SpatialHash·KDTree·시뮬코어 (48)
     ├── test_phase20_23.py             # 프로파일러·결과저장소·정밀배터리·동적NFZ (23)
-    └── test_phase24_27.py             # 메트릭수집·편대비행·메쉬네트워크·비교분석 (40)
+    ├── test_phase24_27.py             # 메트릭수집·편대비행·메쉬네트워크·비교분석 (40)
+    └── test_phase28_31.py             # FDR·다중관제구역·SLA모니터·이벤트타임라인 (40)
 ```
 
 ---
@@ -851,7 +868,7 @@ pytest tests/ -v              # Run all / 전체 실행
 pytest tests/test_apf.py -v   # Specific module / 특정 파일
 ```
 
-### 테스트 커버리지 (436개 / 29모듈)
+### 테스트 커버리지 (476개 / 30모듈)
 
 | 파일 | 수 | 대상 |
 |------|---|------|
@@ -884,7 +901,8 @@ pytest tests/test_apf.py -v   # Specific module / 특정 파일
 | `test_phase16_17.py` | 48 | SpatialHash·드론프로파일·설정검증·시뮬코어·KDTree·통신 |
 | `test_phase20_23.py` | 23 | 프로파일러·결과저장소·정밀배터리·동적NFZ·시뮬통합 |
 | `test_phase24_27.py` | 40 | 메트릭수집·비교차트·HTML리포트·편대비행·메쉬네트워크 |
-| **합계** | **436** | **29 모듈 · 100% pass** |
+| `test_phase28_31.py` | 40 | FDR·다중관제구역·SLA모니터·이벤트타임라인 |
+| **합계** | **476** | **30 모듈 · 100% pass** |
 
 ---
 
@@ -914,7 +932,7 @@ Before hardware testing, swarm algorithms were validated in a StarCraft II envir
 | 단계 | 기간 | 주요 산출물 | 상태 |
 |------|------|------------|------|
 | Phase 1: 설계 | 2026.01~03 | 아키텍처 설계, 알고리즘 설계 | ✅ 완료 |
-| Phase 2: 구현 | 2026.03 | SimPy 시뮬레이터, pytest 436개, SC2 14,200회 검증 | ✅ 완료 |
+| Phase 2: 구현 | 2026.03 | SimPy 시뮬레이터, pytest 476개, SC2 14,200회 검증 | ✅ 완료 |
 | Phase 3: 검증 | 2026.03 | Monte Carlo 38,400회, 3D 대시보드, **42개 시나리오** 전량 실행 | ✅ 완료 |
 | Phase 4: 문서화 | 2026.03 | 기술 보고서(DOCX), 성능 차트, README 920줄, 발표 스크립트 | ✅ 완료 |
 
@@ -989,6 +1007,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 시간 | 주요 변경 사항 | 커밋 |
 |------|------|---------------|------|
+| 2026-03-28 | — | **Phase 28-31**: FDR 비행 데이터 레코더(리플레이+CSV), 다중 관제 구역(4/9섹터+핸드오프), SLA 모니터(7개 임계치+자가 튜닝), 이벤트 타임라인(사고조사 쿼리), 테스트 436→476 (40개 추가) | — |
 | 2026-03-28 | — | **Phase 24-27**: 대시보드 실시간 메트릭(배터리분포·에너지차트·해결률), 비교분석(차트·HTML리포트·민감도), 편대비행(V자/라인/서클/그리드+리더-팔로워), 메쉬네트워크(멀티홉릴레이·파티션감지·릴레이제안), 테스트 396→436 (40개 추가) | — |
 | 2026-03-28 | — | **Phase 20-23**: cProfile 성능 프로파일러, JSON/CSV 결과 저장소+태그 비교, 정밀 배터리 모델(고도/풍속/상승률), 동적 NFZ 런타임 추가/제거+자동 리라우팅, 테스트 373→396 (23개 추가: 프로파일러·저장소·배터리·NFZ·통합) | — |
 | 2026-03-28 | — | **Phase 16-19**: pydantic YAML 설정 검증, KDTree 적응형 충돌 스캔(200대+ 자동 전환), generate_charts --live 실측 데이터 모드, 에러 핸들링 강화, 테스트 325→373 (48개 추가: SpatialHash·드론프로파일·설정검증·시뮬코어·KDTree·통신) | — |

@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
 [![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
-[![Tests](https://img.shields.io/badge/Tests-571%20passed-brightgreen?style=for-the-badge)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-629%20passed-brightgreen?style=for-the-badge)](tests/)
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
@@ -109,9 +109,9 @@
 <details>
 <summary><b>Step 5: Results / 5단계: 결과</b></summary>
 
-**EN:** 571 automated tests passed, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), 99.9% collision reduction in all scenarios. A complete capstone project.
+**EN:** 629 automated tests passed, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), 99.9% collision reduction in all scenarios. A complete capstone project.
 
-**KR:** 571개 테스트 통과, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모로 완성된 캡스톤 프로젝트입니다.
+**KR:** 629개 테스트 통과, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모로 완성된 캡스톤 프로젝트입니다.
 </details>
 
 ---
@@ -201,7 +201,7 @@ A distributed ATC simulation system that uses swarm drones as **mobile virtual r
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Layer 4 — 사용자 인터페이스                                   │
-│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 571개          │
+│  CLI (main.py)  ·  3D Dash 대시보드  ·  pytest 629개          │
 └───────────────────────────┬──────────────────────────────────┘
                             │ 명령 / 결과
 ┌───────────────────────────▼──────────────────────────────────┐
@@ -271,9 +271,9 @@ FAILED ◄──[장애 주입]
 
 ## Core Algorithms / 핵심 알고리즘
 
-> **21 core algorithms** work hierarchically to ensure safe swarm drone operations.
+> **27 core algorithms** work hierarchically to ensure safe swarm drone operations.
 >
-> **21개 핵심 알고리즘**이 계층적으로 동작하여 군집드론 안전 운항을 보장합니다.
+> **27개 핵심 알고리즘**이 계층적으로 동작하여 군집드론 안전 운항을 보장합니다.
 
 <div align="center">
 
@@ -419,6 +419,12 @@ Layer 3: 시뮬레이션 엔진
 ├── 위협 평가 엔진 ─── 4레벨(LOW~CRITICAL) 9유형 + 우선순위 매트릭스
 ├── 시나리오 스크립터 ─── YAML DSL 8종 이벤트 자동 트리거
 ├── 스트레스 테스트 ─── 합성 부하 + P95/P99 틱 성능 벤치마크
+├── 행동 패턴 분석 ─── K-means 클러스터링 + z-score 이상치 탐지
+├── 동적 우선순위 스케줄러 ─── 혼잡도 기반 출발 시간 최적화
+├── 리플레이 분석기 ─── FDR 인과관계 추적 + 사고 리포트 자동 생성
+├── 기상 예측 엔진 ─── 이동평균 + 선형 트렌드 단기 예측
+├── 배터리 수명 예측 ─── 다변수 소모 모델 + 잔여 비행시간/거리
+├── 규제 준수 검증 ─── K-UTM/ICAO 분리기준 + 준수 점수(0~100)
 ├── Monte Carlo 38,400회 SLA 검증 (384 configs × 100 seeds)
 └── 42개 시나리오 배치 실행
 
@@ -454,6 +460,12 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
 | 19 | 위협 평가 엔진 | `simulation/threat_assessment.py` | 270+ | 4레벨 9유형 위협 + 우선순위 매트릭스 |
 | 20 | 시나리오 스크립터 | `simulation/scenario_scripter.py` | 220+ | YAML DSL 8종 이벤트 자동 트리거 |
 | 21 | 스트레스 테스트 | `simulation/stress_test.py` | 250+ | 합성 부하 + P95/P99 벤치마크 |
+| 22 | 행동 패턴 분석 | `simulation/behavior_analyzer.py` | 200+ | K-means 클러스터링 + 이상치 탐지 |
+| 23 | 동적 우선순위 | `simulation/priority_scheduler.py` | 220+ | 혼잡도 기반 임무 스케줄링 |
+| 24 | 리플레이 분석 | `simulation/replay_analyzer.py` | 250+ | FDR 인과관계 추적 + 자동 리포트 |
+| 25 | 기상 예측 | `simulation/weather_forecast.py` | 200+ | 이동평균 + 트렌드 기반 단기 예측 |
+| 26 | 배터리 예측 | `simulation/battery_predictor.py` | 200+ | 다변수 소모 모델 + 잔여 시간 예측 |
+| 27 | 규제 준수 검증 | `simulation/compliance_checker.py` | 200+ | K-UTM/ICAO 규정 + 준수 점수 산출 |
 
 ### Python vs HTML/JS 이중 구현 비교
 
@@ -818,6 +830,12 @@ swarm-drone-atc/
 │   ├── threat_assessment.py         # 실시간 위협 평가 (4레벨 9유형)
 │   ├── scenario_scripter.py         # YAML DSL 시나리오 스크립터
 │   ├── stress_test.py               # E2E 스트레스 테스트 프레임워크
+│   ├── behavior_analyzer.py         # 드론 행동 패턴 K-means 분석
+│   ├── priority_scheduler.py        # 동적 우선순위 임무 스케줄러
+│   ├── replay_analyzer.py           # FDR 인과관계 리플레이 분석
+│   ├── weather_forecast.py          # 이동평균 단기 기상 예측
+│   ├── battery_predictor.py         # 다변수 배터리 수명 예측
+│   ├── compliance_checker.py        # K-UTM/ICAO 규제 준수 검증
 │   ├── apf_engine/apf.py            # APF 배치 벡터 계산
 │   ├── cbs_planner/cbs.py           # CBS 다중 드론 경로 계획
 │   └── voronoi_airspace/            # Voronoi 2D 공역 분할
@@ -848,7 +866,7 @@ swarm-drone-atc/
 │   ├── report/SDACS_Technical_Report.docx  # A4 한국어 기술 보고서
 │   └── images/                             # 성능 차트 + SVG 다이어그램
 │
-└── tests/                              # pytest 571개 (32 모듈)
+└── tests/                              # pytest 629개 (33 모듈)
     ├── test_apf.py                     # APF 포텐셜 장 (10)
     ├── test_cbs.py                     # CBS 격자 노드 (8)
     ├── test_resolution_advisory.py     # 어드바이저리 분류 (6)
@@ -874,7 +892,8 @@ swarm-drone-atc/
     ├── test_phase24_27.py             # 메트릭수집·편대비행·메쉬네트워크·비교분석 (40)
     ├── test_phase28_31.py             # FDR·다중관제구역·SLA모니터·이벤트타임라인 (40)
     ├── test_phase32_35.py             # 에너지경로·위협평가·시나리오스크립터·스트레스테스트 (60)
-    └── test_phase36_43.py             # 위협연동·구역관제·SLA·이벤트·시각화통합 (35)
+    ├── test_phase36_43.py             # 위협연동·구역관제·SLA·이벤트·시각화통합 (35)
+    └── test_phase44_51.py             # 행동분석·스케줄러·리플레이·기상예측·배터리·규제 (58)
 ```
 
 ---
@@ -886,7 +905,7 @@ pytest tests/ -v              # Run all / 전체 실행
 pytest tests/test_apf.py -v   # Specific module / 특정 파일
 ```
 
-### 테스트 커버리지 (571개 / 32모듈)
+### 테스트 커버리지 (629개 / 33모듈)
 
 | 파일 | 수 | 대상 |
 |------|---|------|
@@ -922,7 +941,8 @@ pytest tests/test_apf.py -v   # Specific module / 특정 파일
 | `test_phase28_31.py` | 40 | FDR·다중관제구역·SLA모니터·이벤트타임라인 |
 | `test_phase32_35.py` | 60 | 에너지경로·위협평가·시나리오스크립터·스트레스테스트 |
 | `test_phase36_43.py` | 35 | 위협연동·구역관제·SLA·이벤트·시각화통합 |
-| **합계** | **571** | **32 모듈 · 100% pass** |
+| `test_phase44_51.py` | 58 | 행동분석·스케줄러·리플레이·기상예측·배터리·규제 |
+| **합계** | **629** | **33 모듈 · 100% pass** |
 
 ---
 
@@ -952,7 +972,7 @@ Before hardware testing, swarm algorithms were validated in a StarCraft II envir
 | 단계 | 기간 | 주요 산출물 | 상태 |
 |------|------|------------|------|
 | Phase 1: 설계 | 2026.01~03 | 아키텍처 설계, 알고리즘 설계 | ✅ 완료 |
-| Phase 2: 구현 | 2026.03 | SimPy 시뮬레이터, pytest 571개, SC2 14,200회 검증 | ✅ 완료 |
+| Phase 2: 구현 | 2026.03 | SimPy 시뮬레이터, pytest 629개, SC2 14,200회 검증 | ✅ 완료 |
 | Phase 3: 검증 | 2026.03 | Monte Carlo 38,400회, 3D 대시보드, **42개 시나리오** 전량 실행 | ✅ 완료 |
 | Phase 4: 문서화 | 2026.03 | 기술 보고서(DOCX), 성능 차트, README 920줄, 발표 스크립트 | ✅ 완료 |
 
@@ -1027,6 +1047,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 시간 | 주요 변경 사항 | 커밋 |
 |------|------|---------------|------|
+| 2026-03-28 | — | **Phase 44-51**: 드론 행동 패턴 K-means 분석(이상치 z-score 탐지), 동적 우선순위 스케줄러(5레벨 혼잡도 기반 출발 조절), FDR 인과관계 리플레이 분석(근본원인 추적+자동 리포트), 이동평균+트렌드 기상 예측(DANGER/WARNING 경보), 다변수 배터리 수명 예측(풍속/고도/속도 보정), K-UTM/ICAO 규제 준수 검증(7규칙+준수점수), 테스트 571→629 (58개 추가) | — |
 | 2026-03-28 | — | **Phase 36-43**: 3D 대시보드 시각화 대폭 강화 — 실시간 위협 히트맵(4레벨 공역 틴트), 관제 구역 3D 오버레이(밀도 색상), SLA 상태 패널, 이벤트 타임라인 미니차트, 성능 모니터(틱 처리시간), 경보 로그 확장(스크롤+색상), 위협 평가 패널(점수+권장 조치), 구역별 현황 패널, 테스트 536→571 (35개 추가) | — |
 | 2026-03-28 | — | **Phase 32-35**: 에너지 최적 A* 경로계획(풍향/고도 비용+충전소 경유), 실시간 위협 평가 엔진(4레벨 9유형+우선순위 매트릭스+권장 조치), YAML DSL 시나리오 스크립터(8종 이벤트 자동 트리거), E2E 스트레스 테스트(합성부하+P95/P99 벤치마크+비교), 테스트 476→536 (60개 추가) | — |
 | 2026-03-28 | — | **Phase 28-31**: FDR 비행 데이터 레코더(리플레이+CSV), 다중 관제 구역(4/9섹터+핸드오프), SLA 모니터(7개 임계치+자가 튜닝), 이벤트 타임라인(사고조사 쿼리), 테스트 436→476 (40개 추가) | — |

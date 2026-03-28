@@ -32,6 +32,9 @@ class SimulationResult:
     route_efficiency_max:  float = 1.0
     total_flight_time_s:   float = 0.0
     total_distance_km:     float = 0.0
+    energy_efficiency_wh_per_km: float = 0.0  # 평균 에너지 소모 (Wh/km)
+    failures_injected:     int   = 0
+    comms_losses_injected: int   = 0
 
     # 컨트롤러 처리량
     clearances_approved: int   = 0
@@ -68,6 +71,9 @@ class SimulationResult:
             ("경로 효율 (최대)",   f"{self.route_efficiency_max:.3f}"),
             ("허가 승인",          str(self.clearances_approved)),
             ("총 비행 거리",       f"{self.total_distance_km:.1f} km"),
+            ("에너지 효율",        f"{self.energy_efficiency_wh_per_km:.2f} Wh/km"),
+            ("고장 주입",          str(self.failures_injected)),
+            ("통신 두절 주입",     str(self.comms_losses_injected)),
             ("어드바이저리 P50",   f"{self.advisory_latency_p50:.2f} s"),
             ("어드바이저리 P99",   f"{self.advisory_latency_p99:.2f} s"),
         ]
@@ -226,6 +232,17 @@ class SimulationAnalytics:
         total_flight_s  = sum(self._flight_time.values())
         total_dist_km   = sum(self._dist_actual.values()) / 1000.0
 
+        # 에너지 효율 추정: 평균 50Wh 배터리, 사용 배터리% → Wh/km
+        battery_used_pct = [100.0 - ev.get("bat", 100.0) for ev in self._snapshots
+                           if ev.get("phase") not in ("GROUNDED",)]
+        avg_wh = 50.0  # 기본 배터리 용량 가정
+        energy_wh = sum(max(0, p) * avg_wh / 100.0 for p in battery_used_pct) if battery_used_pct else 0.0
+        energy_eff = energy_wh / max(total_dist_km, 0.01) if total_dist_km > 0 else 0.0
+
+        # 고장/통신두절 주입 카운트
+        fail_injected = sum(1 for ev in self._events if ev["type"] == "FAILURE_INJECTED")
+        comms_injected = sum(1 for ev in self._events if ev["type"] == "COMMS_LOSS_INJECTED")
+
         return SimulationResult(
             collision_count=self._collision_count,
             near_miss_count=self._near_miss_count,
@@ -236,6 +253,9 @@ class SimulationAnalytics:
             route_efficiency_max=eff_max,
             total_flight_time_s=total_flight_s,
             total_distance_km=total_dist_km,
+            energy_efficiency_wh_per_km=energy_eff,
+            failures_injected=fail_injected,
+            comms_losses_injected=comms_injected,
             clearances_approved=self._clearances_ok,
             clearances_denied=self._clearances_no,
             advisory_latency_p50=p50,

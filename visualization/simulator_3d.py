@@ -34,6 +34,7 @@ import plotly.graph_objects as go
 
 from simulation.apf_engine.apf import (
     APFState, batch_compute_forces, force_to_velocity, APF_PARAMS,
+    compute_total_force,
 )
 from src.airspace_control.agents.drone_state import (
     DroneState, FlightPhase, CommsStatus, FailureType,
@@ -124,6 +125,7 @@ class SimState:
         self.n_drones = 30
         self.speed_multiplier = 1.0  # 시뮬레이션 속도 배율 (0.25x ~ 5x)
         self.rng = np.random.default_rng(42)  # 재현성 보장 RNG
+        self.show_apf_field = False  # APF 벡터 필드 표시 여부
 
         # 통계
         self.conflicts = 0
@@ -592,11 +594,115 @@ def _ground_grid() -> go.Scatter3d:
     )
 
 
+def _apf_vector_field(drones: list[DroneState], wind: np.ndarray) -> list:
+    """APF 벡터 필드를 그리드 포인트에서 Cone3d 트레이스로 렌더링"""
+    active = [d for d in drones if d.is_active and d.flight_phase not in
+              (FlightPhase.GROUNDED, FlightPhase.LANDING)]
+    if not active:
+        return []
+
+    # 그리드: 공역을 1km 간격으로 샘플 (순항 고도)
+    grid_step = 1000.0
+    xs = np.arange(-BOUNDS_M + 500, BOUNDS_M, grid_step)
+    ys = np.arange(-BOUNDS_M + 500, BOUNDS_M, grid_step)
+    z_sample = CRUISE_ALT
+
+    # 이웃 상태 준비
+    neighbors = [
+        APFState(d.position.copy(), d.velocity.copy(), d.drone_id)
+        for d in active
+    ]
+
+    wind_speed = float(np.linalg.norm(wind[:2]))
+
+    gx, gy, gz = [], [], []
+    fu, fv, fw = [], [], []
+
+    for xi in xs:
+        for yi in ys:
+            pos = np.array([xi, yi, z_sample])
+            # 가상 프로브 드론
+            probe = APFState(pos, np.zeros(3), "__probe__")
+            # 가장 가까운 착륙 패드를 목표로 사용
+            goal_pad = min(_PAD_LIST, key=lambda p: float(np.linalg.norm(p[:2] - pos[:2])))
+            goal = goal_pad.copy()
+            goal[2] = z_sample
+
+            force = compute_total_force(
+                probe, goal, neighbors, _NFZ_OBSTACLES,
+                wind_speed=wind_speed,
+            )
+            mag = float(np.linalg.norm(force))
+            if mag < 0.01:
+                continue
+
+            gx.append(xi)
+            gy.append(yi)
+            gz.append(z_sample)
+            fu.append(float(force[0]))
+            fv.append(float(force[1]))
+            fw.append(float(force[2]))
+
+    if not gx:
+        return []
+
+    # 크기 정규화 (시각적 일관성)
+    mags = np.sqrt(np.array(fu)**2 + np.array(fv)**2 + np.array(fw)**2)
+    max_mag = float(np.max(mags)) if len(mags) > 0 else 1.0
+
+    return [go.Cone(
+        x=gx, y=gy, z=gz,
+        u=fu, v=fv, w=fw,
+        sizemode="scaled",
+        sizeref=max_mag * 2.0,
+        anchor="tail",
+        colorscale=[[0, "#1a237e"], [0.5, "#42A5F5"], [1, "#FF7043"]],
+        cmin=0, cmax=max_mag,
+        opacity=0.4,
+        showscale=False,
+        name="APF 벡터 필드",
+        hovertemplate="Force: %{u:.1f}, %{v:.1f}, %{w:.1f}<extra>APF</extra>",
+    )]
+
+
+def _wind_arrow(wind: np.ndarray) -> list[go.Scatter3d]:
+    """공역 우측 상단에 바람 방향 화살표 표시"""
+    speed = float(np.linalg.norm(wind[:2]))
+    if speed < 0.1:
+        return []
+
+    # 바람 화살표: 공역 좌측 상단에 고정 표시
+    origin = np.array([-4000.0, 4000.0, ALT_MAX - 10])
+    arrow_len = 800.0
+    direction = wind[:3].copy()
+    direction[2] = 0
+    norm = float(np.linalg.norm(direction[:2]))
+    if norm > 0:
+        direction = direction / norm * arrow_len
+
+    end = origin + direction
+    return [go.Scatter3d(
+        x=[float(origin[0]), float(end[0])],
+        y=[float(origin[1]), float(end[1])],
+        z=[float(origin[2]), float(end[2])],
+        mode="lines+text",
+        line=dict(color="#4FC3F7", width=6),
+        text=[f"Wind {speed:.1f}m/s", ""],
+        textposition="top center",
+        textfont=dict(color="#4FC3F7", size=10),
+        showlegend=False,
+        hoverinfo="text",
+        hovertext=f"바람: {speed:.1f} m/s",
+    )]
+
+
 def build_figure(sim: SimState) -> go.Figure:
     """3D 시각화 Figure 빌드"""
     with sim.lock:
         drones = list(sim.drones.values())
         trails = {k: list(v) for k, v in sim.trails.items()}
+        wind = sim.wind.copy()
+        show_apf = sim.show_apf_field
 
     fig = go.Figure()
 
@@ -614,6 +720,15 @@ def build_figure(sim: SimState) -> go.Figure:
 
     # 착륙 패드
     fig.add_trace(_pad_trace())
+
+    # 바람 화살표
+    for t in _wind_arrow(wind):
+        fig.add_trace(t)
+
+    # APF 벡터 필드 (토글)
+    if show_apf:
+        for t in _apf_vector_field(drones, wind):
+            fig.add_trace(t)
 
     # 드론 트레일
     for drone in drones:
@@ -642,11 +757,13 @@ def build_figure(sim: SimState) -> go.Figure:
         size = 10 if phase == FlightPhase.EVADING else (
                7  if phase == FlightPhase.FAILED   else 6)
         hover = [
-            f"<b>{d.drone_id}</b><br>"
+            f"<b>{d.drone_id}</b> [{PHASE_KO[d.flight_phase]}]<br>"
             f"프로파일: {d.profile_name}<br>"
-            f"속도: {d.speed:.1f} m/s<br>"
-            f"고도: {d.position[2]:.0f} m<br>"
-            f"배터리: {d.battery_pct:.0f} %"
+            f"속도: {d.speed:.1f} m/s | 고도: {d.position[2]:.0f} m<br>"
+            f"배터리: {d.battery_pct:.0f} %<br>"
+            f"비행시간: {d.flight_time_s:.0f}s | 거리: {d.distance_flown_m:.0f}m<br>"
+            f"위치: ({d.position[0]:.0f}, {d.position[1]:.0f})"
+            + (f"<br>⚠ 고장: {d.failure_type.name}" if d.failure_type != FailureType.NONE else "")
             for d in grp
         ]
         fig.add_trace(go.Scatter3d(
@@ -663,6 +780,28 @@ def build_figure(sim: SimState) -> go.Figure:
             name=PHASE_KO[phase],
             text=hover,
             hovertemplate="%{text}<extra></extra>",
+        ))
+
+    # NFZ 근접 경고 (NFZ 경계 200m 이내 활성 드론)
+    nfz_warn = [d for d in drones if d.is_active and d.flight_phase not in
+                (FlightPhase.GROUNDED, FlightPhase.LANDING)
+                and NFZ_X[0] - 200 < d.position[0] < NFZ_X[1] + 200
+                and NFZ_Y[0] - 200 < d.position[1] < NFZ_Y[1] + 200]
+    if nfz_warn:
+        fig.add_trace(go.Scatter3d(
+            x=[d.position[0] for d in nfz_warn],
+            y=[d.position[1] for d in nfz_warn],
+            z=[d.position[2] for d in nfz_warn],
+            mode="markers",
+            marker=dict(
+                size=18, color="rgba(0,0,0,0)",
+                line=dict(color="#FF1744", width=3),
+                symbol="circle",
+            ),
+            opacity=0.7,
+            showlegend=False,
+            hoverinfo="skip",
+            name="NFZ 경고",
         ))
 
     # 속도 화살표 (활성 드론 최대 20기)
@@ -936,6 +1075,7 @@ app.layout = html.Div(
         dcc.Store(id="store-run", data=False),
         dcc.Store(id="store-alerts", data=[]),
         html.Div(id="_dummy-wind", style={"display": "none"}),
+        html.Div(id="_dummy-apf", style={"display": "none"}),
         html.Div(id="_dummy-scenario", style={"display": "none"}),
     ],
 )
@@ -979,6 +1119,17 @@ def _ctrl(start, pause, reset, n_drones, running):
 def _wind(value):
     with SIM.lock:
         SIM.wind = np.array([2.0, -1.5, 0.0]) if (value and "on" in value) else np.zeros(3)
+    return ""
+
+
+@app.callback(
+    Output("_dummy-apf", "children"),
+    Input("apf-field-check", "value"),
+    prevent_initial_call=True,
+)
+def _apf_toggle(value):
+    with SIM.lock:
+        SIM.show_apf_field = bool(value and "on" in value)
     return ""
 
 

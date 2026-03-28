@@ -9,6 +9,7 @@
   - 어드바이저리 만료 관리
 """
 from __future__ import annotations
+import heapq
 import logging
 import uuid
 import numpy as np
@@ -85,14 +86,16 @@ class AirspaceController:
         self._intruders:     set[str]               = set()
         self._voronoi_cells: dict                   = {}
         self._spatial_hash = SpatialHash(cell_size=50.0)
+        self._holding_queue: list[tuple[float, str]] = []  # (entry_time, drone_id)
 
         # CBS vs A* 메트릭 추적
         self._cbs_attempts  = 0
         self._cbs_successes = 0
         self._astar_count   = 0
 
-        self._lat_min   = float(config.get("separation_standards", {})
-                                .get("lateral_min_m", 50.0))
+        self._lat_min_base = float(config.get("separation_standards", {})
+                                   .get("lateral_min_m", 50.0))
+        self._lat_min   = self._lat_min_base
         self._vert_min  = float(config.get("separation_standards", {})
                                 .get("vertical_min_m", 15.0))
         self._near_lat  = float(config.get("separation_standards", {})
@@ -101,6 +104,7 @@ class AirspaceController:
                                 .get("conflict_lookahead_s", 90.0))
         self._max_clear = int(config.get("controller", {})
                               .get("max_concurrent_clearances", 500))
+        self._wind_speed: float = 0.0  # 현재 풍속 (m/s), 외부에서 갱신
 
         # 텔레메트리/허가 요청 수신 구독
         comm_bus.subscribe("CONTROLLER", self._on_message)
@@ -113,13 +117,94 @@ class AirspaceController:
         while True:
             yield self.env.timeout(dt)
             t = float(self.env.now)
+            self._update_dynamic_separation()
             self._process_clearances(t)
+            self._manage_holding_queue(t)
             self._scan_conflicts(t)
             self._detect_intruders(t)
             self._detect_lost_link(t)
             self._expire_advisories(t)
             if int(round(t)) % int(self.VORONOI_INTERVAL_S) == 0:
                 self._refresh_voronoi()
+
+    def update_wind_speed(self, wind_speed: float) -> None:
+        """외부에서 풍속 갱신 (시뮬레이터 → 컨트롤러)"""
+        self._wind_speed = wind_speed
+
+    def _update_dynamic_separation(self) -> None:
+        """
+        풍속 기반 동적 분리간격 조정.
+
+        - 0~5 m/s: 기본 분리간격 유지
+        - 5~10 m/s: 선형 증가 (최대 1.4배)
+        - 10~15 m/s: 선형 증가 (최대 1.6배)
+        - >15 m/s: 1.6배 고정
+        """
+        ws = self._wind_speed
+        if ws <= 5.0:
+            factor = 1.0
+        elif ws <= 10.0:
+            factor = 1.0 + 0.4 * (ws - 5.0) / 5.0   # 1.0 → 1.4
+        elif ws <= 15.0:
+            factor = 1.4 + 0.2 * (ws - 10.0) / 5.0   # 1.4 → 1.6
+        else:
+            factor = 1.6
+        self._lat_min = self._lat_min_base * factor
+
+    # ── HOLDING 큐 관리 ──────────────────────────────────────
+
+    def _manage_holding_queue(self, t: float) -> None:
+        """
+        구조화된 HOLDING 큐 관리.
+
+        - HOLDING 진입 드론을 큐에 등록
+        - 선입선출(FIFO) 순서로 최대 3기씩 ENROUTE 복귀 허용
+        - 최소 대기시간 5초 보장
+        """
+        MAX_RELEASE_PER_TICK = 3
+        MIN_HOLD_S = 5.0
+
+        # 새 HOLDING 드론 등록
+        queued_ids = {did for _, did in self._holding_queue}
+        for did, d in self._active_drones.items():
+            if d.flight_phase == FlightPhase.HOLDING and did not in queued_ids:
+                heapq.heappush(self._holding_queue, (t, did))
+
+        # 더 이상 HOLDING이 아닌 드론 제거
+        self._holding_queue = [
+            (et, did) for et, did in self._holding_queue
+            if did in self._active_drones
+            and self._active_drones[did].flight_phase == FlightPhase.HOLDING
+        ]
+        heapq.heapify(self._holding_queue)
+
+        # FIFO 해제: 최소 대기시간 경과한 드론부터
+        released = 0
+        while self._holding_queue and released < MAX_RELEASE_PER_TICK:
+            entry_time, did = self._holding_queue[0]
+            if t - entry_time < MIN_HOLD_S:
+                break
+            heapq.heappop(self._holding_queue)
+            drone = self._active_drones.get(did)
+            if drone and drone.flight_phase == FlightPhase.HOLDING:
+                # ENROUTE 복귀 어드바이저리 발송
+                adv = ResolutionAdvisory(
+                    advisory_id=f"HQ-{uuid.uuid4().hex[:6].upper()}",
+                    target_drone_id=did,
+                    advisory_type="RESUME",
+                    magnitude=0.0,
+                    duration_s=0.0,
+                    timestamp_s=t,
+                    conflict_pair=None,
+                )
+                self.comm_bus.send(CommMessage(
+                    sender_id="CONTROLLER",
+                    receiver_id=did,
+                    payload=adv,
+                    sent_time=t,
+                    channel="advisory",
+                ))
+                released += 1
 
     # ── 메시지 수신 ──────────────────────────────────────────
 
@@ -507,9 +592,7 @@ class AirspaceController:
         for aid in expired:
             del self._advisories[aid]
 
-    # ── Voronoi 갱신 ─────────────────────────────────────────
-
-    # ── 유틸리티 ─────────────────────────────────────────────
+    # ── Voronoi 갱신 & 밀도 기반 제어 ────────────────────────
 
     def _refresh_voronoi(self) -> None:
         if not self._active_drones:
@@ -533,8 +616,34 @@ class AirspaceController:
                 self._voronoi_cells = compute_voronoi_partition(
                     positions, bounds_dict
                 )
+                self._apply_density_based_separation()
             except Exception:
                 logger.warning("Voronoi partition failed with %d drones", len(positions))
+
+    def _apply_density_based_separation(self) -> None:
+        """
+        Voronoi 셀 면적 기반 밀도 관리.
+
+        고밀도 셀(면적 < 2 km²)의 드론에게 분리간격 확대 어드바이저리 발령.
+        컨트롤러가 고밀도 지역을 인식하여 추가 어드바이저리를 예방적으로 발령.
+        """
+        if not self._voronoi_cells:
+            return
+
+        HIGH_DENSITY_THRESHOLD_KM2 = 2.0  # 고밀도 기준 셀 면적
+
+        for did, cell in self._voronoi_cells.items():
+            if cell.area_km2 <= 0:
+                continue
+            drone = self._active_drones.get(did)
+            if drone is None or not drone.is_active:
+                continue
+            if drone.flight_phase not in (FlightPhase.ENROUTE,):
+                continue
+
+            # 고밀도 셀 드론: 고도 밴드를 할당하여 수직 분리 유도
+            if cell.area_km2 < HIGH_DENSITY_THRESHOLD_KM2:
+                drone._voronoi_alt_band = cell.altitude_band
 
 
 # ── 모듈 수준 유틸리티 ─────────────────────────────────────────

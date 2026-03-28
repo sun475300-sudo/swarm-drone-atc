@@ -195,6 +195,14 @@ class _DroneAgent:
                 drone.position[2] = float(np.clip(drone.position[2], 0.0, 120.0))
                 drone.distance_flown_m += float(np.linalg.norm(drone.velocity * dt))
 
+                # Geofence: 공역 경계 90% 도달 시 RTL 자동 전환
+                geofence_margin = sim.bounds_m * 0.9
+                if (abs(drone.position[0]) > geofence_margin or
+                    abs(drone.position[1]) > geofence_margin):
+                    if drone.flight_phase in (FlightPhase.ENROUTE, FlightPhase.EVADING):
+                        drone.flight_phase = FlightPhase.RTL
+                        drone.goal = None  # RTL에서 가장 가까운 패드로 재설정
+
             if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
                 drone.flight_time_s += dt
             drone.last_update_s  = t
@@ -479,6 +487,13 @@ class SwarmSimulator:
         # APF 힘 캐시 (배치 계산 → 각 드론 프로세스 참조)
         self.apf_forces: dict[str, np.ndarray] = {}
 
+        # 고장 주입 설정
+        fi = self.cfg.get("failure_injection", {})
+        self._failure_rate: float = float(fi.get("drone_failure_rate", 0.0))
+        self._comms_loss_rate: float = float(fi.get("comms_loss_rate", 0.0))
+        self._failure_types_pool = [FailureType.MOTOR_FAILURE, FailureType.BATTERY_CRITICAL,
+                                     FailureType.GPS_LOSS]
+
         # 드론 관리
         self._drones:  dict[str, DroneState]  = {}
         self._n_drones = int(self.cfg.get("drones", {}).get("default_count", 30))
@@ -495,6 +510,8 @@ class SwarmSimulator:
         self.env.process(self.controller.run())
         self.env.process(self._apf_batch_loop())
         self.env.process(self._analytics_loop())
+        if self._failure_rate > 0 or self._comms_loss_rate > 0:
+            self.env.process(self._failure_injection_loop())
         self.env.run(until=dur)
 
         return self.analytics.finalize(
@@ -617,6 +634,46 @@ class SwarmSimulator:
 
     # ── 분석 루프 ─────────────────────────────────────────────
 
+    def _failure_injection_loop(self):
+        """5초 주기: 확률 기반 고장/통신 두절 자동 주입"""
+        INJECT_INTERVAL_S = 5.0
+        while True:
+            yield self.env.timeout(INJECT_INTERVAL_S)
+            t = float(self.env.now)
+
+            for drone in self._drones.values():
+                if not drone.is_active or drone.flight_phase in (
+                    FlightPhase.GROUNDED, FlightPhase.FAILED, FlightPhase.LANDING
+                ):
+                    continue
+
+                # 드론 고장 주입 (매 5초 간격 확률)
+                if self._failure_rate > 0 and drone.failure_type == FailureType.NONE:
+                    if self.rng.random() < self._failure_rate * INJECT_INTERVAL_S / 60.0:
+                        failure = self.rng.choice(self._failure_types_pool)
+                        drone.failure_type = failure
+                        if failure == FailureType.MOTOR_FAILURE:
+                            drone.flight_phase = FlightPhase.FAILED
+                        elif failure == FailureType.BATTERY_CRITICAL:
+                            drone.battery_pct = 3.0
+                            drone.flight_phase = FlightPhase.LANDING
+                        if self.analytics:
+                            self.analytics.record_event(
+                                "FAILURE_INJECTED", t,
+                                drone_id=drone.drone_id,
+                                failure_type=failure.name,
+                            )
+
+                # 통신 두절 주입
+                if self._comms_loss_rate > 0 and drone.comms_status == CommsStatus.NORMAL:
+                    if self.rng.random() < self._comms_loss_rate * INJECT_INTERVAL_S / 60.0:
+                        drone.comms_status = CommsStatus.LOST
+                        if self.analytics:
+                            self.analytics.record_event(
+                                "COMMS_LOSS_INJECTED", t,
+                                drone_id=drone.drone_id,
+                            )
+
     def _analytics_loop(self):
         """1 Hz: 전체 드론 스냅샷 + 충돌 감지 (Spatial Hash 기반)"""
         sh = SpatialHash(cell_size=50.0)
@@ -624,6 +681,13 @@ class SwarmSimulator:
             yield self.env.timeout(1.0)
             t = float(self.env.now)
             self.analytics.record_snapshot(self._drones, t)
+
+            # 컨트롤러에 현재 풍속 전달 → 동적 분리간격 조정
+            if self.wind_models:
+                avg_wind = np.zeros(3)
+                for wm in self.wind_models:
+                    avg_wind += wm.get_wind_vector(np.zeros(3), t)
+                self.controller.update_wind_speed(float(np.linalg.norm(avg_wind)))
 
             # Spatial Hash로 충돌 감지 (5 m 이내) — O(N·k)
             # A1: LANDING 드론은 충돌 스캔에서 제외 (착지 중 수직 프로파일은 안전)

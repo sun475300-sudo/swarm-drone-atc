@@ -60,7 +60,7 @@ class TestTranslateScenario:
     def test_intrusion(self):
         raw = {"intrusion": {"count": 3}}
         cfg = _translate_scenario(raw)
-        assert cfg["drones"]["rogue_count"] == 3
+        assert cfg["scenario"]["drones"]["n_rogue"] == 3
 
     def test_comms_loss(self):
         raw = {"comms_loss": {"trigger_time_range": [30, 300]}}

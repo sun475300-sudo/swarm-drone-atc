@@ -6,7 +6,7 @@ SimPy 기반 이산 이벤트 시뮬레이션 + Dash 3D 시각화
 
 ## Quick Commands
 ```bash
-pytest tests/ -v                              # 전체 테스트 (292개)
+pytest tests/ -v                              # 전체 테스트 (325개)
 python main.py simulate --duration 60         # 기본 시뮬레이션
 python main.py scenario high_density          # 시나리오 실행
 python main.py monte-carlo --mode quick       # Monte Carlo 스윕
@@ -21,7 +21,7 @@ python main.py visualize                      # 3D 대시보드 (localhost:8050)
 
 ## Key Conventions
 - 시뮬레이터 엔진: `SwarmSimulator` (canonical), engine_legacy 삭제됨
-- 테스트: `tests/test_*.py`, pytest, 모든 PR 전 292+ 통과 필수
+- 테스트: `tests/test_*.py`, pytest, 모든 PR 전 325+ 통과 필수
 - 드론 수 설정 키: `drones.default_count` (SwarmSimulator가 읽는 키)
 - 충돌 해결률 공식: `1 - collisions/(conflicts + collisions)`
 - APF 강풍 모드: 풍속 >10 m/s → `APF_PARAMS_WINDY` 자동 전환

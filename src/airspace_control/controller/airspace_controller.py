@@ -716,6 +716,69 @@ class AirspaceController:
         """고밀도 지역 드론의 허가 우선순위 부스트 (0.0~0.5)"""
         return getattr(self, '_density_scores', {}).get(drone_id, 0.0) * 0.5
 
+    # ── 동적 NFZ 관리 ──────────────────────────────────────────
+
+    def add_dynamic_nfz(
+        self,
+        nfz_id: str,
+        center: np.ndarray,
+        radius_m: float,
+        t: float,
+    ) -> int:
+        """
+        런타임 중 비행금지구역 추가 → NFZ 내부 드론 자동 재경로.
+
+        Returns
+        -------
+        int : 재경로 지시를 받은 드론 수
+        """
+        nfz = {"center": np.array(center, dtype=float), "radius_m": float(radius_m), "id": nfz_id}
+        self.planner.nfz_list.append(nfz)
+        logger.info("동적 NFZ 추가: %s (%.0fm 반경, center=%s)", nfz_id, radius_m, center[:2])
+
+        if self.analytics:
+            self.analytics.record_event("NFZ_ADDED", t, nfz_id=nfz_id, radius_m=radius_m)
+
+        # NFZ 내부 활성 드론에 EVADE_APF 어드바이저리 발령
+        rerouted = 0
+        for did, drone in self._active_drones.items():
+            if not drone.is_active or drone.flight_phase in (FlightPhase.GROUNDED, FlightPhase.FAILED):
+                continue
+            dist = float(np.linalg.norm(drone.position[:2] - center[:2]))
+            if dist < radius_m * 1.2:  # NFZ 반경 + 20% 마진
+                adv = ResolutionAdvisory(
+                    advisory_id=f"NFZ-{uuid.uuid4().hex[:6].upper()}",
+                    target_drone_id=did,
+                    advisory_type="EVADE_APF",
+                    magnitude=0.0,
+                    duration_s=30.0,
+                    timestamp_s=t,
+                    conflict_pair=None,
+                )
+                self._advisories[adv.advisory_id] = adv
+                self.comm_bus.send(CommMessage(
+                    sender_id="CONTROLLER",
+                    receiver_id=did,
+                    payload=adv,
+                    sent_time=t,
+                    channel="advisory",
+                ))
+                rerouted += 1
+        return rerouted
+
+    def remove_dynamic_nfz(self, nfz_id: str, t: float) -> bool:
+        """런타임 중 비행금지구역 해제"""
+        before = len(self.planner.nfz_list)
+        self.planner.nfz_list = [
+            n for n in self.planner.nfz_list if n.get("id") != nfz_id
+        ]
+        removed = len(self.planner.nfz_list) < before
+        if removed:
+            logger.info("동적 NFZ 해제: %s", nfz_id)
+            if self.analytics:
+                self.analytics.record_event("NFZ_REMOVED", t, nfz_id=nfz_id)
+        return removed
+
 
 # ── 모듈 수준 유틸리티 ─────────────────────────────────────────
 

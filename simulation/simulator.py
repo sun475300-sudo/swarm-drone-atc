@@ -68,10 +68,38 @@ def _drone_to_apf(d: DroneState) -> APFState:
     )
 
 
-def _estimate_power_w(speed_ms: float, profile) -> float:
-    """단순 이차 동력 모델 (W)"""
+def _estimate_power_w(
+    speed_ms: float,
+    profile,
+    altitude_m: float = 60.0,
+    headwind_ms: float = 0.0,
+    climb_rate_ms: float = 0.0,
+) -> float:
+    """
+    정밀 동력 모델 (W)
+
+    - 호버 기본 소모 (배터리 용량 / 체공 시간)
+    - 공기 저항: 속도² 비례
+    - 고도 보정: 공기 밀도 저하 → 효율 감소 (1% / 100m)
+    - 역풍 보정: 실효 속도 증가분만큼 추가 소모
+    - 상승/하강: 상승 시 추가 에너지, 하강 시 미세 회수
+    """
     p_hover = profile.battery_wh * 3600.0 / (profile.endurance_min * 60.0)
-    return p_hover + 0.5 * speed_ms ** 2
+
+    # 공기 저항 (속도² 비례)
+    effective_speed = max(0.0, speed_ms + headwind_ms * 0.5)
+    p_drag = 0.5 * effective_speed ** 2
+
+    # 고도 보정 (공기 밀도 저하: ~1.2% / 100m AGL)
+    alt_factor = 1.0 + altitude_m * 0.00012
+
+    # 상승/하강 (상승: +25W/m/s, 하강: -5W/m/s 회수)
+    if climb_rate_ms > 0:
+        p_climb = climb_rate_ms * 25.0
+    else:
+        p_climb = climb_rate_ms * 5.0  # 약간 회수 (음수)
+
+    return max(0.0, (p_hover + p_drag) * alt_factor + p_climb)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -141,7 +169,20 @@ class _DroneAgent:
             tick_count = int(round(t / dt))
             if tick_count % 5 == 0 and drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
                 dt_bat = dt * 5
-                pw = _estimate_power_w(drone.speed, profile)
+                # 고도/풍향/상승률 기반 정밀 소모
+                alt = float(drone.position[2]) if len(drone.position) > 2 else 60.0
+                climb_rate = float(drone.velocity[2]) if len(drone.velocity) > 2 else 0.0
+                # 역풍 추정: 바람 벡터와 이동 방향의 내적
+                headwind = 0.0
+                if hasattr(sim, '_wind_cache') and drone.speed > 0.1:
+                    wind_v = sim._wind_cache
+                    move_dir = drone.velocity / max(drone.speed, 0.1)
+                    headwind = -float(np.dot(wind_v, move_dir))
+                pw = _estimate_power_w(
+                    drone.speed, profile,
+                    altitude_m=alt, headwind_ms=headwind,
+                    climb_rate_ms=climb_rate,
+                )
                 drone.battery_pct -= (pw * dt_bat) / (profile.battery_wh * 3600.0) * 100.0
                 drone.battery_pct  = max(0.0, drone.battery_pct)
                 if drone.battery_pct < 5.0 and drone.failure_type == FailureType.NONE:

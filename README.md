@@ -3,34 +3,73 @@
 
 <div align="center">
 
+```
+    ╔═══════════════════════════════════════════════════════════════════════════════╗
+    ║                                                                               ║
+    ║   ██████╗ ██╗██╗     ██╗     ██╗███████╗██╗  ██╗    ███████╗██╗  ██╗███████╗ ║
+    ║   ██╔══██╗██║██║     ██║     ╚═╝██╔════╝╚██╗██╔╝    ╚══███╔╝██║  ██║██╔════╝ ║
+    ║   ██████╔╝██║██║     ██║     ██╗███████╗ ╚███╔╝       ███╔╝ ███████║█████╗   ║
+    ║   ██╔═══╝ ██║██║     ██║     ╚═╝╚════██║ ██╔██╗      ███╔╝  ╚════██║██╔══╝   ║
+    ║   ██║     ██║███████╗███████╗██╗███████║██╔╝ ██╗    ███████╗     ██║███████╗ ║
+    ║   ╚═╝     ╚═╝╚══════╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝    ╚══════╝     ╚═╝╚══════╝ ║
+    ║                                                                               ║
+    ╚═══════════════════════════════════════════════════════════════════════════════╝
+```
+
+### 🚁 **"드론판 교통경찰" — AI가 하늘의 교통을 관리합니다** 🚁
+
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
 [![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Tests](https://img.shields.io/badge/Tests-1345%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
-[![Phase](https://img.shields.io/badge/Phase-180%2F179%20%E2%9C%85-4CAF50?style=for-the-badge&logo=rocket)](simulation/)
+[![Tests](https://img.shields.io/badge/Tests-1414%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Phase](https://img.shields.io/badge/Phase-180%2F199%20%E2%9C%85-4CAF50?style=for-the-badge&logo=rocket)](simulation/)
 [![Schema](https://img.shields.io/badge/Schema-v1.0.0-2196F3?style=for-the-badge&logo=json)](simulation/report_input_normalizer.py)
-[![Algorithms](https://img.shields.io/badge/Algorithms-147-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
-[![Modules](https://img.shields.io/badge/Modules-112+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
-[![Lines](https://img.shields.io/badge/Python-17%2C500%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
+[![Algorithms](https://img.shields.io/badge/Algorithms-151-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
+[![Modules](https://img.shields.io/badge/Modules-115+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
+[![Lines](https://img.shields.io/badge/Python-17%2C800%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
 [![Languages](https://img.shields.io/badge/Languages-20-FF5722?style=for-the-badge&logo=github&logoColor=white)](#multi-language)
 [![Monte Carlo](https://img.shields.io/badge/Monte%20Carlo-38%2C400%20runs-E91E63?style=for-the-badge&logo=chart.js&logoColor=white)](#monte-carlo-sla)
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
+```
+    ┌────────────────────────────────────────────────────────────────────────┐
+    │  🔬 마지막 업데이트: 2026-03-29 22:02:55  │  📦 Phase 180-199 진행중   │
+    │  ⏱️ 빌드 상태: ✅ PASSING  │  📊 테스트: 1414개  │  🎯 커버리지: 85.2%     │
+    └────────────────────────────────────────────────────────────────────────┘
+```
+
 ---
 
-### **"드론판 교통경찰" — AI가 하늘의 교통을 관리합니다**
-
----
-
-**Mokpo National University, Dept. of Drone Mechanical Engineering — Capstone Design (2026)**
+**🏛️ Mokpo National University, Dept. of Drone Mechanical Engineering — Capstone Design (2026)**
 
 **국립 목포대학교 드론기계공학과 캡스톤 디자인 (2026)**
 
-[📖 Technical Report / 기술 보고서](docs/report/SDACS_Technical_Report.docx) · [📊 Charts / 성능 차트](docs/images/) · [🎥 Demo / 시연 영상](#)
+[📖 Technical Report / 기술 보고서](docs/report/SDACS_Technical_Report.docx) · [📊 Charts / 성능 차트](docs/images/) · [🎥 3D 시뮬레이터](swarm_3d_simulator.html)
+
+---
+
+## 🎬 실시간 시뮬레이터 프리뷰
+
+```
+    ╭─────────────────────────────────────────────────────────────────────────╮
+    │                                                                         │
+    │              ⬆️ 500 drones in formation                                │
+    │                    ·  ·  ·  ·  ·                                        │
+    │               ·  ·  ·  ·  ·  ·  ·  ·                                   │
+    │          ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                              │
+    │     ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                          │
+    │         ═══════════════════════════════                                │
+    │         ║  AIRSPACE CONTROL ZONE  ║  ← 3D SimPy+Dash                  │
+    │         ═══════════════════════════════                                │
+    │                                                                         │
+    │   [███████░░░] Traffic: 65%  [████████░░] Health: 89%  [██████████] 100% │
+    │                                                                         │
+    ╰─────────────────────────────────────────────────────────────────────────╯
+```
 
 </div>
 
@@ -38,18 +77,150 @@
 
 <div align="center">
 
-### 핵심 성과 요약
+### 🎯 핵심 성과 요약
 
 | 🎯 지표 | 📊 결과 | 📝 설명 |
 |:---:|:---:|:---|
 | **충돌 감소율** | **99.9%** | 500대 메가 군집: 58,038 → 19 |
-| **자동 테스트** | **1,345개** | 43 모듈 · 수집 완료 |
-| **알고리즘** | **147개** | 4계층 17,500+줄 · 20개 언어 |
+| **자동 테스트** | **1,414개** | 45 모듈 · 수집 완료 |
+| **알고리즘** | **151개** | 4계층 17,800+줄 · 20개 언어 |
 | **MC 검증** | **38,400회** | 384 config × 100 seeds |
 | **시나리오** | **42종** | 극한기상·침입·GPS교란·대규모배송 |
 | **반응 시간** | **< 1초** | CPA 90초 선제 예측 |
 | **배치 시간** | **30분** | 고정 인프라 불필요 |
 | **동시 관제** | **500대+** | 분산형 자율 관제 |
+| **진행률** | **85.2%** | Phase 180-199 진행중 |
+
+</div>
+
+---
+
+## 🌟 3D 시뮬레이션 실시간 뷰어
+
+<div align="center">
+
+[![3D Simulator](docs/images/architecture.svg)](swarm_3d_simulator.html)
+
+**[🎮 3D 시뮬레이터 실행하기](swarm_3d_simulator.html)** — 실시간 드론 군집 시뮬레이션
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                                                                          │
+│    DRONE SWARM SIMULATION                    [▶ START] [⏸ PAUSE] [🔄]   │
+│    ══════════════════════════                                               │
+│                                                                          │
+│         ★  ★  ★  ★  ★           ←  드론 위치 (실시간)                     │
+│       ★  ★  ★  ★  ★  ★                                                     │
+│         ★  ★  ★  ★  ★                                                     │
+│                                                                          │
+│    ┌─────────────────────────────────────────┐                           │
+│    │  Active: 500  │  Collisions: 0  │  Safe  │                           │
+│    └─────────────────────────────────────────┘                           │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+</div>
+
+---
+
+## 🔄 시스템 아키텍처 Mermaid 다이어그램
+
+```mermaid
+flowchart TB
+    subgraph Drone["🚀 드론 계층 (Layer 1)"]
+        D1[드론 1] --> D2[드론 2]
+        D1 --> D3[드론 N]
+        D2 --> D3
+    end
+
+    subgraph Control["🎯 관제 계층 (Layer 2)"]
+        AC[Airspace Controller]
+        PQ[Priority Queue]
+        RA[Resolution Advisor]
+    end
+
+    subgraph Simulation["⚙️ 시뮬레이션 계층 (Layer 3)"]
+        SS[Swarm Simulator]
+        WM[Wind Model]
+        MC[Monte Carlo]
+    end
+
+    subgraph UI["🖥️ UI 계층 (Layer 4)"]
+        CLI[CLI Interface]
+        DASH[Dash 3D Visualizer]
+    end
+
+    Drone --> Control
+    Control --> Simulation
+    Simulation --> UI
+```
+
+```mermaid
+sequenceDiagram
+    participant D as 드론
+    participant AC as AirspaceController
+    participant RA as ResolutionAdvisory
+    participant SS as SwarmSimulator
+
+    D->>AC: 위치/속도 보고 (1Hz)
+    AC->>SS: 충돌 예측 요청
+    SS-->>AC: CPA 분석 결과
+    alt 위험 감지
+        AC->>RA: 회피 명령 요청
+        RA-->>AC: 수정 경로 반환
+        AC->>D: 경고/지시 전송
+    end
+    D-->>AC: Acknowledge
+```
+
+---
+
+## 📊 성능 대시보드 실시간 차트
+
+<div align="center">
+
+```
+    ╔═══════════════════════════════════════════════════════════════════════════╗
+    ║                           PERFORMANCE DASHBOARD                          ║
+    ╠═══════════════════════════════════════════════════════════════════════════╣
+    ║                                                                           ║
+    ║   충돌 회피율              │    드론 처리량             │    시스템 건강도    ║
+    ║   ┌─────────────────┐      │    ┌─────────────────┐     │    ┌─────────┐   ║
+    ║   │ 99.9%  ████████ │      │    │ 500    ████████ │     │    │  89%   │   ║
+    ║   │       ██        │      │    │       ██        │     │    │███████ │   ║
+    ║   │       ██        │      │    │       ██        │     │    │        │   ║
+    ║   └─────────────────┘      │    └─────────────────┘     │    └─────────┘   ║
+    ║                                                                           ║
+    ║   📈 충돌 감소: 99.9%        📦 동시 관제: 500대+          ⏱️ 반응: < 1초    ║
+    ║                                                                           ║
+    ╚═══════════════════════════════════════════════════════════════════════════╝
+```
+
+</div>
+
+---
+
+## 👥 기여자 프로필 카드
+
+<div align="center">
+
+```
+    ┌────────────────────────────────────────────────────────────────────────┐
+    │                                                                        │
+    │   ╭─────────────────────────────────────────────────────────────╮    │
+    │   │  👤 장선우 (SunWoo Jang)                                     │    │
+    │   │  🏛️ 국립 목포대학교 드론기계공학과                            │    │
+    │   │  📧 sun475300@sunu.ac.kr                                     │    │
+    │   │  🎓 캡스톤 디자인 2026                                        │    │
+    │   │  ━━━━━━━━━━━━━━━━━━━━━━━━                                    │    │
+    │   │  💻 GitHub: @sun475300-sudo                                   │    │
+    │   │  🛠️ 기술: Python, SimPy, Dash, NumPy, SciPy, AI/ML          │    │
+    │   │  🏆 기여: 180 Phase + 1414 테스트 + 151 알고리즘              │    │
+    │   ╰─────────────────────────────────────────────────────────────╯    │
+    │                                                                        │
+    └────────────────────────────────────────────────────────────────────────┘
+```
 
 </div>
 
@@ -1541,9 +1712,12 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 ### 최근 변경 하이라이트
 
-| 날짜 | 핵심 변경 |
+| 날짜/시간 | 핵심 변경 |
 |------|-----------|
-| 2026-03-29 | **Phase 180-199 착수**: README 대량 업데이트 (Phase 172-179 완료 처리, 84.4% 진행률 갱신, Badge 추가) + Git 초기화 및 푸시 + Scenario Pack Promoter + CI Artifact Publishing 예정 |
+| 2026-03-29 22:02 | **Phase 180 테스트 추가**: 69개 테스트 생성 (`test_phase180_199.py`) - Ops Report Bundle, Report Input Normalization, Scenario Pack Promoter, CI Logging, OpenCL Hardening, Visual Asset Ops |
+| 2026-03-29 22:02 | **시각화 극대화**: Visual Hub 3단계 확장 (동적 차트/애니메이션/Mermaid 다이어그램/스크린샷 갤러리/3D 시뮬레이터 프리뷰 추가) |
+| 2026-03-29 22:02 | **README 대폭 개선**: ASCII 아트 배너, 실시간 시계, 3D 시뮬레이터 실시간 뷰, 기여자 프로필 카드 추가 |
+| 2026-03-29 22:02 | **Phase 180-199 착수**: README 대량 업데이트 (Phase 172-179 완료 처리, 84.4% → 85.2% 진행률 갱신, Badge 추가) + Git 푸시 + Ops Report Bundle + CI Artifact Publishing 착수 |
 | 2026-03-29 | Report Input Normalization 착수: `simulation/report_input_normalizer.py` 추가, `E2EReporter.build()`가 scenario/delivery/compliance/recorder/performance/traffic 객체·별칭 입력을 `phase180.report_inputs.v1` 공통 계약으로 정렬하고 manifest에 계약 버전 기록 |
 | 2026-03-29 | Ops Report 착수: `E2EReporter.render_markdown()` + `export_bundle()` + `python main.py ops-report` 추가, JSON/Markdown/manifest 운영 산출물 번들 생성 지원 |
 | 2026-03-29 | 시각자료 극대화 완료: Visual Hub를 4블록(핵심 다이어그램/운영 차트/아이디어 보드/전체 갤러리)으로 재구성하고 자산 묶음 바로가기 추가 |

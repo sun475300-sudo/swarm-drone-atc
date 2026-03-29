@@ -9,8 +9,8 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Tests](https://img.shields.io/badge/Tests-1306%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
-[![Algorithms](https://img.shields.io/badge/Algorithms-145-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
+[![Tests](https://img.shields.io/badge/Tests-1314%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Algorithms](https://img.shields.io/badge/Algorithms-147-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
 [![Modules](https://img.shields.io/badge/Modules-112+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Lines](https://img.shields.io/badge/Python-17%2C500%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
 [![Languages](https://img.shields.io/badge/Languages-20-FF5722?style=for-the-badge&logo=github&logoColor=white)](#multi-language)
@@ -41,8 +41,8 @@
 | 🎯 지표 | 📊 결과 | 📝 설명 |
 |:---:|:---:|:---|
 | **충돌 감소율** | **99.9%** | 500대 메가 군집: 58,038 → 19 |
-| **자동 테스트** | **1,306개** | 43 모듈 · 수집 완료 |
-| **알고리즘** | **145개** | 4계층 17,500+줄 · 20개 언어 |
+| **자동 테스트** | **1,314개** | 43 모듈 · 수집 완료 |
+| **알고리즘** | **147개** | 4계층 17,500+줄 · 20개 언어 |
 | **MC 검증** | **38,400회** | 384 config × 100 seeds |
 | **시나리오** | **42종** | 극한기상·침입·GPS교란·대규모배송 |
 | **반응 시간** | **< 1초** | CPA 90초 선제 예측 |
@@ -200,9 +200,9 @@
 <details>
 <summary><b>Step 5: Results / 5단계: 결과</b></summary>
 
-**EN:** 1,306 tests collected, 145 algorithms, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), and 99.9% collision reduction in validated scenarios.
+**EN:** 1,314 tests collected, 147 algorithms, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), and 99.9% collision reduction in validated scenarios.
 
-**KR:** 1,306개 테스트 수집, 145개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모를 갖춘 캡스톤 프로젝트입니다.
+**KR:** 1,314개 테스트 수집, 147개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모를 갖춘 캡스톤 프로젝트입니다.
 </details>
 
 ---
@@ -731,7 +731,7 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
 
 ---
 
-### 모듈 카테고리별 분포 (145개 알고리즘)
+### 모듈 카테고리별 분포 (147개 알고리즘)
 
 ```
   충돌 회피/경로 계획  (18) ████████████████████░░░░░░░░░░ 17%
@@ -759,7 +759,7 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
   Phase 164-171 ████████████████████ 완료 ✓  운영 인프라 (MQ·CB·RL·Health·HotReload·Lock·Replay·Canary)
   Phase 172-179 ██████░░░░░░░░░░░░░░ 진행중 ▸ 실전 시나리오 (CityMap·Traffic·WeatherAPI·E2E·Compliance·OpenCL)
   ─────────────────────────────────────────────────────
-  총 진행률: ████████████████████████░░░░░ 81.0% (145/179 알고리즘)
+  총 진행률: █████████████████████████░░░░░ 82.1% (147/179 알고리즘)
 ```
 
 ---
@@ -1271,7 +1271,7 @@ pytest tests/ -v              # Run all / 전체 실행
 pytest tests/test_apf.py -v   # Specific module / 특정 파일
 ```
 
-### 테스트 커버리지 (1,306개 / 43모듈)
+### 테스트 커버리지 (1,314개 / 43모듈)
 
 | 파일 | 수 | 대상 |
 |------|---|------|
@@ -1317,8 +1317,8 @@ pytest tests/test_apf.py -v   # Specific module / 특정 파일
 | `test_phase132_155.py` | 95 | 드론팩토리·리밸런서·배터리열화·풍동·착륙패드·GPS멀티패스·동적장애물·페이로드·멀티테넌트·SLA·라이프사이클·스케줄·배송최적화·가격엔진·고객지표·함대구성·MCTS·연합학습·NLP·디지털트윈·미션플래너·센서융합·이벤트아키텍처·대시보드 |
 | `test_phase156_163.py` | 32 | 베이지안튜너·시계열예측·MARL·오토인코더·앙상블·포캐스터·인프라 안정화 모듈 |
 | `test_phase164_171.py` | 37 | Circuit Breaker·Rate Limiter·Hot Reload·DistLock·Event Replay·Canary·OpenCL 파일럿 |
-| `test_phase172_179.py` | 31 | City Map Generator·Traffic Simulator·Weather API Client·Weather Risk Model·Delivery Simulation E2E·Compliance Engine 검증 |
-| **합계** | **1,306** | **43 모듈 · 100% pass** |
+| `test_phase172_179.py` | 39 | City Map Generator·Traffic Simulator·Weather API Client·Weather Risk Model·Delivery Simulation E2E·Compliance Engine·Sim Recorder·Perf Benchmark 검증 |
+| **합계** | **1,314** | **43 모듈 · 100% pass** |
 
 ---
 
@@ -1425,6 +1425,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 핵심 변경 |
 |------|-----------|
+| 2026-03-29 | Sim Recorder + Perf Benchmark 착수: 타임라인 녹화/재생 및 지연·처리량 벤치마크 추가 |
 | 2026-03-29 | Compliance Engine 착수: 규칙셋 실행·배치평가·위반 리포트/요약 기능 추가 |
 | 2026-03-29 | Delivery Simulation E2E 구현: 주문 등록·드론 배차·ETA 계산·배송 완료 흐름 추가 |
 | 2026-03-29 | 다중 언어 기능 구현: Weather Risk 모델을 TS/Go/Rust/C++/Java로 동시 구현 |
@@ -1456,24 +1457,20 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 ### Phase 172-179 (실전 시나리오 + 통합)
 
-| 우선순위 | 모듈 | 목표 |
-|---------|------|------|
-| P0 | `city_map_generator.py` | 도심 장애물/회랑 맵 자동 생성 |
-| P0 | `traffic_simulator.py` | 시간대별 혼잡/수요/사고 모델 |
-| P1 | `weather_api_client.py` | 외부 기상 연동 + 캐시 |
-| P1 | `delivery_simulation.py` | 주문-배차-배송 E2E |
-| P1 | `airspace_reservation.py` | 슬롯 예약/충돌 해소 정책 |
-| P2 | `compliance_engine.py` | 규제 룰셋 실행 + 위반 리포트 |
-| P2 | `sim_recorder.py` | 타임라인 녹화/재생 포맷 |
-| P2 | `perf_benchmark.py` | 부하/지연/처리량 표준 벤치마크 |
-| P2 | `opencl_accelerator.py` | Openclaw/OpenCL 가속 파일럿 |
+| 우선순위 | 작업 묶음 | 범위 | 산출물 |
+|---------|-----------|------|--------|
+| P0 | Reservation 통합 | `airspace_reservation.py` + delivery/traffic 연동 | 슬롯 충돌 해소 정책 + 통합 테스트 |
+| P1 | Observability 패스 | `sim_recorder.py` + `perf_benchmark.py` E2E 연결 | 재현 가능한 시뮬 타임라인 + KPI 리포트 |
+| P1 | Compliance 심화 | `compliance_engine.py` 규칙셋 확장 | 위반 분류 리포트 + severity 추세 |
+| P2 | Accelerator 확장 | `opencl_accelerator.py` 연동 경로 확대 | CPU/OpenCL fallback 벤치 비교 |
+| P2 | 회귀 안정화 | Phase 172-179 통합 회귀 | 테스트/README 지표 동기화 |
 
 ### 착수 상태
 
 - 완료: Phase 156-171
 - 진행중: Phase 172-179 (시나리오/실전 통합)
-- 현재 커밋 목표: `sim_recorder.py` + `perf_benchmark.py` + `airspace_reservation.py`
-- 다음 커밋 목표: Phase 172-179 통합 E2E 리포트 + 회귀 테스트 확장
+- 현재 커밋 목표: `sim_recorder.py` + `perf_benchmark.py` + 테스트 확장
+- 다음 커밋 목표: `airspace_reservation.py` 통합 + Phase 172-179 E2E 리포트
 
 ---
 

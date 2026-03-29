@@ -284,3 +284,75 @@ class TestComplianceEngine:
         assert self.e.summary()["total_violations"] > 0
         self.e.clear()
         assert self.e.summary()["total_violations"] == 0
+
+
+class TestSimRecorder:
+    def setup_method(self):
+        from simulation.sim_recorder import SimRecorder
+
+        self.r = SimRecorder()
+
+    def test_record_and_events(self):
+        self.r.record(0.1, "TAKEOFF", drone_id="D1")
+        out = self.r.events()
+        assert len(out) == 1
+        assert out[0].event_type == "TAKEOFF"
+
+    def test_replay_window(self):
+        self.r.record(1.0, "A")
+        self.r.record(2.5, "B")
+        self.r.record(4.0, "C")
+        out = self.r.replay(start_sec=2.0, end_sec=3.0)
+        assert len(out) == 1
+        assert out[0].event_type == "B"
+
+    def test_export_import(self):
+        self.r.record(1.0, "STATE", x=1)
+        rows = self.r.export()
+        from simulation.sim_recorder import SimRecorder
+
+        r2 = SimRecorder()
+        r2.import_events(rows)
+        assert len(r2.events()) == 1
+        assert r2.events()[0].payload["x"] == 1
+
+    def test_summary(self):
+        self.r.record(0.0, "A")
+        self.r.record(2.0, "A")
+        self.r.record(3.0, "B")
+        s = self.r.summary()
+        assert s["events"] == 3
+        assert s["by_type"]["A"] == 2
+
+
+class TestPerfBenchmark:
+    def setup_method(self):
+        from simulation.perf_benchmark import PerfBenchmark
+
+        self.b = PerfBenchmark()
+
+    def test_add_sample_and_report(self):
+        self.b.add_sample(12.5)
+        self.b.add_sample(25.0)
+        report = self.b.report(window_sec=10)
+        assert report["samples"] == 2
+        assert report["avg_ms"] > 0
+        assert report["throughput_rps"] == 0.2
+
+    def test_add_batch(self):
+        self.b.add_batch([10, 20, 30, 40])
+        report = self.b.report(window_sec=20)
+        assert report["samples"] == 4
+        assert report["p95_ms"] >= report["p50_ms"]
+
+    def test_success_rate(self):
+        self.b.add_sample(10, success=True)
+        self.b.add_sample(11, success=False)
+        self.b.add_sample(12, success=True)
+        report = self.b.report(window_sec=3)
+        assert report["success_rate"] == 0.6667
+
+    def test_empty_report(self):
+        report = self.b.report()
+        assert report["samples"] == 0
+        assert report["throughput_rps"] == 0.0

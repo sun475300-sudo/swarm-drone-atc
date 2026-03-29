@@ -252,10 +252,14 @@ class TestMainCmdOpsReport:
 
         json_path = tmp_path / "ops-smoke.json"
         markdown_path = tmp_path / "ops-smoke.md"
+        manifest_path = tmp_path / "ops-smoke.manifest.json"
         assert json_path.exists()
         assert markdown_path.exists()
+        assert manifest_path.exists()
 
         report = json.loads(json_path.read_text(encoding="utf-8"))
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         assert report["meta"]["scenario"] == "ops_smoke"
         assert report["observability"]["linked"] is True
         assert report["performance"]["samples"] >= 1
+        assert manifest["files"]["markdown"] == "ops-smoke.md"

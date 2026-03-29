@@ -709,3 +709,42 @@ class TestE2EReporter:
         assert "`md-smoke`" in out
         assert "## Diagnostics" in out
         assert "Warnings" in out
+
+    def test_export_bundle_writes_manifest(self, tmp_path):
+        import json
+
+        report = self.r.build(
+            delivery_summary={"delivered": 2, "dispatches": 2},
+            compliance_report={"total_violations": 0},
+            recorder_summary={"events": 4},
+            perf_report={"success_rate": 1.0},
+            traffic_summary={"avg_congestion": 0.3},
+            meta={"scenario": "nightly_ops"},
+        )
+        artifacts = self.r.export_bundle(report, output_dir=tmp_path, stem="nightly-ops")
+
+        manifest_path = tmp_path / "nightly-ops.manifest.json"
+        assert manifest_path.exists()
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        assert artifacts["manifest_path"] == str(manifest_path)
+        assert manifest["stem"] == "nightly-ops"
+        assert manifest["files"]["json"] == "nightly-ops.json"
+        assert manifest["status"] == report["status"]
+
+    def test_export_bundle_manifest_avoids_overwrite(self, tmp_path):
+        report = self.r.build(
+            delivery_summary={"delivered": 1, "dispatches": 1},
+            compliance_report={"total_violations": 0},
+            recorder_summary={"events": 4},
+            perf_report={"success_rate": 1.0},
+            traffic_summary={"avg_congestion": 0.2},
+            meta={"scenario": "artifact_smoke"},
+        )
+
+        first = self.r.export_bundle(report, output_dir=tmp_path, stem="artifact-smoke")
+        second = self.r.export_bundle(report, output_dir=tmp_path, stem="artifact-smoke")
+
+        assert first["stem"] == "artifact-smoke"
+        assert second["stem"] == "artifact-smoke-2"
+        assert (tmp_path / "artifact-smoke.manifest.json").exists()
+        assert (tmp_path / "artifact-smoke-2.manifest.json").exists()

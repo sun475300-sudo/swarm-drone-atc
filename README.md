@@ -1150,7 +1150,7 @@ python main.py simulate --duration 600 --seed 42
 # Monte Carlo quick sweep (~4분)
 python main.py monte-carlo --mode quick
 
-# 운영 리포트 번들(JSON + Markdown)
+# 운영 리포트 번들(JSON + Markdown + manifest)
 python main.py ops-report --scenario ops_smoke --out-dir data/e2e_reports
 
 # 3D 실시간 대시보드 → http://127.0.0.1:8050
@@ -1417,7 +1417,7 @@ pytest tests/test_apf.py -v   # Specific module / 특정 파일
 | `test_phase132_155.py` | 95 | 드론팩토리·리밸런서·배터리열화·풍동·착륙패드·GPS멀티패스·동적장애물·페이로드·멀티테넌트·SLA·라이프사이클·스케줄·배송최적화·가격엔진·고객지표·함대구성·MCTS·연합학습·NLP·디지털트윈·미션플래너·센서융합·이벤트아키텍처·대시보드 |
 | `test_phase156_163.py` | 32 | 베이지안튜너·시계열예측·MARL·오토인코더·앙상블·포캐스터·인프라 안정화 모듈 |
 | `test_phase164_171.py` | 37 | Circuit Breaker·Rate Limiter·Hot Reload·DistLock·Event Replay·Canary·OpenCL 파일럿 |
-| `test_phase172_179.py` | 67 | City Map Generator·Traffic Simulator·Weather API Client·Weather Risk Model·Delivery Simulation E2E·Airspace Reservation Integration·Dynamic Slot Policy(congestion/weather)·TrafficState Direct Injection·E2E Reporter(traffic KPI/schema/status/observability link/threshold tuning/section diagnostics/markdown export/bundle export)·Compliance Engine(severity trend/hotspot)·Sim Recorder·Perf Benchmark 검증 |
+| `test_phase172_179.py` | 67 | City Map Generator·Traffic Simulator·Weather API Client·Weather Risk Model·Delivery Simulation E2E·Airspace Reservation Integration·Dynamic Slot Policy(congestion/weather)·TrafficState Direct Injection·E2E Reporter(traffic KPI/schema/status/observability link/threshold tuning/section diagnostics/markdown export/bundle export/manifest)·Compliance Engine(severity trend/hotspot)·Sim Recorder·Perf Benchmark 검증 |
 | **합계** | **1,343** | **43 모듈 · 100% pass** |
 
 </details>
@@ -1527,7 +1527,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 핵심 변경 |
 |------|-----------|
-| 2026-03-29 | Ops Report 착수: `E2EReporter.render_markdown()` + `export_bundle()` + `python main.py ops-report` 추가, JSON/Markdown 운영 산출물 번들 생성 지원 |
+| 2026-03-29 | Ops Report 착수: `E2EReporter.render_markdown()` + `export_bundle()` + `python main.py ops-report` 추가, JSON/Markdown/manifest 운영 산출물 번들 생성 지원 |
 | 2026-03-29 | 시각자료 극대화 완료: Visual Hub를 4블록(핵심 다이어그램/운영 차트/아이디어 보드/전체 갤러리)으로 재구성하고 자산 묶음 바로가기 추가 |
 | 2026-03-29 | README 가독성 극대화: Quick Navigation/Full Index 분리, 테스트 섹션 요약+접기 구조 적용, 실행 가이드 추가 |
 | 2026-03-29 | E2E 운영 임계치 튜닝 착수: Reporter 상태 임계치(green/yellow) 런타임 튜닝 API 및 회귀 테스트 추가 |
@@ -1572,7 +1572,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 우선순위 | 작업 묶음 | 범위 | 산출물 |
 |---------|-----------|------|--------|
-| P0 | Ops Report Bundle | `E2EReporter` 산출물 규격 고정 + JSON/Markdown export + CLI 진입점 | 재현 가능한 운영 리포트 번들 |
+| P0 | Ops Report Bundle | `E2EReporter` 산출물 규격 고정 + JSON/Markdown/manifest export + CLI 진입점 | 재현 가능한 운영 리포트 번들 |
 | P0 | Report Input Normalization | scenario/delivery/benchmark/compliance 출력 스키마를 공통 계약으로 정렬 | 조립식 보고 파이프라인 |
 | P1 | Scenario Pack Promotion | 검증된 시나리오·seed·메타를 릴리즈 가능한 pack으로 묶기 | 데모/회귀용 시나리오 팩 |
 | P1 | CI Artifact Publishing | GitHub Actions에서 smoke report/perf summary/report bundle 업로드 | PR 단위 운영 증적 |
@@ -1583,7 +1583,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 - 완료: Phase 172-179 핵심 실전 통합(traffic/weather/compliance/observability)
 - 진행중: Phase 180-199 (운영 산출물 + 릴리즈 체계)
-- 이번 착수: `render_markdown()` + `export_bundle()` + `main.py ops-report`로 운영 산출물 생성 경로 개설
+- 이번 착수: `render_markdown()` + `export_bundle()` + `main.py ops-report`로 운영 산출물(JSON/Markdown/manifest) 생성 경로 개설
 - 다음 작업 목표: scenario/monte-carlo 결과를 동일한 bundle 규격으로 자동 승격
 
 ---

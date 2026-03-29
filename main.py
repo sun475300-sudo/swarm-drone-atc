@@ -320,6 +320,7 @@ def cmd_ops_report(args: argparse.Namespace) -> None:
     print(f"\n[ops-report] scenario={scenario} status={report['status']} health={report['kpi']['health_score']:.4f}")
     print(f"[ops-report] json={artifacts['json_path']}")
     print(f"[ops-report] markdown={artifacts['markdown_path']}\n")
+    print(f"[ops-report] manifest={artifacts['manifest_path']}\n")
 
 
 # ── main ─────────────────────────────────────────────────────

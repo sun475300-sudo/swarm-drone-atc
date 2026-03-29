@@ -163,7 +163,7 @@ class E2EReporter:
         report: dict[str, Any],
         output_dir: str | Path = "data/e2e_reports",
         stem: str | None = None,
-    ) -> dict[str, str]:
+    ) -> dict[str, str | float]:
         out_dir = Path(output_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -171,16 +171,33 @@ class E2EReporter:
         artifact_stem = self._next_available_stem(out_dir, base_stem)
         json_path = out_dir / f"{artifact_stem}.json"
         markdown_path = out_dir / f"{artifact_stem}.md"
+        manifest_path = out_dir / f"{artifact_stem}.manifest.json"
 
         with open(json_path, "w", encoding="utf-8") as fh:
             json.dump(report, fh, indent=2, ensure_ascii=False)
         with open(markdown_path, "w", encoding="utf-8") as fh:
             fh.write(self.render_markdown(report))
 
+        manifest = {
+            "stem": artifact_stem,
+            "scenario": report.get("meta", {}).get("scenario"),
+            "status": str(report.get("status", "UNKNOWN")),
+            "health_score": round(float(report.get("kpi", {}).get("health_score", 0.0)), 4),
+            "files": {
+                "json": json_path.name,
+                "markdown": markdown_path.name,
+            },
+        }
+        with open(manifest_path, "w", encoding="utf-8") as fh:
+            json.dump(manifest, fh, indent=2, ensure_ascii=False)
+
         return {
             "stem": artifact_stem,
             "json_path": str(json_path),
             "markdown_path": str(markdown_path),
+            "manifest_path": str(manifest_path),
+            "status": manifest["status"],
+            "health_score": manifest["health_score"],
         }
 
     @staticmethod

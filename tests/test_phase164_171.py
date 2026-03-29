@@ -220,3 +220,97 @@ class TestDistributedLock:
         self.l.acquire("key1", "worker-a")
         s = self.l.summary()
         assert "active_locks" in s
+
+
+class TestEventReplayer:
+    def setup_method(self):
+        from simulation.event_replayer import EventReplayer
+
+        self.r = EventReplayer()
+
+    def test_append_and_replay(self):
+        self.r.append("CREATE", {"id": "d1"}, ts=1.0)
+        self.r.append("UPDATE", {"id": "d1", "status": "OK"}, ts=2.0)
+        items = self.r.replay()
+        assert len(items) == 2
+        assert items[0].event_type == "CREATE"
+
+    def test_filter_by_type_and_seq(self):
+        self.r.append("A", {"v": 1}, ts=1.0)
+        self.r.append("B", {"v": 2}, ts=2.0)
+        self.r.append("A", {"v": 3}, ts=3.0)
+        items = self.r.replay(from_seq=2, event_type="A")
+        assert len(items) == 1
+        assert items[0].payload["v"] == 3
+
+    def test_restore_state(self):
+        self.r.append("INC", {"n": 1}, ts=1.0)
+        self.r.append("INC", {"n": 2}, ts=2.0)
+
+        def reducer(state: int, event):
+            return state + int(event.payload.get("n", 0))
+
+        out = self.r.restore_state(reducer, initial_state=0)
+        assert out == 3
+
+    def test_snapshot_summary(self):
+        self.r.append("A", {"x": 1}, ts=1.0)
+        snap = self.r.snapshot()
+        assert snap["last_seq"] == 1
+        s = self.r.summary()
+        assert s["events"] == 1
+
+
+class TestCanaryDeployer:
+    def setup_method(self):
+        from simulation.canary_deployer import CanaryDeployer
+
+        self.c = CanaryDeployer(stages=[10, 50, 100], max_error_rate=0.05, max_latency_ms=200)
+
+    def test_rollout_success(self):
+        self.c.start("v1")
+        self.c.evaluate_step(error_rate=0.01, latency_ms=100)
+        self.c.evaluate_step(error_rate=0.02, latency_ms=120)
+        self.c.evaluate_step(error_rate=0.01, latency_ms=130)
+        st = self.c.status()
+        assert st["status"] == "COMPLETE"
+        assert st["traffic_percent"] == 100
+
+    def test_auto_rollback(self):
+        self.c.start("v2")
+        step = self.c.evaluate_step(error_rate=0.2, latency_ms=100)
+        assert not step.passed
+        st = self.c.status()
+        assert st["status"] == "ROLLED_BACK"
+        assert st["traffic_percent"] == 0
+
+    def test_manual_rollback(self):
+        self.c.start("v3")
+        self.c.rollback("MANUAL_TEST")
+        st = self.c.status()
+        assert st["status"] == "ROLLED_BACK"
+        assert st["rollback_reason"] == "MANUAL_TEST"
+
+    def test_summary(self):
+        self.c.start("v4")
+        s = self.c.summary()
+        assert "stages" in s
+
+
+class TestOpenCLAccelerator:
+    def setup_method(self):
+        from simulation.opencl_accelerator import OpenCLAccelerator
+
+        self.acc = OpenCLAccelerator()
+
+    def test_vector_add(self):
+        out = self.acc.vector_add([1.0, 2.0], [3.0, 4.0])
+        assert out == [4.0, 6.0]
+
+    def test_dot(self):
+        out = self.acc.dot([1.0, 2.0, 3.0], [1.0, 1.0, 1.0])
+        assert out == 6.0
+
+    def test_summary(self):
+        s = self.acc.summary()
+        assert "backend" in s

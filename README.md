@@ -10,7 +10,7 @@
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
 [![Tests](https://img.shields.io/badge/Tests-1238%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
-[![Algorithms](https://img.shields.io/badge/Algorithms-139-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
+[![Algorithms](https://img.shields.io/badge/Algorithms-141-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
 [![Modules](https://img.shields.io/badge/Modules-112+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Lines](https://img.shields.io/badge/Python-17%2C500%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
 [![Languages](https://img.shields.io/badge/Languages-20-FF5722?style=for-the-badge&logo=github&logoColor=white)](#multi-language)
@@ -719,7 +719,7 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
 
 ---
 
-### 모듈 카테고리별 분포 (139개 알고리즘)
+### 모듈 카테고리별 분포 (141개 알고리즘)
 
 ```
   충돌 회피/경로 계획  (18) ████████████████████░░░░░░░░░░ 17%
@@ -744,10 +744,10 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
   Phase 108-131 ████████████████████ 완료 ✓  AI/보안 (RL·협상·스푸핑·암호화·비용)
   Phase 132-155 ████████████████████ 완료 ✓  산업화 (팩토리·배터리·풍동·MCTS·NLP·트윈)
   Phase 156-163 ████████████████████ 완료 ✓  고급 AI (GA·DQN·GNN·Bayesian·Ensemble·AE·TS·MARL)
-  Phase 164-171 ████████░░░░░░░░░░░░ 진행중 ▸ 운영 인프라 (MQ·CB·RL·Health·HotReload·Lock·Replay·Canary)
-  Phase 172-179 ████░░░░░░░░░░░░░░░░ 예정 ○  실전 시나리오 (CityMap·Traffic·WeatherAPI·E2E·Compliance)
+  Phase 164-171 ████████████████████ 완료 ✓  운영 인프라 (MQ·CB·RL·Health·HotReload·Lock·Replay·Canary)
+  Phase 172-179 ██████░░░░░░░░░░░░░░ 진행중 ▸ 실전 시나리오 (CityMap·Traffic·WeatherAPI·E2E·Compliance·OpenCL)
   ─────────────────────────────────────────────────────
-  총 진행률: ███████████████████████░░░░░░ 77.7% (139/179 알고리즘)
+  총 진행률: ████████████████████████░░░░░ 78.8% (141/179 알고리즘)
 ```
 
 ---
@@ -1408,6 +1408,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 시간 | 주요 변경 사항 | 커밋 |
 |------|------|---------------|------|
+| 2026-03-29 | — | **Phase 164-171 완료 + Phase 172 착수**: Event Replayer(시퀀스/시점 필터 재생+상태 복원), Canary Deployer(점진 트래픽 승격+SLO 위반 자동 롤백), OpenCL Accelerator 파일럿(Openclaw/OpenCL 런타임 감지+CPU 폴백), `test_phase164_171.py` 확장(신규 11개) | — |
 | 2026-03-29 | — | **Phase 164-171 (3차 착수)**: Config Hot Reload(체크섬 기반 변경 감지+버전 이력+롤백), Distributed Lock(lease 기반 잠금+갱신+만료), `test_phase164_171.py` 확장(HotReload/Lock 케이스 추가), 운영 인프라 신뢰성 계층 강화 | — |
 | 2026-03-29 | — | **Phase 156-163**: Genetic Path Planner(GA 교차/돌연변이/토너먼트 선택), Deep RL Controller(DQN+리플레이 버퍼+타겟 네트워크), GNN Traffic(메시지 패싱+밀도/위험도), Bayesian Tuner(커널 기반 탐색), Ensemble Predictor(가중 결합+캘리브레이션), Anomaly Autoencoder(재구성 오차 탐지), Time Series Forecaster(AR(1)+지수 평활), MARL Coordinator(공유보상 기반 분산 정책), 신규 테스트 `test_phase156_163.py` 32개 추가, 테스트 수집 1206→1238 | — |
 | 2026-03-28 | — | **Phase 132-155**: 드론 팩토리(12종 프리셋), 실시간 리밸런서(그리드 밀도맵+재배치), 배터리 열화(사이클×온도 SoH), 3D 풍동(건물 차폐/터널/상승기류), 착륙 네트워크(거리+점유율 추천), GPS 멀티패스(반사체+HDOP), 동적 장애물(이동체 CPA+위협등급), 페이로드 관리(적재→성능 영향), 멀티테넌트(테넌트 격리+쿼터), SLA 계약(위반 추적+패널티), 드론 라이프사이클(구매→퇴역 TCO), 스케줄 최적화(시간대별 부하 분산), 배송 최적화(TSP+용량 제약), 동적 가격 엔진(수요/기상/거리), 고객 메트릭(정시율/만족도/손상률), 함대 구성(ROI 기반 배분), MCTS 경로 계획(UCB1+시뮬레이션 롤아웃), 연합 학습(가중 평균 집계), NLP 명령 파서(의도 분류), 디지털 트윈(상태 미러링+예측), 자율 미션 플래너(목표→미션 자동 생성), 멀티모달 센서 융합(신뢰도 가중), 이벤트 아키텍처(CQRS+소싱+리플레이), 시스템 대시보드(모듈 건강+KPI), 테스트 1111→1206 (95개 추가) | — |
@@ -1474,12 +1475,14 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 6. `compliance_engine.py` - 규제 룰셋 실행기 + 위반 리포트
 7. `sim_recorder.py` - 시뮬레이션 타임라인 녹화/재생 포맷
 8. `perf_benchmark.py` - 부하/지연/처리량 벤치마크 표준화
+9. `opencl_accelerator.py` - Openclaw/OpenCL 가속 파일럿 + CPU fallback
 
 ### 착수 상태
 
 - 완료: Phase 156-163 (8/8)
-- 진행중: Phase 164-171 3차 착수 (`message_queue`, `circuit_breaker`, `rate_limiter`, `health_checker`, `config_hot_reload`, `distributed_lock`, 테스트)
-- 다음 커밋 목표: 운영 인프라 추가 2개 모듈(`event_replayer`, `canary_deployer`) + 테스트
+- 완료: Phase 164-171 (8/8, `event_replayer`, `canary_deployer` 포함)
+- 진행중: Phase 172-179 1차 착수 (`opencl_accelerator` 파일럿 + 실전 시나리오 준비)
+- 다음 커밋 목표: 실전 시나리오 2개 모듈(`city_map_generator`, `traffic_simulator`) + 테스트
 | 2026-03-25 | 21:15 KST | README 전면 업데이트 — 시각자료 9종 삽입, 테스트 74→147개 반영 | — |
 | 2026-03-25 | 20:30 KST | APF 기상적응 바람속도 전달 + 최종보고서 PDF 추가 | — |
 | 2026-03-25 | 19:50 KST | weather_disturbance 시나리오 개선 + 충돌해결률 공식 수정 | — |

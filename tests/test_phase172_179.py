@@ -660,3 +660,37 @@ class TestE2EReporter:
 
         with pytest.raises(ValueError):
             self.r.tune_status_thresholds(green_threshold=0.6, yellow_threshold=0.7)
+
+    def test_diagnostics_contains_blockers_and_warnings(self):
+        report = self.r.build(
+            delivery_summary={"delivered": 2, "dispatches": 1},
+            compliance_report={"total_violations": 2},
+            recorder_summary={"events": 0},
+            perf_report={"success_rate": 0.82},
+            traffic_summary={"avg_congestion": 0.84},
+        )
+        diagnostics = report["diagnostics"]
+        assert "sections" in diagnostics
+        assert "delivery" in diagnostics["blockers"]
+        assert "recorder" in diagnostics["blockers"]
+        assert "compliance" in diagnostics["warnings"]
+        assert diagnostics["sections"]["traffic"]["state"] == "RED"
+
+    def test_summary_reports_avg_blockers(self):
+        self.r.build(
+            delivery_summary={"delivered": 1, "dispatches": 1},
+            compliance_report={"total_violations": 0},
+            recorder_summary={"events": 2},
+            perf_report={"success_rate": 0.99},
+            traffic_summary={"avg_congestion": 0.3},
+        )
+        self.r.build(
+            delivery_summary={"delivered": 2, "dispatches": 1},
+            compliance_report={"total_violations": 5},
+            recorder_summary={"events": 0},
+            perf_report={"success_rate": 0.6},
+            traffic_summary={"avg_congestion": 0.9},
+        )
+        s = self.r.summary()
+        assert "avg_blockers" in s
+        assert s["avg_blockers"] > 0.0

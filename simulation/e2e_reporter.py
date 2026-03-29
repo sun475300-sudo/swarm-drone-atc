@@ -65,6 +65,7 @@ class E2EReporter:
             },
         }
         report["sections"] = self._section_status(report)
+        report["diagnostics"] = self._section_diagnostics(report)
         report["status"] = self._overall_status(report)
         self._reports.append(report)
         return report
@@ -127,6 +128,56 @@ class E2EReporter:
             return "YELLOW"
         return "RED"
 
+    @staticmethod
+    def _section_diagnostics(report: dict[str, Any]) -> dict[str, Any]:
+        delivery = report.get("delivery", {})
+        compliance = report.get("compliance", {})
+        recorder = report.get("recorder", {})
+        performance = report.get("performance", {})
+        traffic = report.get("traffic", {})
+
+        dispatches = int(delivery.get("dispatches", 0))
+        delivered = int(delivery.get("delivered", 0))
+        delivery_state = "GREEN" if dispatches >= delivered else "RED"
+
+        total_violations = int(compliance.get("total_violations", 0))
+        if total_violations == 0:
+            compliance_state = "GREEN"
+        elif total_violations <= 3:
+            compliance_state = "YELLOW"
+        else:
+            compliance_state = "RED"
+
+        events = int(recorder.get("events", 0))
+        recorder_state = "GREEN" if events >= 2 else ("YELLOW" if events == 1 else "RED")
+
+        success_rate = float(performance.get("success_rate", 0.0))
+        if success_rate >= 0.95:
+            perf_state = "GREEN"
+        elif success_rate >= 0.80:
+            perf_state = "YELLOW"
+        else:
+            perf_state = "RED"
+
+        congestion = float(traffic.get("avg_congestion", 0.0))
+        traffic_state = "GREEN" if congestion < 0.5 else ("YELLOW" if congestion < 0.8 else "RED")
+
+        sections = {
+            "delivery": {"state": delivery_state, "dispatches": dispatches, "delivered": delivered},
+            "compliance": {"state": compliance_state, "violations": total_violations},
+            "recorder": {"state": recorder_state, "events": events},
+            "performance": {"state": perf_state, "success_rate": round(success_rate, 4)},
+            "traffic": {"state": traffic_state, "avg_congestion": round(congestion, 4)},
+        }
+
+        blockers = [name for name, info in sections.items() if info["state"] == "RED"]
+        warnings = [name for name, info in sections.items() if info["state"] == "YELLOW"]
+        return {
+            "sections": sections,
+            "blockers": blockers,
+            "warnings": warnings,
+        }
+
     def history(self) -> list[dict[str, Any]]:
         return list(self._reports)
 
@@ -146,6 +197,11 @@ class E2EReporter:
                 "green": round(self._green_threshold, 4),
                 "yellow": round(self._yellow_threshold, 4),
             },
+            "avg_blockers": round(
+                sum(len(r.get("diagnostics", {}).get("blockers", [])) for r in self._reports)
+                / len(self._reports),
+                4,
+            ),
         }
 
     def clear(self) -> None:

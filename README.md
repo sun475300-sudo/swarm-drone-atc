@@ -9,7 +9,7 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Tests](https://img.shields.io/badge/Tests-1337%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-1339%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Algorithms](https://img.shields.io/badge/Algorithms-147-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
 [![Modules](https://img.shields.io/badge/Modules-112+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Lines](https://img.shields.io/badge/Python-17%2C500%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
@@ -41,7 +41,7 @@
 | 🎯 지표 | 📊 결과 | 📝 설명 |
 |:---:|:---:|:---|
 | **충돌 감소율** | **99.9%** | 500대 메가 군집: 58,038 → 19 |
-| **자동 테스트** | **1,337개** | 43 모듈 · 수집 완료 |
+| **자동 테스트** | **1,339개** | 43 모듈 · 수집 완료 |
 | **알고리즘** | **147개** | 4계층 17,500+줄 · 20개 언어 |
 | **MC 검증** | **38,400회** | 384 config × 100 seeds |
 | **시나리오** | **42종** | 극한기상·침입·GPS교란·대규모배송 |
@@ -97,13 +97,40 @@
 
 ## Visual Assets Hub / 시각자료 허브
 
+### 1) 핵심 다이어그램
+
 | 구분 | 미리보기 | 설명 |
 |------|---------|------|
 | Hero | ![Hero](docs/images/hero_banner.svg) | 프로젝트 핵심 메시지 배너 |
 | Architecture | ![Architecture](docs/images/architecture.svg) | 4계층 시스템 아키텍처 |
 | Detection Pipeline | ![Pipeline](docs/images/detection_pipeline.svg) | 탐지→판단→회피 파이프라인 |
+
+### 2) 성능/운영 차트
+
+| 구분 | 미리보기 | 설명 |
+|------|---------|------|
 | Scenario KPI | ![Scenario KPI](docs/images/scenario_kpi_radar.png) | 시나리오 KPI 레이더 |
 | Performance Comparison | ![Performance](docs/images/performance_comparison.svg) | 기존 방식 대비 성능 비교 |
+| Throughput vs Drones | ![Throughput](docs/images/throughput_vs_drones.png) | 드론 수 증가 대비 처리량 추이 |
+| Advisory Latency | ![Latency](docs/images/advisory_latency.png) | 의사결정 지연 분포 |
+| Conflict Heatmap | ![Heatmap](docs/images/conflict_resolution_heatmap.png) | 충돌 회피 밀집 구역 히트맵 |
+
+### 3) 컨셉 아이디어 보드
+
+| 아이디어 | 미리보기 | 설명 |
+|---------|---------|------|
+| Idea 1 | ![Idea1](docs/images/idea1_drone_radar.png) | 드론-레이더 돔 개념 |
+| Idea 2 | ![Idea2](docs/images/idea2_distributed_apf.png) | 분산 APF 군집 제어 |
+| Idea 3 | ![Idea3](docs/images/idea3_multi_layer_safety.png) | 다층 안전성 프레임워크 |
+| Idea 4 | ![Idea4](docs/images/idea4_weather_adaptive.png) | 기상 적응형 운영 모델 |
+
+### Visual Quick Links
+
+- [architecture.svg](docs/images/architecture.svg)
+- [detection_pipeline.svg](docs/images/detection_pipeline.svg)
+- [algorithm_flow.svg](docs/images/algorithm_flow.svg)
+- [flight_phase_fsm.svg](docs/images/flight_phase_fsm.svg)
+- [sensor_fusion.svg](docs/images/sensor_fusion.svg)
 
 ---
 
@@ -222,9 +249,9 @@
 <details>
 <summary><b>Step 5: Results / 5단계: 결과</b></summary>
 
-**EN:** 1,337 tests collected, 147 algorithms, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), and 99.9% collision reduction in validated scenarios.
+**EN:** 1,339 tests collected, 147 algorithms, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), and 99.9% collision reduction in validated scenarios.
 
-**KR:** 1,337개 테스트 수집, 147개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모를 갖춘 캡스톤 프로젝트입니다.
+**KR:** 1,339개 테스트 수집, 147개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모를 갖춘 캡스톤 프로젝트입니다.
 </details>
 
 ---
@@ -1293,14 +1320,14 @@ pytest tests/ -v              # Run all / 전체 실행
 pytest tests/test_apf.py -v   # Specific module / 특정 파일
 ```
 
-### 테스트 커버리지 (1,337개 / 43모듈)
+### 테스트 커버리지 (1,339개 / 43모듈)
 
 #### 빠른 요약
 
 | 항목 | 값 |
 |------|----|
-| 총 테스트 수집 | 1,337 |
-| 핵심 통합 스위트 | `test_phase172_179.py` (62) |
+| 총 테스트 수집 | 1,339 |
+| 핵심 통합 스위트 | `test_phase172_179.py` (64) |
 | 전체 모듈 | 43 |
 | 현재 상태 | 100% pass |
 
@@ -1357,8 +1384,8 @@ pytest tests/test_apf.py -v   # Specific module / 특정 파일
 | `test_phase132_155.py` | 95 | 드론팩토리·리밸런서·배터리열화·풍동·착륙패드·GPS멀티패스·동적장애물·페이로드·멀티테넌트·SLA·라이프사이클·스케줄·배송최적화·가격엔진·고객지표·함대구성·MCTS·연합학습·NLP·디지털트윈·미션플래너·센서융합·이벤트아키텍처·대시보드 |
 | `test_phase156_163.py` | 32 | 베이지안튜너·시계열예측·MARL·오토인코더·앙상블·포캐스터·인프라 안정화 모듈 |
 | `test_phase164_171.py` | 37 | Circuit Breaker·Rate Limiter·Hot Reload·DistLock·Event Replay·Canary·OpenCL 파일럿 |
-| `test_phase172_179.py` | 62 | City Map Generator·Traffic Simulator·Weather API Client·Weather Risk Model·Delivery Simulation E2E·Airspace Reservation Integration·Dynamic Slot Policy(congestion/weather)·TrafficState Direct Injection·E2E Reporter(traffic KPI/schema/status/observability link/threshold tuning)·Compliance Engine(severity trend/hotspot)·Sim Recorder·Perf Benchmark 검증 |
-| **합계** | **1,337** | **43 모듈 · 100% pass** |
+| `test_phase172_179.py` | 64 | City Map Generator·Traffic Simulator·Weather API Client·Weather Risk Model·Delivery Simulation E2E·Airspace Reservation Integration·Dynamic Slot Policy(congestion/weather)·TrafficState Direct Injection·E2E Reporter(traffic KPI/schema/status/observability link/threshold tuning/section diagnostics)·Compliance Engine(severity trend/hotspot)·Sim Recorder·Perf Benchmark 검증 |
+| **합계** | **1,339** | **43 모듈 · 100% pass** |
 
 </details>
 

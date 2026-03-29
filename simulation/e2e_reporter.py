@@ -39,7 +39,7 @@ class E2EReporter:
         )
 
         report = {
-            "meta": dict(meta or {}),
+            "meta": self._normalize_meta(meta),
             "delivery": dict(delivery_summary),
             "compliance": dict(compliance_report),
             "recorder": dict(recorder_summary),
@@ -54,8 +54,37 @@ class E2EReporter:
                 "traffic_pressure": round(traffic_pressure, 4),
             },
         }
+        report["sections"] = self._section_status(report)
+        report["status"] = self._overall_status(report)
         self._reports.append(report)
         return report
+
+    @staticmethod
+    def _normalize_meta(meta: dict[str, Any] | None) -> dict[str, Any]:
+        out = dict(meta or {})
+        out.setdefault("schema_version", "phase172.v1")
+        return out
+
+    @staticmethod
+    def _section_status(report: dict[str, Any]) -> dict[str, bool]:
+        return {
+            "delivery": bool(report.get("delivery")),
+            "compliance": bool(report.get("compliance")),
+            "recorder": bool(report.get("recorder")),
+            "performance": bool(report.get("performance")),
+            "traffic": bool(report.get("traffic")),
+            "kpi": bool(report.get("kpi")),
+        }
+
+    @staticmethod
+    def _overall_status(report: dict[str, Any]) -> str:
+        kpi = report.get("kpi", {})
+        health = float(kpi.get("health_score", 0.0))
+        if health >= 0.85:
+            return "GREEN"
+        if health >= 0.65:
+            return "YELLOW"
+        return "RED"
 
     def history(self) -> list[dict[str, Any]]:
         return list(self._reports)
@@ -64,9 +93,14 @@ class E2EReporter:
         if not self._reports:
             return {"reports": 0, "avg_health_score": 0.0}
         avg = sum(float(r["kpi"]["health_score"]) for r in self._reports) / len(self._reports)
+        status_counts: dict[str, int] = {}
+        for r in self._reports:
+            s = str(r.get("status", "UNKNOWN"))
+            status_counts[s] = status_counts.get(s, 0) + 1
         return {
             "reports": len(self._reports),
             "avg_health_score": round(avg, 4),
+            "status_counts": status_counts,
         }
 
     def clear(self) -> None:

@@ -552,3 +552,35 @@ class TestE2EReporter:
         assert self.r.summary()["reports"] == 1
         self.r.clear()
         assert self.r.summary()["reports"] == 0
+
+    def test_report_schema_and_sections(self):
+        report = self.r.build(
+            delivery_summary={"delivered": 1},
+            compliance_report={"total_violations": 0},
+            recorder_summary={"events": 5},
+            perf_report={"success_rate": 1.0},
+            traffic_summary={"avg_congestion": 0.2},
+            meta={"scenario": "std"},
+        )
+        assert report["meta"]["schema_version"] == "phase172.v1"
+        assert report["sections"]["kpi"] is True
+        assert report["status"] in {"GREEN", "YELLOW", "RED"}
+
+    def test_summary_has_status_counts(self):
+        self.r.build(
+            delivery_summary={"delivered": 1},
+            compliance_report={"total_violations": 0},
+            recorder_summary={"events": 5},
+            perf_report={"success_rate": 1.0},
+            traffic_summary={"avg_congestion": 0.1},
+        )
+        self.r.build(
+            delivery_summary={"delivered": 0},
+            compliance_report={"total_violations": 8},
+            recorder_summary={"events": 1},
+            perf_report={"success_rate": 0.3},
+            traffic_summary={"avg_congestion": 0.95},
+        )
+        s = self.r.summary()
+        assert "status_counts" in s
+        assert sum(s["status_counts"].values()) == 2

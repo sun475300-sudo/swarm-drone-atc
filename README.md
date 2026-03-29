@@ -1477,8 +1477,8 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 ### 착수 상태
 
 - 완료: Phase 156-163 (8/8)
-- 진행중: Phase 164-171 1차 착수 (`message_queue`, `circuit_breaker`, 테스트)
-- 다음 커밋 목표: 운영 인프라 추가 2개 모듈(`rate_limiter`, `health_checker`) + 테스트
+- 진행중: Phase 164-171 2차 착수 (`message_queue`, `circuit_breaker`, `rate_limiter`, `health_checker`, 테스트)
+- 다음 커밋 목표: 운영 인프라 추가 2개 모듈(`config_hot_reload`, `distributed_lock`) + 테스트
 | 2026-03-25 | 21:15 KST | README 전면 업데이트 — 시각자료 9종 삽입, 테스트 74→147개 반영 | — |
 | 2026-03-25 | 20:30 KST | APF 기상적응 바람속도 전달 + 최종보고서 PDF 추가 | — |
 | 2026-03-25 | 19:50 KST | weather_disturbance 시나리오 개선 + 충돌해결률 공식 수정 | — |

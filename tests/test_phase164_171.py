@@ -90,3 +90,60 @@ class TestCircuitBreaker:
     def test_summary(self):
         s = self.cb.summary()
         assert "failure_threshold" in s
+
+
+class TestRateLimiter:
+    def setup_method(self):
+        from simulation.rate_limiter import RateLimiter
+
+        self.r = RateLimiter(rate_per_sec=5.0, burst=3)
+
+    def test_allow_within_burst(self):
+        assert self.r.allow("api")
+        assert self.r.allow("api")
+        assert self.r.allow("api")
+
+    def test_block_after_burst(self):
+        self.r.allow("api")
+        self.r.allow("api")
+        self.r.allow("api")
+        assert not self.r.allow("api")
+
+    def test_key_isolation(self):
+        assert self.r.allow("a")
+        assert self.r.allow("b")
+
+    def test_summary(self):
+        s = self.r.summary()
+        assert "rate_per_sec" in s
+
+
+class TestHealthChecker:
+    def setup_method(self):
+        from simulation.health_checker import HealthChecker
+
+        self.h = HealthChecker(stale_after_sec=0.2)
+
+    def test_heartbeat_and_status(self):
+        self.h.heartbeat("planner")
+        st = self.h.status("planner")
+        assert st["status"] in ("HEALTHY", "DEGRADED")
+
+    def test_report_metrics(self):
+        self.h.report("planner", latency_ms=10.0, success=True)
+        self.h.report("planner", latency_ms=20.0, success=False)
+        st = self.h.status("planner")
+        assert st["avg_latency_ms"] > 0
+
+    def test_stale_detection(self):
+        import time
+
+        self.h.heartbeat("planner")
+        time.sleep(0.25)
+        st = self.h.status("planner")
+        assert st["status"] == "STALE"
+
+    def test_overall(self):
+        self.h.heartbeat("planner")
+        ov = self.h.overall()
+        assert ov["modules"] >= 1

@@ -64,3 +64,78 @@ class TestTrafficSimulator:
         self.t.simulate_day()
         s = self.t.summary()
         assert s["states"] == 24
+
+
+class TestWeatherApiClient:
+    def test_fetch_default_profile(self):
+        from simulation.weather_api_client import WeatherApiClient
+
+        c = WeatherApiClient(ttl_seconds=300)
+        w = c.fetch(city="Seoul", now_ts=1000.0)
+        assert w.condition == "clear"
+        assert w.wind_mps >= 0
+
+    def test_cache_hit_within_ttl(self):
+        from simulation.weather_api_client import WeatherApiClient
+
+        calls = {"n": 0}
+
+        def provider(city: str):
+            calls["n"] += 1
+            return {
+                "condition": "rain",
+                "wind_mps": 6.0,
+                "visibility_km": 7.0,
+                "temperature_c": 16.0,
+            }
+
+        c = WeatherApiClient(provider=provider, ttl_seconds=120)
+        a = c.fetch(city="Busan", now_ts=1000.0)
+        b = c.fetch(city="Busan", now_ts=1050.0)
+        assert calls["n"] == 1
+        assert a.timestamp == b.timestamp
+
+    def test_cache_expire_after_ttl(self):
+        from simulation.weather_api_client import WeatherApiClient
+
+        calls = {"n": 0}
+
+        def provider(city: str):
+            calls["n"] += 1
+            return {
+                "condition": "clear",
+                "wind_mps": 2.0 + calls["n"],
+                "visibility_km": 10.0,
+                "temperature_c": 20.0,
+            }
+
+        c = WeatherApiClient(provider=provider, ttl_seconds=30)
+        first = c.fetch(city="Incheon", now_ts=1000.0)
+        second = c.fetch(city="Incheon", now_ts=1040.0)
+        assert calls["n"] == 2
+        assert second.timestamp > first.timestamp
+
+    def test_traffic_factor_degrades_in_bad_weather(self):
+        from simulation.weather_api_client import WeatherApiClient, WeatherSample
+
+        c = WeatherApiClient(ttl_seconds=60)
+        bad = WeatherSample(
+            city="Seoul",
+            condition="storm",
+            wind_mps=13.0,
+            visibility_km=2.5,
+            temperature_c=9.0,
+            timestamp=1000.0,
+        )
+        factor = c.traffic_factor(bad)
+        assert 0.4 <= factor < 1.0
+
+    def test_summary_fields(self):
+        from simulation.weather_api_client import WeatherApiClient
+
+        c = WeatherApiClient(ttl_seconds=60)
+        c.fetch(city="Seoul", now_ts=1000.0)
+        c.fetch(city="Seoul", now_ts=1001.0)
+        s = c.summary()
+        assert s["cache_size"] == 1
+        assert s["hits"] >= 1

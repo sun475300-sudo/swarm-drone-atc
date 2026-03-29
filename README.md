@@ -124,6 +124,30 @@
 | Idea 3 | ![Idea3](docs/images/idea3_multi_layer_safety.png) | 다층 안전성 프레임워크 |
 | Idea 4 | ![Idea4](docs/images/idea4_weather_adaptive.png) | 기상 적응형 운영 모델 |
 
+### 4) Full Visual Gallery / 전체 시각자료 갤러리
+
+<details>
+<summary><b>전체 23개 자산 펼쳐보기</b></summary>
+
+| 카테고리 | 자산 | 미리보기 |
+|---------|------|---------|
+| Core | `hero_banner.svg` | ![hero](docs/images/hero_banner.svg) |
+| Core | `architecture.svg` | ![arch](docs/images/architecture.svg) |
+| Core | `detection_pipeline.svg` | ![pipe](docs/images/detection_pipeline.svg) |
+| Core | `algorithm_flow.svg` | ![algo](docs/images/algorithm_flow.svg) |
+| Core | `flight_phase_fsm.svg` | ![fsm](docs/images/flight_phase_fsm.svg) |
+| Core | `sensor_fusion.svg` | ![sensor](docs/images/sensor_fusion.svg) |
+| Chart | `scenario_kpi_radar.png` | ![kpi](docs/images/scenario_kpi_radar.png) |
+| Chart | `throughput_vs_drones.png` | ![throughput](docs/images/throughput_vs_drones.png) |
+| Chart | `advisory_latency.png` | ![latency](docs/images/advisory_latency.png) |
+| Chart | `conflict_resolution_heatmap.png` | ![heatmap](docs/images/conflict_resolution_heatmap.png) |
+| Concept | `idea1_drone_radar.png` | ![i1](docs/images/idea1_drone_radar.png) |
+| Concept | `idea2_distributed_apf.png` | ![i2](docs/images/idea2_distributed_apf.png) |
+| Concept | `idea3_multi_layer_safety.png` | ![i3](docs/images/idea3_multi_layer_safety.png) |
+| Concept | `idea4_weather_adaptive.png` | ![i4](docs/images/idea4_weather_adaptive.png) |
+
+</details>
+
 ### Visual Quick Links
 
 - [architecture.svg](docs/images/architecture.svg)
@@ -131,6 +155,12 @@
 - [algorithm_flow.svg](docs/images/algorithm_flow.svg)
 - [flight_phase_fsm.svg](docs/images/flight_phase_fsm.svg)
 - [sensor_fusion.svg](docs/images/sensor_fusion.svg)
+
+### Asset Packs / 자산 묶음 바로가기
+
+- Core Diagram Pack: [hero_banner.svg](docs/images/hero_banner.svg), [architecture.svg](docs/images/architecture.svg), [detection_pipeline.svg](docs/images/detection_pipeline.svg)
+- Operations Chart Pack: [throughput_vs_drones.png](docs/images/throughput_vs_drones.png), [advisory_latency.png](docs/images/advisory_latency.png), [conflict_resolution_heatmap.png](docs/images/conflict_resolution_heatmap.png)
+- Concept Board Pack: [idea1_drone_radar.png](docs/images/idea1_drone_radar.png), [idea2_distributed_apf.png](docs/images/idea2_distributed_apf.png), [idea3_multi_layer_safety.png](docs/images/idea3_multi_layer_safety.png), [idea4_weather_adaptive.png](docs/images/idea4_weather_adaptive.png)
 
 ---
 
@@ -1494,6 +1524,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 핵심 변경 |
 |------|-----------|
+| 2026-03-29 | 시각자료 극대화 완료: Visual Hub를 4블록(핵심 다이어그램/운영 차트/아이디어 보드/전체 갤러리)으로 재구성하고 자산 묶음 바로가기 추가 |
 | 2026-03-29 | README 가독성 극대화: Quick Navigation/Full Index 분리, 테스트 섹션 요약+접기 구조 적용, 실행 가이드 추가 |
 | 2026-03-29 | E2E 운영 임계치 튜닝 착수: Reporter 상태 임계치(green/yellow) 런타임 튜닝 API 및 회귀 테스트 추가 |
 | 2026-03-29 | Observability 패스 1차 완료: `build_with_observability()`로 recorder/benchmark 직접 연동 및 window/events/samples 리포트 추가 |
@@ -1538,16 +1569,17 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 | 우선순위 | 작업 묶음 | 범위 | 산출물 |
 |---------|-----------|------|--------|
 | P0 | Observability 패스 | `sim_recorder.py` + `perf_benchmark.py` E2E 연결 + 상태 임계치 튜닝 | 재현 가능한 시뮬 타임라인 + KPI 리포트 + 운영 기준선 |
-| P1 | E2E 리포트 v2 | 템플릿 상태코드와 운영 지표 확장 | 운영용 요약 뷰 + 섹션별 상태 진단 |
+| P1 | E2E 리포트 v2 | 템플릿 상태코드와 운영 지표 확장 | 운영용 요약 뷰 + 섹션별 상태 진단 + blocker/warning 집계 |
 | P2 | Accelerator 확장 | `opencl_accelerator.py` 연동 경로 확대 | CPU/OpenCL fallback 벤치 비교 |
+| P2 | Visual Asset Ops | 이미지 번들 인덱스/릴리즈 기준 정리 | 문서-자산 동기화 체크리스트 |
 | P2 | 회귀 안정화 | Phase 172-179 통합 회귀 | 테스트/README 지표 동기화 |
 
 ### 착수 상태
 
 - 완료: Phase 156-171
 - 진행중: Phase 172-179 (시나리오/실전 통합)
-- 현재 커밋 목표: README 가독성 극대화 + Observability 패스(연동/임계치 튜닝) 1차 완료
-- 다음 커밋 목표: 섹션별 운영 상태 진단 규칙 + E2E 리포트 v2 요약 뷰 추가
+- 현재 커밋 목표: 시각자료 극대화 + 섹션별 운영 진단 반영 상태 고정
+- 다음 커밋 목표: E2E 리포트 v2 blocker/warning 요약 뷰 + Visual Asset Ops 체크리스트 추가
 
 ---
 

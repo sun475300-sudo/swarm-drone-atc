@@ -235,6 +235,49 @@ class TestDeliverySimulation:
         assert summary["drones"] == 2
         assert summary["dispatches"] == 1
 
+    def test_dispatch_with_airspace_reservation(self):
+        from simulation.airspace_reservation import AirspaceReservation
+
+        ar = AirspaceReservation(grid_size=100)
+        self.s.set_airspace_reservation(ar, altitude_band=(40, 80))
+        self.s.add_order("O6", destination=(210, 110), weight_kg=1.0, created_min=5)
+        rec = self.s.dispatch_next()
+        assert rec is not None
+        assert rec.reservation_id is not None
+        assert len(ar.active_reservations()) == 1
+
+    def test_dispatch_fails_on_slot_conflict(self):
+        from simulation.airspace_reservation import AirspaceReservation
+
+        ar = AirspaceReservation(grid_size=100)
+        ar.reserve("X1", (2, 1), 0, 60, altitude_band=(40, 80), priority=1)
+        self.s.set_airspace_reservation(ar, altitude_band=(40, 80))
+        self.s.add_order("O7", destination=(210, 110), weight_kg=1.0, priority=8, created_min=1)
+        rec = self.s.dispatch_next()
+        assert rec is None
+
+    def test_complete_delivery_cancels_reservation(self):
+        from simulation.airspace_reservation import AirspaceReservation
+
+        ar = AirspaceReservation(grid_size=100)
+        self.s.set_airspace_reservation(ar, altitude_band=(35, 75))
+        self.s.add_order("O8", destination=(100, 20), weight_kg=1.0)
+        rec = self.s.dispatch_next()
+        assert rec is not None
+        assert rec.reservation_id is not None
+        assert self.s.complete_delivery("O8") is True
+        assert len(ar.active_reservations()) == 0
+
+    def test_summary_reserved_slots(self):
+        from simulation.airspace_reservation import AirspaceReservation
+
+        ar = AirspaceReservation(grid_size=100)
+        self.s.set_airspace_reservation(ar)
+        self.s.add_order("O9", destination=(150, 40), weight_kg=1.0)
+        rec = self.s.dispatch_next()
+        assert rec is not None
+        assert self.s.summary()["reserved_slots"] == 1
+
 
 class TestComplianceEngine:
     def setup_method(self):
@@ -356,3 +399,50 @@ class TestPerfBenchmark:
         report = self.b.report()
         assert report["samples"] == 0
         assert report["throughput_rps"] == 0.0
+
+
+class TestE2EReporter:
+    def setup_method(self):
+        from simulation.e2e_reporter import E2EReporter
+
+        self.r = E2EReporter()
+
+    def test_build_report_shape(self):
+        report = self.r.build(
+            delivery_summary={"delivered": 3, "dispatches": 3},
+            compliance_report={"total_violations": 0, "by_rule": {}},
+            recorder_summary={"events": 24, "duration_sec": 12.0},
+            perf_report={"samples": 10, "success_rate": 1.0, "p95_ms": 18.0},
+            meta={"scenario": "phase172-e2e"},
+        )
+        assert report["meta"]["scenario"] == "phase172-e2e"
+        assert report["kpi"]["delivered"] == 3
+        assert "health_score" in report["kpi"]
+
+    def test_health_score_degrades_with_violations(self):
+        good = self.r.build(
+            delivery_summary={"delivered": 2},
+            compliance_report={"total_violations": 0},
+            recorder_summary={"events": 10},
+            perf_report={"success_rate": 1.0},
+        )
+        bad = self.r.build(
+            delivery_summary={"delivered": 2},
+            compliance_report={"total_violations": 4},
+            recorder_summary={"events": 10},
+            perf_report={"success_rate": 1.0},
+        )
+        assert bad["kpi"]["health_score"] < good["kpi"]["health_score"]
+
+    def test_summary(self):
+        self.r.build({}, {}, {}, {})
+        self.r.build({}, {}, {}, {})
+        s = self.r.summary()
+        assert s["reports"] == 2
+        assert 0.0 <= s["avg_health_score"] <= 1.0
+
+    def test_clear(self):
+        self.r.build({}, {}, {}, {})
+        assert self.r.summary()["reports"] == 1
+        self.r.clear()
+        assert self.r.summary()["reports"] == 0

@@ -33,6 +33,7 @@ class DispatchRecord:
     drone_id: str
     eta_min: float
     distance_m: float
+    reservation_id: str | None = None
 
 
 class DeliverySimulation:
@@ -41,6 +42,20 @@ class DeliverySimulation:
         self._drones: dict[str, DroneUnit] = {}
         self._dispatches: list[DispatchRecord] = []
         self._delivered_orders: set[str] = set()
+        self._order_reservations: dict[str, str] = {}
+        self._airspace: Any | None = None
+        self._default_altitude_band: tuple[float, float] = (30.0, 90.0)
+
+    def set_airspace_reservation(
+        self,
+        airspace: Any,
+        altitude_band: tuple[float, float] = (30.0, 90.0),
+    ) -> None:
+        self._airspace = airspace
+        self._default_altitude_band = (
+            float(altitude_band[0]),
+            max(float(altitude_band[0]) + 1.0, float(altitude_band[1])),
+        )
 
     def register_drone(
         self,
@@ -99,6 +114,33 @@ class DeliverySimulation:
         eta_min = (distance_m / max(0.1, effective_speed)) / 60.0
         return round(eta_min, 2), round(distance_m, 2)
 
+    def _sector_from_position(self, position: tuple[float, float]) -> tuple[int, int]:
+        if self._airspace is None:
+            return (0, 0)
+        grid = float(getattr(self._airspace, "_grid_size", 100.0))
+        x = int(position[0] // max(1.0, grid))
+        y = int(position[1] // max(1.0, grid))
+        return (x, y)
+
+    def _reserve_slot(
+        self,
+        order: DeliveryOrder,
+        selected: DroneUnit,
+        eta_min: float,
+    ) -> str | None:
+        if self._airspace is None:
+            return "NO_AIRSPACE"
+        start_min = float(order.created_min)
+        end_min = start_min + max(1.0, float(eta_min))
+        return self._airspace.reserve(
+            drone_id=selected.drone_id,
+            sector=self._sector_from_position(order.destination),
+            t_start=start_min,
+            t_end=end_min,
+            altitude_band=self._default_altitude_band,
+            priority=max(1, 11 - int(order.priority)),
+        )
+
     def dispatch_next(
         self,
         congestion: float = 0.2,
@@ -121,6 +163,9 @@ class DeliverySimulation:
             congestion=congestion,
             weather_factor=weather_factor,
         )
+        reservation_id = self._reserve_slot(order=order, selected=selected, eta_min=eta_min)
+        if reservation_id is None:
+            return None
 
         selected.busy = True
         record = DispatchRecord(
@@ -128,7 +173,10 @@ class DeliverySimulation:
             drone_id=selected.drone_id,
             eta_min=eta_min,
             distance_m=distance_m,
+            reservation_id=None if reservation_id == "NO_AIRSPACE" else reservation_id,
         )
+        if record.reservation_id is not None:
+            self._order_reservations[order.order_id] = record.reservation_id
         self._dispatches.append(record)
         self._orders.pop(0)
         return record
@@ -140,6 +188,9 @@ class DeliverySimulation:
                 drone = self._drones.get(r.drone_id)
                 if drone:
                     drone.busy = False
+                reservation_id = self._order_reservations.pop(order_id, None)
+                if reservation_id and self._airspace is not None:
+                    self._airspace.cancel(reservation_id)
                 return True
         return False
 
@@ -153,4 +204,5 @@ class DeliverySimulation:
             "dispatches": len(self._dispatches),
             "delivered": len(self._delivered_orders),
             "busy_drones": sum(1 for d in self._drones.values() if d.busy),
+            "reserved_slots": len(self._order_reservations),
         }

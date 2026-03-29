@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 import time
-from dataclasses as dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable
@@ -78,16 +78,17 @@ class ABTestRunner:
         treatment: str,
     ) -> tuple[float, float]:
         """Run independent t-test between control and treatment.
-        
+
         Returns: (t_statistic, p_value)
         """
         ctrl = np.array(self._results.get(control, []))
         treat = np.array(self._results.get(treatment, []))
-        
+
         if len(ctrl) < 2 or len(treat) < 2:
             return 0.0, 1.0
-        
+
         from scipy import stats
+
         t, p = stats.ttest_ind(ctrl, treat)
         return float(t), float(p)
 
@@ -99,14 +100,14 @@ class ABTestRunner:
         """Calculate Cohen's d effect size."""
         ctrl = np.array(self._results.get(control, []))
         treat = np.array(self._results.get(treatment, []))
-        
+
         if len(ctrl) < 2 or len(treat) < 2:
             return 0.0
-        
+
         pooled_std = np.sqrt((np.var(ctrl) + np.var(treat)) / 2)
         if pooled_std == 0:
             return 0.0
-        
+
         return float((np.mean(treat) - np.mean(ctrl)) / pooled_std)
 
     def compare(
@@ -117,14 +118,16 @@ class ABTestRunner:
         """Compare two variants with statistical analysis."""
         _, p_value = self.run_ttest(control, treatment)
         effect = self.calculate_effect_size(control, treatment)
-        
+
         ctrl_mean = float(np.mean(self._results.get(control, [0])))
         treat_mean = float(np.mean(self._results.get(treatment, [0])))
-        
+
         return {
             "control_mean": ctrl_mean,
             "treatment_mean": treat_mean,
-            "relative_change": (treat_mean - ctrl_mean) / ctrl_mean if ctrl_mean else 0.0,
+            "relative_change": (treat_mean - ctrl_mean) / ctrl_mean
+            if ctrl_mean
+            else 0.0,
             "p_value": p_value,
             "significant": p_value < (1 - self._confidence),
             "effect_size": effect,
@@ -188,7 +191,7 @@ class MultiArmedBandit:
         """Select arm using epsilon-greedy strategy."""
         if self._rng.random() < self._epsilon:
             return self._rng.choice(self._arms)
-        
+
         max_value = max(self._values.values())
         best_arms = [arm for arm, v in self._values.items() if v == max_value]
         return self._rng.choice(best_arms)
@@ -266,22 +269,22 @@ class ScenarioABComparator:
         """Compare two algorithms on a scenario."""
         if scenario not in self._comparisons:
             return {"error": "Scenario not found"}
-        
+
         comp = self._comparisons[scenario]
         if algorithm_a not in comp or algorithm_b not in comp:
             return {"error": "Algorithm not found"}
-        
+
         val_a = comp[algorithm_a]
         val_b = comp[algorithm_b]
         scenario_info = self.SCENARIOS.get(scenario, {})
-        
+
         if scenario_info.get("direction") == "minimize":
             winner = algorithm_a if val_a < val_b else algorithm_b
             improvement = (val_b - val_a) / val_a if val_a else 0.0
         else:
             winner = algorithm_a if val_a > val_b else algorithm_b
             improvement = (val_a - val_b) / val_b if val_b else 0.0
-        
+
         return {
             "scenario": scenario,
             "algorithm_a": algorithm_a,
@@ -297,10 +300,10 @@ class ScenarioABComparator:
         """Get algorithm ranking for a scenario."""
         if scenario not in self._comparisons:
             return []
-        
+
         items = self._comparisons[scenario].items()
         direction = self.SCENARIOS.get(scenario, {}).get("direction", "minimize")
-        
+
         if direction == "minimize":
             return sorted(items, key=lambda x: x[1])
         return sorted(items, key=lambda x: x[1], reverse=True)
@@ -311,8 +314,7 @@ class ScenarioABComparator:
             "scenarios": self.SCENARIOS,
             "comparisons": self._comparisons,
             "rankings": {
-                scenario: self.get_ranking(scenario)
-                for scenario in self._comparisons
+                scenario: self.get_ranking(scenario) for scenario in self._comparisons
             },
             "generated_at": datetime.now().isoformat(),
         }

@@ -278,6 +278,41 @@ class TestDeliverySimulation:
         assert rec is not None
         assert self.s.summary()["reserved_slots"] == 1
 
+    def test_slot_policy_shifts_altitude_in_bad_weather(self):
+        from simulation.airspace_reservation import AirspaceReservation
+
+        ar = AirspaceReservation(grid_size=100)
+        self.s.set_airspace_reservation(ar, altitude_band=(30, 90))
+        self.s.add_order("O10", destination=(110, 30), weight_kg=1.0, created_min=2)
+        rec = self.s.dispatch_next(congestion=0.1, weather_factor=0.5)
+        assert rec is not None
+        active = ar.active_reservations()
+        assert len(active) == 1
+        assert active[0].altitude_band[0] > 30
+
+    def test_slot_policy_escalates_priority_under_heavy_congestion(self):
+        from simulation.airspace_reservation import AirspaceReservation
+
+        ar = AirspaceReservation(grid_size=100)
+        ar.reserve("HIGH", (1, 0), 0, 60, altitude_band=(30, 90), priority=3)
+        self.s.set_airspace_reservation(ar, altitude_band=(30, 90))
+        self.s.add_order("O11", destination=(110, 30), weight_kg=1.0, priority=8, created_min=1)
+        rec = self.s.dispatch_next(congestion=0.95, weather_factor=0.6)
+        assert rec is not None
+        assert len(ar.active_reservations()) == 1
+        assert ar.active_reservations()[0].drone_id in {"D1", "D2"}
+
+    def test_set_slot_policy_changes_thresholds(self):
+        self.s.set_slot_policy(
+            congestion_alt_step=20,
+            bad_weather_alt_step=10,
+            weather_threshold=0.9,
+            congestion_threshold=0.5,
+        )
+        summary = self.s.summary()
+        assert summary["slot_policy"]["congestion_alt_step"] == 20.0
+        assert summary["slot_policy"]["weather_threshold"] == 0.9
+
 
 class TestComplianceEngine:
     def setup_method(self):

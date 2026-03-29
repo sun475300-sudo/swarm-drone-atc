@@ -45,6 +45,12 @@ class DeliverySimulation:
         self._order_reservations: dict[str, str] = {}
         self._airspace: Any | None = None
         self._default_altitude_band: tuple[float, float] = (30.0, 90.0)
+        self._slot_policy = {
+            "congestion_alt_step": 12.0,
+            "bad_weather_alt_step": 18.0,
+            "weather_threshold": 0.75,
+            "congestion_threshold": 0.7,
+        }
 
     def set_airspace_reservation(
         self,
@@ -56,6 +62,20 @@ class DeliverySimulation:
             float(altitude_band[0]),
             max(float(altitude_band[0]) + 1.0, float(altitude_band[1])),
         )
+
+    def set_slot_policy(
+        self,
+        congestion_alt_step: float = 12.0,
+        bad_weather_alt_step: float = 18.0,
+        weather_threshold: float = 0.75,
+        congestion_threshold: float = 0.7,
+    ) -> None:
+        self._slot_policy = {
+            "congestion_alt_step": max(0.0, float(congestion_alt_step)),
+            "bad_weather_alt_step": max(0.0, float(bad_weather_alt_step)),
+            "weather_threshold": max(0.1, min(1.2, float(weather_threshold))),
+            "congestion_threshold": max(0.0, min(1.0, float(congestion_threshold))),
+        }
 
     def register_drone(
         self,
@@ -127,19 +147,54 @@ class DeliverySimulation:
         order: DeliveryOrder,
         selected: DroneUnit,
         eta_min: float,
+        congestion: float,
+        weather_factor: float,
     ) -> str | None:
         if self._airspace is None:
             return "NO_AIRSPACE"
         start_min = float(order.created_min)
         end_min = start_min + max(1.0, float(eta_min))
+        altitude_band = self._compute_altitude_band(congestion=congestion, weather_factor=weather_factor)
+        reserve_priority = self._compute_reservation_priority(
+            order=order,
+            congestion=congestion,
+            weather_factor=weather_factor,
+        )
         return self._airspace.reserve(
             drone_id=selected.drone_id,
             sector=self._sector_from_position(order.destination),
             t_start=start_min,
             t_end=end_min,
-            altitude_band=self._default_altitude_band,
-            priority=max(1, 11 - int(order.priority)),
+            altitude_band=altitude_band,
+            priority=reserve_priority,
         )
+
+    def _compute_altitude_band(
+        self,
+        congestion: float,
+        weather_factor: float,
+    ) -> tuple[float, float]:
+        low, high = self._default_altitude_band
+        congestion_norm = max(0.0, min(1.0, float(congestion)))
+        shift = congestion_norm * float(self._slot_policy["congestion_alt_step"])
+        if float(weather_factor) < float(self._slot_policy["weather_threshold"]):
+            shift += float(self._slot_policy["bad_weather_alt_step"])
+        next_low = low + shift
+        next_high = high + shift
+        return (round(next_low, 2), round(max(next_low + 1.0, next_high), 2))
+
+    def _compute_reservation_priority(
+        self,
+        order: DeliveryOrder,
+        congestion: float,
+        weather_factor: float,
+    ) -> int:
+        p = max(1, 11 - int(order.priority))
+        if float(congestion) >= float(self._slot_policy["congestion_threshold"]):
+            p -= 1
+        if float(weather_factor) < float(self._slot_policy["weather_threshold"]):
+            p -= 1
+        return max(1, p)
 
     def dispatch_next(
         self,
@@ -163,7 +218,13 @@ class DeliverySimulation:
             congestion=congestion,
             weather_factor=weather_factor,
         )
-        reservation_id = self._reserve_slot(order=order, selected=selected, eta_min=eta_min)
+        reservation_id = self._reserve_slot(
+            order=order,
+            selected=selected,
+            eta_min=eta_min,
+            congestion=congestion,
+            weather_factor=weather_factor,
+        )
         if reservation_id is None:
             return None
 
@@ -205,4 +266,5 @@ class DeliverySimulation:
             "delivered": len(self._delivered_orders),
             "busy_drones": sum(1 for d in self._drones.values() if d.busy),
             "reserved_slots": len(self._order_reservations),
+            "slot_policy": dict(self._slot_policy),
         }

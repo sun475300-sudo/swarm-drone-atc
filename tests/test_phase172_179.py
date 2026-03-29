@@ -234,3 +234,53 @@ class TestDeliverySimulation:
         summary = self.s.summary()
         assert summary["drones"] == 2
         assert summary["dispatches"] == 1
+
+
+class TestComplianceEngine:
+    def setup_method(self):
+        from simulation.compliance_engine import ComplianceEngine
+
+        self.e = ComplianceEngine()
+
+    def test_evaluate_flight_no_violation(self):
+        out = self.e.evaluate_flight("D1", altitude_m=80, speed_mps=12, battery_pct=50)
+        assert out == []
+
+    def test_evaluate_flight_detects_violation(self):
+        out = self.e.evaluate_flight("D1", altitude_m=140, speed_mps=12, battery_pct=50)
+        assert len(out) == 1
+        assert out[0].rule_name == "MAX_ALT"
+
+    def test_evaluate_batch(self):
+        result = self.e.evaluate_batch(
+            [
+                {"drone_id": "D1", "altitude_m": 25, "speed_mps": 10, "battery_pct": 80},
+                {"drone_id": "D2", "altitude_m": 20, "speed_mps": 28, "battery_pct": 9},
+            ]
+        )
+        assert "D1" in result
+        assert "D2" in result
+        assert len(result["D1"]) == 1  # MIN_ALT
+        assert len(result["D2"]) == 3  # MIN_ALT + MAX_SPEED + MIN_BATTERY
+
+    def test_violation_report(self):
+        self.e.evaluate_flight("D1", altitude_m=150, speed_mps=35, battery_pct=5)
+        report = self.e.violation_report()
+        assert report["total_violations"] == 3
+        assert report["by_rule"]["MAX_ALT"] == 1
+
+    def test_custom_ruleset(self):
+        from simulation.compliance_engine import ComplianceRule
+
+        self.e.register_ruleset(
+            [ComplianceRule(name="MAX_WIND", metric="wind_mps", max_value=12.0, severity="HIGH")]
+        )
+        out = self.e.evaluate_flight("D3", wind_mps=13.5)
+        assert len(out) == 1
+        assert out[0].rule_name == "MAX_WIND"
+
+    def test_clear(self):
+        self.e.evaluate_flight("D1", altitude_m=200)
+        assert self.e.summary()["total_violations"] > 0
+        self.e.clear()
+        assert self.e.summary()["total_violations"] == 0

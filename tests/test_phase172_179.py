@@ -584,3 +584,53 @@ class TestE2EReporter:
         s = self.r.summary()
         assert "status_counts" in s
         assert sum(s["status_counts"].values()) == 2
+
+    def test_build_with_observability_links_recorder_and_benchmark(self):
+        from simulation.perf_benchmark import PerfBenchmark
+        from simulation.sim_recorder import SimRecorder
+
+        recorder = SimRecorder()
+        recorder.record(0.1, "TAKEOFF", drone_id="D1")
+        recorder.record(0.9, "DELIVERED", drone_id="D1")
+
+        benchmark = PerfBenchmark()
+        benchmark.add_sample(12.0, success=True)
+        benchmark.add_sample(21.0, success=True)
+
+        report = self.r.build_with_observability(
+            delivery_summary={"delivered": 1, "dispatches": 1},
+            compliance_report={"total_violations": 0, "by_rule": {}},
+            recorder=recorder,
+            benchmark=benchmark,
+            traffic_summary={"avg_congestion": 0.25},
+            window_sec=20.0,
+            meta={"scenario": "obs-link"},
+        )
+
+        assert report["meta"]["observability_linked"] is True
+        assert report["sections"]["observability"] is True
+        assert report["observability"]["linked"] is True
+        assert report["observability"]["events"] == 2
+        assert report["observability"]["samples"] == 2
+
+    def test_build_with_observability_propagates_window(self):
+        from simulation.perf_benchmark import PerfBenchmark
+        from simulation.sim_recorder import SimRecorder
+
+        recorder = SimRecorder()
+        recorder.record(0.0, "A")
+
+        benchmark = PerfBenchmark()
+        benchmark.add_batch([10.0, 12.0, 14.0])
+
+        report = self.r.build_with_observability(
+            delivery_summary={"delivered": 1},
+            compliance_report={"total_violations": 0},
+            recorder=recorder,
+            benchmark=benchmark,
+            window_sec=30.0,
+        )
+
+        assert report["observability"]["window_sec"] == 30.0
+        assert report["performance"]["samples"] == 3
+        assert report["recorder"]["events"] == 1

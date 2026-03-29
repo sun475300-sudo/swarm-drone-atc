@@ -59,6 +59,37 @@ class E2EReporter:
         self._reports.append(report)
         return report
 
+    def build_with_observability(
+        self,
+        delivery_summary: dict[str, Any],
+        compliance_report: dict[str, Any],
+        recorder: Any,
+        benchmark: Any,
+        traffic_summary: dict[str, Any] | None = None,
+        window_sec: float = 60.0,
+        meta: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        recorder_summary = dict(recorder.summary())
+        perf_report = dict(benchmark.report(window_sec=window_sec))
+        next_meta = dict(meta or {})
+        next_meta.setdefault("observability_linked", True)
+        report = self.build(
+            delivery_summary=delivery_summary,
+            compliance_report=compliance_report,
+            recorder_summary=recorder_summary,
+            perf_report=perf_report,
+            traffic_summary=traffic_summary,
+            meta=next_meta,
+        )
+        report["observability"] = {
+            "linked": True,
+            "window_sec": float(window_sec),
+            "events": int(recorder_summary.get("events", 0)),
+            "samples": int(perf_report.get("samples", 0)),
+        }
+        report["sections"]["observability"] = True
+        return report
+
     @staticmethod
     def _normalize_meta(meta: dict[str, Any] | None) -> dict[str, Any]:
         out = dict(meta or {})
@@ -74,6 +105,7 @@ class E2EReporter:
             "performance": bool(report.get("performance")),
             "traffic": bool(report.get("traffic")),
             "kpi": bool(report.get("kpi")),
+            "observability": bool(report.get("observability")),
         }
 
     @staticmethod

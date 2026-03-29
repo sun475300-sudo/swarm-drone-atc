@@ -9,7 +9,7 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Tests](https://img.shields.io/badge/Tests-1291%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-1294%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Algorithms](https://img.shields.io/badge/Algorithms-144-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
 [![Modules](https://img.shields.io/badge/Modules-112+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Lines](https://img.shields.io/badge/Python-17%2C500%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
@@ -41,7 +41,7 @@
 | 🎯 지표 | 📊 결과 | 📝 설명 |
 |:---:|:---:|:---|
 | **충돌 감소율** | **99.9%** | 500대 메가 군집: 58,038 → 19 |
-| **자동 테스트** | **1,291개** | 43 모듈 · 수집 완료 |
+| **자동 테스트** | **1,294개** | 43 모듈 · 수집 완료 |
 | **알고리즘** | **144개** | 4계층 17,500+줄 · 20개 언어 |
 | **MC 검증** | **38,400회** | 384 config × 100 seeds |
 | **시나리오** | **42종** | 극한기상·침입·GPS교란·대규모배송 |
@@ -200,9 +200,9 @@
 <details>
 <summary><b>Step 5: Results / 5단계: 결과</b></summary>
 
-**EN:** 1,291 tests collected, 144 algorithms, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), and 99.9% collision reduction in validated scenarios.
+**EN:** 1,294 tests collected, 144 algorithms, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), and 99.9% collision reduction in validated scenarios.
 
-**KR:** 1,291개 테스트 수집, 144개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모를 갖춘 캡스톤 프로젝트입니다.
+**KR:** 1,294개 테스트 수집, 144개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모를 갖춘 캡스톤 프로젝트입니다.
 </details>
 
 ---
@@ -1271,7 +1271,7 @@ pytest tests/ -v              # Run all / 전체 실행
 pytest tests/test_apf.py -v   # Specific module / 특정 파일
 ```
 
-### 테스트 커버리지 (1,291개 / 43모듈)
+### 테스트 커버리지 (1,294개 / 43모듈)
 
 | 파일 | 수 | 대상 |
 |------|---|------|
@@ -1317,8 +1317,8 @@ pytest tests/test_apf.py -v   # Specific module / 특정 파일
 | `test_phase132_155.py` | 95 | 드론팩토리·리밸런서·배터리열화·풍동·착륙패드·GPS멀티패스·동적장애물·페이로드·멀티테넌트·SLA·라이프사이클·스케줄·배송최적화·가격엔진·고객지표·함대구성·MCTS·연합학습·NLP·디지털트윈·미션플래너·센서융합·이벤트아키텍처·대시보드 |
 | `test_phase156_163.py` | 32 | 베이지안튜너·시계열예측·MARL·오토인코더·앙상블·포캐스터·인프라 안정화 모듈 |
 | `test_phase164_171.py` | 37 | Circuit Breaker·Rate Limiter·Hot Reload·DistLock·Event Replay·Canary·OpenCL 파일럿 |
-| `test_phase172_179.py` | 16 | City Map Generator·Traffic Simulator·Weather API Client 기초 검증 |
-| **합계** | **1,291** | **43 모듈 · 100% pass** |
+| `test_phase172_179.py` | 19 | City Map Generator·Traffic Simulator·Weather API Client·Weather Risk Model 검증 |
+| **합계** | **1,294** | **43 모듈 · 100% pass** |
 
 ---
 
@@ -1425,6 +1425,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 핵심 변경 |
 |------|-----------|
+| 2026-03-29 | 다중 언어 기능 구현: Weather Risk 모델을 TS/Go/Rust/C++/Java로 동시 구현 |
 | 2026-03-29 | Weather API Client 착수: TTL 캐시·provider 주입·기상 기반 traffic factor 추가 |
 | 2026-03-29 | Phase 172 착수: City Map Generator + Traffic Simulator + 신규 테스트(11) 추가 |
 | 2026-03-29 | Phase 164-171 완료: Event Replayer + Canary Deployer + OpenCL 파일럿, 인프라 계층 안정화 |

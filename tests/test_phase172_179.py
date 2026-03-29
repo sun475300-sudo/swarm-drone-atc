@@ -139,3 +139,49 @@ class TestWeatherApiClient:
         s = c.summary()
         assert s["cache_size"] == 1
         assert s["hits"] >= 1
+
+
+class TestWeatherRiskModel:
+    def test_score_low_risk(self):
+        from simulation.weather_risk_model import WeatherRiskInput, WeatherRiskModel
+
+        model = WeatherRiskModel()
+        out = model.score(
+            WeatherRiskInput(
+                wind_mps=2.0,
+                visibility_km=10.0,
+                precipitation_level=0.0,
+                congestion=0.1,
+            )
+        )
+        assert out.category == "GREEN"
+        assert 0.0 <= out.score < 0.25
+
+    def test_score_high_risk(self):
+        from simulation.weather_risk_model import WeatherRiskInput, WeatherRiskModel
+
+        model = WeatherRiskModel()
+        out = model.score(
+            WeatherRiskInput(
+                wind_mps=22.0,
+                visibility_km=1.0,
+                precipitation_level=1.0,
+                congestion=0.95,
+            )
+        )
+        assert out.category == "RED"
+        assert out.score >= 0.75
+
+    def test_score_clamps_input_range(self):
+        from simulation.weather_risk_model import WeatherRiskInput, WeatherRiskModel
+
+        model = WeatherRiskModel()
+        out = model.score(
+            WeatherRiskInput(
+                wind_mps=-5.0,
+                visibility_km=30.0,
+                precipitation_level=-1.0,
+                congestion=3.0,
+            )
+        )
+        assert 0.0 <= out.score <= 1.0

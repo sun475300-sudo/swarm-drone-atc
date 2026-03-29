@@ -9,9 +9,9 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Tests](https://img.shields.io/badge/Tests-1206%20passed-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
-[![Algorithms](https://img.shields.io/badge/Algorithms-131-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
-[![Modules](https://img.shields.io/badge/Modules-104+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
+[![Tests](https://img.shields.io/badge/Tests-1238%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Algorithms](https://img.shields.io/badge/Algorithms-139-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
+[![Modules](https://img.shields.io/badge/Modules-112+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Lines](https://img.shields.io/badge/Python-17%2C500%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
 [![Languages](https://img.shields.io/badge/Languages-20-FF5722?style=for-the-badge&logo=github&logoColor=white)](#multi-language)
 [![Monte Carlo](https://img.shields.io/badge/Monte%20Carlo-38%2C400%20runs-E91E63?style=for-the-badge&logo=chart.js&logoColor=white)](#monte-carlo-sla)
@@ -41,8 +41,8 @@
 | 🎯 지표 | 📊 결과 | 📝 설명 |
 |:---:|:---:|:---|
 | **충돌 감소율** | **99.9%** | 500대 메가 군집: 58,038 → 19 |
-| **자동 테스트** | **1,206개** | 40 모듈 · 100% pass |
-| **알고리즘** | **131개** | 4계층 17,500+줄 · 20개 언어 |
+| **자동 테스트** | **1,238개** | 41 모듈 · 수집 완료 |
+| **알고리즘** | **139개** | 4계층 17,500+줄 · 20개 언어 |
 | **MC 검증** | **38,400회** | 384 config × 100 seeds |
 | **시나리오** | **42종** | 극한기상·침입·GPS교란·대규모배송 |
 | **반응 시간** | **< 1초** | CPA 90초 선제 예측 |
@@ -188,9 +188,9 @@
 <details>
 <summary><b>Step 5: Results / 5단계: 결과</b></summary>
 
-**EN:** 1,206 automated tests passed, 131 algorithms, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), 99.9% collision reduction in all scenarios. A complete capstone project.
+**EN:** 1,238 tests collected, 139 algorithms, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), and 99.9% collision reduction in validated scenarios.
 
-**KR:** 1,206개 테스트 통과, 131개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모로 완성된 캡스톤 프로젝트입니다.
+**KR:** 1,238개 테스트 수집, 139개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모를 갖춘 캡스톤 프로젝트입니다.
 </details>
 
 ---
@@ -719,7 +719,7 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
 
 ---
 
-### 모듈 카테고리별 분포 (131개 알고리즘)
+### 모듈 카테고리별 분포 (139개 알고리즘)
 
 ```
   충돌 회피/경로 계획  (18) ████████████████████░░░░░░░░░░ 17%
@@ -743,8 +743,11 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
   Phase  92-107 ████████████████████ 완료 ✓  관리 체계 (리더·체인·고도·평가·접근)
   Phase 108-131 ████████████████████ 완료 ✓  AI/보안 (RL·협상·스푸핑·암호화·비용)
   Phase 132-155 ████████████████████ 완료 ✓  산업화 (팩토리·배터리·풍동·MCTS·NLP·트윈)
+  Phase 156-163 ████████████████████ 완료 ✓  고급 AI (GA·DQN·GNN·Bayesian·Ensemble·AE·TS·MARL)
+  Phase 164-171 ████████░░░░░░░░░░░░ 진행중 ▸ 운영 인프라 (MQ·CB·RL·Health·HotReload·Lock·Replay·Canary)
+  Phase 172-179 ████░░░░░░░░░░░░░░░░ 예정 ○  실전 시나리오 (CityMap·Traffic·WeatherAPI·E2E·Compliance)
   ─────────────────────────────────────────────────────
-  총 진행률: ██████████████████████████████ 100% (131/131 알고리즘)
+  총 진행률: ███████████████████████░░░░░░ 77.7% (139/179 알고리즘)
 ```
 
 ---
@@ -785,7 +788,7 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
 
 | 언어 | 파일 | 역할 | LOC |
 |------|------|------|-----|
-| **Python** | `simulation/*.py` | 시뮬레이션 코어 + 131개 알고리즘 | 17,500+ |
+| **Python** | `simulation/*.py` | 시뮬레이션 코어 + 139개 알고리즘 | 17,500+ |
 | **Rust** | `src/rust/collision_engine.rs` | KD-Tree + CPA + APF 고성능 연산 | 350+ |
 | **C++** | `src/cpp/apf_simd.cpp` | SIMD APF 벡터장 + C FFI | 300+ |
 | **TypeScript** | `src/ts/*.ts` | WebSocket 서버 + React 3D 타입 | 400+ |
@@ -1405,6 +1408,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 시간 | 주요 변경 사항 | 커밋 |
 |------|------|---------------|------|
+| 2026-03-29 | — | **Phase 156-163**: Genetic Path Planner(GA 교차/돌연변이/토너먼트 선택), Deep RL Controller(DQN+리플레이 버퍼+타겟 네트워크), GNN Traffic(메시지 패싱+밀도/위험도), Bayesian Tuner(커널 기반 탐색), Ensemble Predictor(가중 결합+캘리브레이션), Anomaly Autoencoder(재구성 오차 탐지), Time Series Forecaster(AR(1)+지수 평활), MARL Coordinator(공유보상 기반 분산 정책), 신규 테스트 `test_phase156_163.py` 32개 추가, 테스트 수집 1206→1238 | — |
 | 2026-03-28 | — | **Phase 132-155**: 드론 팩토리(12종 프리셋), 실시간 리밸런서(그리드 밀도맵+재배치), 배터리 열화(사이클×온도 SoH), 3D 풍동(건물 차폐/터널/상승기류), 착륙 네트워크(거리+점유율 추천), GPS 멀티패스(반사체+HDOP), 동적 장애물(이동체 CPA+위협등급), 페이로드 관리(적재→성능 영향), 멀티테넌트(테넌트 격리+쿼터), SLA 계약(위반 추적+패널티), 드론 라이프사이클(구매→퇴역 TCO), 스케줄 최적화(시간대별 부하 분산), 배송 최적화(TSP+용량 제약), 동적 가격 엔진(수요/기상/거리), 고객 메트릭(정시율/만족도/손상률), 함대 구성(ROI 기반 배분), MCTS 경로 계획(UCB1+시뮬레이션 롤아웃), 연합 학습(가중 평균 집계), NLP 명령 파서(의도 분류), 디지털 트윈(상태 미러링+예측), 자율 미션 플래너(목표→미션 자동 생성), 멀티모달 센서 융합(신뢰도 가중), 이벤트 아키텍처(CQRS+소싱+리플레이), 시스템 대시보드(모듈 건강+KPI), 테스트 1111→1206 (95개 추가) | — |
 | 2026-03-28 | — | **Phase 108-131**: 강화학습 경로(Q-테이블+epsilon-greedy), 예측 유지보수(잔여수명+정비일정), 다중 에이전트 협상(양보/교환), 적응형 튜너(자동 파라미터 조정), 의사결정 트리(규칙 기반 관제), 수요 예측(시간대별 학습), 경로 다양성(k-최단+유사도), 우선순위 재조정(컨텍스트 기반), GPS 스푸핑 탐지(교차 검증), 암호화 통신(키 교환+무결성), 침입 탐지(이상 트래픽+격리), 규제 업데이트(버전+자동 적용), QoS(대역폭 할당), 드론 신원 인증(PKI), 감사 추적(불변 체인), 비상 방송(구역별+확인), 난이도 평가(복합 점수), A/B 테스트(유의성 검정), 리포트 스트림(이벤트+구독), 다중 시뮬 조율(병렬+집계), 환경 영향(소음/에너지), 비용 분석(ROI), 학습 데이터 수집, 통합 검증(의존성+회귀), 테스트 1007→1111 (104개 추가) | — |
 | 2026-03-28 | — | **Phase 92-107**: 분산 리더 선출(복합 점수+페일오버), 공역 밀도 예측(선형 트렌드+혼잡 사전조치), DAG 임무 체인(위상 정렬+임계 경로), 장애 전파 분석(BFS+격리+복원력), 동적 고도 관리(8방위 밴드+우선순위), 비행 로그 분석(z-score 이상+KPI), 충전 최적화(다중 충전소 비용), 드론 페어링(ESCORT/RELAY/SEARCH), 비행 계획 검증(NFZ/고도/거리+적합성 점수), 대시보드 데이터(KPI+경보+트렌드), 배치 시뮬레이터(다중 시나리오+통계), 공역 이력(스냅샷+비교), 성능 프로필(열화 추적+비교), 임무 평가(A~F 등급+권장), 역할 접근 제어(감사 로그), 시스템 건강 모니터(역방향 지표+자가 진단), 테스트 935→1007 (72개 추가) | — |
@@ -1443,6 +1447,38 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 | 2026-03-25 | 23:50 KST | SVG 한글 폰트 수정, hero_banner/architecture 테스트 수 173개 반영 | `f76386b` |
 | 2026-03-25 | 22:30 KST | 데드코드 삭제 + 테스트 26개 추가 (147→173), config 필드명 통일, CLAUDE.md 생성 | — |
 | 2026-03-25 | 21:45 KST | monte_carlo SwarmSimulator 일원화, simulator_3d HOLDING/RTL 처리 | — |
+
+---
+
+## Next Mega Plan / 다음 대규모 계획
+
+### Phase 164-171 (운영 인프라)
+
+1. `message_queue.py` - 우선순위 큐 + backpressure + DLQ
+2. `circuit_breaker.py` - 실패율/복구 타임아웃 기반 차단기
+3. `rate_limiter.py` - 토큰 버킷/리키 버킷 하이브리드 제한
+4. `health_checker.py` - 모듈별 heartbeat/latency/error budget 집계
+5. `config_hot_reload.py` - 파일 변경 감시 + 안전 롤백
+6. `distributed_lock.py` - lease 기반 분산 잠금 추상화
+7. `event_replayer.py` - 이벤트 소싱 재생 + 시점 복원
+8. `canary_deployer.py` - 점진 배포 + 자동 롤백
+
+### Phase 172-179 (실전 시나리오 + 통합)
+
+1. `city_map_generator.py` - 도심 장애물/회랑 맵 자동 생성
+2. `traffic_simulator.py` - 시간대별 혼잡/수요/사고 확률 모델
+3. `weather_api_client.py` - 외부 기상 API 통합 + 캐시
+4. `delivery_simulation.py` - 주문-배차-배송 E2E 시뮬레이터
+5. `airspace_reservation.py` - 슬롯 예약 및 충돌 해소 정책 강화
+6. `compliance_engine.py` - 규제 룰셋 실행기 + 위반 리포트
+7. `sim_recorder.py` - 시뮬레이션 타임라인 녹화/재생 포맷
+8. `perf_benchmark.py` - 부하/지연/처리량 벤치마크 표준화
+
+### 착수 상태
+
+- 완료: Phase 156-163 (8/8)
+- 진행중: Phase 164-171 1차 착수 (`message_queue`, `circuit_breaker`, 테스트)
+- 다음 커밋 목표: 운영 인프라 추가 2개 모듈(`rate_limiter`, `health_checker`) + 테스트
 | 2026-03-25 | 21:15 KST | README 전면 업데이트 — 시각자료 9종 삽입, 테스트 74→147개 반영 | — |
 | 2026-03-25 | 20:30 KST | APF 기상적응 바람속도 전달 + 최종보고서 PDF 추가 | — |
 | 2026-03-25 | 19:50 KST | weather_disturbance 시나리오 개선 + 충돌해결률 공식 수정 | — |

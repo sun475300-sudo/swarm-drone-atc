@@ -634,3 +634,29 @@ class TestE2EReporter:
         assert report["observability"]["window_sec"] == 30.0
         assert report["performance"]["samples"] == 3
         assert report["recorder"]["events"] == 1
+
+    def test_tune_status_thresholds_changes_status(self):
+        report_default = self.r.build(
+            delivery_summary={"delivered": 1},
+            compliance_report={"total_violations": 0},
+            recorder_summary={"events": 5},
+            perf_report={"success_rate": 0.75},
+            traffic_summary={"avg_congestion": 0.6},
+        )
+        assert report_default["status"] == "YELLOW"
+
+        self.r.tune_status_thresholds(green_threshold=0.78, yellow_threshold=0.6)
+        report_tuned = self.r.build(
+            delivery_summary={"delivered": 1},
+            compliance_report={"total_violations": 0},
+            recorder_summary={"events": 5},
+            perf_report={"success_rate": 0.75},
+            traffic_summary={"avg_congestion": 0.6},
+        )
+        assert report_tuned["status"] == "GREEN"
+
+    def test_tune_status_thresholds_rejects_invalid_values(self):
+        import pytest
+
+        with pytest.raises(ValueError):
+            self.r.tune_status_thresholds(green_threshold=0.6, yellow_threshold=0.7)

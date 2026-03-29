@@ -8,8 +8,18 @@ from typing import Any
 
 
 class E2EReporter:
-    def __init__(self) -> None:
+    def __init__(self, green_threshold: float = 0.85, yellow_threshold: float = 0.65) -> None:
+        if not (0.0 <= yellow_threshold < green_threshold <= 1.0):
+            raise ValueError("thresholds must satisfy 0.0 <= yellow < green <= 1.0")
         self._reports: list[dict[str, Any]] = []
+        self._green_threshold = float(green_threshold)
+        self._yellow_threshold = float(yellow_threshold)
+
+    def tune_status_thresholds(self, green_threshold: float, yellow_threshold: float) -> None:
+        if not (0.0 <= yellow_threshold < green_threshold <= 1.0):
+            raise ValueError("thresholds must satisfy 0.0 <= yellow < green <= 1.0")
+        self._green_threshold = float(green_threshold)
+        self._yellow_threshold = float(yellow_threshold)
 
     def build(
         self,
@@ -108,13 +118,12 @@ class E2EReporter:
             "observability": bool(report.get("observability")),
         }
 
-    @staticmethod
-    def _overall_status(report: dict[str, Any]) -> str:
+    def _overall_status(self, report: dict[str, Any]) -> str:
         kpi = report.get("kpi", {})
         health = float(kpi.get("health_score", 0.0))
-        if health >= 0.85:
+        if health >= self._green_threshold:
             return "GREEN"
-        if health >= 0.65:
+        if health >= self._yellow_threshold:
             return "YELLOW"
         return "RED"
 
@@ -133,6 +142,10 @@ class E2EReporter:
             "reports": len(self._reports),
             "avg_health_score": round(avg, 4),
             "status_counts": status_counts,
+            "thresholds": {
+                "green": round(self._green_threshold, 4),
+                "yellow": round(self._yellow_threshold, 4),
+            },
         }
 
     def clear(self) -> None:

@@ -9,7 +9,7 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Tests](https://img.shields.io/badge/Tests-1333%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-1337%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Algorithms](https://img.shields.io/badge/Algorithms-147-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
 [![Modules](https://img.shields.io/badge/Modules-112+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Lines](https://img.shields.io/badge/Python-17%2C500%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
@@ -41,7 +41,7 @@
 | 🎯 지표 | 📊 결과 | 📝 설명 |
 |:---:|:---:|:---|
 | **충돌 감소율** | **99.9%** | 500대 메가 군집: 58,038 → 19 |
-| **자동 테스트** | **1,333개** | 43 모듈 · 수집 완료 |
+| **자동 테스트** | **1,337개** | 43 모듈 · 수집 완료 |
 | **알고리즘** | **147개** | 4계층 17,500+줄 · 20개 언어 |
 | **MC 검증** | **38,400회** | 384 config × 100 seeds |
 | **시나리오** | **42종** | 극한기상·침입·GPS교란·대규모배송 |
@@ -55,9 +55,18 @@
 
 ## Table of Contents / 목차
 
+### Quick Navigation / 빠른 이동
+
+- 시작: [At a Glance / 한눈에 이해하기](#at-a-glance--한눈에-이해하기), [빠른 시작](#빠른-시작), [3D 시뮬레이터 체험](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html)
+- 구조: [시스템 개요](#시스템-개요), [4계층 아키텍처](#4-layer-architecture--4계층-아키텍처), [핵심 알고리즘](#핵심-알고리즘)
+- 검증: [시나리오 검증 결과](#시나리오-검증-결과), [Monte Carlo SLA](#monte-carlo-sla), [테스트](#tests--테스트)
+- 운영: [Changelog / 변경 이력](#changelog--변경-이력), [Next Mega Plan / 다음 대규모 계획](#next-mega-plan--다음-대규모-계획)
+
+### Full Index / 전체 인덱스
+
 1. [프로젝트 배경](#프로젝트-배경)
 2. [시스템 개요](#시스템-개요)
-3. [4계층 아키텍처](#4계층-아키텍처)
+3. [4계층 아키텍처](#4-layer-architecture--4계층-아키텍처)
 4. [핵심 알고리즘](#핵심-알고리즘)
 5. [알고리즘 계층 구조](#알고리즘-계층-구조)
 6. [기존 시스템 비교 분석](#기존-시스템-비교-분석)
@@ -65,11 +74,11 @@
 8. [Monte Carlo SLA](#monte-carlo-sla)
 9. [빠른 시작](#빠른-시작)
 10. [프로젝트 구조](#프로젝트-구조)
-11. [테스트](#테스트)
-12. [SC2 테스트베드](#sc2-테스트베드)
-13. [개발 일정](#개발-일정)
-14. [팀 정보](#팀-정보)
-15. [참고 문헌](#참고-문헌)
+11. [테스트](#tests--테스트)
+12. [SC2 테스트베드](#sc2-testbed--sc2-테스트베드)
+13. [개발 일정](#development-timeline--개발-일정)
+14. [팀 정보](#team--팀-정보)
+15. [참고 문헌](#references--참고-문헌)
 
 ---
 
@@ -200,9 +209,9 @@
 <details>
 <summary><b>Step 5: Results / 5단계: 결과</b></summary>
 
-**EN:** 1,333 tests collected, 147 algorithms, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), and 99.9% collision reduction in validated scenarios.
+**EN:** 1,337 tests collected, 147 algorithms, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), and 99.9% collision reduction in validated scenarios.
 
-**KR:** 1,333개 테스트 수집, 147개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모를 갖춘 캡스톤 프로젝트입니다.
+**KR:** 1,337개 테스트 수집, 147개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모를 갖춘 캡스톤 프로젝트입니다.
 </details>
 
 ---
@@ -1271,7 +1280,25 @@ pytest tests/ -v              # Run all / 전체 실행
 pytest tests/test_apf.py -v   # Specific module / 특정 파일
 ```
 
-### 테스트 커버리지 (1,333개 / 43모듈)
+### 테스트 커버리지 (1,337개 / 43모듈)
+
+#### 빠른 요약
+
+| 항목 | 값 |
+|------|----|
+| 총 테스트 수집 | 1,337 |
+| 핵심 통합 스위트 | `test_phase172_179.py` (62) |
+| 전체 모듈 | 43 |
+| 현재 상태 | 100% pass |
+
+#### 실행 가이드
+
+- 전체 회귀: `pytest tests/ -v`
+- 실전 통합만 빠르게 확인: `pytest -q tests/test_phase172_179.py`
+- 수집 개수 재계산: `pytest --collect-only -q`
+
+<details>
+<summary><b>전체 43모듈 상세 목록 보기</b></summary>
 
 | 파일 | 수 | 대상 |
 |------|---|------|
@@ -1317,8 +1344,10 @@ pytest tests/test_apf.py -v   # Specific module / 특정 파일
 | `test_phase132_155.py` | 95 | 드론팩토리·리밸런서·배터리열화·풍동·착륙패드·GPS멀티패스·동적장애물·페이로드·멀티테넌트·SLA·라이프사이클·스케줄·배송최적화·가격엔진·고객지표·함대구성·MCTS·연합학습·NLP·디지털트윈·미션플래너·센서융합·이벤트아키텍처·대시보드 |
 | `test_phase156_163.py` | 32 | 베이지안튜너·시계열예측·MARL·오토인코더·앙상블·포캐스터·인프라 안정화 모듈 |
 | `test_phase164_171.py` | 37 | Circuit Breaker·Rate Limiter·Hot Reload·DistLock·Event Replay·Canary·OpenCL 파일럿 |
-| `test_phase172_179.py` | 58 | City Map Generator·Traffic Simulator·Weather API Client·Weather Risk Model·Delivery Simulation E2E·Airspace Reservation Integration·Dynamic Slot Policy(congestion/weather)·TrafficState Direct Injection·E2E Reporter(traffic KPI/schema/status)·Compliance Engine(severity trend/hotspot)·Sim Recorder·Perf Benchmark 검증 |
-| **합계** | **1,333** | **43 모듈 · 100% pass** |
+| `test_phase172_179.py` | 62 | City Map Generator·Traffic Simulator·Weather API Client·Weather Risk Model·Delivery Simulation E2E·Airspace Reservation Integration·Dynamic Slot Policy(congestion/weather)·TrafficState Direct Injection·E2E Reporter(traffic KPI/schema/status/observability link/threshold tuning)·Compliance Engine(severity trend/hotspot)·Sim Recorder·Perf Benchmark 검증 |
+| **합계** | **1,337** | **43 모듈 · 100% pass** |
+
+</details>
 
 ---
 
@@ -1425,6 +1454,9 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 핵심 변경 |
 |------|-----------|
+| 2026-03-29 | README 가독성 극대화: Quick Navigation/Full Index 분리, 테스트 섹션 요약+접기 구조 적용, 실행 가이드 추가 |
+| 2026-03-29 | E2E 운영 임계치 튜닝 착수: Reporter 상태 임계치(green/yellow) 런타임 튜닝 API 및 회귀 테스트 추가 |
+| 2026-03-29 | Observability 패스 1차 완료: `build_with_observability()`로 recorder/benchmark 직접 연동 및 window/events/samples 리포트 추가 |
 | 2026-03-29 | E2E 리포팅 고도화 착수: schema_version/sections/status 표준 템플릿 및 status 집계 추가 |
 | 2026-03-29 | Compliance 심화 완료: severity trend(window) + rule hot-spot(top-N) 분석 기능 및 테스트 추가 |
 | 2026-03-29 | Traffic 직접 연동 완료: `TrafficState`를 dispatch에 직접 주입하고 E2E Reporter에 traffic pressure KPI 반영 |
@@ -1465,8 +1497,8 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 우선순위 | 작업 묶음 | 범위 | 산출물 |
 |---------|-----------|------|--------|
-| P0 | Observability 패스 | `sim_recorder.py` + `perf_benchmark.py` E2E 연결 | 재현 가능한 시뮬 타임라인 + KPI 리포트 |
-| P1 | E2E 리포트 v2 | 템플릿 상태코드와 운영 지표 확장 | 운영용 요약 뷰 + 상태 임계치 튜닝 |
+| P0 | Observability 패스 | `sim_recorder.py` + `perf_benchmark.py` E2E 연결 + 상태 임계치 튜닝 | 재현 가능한 시뮬 타임라인 + KPI 리포트 + 운영 기준선 |
+| P1 | E2E 리포트 v2 | 템플릿 상태코드와 운영 지표 확장 | 운영용 요약 뷰 + 섹션별 상태 진단 |
 | P2 | Accelerator 확장 | `opencl_accelerator.py` 연동 경로 확대 | CPU/OpenCL fallback 벤치 비교 |
 | P2 | 회귀 안정화 | Phase 172-179 통합 회귀 | 테스트/README 지표 동기화 |
 
@@ -1474,8 +1506,8 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 - 완료: Phase 156-171
 - 진행중: Phase 172-179 (시나리오/실전 통합)
-- 현재 커밋 목표: E2E 리포팅 템플릿 표준화 + Observability 패스 연결
-- 다음 커밋 목표: recorder/benchmark 연동 E2E 파이프라인 + 운영 지표 튜닝
+- 현재 커밋 목표: README 가독성 극대화 + Observability 패스(연동/임계치 튜닝) 1차 완료
+- 다음 커밋 목표: 섹션별 운영 상태 진단 규칙 + E2E 리포트 v2 요약 뷰 추가
 
 ---
 

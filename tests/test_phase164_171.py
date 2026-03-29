@@ -147,3 +147,76 @@ class TestHealthChecker:
         self.h.heartbeat("planner")
         ov = self.h.overall()
         assert ov["modules"] >= 1
+
+
+class TestConfigHotReload:
+    def test_load_and_reload_and_rollback(self, tmp_path):
+        from simulation.config_hot_reload import ConfigHotReload
+
+        config_file = tmp_path / "sim.yaml"
+        config_file.write_text("a: 1\nb: test\n", encoding="utf-8")
+
+        h = ConfigHotReload(str(config_file))
+        current = h.load()
+        assert current["a"] == 1
+
+        config_file.write_text("a: 2\nb: changed\n", encoding="utf-8")
+        changed = h.reload_if_changed()
+        assert changed
+        assert h.current()["a"] == 2
+
+        rolled = h.rollback()
+        assert rolled
+        assert h.current()["a"] == 1
+
+    def test_reload_if_not_changed(self, tmp_path):
+        from simulation.config_hot_reload import ConfigHotReload
+
+        config_file = tmp_path / "sim.yaml"
+        config_file.write_text("x: 10\n", encoding="utf-8")
+        h = ConfigHotReload(str(config_file))
+        h.load()
+        assert not h.reload_if_changed()
+
+    def test_summary(self, tmp_path):
+        from simulation.config_hot_reload import ConfigHotReload
+
+        config_file = tmp_path / "sim.yaml"
+        config_file.write_text("k: v\n", encoding="utf-8")
+        h = ConfigHotReload(str(config_file))
+        h.load()
+        s = h.summary()
+        assert s["version"] >= 1
+
+
+class TestDistributedLock:
+    def setup_method(self):
+        from simulation.distributed_lock import DistributedLock
+
+        self.l = DistributedLock(default_ttl_sec=0.2)
+
+    def test_acquire_release(self):
+        assert self.l.acquire("key1", "worker-a")
+        assert self.l.owner_of("key1") == "worker-a"
+        assert self.l.release("key1", "worker-a")
+        assert self.l.owner_of("key1") is None
+
+    def test_reject_other_owner(self):
+        assert self.l.acquire("key1", "worker-a")
+        assert not self.l.acquire("key1", "worker-b")
+
+    def test_renew(self):
+        assert self.l.acquire("key1", "worker-a", ttl_sec=0.1)
+        assert self.l.renew("key1", "worker-a", ttl_sec=0.5)
+
+    def test_expire(self):
+        import time
+
+        assert self.l.acquire("key1", "worker-a", ttl_sec=0.1)
+        time.sleep(0.15)
+        assert self.l.owner_of("key1") is None
+
+    def test_summary(self):
+        self.l.acquire("key1", "worker-a")
+        s = self.l.summary()
+        assert "active_locks" in s

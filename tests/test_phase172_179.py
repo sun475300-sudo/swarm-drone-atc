@@ -389,6 +389,30 @@ class TestComplianceEngine:
         self.e.clear()
         assert self.e.summary()["total_violations"] == 0
 
+    def test_rule_hotspots(self):
+        self.e.evaluate_flight("D1", altitude_m=200, speed_mps=40)
+        self.e.evaluate_flight("D2", altitude_m=180, speed_mps=10)
+        hot = self.e.rule_hotspots(top_n=2)
+        assert len(hot) == 2
+        assert hot[0]["rule"] == "MAX_ALT"
+        assert hot[0]["count"] >= hot[1]["count"]
+
+    def test_severity_trend(self):
+        self.e.evaluate_flight("D1", altitude_m=200, speed_mps=40, battery_pct=5)
+        self.e.evaluate_flight("D2", altitude_m=20, speed_mps=10, battery_pct=80)
+        self.e.evaluate_flight("D3", altitude_m=130, speed_mps=40, battery_pct=9)
+        trend = self.e.severity_trend(window=2)
+        assert len(trend) == 2
+        assert trend[0]["start_eval"] == 1
+        assert trend[0]["end_eval"] == 2
+        assert trend[0]["violations"] > 0
+
+    def test_summary_contains_hotspots(self):
+        self.e.evaluate_flight("D1", altitude_m=200)
+        s = self.e.summary()
+        assert "hotspots" in s
+        assert len(s["hotspots"]) >= 1
+
 
 class TestSimRecorder:
     def setup_method(self):

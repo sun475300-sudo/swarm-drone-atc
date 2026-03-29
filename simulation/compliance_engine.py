@@ -28,6 +28,7 @@ class ComplianceViolation:
     max_value: float | None
     severity: str
     message: str
+    eval_index: int = 0
 
 
 DEFAULT_RULESET: list[ComplianceRule] = [
@@ -51,7 +52,13 @@ class ComplianceEngine:
     def register_ruleset(self, ruleset: list[ComplianceRule]) -> None:
         self._ruleset = list(ruleset)
 
-    def _check_rule(self, drone_id: str, rule: ComplianceRule, metrics: dict[str, float]) -> ComplianceViolation | None:
+    def _check_rule(
+        self,
+        drone_id: str,
+        rule: ComplianceRule,
+        metrics: dict[str, float],
+        eval_index: int,
+    ) -> ComplianceViolation | None:
         if rule.metric not in metrics:
             return None
 
@@ -77,17 +84,66 @@ class ComplianceEngine:
             max_value=rule.max_value,
             severity=rule.severity,
             message=f"{rule.name} violation: {reason}",
+            eval_index=eval_index,
         )
 
     def evaluate_flight(self, drone_id: str, **metrics: float) -> list[ComplianceViolation]:
         self._evaluations += 1
         out: list[ComplianceViolation] = []
         for rule in self._ruleset:
-            v = self._check_rule(drone_id=drone_id, rule=rule, metrics=metrics)
+            v = self._check_rule(
+                drone_id=drone_id,
+                rule=rule,
+                metrics=metrics,
+                eval_index=self._evaluations,
+            )
             if v is not None:
                 out.append(v)
                 self._violations.append(v)
         return out
+
+    def rule_hotspots(self, top_n: int = 3) -> list[dict[str, Any]]:
+        by_rule: dict[str, int] = {}
+        by_severity: dict[str, str] = {}
+        for v in self._violations:
+            by_rule[v.rule_name] = by_rule.get(v.rule_name, 0) + 1
+            by_severity[v.rule_name] = v.severity
+        ranked = sorted(by_rule.items(), key=lambda kv: (-kv[1], kv[0]))
+        out: list[dict[str, Any]] = []
+        for name, count in ranked[: max(1, int(top_n))]:
+            out.append(
+                {
+                    "rule": name,
+                    "count": count,
+                    "severity": by_severity.get(name, "UNKNOWN"),
+                }
+            )
+        return out
+
+    def severity_trend(self, window: int = 5) -> list[dict[str, Any]]:
+        size = max(1, int(window))
+        if self._evaluations == 0:
+            return []
+        buckets: list[dict[str, Any]] = []
+        start = 1
+        while start <= self._evaluations:
+            end = min(self._evaluations, start + size - 1)
+            counts: dict[str, int] = {}
+            total = 0
+            for v in self._violations:
+                if start <= v.eval_index <= end:
+                    counts[v.severity] = counts.get(v.severity, 0) + 1
+                    total += 1
+            buckets.append(
+                {
+                    "start_eval": start,
+                    "end_eval": end,
+                    "violations": total,
+                    "by_severity": counts,
+                }
+            )
+            start = end + 1
+        return buckets
 
     def evaluate_batch(self, snapshots: list[dict[str, Any]]) -> dict[str, list[ComplianceViolation]]:
         by_drone: dict[str, list[ComplianceViolation]] = {}
@@ -112,10 +168,12 @@ class ComplianceEngine:
 
     def summary(self) -> dict[str, Any]:
         report = self.violation_report()
+        hotspots = self.rule_hotspots(top_n=3)
         return {
             "rules": len(self._ruleset),
             "evaluations": self._evaluations,
             "total_violations": report["total_violations"],
+            "hotspots": hotspots,
         }
 
     def clear(self) -> None:

@@ -24,8 +24,8 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Tests](https://img.shields.io/badge/Tests-1414%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
-[![Phase](https://img.shields.io/badge/Phase-180%2F199%20%E2%9C%85-4CAF50?style=for-the-badge&logo=rocket)](simulation/)
+[![Tests](https://img.shields.io/badge/Tests-1420%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Phase](https://img.shields.io/badge/Phase-200%2F219%20%E2%9C%85-4CAF50?style=for-the-badge&logo=rocket)](simulation/)
 [![Schema](https://img.shields.io/badge/Schema-v1.0.0-2196F3?style=for-the-badge&logo=json)](simulation/report_input_normalizer.py)
 [![Algorithms](https://img.shields.io/badge/Algorithms-151-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
 [![Modules](https://img.shields.io/badge/Modules-115+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
@@ -1762,24 +1762,36 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 ## Next Mega Plan / 다음 대규모 계획
 
-### Phase 180-199 (운영 산출물 + 릴리즈 체계)
+### Phase 200-219 (ML + Analytics + Performance)
 
 | 우선순위 | 작업 묶음 | 범위 | 산출물 |
 |---------|-----------|------|--------|
-| P0 | Ops Report Bundle | `E2EReporter` 산출물 규격 고정 + JSON/Markdown/manifest export + CLI 진입점 | 재현 가능한 운영 리포트 번들 |
-| P0 | Report Input Normalization | scenario/delivery/benchmark/compliance/traffic 객체·별칭 입력을 `phase180.report_inputs.v1` 공통 계약으로 정렬 + scenario meta/manifest 반영 | 조립식 보고 파이프라인 |
-| P1 | Scenario Pack Promotion | 검증된 시나리오·seed·메타를 릴리즈 가능한 pack으로 묶기 | 데모/회귀용 시나리오 팩 |
-| P1 | CI Artifact Publishing | GitHub Actions에서 smoke report/perf summary/report bundle 업로드 | PR 단위 운영 증적 |
-| P2 | Visual Asset Ops | 이미지 번들 인덱스/릴리즈 기준·누락 검사 정리 | 문서-자산 동기화 체크리스트 |
-| P2 | Accelerator Hardening | `opencl_accelerator.py` fallback/벤치/가드레일 강화 | CPU/OpenCL 비교 기준선 |
+| P0 | ML Model Pipeline | 학습된 모델 시뮬레이션 통합 (CollisionPredictor, RouteOptimizer, DemandForecaster) | 모델 추론 파이프라인 |
+| P0 | Advanced Analytics | 상세 성능 분석 대시보드 (AnalyticsAggregator, TrendAnalyzer, PerformanceComparator) | Plotly Dash 대시보드 |
+| P1 | Hyperparameter Tuning | 시나리오별 자동 튜닝 (Optuna 기반) | 자동 튜닝 프레임워크 |
+| P1 | A/B Testing | 정책/알고리즘 비교 인프라 | AB 테스트 프레임워크 |
+| P2 | Documentation | API 문서 자동 생성 (Sphinx/pdoc) | 문서 자동화 |
+| P2 | Regression Detection | 성능 저하 자동 감지 | 회귀 감지 시스템 |
+
+### Phase 180-199 (운영 산출물 + 릴리즈 체계) - 완료 ✅
+
+| 우선순위 | 작업 묶음 | 상태 |
+|---------|-----------|------|
+| P0 | Ops Report Bundle | ✅ 완료 |
+| P0 | Report Input Normalization | ✅ 완료 |
+| P1 | CI Artifact Publishing | ✅ 완료 |
+| P1 | Scenario Pack Promotion | ✅ 완료 |
+| P2 | Visual Asset Ops | ✅ 완료 |
+| P2 | Accelerator Hardening | ✅ 완료 |
 
 ### 착수 상태
 
 - 완료: Phase 172-179 핵심 실전 통합(traffic/weather/compliance/observability)
-- 진행중: Phase 180-199 (운영 산출물 + 릴리즈 체계)
-- 완료: `Ops Report Bundle` P0 1차(`render_markdown()` + `export_bundle()` + `main.py ops-report`)
-- 이번 착수: `simulation/report_input_normalizer.py` + `E2EReporter.build(..., scenario_summary=...)`로 객체/별칭 입력을 표준 계약(`phase180.report_inputs.v1`)으로 정렬
-- 다음 작업 목표: `run_scenario`/`monte_carlo` 결과를 동일한 bundle 규격으로 자동 승격
+- 완료: Phase 180-199 (운영 산출물 + 릴리즈 체계) ✅
+- 진행중: Phase 200-219 (ML + Analytics + Performance)
+- 완료: `MLInferencePipeline` P0 (CollisionPredictor, RouteOptimizer, DemandForecaster)
+- 완료: `AdvancedAnalytics` P0 (AnalyticsAggregator, PerformanceComparator, TrendAnalyzer)
+- 다음 작업 목표: Hyperparameter Tuning Framework + A/B Testing Infrastructure
 
 ---
 

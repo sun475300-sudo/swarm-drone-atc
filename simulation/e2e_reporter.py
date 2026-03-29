@@ -17,19 +17,24 @@ class E2EReporter:
         compliance_report: dict[str, Any],
         recorder_summary: dict[str, Any],
         perf_report: dict[str, Any],
+        traffic_summary: dict[str, Any] | None = None,
         meta: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         delivered = int(delivery_summary.get("delivered", 0))
         total_violations = int(compliance_report.get("total_violations", 0))
         success_rate = float(perf_report.get("success_rate", 1.0))
         events = int(recorder_summary.get("events", 0))
+        traffic = dict(traffic_summary or {})
+        traffic_pressure = float(traffic.get("avg_congestion", delivery_summary.get("avg_dispatch_congestion", 0.0)))
+        traffic_penalty = min(0.12, max(0.0, traffic_pressure) * 0.12)
         health_score = max(
             0.0,
             min(
                 1.0,
                 (success_rate * 0.55)
                 + (0.35 if total_violations == 0 else max(0.0, 0.35 - (0.05 * total_violations)))
-                + (0.10 if delivered > 0 else 0.0),
+                + (0.10 if delivered > 0 else 0.0)
+                - traffic_penalty,
             ),
         )
 
@@ -39,12 +44,14 @@ class E2EReporter:
             "compliance": dict(compliance_report),
             "recorder": dict(recorder_summary),
             "performance": dict(perf_report),
+            "traffic": traffic,
             "kpi": {
                 "health_score": round(health_score, 4),
                 "delivered": delivered,
                 "violations": total_violations,
                 "success_rate": round(success_rate, 4),
                 "events": events,
+                "traffic_pressure": round(traffic_pressure, 4),
             },
         }
         self._reports.append(report)

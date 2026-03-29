@@ -313,6 +313,32 @@ class TestDeliverySimulation:
         assert summary["slot_policy"]["congestion_alt_step"] == 20.0
         assert summary["slot_policy"]["weather_threshold"] == 0.9
 
+    def test_dispatch_with_traffic_state(self):
+        from simulation.traffic_simulator import TrafficSimulator
+
+        t = TrafficSimulator(base_demand=120, seed=42)
+        state = t.step(hour=18, weather_factor=1.0, capacity=160)
+        self.s.add_order("O12", destination=(90, 20), weight_kg=1.2)
+        rec = self.s.dispatch_with_traffic_state(state, weather_factor=1.0)
+        assert rec is not None
+        assert rec.traffic_demand == state.demand
+        assert rec.traffic_congestion == round(state.congestion, 4)
+
+    def test_summary_includes_dispatch_traffic_metrics(self):
+        from simulation.traffic_simulator import TrafficSimulator
+
+        t = TrafficSimulator(base_demand=100, seed=42)
+        self.s.add_order("O13", destination=(100, 10), weight_kg=1.0)
+        self.s.add_order("O14", destination=(120, 20), weight_kg=1.0)
+        r1 = self.s.dispatch_with_traffic_state(t.step(hour=8, capacity=180), weather_factor=1.0)
+        assert r1 is not None
+        self.s.complete_delivery("O13")
+        r2 = self.s.dispatch_with_traffic_state(t.step(hour=19, capacity=180), weather_factor=0.9)
+        assert r2 is not None
+        s = self.s.summary()
+        assert s["avg_dispatch_congestion"] > 0.0
+        assert s["avg_dispatch_demand"] > 0.0
+
 
 class TestComplianceEngine:
     def setup_method(self):
@@ -448,11 +474,13 @@ class TestE2EReporter:
             compliance_report={"total_violations": 0, "by_rule": {}},
             recorder_summary={"events": 24, "duration_sec": 12.0},
             perf_report={"samples": 10, "success_rate": 1.0, "p95_ms": 18.0},
+            traffic_summary={"avg_congestion": 0.42, "peak_hour": 18},
             meta={"scenario": "phase172-e2e"},
         )
         assert report["meta"]["scenario"] == "phase172-e2e"
         assert report["kpi"]["delivered"] == 3
         assert "health_score" in report["kpi"]
+        assert report["kpi"]["traffic_pressure"] == 0.42
 
     def test_health_score_degrades_with_violations(self):
         good = self.r.build(
@@ -460,14 +488,33 @@ class TestE2EReporter:
             compliance_report={"total_violations": 0},
             recorder_summary={"events": 10},
             perf_report={"success_rate": 1.0},
+            traffic_summary={"avg_congestion": 0.2},
         )
         bad = self.r.build(
             delivery_summary={"delivered": 2},
             compliance_report={"total_violations": 4},
             recorder_summary={"events": 10},
             perf_report={"success_rate": 1.0},
+            traffic_summary={"avg_congestion": 0.2},
         )
         assert bad["kpi"]["health_score"] < good["kpi"]["health_score"]
+
+    def test_health_score_degrades_with_traffic_pressure(self):
+        low = self.r.build(
+            delivery_summary={"delivered": 2},
+            compliance_report={"total_violations": 0},
+            recorder_summary={"events": 10},
+            perf_report={"success_rate": 1.0},
+            traffic_summary={"avg_congestion": 0.1},
+        )
+        high = self.r.build(
+            delivery_summary={"delivered": 2},
+            compliance_report={"total_violations": 0},
+            recorder_summary={"events": 10},
+            perf_report={"success_rate": 1.0},
+            traffic_summary={"avg_congestion": 0.95},
+        )
+        assert high["kpi"]["health_score"] < low["kpi"]["health_score"]
 
     def test_summary(self):
         self.r.build({}, {}, {}, {})

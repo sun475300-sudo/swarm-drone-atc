@@ -34,6 +34,8 @@ class DispatchRecord:
     eta_min: float
     distance_m: float
     reservation_id: str | None = None
+    traffic_congestion: float | None = None
+    traffic_demand: int | None = None
 
 
 class DeliverySimulation:
@@ -200,6 +202,7 @@ class DeliverySimulation:
         self,
         congestion: float = 0.2,
         weather_factor: float = 1.0,
+        traffic_demand: int | None = None,
     ) -> DispatchRecord | None:
         if not self._orders:
             return None
@@ -235,12 +238,27 @@ class DeliverySimulation:
             eta_min=eta_min,
             distance_m=distance_m,
             reservation_id=None if reservation_id == "NO_AIRSPACE" else reservation_id,
+            traffic_congestion=round(float(congestion), 4),
+            traffic_demand=None if traffic_demand is None else int(traffic_demand),
         )
         if record.reservation_id is not None:
             self._order_reservations[order.order_id] = record.reservation_id
         self._dispatches.append(record)
         self._orders.pop(0)
         return record
+
+    def dispatch_with_traffic_state(
+        self,
+        traffic_state: Any,
+        weather_factor: float = 1.0,
+    ) -> DispatchRecord | None:
+        congestion = float(getattr(traffic_state, "congestion", 0.2))
+        demand = int(getattr(traffic_state, "demand", 0))
+        return self.dispatch_next(
+            congestion=congestion,
+            weather_factor=weather_factor,
+            traffic_demand=demand,
+        )
 
     def complete_delivery(self, order_id: str) -> bool:
         for r in self._dispatches:
@@ -259,6 +277,13 @@ class DeliverySimulation:
         return len(self._orders)
 
     def summary(self) -> dict[str, Any]:
+        avg_congestion = 0.0
+        demand_points = [d.traffic_demand for d in self._dispatches if d.traffic_demand is not None]
+        congestion_points = [
+            d.traffic_congestion for d in self._dispatches if d.traffic_congestion is not None
+        ]
+        if congestion_points:
+            avg_congestion = sum(congestion_points) / len(congestion_points)
         return {
             "drones": len(self._drones),
             "pending_orders": len(self._orders),
@@ -266,5 +291,7 @@ class DeliverySimulation:
             "delivered": len(self._delivered_orders),
             "busy_drones": sum(1 for d in self._drones.values() if d.busy),
             "reserved_slots": len(self._order_reservations),
+            "avg_dispatch_congestion": round(avg_congestion, 4),
+            "avg_dispatch_demand": 0 if not demand_points else round(sum(demand_points) / len(demand_points), 2),
             "slot_policy": dict(self._slot_policy),
         }

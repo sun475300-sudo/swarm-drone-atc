@@ -9,8 +9,8 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Tests](https://img.shields.io/badge/Tests-1238%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
-[![Algorithms](https://img.shields.io/badge/Algorithms-141-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
+[![Tests](https://img.shields.io/badge/Tests-1286%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Algorithms](https://img.shields.io/badge/Algorithms-143-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
 [![Modules](https://img.shields.io/badge/Modules-112+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Lines](https://img.shields.io/badge/Python-17%2C500%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
 [![Languages](https://img.shields.io/badge/Languages-20-FF5722?style=for-the-badge&logo=github&logoColor=white)](#multi-language)
@@ -41,8 +41,8 @@
 | 🎯 지표 | 📊 결과 | 📝 설명 |
 |:---:|:---:|:---|
 | **충돌 감소율** | **99.9%** | 500대 메가 군집: 58,038 → 19 |
-| **자동 테스트** | **1,238개** | 41 모듈 · 수집 완료 |
-| **알고리즘** | **139개** | 4계층 17,500+줄 · 20개 언어 |
+| **자동 테스트** | **1,286개** | 43 모듈 · 수집 완료 |
+| **알고리즘** | **143개** | 4계층 17,500+줄 · 20개 언어 |
 | **MC 검증** | **38,400회** | 384 config × 100 seeds |
 | **시나리오** | **42종** | 극한기상·침입·GPS교란·대규모배송 |
 | **반응 시간** | **< 1초** | CPA 90초 선제 예측 |
@@ -70,6 +70,18 @@
 13. [개발 일정](#개발-일정)
 14. [팀 정보](#팀-정보)
 15. [참고 문헌](#참고-문헌)
+
+---
+
+## Visual Assets Hub / 시각자료 허브
+
+| 구분 | 미리보기 | 설명 |
+|------|---------|------|
+| Hero | ![Hero](docs/images/hero_banner.svg) | 프로젝트 핵심 메시지 배너 |
+| Architecture | ![Architecture](docs/images/architecture.svg) | 4계층 시스템 아키텍처 |
+| Detection Pipeline | ![Pipeline](docs/images/detection_pipeline.svg) | 탐지→판단→회피 파이프라인 |
+| Scenario KPI | ![Scenario KPI](docs/images/scenario_kpi_radar.png) | 시나리오 KPI 레이더 |
+| Performance Comparison | ![Performance](docs/images/performance_comparison.svg) | 기존 방식 대비 성능 비교 |
 
 ---
 
@@ -188,9 +200,9 @@
 <details>
 <summary><b>Step 5: Results / 5단계: 결과</b></summary>
 
-**EN:** 1,238 tests collected, 139 algorithms, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), and 99.9% collision reduction in validated scenarios.
+**EN:** 1,238 tests collected, 141 algorithms, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), and 99.9% collision reduction in validated scenarios.
 
-**KR:** 1,238개 테스트 수집, 139개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모를 갖춘 캡스톤 프로젝트입니다.
+**KR:** 1,238개 테스트 수집, 141개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모를 갖춘 캡스톤 프로젝트입니다.
 </details>
 
 ---
@@ -1259,7 +1271,7 @@ pytest tests/ -v              # Run all / 전체 실행
 pytest tests/test_apf.py -v   # Specific module / 특정 파일
 ```
 
-### 테스트 커버리지 (1,206개 / 39모듈)
+### 테스트 커버리지 (1,286개 / 43모듈)
 
 | 파일 | 수 | 대상 |
 |------|---|------|
@@ -1303,7 +1315,10 @@ pytest tests/test_apf.py -v   # Specific module / 특정 파일
 | `test_phase92_107.py` | 72 | 리더선출·밀도예측·임무체인·장애전파·고도관리·로그분석·충전최적화·페어링·비행검증·대시보드·배치·이력·성능프로필·임무평가·접근제어·건강모니터 |
 | `test_phase108_131.py` | 104 | RL경로·유지보수·협상·튜너·의사결정·수요예측·다양성·우선순위·GPS스푸핑·암호화·침입탐지·규제·QoS·신원·감사·방송·난이도·AB테스트·스트림·조율·환경·비용·학습·통합검증 |
 | `test_phase132_155.py` | 95 | 드론팩토리·리밸런서·배터리열화·풍동·착륙패드·GPS멀티패스·동적장애물·페이로드·멀티테넌트·SLA·라이프사이클·스케줄·배송최적화·가격엔진·고객지표·함대구성·MCTS·연합학습·NLP·디지털트윈·미션플래너·센서융합·이벤트아키텍처·대시보드 |
-| **합계** | **1,206** | **40 모듈 · 100% pass** |
+| `test_phase156_163.py` | 32 | 베이지안튜너·시계열예측·MARL·오토인코더·앙상블·포캐스터·인프라 안정화 모듈 |
+| `test_phase164_171.py` | 37 | Circuit Breaker·Rate Limiter·Hot Reload·DistLock·Event Replay·Canary·OpenCL 파일럿 |
+| `test_phase172_179.py` | 11 | City Map Generator·Traffic Simulator 기초 검증 |
+| **합계** | **1,286** | **43 모듈 · 100% pass** |
 
 ---
 
@@ -1406,89 +1421,55 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 ## Changelog / 변경 이력
 
-| 날짜 | 시간 | 주요 변경 사항 | 커밋 |
-|------|------|---------------|------|
-| 2026-03-29 | — | **Phase 164-171 완료 + Phase 172 착수**: Event Replayer(시퀀스/시점 필터 재생+상태 복원), Canary Deployer(점진 트래픽 승격+SLO 위반 자동 롤백), OpenCL Accelerator 파일럿(Openclaw/OpenCL 런타임 감지+CPU 폴백), `test_phase164_171.py` 확장(신규 11개) | — |
-| 2026-03-29 | — | **Phase 164-171 (3차 착수)**: Config Hot Reload(체크섬 기반 변경 감지+버전 이력+롤백), Distributed Lock(lease 기반 잠금+갱신+만료), `test_phase164_171.py` 확장(HotReload/Lock 케이스 추가), 운영 인프라 신뢰성 계층 강화 | — |
-| 2026-03-29 | — | **Phase 156-163**: Genetic Path Planner(GA 교차/돌연변이/토너먼트 선택), Deep RL Controller(DQN+리플레이 버퍼+타겟 네트워크), GNN Traffic(메시지 패싱+밀도/위험도), Bayesian Tuner(커널 기반 탐색), Ensemble Predictor(가중 결합+캘리브레이션), Anomaly Autoencoder(재구성 오차 탐지), Time Series Forecaster(AR(1)+지수 평활), MARL Coordinator(공유보상 기반 분산 정책), 신규 테스트 `test_phase156_163.py` 32개 추가, 테스트 수집 1206→1238 | — |
-| 2026-03-28 | — | **Phase 132-155**: 드론 팩토리(12종 프리셋), 실시간 리밸런서(그리드 밀도맵+재배치), 배터리 열화(사이클×온도 SoH), 3D 풍동(건물 차폐/터널/상승기류), 착륙 네트워크(거리+점유율 추천), GPS 멀티패스(반사체+HDOP), 동적 장애물(이동체 CPA+위협등급), 페이로드 관리(적재→성능 영향), 멀티테넌트(테넌트 격리+쿼터), SLA 계약(위반 추적+패널티), 드론 라이프사이클(구매→퇴역 TCO), 스케줄 최적화(시간대별 부하 분산), 배송 최적화(TSP+용량 제약), 동적 가격 엔진(수요/기상/거리), 고객 메트릭(정시율/만족도/손상률), 함대 구성(ROI 기반 배분), MCTS 경로 계획(UCB1+시뮬레이션 롤아웃), 연합 학습(가중 평균 집계), NLP 명령 파서(의도 분류), 디지털 트윈(상태 미러링+예측), 자율 미션 플래너(목표→미션 자동 생성), 멀티모달 센서 융합(신뢰도 가중), 이벤트 아키텍처(CQRS+소싱+리플레이), 시스템 대시보드(모듈 건강+KPI), 테스트 1111→1206 (95개 추가) | — |
-| 2026-03-28 | — | **Phase 108-131**: 강화학습 경로(Q-테이블+epsilon-greedy), 예측 유지보수(잔여수명+정비일정), 다중 에이전트 협상(양보/교환), 적응형 튜너(자동 파라미터 조정), 의사결정 트리(규칙 기반 관제), 수요 예측(시간대별 학습), 경로 다양성(k-최단+유사도), 우선순위 재조정(컨텍스트 기반), GPS 스푸핑 탐지(교차 검증), 암호화 통신(키 교환+무결성), 침입 탐지(이상 트래픽+격리), 규제 업데이트(버전+자동 적용), QoS(대역폭 할당), 드론 신원 인증(PKI), 감사 추적(불변 체인), 비상 방송(구역별+확인), 난이도 평가(복합 점수), A/B 테스트(유의성 검정), 리포트 스트림(이벤트+구독), 다중 시뮬 조율(병렬+집계), 환경 영향(소음/에너지), 비용 분석(ROI), 학습 데이터 수집, 통합 검증(의존성+회귀), 테스트 1007→1111 (104개 추가) | — |
-| 2026-03-28 | — | **Phase 92-107**: 분산 리더 선출(복합 점수+페일오버), 공역 밀도 예측(선형 트렌드+혼잡 사전조치), DAG 임무 체인(위상 정렬+임계 경로), 장애 전파 분석(BFS+격리+복원력), 동적 고도 관리(8방위 밴드+우선순위), 비행 로그 분석(z-score 이상+KPI), 충전 최적화(다중 충전소 비용), 드론 페어링(ESCORT/RELAY/SEARCH), 비행 계획 검증(NFZ/고도/거리+적합성 점수), 대시보드 데이터(KPI+경보+트렌드), 배치 시뮬레이터(다중 시나리오+통계), 공역 이력(스냅샷+비교), 성능 프로필(열화 추적+비교), 임무 평가(A~F 등급+권장), 역할 접근 제어(감사 로그), 시스템 건강 모니터(역방향 지표+자가 진단), 테스트 935→1007 (72개 추가) | — |
-| 2026-03-28 | — | **Phase 76-91**: 자동 스케일링(수요예측+동적 조절), 경로 LRU 캐시(히트율+지역 무효화), 4D 공역 예약(시공간 슬롯+우선순위 선점), 드론 인증(등록/블랙리스트+비행허가), 다중 목표 최적화(파레토+가중 합산), Pub/Sub 이벤트 버스(필터+이력), 공역 히트맵(밀도 예측+트렌드), 드론 그룹 관리(생성/해체/병합), 충돌 포렌식(근본원인+재현), 기상 위험 구역(이동+자동 회피), 에너지 예산(할당+소비+경고), 네트워크 토폴로지(중심성+취약 노드), 임무 큐(SLA+재할당), 비행 복도(진입/이탈 프로토콜), 센서 퓨전(역분산 가중), 벤치마크(회귀 탐지), 테스트 835→935 (100개 추가) | — |
-| 2026-03-28 | — | **Phase 68-75**: 교통 흐름 분석기(그리드 밀도+병목 탐지), 부하 분산기(섹터 핫스팟+재배치), 웨이포인트 최적화(RDP 간소화+Bezier 평활화), 비상 대안 경로(사전 계산+차단 구역 우회), 감시 추적기(비협조 표적+궤적 예측+요격), 충전 인프라(충전소 추천+대기열+시간 추정), 규제 보고서(K-UTM 준수+감사 로그), 시나리오 자동 생성(랜덤/스트레스/기상/점진+난이도), 테스트 765→835 (70개 추가) | — |
-| 2026-03-28 | — | **Phase 60-67**: 소음 모델링(역제곱 감쇠+소음 지도+규제), 함대 최적화(그리디 배치+교대+ROI), 4D 경로 탈충돌기(시간 분리 해소), 텔레메트리 녹화(리와인드+비교 재생), 착륙 관리자(패드 할당+비상 오버라이드), 위험도 평가(인구 밀도+낙하+피해 반경), 공역-기상 통합(4등급 자동 전환+제한), 드론 건강 모니터(진동 트렌드+예방 정비), 테스트 700→765 (65개 추가) | — |
-| 2026-03-28 | — | **Phase 52-59**: 통신 품질 시뮬레이션(경로손실+패킷손실+링크버짓), 자동 보고서 생성기(KPI분석+권장사항), 동적 지오펜스(원형/다각형/회랑+시간별 활성화), 군집지능(Boids 분리/정렬/응집+PSO), 통신 중계 배치(커버리지 최적화+BFS 다중 홉), 다중 임무 할당(그리디 매칭+배터리 제약), 공역 용량 분석(섹터별 포화도+자동 규제), 비상 프로토콜(6종 시나리오+자동 대응), 테스트 629→700 (71개 추가) | — |
-| 2026-03-28 | — | **Phase 44-51**: 드론 행동 패턴 K-means 분석(이상치 z-score 탐지), 동적 우선순위 스케줄러(5레벨 혼잡도 기반 출발 조절), FDR 인과관계 리플레이 분석(근본원인 추적+자동 리포트), 이동평균+트렌드 기상 예측(DANGER/WARNING 경보), 다변수 배터리 수명 예측(풍속/고도/속도 보정), K-UTM/ICAO 규제 준수 검증(7규칙+준수점수), 테스트 571→629 (58개 추가) | — |
-| 2026-03-28 | — | **Phase 36-43**: 3D 대시보드 시각화 대폭 강화 — 실시간 위협 히트맵(4레벨 공역 틴트), 관제 구역 3D 오버레이(밀도 색상), SLA 상태 패널, 이벤트 타임라인 미니차트, 성능 모니터(틱 처리시간), 경보 로그 확장(스크롤+색상), 위협 평가 패널(점수+권장 조치), 구역별 현황 패널, 테스트 536→571 (35개 추가) | — |
-| 2026-03-28 | — | **Phase 32-35**: 에너지 최적 A* 경로계획(풍향/고도 비용+충전소 경유), 실시간 위협 평가 엔진(4레벨 9유형+우선순위 매트릭스+권장 조치), YAML DSL 시나리오 스크립터(8종 이벤트 자동 트리거), E2E 스트레스 테스트(합성부하+P95/P99 벤치마크+비교), 테스트 476→536 (60개 추가) | — |
-| 2026-03-28 | — | **Phase 28-31**: FDR 비행 데이터 레코더(리플레이+CSV), 다중 관제 구역(4/9섹터+핸드오프), SLA 모니터(7개 임계치+자가 튜닝), 이벤트 타임라인(사고조사 쿼리), 테스트 436→476 (40개 추가) | — |
-| 2026-03-28 | — | **Phase 24-27**: 대시보드 실시간 메트릭(배터리분포·에너지차트·해결률), 비교분석(차트·HTML리포트·민감도), 편대비행(V자/라인/서클/그리드+리더-팔로워), 메쉬네트워크(멀티홉릴레이·파티션감지·릴레이제안), 테스트 396→436 (40개 추가) | — |
-| 2026-03-28 | — | **Phase 20-23**: cProfile 성능 프로파일러, JSON/CSV 결과 저장소+태그 비교, 정밀 배터리 모델(고도/풍속/상승률), 동적 NFZ 런타임 추가/제거+자동 리라우팅, 테스트 373→396 (23개 추가: 프로파일러·저장소·배터리·NFZ·통합) | — |
-| 2026-03-28 | — | **Phase 16-19**: pydantic YAML 설정 검증, KDTree 적응형 충돌 스캔(200대+ 자동 전환), generate_charts --live 실측 데이터 모드, 에러 핸들링 강화, 테스트 325→373 (48개 추가: SpatialHash·드론프로파일·설정검증·시뮬코어·KDTree·통신) | — |
-| 2026-03-28 | — | **Phase 10-15**: APF 벡터장 시각화, 풍속 연동 동적 분리간격(1.0x~1.6x), HOLDING 큐 관리(MAX 100), CBS 메트릭 추적, 장애 주입 자동화(MOTOR/BATTERY/GPS+통신두절), 지오펜스 경계 보호, 에너지 효율 Wh/km, 통신 메트릭(전송/배달/손실), SimulationResult 15필드 확장, SLA 합격 판정 MC 연동, NFZ 근접경고, 테스트 292→325 (33개 추가) | — |
-| 2026-03-27 | 23:00 KST | 보고서 v2: 핵심 알고리즘 인터랙티브 시뮬레이션 섹션 4.4 추가 (Boids 3D, Authority Mode FSM, APF), 테스트 270개 반영, README 동기화 | — |
-| 2026-03-27 | 22:00 KST | Phase 4-6: 시뮬레이터 고도화 (SpatialHash, NFZ 검증, 웨이포인트 추적, Lost-Link 3-phase, APF 지면회피), 테스트 17개 추가 (255→270) | `6d87f65` |
-| 2026-03-27 | 21:00 KST | 알고리즘 계층구조 총정리(9종 매핑), 기존 시스템 비교분석(47개 글로벌 시스템), 타겟 시장 분석, 코드리뷰 #10/#12 추가 수정 | `565abab` |
-| 2026-03-27 | 19:30 KST | 코드리뷰 7건 수정(오브젝트 풀링·dt스케일링·maxSpeed·메모리누수), 한글 기술보고서 DOCX 전면 업데이트(10장 구성), 발표용 스크립트 작성 | `6bcae18` |
-| 2026-03-27 | 18:00 KST | 스태거드 이륙 제어(패드별 동시 3대/2초 간격) + ATC 21대 확장(내부링4+광역2+CENTER1+순찰1) + 42개 시나리오 대규모 확장 → **전 시나리오 충돌 99.9% 감소** (500대 메가 군집: 58,038→19) | — |
-| 2026-03-27 | 17:00 KST | 극한 기상 정밀 테스트 5종 시나리오 추가 (극한기상 지옥/마이크로버스트/태풍/결빙/다중셀), 기상 대항 알고리즘(WCS): 풍속 이동평균 필터링+마이크로버스트 감지 긴급회피+폭풍셀 우회+결빙 성능저하+강풍 자동속도제한+APF 강풍증폭 | — |
-| 2026-03-27 | 16:00 KST | 코드리뷰 15건 수정: 메모리누수(proximity lines/drone disposal), 항로 고도분리(8방위별), cascade_failure 로직, 착륙장 해제, 배터리 RTL 확장, 충돌/근접/충돌 카운트 중복방지, ATC 중복쌍 제거, 시나리오 라벨 정정 | — |
-| 2026-03-27 | 15:00 KST | APF v3 정밀화: 하이브리드 회피(위치+속도) + 충돌 중복방지 + 고도 레이어 9단계, ATC 13대(착륙장 4대 추가) → **충돌 98.7% 감소** | — |
-| 2026-03-27 | 14:00 KST | APF v3: Spatial Hash + CPA 12초 예측 + 속도벡터 회피 + 지수 반발력 + 우선순위 양보, ATC v2: 실시간 CPA 감속명령 | — |
-| 2026-03-26 | 21:30 KST | 정밀 비행역학(가속·선회·고도유지), 착륙시퀀스 관리, 우선순위 관제, UTM 분리기준, 텔레메트리 | — |
-| 2026-03-26 | 21:00 KST | APF 충돌회피 대폭 개선(수직분리·누적반발력), ATC 9대 CPA 능동관제, 동적기상 시스템 | `2e9bf01` |
-| 2026-03-26 | 20:30 KST | 드론 직군 22종 확장 (UAM택시/셔틀 추가), 직군별 색상·HUD·범례, SVG 이미지 수정 | `05c6c76` |
-| 2026-03-26 | 20:00 KST | 전 시나리오 드론 수 2배 증가 (기본 50대, 최대 250대) | `c2a1055` |
-| 2026-03-26 | 19:50 KST | GitHub Pages 배포 — 시뮬레이터 공유 링크 활성화 | `686e630` |
-| 2026-03-26 | 19:45 KST | 시각화 극대화 — 별 배경, 충돌 파티클, ROGUE 트레일, 카메라 쉐이크, UI 한글화, 성능 최적화 | `c0b18d0` |
-| 2026-03-26 | 19:00 KST | ATC 관제 드론 5대, 시나리오 26개 확장 (7카테고리), 이벤트 기록, 경량 렌더링, 비전공자 친화 README | `1b1125a` |
-| 2026-03-26 | 11:00 KST | HTML 3D 시뮬레이터 v2 — SDACS 전체 기능 반영 (8단계 FlightPhase, APF 회피, NFZ/회랑/패드, 4개 시나리오) | — |
-| 2026-03-26 | 10:30 KST | 브랜치 병합 완료, 테스트 obstacle 형식 수정, 3D 시뮬레이터 초기화 개선 | `84fc1ed` |
-| 2026-03-26 | 10:00 KST | Standalone HTML 3D 시뮬레이터, 안전 이슈 3건 수정, 코드 리뷰 반영, Voronoi staleness 문서화 | `dd7f1b1` |
-| 2026-03-26 | 01:15 KST | DOCX 기술 보고서, GitHub Actions CI, 차트 DPI 300, 속도 조절 슬라이더 | `a923ac5` |
-| 2026-03-25 | 23:50 KST | SVG 한글 폰트 수정, hero_banner/architecture 테스트 수 173개 반영 | `f76386b` |
-| 2026-03-25 | 22:30 KST | 데드코드 삭제 + 테스트 26개 추가 (147→173), config 필드명 통일, CLAUDE.md 생성 | — |
-| 2026-03-25 | 21:45 KST | monte_carlo SwarmSimulator 일원화, simulator_3d HOLDING/RTL 처리 | — |
+### 최근 변경 하이라이트
+
+| 날짜 | 핵심 변경 |
+|------|-----------|
+| 2026-03-29 | Phase 172 착수: City Map Generator + Traffic Simulator + 신규 테스트(11) 추가 |
+| 2026-03-29 | Phase 164-171 완료: Event Replayer + Canary Deployer + OpenCL 파일럿, 인프라 계층 안정화 |
+| 2026-03-29 | Config Hot Reload + Distributed Lock 추가, 인프라 테스트 확장 |
+| 2026-03-29 | Phase 156-163 고급 AI 8모듈 완료, 테스트 수집 1238 |
+| 2026-03-28 | Phase 132-155 산업화 모듈 완성, 대규모 통합 테스트 강화 |
+| 2026-03-28 | Phase 108-131 AI/보안 계층 확장 및 회귀 검증 강화 |
+
+<details>
+<summary><b>이전 변경 이력 (압축)</b></summary>
+
+- 2026-03-28: Phase 92-107 완료 (운영 관리/검증 계층)
+- 2026-03-28: Phase 76-91 완료 (스케일링/예약/포렌식)
+- 2026-03-28: Phase 68-75 완료 (교통/부하/규제 자동화)
+- 2026-03-28: Phase 60-67 완료 (소음/함대/건강 모니터)
+- 2026-03-28: Phase 52-59 완료 (통신/리포트/지오펜스)
+- 2026-03-28: Phase 44-51 완료 (행동분석/리플레이/예측)
+- 2026-03-28: Phase 32-43 완료 (에너지 경로/위협평가/시각화)
+- 2026-03-27 ~ 2026-03-26: 3D 시뮬레이터 고도화, 시나리오 확장, 성능 최적화
+
+</details>
 
 ---
 
 ## Next Mega Plan / 다음 대규모 계획
 
-### Phase 164-171 (운영 인프라)
-
-1. `message_queue.py` - 우선순위 큐 + backpressure + DLQ
-2. `circuit_breaker.py` - 실패율/복구 타임아웃 기반 차단기
-3. `rate_limiter.py` - 토큰 버킷/리키 버킷 하이브리드 제한
-4. `health_checker.py` - 모듈별 heartbeat/latency/error budget 집계
-5. `config_hot_reload.py` - 파일 변경 감시 + 안전 롤백
-6. `distributed_lock.py` - lease 기반 분산 잠금 추상화
-7. `event_replayer.py` - 이벤트 소싱 재생 + 시점 복원
-8. `canary_deployer.py` - 점진 배포 + 자동 롤백
-
 ### Phase 172-179 (실전 시나리오 + 통합)
 
-1. `city_map_generator.py` - 도심 장애물/회랑 맵 자동 생성
-2. `traffic_simulator.py` - 시간대별 혼잡/수요/사고 확률 모델
-3. `weather_api_client.py` - 외부 기상 API 통합 + 캐시
-4. `delivery_simulation.py` - 주문-배차-배송 E2E 시뮬레이터
-5. `airspace_reservation.py` - 슬롯 예약 및 충돌 해소 정책 강화
-6. `compliance_engine.py` - 규제 룰셋 실행기 + 위반 리포트
-7. `sim_recorder.py` - 시뮬레이션 타임라인 녹화/재생 포맷
-8. `perf_benchmark.py` - 부하/지연/처리량 벤치마크 표준화
-9. `opencl_accelerator.py` - Openclaw/OpenCL 가속 파일럿 + CPU fallback
+| 우선순위 | 모듈 | 목표 |
+|---------|------|------|
+| P0 | `city_map_generator.py` | 도심 장애물/회랑 맵 자동 생성 |
+| P0 | `traffic_simulator.py` | 시간대별 혼잡/수요/사고 모델 |
+| P1 | `weather_api_client.py` | 외부 기상 연동 + 캐시 |
+| P1 | `delivery_simulation.py` | 주문-배차-배송 E2E |
+| P1 | `airspace_reservation.py` | 슬롯 예약/충돌 해소 정책 |
+| P2 | `compliance_engine.py` | 규제 룰셋 실행 + 위반 리포트 |
+| P2 | `sim_recorder.py` | 타임라인 녹화/재생 포맷 |
+| P2 | `perf_benchmark.py` | 부하/지연/처리량 표준 벤치마크 |
+| P2 | `opencl_accelerator.py` | Openclaw/OpenCL 가속 파일럿 |
 
 ### 착수 상태
 
-- 완료: Phase 156-163 (8/8)
-- 완료: Phase 164-171 (8/8, `event_replayer`, `canary_deployer` 포함)
-- 진행중: Phase 172-179 1차 착수 (`opencl_accelerator` 파일럿 + 실전 시나리오 준비)
-- 다음 커밋 목표: 실전 시나리오 2개 모듈(`city_map_generator`, `traffic_simulator`) + 테스트
-| 2026-03-25 | 21:15 KST | README 전면 업데이트 — 시각자료 9종 삽입, 테스트 74→147개 반영 | — |
-| 2026-03-25 | 20:30 KST | APF 기상적응 바람속도 전달 + 최종보고서 PDF 추가 | — |
-| 2026-03-25 | 19:50 KST | weather_disturbance 시나리오 개선 + 충돌해결률 공식 수정 | — |
-| 2026-03-25 | 19:00 KST | 8개 신규 테스트 모듈 추가 (74→147 테스트) | — |
-| 2026-03-25 | 18:15 KST | analytics 음수 해결률 + CBS 빈입력 크래시 + APF 기상적응 + engine 리네임 | — |
-| 2026-03-25 | 17:30 KST | 14건 버그 수정 (CRITICAL 4 + HIGH 6 + MEDIUM 4) | — |
+- 완료: Phase 156-171
+- 진행중: Phase 172-179 (시나리오/실전 통합)
+- 현재 커밋 목표: `weather_api_client.py` + `delivery_simulation.py` + 통합 시나리오 테스트
+- 다음 커밋 목표: `compliance_engine.py` + `sim_recorder.py` + `perf_benchmark.py`
 
 ---
 

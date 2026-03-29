@@ -185,3 +185,52 @@ class TestWeatherRiskModel:
             )
         )
         assert 0.0 <= out.score <= 1.0
+
+
+class TestDeliverySimulation:
+    def setup_method(self):
+        from simulation.delivery_simulation import DeliverySimulation
+
+        self.s = DeliverySimulation()
+        self.s.register_drone("D1", position=(0, 0), max_payload_kg=3.0, speed_mps=12.0)
+        self.s.register_drone("D2", position=(300, 0), max_payload_kg=5.0, speed_mps=10.0)
+
+    def test_add_order_and_pending(self):
+        self.s.add_order("O1", destination=(120, 80), weight_kg=1.5)
+        assert self.s.pending_orders() == 1
+
+    def test_dispatch_next_assigns_nearest_available(self):
+        self.s.add_order("O1", destination=(100, 0), weight_kg=1.0, priority=7)
+        rec = self.s.dispatch_next(congestion=0.1, weather_factor=1.0)
+        assert rec is not None
+        assert rec.order_id == "O1"
+        assert rec.drone_id == "D1"
+        assert rec.eta_min > 0
+
+    def test_dispatch_respects_payload_limit(self):
+        self.s.add_order("O2", destination=(100, 0), weight_kg=4.0, priority=9)
+        rec = self.s.dispatch_next(congestion=0.2, weather_factor=1.0)
+        assert rec is not None
+        assert rec.drone_id == "D2"
+
+    def test_complete_delivery_releases_drone(self):
+        self.s.add_order("O3", destination=(90, 0), weight_kg=1.0)
+        rec = self.s.dispatch_next()
+        assert rec is not None
+        assert self.s.complete_delivery("O3") is True
+        summary = self.s.summary()
+        assert summary["delivered"] == 1
+        assert summary["busy_drones"] == 0
+
+    def test_dispatch_returns_none_when_no_candidate(self):
+        self.s.add_order("O4", destination=(80, 0), weight_kg=10.0)
+        rec = self.s.dispatch_next()
+        assert rec is None
+
+    def test_summary_counts(self):
+        self.s.add_order("O5", destination=(100, 100), weight_kg=2.0)
+        rec = self.s.dispatch_next()
+        assert rec is not None
+        summary = self.s.summary()
+        assert summary["drones"] == 2
+        assert summary["dispatches"] == 1

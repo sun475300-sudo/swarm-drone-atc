@@ -1766,6 +1766,17 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 ## Next Mega Plan / 다음 대규모 계획
 
+### Phase 260-279 (Intelligence + Visualization) - 진행중 ⏳
+
+| 우선순위 | 작업 묶음 | 범위 | 산출물 | 상태 |
+|---------|-----------|------|--------|------|
+| P0 | Federated Learning | 분산 학습, 프라이버시 보호 | 연합 학습 | ✅ 기존 |
+| P0 | Swarm Intelligence | 군집 지능 최적화 | 군집 최적화 | ✅ 기존 |
+| P1 | Advanced Visualization | 3D/AR 시각화 | 고급 시각화 | ✅ 완료 |
+| P1 | Real-time Dashboard | 실시간 대시보드 | 대시보드 | ✅ 완료 |
+| P2 | Autonomous Charging | 자율 충전 스케줄링 | 충전 관리 | ⏳ 대기 |
+| P2 | Fleet Management | 함대 관리 시스템 | 함대 관리 | ⏳ 대기 |
+
 ### Phase 240-259 (Edge + Network + Security) - 완료 ✅
 
 | 우선순위 | 작업 묶음 | 범위 | 산출물 | 상태 |

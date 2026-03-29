@@ -24,7 +24,7 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Tests](https://img.shields.io/badge/Tests-1420%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-1463%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Phase](https://img.shields.io/badge/Phase-200%2F219%20%E2%9C%85-4CAF50?style=for-the-badge&logo=rocket)](simulation/)
 [![Schema](https://img.shields.io/badge/Schema-v1.0.0-2196F3?style=for-the-badge&logo=json)](simulation/report_input_normalizer.py)
 [![Algorithms](https://img.shields.io/badge/Algorithms-151-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)

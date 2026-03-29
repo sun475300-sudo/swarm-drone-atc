@@ -694,3 +694,18 @@ class TestE2EReporter:
         s = self.r.summary()
         assert "avg_blockers" in s
         assert s["avg_blockers"] > 0.0
+
+    def test_render_markdown_includes_status_and_diagnostics(self):
+        report = self.r.build(
+            delivery_summary={"delivered": 2, "dispatches": 2},
+            compliance_report={"total_violations": 1},
+            recorder_summary={"events": 3},
+            perf_report={"success_rate": 0.9},
+            traffic_summary={"avg_congestion": 0.7},
+            meta={"scenario": "md-smoke"},
+        )
+        out = self.r.render_markdown(report)
+        assert "# SDACS E2E Report" in out
+        assert "`md-smoke`" in out
+        assert "## Diagnostics" in out
+        assert "Warnings" in out

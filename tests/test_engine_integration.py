@@ -9,6 +9,7 @@
 """
 from __future__ import annotations
 
+import json
 import sys
 import os
 import types
@@ -226,3 +227,35 @@ class TestMainCmdSimulate:
         assert called_with["seed"] == 99
         assert called_with["duration"] == 10.0
         assert called_with["cfg"]["drones"]["default_count"] == 5
+
+
+class TestMainCmdOpsReport:
+    def test_cmd_ops_report_exports_bundle(self, tmp_path):
+        import main as main_mod
+
+        args = types.SimpleNamespace(
+            scenario="ops_smoke",
+            seed=7,
+            city="Seoul",
+            hour=18,
+            base_demand=130,
+            capacity=175,
+            window_sec=45.0,
+            green_threshold=0.82,
+            yellow_threshold=0.6,
+            stem="ops-smoke",
+            out_dir=str(tmp_path),
+            log_level="WARNING",
+        )
+
+        main_mod.cmd_ops_report(args)
+
+        json_path = tmp_path / "ops-smoke.json"
+        markdown_path = tmp_path / "ops-smoke.md"
+        assert json_path.exists()
+        assert markdown_path.exists()
+
+        report = json.loads(json_path.read_text(encoding="utf-8"))
+        assert report["meta"]["scenario"] == "ops_smoke"
+        assert report["observability"]["linked"] is True
+        assert report["performance"]["samples"] >= 1

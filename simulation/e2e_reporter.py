@@ -4,6 +4,9 @@ Aggregates delivery/compliance/recorder/benchmark outputs into one report payloa
 """
 from __future__ import annotations
 
+import json
+import re
+from pathlib import Path
 from typing import Any
 
 
@@ -101,11 +104,113 @@ class E2EReporter:
         report["sections"]["observability"] = True
         return report
 
+    def render_markdown(self, report: dict[str, Any]) -> str:
+        meta = dict(report.get("meta", {}))
+        kpi = dict(report.get("kpi", {}))
+        diagnostics = dict(report.get("diagnostics", {}))
+        status = str(report.get("status", "UNKNOWN"))
+        scenario = str(meta.get("scenario", "unspecified"))
+
+        lines = [
+            "# SDACS E2E Report",
+            "",
+            f"- Scenario: `{scenario}`",
+            f"- Status: `{status}`",
+            f"- Health Score: `{float(kpi.get('health_score', 0.0)):.4f}`",
+            f"- Schema: `{meta.get('schema_version', 'unknown')}`",
+            "",
+            "## KPI",
+            "",
+            "| Metric | Value |",
+            "|---|---:|",
+            f"| Delivered | {int(kpi.get('delivered', 0))} |",
+            f"| Violations | {int(kpi.get('violations', 0))} |",
+            f"| Success Rate | {float(kpi.get('success_rate', 0.0)):.4f} |",
+            f"| Events | {int(kpi.get('events', 0))} |",
+            f"| Traffic Pressure | {float(kpi.get('traffic_pressure', 0.0)):.4f} |",
+            "",
+            "## Diagnostics",
+            "",
+        ]
+
+        blockers = list(diagnostics.get("blockers", []))
+        warnings = list(diagnostics.get("warnings", []))
+        lines.append(
+            f"- Blockers: {', '.join(f'`{name}`' for name in blockers) if blockers else 'none'}"
+        )
+        lines.append(
+            f"- Warnings: {', '.join(f'`{name}`' for name in warnings) if warnings else 'none'}"
+        )
+        lines.extend(
+            [
+                "",
+                "## Section Status",
+                "",
+                "| Section | State |",
+                "|---|---|",
+            ]
+        )
+
+        section_states = diagnostics.get("sections", {})
+        for name in sorted(section_states):
+            state = str(section_states[name].get("state", "UNKNOWN"))
+            lines.append(f"| {name} | `{state}` |")
+
+        return "\n".join(lines) + "\n"
+
+    def export_bundle(
+        self,
+        report: dict[str, Any],
+        output_dir: str | Path = "data/e2e_reports",
+        stem: str | None = None,
+    ) -> dict[str, str]:
+        out_dir = Path(output_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        base_stem = self._slugify(stem or self._default_stem(report))
+        artifact_stem = self._next_available_stem(out_dir, base_stem)
+        json_path = out_dir / f"{artifact_stem}.json"
+        markdown_path = out_dir / f"{artifact_stem}.md"
+
+        with open(json_path, "w", encoding="utf-8") as fh:
+            json.dump(report, fh, indent=2, ensure_ascii=False)
+        with open(markdown_path, "w", encoding="utf-8") as fh:
+            fh.write(self.render_markdown(report))
+
+        return {
+            "stem": artifact_stem,
+            "json_path": str(json_path),
+            "markdown_path": str(markdown_path),
+        }
+
     @staticmethod
     def _normalize_meta(meta: dict[str, Any] | None) -> dict[str, Any]:
         out = dict(meta or {})
         out.setdefault("schema_version", "phase172.v1")
         return out
+
+    @staticmethod
+    def _slugify(value: str) -> str:
+        text = re.sub(r"[^a-zA-Z0-9_-]+", "-", str(value).strip().lower()).strip("-")
+        return text or "e2e-report"
+
+    @staticmethod
+    def _default_stem(report: dict[str, Any]) -> str:
+        meta = dict(report.get("meta", {}))
+        scenario = meta.get("scenario")
+        if scenario:
+            return f"{scenario}-e2e-report"
+        status = str(report.get("status", "report")).lower()
+        return f"{status}-e2e-report"
+
+    @staticmethod
+    def _next_available_stem(output_dir: Path, stem: str) -> str:
+        candidate = stem
+        idx = 2
+        while (output_dir / f"{candidate}.json").exists() or (output_dir / f"{candidate}.md").exists():
+            candidate = f"{stem}-{idx}"
+            idx += 1
+        return candidate
 
     @staticmethod
     def _section_status(report: dict[str, Any]) -> dict[str, bool]:

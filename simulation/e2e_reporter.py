@@ -9,6 +9,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from simulation.report_input_normalizer import normalize_report_inputs
+
 
 class E2EReporter:
     def __init__(self, green_threshold: float = 0.85, yellow_threshold: float = 0.65) -> None:
@@ -26,19 +28,37 @@ class E2EReporter:
 
     def build(
         self,
-        delivery_summary: dict[str, Any],
-        compliance_report: dict[str, Any],
-        recorder_summary: dict[str, Any],
-        perf_report: dict[str, Any],
-        traffic_summary: dict[str, Any] | None = None,
+        delivery_summary: Any,
+        compliance_report: Any,
+        recorder_summary: Any,
+        perf_report: Any,
+        traffic_summary: Any | None = None,
         meta: dict[str, Any] | None = None,
+        scenario_summary: Any | None = None,
+        perf_window_sec: float | None = None,
     ) -> dict[str, Any]:
-        delivered = int(delivery_summary.get("delivered", 0))
-        total_violations = int(compliance_report.get("total_violations", 0))
-        success_rate = float(perf_report.get("success_rate", 1.0))
-        events = int(recorder_summary.get("events", 0))
-        traffic = dict(traffic_summary or {})
-        traffic_pressure = float(traffic.get("avg_congestion", delivery_summary.get("avg_dispatch_congestion", 0.0)))
+        normalized = normalize_report_inputs(
+            delivery_summary=delivery_summary,
+            compliance_report=compliance_report,
+            recorder_summary=recorder_summary,
+            perf_report=perf_report,
+            traffic_summary=traffic_summary,
+            meta=meta,
+            scenario_summary=scenario_summary,
+            perf_window_sec=perf_window_sec,
+        )
+        scenario = dict(normalized["scenario"])
+        delivery = dict(normalized["delivery"])
+        compliance = dict(normalized["compliance"])
+        recorder = dict(normalized["recorder"])
+        performance = dict(normalized["performance"])
+        traffic = dict(normalized["traffic"])
+
+        delivered = int(delivery.get("delivered", 0))
+        total_violations = int(compliance.get("total_violations", 0))
+        success_rate = float(performance.get("success_rate", 1.0))
+        events = int(recorder.get("events", 0))
+        traffic_pressure = float(traffic.get("avg_congestion", delivery.get("avg_dispatch_congestion", 0.0)))
         traffic_penalty = min(0.12, max(0.0, traffic_pressure) * 0.12)
         health_score = max(
             0.0,
@@ -52,11 +72,11 @@ class E2EReporter:
         )
 
         report = {
-            "meta": self._normalize_meta(meta),
-            "delivery": dict(delivery_summary),
-            "compliance": dict(compliance_report),
-            "recorder": dict(recorder_summary),
-            "performance": dict(perf_report),
+            "meta": self._normalize_meta(normalized["meta"]),
+            "delivery": delivery,
+            "compliance": compliance,
+            "recorder": recorder,
+            "performance": performance,
             "traffic": traffic,
             "kpi": {
                 "health_score": round(health_score, 4),
@@ -67,6 +87,8 @@ class E2EReporter:
                 "traffic_pressure": round(traffic_pressure, 4),
             },
         }
+        if scenario:
+            report["scenario"] = scenario
         report["sections"] = self._section_status(report)
         report["diagnostics"] = self._section_diagnostics(report)
         report["status"] = self._overall_status(report)
@@ -82,6 +104,7 @@ class E2EReporter:
         traffic_summary: dict[str, Any] | None = None,
         window_sec: float = 60.0,
         meta: dict[str, Any] | None = None,
+        scenario_summary: Any | None = None,
     ) -> dict[str, Any]:
         recorder_summary = dict(recorder.summary())
         perf_report = dict(benchmark.report(window_sec=window_sec))
@@ -94,6 +117,7 @@ class E2EReporter:
             perf_report=perf_report,
             traffic_summary=traffic_summary,
             meta=next_meta,
+            scenario_summary=scenario_summary,
         )
         report["observability"] = {
             "linked": True,
@@ -118,6 +142,7 @@ class E2EReporter:
             f"- Status: `{status}`",
             f"- Health Score: `{float(kpi.get('health_score', 0.0)):.4f}`",
             f"- Schema: `{meta.get('schema_version', 'unknown')}`",
+            f"- Input Contract: `{meta.get('input_contract_version', 'unknown')}`",
             "",
             "## KPI",
             "",
@@ -183,6 +208,8 @@ class E2EReporter:
             "scenario": report.get("meta", {}).get("scenario"),
             "status": str(report.get("status", "UNKNOWN")),
             "health_score": round(float(report.get("kpi", {}).get("health_score", 0.0)), 4),
+            "schema_version": report.get("meta", {}).get("schema_version"),
+            "input_contract_version": report.get("meta", {}).get("input_contract_version"),
             "files": {
                 "json": json_path.name,
                 "markdown": markdown_path.name,
@@ -224,7 +251,11 @@ class E2EReporter:
     def _next_available_stem(output_dir: Path, stem: str) -> str:
         candidate = stem
         idx = 2
-        while (output_dir / f"{candidate}.json").exists() or (output_dir / f"{candidate}.md").exists():
+        while (
+            (output_dir / f"{candidate}.json").exists()
+            or (output_dir / f"{candidate}.md").exists()
+            or (output_dir / f"{candidate}.manifest.json").exists()
+        ):
             candidate = f"{stem}-{idx}"
             idx += 1
         return candidate
@@ -232,6 +263,7 @@ class E2EReporter:
     @staticmethod
     def _section_status(report: dict[str, Any]) -> dict[str, bool]:
         return {
+            "scenario": bool(report.get("scenario")),
             "delivery": bool(report.get("delivery")),
             "compliance": bool(report.get("compliance")),
             "recorder": bool(report.get("recorder")),
@@ -252,6 +284,7 @@ class E2EReporter:
 
     @staticmethod
     def _section_diagnostics(report: dict[str, Any]) -> dict[str, Any]:
+        scenario = report.get("scenario", {})
         delivery = report.get("delivery", {})
         compliance = report.get("compliance", {})
         recorder = report.get("recorder", {})
@@ -284,13 +317,20 @@ class E2EReporter:
         congestion = float(traffic.get("avg_congestion", 0.0))
         traffic_state = "GREEN" if congestion < 0.5 else ("YELLOW" if congestion < 0.8 else "RED")
 
-        sections = {
-            "delivery": {"state": delivery_state, "dispatches": dispatches, "delivered": delivered},
-            "compliance": {"state": compliance_state, "violations": total_violations},
-            "recorder": {"state": recorder_state, "events": events},
-            "performance": {"state": perf_state, "success_rate": round(success_rate, 4)},
-            "traffic": {"state": traffic_state, "avg_congestion": round(congestion, 4)},
-        }
+        sections: dict[str, dict[str, Any]] = {}
+        if scenario:
+            collision_count = int(scenario.get("collision_count", 0))
+            scenario_state = "RED" if scenario.get("error") or collision_count > 0 else "GREEN"
+            sections["scenario"] = {
+                "state": scenario_state,
+                "collision_count": collision_count,
+                "seed": scenario.get("seed"),
+            }
+        sections["delivery"] = {"state": delivery_state, "dispatches": dispatches, "delivered": delivered}
+        sections["compliance"] = {"state": compliance_state, "violations": total_violations}
+        sections["recorder"] = {"state": recorder_state, "events": events}
+        sections["performance"] = {"state": perf_state, "success_rate": round(success_rate, 4)}
+        sections["traffic"] = {"state": traffic_state, "avg_congestion": round(congestion, 4)}
 
         blockers = [name for name, info in sections.items() if info["state"] == "RED"]
         warnings = [name for name, info in sections.items() if info["state"] == "YELLOW"]

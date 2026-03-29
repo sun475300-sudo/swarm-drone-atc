@@ -563,6 +563,7 @@ class TestE2EReporter:
             meta={"scenario": "std"},
         )
         assert report["meta"]["schema_version"] == "phase172.v1"
+        assert report["meta"]["input_contract_version"] == "phase180.report_inputs.v1"
         assert report["sections"]["kpi"] is True
         assert report["status"] in {"GREEN", "YELLOW", "RED"}
 
@@ -709,6 +710,89 @@ class TestE2EReporter:
         assert "`md-smoke`" in out
         assert "## Diagnostics" in out
         assert "Warnings" in out
+        assert "Input Contract" in out
+
+    def test_build_normalizes_alias_inputs_and_scenario_summary(self):
+        from simulation.traffic_simulator import TrafficState
+
+        report = self.r.build(
+            delivery_summary={
+                "completed_deliveries": 2,
+                "dispatch_count": 2,
+                "pending": 1,
+                "avg_congestion": 0.44,
+            },
+            compliance_report={
+                "violations": [
+                    {"rule": "MAX_ALT", "severity": "HIGH"},
+                    {"rule": "MAX_SPEED", "severity": "MEDIUM"},
+                ]
+            },
+            recorder_summary=[
+                {"t_sec": 0.0, "event_type": "START", "payload": {}},
+                {"t_sec": 7.5, "event_type": "END", "payload": {}},
+            ],
+            perf_report={
+                "samples": 4,
+                "success_pct": 75.0,
+                "latency_ms_p95": 22.0,
+                "throughput": 0.4,
+            },
+            traffic_summary=TrafficState(hour=18, demand=140, congestion=0.55, incident_probability=0.08),
+            meta={"scenario": "normalized-smoke"},
+            scenario_summary={"scenario": "normalized-smoke", "seed": 11, "duration_s": 120.0},
+        )
+
+        assert report["scenario"]["seed"] == 11
+        assert report["delivery"]["dispatches"] == 2
+        assert report["delivery"]["delivered"] == 2
+        assert report["compliance"]["total_violations"] == 2
+        assert report["compliance"]["by_rule"]["MAX_ALT"] == 1
+        assert report["recorder"]["events"] == 2
+        assert report["performance"]["success_rate"] == 0.75
+        assert report["traffic"]["peak_hour"] == 18
+        assert report["diagnostics"]["sections"]["scenario"]["state"] == "GREEN"
+
+    def test_build_accepts_domain_objects_with_perf_window(self):
+        from simulation.compliance_engine import ComplianceEngine
+        from simulation.perf_benchmark import PerfBenchmark
+        from simulation.sim_recorder import SimRecorder
+        from simulation.traffic_simulator import TrafficSimulator
+
+        compliance = ComplianceEngine()
+        compliance.evaluate_batch(
+            [
+                {
+                    "drone_id": "D1",
+                    "altitude_m": 130.0,
+                    "speed_mps": 15.0,
+                    "battery_pct": 60.0,
+                }
+            ]
+        )
+        recorder = SimRecorder()
+        recorder.record(0.0, "START")
+        recorder.record(5.0, "END")
+        benchmark = PerfBenchmark()
+        benchmark.add_batch([10.0, 20.0, 30.0])
+        traffic = TrafficSimulator(base_demand=120, seed=1)
+        traffic_state = traffic.step(hour=19, weather_factor=1.0, capacity=180)
+
+        report = self.r.build(
+            delivery_summary={"dispatches": 1, "delivered": 1},
+            compliance_report=compliance,
+            recorder_summary=recorder,
+            perf_report=benchmark,
+            traffic_summary=traffic_state,
+            meta={"scenario": "object-smoke"},
+            perf_window_sec=30.0,
+        )
+
+        assert report["compliance"]["total_violations"] == 1
+        assert report["recorder"]["duration_sec"] == 5.0
+        assert report["performance"]["samples"] == 3
+        assert report["performance"]["throughput_rps"] == 0.1
+        assert report["traffic"]["peak_hour"] == 19
 
     def test_export_bundle_writes_manifest(self, tmp_path):
         import json
@@ -730,6 +814,7 @@ class TestE2EReporter:
         assert manifest["stem"] == "nightly-ops"
         assert manifest["files"]["json"] == "nightly-ops.json"
         assert manifest["status"] == report["status"]
+        assert manifest["input_contract_version"] == "phase180.report_inputs.v1"
 
     def test_export_bundle_manifest_avoids_overwrite(self, tmp_path):
         report = self.r.build(

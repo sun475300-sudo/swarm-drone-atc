@@ -260,6 +260,9 @@ class TestMainCmdOpsReport:
         report = json.loads(json_path.read_text(encoding="utf-8"))
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         assert report["meta"]["scenario"] == "ops_smoke"
+        assert report["meta"]["input_contract_version"] == "phase180.report_inputs.v1"
+        assert report["scenario"]["seed"] == 7
         assert report["observability"]["linked"] is True
         assert report["performance"]["samples"] >= 1
         assert manifest["files"]["markdown"] == "ops-smoke.md"
+        assert manifest["input_contract_version"] == "phase180.report_inputs.v1"

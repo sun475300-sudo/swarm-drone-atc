@@ -310,6 +310,13 @@ def cmd_ops_report(args: argparse.Namespace) -> None:
             "weather_condition": weather.condition,
             "weather_factor": round(weather_factor, 4),
         },
+        scenario_summary={
+            "scenario": scenario,
+            "seed": seed,
+            "duration_s": recorder.summary()["duration_sec"],
+            "n_drones": delivery.summary()["drones"],
+            "source": "ops_report_cli",
+        },
     )
     artifacts = reporter.export_bundle(
         report,

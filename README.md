@@ -1866,7 +1866,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜/시간 | 핵심 변경 |
 |------|-----------|
-| 2026-03-30 23:00 | **Phase 351-360 완료**: Multi-objective Optimizer + RTOS Scheduler + Swarm RL + CV Tracker + Energy Harvesting |
+| 2026-03-30 23:30 | **Phase 351-360 완료**: 10개 Python 모듈 - NSGA-II/RTOS/MARL/CV/Solar/CPs/Map/Raft/Envelope/Auction |
 | 2026-03-30 22:00 | **Phase 331-350 완료**: 10개 Python 모듈 + 50개 테스트 + 10개 다국어 모듈 — Quantum/WASM/Sovereignty/SNN/Mesh/DigitalThread/GameTheory/Acoustic/Encryption/PredMaint |
 | 2026-03-30 21:00 | **Phase 321-330 완료**: 10개 다국어 모듈 — Zig PBFT/Rust Satellite/Go Edge AI/C++ SLAM/Kotlin Spectrum/Nim Weather/OCaml Formation/F# Federated/Swift IDS/TypeScript Physics |
 | 2026-03-30 20:00 | **Phase 311-320 완료**: 10개 Python 모듈 + 52개 테스트 - PBFT/Physics v2/Satellite/Edge AI/Formation v2/Weather NN/IDS/SLAM/DSA/FL v2 |
@@ -1946,7 +1946,12 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 | P0 | Real-time OS Scheduler | 실시간 스케줄러 | EDF, RMS, PCP | ✅ 완료 |
 | P1 | Swarm Reinforcement Learning | 멀티에이전트 RL | MAPPO, QMIX, CTDE | ✅ 완료 |
 | P1 | Computer Vision Tracker | 컴퓨터 비전 | Kalman, SORT, DeepSORT | ✅ 완료 |
-| P2 | Energy Harvesting Manager | 에너지 하베스팅 | Solar MPPT, RF | ✅ 완료 |
+| P1 | Energy Harvesting Manager | 에너지 하베스팅 | Solar MPPT, RF | ✅ 완료 |
+| P2 | Cyber-Physical Monitor | CPS 모니터링 | 상태 추정, 이상 감지 | ✅ 완료 |
+| P2 | Semantic Map Builder | 시맨틱 맵 | Voxel Grid, 객체 태깅 | ✅ 완료 |
+| P2 | Consensus Protocol v3 | 합의 프로토콜 | Raft, HotStuff, DAG | ✅ 완료 |
+| P2 | Flight Envelope Protection | 비행 영역 보호 | G-limit, Stall, Speed | ✅ 완료 |
+| P2 | Mission Auction System | 미션 경매 | Vickrey, Combinatorial | ✅ 완료 |
 
 ### Phase 300-310 (Production Integration + Final Polish) - 완료 ✅
 

@@ -1866,6 +1866,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜/시간 | 핵심 변경 |
 |------|-----------|
+| 2026-03-30 23:00 | **Phase 351-360 완료**: Multi-objective Optimizer + RTOS Scheduler + Swarm RL + CV Tracker + Energy Harvesting |
 | 2026-03-30 22:00 | **Phase 331-350 완료**: 10개 Python 모듈 + 50개 테스트 + 10개 다국어 모듈 — Quantum/WASM/Sovereignty/SNN/Mesh/DigitalThread/GameTheory/Acoustic/Encryption/PredMaint |
 | 2026-03-30 21:00 | **Phase 321-330 완료**: 10개 다국어 모듈 — Zig PBFT/Rust Satellite/Go Edge AI/C++ SLAM/Kotlin Spectrum/Nim Weather/OCaml Formation/F# Federated/Swift IDS/TypeScript Physics |
 | 2026-03-30 20:00 | **Phase 311-320 완료**: 10개 Python 모듈 + 52개 테스트 - PBFT/Physics v2/Satellite/Edge AI/Formation v2/Weather NN/IDS/SLAM/DSA/FL v2 |
@@ -1936,6 +1937,16 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 | **P2** | WebAssembly Drone Simulator | 30분 | Rust/WASM/TypeScript |
 | **P2** | Edge AI Inference Engine | 30분 | Python/C++/TensorRT |
 | **P2** | Satellite Communication Layer | 30분 | Python/Go/Rust |
+
+### Phase 351-360 (Advanced Autonomy + CPS) - 완료 ✅
+
+| 우선순위 | 작업 | 범위 | 산출물 | 상태 |
+|---------|------|------|--------|------|
+| P0 | Multi-objective Optimizer | 다목적 최적화 | NSGA-II, MOEA/D | ✅ 완료 |
+| P0 | Real-time OS Scheduler | 실시간 스케줄러 | EDF, RMS, PCP | ✅ 완료 |
+| P1 | Swarm Reinforcement Learning | 멀티에이전트 RL | MAPPO, QMIX, CTDE | ✅ 완료 |
+| P1 | Computer Vision Tracker | 컴퓨터 비전 | Kalman, SORT, DeepSORT | ✅ 완료 |
+| P2 | Energy Harvesting Manager | 에너지 하베스팅 | Solar MPPT, RF | ✅ 완료 |
 
 ### Phase 300-310 (Production Integration + Final Polish) - 완료 ✅
 

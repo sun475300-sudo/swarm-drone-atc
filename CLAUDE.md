@@ -6,7 +6,7 @@ SimPy 기반 이산 이벤트 시뮬레이션 + Dash 3D 시각화
 
 ## Quick Commands
 ```bash
-pytest tests/ -v                              # 전체 테스트 (1675개)
+pytest tests/ -v                              # 전체 테스트 (1739개)
 python main.py simulate --duration 60         # 기본 시뮬레이션
 python main.py scenario high_density          # 시나리오 실행
 python main.py monte-carlo --mode quick       # Monte Carlo 스윕

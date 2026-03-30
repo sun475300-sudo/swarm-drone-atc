@@ -24,22 +24,22 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Tests](https://img.shields.io/badge/Tests-1791%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
-[![Phase](https://img.shields.io/badge/Phase-330%2F330-4CAF50?style=for-the-badge&logo=rocket)](simulation/)
+[![Tests](https://img.shields.io/badge/Tests-1841%20collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Phase](https://img.shields.io/badge/Phase-350%2F350-4CAF50?style=for-the-badge&logo=rocket)](simulation/)
 [![Schema](https://img.shields.io/badge/Schema-v1.0.0-2196F3?style=for-the-badge&logo=json)](simulation/report_input_normalizer.py)
-[![Algorithms](https://img.shields.io/badge/Algorithms-215-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
-[![Modules](https://img.shields.io/badge/Modules-228+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
-[![Lines](https://img.shields.io/badge/Python-30%2C000%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
+[![Algorithms](https://img.shields.io/badge/Algorithms-235-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#알고리즘-계층-구조)
+[![Modules](https://img.shields.io/badge/Modules-248+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
+[![Lines](https://img.shields.io/badge/Python-34%2C000%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
 [![Languages](https://img.shields.io/badge/Languages-25-FF5722?style=for-the-badge&logo=github&logoColor=white)](#multi-language)
-[![MultiLang](https://img.shields.io/badge/Multi--Lang%20Files-77-E91E63?style=for-the-badge&logo=github&logoColor=white)](#multi-language)
+[![MultiLang](https://img.shields.io/badge/Multi--Lang%20Files-87-E91E63?style=for-the-badge&logo=github&logoColor=white)](#multi-language)
 [![Monte Carlo](https://img.shields.io/badge/Monte%20Carlo-38%2C400%20runs-E91E63?style=for-the-badge&logo=chart.js&logoColor=white)](#monte-carlo-sla)
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 ```
     ┌────────────────────────────────────────────────────────────────────────┐
-    │  🔬 마지막 업데이트: 2026-03-30 21:00:00  │  📦 Phase 321-330 완료     │
-    │  ⏱️ 빌드 상태: ✅ PASSING  │  📊 테스트: 1791개  │  🎯 커버리지: 91.0%     │
+    │  🔬 마지막 업데이트: 2026-03-30 22:00:00  │  📦 Phase 331-350 완료     │
+    │  ⏱️ 빌드 상태: ✅ PASSING  │  📊 테스트: 1841개  │  🎯 커버리지: 91.5%     │
     └────────────────────────────────────────────────────────────────────────┘
     ```
 

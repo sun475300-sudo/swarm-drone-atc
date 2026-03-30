@@ -1866,6 +1866,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜/시간 | 핵심 변경 |
 |------|-----------|
+| 2026-03-30 23:45 | **Phase 361-370 완료**: Predictive Maintenance + HIL v2 + Mesh Network + Zero-Trust Security |
 | 2026-03-30 23:30 | **Phase 351-360 완료**: 10개 Python 모듈 - NSGA-II/RTOS/MARL/CV/Solar/CPs/Map/Raft/Envelope/Auction |
 | 2026-03-30 22:00 | **Phase 331-350 완료**: 10개 Python 모듈 + 50개 테스트 + 10개 다국어 모듈 — Quantum/WASM/Sovereignty/SNN/Mesh/DigitalThread/GameTheory/Acoustic/Encryption/PredMaint |
 | 2026-03-30 21:00 | **Phase 321-330 완료**: 10개 다국어 모듈 — Zig PBFT/Rust Satellite/Go Edge AI/C++ SLAM/Kotlin Spectrum/Nim Weather/OCaml Formation/F# Federated/Swift IDS/TypeScript Physics |
@@ -1936,6 +1937,15 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 | **P1** | Mesh Network Protocol | 30분 | Python/Go |
 | **P2** | Acoustic Communication | 30분 | Python/C++ |
 | **P2** | Zero-Trust Security | 30분 | Python/Go/Rust |
+
+### Phase 361-370 (Autonomy + Security) - 완료 ✅
+
+| 우선순위 | 작업 | 범위 | 산출물 | 상태 |
+|---------|------|------|--------|------|
+| P0 | Predictive Maintenance | 예측 정비 | RUL 예측, 상태 모니터링 | ✅ 완료 |
+| P0 | HIL Simulator v2 | 하드웨어-인-더-루프 | 물리 엔진, 센서 시뮬레이션 | ✅ 완료 |
+| P1 | Mesh Network Protocol | 메시 네트워크 | P2P 라우팅, AODV | ✅ 완료 |
+| P1 | Zero-Trust Security | 제로트러스트 보안 | 인증, 인가, 위협 탐지 | ✅ 완료 |
 
 ### Phase 351-360 (Advanced Autonomy + CPS) - 완료 ✅
 

@@ -2,6 +2,7 @@
 Payload Controller
 Phase 401 - Gimbal, Camera, Cargo Management
 """
+
 import numpy as np
 
 
@@ -28,7 +29,7 @@ class CameraController:
         self.mode = "photo"
         self.resolution = (3840, 2160)
         self.iso = 100
-        self.shutter = 1/60
+        self.shutter = 1 / 60
 
     def capture_photo(self) -> dict:
         return {"timestamp": 0, "resolution": self.resolution, "size_mb": 25}
@@ -45,7 +46,7 @@ class CargoController:
     def __init__(self, max_kg: float = 10.0):
         self.max_payload = max_kg
         self.current_kg = 0.0
-        self.release Mechanism = False
+        self.release_mechanism = False
 
     def load(self, weight: float) -> bool:
         if self.current_kg + weight <= self.max_payload:

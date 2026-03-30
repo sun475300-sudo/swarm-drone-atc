@@ -175,6 +175,96 @@ sequenceDiagram
     D-->>AC: Acknowledge
 ```
 
+### 충돌 회피 알고리즘 파이프라인
+
+```mermaid
+flowchart LR
+    subgraph Detection["탐지 단계"]
+        CPA["CPA 90s\nLookahead"]
+        VOI["Voronoi\n공역 분할"]
+        RADAR["센서 퓨전\nIMU+GPS+Lidar"]
+    end
+
+    subgraph Decision["판단 단계"]
+        APF["APF\n포텐셜 장"]
+        CBS["CBS\n다중경로"]
+        RA2["Resolution\nAdvisory"]
+    end
+
+    subgraph Action["실행 단계"]
+        REPLAN["경로\n재계획"]
+        FORM["편대\n재구성"]
+        EMRG["비상\n착륙"]
+    end
+
+    CPA --> APF
+    VOI --> CBS
+    RADAR --> RA2
+    APF --> REPLAN
+    CBS --> FORM
+    RA2 --> EMRG
+```
+
+### 드론 상태 머신 (FSM)
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Takeoff: 임무 배정
+    Takeoff --> Cruise: 이륙 완료
+    Cruise --> Avoid: 충돌 감지
+    Avoid --> Cruise: 회피 완료
+    Cruise --> Landing: 목적지 도달
+    Landing --> Idle: 착륙 완료
+    Cruise --> Emergency: 통신 두절/고장
+    Avoid --> Emergency: 회피 실패
+    Emergency --> Landing: 복구
+    Emergency --> [*]: 추락
+```
+
+### Multi-Language 기술 스택 분포
+
+```mermaid
+pie title 다국어 모듈 분포 (87 files)
+    "Python" : 50
+    "Zig" : 5
+    "Rust" : 5
+    "Go" : 5
+    "C++" : 5
+    "Kotlin" : 4
+    "Nim" : 4
+    "OCaml" : 4
+    "F#" : 3
+    "Swift" : 3
+    "TypeScript" : 3
+    "Others" : 6
+```
+
+### Phase 331-350 모듈 의존성
+
+```mermaid
+flowchart TD
+    QP["331: Quantum\nPath Optimizer"]
+    WR["332: WASM\nRuntime"]
+    DS["333: Digital\nSovereignty"]
+    NC["334: Neuromorphic\nSNN"]
+    MN["335: Mesh\nNetwork"]
+    DT["336: Digital\nThread"]
+    GT["337: Game\nTheory"]
+    AC["338: Acoustic\nSensing"]
+    ENC["339: Swarm\nEncryption"]
+    PM["340: Predictive\nMaint v2"]
+
+    QP --> MN
+    NC --> WR
+    DS --> ENC
+    MN --> GT
+    AC --> NC
+    DT --> PM
+    ENC --> MN
+    GT --> QP
+```
+
 ---
 
 ## 📊 성능 대시보드 실시간 차트
@@ -200,6 +290,67 @@ sequenceDiagram
 
 </div>
 
+### Phase 331-350 핵심 알고리즘 매트릭스
+
+```
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                     PHASE 331-350 ALGORITHM MATRIX                         ║
+    ╠══════════════════════════════════════════════════════════════════════════════╣
+    ║                                                                            ║
+    ║  331 Quantum    ║ QAOA ░░░░░██████████   VQE ░░██████████████             ║
+    ║  332 WASM       ║ Stack VM ░░████████   Bytecode ░░████████████           ║
+    ║  333 Sovereignty║ Region Policy ░░░██████   Encryption ░░██████████       ║
+    ║  334 SNN        ║ LIF Neuron ░░████████   STDP ░░░░░██████████           ║
+    ║  335 Mesh       ║ Dijkstra ░░████████████   Self-Heal ░░██████████       ║
+    ║  336 Digital    ║ Lifecycle ░░░██████████   PLM Chain ░░██████████        ║
+    ║  337 Game       ║ Nash Eq ░░██████████████   Pareto ░░████████████       ║
+    ║  338 Acoustic   ║ FFT ░░░░░░████████████   Beamform ░░██████████         ║
+    ║  339 Encryption ║ Group Key ░░████████████   Lattice KEM ░░████████      ║
+    ║  340 PredMaint  ║ Weibull ░░████████████████   RUL ░░████████████        ║
+    ║                                                                            ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+```
+
+### 전체 시스템 레이어 상세
+
+```
+    ┌──────────────────────────────────────────────────────────────────────────────┐
+    │                          SDACS FULL SYSTEM LAYERS                           │
+    ├──────────────────────────────────────────────────────────────────────────────┤
+    │                                                                              │
+    │  Layer 5: AI & Analytics                                                     │
+    │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐          │
+    │  │ Quantum  │ │ Neuro-   │ │ Game     │ │ Federated│ │ Deep RL  │          │
+    │  │ Optimizer│ │ morphic  │ │ Theory   │ │ Learning │ │ Control  │          │
+    │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘          │
+    │       │             │            │             │            │                │
+    │  Layer 4: Security & Communication                                           │
+    │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐          │
+    │  │ Swarm    │ │ Digital  │ │ IDS      │ │ Spectrum │ │ Satellite│          │
+    │  │ Encrypt  │ │ Sovereign│ │ Anomaly  │ │ Access   │ │ Comm     │          │
+    │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘          │
+    │       │             │            │             │            │                │
+    │  Layer 3: Simulation & Physics                                               │
+    │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐          │
+    │  │ Swarm    │ │ WASM     │ │ 3D       │ │ Weather  │ │ Acoustic │          │
+    │  │ Simulator│ │ Runtime  │ │ Physics  │ │ Predict  │ │ Sensing  │          │
+    │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘          │
+    │       │             │            │             │            │                │
+    │  Layer 2: Control & Planning                                                 │
+    │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐          │
+    │  │ Airspace │ │ Path     │ │ Formation│ │ Mesh     │ │ Pred.    │          │
+    │  │ Control  │ │ Planner  │ │ Optimizer│ │ Network  │ │ Maint    │          │
+    │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘          │
+    │       │             │            │             │            │                │
+    │  Layer 1: Drone Hardware Abstraction                                         │
+    │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐          │
+    │  │ Digital  │ │ HIL      │ │ Sensor   │ │ Motor    │ │ Battery  │          │
+    │  │ Twin     │ │ Simulator│ │ Fusion   │ │ Control  │ │ Manager  │          │
+    │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘          │
+    │                                                                              │
+    └──────────────────────────────────────────────────────────────────────────────┘
+```
+
 ---
 
 ## 👥 기여자 프로필 카드
@@ -217,7 +368,7 @@ sequenceDiagram
     │   │  ━━━━━━━━━━━━━━━━━━━━━━━━                                    │    │
     │   │  💻 GitHub: @sun475300-sudo                                   │    │
     │   │  🛠️ 기술: Python, SimPy, Dash, NumPy, SciPy, AI/ML          │    │
-    │   │  🏆 기여: 299 Phase + 1675 테스트 + 171 알고리즘              │    │
+    │   │  🏆 기여: 350 Phase + 1841 테스트 + 235 알고리즘              │    │
     │   ╰─────────────────────────────────────────────────────────────╯    │
     │                                                                        │
     └────────────────────────────────────────────────────────────────────────┘
@@ -407,7 +558,7 @@ sequenceDiagram
 │  └─ DAG 위상정렬                                     │
 │                                                       │
 │  🎮 시각화             🧪 검증                        │
-│  ├─ Dash 3D 대시보드   ├─ 1,206 pytest               │
+│  ├─ Dash 3D 대시보드   ├─ 1,841 pytest               │
 │  ├─ Three.js HTML      ├─ 42 시나리오                 │
 │  ├─ 실시간 히트맵      ├─ 38,400 Monte Carlo          │
 │  └─ 궤적 리플레이      └─ 통합 검증기                 │
@@ -453,9 +604,9 @@ sequenceDiagram
 <details>
 <summary><b>Step 5: Results / 5단계: 결과</b></summary>
 
-**EN:** 1,345 tests collected, 147 algorithms, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), and 99.9% collision reduction in validated scenarios.
+**EN:** 1,841 tests collected, 235 algorithms across 25 languages, 38,400+ Monte Carlo validations, 3 live demos (Python Dash + Standalone HTML + SC2), 99.9% collision reduction, and 350 implementation phases completed.
 
-**KR:** 1,345개 테스트 수집, 147개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모를 갖춘 캡스톤 프로젝트입니다.
+**KR:** 1,841개 테스트 수집, 25개 프로그래밍 언어로 235개 알고리즘, 38,400회 이상 몬테카를로 검증, 3개 라이브 데모를 갖춘 캡스톤 프로젝트입니다. 350개 Phase 구현 완료.
 </details>
 
 ---

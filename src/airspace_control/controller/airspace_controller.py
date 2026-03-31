@@ -12,6 +12,7 @@ from __future__ import annotations
 import heapq
 import logging
 import uuid
+from collections import deque
 import numpy as np
 from typing import TYPE_CHECKING
 
@@ -95,7 +96,7 @@ class AirspaceController:
         self._cbs_failures  = 0
         self._astar_count   = 0
         self._clearances_per_sec: float = 0.0
-        self._clearance_count_window: list[float] = []  # 최근 처리 시각 리스트
+        self._clearance_count_window: deque[float] = deque()  # 최근 처리 시각 (60초 윈도우)
 
         self._lat_min_base = float(config.get("separation_standards", {})
                                    .get("lateral_min_m", 50.0))
@@ -184,18 +185,15 @@ class AirspaceController:
                             queue_size=len(self._holding_queue),
                         )
 
-        # 더 이상 HOLDING이 아닌 드론 제거
-        self._holding_queue = [
-            (et, did) for et, did in self._holding_queue
-            if did in self._active_drones
-            and self._active_drones[did].flight_phase == FlightPhase.HOLDING
-        ]
-        heapq.heapify(self._holding_queue)
-
-        # FIFO 해제: 최소 대기시간 경과한 드론부터
+        # FIFO 해제: lazy deletion — pop 시점에 무효 항목 건너뜀
         released = 0
         while self._holding_queue and released < MAX_RELEASE_PER_TICK:
             entry_time, did = self._holding_queue[0]
+            # lazy deletion: HOLDING이 아닌 드론은 건너뜀
+            if did not in self._active_drones or \
+               self._active_drones[did].flight_phase != FlightPhase.HOLDING:
+                heapq.heappop(self._holding_queue)
+                continue
             # 타임스탬프 역전 방어: 미래 시각의 entry_time은 현재 시각으로 보정
             if entry_time > t:
                 entry_time = t
@@ -348,12 +346,10 @@ class AirspaceController:
                 sent_time=t,
                 channel="clearance",
             ))
-            # 처리량 추적
+            # 처리량 추적 — deque 좌측에서 만료 항목 제거 (O(k), k=만료 수)
             self._clearance_count_window.append(t)
-            # 60초 윈도우 유지
-            self._clearance_count_window = [
-                ts for ts in self._clearance_count_window if t - ts <= 60.0
-            ]
+            while self._clearance_count_window and t - self._clearance_count_window[0] > 60.0:
+                self._clearance_count_window.popleft()
             self._clearances_per_sec = len(self._clearance_count_window) / 60.0
 
             if approved:

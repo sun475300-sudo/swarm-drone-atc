@@ -201,7 +201,7 @@ class _DroneAgent:
             self._handle_failure(drone, t)
 
             # 4. 바람 (tick 캐시: 동일 tick에서 재계산 방지)
-            cache_key = round(t, 1)
+            cache_key = int(round(t / dt))
             if not hasattr(sim, '_wind_cache') or sim._wind_cache_tick != cache_key:
                 sim._wind_cache = sum(
                     (m.get_wind_vector(np.zeros(3), t) for m in sim.wind_models),

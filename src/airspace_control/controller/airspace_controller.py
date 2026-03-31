@@ -265,6 +265,10 @@ class AirspaceController:
         except KeyError:
             logger.warning("알 수 없는 FlightPhase: %s (drone=%s)", tm.flight_phase, tm.sender_id)
 
+        # GROUNDED 드론은 active 목록에서 제거
+        if drone.flight_phase == FlightPhase.GROUNDED:
+            self._active_drones.pop(tm.drone_id, None)
+
     # ── 허가 처리 ────────────────────────────────────────────
 
     def _process_clearances(self, t: float) -> None:
@@ -308,6 +312,16 @@ class AirspaceController:
             )
             approved = True
             reason   = ""
+
+            # 경계 외부 목적지 검증
+            bounds_km = self.config.get("airspace", {}).get("bounds_km", {})
+            bx = bounds_km.get("x", [-5, 5])
+            by = bounds_km.get("y", [-5, 5])
+            dest_km = req.destination[:2] / 1000.0
+            if (dest_km[0] < bx[0] or dest_km[0] > bx[1] or
+                    dest_km[1] < by[0] or dest_km[1] > by[1]):
+                approved = False
+                reason = f"out_of_bounds:{dest_km[0]:.1f},{dest_km[1]:.1f}km"
 
             # M-1: 목적지가 NFZ 내부인지 검증
             for nfz in self.planner.nfz_list:
@@ -491,6 +505,13 @@ class AirspaceController:
                                                 drone_a=id_a, drone_b=id_b,
                                                 cpa_dist_m=cpa_dist,
                                                 cpa_t_s=cpa_t)
+                # 기동 불가 드론 쌍은 어드바이저리 스킵
+                NON_MANEUVERABLE = (FlightPhase.LANDING, FlightPhase.GROUNDED)
+                if (da.flight_phase in NON_MANEUVERABLE and
+                        db.flight_phase in NON_MANEUVERABLE):
+                    covered.add(pair)
+                    continue
+
                 # 낮은 우선순위 드론에 어드바이저리 발령
                 target = self._pick_target(da, db)
                 threat = db if target.drone_id == id_a else da
@@ -574,7 +595,16 @@ class AirspaceController:
         return result
 
     def _pick_target(self, da: DroneState, db: DroneState) -> DroneState:
-        """어드바이저리를 받을 드론 선택 (낮은 우선순위, 동률 시 ID 기반 타이브레이크)"""
+        """어드바이저리를 받을 드론 선택 (낮은 우선순위, 동률 시 ID 기반 타이브레이크)
+        LANDING/GROUNDED 드론은 기동 불가하므로 상대방에게 회피 지시."""
+        NON_MANEUVERABLE = (FlightPhase.LANDING, FlightPhase.GROUNDED)
+        a_can = da.flight_phase not in NON_MANEUVERABLE
+        b_can = db.flight_phase not in NON_MANEUVERABLE
+        if a_can and not b_can:
+            return da
+        if b_can and not a_can:
+            return db
+
         pri_a = DRONE_PROFILES.get(da.profile_name,
                                     DRONE_PROFILES["COMMERCIAL_DELIVERY"]).priority
         pri_b = DRONE_PROFILES.get(db.profile_name,

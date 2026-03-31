@@ -515,6 +515,10 @@ class SwarmSimulator:
             separation_vertical_m=float(
                 self.cfg.get("separation_standards", {}).get("vertical_min_m", 15.0)),
         )
+        self._sep_lateral = float(
+            self.cfg.get("separation_standards", {}).get("lateral_min_m", 50.0))
+        self._near_miss_m = float(
+            self.cfg.get("separation_standards", {}).get("near_miss_lateral_m", 10.0))
         self.priority_queue = FlightPriorityQueue()
         self.analytics      = SimulationAnalytics(self.cfg)
         self.controller     = AirspaceController(
@@ -750,16 +754,25 @@ class SwarmSimulator:
                     avg_wind += wm.get_wind_vector(np.zeros(3), t)
                 self.controller.update_wind_speed(float(np.linalg.norm(avg_wind)))
 
-            # Spatial Hash로 충돌 감지 (5 m 이내) — O(N·k)
+            # Spatial Hash로 근접/충돌 감지 — O(N·k)
             # A1: LANDING 드론은 충돌 스캔에서 제외 (착지 중 수직 프로파일은 안전)
             sh.clear()
             for did, d in self._drones.items():
                 if d.is_active and d.flight_phase != FlightPhase.LANDING:
                     sh.insert(did, d.position)
 
-            for id_a, id_b, dist in sh.query_pairs_with_dist(5.0):
-                self.analytics.record_event("COLLISION", t,
-                                            drone_a=id_a, drone_b=id_b)
+            for id_a, id_b, dist in sh.query_pairs_with_dist(self._sep_lateral):
+                if dist < 5.0:
+                    self.analytics.record_event("COLLISION", t,
+                                                drone_a=id_a, drone_b=id_b)
+                elif dist < self._near_miss_m:
+                    self.analytics.record_event("NEAR_MISS", t,
+                                                drone_a=id_a, drone_b=id_b,
+                                                dist_m=dist)
+                else:
+                    self.analytics.record_event("CONFLICT", t,
+                                                drone_a=id_a, drone_b=id_b,
+                                                dist_m=dist)
 
     # ── 유틸리티 ─────────────────────────────────────────────
 

@@ -1456,6 +1456,13 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 MIT License — Developed for academic and educational purposes. / 학술 및 교육 목적으로 개발되었습니다.
 
+
+## 변경 이력 (Changelog)
+
+| 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
+| --- | --- | --- | --- |
+| 2026-03-31 18:25 | `3efdc6e` | fix: 코드 리뷰 Critical/High 이슈 9건 수정 | simulation/apf_engine/apf.py, simulation/simulator.py, src/airspace_control/controller/airspace_controller.py, visualization/simulator_3d.py |
+
 ---
 
 <div align="center">

@@ -4,6 +4,7 @@ simpy>=4.1
 pandas>=2.2
 scipy>=1.13
 pyyaml>=6.0
+pydantic>=2.0
 joblib>=1.4
 tqdm>=4.66
 

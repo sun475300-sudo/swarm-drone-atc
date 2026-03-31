@@ -22,6 +22,8 @@
 
 ### **"드론판 교통경찰" — AI가 하늘의 교통을 관리합니다**
 
+*Distributed ATC simulation: swarm drones as mobile virtual radar domes*
+
 ---
 
 **Mokpo National University, Dept. of Drone Mechanical Engineering — Capstone Design (2026)**
@@ -77,29 +79,31 @@
 
 > **What is this?** Simply put, it's a **"traffic cop for drones."**
 >
-> Imagine dozens to hundreds of delivery drones, agricultural drones, and filming drones flying simultaneously. Someone needs to manage traffic so they don't collide.
+> Imagine dozens to hundreds of delivery drones, agricultural drones, and filming drones flying simultaneously over a city. Someone needs to manage traffic so they don't collide — but doing it manually is impossible at scale.
 >
-> SDACS uses **AI to automatically** manage drone traffic:
-> - Predicted collision → Automatic avoidance routing
-> - Entering a no-fly zone → Automatic rerouting
-> - Drone malfunction → Automatic return to nearest landing pad
-> - Communication lost → 5-second hold, then auto-return
+> SDACS replaces fixed radar infrastructure with **the drones themselves** — each drone acts as a mobile virtual radar dome, creating a distributed, self-healing airspace control network:
+> - **Predicted collision (90s ahead)** → Automatic avoidance routing via APF + CPA
+> - **Entering a no-fly zone** → Real-time 3D dynamic geofencing + automatic rerouting
+> - **Drone malfunction** → Automatic return to nearest landing pad (3-phase Lost-Link protocol)
+> - **Communication lost** → 5-second hold → altitude climb → auto-return
+> - **Rogue drone intrusion** → Detection + threat assessment + fleet-wide alert
 >
-> Validated with **42 scenarios** (high winds, rogue drones, GPS spoofing, mass delivery, etc.) and **38,400 Monte Carlo simulations**.
+> Validated with **42 scenarios** (extreme weather, rogue drones, GPS spoofing, 500-drone mega-swarms) and **38,400 Monte Carlo simulations**.
 
 ---
 
 > **이 프로젝트가 뭔가요?** 쉽게 말하면 **"드론판 교통경찰"** 입니다.
 >
-> 하늘에 택배 드론, 농업 드론, 촬영 드론이 동시에 수십~수백 대 날아다닌다고 상상해보세요. 서로 부딪히지 않으려면 누군가 교통을 정리해야 합니다.
+> 하늘에 택배 드론, 농업 드론, 촬영 드론이 동시에 수십~수백 대 날아다닌다고 상상해보세요. 서로 부딪히지 않으려면 누군가 교통을 정리해야 합니다. 하지만 사람이 수동으로 하기엔 한계가 있습니다.
 >
-> 이 시스템은 **AI가 자동으로** 드론들의 교통을 정리합니다:
-> - 충돌이 예상되면 → 자동으로 회피 경로 안내
-> - 비행금지구역에 들어가려 하면 → 자동으로 우회
-> - 드론이 고장 나면 → 자동으로 가장 가까운 착륙장으로 귀환
-> - 통신이 끊기면 → 5초 대기 후 자동 귀환
+> SDACS는 고정형 레이더 대신 **드론 자체를 이동형 가상 레이더 돔**으로 활용합니다. 중앙 서버 없이도 드론들이 자율적으로 공역을 통제하는 분산형 시스템입니다:
+> - **충돌 90초 전 예측** → APF + CPA 기반 자동 회피 경로 안내
+> - **비행금지구역 접근** → 실시간 3차원 동적 지오펜싱 + 자동 우회
+> - **드론 고장** → 3단계 Lost-Link 프로토콜 (대기 → 상승 → 자동 귀환)
+> - **통신 두절** → 5초 대기 → 고도 상승 → 최근접 착륙장으로 귀환
+> - **침입 드론 탐지** → 위협 평가 + 전 드론 경보 + 자동 회피
 >
-> **42가지 시나리오** (강풍, 침입 드론, GPS 교란, 대규모 택배 배송 등)를 시뮬레이션해서 시스템이 실제 상황에서도 작동하는지 검증합니다.
+> **42가지 시나리오** (극한기상, 침입 드론, GPS 교란, 500대 메가 군집 등) + **38,400회 Monte Carlo** 검증으로 실제 상황에서의 작동을 입증합니다.
 
 👉 **[Try the 3D Simulator / 3D 시뮬레이터 바로 체험하기](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html)** — No installation, runs in browser!
 
@@ -752,6 +756,8 @@ Layer 4: 3D 시각화 (Three.js, 독립 구현)
 ## Multi-Language Architecture / 다중 언어 아키텍처 {#multi-language}
 
 > Python 시뮬레이션 코어를 **20개 프로그래밍 언어**로 보완하여 각 언어의 강점을 극대화합니다.
+>
+> 각 언어 모듈은 독립된 프로세스로 동작하며, **gRPC/Protobuf** 및 고속 IPC(Inter-Process Communication)를 통해 메인 엔진과 통신합니다. Safety-critical 모듈(충돌 감지, APF)은 Rust/C++로 구현하여 실시간성을 보장하고, 통신/합의 모듈은 Go/Elixir의 동시성 모델을 활용합니다.
 
 ```
  ┌─────────────────────────────────────────────────────────────────┐
@@ -1033,12 +1039,28 @@ python scripts/generate_charts.py --output-dir docs/images
 
 ## Quick Start / 빠른 시작
 
+### 요구 사항
+
+- **Python 3.10+** (CI: 3.11 / 3.12)
+- OS: Linux, macOS, Windows
+- RAM: 4 GB+ (500대 군집 시뮬레이션 시 8 GB 권장)
+
 ### 설치
 
 ```bash
+# 1. 저장소 클론
 git clone https://github.com/sun475300-sudo/swarm-drone-atc.git
 cd swarm-drone-atc
+
+# 2. 가상환경 생성 및 활성화
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
+# 3. 의존성 설치
 pip install -r requirements.txt
+
+# 4. 테스트 실행 (1,206개 전체 통과 확인)
+pytest tests/ -v
 ```
 
 ### 실행
@@ -1047,18 +1069,17 @@ pip install -r requirements.txt
 # 시나리오 목록
 python main.py scenario --list
 
-# 시나리오 실행
+# 시나리오 실행 (예: 고밀도 교통 100대)
 python main.py scenario high_density --runs 1
 
 # 기본 시뮬레이션 (600초, 100대)
 python main.py simulate --duration 600 --seed 42
 
-# Monte Carlo quick sweep (~4분)
+# Monte Carlo quick sweep (~4분, 960회)
 python main.py monte-carlo --mode quick
 
 # 3D 실시간 대시보드 → http://127.0.0.1:8050
 python main.py visualize
-
 ```
 
 ### 3D 실시간 대시보드
@@ -1211,7 +1232,7 @@ swarm-drone-atc/
 │   ├── report/SDACS_Technical_Report.docx  # A4 한국어 기술 보고서
 │   └── images/                             # 성능 차트 + SVG 다이어그램
 │
-└── tests/                              # pytest 935개 (37 모듈)
+└── tests/                              # pytest 1,206개 (40 모듈)
     ├── test_apf.py                     # APF 포텐셜 장 (10)
     ├── test_cbs.py                     # CBS 격자 노드 (8)
     ├── test_resolution_advisory.py     # 어드바이저리 분류 (6)
@@ -1369,24 +1390,41 @@ Before hardware testing, swarm algorithms were validated in a StarCraft II envir
 
 | 항목 | 기존 방식 | SDACS | 개선율 |
 |------|----------|-------|--------|
-| 배치 시간 | 6개월 | 30분 | 99.7% 단축 |
-| 관제 인력 | 24시간 5명 | 1명 | 80% 절감 |
-| 탐지 지연 | 5분 | 1초 | 99.7% 단축 |
-| 초기 비용 | 수억원 | 드론 10대 | 90%+ 절감 |
+| 배치 시간 | 6개월 (고정 레이더 설치) | **30분** (드론 배치) | 99.7% 단축 |
+| 관제 인력 | 24시간 5명 교대 | **1명 감시** (AI 자동화) | 80% 절감 |
+| 탐지 지연 | 5분 (수동 확인) | **< 1초** (CPA 90초 선제 예측) | 99.7% 단축 |
+| 초기 비용 | 수억원 (고정 인프라) | **드론 10대** (소프트웨어 기반) | 90%+ 절감 |
+| 동시 관제 | 20대 이하 (수동) | **500대+** (분산 자율) | 25배 확장 |
 
-**시장 규모:** 글로벌 도심 드론 시장 2035년 $99B
+### 활용 분야
+
+| 분야 | 활용 | 규모 |
+|------|------|------|
+| **국방** | 군집드론 편대 비행 자동 관제 | 국방 R&D |
+| **K-UAM** | 도심항공교통 관제 인프라 | $28.5B (2035) |
+| **물류/배송** | 대규모 택배 드론 관제 | $2.6B (2030) |
+| **공공안전** | 재난현장 다수 드론 관제 | 정부 예산 |
+| **드론쇼** | 500대+ 군집 비행 안전 관리 | 엔터테인먼트 |
+
+**글로벌 시장 규모:** 도심 드론 시장 2035년 **$99B**
 
 ---
 
 ## Dependencies / 의존성
 
-```
-simpy>=4.1    numpy>=1.24    scipy>=1.11
-dash>=2.17    plotly>=5.20   joblib>=1.3
-pyyaml>=6.0   matplotlib>=3.8  pytest>=7.4
-```
+| 패키지 | 버전 | 역할 |
+|--------|------|------|
+| `simpy` | >=4.1 | 이산 이벤트 시뮬레이션 엔진 |
+| `numpy` | >=1.24 | APF 벡터 연산, 수치 계산 |
+| `scipy` | >=1.11 | Voronoi 분할, KDTree 최적화 |
+| `dash` | >=2.17 | 3D 실시간 대시보드 |
+| `plotly` | >=5.20 | 인터랙티브 3D 시각화 |
+| `joblib` | >=1.3 | Monte Carlo 병렬 실행 |
+| `pyyaml` | >=6.0 | 설정 파일 로딩 |
+| `matplotlib` | >=3.8 | 성능 차트 생성 |
+| `pytest` | >=7.4 | 테스트 프레임워크 |
 
-Python 3.10+ (CI: Python 3.11 / 3.12)
+**Python 3.10+** (CI: Python 3.11 / 3.12)
 
 ---
 
@@ -1405,6 +1443,7 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 | 날짜 | 시간 | 주요 변경 사항 | 커밋 |
 |------|------|---------------|------|
+| 2026-03-31 | — | **코드 리뷰 16건 수정**: Critical 3건 (DroneState 초기화, 스레드 안전, 예외 처리) + High 5건 (ZeroDivisionError, 바람 이중적용, APF target_alt, 네트워크 노출) + Medium 4건 (deque 전환, Holding 큐 livelock, 텔레메트리 검증, config bounds) + Low 4건 (trail deque, hasattr 정리, round 제거). README 대규모 편집 (Quick Start 개선, 중복 제거, 테스트 카운트 동기화, 다국어 아키텍처 설명 보강) | — |
 | 2026-03-28 | — | **Phase 132-155**: 드론 팩토리(12종 프리셋), 실시간 리밸런서(그리드 밀도맵+재배치), 배터리 열화(사이클×온도 SoH), 3D 풍동(건물 차폐/터널/상승기류), 착륙 네트워크(거리+점유율 추천), GPS 멀티패스(반사체+HDOP), 동적 장애물(이동체 CPA+위협등급), 페이로드 관리(적재→성능 영향), 멀티테넌트(테넌트 격리+쿼터), SLA 계약(위반 추적+패널티), 드론 라이프사이클(구매→퇴역 TCO), 스케줄 최적화(시간대별 부하 분산), 배송 최적화(TSP+용량 제약), 동적 가격 엔진(수요/기상/거리), 고객 메트릭(정시율/만족도/손상률), 함대 구성(ROI 기반 배분), MCTS 경로 계획(UCB1+시뮬레이션 롤아웃), 연합 학습(가중 평균 집계), NLP 명령 파서(의도 분류), 디지털 트윈(상태 미러링+예측), 자율 미션 플래너(목표→미션 자동 생성), 멀티모달 센서 융합(신뢰도 가중), 이벤트 아키텍처(CQRS+소싱+리플레이), 시스템 대시보드(모듈 건강+KPI), 테스트 1111→1206 (95개 추가) | — |
 | 2026-03-28 | — | **Phase 108-131**: 강화학습 경로(Q-테이블+epsilon-greedy), 예측 유지보수(잔여수명+정비일정), 다중 에이전트 협상(양보/교환), 적응형 튜너(자동 파라미터 조정), 의사결정 트리(규칙 기반 관제), 수요 예측(시간대별 학습), 경로 다양성(k-최단+유사도), 우선순위 재조정(컨텍스트 기반), GPS 스푸핑 탐지(교차 검증), 암호화 통신(키 교환+무결성), 침입 탐지(이상 트래픽+격리), 규제 업데이트(버전+자동 적용), QoS(대역폭 할당), 드론 신원 인증(PKI), 감사 추적(불변 체인), 비상 방송(구역별+확인), 난이도 평가(복합 점수), A/B 테스트(유의성 검정), 리포트 스트림(이벤트+구독), 다중 시뮬 조율(병렬+집계), 환경 영향(소음/에너지), 비용 분석(ROI), 학습 데이터 수집, 통합 검증(의존성+회귀), 테스트 1007→1111 (104개 추가) | — |
 | 2026-03-28 | — | **Phase 92-107**: 분산 리더 선출(복합 점수+페일오버), 공역 밀도 예측(선형 트렌드+혼잡 사전조치), DAG 임무 체인(위상 정렬+임계 경로), 장애 전파 분석(BFS+격리+복원력), 동적 고도 관리(8방위 밴드+우선순위), 비행 로그 분석(z-score 이상+KPI), 충전 최적화(다중 충전소 비용), 드론 페어링(ESCORT/RELAY/SEARCH), 비행 계획 검증(NFZ/고도/거리+적합성 점수), 대시보드 데이터(KPI+경보+트렌드), 배치 시뮬레이터(다중 시나리오+통계), 공역 이력(스냅샷+비교), 성능 프로필(열화 추적+비교), 임무 평가(A~F 등급+권장), 역할 접근 제어(감사 로그), 시스템 건강 모니터(역방향 지표+자가 진단), 테스트 935→1007 (72개 추가) | — |
@@ -1456,15 +1495,6 @@ Python 3.10+ (CI: Python 3.11 / 3.12)
 
 MIT License — Developed for academic and educational purposes. / 학술 및 교육 목적으로 개발되었습니다.
 
-
-## 변경 이력 (Changelog)
-
-| 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
-| --- | --- | --- | --- |
-| 2026-03-31 18:30 | `8a8845c` | fix: 코드 리뷰 Medium/Low 이슈 7건 수정 | simulation/simulator.py, simulation/wind_tunnel.py, src/airspace_control/controller/airspace_controller.py, visualization/simulator_3d.py |
-| 2026-03-31 18:25 | `3efdc6e` | fix: 코드 리뷰 Critical/High 이슈 9건 수정 | simulation/apf_engine/apf.py, simulation/simulator.py, src/airspace_control/controller/airspace_controller.py, visualization/simulator_3d.py |
-
----
 
 <div align="center">
 

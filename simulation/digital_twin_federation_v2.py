@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Set
+from typing import List, Dict, Optional, Set, Tuple
 
 
 class SyncStatus(Enum):

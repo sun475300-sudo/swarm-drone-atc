@@ -2,8 +2,13 @@
 
 master_seed: 42
 
+# 시뮬레이션 공통 설정
+simulation:
+  duration_s: 600.0      # 시뮬레이션 시간 (초) — 각 스윕에서 override 가능
+
 # 전체 스윕 (38,400회, 16코어 ~3.3시간)
 full_sweep:
+  duration_s: 600.0      # 전체 스윕: 10분
   drone_density: [50, 100, 250, 500]      # 4 levels
   area_size_km2: [25, 100]               # 2 levels
   failure_rate_pct: [0, 1, 5, 10]        # 4 levels
@@ -17,6 +22,7 @@ full_sweep:
 
 # 빠른 스윕 (개발용, 960회, 16코어 ~4분)
 quick_sweep:
+  duration_s: 120.0      # 빠른 스윕: 2분
   drone_density: [50, 250]
   area_size_km2: [100]
   failure_rate_pct: [0, 5]

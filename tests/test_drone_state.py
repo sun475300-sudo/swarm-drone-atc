@@ -64,3 +64,37 @@ class TestEnums:
 
     def test_failure_types(self):
         assert len(FailureType) == 6
+
+
+class TestDroneStateTupleInput:
+    """P1-01: tuple 입력도 np.ndarray로 변환되어야 한다."""
+
+    def test_tuple_position_converted(self):
+        d = DroneState(drone_id="T1", position=(10.0, 20.0, 30.0),
+                       velocity=(1.0, 2.0, 3.0))
+        assert isinstance(d.position, np.ndarray)
+        assert isinstance(d.velocity, np.ndarray)
+
+    def test_tuple_values_correct(self):
+        d = DroneState(drone_id="T2", position=(5.0, 6.0, 7.0),
+                       velocity=(0.0, 0.0, 0.0))
+        np.testing.assert_array_equal(d.position, [5.0, 6.0, 7.0])
+
+    def test_ndarray_passthrough(self):
+        pos = np.array([1.0, 2.0, 3.0])
+        d = DroneState(drone_id="T3", position=pos, velocity=np.zeros(3))
+        assert d.position is pos  # 동일 객체 (복사 안 함)
+
+
+class TestWaypointTracking:
+    """F-03: DroneState waypoints 필드 기본값 검증"""
+
+    def test_waypoints_default_empty(self):
+        d = DroneState(drone_id="W1", position=np.zeros(3), velocity=np.zeros(3))
+        assert d.waypoints == []
+        assert d.current_waypoint_idx == 0
+
+    def test_waypoints_assignable(self):
+        d = DroneState(drone_id="W2", position=np.zeros(3), velocity=np.zeros(3))
+        d.waypoints = [np.array([100.0, 0.0, 60.0]), np.array([200.0, 0.0, 60.0])]
+        assert len(d.waypoints) == 2

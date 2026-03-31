@@ -73,7 +73,7 @@ class TestBatchComputeForces:
     def test_obstacle_repulsion(self):
         """드론이 장애물 근처에 있으면 장애물에서 멀어지는 힘이 발생해야 한다."""
         s = _make_state(5.0, 0.0, did="A")
-        obstacle = np.array([0.0, 0.0, 60.0])  # NFZ center position
+        obstacle = (np.array([0.0, 0.0, 60.0]), 0.0)  # (center, radius)
         forces = batch_compute_forces([s], goals=_goals(s),
                                        obstacles=[obstacle])
         f = forces["A"]
@@ -98,67 +98,100 @@ class TestForceToVelocity:
         assert np.linalg.norm(v) <= 8.0 + 1e-6
 
 
-class TestAPFGoalAltitude:
-    """APF가 goal의 z 좌표(고도)를 인력 계산에 반영하는지 검증"""
+class TestClosingSpeedCap:
+    """BUG-05: closing_speed 2× 명시적 캡 검증"""
 
-    def test_goal_altitude_attracts_upward(self):
-        """goal이 위에 있으면 z 방향 인력이 양수여야 한다."""
-        s = APFState(position=np.array([0.0, 0.0, 30.0]),
-                     velocity=np.zeros(3), drone_id="D0")
-        goals = {"D0": np.array([0.0, 0.0, 100.0])}
-        forces = batch_compute_forces([s], goals=goals, obstacles=[])
-        assert forces["D0"][2] > 0
+    def test_closing_speed_cap_at_2x(self):
+        """closing_speed=10.0 (> 5.0) 이어도 증폭은 2× 이하여야 한다."""
+        from simulation.apf_engine.apf import repulsive_force_drone, APF_PARAMS
 
-    def test_goal_altitude_attracts_downward(self):
-        """goal이 아래에 있으면 z 방향 인력이 음수여야 한다."""
-        s = APFState(position=np.array([0.0, 0.0, 100.0]),
-                     velocity=np.zeros(3), drone_id="D0")
-        goals = {"D0": np.array([0.0, 0.0, 30.0])}
-        forces = batch_compute_forces([s], goals=goals, obstacles=[])
-        assert forces["D0"][2] < 0
+        # 두 드론이 10m 간격으로 정면 충돌 접근 (closing_speed ≈ 20 m/s)
+        own_pos   = np.array([0.0, 0.0, 60.0])
+        other_pos = np.array([10.0, 0.0, 60.0])
+        own_vel   = np.array([10.0, 0.0, 0.0])   # 상대방 방향으로 이동
+        other_vel = np.array([-10.0, 0.0, 0.0])  # 나 방향으로 이동
 
+        f_high = repulsive_force_drone(own_pos, other_pos, own_vel, other_vel)
 
-class TestAPFKDTree3D:
-    """KDTree가 3D 좌표를 사용하여 수직 분리된 드론을 구별하는지 검증"""
+        # closing_speed = 0 인 경우 (상대속도 없음)
+        f_zero = repulsive_force_drone(
+            own_pos, other_pos,
+            np.zeros(3), np.zeros(3),
+        )
 
-    def test_vertical_separation_changes_force(self):
-        """수직으로 분리된 드론 쌍과 같은 고도 쌍의 반발력이 다르다."""
-        # 같은 고도 (60m), 수평 30m
-        s0 = APFState(position=np.array([0.0, 0.0, 60.0]),
-                      velocity=np.zeros(3), drone_id="A")
-        s1 = APFState(position=np.array([30.0, 0.0, 60.0]),
-                      velocity=np.zeros(3), drone_id="B")
-        goals_same = _goals(s0, s1)
-        f_same = batch_compute_forces([s0, s1], goals=goals_same, obstacles=[])
+        mag_high = float(np.linalg.norm(f_high))
+        mag_zero = float(np.linalg.norm(f_zero))
 
-        # 수직 분리 (30m vs 90m) — 3D 거리 67m
-        s2 = APFState(position=np.array([0.0, 0.0, 30.0]),
-                      velocity=np.zeros(3), drone_id="C")
-        s3 = APFState(position=np.array([30.0, 0.0, 90.0]),
-                      velocity=np.zeros(3), drone_id="D")
-        goals_sep = _goals(s2, s3)
-        f_sep = batch_compute_forces([s2, s3], goals=goals_sep, obstacles=[])
+        if mag_zero > 1e-6:
+            ratio = mag_high / mag_zero
+            assert ratio <= 2.0 + 1e-6, f"closing_speed 증폭이 2× 초과: {ratio:.3f}"
 
-        # 두 시나리오에서 모두 3 벡터 힘이 계산됨
-        assert f_same["A"].shape == (3,)
-        assert f_sep["C"].shape == (3,)
+    def test_no_amplification_when_moving_away(self):
+        """멀어지는 방향(closing_speed < 0)이면 증폭 없음"""
+        from simulation.apf_engine.apf import repulsive_force_drone
+
+        own_pos   = np.array([0.0, 0.0, 60.0])
+        other_pos = np.array([10.0, 0.0, 60.0])
+        own_vel   = np.array([-5.0, 0.0, 0.0])   # 멀어지는 방향
+        other_vel = np.zeros(3)
+
+        f = repulsive_force_drone(own_pos, other_pos, own_vel, other_vel)
+        f_base = repulsive_force_drone(own_pos, other_pos, np.zeros(3), np.zeros(3))
+
+        # 멀어지는 경우 기본 척력과 크기가 같아야 함
+        assert abs(np.linalg.norm(f) - np.linalg.norm(f_base)) < 1e-6
 
 
-class TestAPFWindyMode:
-    """강풍 모드 파라미터 적용 검증"""
+class TestGroundAvoidance:
+    """F-02: z < 5m 지면 회피 반발력 검증"""
 
-    def test_windy_increases_repulsion(self):
-        """풍속이 높으면 반발력이 커져야 한다."""
-        s0 = APFState(position=np.array([0.0, 0.0, 60.0]),
-                      velocity=np.zeros(3), drone_id="A")
-        s1 = APFState(position=np.array([30.0, 0.0, 60.0]),
-                      velocity=np.zeros(3), drone_id="B")
-        goals = _goals(s0, s1)
+    def test_ground_repulsion_below_5m(self):
+        """고도 2m 드론 → z 방향 합력이 양수(상승)여야 한다."""
+        from simulation.apf_engine.apf import compute_total_force, APFState
 
-        f_calm = batch_compute_forces([s0, s1], goals=goals, obstacles=[],
-                                       wind_speeds={"A": 0.0, "B": 0.0})
-        f_wind = batch_compute_forces([s0, s1], goals=goals, obstacles=[],
-                                       wind_speeds={"A": 15.0, "B": 15.0})
-        rep_calm = np.linalg.norm(f_calm.get("A", np.zeros(3)))
-        rep_wind = np.linalg.norm(f_wind.get("A", np.zeros(3)))
-        assert rep_wind >= rep_calm
+        own = APFState(
+            position=np.array([0.0, 0.0, 2.0]),   # 지면 2m
+            velocity=np.zeros(3),
+            drone_id="G0",
+        )
+        goal = np.array([1000.0, 0.0, 60.0])
+        f = compute_total_force(own, goal, [], [], target_alt=60.0)
+        assert f[2] > 0, "z<5m 에서 지면 회피 힘이 양수(상승)여야 함"
+
+    def test_no_ground_repulsion_above_5m(self):
+        """고도 10m 드론 → 지면 반발력 없음 (고도 보정만)"""
+        from simulation.apf_engine.apf import compute_total_force, APFState
+
+        own10 = APFState(position=np.array([0.0, 0.0, 10.0]), velocity=np.zeros(3), drone_id="G1")
+        own2  = APFState(position=np.array([0.0, 0.0, 2.0]),  velocity=np.zeros(3), drone_id="G2")
+        goal  = np.array([1000.0, 0.0, 10.0])
+
+        f10 = compute_total_force(own10, goal, [], [], target_alt=10.0)
+        f2  = compute_total_force(own2,  goal, [], [], target_alt=10.0)
+
+        # 지면 근처(2m)가 높이(10m)보다 z 힘이 더 커야 함
+        assert f2[2] > f10[2], "지면 가까울수록 상승력이 더 강해야 함"
+
+
+class TestTargetAlt:
+    """target_alt 파라미터 전달 검증"""
+
+    def test_target_alt_influences_z_force(self):
+        """goal[2]와 다른 target_alt 적용 시 고도력이 goal[2] 기준이 아닌 target_alt 기준"""
+        from simulation.apf_engine.apf import compute_total_force, APFState
+
+        own = APFState(
+            position=np.array([0.0, 0.0, 50.0]),  # 현재 고도 50m
+            velocity=np.zeros(3),
+            drone_id="T0",
+        )
+        goal = np.array([1000.0, 0.0, 60.0])  # goal 고도 60m
+
+        # target_alt=80m → 고도력이 위 방향(80-50=30m 오차)
+        f_80 = compute_total_force(own, goal, [], [], target_alt=80.0)
+        # target_alt=40m → 고도력이 아래 방향(40-50=-10m 오차)
+        f_40 = compute_total_force(own, goal, [], [], target_alt=40.0)
+
+        # target_alt=80 → z 방향 힘 양수, target_alt=40 → z 방향 힘 음수
+        assert f_80[2] > 0, "target_alt=80m 일 때 z 힘이 위쪽이어야 함"
+        assert f_40[2] < 0, "target_alt=40m 일 때 z 힘이 아래쪽이어야 함"

@@ -83,6 +83,7 @@ class TestTranslateScenario:
 
 
 class TestRunScenario:
+    @pytest.mark.timeout(300)
     def test_run_high_density_single(self):
         results = run_scenario("high_density", n_runs=1, seed=42, verbose=False)
         assert len(results) == 1
@@ -93,6 +94,7 @@ class TestRunScenario:
         with pytest.raises(FileNotFoundError):
             run_scenario("nonexistent_scenario_xyz", n_runs=1, verbose=False)
 
+    @pytest.mark.timeout(300)
     def test_run_multiple(self):
         results = run_scenario("route_conflict", n_runs=2, seed=42, verbose=False)
         assert len(results) == 2

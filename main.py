@@ -174,7 +174,7 @@ def cmd_visualize(args: argparse.Namespace) -> None:
 
     print(f"\n🛸 3D 실시간 대시보드 시작: http://127.0.0.1:{port}")
     print("  ▶ 시작 버튼을 눌러 시뮬레이션을 실행하세요.\n")
-    app.run(debug=False, host="0.0.0.0", port=port)
+    app.run(debug=False, host="127.0.0.1", port=port)
 
 
 # ── visualize-3d ────────────────────────────────────────────

@@ -722,7 +722,7 @@ class SwarmSimulator:
                             )
 
                 # 통신 두절 주입
-                if self._comms_loss_rate > 0 and drone.comms_status == CommsStatus.NORMAL:
+                if self._comms_loss_rate > 0 and drone.comms_status == CommsStatus.NOMINAL:
                     if self.rng.random() < self._comms_loss_rate * INJECT_INTERVAL_S / 60.0:
                         drone.comms_status = CommsStatus.LOST
                         if self.analytics:

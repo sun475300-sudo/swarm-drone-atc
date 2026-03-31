@@ -263,4 +263,4 @@ def create_app(engine_type: str = "rule") -> dash.Dash:
 def run_chatbot(port: int = 8051, engine_type: str = "rule", debug: bool = False):
     """챗봇 서버를 실행한다."""
     app = create_app(engine_type=engine_type)
-    app.run(debug=debug, host="0.0.0.0", port=port)
+    app.run(debug=debug, host="127.0.0.1", port=port)

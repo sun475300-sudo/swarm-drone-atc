@@ -35,6 +35,7 @@ class TestLoadConfig:
 
 
 class TestRunSingle:
+    @pytest.mark.timeout(300)
     def test_returns_dict_with_required_keys(self):
         combo = {"drone_density": 50, "wind_speed_ms": 0,
                  "failure_rate_pct": 0, "comms_loss_rate": 0}
@@ -46,6 +47,7 @@ class TestRunSingle:
         assert "route_efficiency" in result
         assert result["seed"] == 42
 
+    @pytest.mark.timeout(300)
     def test_wind_override(self):
         combo = {"drone_density": 50, "wind_speed_ms": 10,
                  "failure_rate_pct": 0, "comms_loss_rate": 0}

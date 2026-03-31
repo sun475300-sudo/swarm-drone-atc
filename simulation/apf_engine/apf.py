@@ -22,6 +22,7 @@ APF_PARAMS = {
     "d0_obs": 30.0,         # 장애물 영향 거리 (m)
     "max_force": 10.0,      # 최대 합력 (m/s²)
     "altitude_k": 0.5,      # 고도 보정 게인
+    "target_alt": 60.0,     # 순항 고도 (m)
 }
 
 # 강풍 조건용 파라미터 (weather_disturbance 시나리오 개선)
@@ -34,6 +35,7 @@ APF_PARAMS_WINDY = {
     "d0_obs": 45.0,         # 장애물 영향 거리 (m)
     "max_force": 22.0,      # 최대 합력 (m/s²) - 강풍 저항 강화 (18 → 22)
     "altitude_k": 1.0,      # 고도 보정 게인 (윈드 시어 대응)
+    "target_alt": 60.0,     # 순항 고도 (m)
 }
 
 
@@ -173,7 +175,7 @@ def compute_total_force(
         )
 
     # 4. 고도 보정 (비행 고도 유지)
-    target_alt = params.get("target_alt", 60.0)  # 순항 고도 (m), 파라미터로 설정 가능
+    target_alt = params["target_alt"]
     alt_error = target_alt - own.position[2]
     F_total[2] += params["altitude_k"] * alt_error
 

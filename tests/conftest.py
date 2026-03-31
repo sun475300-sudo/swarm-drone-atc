@@ -38,7 +38,7 @@ def sim_config(tmp_path):
 
     cfg = {
         "simulation": {"hz": 10, "realtime": False},
-        "drones": {"count": 4, "profiles": ["COMMERCIAL_DELIVERY"]},
+        "drones": {"default_count": 4, "count": 4, "profiles": ["COMMERCIAL_DELIVERY"]},
         "airspace": {
             "bounds_km": {"x": [-2, 2], "y": [-2, 2], "z": [0, 0.15]},
             "no_fly_zones": [

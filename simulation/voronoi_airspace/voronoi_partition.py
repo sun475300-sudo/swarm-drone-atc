@@ -9,6 +9,7 @@ Voronoi Tessellation 기반 동적 공역 분할
 """
 from __future__ import annotations
 import numpy as np
+import scipy.spatial
 from scipy.spatial import Voronoi, ConvexHull
 from dataclasses import dataclass
 from typing import Optional
@@ -108,7 +109,7 @@ def compute_voronoi_partition(
                 verts_arr = np.array(vertices)
                 hull = ConvexHull(verts_arr)
                 area = hull.volume / 1e6  # m² → km²
-            except Exception:
+            except (ValueError, scipy.spatial.QhullError):
                 area = 0.0
 
         cells[did] = AirspaceCell(
@@ -239,5 +240,5 @@ def is_in_cell(position: np.ndarray, cell: AirspaceCell) -> bool:
         from matplotlib.path import Path
         path = Path(np.array(cell.vertices))
         return bool(path.contains_point(position[:2]))
-    except Exception:
+    except (ImportError, ValueError):
         return True

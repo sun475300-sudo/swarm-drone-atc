@@ -20,6 +20,7 @@ import os
 import threading
 import time
 import math
+from collections import deque
 
 import numpy as np
 
@@ -119,7 +120,7 @@ class SimState:
     def __init__(self) -> None:
         self.lock = threading.Lock()
         self.drones: dict[str, DroneState] = {}
-        self.trails: dict[str, list[tuple]] = {}
+        self.trails: dict[str, deque[tuple]] = {}
         self.trail_len = 40
 
         self.t = 0.0
@@ -159,8 +160,14 @@ class SimState:
         self.timeline = EventTimeline()
 
         # 성능 모니터
-        self.tick_times_ms: list[float] = []
         self.max_tick_history = 300
+        self.tick_times_ms: deque[float] = deque(maxlen=self.max_tick_history)
+        self._tick_start: float | None = None
+
+        # 충돌 감지 (스레드 안전 초기화)
+        from simulation.spatial_hash import SpatialHash
+        self._spatial_hash = SpatialHash(cell_size=50.0)
+        self._active_conflict_pairs: set = set()
 
     def reset(self, n_drones: int | None = None) -> None:
         if n_drones is not None:
@@ -172,7 +179,7 @@ class SimState:
         weights   = [0.55, 0.25, 0.10, 0.10]
 
         drones: dict[str, DroneState] = {}
-        trails: dict[str, list] = {}
+        trails: dict[str, deque] = {}
 
         for i in range(self.n_drones):
             pad = _PAD_LIST[i % len(_PAD_LIST)].copy()
@@ -203,7 +210,7 @@ class SimState:
             )
             d.goal = goal
             drones[drone_id] = d
-            trails[drone_id] = []
+            trails[drone_id] = deque(maxlen=self.trail_len)
 
         with self.lock:
             self.drones = drones
@@ -221,7 +228,7 @@ class SimState:
             self.sla_monitor = SLAMonitor()
             self.sla_violations = []
             self.timeline = EventTimeline()
-            self.tick_times_ms = []
+            self.tick_times_ms = deque(maxlen=self.max_tick_history)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -267,11 +274,6 @@ def _step(sim: SimState) -> None:
             _update(drone, forces, sim, dt)
 
         # 근접/충돌 감지 — SpatialHash O(N·k)
-        if not hasattr(sim, '_spatial_hash'):
-            from simulation.spatial_hash import SpatialHash
-            sim._spatial_hash = SpatialHash(cell_size=50.0)
-        if not hasattr(sim, '_active_conflict_pairs'):
-            sim._active_conflict_pairs = set()
 
         sh = sim._spatial_hash
         sh.clear()
@@ -306,11 +308,9 @@ def _step(sim: SimState) -> None:
         # 틱 성능 기록
         import time as _time
         _tick_end = _time.perf_counter()
-        if hasattr(sim, '_tick_start'):
+        if sim._tick_start is not None:
             tick_ms = (_tick_end - sim._tick_start) * 1000
             sim.tick_times_ms.append(tick_ms)
-            if len(sim.tick_times_ms) > sim.max_tick_history:
-                sim.tick_times_ms = sim.tick_times_ms[-sim.max_tick_history:]
         sim._tick_start = _tick_end
 
         # 메트릭 수집 (매 1초 = 10틱)
@@ -385,7 +385,7 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
 
     # 배터리 소모 (비행 중)
     if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
-        rate = 100.0 / (profile.endurance_min * 60.0 / dt)
+        rate = 100.0 / (max(profile.endurance_min, 0.1) * 60.0 / dt)
         drone.battery_pct = max(0.0, drone.battery_pct - rate)
         if drone.battery_pct < 5.0 and drone.failure_type == FailureType.NONE:
             drone.failure_type = FailureType.BATTERY_CRITICAL
@@ -448,8 +448,11 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
     # ── APF 회피 기동
     elif phase == FlightPhase.EVADING:
         force = forces.get(drone.drone_id, np.zeros(3))
+        # wind 이중 적용 방지: 이전 틱의 ground velocity에서 wind를 제거하여
+        # airspeed를 구한 뒤 APF force를 적용하고, wind를 다시 더해 ground velocity로 변환
+        airspeed = drone.velocity - sim.wind
         drone.velocity = force_to_velocity(
-            drone.velocity, force, dt, profile.max_speed_ms
+            airspeed, force, dt, profile.max_speed_ms
         )
         drone.velocity += sim.wind
         drone.position += drone.velocity * dt
@@ -460,7 +463,7 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
 
         # NFZ 밖이면 ENROUTE 복귀 (evade_end_s 타이머 또는 확률적 전환)
         should_exit = False
-        if hasattr(drone, 'evade_end_s') and drone.evade_end_s is not None and sim.t >= drone.evade_end_s:
+        if drone.evade_end_s is not None and sim.t >= drone.evade_end_s:
             should_exit = True
             drone.evade_end_s = None
         elif not _in_nfz(drone.position) and sim.rng.random() < 0.04 * dt * 10:
@@ -490,7 +493,7 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
     elif phase == FlightPhase.HOLDING:
         drone.velocity = np.zeros(3)
         # 5초 후 고도 상승(RTL 준비)으로 전이
-        if not hasattr(drone, 'hold_start_s') or drone.hold_start_s is None:
+        if drone.hold_start_s is None:
             drone.hold_start_s = sim.t
         if sim.t > drone.hold_start_s + 5.0:
             drone.hold_start_s = None
@@ -532,13 +535,13 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
         drone.flight_time_s += dt
 
     # 트레일 갱신
-    trail = sim.trails.get(drone.drone_id, [])
+    trail = sim.trails.get(drone.drone_id)
+    if trail is None:
+        trail = deque(maxlen=sim.trail_len)
+        sim.trails[drone.drone_id] = trail
     trail.append((float(drone.position[0]),
                   float(drone.position[1]),
                   float(drone.position[2])))
-    if len(trail) > sim.trail_len:
-        trail = trail[-sim.trail_len:]
-    sim.trails[drone.drone_id] = trail
 
 
 def _sim_loop(sim: SimState) -> None:
@@ -1740,4 +1743,4 @@ if __name__ == "__main__":
     print("  Press [Start] button to begin simulation.")
     print("=" * 60)
 
-    app.run(debug=False, host="0.0.0.0", port=8050)
+    app.run(debug=False, host="127.0.0.1", port=8050)

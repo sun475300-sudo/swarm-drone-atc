@@ -34,7 +34,7 @@ class EventArchitecture:
         for handler in self._handlers.get(event_type, []):
             try:
                 handler(event)
-            except Exception:
+            except (TypeError, ValueError, RuntimeError):
                 pass
         return event
 

@@ -84,7 +84,8 @@ def _estimate_power_w(
     - 역풍 보정: 실효 속도 증가분만큼 추가 소모
     - 상승/하강: 상승 시 추가 에너지, 하강 시 미세 회수
     """
-    p_hover = profile.battery_wh * 3600.0 / (profile.endurance_min * 60.0)
+    endurance_s = max(profile.endurance_min * 60.0, 1.0)
+    p_hover = profile.battery_wh * 3600.0 / endurance_s
 
     # 공기 저항 (속도² 비례)
     effective_speed = max(0.0, speed_ms + headwind_ms * 0.5)
@@ -109,10 +110,14 @@ def _estimate_power_w(
 class _DroneAgent:
     """드론 1기를 담당하는 SimPy 프로세스 래퍼"""
 
-    CRUISE_ALT = 60.0   # 기본 순항 고도 (m)
-    TAKEOFF_RATE = 3.5  # 상승 속도 (m/s)
-    LAND_RATE    = 2.5  # 하강 속도 (m/s)
-    WAYPOINT_TOL = 80.0 # 웨이포인트 도달 허용 오차 (m)
+    CRUISE_ALT = 60.0           # 기본 순항 고도 (m)
+    TAKEOFF_RATE = 3.5          # 상승 속도 (m/s)
+    LAND_RATE    = 2.5          # 하강 속도 (m/s)
+    WAYPOINT_TOL = 80.0         # 웨이포인트 도달 허용 오차 (m)
+    BATTERY_TICK_INTERVAL = 5   # 배터리 계산 주기 (틱, 2Hz = 매 5틱)
+    BATTERY_CRITICAL_PCT = 5.0  # 배터리 임계 잔량 (%)
+    TELEMETRY_INTERVAL = 5      # 텔레메트리 전송 주기 (틱)
+    EMERGENCY_WIND_SPEED = 10.0 # 비상 속도 모드 풍속 임계 (m/s)
 
     def __init__(
         self,
@@ -165,10 +170,10 @@ class _DroneAgent:
             yield self.env.timeout(dt)
             t = float(self.env.now)
 
-            # 1. 배터리 (2Hz: 매 5틱마다 계산, dt_bat = 0.5s)
+            # 1. 배터리 (2Hz: 매 BATTERY_TICK_INTERVAL틱마다 계산)
             tick_count = int(round(t / dt))
-            if tick_count % 5 == 0 and drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
-                dt_bat = dt * 5
+            if tick_count % self.BATTERY_TICK_INTERVAL == 0 and drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
+                dt_bat = dt * self.BATTERY_TICK_INTERVAL
                 # 고도/풍향/상승률 기반 정밀 소모
                 alt = float(drone.position[2]) if len(drone.position) > 2 else 60.0
                 climb_rate = float(drone.velocity[2]) if len(drone.velocity) > 2 else 0.0
@@ -185,7 +190,7 @@ class _DroneAgent:
                 )
                 drone.battery_pct -= (pw * dt_bat) / (profile.battery_wh * 3600.0) * 100.0
                 drone.battery_pct  = max(0.0, drone.battery_pct)
-                if drone.battery_pct < 5.0 and drone.failure_type == FailureType.NONE:
+                if drone.battery_pct < self.BATTERY_CRITICAL_PCT and drone.failure_type == FailureType.NONE:
                     drone.failure_type = FailureType.BATTERY_CRITICAL
                     drone.flight_phase = FlightPhase.LANDING
 
@@ -196,7 +201,7 @@ class _DroneAgent:
             self._handle_failure(drone, t)
 
             # 4. 바람 (tick 캐시: 동일 tick에서 재계산 방지)
-            cache_key = round(t, 1)
+            cache_key = int(round(t / dt))
             if not hasattr(sim, '_wind_cache') or sim._wind_cache_tick != cache_key:
                 sim._wind_cache = sum(
                     (m.get_wind_vector(np.zeros(3), t) for m in sim.wind_models),
@@ -224,7 +229,7 @@ class _DroneAgent:
                 # wind는 속도 벡터(m/s)로서 직접 가산 (force가 아니므로 dt 미적용)
                 drone.velocity[:2] += wind[:2]
                 # 비상 속도 모드: EVADING 모드이면서 강풍일 때만 활성화
-                if drone.flight_phase == FlightPhase.EVADING and wind_speed > 10.0:
+                if drone.flight_phase == FlightPhase.EVADING and wind_speed > self.EMERGENCY_WIND_SPEED:
                     drone.velocity  = _clamp_speed(drone.velocity, profile.max_speed_ms, wind_speed)
                 else:
                     drone.velocity  = _clamp_speed(drone.velocity, profile.max_speed_ms)
@@ -251,9 +256,9 @@ class _DroneAgent:
             # 통신 범위 계산용 위치 업데이트
             sim.comm_bus.update_position(drone.drone_id, drone.position.copy())
 
-            # 8. 텔레메트리 송신 (5틱마다 ≈ 0.5 s)
+            # 8. 텔레메트리 송신 (TELEMETRY_INTERVAL틱마다 ≈ 0.5 s)
             tick = int(round(t / dt))
-            if tick % 5 == 0:
+            if tick % self.TELEMETRY_INTERVAL == 0:
                 sim.comm_bus.send(CommMessage(
                     sender_id=drone.drone_id,
                     receiver_id="CONTROLLER",
@@ -479,7 +484,8 @@ class SwarmSimulator:
 
         # 공역 경계
         bounds_km    = self.cfg.get("airspace", {}).get("bounds_km", {})
-        self.bounds_m = abs(float(bounds_km.get("x", [-5, 5])[1])) * 1000.0
+        x_bounds     = bounds_km.get("x", [-5, 5])
+        self.bounds_m = abs(float(x_bounds[1] if len(x_bounds) >= 2 else 5)) * 1000.0
 
         # SimPy
         self.env = simpy.Environment()
@@ -509,6 +515,10 @@ class SwarmSimulator:
             separation_vertical_m=float(
                 self.cfg.get("separation_standards", {}).get("vertical_min_m", 15.0)),
         )
+        self._sep_lateral = float(
+            self.cfg.get("separation_standards", {}).get("lateral_min_m", 50.0))
+        self._near_miss_m = float(
+            self.cfg.get("separation_standards", {}).get("near_miss_lateral_m", 10.0))
         self.priority_queue = FlightPriorityQueue()
         self.analytics      = SimulationAnalytics(self.cfg)
         self.controller     = AirspaceController(
@@ -720,7 +730,7 @@ class SwarmSimulator:
                             )
 
                 # 통신 두절 주입
-                if self._comms_loss_rate > 0 and drone.comms_status == CommsStatus.NORMAL:
+                if self._comms_loss_rate > 0 and drone.comms_status == CommsStatus.NOMINAL:
                     if self.rng.random() < self._comms_loss_rate * INJECT_INTERVAL_S / 60.0:
                         drone.comms_status = CommsStatus.LOST
                         if self.analytics:
@@ -744,16 +754,25 @@ class SwarmSimulator:
                     avg_wind += wm.get_wind_vector(np.zeros(3), t)
                 self.controller.update_wind_speed(float(np.linalg.norm(avg_wind)))
 
-            # Spatial Hash로 충돌 감지 (5 m 이내) — O(N·k)
+            # Spatial Hash로 근접/충돌 감지 — O(N·k)
             # A1: LANDING 드론은 충돌 스캔에서 제외 (착지 중 수직 프로파일은 안전)
             sh.clear()
             for did, d in self._drones.items():
                 if d.is_active and d.flight_phase != FlightPhase.LANDING:
                     sh.insert(did, d.position)
 
-            for id_a, id_b, dist in sh.query_pairs_with_dist(5.0):
-                self.analytics.record_event("COLLISION", t,
-                                            drone_a=id_a, drone_b=id_b)
+            for id_a, id_b, dist in sh.query_pairs_with_dist(self._sep_lateral):
+                if dist < 5.0:
+                    self.analytics.record_event("COLLISION", t,
+                                                drone_a=id_a, drone_b=id_b)
+                elif dist < self._near_miss_m:
+                    self.analytics.record_event("NEAR_MISS", t,
+                                                drone_a=id_a, drone_b=id_b,
+                                                dist_m=dist)
+                else:
+                    self.analytics.record_event("CONFLICT", t,
+                                                drone_a=id_a, drone_b=id_b,
+                                                dist_m=dist)
 
     # ── 유틸리티 ─────────────────────────────────────────────
 

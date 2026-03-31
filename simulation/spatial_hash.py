@@ -69,19 +69,21 @@ class SpatialHash:
                             result.append(did)
         return result
 
-    def query_pairs(self, radius: float) -> set[frozenset[str]]:
+    def query_pairs(self, radius: float) -> set[tuple[str, str]]:
         """
         radius 이내에 있는 모든 드론 쌍 반환.
         O(N * k) — k는 평균 이웃 수.
+        sorted tuple로 중복 방지 (frozenset 대비 해싱 오버헤드 감소).
         """
         r2 = radius * radius
-        pairs: set[frozenset[str]] = set()
+        pairs: set[tuple[str, str]] = set()
 
         for did, pos in self._positions.items():
             neighbors = self.query_radius(pos, radius)
             for nid in neighbors:
                 if nid != did:
-                    pairs.add(frozenset((did, nid)))
+                    pair = (did, nid) if did < nid else (nid, did)
+                    pairs.add(pair)
         return pairs
 
     def query_pairs_with_dist(
@@ -89,9 +91,10 @@ class SpatialHash:
     ) -> Iterator[tuple[str, str, float]]:
         """
         radius 이내 쌍 + 거리 반환 (중복 제거).
+        sorted tuple로 해싱 최적화.
         """
         r2 = radius * radius
-        seen: set[frozenset[str]] = set()
+        seen: set[tuple[str, str]] = set()
 
         for did, pos in self._positions.items():
             cx, cy, cz = self._key(pos)
@@ -106,7 +109,7 @@ class SpatialHash:
                         for nid in cell:
                             if nid == did:
                                 continue
-                            pair = frozenset((did, nid))
+                            pair = (did, nid) if did < nid else (nid, did)
                             if pair in seen:
                                 continue
                             np2 = self._positions[nid]

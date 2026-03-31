@@ -10,6 +10,7 @@
 """
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
@@ -49,7 +50,6 @@ class BatchSimulator:
         self, run_func: Callable[[dict[str, Any]], dict[str, float]],
     ) -> dict[str, BatchResult]:
         """모든 시나리오 실행"""
-        import time
         results = {}
         for sid, sc in self._scenarios.items():
             start = time.perf_counter()
@@ -77,7 +77,6 @@ class BatchSimulator:
         sc = self._scenarios.get(scenario_id)
         if not sc:
             return None
-        import time
         start = time.perf_counter()
         try:
             metrics = run_func(sc.params)

@@ -113,9 +113,12 @@ def low_level_astar(
     heapq.heappush(open_heap, start_node)
 
     visited = {}
+    max_expansions = max_time * 500  # 탐색 노드 수 상한 (무한루프 방지)
+    expansions = 0
 
-    while open_heap:
+    while open_heap and expansions < max_expansions:
         current = heapq.heappop(open_heap)
+        expansions += 1
 
         if current.node == goal:
             # 경로 역추적

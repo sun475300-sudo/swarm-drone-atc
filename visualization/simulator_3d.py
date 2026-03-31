@@ -161,6 +161,12 @@ class SimState:
         # 성능 모니터
         self.tick_times_ms: list[float] = []
         self.max_tick_history = 300
+        self._tick_start: float | None = None
+
+        # 충돌 감지 (스레드 안전 초기화)
+        from simulation.spatial_hash import SpatialHash
+        self._spatial_hash = SpatialHash(cell_size=50.0)
+        self._active_conflict_pairs: set = set()
 
     def reset(self, n_drones: int | None = None) -> None:
         if n_drones is not None:
@@ -267,11 +273,6 @@ def _step(sim: SimState) -> None:
             _update(drone, forces, sim, dt)
 
         # 근접/충돌 감지 — SpatialHash O(N·k)
-        if not hasattr(sim, '_spatial_hash'):
-            from simulation.spatial_hash import SpatialHash
-            sim._spatial_hash = SpatialHash(cell_size=50.0)
-        if not hasattr(sim, '_active_conflict_pairs'):
-            sim._active_conflict_pairs = set()
 
         sh = sim._spatial_hash
         sh.clear()
@@ -306,7 +307,7 @@ def _step(sim: SimState) -> None:
         # 틱 성능 기록
         import time as _time
         _tick_end = _time.perf_counter()
-        if hasattr(sim, '_tick_start'):
+        if sim._tick_start is not None:
             tick_ms = (_tick_end - sim._tick_start) * 1000
             sim.tick_times_ms.append(tick_ms)
             if len(sim.tick_times_ms) > sim.max_tick_history:
@@ -385,7 +386,7 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
 
     # 배터리 소모 (비행 중)
     if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
-        rate = 100.0 / (profile.endurance_min * 60.0 / dt)
+        rate = 100.0 / (max(profile.endurance_min, 0.1) * 60.0 / dt)
         drone.battery_pct = max(0.0, drone.battery_pct - rate)
         if drone.battery_pct < 5.0 and drone.failure_type == FailureType.NONE:
             drone.failure_type = FailureType.BATTERY_CRITICAL
@@ -448,8 +449,11 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
     # ── APF 회피 기동
     elif phase == FlightPhase.EVADING:
         force = forces.get(drone.drone_id, np.zeros(3))
+        # wind 이중 적용 방지: 이전 틱의 ground velocity에서 wind를 제거하여
+        # airspeed를 구한 뒤 APF force를 적용하고, wind를 다시 더해 ground velocity로 변환
+        airspeed = drone.velocity - sim.wind
         drone.velocity = force_to_velocity(
-            drone.velocity, force, dt, profile.max_speed_ms
+            airspeed, force, dt, profile.max_speed_ms
         )
         drone.velocity += sim.wind
         drone.position += drone.velocity * dt
@@ -1740,4 +1744,4 @@ if __name__ == "__main__":
     print("  Press [Start] button to begin simulation.")
     print("=" * 60)
 
-    app.run(debug=False, host="0.0.0.0", port=8050)
+    app.run(debug=False, host="127.0.0.1", port=8050)

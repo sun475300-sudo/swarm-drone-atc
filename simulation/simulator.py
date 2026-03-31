@@ -84,7 +84,8 @@ def _estimate_power_w(
     - 역풍 보정: 실효 속도 증가분만큼 추가 소모
     - 상승/하강: 상승 시 추가 에너지, 하강 시 미세 회수
     """
-    p_hover = profile.battery_wh * 3600.0 / (profile.endurance_min * 60.0)
+    endurance_s = max(profile.endurance_min * 60.0, 1.0)
+    p_hover = profile.battery_wh * 3600.0 / endurance_s
 
     # 공기 저항 (속도² 비례)
     effective_speed = max(0.0, speed_ms + headwind_ms * 0.5)

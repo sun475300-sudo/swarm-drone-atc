@@ -236,6 +236,7 @@ class AirspaceController:
                 drone_id=tm.drone_id,
                 position=np.array(tm.position, dtype=float),
                 velocity=np.array(tm.velocity, dtype=float),
+                battery_pct=float(tm.battery_pct),
             )
             self._active_drones[tm.drone_id] = drone
         else:
@@ -367,8 +368,9 @@ class AirspaceController:
 
         try:
             paths = cbs_plan(starts, goals, grid_bounds, max_ct_nodes=500)
-        except Exception:
-            logger.warning("CBS planning failed for batch of %d drones", len(batch))
+        except (ValueError, RuntimeError, KeyError) as exc:
+            logger.warning("CBS planning failed for batch of %d drones: %s",
+                           len(batch), exc, exc_info=True)
             return {}
 
         result: dict[str, list] = {}
@@ -678,8 +680,9 @@ class AirspaceController:
                     positions, bounds_dict
                 )
                 self._apply_density_based_separation()
-            except Exception:
-                logger.warning("Voronoi partition failed with %d drones", len(positions))
+            except (ValueError, RuntimeError) as exc:
+                logger.warning("Voronoi partition failed with %d drones: %s",
+                               len(positions), exc)
 
     def _apply_density_based_separation(self) -> None:
         """

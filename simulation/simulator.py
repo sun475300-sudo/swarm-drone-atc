@@ -480,7 +480,8 @@ class SwarmSimulator:
 
         # 공역 경계
         bounds_km    = self.cfg.get("airspace", {}).get("bounds_km", {})
-        self.bounds_m = abs(float(bounds_km.get("x", [-5, 5])[1])) * 1000.0
+        x_bounds     = bounds_km.get("x", [-5, 5])
+        self.bounds_m = abs(float(x_bounds[1] if len(x_bounds) >= 2 else 5)) * 1000.0
 
         # SimPy
         self.env = simpy.Environment()

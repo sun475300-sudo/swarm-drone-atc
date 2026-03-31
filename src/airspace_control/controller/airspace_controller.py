@@ -196,6 +196,9 @@ class AirspaceController:
         released = 0
         while self._holding_queue and released < MAX_RELEASE_PER_TICK:
             entry_time, did = self._holding_queue[0]
+            # 타임스탬프 역전 방어: 미래 시각의 entry_time은 현재 시각으로 보정
+            if entry_time > t:
+                entry_time = t
             if t - entry_time < MIN_HOLD_S:
                 break
             heapq.heappop(self._holding_queue)
@@ -229,23 +232,35 @@ class AirspaceController:
         elif isinstance(payload, ClearanceRequest):
             self._pending.append(payload)
 
+    @staticmethod
+    def _ensure_3d(vec) -> np.ndarray:
+        """벡터를 3차원으로 보장 (2D 입력 시 z=0 패딩)"""
+        arr = np.asarray(vec, dtype=float).ravel()
+        if arr.shape[0] >= 3:
+            return arr[:3]
+        return np.pad(arr, (0, 3 - arr.shape[0]))
+
     def _update_drone_state(self, tm: TelemetryMessage) -> None:
+        pos = self._ensure_3d(tm.position)
+        vel = self._ensure_3d(tm.velocity)
+        bat = float(np.clip(tm.battery_pct, 0.0, 100.0))
+
         drone = self._active_drones.get(tm.drone_id)
         if drone is None:
             drone = DroneState(
                 drone_id=tm.drone_id,
-                position=np.array(tm.position, dtype=float),
-                velocity=np.array(tm.velocity, dtype=float),
-                battery_pct=float(tm.battery_pct),
+                position=pos,
+                velocity=vel,
+                battery_pct=bat,
             )
             self._active_drones[tm.drone_id] = drone
         else:
             # 타임스탬프 단조성 검증: 오래된 텔레메트리 무시
             if tm.timestamp_s < drone.last_update_s:
                 return
-            drone.position = np.array(tm.position, dtype=float)
-            drone.velocity = np.array(tm.velocity, dtype=float)
-            drone.battery_pct = float(tm.battery_pct)
+            drone.position = pos
+            drone.velocity = vel
+            drone.battery_pct = bat
         drone.last_update_s = float(tm.timestamp_s)
         try:
             drone.flight_phase = FlightPhase[tm.flight_phase]

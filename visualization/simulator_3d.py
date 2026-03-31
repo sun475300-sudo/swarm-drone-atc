@@ -20,6 +20,7 @@ import os
 import threading
 import time
 import math
+from collections import deque
 
 import numpy as np
 
@@ -119,7 +120,7 @@ class SimState:
     def __init__(self) -> None:
         self.lock = threading.Lock()
         self.drones: dict[str, DroneState] = {}
-        self.trails: dict[str, list[tuple]] = {}
+        self.trails: dict[str, deque[tuple]] = {}
         self.trail_len = 40
 
         self.t = 0.0
@@ -159,8 +160,8 @@ class SimState:
         self.timeline = EventTimeline()
 
         # 성능 모니터
-        self.tick_times_ms: list[float] = []
         self.max_tick_history = 300
+        self.tick_times_ms: deque[float] = deque(maxlen=self.max_tick_history)
         self._tick_start: float | None = None
 
         # 충돌 감지 (스레드 안전 초기화)
@@ -178,7 +179,7 @@ class SimState:
         weights   = [0.55, 0.25, 0.10, 0.10]
 
         drones: dict[str, DroneState] = {}
-        trails: dict[str, list] = {}
+        trails: dict[str, deque] = {}
 
         for i in range(self.n_drones):
             pad = _PAD_LIST[i % len(_PAD_LIST)].copy()
@@ -209,7 +210,7 @@ class SimState:
             )
             d.goal = goal
             drones[drone_id] = d
-            trails[drone_id] = []
+            trails[drone_id] = deque(maxlen=self.trail_len)
 
         with self.lock:
             self.drones = drones
@@ -227,7 +228,7 @@ class SimState:
             self.sla_monitor = SLAMonitor()
             self.sla_violations = []
             self.timeline = EventTimeline()
-            self.tick_times_ms = []
+            self.tick_times_ms = deque(maxlen=self.max_tick_history)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -310,8 +311,6 @@ def _step(sim: SimState) -> None:
         if sim._tick_start is not None:
             tick_ms = (_tick_end - sim._tick_start) * 1000
             sim.tick_times_ms.append(tick_ms)
-            if len(sim.tick_times_ms) > sim.max_tick_history:
-                sim.tick_times_ms = sim.tick_times_ms[-sim.max_tick_history:]
         sim._tick_start = _tick_end
 
         # 메트릭 수집 (매 1초 = 10틱)
@@ -464,7 +463,7 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
 
         # NFZ 밖이면 ENROUTE 복귀 (evade_end_s 타이머 또는 확률적 전환)
         should_exit = False
-        if hasattr(drone, 'evade_end_s') and drone.evade_end_s is not None and sim.t >= drone.evade_end_s:
+        if drone.evade_end_s is not None and sim.t >= drone.evade_end_s:
             should_exit = True
             drone.evade_end_s = None
         elif not _in_nfz(drone.position) and sim.rng.random() < 0.04 * dt * 10:
@@ -494,7 +493,7 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
     elif phase == FlightPhase.HOLDING:
         drone.velocity = np.zeros(3)
         # 5초 후 고도 상승(RTL 준비)으로 전이
-        if not hasattr(drone, 'hold_start_s') or drone.hold_start_s is None:
+        if drone.hold_start_s is None:
             drone.hold_start_s = sim.t
         if sim.t > drone.hold_start_s + 5.0:
             drone.hold_start_s = None
@@ -536,13 +535,13 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
         drone.flight_time_s += dt
 
     # 트레일 갱신
-    trail = sim.trails.get(drone.drone_id, [])
+    trail = sim.trails.get(drone.drone_id)
+    if trail is None:
+        trail = deque(maxlen=sim.trail_len)
+        sim.trails[drone.drone_id] = trail
     trail.append((float(drone.position[0]),
                   float(drone.position[1]),
                   float(drone.position[2])))
-    if len(trail) > sim.trail_len:
-        trail = trail[-sim.trail_len:]
-    sim.trails[drone.drone_id] = trail
 
 
 def _sim_loop(sim: SimState) -> None:

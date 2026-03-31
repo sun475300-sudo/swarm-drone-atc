@@ -66,11 +66,11 @@ class WindTunnel:
         turbulence = self._rng.normal(0, 0.5, size=3)
         wind += turbulence
 
-        return (round(float(wind[0]), 2), round(float(wind[1]), 2), round(float(wind[2]), 2))
+        return (float(wind[0]), float(wind[1]), float(wind[2]))
 
     def wind_speed_at(self, position: tuple[float, float, float]) -> float:
         w = self.wind_at(position)
-        return round(float(np.sqrt(sum(v**2 for v in w))), 2)
+        return float(np.sqrt(sum(v**2 for v in w)))
 
     def is_sheltered(self, position: tuple[float, float, float], threshold: float = 0.5) -> bool:
         base_speed = float(np.linalg.norm(self.base_wind))

@@ -1489,6 +1489,13 @@ Before hardware testing, swarm algorithms were validated in a StarCraft II envir
 | 2026-03-25 | 18:15 KST | analytics 음수 해결률 + CBS 빈입력 크래시 + APF 기상적응 + engine 리네임 | — |
 | 2026-03-25 | 17:30 KST | 14건 버그 수정 (CRITICAL 4 + HIGH 6 + MEDIUM 4) | — |
 
+
+## 변경 이력 (Changelog)
+
+| 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
+| --- | --- | --- | --- |
+| 2026-03-31 18:33 | `b32e122` | docs: README 대규모 편집 — 품질 개선 및 일관성 확보 | README.md |
+
 ---
 
 ## License / 라이선스

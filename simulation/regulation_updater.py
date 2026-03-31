@@ -71,7 +71,7 @@ class RegulationUpdater:
         for cb in self._callbacks.get(name, []):
             try:
                 cb(name, value)
-            except Exception:
+            except (TypeError, ValueError, RuntimeError):
                 pass
 
         return True

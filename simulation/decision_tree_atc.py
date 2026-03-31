@@ -73,7 +73,7 @@ class DecisionTreeATC:
                     return decision
                 else:
                     rule.miss_count += 1
-            except Exception:
+            except (KeyError, ValueError, TypeError):
                 rule.miss_count += 1
 
         decision = Decision(

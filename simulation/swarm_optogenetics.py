@@ -42,7 +42,6 @@ class OptogeneticController:
                     total_excite += effect
                 else:
                     total_inhibit += effect
-            # Channel dynamics
             a.excitation = float(np.clip(a.excitation + dt * (total_excite - 0.5 * a.excitation), 0, 1))
             a.inhibition = float(np.clip(a.inhibition + dt * (total_inhibit - 0.5 * a.inhibition), 0, 1))
             net = a.excitation - a.inhibition
@@ -52,9 +51,7 @@ class OptogeneticController:
                 a.channel_state = "inactivated"
             else:
                 a.channel_state = "closed"
-            # Movement based on state
             if a.channel_state == "open":
-                # Move toward nearest light
                 if self.light_sources:
                     nearest = min(self.light_sources, key=lambda l: (a.x-l[0])**2 + (a.y-l[1])**2)
                     dx = nearest[0] - a.x

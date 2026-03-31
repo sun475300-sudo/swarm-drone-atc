@@ -45,8 +45,8 @@ class BayesianReputation:
 
     def simulate_interaction(self, drone_id: int) -> bool:
         if drone_id in self.malicious:
-            return self.rng.random() < 0.3  # 악의적: 30% 성공
-        return self.rng.random() < 0.9  # 정상: 90% 성공
+            return self.rng.random() < 0.3
+        return self.rng.random() < 0.9
 
     def detect_malicious(self, threshold=0.5) -> list[int]:
         return [d for d, r in self.reputations.items() if r.trust_score < threshold and r.observations > 5]

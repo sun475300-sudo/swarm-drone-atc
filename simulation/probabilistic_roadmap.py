@@ -1,133 +1,93 @@
-# Phase 604: Probabilistic Roadmap (PRM) — Path Planning
+# Phase 604: Probabilistic Roadmap — PRM + A*
 """
-확률적 로드맵: 랜덤 샘플링 기반 경로 그래프,
-K-nearest neighbor 연결, A* 탐색.
+확률적 로드맵: 샘플링 기반 경로 계획,
+PRM 그래프 구축, A* 검색.
 """
 
 import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import heapq
 
 
-@dataclass
-class PRMNode:
-    node_id: int
-    position: np.ndarray
-    neighbors: list = field(default_factory=list)
-
-
-class PRM:
-    def __init__(self, bounds=(0, 100, 0, 100), seed=42):
+class PRMGraph:
+    def __init__(self, seed=42):
         self.rng = np.random.default_rng(seed)
-        self.bounds = bounds
-        self.nodes: list[PRMNode] = []
-        self.obstacles: list[tuple] = []  # (cx, cy, radius)
+        self.nodes: list[np.ndarray] = []
+        self.edges: dict[int, list[tuple[int, float]]] = {}
 
-    def add_obstacle(self, cx, cy, r):
-        self.obstacles.append((cx, cy, r))
+    def build(self, n_samples: int, x_range: tuple, y_range: tuple, k_neighbors=5):
+        for _ in range(n_samples):
+            x = self.rng.uniform(x_range[0], x_range[1])
+            y = self.rng.uniform(y_range[0], y_range[1])
+            self.nodes.append(np.array([x, y]))
+        for i in range(len(self.nodes)):
+            self.edges[i] = []
+        for i in range(len(self.nodes)):
+            dists = [(j, np.linalg.norm(self.nodes[i] - self.nodes[j]))
+                     for j in range(len(self.nodes)) if j != i]
+            dists.sort(key=lambda x: x[1])
+            for j, d in dists[:k_neighbors]:
+                self.edges[i].append((j, d))
+                if i not in [e[0] for e in self.edges[j]]:
+                    self.edges[j].append((i, d))
 
-    def _collision_free(self, p1: np.ndarray, p2: np.ndarray) -> bool:
-        for cx, cy, r in self.obstacles:
-            center = np.array([cx, cy])
-            d = np.linalg.norm(np.cross(p2 - p1, p1 - center)) / (np.linalg.norm(p2 - p1) + 1e-8)
-            if d < r:
-                return False
-        return True
+    def _nearest(self, point: np.ndarray) -> int:
+        dists = [np.linalg.norm(n - point) for n in self.nodes]
+        return int(np.argmin(dists))
 
-    def _in_obstacle(self, p: np.ndarray) -> bool:
-        for cx, cy, r in self.obstacles:
-            if np.linalg.norm(p - np.array([cx, cy])) < r:
-                return True
-        return False
-
-    def sample(self, n=200):
-        xmin, xmax, ymin, ymax = self.bounds
-        while len(self.nodes) < n:
-            p = np.array([self.rng.uniform(xmin, xmax), self.rng.uniform(ymin, ymax)])
-            if not self._in_obstacle(p):
-                self.nodes.append(PRMNode(len(self.nodes), p))
-
-    def connect(self, k=6):
-        positions = np.array([n.position for n in self.nodes])
-        for node in self.nodes:
-            dists = np.linalg.norm(positions - node.position, axis=1)
-            nearest = np.argsort(dists)[1:k+1]
-            for j in nearest:
-                if self._collision_free(node.position, self.nodes[j].position):
-                    node.neighbors.append(j)
-
-    def a_star(self, start_idx: int, goal_idx: int) -> list[int]:
-        open_set = [(0, start_idx)]
-        g_score = {start_idx: 0}
-        came_from = {}
-        goal_pos = self.nodes[goal_idx].position
+    def query(self, start: np.ndarray, goal: np.ndarray) -> list[np.ndarray] | None:
+        s_idx = self._nearest(start)
+        g_idx = self._nearest(goal)
+        # A*
+        open_set = [(0.0, s_idx)]
+        came_from: dict[int, int] = {}
+        g_score = {s_idx: 0.0}
         while open_set:
             _, current = heapq.heappop(open_set)
-            if current == goal_idx:
-                path = [current]
+            if current == g_idx:
+                path = [self.nodes[current]]
                 while current in came_from:
                     current = came_from[current]
-                    path.append(current)
-                return path[::-1]
-            for neighbor in self.nodes[current].neighbors:
-                d = np.linalg.norm(self.nodes[current].position - self.nodes[neighbor].position)
-                tentative = g_score[current] + d
+                    path.append(self.nodes[current])
+                return list(reversed(path))
+            for neighbor, cost in self.edges.get(current, []):
+                tentative = g_score[current] + cost
                 if tentative < g_score.get(neighbor, float('inf')):
                     came_from[neighbor] = current
                     g_score[neighbor] = tentative
-                    h = np.linalg.norm(self.nodes[neighbor].position - goal_pos)
+                    h = np.linalg.norm(self.nodes[neighbor] - self.nodes[g_idx])
                     heapq.heappush(open_set, (tentative + h, neighbor))
-        return []
+        return None
 
 
-class ProbabilisticRoadmap:
-    def __init__(self, seed=42):
-        self.rng = np.random.default_rng(seed)
-        self.prm = PRM(seed=seed)
-        self.paths_found = 0
-        self.paths_failed = 0
+class ProbabilisticRoadmapPlanner:
+    def __init__(self, n_samples=100, seed=42):
+        self.graph = PRMGraph(seed)
+        self.n_samples = n_samples
+        self.path: list[np.ndarray] | None = None
+        self.start = np.array([5.0, 5.0])
+        self.goal = np.array([95.0, 95.0])
 
-    def setup(self, n_samples=100, n_obstacles=5):
-        for _ in range(n_obstacles):
-            self.prm.add_obstacle(
-                float(self.rng.uniform(20, 80)),
-                float(self.rng.uniform(20, 80)),
-                float(self.rng.uniform(3, 8))
-            )
-        self.prm.sample(n_samples)
-        self.prm.connect(6)
-
-    def find_path(self, start_idx=0, goal_idx=-1) -> list[int]:
-        if goal_idx < 0:
-            goal_idx = len(self.prm.nodes) - 1
-        path = self.prm.a_star(start_idx, goal_idx)
-        if path:
-            self.paths_found += 1
-        else:
-            self.paths_failed += 1
-        return path
-
-    def run(self, n_queries=10):
-        self.setup()
-        n = len(self.prm.nodes)
-        for _ in range(n_queries):
-            s = int(self.rng.integers(0, n))
-            g = int(self.rng.integers(0, n))
-            if s != g:
-                self.find_path(s, g)
+    def run(self):
+        self.graph.build(self.n_samples, (0, 100), (0, 100))
+        self.path = self.graph.query(self.start, self.goal)
 
     def summary(self):
+        path_len = 0.0
+        if self.path and len(self.path) > 1:
+            for i in range(len(self.path) - 1):
+                path_len += np.linalg.norm(self.path[i + 1] - self.path[i])
         return {
-            "nodes": len(self.prm.nodes),
-            "obstacles": len(self.prm.obstacles),
-            "paths_found": self.paths_found,
-            "paths_failed": self.paths_failed,
-            "success_rate": round(self.paths_found / max(self.paths_found + self.paths_failed, 1), 4),
+            "nodes": len(self.graph.nodes),
+            "edges": sum(len(v) for v in self.graph.edges.values()) // 2,
+            "path_found": self.path is not None,
+            "path_length": round(path_len, 2),
+            "path_waypoints": len(self.path) if self.path else 0,
         }
 
 
 if __name__ == "__main__":
-    prm = ProbabilisticRoadmap(42)
-    prm.run(10)
+    prm = ProbabilisticRoadmapPlanner(100, 42)
+    prm.run()
     for k, v in prm.summary().items():
         print(f"  {k}: {v}")

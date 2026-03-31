@@ -1,7 +1,7 @@
 # Phase 602: Drone Auction Market — Vickrey Auction
 """
-경매 기반 태스크 할당: Vickrey(2nd-price) 경매,
-다중 태스크 할당, 사회적 후생 최적화.
+드론 경매 시장: 비크리 경매(2차 가격),
+자원 할당, 수익 분석.
 """
 
 import numpy as np
@@ -9,85 +9,74 @@ from dataclasses import dataclass, field
 
 
 @dataclass
-class Task:
-    task_id: int
-    value: float
-    location: np.ndarray
-    deadline: float
-
-
-@dataclass
 class Bid:
-    bidder_id: int
-    task_id: int
+    bidder_id: str
     amount: float
-    capability: float
 
 
 @dataclass
 class AuctionResult:
-    task_id: int
-    winner_id: int
-    payment: float  # 2nd price
-    surplus: float
+    winner: str
+    price: float  # second-highest bid
+    highest_bid: float
 
 
 class VickreyAuction:
     def __init__(self, seed=42):
         self.rng = np.random.default_rng(seed)
-        self.results: list[AuctionResult] = []
+        self.history: list[AuctionResult] = []
 
-    def run_auction(self, task: Task, bids: list[Bid]) -> AuctionResult:
-        if not bids:
-            return AuctionResult(task.task_id, -1, 0, 0)
-        sorted_bids = sorted(bids, key=lambda b: b.amount, reverse=True)
-        winner = sorted_bids[0]
-        payment = sorted_bids[1].amount if len(sorted_bids) > 1 else 0
-        result = AuctionResult(task.task_id, winner.bidder_id, payment, winner.amount - payment)
-        self.results.append(result)
+    def run_auction(self, bids: list[tuple[str, float]]) -> AuctionResult | None:
+        if len(bids) < 1:
+            return None
+        sorted_bids = sorted(bids, key=lambda b: b[1], reverse=True)
+        winner = sorted_bids[0][0]
+        price = sorted_bids[1][1] if len(sorted_bids) > 1 else sorted_bids[0][1]
+        result = AuctionResult(winner, price, sorted_bids[0][1])
+        self.history.append(result)
         return result
 
 
 class DroneAuctionMarket:
-    def __init__(self, n_drones=10, n_tasks=15, seed=42):
+    def __init__(self, n_drones=10, n_tasks=5, seed=42):
         self.rng = np.random.default_rng(seed)
-        self.auction = VickreyAuction(seed)
         self.n_drones = n_drones
         self.n_tasks = n_tasks
-        self.drone_capabilities = self.rng.uniform(0.5, 1.5, n_drones)
-        self.tasks: list[Task] = []
-        self.allocations: dict[int, int] = {}
+        self.auction = VickreyAuction(seed)
+        self.rounds = 0
+        self.total_revenue = 0.0
+        self.allocations: list[dict] = []
 
-    def generate_tasks(self):
-        for i in range(self.n_tasks):
-            self.tasks.append(Task(i, float(self.rng.uniform(10, 100)),
-                                    self.rng.uniform(0, 100, 2), float(self.rng.uniform(60, 300))))
-
-    def run(self):
-        self.generate_tasks()
-        for task in self.tasks:
+    def run(self, rounds=20):
+        for r in range(rounds):
+            task_value = float(self.rng.uniform(10, 100))
             bids = []
             for d in range(self.n_drones):
-                val = float(task.value * self.drone_capabilities[d] + self.rng.normal(0, 5))
-                bids.append(Bid(d, task.task_id, max(0, val), float(self.drone_capabilities[d])))
-            result = self.auction.run_auction(task, bids)
-            if result.winner_id >= 0:
-                self.allocations[task.task_id] = result.winner_id
+                valuation = task_value * self.rng.uniform(0.5, 1.5)
+                bids.append((f"drone_{d}", float(valuation)))
+            result = self.auction.run_auction(bids)
+            if result:
+                self.total_revenue += result.price
+                self.allocations.append({
+                    "round": r,
+                    "winner": result.winner,
+                    "price": result.price,
+                })
+            self.rounds += 1
 
     def summary(self):
-        payments = [r.payment for r in self.auction.results]
-        surpluses = [r.surplus for r in self.auction.results]
         return {
             "drones": self.n_drones,
             "tasks": self.n_tasks,
-            "allocated": len(self.allocations),
-            "avg_payment": round(float(np.mean(payments)), 2) if payments else 0,
-            "total_surplus": round(float(np.sum(surpluses)), 2),
+            "rounds": self.rounds,
+            "total_revenue": round(self.total_revenue, 2),
+            "avg_price": round(self.total_revenue / max(1, self.rounds), 2),
+            "unique_winners": len(set(a["winner"] for a in self.allocations)),
         }
 
 
 if __name__ == "__main__":
-    dam = DroneAuctionMarket(10, 15, 42)
-    dam.run()
+    dam = DroneAuctionMarket(10, 5, 42)
+    dam.run(20)
     for k, v in dam.summary().items():
         print(f"  {k}: {v}")

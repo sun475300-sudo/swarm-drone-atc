@@ -116,7 +116,6 @@ class ConstraintSatisfaction:
         slots = list(range(self.n_timeslots))
         for i in range(self.n_drones):
             self.solver.add_variable(f"drone_{i}", list(slots))
-        # 인접 드론은 다른 타임슬롯
         for i in range(self.n_drones):
             for j in range(i + 1, min(i + 3, self.n_drones)):
                 self.solver.add_constraint(f"drone_{i}", f"drone_{j}", "neq")

@@ -110,10 +110,14 @@ def _estimate_power_w(
 class _DroneAgent:
     """드론 1기를 담당하는 SimPy 프로세스 래퍼"""
 
-    CRUISE_ALT = 60.0   # 기본 순항 고도 (m)
-    TAKEOFF_RATE = 3.5  # 상승 속도 (m/s)
-    LAND_RATE    = 2.5  # 하강 속도 (m/s)
-    WAYPOINT_TOL = 80.0 # 웨이포인트 도달 허용 오차 (m)
+    CRUISE_ALT = 60.0           # 기본 순항 고도 (m)
+    TAKEOFF_RATE = 3.5          # 상승 속도 (m/s)
+    LAND_RATE    = 2.5          # 하강 속도 (m/s)
+    WAYPOINT_TOL = 80.0         # 웨이포인트 도달 허용 오차 (m)
+    BATTERY_TICK_INTERVAL = 5   # 배터리 계산 주기 (틱, 2Hz = 매 5틱)
+    BATTERY_CRITICAL_PCT = 5.0  # 배터리 임계 잔량 (%)
+    TELEMETRY_INTERVAL = 5      # 텔레메트리 전송 주기 (틱)
+    EMERGENCY_WIND_SPEED = 10.0 # 비상 속도 모드 풍속 임계 (m/s)
 
     def __init__(
         self,
@@ -166,10 +170,10 @@ class _DroneAgent:
             yield self.env.timeout(dt)
             t = float(self.env.now)
 
-            # 1. 배터리 (2Hz: 매 5틱마다 계산, dt_bat = 0.5s)
+            # 1. 배터리 (2Hz: 매 BATTERY_TICK_INTERVAL틱마다 계산)
             tick_count = int(round(t / dt))
-            if tick_count % 5 == 0 and drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
-                dt_bat = dt * 5
+            if tick_count % self.BATTERY_TICK_INTERVAL == 0 and drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
+                dt_bat = dt * self.BATTERY_TICK_INTERVAL
                 # 고도/풍향/상승률 기반 정밀 소모
                 alt = float(drone.position[2]) if len(drone.position) > 2 else 60.0
                 climb_rate = float(drone.velocity[2]) if len(drone.velocity) > 2 else 0.0
@@ -186,7 +190,7 @@ class _DroneAgent:
                 )
                 drone.battery_pct -= (pw * dt_bat) / (profile.battery_wh * 3600.0) * 100.0
                 drone.battery_pct  = max(0.0, drone.battery_pct)
-                if drone.battery_pct < 5.0 and drone.failure_type == FailureType.NONE:
+                if drone.battery_pct < self.BATTERY_CRITICAL_PCT and drone.failure_type == FailureType.NONE:
                     drone.failure_type = FailureType.BATTERY_CRITICAL
                     drone.flight_phase = FlightPhase.LANDING
 
@@ -225,7 +229,7 @@ class _DroneAgent:
                 # wind는 속도 벡터(m/s)로서 직접 가산 (force가 아니므로 dt 미적용)
                 drone.velocity[:2] += wind[:2]
                 # 비상 속도 모드: EVADING 모드이면서 강풍일 때만 활성화
-                if drone.flight_phase == FlightPhase.EVADING and wind_speed > 10.0:
+                if drone.flight_phase == FlightPhase.EVADING and wind_speed > self.EMERGENCY_WIND_SPEED:
                     drone.velocity  = _clamp_speed(drone.velocity, profile.max_speed_ms, wind_speed)
                 else:
                     drone.velocity  = _clamp_speed(drone.velocity, profile.max_speed_ms)
@@ -252,9 +256,9 @@ class _DroneAgent:
             # 통신 범위 계산용 위치 업데이트
             sim.comm_bus.update_position(drone.drone_id, drone.position.copy())
 
-            # 8. 텔레메트리 송신 (5틱마다 ≈ 0.5 s)
+            # 8. 텔레메트리 송신 (TELEMETRY_INTERVAL틱마다 ≈ 0.5 s)
             tick = int(round(t / dt))
-            if tick % 5 == 0:
+            if tick % self.TELEMETRY_INTERVAL == 0:
                 sim.comm_bus.send(CommMessage(
                     sender_id=drone.drone_id,
                     receiver_id="CONTROLLER",

@@ -546,3 +546,9 @@ MIT License — Developed for academic and educational purposes.
 **Phase 660 · 590+ Modules · 2,930+ Tests · 50+ Languages · 120K+ LOC**
 
 </div>
+
+## 변경 이력 (Changelog)
+
+| 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
+| --- | --- | --- | --- |
+| 2026-04-01 12:20 | `9c18568` | fix: 대규모 테스트 실패 50건 → 0건 수정 | config/monte_carlo.yaml, simulation/apf_engine/apf.py, simulation/multi_agent_coordination.py, src/airspace_control/agents/drone_profiles.py, src/airspace_control/agents/drone_state.py, tests/test_apf.py … |

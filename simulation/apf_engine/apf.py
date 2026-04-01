@@ -125,6 +125,7 @@ def compute_total_force(
     obstacles: list[np.ndarray],
     params: dict | None = None,
     wind_speed: float = 0.0,
+    target_alt: float | None = None,
 ) -> np.ndarray:
     """
     드론 1기의 합력 계산 (분산 제어 - 이웃 정보만 사용)
@@ -175,8 +176,8 @@ def compute_total_force(
         )
 
     # 4. 고도 보정 (비행 고도 유지)
-    target_alt = params["target_alt"]
-    alt_error = target_alt - own.position[2]
+    _target_alt = target_alt if target_alt is not None else params["target_alt"]
+    alt_error = _target_alt - own.position[2]
     F_total[2] += params["altitude_k"] * alt_error
 
     # 4a. 지면 회피: z < 5m 시 강한 수직 반발력 (CFIT 방지)

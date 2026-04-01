@@ -12,8 +12,10 @@ class DroneProfile:
     endurance_min: float
     comm_range_m: float
     priority: int               # 낮을수록 높은 우선순위
-    climb_rate_ms: float = 3.5  # 상승 속도 (m/s)
-    turn_rate_deg_s: float = 30.0  # 선회율 (도/s)
+    climb_rate_ms: float = 3.5       # 상승 속도 (m/s)
+    turn_rate_deg_s: float = 30.0    # 선회율 (도/s)
+    avoidance_climb_m: float = 15.0  # 회피 상승 높이 (m)
+    avoidance_turn_deg: float = 30.0 # 회피 선회 각도 (도)
 
 
 DRONE_PROFILES: dict[str, DroneProfile] = {
@@ -33,7 +35,7 @@ DRONE_PROFILES: dict[str, DroneProfile] = {
         name="응급", max_speed_ms=25.0, cruise_speed_ms=20.0,
         max_altitude_m=120.0, battery_wh=60.0, endurance_min=20.0,
         comm_range_m=2000.0, priority=1,
-        climb_rate_ms=5.0, turn_rate_deg_s=45.0,
+        climb_rate_ms=5.0, turn_rate_deg_s=45.0, avoidance_climb_m=25.0, avoidance_turn_deg=45.0,
     ),
     "RECREATIONAL": DroneProfile(
         name="레저", max_speed_ms=10.0, cruise_speed_ms=5.0,

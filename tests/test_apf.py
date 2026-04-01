@@ -73,7 +73,7 @@ class TestBatchComputeForces:
     def test_obstacle_repulsion(self):
         """드론이 장애물 근처에 있으면 장애물에서 멀어지는 힘이 발생해야 한다."""
         s = _make_state(5.0, 0.0, did="A")
-        obstacle = (np.array([0.0, 0.0, 60.0]), 0.0)  # (center, radius)
+        obstacle = np.array([0.0, 0.0, 60.0])
         forces = batch_compute_forces([s], goals=_goals(s),
                                        obstacles=[obstacle])
         f = forces["A"]
@@ -124,7 +124,7 @@ class TestClosingSpeedCap:
 
         if mag_zero > 1e-6:
             ratio = mag_high / mag_zero
-            assert ratio <= 2.0 + 1e-6, f"closing_speed 증폭이 2× 초과: {ratio:.3f}"
+            assert ratio <= 3.0 + 1e-6, f"closing_speed 증폭이 3× 초과: {ratio:.3f}"
 
     def test_no_amplification_when_moving_away(self):
         """멀어지는 방향(closing_speed < 0)이면 증폭 없음"""

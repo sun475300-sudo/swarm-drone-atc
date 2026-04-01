@@ -434,42 +434,40 @@ class TestAdversarialDefense:
 
 # ── Phase 482: Multi-Fidelity Sim ──
 class TestMultiFidelitySim:
-    def test_low_fidelity(self):
-        from simulation.multi_fidelity_sim import LowFidelitySim, SimState
-        sim = LowFidelitySim()
-        state = SimState(np.zeros(3), np.zeros(3))
-        result = sim.step(state, np.array([1, 0, 0]), 0.1)
+    def test_adaptive_simulator_step(self):
+        from simulation.multi_fidelity_sim import AdaptiveSimulator
+        sim = AdaptiveSimulator(seed=42)
+        result = sim.step()
         assert result is not None
+        assert len(result) == 4
 
-    def test_medium_fidelity(self):
-        from simulation.multi_fidelity_sim import MediumFidelitySim, SimState
-        sim = MediumFidelitySim()
-        state = SimState(np.array([0, 0, 50.0]), np.zeros(3))
-        result = sim.step(state, np.array([0, 0, 20.0]), 0.1)
-        assert result is not None
+    def test_fidelity_levels(self):
+        from simulation.multi_fidelity_sim import AdaptiveSimulator
+        sim = AdaptiveSimulator()
+        sim.set_fidelity("high")
+        assert sim.current_level == "high"
+        sim.set_fidelity("low")
+        assert sim.current_level == "low"
 
     def test_adaptive_switching(self):
-        from simulation.multi_fidelity_sim import MultiFidelitySim, SimState
-        mfs = MultiFidelitySim()
-        mfs.set_threats([np.array([5, 0, 0])])
-        state = SimState(np.zeros(3), np.zeros(3))
-        result = mfs.step(state, np.array([1, 0, 0]))
-        assert result is not None
+        from simulation.multi_fidelity_sim import MultiFidelitySim
+        mfs = MultiFidelitySim(n_drones=5)
+        mfs.run(steps=50)
+        assert mfs.steps == 50
 
     def test_run_trajectory(self):
-        from simulation.multi_fidelity_sim import MultiFidelitySim, SimState
-        mfs = MultiFidelitySim()
-        state = SimState(np.array([0, 0, 30.0]), np.array([5, 0, 0]))
-        traj = mfs.run(state, lambda s: np.array([0, 0, 0.5]), 2.0, 0.1)
-        assert len(traj) == 20
+        from simulation.multi_fidelity_sim import MultiFidelitySim
+        mfs = MultiFidelitySim(n_drones=10, seed=42)
+        mfs.run(steps=20)
+        assert len(mfs.history) == 20
 
     def test_summary(self):
-        from simulation.multi_fidelity_sim import MultiFidelitySim, SimState
-        mfs = MultiFidelitySim()
-        state = SimState(np.zeros(3), np.ones(3))
-        mfs.run(state, lambda s: np.array([0.1, 0, 0]), 1.0, 0.1)
+        from simulation.multi_fidelity_sim import MultiFidelitySim
+        mfs = MultiFidelitySim(n_drones=10)
+        mfs.run(steps=10)
         s = mfs.summary()
-        assert "total_steps" in s
+        assert "steps" in s
+        assert "total_cost" in s
 
 
 # ── Phase 483: Swarm Evolution ──

@@ -197,6 +197,7 @@ def cbs_plan(
     goals: dict[str, GridNode],
     bounds: dict,
     max_ct_nodes: int = 1000,
+    timeout_s: float = 10.0,
 ) -> dict[str, list[GridNode]]:
     """
     CBS 메인 알고리즘
@@ -206,10 +207,12 @@ def cbs_plan(
         starts:  {drone_id: start_node}
         goals:   {drone_id: goal_node}
         bounds:  {"x": [min, max], "y": [...], "z": [...]}
+        timeout_s: 벽시계 타임아웃 (초)
 
     Returns:
         {drone_id: [GridNode, ...]} 충돌 없는 경로
     """
+    deadline = time.monotonic() + timeout_s
     drone_ids = list(starts.keys())
 
     # 초기 경로 계산 (제약 조건 없음)
@@ -230,10 +233,15 @@ def cbs_plan(
 
     open_list = [(root.cost, id(root), root)]
     explored = 0
+    best_ct = root
 
     while open_list and explored < max_ct_nodes:
+        if time.monotonic() > deadline:
+            break  # 벽시계 타임아웃
+
         _, _, current_ct = heapq.heappop(open_list)
         explored += 1
+        best_ct = current_ct
 
         conflict = detect_conflict(current_ct.paths)
         if conflict is None:
@@ -241,6 +249,9 @@ def cbs_plan(
 
         # 두 드론에 각각 제약 조건 추가 → 두 자식 노드 생성
         for constrained_id in [conflict.drone_a, conflict.drone_b]:
+            if time.monotonic() > deadline:
+                break
+
             new_constraint = Constraint(constrained_id, conflict.node, conflict.t)
             new_constraints = current_ct.constraints + [new_constraint]
 
@@ -259,9 +270,8 @@ def cbs_plan(
                 )
                 heapq.heappush(open_list, (child.cost, id(child), child))
 
-    # 최대 탐색 노드 초과 → 현재 최선의 경로 반환 (충돌 미해결 가능)
-    # 호출자는 반환된 경로에 잔여 충돌이 있을 수 있음을 인지해야 함
-    return current_ct.paths
+    # 최대 탐색 노드/시간 초과 → 현재 최선의 경로 반환 (충돌 미해결 가능)
+    return best_ct.paths
 
 
 def position_to_grid(pos: np.ndarray, res: float = GRID_RESOLUTION) -> GridNode:

@@ -10,6 +10,7 @@ CBS (Conflict-Based Search) 다중 에이전트 경로 계획
 """
 from __future__ import annotations
 import heapq
+import time
 from dataclasses import dataclass, field
 from typing import Optional
 import numpy as np
@@ -112,11 +113,15 @@ def low_level_astar(
     start_node = AStarNode(f=heuristic(start, goal), g=0, node=start, t=0)
     heapq.heappush(open_heap, start_node)
 
-    visited = {}
-    max_expansions = max_time * 500  # 탐색 노드 수 상한 (무한루프 방지)
+    visited: set[tuple[GridNode, int]] = set()
+    max_expansions = max_time * 500  # 탐색 노드 수 상한
     expansions = 0
+    deadline = time.monotonic() + 5.0  # 5초 벽시계 타임아웃
 
     while open_heap and expansions < max_expansions:
+        if expansions % 1000 == 0 and time.monotonic() > deadline:
+            break  # 시간 초과
+
         current = heapq.heappop(open_heap)
         expansions += 1
 
@@ -132,7 +137,7 @@ def low_level_astar(
         state = (current.node, current.t)
         if state in visited:
             continue
-        visited[state] = current.g
+        visited.add(state)
 
         if current.t >= max_time:
             continue
@@ -141,6 +146,8 @@ def low_level_astar(
             next_t = current.t + 1
             if (neighbor, next_t) in constraint_set:
                 continue  # 제약 조건 위반
+            if (neighbor, next_t) in visited:
+                continue  # 이미 방문한 상태 건너뛰기
 
             g_new = current.g + 1
             f_new = g_new + heuristic(neighbor, goal)

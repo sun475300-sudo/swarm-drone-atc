@@ -366,7 +366,7 @@ class TestPerformanceRegressionSuite:
 
 # ── Phase 305: Integration Test Framework ────────────────────────────
 from simulation.integration_test_framework import (
-    IntegrationTestFramework, TestResult, TestOutcome,
+    IntegrationTestFramework, IntegrationTestResult, IntegrationTestOutcome,
 )
 
 
@@ -375,19 +375,19 @@ class TestIntegrationTestFramework:
         fw = IntegrationTestFramework()
         fw.register("basic", lambda: True, description="Basic test")
         outcome = fw.run_test("basic")
-        assert outcome.result == TestResult.PASS
+        assert outcome.result == IntegrationTestResult.PASS
 
     def test_fail(self):
         fw = IntegrationTestFramework()
         fw.register("failing", lambda: False)
         outcome = fw.run_test("failing")
-        assert outcome.result == TestResult.FAIL
+        assert outcome.result == IntegrationTestResult.FAIL
 
     def test_error(self):
         fw = IntegrationTestFramework()
         fw.register("error", lambda: 1 / 0)
         outcome = fw.run_test("error")
-        assert outcome.result == TestResult.ERROR
+        assert outcome.result == IntegrationTestResult.ERROR
 
     def test_dependencies(self):
         fw = IntegrationTestFramework()
@@ -402,7 +402,7 @@ class TestIntegrationTestFramework:
         fw.register("dependent", lambda: True, dependencies=["dep_fail"])
         fw.run_test("dep_fail")
         outcome = fw.run_test("dependent")
-        assert outcome.result == TestResult.SKIP
+        assert outcome.result == IntegrationTestResult.SKIP
 
     def test_run_all_with_tags(self):
         fw = IntegrationTestFramework()

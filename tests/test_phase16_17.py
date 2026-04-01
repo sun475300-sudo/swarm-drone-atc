@@ -37,8 +37,9 @@ class TestSpatialHash:
         sh.insert("B", np.array([10.0, 0.0, 0.0]))
         sh.insert("C", np.array([500.0, 500.0, 0.0]))
         pairs = sh.query_pairs(50.0)
-        assert frozenset(("A", "B")) in pairs
-        assert frozenset(("A", "C")) not in pairs
+        # query_pairs returns sorted tuples, not frozensets
+        assert ("A", "B") in pairs or frozenset(("A", "B")) in pairs
+        assert ("A", "C") not in pairs and frozenset(("A", "C")) not in pairs
 
     def test_query_pairs_with_dist(self):
         sh = self._make_hash()

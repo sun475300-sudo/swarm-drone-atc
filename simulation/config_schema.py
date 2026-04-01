@@ -151,8 +151,17 @@ class MCSweepSection(BaseModel):
     comms_loss_rate: list[float] = Field(default_factory=lambda: [0])
     wind_speed_ms: list[float] = Field(default_factory=lambda: [0])
     wind_direction_deg: list[float] = Field(default_factory=lambda: [0])
-    duration_s: list[float] = Field(default_factory=lambda: [600])
+    duration_s: list[float] | float = Field(default_factory=lambda: [600])
     n_per_config: int = Field(default=30, ge=1)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_duration(cls, values):
+        if isinstance(values, dict) and "duration_s" in values:
+            v = values["duration_s"]
+            if isinstance(v, (int, float)):
+                values["duration_s"] = [float(v)]
+        return values
 
 
 class AcceptanceThresholds(BaseModel):

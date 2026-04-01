@@ -75,7 +75,7 @@ class GlidepathController:
         distance = np.linalg.norm(to_target[:2])
         desired_alt = target[2] + distance * np.tan(self.glide_angle)
         alt_error = desired_alt - position[2]
-        lateral_error = np.cross(to_target[:2], velocity[:2]) / (np.linalg.norm(velocity[:2]) + 1e-8)
+        lateral_error = float(to_target[0] * velocity[1] - to_target[1] * velocity[0]) / (np.linalg.norm(velocity[:2]) + 1e-8)
 
         cmd = np.zeros(3)
         cmd[:2] = to_target[:2] / (distance + 1e-8) * 5.0

@@ -31,7 +31,7 @@ class RTHController:
         else:
             climb_points = []
         
-        cruise = [(cx + (hx-cx)*i/10, cy + (hy-cy)*i/10, self.safe_altitude] for i in range(1, 10)]
+        cruise = [(cx + (hx-cx)*i/10, cy + (hy-cy)*i/10, self.safe_altitude) for i in range(1, 10)]
         
         descend = [(hx, hy, hz)]
         

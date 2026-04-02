@@ -718,6 +718,145 @@ controller:
   ⑮ 이벤트 로그 (충돌/니어미스/어드바이저리, 최대 50,000건)
 ```
 
+### 12. Spatial Hash / 3D 공간 해싱
+
+`SpatialHash`는 드론 근접 쿼리를 O(N²) → O(N·k)로 최적화하는 3D 균일 격자 인덱스입니다.
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| Cell Size | 50.0 m | 격자 한 변 길이 (분리 기준과 동일) |
+| Key 함수 | `floor(pos / cell)` | 3D 좌표 → 정수 셀 키 |
+| 쿼리 범위 | `ceil(radius / cell)` 큐브 | 주변 셀 탐색 영역 |
+| 중복 방지 | `sorted tuple (a, b)` | frozenset 대비 해싱 오버헤드 감소 |
+
+```
+삽입:   O(1)
+쿼리:   O((2r/cell)³ + k)  ≈ O(k)  (k = 평균 이웃 수)
+전체:   O(N·k)  (N = 드론 수, k ≪ N)
+```
+
+**사용 위치:**
+- `simulator.py`: 충돌/근접/충돌위협 3단계 감지 (매 0.1초)
+- `simulator_3d.py`: 실시간 시각화 충돌 감지
+- `airspace_controller.py`: CPA 스캔 이웃 탐색 (200대 미만)
+
+### 13. Voronoi Dynamic Airspace Partition / 동적 공역 분할
+
+`compute_voronoi_partition()`은 활성 드론 위치를 기반으로 공역을 동적 분할합니다.
+
+**알고리즘:**
+
+```
+1. 드론 2D 위치 추출 [x, y]
+2. 경계 미러링: ±2×bounds에 8방향 반사점 추가 (Sutherland-Hodgman)
+3. scipy.spatial.Voronoi 계산
+4. 원본 드론 셀만 추출
+5. 경계 클리핑: 4변 순차 클리핑 (x_min → x_max → y_min → y_max)
+6. 면적 계산: ConvexHull.volume / 1e6 (m² → km²)
+7. 고도 대역 할당: [30m, 120m] 구간을 N등분
+```
+
+**사용 주기:** 10초마다 갱신 (`AirspaceController.VORONOI_INTERVAL_S`)
+**폴백:** Voronoi 실패 시 √N × √N 균일 격자 배치
+
+### 14. Monte Carlo SLA Validation / 몬테카를로 검증 체계
+
+**파라미터 스윕 구성:**
+
+| Mode | Configs | Runs/Config | Total | Duration |
+|------|---------|-------------|-------|----------|
+| **quick** | 32 | 30 | 960 | ~4분 |
+| **full** | 384 | 100 | 38,400 | ~3.3시간 |
+
+**스윕 변수:**
+
+| Variable | Quick | Full | 단위 |
+|----------|-------|------|------|
+| drone_density | [50, 250] | [50, 100, 250, 500] | 대 |
+| area_size_km2 | [100] | [25, 100] | km² |
+| failure_rate_pct | [0, 5] | [0, 1, 5, 10] | % |
+| comms_loss_rate | [0.0, 0.05] | [0.0, 0.01, 0.05] | — |
+| wind_speed_ms | [0, 15] | [0, 5, 15, 25] | m/s |
+
+**SLA 합격 기준:**
+
+| Metric | Threshold | Type |
+|--------|-----------|------|
+| 충돌률 | 0건/1,000h | Hard (필수) |
+| Near-miss | ≤0.1건/100h | Soft (경고) |
+| 충돌 해결률 | ≥99.5% | Hard |
+| 경로 효율 | ≤1.15 (실제/계획) | Soft |
+| 응답 P50 | ≤2.0초 | Soft |
+| 응답 P99 | ≤10.0초 | Hard |
+| 침입 탐지 P90 | ≤5.0초 | Hard |
+
+**병렬 실행:** `joblib.Parallel(n_workers=-1, backend="loky")`
+
+### 15. 3D Real-Time Dashboard / 실시간 3D 대시보드
+
+`visualization/simulator_3d.py`는 Plotly Dash 기반 인터랙티브 3D 시뮬레이터입니다.
+
+**렌더링 구성 요소:**
+
+| Component | Type | Update Rate |
+|-----------|------|-------------|
+| 3D 드론 마커 | Scatter3d (phase별 색상) | 100ms |
+| 드론 궤적 | Line3d (40포인트 deque) | 100ms |
+| NFZ 메시 | Mesh3d (반투명 박스) | Static |
+| 항로 회랑 | Line3d (E-W/N-S) | Static |
+| 착륙 패드 | Scatter3d (5개소) | Static |
+| APF 벡터 필드 | Cone (프로브 그리드) | 100ms (토글) |
+| 위협 히트맵 | Mesh3d (섹터별 색상) | 1s |
+| 바람 화살표 | Cone (방향/크기) | 100ms |
+| 속도 벡터 | Scatter3d+Line (상위 20대) | 100ms |
+
+**대시보드 패널:**
+
+| Panel | 위치 | 내용 |
+|-------|------|------|
+| 3D 뷰포트 | 중앙 | Plotly 3D 장면 (±5km, 0-140m) |
+| 제어 버튼 | 좌측 상단 | Start/Pause/Reset, 드론 수, 속도 배율 |
+| KPI 통계 | 우측 | 충돌, 해결률, 배터리, 활성 드론 |
+| 경보 로그 | 하단 | 실시간 이벤트 (충돌/근접/회피) |
+| 배터리 차트 | 우측 하단 | 10-bin 히스토그램 |
+| 에너지 차트 | 우측 하단 | Wh 시계열 |
+| 해결률 차트 | 우측 하단 | CR% 시계열 |
+| 틱 성능 | 우측 하단 | ms 히스토그램 (300포인트) |
+| 위협 평가 | 우측 | 4레벨 위협 매트릭스 + 권장 조치 |
+| SLA 상태 | 우측 | Pass/Fail + 위반 목록 |
+| 섹터 현황 | 우측 | 4구역 드론 수, 밀도, 핸드오프 |
+
+**스레드 모델:**
+- Background thread: `_sim_loop()` → `_step()` (10Hz 물리 엔진)
+- Main thread: Dash 콜백 (100ms interval `_refresh()`)
+- 동기화: `threading.Lock` (SimState.lock)
+
+### 16. Scenario Verification / 시나리오 검증 체계
+
+7개 YAML 정의 시나리오로 극한 상황 대응을 검증합니다.
+
+| Scenario | Drones | Duration | Key Verification |
+|----------|--------|----------|------------------|
+| `high_density` | 100 | 600s | 고밀도 교통 처리량 |
+| `emergency_failure` | 80 | 600s | 5% MOTOR/BATTERY/GPS 장애 주입 |
+| `comms_loss` | 50 | 600s | Lost-Link 3단계 프로토콜 |
+| `mass_takeoff` | 100 | 600s | 동시 이착륙 시퀀싱 |
+| `adversarial_intrusion` | 50+3 | 900s | ROGUE 침입 탐지 |
+| `route_conflict` | 6 | 120s | HEAD_ON/CROSSING/OVERTAKE 회피 |
+| `weather_disturbance` | 100 | 600s | 3종 기상 (정상/돌풍/전단) 강건성 |
+
+**시나리오 파라미터 오버라이드 체계:**
+
+```
+config/default_simulation.yaml  (기본값)
+    ↓ 머지
+config/scenario_params/{name}.yaml  (시나리오 오버라이드)
+    ↓ 머지
+CLI arguments  (실행 시 오버라이드)
+    ↓
+SwarmSimulator._deep_merge()  → 최종 설정
+```
+
 ---
 
 ## Multi-Language Architecture / 다중 언어 아키텍처

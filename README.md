@@ -845,6 +845,43 @@ controller:
 | `route_conflict` | 6 | 120s | HEAD_ON/CROSSING/OVERTAKE 회피 |
 | `weather_disturbance` | 100 | 600s | 3종 기상 (정상/돌풍/전단) 강건성 |
 
+**시나리오 실행 결과 (seed=42):**
+
+| Scenario | Collisions | Near-miss | Advisories | CR | 실행시간 |
+|----------|-----------|-----------|------------|-----|---------|
+| `route_conflict` | 0 | 0 | — | 100% | 1,285s |
+| `comms_loss` | 4 | 1 | — | — | 205s |
+| `emergency_failure` | 38 | 5 | — | — | 764s |
+| `adversarial_intrusion` | 8 | 5 | — | — | 207s |
+
+> 충돌 해결률(CR) 공식: `1 - collisions / (conflicts + collisions)`. CONFLICT 이벤트는 분리기준(50m) 위반 시 기록됩니다.
+
+### 17. CI/CD Pipeline / 지속적 통합 파이프라인
+
+`.github/workflows/ci.yml` 단일 워크플로우로 통합 운영합니다.
+
+**Test Job (Python 3.10 / 3.11 / 3.12 매트릭스):**
+
+| Step | 내용 |
+|------|------|
+| Checkout | `actions/checkout@v4` |
+| Python Setup | `actions/setup-python@v5` (매트릭스) |
+| Cache pip | pip 캐시 (requirements.txt 해시 기반) |
+| Install | `pip install -r requirements.txt` + flake8 |
+| Lint | `flake8 --select=E9,F63,F7,F82` (구문 오류만) |
+| Test | `pytest tests/ -v --tb=short --timeout=120` |
+| Import Check | 핵심 3개 모듈 임포트 검증 |
+| Smoke Report | PR 시 JSON 리포트 생성 + 아티팩트 업로드 |
+| Perf Summary | PR 시 성능 요약 JSON 생성 |
+
+**Ops Report Job (main 푸시 시):**
+
+| Step | 내용 |
+|------|------|
+| Trigger | `push` to `main` (test 통과 후) |
+| Bundle | `ops_report_bundle.json` (manifest + artifact references) |
+| Upload | 아티팩트 보존 90일 |
+
 **시나리오 파라미터 오버라이드 체계:**
 
 ```

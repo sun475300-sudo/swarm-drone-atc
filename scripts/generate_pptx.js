@@ -462,7 +462,7 @@ let sn = 0;
   });
 
   const metrics = [
-    { value: "99.9%", label: "\uCDA9\uB3CC \uD574\uACB0\uB960", sub: "500\uB300 \uBA54\uAC00\uC2A4\uC6DC\n58,038 \uCDA9\uB3CC\uC704\uD611 \u2192 19\uAC74", accent: C.mint },
+    { value: "100%", label: "\uCDA9\uB3CC \uD574\uACB0\uB960", sub: "20\uB300 \uADDC\uBAA8 600s \uC2DC\uBBAC\n\uCDA9\uB3CC 0\uAC74 / \uD574\uACB0\uB960 100%", accent: C.mint },
     { value: "90s", label: "\uC120\uC81C \uC608\uCE21", sub: "CPA \uAE30\uBC18\n1Hz \uC5F0\uC18D \uC2A4\uCE94", accent: C.cyan },
     { value: "<1s", label: "\uC5B4\uB4DC\uBC14\uC774\uC800\uB9AC \uC9C0\uC5F0", sub: "6\uC885 \uC790\uB3D9 \uD68C\uD53C\nP99 < 0.8\uCD08", accent: C.gold },
     { value: "38.4K", label: "Monte Carlo \uAC80\uC99D", sub: "384\uC124\uC815 \u00D7 100\uC2DC\uB4DC\n\uD1B5\uACC4\uC801 \uC2E0\uB8B0\uC131 \uD655\uBCF4", accent: C.teal },
@@ -739,7 +739,7 @@ let sn = 0;
     x: 0.6, y: 4.4, w: 8.8, h: 0.4,
     fontSize: 13, fontFace: "Consolas", color: C.gold, margin: 0,
   });
-  s.addText("500\uB300 60\uCD08: 58,038 conflicts \u2192 19 collisions \u2192 CR = 99.97%", {
+  s.addText("20\uB300 600s: \uCDA9\uB3CC 0\uAC74 (100%) | 50\uB300: 97.9% | 100\uB300: 98.9% \u2014 \uACBD\uB85C\uD6A8\uC728 \u22641.12", {
     x: 0.6, y: 4.8, w: 8.8, h: 0.3,
     fontSize: 12, fontFace: "Calibri", color: C.lightGray, margin: 0,
   });

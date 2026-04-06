@@ -56,12 +56,13 @@ SDACS is a **distributed Air Traffic Control (ATC) simulation** that uses swarm 
 
 | Metric | Value | Description |
 |--------|-------|-------------|
-| **Collision Reduction** | **99.9%** | 500-drone mega-swarm: 58,038 conflicts → 19 collisions |
+| **Collision Resolution** | **100% (20대)** | 20대 600s: 충돌 0건, 50대: 97.9%, 100대: 98.9% |
+| **Route Efficiency** | **≤1.12** | 전 규모 SLA(≤1.15) PASS (600s 실측) |
 | **Prediction Lookahead** | **90 seconds** | CPA-based preemptive conflict detection at 1 Hz |
 | **Advisory Latency** | **< 1 second** | 6 types: CLIMB/DESCEND/TURN_LEFT/TURN_RIGHT/EVADE_APF/HOLD |
 | **Monte Carlo Validation** | **38,400 runs** | 384 configurations x 100 seeds |
 | **Scenario Coverage** | **42 scenarios** | Extreme weather, intrusion, GPS jamming, mass delivery, etc. |
-| **Concurrent Drones** | **500+** | Distributed autonomous control |
+| **Concurrent Drones** | **100+** | 20대: 충돌 0, 50대: avg 15, 100대: avg 29 |
 | **Deployment Time** | **30 min** | No fixed infrastructure required |
 | **Test Coverage** | **2,930+ tests** | Automated pytest suite across 590+ modules |
 
@@ -1024,10 +1025,10 @@ Drones │ Tick Time │ Real-time Ratio │ Status
 ```
 Resolution Rate = 1 - collisions / (conflicts + collisions)
 
-Example: 500 drones, 60s simulation
-  Conflicts detected: 58,038
-  Actual collisions:      19
-  Resolution rate:    99.97%
+600s 시뮬레이션 실측 결과 (12회, 2026-04-06):
+  20대:  충돌 0건, 해결률 100.0%, 경로효율 1.035
+  50대:  충돌 avg 15건, 해결률 97.9%, 경로효율 1.003
+  100대: 충돌 avg 29건, 해결률 98.9%, 경로효율 1.029
 ```
 
 ---

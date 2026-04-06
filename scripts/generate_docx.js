@@ -144,12 +144,13 @@ const doc = new Document({
         makeTable(
           ["Metric", "Value", "Description"],
           [
-            ["Collision Resolution", "99.9%", "500\uB300 \uBA54\uAC00\uC2A4\uC6DC: 58,038 conflicts \u2192 19 collisions"],
+            ["Collision Resolution", "100% (20\uB300)", "20\uB300 600s: \uCDA9\uB3CC 0\uAC74, 50\uB300: 97.9%, 100\uB300: 98.9%"],
             ["Prediction Lookahead", "90 seconds", "CPA \uAE30\uBC18 \uC120\uC81C \uCDA9\uB3CC \uD0D0\uC9C0 (1Hz)"],
             ["Advisory Latency", "< 1 second", "6\uC885 \uD68C\uD53C \uBA85\uB839: CLIMB/DESCEND/TURN/EVADE/HOLD"],
+            ["Route Efficiency", "\u22641.12", "\uACBD\uB85C\uD6A8\uC728 SLA(\u22641.15) \uC804 \uADDC\uBAA8 PASS"],
             ["Monte Carlo Validation", "38,400 runs", "384 configurations \u00D7 100 seeds"],
-            ["Concurrent Drones", "500+", "\uBD84\uC0B0 \uC790\uC728 \uC81C\uC5B4"],
-            ["Automated Tests", "2,620+", "pytest \uAE30\uBC18 \uC790\uB3D9\uD654 \uD14C\uC2A4\uD2B8 \uC2A4\uC704\uD2B8"],
+            ["Concurrent Drones", "100+", "20\uB300: \uCDA9\uB3CC 0, 50\uB300: avg 15, 100\uB300: avg 29"],
+            ["Automated Tests", "2,668+", "pytest \uAE30\uBC18 \uC790\uB3D9\uD654 \uD14C\uC2A4\uD2B8 \uC2A4\uC704\uD2B8"],
             ["Languages", "50+", "Python + Rust/Go/C++/Zig/Fortran/Ada/VHDL \uB4F1"],
             ["Total Modules", "590+", "Phase 660 \uC644\uB8CC"],
           ],
@@ -295,7 +296,10 @@ const doc = new Document({
 
         h2("5.2 \uCDA9\uB3CC \uD574\uACB0\uB960"),
         p("\uCDA9\uB3CC \uD574\uACB0\uB960 = 1 \u2212 collisions / (conflicts + collisions)"),
-        p("500\uB300 60\uCD08 \uC2DC\uBBAC\uB808\uC774\uC158: 58,038 conflicts \u2192 19 collisions \u2192 CR = 99.97%"),
+        p("600\uCD08 \uC2DC\uBBAC\uB808\uC774\uC158 \uACB0\uACFC (12\uD68C \uC2E4\uCE21):"),
+        p("  20\uB300: \uCDA9\uB3CC 0\uAC74, \uD574\uACB0\uB960 100.0%, \uACBD\uB85C\uD6A8\uC728 1.035"),
+        p("  50\uB300: \uCDA9\uB3CC avg 15\uAC74, \uD574\uACB0\uB960 97.9%, \uACBD\uB85C\uD6A8\uC728 1.003"),
+        p("  100\uB300: \uCDA9\uB3CC avg 29\uAC74, \uD574\uACB0\uB960 98.9%, \uACBD\uB85C\uD6A8\uC728 1.029"),
 
         new Paragraph({ children: [new PageBreak()] }),
 

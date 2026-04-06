@@ -26,19 +26,30 @@ test_results_*.json
 *.swp
 *.swo
 
-# Claude Code worktrees
+# Claude Code worktrees & local config
 .claude/worktrees/
-# 로컬 머신 전용 설정 (PII/절대 경로 포함 가능)
+.claude/launch.json
 .claude/settings.local.json
+.claude/projects/
+
+# Local test logs (contain absolute paths)
+tests/test_phase501_530_buglog.txt
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Secrets
+# Secrets & credentials
 .env
 *.env
+*.pem
+*.key
+*.p12
+*.pfx
 discord_webhook.txt
+credentials.json
+service_account.json
+*secret*.*
 
 # Logs
 *.log

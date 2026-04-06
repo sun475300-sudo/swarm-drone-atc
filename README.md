@@ -11,7 +11,7 @@
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
 [![Phase](https://img.shields.io/badge/Phase-660-gold?style=for-the-badge&logo=rocket)](simulation/)
-[![Tests](https://img.shields.io/badge/Tests-2%2C620%2B%20Passed-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-2%2C668%2B%20Passed-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Algorithms](https://img.shields.io/badge/Algorithms-600+-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#core-algorithms)
 [![Modules](https://img.shields.io/badge/Modules-590+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Languages](https://img.shields.io/badge/Languages-50+-FF5722?style=for-the-badge&logo=github&logoColor=white)](#multi-language-architecture)
@@ -24,6 +24,10 @@
 
 [3D Simulator](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [Technical Report](docs/report/SDACS_Technical_Report.docx) | [Performance Charts](docs/images/)
 
+</div>
+
+<div align="center">
+<img src="docs/images/hero_banner_converted.png" alt="SDACS Hero Banner" width="800"/>
 </div>
 
 ---
@@ -50,6 +54,11 @@ SDACS is a **distributed Air Traffic Control (ATC) simulation** that uses swarm 
 2. **탐지부터 회피까지 완전 자동화** — 90초 전 선제 충돌 예측, 6종 자동 어드바이저리 발행
 3. **드론 추가만으로 관제 반경 선형 확장** — 분산형 아키텍처로 단일 장애점 제거
 
+<div align="center">
+<img src="docs/images/idea2_distributed_apf.png" alt="분산형 APF 충돌 회피 3D 시각화" width="700"/>
+<br/><sub>분산형 APF 충돌 회피 — 드론별 인력/척력장이 실시간으로 안전 궤적을 생성</sub>
+</div>
+
 ---
 
 ## Key Results / 핵심 성과
@@ -64,13 +73,23 @@ SDACS is a **distributed Air Traffic Control (ATC) simulation** that uses swarm 
 | **Scenario Coverage** | **42 scenarios** | Extreme weather, intrusion, GPS jamming, mass delivery, etc. |
 | **Concurrent Drones** | **100+** | 20대: 충돌 0, 50대: avg 15, 100대: avg 29 |
 | **Deployment Time** | **30 min** | No fixed infrastructure required |
-| **Test Coverage** | **2,930+ tests** | Automated pytest suite across 590+ modules |
+| **Test Coverage** | **2,668+ tests** | Automated pytest suite across 590+ modules |
+
+<div align="center">
+<img src="docs/images/performance_comparison_converted.png" alt="기존 방식 대비 SDACS 성능 비교" width="750"/>
+<br/><sub>기존 Rule-based Static ATC vs SDACS Swarm Autonomous — 주요 KPI 비교</sub>
+</div>
 
 ---
 
 ## System Architecture / 시스템 아키텍처
 
 SDACS는 4개의 독립적 계층으로 구성됩니다. 각 계층은 명확한 역할과 인터페이스를 가지며, 독립적으로 테스트 가능합니다.
+
+<div align="center">
+<img src="docs/images/architecture_converted.png" alt="SDACS 4계층 시스템 아키텍처" width="750"/>
+<br/><sub>SDACS 4계층 아키텍처 — 드론 에이전트 / 공역 관제 / 시뮬레이션 엔진 / 사용자 인터페이스</sub>
+</div>
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -96,6 +115,11 @@ SDACS는 4개의 독립적 계층으로 구성됩니다. 각 계층은 명확한
 - **센서 퓨전**: IMU + GPS + LiDAR 융합, 잡음 모델 포함
 - **통신**: 1Hz 위치 보고, 메시 네트워크 멀티홉 BFS 라우팅
 - **파일**: `simulation/simulator.py` — `_DroneAgent` 클래스
+
+<div align="center">
+<img src="docs/images/sensor_fusion_converted.png" alt="센서 퓨전 프로세스" width="700"/>
+<br/><sub>센서 퓨전 — Camera(YOLO) + LiDAR + RF Scanner → Kalman Filter → 위치/식별/위협 판정</sub>
+</div>
 
 ### Layer 2 — Airspace Controller (공역 관제)
 
@@ -143,6 +167,11 @@ sequenceDiagram
 ## Core Algorithms / 핵심 알고리즘
 
 SDACS의 충돌 회피 파이프라인은 **탐지 → 판단 → 실행** 3단계로 구성됩니다.
+
+<div align="center">
+<img src="docs/images/detection_pipeline_converted.png" alt="탐지 → 회피 자동 대응 파이프라인" width="750"/>
+<br/><sub>탐지 → 회피 자동 대응 파이프라인 — DETECT → IDENTIFY → TIMER → WARN → RETREAT (Target Latency < 1s)</sub>
+</div>
 
 ### 1. Collision Detection / 충돌 탐지
 
@@ -196,22 +225,25 @@ SDACS의 충돌 회피 파이프라인은 **탐지 → 판단 → 실행** 3단�
 
 | # | Scenario | Drones | Duration | Key Test |
 |---|----------|--------|----------|----------|
-| 1 | **Normal Operation** | 20 | 60s | 기본 충돌 해결률 |
-| 2 | **High Density** | 50 | 60s | 밀집 환경 성능 |
-| 3 | **Weather Disturbance** | 20 | 60s | 풍속 15m/s 강풍 대응 |
-| 4 | **Communication Loss** | 20 | 60s | 통신 두절 시 자율 회피 |
-| 5 | **Intruder Response** | 20 | 60s | 미등록 드론 탐지/대응 |
-| 6 | **Emergency Landing** | 20 | 60s | 모터/배터리/GPS 고장 |
-| 7 | **Mass Delivery** | 100 | 120s | 대규모 배송 동시 운용 |
+| 1 | **Normal Operation** | 20 | 600s | 기본 충돌 해결률 |
+| 2 | **High Density** | 100 | 600s | 고밀도 교통 처리량 |
+| 3 | **Weather Disturbance** | 100 | 600s | 3종 기상 (정상/돌풍/전단) 강건성 |
+| 4 | **Communication Loss** | 50 | 600s | Lost-Link 3단계 프로토콜 |
+| 5 | **Intruder Response** | 50+3 | 900s | ROGUE 침입 탐지/대응 |
+| 6 | **Emergency Failure** | 80 | 600s | 5% MOTOR/BATTERY/GPS 장애 주입 |
+| 7 | **Mass Delivery** | 100 | 600s | 동시 이착륙 시퀀싱 |
 
 ### Monte Carlo Validation
 
 ```
 Configuration: 384 parameter combinations x 100 random seeds = 38,400 total runs
-Results:
-  - Collision resolution rate: 99.9% (P50), 99.7% (P99)
-  - Advisory latency: 0.3s (P50), 0.8s (P99)
-  - Zero-collision rate: 87.2% of all runs
+
+600s 실측 검증 (20-run, seed 0-19, 2026-04-06):
+  - 20대:  충돌 0건, 해결률 100.0%, 경로효율 1.035
+  - 50대:  충돌 avg 15건, 해결률 97.9%, 경로효율 1.003
+  - 100대: 충돌 avg 29건, 해결률 98.9%, 경로효율 1.029
+  - Advisory latency: < 1s (전 규모)
+  - 경로효율 SLA(≤1.15): 전 규모 PASS
 ```
 
 ---
@@ -317,7 +349,7 @@ swarm-drone-atc/
 │   ├── simulator_3d.py              # Dash 3D real-time dashboard
 │   └── dashboard.py                 # Supplementary charts
 │
-├── tests/                           # 2,750+ automated tests
+├── tests/                           # 2,668+ automated tests
 │   ├── test_phase561_570.py
 │   ├── test_phase571_600.py
 │   ├── test_phase601_610.py
@@ -333,6 +365,11 @@ swarm-drone-atc/
 ---
 
 ## How It Works / 작동 원리
+
+<div align="center">
+<img src="docs/images/algorithm_flow_converted.png" alt="핵심 알고리즘 워크 흐름" width="750"/>
+<br/><sub>핵심 알고리즘 워크 흐름 — Monte Carlo 검증부터 CBS/APF 경로 계획까지</sub>
+</div>
 
 ### Step 1: Drone Deployment / 드론 배치
 
@@ -390,6 +427,11 @@ SDACS의 각 구성 요소에 대한 정밀 기술 사양입니다. 모든 수�
 | `EMERGENCY_WIND_SPEED` | 10.0 m/s | 강풍 모드 전환 기준 |
 
 **비행 상태 머신 (Flight State Machine):**
+
+<div align="center">
+<img src="docs/images/flight_phase_fsm_converted.png" alt="드론 비행 상태 기계 (Flight Phase FSM)" width="650"/>
+<br/><sub>드론 비행 상태 기계 — GROUNDED → TAKEOFF → ENROUTE → EVADING/HOLDING → LANDING</sub>
+</div>
 
 ```
                     ┌──────────────┐
@@ -857,6 +899,15 @@ controller:
 
 > 충돌 해결률(CR) 공식: `1 - collisions / (conflicts + collisions)`. CONFLICT 이벤트는 분리기준(50m) 위반 시 기록됩니다.
 
+<div align="center">
+<table>
+<tr>
+<td align="center"><img src="docs/images/scenario_kpi_radar.png" alt="시나리오별 KPI 레이더" width="380"/><br/><sub>시나리오별 KPI 레이더 차트</sub></td>
+<td align="center"><img src="docs/images/advisory_latency.png" alt="어드바이저리 지연 시간" width="380"/><br/><sub>시나리오별 어드바이저리 지연 (P50/P99)</sub></td>
+</tr>
+</table>
+</div>
+
 ### 17. CI/CD Pipeline / 지속적 통합 파이프라인
 
 `.github/workflows/ci.yml` 단일 워크플로우로 통합 운영합니다.
@@ -870,7 +921,7 @@ controller:
 | Cache pip | pip 캐시 (requirements.txt 해시 기반) |
 | Install | `pip install -r requirements.txt` + flake8 |
 | Lint | `flake8 --select=E9,F63,F7,F82` (구문 오류만) |
-| Test | `pytest tests/ -v --tb=short --timeout=120` |
+| Test | `pytest tests/ -v --tb=short --timeout=60` |
 | Import Check | 핵심 3개 모듈 임포트 검증 |
 | Smoke Report | PR 시 JSON 리포트 생성 + 아티팩트 업로드 |
 | Perf Summary | PR 시 성능 요약 JSON 생성 |
@@ -997,16 +1048,25 @@ pytest tests/test_phase571_600.py -v    # Phase 571-600 (111 tests)
 
 | Category | Count | Scope |
 |----------|-------|-------|
-| Unit tests (simulation modules) | 1,500+ | Individual algorithm correctness |
-| Integration tests (controller) | 200+ | Multi-component interaction |
+| Unit tests (simulation modules) | 1,600+ | Individual algorithm correctness |
+| Integration tests (controller) | 250+ | Multi-component interaction |
 | Scenario tests | 150+ | End-to-end scenario validation |
-| Multi-language file tests | 200+ | File existence + syntax verification |
+| Multi-language file tests | 350+ | File existence + syntax verification |
 | Performance benchmarks | 50+ | Throughput, latency, scalability |
-| Regression tests | 200+ | Previously fixed bugs |
+| Regression tests | 250+ | Previously fixed bugs |
 
 ---
 
 ## Performance Analysis / 성능 분석
+
+<div align="center">
+<table>
+<tr>
+<td align="center"><img src="docs/images/throughput_vs_drones.png" alt="충돌 스캔 처리량 비교" width="400"/><br/><sub>O(N^2) vs KDTree 충돌 스캔 처리량</sub></td>
+<td align="center"><img src="docs/images/conflict_resolution_heatmap.png" alt="충돌 해결률 히트맵" width="400"/><br/><sub>드론 수 x 시뮬레이션 시간별 해결률(%)</sub></td>
+</tr>
+</table>
+</div>
 
 ### Throughput vs Drone Count
 
@@ -1071,7 +1131,7 @@ MIT License — Developed for academic and educational purposes.
 
 **장선우 · 국립 목포대학교 드론기계공학과**
 
-**Phase 660 · 590+ Modules · 2,620+ Tests Passed · 50+ Languages · 120K+ LOC**
+**Phase 660 · 590+ Modules · 2,668+ Tests Passed · 50+ Languages · 120K+ LOC**
 
 </div>
 

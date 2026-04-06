@@ -15,6 +15,7 @@ env/
 # Data outputs (large files)
 data/results/
 data/reports/
+test_results_*.json
 
 # Model cache
 ~/.cache/huggingface/

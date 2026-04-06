@@ -66,6 +66,7 @@ jobs:
       - name: Generate smoke report
         if: github.event_name == 'pull_request'
         run: |
+          COLLECTED=$(pytest tests/ --collect-only -q 2>/dev/null | tail -1 | grep -oP '\d+(?= test)' || echo "0")
           python -c "
           import json
           from datetime import datetime
@@ -74,7 +75,7 @@ jobs:
             'commit': '${{ github.sha }}',
             'branch': '${{ github.ref_name }}',
             'status': 'passed',
-            'tests_collected': 2635,
+            'tests_collected': int('${COLLECTED}' or '0'),
             'input_contract_version': 'phase660.report_inputs.v2'
           }
           with open('smoke_report.json', 'w') as f:
@@ -106,6 +107,10 @@ jobs:
 
       - name: Generate Ops Report Bundle
         run: |
+          TEST_OUTPUT=$(pytest tests/ --timeout=120 -q 2>&1 | tail -1)
+          PASSED=$(echo "$TEST_OUTPUT" | grep -oP '\d+(?= passed)' || echo "0")
+          SKIPPED=$(echo "$TEST_OUTPUT" | grep -oP '\d+(?= skipped)' || echo "0")
+          FAILED=$(echo "$TEST_OUTPUT" | grep -oP '\d+(?= failed)' || echo "0")
           python -c "
           import json
           from datetime import datetime
@@ -117,10 +122,9 @@ jobs:
             'phase': '660',
             'input_contract_version': 'phase660.report_inputs.v2',
             'test_summary': {
-              'collected': 2635,
-              'passed': 2620,
-              'skipped': 9,
-              'failed': 0
+              'passed': int('${PASSED}' or '0'),
+              'skipped': int('${SKIPPED}' or '0'),
+              'failed': int('${FAILED}' or '0')
             }
           }
           with open('ops_report_bundle.json', 'w') as f:

@@ -83,7 +83,7 @@ def create_web_app():
             "--resource-group",
             RESOURCE_GROUP,
             "--plan",
-            APP_SERVICE_PPLAN,
+            APP_SERVICE_PLAN,
             "--runtime",
             "PYTHON:3.11",
         ],

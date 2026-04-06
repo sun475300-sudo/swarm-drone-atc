@@ -55,12 +55,14 @@ class TestRunSingle:
         assert result["seed"] == 99
         assert "collision_count" in result
 
+    @pytest.mark.timeout(300)
     def test_failure_override(self):
         combo = {"drone_density": 50, "wind_speed_ms": 0,
                  "failure_rate_pct": 5, "comms_loss_rate": 0}
         result = _run_single((combo, 7))
         assert "collision_count" in result
 
+    @pytest.mark.timeout(300)
     def test_comms_loss_override(self):
         combo = {"drone_density": 50, "wind_speed_ms": 0,
                  "failure_rate_pct": 0, "comms_loss_rate": 0.05}

@@ -106,7 +106,7 @@ class VickreyAuction:
             winning_bid_amount=winner.bid_amount,
             second_highest_bid=second_price,
             payment=payment,
-            allocation_time=bid.completion_time,
+            allocation_time=winner.completion_time,
         )
 
 

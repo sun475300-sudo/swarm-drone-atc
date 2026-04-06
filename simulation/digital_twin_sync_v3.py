@@ -53,7 +53,7 @@ class StateEstimator:
 
 class PredictiveTwin:
     def __init__(self):
-        self.state_history: List[TupleState] = []
+        self.state_history: List[TwinState] = []
         self.prediction_horizon = 10
 
     def predict(self, current: TwinState, steps: int = 10) -> List[TwinState]:

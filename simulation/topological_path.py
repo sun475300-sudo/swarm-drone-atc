@@ -28,6 +28,8 @@ class RipsComplex:
 
     def compute_persistence(self, n_steps=20):
         self.pairs = []
+        prev_components = 0
+        prev_cycles = 0
         for step in range(1, n_steps + 1):
             radius = self.max_radius * step / n_steps
             adj = np.zeros((self.n, self.n), dtype=bool)

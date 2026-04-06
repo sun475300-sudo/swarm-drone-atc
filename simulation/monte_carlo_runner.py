@@ -146,7 +146,7 @@ def run_monte_carlo(
     mode: str = "quick",
     n_workers: int | None = None,
     duration_s: float = 600.0,
-) -> "pd.DataFrame":
+) -> "pd.DataFrame":  # noqa: F821
     """
     Monte Carlo 스윕 실행 → DataFrame 반환 (자동 저장 포함).
 
@@ -259,7 +259,7 @@ def run_monte_carlo(
 
 # ── 요약 출력 ────────────────────────────────────────────────────────────
 
-def _print_summary(df: "pd.DataFrame", thresholds: dict) -> None:
+def _print_summary(df: "pd.DataFrame", thresholds: dict) -> None:  # noqa: F821
     import pandas as pd  # noqa: F401
 
     print("\n" + "=" * 60)

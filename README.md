@@ -22,7 +22,7 @@
 
 **국립 목포대학교 드론기계공학과 캡스톤 디자인**
 
-[3D Simulator](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [Technical Report](docs/report/SDACS_Technical_Report.docx) | [Performance Charts](docs/images/)
+[3D Simulator](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [Technical Report](docs/report/SDACS_Technical_Report_v3.docx) | [Performance Charts](docs/images/)
 
 </div>
 

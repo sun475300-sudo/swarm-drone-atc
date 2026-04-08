@@ -19,3 +19,8 @@ pytest>=8.2
 pytest-cov>=5.0
 pytest-asyncio>=0.23
 pytest-timeout>=2.1
+
+# AI/ML phase 661
+torch>=2.0
+torchvision>=0.15
+torchaudio>=2.0

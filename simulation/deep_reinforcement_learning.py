@@ -98,7 +98,7 @@ class DRLAgent:
         self.training_step = 0
 
     def select_action(self, state: np.ndarray, training: bool = True) -> np.ndarray:
-        if training and random.random() < self.epsilon:
+        if training and np.random.random() < self.epsilon:
             action = np.random.uniform(-1, 1, self.action_dim)
         else:
             q_values = self.policy_net.forward(state)

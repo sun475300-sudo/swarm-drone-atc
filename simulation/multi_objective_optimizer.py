@@ -156,7 +156,7 @@ class NSGAII:
 
     def mutate(self, individual: Individual, mutation_rate: float = 0.1):
         for i in range(self.num_genes):
-            if random.random() < mutation_rate:
+            if np.random.random() < mutation_rate:
                 delta = np.random.normal(0, 0.1) * (
                     self.gene_bounds[1] - self.gene_bounds[0]
                 )

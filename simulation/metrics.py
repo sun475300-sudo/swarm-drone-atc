@@ -1,6 +1,15 @@
 """
-시뮬레이션 KPI 수집기 (DEPRECATED)
+시뮬레이션 KPI 수집기 (DEPRECATED - DO NOT USE)
+
+WARNING: This module is deprecated and should not be used in new code.
 충돌률, 근접 위반, 경로 효율성, 배터리 소모 통계
+
+REPLACEMENT: Use simulation.analytics.SimulationAnalytics instead.
+This legacy metrics module has been superseded by the analytics submodule.
+새 코드에서는 analytics.py를 사용하세요.
+
+Legacy behavior is preserved for backward compatibility only. This module
+will be removed in a future version. Migrate to SimulationAnalytics immediately.
 
 .. deprecated::
     이 모듈은 simulation.analytics.SimulationAnalytics로 대체되었습니다.

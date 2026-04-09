@@ -1,8 +1,0 @@
-=== Check dangling commit c3716a7 === 
-c3716a7 3
-=== Files in dangling commit === 
-=== Check commit b30c633 === 
-b30c633 3
-git_repair.log
-repair_git.bat
-=== DONE === 

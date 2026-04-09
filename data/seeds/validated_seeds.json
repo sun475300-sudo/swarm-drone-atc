@@ -1,5 +1,0 @@
-{
-  "_comment": "알려진 버그를 발견한 재현 가능 시드 목록 (회귀 테스트용)",
-  "_usage": "python scripts/run_scenario.py --seed <seed> --scenario <name>",
-  "seeds": []
-}

@@ -1,4 +1,0 @@
--r base.txt
-joblib>=1.4
-tqdm>=4.66
-pyarrow>=16.0

@@ -1,0 +1,59 @@
+{
+  "type": "processed_all",
+  "timestamp": "2026-04-08T03:29:31.217897+00:00",
+  "sim": {},
+  "external": {
+    "type": "processed_external",
+    "timestamp": "2026-04-08T03:29:31.222570+00:00",
+    "crypto_summary": {
+      "count": 5,
+      "top_gainer": {
+        "market": "KRW-DOGE",
+        "trade_price": 141.0,
+        "signed_change_rate": -0.0070422535,
+        "acc_trade_volume_24h": 233154191.1719748,
+        "acc_trade_price_24h": 32592545631.26297,
+        "high_price": 142.0,
+        "low_price": 139.0,
+        "timestamp": 1775618959480
+      },
+      "top_loser": {
+        "market": "KRW-SOL",
+        "trade_price": 125500.0,
+        "signed_change_rate": -0.0156862745,
+        "acc_trade_volume_24h": 449305.66273896,
+        "acc_trade_price_24h": 55616450567.811485,
+        "high_price": 128000.0,
+        "low_price": 125200.0,
+        "timestamp": 1775618968240
+      },
+      "total_volume_24h": 765962082577.876,
+      "prices": {
+        "KRW-BTC": 105903000.0,
+        "KRW-ETH": 3313000.0,
+        "KRW-XRP": 2032.0,
+        "KRW-SOL": 125500.0,
+        "KRW-DOGE": 141.0
+      }
+    },
+    "weather_summary": {
+      "wind_speed_ms": 4.7,
+      "wind_direction_deg": 238,
+      "wind_gusts_ms": 13.7,
+      "temperature_c": 14.5,
+      "precipitation_mm": 0.0,
+      "flight_condition": "GOOD"
+    },
+    "sc2_summary": {},
+    "sim_weather_params": {
+      "wind_models": [
+        {
+          "type": "constant",
+          "speed_ms": 4.7,
+          "direction_deg": 238
+        }
+      ],
+      "use_windy_apf": false
+    }
+  }
+}

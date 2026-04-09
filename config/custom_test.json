@@ -1,0 +1,21 @@
+{
+  "name": "알고리즘 검증",
+  "tests": [
+    {
+      "file": "tests/test_apf.py",
+      "markers": [],
+      "kwargs": {}
+    },
+    {
+      "file": "tests/test_cbs.py",
+      "markers": [],
+      "kwargs": {}
+    }
+  ],
+  "config": {
+    "timeout": 30,
+    "parallel": false,
+    "n_workers": 4,
+    "random_seed": null
+  }
+}

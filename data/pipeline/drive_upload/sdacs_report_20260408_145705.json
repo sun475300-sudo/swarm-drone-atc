@@ -1,0 +1,93 @@
+{
+  "type": "processed_all",
+  "timestamp": "2026-04-08T05:57:03.966559+00:00",
+  "sim": {
+    "type": "processed_sim",
+    "timestamp": "2026-04-08T05:57:03.968537+00:00",
+    "mc": {},
+    "scenarios": {
+      "adversarial_intrusion": {
+        "status": "error",
+        "error": "No module named 'simpy'"
+      },
+      "comms_loss": {
+        "status": "error",
+        "error": "No module named 'simpy'"
+      },
+      "emergency_failure": {
+        "status": "error",
+        "error": "No module named 'simpy'"
+      },
+      "high_density": {
+        "status": "error",
+        "error": "No module named 'simpy'"
+      },
+      "mass_takeoff": {
+        "status": "error",
+        "error": "No module named 'simpy'"
+      },
+      "route_conflict": {
+        "status": "error",
+        "error": "No module named 'simpy'"
+      },
+      "weather_disturbance": {
+        "status": "error",
+        "error": "No module named 'simpy'"
+      }
+    }
+  },
+  "external": {
+    "type": "processed_external",
+    "timestamp": "2026-04-08T05:57:03.971326+00:00",
+    "crypto_summary": {
+      "count": 5,
+      "top_gainer": {
+        "market": "KRW-XRP",
+        "trade_price": 2049.0,
+        "signed_change_rate": -0.0024342746,
+        "acc_trade_volume_24h": 122006300.76002881,
+        "acc_trade_price_24h": 245664582928.011,
+        "high_price": 2059.0,
+        "low_price": 2024.0,
+        "timestamp": 1775627820578
+      },
+      "top_loser": {
+        "market": "KRW-SOL",
+        "trade_price": 124900.0,
+        "signed_change_rate": -0.0203921569,
+        "acc_trade_volume_24h": 465535.23840389,
+        "acc_trade_price_24h": 57719436771.23441,
+        "high_price": 128000.0,
+        "low_price": 124900.0,
+        "timestamp": 1775627822246
+      },
+      "total_volume_24h": 782642666300.5858,
+      "prices": {
+        "KRW-BTC": 106170000.0,
+        "KRW-ETH": 3317000.0,
+        "KRW-XRP": 2049.0,
+        "KRW-SOL": 124900.0,
+        "KRW-DOGE": 141.0
+      }
+    },
+    "weather_summary": {
+      "wind_speed_ms": 7.9,
+      "wind_direction_deg": 231,
+      "wind_gusts_ms": 19.1,
+      "temperature_c": 17.4,
+      "precipitation_mm": 0.0,
+      "flight_condition": "CAUTION"
+    },
+    "sc2_summary": {},
+    "sim_weather_params": {
+      "wind_models": [
+        {
+          "type": "constant",
+          "speed_ms": 7.9,
+          "direction_deg": 231
+        }
+      ],
+      "use_windy_apf": false
+    }
+  }
+}

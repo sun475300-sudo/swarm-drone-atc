@@ -1,0 +1,67 @@
+name: SDACS CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Lint core modules
+        run: ruff check src/ simulation/ main.py --output-format=github
+
+      - name: Lint tests (relaxed)
+        run: ruff check tests/ --output-format=github --ignore=E501,F811
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-py${{ matrix.python-version }}-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest-cov
+
+      - name: Run tests with coverage
+        run: pytest tests/ -v --tb=short --cov=simulation --cov=src --cov-report=term-missing
+
+      - name: Verify core imports
+        run: |
+          python -c "from simulation.simulator import SwarmSimulator; print('OK: SwarmSimulator')"
+          python -c "from simulation.apf_engine.apf import APFEngine; print('OK: APF')"
+          python -c "from simulation.cbs_planner.cbs import CBSPlanner; print('OK: CBS')"
+          python -c "from src.airspace_control.controller.airspace_controller import AirspaceController; print('OK: AirspaceController')"
+          python -c "from src.airspace_control.comms.communication_bus import CommunicationBus; print('OK: CommunicationBus')"

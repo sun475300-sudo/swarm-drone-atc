@@ -1,0 +1,38 @@
+{
+  "type": "processed_external",
+  "timestamp": "2026-04-07T11:25:38.304144+00:00",
+  "crypto_summary": {
+    "count": 5,
+    "top_gainer": {
+      "market": "KRW-DOGE",
+      "trade_price": 136.0,
+      "signed_change_rate": -0.0072992701,
+      "acc_trade_volume_24h": 160950958.66971487,
+      "acc_trade_price_24h": 22155928285.14165,
+      "high_price": 138.0,
+      "low_price": 136.0,
+      "timestamp": 1775561124222
+    },
+    "top_loser": {
+      "market": "KRW-XRP",
+      "trade_price": 1971.0,
+      "signed_change_rate": -0.0125250501,
+      "acc_trade_volume_24h": 63922589.7622408,
+      "acc_trade_price_24h": 127714705685.75504,
+      "high_price": 2003.0,
+      "low_price": 1970,
+      "timestamp": 1775561124877
+    },
+    "total_volume_24h": 415508418885.912,
+    "prices": {
+      "KRW-BTC": 103048000.0,
+      "KRW-ETH": 3150000.0,
+      "KRW-XRP": 1971.0,
+      "KRW-SOL": 119300.0,
+      "KRW-DOGE": 136.0
+    }
+  },
+  "weather_summary": {},
+  "sc2_summary": {},
+  "sim_weather_params": {}
+}

@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420" font-family="'Malgun Gothic','맑은 고딕','Noto Sans KR','Segoe UI',Arial,sans-serif">
+  <defs>
+    <linearGradient id="bgFSM" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#1e293b"/>
+    </linearGradient>
+    <marker id="fsmArr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8"/>
+    </marker>
+    <marker id="fsmArrRed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#f87171"/>
+    </marker>
+    <marker id="fsmArrYellow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fbbf24"/>
+    </marker>
+  </defs>
+
+  <rect width="800" height="420" fill="url(#bgFSM)" rx="16"/>
+  <text x="400" y="34" text-anchor="middle" fill="#f1f5f9" font-size="17" font-weight="700">드론 비행 상태 기계 (Flight Phase FSM)</text>
+  <text x="400" y="52" text-anchor="middle" fill="#94a3b8" font-size="11">FlightPhase Enum · DroneAgent 상태 전이</text>
+
+  <!-- Node: GROUNDED (시작) -->
+  <circle cx="100" cy="180" r="48" fill="#1e3a5f" stroke="#3b82f6" stroke-width="2.5"/>
+  <text x="100" y="170" text-anchor="middle" fill="#93c5fd" font-size="22">🏁</text>
+  <text x="100" y="192" text-anchor="middle" fill="#bfdbfe" font-size="11" font-weight="700">GROUNDED</text>
+  <text x="100" y="207" text-anchor="middle" fill="#60a5fa" font-size="9">대기 중</text>
+
+  <!-- Node: TAKEOFF -->
+  <circle cx="260" cy="120" r="44" fill="#1e3a5f" stroke="#22d3ee" stroke-width="2"/>
+  <text x="260" y="110" text-anchor="middle" fill="#a5f3fc" font-size="20">🚀</text>
+  <text x="260" y="130" text-anchor="middle" fill="#cffafe" font-size="11" font-weight="700">TAKEOFF</text>
+  <text x="260" y="145" text-anchor="middle" fill="#67e8f9" font-size="9">이륙</text>
+
+  <!-- Node: ENROUTE -->
+  <circle cx="420" cy="120" r="44" fill="#1a3a2a" stroke="#34d399" stroke-width="2.5"/>
+  <text x="420" y="110" text-anchor="middle" fill="#6ee7b7" font-size="20">✈️</text>
+  <text x="420" y="130" text-anchor="middle" fill="#d1fae5" font-size="11" font-weight="700">ENROUTE</text>
+  <text x="420" y="145" text-anchor="middle" fill="#34d399" font-size="9">순항</text>
+
+  <!-- Node: HOLDING -->
+  <circle cx="580" cy="120" r="44" fill="#3b2a05" stroke="#fbbf24" stroke-width="2"/>
+  <text x="580" y="110" text-anchor="middle" fill="#fde68a" font-size="20">🔄</text>
+  <text x="580" y="130" text-anchor="middle" fill="#fef3c7" font-size="11" font-weight="700">HOLDING</text>
+  <text x="580" y="145" text-anchor="middle" fill="#fbbf24" font-size="9">대기 선회</text>
+
+  <!-- Node: LANDING -->
+  <circle cx="580" cy="280" r="44" fill="#1e3a5f" stroke="#818cf8" stroke-width="2"/>
+  <text x="580" y="270" text-anchor="middle" fill="#c7d2fe" font-size="20">🛬</text>
+  <text x="580" y="290" text-anchor="middle" fill="#e0e7ff" font-size="11" font-weight="700">LANDING</text>
+  <text x="580" y="305" text-anchor="middle" fill="#818cf8" font-size="9">착륙 중</text>
+
+  <!-- Node: EVADING -->
+  <circle cx="420" cy="280" r="44" fill="#3b1a05" stroke="#f97316" stroke-width="2.5"/>
+  <text x="420" y="270" text-anchor="middle" fill="#fed7aa" font-size="20">⚡</text>
+  <text x="420" y="290" text-anchor="middle" fill="#ffedd5" font-size="11" font-weight="700">EVADING</text>
+  <text x="420" y="305" text-anchor="middle" fill="#f97316" font-size="9">APF 회피</text>
+
+  <!-- Node: RTL -->
+  <circle cx="260" cy="280" r="44" fill="#2d1a3a" stroke="#a855f7" stroke-width="2"/>
+  <text x="260" y="270" text-anchor="middle" fill="#e9d5ff" font-size="20">🏠</text>
+  <text x="260" y="290" text-anchor="middle" fill="#f3e8ff" font-size="11" font-weight="700">RTL</text>
+  <text x="260" y="305" text-anchor="middle" fill="#a855f7" font-size="9">귀환</text>
+
+  <!-- Node: FAILED -->
+  <circle cx="100" cy="280" r="44" fill="#3b0a0a" stroke="#f87171" stroke-width="2.5"/>
+  <text x="100" y="270" text-anchor="middle" fill="#fca5a5" font-size="20">💥</text>
+  <text x="100" y="290" text-anchor="middle" fill="#fee2e2" font-size="11" font-weight="700">FAILED</text>
+  <text x="100" y="305" text-anchor="middle" fill="#f87171" font-size="9">장애 발생</text>
+
+  <!-- Transitions -->
+  <!-- GROUNDED → TAKEOFF -->
+  <path d="M 144 158 Q 200 110 215 120" stroke="#22d3ee" stroke-width="1.8" fill="none" marker-end="url(#fsmArr)"/>
+  <text x="168" y="122" text-anchor="middle" fill="#67e8f9" font-size="9">허가</text>
+
+  <!-- TAKEOFF → ENROUTE -->
+  <line x1="304" y1="120" x2="376" y2="120" stroke="#34d399" stroke-width="1.8" marker-end="url(#fsmArr)"/>
+  <text x="340" y="112" text-anchor="middle" fill="#34d399" font-size="9">순항고도 도달</text>
+
+  <!-- ENROUTE → HOLDING -->
+  <line x1="464" y1="120" x2="536" y2="120" stroke="#fbbf24" stroke-width="1.8" marker-end="url(#fsmArr)"/>
+  <text x="500" y="112" text-anchor="middle" fill="#fbbf24" font-size="9">대기 지시</text>
+
+  <!-- HOLDING → ENROUTE -->
+  <path d="M 545 138 Q 505 165 455 138" stroke="#94a3b8" stroke-width="1.5" fill="none" marker-end="url(#fsmArr)" stroke-dasharray="4,3"/>
+  <text x="500" y="160" text-anchor="middle" fill="#94a3b8" font-size="9">재개</text>
+
+  <!-- ENROUTE → LANDING -->
+  <path d="M 460 148 Q 520 200 543 244" stroke="#818cf8" stroke-width="1.8" fill="none" marker-end="url(#fsmArr)"/>
+  <text x="528" y="200" text-anchor="middle" fill="#818cf8" font-size="9">목적지 도착</text>
+
+  <!-- LANDING → GROUNDED -->
+  <path d="M 540 308 Q 350 380 140 308" stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#fsmArr)"/>
+  <text x="340" y="382" text-anchor="middle" fill="#60a5fa" font-size="9">착륙 완료</text>
+
+  <!-- ENROUTE → EVADING -->
+  <line x1="420" y1="164" x2="420" y2="236" stroke="#f97316" stroke-width="2" marker-end="url(#fsmArr)"/>
+  <text x="435" y="204" fill="#f97316" font-size="9">충돌 위협</text>
+
+  <!-- EVADING → ENROUTE -->
+  <path d="M 396 238 Q 380 196 396 164" stroke="#94a3b8" stroke-width="1.5" fill="none" marker-end="url(#fsmArr)" stroke-dasharray="4,3"/>
+  <text x="366" y="204" text-anchor="middle" fill="#94a3b8" font-size="9">회피 완료</text>
+
+  <!-- ANY → FAILED -->
+  <path d="M 376 290 L 145 290" stroke="#f87171" stroke-width="2" marker-end="url(#fsmArrRed)"/>
+  <text x="260" y="285" text-anchor="middle" fill="#f87171" font-size="9">장애 주입</text>
+
+  <!-- FAILED → RTL -->
+  <path d="M 144 270 Q 170 240 215 270" stroke="#a855f7" stroke-width="1.8" fill="none" marker-end="url(#fsmArr)" stroke-dasharray="4,3"/>
+  <text x="168" y="248" text-anchor="middle" fill="#a855f7" font-size="9">배터리↓</text>
+
+  <!-- RTL → LANDING -->
+  <line x1="304" y1="280" x2="536" y2="280" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#fsmArr)"/>
+  <text x="420" y="272" text-anchor="middle" fill="#818cf8" font-size="9">귀환 완료</text>
+
+  <!-- Legend -->
+  <rect x="640" y="160" width="148" height="128" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="714" y="180" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="700">범례</text>
+  <line x1="652" y1="193" x2="690" y2="193" stroke="#34d399" stroke-width="2"/>
+  <text x="700" y="197" fill="#94a3b8" font-size="9">정상 전이</text>
+  <line x1="652" y1="210" x2="690" y2="210" stroke="#f97316" stroke-width="2"/>
+  <text x="700" y="214" fill="#94a3b8" font-size="9">충돌 회피</text>
+  <line x1="652" y1="227" x2="690" y2="227" stroke="#f87171" stroke-width="2"/>
+  <text x="700" y="231" fill="#94a3b8" font-size="9">장애 전이</text>
+  <line x1="652" y1="244" x2="690" y2="244" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="700" y="248" fill="#94a3b8" font-size="9">복귀 전이</text>
+  <line x1="652" y1="261" x2="690" y2="261" stroke="#a855f7" stroke-width="1.8"/>
+  <text x="700" y="265" fill="#94a3b8" font-size="9">RTL/배터리</text>
+  <text x="714" y="282" text-anchor="middle" fill="#475569" font-size="8">8개 상태 · 완전 연결</text>
+
+  <text x="400" y="410" text-anchor="middle" fill="#475569" font-size="10">SDACS v0.1.0 · DroneAgent Flight Phase FSM</text>
+</svg>

@@ -1,0 +1,21 @@
+scenario: s06_weather_disturbance
+description: "기상 교란 시나리오 — 바람 하 경로 추적 강건성"
+
+drone_count: 100
+
+weather:
+  wind_models:
+    - type: constant
+      speed_ms: 5.0
+      direction_deg: 270
+    - type: variable
+      mean_speed_ms: 10.0
+      direction_deg: 90
+      gust_speed_ms: 15.0
+      gust_duration_s: 5.0
+    - type: shear
+      low_alt_speed_ms: 5.0
+      high_alt_speed_ms: 20.0
+      transition_alt_m: 60.0
+
+simulation_duration_s: 600

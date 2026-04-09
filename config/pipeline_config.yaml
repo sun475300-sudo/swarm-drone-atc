@@ -1,0 +1,43 @@
+# SDACS 자동화 파이프라인 설정
+# ================================
+# 수집 → 가공 → 저장 전체 흐름을 제어합니다.
+
+# ── 시뮬레이션 수집 ──────────────────────────────────────
+simulation:
+  mc_mode: quick              # quick 또는 full
+  scenario_runs: 3            # 시나리오당 반복 횟수
+  scenarios: null             # null = 전체 시나리오, 또는 목록 지정
+
+# ── 외부 API 수집 ────────────────────────────────────────
+external:
+  crypto_markets:             # Upbit 마켓 코드
+    - KRW-BTC
+    - KRW-ETH
+    - KRW-XRP
+    - KRW-SOL
+    - KRW-DOGE
+
+  weather_lat: 35.1595        # 광주광역시 (SDACS 기준점)
+  weather_lon: 126.8526
+
+  sc2_player_ids: null        # null = 상위 랭킹 자동 수집
+
+# ── 데이터 필터링 ────────────────────────────────────────
+filters:
+  min_collision_resolution_rate: null   # 최소 충돌해결률 (예: 99.0)
+  max_collision_count: null             # 최대 충돌 수
+  drone_densities: null                 # 특정 밀도만 필터 (예: [50, 100])
+
+# ── 저장 설정 ────────────────────────────────────────────
+store:
+  output_dir: null            # null = data/pipeline/ (기본값)
+  formats:                    # 로컬 저장 포맷
+    - csv
+    - json
+    # - xlsx                  # Excel 저장 (openpyxl 필요)
+  db_path: null               # null = data/pipeline/sdacs_pipeline.db
+  enable_drive: true          # Google Drive 업로드 준비
+
+# ── 로깅 ─────────────────────────────────────────────────
+logging:
+  level: INFO                 # DEBUG, INFO, WARNING, ERROR

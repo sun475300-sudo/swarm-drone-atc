@@ -1,0 +1,3 @@
+# Deprecated: merged into ci.yml
+# This file is kept empty to avoid breaking any references.
+# All CI logic is now in ci.yml

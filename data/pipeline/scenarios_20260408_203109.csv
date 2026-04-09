@@ -1,0 +1,8 @@
+﻿scenario,status
+adversarial_intrusion,error
+comms_loss,error
+emergency_failure,error
+high_density,error
+mass_takeoff,error
+route_conflict,error
+weather_disturbance,error

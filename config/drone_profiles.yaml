@@ -1,0 +1,57 @@
+# 드론 프로파일 정의
+
+profiles:
+  COMMERCIAL_DELIVERY:
+    name: "상업 배송 드론"
+    max_speed_ms: 15.0
+    cruise_speed_ms: 10.0
+    max_altitude_m: 120.0
+    battery_wh: 80.0
+    endurance_min: 30.0
+    payload_kg: 2.5
+    comm_range_m: 2000.0
+    priority: 2
+
+  SURVEILLANCE:
+    name: "감시 정찰 드론"
+    max_speed_ms: 20.0
+    cruise_speed_ms: 12.0
+    max_altitude_m: 120.0
+    battery_wh: 100.0
+    endurance_min: 45.0
+    payload_kg: 1.0
+    comm_range_m: 3000.0
+    priority: 2
+
+  EMERGENCY:
+    name: "응급 드론"
+    max_speed_ms: 25.0
+    cruise_speed_ms: 20.0
+    max_altitude_m: 120.0
+    battery_wh: 60.0
+    endurance_min: 20.0
+    payload_kg: 3.0
+    comm_range_m: 2000.0
+    priority: 1    # 높을수록 고우선순위
+
+  RECREATIONAL:
+    name: "레저 드론"
+    max_speed_ms: 10.0
+    cruise_speed_ms: 5.0
+    max_altitude_m: 120.0
+    battery_wh: 30.0
+    endurance_min: 15.0
+    payload_kg: 0.0
+    comm_range_m: 500.0
+    priority: 3    # 낮은 우선순위
+
+  ROGUE:
+    name: "미등록/위협 드론"
+    max_speed_ms: 15.0
+    cruise_speed_ms: 8.0
+    max_altitude_m: 120.0
+    battery_wh: 50.0
+    endurance_min: 25.0
+    payload_kg: 0.5
+    comm_range_m: 0.0    # 통신 없음
+    priority: 99   # 최저 우선순위 (침입자)

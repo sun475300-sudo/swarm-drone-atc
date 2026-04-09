@@ -177,21 +177,46 @@ SDACS의 충돌 회피 파이프라인은 **탐지 → 판단 → 실행** 3단�
 | **Security** | Zero-trust, blockchain, intrusion detection, adversarial defense | 20+ |
 | **Bio-inspired** | Morphogenesis, optogenetics, electrostatics, ecosystem dynamics | 25+ |
 | **Mathematical** | Topology control, information theory, CSP, causal inference | 30+ |
+
+### Project Structure / 프로젝트 구조
+```
+swarm-drone-atc/
+├── simulation/                      # Layer 1 & 3: Drone Agents + Sim Engine
+│   ├── simulator.py                 # SwarmSimulator + _DroneAgent
+│   ├── apf_engine/                  # Artificial Potential Field
+│   ├── cbs_planner/                 # Conflict-Based Search
+│   ├── voronoi_airspace/            # Voronoi tessellation
+│   ├── monte_carlo.py               # Monte Carlo engine
+│   ├── weather.py                   # WindModel
+│   └── ... (240+ modules)
+│
+├── src/airspace_control/            # Layer 2: Control System
+│   ├── controller/                  # AirspaceController, PriorityQueue
+│   ├── avoidance/                   # Resolution Advisory
+│   ├── agents/                      # DroneState, DroneProfiles
+│   ├── comms/                       # CommunicationBus
+│   ├── planning/                    # FlightPathPlanner
+│   └── utils/                       # GeoMath, CoordinateSystems
 │
 ├── visualization/                   # Layer 4: UI
 │   ├── simulator_3d.py              # Dash 3D real-time dashboard
-│   └── dashboard.py                 # Supplementary charts
+│   └── advanced_dashboard.py        # Supplementary charts
 │
 ├── tests/                           # 2,668+ automated tests
-│   ├── test_phase561_570.py
-│   ├── test_phase571_600.py
-│   ├── test_phase601_610.py
+│   ├── test_simulator_scenarios.py
+│   ├── test_phase*.py
 │   └── ...
+│
+├── config/                          # Configuration
+│   ├── default_simulation.yaml
+│   ├── monte_carlo.yaml
+│   └── scenario_params/             # 7 scenario definitions
 │
 ├── docs/                            # Documentation & assets
 │   ├── images/                      # SVG diagrams, charts
 │   └── report/                      # Technical report (DOCX)
 │
+├── main.py                          # CLI entry point
 └── scripts/                         # Utility scripts
 ```
 
@@ -226,6 +251,9 @@ SDACS의 충돌 회피 파이프라인은 **탐지 → 판단 → 실행** 3단�
                   └───────┘  └──────────┘
                                   │
                            ┌──────▼───────┐
+                           │  EMERGENCY   │ ← RTL / forced landing
+                           └──────────────┘
+```
 <div align="center">
 <table>
 <tr>

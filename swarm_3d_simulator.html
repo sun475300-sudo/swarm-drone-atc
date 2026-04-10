@@ -96,7 +96,7 @@
         }
 
         .hud-right {
-            top: 60px;
+            top: 76px;
             right: 12px;
             bottom: 50px;
             width: 260px;
@@ -372,12 +372,12 @@
             bottom: 32px;
             left: 12px;
             width: 380px;
-            height: 200px;
+            height: 180px;
         }
 
         /* Left panel */
         .hud-left {
-            top: 60px;
+            top: 76px;
             left: 12px;
             width: 220px;
             transition: transform 0.3s ease;
@@ -562,9 +562,9 @@
     </div>
 
     <!-- HUD: 직군별 드론 현황 바 -->
-    <div class="hud-overlay"
-        style="top:58px;left:0;right:0;padding:0 20px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
-        <div id="role-stats" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    <div class="hud-overlay hud-interactive"
+        style="top:52px;left:240px;right:280px;padding:4px 12px;display:flex;justify-content:center;gap:4px;flex-wrap:wrap;overflow:hidden;max-height:28px;z-index:11;">
+        <div id="role-stats" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;"></div>
     </div>
 
     <!-- HUD: Left Panel -->
@@ -1262,36 +1262,59 @@
         buildingGroup.visible = false;
         scene.add(buildingGroup);
 
-        // 건물 데이터: {x, z} = 월드좌표(m), w/d = 폭/깊이(m), h = 높이(m)
+        // ===== 서울 모티브 도시/자연환경 =====
+        // 건물: {x,z}=월드좌표(m), w/d=폭/깊이(m), h=높이(m), name=랜드마크명
         const BUILDINGS = [
-            // 중심부 고층 클러스터
-            { x: -800, z: 800, w: 200, d: 200, h: 160, type: 'high' },
-            { x: -400, z: 1000, w: 180, d: 160, h: 140, type: 'high' },
-            { x: 600, z: -600, w: 220, d: 180, h: 180, type: 'high' },
-            { x: 1000, z: 400, w: 200, d: 200, h: 150, type: 'high' },
-            { x: -1200, z: -800, w: 160, d: 200, h: 130, type: 'high' },
-            // 중층 빌딩 링
-            { x: -2000, z: 1500, w: 250, d: 200, h: 90, type: 'mid' },
-            { x: 1800, z: 1200, w: 200, d: 250, h: 80, type: 'mid' },
-            { x: 2200, z: -1000, w: 220, d: 180, h: 100, type: 'mid' },
-            { x: -1800, z: -1800, w: 200, d: 200, h: 85, type: 'mid' },
-            { x: 0, z: 2200, w: 300, d: 200, h: 95, type: 'mid' },
-            { x: -2500, z: 0, w: 200, d: 300, h: 75, type: 'mid' },
-            { x: 2500, z: 500, w: 180, d: 220, h: 70, type: 'mid' },
-            // 외곽 저층
-            { x: -3200, z: 2500, w: 350, d: 250, h: 45, type: 'low' },
-            { x: 3000, z: -2500, w: 300, d: 300, h: 50, type: 'low' },
-            { x: -3500, z: -2000, w: 280, d: 200, h: 40, type: 'low' },
-            { x: 3200, z: 2000, w: 250, d: 350, h: 55, type: 'low' },
-            { x: 0, z: -3000, w: 400, d: 200, h: 35, type: 'low' },
-            { x: -1000, z: 3000, w: 300, d: 250, h: 42, type: 'low' },
-            { x: 1500, z: -2800, w: 250, d: 300, h: 48, type: 'low' },
-            { x: -2800, z: 1200, w: 200, d: 200, h: 38, type: 'low' },
+            // ── 강남/삼성 클러스터 (동남) ──
+            { x: 1500, z: -1200, w: 100, d: 100, h: 555, type: 'landmark', name: '롯데월드타워' },
+            { x: 1200, z: -1000, w: 120, d: 80, h: 230, type: 'high', name: '트레이드타워' },
+            { x: 1400, z: -800, w: 100, d: 100, h: 200, type: 'high', name: '삼성타운' },
+            { x: 1000, z: -1100, w: 150, d: 80, h: 180, type: 'high', name: '코엑스' },
+            { x: 1600, z: -600, w: 80, d: 80, h: 160, type: 'high' },
+            { x: 800, z: -900, w: 100, d: 100, h: 150, type: 'high' },
+            // ── 여의도 클러스터 (서) ──
+            { x: -2000, z: -200, w: 80, d: 80, h: 249, type: 'high', name: '63빌딩' },
+            { x: -1800, z: 0, w: 120, d: 100, h: 284, type: 'high', name: 'IFC서울' },
+            { x: -2200, z: 100, w: 100, d: 80, h: 190, type: 'high', name: 'LG트윈타워' },
+            { x: -1600, z: -300, w: 140, d: 100, h: 170, type: 'mid' },
+            { x: -2000, z: 400, w: 100, d: 120, h: 140, type: 'mid' },
+            // ── 종로/광화문 클러스터 (북) ──
+            { x: -400, z: 1800, w: 100, d: 100, h: 200, type: 'high', name: '광화문D타워' },
+            { x: -200, z: 2000, w: 120, d: 80, h: 150, type: 'mid' },
+            { x: 0, z: 1600, w: 80, d: 80, h: 130, type: 'mid' },
+            { x: -600, z: 1500, w: 100, d: 100, h: 110, type: 'mid' },
+            // ── 용산/이태원 (중앙) ──
+            { x: -300, z: 200, w: 150, d: 100, h: 260, type: 'high', name: '용산타워' },
+            { x: 0, z: 500, w: 100, d: 80, h: 120, type: 'mid' },
+            // ── 마포/홍대 (서북) ──
+            { x: -2500, z: 1200, w: 120, d: 80, h: 100, type: 'mid' },
+            { x: -2800, z: 1500, w: 100, d: 100, h: 80, type: 'low' },
+            // ── 성동/왕십리 (동) ──
+            { x: 2200, z: 600, w: 100, d: 100, h: 90, type: 'mid' },
+            { x: 2500, z: 300, w: 120, d: 80, h: 70, type: 'low' },
+            // ── 외곽 저층 주거지 ──
+            { x: -3200, z: -1500, w: 200, d: 150, h: 45, type: 'low' },
+            { x: 3000, z: 1500, w: 180, d: 180, h: 40, type: 'low' },
+            { x: -3000, z: 2500, w: 150, d: 200, h: 35, type: 'low' },
+            { x: 3200, z: -2000, w: 200, d: 150, h: 50, type: 'low' },
         ];
 
-        const BLDG_COLORS = { high: 0x1a3355, mid: 0x1a2a44, low: 0x152035 };
-        const BLDG_EDGE_COLORS = { high: 0x00e5ff, mid: 0x3388aa, low: 0x224466 };
-        const BLDG_BUFFER = 80; // meters — 건물 주위 회피 버퍼
+        // 자연환경: 한강, 남산, 공원, 나무
+        const NATURE = {
+            hanRiver: { z: -100, width: 350, color: 0x0a2a4a }, // 동서 관통
+            namsan: { x: 200, z: 800, radius: 400, height: 262, color: 0x0a2a1a },
+            parks: [
+                { x: -2000, z: -500, r: 300, name: '여의도공원' },
+                { x: 1500, z: -1500, r: 250, name: '올림픽공원' },
+                { x: -400, z: 2500, r: 350, name: '북한산 자락' },
+                { x: 2000, z: 1200, r: 200, name: '서울숲' },
+                { x: -1000, z: 1200, r: 250, name: '남산공원' },
+            ],
+        };
+
+        const BLDG_COLORS = { landmark: 0x1a3d66, high: 0x1a3355, mid: 0x1a2a44, low: 0x152035 };
+        const BLDG_EDGE_COLORS = { landmark: 0x00e5ff, high: 0x00bbdd, mid: 0x3388aa, low: 0x224466 };
+        const BLDG_BUFFER = 80;
 
         function createBuildings() {
             while (buildingGroup.children.length) {
@@ -1299,34 +1322,122 @@
                 c.traverse(ch => { if (ch.geometry) ch.geometry.dispose(); if (ch.material) ch.material.dispose(); });
                 buildingGroup.remove(c);
             }
+            // ── 건물 ──
             BUILDINGS.forEach(b => {
                 const sw = b.w * SCALE, sd = b.d * SCALE, sh = b.h * SCALE * 3;
                 const geo = new THREE.BoxGeometry(sw, sh, sd);
-                // 반투명 건물 본체
                 const mat = new THREE.MeshPhongMaterial({
                     color: BLDG_COLORS[b.type], transparent: true, opacity: 0.6,
                     emissive: BLDG_COLORS[b.type], emissiveIntensity: 0.2,
                 });
                 const mesh = new THREE.Mesh(geo, mat);
                 mesh.position.set(b.x * SCALE, sh / 2, b.z * SCALE);
-                // 와이어프레임 에지
                 const edgeMat = new THREE.LineBasicMaterial({
                     color: BLDG_EDGE_COLORS[b.type], transparent: true, opacity: 0.5,
                 });
                 const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat);
                 edges.position.copy(mesh.position);
-                // 옥상 표시등 (고층만)
                 const grp = new THREE.Group();
                 grp.add(mesh);
                 grp.add(edges);
-                if (b.type === 'high') {
-                    const lightGeo = new THREE.SphereGeometry(0.15, 8, 8);
-                    const lightMat = new THREE.MeshBasicMaterial({ color: 0xff2200 });
-                    const roofLight = new THREE.Mesh(lightGeo, lightMat);
-                    roofLight.position.set(b.x * SCALE, sh + 0.2, b.z * SCALE);
-                    grp.add(roofLight);
+                // 옥상 항공장애등 (고층/랜드마크)
+                if (b.type === 'high' || b.type === 'landmark') {
+                    const lg = new THREE.SphereGeometry(b.type === 'landmark' ? 0.2 : 0.12, 8, 8);
+                    const lm = new THREE.MeshBasicMaterial({ color: 0xff2200 });
+                    const rl = new THREE.Mesh(lg, lm);
+                    rl.position.set(b.x * SCALE, sh + 0.2, b.z * SCALE);
+                    grp.add(rl);
+                }
+                // 랜드마크 이름 라벨
+                if (b.name && (b.type === 'landmark' || b.type === 'high')) {
+                    const label = makeTextSprite(b.name, '#00e5ff', 7);
+                    label.position.set(b.x * SCALE, sh + 0.8, b.z * SCALE);
+                    label.scale.set(3, 0.8, 1);
+                    grp.add(label);
                 }
                 buildingGroup.add(grp);
+            });
+
+            // ── 한강 (반투명 블루 평면) ──
+            const riverGeo = new THREE.PlaneGeometry(W * 2, NATURE.hanRiver.width * SCALE);
+            const riverMat = new THREE.MeshBasicMaterial({
+                color: NATURE.hanRiver.color, transparent: true, opacity: 0.35, side: THREE.DoubleSide,
+            });
+            const river = new THREE.Mesh(riverGeo, riverMat);
+            river.rotation.x = -Math.PI / 2;
+            river.position.set(0, 0.05, NATURE.hanRiver.z * SCALE);
+            buildingGroup.add(river);
+            // 한강 에지 라인
+            const riverEdge = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(-W, 0.06, (NATURE.hanRiver.z - NATURE.hanRiver.width / 2) * SCALE),
+                    new THREE.Vector3(W, 0.06, (NATURE.hanRiver.z - NATURE.hanRiver.width / 2) * SCALE),
+                ]),
+                new THREE.LineBasicMaterial({ color: 0x1a5588, transparent: true, opacity: 0.4 })
+            );
+            buildingGroup.add(riverEdge);
+            const riverEdge2 = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(-W, 0.06, (NATURE.hanRiver.z + NATURE.hanRiver.width / 2) * SCALE),
+                    new THREE.Vector3(W, 0.06, (NATURE.hanRiver.z + NATURE.hanRiver.width / 2) * SCALE),
+                ]),
+                new THREE.LineBasicMaterial({ color: 0x1a5588, transparent: true, opacity: 0.4 })
+            );
+            buildingGroup.add(riverEdge2);
+            const riverLabel = makeTextSprite('한 강', '#1a6699', 8);
+            riverLabel.position.set(0, 0.5, NATURE.hanRiver.z * SCALE);
+            riverLabel.scale.set(5, 1.2, 1);
+            buildingGroup.add(riverLabel);
+
+            // ── 남산 (원뿔) ──
+            const nm = NATURE.namsan;
+            const mtnH = nm.height * SCALE * 3;
+            const mtnR = nm.radius * SCALE;
+            const mtnGeo = new THREE.ConeGeometry(mtnR, mtnH, 16);
+            const mtnMat = new THREE.MeshPhongMaterial({
+                color: nm.color, transparent: true, opacity: 0.4,
+                emissive: 0x0a3a1a, emissiveIntensity: 0.3,
+            });
+            const mtn = new THREE.Mesh(mtnGeo, mtnMat);
+            mtn.position.set(nm.x * SCALE, mtnH / 2, nm.z * SCALE);
+            buildingGroup.add(mtn);
+            const mtnEdge = new THREE.LineSegments(
+                new THREE.EdgesGeometry(mtnGeo),
+                new THREE.LineBasicMaterial({ color: 0x1a5533, transparent: true, opacity: 0.3 })
+            );
+            mtnEdge.position.copy(mtn.position);
+            buildingGroup.add(mtnEdge);
+            const mtnLabel = makeTextSprite('남산 (262m)', '#22aa55', 8);
+            mtnLabel.position.set(nm.x * SCALE, mtnH + 0.5, nm.z * SCALE);
+            mtnLabel.scale.set(4, 1, 1);
+            buildingGroup.add(mtnLabel);
+
+            // ── 공원 (초록 원형 평면) ──
+            NATURE.parks.forEach(p => {
+                const pr = p.r * SCALE;
+                const parkGeo = new THREE.CircleGeometry(pr, 24);
+                const parkMat = new THREE.MeshBasicMaterial({
+                    color: 0x0a3a1a, transparent: true, opacity: 0.25, side: THREE.DoubleSide,
+                });
+                const park = new THREE.Mesh(parkGeo, parkMat);
+                park.rotation.x = -Math.PI / 2;
+                park.position.set(p.x * SCALE, 0.03, p.z * SCALE);
+                buildingGroup.add(park);
+                // 공원 테두리
+                const ringGeo = new THREE.RingGeometry(pr - 0.05, pr, 24);
+                const ringMat = new THREE.MeshBasicMaterial({
+                    color: 0x22aa55, transparent: true, opacity: 0.3, side: THREE.DoubleSide,
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.rotation.x = -Math.PI / 2;
+                ring.position.set(p.x * SCALE, 0.04, p.z * SCALE);
+                buildingGroup.add(ring);
+                if (p.name) {
+                    const lbl = makeTextSprite(p.name, '#22aa55', 6);
+                    lbl.position.set(p.x * SCALE, 0.4, p.z * SCALE);
+                    lbl.scale.set(3, 0.7, 1);
+                    buildingGroup.add(lbl);
+                }
             });
         }
         createBuildings();
@@ -3111,12 +3222,12 @@
                     counts[d.role.id].total++;
                     if (d.phase !== 'GROUNDED' && d.phase !== 'FAILED') counts[d.role.id].flying++;
                 });
-                roleEl.innerHTML = DRONE_ROLES.map(r => {
+                roleEl.innerHTML = DRONE_ROLES.filter(r => counts[r.id].total > 0).map(r => {
                     const c = counts[r.id];
                     const hex = '#' + r.color.toString(16).padStart(6, '0');
-                    return `<div style="padding:2px 8px;border:1px solid ${hex}40;border-radius:4px;background:${hex}12;display:flex;align-items:center;gap:4px;">
-        <span style="font-size:10px;">${r.icon}</span>
-        <span style="font-size:9px;color:${hex};font-family:'JetBrains Mono',monospace;font-weight:600;">${c.flying}/${c.total}</span>
+                    return `<div style="padding:1px 6px;border:1px solid ${hex}30;border-radius:3px;background:${hex}10;display:flex;align-items:center;gap:3px;line-height:1;" title="${r.label}">
+        <span style="font-size:9px;">${r.icon}</span>
+        <span style="font-size:8px;color:${hex};font-family:'JetBrains Mono',monospace;font-weight:600;">${c.flying}/${c.total}</span>
       </div>`;
                 }).join('');
 

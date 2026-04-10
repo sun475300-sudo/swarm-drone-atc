@@ -32,10 +32,16 @@ def add_h(text, level=1):
 
 
 def _prevent_row_split(row):
-    """테이블 행이 페이지 경계에서 잘리지 않도록 w:cantSplit 설정"""
+    """테이블 행 내부가 페이지 경계에서 잘리지 않도록 w:cantSplit 설정"""
     trPr = row._tr.get_or_add_trPr()
     cantSplit = OxmlElement('w:cantSplit')
     trPr.append(cantSplit)
+
+
+def _set_keep_with_next(cell):
+    """셀 안 모든 단락에 keep_with_next 적용 → 표 전체가 한 페이지에 묶임"""
+    for p in cell.paragraphs:
+        p.paragraph_format.keep_with_next = True
 
 
 def add_tbl(headers, rows):
@@ -56,9 +62,15 @@ def add_tbl(headers, rows):
             for p in c.paragraphs:
                 for r in p.runs:
                     r.font.size = Pt(9)
-    # 모든 행 분리 방지 (헤더 + 본문)
+    # 모든 행 내부 분리 방지
     for row in t.rows:
         _prevent_row_split(row)
+    # 마지막 행을 제외한 모든 행의 셀에 keep_with_next 체인
+    # → 페이지 중간에 표가 시작되면 공간 부족 시 전체가 다음 페이지로 이동
+    all_rows = list(t.rows)
+    for row in all_rows[:-1]:
+        for cell in row.cells:
+            _set_keep_with_next(cell)
     return t
 
 

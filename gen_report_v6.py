@@ -22,10 +22,15 @@ def add_h(text, level=1):
     return h
 
 def _prevent_row_split(row):
-    """테이블 행이 페이지 경계에서 잘리지 않도록 w:cantSplit 설정"""
+    """테이블 행 내부가 페이지 경계에서 잘리지 않도록 w:cantSplit 설정"""
     trPr = row._tr.get_or_add_trPr()
     cantSplit = OxmlElement('w:cantSplit')
     trPr.append(cantSplit)
+
+def _set_keep_with_next(cell):
+    """셀 안 모든 단락에 keep_with_next 적용 → 표 전체가 한 페이지에 묶임"""
+    for p in cell.paragraphs:
+        p.paragraph_format.keep_with_next = True
 
 def add_tbl(headers, rows):
     t = doc.add_table(rows=1+len(rows), cols=len(headers))
@@ -47,6 +52,11 @@ def add_tbl(headers, rows):
                     r.font.size = Pt(9)
     for row in t.rows:
         _prevent_row_split(row)
+    # 마지막 행을 제외한 모든 행의 셀에 keep_with_next 체인
+    all_rows = list(t.rows)
+    for row in all_rows[:-1]:
+        for cell in row.cells:
+            _set_keep_with_next(cell)
     return t
 
 def add_box(text):

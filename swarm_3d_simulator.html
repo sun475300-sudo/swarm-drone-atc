@@ -100,6 +100,35 @@
             right: 12px;
             bottom: 50px;
             width: 260px;
+            transition: transform 0.3s ease;
+        }
+
+        .panel-toggle {
+            position: absolute;
+            top: 8px;
+            padding: 3px 8px;
+            border: 1px solid rgba(0,229,255,0.3);
+            border-radius: 4px;
+            background: rgba(6,10,19,0.92);
+            color: #00e5ff;
+            font-size: 12px;
+            cursor: pointer;
+            pointer-events: auto;
+            z-index: 20;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s;
+        }
+
+        .panel-toggle:hover {
+            background: rgba(0,229,255,0.15);
+        }
+
+        .panel-toggle.left {
+            right: -30px;
+        }
+
+        .panel-toggle.right {
+            left: -30px;
         }
 
         .fleet-panel {
@@ -351,6 +380,15 @@
             top: 60px;
             left: 12px;
             width: 220px;
+            transition: transform 0.3s ease;
+        }
+
+        .hud-left.collapsed {
+            transform: translateX(-232px);
+        }
+
+        .hud-right.collapsed {
+            transform: translateX(272px);
         }
 
         .ctrl-panel {
@@ -530,7 +568,8 @@
     </div>
 
     <!-- HUD: Left Panel -->
-    <div class="hud-overlay hud-left hud-interactive">
+    <div class="hud-overlay hud-left hud-interactive" id="panel-left">
+        <button class="panel-toggle left" id="toggle-left" title="패널 접기/펼치기">◀</button>
         <!-- Controls -->
         <div class="ctrl-panel">
             <div class="ctrl-title">
@@ -586,6 +625,11 @@
                         <option value="typhoon">태풍급 강풍 (200대)</option>
                         <option value="ice_storm">결빙 폭풍 (150대)</option>
                         <option value="multi_cell_storm">다중셀 폭풍 (200대)</option>
+                    </optgroup>
+                    <optgroup label="도시 환경">
+                        <option value="urban_delivery">도심 배송 (200대)</option>
+                        <option value="urban_emergency">도심 긴급 (120대)</option>
+                        <option value="urban_canyon">빌딩 협곡 (150대)</option>
                     </optgroup>
                     <optgroup label="대규모 확장">
                         <option value="mega_swarm">메가 군집 (500대)</option>
@@ -660,7 +704,8 @@
     </div>
 
     <!-- HUD: Right Panel -->
-    <div class="hud-overlay hud-right hud-interactive">
+    <div class="hud-overlay hud-right hud-interactive" id="panel-right">
+        <button class="panel-toggle right" id="toggle-right" title="패널 접기/펼치기">▶</button>
         <div class="fleet-panel">
             <div class="fleet-header">
                 <div class="fleet-header-dot"></div>
@@ -811,6 +856,10 @@
             mega_delivery: { count: 500, label: '대규모 택배', wind: false, failRate: 0.05, rogueRate: 0 },
             full_spectrum: { count: 400, label: '전영역 종합', wind: true, failRate: 0.20, rogueRate: 0.15 },
             total_war: { count: 500, label: '총력전', wind: true, failRate: 0.30, rogueRate: 0.25 },
+            // ── 도시 환경 시나리오
+            urban_delivery: { count: 200, label: '도심 배송', wind: false, failRate: 0.03, rogueRate: 0, urban: true },
+            urban_emergency: { count: 120, label: '도심 긴급', wind: true, failRate: 0.10, rogueRate: 0.05, urban: true },
+            urban_canyon: { count: 150, label: '빌딩 협곡', wind: true, failRate: 0.05, rogueRate: 0, urban: true },
         };
 
         const LANDING_PADS = [
@@ -1208,6 +1257,90 @@
         ground.position.y = 0.01;
         scene.add(ground);
 
+        // ===== Urban Buildings System =====
+        const buildingGroup = new THREE.Group();
+        buildingGroup.visible = false;
+        scene.add(buildingGroup);
+
+        // 건물 데이터: {x, z} = 월드좌표(m), w/d = 폭/깊이(m), h = 높이(m)
+        const BUILDINGS = [
+            // 중심부 고층 클러스터
+            { x: -800, z: 800, w: 200, d: 200, h: 160, type: 'high' },
+            { x: -400, z: 1000, w: 180, d: 160, h: 140, type: 'high' },
+            { x: 600, z: -600, w: 220, d: 180, h: 180, type: 'high' },
+            { x: 1000, z: 400, w: 200, d: 200, h: 150, type: 'high' },
+            { x: -1200, z: -800, w: 160, d: 200, h: 130, type: 'high' },
+            // 중층 빌딩 링
+            { x: -2000, z: 1500, w: 250, d: 200, h: 90, type: 'mid' },
+            { x: 1800, z: 1200, w: 200, d: 250, h: 80, type: 'mid' },
+            { x: 2200, z: -1000, w: 220, d: 180, h: 100, type: 'mid' },
+            { x: -1800, z: -1800, w: 200, d: 200, h: 85, type: 'mid' },
+            { x: 0, z: 2200, w: 300, d: 200, h: 95, type: 'mid' },
+            { x: -2500, z: 0, w: 200, d: 300, h: 75, type: 'mid' },
+            { x: 2500, z: 500, w: 180, d: 220, h: 70, type: 'mid' },
+            // 외곽 저층
+            { x: -3200, z: 2500, w: 350, d: 250, h: 45, type: 'low' },
+            { x: 3000, z: -2500, w: 300, d: 300, h: 50, type: 'low' },
+            { x: -3500, z: -2000, w: 280, d: 200, h: 40, type: 'low' },
+            { x: 3200, z: 2000, w: 250, d: 350, h: 55, type: 'low' },
+            { x: 0, z: -3000, w: 400, d: 200, h: 35, type: 'low' },
+            { x: -1000, z: 3000, w: 300, d: 250, h: 42, type: 'low' },
+            { x: 1500, z: -2800, w: 250, d: 300, h: 48, type: 'low' },
+            { x: -2800, z: 1200, w: 200, d: 200, h: 38, type: 'low' },
+        ];
+
+        const BLDG_COLORS = { high: 0x1a3355, mid: 0x1a2a44, low: 0x152035 };
+        const BLDG_EDGE_COLORS = { high: 0x00e5ff, mid: 0x3388aa, low: 0x224466 };
+        const BLDG_BUFFER = 80; // meters — 건물 주위 회피 버퍼
+
+        function createBuildings() {
+            while (buildingGroup.children.length) {
+                const c = buildingGroup.children[0];
+                c.traverse(ch => { if (ch.geometry) ch.geometry.dispose(); if (ch.material) ch.material.dispose(); });
+                buildingGroup.remove(c);
+            }
+            BUILDINGS.forEach(b => {
+                const sw = b.w * SCALE, sd = b.d * SCALE, sh = b.h * SCALE * 3;
+                const geo = new THREE.BoxGeometry(sw, sh, sd);
+                // 반투명 건물 본체
+                const mat = new THREE.MeshPhongMaterial({
+                    color: BLDG_COLORS[b.type], transparent: true, opacity: 0.6,
+                    emissive: BLDG_COLORS[b.type], emissiveIntensity: 0.2,
+                });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(b.x * SCALE, sh / 2, b.z * SCALE);
+                // 와이어프레임 에지
+                const edgeMat = new THREE.LineBasicMaterial({
+                    color: BLDG_EDGE_COLORS[b.type], transparent: true, opacity: 0.5,
+                });
+                const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat);
+                edges.position.copy(mesh.position);
+                // 옥상 표시등 (고층만)
+                const grp = new THREE.Group();
+                grp.add(mesh);
+                grp.add(edges);
+                if (b.type === 'high') {
+                    const lightGeo = new THREE.SphereGeometry(0.15, 8, 8);
+                    const lightMat = new THREE.MeshBasicMaterial({ color: 0xff2200 });
+                    const roofLight = new THREE.Mesh(lightGeo, lightMat);
+                    roofLight.position.set(b.x * SCALE, sh + 0.2, b.z * SCALE);
+                    grp.add(roofLight);
+                }
+                buildingGroup.add(grp);
+            });
+        }
+        createBuildings();
+
+        function inBuilding(wx, wz, wy) {
+            for (const b of BUILDINGS) {
+                const halfW = (b.w + BLDG_BUFFER) / 2, halfD = (b.d + BLDG_BUFFER) / 2;
+                if (Math.abs(wx - b.x) < halfW && Math.abs(wz - b.z) < halfD && wy < b.h + BLDG_BUFFER) {
+                    return b;
+                }
+            }
+            return null;
+        }
+
         // ===== NFZ (No-Fly Zone) =====
         const nfzW = 500 * SCALE, nfzH = 120 * SCALE * 3;
         const nfzGeo = new THREE.BoxGeometry(nfzW * 2, nfzH, nfzW * 2);
@@ -1595,6 +1728,9 @@
             _lightweight = count > 100;
 
             // 기상 시스템 초기화 (전체 리셋)
+            // 건물 표시 (urban 시나리오만)
+            buildingGroup.visible = !!(cfg.urban);
+
             weather.gustIntensity = 0;
             weather.gustTimer = 5;
             weather.turbulence = 0;
@@ -1821,6 +1957,28 @@
                     });
                     const _mb4 = weather.microbursts[weather.microbursts.length - 1]; _mb4.life = 12 + Math.random() * 10; _mb4.maxLife = _mb4.life;
                 }
+            } else if (scenario === 'urban_delivery') {
+                scene.fog = new THREE.FogExp2(0x050810, 0.003);
+                weather.turbulence = 0.5;
+            } else if (scenario === 'urban_emergency') {
+                scene.fog = new THREE.FogExp2(0x080a14, 0.004);
+                weather.turbulence = 1.5;
+                weather.gustTimer = 3;
+                weather.precipitation = 1;
+            } else if (scenario === 'urban_canyon') {
+                scene.fog = new THREE.FogExp2(0x060810, 0.004);
+                weather.turbulence = 2.0;
+                weather.gustTimer = 2;
+                // 빌딩 협곡 바람 가속 효과 (풍동 효과)
+                weather.baseWind = { x: 5.0, z: -3.0 };
+            } else if (scenario === 'city_rush_hour') {
+                // 기존 시나리오에 건물 추가
+                buildingGroup.visible = true;
+                scene.fog = new THREE.FogExp2(0x050810, 0.003);
+            } else if (scenario === 'uam_corridor') {
+                // UAM 시나리오에도 건물 추가
+                buildingGroup.visible = true;
+                scene.fog = new THREE.FogExp2(0x050810, 0.003);
             } else {
                 scene.fog = new THREE.FogExp2(0x030508, 0.003);
             }
@@ -2098,6 +2256,25 @@
                             d.goalZ = (Math.random() - 0.5) * 1000;
                         }
                         break;
+                    case 'urban_delivery':
+                        d.groundDelay = Math.random() * 4;
+                        d.maxSpeed = 8 + Math.random() * 8;
+                        d.targetAlt = 80 + Math.random() * 60; // 건물 위 비행
+                        break;
+                    case 'urban_emergency':
+                        d.groundDelay = Math.random() * 2;
+                        d.maxSpeed = 10 + Math.random() * 10;
+                        d.targetAlt = 100 + Math.random() * 50;
+                        if (Math.random() < cfg.rogueRate) {
+                            d.isRogue = true; d.maxSpeed *= 1.4; d.groundDelay = 0;
+                        }
+                        break;
+                    case 'urban_canyon':
+                        // 빌딩 사이 저고도 비행 — 높은 난이도
+                        d.groundDelay = Math.random() * 5;
+                        d.maxSpeed = 6 + Math.random() * 6;
+                        d.targetAlt = 50 + Math.random() * 40; // 빌딩 높이와 겹치는 고도
+                        break;
                     default:
                         d.groundDelay = Math.random() * 8;
                 }
@@ -2355,6 +2532,25 @@
                         stats.advisories++;
                         logEvent('advisory', `${d.id} NFZ 접근 → 회피 기동`);
                         break;
+                    }
+                    // 건물 충돌 회피 (도시 시나리오)
+                    if (buildingGroup.visible) {
+                        const hitBldg = inBuilding(d.wx, d.wz, d.wy);
+                        if (hitBldg) {
+                            d.phase = 'EVADING';
+                            d.evadeTimer = 2.5;
+                            d.evasionCount++;
+                            // 건물 중심에서 밀어내기
+                            const bx = d.wx - hitBldg.x, bz = d.wz - hitBldg.z;
+                            const bDist = Math.sqrt(bx * bx + bz * bz) || 1;
+                            d.wx += (bx / bDist) * 120;
+                            d.wz += (bz / bDist) * 120;
+                            // 건물 위로 상승
+                            if (d.wy < hitBldg.h + 30) d.targetAlt = hitBldg.h + 40;
+                            stats.advisories++;
+                            logEvent('advisory', `${d.id} 건물 접근 → 회피 상승`);
+                            break;
+                        }
                     }
 
                     const dx = d.goalX - d.wx, dz = d.goalZ - d.wz;
@@ -2778,6 +2974,28 @@
                 }
             });
 
+            // ─── 건물 반발력 (도시 시나리오) ───
+            if (buildingGroup.visible) {
+                airborne.forEach(d => {
+                    const f = repForce.get(d);
+                    for (const b of BUILDINGS) {
+                        const bx = d.wx - b.x, bz = d.wz - b.z;
+                        const halfW = b.w / 2 + BLDG_BUFFER, halfD = b.d / 2 + BLDG_BUFFER;
+                        if (Math.abs(bx) < halfW * 2 && Math.abs(bz) < halfD * 2 && d.wy < b.h + BLDG_BUFFER * 2) {
+                            const distX = Math.max(0, Math.abs(bx) - b.w / 2);
+                            const distZ = Math.max(0, Math.abs(bz) - b.d / 2);
+                            const bDist = Math.sqrt(distX * distX + distZ * distZ) || 1;
+                            if (bDist < BLDG_BUFFER * 2) {
+                                const strength = 30 * (1 - bDist / (BLDG_BUFFER * 2));
+                                f.fx += (bx > 0 ? 1 : -1) * strength;
+                                f.fz += (bz > 0 ? 1 : -1) * strength;
+                                f.fy += Math.max(0, (b.h + 30 - d.wy) * 0.5);
+                            }
+                        }
+                    }
+                });
+            }
+
             // ─── 하이브리드 회피: 긴급=위치 직접 보정, 일반=속도 보정 ───
             const apfDt = 1 / 60; // 프레임 레이트 독립 보정 기준
             airborne.forEach(d => {
@@ -3002,6 +3220,18 @@
         document.getElementById('speed-slider').addEventListener('input', (e) => {
             simSpeed = parseFloat(e.target.value);
             document.getElementById('speed-label').textContent = simSpeed.toFixed(2) + 'x';
+        });
+
+        // 패널 접기/펼치기 토글
+        document.getElementById('toggle-left').addEventListener('click', () => {
+            const panel = document.getElementById('panel-left');
+            panel.classList.toggle('collapsed');
+            document.getElementById('toggle-left').textContent = panel.classList.contains('collapsed') ? '▶' : '◀';
+        });
+        document.getElementById('toggle-right').addEventListener('click', () => {
+            const panel = document.getElementById('panel-right');
+            panel.classList.toggle('collapsed');
+            document.getElementById('toggle-right').textContent = panel.classList.contains('collapsed') ? '◀' : '▶';
         });
 
         // ===== ATC 관제선 (탐지·통제 시각화) =====

@@ -21,7 +21,7 @@
 
 **국립 목포대학교 드론기계공학과 캡스톤 디자인**
 
-[3D Simulator](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [Technical Report](docs/report/SDACS_Technical_Report.docx) | [Performance Charts](docs/images/)
+[**3D Simulator Demo**](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [Technical Report](docs/report/SDACS_Technical_Report.docx) | [Performance Charts](docs/images/)
 
 </div>
 <div align="center">
@@ -118,7 +118,13 @@ SimPy 기반 이산 이벤트 시뮬레이션 엔진으로, 다양한 환경 조
 ### Layer 4 — User Interface (사용자 인터페이스)
 - **CLI**: `main.py` — simulate, scenario, monte-carlo, visualize, ops-report 명령
 - **3D Dashboard**: Dash + Plotly 실시간 3D 시각화, 드론 궤적/충돌 경고/편대 표시
-- **파일**: `main.py`, `visualization/simulator_3d.py`
+- **[3D Web Simulator (Demo)](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html)**: Three.js 브라우저 기반 인터랙티브 시뮬레이터
+  - 39개 시나리오 (도시 환경, 극한 기상, 메가 스케일 500대 포함)
+  - APF 충돌 회피 + CPA 12초 예측 + Spatial Hash 최적화
+  - 22개 드론 직군, 21-zone ATC 네트워크, 도심 빌딩 환경
+  - 극한 기상: 마이크로버스트, 태풍, 결빙, 다중셀 폭풍, 풍속 전단
+  - `window._sdacs` API — 자동화 테스트 및 외부 연동
+- **파일**: `main.py`, `visualization/simulator_3d.py`, `swarm_3d_simulator.html`
 ```mermaid
 sequenceDiagram
     participant D as Drone (10Hz)

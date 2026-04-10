@@ -1,0 +1,25 @@
+title: SDACS - 군집드론 공역통제 자동화 시스템
+description: Swarm Drone Airspace Control System with APF + WebGPU
+theme: jekyll-theme-cayman
+
+# Site metadata
+author: Jang Sunwoo
+lang: ko
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+
+# Exclude from build (these are served as-is, not processed by Jekyll)
+exclude:
+  - report/generate_report.js
+  - report/generate_report_v2.js
+  - README.md
+  - midterm_presentation_script.md
+  - presentation_script.md
+
+# Keep the static HTML untouched
+keep_files:
+  - index.html
+  - images
+  - report

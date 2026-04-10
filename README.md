@@ -46,6 +46,54 @@
 - 🔗 **일상 비유** — 철새 떼, 도서관 분류번호, 게임 그래픽카드, 주사위 38,400번 굴리기
 
 ---
+
+## 🐳 Docker로 실행하기 / Run with Docker
+
+Python 환경을 직접 구성하지 않아도 **Docker 한 번이면** SDACS 3D 대시보드를 실행할 수 있습니다. 배포 노트는 [`docker/README.md`](docker/README.md)를 참고하세요.
+
+### 사전 요구사항
+- Docker Engine 20.10+ (Docker Desktop 또는 Linux Docker)
+- 포트 `8050` 사용 가능
+
+### 빠른 시작
+
+```bash
+# 1. 이미지 빌드 (최초 1회, 약 1.5 GB)
+docker compose build
+
+# 2. 컨테이너 실행 — Dash 3D 대시보드 기동
+docker compose up
+
+# 2-1. 백그라운드 실행이 필요한 경우
+docker compose up -d
+
+# 3. 브라우저로 접속
+#    http://localhost:8050
+
+# 4. 중지 및 정리
+docker compose down
+```
+
+### 다른 CLI 명령 실행
+기본 명령은 `python main.py visualize` 입니다. 시뮬레이션이나 Monte Carlo 스윕을 실행하려면 명령을 오버라이드하세요.
+
+```bash
+docker compose run --rm sdacs python main.py simulate --duration 60
+docker compose run --rm sdacs python main.py scenario high_density
+docker compose run --rm sdacs python main.py monte-carlo --mode quick
+```
+
+### 볼륨 마운트 (설정 및 결과 영속화)
+`docker-compose.yaml`은 두 개의 호스트 경로를 컨테이너에 바인드합니다.
+
+| 호스트 경로 | 컨테이너 경로 | 모드 | 용도 |
+|-------------|---------------|------|------|
+| `./config`  | `/app/config` | 읽기 전용 | 시나리오/Monte Carlo YAML — 호스트에서 수정 후 컨테이너 재시작 |
+| `./results` | `/app/results` | 읽기/쓰기 | 시뮬레이션 CSV·로그·플롯 영속화 |
+
+> `docker compose down` 후에도 `./results/` 디렉터리의 산출물은 호스트에 그대로 남습니다. 설정은 읽기 전용으로 마운트되므로 컨테이너가 호스트 파일을 덮어쓰지 않습니다.
+
+---
 ## What is SDACS? / SDACS란?
 
 > **"레이더를 땅에 설치하는 대신, 드론 자체가 레이더가 되면 어떨까?"**

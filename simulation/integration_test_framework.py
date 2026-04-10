@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, Callable, Any
 
 
 class TestResult(Enum):
+    __test__ = False  # Prevent pytest collection
     PASS = "pass"
     FAIL = "fail"
     SKIP = "skip"
@@ -31,6 +32,7 @@ class IntegrationTest:
 
 @dataclass
 class TestOutcome:
+    __test__ = False  # Prevent pytest collection
     name: str
     result: TestResult
     duration_ms: float = 0.0
@@ -40,6 +42,7 @@ class TestOutcome:
 
 @dataclass
 class TestSuiteReport:
+    __test__ = False  # Prevent pytest collection
     total: int = 0
     passed: int = 0
     failed: int = 0

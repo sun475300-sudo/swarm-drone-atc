@@ -36,6 +36,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8090", "--directory", "C:/Users/sun47/Desktop/캡스톤 디자인"],
       "port": 8090
+    },
+    {
+      "name": "demo-simulator",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8070"],
+      "port": 8070
     }
   ]
 }

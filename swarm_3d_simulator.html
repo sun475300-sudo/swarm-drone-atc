@@ -98,8 +98,9 @@
         .hud-right {
             top: 76px;
             right: 12px;
-            bottom: 50px;
+            bottom: 216px;
             width: 260px;
+            overflow-y: auto;
             transition: transform 0.3s ease;
         }
 
@@ -371,15 +372,82 @@
         .hud-bottom-log {
             bottom: 32px;
             left: 12px;
-            width: 380px;
-            height: 180px;
+            width: 300px;
+            height: 170px;
+            transition: height 0.3s ease;
+        }
+        .hud-bottom-log.collapsed {
+            height: 28px;
+        }
+        .hud-bottom-log.collapsed .event-log-list {
+            display: none;
+        }
+        .log-toggle-btn {
+            background: none; border: 1px solid rgba(255,255,255,0.1);
+            color: #f59e0b; font-size: 10px; padding: 0 6px; border-radius: 3px;
+            cursor: pointer; line-height: 18px; font-family: 'JetBrains Mono', monospace;
+        }
+        .log-toggle-btn:hover { border-color: #f59e0b; }
+
+        /* Analytics graphs panel */
+        .hud-analytics {
+            bottom: 32px;
+            left: 324px;
+            right: 284px;
+            height: 170px;
+            transition: height 0.3s ease;
+        }
+        .hud-analytics.collapsed {
+            height: 28px;
+        }
+        .hud-analytics.collapsed .analytics-body {
+            display: none;
+        }
+        .analytics-panel {
+            background: rgba(6, 10, 19, 0.92);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            border-radius: 10px;
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .analytics-header {
+            padding: 4px 8px;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: nowrap;
+            min-height: 24px;
+        }
+        .analytics-tabs {
+            display: flex; gap: 2px; margin-left: 8px; overflow-x: auto; flex-shrink: 1; min-width: 0;
+        }
+        .analytics-tabs button {
+            background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.15);
+            color: #4a6785; font-size: 8px; padding: 2px 5px; border-radius: 3px;
+            cursor: pointer; font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap; flex-shrink: 0;
+        }
+        .analytics-tabs button.active {
+            background: rgba(0,229,255,0.15); color: #00e5ff; border-color: rgba(0,229,255,0.4);
+        }
+        .analytics-body {
+            flex: 1; display: flex; padding: 6px; gap: 4px; overflow: hidden;
+        }
+        .chart-canvas {
+            flex: 1; min-width: 0;
         }
 
         /* Left panel */
         .hud-left {
             top: 76px;
             left: 12px;
+            bottom: 216px;
             width: 220px;
+            overflow-y: auto;
             transition: transform 0.3s ease;
         }
 
@@ -626,10 +694,40 @@
                         <option value="ice_storm">결빙 폭풍 (150대)</option>
                         <option value="multi_cell_storm">다중셀 폭풍 (200대)</option>
                     </optgroup>
-                    <optgroup label="도시 환경">
-                        <option value="urban_delivery">도심 배송 (200대)</option>
-                        <option value="urban_emergency">도심 긴급 (120대)</option>
-                        <option value="urban_canyon">빌딩 협곡 (150대)</option>
+                    <optgroup label="서울 도시환경">
+                        <option value="urban_delivery">서울 배송 (200대)</option>
+                        <option value="urban_emergency">서울 긴급 (120대)</option>
+                        <option value="urban_canyon">서울 빌딩협곡 (150대)</option>
+                    </optgroup>
+                    <optgroup label="부산 도시환경">
+                        <option value="busan_delivery">부산 배송 (200대)</option>
+                        <option value="busan_emergency">부산 긴급 (120대)</option>
+                        <option value="busan_canyon">부산 해운대협곡 (150대)</option>
+                    </optgroup>
+                    <optgroup label="인천 도시환경">
+                        <option value="incheon_delivery">인천 배송 (200대)</option>
+                        <option value="incheon_emergency">인천 긴급 (120대)</option>
+                        <option value="incheon_canyon">인천 송도협곡 (150대)</option>
+                    </optgroup>
+                    <optgroup label="대구 도시환경">
+                        <option value="daegu_delivery">대구 배송 (200대)</option>
+                        <option value="daegu_emergency">대구 긴급 (120대)</option>
+                        <option value="daegu_canyon">대구 범어협곡 (150대)</option>
+                    </optgroup>
+                    <optgroup label="광주 도시환경">
+                        <option value="gwangju_delivery">광주 배송 (200대)</option>
+                        <option value="gwangju_emergency">광주 긴급 (120대)</option>
+                        <option value="gwangju_canyon">광주 상무협곡 (150대)</option>
+                    </optgroup>
+                    <optgroup label="대전 도시환경">
+                        <option value="daejeon_delivery">대전 배송 (200대)</option>
+                        <option value="daejeon_emergency">대전 긴급 (120대)</option>
+                        <option value="daejeon_canyon">대전 둔산협곡 (150대)</option>
+                    </optgroup>
+                    <optgroup label="울산 도시환경">
+                        <option value="ulsan_delivery">울산 배송 (200대)</option>
+                        <option value="ulsan_emergency">울산 긴급 (120대)</option>
+                        <option value="ulsan_canyon">울산 산업협곡 (150대)</option>
                     </optgroup>
                     <optgroup label="대규모 확장">
                         <option value="mega_swarm">메가 군집 (500대)</option>
@@ -726,8 +824,34 @@
                 <div style="flex:1;"></div>
                 <button id="btn-clear-log"
                     style="background:none;border:1px solid rgba(255,255,255,0.1);color:#4a6785;font-size:8px;padding:2px 6px;border-radius:3px;cursor:pointer;font-family:'JetBrains Mono',monospace;">초기화</button>
+                <button class="log-toggle-btn" id="btn-toggle-log">▼</button>
             </div>
             <div class="event-log-list" id="event-log"></div>
+        </div>
+    </div>
+
+    <!-- HUD: Analytics Graphs -->
+    <div class="hud-overlay hud-analytics hud-interactive" id="analytics-panel">
+        <div class="analytics-panel">
+            <div class="analytics-header">
+                <div style="width:6px;height:6px;border-radius:50%;background:#00e5ff;"></div>
+                <div style="font-size:9px;font-weight:600;color:#00e5ff;font-family:'JetBrains Mono',monospace;letter-spacing:1px;white-space:nowrap;">분석</div>
+                <div class="analytics-tabs" id="chart-tabs">
+                    <button class="active" data-chart="battery">BAT</button>
+                    <button data-chart="energy">NRG</button>
+                    <button data-chart="collision">COL</button>
+                    <button data-chart="threat">THR</button>
+                    <button data-chart="airspace">ATC</button>
+                    <button data-chart="tick">TPS</button>
+                    <button data-chart="phase">PHS</button>
+                </div>
+                <div style="flex:1;"></div>
+                <button class="log-toggle-btn" id="btn-toggle-analytics">▼</button>
+            </div>
+            <div class="analytics-body">
+                <canvas class="chart-canvas" id="chart-main"></canvas>
+                <canvas class="chart-canvas" id="chart-sub" style="max-width:35%;"></canvas>
+            </div>
         </div>
     </div>
 
@@ -735,7 +859,12 @@
     <div class="hud-overlay hud-bottom">
         <div class="hud-info-text">SDACS v2.0 — APF 충돌 회피 | NFZ 비행금지구역 | 복도 공역 제어</div>
         <div class="hud-info-text">
-            <span id="fps-counter">60</span> FPS | 드래그: 회전 | 스크롤: 줌 | 우클릭: 이동
+            <span id="fps-counter">60</span> FPS |
+            <span style="color:#22c55e;">CPU</span>:<span id="perf-cpu">0</span>ms
+            <span style="color:#06b6d4;">GPU</span>:<span id="perf-gpu">0</span>ms
+            <span style="color:#a855f7;">APF</span>:<span id="perf-apf">-</span>ms
+            <span style="color:#f59e0b;" id="perf-apf-label">WRK</span> |
+            드래그: 회전 | 스크롤: 줌
         </div>
     </div>
 
@@ -856,10 +985,34 @@
             mega_delivery: { count: 500, label: '대규모 택배', wind: false, failRate: 0.05, rogueRate: 0 },
             full_spectrum: { count: 400, label: '전영역 종합', wind: true, failRate: 0.20, rogueRate: 0.15 },
             total_war: { count: 500, label: '총력전', wind: true, failRate: 0.30, rogueRate: 0.25 },
-            // ── 도시 환경 시나리오
-            urban_delivery: { count: 200, label: '도심 배송', wind: false, failRate: 0.03, rogueRate: 0, urban: true },
-            urban_emergency: { count: 120, label: '도심 긴급', wind: true, failRate: 0.10, rogueRate: 0.05, urban: true },
-            urban_canyon: { count: 150, label: '빌딩 협곡', wind: true, failRate: 0.05, rogueRate: 0, urban: true },
+            // ── 서울 도시환경
+            urban_delivery: { count: 200, label: '서울 배송', wind: false, failRate: 0.03, rogueRate: 0, urban: true, city: 'seoul' },
+            urban_emergency: { count: 120, label: '서울 긴급', wind: true, failRate: 0.10, rogueRate: 0.05, urban: true, city: 'seoul' },
+            urban_canyon: { count: 150, label: '서울 빌딩협곡', wind: true, failRate: 0.05, rogueRate: 0, urban: true, city: 'seoul' },
+            // ── 부산 도시환경
+            busan_delivery: { count: 200, label: '부산 배송', wind: false, failRate: 0.03, rogueRate: 0, city: 'busan' },
+            busan_emergency: { count: 120, label: '부산 긴급', wind: true, failRate: 0.10, rogueRate: 0.05, city: 'busan' },
+            busan_canyon: { count: 150, label: '부산 해운대협곡', wind: true, failRate: 0.05, rogueRate: 0, city: 'busan' },
+            // ── 인천 도시환경
+            incheon_delivery: { count: 200, label: '인천 배송', wind: false, failRate: 0.03, rogueRate: 0, city: 'incheon' },
+            incheon_emergency: { count: 120, label: '인천 긴급', wind: true, failRate: 0.10, rogueRate: 0.05, city: 'incheon' },
+            incheon_canyon: { count: 150, label: '인천 송도협곡', wind: true, failRate: 0.05, rogueRate: 0, city: 'incheon' },
+            // ── 대구 도시환경
+            daegu_delivery: { count: 200, label: '대구 배송', wind: false, failRate: 0.03, rogueRate: 0, city: 'daegu' },
+            daegu_emergency: { count: 120, label: '대구 긴급', wind: true, failRate: 0.10, rogueRate: 0.05, city: 'daegu' },
+            daegu_canyon: { count: 150, label: '대구 범어협곡', wind: true, failRate: 0.05, rogueRate: 0, city: 'daegu' },
+            // ── 광주 도시환경
+            gwangju_delivery: { count: 200, label: '광주 배송', wind: false, failRate: 0.03, rogueRate: 0, city: 'gwangju' },
+            gwangju_emergency: { count: 120, label: '광주 긴급', wind: true, failRate: 0.10, rogueRate: 0.05, city: 'gwangju' },
+            gwangju_canyon: { count: 150, label: '광주 상무협곡', wind: true, failRate: 0.05, rogueRate: 0, city: 'gwangju' },
+            // ── 대전 도시환경
+            daejeon_delivery: { count: 200, label: '대전 배송', wind: false, failRate: 0.03, rogueRate: 0, city: 'daejeon' },
+            daejeon_emergency: { count: 120, label: '대전 긴급', wind: true, failRate: 0.10, rogueRate: 0.05, city: 'daejeon' },
+            daejeon_canyon: { count: 150, label: '대전 둔산협곡', wind: true, failRate: 0.05, rogueRate: 0, city: 'daejeon' },
+            // ── 울산 도시환경
+            ulsan_delivery: { count: 200, label: '울산 배송', wind: false, failRate: 0.03, rogueRate: 0, city: 'ulsan' },
+            ulsan_emergency: { count: 120, label: '울산 긴급', wind: true, failRate: 0.10, rogueRate: 0.05, city: 'ulsan' },
+            ulsan_canyon: { count: 150, label: '울산 산업협곡', wind: true, failRate: 0.05, rogueRate: 0, city: 'ulsan' },
         };
 
         const LANDING_PADS = [
@@ -1262,9 +1415,12 @@
         buildingGroup.visible = false;
         scene.add(buildingGroup);
 
-        // ===== 서울 모티브 도시/자연환경 =====
+        // ===== 다중 도시 환경 시스템 =====
         // 건물: {x,z}=월드좌표(m), w/d=폭/깊이(m), h=높이(m), name=랜드마크명
-        const BUILDINGS = [
+        const CITY_MAPS = {
+            seoul: {
+                name: '서울특별시',
+                buildings: [
             // ── 강남/삼성 클러스터 (동남) ──
             { x: 1500, z: -1200, w: 100, d: 100, h: 555, type: 'landmark', name: '롯데월드타워' },
             { x: 1200, z: -1000, w: 120, d: 80, h: 230, type: 'high', name: '트레이드타워' },
@@ -1297,24 +1453,246 @@
             { x: 3000, z: 1500, w: 180, d: 180, h: 40, type: 'low' },
             { x: -3000, z: 2500, w: 150, d: 200, h: 35, type: 'low' },
             { x: 3200, z: -2000, w: 200, d: 150, h: 50, type: 'low' },
-        ];
-
-        // 자연환경: 한강, 남산, 공원, 나무
-        const NATURE = {
-            hanRiver: { z: -100, width: 350, color: 0x0a2a4a }, // 동서 관통
-            namsan: { x: 200, z: 800, radius: 400, height: 262, color: 0x0a2a1a },
-            parks: [
-                { x: -2000, z: -500, r: 300, name: '여의도공원' },
-                { x: 1500, z: -1500, r: 250, name: '올림픽공원' },
-                { x: -400, z: 2500, r: 350, name: '북한산 자락' },
-                { x: 2000, z: 1200, r: 200, name: '서울숲' },
-                { x: -1000, z: 1200, r: 250, name: '남산공원' },
-            ],
+                ],
+                nature: {
+                    river: { name: '한 강', z: -100, width: 350, color: 0x0a2a4a },
+                    mountain: { name: '남산 (262m)', x: 200, z: 800, radius: 400, height: 262, color: 0x0a2a1a },
+                    parks: [
+                        { x: -2000, z: -500, r: 300, name: '여의도공원' },
+                        { x: 1500, z: -1500, r: 250, name: '올림픽공원' },
+                        { x: -400, z: 2500, r: 350, name: '북한산 자락' },
+                        { x: 2000, z: 1200, r: 200, name: '서울숲' },
+                        { x: -1000, z: 1200, r: 250, name: '남산공원' },
+                    ],
+                },
+            },
+            busan: {
+                name: '부산광역시',
+                buildings: [
+                    { x: 2000, z: -800, w: 100, d: 100, h: 411, type: 'landmark', name: '해운대 엘시티' },
+                    { x: 1800, z: -600, w: 150, d: 100, h: 170, type: 'high', name: 'BEXCO' },
+                    { x: 2200, z: -500, w: 100, d: 80, h: 150, type: 'high', name: '센텀시티' },
+                    { x: 1600, z: -400, w: 120, d: 100, h: 130, type: 'high' },
+                    { x: 2400, z: -1000, w: 80, d: 80, h: 120, type: 'mid' },
+                    { x: 0, z: -1200, w: 100, d: 80, h: 290, type: 'high', name: '부산국제금융센터' },
+                    { x: -200, z: -1000, w: 120, d: 100, h: 180, type: 'high', name: '문현금융단지' },
+                    { x: 200, z: -1400, w: 80, d: 80, h: 160, type: 'high' },
+                    { x: -500, z: 200, w: 100, d: 100, h: 180, type: 'high', name: '롯데백화점' },
+                    { x: -700, z: 400, w: 120, d: 80, h: 140, type: 'mid' },
+                    { x: -300, z: 0, w: 100, d: 100, h: 120, type: 'mid' },
+                    { x: -1500, z: -800, w: 80, d: 80, h: 120, type: 'mid', name: '부산타워' },
+                    { x: -1300, z: -600, w: 100, d: 80, h: 100, type: 'mid' },
+                    { x: -2000, z: 200, w: 150, d: 120, h: 90, type: 'mid', name: '부산역' },
+                    { x: -2200, z: 400, w: 100, d: 100, h: 70, type: 'low' },
+                    { x: 800, z: 1500, w: 100, d: 100, h: 80, type: 'mid' },
+                    { x: -3000, z: -1800, w: 200, d: 150, h: 45, type: 'low' },
+                    { x: 3000, z: 1200, w: 180, d: 180, h: 40, type: 'low' },
+                    { x: -2800, z: 2000, w: 150, d: 200, h: 35, type: 'low' },
+                    { x: 2800, z: -2000, w: 200, d: 150, h: 50, type: 'low' },
+                ],
+                nature: {
+                    river: { name: '수영강', z: -200, width: 200, color: 0x0a2a4a },
+                    mountain: { name: '금정산 (802m)', x: -500, z: 2000, radius: 500, height: 802, color: 0x0a2a1a },
+                    parks: [
+                        { x: 2500, z: -1200, r: 250, name: '해운대해변' },
+                        { x: -1500, z: -600, r: 200, name: '용두산공원' },
+                        { x: -800, z: 800, r: 300, name: '부산시민공원' },
+                        { x: 1800, z: -200, r: 200, name: '센텀파크' },
+                        { x: 200, z: 1500, r: 250, name: '동래온천공원' },
+                    ],
+                },
+            },
+            incheon: {
+                name: '인천광역시',
+                buildings: [
+                    { x: -1500, z: -1200, w: 100, d: 100, h: 305, type: 'landmark', name: '포스코타워' },
+                    { x: -1300, z: -1000, w: 80, d: 80, h: 152, type: 'high', name: 'G-타워' },
+                    { x: -1700, z: -800, w: 120, d: 100, h: 180, type: 'high', name: '동북아무역센터' },
+                    { x: -1100, z: -1400, w: 100, d: 80, h: 150, type: 'high', name: '트리플스트리트' },
+                    { x: -1900, z: -600, w: 100, d: 100, h: 130, type: 'high' },
+                    { x: -1500, z: -500, w: 80, d: 80, h: 110, type: 'mid' },
+                    { x: 500, z: 200, w: 100, d: 100, h: 151, type: 'high', name: '인천타워' },
+                    { x: 300, z: 400, w: 120, d: 80, h: 120, type: 'mid', name: '시청 업무지구' },
+                    { x: 700, z: 0, w: 100, d: 100, h: 100, type: 'mid' },
+                    { x: -2500, z: 1200, w: 120, d: 80, h: 140, type: 'high', name: '청라시티타워' },
+                    { x: -2700, z: 1000, w: 100, d: 100, h: 100, type: 'mid' },
+                    { x: -2300, z: 1400, w: 80, d: 80, h: 80, type: 'mid' },
+                    { x: 2000, z: 600, w: 120, d: 100, h: 100, type: 'mid', name: '부평역' },
+                    { x: 2200, z: 800, w: 100, d: 80, h: 80, type: 'low' },
+                    { x: -2000, z: -200, w: 100, d: 100, h: 80, type: 'mid' },
+                    { x: 3000, z: -1500, w: 200, d: 150, h: 45, type: 'low' },
+                    { x: -3200, z: 2000, w: 180, d: 180, h: 40, type: 'low' },
+                    { x: 3200, z: 1800, w: 150, d: 200, h: 35, type: 'low' },
+                ],
+                nature: {
+                    river: { name: '경인운하', z: 600, width: 250, color: 0x0a2a4a },
+                    mountain: { name: '계양산 (395m)', x: 1500, z: 1500, radius: 400, height: 395, color: 0x0a2a1a },
+                    parks: [
+                        { x: -1500, z: -1500, r: 350, name: '센트럴파크' },
+                        { x: 1000, z: -500, r: 250, name: '인천대공원' },
+                        { x: -2200, z: -400, r: 200, name: '자유공원' },
+                        { x: -2800, z: -800, r: 200, name: '월미공원' },
+                        { x: 500, z: 1200, r: 250, name: '부평공원' },
+                    ],
+                },
+            },
+            daegu: {
+                name: '대구광역시',
+                buildings: [
+                    { x: 1500, z: -500, w: 100, d: 100, h: 230, type: 'landmark', name: '범어 이편한세상' },
+                    { x: 1300, z: -300, w: 120, d: 80, h: 180, type: 'high', name: '대구무역센터' },
+                    { x: 1700, z: -700, w: 80, d: 80, h: 150, type: 'high' },
+                    { x: 1100, z: -100, w: 100, d: 100, h: 130, type: 'high' },
+                    { x: 1800, z: -200, w: 100, d: 80, h: 110, type: 'mid' },
+                    { x: 2000, z: 800, w: 150, d: 120, h: 120, type: 'high', name: '동대구역' },
+                    { x: 2200, z: 600, w: 100, d: 100, h: 100, type: 'mid' },
+                    { x: 1800, z: 1000, w: 120, d: 80, h: 90, type: 'mid' },
+                    { x: -200, z: 0, w: 100, d: 100, h: 83, type: 'mid', name: '대구타워' },
+                    { x: 0, z: 200, w: 120, d: 100, h: 100, type: 'mid', name: '반월당' },
+                    { x: -400, z: -200, w: 80, d: 80, h: 80, type: 'mid' },
+                    { x: -1800, z: 200, w: 120, d: 100, h: 110, type: 'mid', name: '달서구청' },
+                    { x: -2000, z: 0, w: 100, d: 100, h: 90, type: 'mid' },
+                    { x: -2200, z: 400, w: 80, d: 80, h: 70, type: 'low' },
+                    { x: 0, z: 1500, w: 100, d: 100, h: 80, type: 'mid' },
+                    { x: -3000, z: -1500, w: 200, d: 150, h: 45, type: 'low' },
+                    { x: 3000, z: 1500, w: 180, d: 180, h: 40, type: 'low' },
+                    { x: -2800, z: 2200, w: 150, d: 200, h: 35, type: 'low' },
+                    { x: 3200, z: -1800, w: 200, d: 150, h: 50, type: 'low' },
+                ],
+                nature: {
+                    river: { name: '신천/금호강', z: -800, width: 200, color: 0x0a2a4a },
+                    mountain: { name: '팔공산 (1193m)', x: 0, z: 2500, radius: 600, height: 1193, color: 0x0a2a1a },
+                    parks: [
+                        { x: 1800, z: -900, r: 250, name: '수성못' },
+                        { x: -1500, z: -500, r: 300, name: '두류공원' },
+                        { x: 800, z: -1500, r: 350, name: '앞산공원' },
+                        { x: -500, z: 500, r: 200, name: '달성공원' },
+                        { x: -200, z: 2000, r: 250, name: '팔공산자락' },
+                    ],
+                },
+            },
+            gwangju: {
+                name: '광주광역시',
+                buildings: [
+                    { x: -1500, z: -200, w: 100, d: 100, h: 158, type: 'landmark', name: '빛고을타워' },
+                    { x: -1300, z: 0, w: 120, d: 80, h: 140, type: 'high', name: '상무센트럴' },
+                    { x: -1700, z: -400, w: 100, d: 100, h: 120, type: 'high', name: '상무지구 오피스' },
+                    { x: -1100, z: 200, w: 80, d: 80, h: 110, type: 'high' },
+                    { x: -1900, z: 0, w: 100, d: 80, h: 100, type: 'mid' },
+                    { x: -1500, z: 400, w: 120, d: 100, h: 90, type: 'mid' },
+                    { x: 200, z: 200, w: 100, d: 100, h: 100, type: 'mid', name: '충장로' },
+                    { x: 0, z: 0, w: 150, d: 120, h: 80, type: 'mid', name: '국립아시아문화전당' },
+                    { x: 400, z: -200, w: 80, d: 80, h: 90, type: 'mid' },
+                    { x: -200, z: 400, w: 100, d: 80, h: 70, type: 'mid' },
+                    { x: -2500, z: 1200, w: 120, d: 100, h: 130, type: 'high', name: '광주과학기술원' },
+                    { x: -2300, z: 1400, w: 100, d: 80, h: 100, type: 'mid', name: '첨단지구' },
+                    { x: -2700, z: 1000, w: 80, d: 80, h: 80, type: 'mid' },
+                    { x: -3000, z: 0, w: 100, d: 100, h: 70, type: 'low', name: '광산구' },
+                    { x: -3200, z: -400, w: 120, d: 80, h: 50, type: 'low' },
+                    { x: 500, z: 1200, w: 100, d: 100, h: 80, type: 'mid' },
+                    { x: -500, z: -1200, w: 120, d: 100, h: 70, type: 'low' },
+                    { x: 3000, z: -1500, w: 200, d: 150, h: 45, type: 'low' },
+                    { x: 3000, z: 1500, w: 180, d: 180, h: 40, type: 'low' },
+                ],
+                nature: {
+                    river: { name: '광주천', z: -500, width: 150, color: 0x0a2a4a },
+                    mountain: { name: '무등산 (1187m)', x: 2000, z: 500, radius: 600, height: 1187, color: 0x0a2a1a },
+                    parks: [
+                        { x: 2500, z: 800, r: 400, name: '무등산국립공원' },
+                        { x: 600, z: 800, r: 250, name: '사직공원' },
+                        { x: -800, z: -800, r: 250, name: '5·18기념공원' },
+                        { x: -2000, z: -800, r: 200, name: '패밀리랜드' },
+                        { x: 0, z: -1500, r: 200, name: '광주호수공원' },
+                    ],
+                },
+            },
+            daejeon: {
+                name: '대전광역시',
+                buildings: [
+                    { x: -1500, z: 0, w: 100, d: 100, h: 160, type: 'landmark', name: '둔산 시티타워' },
+                    { x: -1300, z: 200, w: 120, d: 80, h: 130, type: 'high', name: '대전시청' },
+                    { x: -1700, z: -200, w: 100, d: 100, h: 120, type: 'high' },
+                    { x: -1100, z: -100, w: 80, d: 80, h: 110, type: 'high' },
+                    { x: -1500, z: 400, w: 100, d: 80, h: 100, type: 'mid' },
+                    { x: -1900, z: 200, w: 120, d: 100, h: 90, type: 'mid' },
+                    { x: 1500, z: 0, w: 150, d: 120, h: 100, type: 'mid', name: '대전역' },
+                    { x: 1300, z: 200, w: 100, d: 100, h: 90, type: 'mid' },
+                    { x: 1700, z: -200, w: 80, d: 80, h: 80, type: 'mid' },
+                    { x: -2500, z: 1500, w: 120, d: 100, h: 100, type: 'mid', name: 'KAIST' },
+                    { x: -2300, z: 1300, w: 100, d: 80, h: 80, type: 'mid', name: '유성온천' },
+                    { x: -2700, z: 1700, w: 80, d: 80, h: 60, type: 'low' },
+                    { x: 0, z: -800, w: 80, d: 80, h: 93, type: 'high', name: '한빛탑' },
+                    { x: 200, z: -600, w: 120, d: 100, h: 70, type: 'mid', name: '컨벤션센터' },
+                    { x: -200, z: -1000, w: 100, d: 80, h: 60, type: 'mid' },
+                    { x: 3000, z: -1500, w: 200, d: 150, h: 45, type: 'low' },
+                    { x: -3000, z: -1800, w: 180, d: 180, h: 40, type: 'low' },
+                    { x: 3000, z: 2000, w: 150, d: 200, h: 35, type: 'low' },
+                    { x: -3200, z: -500, w: 200, d: 150, h: 50, type: 'low' },
+                ],
+                nature: {
+                    river: { name: '갑천', z: 500, width: 200, color: 0x0a2a4a },
+                    mountain: { name: '계족산 (424m)', x: 1500, z: 2000, radius: 400, height: 424, color: 0x0a2a1a },
+                    parks: [
+                        { x: 0, z: -1200, r: 300, name: '엑스포공원' },
+                        { x: -1200, z: -800, r: 250, name: '대전시민공원' },
+                        { x: 800, z: -1800, r: 300, name: '보문산공원' },
+                        { x: -2500, z: 800, r: 250, name: '유성공원' },
+                        { x: 2000, z: 1000, r: 200, name: '대청호수공원' },
+                    ],
+                },
+            },
+            ulsan: {
+                name: '울산광역시',
+                buildings: [
+                    { x: 0, z: 0, w: 100, d: 100, h: 160, type: 'landmark', name: '울산타워' },
+                    { x: -200, z: 200, w: 120, d: 80, h: 130, type: 'high', name: '울산시청' },
+                    { x: 200, z: -200, w: 100, d: 100, h: 120, type: 'high' },
+                    { x: -400, z: 0, w: 80, d: 80, h: 100, type: 'mid' },
+                    { x: 400, z: 200, w: 100, d: 80, h: 90, type: 'mid' },
+                    { x: 1500, z: -200, w: 120, d: 100, h: 110, type: 'mid', name: '태화동' },
+                    { x: 1300, z: 0, w: 100, d: 80, h: 90, type: 'mid' },
+                    { x: 1700, z: -400, w: 80, d: 80, h: 80, type: 'mid' },
+                    { x: 2500, z: -1000, w: 200, d: 150, h: 80, type: 'mid', name: '현대중공업' },
+                    { x: 2300, z: -1200, w: 150, d: 120, h: 70, type: 'mid', name: '현대자동차' },
+                    { x: 2700, z: -800, w: 180, d: 100, h: 60, type: 'low' },
+                    { x: -1200, z: -500, w: 100, d: 100, h: 80, type: 'mid', name: '중구 시장' },
+                    { x: -1400, z: -300, w: 120, d: 80, h: 60, type: 'low' },
+                    { x: -1500, z: 1200, w: 100, d: 100, h: 70, type: 'low' },
+                    { x: -3000, z: -1500, w: 200, d: 150, h: 45, type: 'low' },
+                    { x: 3200, z: 1200, w: 180, d: 180, h: 40, type: 'low' },
+                    { x: -3000, z: 2200, w: 150, d: 200, h: 35, type: 'low' },
+                    { x: 3000, z: -2000, w: 200, d: 150, h: 50, type: 'low' },
+                ],
+                nature: {
+                    river: { name: '태화강', z: -600, width: 250, color: 0x0a2a4a },
+                    mountain: { name: '문수산 (600m)', x: -1000, z: 2000, radius: 450, height: 600, color: 0x0a2a1a },
+                    parks: [
+                        { x: 800, z: -800, r: 350, name: '태화강공원' },
+                        { x: -2000, z: 800, r: 300, name: '울산대공원' },
+                        { x: 2000, z: 800, r: 250, name: '선암호수공원' },
+                        { x: -500, z: -1500, r: 200, name: '삼호공원' },
+                        { x: 0, z: 1500, r: 250, name: '문수산자락' },
+                    ],
+                },
+            },
         };
+
+        let activeCity = 'seoul';
+        let BUILDINGS = CITY_MAPS.seoul.buildings;
+        let NATURE = CITY_MAPS.seoul.nature;
 
         const BLDG_COLORS = { landmark: 0x1a3d66, high: 0x1a3355, mid: 0x1a2a44, low: 0x152035 };
         const BLDG_EDGE_COLORS = { landmark: 0x00e5ff, high: 0x00bbdd, mid: 0x3388aa, low: 0x224466 };
         const BLDG_BUFFER = 80;
+
+        function switchCity(cityId) {
+            const city = CITY_MAPS[cityId];
+            if (!city) return;
+            activeCity = cityId;
+            BUILDINGS = city.buildings;
+            NATURE = city.nature;
+            createBuildings();
+        }
 
         function createBuildings() {
             while (buildingGroup.children.length) {
@@ -1359,38 +1737,38 @@
             });
 
             // ── 한강 (반투명 블루 평면) ──
-            const riverGeo = new THREE.PlaneGeometry(W * 2, NATURE.hanRiver.width * SCALE);
+            const riverGeo = new THREE.PlaneGeometry(W * 2, NATURE.river.width * SCALE);
             const riverMat = new THREE.MeshBasicMaterial({
-                color: NATURE.hanRiver.color, transparent: true, opacity: 0.35, side: THREE.DoubleSide,
+                color: NATURE.river.color, transparent: true, opacity: 0.35, side: THREE.DoubleSide,
             });
             const river = new THREE.Mesh(riverGeo, riverMat);
             river.rotation.x = -Math.PI / 2;
-            river.position.set(0, 0.05, NATURE.hanRiver.z * SCALE);
+            river.position.set(0, 0.05, NATURE.river.z * SCALE);
             buildingGroup.add(river);
             // 한강 에지 라인
             const riverEdge = new THREE.Line(
                 new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(-W, 0.06, (NATURE.hanRiver.z - NATURE.hanRiver.width / 2) * SCALE),
-                    new THREE.Vector3(W, 0.06, (NATURE.hanRiver.z - NATURE.hanRiver.width / 2) * SCALE),
+                    new THREE.Vector3(-W, 0.06, (NATURE.river.z - NATURE.river.width / 2) * SCALE),
+                    new THREE.Vector3(W, 0.06, (NATURE.river.z - NATURE.river.width / 2) * SCALE),
                 ]),
                 new THREE.LineBasicMaterial({ color: 0x1a5588, transparent: true, opacity: 0.4 })
             );
             buildingGroup.add(riverEdge);
             const riverEdge2 = new THREE.Line(
                 new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(-W, 0.06, (NATURE.hanRiver.z + NATURE.hanRiver.width / 2) * SCALE),
-                    new THREE.Vector3(W, 0.06, (NATURE.hanRiver.z + NATURE.hanRiver.width / 2) * SCALE),
+                    new THREE.Vector3(-W, 0.06, (NATURE.river.z + NATURE.river.width / 2) * SCALE),
+                    new THREE.Vector3(W, 0.06, (NATURE.river.z + NATURE.river.width / 2) * SCALE),
                 ]),
                 new THREE.LineBasicMaterial({ color: 0x1a5588, transparent: true, opacity: 0.4 })
             );
             buildingGroup.add(riverEdge2);
-            const riverLabel = makeTextSprite('한 강', '#1a6699', 8);
-            riverLabel.position.set(0, 0.5, NATURE.hanRiver.z * SCALE);
+            const riverLabel = makeTextSprite(NATURE.river.name, '#1a6699', 8);
+            riverLabel.position.set(0, 0.5, NATURE.river.z * SCALE);
             riverLabel.scale.set(5, 1.2, 1);
             buildingGroup.add(riverLabel);
 
             // ── 남산 (원뿔) ──
-            const nm = NATURE.namsan;
+            const nm = NATURE.mountain;
             const mtnH = nm.height * SCALE * 3;
             const mtnR = nm.radius * SCALE;
             const mtnGeo = new THREE.ConeGeometry(mtnR, mtnH, 16);
@@ -1407,7 +1785,7 @@
             );
             mtnEdge.position.copy(mtn.position);
             buildingGroup.add(mtnEdge);
-            const mtnLabel = makeTextSprite('남산 (262m)', '#22aa55', 8);
+            const mtnLabel = makeTextSprite(NATURE.mountain.name, '#22aa55', 8);
             mtnLabel.position.set(nm.x * SCALE, mtnH + 0.5, nm.z * SCALE);
             mtnLabel.scale.set(4, 1, 1);
             buildingGroup.add(mtnLabel);
@@ -1823,6 +2201,8 @@
             drones = [];
             stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
             simTime = 0;
+            // 분석 히스토리 초기화
+            Object.keys(chartHistory).forEach(k => { if (Array.isArray(chartHistory[k])) chartHistory[k].length = 0; });
             landingManager.clear();
             takeoffController.clear();
             // APF 충돌 쿨다운 초기화
@@ -1839,8 +2219,16 @@
             _lightweight = count > 100;
 
             // 기상 시스템 초기화 (전체 리셋)
-            // 건물 표시 (urban 시나리오만)
-            buildingGroup.visible = !!(cfg.urban);
+            // 건물 표시 (도시 시나리오)
+            if (cfg.city) {
+                switchCity(cfg.city);
+                buildingGroup.visible = true;
+            } else if (cfg.urban) {
+                switchCity('seoul');
+                buildingGroup.visible = true;
+            } else {
+                buildingGroup.visible = false;
+            }
 
             weather.gustIntensity = 0;
             weather.gustTimer = 5;
@@ -2082,13 +2470,26 @@
                 weather.gustTimer = 2;
                 // 빌딩 협곡 바람 가속 효과 (풍동 효과)
                 weather.baseWind = { x: 5.0, z: -3.0 };
+            } else if (cfg.city && scenario.endsWith('_delivery')) {
+                scene.fog = new THREE.FogExp2(0x050810, 0.003);
+                weather.turbulence = 0.5;
+            } else if (cfg.city && scenario.endsWith('_emergency')) {
+                scene.fog = new THREE.FogExp2(0x080a14, 0.004);
+                weather.turbulence = 1.5;
+                weather.gustTimer = 3;
+                weather.precipitation = 1;
+            } else if (cfg.city && scenario.endsWith('_canyon')) {
+                scene.fog = new THREE.FogExp2(0x060810, 0.004);
+                weather.turbulence = 2.0;
+                weather.gustTimer = 2;
+                weather.baseWind = { x: 5.0, z: -3.0 };
             } else if (scenario === 'city_rush_hour') {
-                // 기존 시나리오에 건물 추가
                 buildingGroup.visible = true;
+                switchCity('seoul');
                 scene.fog = new THREE.FogExp2(0x050810, 0.003);
             } else if (scenario === 'uam_corridor') {
-                // UAM 시나리오에도 건물 추가
                 buildingGroup.visible = true;
+                switchCity('seoul');
                 scene.fog = new THREE.FogExp2(0x050810, 0.003);
             } else {
                 scene.fog = new THREE.FogExp2(0x030508, 0.003);
@@ -2387,7 +2788,25 @@
                         d.targetAlt = 50 + Math.random() * 40; // 빌딩 높이와 겹치는 고도
                         break;
                     default:
-                        d.groundDelay = Math.random() * 8;
+                        // 도시 시나리오 일반화 처리
+                        if (cfg.city && scenario.endsWith('_delivery')) {
+                            d.groundDelay = Math.random() * 4;
+                            d.maxSpeed = 8 + Math.random() * 8;
+                            d.targetAlt = 80 + Math.random() * 60;
+                        } else if (cfg.city && scenario.endsWith('_emergency')) {
+                            d.groundDelay = Math.random() * 2;
+                            d.maxSpeed = 10 + Math.random() * 10;
+                            d.targetAlt = 100 + Math.random() * 50;
+                            if (Math.random() < cfg.rogueRate) {
+                                d.isRogue = true; d.maxSpeed *= 1.4; d.groundDelay = 0;
+                            }
+                        } else if (cfg.city && scenario.endsWith('_canyon')) {
+                            d.groundDelay = Math.random() * 5;
+                            d.maxSpeed = 6 + Math.random() * 6;
+                            d.targetAlt = 50 + Math.random() * 40;
+                        } else {
+                            d.groundDelay = Math.random() * 8;
+                        }
                 }
 
                 // 장애 주입
@@ -3345,6 +3764,244 @@
             document.getElementById('toggle-right').textContent = panel.classList.contains('collapsed') ? '◀' : '▶';
         });
 
+        // 이벤트 기록 접기/펼치기
+        document.getElementById('btn-toggle-log').addEventListener('click', () => {
+            const panel = document.querySelector('.hud-bottom-log');
+            panel.classList.toggle('collapsed');
+            document.getElementById('btn-toggle-log').textContent = panel.classList.contains('collapsed') ? '▲' : '▼';
+        });
+
+        // 분석 패널 접기/펼치기
+        document.getElementById('btn-toggle-analytics').addEventListener('click', () => {
+            const panel = document.getElementById('analytics-panel');
+            panel.classList.toggle('collapsed');
+            document.getElementById('btn-toggle-analytics').textContent = panel.classList.contains('collapsed') ? '▲' : '▼';
+        });
+
+        // ===== 실시간 분석 그래프 시스템 =====
+        const chartHistory = {
+            time: [],
+            battery: [],       // 평균 배터리
+            batteryMin: [],    // 최소 배터리
+            batteryMax: [],    // 최대 배터리
+            energy: [],        // 총 에너지 소모율
+            collisionRate: [], // 충돌 해결률
+            conflicts: [],     // 누적 충돌 위험
+            collisions: [],    // 누적 충돌
+            threat: [],        // 위협 레벨 (0~1)
+            airspace: [],      // 관제구역 밀도
+            tickTime: [],      // 틱 처리시간 (ms)
+            phases: [],        // 비행단계 분포 스냅샷
+        };
+        const MAX_HISTORY = 200;
+        let activeChart = 'battery';
+        let lastTickTime = performance.now();
+
+        // 탭 전환
+        document.getElementById('chart-tabs').addEventListener('click', (e) => {
+            if (e.target.tagName !== 'BUTTON') return;
+            document.querySelectorAll('#chart-tabs button').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            activeChart = e.target.dataset.chart;
+        });
+
+        function sampleChartData() {
+            if (!simRunning || drones.length === 0) return;
+            const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+            const batteries = drones.map(d => d.battery);
+            const now = performance.now();
+            const tickMs = now - lastTickTime;
+            lastTickTime = now;
+
+            chartHistory.time.push(simTime);
+            chartHistory.battery.push(batteries.reduce((a, b) => a + b, 0) / batteries.length);
+            chartHistory.batteryMin.push(Math.min(...batteries));
+            chartHistory.batteryMax.push(Math.max(...batteries));
+
+            const totalEnergy = drones.reduce((s, d) => s + (100 - d.battery), 0);
+            chartHistory.energy.push(totalEnergy / drones.length);
+
+            const cr = (stats.conflicts + stats.collisions) > 0
+                ? (1 - stats.collisions / (stats.conflicts + stats.collisions)) * 100 : 100;
+            chartHistory.collisionRate.push(cr);
+            chartHistory.conflicts.push(stats.conflicts);
+            chartHistory.collisions.push(stats.collisions);
+
+            const rogueCount = drones.filter(d => d.isRogue).length;
+            const failedCount = drones.filter(d => d.phase === 'FAILED').length;
+            chartHistory.threat.push(Math.min(1, (rogueCount * 3 + failedCount * 2 + stats.collisions) / Math.max(1, drones.length)));
+
+            chartHistory.airspace.push(airborne.length);
+            chartHistory.tickTime.push(Math.min(tickMs, 100));
+
+            const phases = {};
+            ['GROUNDED', 'TAKEOFF', 'ENROUTE', 'HOLDING', 'LANDING', 'EVADING', 'FAILED', 'RTL'].forEach(p => phases[p] = 0);
+            drones.forEach(d => { phases[d.phase] = (phases[d.phase] || 0) + 1; });
+            chartHistory.phases.push(phases);
+
+            // 히스토리 제한
+            if (chartHistory.time.length > MAX_HISTORY) {
+                Object.keys(chartHistory).forEach(k => {
+                    if (Array.isArray(chartHistory[k])) chartHistory[k].shift();
+                });
+            }
+        }
+
+        function drawChart(canvasId, drawFn) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, rect.width, rect.height);
+            drawFn(ctx, rect.width, rect.height);
+        }
+
+        function drawLine(ctx, w, h, data, color, label, unit, minV, maxV) {
+            if (data.length < 2) return;
+            const autoMin = minV !== undefined ? minV : Math.min(...data) * 0.9;
+            const autoMax = maxV !== undefined ? maxV : Math.max(...data) * 1.1 || 1;
+            const rangeV = autoMax - autoMin || 1;
+            const px = w / (data.length - 1);
+
+            // 그리드
+            ctx.strokeStyle = 'rgba(0,229,255,0.06)';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i < 4; i++) {
+                const y = h * 0.1 + (h * 0.8 / 3) * i;
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            }
+
+            // 라인
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            data.forEach((v, i) => {
+                const x = i * px;
+                const y = h * 0.9 - ((v - autoMin) / rangeV) * h * 0.8;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // 현재 값
+            const lastVal = data[data.length - 1];
+            ctx.fillStyle = color;
+            ctx.font = '10px JetBrains Mono, monospace';
+            ctx.fillText(`${label}: ${typeof lastVal === 'number' ? lastVal.toFixed(1) : lastVal}${unit}`, 4, 12);
+        }
+
+        function drawArea(ctx, w, h, data, minData, maxData, color, label, unit) {
+            if (data.length < 2) return;
+            const allMin = Math.min(...minData) * 0.9;
+            const allMax = Math.max(...maxData) * 1.1 || 100;
+            const rangeV = allMax - allMin || 1;
+            const px = w / (data.length - 1);
+
+            // 영역 (min~max)
+            ctx.fillStyle = color.replace('1)', '0.12)');
+            ctx.beginPath();
+            minData.forEach((v, i) => {
+                const x = i * px;
+                const y = h * 0.9 - ((v - allMin) / rangeV) * h * 0.8;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            });
+            for (let i = maxData.length - 1; i >= 0; i--) {
+                const x = i * px;
+                const y = h * 0.9 - ((maxData[i] - allMin) / rangeV) * h * 0.8;
+                ctx.lineTo(x, y);
+            }
+            ctx.fill();
+
+            drawLine(ctx, w, h, data, color, label, unit, allMin, allMax);
+        }
+
+        function drawBars(ctx, w, h, phases) {
+            if (!phases) return;
+            const labels = Object.keys(phases);
+            const vals = Object.values(phases);
+            const maxVal = Math.max(...vals) || 1;
+            const barW = w / labels.length - 4;
+            const colors = {
+                GROUNDED: '#4a6785', TAKEOFF: '#00e5ff', ENROUTE: '#22c55e',
+                HOLDING: '#f59e0b', LANDING: '#8b5cf6', EVADING: '#ef4444',
+                FAILED: '#dc2626', RTL: '#06b6d4'
+            };
+            labels.forEach((lbl, i) => {
+                const barH = (vals[i] / maxVal) * h * 0.7;
+                const x = i * (barW + 4) + 2;
+                const y = h * 0.85 - barH;
+                ctx.fillStyle = colors[lbl] || '#4a6785';
+                ctx.fillRect(x, y, barW, barH);
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.font = '7px JetBrains Mono, monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(lbl.slice(0, 3), x + barW / 2, h * 0.95);
+                if (vals[i] > 0) ctx.fillText(vals[i], x + barW / 2, y - 2);
+                ctx.textAlign = 'left';
+            });
+        }
+
+        function renderAnalytics() {
+            if (document.getElementById('analytics-panel').classList.contains('collapsed')) return;
+            const h = chartHistory;
+            if (h.time.length < 2) return;
+
+            drawChart('chart-main', (ctx, w, ht) => {
+                switch (activeChart) {
+                    case 'battery':
+                        drawArea(ctx, w, ht, h.battery, h.batteryMin, h.batteryMax,
+                            'rgba(0,229,255,1)', '평균 배터리', '%');
+                        break;
+                    case 'energy':
+                        drawLine(ctx, w, ht, h.energy, '#f59e0b', '평균 에너지소모', '%', 0);
+                        break;
+                    case 'collision':
+                        drawLine(ctx, w, ht, h.collisionRate, '#22c55e', '충돌해결률', '%', 0, 100);
+                        break;
+                    case 'threat':
+                        drawLine(ctx, w, ht, h.threat, '#ef4444', '위협레벨', '', 0, 1);
+                        break;
+                    case 'airspace':
+                        drawLine(ctx, w, ht, h.airspace, '#8b5cf6', '관제구역 드론수', '대', 0);
+                        break;
+                    case 'tick':
+                        drawLine(ctx, w, ht, h.tickTime, '#06b6d4', '틱 처리시간', 'ms', 0);
+                        break;
+                    case 'phase':
+                        if (h.phases.length > 0) drawBars(ctx, w, ht, h.phases[h.phases.length - 1]);
+                        break;
+                }
+            });
+
+            drawChart('chart-sub', (ctx, w, ht) => {
+                if (activeChart === 'phase') {
+                    // 서브: 충돌 누적 그래프
+                    drawLine(ctx, w, ht, h.conflicts, '#f59e0b', '충돌위험', '건', 0);
+                    if (h.collisions.length > 1) {
+                        const px2 = w / (h.collisions.length - 1);
+                        ctx.strokeStyle = '#ef4444';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        h.collisions.forEach((v, i) => {
+                            const x = i * px2;
+                            const maxC = Math.max(...h.collisions) * 1.2 || 1;
+                            const y = ht * 0.9 - (v / maxC) * ht * 0.8;
+                            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                        });
+                        ctx.stroke();
+                        ctx.fillStyle = '#ef4444'; ctx.font = '9px JetBrains Mono';
+                        ctx.fillText(`충돌: ${h.collisions[h.collisions.length - 1]}`, 4, 24);
+                    }
+                } else {
+                    // 서브: 항상 비행단계 바 차트
+                    if (h.phases.length > 0) drawBars(ctx, w, ht, h.phases[h.phases.length - 1]);
+                }
+            });
+        }
+
         // ===== ATC 관제선 (탐지·통제 시각화) =====
         const atcLinkGroup = new THREE.Group();
         scene.add(atcLinkGroup);
@@ -3446,6 +4103,451 @@
             });
         }
 
+        // ===== CPU/GPU 분할 연산 시스템 =====
+        // GPU Compute: WebGPU APF 힘 계산 (병렬 N 워크그룹)
+        // GPU Render: Three.js WebGL 렌더링 (씬, 드론 메시, 라인, 이펙트)
+        // CPU Worker: APF 공간해시 + 힘 계산 (WebGPU 미지원 시 폴백)
+        // CPU Main: 드론 상태머신, UI 업데이트, 이벤트 처리
+        const PHASE_NUM = { GROUNDED: 0, TAKEOFF: 1, ENROUTE: 2, HOLDING: 3, LANDING: 4, EVADING: 5, FAILED: 6, RTL: 7 };
+        const perfMetrics = { cpuMs: 0, gpuMs: 0, workerMs: 0, gpuComputeMs: 0, workerActive: false, useWorker: true, useGpuCompute: false };
+        let _workerBusy = false, _workerForces = null, _workerEvents = null;
+
+        // ===== WebGPU Compute Shader — APF 힘 계산 GPU 가속 =====
+        let _gpuDevice = null, _gpuPipeline = null, _gpuBindGroupLayout = null;
+        let _gpuBusy = false, _gpuForces = null, _gpuEvents = null;
+
+        const APF_COMPUTE_SHADER = `
+struct Params {
+    count: u32,
+    cellSize: f32,
+    CD: f32,
+    NM: f32,
+    ED: f32,
+    SA: f32,
+    CPA: f32,
+    wb: f32,
+}
+
+@group(0) @binding(0) var<storage, read> positions: array<f32>;
+@group(0) @binding(1) var<storage, read> velocities: array<f32>;
+@group(0) @binding(2) var<storage, read> priorities: array<f32>;
+@group(0) @binding(3) var<storage, read> phases: array<f32>;
+@group(0) @binding(4) var<uniform> params: Params;
+@group(0) @binding(5) var<storage, read_write> forces: array<f32>;
+@group(0) @binding(6) var<storage, read_write> events: array<atomic<u32>>;
+
+@compute @workgroup_size(64)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let i = gid.x;
+    if (i >= params.count) { return; }
+    let pi = f32(phases[i]);
+    if (pi < 0.5 || pi >= 6.0) { return; }
+
+    let px = positions[i * 3u];
+    let pz = positions[i * 3u + 1u];
+    let py = positions[i * 3u + 2u];
+    let vAng = velocities[i * 3u];
+    let vSpd = velocities[i * 3u + 1u];
+    let vY = velocities[i * 3u + 2u];
+    let avx = sin(vAng) * vSpd;
+    let avz = cos(vAng) * vSpd;
+
+    var fx = 0.0; var fz = 0.0; var fy = 0.0;
+
+    for (var j = 0u; j < params.count; j++) {
+        if (j == i) { continue; }
+        let pj = f32(phases[j]);
+        if (pj < 0.5 || pj >= 6.0) { continue; }
+
+        let dx = px - positions[j * 3u];
+        let dz = pz - positions[j * 3u + 1u];
+        let dy = py - positions[j * 3u + 2u];
+        let hDist = sqrt(dx * dx + dz * dz);
+        let d3 = sqrt(dx * dx + dz * dz + dy * dy);
+
+        if (d3 > params.ED * 1.5) { continue; }
+
+        let bvx = sin(velocities[j * 3u]) * velocities[j * 3u + 1u];
+        let bvz = cos(velocities[j * 3u]) * velocities[j * 3u + 1u];
+        let bvy = velocities[j * 3u + 2u];
+        let dvx = avx - bvx; let dvz = avz - bvz; let dvy = vY - bvy;
+        let rV2 = dvx * dvx + dvz * dvz + dvy * dvy;
+
+        var cpa = d3;
+        if (rV2 > 0.1) {
+            let t = clamp(-(dx * dvx + dz * dvz + dy * dvy) / rV2, 0.0, params.CPA);
+            let cpx = dx + dvx * t; let cpz = dz + dvz * t; let cpy = dy + dvy * t;
+            cpa = sqrt(cpx * cpx + cpz * cpz + cpy * cpy);
+        }
+        let ed = min(d3, cpa);
+        let cs = sqrt(rV2);
+        let sd = max(hDist, 1.0);
+        let aY = select(0.3, 0.7, priorities[i] >= priorities[j]);
+
+        if (d3 < params.CD) {
+            let p = 40.0 * params.wb * (1.0 + cs * 0.5);
+            fx += (dx / sd) * p * aY; fz += (dz / sd) * p * aY;
+            let u = select(-1.0, 1.0, (i % 2u) == 0u);
+            fy += u * 20.0;
+            // 충돌 이벤트 기록
+            let idx = atomicAdd(&events[0u], 1u);
+            if (idx < 256u) {
+                let base = 1u + idx * 4u;
+                atomicStore(&events[base], 0u);
+                atomicStore(&events[base + 1u], i);
+                atomicStore(&events[base + 2u], j);
+                atomicStore(&events[base + 3u], bitcast<u32>(d3));
+            }
+        } else if (d3 < params.NM || (cpa < d3 && cpa < params.NM)) {
+            let r = 1.0 - ed / params.NM;
+            let s = 25.0 * params.wb * r * r * (1.0 + cs * 0.3);
+            fx += (dx / sd) * s * aY; fz += (dz / sd) * s * aY;
+            if (abs(dy) < params.SA * 2.0) {
+                let u = select(-1.0, 1.0, (i % 2u) == 0u);
+                fy += u * s * 0.5;
+            }
+            let idx = atomicAdd(&events[0u], 1u);
+            if (idx < 256u) {
+                let base = 1u + idx * 4u;
+                atomicStore(&events[base], 1u);
+                atomicStore(&events[base + 1u], i);
+                atomicStore(&events[base + 2u], j);
+                atomicStore(&events[base + 3u], bitcast<u32>(ed));
+            }
+        } else if (d3 < params.ED || (cpa < d3 && cpa < params.ED * 0.7)) {
+            let r = 1.0 - ed / params.ED;
+            let s = 12.0 * params.wb * r * (1.0 + cs * 0.15);
+            fx += (dx / sd) * s * aY; fz += (dz / sd) * s * aY;
+            let idx = atomicAdd(&events[0u], 1u);
+            if (idx < 256u) {
+                let base = 1u + idx * 4u;
+                atomicStore(&events[base], 2u);
+                atomicStore(&events[base + 1u], i);
+                atomicStore(&events[base + 2u], j);
+                atomicStore(&events[base + 3u], bitcast<u32>(ed));
+            }
+        }
+    }
+    forces[i * 3u] = fx;
+    forces[i * 3u + 1u] = fz;
+    forces[i * 3u + 2u] = fy;
+}
+`;
+
+        async function initGpuCompute() {
+            if (!navigator.gpu) { console.log('[SDACS] WebGPU 미지원 — Worker 폴백'); return; }
+            try {
+                const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+                if (!adapter) return;
+                _gpuDevice = await adapter.requestDevice({
+                    requiredLimits: { maxStorageBufferBindingSize: 256 * 1024 * 1024 }
+                });
+                const shaderModule = _gpuDevice.createShaderModule({ code: APF_COMPUTE_SHADER });
+                _gpuBindGroupLayout = _gpuDevice.createBindGroupLayout({
+                    entries: [
+                        { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+                        { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+                        { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+                        { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+                        { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
+                        { binding: 5, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+                        { binding: 6, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+                    ]
+                });
+                _gpuPipeline = _gpuDevice.createComputePipeline({
+                    layout: _gpuDevice.createPipelineLayout({ bindGroupLayouts: [_gpuBindGroupLayout] }),
+                    compute: { module: shaderModule, entryPoint: 'main' }
+                });
+                perfMetrics.useGpuCompute = true;
+                perfMetrics.useWorker = false; // GPU가 우선
+                console.log('[SDACS] WebGPU Compute 활성화 — APF 힘 계산 GPU 가속');
+            } catch (e) {
+                console.warn('[SDACS] WebGPU 초기화 실패:', e.message);
+            }
+        }
+
+        async function dispatchGpuCompute() {
+            if (!_gpuDevice || !_gpuPipeline || _gpuBusy || drones.length === 0) return;
+            _gpuBusy = true;
+            const gpuStart = performance.now();
+            const n = drones.length;
+
+            const posData = new Float32Array(n * 3);
+            const velData = new Float32Array(n * 3);
+            const priData = new Float32Array(n);
+            const phsData = new Float32Array(n);
+            drones.forEach((d, i) => {
+                posData[i*3] = d.wx; posData[i*3+1] = d.wz; posData[i*3+2] = d.wy;
+                velData[i*3] = d.heading * Math.PI / 180; velData[i*3+1] = d.speed; velData[i*3+2] = d.vy || 0;
+                priData[i] = d.priority;
+                phsData[i] = PHASE_NUM[d.phase] || 0;
+            });
+            const windSpd = Math.sqrt(weather.baseWind.x ** 2 + weather.baseWind.z ** 2) + weather.gustIntensity;
+            const paramsData = new ArrayBuffer(32);
+            const pView = new DataView(paramsData);
+            pView.setUint32(0, n, true);
+            pView.setFloat32(4, EVADE_DIST, true);
+            pView.setFloat32(8, COLLISION_DIST, true);
+            pView.setFloat32(12, NEAR_MISS_DIST, true);
+            pView.setFloat32(16, EVADE_DIST, true);
+            pView.setFloat32(20, SEPARATION_ALT, true);
+            pView.setFloat32(24, CPA_LOOKAHEAD, true);
+            pView.setFloat32(28, windSpd > 5 ? 1 + (windSpd - 5) * 0.1 : 1.0, true);
+
+            const posBuf = _gpuDevice.createBuffer({ size: posData.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+            const velBuf = _gpuDevice.createBuffer({ size: velData.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+            const priBuf = _gpuDevice.createBuffer({ size: priData.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+            const phsBuf = _gpuDevice.createBuffer({ size: phsData.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+            const paramBuf = _gpuDevice.createBuffer({ size: 32, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+            const forcesBuf = _gpuDevice.createBuffer({ size: n * 3 * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
+            const eventsBuf = _gpuDevice.createBuffer({ size: (1 + 256 * 4) * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
+            const forcesReadBuf = _gpuDevice.createBuffer({ size: n * 3 * 4, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+            const eventsReadBuf = _gpuDevice.createBuffer({ size: (1 + 256 * 4) * 4, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+
+            _gpuDevice.queue.writeBuffer(posBuf, 0, posData);
+            _gpuDevice.queue.writeBuffer(velBuf, 0, velData);
+            _gpuDevice.queue.writeBuffer(priBuf, 0, priData);
+            _gpuDevice.queue.writeBuffer(phsBuf, 0, phsData);
+            _gpuDevice.queue.writeBuffer(paramBuf, 0, paramsData);
+
+            const bindGroup = _gpuDevice.createBindGroup({
+                layout: _gpuBindGroupLayout,
+                entries: [
+                    { binding: 0, resource: { buffer: posBuf } },
+                    { binding: 1, resource: { buffer: velBuf } },
+                    { binding: 2, resource: { buffer: priBuf } },
+                    { binding: 3, resource: { buffer: phsBuf } },
+                    { binding: 4, resource: { buffer: paramBuf } },
+                    { binding: 5, resource: { buffer: forcesBuf } },
+                    { binding: 6, resource: { buffer: eventsBuf } },
+                ]
+            });
+
+            const encoder = _gpuDevice.createCommandEncoder();
+            const pass = encoder.beginComputePass();
+            pass.setPipeline(_gpuPipeline);
+            pass.setBindGroup(0, bindGroup);
+            pass.dispatchWorkgroups(Math.ceil(n / 64));
+            pass.end();
+            encoder.copyBufferToBuffer(forcesBuf, 0, forcesReadBuf, 0, n * 3 * 4);
+            encoder.copyBufferToBuffer(eventsBuf, 0, eventsReadBuf, 0, (1 + 256 * 4) * 4);
+            _gpuDevice.queue.submit([encoder.finish()]);
+
+            await Promise.all([
+                forcesReadBuf.mapAsync(GPUMapMode.READ),
+                eventsReadBuf.mapAsync(GPUMapMode.READ),
+            ]);
+
+            _gpuForces = new Float32Array(forcesReadBuf.getMappedRange().slice(0));
+            const evRaw = new Uint32Array(eventsReadBuf.getMappedRange().slice(0));
+            forcesReadBuf.unmap(); eventsReadBuf.unmap();
+
+            // 이벤트 파싱
+            const evCount = Math.min(evRaw[0], 256);
+            _gpuEvents = [];
+            for (let e = 0; e < evCount; e++) {
+                const base = 1 + e * 4;
+                const type = evRaw[base], ai = evRaw[base+1], bi = evRaw[base+2];
+                const distBits = evRaw[base+3];
+                const distView = new DataView(new ArrayBuffer(4));
+                distView.setUint32(0, distBits, true);
+                _gpuEvents.push(type, ai, bi, distView.getFloat32(0, true));
+            }
+
+            // 버퍼 정리
+            [posBuf, velBuf, priBuf, phsBuf, paramBuf, forcesBuf, eventsBuf, forcesReadBuf, eventsReadBuf].forEach(b => b.destroy());
+
+            perfMetrics.gpuComputeMs = performance.now() - gpuStart;
+            _gpuBusy = false;
+        }
+
+        function applyGpuForces() {
+            if (!_gpuForces || !_gpuEvents) return;
+            const f = _gpuForces;
+            const ev = _gpuEvents;
+            const apfDt = 1 / 60;
+            drones.forEach((d, i) => {
+                const fx = f[i*3], fz = f[i*3+1], fy = f[i*3+2];
+                const mag = Math.sqrt(fx * fx + fz * fz);
+                if (mag > 0.5) {
+                    if (mag > 5) {
+                        const pushDist = Math.min(mag * 3 * apfDt * 60, 60);
+                        d.wx += (fx / mag) * pushDist; d.wz += (fz / mag) * pushDist;
+                        d.wx = Math.max(-WORLD, Math.min(WORLD, d.wx));
+                        d.wz = Math.max(-WORLD, Math.min(WORLD, d.wz));
+                    }
+                    if (Math.abs(fy) > 0.5) {
+                        const vp = Math.sign(fy) * Math.min(Math.abs(fy), PHYSICS.maxClimbRate * 3) * apfDt * 60;
+                        d.wy = Math.max(10, Math.min(MAX_ALT, d.wy + vp));
+                    }
+                    const cm = Math.min(mag, d.maxSpeed * 1.2);
+                    d.apfVx = (fx / mag) * cm; d.apfVz = (fz / mag) * cm;
+                    d.apfVy = Math.sign(fy) * Math.min(Math.abs(fy), PHYSICS.maxClimbRate);
+                    if (d.phase === 'ENROUTE' && mag > 6) { d.phase = 'EVADING'; d.evadeTimer = 1.5; d.evasionCount++; stats.advisories++; }
+                } else { d.apfVx *= 0.7; d.apfVz *= 0.7; }
+            });
+            for (let e = 0; e < ev.length; e += 4) {
+                const type = ev[e], ai = ev[e+1], bi = ev[e+2], dist = ev[e+3];
+                const a = drones[ai], b = drones[bi];
+                if (!a || !b) continue;
+                if (type === 0) { stats.collisions++; logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist)}m)`); }
+                else if (type === 1) { stats.nearMisses++; }
+                else if (type === 2) { stats.conflicts++; }
+            }
+            _gpuForces = null; _gpuEvents = null;
+        }
+
+        // WebGPU 초기화 시작
+        initGpuCompute();
+
+        // Inline Web Worker — APF 힘 계산 오프로드
+        const _apfWorkerCode = `
+        self.onmessage = function(e) {
+            const { positions, velocities, priorities, phases, count, params } = e.data;
+            const forces = new Float32Array(count * 3);
+            const events = [];
+            const grid = new Map();
+            for (let i = 0; i < count; i++) {
+                if (phases[i] === 0 || phases[i] >= 6) continue;
+                const cx = Math.floor(positions[i*3] / params.cellSize)|0;
+                const cz = Math.floor(positions[i*3+1] / params.cellSize)|0;
+                const key = cx * 100003 + cz;
+                if (!grid.has(key)) grid.set(key, []);
+                grid.get(key).push(i);
+            }
+            for (let i = 0; i < count; i++) {
+                if (phases[i] === 0 || phases[i] >= 6) continue;
+                const cx = Math.floor(positions[i*3] / params.cellSize)|0;
+                const cz = Math.floor(positions[i*3+1] / params.cellSize)|0;
+                for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) {
+                    const ns = grid.get((cx+di)*100003+(cz+dj));
+                    if (!ns) continue;
+                    for (const j of ns) {
+                        if (i >= j) continue;
+                        const dx = positions[i*3]-positions[j*3], dz = positions[i*3+1]-positions[j*3+1], dy = positions[i*3+2]-positions[j*3+2];
+                        const hDist = Math.sqrt(dx*dx+dz*dz), d3 = Math.sqrt(dx*dx+dz*dz+dy*dy);
+                        const avx = Math.sin(velocities[i*3])*velocities[i*3+1], avz = Math.cos(velocities[i*3])*velocities[i*3+1];
+                        const bvx = Math.sin(velocities[j*3])*velocities[j*3+1], bvz = Math.cos(velocities[j*3])*velocities[j*3+1];
+                        const avy = velocities[i*3+2], bvy = velocities[j*3+2];
+                        const dvx = avx-bvx, dvz = avz-bvz, dvy = avy-bvy;
+                        const rV2 = dvx*dvx+dvz*dvz+dvy*dvy;
+                        let cpa = d3;
+                        if (rV2 > 0.1) { const t = Math.max(0,Math.min(params.CPA,-(dx*dvx+dz*dvz+dy*dvy)/rV2)); const px=dx+dvx*t,pz=dz+dvz*t,py=dy+dvy*t; cpa=Math.sqrt(px*px+pz*pz+py*py); }
+                        const ed = Math.min(d3,cpa), cs = Math.sqrt(rV2), sd = Math.max(hDist,1);
+                        const aY = priorities[i]>=priorities[j]?0.7:0.3, bY=1-aY;
+                        if (d3 < params.CD) {
+                            events.push(0,i,j,d3);
+                            const p = 40*params.wb*(1+cs*0.5); forces[i*3]+=(dx/sd)*p*aY; forces[i*3+1]+=(dz/sd)*p*aY; forces[j*3]-=(dx/sd)*p*bY; forces[j*3+1]-=(dz/sd)*p*bY;
+                            const u=(i%2===0)?1:-1; forces[i*3+2]+=u*20; forces[j*3+2]-=u*20;
+                        } else if (d3<params.NM||(cpa<d3&&cpa<params.NM)) {
+                            events.push(1,i,j,ed);
+                            const r=1-ed/params.NM, s=25*params.wb*r*r*(1+cs*0.3);
+                            forces[i*3]+=(dx/sd)*s*aY; forces[i*3+1]+=(dz/sd)*s*aY; forces[j*3]-=(dx/sd)*s*bY; forces[j*3+1]-=(dz/sd)*s*bY;
+                            if(Math.abs(dy)<params.SA*2){const u=(i%2===0)?1:-1; forces[i*3+2]+=u*s*0.5; forces[j*3+2]-=u*s*0.5;}
+                        } else if (d3<params.ED||(cpa<d3&&cpa<params.ED*0.7)) {
+                            events.push(2,i,j,ed);
+                            const r=1-ed/params.ED, s=12*params.wb*r*(1+cs*0.15);
+                            forces[i*3]+=(dx/sd)*s*aY; forces[i*3+1]+=(dz/sd)*s*aY; forces[j*3]-=(dx/sd)*s*bY; forces[j*3+1]-=(dz/sd)*s*bY;
+                        }
+                    }
+                }
+            }
+            // 건물 반발
+            if (params.bldgs) {
+                for (let i = 0; i < count; i++) {
+                    if (phases[i]===0||phases[i]>=6) continue;
+                    for (const b of params.bldgs) {
+                        const bx=positions[i*3]-b.x, bz=positions[i*3+1]-b.z;
+                        const hw=b.w/2+params.BB, hd=b.d/2+params.BB;
+                        if(Math.abs(bx)<hw*2&&Math.abs(bz)<hd*2&&positions[i*3+2]<b.h+params.BB*2){
+                            const dX=Math.max(0,Math.abs(bx)-b.w/2), dZ=Math.max(0,Math.abs(bz)-b.d/2);
+                            const bd=Math.sqrt(dX*dX+dZ*dZ)||1;
+                            if(bd<params.BB*2){const s=30*(1-bd/(params.BB*2)); forces[i*3]+=(bx>0?1:-1)*s; forces[i*3+1]+=(bz>0?1:-1)*s; forces[i*3+2]+=Math.max(0,(b.h+30-positions[i*3+2])*0.5);}
+                        }
+                    }
+                }
+            }
+            self.postMessage({ forces: forces, events: events }, [forces.buffer]);
+        };`;
+
+        let _apfWorker = null;
+        try {
+            const blob = new Blob([_apfWorkerCode], { type: 'application/javascript' });
+            _apfWorker = new Worker(URL.createObjectURL(blob));
+            _apfWorker.onmessage = function(e) {
+                _workerForces = e.data.forces;
+                _workerEvents = e.data.events;
+                _workerBusy = false;
+                perfMetrics.workerMs = performance.now() - perfMetrics._workerStart;
+            };
+            _apfWorker.onerror = () => { perfMetrics.useWorker = false; };
+            perfMetrics.workerActive = true;
+        } catch (e) { perfMetrics.useWorker = false; }
+
+        function dispatchToWorker() {
+            if (!_apfWorker || _workerBusy || drones.length === 0) return;
+            const n = drones.length;
+            const positions = new Float32Array(n * 3);
+            const velocities = new Float32Array(n * 3);
+            const priorities = new Float32Array(n);
+            const phases = new Float32Array(n);
+            drones.forEach((d, i) => {
+                positions[i*3] = d.wx; positions[i*3+1] = d.wz; positions[i*3+2] = d.wy;
+                velocities[i*3] = d.heading * Math.PI / 180; velocities[i*3+1] = d.speed; velocities[i*3+2] = d.vy || 0;
+                priorities[i] = d.priority;
+                phases[i] = PHASE_NUM[d.phase] || 0;
+            });
+            const windSpd = Math.sqrt(weather.baseWind.x ** 2 + weather.baseWind.z ** 2) + weather.gustIntensity;
+            perfMetrics._workerStart = performance.now();
+            _workerBusy = true;
+            _apfWorker.postMessage({
+                positions, velocities, priorities, phases, count: n,
+                params: {
+                    cellSize: EVADE_DIST, CD: COLLISION_DIST, NM: NEAR_MISS_DIST, ED: EVADE_DIST,
+                    SA: SEPARATION_ALT, CPA: CPA_LOOKAHEAD, wb: windSpd > 5 ? 1 + (windSpd - 5) * 0.1 : 1.0,
+                    bldgs: buildingGroup.visible ? BUILDINGS : null, BB: BLDG_BUFFER
+                }
+            }, [positions.buffer, velocities.buffer, priorities.buffer, phases.buffer]);
+        }
+
+        function applyWorkerForces() {
+            if (!_workerForces || !_workerEvents) return;
+            const f = _workerForces;
+            const ev = _workerEvents;
+            const apfDt = 1 / 60;
+            // 힘 적용
+            drones.forEach((d, i) => {
+                const fx = f[i*3], fz = f[i*3+1], fy = f[i*3+2];
+                const mag = Math.sqrt(fx * fx + fz * fz);
+                if (mag > 0.5) {
+                    if (mag > 5) {
+                        const pushDist = Math.min(mag * 3 * apfDt * 60, 60);
+                        d.wx += (fx / mag) * pushDist; d.wz += (fz / mag) * pushDist;
+                        d.wx = Math.max(-WORLD, Math.min(WORLD, d.wx));
+                        d.wz = Math.max(-WORLD, Math.min(WORLD, d.wz));
+                    }
+                    if (Math.abs(fy) > 0.5) {
+                        const vp = Math.sign(fy) * Math.min(Math.abs(fy), PHYSICS.maxClimbRate * 3) * apfDt * 60;
+                        d.wy = Math.max(10, Math.min(MAX_ALT, d.wy + vp));
+                    }
+                    const cm = Math.min(mag, d.maxSpeed * 1.2);
+                    d.apfVx = (fx / mag) * cm; d.apfVz = (fz / mag) * cm;
+                    d.apfVy = Math.sign(fy) * Math.min(Math.abs(fy), PHYSICS.maxClimbRate);
+                    if (d.phase === 'ENROUTE' && mag > 6) { d.phase = 'EVADING'; d.evadeTimer = 1.5; d.evasionCount++; stats.advisories++; }
+                } else { d.apfVx *= 0.7; d.apfVz *= 0.7; }
+            });
+            // 이벤트 처리 (4개씩: type, aIdx, bIdx, dist)
+            for (let e = 0; e < ev.length; e += 4) {
+                const type = ev[e], ai = ev[e+1], bi = ev[e+2], dist = ev[e+3];
+                const a = drones[ai], b = drones[bi];
+                if (!a || !b) continue;
+                if (type === 0) { stats.collisions++; logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist)}m)`); }
+                else if (type === 1) { stats.nearMisses++; }
+                else if (type === 2) { stats.conflicts++; }
+            }
+            _workerForces = null; _workerEvents = null;
+        }
+
         // ===== Animation Loop =====
         const clock = new THREE.Clock();
         let frameCount = 0, lastFpsTime = 0;
@@ -3454,10 +4556,11 @@
 
         function animate() {
             requestAnimationFrame(animate);
+            const cpuStart = performance.now();
             const dt = Math.min(clock.getDelta(), 0.1);
-            const t = clock.elapsedTime;  // getDelta 후 읽어야 올바른 값
+            const t = clock.elapsedTime;
 
-            // FPS (리셋 후 0 방지: 증분 전에 표시)
+            // FPS
             if (t - lastFpsTime >= 1) {
                 document.getElementById('fps-counter').textContent = frameCount;
                 frameCount = 0;
@@ -3465,15 +4568,26 @@
             }
             frameCount++;
 
-            // Update weather & drones
+            // Update weather & drones (CPU Main)
             if (simRunning) {
                 simTime += dt * simSpeed;
                 updateWeather(dt);
             }
             drones.forEach(d => updateDrone(d, dt));
 
-            // APF check — 매 프레임 실행 (Spatial Hash로 O(N·k) 성능 보장)
-            if (simRunning) apfCollisionAvoidance();
+            // APF: GPU Compute → Worker → CPU 폴백 (우선순위)
+            if (simRunning) {
+                if (perfMetrics.useGpuCompute && _gpuDevice) {
+                    applyGpuForces();
+                    if (!_gpuBusy) dispatchGpuCompute();
+                } else if (perfMetrics.useWorker && _apfWorker) {
+                    applyWorkerForces();
+                    dispatchToWorker();
+                } else {
+                    apfCollisionAvoidance(); // CPU 폴백
+                }
+            }
+            perfMetrics.cpuMs = performance.now() - cpuStart;
 
             // Rotor spin
             drones.forEach(d => {
@@ -3539,7 +4653,9 @@
             }
 
             controls.update();
+            const gpuStart = performance.now();
             renderer.render(scene, camera);
+            perfMetrics.gpuMs = performance.now() - gpuStart;
         }
 
         // UI refresh at lower rate
@@ -3547,6 +4663,24 @@
         setInterval(() => {
             updateStatsUI();
             updateEventLog();
+            sampleChartData();
+            renderAnalytics();
+            // 성능 모니터 업데이트
+            document.getElementById('perf-cpu').textContent = perfMetrics.cpuMs.toFixed(1);
+            document.getElementById('perf-gpu').textContent = perfMetrics.gpuMs.toFixed(1);
+            if (perfMetrics.useGpuCompute) {
+                document.getElementById('perf-apf').textContent = perfMetrics.gpuComputeMs.toFixed(1);
+                document.getElementById('perf-apf-label').textContent = 'GPU⚡';
+                document.getElementById('perf-apf-label').style.color = '#a855f7';
+            } else if (perfMetrics.useWorker) {
+                document.getElementById('perf-apf').textContent = perfMetrics.workerMs.toFixed(1);
+                document.getElementById('perf-apf-label').textContent = 'WRK';
+                document.getElementById('perf-apf-label').style.color = '#f59e0b';
+            } else {
+                document.getElementById('perf-apf').textContent = 'CPU';
+                document.getElementById('perf-apf-label').textContent = 'FALL';
+                document.getElementById('perf-apf-label').style.color = '#ef4444';
+            }
             uiUpdateCount++;
             // Fleet list는 무거우므로 대형 시나리오 시 빈도 낮춤
             if (drones.length <= 80 || uiUpdateCount % 3 === 0) updateFleetList();

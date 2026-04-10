@@ -16,6 +16,7 @@ from docx import Document
 from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.oxml import OxmlElement
 
 doc = Document()
 style = doc.styles['Normal']
@@ -28,6 +29,13 @@ def add_h(text, level=1):
     for r in h.runs:
         r.font.color.rgb = RGBColor(0x1E, 0x3A, 0x5F)
     return h
+
+
+def _prevent_row_split(row):
+    """테이블 행이 페이지 경계에서 잘리지 않도록 w:cantSplit 설정"""
+    trPr = row._tr.get_or_add_trPr()
+    cantSplit = OxmlElement('w:cantSplit')
+    trPr.append(cantSplit)
 
 
 def add_tbl(headers, rows):
@@ -48,6 +56,9 @@ def add_tbl(headers, rows):
             for p in c.paragraphs:
                 for r in p.runs:
                     r.font.size = Pt(9)
+    # 모든 행 분리 방지 (헤더 + 본문)
+    for row in t.rows:
+        _prevent_row_split(row)
     return t
 
 
@@ -112,14 +123,46 @@ IMG = {
 }
 
 
-def add_img(key, caption, width_cm=14):
+# ── 이미지별 최적 너비 (종횡비 기반) ──────────────────
+# A4 사용 영역 ~16cm 폭, 페이지 잘림 방지 위해 14~15cm 범위로 제한
+IMG_WIDTHS = {
+    'g0':  15.0,  # 1768x672  (ratio 2.63) very wide
+    'g1':  15.0,  # 2109x643  (ratio 3.28) very wide
+    'g2':  15.0,  # 2224x905  (ratio 2.46) very wide
+    'g3':  13.0,  # 1644x822  (ratio 2.00) wide
+    'g4':  13.0,  # 1644x832  (ratio 1.98) wide
+    'g5':  15.0,  # 1768x746  (ratio 2.37) very wide
+    'g6':  15.0,  # 1657x682  (ratio 2.43) very wide
+    'g7':  15.0,  # 1768x771  (ratio 2.29) very wide
+    'g8':  12.0,  # 1434x866  (ratio 1.66) wide, 높이 제어
+    'g9':  15.0,  # 1657x631  (ratio 2.63) very wide
+    'g10': 13.0,  # 1644x832  (ratio 1.98) wide
+    'g11': 15.0,  # 1657x751  (ratio 2.21) very wide
+    'g12': 12.0,  # 1768x1017 (ratio 1.74) wide, 높이 제어
+    'g13': 13.0,  # 2384x1220 (ratio 1.95) wide
+    'g14': 15.0,  # 1768x771  (ratio 2.29) very wide
+}
+
+
+def add_img(key, caption, width_cm=None):
+    """이미지 + 캡션 삽입. 너비는 IMG_WIDTHS 자동 lookup."""
+    if width_cm is None:
+        width_cm = IMG_WIDTHS.get(key, 14.0)
     ipath = os.path.join(IMG_DIR, IMG[key])
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    # 이미지가 캡션과 분리되지 않도록 keep_with_next
+    p.paragraph_format.keep_with_next = True
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_after = Pt(2)
     r = p.add_run()
     r.add_picture(ipath, width=Cm(width_cm))
     c = doc.add_paragraph()
     c.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    # 캡션 자체가 두 페이지로 나뉘지 않도록 keep_together
+    c.paragraph_format.keep_together = True
+    c.paragraph_format.space_before = Pt(0)
+    c.paragraph_format.space_after = Pt(10)
     cr = c.add_run(caption)
     cr.italic = True
     cr.font.size = Pt(9)

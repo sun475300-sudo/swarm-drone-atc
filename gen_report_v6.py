@@ -7,6 +7,7 @@ from docx import Document
 from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.oxml import OxmlElement
 
 doc = Document()
 
@@ -19,6 +20,12 @@ def add_h(text, level=1):
     for r in h.runs:
         r.font.color.rgb = RGBColor(0x1E, 0x3A, 0x5F)
     return h
+
+def _prevent_row_split(row):
+    """테이블 행이 페이지 경계에서 잘리지 않도록 w:cantSplit 설정"""
+    trPr = row._tr.get_or_add_trPr()
+    cantSplit = OxmlElement('w:cantSplit')
+    trPr.append(cantSplit)
 
 def add_tbl(headers, rows):
     t = doc.add_table(rows=1+len(rows), cols=len(headers))
@@ -38,6 +45,8 @@ def add_tbl(headers, rows):
             for p in c.paragraphs:
                 for r in p.runs:
                     r.font.size = Pt(9)
+    for row in t.rows:
+        _prevent_row_split(row)
     return t
 
 def add_box(text):
@@ -66,15 +75,37 @@ IMG = {
     'g14': '7f6dcc79e78a06e547906f2d89ba69fc67bf5ad5.png',
 }
 
-def add_img(key, caption, width_cm=14):
+# 이미지별 최적 너비 (종횡비 분석 기반, A4 사용 폭 ~16cm)
+IMG_WIDTHS = {
+    'g0':  15.0,  'g1':  15.0,  'g2':  15.0,
+    'g3':  13.0,  'g4':  13.0,
+    'g5':  15.0,  'g6':  15.0,  'g7':  15.0,
+    'g8':  12.0,
+    'g9':  15.0,
+    'g10': 13.0,
+    'g11': 15.0,
+    'g12': 12.0,
+    'g13': 13.0,
+    'g14': 15.0,
+}
+
+def add_img(key, caption, width_cm=None):
     import os
+    if width_cm is None:
+        width_cm = IMG_WIDTHS.get(key, 14.0)
     ipath = os.path.join(IMG_DIR, IMG[key])
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.keep_with_next = True
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_after = Pt(2)
     r = p.add_run()
     r.add_picture(ipath, width=Cm(width_cm))
     c = doc.add_paragraph()
     c.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    c.paragraph_format.keep_together = True
+    c.paragraph_format.space_before = Pt(0)
+    c.paragraph_format.space_after = Pt(10)
     cr = c.add_run(caption)
     cr.italic = True
     cr.font.size = Pt(9)

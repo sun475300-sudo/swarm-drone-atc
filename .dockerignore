@@ -1,0 +1,53 @@
+# Version control
+.git
+.github
+.gitignore
+.gitattributes
+
+# Python artifacts
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+*.egg
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov
+
+# Virtual environments
+.venv
+venv
+env
+ENV
+
+# Node / JS
+node_modules
+
+# Office documents (large binaries)
+*.docx
+*.pptx
+*.xlsx
+
+# Claude / tooling
+.claude
+
+# Tests & dev-only assets
+tests/
+docs/
+
+# Markdown (keep README.md only)
+*.md
+!README.md
+
+# Logs & results (mounted as volume at runtime)
+*.log
+results/
+
+# OS & editor
+.DS_Store
+Thumbs.db
+.idea
+.vscode

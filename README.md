@@ -21,7 +21,7 @@
 
 **국립 목포대학교 드론기계공학과 캡스톤 디자인**
 
-[3D Simulator](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [Technical Report](docs/report/SDACS_Technical_Report.docx) | [Performance Charts](docs/images/)
+[**3D Simulator Demo**](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [**최종 보고서 v6 (기술)**](docs/report/SDACS_Final_Report_v6.docx) | [**최종 보고서 v7 (일반인용)**](docs/report/SDACS_Final_Report_v7_Easy.docx) | [Performance Charts](docs/images/)
 
 </div>
 <div align="center">
@@ -29,22 +29,105 @@
 </div>
 
 ---
-## What is SDACS? / SDACS란?
-SDACS는 **군집드론을 이동형 가상 레이더 돔(Dome)으로 활용**하여, 도심 저고도 공역을 자율적으로 감시하고 충돌을 사전에 방지하는 **분산형 공역통제 시뮬레이션 시스템**입니다.
-SDACS is a **distributed Air Traffic Control (ATC) simulation** that uses swarm drones as **mobile virtual radar domes**. Instead of relying on expensive fixed infrastructure, drones themselves form the surveillance network — detecting, predicting, and autonomously resolving airspace conflicts in real time.
 
-### The Problem / 해결하려는 문제
-| 기존 방식 | 한계 |
-|----------|------|
-| 고정형 레이더 | 설치 비용 수억원, 소형 드론 탐지 불가, 6개월 설치 기간 |
-| 중앙 집중식 관제 (K-UTM) | 단일 장애점(SPOF), 실시간성 부족 |
-| 수동 관제 | 평균 5분 지연, 24/7 인력 비용 과다 |
-> **국내 등록 드론 90만대 돌파, 연간 30% 증가** — 택배 배송, 농업 방제, UAM이 동시 운용되며 저고도 공역 충돌 위험이 급증하고 있습니다.
+## 📄 최종 보고서 다운로드 / Final Report Downloads
+
+| 버전 | 대상 독자 | 특징 | 용량 | 다운로드 |
+|------|----------|------|------|----------|
+| **v6 — 기술 보고서** | 개발자 · 심사위원 · 공학 전문가 | 알고리즘 수식, 아키텍처 다이어그램, 특허 분석, 성능 벤치마크 | 1.6 MB | [📥 SDACS_Final_Report_v6.docx](docs/report/SDACS_Final_Report_v6.docx) |
+| **v7 — 일반인용 보고서** | 비전공자 · 일반 청중 · 발표 대상 | 쉬운 말 설명, 한 줄 요약 박스, 용어 사전, 일상 비유 (자석·신호등·카풀앱) | 1.6 MB | [📥 SDACS_Final_Report_v7_Easy.docx](docs/report/SDACS_Final_Report_v7_Easy.docx) |
+
+> **v6 vs v7 차이** — 내용과 15개 시각 자료(그림 0~14)는 동일합니다. **v6**은 "APF 인력/척력 벡터장", "CBS 제약 전파", "CPA 기반 90초 lookahead" 같은 전문 용어를 그대로 쓰는 기술 문서이고, **v7**은 같은 개념을 "자석끼리 밀어내는 힘", "카풀 앱 경로 최적화", "교통 레이더 90초 전 예고"처럼 누구나 이해할 수 있는 일상 비유로 풀어 쓴 버전입니다.
+
+**v7에 추가된 요소:**
+- 🟥 **한 줄 요약 박스** — 각 섹션 첫머리에 "이 섹션이 말하는 한 가지" 제시
+- 📖 **용어 사전** — APF, CPA, CBS, Swarm, Monte Carlo 등 전문 용어를 일상 언어로 번역
+- 🎯 **숫자 번역** — "99.9% = 1000번 중 999번 안전", "500대 = 학교 전체 규모", "0.8초 = 눈 깜빡임"
+- 🔗 **일상 비유** — 철새 떼, 도서관 분류번호, 게임 그래픽카드, 주사위 38,400번 굴리기
+
+---
+
+## 🐳 Docker로 실행하기 / Run with Docker
+
+Python 환경을 직접 구성하지 않아도 **Docker 한 번이면** SDACS 3D 대시보드를 실행할 수 있습니다. 배포 노트는 [`docker/README.md`](docker/README.md)를 참고하세요.
+
+### 사전 요구사항
+- Docker Engine 20.10+ (Docker Desktop 또는 Linux Docker)
+- 포트 `8050` 사용 가능
+
+### 빠른 시작
+
+```bash
+# 1. 이미지 빌드 (최초 1회, 약 1.5 GB)
+docker compose build
+
+# 2. 컨테이너 실행 — Dash 3D 대시보드 기동
+docker compose up
+
+# 2-1. 백그라운드 실행이 필요한 경우
+docker compose up -d
+
+# 3. 브라우저로 접속
+#    http://localhost:8050
+
+# 4. 중지 및 정리
+docker compose down
+```
+
+### 다른 CLI 명령 실행
+기본 명령은 `python main.py visualize` 입니다. 시뮬레이션이나 Monte Carlo 스윕을 실행하려면 명령을 오버라이드하세요.
+
+```bash
+docker compose run --rm sdacs python main.py simulate --duration 60
+docker compose run --rm sdacs python main.py scenario high_density
+docker compose run --rm sdacs python main.py monte-carlo --mode quick
+```
+
+### 볼륨 마운트 (설정 및 결과 영속화)
+`docker-compose.yaml`은 두 개의 호스트 경로를 컨테이너에 바인드합니다.
+
+| 호스트 경로 | 컨테이너 경로 | 모드 | 용도 |
+|-------------|---------------|------|------|
+| `./config`  | `/app/config` | 읽기 전용 | 시나리오/Monte Carlo YAML — 호스트에서 수정 후 컨테이너 재시작 |
+| `./results` | `/app/results` | 읽기/쓰기 | 시뮬레이션 CSV·로그·플롯 영속화 |
+
+> `docker compose down` 후에도 `./results/` 디렉터리의 산출물은 호스트에 그대로 남습니다. 설정은 읽기 전용으로 마운트되므로 컨테이너가 호스트 파일을 덮어쓰지 않습니다.
+
+---
+## What is SDACS? / SDACS란?
+
+> **"레이더를 땅에 설치하는 대신, 드론 자체가 레이더가 되면 어떨까?"**
+
+SDACS는 이 단순한 발상에서 출발했습니다. 20대의 관제 드론이 공중에 올라가 그물망처럼 연결된 감시 체계(**이동형 가상 레이더 돔**)를 스스로 만들어, 도심 하늘을 자동으로 감시하고 충돌을 미리 막는 시스템입니다.
+
+쉽게 말해, **"하늘의 신호등"** 입니다. 도로에 신호등이 차량 충돌을 방지하듯, SDACS는 하늘에서 드론들이 서로 부딪히지 않도록 자동으로 교통 정리를 합니다.
+
+### The Problem / 왜 필요한가?
+
+지금 이 순간에도 전국 하늘에서 수십만 대의 드론이 날아다닙니다. 택배 배달, 농약 살포, 건물 점검 — 2030년에는 하늘을 나는 택시(UAM)까지 등장합니다. 문제는 이 드론들이 모두 **같은 낮은 하늘**(지상 120m 이하)을 공유한다는 것입니다.
+
+| 현재 상황 | 수치 | 의미 |
+|----------|------|------|
+| 국내 드론 등록 | **90만 대+** | 매년 30% 이상 증가 중 |
+| 도심 저고도 사각지대 | **67%** | 기존 레이더가 탐지 못하는 구간 |
+| 수동 관제 반응시간 | **평균 5분** | 고속 드론 위협에 대응 불가 |
+| 고정 레이더 구축 비용 | **수억 원 + 6개월** | 긴급 상황에 적용 불가 |
+
+### 기존 시스템의 한계
+
+| 시스템 | 핵심 문제 | SDACS 해결 방식 |
+|--------|----------|----------------|
+| **K-UTM** (중앙 관제) | 서버 하나 다운 → 전체 관제 마비 | 분산 구조 → 드론 10% 고장해도 90% 정상 |
+| **고정형 레이더** | 수억원 + 6개월, 건물에 막혀 67% 미감시 | 드론 10대로 30분 내 설치, 비용 90% 절감 |
+| **드론쇼 방식** | 사전 경로만 실행, 돌발 상황 대응 불가 | AI 실시간 자율 판단, 집단 지능 창발 |
+
+> **드론쇼 vs SDACS의 근본적 차이**: 드론쇼는 *"중앙에서 짠 계획을 각 드론이 실행"* 하는 하향식 방식입니다. SDACS는 *"단순 규칙을 따르는 드론들이 소통하며 집단 지능이 자연스럽게 생겨나는"* 상향식 방식입니다.
 
 ### Our Approach / SDACS의 접근
-1. **레이더를 드론으로 대체** — 고정 인프라 없이 30분 내 긴급 배치
-2. **탐지부터 회피까지 완전 자동화** — 90초 전 선제 충돌 예측, 6종 자동 어드바이저리 발행
-3. **드론 추가만으로 관제 반경 선형 확장** — 분산형 아키텍처로 단일 장애점 제거
+
+1. **레이더를 드론으로 대체** — 고정 인프라 없이 30분 내 긴급 배치 (기존 6개월 → 30분, **99.7% 단축**)
+2. **탐지부터 회피까지 완전 자동화** — 90초 전 선제 충돌 예측, 0.8초 내 대응 (기존 5분 → **300배 향상**)
+3. **드론 추가만으로 관제 반경 확장** — 분산형 아키텍처, 운영 인력 80% 절감 (5명 → 1명)
 <div align="center">
 <img src="https://i.imgur.com/Xm6G9Dt.png" alt="분산형 APF 충돌 회피 3D 시각화" width="700"/>
 <br/><sub>분산형 APF 충돌 회피 — 드론별 인력/척력장이 실시간으로 안전 궤적을 생성</sub>
@@ -59,7 +142,7 @@ SDACS is a **distributed Air Traffic Control (ATC) simulation** that uses swarm 
 | **Prediction Lookahead** | **90 seconds** | CPA-based preemptive conflict detection at 1 Hz |
 | **Advisory Latency** | **< 1 second** | 6 types: CLIMB/DESCEND/TURN_LEFT/TURN_RIGHT/EVADE_APF/HOLD |
 | **Monte Carlo Validation** | **38,400 runs** | 384 configurations x 100 seeds |
-| **Scenario Coverage** | **42 scenarios** | Extreme weather, intrusion, GPS jamming, mass delivery, etc. |
+| **Scenario Coverage** | **63 scenarios** | 7대 광역시 도시환경 + 극한 기상 + 침입 + GPS 재밍 + 대규모 배송 |
 | **Concurrent Drones** | **100+** | 20대: 충돌 0, 50대: avg 15, 100대: avg 29 |
 | **Deployment Time** | **30 min** | No fixed infrastructure required |
 | **Test Coverage** | **2,668+ tests** | Automated pytest suite across 590+ modules |
@@ -118,7 +201,17 @@ SimPy 기반 이산 이벤트 시뮬레이션 엔진으로, 다양한 환경 조
 ### Layer 4 — User Interface (사용자 인터페이스)
 - **CLI**: `main.py` — simulate, scenario, monte-carlo, visualize, ops-report 명령
 - **3D Dashboard**: Dash + Plotly 실시간 3D 시각화, 드론 궤적/충돌 경고/편대 표시
-- **파일**: `main.py`, `visualization/simulator_3d.py`
+- **[3D Web Simulator (Demo)](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html)**: Three.js 브라우저 기반 인터랙티브 시뮬레이터
+  - **63개 시나리오** — 7대 광역시(서울/부산/인천/대구/광주/대전/울산) 도시환경 + 극한 기상 + 메가 스케일 500대
+  - **WebGPU Compute Shader** — APF 힘 계산 GPU 가속 (WGSL 컴퓨트 파이프라인, WebGPU 미지원 시 Web Worker 자동 폴백)
+  - **실시간 분석 대시보드** — 배터리/에너지/충돌해결률/위협레벨/관제구역/틱처리시간/비행단계 7종 차트
+  - **도시별 랜드마크 환경** — 각 도시의 실제 빌딩, 강, 산, 공원을 3D로 재현 (롯데월드타워, 해운대, 무등산 등)
+  - APF 충돌 회피 + CPA 12초 예측 + Spatial Hash 최적화
+  - 22개 드론 직군, 21-zone ATC 네트워크
+  - 극한 기상: 마이크로버스트, 태풍, 결빙, 다중셀 폭풍, 풍속 전단
+  - CPU/GPU/Worker 성능 모니터링 HUD
+  - `window._sdacs` API — 자동화 테스트 및 외부 연동
+- **파일**: `main.py`, `visualization/simulator_3d.py`, `swarm_3d_simulator.html`
 ```mermaid
 sequenceDiagram
     participant D as Drone (10Hz)
@@ -135,7 +228,55 @@ sequenceDiagram
 ```
 
 ---
-## Core Algorithms / 핵심 알고리즘
+## 5겹 안전망 — 어떻게 충돌을 막는가 (비전공자용)
+
+SDACS는 5가지 안전 장치가 겹겹이 보호합니다. **하나가 실패해도 다음 장치가 안전을 보장**합니다.
+
+| 단계 | 비유 | 설명 |
+|------|------|------|
+| **1단계: 출발 전 경로 설정** | 내비게이션 | 출발 전에 다른 드론과 겹치지 않는 최적 경로를 미리 계산 |
+| **2단계: 90초 전 충돌 예측** | 전방 레이더 | 현재 속도로 비행하면 90초 후 다른 드론과 만날지 미리 계산 |
+| **3단계: 자석형 자동 회피** | 같은 극 자석 | 드론끼리 가까워지면 자석처럼 밀어내는 힘이 자동으로 발생 |
+| **4단계: 비상 브레이크** | 급정거 | 모든 회피가 실패해도 최후의 비상 정지로 충돌 방지 |
+| **5단계: 자동 귀환** | 비상구 | 배터리 부족이나 고장 시 자동으로 가장 가까운 착륙지로 복귀 |
+
+### 자동 우선순위 전환 — 드론의 비상 매뉴얼
+
+위험 수준에 따라 **5단계로 자동 전환**됩니다. 관제사가 개입하지 않아도 AI가 즉각 판단합니다.
+
+| 우선순위 | 모드 | 발동 조건 | 자동 조치 |
+|---------|------|----------|----------|
+| **P0** | 비상 (EMERGENCY) | 충돌 임박 또는 배터리 위험 | 전체 군집 비상 회피, 관제사 즉시 알림 |
+| **P1** | 충돌회피 (DECONFLICT) | 10m 이내 드론 감지 | 자석형 힘으로 즉각 회피, 경로 재조정 |
+| **P2** | 임무 (MISSION) | 임무 드론 이착륙 중 | 임무 경로 독점, 다른 드론 우회 |
+| **P3** | 순항 (CRUISE) | 정상 비행 이동 중 | 경로 모니터링, 이상 징후 감지 |
+| **P4** | 대기 (IDLE) | 공역 위협 없음 | 호버링 대기, 10초 주기 스캔 |
+
+### 탐지 → 퇴각 자동화 — 1초 이내 5단계
+
+불법·위협 드론 발견 시 **사람 개입 없이 1초 이내** 자동 처리됩니다.
+
+| 단계 | 처리 시간 | 내용 |
+|------|----------|------|
+| ① 탐지 | ~0.05초 | 전파 탐지기 + AI 카메라로 드론 발견 |
+| ② 식별 | 즉시 | 드론 고유번호를 DB와 대조 → 등록/미등록/위협 분류 |
+| ③ 타이머 | 자동 | 미등록 드론에 30초 카운트다운 부여 |
+| ④ 경고 | 자동 | SMS + 앱 푸시 + 멀티채널 경고 발송 |
+| ⑤ 퇴각 | 최종 | 관제 드론이 포위 대형 → 심리적 압박 + 전파 경고 |
+
+### 비용-효과 비교 — SDACS vs 기존 방식
+
+| 항목 | 기존 방식 | SDACS | 개선율 |
+|------|----------|-------|--------|
+| 시스템 준비 시간 | 6개월 | **30분** | 99.7% 단축 |
+| 운영 인력 | 5명 (24시간) | **1명** | 80% 절감 |
+| 위험 탐지 속도 | 평균 5분 | **0.8초** | 300배 향상 |
+| 초기 구축 비용 | 수억 원+ | **드론 10대 비용** | 90%+ 절감 |
+| 동시 관제 대수 | 20대 이하 | **100대+ 실측** | 5배+ 향상 |
+| 응답 지연 | 0.2초 (서버 경유) | **0.05초** (직접 통신) | 4배 향상 |
+
+---
+## Core Algorithms / 핵심 알고리즘 (기술 상세)
 SDACS의 충돌 회피 파이프라인은 **탐지 → 판단 → 실행** 3단계로 구성됩니다.
 <div align="center">
 <img src="https://i.imgur.com/8IPIDWR.png" alt="탐지 → 회피 자동 대응 파이프라인" width="750"/>
@@ -435,6 +576,50 @@ Resolution Rate = 1 - collisions / (conflicts + collisions)
 5. **Voronoi Tessellation** — Aurenhammer, F. (1991). Voronoi diagrams — a survey of a fundamental geometric data structure.
 6. **Reynolds Boids** — Reynolds, C.W. (1987). Flocks, herds and schools: A distributed behavioral model.
 7. **ORCA** — van den Berg, J. et al. (2011). Reciprocal n-body collision avoidance.
+
+---
+## 연구 프레임워크 — 왜 스타크래프트인가
+
+> **"스타크래프트 II에서 학습된 스웜 지능 알고리즘을, 실제 드론 공역 관제에 효과적으로 전이할 수 있는가?"**
+
+SDACS의 핵심 알고리즘은 [StarCraft II 봇 프로젝트](https://github.com/sun475300-sudo/Swarm-control-in-sc2bot)에서 먼저 검증되었습니다.
+
+| 게임 (StarCraft II) | → | 실제 (SDACS) |
+|---------------------|---|-------------|
+| 저그 유닛 군집 이동 | → | UAV 드론 군집 편대 비행 |
+| 동시다발 적 위협 대응 | → | 다중 표적 추적 및 Anti-Swarm |
+| 불완전 정보 하 의사결정 | → | 베이지안 상황인식 |
+
+SC2 봇 프로젝트 규모: **645단계 개발, 404개 품질 테스트, 797개 프로그램 파일**
+
+### 군집 규모별 제어 성능
+
+| 드론 수 | 성능 | 병목 원인 | 해결책 |
+|--------|------|----------|--------|
+| 10대 (기준) | 100% | 없음 | 기본 운용 |
+| **50대** | **97.9%** | 없음 | **권장 군집 크기** |
+| 100대 | 98.9% | 통신 대역폭 | Edge Computing 분산 |
+| 200대 | 70% | 의사결정 연산량 | 리더-팔로워 계층 구조 |
+| 200대+ | 50% 이하 | 상태 동기화 실패 | 로컬 군집 10~20대씩 분할 |
+
+---
+## 광주시 테스트베드 전략 및 개발 로드맵
+
+| 단계 | 시기 | 목표 |
+|------|------|------|
+| **단기** | 2025~2026 | 소형 드론(Crazyflie 2.1) 2~3대 야외 실비행 테스트, 알고리즘 이식 검증 |
+| **중기** | 2027~2028 | 광주광역시 특정 구역 실증 실험, K-UTM 연동, IEEE 논문 투고, 특허 3건+ |
+| **장기** | 2029~2034 | 광주시 전역 분산 드론 ATC 상용화, 글로벌 50개 도시 수출, SCI 논문 5편+ |
+
+### 활용 분야
+
+| 분야 | 적용 사례 |
+|------|----------|
+| **도심 드론 택배** | 수백 대 택배 드론 동시 운용 시 충돌 방지 자동화 |
+| **재난 대응** | 산불·지진 현장에 30분 내 관제 체계 긴급 배치 |
+| **UAM (도심 항공)** | 하늘을 나는 택시 운행 시 저고도 교통 관리 |
+| **스마트 농업** | 대규모 농업 드론 군집의 안전한 방제 작업 |
+| **군사·치안** | 불법 드론 자동 탐지 및 포위·퇴각 유도 |
 
 ---
 ## Roadmap / 향후 계획

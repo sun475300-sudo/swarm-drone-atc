@@ -184,7 +184,7 @@ class MultiAgentCoordinator:
         self.completed_tasks: list[Task] = []
         self.message_queue: list[AgentMessage] = []
         self.protocol = protocol
-        self.coordination_lock = threading.Lock()
+        self.coordination_lock = threading.RLock()
         self.task_counter = 0
         self.message_counter = 0
 

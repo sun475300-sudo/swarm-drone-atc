@@ -395,4 +395,4 @@ class TestKDTreeQuery:
 
     def test_kdtree_threshold_constant(self):
         from src.airspace_control.controller.airspace_controller import AirspaceController
-        assert AirspaceController._KDTREE_THRESHOLD == 200
+        assert AirspaceController._KDTREE_THRESHOLD == 1000

@@ -47,7 +47,10 @@ def cmd_simulate(args: argparse.Namespace) -> None:
     duration = args.duration
     seed = args.seed
     drones = getattr(args, "drones", 100)
-    print(f"\n🛸 시뮬레이션 시작: seed={seed}, drones={drones}, duration={duration}s\n")
+    from simulation.apf_engine import get_apf_backend_info
+    backend = get_apf_backend_info()
+    gpu_tag = f"🟢 GPU: {backend['gpu']}" if backend.get("gpu") else "⚪ CPU"
+    print(f"\n🛸 시뮬레이션 시작: seed={seed}, drones={drones}, duration={duration}s [{gpu_tag}]\n")
 
     t0 = _time.monotonic()
     override = {"drones": {"default_count": drones}}

@@ -1,0 +1,29 @@
+scenario: s08_multi_city_operation
+description: "다중 도시 동시 운영 — 서울/부산/대구 3개 공역 병렬 시뮬레이션"
+
+cities:
+  - name: 서울
+    center: [0, 0]
+    bounds_km: 10
+    drone_count: 100
+    seed_offset: 0
+  - name: 부산
+    center: [30000, 0]
+    bounds_km: 8
+    drone_count: 80
+    seed_offset: 1000
+  - name: 대구
+    center: [15000, 15000]
+    bounds_km: 7
+    drone_count: 60
+    seed_offset: 2000
+
+total_drone_count: 240
+simulation_duration_s: 600
+
+weather:
+  wind_models:
+    - type: variable
+      base_speed_ms: 5.0
+      gust_speed_ms: 12.0
+      base_direction_deg: 225

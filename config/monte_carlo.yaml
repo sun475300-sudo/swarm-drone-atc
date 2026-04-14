@@ -30,7 +30,7 @@ quick_sweep:
 
 # 병렬 실행 설정
 parallel:
-  n_workers: -1           # -1 = 모든 코어 사용
+  n_workers: 1            # 순차 실행 (torch 호환성)
   backend: loky           # joblib 백엔드
   batch_size: 100         # 워커당 배치 크기
 

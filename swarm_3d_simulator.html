@@ -4552,6 +4552,21 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             _workerForces = null; _workerEvents = null;
         }
 
+        // ===== WebSocket 실시간 연동 (선택적) =====
+        let _wsConnected = false;
+        let _wsData = null;
+        function connectWebSocket(url = 'ws://localhost:8765') {
+            try {
+                const ws = new WebSocket(url);
+                ws.onopen = () => { _wsConnected = true; console.log('🟢 WS 연결됨'); };
+                ws.onclose = () => { _wsConnected = false; console.log('🔴 WS 연결 끊김'); };
+                ws.onmessage = (e) => { _wsData = JSON.parse(e.data); };
+                ws.onerror = () => { _wsConnected = false; };
+            } catch (e) { /* WS 미사용 시 무시 */ }
+        }
+        // 자동 연결 시도 (ws_bridge.py 실행 중이면 연결됨)
+        connectWebSocket();
+
         // ===== Animation Loop =====
         const clock = new THREE.Clock();
         let frameCount = 0, lastFpsTime = 0;

@@ -493,25 +493,23 @@ class TestDigitalTwin:
         self.d = DigitalTwin()
 
     def test_register(self):
-        self.d.register_twin("d1")
+        self.d.update_from_telemetry("d1", position=(0, 0, 0), velocity=(0, 0, 0))
         s = self.d.summary()
-        assert s["twins"] >= 1
+        assert s["tracked_drones"] >= 1
 
     def test_update_predict(self):
-        self.d.register_twin("d1")
-        self.d.update_state("d1", pos=(100, 200, 50), velocity=(1, 0, 0), battery=90, speed=10)
-        pred = self.d.predict("d1", t_ahead=10)
-        assert pred["predicted_pos"][0] > 100
+        self.d.update_from_telemetry("d1", position=(100, 200, 50), velocity=(1, 0, 0), battery_pct=90)
+        pred = self.d.get_prediction("d1", lookahead_s=10)
+        assert pred["predicted_position"][0] > 100
 
     def test_divergence(self):
-        self.d.register_twin("d1")
-        self.d.update_state("d1", pos=(100, 200, 50))
-        div = self.d.divergence("d1", (110, 200, 50))
+        self.d.update_from_telemetry("d1", position=(100, 200, 50), velocity=(0, 0, 0))
+        div = self.d.get_divergence("d1", sim_position=(110, 200, 50))
         assert div == 10.0
 
     def test_summary(self):
         s = self.d.summary()
-        assert "twins" in s
+        assert "tracked_drones" in s
 
 
 class TestAutoMissionPlanner:

@@ -14,9 +14,11 @@ from __future__ import annotations
 
 import logging
 import time
+from collections import defaultdict
 from typing import Any, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from simulation.apf_engine import get_apf_backend_info
@@ -25,7 +27,48 @@ from simulation.simulator import SwarmSimulator
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="SDACS API", version="1.0.0")
+API_VERSION = "1.0.0"
+RATE_LIMIT_MAX_REQUESTS = 60
+RATE_LIMIT_WINDOW_SECONDS = 60
+
+app = FastAPI(title="SDACS API", version=API_VERSION)
+
+# ---------------------------------------------------------------------------
+# CORS middleware
+# ---------------------------------------------------------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
+
+# ---------------------------------------------------------------------------
+# Rate limiting (IP-based, per-minute window)
+# ---------------------------------------------------------------------------
+_rate_limit_store: dict[str, list[float]] = defaultdict(list)
+
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next: Any) -> Response:
+    client_ip = request.client.host if request.client else "unknown"
+    now = time.time()
+    window_start = now - RATE_LIMIT_WINDOW_SECONDS
+
+    # Prune expired entries
+    timestamps = _rate_limit_store[client_ip]
+    _rate_limit_store[client_ip] = [t for t in timestamps if t > window_start]
+
+    if len(_rate_limit_store[client_ip]) >= RATE_LIMIT_MAX_REQUESTS:
+        return Response(
+            content='{"detail":"Rate limit exceeded. Try again later."}',
+            status_code=429,
+            media_type="application/json",
+        )
+
+    _rate_limit_store[client_ip].append(now)
+    return await call_next(request)
 
 
 # ---------------------------------------------------------------------------
@@ -53,6 +96,7 @@ async def health() -> dict[str, Any]:
     backend_info = get_apf_backend_info()
     return {
         "status": "ok",
+        "version": API_VERSION,
         "timestamp": time.time(),
         "gpu": backend_info,
     }

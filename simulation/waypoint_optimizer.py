@@ -146,7 +146,7 @@ class WaypointOptimizer:
             if line_len < 1e-6:
                 d = float(np.linalg.norm(pt - start))
             else:
-                cross = np.cross(line_vec[:2], (pt - start)[:2])
+                cross = line_vec[0] * (pt[1] - start[1]) - line_vec[1] * (pt[0] - start[0])
                 d = abs(float(cross)) / line_len
             if d > max_dist:
                 max_dist = d

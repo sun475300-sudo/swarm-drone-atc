@@ -51,3 +51,4 @@ PX4-Autopilot/build/
 node_modules/
 package.json
 package-lock.json
+.coverage

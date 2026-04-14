@@ -142,7 +142,7 @@ class TestModelTrainer:
 
     def test_train_collision_model(self):
         """Test collision model training."""
-        features, labels = self.generator.generate_collision_data(n_samples=1000)
+        features, labels = self.generator.generate_collision_data(n_samples=2000)
         result = self.trainer.train_collision_model(features, labels)
 
         assert isinstance(result, TrainingResult)

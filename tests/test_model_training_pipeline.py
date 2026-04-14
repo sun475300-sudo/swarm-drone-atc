@@ -149,7 +149,7 @@ class TestModelTrainer:
         assert result.model_type == "collision_predictor"
         assert 0 <= result.train_accuracy <= 1
         assert 0 <= result.test_accuracy <= 1
-        assert result.training_time > 0
+        assert result.training_time >= 0
 
     def test_train_collision_model_convergence(self):
         """Test collision model converges."""

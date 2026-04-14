@@ -60,8 +60,9 @@ class _APFBatchModule(nn.Module):
 
         # 클리핑
         f_mag = torch.linalg.norm(F, dim=1, keepdim=True)
-        clip = f_mag > self.max_force
-        F[clip.squeeze()] = F[clip.squeeze()] / f_mag[clip] * self.max_force
+        clip_mask = (f_mag > self.max_force).squeeze(1)
+        if clip_mask.any():
+            F[clip_mask] = F[clip_mask] / f_mag[clip_mask] * self.max_force
 
         return F
 

@@ -198,7 +198,7 @@ def gpu_batch_compute_forces(
         dist_nm_masked = dist_nm.clone()
         dist_nm_masked[self_mask] = float('inf')
 
-        neighbor_count_80 = ((dist_nm_masked < 80.0) & (~self_mask)).sum(dim=1)  # (N,)
+        neighbor_count_80 = ((dist_nm_masked < 150.0) & (~self_mask)).sum(dim=1)  # (N,)
 
         # 파라미터 텐서 (드론별 선택)
         p_keys = ["k_att", "k_rep_drone", "k_rep_obs", "d0_drone", "d0_obs", "max_force", "altitude_k"]
@@ -211,7 +211,7 @@ def gpu_batch_compute_forces(
             param_vec = torch.tensor([params[k] for k in p_keys], dtype=dtype, device=device)
             params_all = param_vec.unsqueeze(0).expand(n, -1)
         else:
-            is_hd = neighbor_count_80 >= 3                     # (N,)
+            is_hd = neighbor_count_80 >= 2                     # (N,)
             is_windy = wind_tensor > 12.0                      # (N,)
             is_blend = (wind_tensor > 6.0) & (~is_windy)       # (N,)
 

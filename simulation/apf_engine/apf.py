@@ -38,15 +38,15 @@ APF_PARAMS_WINDY = {
     "altitude_k": 1.0,  # 고도 보정 게인 (윈드 시어 대응)
 }
 
-# 고밀도 조건용 파라미터 (200+ 드론 시나리오) - 최대 강화
+# 고밀도 조건용 파라미터 (200+ 드론 시나리오) - 3차 최적화
 APF_PARAMS_HIGH_DENSITY = {
-    "k_att": 0.4,  # 인력 게인 최소화 (목표 추종보다 회피 우선)
-    "k_rep_drone": 20.0,  # 드론 간 척력 게인 최대 강화 (15→20)
+    "k_att": 0.3,  # 인력 게인 최소화 (회피 최우선, 0.4→0.3)
+    "k_rep_drone": 30.0,  # 드론 간 척력 게인 극대화 (20→30)
     "k_rep_obs": 15.0,  # 장애물 척력 게인 강화
-    "d0_drone": 200.0,  # 드론 간 영향 거리 최대 확대 (150→200)
+    "d0_drone": 250.0,  # 드론 간 영향 거리 극대확대 (200→250)
     "d0_obs": 100.0,  # 장애물 영향 거리 확대
-    "max_force": 40.0,  # 최대 합력 증가 (35→40)
-    "altitude_k": 3.0,  # 고도 보정 게인 최대 강화
+    "max_force": 50.0,  # 최대 합력 증가 (40→50, 급기동 허용)
+    "altitude_k": 5.0,  # 고도 보정 게인 극대화 (3→5, 수직 분리 강화)
 }
 
 
@@ -155,9 +155,9 @@ def compute_total_force(
     """
     # 바람 조건에 따라 파라미터 점진적 블렌딩 (hard switch → smooth interpolation)
     if params is None:
-        # 고밀도 모드 감지 (주변 80m 이내에 3대 이상)
-        neighbor_count = sum(1 for other in neighbors if np.linalg.norm(other.position - own.position) < 80)
-        is_high_density = neighbor_count >= 3
+        # 고밀도 모드 감지 (주변 150m 이내에 2대 이상)
+        neighbor_count = sum(1 for other in neighbors if np.linalg.norm(other.position - own.position) < 150)
+        is_high_density = neighbor_count >= 2
 
         if is_high_density:
             params = APF_PARAMS_HIGH_DENSITY

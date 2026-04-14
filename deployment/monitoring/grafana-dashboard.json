@@ -1,0 +1,65 @@
+{
+  "dashboard": {
+    "title": "SDACS 모니터링",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "활성 드론 수",
+        "type": "stat",
+        "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
+        "targets": [
+          {
+            "expr": "sdacs_active_drones",
+            "legendFormat": "드론 수"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "충돌률",
+        "type": "gauge",
+        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
+        "targets": [
+          {
+            "expr": "sdacs_collision_rate",
+            "legendFormat": "충돌률"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "max": 1,
+            "min": 0,
+            "thresholds": {
+              "steps": [
+                { "color": "green", "value": 0 },
+                { "color": "yellow", "value": 0.05 },
+                { "color": "red", "value": 0.1 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "GPU 사용률",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+        "targets": [
+          {
+            "expr": "nvidia_gpu_utilization",
+            "legendFormat": "GPU %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "max": 100
+          }
+        }
+      }
+    ],
+    "schemaVersion": 39,
+    "version": 1
+  }
+}

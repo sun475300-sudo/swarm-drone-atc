@@ -1,0 +1,16 @@
+# SDACS ClusterIP 서비스
+apiVersion: v1
+kind: Service
+metadata:
+  name: sdacs
+spec:
+  type: ClusterIP
+  selector:
+    app: sdacs
+  ports:
+    - name: dash
+      port: 8050
+      targetPort: 8050
+    - name: api
+      port: 8000
+      targetPort: 8000

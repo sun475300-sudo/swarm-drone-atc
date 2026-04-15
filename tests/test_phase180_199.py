@@ -371,7 +371,7 @@ class TestOpenCLAcceleratorHardening:
         from simulation.opencl_accelerator import OpenCLAccelerator
 
         a = OpenCLAccelerator()
-        assert a._backend in ["opencl", "cpu-fallback"]
+        assert a._backend in ["opencl", "pyopencl", "cpu-fallback"]
 
     def test_opencl_summary(self):
         from simulation.opencl_accelerator import OpenCLAccelerator

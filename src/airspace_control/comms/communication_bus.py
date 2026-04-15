@@ -120,7 +120,7 @@ class CommunicationBus:
         if pos_a is None or pos_b is None:
             return True  # 위치 모르면 허용
         dist = np.linalg.norm(pos_a - pos_b)
-        return dist <= self.comm_range_m
+        return bool(dist <= self.comm_range_m)
 
     def get_neighbors(
         self, drone_id: str, range_m: Optional[float] = None

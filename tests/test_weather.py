@@ -5,6 +5,8 @@ from simulation.weather import (
     WindModel, ConstantWind, VariableWind, ShearWind, build_wind_models,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestConstantWind:
     def test_returns_correct_direction(self):

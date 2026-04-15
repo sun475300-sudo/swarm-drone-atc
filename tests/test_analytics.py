@@ -8,6 +8,8 @@ import pytest
 
 from simulation.analytics import SimulationAnalytics, SimulationResult
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture
 def analytics():

@@ -4,6 +4,8 @@ import simpy
 import pytest
 from src.airspace_control.comms.communication_bus import CommunicationBus, CommMessage
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture
 def bus():

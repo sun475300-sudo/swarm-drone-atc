@@ -28,6 +28,8 @@ dependencies = [
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
+    "pytest-cov>=7.0",
+    "mypy>=1.10",
 ]
 gpu = [
     "torch>=2.0",
@@ -45,13 +47,37 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --tb=short"
+addopts = "-v --tb=short --cov=src --cov=simulation --cov-report=term-missing"
+markers = [
+    "unit: 단위 테스트 (개별 함수/클래스)",
+    "integration: 통합 테스트 (다중 모듈 상호작용)",
+    "e2e: End-to-End 테스트 (전체 시뮬레이션 파이프라인)",
+    "slow: 느린 테스트 (>10초)",
+    "gpu: GPU 가속 테스트",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-dir]
 "" = "src"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = false
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+no_implicit_optional = false
+exclude = ["tests/", "archive/", "visualization/"]
+
+[[tool.mypy.overrides]]
+module = ["simulation.*"]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["src.airspace_control.controller.airspace_controller"]
+ignore_errors = true
 
 [tool.ruff]
 line-length = 120

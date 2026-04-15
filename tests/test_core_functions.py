@@ -12,6 +12,8 @@ from src.airspace_control.agents.drone_state import (
 from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
 from simulation.simulator import _estimate_power_w
 
+pytestmark = pytest.mark.unit
+
 
 # ── _estimate_power_w 테스트 ──────────────────────────────────
 

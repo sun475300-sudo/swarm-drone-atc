@@ -31,5 +31,8 @@ jobs:
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install ".[dev]"
 
-      - name: Run tests
-        run: pytest tests/ --tb=short -q
+      - name: Run tests with coverage
+        run: pytest tests/ --tb=short -q --cov=src --cov=simulation --cov-report=term-missing --cov-fail-under=75
+
+      - name: Type check (src/)
+        run: mypy src/

@@ -11,6 +11,8 @@ from simulation.scenario_runner import (
     run_scenario,
 )
 
+pytestmark = pytest.mark.e2e
+
 
 class TestListScenarios:
     def test_returns_list(self):

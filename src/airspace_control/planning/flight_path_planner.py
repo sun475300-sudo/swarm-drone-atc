@@ -164,8 +164,8 @@ class FlightPathPlanner:
 
             if cur.node.x == goal.x and cur.node.y == goal.y:
                 path = []
-                n = cur
-                while n:
+                n: _Node | None = cur
+                while n is not None:
                     path.append(n.node)
                     n = n.parent
                 return list(reversed(path))

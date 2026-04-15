@@ -6,6 +6,8 @@ from src.airspace_control.comms.message_types import (
     ResolutionAdvisory, IntrusionAlert,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestTelemetryMessage:
     def test_creation(self):

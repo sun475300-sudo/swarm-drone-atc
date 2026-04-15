@@ -6,6 +6,8 @@ from src.airspace_control.utils.geo_math import (
     bearing, distance_3d, closest_approach,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestHaversine:
     def test_same_point_zero(self):

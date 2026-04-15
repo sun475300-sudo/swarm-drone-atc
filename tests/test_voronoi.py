@@ -5,6 +5,8 @@ from simulation.voronoi_airspace.voronoi_partition import (
     compute_voronoi_partition, AirspaceCell,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestVoronoiPartition:
     def test_empty_dict_returns_empty(self):

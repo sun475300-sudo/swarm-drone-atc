@@ -5,6 +5,8 @@ from src.airspace_control.agents.drone_state import (
     DroneState, FlightPhase, CommsStatus, FailureType,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestDroneState:
     def test_default_creation(self):

@@ -16,6 +16,8 @@ from src.airspace_control.controller.airspace_controller import AirspaceControll
 from src.airspace_control.controller.priority_queue import FlightPriorityQueue
 from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
 
+pytestmark = pytest.mark.integration
+
 
 # ── 픽스처 ─────────────────────────────────────────────────────────────────
 

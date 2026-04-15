@@ -8,6 +8,8 @@ import pytest
 
 from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture
 def planner_no_nfz(airspace_bounds):

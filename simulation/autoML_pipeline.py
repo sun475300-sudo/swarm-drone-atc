@@ -133,7 +133,7 @@ class AutoMLPipeline:
         keys = list(self.search_space.keys())
         for i, key in enumerate(keys):
             dim_size = grid_sizes[i]
-            idx = (trial_idx // np.prod(grid_sizes[i + 1 :])) % dim_size
+            idx = int((trial_idx // np.prod(grid_sizes[i + 1 :])) % dim_size)
             value = self.search_space[key][idx]
             setattr(config, key, value)
 

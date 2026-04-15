@@ -123,8 +123,10 @@ class NeuralArchitectureSearch:
         params: Dict[str, Any],
     ) -> Tuple[int, ...]:
         if op_type == OperationType.CONV2D:
+            if len(input_shape) < 3:
+                filters = params.get("filters", 32)
+                return (filters,)
             strides = params.get("strides", 1)
-            kernel = params.get("kernel_size", 3)
             filters = params.get("filters", 32)
 
             h = input_shape[0] // strides if strides > 1 else input_shape[0]
@@ -136,7 +138,9 @@ class NeuralArchitectureSearch:
 
         elif op_type == OperationType.POOLING:
             pool = params.get("pool_size", 2)
-            return (input_shape[0] // pool, input_shape[1] // pool, input_shape[2])
+            if len(input_shape) >= 3:
+                return (input_shape[0] // pool, input_shape[1] // pool, input_shape[2])
+            return input_shape
 
         return input_shape
 

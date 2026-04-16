@@ -84,22 +84,26 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 
 ---
 
-## Planned / 향후 계획
+### Phase 661-670: Advanced AI (완료)
+- [x] Transformer 기반 궤적 예측 (`transformer_trajectory.py`)
+- [x] Federated Learning (분산 학습) (`federated_learning_v3.py`)
+- [x] GNN 기반 군집 행동 예측 (`gnn_communication.py`)
+- [x] Diffusion Model 경로 생성 (`diffusion_path_generator.py`)
+- [x] BurnySc2 Behavior Tree + JPS Pathfinder + Frame Cache
 
-### Phase 661-670: Advanced AI (계획)
-### Phase 661-670: Advanced AI (계획)
-- [ ] Transformer 기반 궤적 예측
-- [ ] Federated Learning (분산 학습)
-- [ ] GNN 기반 군집 행동 예측
-- [ ] Diffusion Model 경로 생성
-- [ ] LLM 기반 자연어 관제 인터페이스
+### Phase 671-680: Hardware Integration (완료)
+- [x] PX4/ArduPilot SITL 연동 (`px4_sitl_bridge.py`)
+- [x] ROS2 메시지 브릿지 (`ros2_bridge.py`)
+- [x] MQTT/DDS 실시간 통신 (`mqtt_dds_bridge.py`)
+- [x] 드론 비행 테스트 프레임워크 (`flight_test_framework.py`)
+- [x] 엣지 디바이스 배포 Jetson Nano/Xavier/Orin (`jetson_edge_deployer.py`)
 
-### Phase 671-680: Hardware Integration (계획)
-- [ ] PX4/ArduPilot SITL 연동
-- [ ] ROS2 메시지 브릿지
-- [ ] MQTT/DDS 실시간 통신
-- [ ] 실제 드론 비행 테스트 (소규모)
-- [ ] 엣지 디바이스 배포 (Jetson Nano)
+### Phase 681-690: UTM Standards Compliance (완료)
+- [x] K-UTM 표준 프로토콜 준수 (`kutm_protocol.py`)
+- [x] ADS-B 수신 데이터 통합 (`adsb_receiver.py`)
+- [x] ASTM F3411 Remote ID 지원 (`remote_id.py`)
+- [x] FAA LAANC 연동 인터페이스 (`faa_laanc.py`)
+- [x] 국제 표준 ICAO Doc 10019 준수 (`icao_doc10019.py`)
 
 ---
 
@@ -108,13 +112,4 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
----
-
-### Phase 681-690: UTM Standards Compliance (계획)
-- [ ] K-UTM 표준 프로토콜 준수
-- [ ] ADS-B 수신 데이터 통합
-- [ ] ASTM F3411 Remote ID 지원
-- [ ] FAA LAANC 연동 인터페이스
-- [ ] 국제 표준 ICAO Doc 10019 준수
-
-*Last updated: 2026-03-31 (Phase 660)*
+*Last updated: 2026-04-16 (Phase 690)*

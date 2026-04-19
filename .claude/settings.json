@@ -11,7 +11,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /home/user/swarm-drone-atc/.claude/update-changelog.py",
+            "command": "python \"E:/GitHub/swarm-drone-atc/.claude/update-changelog.py\"",
             "timeout": 30,
             "statusMessage": "README 변경 이력 업데이트 중..."
           }

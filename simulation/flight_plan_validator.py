@@ -39,7 +39,7 @@ class FlightPlanValidator:
     def __init__(self) -> None:
         self._nfz_zones: list[dict[str, Any]] = []
         self._max_altitude = 120.0
-        self._min_altitude = 10.0
+        self._min_altitude = 30.0
         self._max_speed = 20.0
         self._max_segment_length = 5000.0
 
@@ -47,7 +47,7 @@ class FlightPlanValidator:
         self._nfz_zones.append({"id": nfz_id, "center": center, "radius": radius})
 
     def set_limits(
-        self, max_altitude: float = 120.0, min_altitude: float = 10.0,
+        self, max_altitude: float = 120.0, min_altitude: float = 30.0,
         max_speed: float = 20.0,
     ) -> None:
         self._max_altitude = max_altitude

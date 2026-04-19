@@ -118,6 +118,8 @@ class TestDroneProfiles:
 
 # ── Config Schema 테스트 ──────────────────────────────────
 
+pydantic = pytest.importorskip("pydantic", reason="pydantic not installed")
+
 
 class TestConfigSchema:
     def test_load_default_config(self):

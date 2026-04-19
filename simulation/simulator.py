@@ -120,10 +120,14 @@ def _estimate_power_w(
 class _DroneAgent:
     """드론 1기를 담당하는 SimPy 프로세스 래퍼"""
 
-    CRUISE_ALT = 60.0  # 기본 순항 고도 (m)
-    TAKEOFF_RATE = 3.5  # 상승 속도 (m/s)
-    LAND_RATE = 2.5  # 하강 속도 (m/s)
-    WAYPOINT_TOL = 80.0  # 웨이포인트 도달 허용 오차 (m)
+    CRUISE_ALT = 60.0           # 기본 순항 고도 (m)
+    TAKEOFF_RATE = 3.5          # 상승 속도 (m/s)
+    LAND_RATE    = 2.5          # 하강 속도 (m/s)
+    WAYPOINT_TOL = 80.0         # 웨이포인트 도달 허용 오차 (m)
+    BATTERY_TICK_INTERVAL = 5   # 배터리 계산 주기 (틱, 2Hz = 매 5틱)
+    BATTERY_CRITICAL_PCT = 5.0  # 배터리 임계 잔량 (%)
+    TELEMETRY_INTERVAL = 5      # 텔레메트리 전송 주기 (틱)
+    EMERGENCY_WIND_SPEED = 10.0 # 강풍 모드 전환 기준 (m/s)
 
     def __init__(
         self,
@@ -522,6 +526,10 @@ class SwarmSimulator:
             separation_lateral_m=float(self.cfg.get("separation_standards", {}).get("lateral_min_m", 50.0)),
             separation_vertical_m=float(self.cfg.get("separation_standards", {}).get("vertical_min_m", 15.0)),
         )
+        self._sep_lateral = float(
+            self.cfg.get("separation_standards", {}).get("lateral_min_m", 50.0))
+        self._near_miss_m = float(
+            self.cfg.get("separation_standards", {}).get("near_miss_lateral_m", 10.0))
         self.priority_queue = FlightPriorityQueue()
         self.analytics = SimulationAnalytics(self.cfg)
         self.controller = AirspaceController(
@@ -767,8 +775,18 @@ class SwarmSimulator:
                 if d.is_active and d.flight_phase != FlightPhase.LANDING:
                     sh.insert(did, d.position)
 
-            for id_a, id_b, dist in sh.query_pairs_with_dist(5.0):
-                self.analytics.record_event("COLLISION", t, drone_a=id_a, drone_b=id_b)
+            for id_a, id_b, dist in sh.query_pairs_with_dist(self._sep_lateral):
+                if dist < 5.0:
+                    self.analytics.record_event("COLLISION", t,
+                                                drone_a=id_a, drone_b=id_b)
+                elif dist < self._near_miss_m:
+                    self.analytics.record_event("NEAR_MISS", t,
+                                                drone_a=id_a, drone_b=id_b,
+                                                dist_m=dist)
+                else:
+                    self.analytics.record_event("CONFLICT", t,
+                                                drone_a=id_a, drone_b=id_b,
+                                                dist_m=dist)
 
     # ── 유틸리티 ─────────────────────────────────────────────
 

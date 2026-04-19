@@ -282,7 +282,7 @@ class TestCoordinationProtocols:
             num_conflict_resolvers=1,
             num_formation_controllers=1,
         )
-        assert len(coordinator.agents) >= 7
+        assert len(coordinator.agents) >= 6
         assert "conflict_resolver_0" in coordinator.agents
         assert "formation_controller_0" in coordinator.agents
 

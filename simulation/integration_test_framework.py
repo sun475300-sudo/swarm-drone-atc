@@ -19,6 +19,8 @@ class TestResult(Enum):
     SKIP = "skip"
     ERROR = "error"
 
+IntegrationTestResult = TestResult
+
 
 @dataclass
 class IntegrationTest:
@@ -38,6 +40,8 @@ class TestOutcome:
     duration_ms: float = 0.0
     message: str = ""
     details: dict = field(default_factory=dict)
+
+IntegrationTestOutcome = TestOutcome
 
 
 @dataclass

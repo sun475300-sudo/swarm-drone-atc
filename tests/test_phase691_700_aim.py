@@ -1,0 +1,532 @@
+"""Phase 691-700: Aeronautical Information Management 모듈 테스트."""
+
+import time
+
+import numpy as np
+import pytest
+
+
+# ── NOTAM Manager ────────────────────────────────────────────────────
+class TestNotamManager:
+    def test_create_and_query_active(self):
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        nid = mgr.create_notam(
+            NotamCategory.HAZARD, (37.5, 127.0), 1000.0, 0.0, 120.0, 2.0, "test"
+        )
+        assert nid.startswith("NOTAM-")
+        active = mgr.query_active(area_center=(37.5, 127.0), radius_m=500.0, altitude=50.0)
+        assert len(active) == 1
+
+    def test_cancel_notam(self):
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        nid = mgr.create_notam(NotamCategory.OBSTACLE, (0, 0), 100.0, 0.0, 100.0, 1.0, "x")
+        assert mgr.cancel_notam(nid)
+        assert mgr.get(nid).status.value == "cancelled"
+
+    def test_expire_old(self):
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        nid = mgr.create_notam(NotamCategory.SERVICE, (0, 0), 100.0, 0.0, 100.0, 1.0, "x")
+        mgr.get(nid).valid_until = time.time() - 10.0
+        expired = mgr.expire_old()
+        assert expired == 1
+
+    def test_extend_notam(self):
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        nid = mgr.create_notam(NotamCategory.AIRSPACE, (0, 0), 100.0, 0.0, 100.0, 1.0, "x")
+        original = mgr.get(nid).valid_until
+        assert mgr.extend_notam(nid, 2.0)
+        assert mgr.get(nid).valid_until > original
+
+    def test_invalid_params_raise(self):
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        with pytest.raises(ValueError):
+            mgr.create_notam(NotamCategory.HAZARD, (0, 0), -1.0, 0.0, 100.0, 1.0, "x")
+
+    def test_stats(self):
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.0, 1.0, "x")
+        stats = mgr.get_stats()
+        assert stats["total"] == 1
+
+
+# ── TFR Handler ──────────────────────────────────────────────────────
+class TestTfrHandler:
+    def test_declare_and_active(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        tid = h.declare_tfr(TfrReason.VIP, (37.5, 127.0), 2000.0, 0.0, 500.0, 1.0)
+        assert h.is_active(tid)
+
+    def test_violation_detected(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        tid = h.declare_tfr(TfrReason.DISASTER, (0.0, 0.0), 1000.0, 0.0, 500.0, 1.0)
+        violations = h.check_violation("INTRUDER", (100.0, 100.0, 100.0))
+        assert tid in violations
+
+    def test_authorized_callsign_no_violation(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        tid = h.declare_tfr(
+            TfrReason.SECURITY, (0.0, 0.0), 1000.0, 0.0, 500.0, 1.0, authorized=["POLICE1"]
+        )
+        assert h.check_violation("POLICE1", (100.0, 100.0, 100.0)) == []
+
+    def test_authorize_after_declare(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        tid = h.declare_tfr(TfrReason.SPORTS, (0.0, 0.0), 500.0, 0.0, 300.0, 1.0)
+        assert h.authorize(tid, "BLIMP1")
+        assert h.check_violation("BLIMP1", (50.0, 50.0, 100.0)) == []
+
+    def test_revoke(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        tid = h.declare_tfr(TfrReason.HAZMAT, (0.0, 0.0), 500.0, 0.0, 300.0, 1.0)
+        assert h.revoke(tid)
+        assert not h.is_active(tid)
+
+    def test_invalid_geometry_raises(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        with pytest.raises(ValueError):
+            h.declare_tfr(TfrReason.WILDFIRE, (0, 0), 0.0, 0.0, 100.0, 1.0)
+
+
+# ── Vertiport Ops ────────────────────────────────────────────────────
+class TestVertiportOps:
+    def test_add_pad_and_reserve(self):
+        from simulation.vertiport_ops import VertiportOps
+        v = VertiportOps("VP-TEST")
+        v.add_pad("P1", (0.0, 0.0))
+        slot = v.reserve_slot("AIR1", desired_time=1000.0, duration_s=600.0)
+        assert slot is not None
+
+    def test_conflict_sends_to_queue(self):
+        from simulation.vertiport_ops import VertiportOps
+        v = VertiportOps()
+        v.add_pad("P1", (0.0, 0.0))
+        v.reserve_slot("AIR1", 1000.0, duration_s=600.0)
+        slot2 = v.reserve_slot("AIR2", 1100.0, duration_s=600.0)
+        assert slot2 is None
+        assert "AIR2" in v.wait_queue
+
+    def test_weight_filter(self):
+        from simulation.vertiport_ops import VertiportOps
+        v = VertiportOps()
+        v.add_pad("P1", (0.0, 0.0), max_weight=1000.0)
+        slot = v.reserve_slot("HEAVY", 1000.0, weight_kg=2000.0)
+        assert slot is None
+
+    def test_cancel_reservation(self):
+        from simulation.vertiport_ops import VertiportOps
+        v = VertiportOps()
+        v.add_pad("P1", (0.0, 0.0))
+        slot = v.reserve_slot("AIR1", 1000.0)
+        assert v.cancel_reservation(slot)
+
+    def test_land_and_depart(self):
+        from simulation.vertiport_ops import VertiportOps, PadStatus
+        v = VertiportOps()
+        v.add_pad("P1", (0.0, 0.0))
+        slot = v.reserve_slot("AIR1", 1000.0)
+        assert v.land(slot)
+        assert v.pads["P1"].status == PadStatus.OCCUPIED
+        assert v.depart("P1")
+        assert v.pads["P1"].status == PadStatus.AVAILABLE
+
+    def test_maintenance(self):
+        from simulation.vertiport_ops import VertiportOps, PadStatus
+        v = VertiportOps()
+        v.add_pad("P1", (0.0, 0.0))
+        v.set_maintenance("P1", True)
+        assert v.pads["P1"].status == PadStatus.MAINTENANCE
+
+    def test_stats(self):
+        from simulation.vertiport_ops import VertiportOps
+        v = VertiportOps()
+        v.add_pad("P1", (0.0, 0.0))
+        v.add_pad("P2", (10.0, 10.0))
+        stats = v.get_stats()
+        assert stats["pads_total"] == 2
+
+
+# ── METAR Parser ────────────────────────────────────────────────────
+class TestMetarParser:
+    def test_parse_basic_metar(self):
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        text = "RKSI 091200Z 27015KT 9999 FEW030 18/10 Q1013"
+        obs = p.parse_metar(text)
+        assert obs.station == "RKSI"
+        assert obs.wind_dir_deg == 270
+        assert obs.wind_speed_kt == 15
+        assert obs.temperature_c == 18
+        assert obs.dewpoint_c == 10
+        assert obs.altimeter_hpa == 1013
+
+    def test_parse_metar_with_gust_and_conditions(self):
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        text = "KJFK 091200Z 18020G35KT 5000 RA BR BKN010 15/14 Q1005"
+        obs = p.parse_metar(text)
+        assert obs.gust_kt == 35
+        assert "rain" in obs.conditions
+        assert obs.clouds[0][0] == "BKN"
+
+    def test_parse_taf(self):
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        text = "TAF RKSI 091200Z 0912/1018 27010KT 5SM"
+        taf = p.parse_taf(text)
+        assert taf.station == "RKSI"
+        assert taf.wind_speed_kt == 10
+        assert taf.valid_from == "0912"
+        assert taf.valid_to == "1018"
+
+    def test_vfr_assessment(self):
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        vfr_obs = p.parse_metar("RKSI 091200Z 27010KT 9999 FEW040 18/10 Q1013")
+        assert p.is_vfr(vfr_obs) is True
+        ifr_obs = p.parse_metar("KJFK 091200Z 18020KT 1SM OVC003 15/14 Q1005")
+        assert p.is_vfr(ifr_obs) is False
+
+    def test_empty_raises(self):
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        with pytest.raises(ValueError):
+            p.parse_metar("")
+        with pytest.raises(ValueError):
+            p.parse_taf("")
+
+
+# ── Cross-border Coordinator ─────────────────────────────────────────
+class TestCrossBorderCoordinator:
+    def _fixture(self):
+        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        c = CrossBorderCoordinator()
+        c.register_authority(AirspaceAuthority("KR", "Korea", required_docs=["manifest", "insurance"]))
+        c.register_authority(AirspaceAuthority("JP", "Japan", required_docs=["manifest"]))
+        return c
+
+    def test_propose_and_accept(self):
+        c = self._fixture()
+        cid = c.propose_crossing("AIR1", "KR", "JP", (35.0, 130.0), 1000.0, 3000.0)
+        assert cid is not None
+        assert c.submit_document(cid, "manifest")
+        assert c.all_documents_ready(cid)
+        assert c.accept_handoff(cid)
+
+    def test_cannot_accept_without_docs(self):
+        c = self._fixture()
+        cid = c.propose_crossing("AIR1", "JP", "KR", (35.0, 130.0), 1000.0, 3000.0)
+        assert c.accept_handoff(cid) is False
+
+    def test_invalid_authority(self):
+        c = self._fixture()
+        assert c.propose_crossing("AIR1", "KR", "US", (0, 0), 0, 0) is None
+
+    def test_reject_and_complete(self):
+        c = self._fixture()
+        cid = c.propose_crossing("AIR1", "KR", "JP", (35.0, 130.0), 1000.0, 3000.0)
+        assert c.reject_handoff(cid, "bad plan")
+        cid2 = c.propose_crossing("AIR2", "JP", "KR", (35.0, 130.0), 1100.0, 3000.0)
+        c.submit_document(cid2, "manifest")
+        c.submit_document(cid2, "insurance")
+        c.accept_handoff(cid2)
+        assert c.complete_handoff(cid2)
+
+    def test_stats(self):
+        c = self._fixture()
+        cid = c.propose_crossing("AIR1", "KR", "JP", (35.0, 130.0), 1000.0, 3000.0)
+        s = c.get_stats()
+        assert s["authorities"] == 2
+        assert s["crossings"] == 1
+
+
+# ── Insurance Risk ──────────────────────────────────────────────────
+class TestInsuranceRisk:
+    def _factors(self, **over):
+        from simulation.insurance_risk import RiskFactors
+        base = {
+            "population_density": 1000.0,
+            "flight_hours": 5.0,
+            "weather_severity": 0.2,
+            "drone_mtow_kg": 3.0,
+            "operator_experience_hours": 200.0,
+            "payload_hazard_level": 1,
+            "proximity_airports_km": 20.0,
+        }
+        base.update(over)
+        return RiskFactors(**base)
+
+    def test_compute_risk_bounds(self):
+        from simulation.insurance_risk import InsuranceRiskCalculator
+        calc = InsuranceRiskCalculator()
+        score = calc.compute_risk_score(self._factors())
+        assert 0.0 <= score <= 2.0
+
+    def test_recommend_tier(self):
+        from simulation.insurance_risk import InsuranceRiskCalculator, CoverageTier
+        calc = InsuranceRiskCalculator()
+        low = calc.recommend_tier(0.2)
+        high = calc.recommend_tier(1.5)
+        assert low == CoverageTier.BASIC
+        assert high == CoverageTier.PREMIUM
+
+    def test_quote_fields(self):
+        from simulation.insurance_risk import InsuranceRiskCalculator
+        calc = InsuranceRiskCalculator()
+        q = calc.quote(self._factors())
+        for key in ("risk_score", "recommended_tier", "premium_krw", "coverage_limit_krw"):
+            assert key in q
+
+    def test_invalid_factors_raise(self):
+        from simulation.insurance_risk import InsuranceRiskCalculator
+        calc = InsuranceRiskCalculator()
+        with pytest.raises(ValueError):
+            calc.compute_risk_score(self._factors(flight_hours=-1.0))
+
+    def test_stats(self):
+        from simulation.insurance_risk import InsuranceRiskCalculator
+        calc = InsuranceRiskCalculator()
+        calc.quote(self._factors())
+        calc.quote(self._factors(drone_mtow_kg=15.0))
+        stats = calc.stats()
+        assert stats["quotes"] == 2
+
+
+# ── Aero Charts ─────────────────────────────────────────────────────
+class TestAeroCharts:
+    def _chart(self):
+        from simulation.aero_charts import AeroCharts, ChartFeature, ChartFeatureType
+        c = AeroCharts()
+        c.bulk_add([
+            ChartFeature("F1", ChartFeatureType.AIRPORT, (0.0, 0.0), 10.0, "Home"),
+            ChartFeature("F2", ChartFeatureType.OBSTACLE, (50.0, 50.0), 120.0, "Tower"),
+            ChartFeature("F3", ChartFeatureType.RADIO_TOWER, (200.0, 0.0), 100.0, "Antenna"),
+        ])
+        return c
+
+    def test_nearby_filter(self):
+        from simulation.aero_charts import ChartFeatureType
+        c = self._chart()
+        near = c.nearby((0.0, 0.0), 100.0)
+        assert len(near) == 2
+        obstacles = c.nearby((0.0, 0.0), 100.0, feature_type=ChartFeatureType.OBSTACLE)
+        assert len(obstacles) == 1
+
+    def test_nearest(self):
+        c = self._chart()
+        nearest = c.nearest((10.0, 10.0))
+        assert nearest.feature_id == "F1"
+
+    def test_path_obstacles(self):
+        c = self._chart()
+        hazards = c.path_obstacles(
+            waypoints=[(0.0, 0.0), (100.0, 100.0)], corridor_width_m=50.0
+        )
+        assert any(h.feature_id == "F2" for h in hazards)
+
+    def test_remove(self):
+        c = self._chart()
+        assert c.remove("F1")
+        assert c.get("F1") is None
+
+    def test_stats(self):
+        c = self._chart()
+        s = c.stats()
+        assert s["total"] == 3
+        assert "airport" in s["by_type"]
+
+
+# ── Flight Following ────────────────────────────────────────────────
+class TestFlightFollowing:
+    def test_register_and_report(self):
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService()
+        svc.register_flight("AIR1", "FP-1", [(0, 0, 50), (1000, 0, 50)])
+        r = svc.report_position("AIR1", (500.0, 0.0, 50.0), (20, 0, 0), 90.0)
+        assert r["ok"]
+        assert r["deviation_m"] < 10.0
+
+    def test_deviation_triggers_alert(self):
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService(deviation_tolerance_m=100.0)
+        svc.register_flight("AIR1", "FP-1", [(0, 0, 50), (1000, 0, 50)])
+        svc.report_position("AIR1", (500.0, 500.0, 50.0), (0, 20, 0), 80.0)
+        assert svc.tracks["AIR1"].deviation_alerts == 1
+
+    def test_lost_comms_sweep(self):
+        from simulation.flight_following import FlightFollowingService, TrackState
+        svc = FlightFollowingService(comms_timeout_s=1.0)
+        svc.register_flight("AIR1", "FP-1", [(0, 0, 50), (1000, 0, 50)])
+        svc.report_position("AIR1", (0, 0, 50), (10, 0, 0), 100)
+        lost = svc.sweep_lost_comms(current_time=time.time() + 10.0)
+        assert "AIR1" in lost
+        assert svc.tracks["AIR1"].state == TrackState.LOST_COMMS
+
+    def test_state_transitions(self):
+        from simulation.flight_following import FlightFollowingService, TrackState
+        svc = FlightFollowingService()
+        svc.register_flight("AIR1", "FP-1", [(0, 0, 50), (1000, 0, 50)])
+        assert svc.declare_hold("AIR1")
+        assert svc.tracks["AIR1"].state == TrackState.HOLDING
+        assert svc.declare_diversion("AIR1")
+        assert svc.tracks["AIR1"].state == TrackState.DIVERTED
+        assert svc.declare_completed("AIR1")
+        assert svc.tracks["AIR1"].state == TrackState.COMPLETED
+
+    def test_unregistered_rejected(self):
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService()
+        r = svc.report_position("GHOST", (0, 0, 0), (0, 0, 0), 100.0)
+        assert r["ok"] is False
+
+    def test_stats(self):
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService()
+        svc.register_flight("AIR1", "FP-1", [(0, 0, 50), (1000, 0, 50)])
+        svc.report_position("AIR1", (100, 0, 50), (10, 0, 0), 90.0)
+        stats = svc.stats()
+        assert stats["tracks"] == 1
+        assert stats["total_track_points"] == 1
+
+
+# ── AIM Briefing Service ────────────────────────────────────────────
+class TestAimBriefing:
+    def _build(self):
+        from simulation.aim_briefing import AimBriefingService
+        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.tfr_handler import TfrHandler
+        from simulation.aero_charts import AeroCharts, ChartFeature, ChartFeatureType
+        from simulation.metar_parser import MetarParser
+
+        notam = NotamManager()
+        notam.create_notam(NotamCategory.OBSTACLE, (500.0, 0.0), 50.0, 0.0, 120.0, 2.0, "tower")
+        tfr = TfrHandler()
+        charts = AeroCharts()
+        charts.add_feature(ChartFeature("O1", ChartFeatureType.OBSTACLE, (500.0, 0.0), 80.0, "Tower"))
+        parser = MetarParser()
+        svc = AimBriefingService(notam, tfr, charts, parser)
+        return svc
+
+    def test_generate_conflict(self):
+        from simulation.aim_briefing import BriefingRequest
+        svc = self._build()
+        req = BriefingRequest(
+            callsign="AIR1",
+            departure=(0.0, 0.0),
+            destination=(1000.0, 0.0),
+            route_waypoints=[(500.0, 0.0)],
+            planned_altitude_m=50.0,
+            departure_time=time.time(),
+        )
+        result = svc.generate(req)
+        assert result.go_nogo == "NO-GO"
+        assert len(result.notam_conflicts) >= 1
+
+    def test_generate_clear(self):
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        from simulation.notam_manager import NotamManager
+        from simulation.tfr_handler import TfrHandler
+        from simulation.aero_charts import AeroCharts
+        from simulation.metar_parser import MetarParser
+        svc = AimBriefingService(NotamManager(), TfrHandler(), AeroCharts(), MetarParser())
+        req = BriefingRequest(
+            "AIR2", (0.0, 0.0), (1000.0, 0.0), [(500.0, 0.0)], 50.0, time.time()
+        )
+        result = svc.generate(req, metar_text="RKSI 091200Z 27010KT 9999 FEW040 18/10 Q1013")
+        assert result.go_nogo == "GO"
+
+    def test_weather_bad_forces_nogo(self):
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        from simulation.notam_manager import NotamManager
+        from simulation.tfr_handler import TfrHandler
+        from simulation.aero_charts import AeroCharts
+        from simulation.metar_parser import MetarParser
+        svc = AimBriefingService(NotamManager(), TfrHandler(), AeroCharts(), MetarParser())
+        req = BriefingRequest(
+            "AIR3", (0.0, 0.0), (1000.0, 0.0), [], 50.0, time.time()
+        )
+        result = svc.generate(req, metar_text="KJFK 091200Z 18020KT 1SM OVC003 15/14 Q1005")
+        assert result.go_nogo == "NO-GO"
+        assert result.weather_ok is False
+
+    def test_stats(self):
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        from simulation.notam_manager import NotamManager
+        svc = AimBriefingService(NotamManager())
+        req = BriefingRequest("AIR1", (0, 0), (1, 1), [], 50.0, time.time())
+        svc.generate(req)
+        svc.generate(req)
+        stats = svc.stats()
+        assert stats["briefings"] == 2
+
+
+# ── Post Flight Reporter ────────────────────────────────────────────
+class TestPostFlightReporter:
+    def _track(self, duration=600.0, n=10):
+        t0 = time.time()
+        pts = []
+        for i in range(n):
+            t = t0 + i * (duration / (n - 1))
+            pos = (i * 100.0, 0.0, 50.0)
+            fuel = 100.0 - i * 5.0
+            pts.append((t, pos, fuel))
+        return pts
+
+    def test_build_success_report(self):
+        from simulation.post_flight_report import PostFlightReporter, ReportOutcome
+        r = PostFlightReporter()
+        report = r.build_report("AIR1", "FP-1", self._track(), events=[])
+        assert report.outcome == ReportOutcome.SUCCESS
+        assert report.metrics.distance_m > 0
+
+    def test_collision_triggers_incident(self):
+        from simulation.post_flight_report import PostFlightReporter, ReportOutcome
+        r = PostFlightReporter()
+        report = r.build_report("AIR1", "FP-1", self._track(), collisions=1)
+        assert report.outcome == ReportOutcome.INCIDENT
+
+    def test_abort_event_triggers_aborted(self):
+        from simulation.post_flight_report import PostFlightReporter, ReportOutcome
+        r = PostFlightReporter()
+        report = r.build_report("AIR1", "FP-1", self._track(), events=["ABORT: low battery"])
+        assert report.outcome == ReportOutcome.ABORTED
+
+    def test_degraded_on_deviation(self):
+        from simulation.post_flight_report import PostFlightReporter, ReportOutcome
+        r = PostFlightReporter()
+        report = r.build_report("AIR1", "FP-1", self._track(), deviation_alerts=10)
+        assert report.outcome == ReportOutcome.DEGRADED
+
+    def test_export_summary(self):
+        from simulation.post_flight_report import PostFlightReporter
+        r = PostFlightReporter()
+        report = r.build_report("AIR1", "FP-1", self._track())
+        summary = r.export_summary(report.report_id)
+        assert summary["callsign"] == "AIR1"
+        assert "distance_m" in summary
+
+    def test_insufficient_points_raises(self):
+        from simulation.post_flight_report import PostFlightReporter
+        r = PostFlightReporter()
+        with pytest.raises(ValueError):
+            r.build_report("AIR1", "FP-1", [(0.0, (0, 0, 0), 100.0)])
+
+    def test_outcome_distribution(self):
+        from simulation.post_flight_report import PostFlightReporter
+        r = PostFlightReporter()
+        r.build_report("AIR1", "FP-1", self._track())
+        r.build_report("AIR2", "FP-2", self._track(), collisions=1)
+        dist = r.outcome_distribution()
+        assert dist.get("success", 0) == 1
+        assert dist.get("incident", 0) == 1

@@ -1,0 +1,167 @@
+"""Phase 700: 후-비행(Post-flight) 보고서 통합기."""
+
+from __future__ import annotations
+
+import time
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
+
+
+class ReportOutcome(Enum):
+    SUCCESS = "success"
+    DEGRADED = "degraded"
+    INCIDENT = "incident"
+    ABORTED = "aborted"
+
+
+@dataclass
+class FlightMetrics:
+    duration_s: float
+    distance_m: float
+    avg_speed_mps: float
+    max_speed_mps: float
+    fuel_used_pct: float
+    max_altitude_m: float
+    conflicts_detected: int = 0
+    collisions: int = 0
+    deviation_alerts: int = 0
+
+
+@dataclass
+class PostFlightReport:
+    report_id: str
+    callsign: str
+    plan_id: str
+    outcome: ReportOutcome
+    metrics: FlightMetrics
+    events: List[str] = field(default_factory=list)
+    issues: List[str] = field(default_factory=list)
+    generated_at: float = field(default_factory=time.time)
+
+
+class PostFlightReporter:
+    """경로/이벤트/메트릭을 수집해 운영 보고서를 생성."""
+
+    def __init__(self) -> None:
+        self.reports: Dict[str, PostFlightReport] = {}
+        self._next_id = 0
+
+    def _gen_id(self) -> str:
+        self._next_id += 1
+        return f"RPT-{self._next_id:06d}"
+
+    def build_report(
+        self,
+        callsign: str,
+        plan_id: str,
+        track_points: List[Tuple[float, Tuple[float, float, float], float]],
+        events: Optional[List[str]] = None,
+        conflicts_detected: int = 0,
+        collisions: int = 0,
+        deviation_alerts: int = 0,
+    ) -> PostFlightReport:
+        if len(track_points) < 2:
+            raise ValueError("need at least 2 track points")
+        metrics = self._compute_metrics(track_points, conflicts_detected, collisions, deviation_alerts)
+        events_list = list(events or [])
+        outcome, issues = self._classify_outcome(metrics, events_list)
+        report = PostFlightReport(
+            report_id=self._gen_id(),
+            callsign=callsign,
+            plan_id=plan_id,
+            outcome=outcome,
+            metrics=metrics,
+            events=events_list,
+            issues=issues,
+        )
+        self.reports[report.report_id] = report
+        return report
+
+    @staticmethod
+    def _compute_metrics(
+        track_points: List[Tuple[float, Tuple[float, float, float], float]],
+        conflicts: int,
+        collisions: int,
+        deviations: int,
+    ) -> FlightMetrics:
+        times = np.array([p[0] for p in track_points], dtype=float)
+        positions = np.array([p[1] for p in track_points], dtype=float)
+        fuels = np.array([p[2] for p in track_points], dtype=float)
+        duration = float(times[-1] - times[0])
+        deltas = np.diff(positions, axis=0)
+        segment_dists = np.linalg.norm(deltas, axis=1)
+        distance = float(np.sum(segment_dists))
+        dt = np.diff(times)
+        safe_dt = np.where(dt > 0, dt, 1.0)
+        speeds = segment_dists / safe_dt
+        avg_speed = float(np.mean(speeds)) if len(speeds) else 0.0
+        max_speed = float(np.max(speeds)) if len(speeds) else 0.0
+        fuel_used = float(max(0.0, fuels[0] - fuels[-1]))
+        max_alt = float(np.max(positions[:, 2]))
+        return FlightMetrics(
+            duration_s=duration,
+            distance_m=distance,
+            avg_speed_mps=avg_speed,
+            max_speed_mps=max_speed,
+            fuel_used_pct=fuel_used,
+            max_altitude_m=max_alt,
+            conflicts_detected=conflicts,
+            collisions=collisions,
+            deviation_alerts=deviations,
+        )
+
+    @staticmethod
+    def _classify_outcome(
+        metrics: FlightMetrics, events: List[str]
+    ) -> Tuple[ReportOutcome, List[str]]:
+        issues: List[str] = []
+        if metrics.collisions > 0:
+            issues.append(f"{metrics.collisions} collision(s)")
+            return ReportOutcome.INCIDENT, issues
+        if any("ABORT" in e.upper() for e in events):
+            issues.append("mission aborted")
+            return ReportOutcome.ABORTED, issues
+        if metrics.deviation_alerts > 3 or metrics.conflicts_detected > 5:
+            issues.append("excessive deviation or conflicts")
+            return ReportOutcome.DEGRADED, issues
+        if metrics.fuel_used_pct > 85:
+            issues.append("high fuel usage")
+            return ReportOutcome.DEGRADED, issues
+        return ReportOutcome.SUCCESS, issues
+
+    def export_summary(self, report_id: str) -> Optional[Dict[str, Any]]:
+        r = self.reports.get(report_id)
+        if r is None:
+            return None
+        return {
+            "report_id": r.report_id,
+            "callsign": r.callsign,
+            "plan_id": r.plan_id,
+            "outcome": r.outcome.value,
+            "duration_s": r.metrics.duration_s,
+            "distance_m": r.metrics.distance_m,
+            "avg_speed_mps": r.metrics.avg_speed_mps,
+            "max_speed_mps": r.metrics.max_speed_mps,
+            "fuel_used_pct": r.metrics.fuel_used_pct,
+            "max_altitude_m": r.metrics.max_altitude_m,
+            "conflicts": r.metrics.conflicts_detected,
+            "collisions": r.metrics.collisions,
+            "deviations": r.metrics.deviation_alerts,
+            "events": r.events,
+            "issues": r.issues,
+        }
+
+    def outcome_distribution(self) -> Dict[str, int]:
+        dist: Dict[str, int] = {}
+        for r in self.reports.values():
+            dist[r.outcome.value] = dist.get(r.outcome.value, 0) + 1
+        return dist
+
+    def stats(self) -> Dict[str, Any]:
+        return {
+            "total_reports": len(self.reports),
+            "outcomes": self.outcome_distribution(),
+        }

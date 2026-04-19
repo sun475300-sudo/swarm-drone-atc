@@ -16,6 +16,8 @@ from src.airspace_control.controller.airspace_controller import AirspaceControll
 from src.airspace_control.controller.priority_queue import FlightPriorityQueue
 from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
 
+pytestmark = pytest.mark.integration
+
 
 # ── 픽스처 ─────────────────────────────────────────────────────────────────
 
@@ -184,3 +186,123 @@ class TestNFZ3DCheck:
         """컨트롤러의 planner가 NFZ 데이터를 가지고 있는지 확인"""
         assert hasattr(controller, 'planner')
         assert hasattr(controller.planner, 'nfz_list')
+
+
+class TestDynamicSeparation:
+    """동적 분리간격 조정 테스트"""
+
+    def test_no_wind_no_density(self, controller):
+        controller._wind_speed = 0.0
+        controller._update_dynamic_separation()
+        assert controller._lat_min == controller._lat_min_base
+
+    def test_moderate_wind(self, controller):
+        controller._wind_speed = 7.5
+        controller._update_dynamic_separation()
+        assert controller._lat_min > controller._lat_min_base
+
+    def test_strong_wind(self, controller):
+        controller._wind_speed = 12.0
+        controller._update_dynamic_separation()
+        assert controller._lat_min >= controller._lat_min_base * 1.4
+
+    def test_extreme_wind_caps(self, controller):
+        controller._wind_speed = 20.0
+        controller._update_dynamic_separation()
+        assert controller._lat_min == controller._lat_min_base * 1.6
+
+    def test_high_density_factor(self, env, comm_bus, controller):
+        from src.airspace_control.agents.drone_state import DroneState, FlightPhase
+        for i in range(120):
+            d = DroneState(drone_id=f"D{i}", position=np.array([i*10.0, 0.0, 60.0]), velocity=np.zeros(3))
+            d.flight_phase = FlightPhase.ENROUTE
+            controller._active_drones[f"D{i}"] = d
+        controller._wind_speed = 0.0
+        controller._update_dynamic_separation()
+        assert controller._lat_min >= controller._lat_min_base * 1.3
+
+    def test_wind_update_method(self, controller):
+        controller.update_wind_speed(8.5)
+        assert controller._wind_speed == 8.5
+
+
+class TestKDTreeQueryPairs:
+    """KDTree 근접 쌍 쿼리 테스트"""
+
+    def test_empty_positions(self):
+        result = AirspaceController._kdtree_query_pairs({}, 50.0)
+        assert result == []
+
+    def test_single_drone(self):
+        result = AirspaceController._kdtree_query_pairs(
+            {"D1": np.array([0.0, 0.0, 60.0])}, 50.0
+        )
+        assert result == []
+
+    def test_close_pair_found(self):
+        positions = {
+            "D1": np.array([0.0, 0.0, 60.0]),
+            "D2": np.array([30.0, 0.0, 60.0]),
+            "D3": np.array([500.0, 0.0, 60.0]),
+        }
+        result = AirspaceController._kdtree_query_pairs(positions, 50.0)
+        ids_found = {frozenset([r[0], r[1]]) for r in result}
+        assert frozenset(["D1", "D2"]) in ids_found
+        assert frozenset(["D1", "D3"]) not in ids_found
+
+    def test_distance_accuracy(self):
+        positions = {
+            "A": np.array([0.0, 0.0, 0.0]),
+            "B": np.array([30.0, 40.0, 0.0]),
+        }
+        result = AirspaceController._kdtree_query_pairs(positions, 60.0)
+        assert len(result) == 1
+        assert abs(result[0][2] - 50.0) < 0.01
+
+
+class TestControllerStats:
+    """컨트롤러 통계 속성 테스트"""
+
+    def test_cbs_stats_initial(self, controller):
+        assert controller._cbs_attempts == 0
+        assert controller._cbs_successes == 0
+        assert controller._cbs_failures == 0
+
+    def test_astar_count_initial(self, controller):
+        assert controller._astar_count == 0
+
+    def test_clearances_per_sec_initial(self, controller):
+        assert controller._clearances_per_sec == 0.0
+
+    def test_holding_queue_initial(self, controller):
+        assert len(controller._holding_queue) == 0
+
+    def test_voronoi_cells_initial(self, controller):
+        assert controller._voronoi_cells == {}
+
+
+class TestMultipleTelemetry:
+    """다중 텔레메트리 처리 테스트"""
+
+    def test_multiple_drones_registered(self, env, comm_bus, controller):
+        for i in range(10):
+            _send_telemetry(env, comm_bus, f"M{i}", [i*100.0, 0.0, 60.0])
+        assert len(controller._active_drones) == 10
+
+    def test_telemetry_update_overwrites(self, env, comm_bus, controller):
+        _send_telemetry(env, comm_bus, "U1", [0.0, 0.0, 60.0])
+        _send_telemetry(env, comm_bus, "U1", [100.0, 0.0, 60.0])
+        assert np.allclose(controller._active_drones["U1"].position, [100.0, 0.0, 60.0])
+
+    def test_battery_tracking(self, env, comm_bus, controller):
+        # 첫 텔레메트리로 등록
+        _send_telemetry(env, comm_bus, "B1", [0.0, 0.0, 60.0])
+        # 두 번째 텔레메트리로 배터리 업데이트
+        tm = TelemetryMessage(
+            drone_id="B1", position=[0.0, 0.0, 60.0],
+            velocity=[0.0, 0.0, 0.0], battery_pct=75.5,
+            flight_phase="ENROUTE", timestamp_s=1.0,
+        )
+        comm_bus.send(CommMessage("B1", "CONTROLLER", tm, 1.0, "telemetry"))
+        env.run(until=1.1)
+        assert controller._active_drones["B1"].battery_pct == 75.5

@@ -23,14 +23,14 @@ quick_sweep:
   comms_loss_rate: [0.0, 0.05]
   wind_speed_ms: [0, 15]
   wind_direction_deg: [0]
-  duration_s: [600]
-  n_per_config: 30
+  duration_s: [60]
+  n_per_config: 5
   # total_configs: 32 (2x1x2x2x2)
-  # total_runs: 960
+  # total_runs: 160
 
 # 병렬 실행 설정
 parallel:
-  n_workers: -1           # -1 = 모든 코어 사용
+  n_workers: 1            # 순차 실행 (torch 호환성)
   backend: loky           # joblib 백엔드
   batch_size: 100         # 워커당 배치 크기
 

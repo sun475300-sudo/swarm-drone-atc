@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import pickle
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -251,7 +252,7 @@ class ModelTrainer:
         Returns:
             Training result with metrics
         """
-        start_time = datetime.now()
+        start_time = time.perf_counter()
 
         X_train, X_test, y_train, y_test = self._split_data(
             features, labels, self._config.test_split
@@ -267,7 +268,7 @@ class ModelTrainer:
         train_loss = self._compute_loss(model, X_train, y_train)
         test_loss = self._compute_loss(model, X_test, y_test)
 
-        training_time = (datetime.now() - start_time).total_seconds()
+        training_time = time.perf_counter() - start_time
 
         return TrainingResult(
             model_type="collision_predictor",
@@ -304,7 +305,7 @@ class ModelTrainer:
         Returns:
             Training result with metrics
         """
-        start_time = datetime.now()
+        start_time = time.perf_counter()
 
         X_train, X_test, y_train, y_test = self._split_data(
             features, waypoints, self._config.test_split
@@ -316,7 +317,7 @@ class ModelTrainer:
         train_mse = float(np.mean((model.predict(X_train) - y_train) ** 2))
         test_mse = float(np.mean((model.predict(X_test) - y_test) ** 2))
 
-        training_time = (datetime.now() - start_time).total_seconds()
+        training_time = time.perf_counter() - start_time
 
         return TrainingResult(
             model_type="route_optimizer",
@@ -343,7 +344,7 @@ class ModelTrainer:
         Returns:
             Training result with metrics
         """
-        start_time = datetime.now()
+        start_time = time.perf_counter()
 
         X_train, X_test, y_train, y_test = self._split_data(
             features, demands, self._config.test_split
@@ -358,7 +359,7 @@ class ModelTrainer:
         train_mae = float(np.mean(np.abs(model.predict(X_train) - y_train)))
         test_mae = float(np.mean(np.abs(model.predict(X_test) - y_test)))
 
-        training_time = (datetime.now() - start_time).total_seconds()
+        training_time = time.perf_counter() - start_time
 
         return TrainingResult(
             model_type="demand_forecaster",

@@ -1219,6 +1219,14 @@ app.layout = html.Div(
 
                         html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
 
+                        # GPU 메트릭
+                        html.Div("🟢 GPU 가속",
+                                 style={"color": "#00ff88", "fontSize": "12px",
+                                        "fontWeight": "600", "marginBottom": "8px"}),
+                        html.Div(id="gpu-stats"),
+
+                        html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
+
                         # 통계
                         html.Div("📊 실시간 통계",
                                  style={"color": "#58a6ff", "fontSize": "12px",
@@ -1489,6 +1497,7 @@ def _mini_chart_layout() -> dict:
 @app.callback(
     Output("graph-3d",           "figure"),
     Output("hdr-time",           "children"),
+    Output("gpu-stats",          "children"),
     Output("stats",              "children"),
     Output("alert-log",          "children"),
     Output("chart-battery-dist", "figure"),
@@ -1720,7 +1729,24 @@ def _refresh(_n):
         height=60,
     )
 
-    return (fig, time_str, stats_div, alert_div, fig_bat, fig_energy, fig_cr,
+    # GPU 메트릭 패널
+    try:
+        from simulation.apf_engine import get_apf_backend_info
+        gpu_info = get_apf_backend_info()
+        gpu_name = gpu_info.get("gpu", "N/A") or "CPU"
+        gpu_backend = gpu_info.get("backend", "numpy")
+        gpu_vram = gpu_info.get("vram_gb", "")
+        gpu_children = [
+            _stat("백엔드", gpu_backend),
+            _stat("디바이스", gpu_name),
+        ]
+        if gpu_vram:
+            gpu_children.append(_stat("VRAM", f"{gpu_vram} GB"))
+    except Exception:
+        gpu_children = [_stat("백엔드", "numpy-cpu")]
+    gpu_div = html.Div(gpu_children)
+
+    return (fig, time_str, gpu_div, stats_div, alert_div, fig_bat, fig_energy, fig_cr,
             threat_div, sla_div, sector_div, fig_tick, fig_tl)
 
 

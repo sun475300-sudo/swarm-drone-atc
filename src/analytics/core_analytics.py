@@ -585,6 +585,17 @@ class MonteCarloAnalyzer:
         values_array = np.array(metric_values)
         n = len(values_array)
         mean = float(np.mean(values_array))
+
+        if n == 1:
+            return {
+                "mean": mean,
+                "std": 0.0,
+                "ci_lower": mean,
+                "ci_upper": mean,
+                "ci_margin": 0.0,
+                "sample_size": 1,
+            }
+
         std = float(np.std(values_array, ddof=1))  # 표본 표준편차
 
         # T-분포 근사: 주요 자유도별 t-critical 값 조회표

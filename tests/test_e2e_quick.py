@@ -42,6 +42,8 @@ from src.analytics.core_analytics import (
 from src.analytics.simulation_hook import SimulationAnalyticsHook
 from src.airspace_control.agents.drone_state import DroneState
 
+pytestmark = pytest.mark.e2e
+
 
 # ─────────────────────────────────────────────────────────────
 # Test Fixtures

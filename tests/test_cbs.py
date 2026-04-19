@@ -12,6 +12,8 @@ from simulation.cbs_planner.cbs import (
     position_to_grid,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestGridNode:
     def test_equality(self):

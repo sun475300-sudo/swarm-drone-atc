@@ -10,8 +10,8 @@
     {
       "name": "Three.js 3D 시뮬레이터 (브라우저)",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["main.py", "visualize-3d"],
-      "port": 0
+      "runtimeArgs": ["-m", "http.server", "8071"],
+      "port": 8071
     },
     {
       "name": "기본 시뮬레이션 (100대, 600초)",
@@ -36,6 +36,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8090", "--directory", "C:/Users/sun47/Desktop/캡스톤 디자인"],
       "port": 8090
+    },
+    {
+      "name": "demo-simulator",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8070"],
+      "port": 8070
     }
   ]
 }

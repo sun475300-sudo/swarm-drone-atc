@@ -89,7 +89,7 @@ class Corridor:
         if vec_len < 1e-6:
             # Start and end are same point, use sphere
             dist = np.linalg.norm(point - self.start)
-            return dist <= self.radius
+            return bool(dist <= self.radius)
 
         # Vector from start to point
         to_point = point - self.start
@@ -104,7 +104,7 @@ class Corridor:
         # Distance from point to axis
         dist = np.linalg.norm(point - closest)
 
-        return dist <= self.radius
+        return bool(dist <= self.radius)
 
 
 class AirspaceGrid:

@@ -23,6 +23,8 @@ from src.analytics.core_analytics import (
     MonteCarloAnalyzer,
 )
 
+pytestmark = pytest.mark.integration
+
 
 # ─────────────────────────────────────────────────────────────
 # PerformanceAnalyzer 테스트

@@ -1,0 +1,12 @@
+{
+  "stem": "ops_report-seed42",
+  "scenario": "ops_report",
+  "status": "GREEN",
+  "health_score": 0.88,
+  "schema_version": "phase172.v1",
+  "input_contract_version": "phase180.report_inputs.v1",
+  "files": {
+    "json": "ops_report-seed42.json",
+    "markdown": "ops_report-seed42.md"
+  }
+}

@@ -3,6 +3,8 @@ import numpy as np
 import pytest
 from simulation.metrics import SimulationMetrics, check_sla
 
+pytestmark = pytest.mark.unit
+
 
 class TestSimulationMetrics:
     def test_default_values(self):

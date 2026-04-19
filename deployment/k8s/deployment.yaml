@@ -1,0 +1,33 @@
+# SDACS GPU 배포 설정
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sdacs
+  labels:
+    app: sdacs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sdacs
+  template:
+    metadata:
+      labels:
+        app: sdacs
+    spec:
+      containers:
+        - name: sdacs
+          image: sdacs:gpu
+          ports:
+            - containerPort: 8050
+              name: dash
+            - containerPort: 8000
+              name: api
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+            requests:
+              nvidia.com/gpu: 1
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "1"

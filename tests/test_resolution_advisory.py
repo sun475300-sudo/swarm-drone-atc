@@ -10,6 +10,8 @@ from src.airspace_control.agents.drone_state import DroneState, FlightPhase
 from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
 from src.airspace_control.comms.message_types import ResolutionAdvisory
 
+pytestmark = pytest.mark.integration
+
 
 def _drone(did: str, pos, vel=None, phase=FlightPhase.ENROUTE) -> DroneState:
     d = DroneState(

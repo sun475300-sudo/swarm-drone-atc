@@ -12,7 +12,8 @@ from enum import Enum
 from typing import Dict, List, Optional, Callable, Any
 
 
-class IntegrationTestResult(Enum):
+class TestResult(Enum):
+    __test__ = False  # Prevent pytest collection
     PASS = "pass"
     FAIL = "fail"
     SKIP = "skip"
@@ -30,9 +31,10 @@ class IntegrationTest:
 
 
 @dataclass
-class IntegrationTestOutcome:
+class TestOutcome:
+    __test__ = False  # Prevent pytest collection
     name: str
-    result: IntegrationTestResult
+    result: TestResult
     duration_ms: float = 0.0
     message: str = ""
     details: dict = field(default_factory=dict)
@@ -40,13 +42,14 @@ class IntegrationTestOutcome:
 
 @dataclass
 class TestSuiteReport:
+    __test__ = False  # Prevent pytest collection
     total: int = 0
     passed: int = 0
     failed: int = 0
     skipped: int = 0
     errors: int = 0
     duration_ms: float = 0.0
-    outcomes: List[IntegrationTestOutcome] = field(default_factory=list)
+    outcomes: List[TestOutcome] = field(default_factory=list)
 
     @property
     def pass_rate(self) -> float:
@@ -64,7 +67,7 @@ class IntegrationTestFramework:
 
     def __init__(self):
         self._tests: Dict[str, IntegrationTest] = {}
-        self._results: List[IntegrationTestOutcome] = []
+        self._results: List[TestOutcome] = []
         self._setup_hooks: List[Callable] = []
         self._teardown_hooks: List[Callable] = []
 
@@ -84,15 +87,15 @@ class IntegrationTestFramework:
     def add_teardown(self, hook: Callable):
         self._teardown_hooks.append(hook)
 
-    def run_test(self, name: str) -> IntegrationTestOutcome:
+    def run_test(self, name: str) -> TestOutcome:
         test = self._tests.get(name)
         if not test:
-            return IntegrationTestOutcome(name=name, result=IntegrationTestResult.ERROR, message="Test not found")
+            return TestOutcome(name=name, result=TestResult.ERROR, message="Test not found")
         # Check dependencies
         for dep in test.dependencies:
-            dep_passed = any(r.name == dep and r.result == IntegrationTestResult.PASS for r in self._results)
+            dep_passed = any(r.name == dep and r.result == TestResult.PASS for r in self._results)
             if not dep_passed:
-                outcome = IntegrationTestOutcome(name=name, result=IntegrationTestResult.SKIP, message=f"Dependency '{dep}' not passed")
+                outcome = TestOutcome(name=name, result=TestResult.SKIP, message=f"Dependency '{dep}' not passed")
                 self._results.append(outcome)
                 return outcome
         start = time.perf_counter()
@@ -100,16 +103,16 @@ class IntegrationTestFramework:
             result = test.test_fn()
             duration = (time.perf_counter() - start) * 1000
             if result is False:
-                outcome = IntegrationTestOutcome(name=name, result=IntegrationTestResult.FAIL, duration_ms=duration)
+                outcome = TestOutcome(name=name, result=TestResult.FAIL, duration_ms=duration)
             else:
-                outcome = IntegrationTestOutcome(name=name, result=IntegrationTestResult.PASS, duration_ms=duration,
+                outcome = TestOutcome(name=name, result=TestResult.PASS, duration_ms=duration,
                                      details=result if isinstance(result, dict) else {})
         except AssertionError as e:
             duration = (time.perf_counter() - start) * 1000
-            outcome = IntegrationTestOutcome(name=name, result=IntegrationTestResult.FAIL, duration_ms=duration, message=str(e))
+            outcome = TestOutcome(name=name, result=TestResult.FAIL, duration_ms=duration, message=str(e))
         except Exception as e:
             duration = (time.perf_counter() - start) * 1000
-            outcome = IntegrationTestOutcome(name=name, result=IntegrationTestResult.ERROR, duration_ms=duration, message=str(e))
+            outcome = TestOutcome(name=name, result=TestResult.ERROR, duration_ms=duration, message=str(e))
         self._results.append(outcome)
         return outcome
 
@@ -131,11 +134,11 @@ class IntegrationTestFramework:
             report.outcomes.append(outcome)
             report.total += 1
             report.duration_ms += outcome.duration_ms
-            if outcome.result == IntegrationTestResult.PASS:
+            if outcome.result == TestResult.PASS:
                 report.passed += 1
-            elif outcome.result == IntegrationTestResult.FAIL:
+            elif outcome.result == TestResult.FAIL:
                 report.failed += 1
-            elif outcome.result == IntegrationTestResult.SKIP:
+            elif outcome.result == TestResult.SKIP:
                 report.skipped += 1
             else:
                 report.errors += 1
@@ -163,15 +166,15 @@ class IntegrationTestFramework:
             visit(name)
         return order
 
-    def get_results(self) -> List[IntegrationTestOutcome]:
+    def get_results(self) -> List[TestOutcome]:
         return self._results.copy()
 
     def clear_results(self):
         self._results.clear()
 
     def summary(self) -> dict:
-        passed = sum(1 for r in self._results if r.result == IntegrationTestResult.PASS)
-        failed = sum(1 for r in self._results if r.result == IntegrationTestResult.FAIL)
+        passed = sum(1 for r in self._results if r.result == TestResult.PASS)
+        failed = sum(1 for r in self._results if r.result == TestResult.FAIL)
         return {
             "total_tests": len(self._tests),
             "total_runs": len(self._results),

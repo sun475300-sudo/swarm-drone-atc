@@ -9,6 +9,8 @@ import pytest
 
 from simulation.monte_carlo import _run_single, _load_mc_config, summarize_results
 
+pytestmark = pytest.mark.e2e
+
 
 class TestLoadConfig:
     def test_returns_dict(self):

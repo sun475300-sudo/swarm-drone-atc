@@ -94,7 +94,8 @@ def _estimate_power_w(
     - 역풍 보정: 실효 속도 증가분만큼 추가 소모
     - 상승/하강: 상승 시 추가 에너지, 하강 시 미세 회수
     """
-    p_hover = profile.battery_wh * 3600.0 / (profile.endurance_min * 60.0)
+    endurance_s = profile.endurance_min * 60.0
+    p_hover = profile.battery_wh * 3600.0 / endurance_s if endurance_s > 0 else 0.0
 
     # 공기 저항 (속도² 비례)
     effective_speed = max(0.0, speed_ms + headwind_ms * 0.5)
@@ -628,6 +629,44 @@ class SwarmSimulator:
 
             agent = _DroneAgent(self.env, drone, self, dt)
             self.env.process(agent.run())
+
+    def add_drone(self, drone_id: str | None = None, position: np.ndarray | None = None,
+                  profile: str = "COMMERCIAL_DELIVERY") -> DroneState:
+        """시뮬레이션 중 드론 동적 추가."""
+        dt = 1.0 / float(self.cfg.get("simulation", {}).get("time_step_hz", 10))
+        if drone_id is None:
+            drone_id = f"DR{len(self._drones):03d}"
+        if position is None:
+            pad_list = list(self.LANDING_PADS.values())
+            position = pad_list[self.rng.integers(len(pad_list))].copy()
+            position[2] = 0.0
+
+        drone = DroneState(
+            drone_id=drone_id,
+            position=position.copy(),
+            velocity=np.zeros(3),
+            profile_name=profile,
+            flight_phase=FlightPhase.GROUNDED,
+            battery_pct=float(self.rng.uniform(70, 100)),
+        )
+        self._assign_goal(drone)
+        self._drones[drone.drone_id] = drone
+        self._n_drones += 1
+
+        agent = _DroneAgent(self.env, drone, self, dt)
+        self.env.process(agent.run())
+        return drone
+
+    def remove_drone(self, drone_id: str) -> bool:
+        """시뮬레이션 중 드론 동적 제거 (착륙 처리)."""
+        drone = self._drones.get(drone_id)
+        if drone is None:
+            return False
+        drone.flight_phase = FlightPhase.GROUNDED
+        drone.velocity = np.zeros(3)
+        del self._drones[drone_id]
+        self._n_drones -= 1
+        return True
 
     def _assign_goal(self, drone: DroneState) -> None:
         pad_list = list(self.LANDING_PADS.values())

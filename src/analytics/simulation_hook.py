@@ -62,17 +62,17 @@ class SimulationAnalyticsHook:
             SwarmSimulator 인스턴스 (선택사항)
         """
         self.simulator = simulator
-        self.events = []  # 모든 기록된 이벤트
-        self.metrics_history = []  # 시간별 메트릭 히스토리
-        self.conflict_events = []  # 충돌 관련 이벤트
-        self.collision_events = []  # 실제 충돌 이벤트
+        self.events: list[dict] = []  # 모든 기록된 이벤트
+        self.metrics_history: list[dict] = []  # 시간별 메트릭 히스토리
+        self.conflict_events: list[dict] = []  # 충돌 관련 이벤트
+        self.collision_events: list[dict] = []  # 실제 충돌 이벤트
 
         self.collector = SwarmMetricsCollector()
         self.analyzer = PerformanceAnalyzer()
         self.mc_analyzer = MonteCarloAnalyzer()
 
-        self._start_time = None
-        self._end_time = None
+        self._start_time: float | None = None
+        self._end_time: float | None = None
         self._last_collision_count = 0
         self._last_conflict_count = 0
 
@@ -185,7 +185,7 @@ class SimulationAnalyticsHook:
             "drone_a": collision_data.get("drone_a"),
             "drone_b": collision_data.get("drone_b"),
             "position": (
-                collision_data.get("position").tolist()
+                collision_data["position"].tolist()
                 if isinstance(collision_data.get("position"), np.ndarray)
                 else None
             ),

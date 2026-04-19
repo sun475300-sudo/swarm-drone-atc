@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "scenario": "ops_report",
+    "city": "Seoul",
+    "seed": 42,
+    "weather_condition": "clear",
+    "weather_factor": 1.0,
+    "observability_linked": true,
+    "duration_s": 30.0,
+    "n_drones": 2,
+    "scenario_source": "ops_report_cli",
+    "schema_version": "phase172.v1",
+    "input_contract_version": "phase180.report_inputs.v1"
+  },
+  "delivery": {
+    "drones": 2,
+    "pending_orders": 0,
+    "dispatches": 2,
+    "delivered": 2,
+    "busy_drones": 0,
+    "reserved_slots": 0,
+    "avg_dispatch_congestion": 1.0,
+    "avg_dispatch_demand": 180.0,
+    "slot_policy": {
+      "congestion_alt_step": 12.0,
+      "bad_weather_alt_step": 18.0,
+      "weather_threshold": 0.75,
+      "congestion_threshold": 0.7
+    }
+  },
+  "compliance": {
+    "total_violations": 0,
+    "by_severity": {},
+    "by_rule": {},
+    "hotspots": [],
+    "evaluations": 0
+  },
+  "recorder": {
+    "events": 6,
+    "duration_sec": 30.0,
+    "by_type": {
+      "SCENARIO_START": 1,
+      "DISPATCHED": 2,
+      "DELIVERED": 2,
+      "SCENARIO_COMPLETE": 1
+    }
+  },
+  "performance": {
+    "samples": 3,
+    "avg_ms": 14.667,
+    "p50_ms": 15.5,
+    "p95_ms": 19.0,
+    "p99_ms": 19.0,
+    "throughput_rps": 0.05,
+    "success_rate": 1.0
+  },
+  "traffic": {
+    "states": 1,
+    "avg_demand": 180.0,
+    "avg_congestion": 1.0,
+    "peak_hour": 18,
+    "incident_probability": 0.0
+  },
+  "kpi": {
+    "health_score": 0.88,
+    "delivered": 2,
+    "violations": 0,
+    "success_rate": 1.0,
+    "events": 6,
+    "traffic_pressure": 1.0
+  },
+  "scenario": {
+    "scenario": "ops_report",
+    "seed": 42,
+    "duration_s": 30.0,
+    "n_drones": 2,
+    "source": "ops_report_cli"
+  },
+  "sections": {
+    "scenario": true,
+    "delivery": true,
+    "compliance": true,
+    "recorder": true,
+    "performance": true,
+    "traffic": true,
+    "kpi": true,
+    "observability": true
+  },
+  "diagnostics": {
+    "sections": {
+      "scenario": {
+        "state": "GREEN",
+        "collision_count": 0,
+        "seed": 42
+      },
+      "delivery": {
+        "state": "GREEN",
+        "dispatches": 2,
+        "delivered": 2
+      },
+      "compliance": {
+        "state": "GREEN",
+        "violations": 0
+      },
+      "recorder": {
+        "state": "GREEN",
+        "events": 6
+      },
+      "performance": {
+        "state": "GREEN",
+        "success_rate": 1.0
+      },
+      "traffic": {
+        "state": "RED",
+        "avg_congestion": 1.0
+      }
+    },
+    "blockers": [
+      "traffic"
+    ],
+    "warnings": []
+  },
+  "status": "GREEN",
+  "observability": {
+    "linked": true,
+    "window_sec": 60.0,
+    "events": 6,
+    "samples": 3
+  }
+}

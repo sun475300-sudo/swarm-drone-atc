@@ -12,6 +12,8 @@ from simulation.apf_engine.apf import (
     force_to_velocity,
 )
 
+pytestmark = pytest.mark.unit
+
 
 # ── 헬퍼 ────────────────────────────────────────────────────────────────────
 

@@ -7,6 +7,8 @@ import pytest
 
 from simulation.analytics import SimulationResult
 
+pytestmark = pytest.mark.e2e
+
 
 @pytest.fixture
 def base_scenario():

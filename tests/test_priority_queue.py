@@ -5,6 +5,8 @@ from src.airspace_control.controller.priority_queue import FlightPriorityQueue, 
 from src.airspace_control.planning.waypoint import Route, Waypoint
 from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
 
+pytestmark = pytest.mark.unit
+
 
 def _make_route(drone_id: str, priority: int) -> Route:
     wp = Waypoint(position=np.zeros(3), speed_ms=10.0)

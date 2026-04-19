@@ -318,7 +318,7 @@ class SensorFusion:
 
                 # Use weighted measurement noise
                 avg_noise = np.mean([m.covariance for m in valid_measurements])
-                kf.update(weighted_pos, avg_noise)
+                kf.update(weighted_pos, float(avg_noise))
 
         # Compute confidence score
         # Based on: number of agreeing sensors, measurement quality, filter certainty

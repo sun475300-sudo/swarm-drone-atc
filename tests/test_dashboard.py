@@ -22,7 +22,7 @@ import numpy as np
 
 
 @dataclass
-class TestResult:
+class SuiteTestResult:
     """단일 테스트 결과"""
 
     name: str
@@ -33,7 +33,7 @@ class TestResult:
 
 
 @dataclass
-class TestSuiteResult:
+class SuiteResult:
     """테스트 스위트 결과"""
 
     name: str
@@ -44,23 +44,23 @@ class TestSuiteResult:
     errors: int
     duration_s: float
     timestamp: str
-    results: list[TestResult] = field(default_factory=list)
+    results: list[SuiteTestResult] = field(default_factory=list)
 
 
-class TestDashboard:
+class DashboardRunner:
     """테스트 결과 대시보드"""
 
     def __init__(self, output_dir: str = "data/test_reports"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        self.history: list[TestSuiteResult] = []
+        self.history: list[SuiteResult] = []
 
     def run_tests(
         self,
         test_path: str = "tests/",
         timeout: int = 300,
         verbose: bool = True,
-    ) -> TestSuiteResult:
+    ) -> SuiteResult:
         """pytest 실행 및 결과 수집"""
         start_time = time.time()
 
@@ -90,7 +90,7 @@ class TestDashboard:
 
             total = passed + failed + skipped + errors
 
-            suite_result = TestSuiteResult(
+            suite_result = SuiteResult(
                 name=test_path,
                 total=total,
                 passed=passed,
@@ -107,7 +107,7 @@ class TestDashboard:
             return suite_result
 
         except subprocess.TimeoutExpired:
-            return TestSuiteResult(
+            return SuiteResult(
                 name=test_path,
                 total=0,
                 passed=0,
@@ -117,13 +117,13 @@ class TestDashboard:
                 duration_s=time.time() - start_time,
                 timestamp=datetime.now().isoformat(),
                 results=[
-                    TestResult(
+                    SuiteTestResult(
                         name="TIMEOUT", status="ERROR", duration_ms=0, timestamp="", error_message="Test timeout"
                     )
                 ],
             )
 
-    def _save_result(self, result: TestSuiteResult) -> None:
+    def _save_result(self, result: SuiteResult) -> None:
         """결과를 JSON으로 저장"""
         report_file = self.output_dir / f"test_{result.timestamp.replace(':', '-')}.json"
 
@@ -291,7 +291,7 @@ class TestDashboard:
         return str(filepath)
 
 
-class TestScheduler:
+class SchedulerRunner:
     """테스트 스케줄러 (정기 실행)"""
 
     def __init__(self, callback: Optional[Callable] = None):
@@ -331,7 +331,7 @@ class TestScheduler:
             if now >= job["next_run"]:
                 print(f"🕐 실행: {job['name']}")
 
-                dashboard = TestDashboard()
+                dashboard = DashboardRunner()
                 result = dashboard.run_tests(job["test_path"], timeout=300)
 
                 job["last_run"] = now.isoformat()
@@ -368,18 +368,18 @@ class TestScheduler:
         ]
 
 
-class TestComparator:
+class ResultComparator:
     """테스트 비교 분석"""
 
     def __init__(self):
-        self.baseline: Optional[TestSuiteResult] = None
+        self.baseline: Optional[SuiteResult] = None
         self.comparisons: list[dict] = []
 
-    def set_baseline(self, result: TestSuiteResult) -> None:
+    def set_baseline(self, result: SuiteResult) -> None:
         """베이스라인 설정"""
         self.baseline = result
 
-    def compare(self, result: TestSuiteResult) -> dict[str, Any]:
+    def compare(self, result: SuiteResult) -> dict[str, Any]:
         """베이스라인 대비 비교"""
         if self.baseline is None:
             self.baseline = result
@@ -484,9 +484,9 @@ class CustomTestScenario:
         }
         return self
 
-    def run(self) -> TestSuiteResult:
+    def run(self) -> SuiteResult:
         """시나리오 실행"""
-        dashboard = TestDashboard()
+        dashboard = DashboardRunner()
 
         test_paths = [t["file"] for t in self.tests]
         combined_path = " ".join(test_paths)
@@ -523,19 +523,19 @@ if __name__ == "__main__":
 
     # 1. 대시보드 실행
     print("1. 테스트 실행...")
-    dashboard = TestDashboard()
+    dashboard = DashboardRunner()
     result = dashboard.run_tests("tests/test_apf.py tests/test_cbs.py tests/test_voronoi.py", timeout=60)
     print(f"   결과: {result.passed}/{result.total} 통과\n")
 
     # 2. 스케줄러 설정
     print("2. 스케줄러 설정...")
-    scheduler = TestScheduler()
+    scheduler = SchedulerRunner()
     scheduler.schedule("nightly", "tests/", interval_minutes=60)
     print(f"   스케줄: {scheduler.get_status()}\n")
 
     # 3. 비교 분석
     print("3. 비교 분석...")
-    comparator = TestComparator()
+    comparator = ResultComparator()
     comparator.set_baseline(result)
     print("   베이스라인 설정됨\n")
 

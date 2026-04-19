@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SDACS — 군집드론 공역통제 자동화 시스템 | Swarm Drone Airspace Control System</title>
+  <meta name="description" content="SDACS: APF + WebGPU 기반 군집드론 공역통제 자동화 시스템. 충돌 해결률 97.8%, 90초 선제 예측, 38,400회 Monte Carlo 검증." />
+  <meta property="og:title" content="SDACS — Swarm Drone Airspace Control System" />
+  <meta property="og:description" content="군집드론 공역통제 자동화 시스템 — APF + WebGPU 기반 실시간 충돌 회피" />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #0055AA;
+      --primary-dark: #003d7a;
+      --primary-light: #3b82d9;
+      --accent: #FF6F00;
+      --bg: #F5F7FA;
+      --card-bg: #ffffff;
+      --text: #333333;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --success: #10b981;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+      --radius: 12px;
+      --radius-lg: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', 'Pretendard', 'Malgun Gothic', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      word-break: keep-all;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Navigation */
+    nav {
+      position: sticky;
+      top: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      padding: 14px 0;
+    }
+    nav .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    nav .logo {
+      font-weight: 800;
+      font-size: 18px;
+      color: var(--primary);
+      text-decoration: none;
+      letter-spacing: -0.3px;
+    }
+    nav ul {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+    nav ul a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+    nav ul a:hover { color: var(--primary); }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #0055AA 0%, #003d7a 50%, #002952 100%);
+      color: white;
+      padding: 100px 0 120px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        radial-gradient(circle at 15% 30%, rgba(255,255,255,0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 70%, rgba(255,111,0,0.12) 0%, transparent 40%);
+      pointer-events: none;
+    }
+    .hero .container { position: relative; z-index: 1; }
+    .hero .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 20px;
+      letter-spacing: 0.3px;
+    }
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+    .hero .subtitle {
+      font-size: clamp(16px, 2vw, 20px);
+      font-weight: 400;
+      color: rgba(255,255,255,0.85);
+      max-width: 720px;
+      margin: 0 auto 40px;
+    }
+    .hero .cta-group {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 15px;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #ffffff;
+      color: var(--primary);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: white;
+      border: 1.5px solid rgba(255,255,255,0.4);
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.7);
+    }
+
+    /* Sections */
+    section {
+      padding: 80px 0;
+    }
+    .section-header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+    .section-label {
+      display: inline-block;
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+    .section-header h2 {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #111;
+      margin-bottom: 12px;
+    }
+    .section-header p {
+      color: var(--text-muted);
+      font-size: 16px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* About */
+    .about-content {
+      background: var(--card-bg);
+      padding: 48px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .about-content p {
+      margin-bottom: 18px;
+      font-size: 16px;
+      color: #444;
+    }
+    .about-content p:last-child { margin-bottom: 0; }
+    .about-content strong { color: var(--primary); }
+    .highlight-quote {
+      border-left: 4px solid var(--primary);
+      padding: 16px 20px;
+      background: #f0f5fc;
+      margin: 24px 0;
+      font-style: italic;
+      color: var(--primary-dark);
+      font-weight: 500;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .metric-card {
+      background: var(--card-bg);
+      padding: 32px 24px;
+      border-radius: var(--radius);
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .metric-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+    .metric-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, #e0ebf8 0%, #cfdcef 100%);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+    .metric-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    .metric-label {
+      font-weight: 600;
+      color: #111;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+    .metric-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Architecture */
+    .architecture {
+      background: #ffffff;
+    }
+    .arch-visual {
+      max-width: 900px;
+      margin: 0 auto 40px;
+      text-align: center;
+    }
+    .arch-visual img {
+      width: 100%;
+      height: auto;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .arch-layers {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 40px;
+    }
+    .arch-layer {
+      background: linear-gradient(135deg, #ffffff 0%, #f9fbfe 100%);
+      padding: 24px 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--primary);
+    }
+    .arch-layer:nth-child(1) { border-top-color: #3b82d9; }
+    .arch-layer:nth-child(2) { border-top-color: #0055AA; }
+    .arch-layer:nth-child(3) { border-top-color: #003d7a; }
+    .arch-layer:nth-child(4) { border-top-color: #FF6F00; }
+    .arch-layer h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+    .arch-layer .layer-num {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .arch-layer p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Reports */
+    .reports {
+      background: #f9fbfe;
+    }
+    .report-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 28px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .report-card {
+      background: var(--card-bg);
+      padding: 36px 32px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .report-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: var(--primary);
+    }
+    .report-card.easy::before { background: var(--accent); }
+    .report-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+    .report-card .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 16px;
+      background: #e0ebf8;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .report-card.easy .tag {
+      background: #fff1e0;
+      color: var(--accent);
+    }
+    .report-card h3 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #111;
+    }
+    .report-card .audience {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .report-card ul {
+      list-style: none;
+      margin-bottom: 28px;
+    }
+    .report-card li {
+      padding: 6px 0 6px 22px;
+      font-size: 14px;
+      color: #444;
+      position: relative;
+    }
+    .report-card li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--success);
+      font-weight: 700;
+    }
+    .report-card .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background 0.2s;
+      width: 100%;
+      justify-content: center;
+    }
+    .report-card.easy .download-btn { background: var(--accent); }
+    .report-card .download-btn:hover {
+      background: var(--primary-dark);
+    }
+    .report-card.easy .download-btn:hover { background: #d95d00; }
+
+    /* Gallery */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .gallery-item {
+      position: relative;
+      aspect-ratio: 16/10;
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .gallery-item:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #f5f7fa;
+      padding: 8px;
+    }
+    .gallery-item .caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 14px 10px;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+      color: white;
+      font-size: 12px;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .gallery-item:hover .caption { opacity: 1; }
+
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .lightbox.active { display: flex; }
+    .lightbox img {
+      max-width: 95%;
+      max-height: 88vh;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+    .lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      color: white;
+      font-size: 36px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-weight: 300;
+      line-height: 1;
+    }
+    .lightbox-caption {
+      position: absolute;
+      bottom: 24px;
+      left: 0; right: 0;
+      text-align: center;
+      color: white;
+      font-size: 14px;
+    }
+
+    /* Footer */
+    footer {
+      background: #1a1f2e;
+      color: #cbd5e1;
+      padding: 56px 0 32px;
+      margin-top: 0;
+    }
+    .footer-content {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 40px;
+    }
+    footer h4 {
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    footer p {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #94a3b8;
+    }
+    footer ul { list-style: none; }
+    footer ul li { margin-bottom: 10px; }
+    footer ul a {
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+    footer ul a:hover { color: #60a5fa; }
+    .footer-bottom {
+      border-top: 1px solid #2d3548;
+      padding-top: 24px;
+      text-align: center;
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      nav ul { display: none; }
+      .hero { padding: 70px 0 80px; }
+      section { padding: 60px 0; }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+      .arch-layers { grid-template-columns: repeat(2, 1fr); }
+      .report-grid { grid-template-columns: 1fr; gap: 20px; }
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+      .about-content { padding: 32px 24px; }
+      .footer-content { grid-template-columns: 1fr; gap: 32px; }
+    }
+
+    @media (max-width: 480px) {
+      .container { padding: 0 16px; }
+      .metrics-grid { grid-template-columns: 1fr; }
+      .arch-layers { grid-template-columns: 1fr; }
+      .gallery-grid { grid-template-columns: 1fr; }
+      .hero .cta-group { flex-direction: column; align-items: stretch; }
+      .btn { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="container">
+      <a href="#" class="logo">SDACS</a>
+      <ul>
+        <li><a href="#about">소개</a></li>
+        <li><a href="#results">성과</a></li>
+        <li><a href="#architecture">아키텍처</a></li>
+        <li><a href="#reports">보고서</a></li>
+        <li><a href="#gallery">갤러리</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <span class="badge">Capstone Design 2026 · Mokpo National University</span>
+      <h1>SDACS<br />군집드론 공역통제 자동화 시스템</h1>
+      <p class="subtitle">
+        Swarm Drone Airspace Control System — APF + WebGPU 기반 실시간 충돌 회피.<br />
+        100대 동시 관제, 90초 선제 예측, 38,400회 Monte Carlo 검증.
+      </p>
+      <div class="cta-group">
+        <a href="report/SDACS_Final_Report_v6.docx" class="btn btn-primary" download>
+          보고서 다운로드 (v6)
+        </a>
+        <a href="https://github.com/sun475300-sudo/swarm-drone-atc" class="btn btn-secondary" target="_blank" rel="noopener">
+          GitHub 저장소
+        </a>
+        <a href="scenario_comparison.html" class="btn btn-secondary">
+          시나리오 비교 대시보드
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="about">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">About</span>
+        <h2>프로젝트 소개</h2>
+        <p>하늘의 신호등 — 드론이 스스로 만드는 이동형 가상 레이더 돔</p>
+      </div>
+      <div class="about-content">
+        <div class="highlight-quote">
+          "레이더를 땅에 설치하는 대신, 드론 자체가 레이더가 되면 어떨까?"
+        </div>
+        <p>
+          <strong>SDACS</strong>는 이 단순한 발상에서 출발했습니다. 20대의 관제 드론이 공중에 올라가
+          그물망처럼 연결된 감시 체계 <strong>(이동형 가상 레이더 돔)</strong>를 스스로 만들어,
+          도심 하늘을 자동으로 감시하고 충돌을 미리 막는 시스템입니다.
+        </p>
+        <p>
+          지금 이 순간에도 전국에서 <strong>90만 대 이상</strong>의 드론이 같은 낮은 하늘(지상 120m 이하)을
+          공유하고 있습니다. 도심 저고도의 <strong>67%</strong>는 기존 레이더의 사각지대이고,
+          수동 관제의 평균 반응시간은 5분입니다. SDACS는 이 문제를 <strong>분산형 APF 충돌 회피</strong>와
+          <strong>CPA 기반 90초 선제 예측</strong>으로 해결합니다.
+        </p>
+        <p>
+          SimPy 이산 이벤트 엔진 위에서 <strong>2,668개의 자동화 테스트</strong>와
+          <strong>38,400회 Monte Carlo 검증</strong>을 거쳤으며, 7대 광역시 도시환경 63개 시나리오에서
+          충돌 해결률 97.8% 이상, 응답 지연 1초 미만을 달성했습니다.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="results" style="background: #f9fbfe;">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">Key Results</span>
+        <h2>주요 성과</h2>
+        <p>실측 기반 KPI — Monte Carlo 38,400회 검증 완료</p>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon">🎯</div>
+          <div class="metric-value">97.8%</div>
+          <div class="metric-label">충돌 해결률</div>
+          <div class="metric-desc">100대 동시 비행 기준<br />1 − collisions/(conflicts + collisions)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">⚡</div>
+          <div class="metric-value">&lt; 1.2s</div>
+          <div class="metric-label">응답 시간</div>
+          <div class="metric-desc">6종 Resolution Advisory<br />CLIMB/DESCEND/TURN/EVADE/HOLD</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">📈</div>
+          <div class="metric-value">1.05x</div>
+          <div class="metric-label">처리량 개선</div>
+          <div class="metric-desc">기존 Rule-based ATC 대비<br />100대 규모 600초 실측</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">🚀</div>
+          <div class="metric-value">WebGPU</div>
+          <div class="metric-label">GPU 가속</div>
+          <div class="metric-desc">WGSL Compute Shader<br />APF 힘 계산 병렬화</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="architecture" class="architecture">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">Architecture</span>
+        <h2>3-Layer + UI 아키텍처</h2>
+        <p>드론 에이전트 · 공역 관제 · 시뮬레이션 엔진 · 사용자 인터페이스</p>
+      </div>
+      <div class="arch-visual">
+        <img src="images/architecture_converted.png" alt="SDACS 4계층 시스템 아키텍처" loading="lazy" />
+      </div>
+      <div class="arch-layers">
+        <div class="arch-layer">
+          <span class="layer-num">Layer 1</span>
+          <h4>드론 에이전트</h4>
+          <p>10Hz SimPy 프로세스. 위치/속도/배터리 갱신, FSM 전이 (Idle → Takeoff → Cruise → Avoid → Landing)</p>
+        </div>
+        <div class="arch-layer">
+          <span class="layer-num">Layer 2</span>
+          <h4>공역 관제</h4>
+          <p>1Hz AirspaceController. CPA 기반 90초 예측, Voronoi 분할, 6종 Resolution Advisory 자동 발행</p>
+        </div>
+        <div class="arch-layer">
+          <span class="layer-num">Layer 3</span>
+          <h4>시뮬레이션 엔진</h4>
+          <p>SwarmSimulator + WindModel + Monte Carlo. 384 config × 100 seeds = 38,400 run 검증</p>
+        </div>
+        <div class="arch-layer">
+          <span class="layer-num">Layer 4</span>
+          <h4>사용자 인터페이스</h4>
+          <p>CLI (main.py) + Dash 3D 시각화 + Three.js WebGPU 웹 시뮬레이터</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="reports" class="reports">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">Reports</span>
+        <h2>보고서 다운로드</h2>
+        <p>동일한 내용 · 15개 시각 자료 — 독자층에 따라 선택하세요</p>
+      </div>
+      <div class="report-grid">
+        <div class="report-card">
+          <span class="tag">v6 — Technical</span>
+          <h3>기술 상세 보고서</h3>
+          <p class="audience">개발자 · 심사위원 · 공학 전문가</p>
+          <ul>
+            <li>APF 인력/척력 벡터장 수식</li>
+            <li>CBS 제약 전파 알고리즘</li>
+            <li>CPA 90초 lookahead 수학</li>
+            <li>특허 분석 + 벤치마크</li>
+            <li>1.6 MB · 15개 figure</li>
+          </ul>
+          <a href="report/SDACS_Final_Report_v6.docx" class="download-btn" download>
+            v6.docx 다운로드
+          </a>
+        </div>
+        <div class="report-card easy">
+          <span class="tag">v7 — Easy</span>
+          <h3>일반인용 보고서</h3>
+          <p class="audience">비전공자 · 일반 청중 · 발표 대상</p>
+          <ul>
+            <li>자석 · 신호등 · 카풀앱 비유</li>
+            <li>한 줄 요약 박스 + 용어 사전</li>
+            <li>"1000번 중 999번 안전" 숫자 번역</li>
+            <li>철새 떼 · 게임 GPU 일상 예시</li>
+            <li>1.6 MB · 동일 15개 figure</li>
+          </ul>
+          <a href="report/SDACS_Final_Report_v7_Easy.docx" class="download-btn" download>
+            v7.docx 다운로드
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="gallery">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">Gallery</span>
+        <h2>이미지 갤러리</h2>
+        <p>아키텍처 · 알고리즘 · 성능 벤치마크 15종 (클릭하여 크게 보기)</p>
+      </div>
+      <div class="gallery-grid" id="gallery">
+        <div class="gallery-item" data-caption="Hero Banner — SDACS 개요">
+          <img src="images/hero_banner_converted.png" alt="Hero Banner" loading="lazy" />
+          <div class="caption">01. Hero Banner — SDACS 개요</div>
+        </div>
+        <div class="gallery-item" data-caption="System Architecture — 4계층 구조">
+          <img src="images/architecture_converted.png" alt="System Architecture" loading="lazy" />
+          <div class="caption">02. System Architecture</div>
+        </div>
+        <div class="gallery-item" data-caption="Detection Pipeline — DETECT→IDENTIFY→TIMER→WARN→RETREAT">
+          <img src="images/detection_pipeline_converted.png" alt="Detection Pipeline" loading="lazy" />
+          <div class="caption">03. Detection Pipeline</div>
+        </div>
+        <div class="gallery-item" data-caption="Algorithm Flow — 충돌 회피 파이프라인">
+          <img src="images/algorithm_flow_converted.png" alt="Algorithm Flow" loading="lazy" />
+          <div class="caption">04. Algorithm Flow</div>
+        </div>
+        <div class="gallery-item" data-caption="Flight Phase FSM — 비행 상태 머신">
+          <img src="images/flight_phase_fsm_converted.png" alt="Flight Phase FSM" loading="lazy" />
+          <div class="caption">05. Flight Phase FSM</div>
+        </div>
+        <div class="gallery-item" data-caption="Sensor Fusion — Camera+LiDAR+RF+Kalman">
+          <img src="images/sensor_fusion_converted.png" alt="Sensor Fusion" loading="lazy" />
+          <div class="caption">06. Sensor Fusion</div>
+        </div>
+        <div class="gallery-item" data-caption="Performance Comparison — Rule-based vs SDACS">
+          <img src="images/performance_comparison_converted.png" alt="Performance Comparison" loading="lazy" />
+          <div class="caption">07. Performance Comparison</div>
+        </div>
+        <div class="gallery-item" data-caption="Idea 1 — Drone as Radar">
+          <img src="images/idea1_drone_radar.png" alt="Idea 1 Drone as Radar" loading="lazy" />
+          <div class="caption">08. Drone as Radar</div>
+        </div>
+        <div class="gallery-item" data-caption="Idea 2 — Distributed APF">
+          <img src="images/idea2_distributed_apf.png" alt="Idea 2 Distributed APF" loading="lazy" />
+          <div class="caption">09. Distributed APF</div>
+        </div>
+        <div class="gallery-item" data-caption="Idea 3 — Multi-Layer Safety Net">
+          <img src="images/idea3_multi_layer_safety.png" alt="Idea 3 Multi Layer Safety" loading="lazy" />
+          <div class="caption">10. Multi-Layer Safety</div>
+        </div>
+        <div class="gallery-item" data-caption="Idea 4 — Weather Adaptive Control">
+          <img src="images/idea4_weather_adaptive.png" alt="Idea 4 Weather Adaptive" loading="lazy" />
+          <div class="caption">11. Weather Adaptive</div>
+        </div>
+        <div class="gallery-item" data-caption="Scenario KPI Radar — 7대 광역시 벤치마크">
+          <img src="images/scenario_kpi_radar.png" alt="Scenario KPI Radar" loading="lazy" />
+          <div class="caption">12. Scenario KPI Radar</div>
+        </div>
+        <div class="gallery-item" data-caption="Advisory Latency — 1초 이내 대응">
+          <img src="images/advisory_latency.png" alt="Advisory Latency" loading="lazy" />
+          <div class="caption">13. Advisory Latency</div>
+        </div>
+        <div class="gallery-item" data-caption="Throughput vs Drones — 스케일링 커브">
+          <img src="images/throughput_vs_drones.png" alt="Throughput vs Drones" loading="lazy" />
+          <div class="caption">14. Throughput vs Drones</div>
+        </div>
+        <div class="gallery-item" data-caption="Conflict Resolution Heatmap">
+          <img src="images/conflict_resolution_heatmap.png" alt="Conflict Resolution Heatmap" loading="lazy" />
+          <div class="caption">15. Conflict Resolution Heatmap</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" aria-label="Close">&times;</button>
+    <img src="" alt="" id="lightbox-img" />
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div>
+          <h4>SDACS</h4>
+          <p>
+            Swarm Drone Airspace Control System<br />
+            군집드론 공역통제 자동화 시스템<br /><br />
+            Mokpo National University<br />
+            Dept. of Drone Mechanical Engineering<br />
+            Capstone Design (2026)
+          </p>
+        </div>
+        <div>
+          <h4>프로젝트</h4>
+          <ul>
+            <li><a href="https://github.com/sun475300-sudo/swarm-drone-atc" target="_blank" rel="noopener">GitHub</a></li>
+            <li><a href="report/SDACS_Final_Report_v6.docx" download>Report v6</a></li>
+            <li><a href="report/SDACS_Final_Report_v7_Easy.docx" download>Report v7</a></li>
+            <li><a href="https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html" target="_blank" rel="noopener">3D Simulator</a></li>
+            <li><a href="scenario_comparison.html">시나리오 비교 대시보드</a></li>
+            <li><a href="gpu_benchmark_report.md">GPU 벤치마크 보고서</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Author</h4>
+          <ul>
+            <li>장선우 (Jang Sunwoo)</li>
+            <li><a href="https://github.com/sun475300-sudo" target="_blank" rel="noopener">@sun475300-sudo</a></li>
+            <li>MIT License</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        &copy; 2026 SDACS Project. Released under MIT License.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Lightbox
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxCaption = document.getElementById('lightbox-caption');
+    const closeBtn = document.querySelector('.lightbox-close');
+
+    document.querySelectorAll('.gallery-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const img = item.querySelector('img');
+        lightboxImg.src = img.src;
+        lightboxImg.alt = img.alt;
+        lightboxCaption.textContent = item.dataset.caption || img.alt;
+        lightbox.classList.add('active');
+      });
+    });
+
+    const closeLightbox = () => lightbox.classList.remove('active');
+    closeBtn.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) closeLightbox();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+    });
+  </script>
+</body>
+</html>

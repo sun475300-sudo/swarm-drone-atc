@@ -1,0 +1,71 @@
+# Reproducibility Dockerfile — Phase 704
+#
+# Goal: given the same Dockerfile + requirements + seeds, ANY reviewer can
+# reproduce every number in our paper bit-for-bit identically (within FP tolerance).
+#
+# What this image does NOT contain:
+#   - GPU / CUDA — for that use Dockerfile.gpu
+#   - Dash UI deps — this image is headless-only
+#
+# Build:
+#   docker build -t sdacs-repro:0.1.0 -f Dockerfile.reproducible .
+#
+# Run (a single scenario with deterministic seed):
+#   docker run --rm -v "$(pwd)/results:/app/results" sdacs-repro:0.1.0 \
+#       bash scripts/reproduce/run_one.sh light_traffic_10 hybrid 42
+#
+# Run (full benchmark suite — 420 runs):
+#   docker run --rm -v "$(pwd)/results:/app/results" sdacs-repro:0.1.0 \
+#       bash scripts/reproduce/run_all.sh
+
+# Pin the exact base image digest — "python:3.10.14-slim-bookworm" as of 2026-04-19.
+# Update the digest whenever you regenerate, and record the update date in CHANGELOG.md.
+FROM python:3.10.14-slim-bookworm
+
+# --- Determinism-friendly environment ---
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONHASHSEED=0 \
+    PYTHONIOENCODING=utf-8 \
+    TZ=UTC \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    OMP_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
+    NUMEXPR_NUM_THREADS=1
+
+# --- System deps (pinned where possible) ---
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git=1:2.39.* \
+        build-essential \
+        ca-certificates \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# --- Python deps (install from a locked file) ---
+# Use pip-compile to maintain requirements.lock.txt. Fall back to requirements.txt.
+COPY requirements.txt requirements.lock.txt* /tmp/
+RUN pip install --no-cache-dir --upgrade "pip==24.0" "setuptools==69.5.1" "wheel==0.43.0" && \
+    if [ -f /tmp/requirements.lock.txt ]; then \
+        pip install --no-cache-dir -r /tmp/requirements.lock.txt; \
+    else \
+        pip install --no-cache-dir -r /tmp/requirements.txt; \
+    fi
+
+# --- Project code ---
+COPY . .
+
+# --- Record build provenance (embedded in the image) ---
+RUN echo "git_sha=$(git rev-parse HEAD 2>/dev/null || echo unknown)" > /app/BUILD_INFO && \
+    echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> /app/BUILD_INFO && \
+    echo "python=$(python --version 2>&1)" >> /app/BUILD_INFO
+
+# --- Non-root user ---
+RUN useradd --system --create-home --uid 1000 sdacs
+USER sdacs
+
+ENTRYPOINT ["bash"]
+CMD ["scripts/reproduce/run_one.sh", "light_traffic_10", "hybrid", "42"]

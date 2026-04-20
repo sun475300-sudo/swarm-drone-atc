@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="SDACS">
+  <!-- 배경: 다크 네이비 원 -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#1a3a6e" />
+      <stop offset="100%" stop-color="#05080f" />
+    </radialGradient>
+    <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa" />
+      <stop offset="100%" stop-color="#3b82d9" />
+    </linearGradient>
+  </defs>
+
+  <circle cx="32" cy="32" r="30" fill="url(#bg)" stroke="url(#ring)" stroke-width="2" />
+
+  <!-- 3기 드론 군집 (삼각형 배치) -->
+  <!-- 중앙 드론 (메인) -->
+  <g transform="translate(32 24)">
+    <circle r="4.5" fill="#60a5fa" />
+    <circle r="2.2" fill="#e6ebf5" />
+    <!-- 4 프로펠러 -->
+    <circle cx="-6" cy="-6" r="2" fill="none" stroke="#60a5fa" stroke-width="1.2" opacity="0.85" />
+    <circle cx="6" cy="-6" r="2" fill="none" stroke="#60a5fa" stroke-width="1.2" opacity="0.85" />
+    <circle cx="-6" cy="6" r="2" fill="none" stroke="#60a5fa" stroke-width="1.2" opacity="0.85" />
+    <circle cx="6" cy="6" r="2" fill="none" stroke="#60a5fa" stroke-width="1.2" opacity="0.85" />
+  </g>
+
+  <!-- 좌측 드론 -->
+  <g transform="translate(17 44)">
+    <circle r="3" fill="#a78bfa" opacity="0.9" />
+    <circle r="1.2" fill="#e6ebf5" />
+  </g>
+
+  <!-- 우측 드론 -->
+  <g transform="translate(47 44)">
+    <circle r="3" fill="#34d399" opacity="0.9" />
+    <circle r="1.2" fill="#e6ebf5" />
+  </g>
+
+  <!-- 연결선 (통신/협조 상징) -->
+  <g stroke="url(#ring)" stroke-width="0.8" opacity="0.5" fill="none">
+    <line x1="32" y1="24" x2="17" y2="44" />
+    <line x1="32" y1="24" x2="47" y2="44" />
+    <line x1="17" y1="44" x2="47" y2="44" />
+  </g>
+</svg>

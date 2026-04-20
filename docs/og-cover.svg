@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="SDACS — Swarm Drone Airspace Control System">
+  <defs>
+    <radialGradient id="bg1" cx="20%" cy="10%" r="80%">
+      <stop offset="0%" stop-color="#1e3a7e" stop-opacity="0.45" />
+      <stop offset="60%" stop-color="#05080f" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="bg2" cx="80%" cy="90%" r="70%">
+      <stop offset="0%" stop-color="#5b2fa8" stop-opacity="0.35" />
+      <stop offset="60%" stop-color="#05080f" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="title" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#60a5fa" />
+      <stop offset="60%" stop-color="#a78bfa" />
+      <stop offset="100%" stop-color="#34d399" />
+    </linearGradient>
+    <linearGradient id="droneLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.0" />
+      <stop offset="50%" stop-color="#60a5fa" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#60a5fa" stop-opacity="0.0" />
+    </linearGradient>
+  </defs>
+
+  <!-- 배경 -->
+  <rect width="1200" height="630" fill="#05080f" />
+  <rect width="1200" height="630" fill="url(#bg1)" />
+  <rect width="1200" height="630" fill="url(#bg2)" />
+
+  <!-- 그리드 (공역 그리드 암시) -->
+  <g stroke="#1a2542" stroke-width="0.5" opacity="0.4">
+    <line x1="0" y1="140" x2="1200" y2="140" />
+    <line x1="0" y1="260" x2="1200" y2="260" />
+    <line x1="0" y1="380" x2="1200" y2="380" />
+    <line x1="0" y1="500" x2="1200" y2="500" />
+    <line x1="200" y1="0" x2="200" y2="630" />
+    <line x1="400" y1="0" x2="400" y2="630" />
+    <line x1="600" y1="0" x2="600" y2="630" />
+    <line x1="800" y1="0" x2="800" y2="630" />
+    <line x1="1000" y1="0" x2="1000" y2="630" />
+  </g>
+
+  <!-- 드론 궤적 (부드러운 교차 패턴) -->
+  <g stroke="url(#droneLine)" stroke-width="1.5" fill="none" opacity="0.6">
+    <path d="M 50 450 Q 400 350 1150 180" />
+    <path d="M 50 180 Q 400 280 1150 450" />
+    <path d="M 50 320 Q 600 100 1150 320" />
+    <path d="M 50 520 Q 600 420 1150 520" />
+  </g>
+
+  <!-- 드론 점 (군집) -->
+  <g>
+    <circle cx="900" cy="220" r="6" fill="#60a5fa" />
+    <circle cx="900" cy="220" r="12" fill="#60a5fa" opacity="0.25" />
+
+    <circle cx="970" cy="180" r="5" fill="#a78bfa" />
+    <circle cx="970" cy="180" r="10" fill="#a78bfa" opacity="0.25" />
+
+    <circle cx="1040" cy="250" r="4" fill="#34d399" />
+    <circle cx="1040" cy="250" r="9" fill="#34d399" opacity="0.25" />
+
+    <circle cx="1080" cy="200" r="5" fill="#60a5fa" />
+    <circle cx="1080" cy="200" r="10" fill="#60a5fa" opacity="0.25" />
+
+    <circle cx="830" cy="250" r="4" fill="#f59e0b" />
+    <circle cx="830" cy="250" r="9" fill="#f59e0b" opacity="0.25" />
+
+    <circle cx="960" cy="320" r="5" fill="#ef4444" />
+    <circle cx="960" cy="320" r="10" fill="#ef4444" opacity="0.25" />
+
+    <!-- 연결선 (mesh) -->
+    <g stroke="#60a5fa" stroke-width="0.8" opacity="0.35">
+      <line x1="900" y1="220" x2="970" y2="180" />
+      <line x1="970" y1="180" x2="1040" y2="250" />
+      <line x1="1040" y1="250" x2="1080" y2="200" />
+      <line x1="900" y1="220" x2="830" y2="250" />
+      <line x1="900" y1="220" x2="960" y2="320" />
+    </g>
+  </g>
+
+  <!-- 왼쪽: 타이틀 블록 -->
+  <g>
+    <!-- 태그라인 -->
+    <text x="80" y="150" fill="#60a5fa" font-family="'Inter', sans-serif" font-size="20" font-weight="600" letter-spacing="4">
+      2026 CAPSTONE DESIGN · MOKPO NATIONAL UNIVERSITY
+    </text>
+
+    <!-- 메인 타이틀 -->
+    <text x="80" y="240" fill="url(#title)" font-family="'Inter', 'Pretendard', sans-serif" font-size="96" font-weight="900" letter-spacing="-3">
+      SDACS
+    </text>
+
+    <!-- 서브타이틀 -->
+    <text x="80" y="300" fill="#e6ebf5" font-family="'Inter', 'Pretendard', sans-serif" font-size="36" font-weight="700">
+      Swarm Drone Airspace
+    </text>
+    <text x="80" y="346" fill="#e6ebf5" font-family="'Inter', 'Pretendard', sans-serif" font-size="36" font-weight="700">
+      Control System
+    </text>
+
+    <!-- 한글 설명 -->
+    <text x="80" y="396" fill="#8a93a6" font-family="'Pretendard', sans-serif" font-size="22" font-weight="500">
+      군집드론 공역통제 자동화 시스템
+    </text>
+    <text x="80" y="428" fill="#8a93a6" font-family="'Pretendard', sans-serif" font-size="18" font-weight="400">
+      APF · Three.js r175 · WebGPU · Monte Carlo 38,400회 검증
+    </text>
+  </g>
+
+  <!-- 하단: KPI 3개 -->
+  <g>
+    <!-- KPI 1 -->
+    <rect x="80" y="490" width="200" height="90" rx="8" fill="#0e1420" stroke="#60a5fa" stroke-width="1" opacity="0.95" />
+    <text x="180" y="530" text-anchor="middle" fill="#60a5fa" font-family="'Inter', sans-serif" font-size="36" font-weight="900">97.8%</text>
+    <text x="180" y="560" text-anchor="middle" fill="#8a93a6" font-family="'Pretendard', sans-serif" font-size="13" font-weight="500">충돌 회피 성공률</text>
+
+    <!-- KPI 2 -->
+    <rect x="300" y="490" width="200" height="90" rx="8" fill="#0e1420" stroke="#a78bfa" stroke-width="1" opacity="0.95" />
+    <text x="400" y="530" text-anchor="middle" fill="#a78bfa" font-family="'Inter', sans-serif" font-size="36" font-weight="900">90s</text>
+    <text x="400" y="560" text-anchor="middle" fill="#8a93a6" font-family="'Pretendard', sans-serif" font-size="13" font-weight="500">선제 예측 시간</text>
+
+    <!-- KPI 3 -->
+    <rect x="520" y="490" width="220" height="90" rx="8" fill="#0e1420" stroke="#34d399" stroke-width="1" opacity="0.95" />
+    <text x="630" y="530" text-anchor="middle" fill="#34d399" font-family="'Inter', sans-serif" font-size="36" font-weight="900">38,400</text>
+    <text x="630" y="560" text-anchor="middle" fill="#8a93a6" font-family="'Pretendard', sans-serif" font-size="13" font-weight="500">Monte Carlo 검증</text>
+  </g>
+
+  <!-- 우측 하단: 저자 -->
+  <g>
+    <text x="1120" y="578" text-anchor="end" fill="#8a93a6" font-family="'Pretendard', sans-serif" font-size="14" font-weight="500">
+      장선우 · Sunwoo Jang · 2026-04
+    </text>
+    <text x="1120" y="602" text-anchor="end" fill="#5b6478" font-family="'SF Mono', monospace" font-size="11">
+      github.com/sun475300-sudo/swarm-drone-atc
+    </text>
+  </g>
+</svg>

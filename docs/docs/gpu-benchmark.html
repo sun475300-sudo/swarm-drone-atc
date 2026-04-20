@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPU 벤치마크 리포트 | SDACS</title>
+<meta name="description" content="RTX 5070 Ti · APF 엔진 CPU vs GPU 성능 비교">
+<meta name="theme-color" content="#0055AA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GPU 벤치마크 리포트 | SDACS">
+<meta property="og:description" content="RTX 5070 Ti · APF 엔진 CPU vs GPU 성능 비교">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #0055AA;
+  --primary-dark: #003d7a;
+  --primary-light: #3b82d9;
+  --accent: #FF6F00;
+  --accent-dark: #d95d00;
+  --bg: #F5F7FA;
+  --bg-elev: #ffffff;
+  --card-bg: #ffffff;
+  --text: #1f2937;
+  --text-strong: #0b0f17;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --code-bg: #f3f6fb;
+  --code-block-bg: #0f172a;
+  --code-block-fg: #e2e8f0;
+  --table-stripe: #fafbfd;
+  --shadow-sm: 0 1px 2px rgba(15,23,42,.05);
+  --shadow: 0 4px 14px rgba(15,23,42,.08);
+  --shadow-lg: 0 16px 40px rgba(15,23,42,.14);
+  --radius: 12px;
+  --radius-lg: 16px;
+  --grad-hero: linear-gradient(135deg,#0055AA 0%,#003d7a 50%,#001f45 100%);
+}
+[data-theme="dark"] {
+  --bg: #0b0f17;
+  --bg-elev: #111827;
+  --card-bg: #0f172a;
+  --text: #e5e7eb;
+  --text-strong: #f8fafc;
+  --text-muted: #9ca3af;
+  --border: #1f2937;
+  --code-bg: #182033;
+  --code-block-bg: #050810;
+  --code-block-fg: #e2e8f0;
+  --table-stripe: #111a2b;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+  --shadow: 0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,.6);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body {
+  font-family: 'Inter','Pretendard','Malgun Gothic',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+}
+a { color: var(--primary-light); text-decoration: none; }
+a:hover { color: var(--primary); text-decoration: underline; }
+
+/* ---------- Nav ---------- */
+nav.top {
+  position: sticky; top: 0; z-index: 100;
+  background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  max-width: 1400px; margin: 0 auto; padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--text-strong); font-weight: 800; font-size: 17px;
+}
+.brand-logo {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--grad-hero);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 900; font-size: 14px;
+  box-shadow: var(--shadow);
+}
+.nav-actions { display: flex; align-items: center; gap: 8px; }
+.nav-btn {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text); padding: 8px 14px; font-size: 13px; font-weight: 600;
+  border-radius: 8px; cursor: pointer; transition: all .2s;
+}
+.nav-btn:hover { background: var(--bg-elev); border-color: var(--primary); color: var(--primary); }
+.home-btn {
+  background: var(--primary); color: #fff; border-color: var(--primary);
+}
+.home-btn:hover { background: var(--primary-dark); color: #fff; border-color: var(--primary-dark); }
+
+/* ---------- Hero ---------- */
+.doc-hero {
+  background: var(--grad-hero);
+  color: #fff; padding: 56px 0 48px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.doc-hero .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.doc-hero .eyebrow {
+  display: inline-block; background: rgba(255,255,255,.16);
+  border: 1px solid rgba(255,255,255,.28);
+  padding: 6px 14px; border-radius: 999px; font-size: 12px;
+  font-weight: 600; letter-spacing: .04em; margin-bottom: 16px;
+}
+.doc-hero h1 {
+  font-size: clamp(28px, 4vw, 40px); font-weight: 900;
+  line-height: 1.2; margin-bottom: 12px; letter-spacing: -.02em;
+}
+.doc-hero p.subtitle {
+  font-size: 16px; color: rgba(255,255,255,.85); max-width: 720px;
+}
+
+/* ---------- Layout ---------- */
+.layout {
+  max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px;
+  display: grid; grid-template-columns: 260px 1fr; gap: 48px;
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 24px; padding: 24px 20px 60px; }
+  .toc { position: static; max-height: none; }
+}
+
+/* ---------- TOC ---------- */
+.toc {
+  position: sticky; top: 88px;
+  align-self: start;
+  max-height: calc(100vh - 120px); overflow-y: auto;
+  padding: 20px 18px; border: 1px solid var(--border);
+  border-radius: var(--radius-lg); background: var(--card-bg);
+  font-size: 13.5px;
+}
+.toc h3 {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.toc ul { list-style: none; padding: 0; }
+.toc li { margin: 4px 0; }
+.toc a {
+  display: block; padding: 6px 10px; color: var(--text);
+  border-radius: 6px; transition: all .15s;
+  border-left: 2px solid transparent;
+}
+.toc a:hover {
+  background: var(--bg); color: var(--primary);
+  border-left-color: var(--primary); text-decoration: none;
+}
+.toc ul ul { margin-left: 14px; font-size: 12.8px; }
+.toc ul ul a { padding: 4px 10px; color: var(--text-muted); }
+
+/* ---------- Content ---------- */
+article.content { min-width: 0; }
+article.content h1 {
+  font-size: clamp(24px, 3vw, 32px); font-weight: 800;
+  color: var(--text-strong); margin: 32px 0 16px;
+  padding-bottom: 10px; border-bottom: 2px solid var(--primary);
+  letter-spacing: -.01em;
+}
+article.content h1:first-child { margin-top: 0; }
+article.content h2 {
+  font-size: clamp(20px, 2.4vw, 26px); font-weight: 700;
+  color: var(--text-strong); margin: 40px 0 14px;
+  scroll-margin-top: 88px;
+}
+article.content h3 {
+  font-size: 18px; font-weight: 700;
+  color: var(--text-strong); margin: 28px 0 10px;
+  scroll-margin-top: 88px;
+}
+article.content h4 { font-size: 16px; font-weight: 700; margin: 20px 0 8px; color: var(--text-strong); }
+article.content p { margin: 12px 0; }
+article.content ul, article.content ol { margin: 12px 0 12px 24px; }
+article.content li { margin: 6px 0; }
+article.content hr {
+  border: none; height: 1px; background: var(--border);
+  margin: 40px 0;
+}
+article.content strong { color: var(--text-strong); font-weight: 700; }
+article.content blockquote {
+  border-left: 4px solid var(--primary);
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+  padding: 12px 18px; margin: 16px 0;
+  border-radius: 0 8px 8px 0; color: var(--text);
+}
+
+/* Inline code */
+article.content code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  background: var(--code-bg);
+  color: var(--primary);
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: .9em;
+  font-weight: 500;
+  border: 1px solid color-mix(in srgb, var(--primary) 14%, transparent);
+}
+[data-theme="dark"] article.content code { color: #8ab4f8; }
+
+/* Code blocks */
+article.content pre {
+  background: var(--code-block-bg);
+  color: var(--code-block-fg);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  overflow-x: auto;
+  margin: 16px 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  box-shadow: var(--shadow);
+  border: 1px solid color-mix(in srgb, var(--code-block-bg) 50%, var(--border));
+}
+article.content pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border: none;
+  font-weight: 400;
+  font-size: inherit;
+}
+
+/* Codehilite tokens (Pygments default) */
+.codehilite .k, .codehilite .kd, .codehilite .kn, .codehilite .kr { color: #c792ea; }
+.codehilite .s, .codehilite .s1, .codehilite .s2, .codehilite .sb { color: #c3e88d; }
+.codehilite .c, .codehilite .c1, .codehilite .cm { color: #6b7a96; font-style: italic; }
+.codehilite .nb, .codehilite .nc, .codehilite .nf { color: #82aaff; }
+.codehilite .nv, .codehilite .nn { color: #ffcb6b; }
+.codehilite .mi, .codehilite .mf { color: #f78c6c; }
+.codehilite .o { color: #89ddff; }
+
+/* Tables */
+article.content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  font-size: 14.5px;
+}
+article.content thead {
+  background: var(--grad-hero);
+  color: #fff;
+}
+article.content th {
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: .01em;
+}
+article.content td {
+  padding: 11px 16px;
+  border-top: 1px solid var(--border);
+  vertical-align: top;
+}
+article.content tbody tr:nth-child(even) { background: var(--table-stripe); }
+article.content tbody tr:hover { background: color-mix(in srgb, var(--primary) 5%, var(--card-bg)); }
+
+/* Mermaid */
+.mermaid {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 20px 0;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  text-align: center;
+  overflow-x: auto;
+}
+[data-theme="dark"] .mermaid { background: var(--card-bg); }
+
+/* ---------- Footer ---------- */
+footer.doc-foot {
+  background: var(--bg-elev);
+  border-top: 1px solid var(--border);
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+footer.doc-foot a { color: var(--primary-light); margin: 0 8px; }
+footer.doc-foot .foot-brand { color: var(--text-strong); font-weight: 700; }
+
+/* ---------- Scroll top ---------- */
+.scroll-top {
+  position: fixed; right: 24px; bottom: 24px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--primary); color: #fff; border: none;
+  display: none; cursor: pointer; box-shadow: var(--shadow-lg);
+  font-size: 18px; z-index: 90;
+  transition: background .2s, transform .2s;
+}
+.scroll-top:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.scroll-top.visible { display: flex; align-items: center; justify-content: center; }
+
+/* Print */
+@media print {
+  nav.top, .toc, .scroll-top, footer.doc-foot { display: none !important; }
+  .layout { grid-template-columns: 1fr; padding: 0; }
+  body { background: #fff; color: #000; }
+  article.content pre { background: #f6f8fa; color: #000; box-shadow: none; }
+}
+</style>
+
+</head>
+<body>
+<nav class="top">
+  <div class="nav-inner">
+    <a href="../index.html" class="brand">
+      <span class="brand-logo">S</span>
+      <span>SDACS · Docs</span>
+    </a>
+    <div class="nav-actions">
+      <button id="theme-toggle" class="nav-btn" aria-label="Toggle theme">🌙</button>
+      <a href="../index.html" class="nav-btn home-btn">← 홈으로</a>
+    </div>
+  </div>
+</nav>
+
+<header class="doc-hero">
+  <div class="container">
+    <span class="eyebrow">GPU Benchmark Report</span>
+    <h1>GPU 벤치마크 리포트</h1>
+    <p class="subtitle">RTX 5070 Ti · APF 엔진 CPU vs GPU 성능 비교</p>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="toc">
+    <h3>목차 · Contents</h3>
+<ul>
+<li><a href="#backend-info">Backend Info</a>
+<li><a href="#results">Results</a>
+</ul>
+  </aside>
+  <article class="content">
+    <h2 id="backend-info">Backend Info</h2>
+<ul>
+<li><strong>backend</strong>: torch</li>
+<li><strong>device</strong>: cuda</li>
+<li><strong>gpu</strong>: NVIDIA GeForce RTX 5070 Ti</li>
+<li><strong>vram_gb</strong>: 17.1</li>
+</ul>
+<h2 id="results">Results</h2>
+<p>Each test averaged over 5 runs. CPU limited to 500 drones.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Drones</th>
+<th style="text-align: right;">CPU (ms)</th>
+<th style="text-align: right;">GPU (ms)</th>
+<th style="text-align: right;">Speedup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">50</td>
+<td style="text-align: right;">11.19</td>
+<td style="text-align: right;">13.04</td>
+<td style="text-align: right;">0.86x</td>
+</tr>
+<tr>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">42.74</td>
+<td style="text-align: right;">18.06</td>
+<td style="text-align: right;">2.37x</td>
+</tr>
+<tr>
+<td style="text-align: right;">200</td>
+<td style="text-align: right;">188.68</td>
+<td style="text-align: right;">28.13</td>
+<td style="text-align: right;">6.71x</td>
+</tr>
+<tr>
+<td style="text-align: right;">500</td>
+<td style="text-align: right;">1192.47</td>
+<td style="text-align: right;">97.57</td>
+<td style="text-align: right;">12.22x</td>
+</tr>
+<tr>
+<td style="text-align: right;">1000</td>
+<td style="text-align: right;">N/A</td>
+<td style="text-align: right;">193.95</td>
+<td style="text-align: right;">-</td>
+</tr>
+</tbody>
+</table>
+<p><em>Generated with seed=42</em></p>
+  </article>
+</div>
+
+<footer class="doc-foot">
+  <div>
+    <span class="foot-brand">SDACS</span> — Swarm Drone Airspace Control System<br>
+    <a href="../index.html">홈</a>·
+    <a href="../simulator.html">3D 시뮬레이터</a>·
+    <a href="../scenarios.html">시나리오</a>·
+    <a href="../test-report.html">테스트 리포트</a>
+    <div style="margin-top:8px; font-size:13px;">MIT License © 2026 Jang Sunwoo · Mokpo National University Capstone 2026</div>
+  </div>
+</footer>
+
+<button id="scroll-top" class="scroll-top" aria-label="Scroll to top">↑</button>
+
+
+<script>
+(() => {
+  const html = document.documentElement;
+  const saved = localStorage.getItem('sdacs-theme');
+  if (saved === 'dark' || (!saved && matchMedia('(prefers-color-scheme: dark)').matches)) {
+    html.setAttribute('data-theme', 'dark');
+  }
+  const btn = document.getElementById('theme-toggle');
+  if (btn) {
+    const update = () => btn.textContent = html.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+    update();
+    btn.addEventListener('click', () => {
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('sdacs-theme', next);
+      update();
+      if (window.mermaid) {
+        window.mermaid.initialize({ startOnLoad: false, theme: next === 'dark' ? 'dark' : 'default' });
+        document.querySelectorAll('.mermaid').forEach((el, i) => {
+          if (el.dataset.source) {
+            el.removeAttribute('data-processed');
+            el.innerHTML = el.dataset.source;
+          }
+        });
+        window.mermaid.run();
+      }
+    });
+  }
+  // Scroll top
+  const top = document.getElementById('scroll-top');
+  if (top) {
+    window.addEventListener('scroll', () => {
+      top.classList.toggle('visible', window.scrollY > 400);
+    });
+    top.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+})();
+</script>
+</body>
+</html>

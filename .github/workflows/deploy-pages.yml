@@ -1,10 +1,14 @@
-name: Deploy SDACS Landing Page to GitHub Pages
+name: Deploy SDACS to GitHub Pages
 
+# Consolidated Pages deployment. Replaces the legacy pages.yml (visualization/ @ master).
+# Serves everything from docs/ on main.
 on:
   push:
     branches: [main]
     paths:
       - 'docs/**'
+      - 'swarm_3d_simulator.html'
+      - 'swarm_3d_simulator_v2.html'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
@@ -23,6 +27,21 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # Mirror root-level simulator files into docs/ so the live site always
+      # ships the freshest build without requiring a manual copy.
+      - name: Sync simulator into docs/
+        run: |
+          set -e
+          mkdir -p docs
+          if [ -f "swarm_3d_simulator.html" ]; then
+            cp -f "swarm_3d_simulator.html" "docs/swarm_3d_simulator.html"
+            echo "Synced swarm_3d_simulator.html"
+          fi
+          if [ -f "swarm_3d_simulator_v2.html" ]; then
+            cp -f "swarm_3d_simulator_v2.html" "docs/swarm_3d_simulator_v2.html"
+            echo "Synced swarm_3d_simulator_v2.html"
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

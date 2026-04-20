@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SDACS · go — 빠른 접속 허브</title>
+  <meta name="description" content="SDACS 주요 링크 모음 — QR 코드 하나로 들어와서 3D 시뮬레이터, 보고서, GitHub로 이동." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://sun475300-sudo.github.io/swarm-drone-atc/go.html" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="SDACS · go — 빠른 접속 허브" />
+  <meta property="og:description" content="QR 한 번이면 3D 시뮬레이터·보고서·GitHub 모두 연결됩니다." />
+  <meta property="og:image" content="https://sun475300-sudo.github.io/swarm-drone-atc/og-cover.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://sun475300-sudo.github.io/swarm-drone-atc/go.html" />
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png" />
+  <link rel="manifest" href="site.webmanifest" />
+  <meta name="theme-color" content="#0055AA" />
+
+  <style>
+    :root {
+      --bg: #05080f;
+      --panel: #0e1420;
+      --accent: #3b82d9;
+      --accent-strong: #60a5fa;
+      --text: #e6ebf5;
+      --text-muted: #8a93a6;
+      --border: rgba(255,255,255,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: radial-gradient(circle at 20% 10%, rgba(59,130,217,0.15), transparent 50%),
+                  radial-gradient(circle at 80% 80%, rgba(167,139,250,0.10), transparent 50%),
+                  var(--bg);
+      color: var(--text);
+      font-family: 'Pretendard', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+      min-height: 100vh;
+      word-break: keep-all;
+    }
+    .wrap {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    header .logo {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--accent-strong);
+    }
+    header .sub {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .card {
+      display: block;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 10px;
+      text-decoration: none;
+      color: var(--text);
+      transition: transform 0.15s, border-color 0.15s, background 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(96,165,250,0.4);
+      background: #121a2a;
+    }
+    .card:focus-visible {
+      outline: 2px solid var(--accent-strong);
+      outline-offset: 2px;
+    }
+    .card .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: rgba(59,130,217,0.15);
+      font-size: 20px;
+      margin-right: 12px;
+      vertical-align: middle;
+    }
+    .card .title {
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .card .desc {
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-top: 3px;
+    }
+    .card .row { display: flex; align-items: center; }
+    .card .arrow {
+      margin-left: auto;
+      color: var(--text-muted);
+      font-size: 18px;
+    }
+    footer {
+      text-align: center;
+      margin-top: 28px;
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+    footer a { color: var(--accent-strong); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    .pill-row {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .pill {
+      font-size: 10px;
+      padding: 3px 8px;
+      background: rgba(59,130,217,0.12);
+      border: 1px solid rgba(59,130,217,0.3);
+      border-radius: 999px;
+      color: var(--accent-strong);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .card { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">SDACS</div>
+      <div class="sub">군집드론 공역통제 자동화 시스템 · 2026 Capstone Design</div>
+      <div class="pill-row">
+        <span class="pill">Mokpo National University</span>
+        <span class="pill">장선우</span>
+        <span class="pill">2026-04</span>
+      </div>
+    </header>
+
+    <a href="swarm_3d_simulator_v2.html" class="card" aria-label="3D 시뮬레이터 v2 열기">
+      <div class="row">
+        <span class="icon" aria-hidden="true">🚀</span>
+        <div>
+          <div class="title">3D 시뮬레이터 v2 (신규)</div>
+          <div class="desc">Three.js r175 · PBR · 4 카메라 모드 · 8 시나리오 · 5 드론 종류</div>
+        </div>
+        <span class="arrow" aria-hidden="true">→</span>
+      </div>
+    </a>
+
+    <a href="swarm_3d_simulator.html" class="card" aria-label="3D 시뮬레이터 v1 열기">
+      <div class="row">
+        <span class="icon" aria-hidden="true">🎮</span>
+        <div>
+          <div class="title">3D 시뮬레이터 v1</div>
+          <div class="desc">기존 안정판 — 원본 버전</div>
+        </div>
+        <span class="arrow" aria-hidden="true">→</span>
+      </div>
+    </a>
+
+    <a href="./" class="card" aria-label="랜딩 페이지">
+      <div class="row">
+        <span class="icon" aria-hidden="true">🏠</span>
+        <div>
+          <div class="title">프로젝트 홈</div>
+          <div class="desc">개요 · 아키텍처 · 결과 · 갤러리</div>
+        </div>
+        <span class="arrow" aria-hidden="true">→</span>
+      </div>
+    </a>
+
+    <a href="report/SDACS_Final_Report_v6.docx" class="card" download>
+      <div class="row">
+        <span class="icon" aria-hidden="true">📄</span>
+        <div>
+          <div class="title">최종 보고서 (v6 / Word)</div>
+          <div class="desc">SDACS_Final_Report_v6.docx</div>
+        </div>
+        <span class="arrow" aria-hidden="true">↓</span>
+      </div>
+    </a>
+
+    <a href="scenario_comparison.html" class="card">
+      <div class="row">
+        <span class="icon" aria-hidden="true">📊</span>
+        <div>
+          <div class="title">시나리오 비교 대시보드</div>
+          <div class="desc">38,400회 Monte Carlo 결과 — 알고리즘별 KPI</div>
+        </div>
+        <span class="arrow" aria-hidden="true">→</span>
+      </div>
+    </a>
+
+    <a href="test_report.html" class="card">
+      <div class="row">
+        <span class="icon" aria-hidden="true">✓</span>
+        <div>
+          <div class="title">테스트 리포트</div>
+          <div class="desc">pytest 커버리지 + junit 결과</div>
+        </div>
+        <span class="arrow" aria-hidden="true">→</span>
+      </div>
+    </a>
+
+    <a href="AUDIT_2026-04-20.md" class="card">
+      <div class="row">
+        <span class="icon" aria-hidden="true">📋</span>
+        <div>
+          <div class="title">개선 감사 리포트</div>
+          <div class="desc">리포 전체 개선 항목 58개 (P0–P3)</div>
+        </div>
+        <span class="arrow" aria-hidden="true">→</span>
+      </div>
+    </a>
+
+    <a href="https://github.com/sun475300-sudo/swarm-drone-atc" class="card" target="_blank" rel="noopener">
+      <div class="row">
+        <span class="icon" aria-hidden="true">💻</span>
+        <div>
+          <div class="title">GitHub 저장소</div>
+          <div class="desc">sun475300-sudo/swarm-drone-atc — 전체 소스</div>
+        </div>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </div>
+    </a>
+
+    <footer>
+      SDACS · Swarm Drone Airspace Control System<br />
+      © 2026 장선우 · Mokpo National University ·
+      <a href="mailto:sun475300@gmail.com">sun475300@gmail.com</a><br />
+      <a href="https://sun475300-sudo.github.io/swarm-drone-atc/go.html">sun475300-sudo.github.io/swarm-drone-atc/go.html</a>
+    </footer>
+  </div>
+</body>
+</html>

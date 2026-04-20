@@ -3,11 +3,127 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0055AA" />
+  <meta name="color-scheme" content="light dark" />
+
+  <!-- Primary SEO -->
   <title>SDACS — 군집드론 공역통제 자동화 시스템 | Swarm Drone Airspace Control System</title>
-  <meta name="description" content="SDACS: APF + WebGPU 기반 군집드론 공역통제 자동화 시스템. 충돌 해결률 97.8%, 90초 선제 예측, 38,400회 Monte Carlo 검증." />
-  <meta property="og:title" content="SDACS — Swarm Drone Airspace Control System" />
-  <meta property="og:description" content="군집드론 공역통제 자동화 시스템 — APF + WebGPU 기반 실시간 충돌 회피" />
+  <meta name="description" content="SDACS는 APF(인공 포텐셜 필드)와 WebGPU 기반의 군집드론 공역통제 자동화 시스템입니다. 충돌 해결률 97.8%, 90초 선제 예측, 38,400회 Monte Carlo 검증. 목포대학교 캡스톤디자인 프로젝트." />
+  <meta name="keywords" content="SDACS, 군집드론, 공역통제, Swarm Drone, Airspace Control, APF, Artificial Potential Field, WebGPU, 캡스톤디자인, 목포대학교, drone swarm, UAV, collision avoidance, Monte Carlo, 자율비행, CBS, Conflict-Based Search, air traffic management, UTM" />
+  <meta name="author" content="장선우 (Sunwoo Jang)" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="googlebot" content="index, follow" />
+  <meta name="language" content="Korean" />
+  <meta http-equiv="content-language" content="ko-KR" />
+  <link rel="canonical" href="https://sun475300-sudo.github.io/swarm-drone-atc/" />
+  <link rel="alternate" hreflang="ko" href="https://sun475300-sudo.github.io/swarm-drone-atc/" />
+  <link rel="alternate" hreflang="x-default" href="https://sun475300-sudo.github.io/swarm-drone-atc/" />
+
+  <!-- Favicon / Touch Icons / Manifest -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png" />
+  <link rel="manifest" href="site.webmanifest" />
+
+  <!-- Open Graph / Facebook / KakaoTalk -->
   <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="SDACS" />
+  <meta property="og:url" content="https://sun475300-sudo.github.io/swarm-drone-atc/" />
+  <meta property="og:title" content="SDACS — 군집드론 공역통제 자동화 시스템" />
+  <meta property="og:description" content="APF + WebGPU 기반 실시간 충돌 회피. 충돌 해결률 97.8%, 90초 선제 예측, 38,400회 Monte Carlo 검증." />
+  <meta property="og:image" content="https://sun475300-sudo.github.io/swarm-drone-atc/og-cover.png" />
+  <meta property="og:image:alt" content="SDACS 브랜드 커버 — 97.8% 회피율 · 90s 선제 예측 · 38,400회 Monte Carlo 검증" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:locale:alternate" content="en_US" />
+
+  <!-- Twitter / X Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SDACS — Swarm Drone Airspace Control System" />
+  <meta name="twitter:description" content="APF + WebGPU 기반 군집드론 공역통제 자동화 시스템. 충돌 해결률 97.8%." />
+  <meta name="twitter:image" content="https://sun475300-sudo.github.io/swarm-drone-atc/og-cover.png" />
+  <meta name="twitter:image:alt" content="SDACS 브랜드 커버 — KPI 하이라이트" />
+
+  <!-- Schema.org / JSON-LD structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "SDACS — Swarm Drone Airspace Control System",
+        "alternateName": ["SDACS", "군집드론 공역통제 자동화 시스템"],
+        "description": "APF(인공 포텐셜 필드)와 WebGPU 기반의 군집드론 공역통제 자동화 시스템. 충돌 해결률 97.8%, 90초 선제 예측.",
+        "applicationCategory": "SimulationApplication",
+        "operatingSystem": "Web (Chromium 113+, Firefox 117+, Safari 17+)",
+        "url": "https://sun475300-sudo.github.io/swarm-drone-atc/",
+        "image": "https://sun475300-sudo.github.io/swarm-drone-atc/og-cover.png",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "장선우",
+          "alternateName": "Sunwoo Jang",
+          "email": "sun475300@gmail.com",
+          "affiliation": {
+            "@type": "CollegeOrUniversity",
+            "name": "Mokpo National University",
+            "alternateName": "목포대학교"
+          }
+        },
+        "license": "https://github.com/sun475300-sudo/swarm-drone-atc/blob/main/LICENSE",
+        "codeRepository": "https://github.com/sun475300-sudo/swarm-drone-atc",
+        "programmingLanguage": ["Python", "TypeScript", "WGSL", "JavaScript"],
+        "runtimePlatform": "Browser, Python 3.11+",
+        "keywords": "swarm drone, airspace control, collision avoidance, APF, WebGPU, UTM, UAV"
+      },
+      {
+        "@type": "ScholarlyArticle",
+        "name": "SDACS 캡스톤디자인 최종보고서",
+        "author": {
+          "@type": "Person",
+          "name": "장선우"
+        },
+        "datePublished": "2026-04",
+        "publisher": {
+          "@type": "CollegeOrUniversity",
+          "name": "Mokpo National University"
+        },
+        "abstract": "APF 기반 군집드론 공역통제 자동화 시스템 — 충돌 해결률 97.8%, 90초 선제 예측, 38,400회 Monte Carlo 검증."
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "SDACS 홈",
+            "item": "https://sun475300-sudo.github.io/swarm-drone-atc/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "3D 시뮬레이터",
+            "item": "https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "시나리오 비교",
+            "item": "https://sun475300-sudo.github.io/swarm-drone-atc/scenario_comparison.html"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -598,14 +714,17 @@
         100대 동시 관제, 90초 선제 예측, 38,400회 Monte Carlo 검증.
       </p>
       <div class="cta-group">
-        <a href="report/SDACS_Final_Report_v6.docx" class="btn btn-primary" download>
-          보고서 다운로드 (v6)
+        <a href="swarm_3d_simulator_v2.html" class="btn btn-primary">
+          🚀 3D 시뮬레이터 v2 (신규)
+        </a>
+        <a href="swarm_3d_simulator.html" class="btn btn-secondary">
+          3D 시뮬레이터 (v1)
+        </a>
+        <a href="report/SDACS_Final_Report_v6.docx" class="btn btn-secondary" download>
+          보고서 다운로드
         </a>
         <a href="https://github.com/sun475300-sudo/swarm-drone-atc" class="btn btn-secondary" target="_blank" rel="noopener">
-          GitHub 저장소
-        </a>
-        <a href="scenario_comparison.html" class="btn btn-secondary">
-          시나리오 비교 대시보드
+          GitHub
         </a>
       </div>
     </div>
@@ -853,7 +972,8 @@
             <li><a href="https://github.com/sun475300-sudo/swarm-drone-atc" target="_blank" rel="noopener">GitHub</a></li>
             <li><a href="report/SDACS_Final_Report_v6.docx" download>Report v6</a></li>
             <li><a href="report/SDACS_Final_Report_v7_Easy.docx" download>Report v7</a></li>
-            <li><a href="https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html" target="_blank" rel="noopener">3D Simulator</a></li>
+            <li><a href="swarm_3d_simulator_v2.html">3D Simulator v2 (신규)</a></li>
+            <li><a href="swarm_3d_simulator.html">3D Simulator v1</a></li>
             <li><a href="scenario_comparison.html">시나리오 비교 대시보드</a></li>
             <li><a href="gpu_benchmark_report.md">GPU 벤치마크 보고서</a></li>
           </ul>

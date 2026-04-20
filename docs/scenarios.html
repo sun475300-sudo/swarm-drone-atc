@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDACS 시나리오 비교 대시보드</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 2rem; }
+  h1 { text-align: center; font-size: 1.8rem; margin-bottom: 2rem; color: #58a6ff; }
+  .charts { display: grid; grid-template-columns: 1fr; gap: 2rem; max-width: 1200px; margin: 0 auto; }
+  .chart-box { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.5rem; }
+  canvas { width: 100% !important; }
+  @media (min-width: 900px) { .charts { grid-template-columns: 1fr 1fr; } .chart-box:last-child { grid-column: 1 / -1; max-width: 600px; justify-self: center; width: 100%; } }
+</style>
+</head>
+<body>
+<h1>SDACS 시나리오 비교 대시보드</h1>
+<div class="charts">
+  <div class="chart-box"><canvas id="collisions"></canvas></div>
+  <div class="chart-box"><canvas id="resolution"></canvas></div>
+  <div class="chart-box"><canvas id="warnings"></canvas></div>
+</div>
+<script>
+const labels = ['high_density','weather_disturbance','comms_loss','emergency_failure','adversarial_intrusion','mass_takeoff','route_conflict'];
+const collisions = [242, 10, 1, 23, 8, 241, 3];
+const resolution = [62.4, 97.7, 98.4, 91.5, 95.0, 62.1, 97.9];
+const warnings = [208, 1, 2, 1, 5, 207, 0];
+
+Chart.defaults.color = '#8b949e';
+Chart.defaults.borderColor = '#30363d';
+
+function makeBar(id, label, data, color) {
+  new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: { labels, datasets: [{ label, data, backgroundColor: color, borderRadius: 4 }] },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }, title: { display: true, text: label, color: '#e6edf3', font: { size: 16 } } },
+      scales: { x: { ticks: { maxRotation: 45 } }, y: { beginAtZero: true } }
+    }
+  });
+}
+
+makeBar('collisions', '시나리오별 충돌 수', collisions, '#f85149');
+makeBar('resolution', '시나리오별 충돌 해결률 (%)', resolution, '#3fb950');
+makeBar('warnings', '시나리오별 근접 경고 수', warnings, '#d29922');
+</script>
+</body>
+</html>

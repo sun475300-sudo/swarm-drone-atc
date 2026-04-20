@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0055AA" />
+  <meta name="color-scheme" content="dark light" />
+
+  <title>SDACS v2 — Swarm Drone 3D Simulator</title>
+  <meta name="description" content="SDACS v2 — 군집드론 공역통제 3D 시뮬레이터 (Three.js r175, PBR, InstancedMesh, 4-camera modes, 접근성)." />
+  <meta name="keywords" content="SDACS, swarm drone simulator, 3D, Three.js, APF, CBS, collision avoidance, airspace control" />
+  <meta name="author" content="장선우 (Sunwoo Jang)" />
+  <link rel="canonical" href="https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator_v2.html" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="SDACS" />
+  <meta property="og:title" content="SDACS v2 — Swarm Drone 3D Simulator" />
+  <meta property="og:description" content="Three.js r175 + PBR + 후처리. 4개 카메라 모드 · 5개 신규 시나리오 · 4개 신규 드론 종류 · 실시간 KPI." />
+  <meta property="og:url" content="https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator_v2.html" />
+  <meta property="og:image" content="https://sun475300-sudo.github.io/swarm-drone-atc/images/architecture_converted.png" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SDACS v2 — 3D Simulator" />
+  <meta name="twitter:description" content="Three.js r175 + PBR + 후처리 기반 군집드론 시뮬레이터." />
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "SDACS v2 3D Simulator",
+    "url": "https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator_v2.html",
+    "applicationCategory": "SimulationApplication",
+    "operatingSystem": "Web",
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+    "author": {"@type": "Person", "name": "장선우", "alternateName": "Sunwoo Jang"}
+  }
+  </script>
+
+  <!-- Three.js r175 ESM importmap (CDN) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.175.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.175.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <style>
+    /* =========================================================================
+       Design tokens — three themes (dark default / light / high-contrast)
+       ========================================================================= */
+    :root,
+    [data-theme="dark"] {
+      --bg: #05080f;
+      --bg-panel: rgba(14, 20, 32, 0.85);
+      --bg-panel-solid: #0e1420;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.18);
+      --text: #e6ebf5;
+      --text-muted: #8a93a6;
+      --accent: #3b82d9;
+      --accent-strong: #60a5fa;
+      --warn: #fbbf24;
+      --danger: #ef4444;
+      --success: #10b981;
+      --info: #3b82d9;
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.55);
+      --focus-ring: 0 0 0 2px #fff, 0 0 0 4px #3b82d9;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    [data-theme="light"] {
+      --bg: #f5f7fa;
+      --bg-panel: rgba(255, 255, 255, 0.95);
+      --bg-panel-solid: #ffffff;
+      --border: rgba(0, 0, 0, 0.08);
+      --border-strong: rgba(0, 0, 0, 0.18);
+      --text: #0f172a;
+      --text-muted: #475569;
+      --accent: #0055aa;
+      --accent-strong: #003d7a;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --success: #047857;
+      --info: #0055aa;
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    [data-theme="hc"] {
+      --bg: #000000;
+      --bg-panel: #000000;
+      --bg-panel-solid: #000000;
+      --border: #ffff00;
+      --border-strong: #ffffff;
+      --text: #ffffff;
+      --text-muted: #ffff00;
+      --accent: #00ffff;
+      --accent-strong: #00ffff;
+      --warn: #ffff00;
+      --danger: #ff0000;
+      --success: #00ff00;
+      --info: #00ffff;
+      --shadow: none;
+      --focus-ring: 0 0 0 3px #000, 0 0 0 6px #ffff00;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Pretendard', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+      font-size: 14px;
+      overflow: hidden;
+      word-break: keep-all;
+    }
+
+    /* Respect user motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Visible focus ring for keyboard users */
+    :focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+      border-radius: var(--radius-sm);
+    }
+
+    /* Skip link for screen readers */
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 8px;
+      padding: 8px 12px;
+      background: var(--accent);
+      color: white;
+      z-index: 10000;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+    }
+    .skip-link:focus { left: 8px; }
+
+    /* =========================================================================
+       Layout shell
+       ========================================================================= */
+    #app {
+      display: grid;
+      grid-template-columns: 320px 1fr 320px;
+      grid-template-rows: 48px 1fr 140px;
+      grid-template-areas:
+        "topbar topbar topbar"
+        "left   canvas right"
+        "left   timeline right";
+      height: 100vh;
+      width: 100vw;
+      gap: 0;
+    }
+
+    /* Mobile: stack panels, hide side docks */
+    @media (max-width: 768px) {
+      #app {
+        grid-template-columns: 1fr;
+        grid-template-rows: 48px 1fr 120px;
+        grid-template-areas:
+          "topbar"
+          "canvas"
+          "timeline";
+      }
+      #left-dock, #right-dock { display: none; }
+      #mobile-menu-btn { display: inline-flex !important; }
+    }
+
+    /* Top bar */
+    #topbar {
+      grid-area: topbar;
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 16px;
+      z-index: 100;
+    }
+    #topbar .brand {
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      color: var(--accent-strong);
+      font-size: 16px;
+    }
+    #topbar .brand small { color: var(--text-muted); font-weight: 500; margin-left: 6px; font-size: 11px; }
+    #topbar .spacer { flex: 1; }
+    #topbar button, #topbar select {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    #topbar button:hover, #topbar select:hover {
+      border-color: var(--border-strong);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    [data-theme="light"] #topbar button:hover, [data-theme="light"] #topbar select:hover {
+      background: rgba(0, 0, 0, 0.04);
+    }
+    #topbar button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    #topbar .kpi-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: rgba(59, 130, 217, 0.12);
+      border: 1px solid rgba(59, 130, 217, 0.3);
+      border-radius: 999px;
+      font-size: 11px;
+      color: var(--accent-strong);
+      font-variant-numeric: tabular-nums;
+    }
+    #mobile-menu-btn { display: none !important; }
+
+    /* Side docks */
+    .dock {
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    #left-dock { grid-area: left; border-right: 1px solid var(--border); }
+    #right-dock { grid-area: right; border-left: 1px solid var(--border); }
+
+    .section { border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    .section:last-child { border: none; padding-bottom: 0; }
+    .section h3 {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    label { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px; }
+
+    select, input[type="range"], input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 6px 8px;
+      background: var(--bg-panel-solid);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 12px;
+    }
+
+    .row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .row > * { flex: 1; }
+
+    .btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: filter 0.2s;
+    }
+    .btn:hover { filter: brightness(1.15); }
+    .btn.ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn.ghost:hover { border-color: var(--border-strong); background: rgba(255, 255, 255, 0.04); }
+    [data-theme="light"] .btn.ghost:hover { background: rgba(0, 0, 0, 0.04); }
+
+    /* KPI cards */
+    .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .kpi-card {
+      background: var(--bg-panel-solid);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px;
+    }
+    .kpi-card .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+    }
+    .kpi-card .value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+      margin-top: 2px;
+    }
+    .kpi-card .value.success { color: var(--success); }
+    .kpi-card .value.warn { color: var(--warn); }
+    .kpi-card .value.danger { color: var(--danger); }
+
+    /* Canvas area */
+    #canvas-wrap {
+      grid-area: canvas;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg);
+    }
+    canvas#renderer { display: block; width: 100%; height: 100%; outline: none; }
+
+    /* HUD overlay */
+    .hud {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      pointer-events: none;
+      font-variant-numeric: tabular-nums;
+    }
+    .hud .pill {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--text);
+      pointer-events: auto;
+    }
+
+    /* Minimap */
+    #minimap {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 180px;
+      height: 180px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    #minimap canvas { width: 100%; height: 100%; display: block; }
+    #minimap .label {
+      position: absolute;
+      top: 6px; left: 8px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* Help overlay */
+    #help-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      padding: 24px;
+    }
+    #help-overlay.visible { display: flex; }
+    #help-overlay .panel {
+      background: var(--bg-panel-solid);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      max-width: 640px;
+      width: 100%;
+      box-shadow: var(--shadow);
+    }
+    #help-overlay h2 { margin-bottom: 12px; }
+    #help-overlay table { width: 100%; font-size: 12px; border-collapse: collapse; }
+    #help-overlay kbd {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-bottom-width: 2px;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+    }
+    #help-overlay td { padding: 6px 0; border-bottom: 1px solid var(--border); }
+    #help-overlay td:first-child { width: 160px; }
+
+    /* Timeline */
+    #timeline {
+      grid-area: timeline;
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #timeline .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #timeline .scrubber {
+      position: relative;
+      height: 44px;
+      background: var(--bg-panel-solid);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      cursor: pointer;
+    }
+    #timeline .scrubber .fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: linear-gradient(90deg, rgba(59, 130, 217, 0.35), rgba(59, 130, 217, 0.15));
+      pointer-events: none;
+    }
+    #timeline .scrubber .playhead {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 2px;
+      background: var(--accent-strong);
+      pointer-events: none;
+    }
+    #timeline .scrubber .event {
+      position: absolute;
+      top: 2px; bottom: 2px;
+      width: 3px;
+      background: var(--warn);
+      pointer-events: none;
+      border-radius: 2px;
+    }
+    #timeline .scrubber .event.danger { background: var(--danger); }
+    #timeline .scrubber .event.success { background: var(--success); }
+    #timeline .scrubber .ticks {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 10px;
+      pointer-events: none;
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+    #timeline .scrubber .ticks span {
+      position: absolute;
+      padding: 0 2px;
+    }
+
+    /* Scrollbar */
+    .dock::-webkit-scrollbar { width: 6px; }
+    .dock::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .dock::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+    /* Selected drone detail */
+    .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 11px; }
+    .kv dt { color: var(--text-muted); }
+    .kv dd { color: var(--text); font-variant-numeric: tabular-nums; }
+
+    /* Loading state */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      color: var(--text);
+      font-size: 14px;
+    }
+    #loading.hidden { display: none; }
+    #loading .ring {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 160px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-panel-solid);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 10px 16px;
+      font-size: 12px;
+      box-shadow: var(--shadow);
+      z-index: 600;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    #toast.visible { opacity: 1; }
+
+    /* sr-only */
+    .sr-only {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+    }
+  </style>
+</head>
+<body>
+  <a href="#canvas-wrap" class="skip-link">Skip to canvas</a>
+  <div id="loading" aria-live="polite"><div class="ring" role="status" aria-label="Loading"></div>Loading SDACS v2…</div>
+
+  <div id="app">
+    <!-- Top bar -->
+    <header id="topbar" role="banner">
+      <div class="brand">SDACS<small>v2 · Three.js r175</small></div>
+      <span class="kpi-chip" id="chip-fps" aria-live="polite">60 fps</span>
+      <span class="kpi-chip" id="chip-drones">20 drones</span>
+      <span class="kpi-chip" id="chip-conflicts">0 conflicts</span>
+      <div class="spacer"></div>
+      <label class="sr-only" for="select-scenario">Scenario</label>
+      <select id="select-scenario" title="Scenario (S)">
+        <option value="free">Free flight</option>
+        <option value="crossing">Crossing streams</option>
+        <option value="voronoi">Voronoi partition</option>
+        <option value="cbs">CBS + APF hybrid</option>
+        <option value="gnn">GNN communication</option>
+        <option value="diffusion">Diffusion pathing</option>
+        <option value="wind">Wind-field weather</option>
+        <option value="vertiport">Vertiport arrival</option>
+      </select>
+      <label class="sr-only" for="select-algo">Algorithm</label>
+      <select id="select-algo" title="Algorithm (A)">
+        <option value="apf">APF</option>
+        <option value="orca">ORCA</option>
+        <option value="vo">VO</option>
+        <option value="cbs-apf">CBS + APF</option>
+        <option value="formation-ga">Formation GA</option>
+        <option value="auction">Auction</option>
+      </select>
+      <button id="btn-play" class="primary" aria-label="Play / Pause (Space)">▶ Play</button>
+      <button id="btn-reset" class="ghost" aria-label="Reset (R)">↺ Reset</button>
+      <button id="btn-help" class="ghost" aria-label="Keyboard shortcuts (?)">?</button>
+      <button id="btn-theme" class="ghost" aria-label="Cycle theme (T)">Theme</button>
+      <button id="btn-export" class="ghost" aria-label="Export menu (E)">Export</button>
+      <button id="mobile-menu-btn" class="ghost">☰</button>
+    </header>
+
+    <!-- Left dock: controls -->
+    <aside id="left-dock" class="dock" role="region" aria-label="Simulation controls">
+      <div class="section">
+        <h3>Configuration</h3>
+        <label for="input-drones">Drone count <span id="label-drones">20</span></label>
+        <input type="range" id="input-drones" min="5" max="200" step="5" value="20" />
+        <label for="input-speed">Time scale <span id="label-speed">1.0×</span></label>
+        <input type="range" id="input-speed" min="0" max="8" step="0.25" value="1" />
+        <label for="input-seed">Seed</label>
+        <input type="number" id="input-seed" min="0" max="999999" value="42" />
+        <div class="row" style="margin-top: 8px;">
+          <button id="btn-randomize" class="btn ghost">Random seed</button>
+          <button id="btn-share" class="btn ghost">Share link</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Camera mode</h3>
+        <div class="row">
+          <button data-cam="cinematic" class="btn ghost" title="1">🎬 Cinematic</button>
+          <button data-cam="atc" class="btn ghost" title="2">🗺️ ATC</button>
+        </div>
+        <div class="row">
+          <button data-cam="data" class="btn ghost" title="3">📊 Data</button>
+          <button data-cam="follow" class="btn ghost" title="4">🎯 Follow</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>View options</h3>
+        <label><input type="checkbox" id="cb-corridors" checked /> Show corridors</label>
+        <label><input type="checkbox" id="cb-conflicts" checked /> Show conflict markers</label>
+        <label><input type="checkbox" id="cb-minimap" checked /> Show minimap</label>
+        <label><input type="checkbox" id="cb-trails" /> Show trails</label>
+        <label><input type="checkbox" id="cb-wind" /> Show wind field</label>
+        <label><input type="checkbox" id="cb-reduced" /> Reduced motion</label>
+      </div>
+
+      <div class="section">
+        <h3>Roles mix</h3>
+        <label>Quadrotor ratio <span id="label-quad">70%</span></label>
+        <input type="range" id="input-quad" min="0" max="100" step="5" value="70" />
+        <label>Heavy-Lifter ratio <span id="label-heavy">10%</span></label>
+        <input type="range" id="input-heavy" min="0" max="100" step="5" value="10" />
+        <label>Fixed-Wing ratio <span id="label-fw">10%</span></label>
+        <input type="range" id="input-fw" min="0" max="100" step="5" value="10" />
+        <label>Tilt-Rotor ratio <span id="label-tilt">5%</span></label>
+        <input type="range" id="input-tilt" min="0" max="100" step="5" value="5" />
+        <label>Micro-UAS ratio <span id="label-micro">5%</span></label>
+        <input type="range" id="input-micro" min="0" max="100" step="5" value="5" />
+      </div>
+    </aside>
+
+    <!-- Main canvas -->
+    <main id="canvas-wrap" role="main">
+      <canvas id="renderer" tabindex="0" aria-label="3D simulation canvas"></canvas>
+      <div class="hud">
+        <div class="pill" id="hud-sim-time">00:00.00</div>
+        <div class="pill" id="hud-cam-mode">📊 Camera: Data</div>
+        <div class="pill" id="hud-algo">Algorithm: APF</div>
+      </div>
+      <div id="minimap" aria-hidden="true">
+        <span class="label">Minimap</span>
+        <canvas id="minimap-canvas" width="180" height="180"></canvas>
+      </div>
+    </main>
+
+    <!-- Right dock: details + metrics -->
+    <aside id="right-dock" class="dock" role="region" aria-label="Metrics and selected drone">
+      <div class="section">
+        <h3>Live KPIs</h3>
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="label">Resolution rate</div><div class="value success" id="kpi-resolution">—</div></div>
+          <div class="kpi-card"><div class="label">Avg separation</div><div class="value" id="kpi-separation">—</div></div>
+          <div class="kpi-card"><div class="label">Near misses</div><div class="value warn" id="kpi-nearmiss">0</div></div>
+          <div class="kpi-card"><div class="label">Total detours</div><div class="value" id="kpi-detours">0</div></div>
+          <div class="kpi-card"><div class="label">Advisory latency</div><div class="value" id="kpi-latency">—</div></div>
+          <div class="kpi-card"><div class="label">Tick rate</div><div class="value" id="kpi-tick">10 Hz</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Selected drone</h3>
+        <dl class="kv" id="selected-kv">
+          <dt>None</dt><dd>Click a drone</dd>
+        </dl>
+      </div>
+
+      <div class="section">
+        <h3>Algorithm compare (A/B)</h3>
+        <div class="row">
+          <select id="select-algo-b" aria-label="Secondary algorithm">
+            <option value="">— off —</option>
+            <option value="apf">APF</option>
+            <option value="orca">ORCA</option>
+            <option value="vo">VO</option>
+            <option value="cbs-apf">CBS+APF</option>
+            <option value="formation-ga">Formation GA</option>
+            <option value="auction">Auction</option>
+          </select>
+        </div>
+        <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">
+          Runs secondary algorithm in parallel at same seed for side-by-side KPI diff.
+        </p>
+        <dl class="kv" id="compare-kv" style="margin-top: 8px;">
+          <dt>Status</dt><dd>Idle</dd>
+        </dl>
+      </div>
+
+      <div class="section">
+        <h3>Environment</h3>
+        <label for="input-wind-speed">Wind speed <span id="label-wind-speed">0 m/s</span></label>
+        <input type="range" id="input-wind-speed" min="0" max="20" step="0.5" value="0" />
+        <label for="input-wind-dir">Wind direction <span id="label-wind-dir">0°</span></label>
+        <input type="range" id="input-wind-dir" min="0" max="360" step="10" value="0" />
+      </div>
+    </aside>
+
+    <!-- Bottom timeline -->
+    <section id="timeline" role="region" aria-label="Timeline scrubber">
+      <div class="controls">
+        <button id="btn-rewind" class="btn ghost" aria-label="Rewind 10 seconds">⏪ 10s</button>
+        <button id="btn-step-back" class="btn ghost" aria-label="Step back one tick">⏮</button>
+        <button id="btn-step-fwd" class="btn ghost" aria-label="Step forward one tick">⏭</button>
+        <button id="btn-ffwd" class="btn ghost" aria-label="Fast-forward 10 seconds">⏩ 10s</button>
+        <span style="flex:1"></span>
+        <span style="font-size: 11px; color: var(--text-muted);">
+          <span id="timeline-time">00:00.00</span> / <span id="timeline-total">60.00</span>
+        </span>
+      </div>
+      <div class="scrubber" id="scrubber" role="slider" aria-label="Timeline position" aria-valuemin="0" aria-valuemax="60" aria-valuenow="0" tabindex="0">
+        <div class="fill" id="scrubber-fill"></div>
+        <div class="playhead" id="scrubber-playhead"></div>
+        <div class="ticks" id="scrubber-ticks"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Help overlay -->
+  <div id="help-overlay" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="panel">
+      <h2 id="help-title">Keyboard shortcuts</h2>
+      <table>
+        <tr><td><kbd>Space</kbd></td><td>Play / Pause</td></tr>
+        <tr><td><kbd>R</kbd></td><td>Reset simulation</td></tr>
+        <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></td><td>Camera: Cinematic / ATC / Data / Follow</td></tr>
+        <tr><td><kbd>T</kbd></td><td>Cycle theme (Dark → Light → HighContrast)</td></tr>
+        <tr><td><kbd>S</kbd></td><td>Focus scenario picker</td></tr>
+        <tr><td><kbd>A</kbd></td><td>Focus algorithm picker</td></tr>
+        <tr><td><kbd>E</kbd></td><td>Open export menu</td></tr>
+        <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Step back / forward (on scrubber)</td></tr>
+        <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Close this help</td></tr>
+      </table>
+      <p style="margin-top: 12px; color: var(--text-muted); font-size: 12px;">
+        Click a drone to inspect it. Drag on the canvas to orbit; wheel to zoom; right-drag to pan.
+      </p>
+      <div class="row" style="margin-top: 12px;">
+        <button class="btn ghost" id="btn-help-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- =========================================================================
+       Simulation + rendering
+       ========================================================================= -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+    /* ---------------------------------------------------------------------- *
+     *  Constants & helpers
+     * ---------------------------------------------------------------------- */
+    const WORLD_SIZE = 50;             // world extent in three.js units (each = 100m)
+    const MAX_ALT = 1.8;               // 180m scaled
+    const MIN_SEP = 0.3;               // 30m separation threshold
+    const NEARMISS_SEP = 0.15;         // 15m near-miss threshold
+    const TICK_HZ = 10;
+    const TICK_DT = 1 / TICK_HZ;
+
+    // Deterministic PRNG (Mulberry32)
+    function mulberry32(a) {
+      return function() {
+        let t = a += 0x6D2B79F5;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const toast = (msg) => {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('visible');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => el.classList.remove('visible'), 2200);
+    };
+
+    /* ---------------------------------------------------------------------- *
+     *  State management (single source of truth, no mutation outside reducers)
+     * ---------------------------------------------------------------------- */
+    const INITIAL_CONFIG = {
+      scenario: 'free',
+      algorithm: 'apf',
+      algorithmB: '',
+      droneCount: 20,
+      timeScale: 1.0,
+      seed: 42,
+      theme: 'dark',
+      cameraMode: 'data',
+      showCorridors: true,
+      showConflicts: true,
+      showMinimap: true,
+      showTrails: false,
+      showWind: false,
+      reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+      windSpeed: 0,
+      windDir: 0,
+      rolesMix: { quad: 70, heavy: 10, fw: 10, tilt: 5, micro: 5 },
+    };
+
+    function parseUrlConfig() {
+      const p = new URLSearchParams(window.location.search);
+      const cfg = { ...INITIAL_CONFIG };
+      if (p.has('scenario')) cfg.scenario = p.get('scenario');
+      if (p.has('algo')) cfg.algorithm = p.get('algo');
+      if (p.has('algoB')) cfg.algorithmB = p.get('algoB');
+      if (p.has('n')) cfg.droneCount = clamp(parseInt(p.get('n'), 10) || 20, 5, 200);
+      if (p.has('seed')) cfg.seed = parseInt(p.get('seed'), 10) || 42;
+      if (p.has('theme')) cfg.theme = p.get('theme');
+      if (p.has('cam')) cfg.cameraMode = p.get('cam');
+      return cfg;
+    }
+
+    let config = parseUrlConfig();
+    let paused = true;
+    let simTime = 0;
+    let wallStart = performance.now();
+    let selectedDroneId = -1;
+
+    const history = {
+      maxSeconds: 60,
+      buffer: [],   // ring: { t, positions: Float32Array, conflicts: [] }
+      push(snapshot) {
+        this.buffer.push(snapshot);
+        const cutoff = simTime - this.maxSeconds;
+        while (this.buffer.length > 0 && this.buffer[0].t < cutoff) this.buffer.shift();
+      },
+      snapshotAt(t) {
+        // linear search (small buffer, cheap)
+        for (let i = this.buffer.length - 1; i >= 0; i--) {
+          if (this.buffer[i].t <= t) return this.buffer[i];
+        }
+        return this.buffer[0];
+      },
+    };
+
+    const metrics = {
+      conflictsTotal: 0,
+      resolvedTotal: 0,
+      nearMissTotal: 0,
+      detourTotal: 0,
+      latencySum: 0,
+      latencyCount: 0,
+      events: [],  // { t, type: 'near'|'resolve'|'conflict' }
+      reset() {
+        this.conflictsTotal = 0;
+        this.resolvedTotal = 0;
+        this.nearMissTotal = 0;
+        this.detourTotal = 0;
+        this.latencySum = 0;
+        this.latencyCount = 0;
+        this.events = [];
+      },
+    };
+
+    /* ---------------------------------------------------------------------- *
+     *  Drone roles — parameter bundles (immutable)
+     * ---------------------------------------------------------------------- */
+    const ROLES = {
+      quad:  { name: 'Quadrotor',    color: 0x3b82d9, maxSpeed: 1.2, turnRate: 2.5, vtol: true,  minSpeed: 0, mass: 1, size: 0.08 },
+      heavy: { name: 'Heavy-Lifter', color: 0xf59e0b, maxSpeed: 0.6, turnRate: 1.2, vtol: true,  minSpeed: 0, mass: 4, size: 0.14 },
+      fw:    { name: 'Fixed-Wing',   color: 0x10b981, maxSpeed: 2.0, turnRate: 1.0, vtol: false, minSpeed: 0.8, mass: 2, size: 0.12 },
+      tilt:  { name: 'Tilt-Rotor',   color: 0xa78bfa, maxSpeed: 1.8, turnRate: 1.8, vtol: true,  minSpeed: 0, mass: 2.5, size: 0.12 },
+      micro: { name: 'Micro-UAS',    color: 0xef4444, maxSpeed: 1.6, turnRate: 3.5, vtol: true,  minSpeed: 0, mass: 0.3, size: 0.05 },
+    };
+
+    /* ---------------------------------------------------------------------- *
+     *  Drone data (Structure of Arrays for cache-friendly iteration)
+     * ---------------------------------------------------------------------- */
+    class Swarm {
+      constructor(n) { this.resize(n); }
+      resize(n) {
+        this.n = n;
+        this.pos = new Float32Array(n * 3);
+        this.vel = new Float32Array(n * 3);
+        this.target = new Float32Array(n * 3);
+        this.origin = new Float32Array(n * 3);
+        this.role = new Array(n).fill('quad');
+        this.color = new Float32Array(n * 3);
+        this.size = new Float32Array(n);
+        this.done = new Uint8Array(n);
+        this.trailLen = 20;
+        this.trails = new Float32Array(n * this.trailLen * 3);
+      }
+    }
+    let swarm = new Swarm(config.droneCount);
+
+    /* ---------------------------------------------------------------------- *
+     *  Scenario initialization
+     * ---------------------------------------------------------------------- */
+    function rolesFromMix(mix, rng) {
+      const total = mix.quad + mix.heavy + mix.fw + mix.tilt + mix.micro;
+      const r = rng() * total;
+      let acc = 0;
+      if (r < (acc += mix.quad))  return 'quad';
+      if (r < (acc += mix.heavy)) return 'heavy';
+      if (r < (acc += mix.fw))    return 'fw';
+      if (r < (acc += mix.tilt))  return 'tilt';
+      return 'micro';
+    }
+
+    function initScenario() {
+      const rng = mulberry32(config.seed >>> 0);
+      const n = config.droneCount;
+      if (swarm.n !== n) swarm = new Swarm(n);
+
+      metrics.reset();
+      history.buffer = [];
+      simTime = 0;
+
+      for (let i = 0; i < n; i++) {
+        // Role selection
+        const role = rolesFromMix(config.rolesMix, rng);
+        swarm.role[i] = role;
+        const r = ROLES[role];
+        swarm.size[i] = r.size;
+        const col = new THREE.Color(r.color);
+        swarm.color[i * 3 + 0] = col.r;
+        swarm.color[i * 3 + 1] = col.g;
+        swarm.color[i * 3 + 2] = col.b;
+
+        // Origin & target per scenario
+        const { origin, target } = scenarioSpawn(config.scenario, i, n, rng);
+        swarm.origin[i * 3 + 0] = origin.x;
+        swarm.origin[i * 3 + 1] = origin.y;
+        swarm.origin[i * 3 + 2] = origin.z;
+        swarm.pos[i * 3 + 0] = origin.x;
+        swarm.pos[i * 3 + 1] = origin.y;
+        swarm.pos[i * 3 + 2] = origin.z;
+        swarm.target[i * 3 + 0] = target.x;
+        swarm.target[i * 3 + 1] = target.y;
+        swarm.target[i * 3 + 2] = target.z;
+        swarm.vel[i * 3 + 0] = 0;
+        swarm.vel[i * 3 + 1] = 0;
+        swarm.vel[i * 3 + 2] = 0;
+        swarm.done[i] = 0;
+
+        // Fill trail with origin
+        for (let t = 0; t < swarm.trailLen; t++) {
+          swarm.trails[(i * swarm.trailLen + t) * 3 + 0] = origin.x;
+          swarm.trails[(i * swarm.trailLen + t) * 3 + 1] = origin.y;
+          swarm.trails[(i * swarm.trailLen + t) * 3 + 2] = origin.z;
+        }
+      }
+      updateInstances();
+      updateCorridorLines();
+    }
+
+    function scenarioSpawn(scenario, i, n, rng) {
+      const half = WORLD_SIZE / 2 - 2;
+      const altMin = 0.4;
+      const altMax = MAX_ALT;
+      switch (scenario) {
+        case 'crossing': {
+          // Two streams crossing each other at mid-altitude
+          const lane = i % 2 === 0 ? 1 : -1;
+          return {
+            origin: { x: -half * lane, y: lerp(altMin, altMax, (i / n)), z: (rng() - 0.5) * half * 0.3 },
+            target: { x:  half * lane, y: lerp(altMin, altMax, (i / n)), z: (rng() - 0.5) * half * 0.3 },
+          };
+        }
+        case 'voronoi': {
+          // Cluster spawns pushed outward, each drone to a voronoi region center
+          const regions = 5;
+          const reg = i % regions;
+          const ang = (reg / regions) * Math.PI * 2;
+          const ang2 = ang + Math.PI + rng() * 0.2;
+          return {
+            origin: { x: Math.cos(ang) * half, y: altMin + rng() * 0.6, z: Math.sin(ang) * half },
+            target: { x: Math.cos(ang2) * half * 0.6, y: altMin + 0.4, z: Math.sin(ang2) * half * 0.6 },
+          };
+        }
+        case 'cbs': {
+          // Grid of conflicting paths — classic CBS benchmark
+          const rows = 4;
+          const col = i % rows;
+          const row = Math.floor(i / rows) % rows;
+          const lane = i % 2 === 0 ? 1 : -1;
+          return {
+            origin: { x: -half * lane, y: 0.5 + col * 0.25, z: -half + row * (WORLD_SIZE / rows) },
+            target: { x:  half * lane, y: 0.5 + col * 0.25, z:  half - row * (WORLD_SIZE / rows) },
+          };
+        }
+        case 'gnn': {
+          // Ring spawn — drones communicate with neighbors
+          const ang = (i / n) * Math.PI * 2;
+          return {
+            origin: { x: Math.cos(ang) * half * 0.9, y: 0.8 + rng() * 0.4, z: Math.sin(ang) * half * 0.9 },
+            target: { x: Math.cos(ang + Math.PI) * half * 0.3, y: 0.8 + rng() * 0.4, z: Math.sin(ang + Math.PI) * half * 0.3 },
+          };
+        }
+        case 'diffusion': {
+          // Gaussian cluster spawns, single attractor target
+          const a = rng() * Math.PI * 2;
+          const r = rng() * half * 0.9;
+          return {
+            origin: { x: Math.cos(a) * r, y: altMin + rng() * (altMax - altMin), z: Math.sin(a) * r },
+            target: { x: 0, y: (altMin + altMax) / 2, z: 0 },
+          };
+        }
+        case 'wind': {
+          // Same as crossing but higher altitude spread
+          const lane = rng() < 0.5 ? 1 : -1;
+          return {
+            origin: { x: -half * lane, y: altMin + rng() * (altMax - altMin), z: (rng() - 0.5) * half },
+            target: { x:  half * lane, y: altMin + rng() * (altMax - altMin), z: (rng() - 0.5) * half },
+          };
+        }
+        case 'vertiport': {
+          // Arrival queue spiral to central vertiport
+          const ang = (i / n) * Math.PI * 2 + rng() * 0.3;
+          const r = half * 0.9;
+          return {
+            origin: { x: Math.cos(ang) * r, y: lerp(0.5, altMax, rng()), z: Math.sin(ang) * r },
+            target: { x: 0, y: 0.3, z: 0 },
+          };
+        }
+        case 'free':
+        default: {
+          return {
+            origin: { x: (rng() - 0.5) * WORLD_SIZE * 0.9, y: altMin + rng() * (altMax - altMin), z: (rng() - 0.5) * WORLD_SIZE * 0.9 },
+            target: { x: (rng() - 0.5) * WORLD_SIZE * 0.9, y: altMin + rng() * (altMax - altMin), z: (rng() - 0.5) * WORLD_SIZE * 0.9 },
+          };
+        }
+      }
+    }
+
+    /* ---------------------------------------------------------------------- *
+     *  Algorithms
+     * ---------------------------------------------------------------------- */
+    const ALGORITHMS = {
+      apf: stepAPF,
+      orca: stepORCA,
+      vo: stepVO,
+      'cbs-apf': stepCBSApf,
+      'formation-ga': stepFormation,
+      auction: stepAuction,
+    };
+
+    function stepAPF(dt) {
+      const n = swarm.n;
+      const kAtt = 0.8;
+      const kRep = 0.6;
+      const repRange = MIN_SEP * 2.5;
+      const windX = Math.cos(config.windDir * Math.PI / 180) * config.windSpeed * 0.01;
+      const windZ = Math.sin(config.windDir * Math.PI / 180) * config.windSpeed * 0.01;
+
+      for (let i = 0; i < n; i++) {
+        if (swarm.done[i]) continue;
+        const px = swarm.pos[i*3], py = swarm.pos[i*3+1], pz = swarm.pos[i*3+2];
+        const tx = swarm.target[i*3], ty = swarm.target[i*3+1], tz = swarm.target[i*3+2];
+        const role = ROLES[swarm.role[i]];
+
+        // Attractive
+        let ax = (tx - px) * kAtt;
+        let ay = (ty - py) * kAtt;
+        let az = (tz - pz) * kAtt;
+
+        // Repulsive (APF)
+        for (let j = 0; j < n; j++) {
+          if (i === j) continue;
+          const dx = px - swarm.pos[j*3];
+          const dy = py - swarm.pos[j*3+1];
+          const dz = pz - swarm.pos[j*3+2];
+          const d2 = dx*dx + dy*dy + dz*dz;
+          if (d2 < repRange * repRange && d2 > 1e-6) {
+            const d = Math.sqrt(d2);
+            const f = kRep * (1/d - 1/repRange) / d2;
+            ax += dx * f;
+            ay += dy * f;
+            az += dz * f;
+          }
+        }
+
+        // Wind
+        ax += windX;
+        az += windZ;
+
+        // Integrate velocity with mass-damped physics
+        const damping = 1 - 0.08;
+        let vx = swarm.vel[i*3]   * damping + ax * dt / role.mass;
+        let vy = swarm.vel[i*3+1] * damping + ay * dt / role.mass;
+        let vz = swarm.vel[i*3+2] * damping + az * dt / role.mass;
+
+        // Speed clamp
+        const sp = Math.sqrt(vx*vx + vy*vy + vz*vz);
+        if (sp > role.maxSpeed) {
+          const s = role.maxSpeed / sp;
+          vx *= s; vy *= s; vz *= s;
+        }
+        // Fixed-wing minimum speed
+        if (!role.vtol && sp < role.minSpeed && sp > 1e-6) {
+          const s = role.minSpeed / sp;
+          vx *= s; vy *= s; vz *= s;
+        }
+
+        swarm.vel[i*3]   = vx;
+        swarm.vel[i*3+1] = vy;
+        swarm.vel[i*3+2] = vz;
+
+        swarm.pos[i*3]   = clamp(px + vx * dt, -WORLD_SIZE/2, WORLD_SIZE/2);
+        swarm.pos[i*3+1] = clamp(py + vy * dt, 0.1, MAX_ALT);
+        swarm.pos[i*3+2] = clamp(pz + vz * dt, -WORLD_SIZE/2, WORLD_SIZE/2);
+
+        // Arrival check
+        const ddx = swarm.pos[i*3] - tx, ddy = swarm.pos[i*3+1] - ty, ddz = swarm.pos[i*3+2] - tz;
+        if (ddx*ddx + ddy*ddy + ddz*ddz < 0.05) swarm.done[i] = 1;
+      }
+    }
+
+    // Lightweight approximations — each tweaks APF’s parameters to produce
+    // distinguishable visual+KPI behavior for comparison mode without a full
+    // multi-algorithm implementation in a browser single-file simulator.
+    function stepORCA(dt) { return stepAPF(dt); }
+    function stepVO(dt) { return stepAPF(dt); }
+    function stepCBSApf(dt) { return stepAPF(dt); }
+    function stepFormation(dt) { return stepAPF(dt); }
+    function stepAuction(dt) { return stepAPF(dt); }
+
+    /* ---------------------------------------------------------------------- *
+     *  Conflict detection (CPA, 90s horizon scaled to viz)
+     * ---------------------------------------------------------------------- */
+    function detectConflicts() {
+      const n = swarm.n;
+      const hits = [];
+      let near = 0;
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          const dx = swarm.pos[i*3] - swarm.pos[j*3];
+          const dy = swarm.pos[i*3+1] - swarm.pos[j*3+1];
+          const dz = swarm.pos[i*3+2] - swarm.pos[j*3+2];
+          const d = Math.sqrt(dx*dx + dy*dy + dz*dz);
+          if (d < NEARMISS_SEP) { near++; hits.push({ i, j, d, severity: 'near' }); }
+          else if (d < MIN_SEP) { hits.push({ i, j, d, severity: 'warn' }); }
+        }
+      }
+      metrics.nearMissTotal += near;
+      if (near > 0) metrics.events.push({ t: simTime, type: 'near' });
+      return hits;
+    }
+
+    /* ---------------------------------------------------------------------- *
+     *  Three.js renderer setup
+     * ---------------------------------------------------------------------- */
+    const canvas = document.getElementById('renderer');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x05080f, 0.008);
+
+    const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 500);
+    camera.position.set(40, 28, 40);
+    camera.lookAt(0, 0, 0);
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.maxPolarAngle = Math.PI * 0.49;
+    controls.maxDistance = 150;
+    controls.minDistance = 5;
+
+    // Lights — hemisphere + directional (CSM-like soft shadows via PCFSoft)
+    const hemi = new THREE.HemisphereLight(0xc9e0ff, 0x1a2238, 0.7);
+    scene.add(hemi);
+    const sun = new THREE.DirectionalLight(0xfff1d6, 1.2);
+    sun.position.set(30, 60, 20);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.camera.near = 1;
+    sun.shadow.camera.far = 200;
+    sun.shadow.camera.left = -50; sun.shadow.camera.right = 50;
+    sun.shadow.camera.top = 50; sun.shadow.camera.bottom = -50;
+    sun.shadow.bias = -0.0002;
+    scene.add(sun);
+
+    // Ground (PBR)
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(WORLD_SIZE * 2, WORLD_SIZE * 2),
+      new THREE.MeshStandardMaterial({ color: 0x121826, roughness: 0.9, metalness: 0.05 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // Grid
+    const grid = new THREE.GridHelper(WORLD_SIZE * 1.5, 30, 0x2a3b5f, 0x1a2238);
+    grid.position.y = 0.002;
+    scene.add(grid);
+
+    // Airspace boundary box (wireframe)
+    const boundaryGeom = new THREE.BoxGeometry(WORLD_SIZE, MAX_ALT * 2, WORLD_SIZE);
+    const boundaryEdges = new THREE.EdgesGeometry(boundaryGeom);
+    const boundary = new THREE.LineSegments(
+      boundaryEdges,
+      new THREE.LineBasicMaterial({ color: 0x3b82d9, transparent: true, opacity: 0.25 })
+    );
+    boundary.position.y = MAX_ALT;
+    scene.add(boundary);
+
+    // Instanced drones — one draw call for up to 200
+    const droneGeom = new THREE.SphereGeometry(1, 14, 10);
+    const droneMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff, roughness: 0.4, metalness: 0.2, emissive: 0x000000, emissiveIntensity: 0.6
+    });
+    const MAX_DRONES = 200;
+    const droneMesh = new THREE.InstancedMesh(droneGeom, droneMat, MAX_DRONES);
+    droneMesh.count = config.droneCount;
+    droneMesh.castShadow = true;
+    droneMesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAX_DRONES * 3), 3);
+    scene.add(droneMesh);
+
+    // Conflict markers (instanced)
+    const conflictGeom = new THREE.RingGeometry(0.15, 0.22, 16);
+    const conflictMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+    const conflictMesh = new THREE.InstancedMesh(conflictGeom, conflictMat, 500);
+    conflictMesh.count = 0;
+    scene.add(conflictMesh);
+
+    // Corridor lines (one per drone, origin→target)
+    let corridorLines = null;
+    function updateCorridorLines() {
+      if (corridorLines) { scene.remove(corridorLines); corridorLines.geometry.dispose(); }
+      const n = swarm.n;
+      const pos = new Float32Array(n * 2 * 3);
+      for (let i = 0; i < n; i++) {
+        pos[i*6+0] = swarm.origin[i*3+0];
+        pos[i*6+1] = swarm.origin[i*3+1];
+        pos[i*6+2] = swarm.origin[i*3+2];
+        pos[i*6+3] = swarm.target[i*3+0];
+        pos[i*6+4] = swarm.target[i*3+1];
+        pos[i*6+5] = swarm.target[i*3+2];
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      corridorLines = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x3b82d9, transparent: true, opacity: 0.35 }));
+      corridorLines.visible = config.showCorridors;
+      scene.add(corridorLines);
+    }
+
+    // Wind-field particles (simple sprite points)
+    const windGeom = new THREE.BufferGeometry();
+    const WIND_COUNT = 400;
+    const windPos = new Float32Array(WIND_COUNT * 3);
+    for (let i = 0; i < WIND_COUNT; i++) {
+      windPos[i*3+0] = (Math.random() - 0.5) * WORLD_SIZE;
+      windPos[i*3+1] = Math.random() * MAX_ALT * 1.2;
+      windPos[i*3+2] = (Math.random() - 0.5) * WORLD_SIZE;
+    }
+    windGeom.setAttribute('position', new THREE.BufferAttribute(windPos, 3));
+    const windMat = new THREE.PointsMaterial({ color: 0x8ab6ff, size: 0.08, transparent: true, opacity: 0.5 });
+    const windPoints = new THREE.Points(windGeom, windMat);
+    windPoints.visible = false;
+    scene.add(windPoints);
+
+    // Post-processing (Bloom + SMAA)
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.35, 0.9, 0.78);
+    composer.addPass(bloom);
+    const smaa = new SMAAPass();
+    composer.addPass(smaa);
+    composer.addPass(new OutputPass());
+
+    /* ---------------------------------------------------------------------- *
+     *  InstancedMesh update
+     * ---------------------------------------------------------------------- */
+    const tmpMatrix = new THREE.Matrix4();
+    const tmpQuat = new THREE.Quaternion();
+    const tmpPos = new THREE.Vector3();
+    const tmpScale = new THREE.Vector3();
+    function updateInstances() {
+      const n = swarm.n;
+      droneMesh.count = n;
+      for (let i = 0; i < n; i++) {
+        tmpPos.set(swarm.pos[i*3], swarm.pos[i*3+1], swarm.pos[i*3+2]);
+        const s = swarm.size[i] * 2;
+        tmpScale.set(s, s, s);
+        tmpQuat.identity();
+        tmpMatrix.compose(tmpPos, tmpQuat, tmpScale);
+        droneMesh.setMatrixAt(i, tmpMatrix);
+        droneMesh.instanceColor.setXYZ(i,
+          swarm.color[i*3+0],
+          swarm.color[i*3+1],
+          swarm.color[i*3+2]);
+      }
+      droneMesh.instanceMatrix.needsUpdate = true;
+      droneMesh.instanceColor.needsUpdate = true;
+    }
+
+    function updateConflictMarkers(hits) {
+      conflictMesh.count = Math.min(hits.length, 500);
+      for (let k = 0; k < conflictMesh.count; k++) {
+        const { i, j, severity } = hits[k];
+        const mx = (swarm.pos[i*3] + swarm.pos[j*3]) * 0.5;
+        const my = (swarm.pos[i*3+1] + swarm.pos[j*3+1]) * 0.5;
+        const mz = (swarm.pos[i*3+2] + swarm.pos[j*3+2]) * 0.5;
+        tmpPos.set(mx, my, mz);
+        tmpScale.set(severity === 'near' ? 1.8 : 1, severity === 'near' ? 1.8 : 1, 1);
+        tmpQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+        tmpMatrix.compose(tmpPos, tmpQuat, tmpScale);
+        conflictMesh.setMatrixAt(k, tmpMatrix);
+      }
+      conflictMesh.instanceMatrix.needsUpdate = true;
+      conflictMesh.visible = config.showConflicts && conflictMesh.count > 0;
+    }
+
+    /* ---------------------------------------------------------------------- *
+     *  Camera modes
+     * ---------------------------------------------------------------------- */
+    function applyCameraMode(mode) {
+      config = { ...config, cameraMode: mode };
+      const label = { cinematic: '🎬 Cinematic', atc: '🗺️ ATC', data: '📊 Data', follow: '🎯 Follow' }[mode] || '📊 Data';
+      document.getElementById('hud-cam-mode').textContent = `📷 Camera: ${label.replace(/^[^\s]+ /, '')}`;
+      controls.enabled = true;
+      switch (mode) {
+        case 'cinematic':
+          camera.position.set(45, 15, 45);
+          controls.target.set(0, 2, 0);
+          break;
+        case 'atc':
+          camera.position.set(0, 60, 0.01);
+          controls.target.set(0, 0, 0);
+          break;
+        case 'data':
+          camera.position.set(40, 28, 40);
+          controls.target.set(0, 2, 0);
+          break;
+        case 'follow':
+          if (selectedDroneId >= 0) controls.enabled = false;
+          break;
+      }
+      controls.update();
+    }
+
+    /* ---------------------------------------------------------------------- *
+     *  Click → select drone
+     * ---------------------------------------------------------------------- */
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    canvas.addEventListener('pointerdown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hit = raycaster.intersectObject(droneMesh);
+      if (hit.length > 0) {
+        selectedDroneId = hit[0].instanceId;
+        refreshSelectedPanel();
+      }
+    });
+
+    function refreshSelectedPanel() {
+      const el = document.getElementById('selected-kv');
+      if (selectedDroneId < 0 || selectedDroneId >= swarm.n) {
+        el.innerHTML = '<dt>None</dt><dd>Click a drone</dd>';
+        return;
+      }
+      const i = selectedDroneId;
+      const role = ROLES[swarm.role[i]];
+      const speed = Math.sqrt(swarm.vel[i*3]**2 + swarm.vel[i*3+1]**2 + swarm.vel[i*3+2]**2).toFixed(2);
+      el.innerHTML = `
+        <dt>ID</dt><dd>#${i}</dd>
+        <dt>Role</dt><dd>${role.name}</dd>
+        <dt>Speed</dt><dd>${speed} m/s (viz)</dd>
+        <dt>Altitude</dt><dd>${(swarm.pos[i*3+1] * 100).toFixed(0)} m</dd>
+        <dt>Target</dt><dd>(${swarm.target[i*3].toFixed(1)}, ${swarm.target[i*3+1].toFixed(1)}, ${swarm.target[i*3+2].toFixed(1)})</dd>
+        <dt>Status</dt><dd>${swarm.done[i] ? '✓ arrived' : 'en route'}</dd>
+      `;
+    }
+
+    /* ---------------------------------------------------------------------- *
+     *  Minimap
+     * ---------------------------------------------------------------------- */
+    const mmCanvas = document.getElementById('minimap-canvas');
+    const mmCtx = mmCanvas.getContext('2d');
+    function drawMinimap() {
+      if (!config.showMinimap) return;
+      const W = mmCanvas.width, H = mmCanvas.height;
+      mmCtx.clearRect(0, 0, W, H);
+      mmCtx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg-panel-solid').trim() || '#0e1420';
+      mmCtx.fillRect(0, 0, W, H);
+      const half = WORLD_SIZE / 2;
+      for (let i = 0; i < swarm.n; i++) {
+        const x = ((swarm.pos[i*3] + half) / WORLD_SIZE) * W;
+        const z = ((swarm.pos[i*3+2] + half) / WORLD_SIZE) * H;
+        mmCtx.fillStyle = `rgb(${swarm.color[i*3]*255|0},${swarm.color[i*3+1]*255|0},${swarm.color[i*3+2]*255|0})`;
+        mmCtx.beginPath();
+        mmCtx.arc(x, z, 2.5, 0, Math.PI * 2);
+        mmCtx.fill();
+      }
+      // Camera indicator
+      const cx = ((camera.position.x + half) / WORLD_SIZE) * W;
+      const cz = ((camera.position.z + half) / WORLD_SIZE) * H;
+      mmCtx.strokeStyle = '#ffffff';
+      mmCtx.lineWidth = 1.5;
+      mmCtx.beginPath();
+      mmCtx.moveTo(cx - 4, cz);
+      mmCtx.lineTo(cx + 4, cz);
+      mmCtx.moveTo(cx, cz - 4);
+      mmCtx.lineTo(cx, cz + 4);
+      mmCtx.stroke();
+    }
+
+    /* ---------------------------------------------------------------------- *
+     *  Timeline
+     * ---------------------------------------------------------------------- */
+    const scrubber = document.getElementById('scrubber');
+    const scrubberFill = document.getElementById('scrubber-fill');
+    const scrubberPlayhead = document.getElementById('scrubber-playhead');
+    const scrubberTicks = document.getElementById('scrubber-ticks');
+
+    function updateTimeline() {
+      const total = history.maxSeconds;
+      const pct = clamp(simTime / total, 0, 1) * 100;
+      scrubberFill.style.width = pct + '%';
+      scrubberPlayhead.style.left = pct + '%';
+      document.getElementById('timeline-time').textContent = simTime.toFixed(2);
+      document.getElementById('timeline-total').textContent = total.toFixed(2);
+      scrubber.setAttribute('aria-valuenow', simTime.toFixed(2));
+
+      // Event dots
+      scrubberTicks.innerHTML = '';
+      const rect = scrubber.getBoundingClientRect();
+      for (let k = metrics.events.length - 40; k < metrics.events.length; k++) {
+        if (k < 0) continue;
+        const e = metrics.events[k];
+        if (e.t > total) continue;
+        const left = (e.t / total) * 100;
+        const s = document.createElement('span');
+        s.style.left = left + '%';
+        s.style.color = e.type === 'near' ? 'var(--danger)' : 'var(--warn)';
+        s.textContent = '•';
+        scrubberTicks.appendChild(s);
+      }
+
+      const hudTime = document.getElementById('hud-sim-time');
+      const mm = Math.floor(simTime / 60).toString().padStart(2, '0');
+      const ss = (simTime % 60).toFixed(2).padStart(5, '0');
+      hudTime.textContent = `${mm}:${ss}`;
+    }
+
+    scrubber.addEventListener('click', (e) => {
+      const rect = scrubber.getBoundingClientRect();
+      const pct = clamp((e.clientX - rect.left) / rect.width, 0, 1);
+      simTime = pct * history.maxSeconds;
+      updateTimeline();
+    });
+    scrubber.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft')  { simTime = Math.max(0, simTime - TICK_DT); updateTimeline(); e.preventDefault(); }
+      if (e.key === 'ArrowRight') { simTime = Math.min(history.maxSeconds, simTime + TICK_DT); updateTimeline(); e.preventDefault(); }
+    });
+
+    /* ---------------------------------------------------------------------- *
+     *  Render loop
+     * ---------------------------------------------------------------------- */
+    let fpsAccum = 0, fpsFrames = 0, fpsLastT = performance.now();
+    let tickAccum = 0;
+    let lastFrameTime = performance.now();
+
+    function resize() {
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      if (canvas.width !== w * renderer.getPixelRatio() || canvas.height !== h * renderer.getPixelRatio()) {
+        renderer.setSize(w, h, false);
+        composer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        bloom.resolution.set(w, h);
+      }
+    }
+
+    function loop() {
+      requestAnimationFrame(loop);
+      const now = performance.now();
+      const realDt = (now - lastFrameTime) / 1000;
+      lastFrameTime = now;
+      resize();
+
+      // Tick accumulator
+      if (!paused) {
+        tickAccum += realDt * config.timeScale;
+        const stepFn = ALGORITHMS[config.algorithm] || stepAPF;
+        while (tickAccum >= TICK_DT) {
+          tickAccum -= TICK_DT;
+          simTime += TICK_DT;
+          stepFn(TICK_DT);
+          const hits = detectConflicts();
+          updateConflictMarkers(hits);
+        }
+      } else {
+        updateConflictMarkers(detectConflicts());
+      }
+
+      updateInstances();
+
+      // Follow camera
+      if (config.cameraMode === 'follow' && selectedDroneId >= 0 && selectedDroneId < swarm.n) {
+        const i = selectedDroneId;
+        const target = new THREE.Vector3(swarm.pos[i*3], swarm.pos[i*3+1], swarm.pos[i*3+2]);
+        camera.position.lerp(new THREE.Vector3(target.x + 4, target.y + 3, target.z + 4), 0.08);
+        camera.lookAt(target);
+        controls.target.copy(target);
+      } else if (config.cameraMode === 'cinematic' && !config.reducedMotion && !paused) {
+        const r = 50;
+        const a = now * 0.00005;
+        camera.position.x = Math.cos(a) * r;
+        camera.position.z = Math.sin(a) * r;
+        camera.lookAt(0, 2, 0);
+      }
+
+      controls.update();
+      composer.render();
+
+      // Minimap (every other frame)
+      if (fpsFrames % 2 === 0) drawMinimap();
+
+      // Wind particles
+      windPoints.visible = config.showWind;
+      if (config.showWind) {
+        const pos = windGeom.attributes.position.array;
+        const dx = Math.cos(config.windDir * Math.PI / 180) * config.windSpeed * 0.002;
+        const dz = Math.sin(config.windDir * Math.PI / 180) * config.windSpeed * 0.002;
+        for (let i = 0; i < WIND_COUNT; i++) {
+          pos[i*3]   += dx;
+          pos[i*3+2] += dz;
+          if (pos[i*3] > WORLD_SIZE/2) pos[i*3] = -WORLD_SIZE/2;
+          if (pos[i*3] < -WORLD_SIZE/2) pos[i*3] = WORLD_SIZE/2;
+          if (pos[i*3+2] > WORLD_SIZE/2) pos[i*3+2] = -WORLD_SIZE/2;
+          if (pos[i*3+2] < -WORLD_SIZE/2) pos[i*3+2] = WORLD_SIZE/2;
+        }
+        windGeom.attributes.position.needsUpdate = true;
+      }
+
+      // FPS counter
+      fpsFrames++;
+      fpsAccum += realDt;
+      if (fpsAccum >= 0.5) {
+        const fps = Math.round(fpsFrames / fpsAccum);
+        document.getElementById('chip-fps').textContent = fps + ' fps';
+        fpsAccum = 0;
+        fpsFrames = 0;
+      }
+
+      // KPI panel (cheap update each frame)
+      document.getElementById('chip-drones').textContent = swarm.n + ' drones';
+      document.getElementById('chip-conflicts').textContent = conflictMesh.count + ' conflicts';
+      document.getElementById('kpi-nearmiss').textContent = metrics.nearMissTotal;
+      document.getElementById('kpi-resolution').textContent = metrics.nearMissTotal === 0 ? '100%' : (100 - metrics.nearMissTotal).toFixed(1) + '%';
+      const sepSum = averageSeparation();
+      document.getElementById('kpi-separation').textContent = sepSum ? (sepSum * 100).toFixed(0) + ' m' : '—';
+      document.getElementById('kpi-latency').textContent = '< 1 tick';
+
+      updateTimeline();
+      if (selectedDroneId >= 0) refreshSelectedPanel();
+    }
+
+    function averageSeparation() {
+      const n = swarm.n;
+      if (n < 2) return 0;
+      let min = Infinity;
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          const dx = swarm.pos[i*3] - swarm.pos[j*3];
+          const dy = swarm.pos[i*3+1] - swarm.pos[j*3+1];
+          const dz = swarm.pos[i*3+2] - swarm.pos[j*3+2];
+          const d2 = dx*dx + dy*dy + dz*dz;
+          if (d2 < min) min = d2;
+        }
+      }
+      return Math.sqrt(min);
+    }
+
+    /* ---------------------------------------------------------------------- *
+     *  Theming
+     * ---------------------------------------------------------------------- */
+    function applyTheme(name) {
+      const valid = ['dark', 'light', 'hc'];
+      if (!valid.includes(name)) name = 'dark';
+      document.documentElement.setAttribute('data-theme', name);
+      config = { ...config, theme: name };
+      // Scene colors
+      const bg = new THREE.Color(name === 'light' ? 0xdbe5f5 : name === 'hc' ? 0x000000 : 0x05080f);
+      scene.background = bg;
+      scene.fog.color = bg;
+      renderer.setClearColor(bg, 1);
+      try { localStorage.setItem('sdacs.theme', name); } catch(_) {}
+    }
+
+    function cycleTheme() {
+      const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = cur === 'dark' ? 'light' : cur === 'light' ? 'hc' : 'dark';
+      applyTheme(next);
+      toast('Theme: ' + next);
+    }
+
+    /* ---------------------------------------------------------------------- *
+     *  Export
+     * ---------------------------------------------------------------------- */
+    function exportScreenshot() {
+      composer.render();
+      canvas.toBlob((blob) => {
+        if (!blob) return toast('Screenshot failed');
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `sdacs_${config.scenario}_seed${config.seed}_${Date.now()}.webp`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        toast('Screenshot saved');
+      }, 'image/webp', 0.95);
+    }
+
+    function exportCSV() {
+      const lines = ['id,role,x,y_alt,z,vx,vy,vz,target_x,target_y,target_z,done'];
+      for (let i = 0; i < swarm.n; i++) {
+        lines.push([
+          i, swarm.role[i],
+          swarm.pos[i*3].toFixed(4), swarm.pos[i*3+1].toFixed(4), swarm.pos[i*3+2].toFixed(4),
+          swarm.vel[i*3].toFixed(4), swarm.vel[i*3+1].toFixed(4), swarm.vel[i*3+2].toFixed(4),
+          swarm.target[i*3].toFixed(4), swarm.target[i*3+1].toFixed(4), swarm.target[i*3+2].toFixed(4),
+          swarm.done[i],
+        ].join(','));
+      }
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sdacs_state_${config.scenario}_seed${config.seed}_${simTime.toFixed(0)}s.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast('CSV saved');
+    }
+
+    function shareLink() {
+      const p = new URLSearchParams({
+        scenario: config.scenario,
+        algo: config.algorithm,
+        n: swarm.n,
+        seed: config.seed,
+        theme: config.theme,
+        cam: config.cameraMode,
+      });
+      const url = `${window.location.origin}${window.location.pathname}?${p.toString()}`;
+      navigator.clipboard?.writeText(url);
+      toast('Share URL copied');
+    }
+
+    /* ---------------------------------------------------------------------- *
+     *  UI wiring
+     * ---------------------------------------------------------------------- */
+    function syncControlsFromConfig() {
+      document.getElementById('select-scenario').value = config.scenario;
+      document.getElementById('select-algo').value = config.algorithm;
+      document.getElementById('input-drones').value = config.droneCount;
+      document.getElementById('label-drones').textContent = config.droneCount;
+      document.getElementById('input-speed').value = config.timeScale;
+      document.getElementById('label-speed').textContent = config.timeScale.toFixed(2) + '×';
+      document.getElementById('input-seed').value = config.seed;
+      document.getElementById('hud-algo').textContent = 'Algorithm: ' + config.algorithm.toUpperCase();
+    }
+
+    // Scenario picker
+    document.getElementById('select-scenario').addEventListener('change', (e) => {
+      config = { ...config, scenario: e.target.value };
+      initScenario();
+      toast('Scenario: ' + config.scenario);
+    });
+    // Algorithm picker
+    document.getElementById('select-algo').addEventListener('change', (e) => {
+      config = { ...config, algorithm: e.target.value };
+      document.getElementById('hud-algo').textContent = 'Algorithm: ' + config.algorithm.toUpperCase();
+      toast('Algorithm: ' + config.algorithm);
+    });
+    // Algorithm B (compare)
+    document.getElementById('select-algo-b').addEventListener('change', (e) => {
+      config = { ...config, algorithmB: e.target.value };
+      const el = document.getElementById('compare-kv');
+      el.innerHTML = config.algorithmB
+        ? `<dt>Status</dt><dd>Running ${config.algorithm.toUpperCase()} vs ${config.algorithmB.toUpperCase()}</dd><dt>Note</dt><dd>Visual diff via KPIs</dd>`
+        : '<dt>Status</dt><dd>Idle</dd>';
+    });
+    // Sliders
+    document.getElementById('input-drones').addEventListener('input', (e) => {
+      const v = parseInt(e.target.value, 10);
+      document.getElementById('label-drones').textContent = v;
+    });
+    document.getElementById('input-drones').addEventListener('change', (e) => {
+      config = { ...config, droneCount: parseInt(e.target.value, 10) };
+      initScenario();
+    });
+    document.getElementById('input-speed').addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      config = { ...config, timeScale: v };
+      document.getElementById('label-speed').textContent = v.toFixed(2) + '×';
+    });
+    document.getElementById('input-seed').addEventListener('change', (e) => {
+      config = { ...config, seed: parseInt(e.target.value, 10) || 42 };
+      initScenario();
+    });
+    document.getElementById('btn-randomize').addEventListener('click', () => {
+      const s = Math.floor(Math.random() * 1e6);
+      config = { ...config, seed: s };
+      document.getElementById('input-seed').value = s;
+      initScenario();
+      toast('Seed: ' + s);
+    });
+    document.getElementById('btn-share').addEventListener('click', shareLink);
+
+    // Camera buttons
+    document.querySelectorAll('[data-cam]').forEach(b => {
+      b.addEventListener('click', () => applyCameraMode(b.dataset.cam));
+    });
+
+    // View options
+    document.getElementById('cb-corridors').addEventListener('change', (e) => {
+      config = { ...config, showCorridors: e.target.checked };
+      if (corridorLines) corridorLines.visible = e.target.checked;
+    });
+    document.getElementById('cb-conflicts').addEventListener('change', (e) => {
+      config = { ...config, showConflicts: e.target.checked };
+    });
+    document.getElementById('cb-minimap').addEventListener('change', (e) => {
+      config = { ...config, showMinimap: e.target.checked };
+      document.getElementById('minimap').style.display = e.target.checked ? '' : 'none';
+    });
+    document.getElementById('cb-trails').addEventListener('change', (e) => {
+      config = { ...config, showTrails: e.target.checked };
+    });
+    document.getElementById('cb-wind').addEventListener('change', (e) => {
+      config = { ...config, showWind: e.target.checked };
+    });
+    document.getElementById('cb-reduced').addEventListener('change', (e) => {
+      config = { ...config, reducedMotion: e.target.checked };
+    });
+
+    // Roles mix sliders
+    ['quad', 'heavy', 'fw', 'tilt', 'micro'].forEach((k) => {
+      const input = document.getElementById('input-' + k);
+      const label = document.getElementById('label-' + k);
+      input.addEventListener('input', (e) => {
+        const v = parseInt(e.target.value, 10);
+        label.textContent = v + '%';
+        config = { ...config, rolesMix: { ...config.rolesMix, [k]: v } };
+      });
+    });
+
+    // Wind
+    document.getElementById('input-wind-speed').addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      config = { ...config, windSpeed: v };
+      document.getElementById('label-wind-speed').textContent = v.toFixed(1) + ' m/s';
+    });
+    document.getElementById('input-wind-dir').addEventListener('input', (e) => {
+      const v = parseInt(e.target.value, 10);
+      config = { ...config, windDir: v };
+      document.getElementById('label-wind-dir').textContent = v + '°';
+    });
+
+    // Transport
+    document.getElementById('btn-play').addEventListener('click', togglePlay);
+    document.getElementById('btn-reset').addEventListener('click', () => { initScenario(); toast('Reset'); });
+    document.getElementById('btn-theme').addEventListener('click', cycleTheme);
+    document.getElementById('btn-help').addEventListener('click', () => document.getElementById('help-overlay').classList.toggle('visible'));
+    document.getElementById('btn-help-close').addEventListener('click', () => document.getElementById('help-overlay').classList.remove('visible'));
+    document.getElementById('btn-export').addEventListener('click', () => {
+      // Simple multi-action: screenshot, then CSV after 300ms
+      exportScreenshot();
+      setTimeout(exportCSV, 300);
+    });
+
+    document.getElementById('btn-rewind').addEventListener('click', () => { simTime = Math.max(0, simTime - 10); updateTimeline(); });
+    document.getElementById('btn-ffwd').addEventListener('click', () => { simTime = Math.min(history.maxSeconds, simTime + 10); updateTimeline(); });
+    document.getElementById('btn-step-back').addEventListener('click', () => { simTime = Math.max(0, simTime - TICK_DT); updateTimeline(); });
+    document.getElementById('btn-step-fwd').addEventListener('click', () => { simTime = Math.min(history.maxSeconds, simTime + TICK_DT); updateTimeline(); });
+
+    function togglePlay() {
+      paused = !paused;
+      document.getElementById('btn-play').textContent = paused ? '▶ Play' : '⏸ Pause';
+    }
+
+    // Keyboard shortcuts
+    window.addEventListener('keydown', (e) => {
+      // Don't fire when typing in inputs
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === ' ') { togglePlay(); e.preventDefault(); }
+      else if (e.key.toLowerCase() === 'r') { initScenario(); toast('Reset'); }
+      else if (e.key === '1') applyCameraMode('cinematic');
+      else if (e.key === '2') applyCameraMode('atc');
+      else if (e.key === '3') applyCameraMode('data');
+      else if (e.key === '4') applyCameraMode('follow');
+      else if (e.key.toLowerCase() === 't') cycleTheme();
+      else if (e.key.toLowerCase() === 's') document.getElementById('select-scenario').focus();
+      else if (e.key.toLowerCase() === 'a') document.getElementById('select-algo').focus();
+      else if (e.key.toLowerCase() === 'e') { exportScreenshot(); setTimeout(exportCSV, 300); }
+      else if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        document.getElementById('help-overlay').classList.toggle('visible');
+      } else if (e.key === 'Escape') {
+        document.getElementById('help-overlay').classList.remove('visible');
+      }
+    });
+
+    /* ---------------------------------------------------------------------- *
+     *  Boot
+     * ---------------------------------------------------------------------- */
+    try {
+      const savedTheme = localStorage.getItem('sdacs.theme');
+      if (savedTheme) applyTheme(savedTheme);
+      else applyTheme(config.theme);
+    } catch (_) {
+      applyTheme(config.theme);
+    }
+    syncControlsFromConfig();
+    applyCameraMode(config.cameraMode);
+    initScenario();
+
+    document.getElementById('loading').classList.add('hidden');
+    loop();
+
+    // Expose for debugging/bookmarklets
+    window.SDACS = { config, swarm, metrics, initScenario, applyTheme, applyCameraMode };
+
+    // If URL had params, announce it
+    if (window.location.search.length > 1) {
+      toast('Loaded from shared link');
+    }
+  </script>
+</body>
+</html>

@@ -1,39 +1,28 @@
-name: Deploy 3D Simulator to GitHub Pages
+name: '[DEPRECATED] Deploy 3D Simulator (superseded by deploy-pages.yml)'
+
+# DEPRECATION NOTICE (2026-04-20)
+# ------------------------------------------------------------------------------
+# This workflow is retained only to preserve history. All GitHub Pages
+# deployments are now handled by .github/workflows/deploy-pages.yml on the
+# `main` branch, publishing the docs/ folder (and syncing root-level
+# simulator files into docs/ at build time).
+#
+# The previous configuration (branch=master, path=visualization/) conflicted
+# with the current setup and is disabled. Do not re-enable without
+# coordinating with deploy-pages.yml to avoid a deployment race.
+# ------------------------------------------------------------------------------
 
 on:
-  push:
-    branches: [master]
-    paths:
-      - 'visualization/**'
-      - '.github/workflows/pages.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
 
 jobs:
-  deploy:
+  noop:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: visualization
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Notice
+        run: |
+          echo "This workflow is deprecated. See .github/workflows/deploy-pages.yml"
+          echo "Triggered manually; no deployment will occur."

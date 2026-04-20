@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>중간 발표 스크립트 | SDACS</title>
+<meta name="description" content="SDACS Capstone 중간 발표 진행 스크립트">
+<meta name="theme-color" content="#0055AA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="중간 발표 스크립트 | SDACS">
+<meta property="og:description" content="SDACS Capstone 중간 발표 진행 스크립트">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #0055AA;
+  --primary-dark: #003d7a;
+  --primary-light: #3b82d9;
+  --accent: #FF6F00;
+  --accent-dark: #d95d00;
+  --bg: #F5F7FA;
+  --bg-elev: #ffffff;
+  --card-bg: #ffffff;
+  --text: #1f2937;
+  --text-strong: #0b0f17;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --code-bg: #f3f6fb;
+  --code-block-bg: #0f172a;
+  --code-block-fg: #e2e8f0;
+  --table-stripe: #fafbfd;
+  --shadow-sm: 0 1px 2px rgba(15,23,42,.05);
+  --shadow: 0 4px 14px rgba(15,23,42,.08);
+  --shadow-lg: 0 16px 40px rgba(15,23,42,.14);
+  --radius: 12px;
+  --radius-lg: 16px;
+  --grad-hero: linear-gradient(135deg,#0055AA 0%,#003d7a 50%,#001f45 100%);
+}
+[data-theme="dark"] {
+  --bg: #0b0f17;
+  --bg-elev: #111827;
+  --card-bg: #0f172a;
+  --text: #e5e7eb;
+  --text-strong: #f8fafc;
+  --text-muted: #9ca3af;
+  --border: #1f2937;
+  --code-bg: #182033;
+  --code-block-bg: #050810;
+  --code-block-fg: #e2e8f0;
+  --table-stripe: #111a2b;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+  --shadow: 0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,.6);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body {
+  font-family: 'Inter','Pretendard','Malgun Gothic',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+}
+a { color: var(--primary-light); text-decoration: none; }
+a:hover { color: var(--primary); text-decoration: underline; }
+
+/* ---------- Nav ---------- */
+nav.top {
+  position: sticky; top: 0; z-index: 100;
+  background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  max-width: 1400px; margin: 0 auto; padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--text-strong); font-weight: 800; font-size: 17px;
+}
+.brand-logo {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--grad-hero);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 900; font-size: 14px;
+  box-shadow: var(--shadow);
+}
+.nav-actions { display: flex; align-items: center; gap: 8px; }
+.nav-btn {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text); padding: 8px 14px; font-size: 13px; font-weight: 600;
+  border-radius: 8px; cursor: pointer; transition: all .2s;
+}
+.nav-btn:hover { background: var(--bg-elev); border-color: var(--primary); color: var(--primary); }
+.home-btn {
+  background: var(--primary); color: #fff; border-color: var(--primary);
+}
+.home-btn:hover { background: var(--primary-dark); color: #fff; border-color: var(--primary-dark); }
+
+/* ---------- Hero ---------- */
+.doc-hero {
+  background: var(--grad-hero);
+  color: #fff; padding: 56px 0 48px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.doc-hero .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.doc-hero .eyebrow {
+  display: inline-block; background: rgba(255,255,255,.16);
+  border: 1px solid rgba(255,255,255,.28);
+  padding: 6px 14px; border-radius: 999px; font-size: 12px;
+  font-weight: 600; letter-spacing: .04em; margin-bottom: 16px;
+}
+.doc-hero h1 {
+  font-size: clamp(28px, 4vw, 40px); font-weight: 900;
+  line-height: 1.2; margin-bottom: 12px; letter-spacing: -.02em;
+}
+.doc-hero p.subtitle {
+  font-size: 16px; color: rgba(255,255,255,.85); max-width: 720px;
+}
+
+/* ---------- Layout ---------- */
+.layout {
+  max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px;
+  display: grid; grid-template-columns: 260px 1fr; gap: 48px;
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 24px; padding: 24px 20px 60px; }
+  .toc { position: static; max-height: none; }
+}
+
+/* ---------- TOC ---------- */
+.toc {
+  position: sticky; top: 88px;
+  align-self: start;
+  max-height: calc(100vh - 120px); overflow-y: auto;
+  padding: 20px 18px; border: 1px solid var(--border);
+  border-radius: var(--radius-lg); background: var(--card-bg);
+  font-size: 13.5px;
+}
+.toc h3 {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.toc ul { list-style: none; padding: 0; }
+.toc li { margin: 4px 0; }
+.toc a {
+  display: block; padding: 6px 10px; color: var(--text);
+  border-radius: 6px; transition: all .15s;
+  border-left: 2px solid transparent;
+}
+.toc a:hover {
+  background: var(--bg); color: var(--primary);
+  border-left-color: var(--primary); text-decoration: none;
+}
+.toc ul ul { margin-left: 14px; font-size: 12.8px; }
+.toc ul ul a { padding: 4px 10px; color: var(--text-muted); }
+
+/* ---------- Content ---------- */
+article.content { min-width: 0; }
+article.content h1 {
+  font-size: clamp(24px, 3vw, 32px); font-weight: 800;
+  color: var(--text-strong); margin: 32px 0 16px;
+  padding-bottom: 10px; border-bottom: 2px solid var(--primary);
+  letter-spacing: -.01em;
+}
+article.content h1:first-child { margin-top: 0; }
+article.content h2 {
+  font-size: clamp(20px, 2.4vw, 26px); font-weight: 700;
+  color: var(--text-strong); margin: 40px 0 14px;
+  scroll-margin-top: 88px;
+}
+article.content h3 {
+  font-size: 18px; font-weight: 700;
+  color: var(--text-strong); margin: 28px 0 10px;
+  scroll-margin-top: 88px;
+}
+article.content h4 { font-size: 16px; font-weight: 700; margin: 20px 0 8px; color: var(--text-strong); }
+article.content p { margin: 12px 0; }
+article.content ul, article.content ol { margin: 12px 0 12px 24px; }
+article.content li { margin: 6px 0; }
+article.content hr {
+  border: none; height: 1px; background: var(--border);
+  margin: 40px 0;
+}
+article.content strong { color: var(--text-strong); font-weight: 700; }
+article.content blockquote {
+  border-left: 4px solid var(--primary);
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+  padding: 12px 18px; margin: 16px 0;
+  border-radius: 0 8px 8px 0; color: var(--text);
+}
+
+/* Inline code */
+article.content code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  background: var(--code-bg);
+  color: var(--primary);
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: .9em;
+  font-weight: 500;
+  border: 1px solid color-mix(in srgb, var(--primary) 14%, transparent);
+}
+[data-theme="dark"] article.content code { color: #8ab4f8; }
+
+/* Code blocks */
+article.content pre {
+  background: var(--code-block-bg);
+  color: var(--code-block-fg);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  overflow-x: auto;
+  margin: 16px 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  box-shadow: var(--shadow);
+  border: 1px solid color-mix(in srgb, var(--code-block-bg) 50%, var(--border));
+}
+article.content pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border: none;
+  font-weight: 400;
+  font-size: inherit;
+}
+
+/* Codehilite tokens (Pygments default) */
+.codehilite .k, .codehilite .kd, .codehilite .kn, .codehilite .kr { color: #c792ea; }
+.codehilite .s, .codehilite .s1, .codehilite .s2, .codehilite .sb { color: #c3e88d; }
+.codehilite .c, .codehilite .c1, .codehilite .cm { color: #6b7a96; font-style: italic; }
+.codehilite .nb, .codehilite .nc, .codehilite .nf { color: #82aaff; }
+.codehilite .nv, .codehilite .nn { color: #ffcb6b; }
+.codehilite .mi, .codehilite .mf { color: #f78c6c; }
+.codehilite .o { color: #89ddff; }
+
+/* Tables */
+article.content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  font-size: 14.5px;
+}
+article.content thead {
+  background: var(--grad-hero);
+  color: #fff;
+}
+article.content th {
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: .01em;
+}
+article.content td {
+  padding: 11px 16px;
+  border-top: 1px solid var(--border);
+  vertical-align: top;
+}
+article.content tbody tr:nth-child(even) { background: var(--table-stripe); }
+article.content tbody tr:hover { background: color-mix(in srgb, var(--primary) 5%, var(--card-bg)); }
+
+/* Mermaid */
+.mermaid {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 20px 0;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  text-align: center;
+  overflow-x: auto;
+}
+[data-theme="dark"] .mermaid { background: var(--card-bg); }
+
+/* ---------- Footer ---------- */
+footer.doc-foot {
+  background: var(--bg-elev);
+  border-top: 1px solid var(--border);
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+footer.doc-foot a { color: var(--primary-light); margin: 0 8px; }
+footer.doc-foot .foot-brand { color: var(--text-strong); font-weight: 700; }
+
+/* ---------- Scroll top ---------- */
+.scroll-top {
+  position: fixed; right: 24px; bottom: 24px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--primary); color: #fff; border: none;
+  display: none; cursor: pointer; box-shadow: var(--shadow-lg);
+  font-size: 18px; z-index: 90;
+  transition: background .2s, transform .2s;
+}
+.scroll-top:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.scroll-top.visible { display: flex; align-items: center; justify-content: center; }
+
+/* Print */
+@media print {
+  nav.top, .toc, .scroll-top, footer.doc-foot { display: none !important; }
+  .layout { grid-template-columns: 1fr; padding: 0; }
+  body { background: #fff; color: #000; }
+  article.content pre { background: #f6f8fa; color: #000; box-shadow: none; }
+}
+</style>
+
+</head>
+<body>
+<nav class="top">
+  <div class="nav-inner">
+    <a href="../index.html" class="brand">
+      <span class="brand-logo">S</span>
+      <span>SDACS · Docs</span>
+    </a>
+    <div class="nav-actions">
+      <button id="theme-toggle" class="nav-btn" aria-label="Toggle theme">🌙</button>
+      <a href="../index.html" class="nav-btn home-btn">← 홈으로</a>
+    </div>
+  </div>
+</nav>
+
+<header class="doc-hero">
+  <div class="container">
+    <span class="eyebrow">Midterm Presentation Script</span>
+    <h1>중간 발표 스크립트</h1>
+    <p class="subtitle">SDACS Capstone 중간 발표 진행 스크립트</p>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="toc">
+    <h3>목차 · Contents</h3>
+<ul>
+<li><a href="#1-도입-30초">1. 도입 (30초)</a>
+<li><a href="#2-문제와-해결책-1분">2. 문제와 해결책 (1분)</a>
+<li><a href="#3-핵심-기술-1분-30초">3. 핵심 기술 (1분 30초)</a>
+<li><a href="#4-현재까지-진행-상황-1분">4. 현재까지 진행 상황 (1분)</a>
+<li><a href="#5-향후-계획-및-마무리-1분">5. 향후 계획 및 마무리 (1분)</a>
+</ul>
+  </aside>
+  <article class="content">
+    <p><strong>발표자:</strong> 장선우 | <strong>소속:</strong> 국립 목포대학교 드론기계공학과</p>
+<hr />
+<h2 id="1-도입-30초">1. 도입 (30초)</h2>
+<p>안녕하십니까. 드론기계공학과 장선우입니다.</p>
+<p>저는 <strong>"군집드론 공역통제 자동화 시스템, SDACS"</strong>를 개발하고 있습니다.</p>
+<p>쉽게 말하면 <strong>드론판 교통경찰</strong>입니다. 하늘에 수백 대의 드론이 동시에 날아다닐 때, AI가 자동으로 교통을 정리해주는 시스템입니다.</p>
+<hr />
+<h2 id="2-문제와-해결책-1분">2. 문제와 해결책 (1분)</h2>
+<p>드론 90만 대 시대에 기존 관제 시스템은 한계가 명확합니다.</p>
+<ul>
+<li>고정 레이더: <strong>수억 원, 6개월</strong> 소요</li>
+<li>수동 관제: <strong>5분 지연</strong>, 24시간 인력 필요</li>
+</ul>
+<p>우리 해결책은 <strong>드론 자체를 레이더로 활용</strong>하는 것입니다.</p>
+<p>21대의 ATC 관제 드론이 공역 전역을 감시하고, AI가 <strong>90초 전에 충돌을 예측</strong>하여 자동 회피 명령을 내립니다.</p>
+<p>30분 내 배치 가능, 관제 인력 80% 절감, 탐지 지연 1초입니다.</p>
+<hr />
+<h2 id="3-핵심-기술-1분-30초">3. 핵심 기술 (1분 30초)</h2>
+<p><strong>5개 핵심 알고리즘</strong>이 작동합니다.</p>
+<p><strong>APF 충돌 회피</strong> — 드론 주변에 자기장처럼 척력을 생성하여 실시간 회피. 강풍 시 자동으로 척력 2.6배 증폭.</p>
+<p><strong>CPA 선제 예측</strong> — 90초 후 충돌 위치를 미리 계산하여 사전 대응.</p>
+<p><strong>Resolution Advisory</strong> — 6종 회피 명령 자동 생성. 국제 항공 규칙 준수.</p>
+<p><strong>기상 대항 알고리즘</strong> — 마이크로버스트, 태풍, 결빙 등 극한 기상에서도 안전 비행 보장.</p>
+<p><strong>스태거드 이륙 제어</strong> — 500대 동시 운용 시 패드 혼잡 충돌을 <strong>99.97% 감소</strong>시켰습니다.</p>
+<hr />
+<h2 id="4-현재까지-진행-상황-1분">4. 현재까지 진행 상황 (1분)</h2>
+<p><strong>구현 완료:</strong>
+- SimPy 기반 시뮬레이터 + Three.js 3D 시뮬레이터
+- <strong>42개 시나리오</strong> (기본~500대 대규모, 극한 기상 포함)
+- pytest <strong>205개 테스트</strong> 100% 통과
+- Monte Carlo <strong>38,400회</strong> SLA 자동 검증
+- SC2 환경 <strong>14,200회</strong> 사전 검증</p>
+<p><strong>핵심 성과:</strong>
+- 500대 mega_swarm: 충돌 58,038 → 19건 (<strong>99.97% 감소</strong>)
+- 태풍 200대: 충돌 11건으로 안정 비행
+- 코드 리뷰 30건 수정 완료</p>
+<p><strong>GitHub Pages에서 바로 체험 가능합니다.</strong> 설치 없이 브라우저에서 500대 드론이 비행하는 것을 확인하실 수 있습니다.</p>
+<hr />
+<h2 id="5-향후-계획-및-마무리-1분">5. 향후 계획 및 마무리 (1분)</h2>
+<p><strong>남은 과제:</strong>
+- KDTree 공간 인덱스로 1,000대+ 확장
+- UTM 표준 준수 및 실제 드론 연동 (ROS2/PX4)
+- 기술 보고서 최종 완성</p>
+<p>SDACS는 고정 인프라 없이 <strong>드론으로 드론을 관제</strong>하는 새로운 패러다임을 제시합니다. 42개 시나리오와 38,400회 Monte Carlo 검증으로 실현 가능성을 입증했습니다.</p>
+<p>감사합니다.</p>
+<hr />
+<p><em>시연 URL: https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html</em></p>
+  </article>
+</div>
+
+<footer class="doc-foot">
+  <div>
+    <span class="foot-brand">SDACS</span> — Swarm Drone Airspace Control System<br>
+    <a href="../index.html">홈</a>·
+    <a href="../simulator.html">3D 시뮬레이터</a>·
+    <a href="../scenarios.html">시나리오</a>·
+    <a href="../test-report.html">테스트 리포트</a>
+    <div style="margin-top:8px; font-size:13px;">MIT License © 2026 Jang Sunwoo · Mokpo National University Capstone 2026</div>
+  </div>
+</footer>
+
+<button id="scroll-top" class="scroll-top" aria-label="Scroll to top">↑</button>
+
+
+<script>
+(() => {
+  const html = document.documentElement;
+  const saved = localStorage.getItem('sdacs-theme');
+  if (saved === 'dark' || (!saved && matchMedia('(prefers-color-scheme: dark)').matches)) {
+    html.setAttribute('data-theme', 'dark');
+  }
+  const btn = document.getElementById('theme-toggle');
+  if (btn) {
+    const update = () => btn.textContent = html.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+    update();
+    btn.addEventListener('click', () => {
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('sdacs-theme', next);
+      update();
+      if (window.mermaid) {
+        window.mermaid.initialize({ startOnLoad: false, theme: next === 'dark' ? 'dark' : 'default' });
+        document.querySelectorAll('.mermaid').forEach((el, i) => {
+          if (el.dataset.source) {
+            el.removeAttribute('data-processed');
+            el.innerHTML = el.dataset.source;
+          }
+        });
+        window.mermaid.run();
+      }
+    });
+  }
+  // Scroll top
+  const top = document.getElementById('scroll-top');
+  if (top) {
+    window.addEventListener('scroll', () => {
+      top.classList.toggle('visible', window.scrollY > 400);
+    });
+    top.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+})();
+</script>
+</body>
+</html>

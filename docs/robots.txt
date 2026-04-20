@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+
+# Major search engines explicitly welcome
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Yeti
+Allow: /
+
+User-agent: Daum
+Allow: /
+
+# Sitemap
+Sitemap: https://sun475300-sudo.github.io/swarm-drone-atc/sitemap.xml

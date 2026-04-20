@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDACS 사용자 매뉴얼 | SDACS</title>
+<meta name="description" content="설치·CLI·시나리오·GPU·Docker·REST API·FAQ">
+<meta name="theme-color" content="#0055AA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SDACS 사용자 매뉴얼 | SDACS">
+<meta property="og:description" content="설치·CLI·시나리오·GPU·Docker·REST API·FAQ">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #0055AA;
+  --primary-dark: #003d7a;
+  --primary-light: #3b82d9;
+  --accent: #FF6F00;
+  --accent-dark: #d95d00;
+  --bg: #F5F7FA;
+  --bg-elev: #ffffff;
+  --card-bg: #ffffff;
+  --text: #1f2937;
+  --text-strong: #0b0f17;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --code-bg: #f3f6fb;
+  --code-block-bg: #0f172a;
+  --code-block-fg: #e2e8f0;
+  --table-stripe: #fafbfd;
+  --shadow-sm: 0 1px 2px rgba(15,23,42,.05);
+  --shadow: 0 4px 14px rgba(15,23,42,.08);
+  --shadow-lg: 0 16px 40px rgba(15,23,42,.14);
+  --radius: 12px;
+  --radius-lg: 16px;
+  --grad-hero: linear-gradient(135deg,#0055AA 0%,#003d7a 50%,#001f45 100%);
+}
+[data-theme="dark"] {
+  --bg: #0b0f17;
+  --bg-elev: #111827;
+  --card-bg: #0f172a;
+  --text: #e5e7eb;
+  --text-strong: #f8fafc;
+  --text-muted: #9ca3af;
+  --border: #1f2937;
+  --code-bg: #182033;
+  --code-block-bg: #050810;
+  --code-block-fg: #e2e8f0;
+  --table-stripe: #111a2b;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+  --shadow: 0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,.6);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body {
+  font-family: 'Inter','Pretendard','Malgun Gothic',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+}
+a { color: var(--primary-light); text-decoration: none; }
+a:hover { color: var(--primary); text-decoration: underline; }
+
+/* ---------- Nav ---------- */
+nav.top {
+  position: sticky; top: 0; z-index: 100;
+  background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  max-width: 1400px; margin: 0 auto; padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--text-strong); font-weight: 800; font-size: 17px;
+}
+.brand-logo {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--grad-hero);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 900; font-size: 14px;
+  box-shadow: var(--shadow);
+}
+.nav-actions { display: flex; align-items: center; gap: 8px; }
+.nav-btn {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text); padding: 8px 14px; font-size: 13px; font-weight: 600;
+  border-radius: 8px; cursor: pointer; transition: all .2s;
+}
+.nav-btn:hover { background: var(--bg-elev); border-color: var(--primary); color: var(--primary); }
+.home-btn {
+  background: var(--primary); color: #fff; border-color: var(--primary);
+}
+.home-btn:hover { background: var(--primary-dark); color: #fff; border-color: var(--primary-dark); }
+
+/* ---------- Hero ---------- */
+.doc-hero {
+  background: var(--grad-hero);
+  color: #fff; padding: 56px 0 48px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.doc-hero .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.doc-hero .eyebrow {
+  display: inline-block; background: rgba(255,255,255,.16);
+  border: 1px solid rgba(255,255,255,.28);
+  padding: 6px 14px; border-radius: 999px; font-size: 12px;
+  font-weight: 600; letter-spacing: .04em; margin-bottom: 16px;
+}
+.doc-hero h1 {
+  font-size: clamp(28px, 4vw, 40px); font-weight: 900;
+  line-height: 1.2; margin-bottom: 12px; letter-spacing: -.02em;
+}
+.doc-hero p.subtitle {
+  font-size: 16px; color: rgba(255,255,255,.85); max-width: 720px;
+}
+
+/* ---------- Layout ---------- */
+.layout {
+  max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px;
+  display: grid; grid-template-columns: 260px 1fr; gap: 48px;
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 24px; padding: 24px 20px 60px; }
+  .toc { position: static; max-height: none; }
+}
+
+/* ---------- TOC ---------- */
+.toc {
+  position: sticky; top: 88px;
+  align-self: start;
+  max-height: calc(100vh - 120px); overflow-y: auto;
+  padding: 20px 18px; border: 1px solid var(--border);
+  border-radius: var(--radius-lg); background: var(--card-bg);
+  font-size: 13.5px;
+}
+.toc h3 {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.toc ul { list-style: none; padding: 0; }
+.toc li { margin: 4px 0; }
+.toc a {
+  display: block; padding: 6px 10px; color: var(--text);
+  border-radius: 6px; transition: all .15s;
+  border-left: 2px solid transparent;
+}
+.toc a:hover {
+  background: var(--bg); color: var(--primary);
+  border-left-color: var(--primary); text-decoration: none;
+}
+.toc ul ul { margin-left: 14px; font-size: 12.8px; }
+.toc ul ul a { padding: 4px 10px; color: var(--text-muted); }
+
+/* ---------- Content ---------- */
+article.content { min-width: 0; }
+article.content h1 {
+  font-size: clamp(24px, 3vw, 32px); font-weight: 800;
+  color: var(--text-strong); margin: 32px 0 16px;
+  padding-bottom: 10px; border-bottom: 2px solid var(--primary);
+  letter-spacing: -.01em;
+}
+article.content h1:first-child { margin-top: 0; }
+article.content h2 {
+  font-size: clamp(20px, 2.4vw, 26px); font-weight: 700;
+  color: var(--text-strong); margin: 40px 0 14px;
+  scroll-margin-top: 88px;
+}
+article.content h3 {
+  font-size: 18px; font-weight: 700;
+  color: var(--text-strong); margin: 28px 0 10px;
+  scroll-margin-top: 88px;
+}
+article.content h4 { font-size: 16px; font-weight: 700; margin: 20px 0 8px; color: var(--text-strong); }
+article.content p { margin: 12px 0; }
+article.content ul, article.content ol { margin: 12px 0 12px 24px; }
+article.content li { margin: 6px 0; }
+article.content hr {
+  border: none; height: 1px; background: var(--border);
+  margin: 40px 0;
+}
+article.content strong { color: var(--text-strong); font-weight: 700; }
+article.content blockquote {
+  border-left: 4px solid var(--primary);
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+  padding: 12px 18px; margin: 16px 0;
+  border-radius: 0 8px 8px 0; color: var(--text);
+}
+
+/* Inline code */
+article.content code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  background: var(--code-bg);
+  color: var(--primary);
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: .9em;
+  font-weight: 500;
+  border: 1px solid color-mix(in srgb, var(--primary) 14%, transparent);
+}
+[data-theme="dark"] article.content code { color: #8ab4f8; }
+
+/* Code blocks */
+article.content pre {
+  background: var(--code-block-bg);
+  color: var(--code-block-fg);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  overflow-x: auto;
+  margin: 16px 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  box-shadow: var(--shadow);
+  border: 1px solid color-mix(in srgb, var(--code-block-bg) 50%, var(--border));
+}
+article.content pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border: none;
+  font-weight: 400;
+  font-size: inherit;
+}
+
+/* Codehilite tokens (Pygments default) */
+.codehilite .k, .codehilite .kd, .codehilite .kn, .codehilite .kr { color: #c792ea; }
+.codehilite .s, .codehilite .s1, .codehilite .s2, .codehilite .sb { color: #c3e88d; }
+.codehilite .c, .codehilite .c1, .codehilite .cm { color: #6b7a96; font-style: italic; }
+.codehilite .nb, .codehilite .nc, .codehilite .nf { color: #82aaff; }
+.codehilite .nv, .codehilite .nn { color: #ffcb6b; }
+.codehilite .mi, .codehilite .mf { color: #f78c6c; }
+.codehilite .o { color: #89ddff; }
+
+/* Tables */
+article.content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  font-size: 14.5px;
+}
+article.content thead {
+  background: var(--grad-hero);
+  color: #fff;
+}
+article.content th {
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: .01em;
+}
+article.content td {
+  padding: 11px 16px;
+  border-top: 1px solid var(--border);
+  vertical-align: top;
+}
+article.content tbody tr:nth-child(even) { background: var(--table-stripe); }
+article.content tbody tr:hover { background: color-mix(in srgb, var(--primary) 5%, var(--card-bg)); }
+
+/* Mermaid */
+.mermaid {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 20px 0;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  text-align: center;
+  overflow-x: auto;
+}
+[data-theme="dark"] .mermaid { background: var(--card-bg); }
+
+/* ---------- Footer ---------- */
+footer.doc-foot {
+  background: var(--bg-elev);
+  border-top: 1px solid var(--border);
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+footer.doc-foot a { color: var(--primary-light); margin: 0 8px; }
+footer.doc-foot .foot-brand { color: var(--text-strong); font-weight: 700; }
+
+/* ---------- Scroll top ---------- */
+.scroll-top {
+  position: fixed; right: 24px; bottom: 24px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--primary); color: #fff; border: none;
+  display: none; cursor: pointer; box-shadow: var(--shadow-lg);
+  font-size: 18px; z-index: 90;
+  transition: background .2s, transform .2s;
+}
+.scroll-top:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.scroll-top.visible { display: flex; align-items: center; justify-content: center; }
+
+/* Print */
+@media print {
+  nav.top, .toc, .scroll-top, footer.doc-foot { display: none !important; }
+  .layout { grid-template-columns: 1fr; padding: 0; }
+  body { background: #fff; color: #000; }
+  article.content pre { background: #f6f8fa; color: #000; box-shadow: none; }
+}
+</style>
+
+</head>
+<body>
+<nav class="top">
+  <div class="nav-inner">
+    <a href="../index.html" class="brand">
+      <span class="brand-logo">S</span>
+      <span>SDACS · Docs</span>
+    </a>
+    <div class="nav-actions">
+      <button id="theme-toggle" class="nav-btn" aria-label="Toggle theme">🌙</button>
+      <a href="../index.html" class="nav-btn home-btn">← 홈으로</a>
+    </div>
+  </div>
+</nav>
+
+<header class="doc-hero">
+  <div class="container">
+    <span class="eyebrow">SDACS User Manual</span>
+    <h1>SDACS 사용자 매뉴얼</h1>
+    <p class="subtitle">설치·CLI·시나리오·GPU·Docker·REST API·FAQ</p>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="toc">
+    <h3>목차 · Contents</h3>
+<ul>
+<li><a href="#목차">목차</a>
+<li><a href="#1-설치-가이드">1. 설치 가이드</a>
+<ul>
+<li><a href="#시스템-요구사항">시스템 요구사항</a></li>
+<li><a href="#python-환경-설치">Python 환경 설치</a></li>
+<li><a href="#gpu-가속-pytorch-cuda-설치">GPU 가속 (PyTorch CUDA) 설치</a></li>
+</ul></li>
+<li><a href="#2-빠른-시작">2. 빠른 시작</a>
+<ul>
+<li><a href="#시뮬레이션-실행">시뮬레이션 실행</a></li>
+<li><a href="#3d-시각화-대시보드">3D 시각화 대시보드</a></li>
+<li><a href="#rest-api-서버">REST API 서버</a></li>
+</ul></li>
+<li><a href="#3-cli-명령어-참조">3. CLI 명령어 참조</a>
+<ul>
+<li><a href="#simulate---단일-시뮬레이션">simulate - 단일 시뮬레이션</a></li>
+<li><a href="#scenario---시나리오-실행">scenario - 시나리오 실행</a></li>
+<li><a href="#monte-carlo---monte-carlo-파라미터-스윕">monte-carlo - Monte Carlo 파라미터 스윕</a></li>
+<li><a href="#visualize---3d-대시보드">visualize - 3D 대시보드</a></li>
+<li><a href="#visualize-3d---threejs-시뮬레이터">visualize-3d - Three.js 시뮬레이터</a></li>
+<li><a href="#ops-report---e2e-운영-리포트">ops-report - E2E 운영 리포트</a></li>
+</ul></li>
+<li><a href="#4-시나리오-설명">4. 시나리오 설명</a>
+<ul>
+<li><a href="#시나리오-실행-예시">시나리오 실행 예시</a></li>
+</ul></li>
+<li><a href="#5-gpu-설정">5. GPU 설정</a>
+<ul>
+<li><a href="#apfartificial-potential-field-gpu-가속">APF(Artificial Potential Field) GPU 가속</a></li>
+<li><a href="#gpu-상태-확인">GPU 상태 확인</a></li>
+<li><a href="#nvidia-드라이버-요구사항">NVIDIA 드라이버 요구사항</a></li>
+</ul></li>
+<li><a href="#6-docker-실행">6. Docker 실행</a>
+<ul>
+<li><a href="#cpu-모드">CPU 모드</a></li>
+<li><a href="#gpu-모드">GPU 모드</a></li>
+<li><a href="#docker-compose">Docker Compose</a></li>
+</ul></li>
+<li><a href="#7-rest-api">7. REST API</a>
+<ul>
+<li><a href="#서버-시작">서버 시작</a></li>
+<li><a href="#주요-엔드포인트">주요 엔드포인트</a></li>
+<li><a href="#api-문서">API 문서</a></li>
+</ul></li>
+<li><a href="#8-문제-해결-faq">8. 문제 해결 (FAQ)</a>
+<ul>
+<li><a href="#q-modulenotfounderror-no-module-named-simpy">Q: ModuleNotFoundError: No module named 'simpy'</a></li>
+<li><a href="#q-cuda가-감지되지-않습니다">Q: CUDA가 감지되지 않습니다</a></li>
+<li><a href="#q-windows에서-한글이-깨집니다">Q: Windows에서 한글이 깨집니다</a></li>
+<li><a href="#q-시각화-대시보드에-접속이-안-됩니다">Q: 시각화 대시보드에 접속이 안 됩니다</a></li>
+<li><a href="#q-시뮬레이션이-느립니다">Q: 시뮬레이션이 느립니다</a></li>
+<li><a href="#q-docker-gpu-컨테이너가-실행되지-않습니다">Q: Docker GPU 컨테이너가 실행되지 않습니다</a></li>
+<li><a href="#q-테스트-실행-방법">Q: 테스트 실행 방법</a></li>
+</ul></li>
+<li><a href="#설정-파일">설정 파일</a>
+<ul>
+<li><a href="#주요-설정-항목-default_simulationyaml">주요 설정 항목 (default_simulation.yaml)</a></li>
+</ul></li>
+</ul>
+  </aside>
+  <article class="content">
+    <p><strong>군집드론 공역통제 자동화 시스템 (Swarm Drone Airspace Control System)</strong></p>
+<p>SimPy 기반 이산 이벤트 시뮬레이션 + 3D 시각화 플랫폼</p>
+<hr />
+<h2 id="목차">목차</h2>
+<ol>
+<li><a href="#1-설치-가이드">설치 가이드</a></li>
+<li><a href="#2-빠른-시작">빠른 시작</a></li>
+<li><a href="#3-cli-명령어-참조">CLI 명령어 참조</a></li>
+<li><a href="#4-시나리오-설명">시나리오 설명</a></li>
+<li><a href="#5-gpu-설정">GPU 설정</a></li>
+<li><a href="#6-docker-실행">Docker 실행</a></li>
+<li><a href="#7-rest-api">REST API</a></li>
+<li><a href="#8-문제-해결-faq">문제 해결 (FAQ)</a></li>
+</ol>
+<hr />
+<h2 id="1-설치-가이드">1. 설치 가이드</h2>
+<h3 id="시스템-요구사항">시스템 요구사항</h3>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>최소</th>
+<th>권장</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python</td>
+<td>3.10</td>
+<td>3.11</td>
+</tr>
+<tr>
+<td>RAM</td>
+<td>8 GB</td>
+<td>16 GB</td>
+</tr>
+<tr>
+<td>GPU</td>
+<td>-</td>
+<td>NVIDIA CUDA 12.x 지원 GPU</td>
+</tr>
+<tr>
+<td>OS</td>
+<td>Windows 10 / Ubuntu 20.04</td>
+<td>Windows 11 / Ubuntu 22.04</td>
+</tr>
+</tbody>
+</table>
+<h3 id="python-환경-설치">Python 환경 설치</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 저장소 클론</span>
+git clone &lt;repository-url&gt; swarm-drone-atc
+<span class="nb">cd</span> swarm-drone-atc
+
+<span class="c1"># 가상환경 생성 및 활성화</span>
+python -m venv .venv
+
+<span class="c1"># Windows</span>
+.venv<span class="se">\S</span>cripts<span class="se">\a</span>ctivate
+
+<span class="c1"># Linux / macOS</span>
+<span class="nb">source</span> .venv/bin/activate
+
+<span class="c1"># 의존성 설치</span>
+pip install -r requirements.txt
+</code></pre></div>
+
+<h3 id="gpu-가속-pytorch-cuda-설치">GPU 가속 (PyTorch CUDA) 설치</h3>
+<p>GPU 가속을 사용하려면 PyTorch CUDA 버전을 별도로 설치해야 합니다.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># CUDA 12.x 기준</span>
+pip install torch --index-url https://download.pytorch.org/whl/cu121
+</code></pre></div>
+
+<p>설치 확인:</p>
+<div class="codehilite"><pre><span></span><code>python -c <span class="s2">&quot;import torch; print(f&#39;CUDA: {torch.cuda.is_available()}, GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \&quot;N/A\&quot;}&#39;)&quot;</span>
+</code></pre></div>
+
+<hr />
+<h2 id="2-빠른-시작">2. 빠른 시작</h2>
+<h3 id="시뮬레이션-실행">시뮬레이션 실행</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 기본 시뮬레이션 (100대 드론, 600초)</span>
+python main.py simulate
+
+<span class="c1"># 드론 50대, 120초</span>
+python main.py simulate --drones <span class="m">50</span> --duration <span class="m">120</span>
+</code></pre></div>
+
+<h3 id="3d-시각화-대시보드">3D 시각화 대시보드</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Dash/Plotly 기반 대시보드 (http://127.0.0.1:8050)</span>
+python main.py visualize
+
+<span class="c1"># Three.js 브라우저 시뮬레이터</span>
+python main.py visualize-3d
+</code></pre></div>
+
+<h3 id="rest-api-서버">REST API 서버</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># FastAPI 서버 시작 (http://127.0.0.1:8000)</span>
+uvicorn api.server:app --host <span class="m">0</span>.0.0.0 --port <span class="m">8000</span>
+
+<span class="c1"># API 문서 확인</span>
+<span class="c1"># http://127.0.0.1:8000/docs (Swagger UI)</span>
+</code></pre></div>
+
+<hr />
+<h2 id="3-cli-명령어-참조">3. CLI 명령어 참조</h2>
+<h3 id="simulate---단일-시뮬레이션"><code>simulate</code> - 단일 시뮬레이션</h3>
+<div class="codehilite"><pre><span></span><code>python main.py simulate <span class="o">[</span>옵션<span class="o">]</span>
+</code></pre></div>
+
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>기본값</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--duration</code></td>
+<td>600.0</td>
+<td>시뮬레이션 시간 (초)</td>
+</tr>
+<tr>
+<td><code>--seed</code></td>
+<td>42</td>
+<td>랜덤 시드 (재현성 보장)</td>
+</tr>
+<tr>
+<td><code>--drones</code></td>
+<td>100</td>
+<td>드론 수</td>
+</tr>
+<tr>
+<td><code>--log-level</code></td>
+<td>INFO</td>
+<td>로그 레벨 (DEBUG/INFO/WARNING)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="scenario---시나리오-실행"><code>scenario</code> - 시나리오 실행</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 시나리오 목록 확인</span>
+python main.py scenario --list
+
+<span class="c1"># 특정 시나리오 실행</span>
+python main.py scenario high_density
+
+<span class="c1"># 반복 실행 (통계 집계)</span>
+python main.py scenario weather_disturbance --runs <span class="m">5</span> --seed <span class="m">42</span>
+</code></pre></div>
+
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>기본값</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>-</td>
+<td>시나리오 이름</td>
+</tr>
+<tr>
+<td><code>--list</code>, <code>-l</code></td>
+<td>-</td>
+<td>시나리오 목록 표시</td>
+</tr>
+<tr>
+<td><code>--runs</code>, <code>-n</code></td>
+<td>1</td>
+<td>반복 횟수</td>
+</tr>
+<tr>
+<td><code>--seed</code></td>
+<td>42</td>
+<td>기본 시드</td>
+</tr>
+</tbody>
+</table>
+<h3 id="monte-carlo---monte-carlo-파라미터-스윕"><code>monte-carlo</code> - Monte Carlo 파라미터 스윕</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 빠른 스윕</span>
+python main.py monte-carlo --mode quick
+
+<span class="c1"># 전체 스윕</span>
+python main.py monte-carlo --mode full
+</code></pre></div>
+
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>기본값</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--mode</code></td>
+<td>quick</td>
+<td>스윕 모드 (<code>quick</code> / <code>full</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="visualize---3d-대시보드"><code>visualize</code> - 3D 대시보드</h3>
+<div class="codehilite"><pre><span></span><code>python main.py visualize <span class="o">[</span>옵션<span class="o">]</span>
+</code></pre></div>
+
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>기본값</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--port</code></td>
+<td>8050</td>
+<td>대시보드 포트</td>
+</tr>
+<tr>
+<td><code>--drones</code></td>
+<td>30</td>
+<td>데모 드론 수</td>
+</tr>
+</tbody>
+</table>
+<h3 id="visualize-3d---threejs-시뮬레이터"><code>visualize-3d</code> - Three.js 시뮬레이터</h3>
+<div class="codehilite"><pre><span></span><code>python main.py visualize-3d
+</code></pre></div>
+
+<p>브라우저에서 Three.js 기반 3D 시뮬레이터를 자동으로 엽니다.</p>
+<h3 id="ops-report---e2e-운영-리포트"><code>ops-report</code> - E2E 운영 리포트</h3>
+<div class="codehilite"><pre><span></span><code>python main.py ops-report --scenario ops_report --city Seoul --seed <span class="m">42</span>
+</code></pre></div>
+
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>기본값</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--scenario</code></td>
+<td>ops_report</td>
+<td>리포트 시나리오 이름</td>
+</tr>
+<tr>
+<td><code>--seed</code></td>
+<td>42</td>
+<td>데이터 생성 시드</td>
+</tr>
+<tr>
+<td><code>--city</code></td>
+<td>Seoul</td>
+<td>기상 샘플 도시</td>
+</tr>
+<tr>
+<td><code>--hour</code></td>
+<td>18</td>
+<td>교통 샘플 시간</td>
+</tr>
+<tr>
+<td><code>--out-dir</code></td>
+<td>data/e2e_reports</td>
+<td>리포트 저장 경로</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-시나리오-설명">4. 시나리오 설명</h2>
+<p>SDACS는 8개의 사전 정의된 시나리오를 제공합니다.</p>
+<table>
+<thead>
+<tr>
+<th>번호</th>
+<th>시나리오</th>
+<th>드론 수</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S01</td>
+<td><code>high_density</code></td>
+<td>100</td>
+<td>정상 고밀도 교통 -- 처리량 한계 및 기준선 충돌률 검증</td>
+</tr>
+<tr>
+<td>S02</td>
+<td><code>emergency_failure</code></td>
+<td>80</td>
+<td>비행 중 드론 장애 -- 비상착륙 우선순위 및 장애 처리 검증</td>
+</tr>
+<tr>
+<td>S03</td>
+<td><code>mass_takeoff</code></td>
+<td>100</td>
+<td>대규모 동시 이착륙 -- 출발/도착 시퀀싱 검증</td>
+</tr>
+<tr>
+<td>S04</td>
+<td><code>route_conflict</code></td>
+<td>-</td>
+<td>경로 충돌 해소 -- TCAS-like 알고리즘 정확성 검증</td>
+</tr>
+<tr>
+<td>S05</td>
+<td><code>comms_loss</code></td>
+<td>50</td>
+<td>통신 두절 -- Lost-link 프로토콜 검증</td>
+</tr>
+<tr>
+<td>S06</td>
+<td><code>weather_disturbance</code></td>
+<td>100</td>
+<td>기상 교란 -- 바람 하 경로 추적 강건성 검증</td>
+</tr>
+<tr>
+<td>S07</td>
+<td><code>adversarial_intrusion</code></td>
+<td>50</td>
+<td>적대적 드론 침입 -- 탐지 지연시간 및 오탐율 검증</td>
+</tr>
+<tr>
+<td>S08</td>
+<td><code>multi_city</code></td>
+<td>다중</td>
+<td>다중 도시 동시 운영 -- 서울/부산/대구 3개 공역 병렬 시뮬레이션</td>
+</tr>
+</tbody>
+</table>
+<h3 id="시나리오-실행-예시">시나리오 실행 예시</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 고밀도 시나리오 3회 반복</span>
+python main.py scenario high_density --runs <span class="m">3</span>
+
+<span class="c1"># 기상 교란 시나리오</span>
+python main.py scenario weather_disturbance
+
+<span class="c1"># 모든 시나리오 목록 확인</span>
+python main.py scenario --list
+</code></pre></div>
+
+<hr />
+<h2 id="5-gpu-설정">5. GPU 설정</h2>
+<h3 id="apfartificial-potential-field-gpu-가속">APF(Artificial Potential Field) GPU 가속</h3>
+<p>SDACS는 충돌 회피 연산(APF)에 PyTorch CUDA GPU 가속을 지원합니다.</p>
+<ul>
+<li>풍속 &gt;10 m/s 시 자동으로 <code>APF_PARAMS_WINDY</code> 파라미터로 전환</li>
+<li>GPU 사용 가능 시 자동 감지하여 GPU 백엔드 활성화</li>
+</ul>
+<h3 id="gpu-상태-확인">GPU 상태 확인</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># API로 확인</span>
+curl http://127.0.0.1:8000/health
+<span class="c1"># 응답에 GPU/backend 정보 포함</span>
+
+<span class="c1"># Python으로 확인</span>
+python -c <span class="s2">&quot;from simulation.apf_engine import get_apf_backend_info; print(get_apf_backend_info())&quot;</span>
+</code></pre></div>
+
+<h3 id="nvidia-드라이버-요구사항">NVIDIA 드라이버 요구사항</h3>
+<table>
+<thead>
+<tr>
+<th>CUDA 버전</th>
+<th>최소 드라이버</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CUDA 12.1</td>
+<td>530.30+</td>
+</tr>
+<tr>
+<td>CUDA 12.4</td>
+<td>550.54+</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="6-docker-실행">6. Docker 실행</h2>
+<h3 id="cpu-모드">CPU 모드</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 빌드</span>
+docker build -t sdacs .
+
+<span class="c1"># 시각화 대시보드 (포트 8050)</span>
+docker run -p <span class="m">8050</span>:8050 sdacs
+
+<span class="c1"># 시뮬레이션 실행</span>
+docker run sdacs python main.py simulate --duration <span class="m">60</span>
+</code></pre></div>
+
+<h3 id="gpu-모드">GPU 모드</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># GPU 이미지 빌드</span>
+docker build -f Dockerfile.gpu -t sdacs-gpu .
+
+<span class="c1"># GPU 컨테이너 실행</span>
+docker run --gpus all -p <span class="m">8050</span>:8050 sdacs-gpu
+
+<span class="c1"># docker-compose로 실행</span>
+docker compose -f docker-compose.gpu.yml up
+</code></pre></div>
+
+<h3 id="docker-compose">Docker Compose</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 기본 실행</span>
+docker compose up
+
+<span class="c1"># GPU 모드</span>
+docker compose -f docker-compose.gpu.yml up
+
+<span class="c1"># 백그라운드 실행</span>
+docker compose up -d
+</code></pre></div>
+
+<hr />
+<h2 id="7-rest-api">7. REST API</h2>
+<p>FastAPI 기반 REST API를 제공합니다.</p>
+<h3 id="서버-시작">서버 시작</h3>
+<div class="codehilite"><pre><span></span><code>uvicorn api.server:app --host <span class="m">0</span>.0.0.0 --port <span class="m">8000</span>
+</code></pre></div>
+
+<h3 id="주요-엔드포인트">주요 엔드포인트</h3>
+<table>
+<thead>
+<tr>
+<th>메서드</th>
+<th>경로</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/health</code></td>
+<td>서버 상태 및 GPU 정보</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/simulate</code></td>
+<td>시뮬레이션 실행</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/scenarios</code></td>
+<td>시나리오 목록</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/scenarios/{name}/run</code></td>
+<td>시나리오 실행</td>
+</tr>
+</tbody>
+</table>
+<h3 id="api-문서">API 문서</h3>
+<p>서버 실행 후 브라우저에서 확인:</p>
+<ul>
+<li>Swagger UI: <code>http://127.0.0.1:8000/docs</code></li>
+<li>ReDoc: <code>http://127.0.0.1:8000/redoc</code></li>
+</ul>
+<hr />
+<h2 id="8-문제-해결-faq">8. 문제 해결 (FAQ)</h2>
+<h3 id="q-modulenotfounderror-no-module-named-simpy">Q: <code>ModuleNotFoundError: No module named 'simpy'</code></h3>
+<p>의존성이 설치되지 않았습니다.</p>
+<div class="codehilite"><pre><span></span><code>pip install -r requirements.txt
+</code></pre></div>
+
+<h3 id="q-cuda가-감지되지-않습니다">Q: CUDA가 감지되지 않습니다</h3>
+<ol>
+<li>NVIDIA 드라이버가 설치되어 있는지 확인: <code>nvidia-smi</code></li>
+<li>PyTorch CUDA 버전 설치 확인:
+   <code>bash
+   python -c "import torch; print(torch.cuda.is_available())"</code></li>
+<li>CPU 전용 PyTorch가 설치된 경우 재설치:
+   <code>bash
+   pip uninstall torch
+   pip install torch --index-url https://download.pytorch.org/whl/cu121</code></li>
+</ol>
+<h3 id="q-windows에서-한글이-깨집니다">Q: Windows에서 한글이 깨집니다</h3>
+<p><code>main.py</code>가 자동으로 UTF-8 인코딩을 설정합니다. 그래도 문제가 있으면:</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">set</span> <span class="nv">PYTHONIOENCODING</span><span class="o">=</span>utf-8
+python main.py simulate
+</code></pre></div>
+
+<h3 id="q-시각화-대시보드에-접속이-안-됩니다">Q: 시각화 대시보드에 접속이 안 됩니다</h3>
+<ol>
+<li>포트 충돌 확인: <code>--port 8051</code> 등 다른 포트 지정</li>
+<li>방화벽 확인: 8050 포트 허용</li>
+<li><code>0.0.0.0</code>이 아닌 <code>127.0.0.1</code>로 접속</li>
+</ol>
+<h3 id="q-시뮬레이션이-느립니다">Q: 시뮬레이션이 느립니다</h3>
+<ol>
+<li>GPU 가속 활성화 확인 (위 GPU 설정 참조)</li>
+<li>드론 수 줄이기: <code>--drones 50</code></li>
+<li>시뮬레이션 시간 줄이기: <code>--duration 60</code></li>
+<li>Monte Carlo는 <code>--mode quick</code> 사용</li>
+</ol>
+<h3 id="q-docker-gpu-컨테이너가-실행되지-않습니다">Q: Docker GPU 컨테이너가 실행되지 않습니다</h3>
+<ol>
+<li>NVIDIA Container Toolkit 설치 확인:
+   <code>bash
+   # Ubuntu
+   sudo apt install nvidia-container-toolkit
+   sudo systemctl restart docker</code></li>
+<li><code>--gpus all</code> 플래그 확인</li>
+<li>호스트에서 <code>nvidia-smi</code> 작동 확인</li>
+</ol>
+<h3 id="q-테스트-실행-방법">Q: 테스트 실행 방법</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 전체 테스트 (2,722개)</span>
+pytest tests/ -v
+
+<span class="c1"># 특정 모듈 테스트</span>
+pytest tests/test_simulator.py -v
+
+<span class="c1"># 커버리지 포함</span>
+pytest tests/ --cov<span class="o">=</span>simulation --cov-report<span class="o">=</span>term-missing
+</code></pre></div>
+
+<hr />
+<h2 id="설정-파일">설정 파일</h2>
+<table>
+<thead>
+<tr>
+<th>파일</th>
+<th>용도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>config/default_simulation.yaml</code></td>
+<td>기본 시뮬레이션 파라미터</td>
+</tr>
+<tr>
+<td><code>config/monte_carlo.yaml</code></td>
+<td>Monte Carlo 스윕 설정</td>
+</tr>
+<tr>
+<td><code>config/scenario_params/*.yaml</code></td>
+<td>시나리오별 파라미터 (8개)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="주요-설정-항목-default_simulationyaml">주요 설정 항목 (<code>default_simulation.yaml</code>)</h3>
+<div class="codehilite"><pre><span></span><code><span class="nt">simulation</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">42</span><span class="w"></span>
+<span class="w">  </span><span class="nt">duration_minutes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span><span class="w"></span>
+<span class="w">  </span><span class="nt">time_step_hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span><span class="w">        </span><span class="c1"># 시뮬레이션 틱 (10Hz)</span><span class="w"></span>
+<span class="w">  </span><span class="nt">control_hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">           </span><span class="c1"># 공역 컨트롤러 틱 (1Hz)</span><span class="w"></span>
+
+<span class="nt">drones</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">default_count</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span><span class="w"></span>
+<span class="w">  </span><span class="nt">max_speed_ms</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15.0</span><span class="w"></span>
+<span class="w">  </span><span class="nt">cruise_speed_ms</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8.0</span><span class="w"></span>
+<span class="w">  </span><span class="nt">max_altitude_m</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">120.0</span><span class="w"></span>
+<span class="w">  </span><span class="nt">min_altitude_m</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30.0</span><span class="w"></span>
+
+<span class="nt">separation_standards</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">lateral_min_m</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50.0</span><span class="w"></span>
+<span class="w">  </span><span class="nt">vertical_min_m</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15.0</span><span class="w"></span>
+</code></pre></div>
+  </article>
+</div>
+
+<footer class="doc-foot">
+  <div>
+    <span class="foot-brand">SDACS</span> — Swarm Drone Airspace Control System<br>
+    <a href="../index.html">홈</a>·
+    <a href="../simulator.html">3D 시뮬레이터</a>·
+    <a href="../scenarios.html">시나리오</a>·
+    <a href="../test-report.html">테스트 리포트</a>
+    <div style="margin-top:8px; font-size:13px;">MIT License © 2026 Jang Sunwoo · Mokpo National University Capstone 2026</div>
+  </div>
+</footer>
+
+<button id="scroll-top" class="scroll-top" aria-label="Scroll to top">↑</button>
+
+
+<script>
+(() => {
+  const html = document.documentElement;
+  const saved = localStorage.getItem('sdacs-theme');
+  if (saved === 'dark' || (!saved && matchMedia('(prefers-color-scheme: dark)').matches)) {
+    html.setAttribute('data-theme', 'dark');
+  }
+  const btn = document.getElementById('theme-toggle');
+  if (btn) {
+    const update = () => btn.textContent = html.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+    update();
+    btn.addEventListener('click', () => {
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('sdacs-theme', next);
+      update();
+      if (window.mermaid) {
+        window.mermaid.initialize({ startOnLoad: false, theme: next === 'dark' ? 'dark' : 'default' });
+        document.querySelectorAll('.mermaid').forEach((el, i) => {
+          if (el.dataset.source) {
+            el.removeAttribute('data-processed');
+            el.innerHTML = el.dataset.source;
+          }
+        });
+        window.mermaid.run();
+      }
+    });
+  }
+  // Scroll top
+  const top = document.getElementById('scroll-top');
+  if (top) {
+    window.addEventListener('scroll', () => {
+      top.classList.toggle('visible', window.scrollY > 400);
+    });
+    top.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDACS 시스템 아키텍처 | SDACS</title>
+<meta name="description" content="4-Layer 아키텍처 · 데이터 흐름 · GPU 가속 모듈">
+<meta name="theme-color" content="#0055AA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SDACS 시스템 아키텍처 | SDACS">
+<meta property="og:description" content="4-Layer 아키텍처 · 데이터 흐름 · GPU 가속 모듈">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #0055AA;
+  --primary-dark: #003d7a;
+  --primary-light: #3b82d9;
+  --accent: #FF6F00;
+  --accent-dark: #d95d00;
+  --bg: #F5F7FA;
+  --bg-elev: #ffffff;
+  --card-bg: #ffffff;
+  --text: #1f2937;
+  --text-strong: #0b0f17;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --code-bg: #f3f6fb;
+  --code-block-bg: #0f172a;
+  --code-block-fg: #e2e8f0;
+  --table-stripe: #fafbfd;
+  --shadow-sm: 0 1px 2px rgba(15,23,42,.05);
+  --shadow: 0 4px 14px rgba(15,23,42,.08);
+  --shadow-lg: 0 16px 40px rgba(15,23,42,.14);
+  --radius: 12px;
+  --radius-lg: 16px;
+  --grad-hero: linear-gradient(135deg,#0055AA 0%,#003d7a 50%,#001f45 100%);
+}
+[data-theme="dark"] {
+  --bg: #0b0f17;
+  --bg-elev: #111827;
+  --card-bg: #0f172a;
+  --text: #e5e7eb;
+  --text-strong: #f8fafc;
+  --text-muted: #9ca3af;
+  --border: #1f2937;
+  --code-bg: #182033;
+  --code-block-bg: #050810;
+  --code-block-fg: #e2e8f0;
+  --table-stripe: #111a2b;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+  --shadow: 0 4px 14px rgba(0,0,0,.5);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,.6);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body {
+  font-family: 'Inter','Pretendard','Malgun Gothic',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+}
+a { color: var(--primary-light); text-decoration: none; }
+a:hover { color: var(--primary); text-decoration: underline; }
+
+/* ---------- Nav ---------- */
+nav.top {
+  position: sticky; top: 0; z-index: 100;
+  background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  max-width: 1400px; margin: 0 auto; padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--text-strong); font-weight: 800; font-size: 17px;
+}
+.brand-logo {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--grad-hero);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 900; font-size: 14px;
+  box-shadow: var(--shadow);
+}
+.nav-actions { display: flex; align-items: center; gap: 8px; }
+.nav-btn {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text); padding: 8px 14px; font-size: 13px; font-weight: 600;
+  border-radius: 8px; cursor: pointer; transition: all .2s;
+}
+.nav-btn:hover { background: var(--bg-elev); border-color: var(--primary); color: var(--primary); }
+.home-btn {
+  background: var(--primary); color: #fff; border-color: var(--primary);
+}
+.home-btn:hover { background: var(--primary-dark); color: #fff; border-color: var(--primary-dark); }
+
+/* ---------- Hero ---------- */
+.doc-hero {
+  background: var(--grad-hero);
+  color: #fff; padding: 56px 0 48px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.doc-hero .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.doc-hero .eyebrow {
+  display: inline-block; background: rgba(255,255,255,.16);
+  border: 1px solid rgba(255,255,255,.28);
+  padding: 6px 14px; border-radius: 999px; font-size: 12px;
+  font-weight: 600; letter-spacing: .04em; margin-bottom: 16px;
+}
+.doc-hero h1 {
+  font-size: clamp(28px, 4vw, 40px); font-weight: 900;
+  line-height: 1.2; margin-bottom: 12px; letter-spacing: -.02em;
+}
+.doc-hero p.subtitle {
+  font-size: 16px; color: rgba(255,255,255,.85); max-width: 720px;
+}
+
+/* ---------- Layout ---------- */
+.layout {
+  max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px;
+  display: grid; grid-template-columns: 260px 1fr; gap: 48px;
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 24px; padding: 24px 20px 60px; }
+  .toc { position: static; max-height: none; }
+}
+
+/* ---------- TOC ---------- */
+.toc {
+  position: sticky; top: 88px;
+  align-self: start;
+  max-height: calc(100vh - 120px); overflow-y: auto;
+  padding: 20px 18px; border: 1px solid var(--border);
+  border-radius: var(--radius-lg); background: var(--card-bg);
+  font-size: 13.5px;
+}
+.toc h3 {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.toc ul { list-style: none; padding: 0; }
+.toc li { margin: 4px 0; }
+.toc a {
+  display: block; padding: 6px 10px; color: var(--text);
+  border-radius: 6px; transition: all .15s;
+  border-left: 2px solid transparent;
+}
+.toc a:hover {
+  background: var(--bg); color: var(--primary);
+  border-left-color: var(--primary); text-decoration: none;
+}
+.toc ul ul { margin-left: 14px; font-size: 12.8px; }
+.toc ul ul a { padding: 4px 10px; color: var(--text-muted); }
+
+/* ---------- Content ---------- */
+article.content { min-width: 0; }
+article.content h1 {
+  font-size: clamp(24px, 3vw, 32px); font-weight: 800;
+  color: var(--text-strong); margin: 32px 0 16px;
+  padding-bottom: 10px; border-bottom: 2px solid var(--primary);
+  letter-spacing: -.01em;
+}
+article.content h1:first-child { margin-top: 0; }
+article.content h2 {
+  font-size: clamp(20px, 2.4vw, 26px); font-weight: 700;
+  color: var(--text-strong); margin: 40px 0 14px;
+  scroll-margin-top: 88px;
+}
+article.content h3 {
+  font-size: 18px; font-weight: 700;
+  color: var(--text-strong); margin: 28px 0 10px;
+  scroll-margin-top: 88px;
+}
+article.content h4 { font-size: 16px; font-weight: 700; margin: 20px 0 8px; color: var(--text-strong); }
+article.content p { margin: 12px 0; }
+article.content ul, article.content ol { margin: 12px 0 12px 24px; }
+article.content li { margin: 6px 0; }
+article.content hr {
+  border: none; height: 1px; background: var(--border);
+  margin: 40px 0;
+}
+article.content strong { color: var(--text-strong); font-weight: 700; }
+article.content blockquote {
+  border-left: 4px solid var(--primary);
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+  padding: 12px 18px; margin: 16px 0;
+  border-radius: 0 8px 8px 0; color: var(--text);
+}
+
+/* Inline code */
+article.content code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  background: var(--code-bg);
+  color: var(--primary);
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: .9em;
+  font-weight: 500;
+  border: 1px solid color-mix(in srgb, var(--primary) 14%, transparent);
+}
+[data-theme="dark"] article.content code { color: #8ab4f8; }
+
+/* Code blocks */
+article.content pre {
+  background: var(--code-block-bg);
+  color: var(--code-block-fg);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  overflow-x: auto;
+  margin: 16px 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  box-shadow: var(--shadow);
+  border: 1px solid color-mix(in srgb, var(--code-block-bg) 50%, var(--border));
+}
+article.content pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border: none;
+  font-weight: 400;
+  font-size: inherit;
+}
+
+/* Codehilite tokens (Pygments default) */
+.codehilite .k, .codehilite .kd, .codehilite .kn, .codehilite .kr { color: #c792ea; }
+.codehilite .s, .codehilite .s1, .codehilite .s2, .codehilite .sb { color: #c3e88d; }
+.codehilite .c, .codehilite .c1, .codehilite .cm { color: #6b7a96; font-style: italic; }
+.codehilite .nb, .codehilite .nc, .codehilite .nf { color: #82aaff; }
+.codehilite .nv, .codehilite .nn { color: #ffcb6b; }
+.codehilite .mi, .codehilite .mf { color: #f78c6c; }
+.codehilite .o { color: #89ddff; }
+
+/* Tables */
+article.content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  font-size: 14.5px;
+}
+article.content thead {
+  background: var(--grad-hero);
+  color: #fff;
+}
+article.content th {
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: .01em;
+}
+article.content td {
+  padding: 11px 16px;
+  border-top: 1px solid var(--border);
+  vertical-align: top;
+}
+article.content tbody tr:nth-child(even) { background: var(--table-stripe); }
+article.content tbody tr:hover { background: color-mix(in srgb, var(--primary) 5%, var(--card-bg)); }
+
+/* Mermaid */
+.mermaid {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin: 20px 0;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  text-align: center;
+  overflow-x: auto;
+}
+[data-theme="dark"] .mermaid { background: var(--card-bg); }
+
+/* ---------- Footer ---------- */
+footer.doc-foot {
+  background: var(--bg-elev);
+  border-top: 1px solid var(--border);
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+footer.doc-foot a { color: var(--primary-light); margin: 0 8px; }
+footer.doc-foot .foot-brand { color: var(--text-strong); font-weight: 700; }
+
+/* ---------- Scroll top ---------- */
+.scroll-top {
+  position: fixed; right: 24px; bottom: 24px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--primary); color: #fff; border: none;
+  display: none; cursor: pointer; box-shadow: var(--shadow-lg);
+  font-size: 18px; z-index: 90;
+  transition: background .2s, transform .2s;
+}
+.scroll-top:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.scroll-top.visible { display: flex; align-items: center; justify-content: center; }
+
+/* Print */
+@media print {
+  nav.top, .toc, .scroll-top, footer.doc-foot { display: none !important; }
+  .layout { grid-template-columns: 1fr; padding: 0; }
+  body { background: #fff; color: #000; }
+  article.content pre { background: #f6f8fa; color: #000; box-shadow: none; }
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+<nav class="top">
+  <div class="nav-inner">
+    <a href="../index.html" class="brand">
+      <span class="brand-logo">S</span>
+      <span>SDACS · Docs</span>
+    </a>
+    <div class="nav-actions">
+      <button id="theme-toggle" class="nav-btn" aria-label="Toggle theme">🌙</button>
+      <a href="../index.html" class="nav-btn home-btn">← 홈으로</a>
+    </div>
+  </div>
+</nav>
+
+<header class="doc-hero">
+  <div class="container">
+    <span class="eyebrow">SDACS System Architecture</span>
+    <h1>SDACS 시스템 아키텍처</h1>
+    <p class="subtitle">4-Layer 아키텍처 · 데이터 흐름 · GPU 가속 모듈</p>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="toc">
+    <h3>목차 · Contents</h3>
+<ul>
+<li><a href="#4-layer-아키텍처-개요">4-Layer 아키텍처 개요</a>
+<li><a href="#데이터-흐름">데이터 흐름</a>
+<li><a href="#gpu-가속-모듈">GPU 가속 모듈</a>
+</ul>
+  </aside>
+  <article class="content">
+    <h2 id="4-layer-아키텍처-개요">4-Layer 아키텍처 개요</h2>
+<div class="mermaid" data-source="graph TB
+    subgraph &quot;Layer 4: UI / 인터페이스&quot;
+        CLI[&quot;CLI&lt;br/&gt;(main.py)&quot;]
+        DASH[&quot;Dash 3D 대시보드&lt;br/&gt;(simulator_3d.py)&quot;]
+        API[&quot;FastAPI REST API&lt;br/&gt;(api/)&quot;]
+        WS[&quot;WebSocket 브릿지&quot;]
+    end
+
+    subgraph &quot;Layer 3: 시뮬레이션 엔진&quot;
+        SIM[&quot;SwarmSimulator&lt;br/&gt;(SimPy 이산 이벤트)&quot;]
+        WIND[&quot;WindModel&lt;br/&gt;(바람 모델)&quot;]
+        MC[&quot;Monte Carlo&lt;br/&gt;(통계 스윕)&quot;]
+    end
+
+    subgraph &quot;Layer 2: 공역 제어&quot;
+        ATC[&quot;AirspaceController&lt;br/&gt;(1Hz 제어 루프)&quot;]
+        VOR[&quot;Voronoi 공역분할&lt;br/&gt;🔷 GPU 가속&quot;]
+        RA[&quot;ResolutionAdvisory&lt;br/&gt;(충돌 해결)&quot;]
+    end
+
+    subgraph &quot;Layer 1: 드론 에이전트&quot;
+        DRONE[&quot;_DroneAgent&lt;br/&gt;(10Hz SimPy 프로세스)&quot;]
+        APF[&quot;APF 경로 계획&lt;br/&gt;🔷 GPU 가속&quot;]
+        CBS[&quot;CBS 충돌탐지&lt;br/&gt;🔷 GPU 가속&quot;]
+        STATE[&quot;DroneState&quot;]
+    end
+
+    subgraph &quot;ML / AI 모듈&quot;
+        ML[&quot;ML 충돌 예측&lt;br/&gt;(PyTorch)&quot;]
+        PPO[&quot;PPO 강화학습&lt;br/&gt;에이전트&quot;]
+        GNN[&quot;GNN 통신&lt;br/&gt;네트워크&quot;]
+        ONNX[&quot;ONNX 내보내기&quot;]
+    end
+
+    %% Layer 4 → Layer 3
+    CLI --&gt;|시뮬 실행| SIM
+    DASH --&gt;|실시간 상태| SIM
+    API --&gt;|REST 요청| SIM
+    WS --&gt;|실시간 스트림| SIM
+
+    %% Layer 3 → Layer 2
+    SIM --&gt;|환경 상태| ATC
+    WIND --&gt;|풍속 데이터| ATC
+    MC --&gt;|파라미터 스윕| SIM
+
+    %% Layer 2 → Layer 1
+    ATC --&gt;|제어 명령| DRONE
+    VOR --&gt;|공역 할당| ATC
+    RA --&gt;|회피 기동| DRONE
+
+    %% Layer 1 내부
+    DRONE --&gt; APF
+    DRONE --&gt; CBS
+    DRONE --&gt; STATE
+
+    %% ML 연동
+    ML --&gt;|예측 결과| ATC
+    PPO --&gt;|회피 정책| DRONE
+    GNN --&gt;|통신 그래프| DRONE
+    PPO --&gt; ONNX
+
+    %% 스타일
+    classDef gpu fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
+    class APF,CBS,VOR gpu">graph TB
+    subgraph "Layer 4: UI / 인터페이스"
+        CLI["CLI<br/>(main.py)"]
+        DASH["Dash 3D 대시보드<br/>(simulator_3d.py)"]
+        API["FastAPI REST API<br/>(api/)"]
+        WS["WebSocket 브릿지"]
+    end
+
+    subgraph "Layer 3: 시뮬레이션 엔진"
+        SIM["SwarmSimulator<br/>(SimPy 이산 이벤트)"]
+        WIND["WindModel<br/>(바람 모델)"]
+        MC["Monte Carlo<br/>(통계 스윕)"]
+    end
+
+    subgraph "Layer 2: 공역 제어"
+        ATC["AirspaceController<br/>(1Hz 제어 루프)"]
+        VOR["Voronoi 공역분할<br/>🔷 GPU 가속"]
+        RA["ResolutionAdvisory<br/>(충돌 해결)"]
+    end
+
+    subgraph "Layer 1: 드론 에이전트"
+        DRONE["_DroneAgent<br/>(10Hz SimPy 프로세스)"]
+        APF["APF 경로 계획<br/>🔷 GPU 가속"]
+        CBS["CBS 충돌탐지<br/>🔷 GPU 가속"]
+        STATE["DroneState"]
+    end
+
+    subgraph "ML / AI 모듈"
+        ML["ML 충돌 예측<br/>(PyTorch)"]
+        PPO["PPO 강화학습<br/>에이전트"]
+        GNN["GNN 통신<br/>네트워크"]
+        ONNX["ONNX 내보내기"]
+    end
+
+    %% Layer 4 → Layer 3
+    CLI -->|시뮬 실행| SIM
+    DASH -->|실시간 상태| SIM
+    API -->|REST 요청| SIM
+    WS -->|실시간 스트림| SIM
+
+    %% Layer 3 → Layer 2
+    SIM -->|환경 상태| ATC
+    WIND -->|풍속 데이터| ATC
+    MC -->|파라미터 스윕| SIM
+
+    %% Layer 2 → Layer 1
+    ATC -->|제어 명령| DRONE
+    VOR -->|공역 할당| ATC
+    RA -->|회피 기동| DRONE
+
+    %% Layer 1 내부
+    DRONE --> APF
+    DRONE --> CBS
+    DRONE --> STATE
+
+    %% ML 연동
+    ML -->|예측 결과| ATC
+    PPO -->|회피 정책| DRONE
+    GNN -->|통신 그래프| DRONE
+    PPO --> ONNX
+
+    %% 스타일
+    classDef gpu fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
+    class APF,CBS,VOR gpu</div>
+<h2 id="데이터-흐름">데이터 흐름</h2>
+<div class="mermaid" data-source="sequenceDiagram
+    participant UI as Layer 4: UI
+    participant SIM as Layer 3: SwarmSimulator
+    participant ATC as Layer 2: AirspaceController
+    participant DRONE as Layer 1: DroneAgent
+
+    UI-&gt;&gt;SIM: 시뮬레이션 시작 (duration, 드론 수)
+    loop 매 시뮬레이션 스텝
+        SIM-&gt;&gt;ATC: 환경 상태 전달 (1Hz)
+        ATC-&gt;&gt;ATC: Voronoi 공역분할 (GPU)
+        ATC-&gt;&gt;DRONE: 제어 명령
+        DRONE-&gt;&gt;DRONE: APF 경로 계산 (10Hz, GPU)
+        DRONE-&gt;&gt;DRONE: CBS 충돌 탐지 (GPU)
+        DRONE--&gt;&gt;ATC: 드론 상태 보고
+        ATC--&gt;&gt;SIM: 충돌/해결 이벤트
+        SIM--&gt;&gt;UI: 실시간 시각화 데이터
+    end">sequenceDiagram
+    participant UI as Layer 4: UI
+    participant SIM as Layer 3: SwarmSimulator
+    participant ATC as Layer 2: AirspaceController
+    participant DRONE as Layer 1: DroneAgent
+
+    UI->>SIM: 시뮬레이션 시작 (duration, 드론 수)
+    loop 매 시뮬레이션 스텝
+        SIM->>ATC: 환경 상태 전달 (1Hz)
+        ATC->>ATC: Voronoi 공역분할 (GPU)
+        ATC->>DRONE: 제어 명령
+        DRONE->>DRONE: APF 경로 계산 (10Hz, GPU)
+        DRONE->>DRONE: CBS 충돌 탐지 (GPU)
+        DRONE-->>ATC: 드론 상태 보고
+        ATC-->>SIM: 충돌/해결 이벤트
+        SIM-->>UI: 실시간 시각화 데이터
+    end</div>
+<h2 id="gpu-가속-모듈">GPU 가속 모듈</h2>
+<table>
+<thead>
+<tr>
+<th>모듈</th>
+<th>설명</th>
+<th>기술</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>APF 엔진</td>
+<td>인공 포텐셜 필드 경로 계획</td>
+<td>PyTorch CUDA</td>
+</tr>
+<tr>
+<td>CBS 충돌탐지</td>
+<td>다중 에이전트 충돌 감지</td>
+<td>PyTorch CUDA</td>
+</tr>
+<tr>
+<td>Voronoi 공역분할</td>
+<td>동적 공역 파티셔닝</td>
+<td>PyTorch CUDA</td>
+</tr>
+<tr>
+<td>ML 충돌 예측</td>
+<td>사전 충돌 위험 예측</td>
+<td>PyTorch + FP16</td>
+</tr>
+<tr>
+<td>PPO 에이전트</td>
+<td>강화학습 회피 정책</td>
+<td>PyTorch + ONNX</td>
+</tr>
+</tbody>
+</table>
+  </article>
+</div>
+
+<footer class="doc-foot">
+  <div>
+    <span class="foot-brand">SDACS</span> — Swarm Drone Airspace Control System<br>
+    <a href="../index.html">홈</a>·
+    <a href="../simulator.html">3D 시뮬레이터</a>·
+    <a href="../scenarios.html">시나리오</a>·
+    <a href="../test-report.html">테스트 리포트</a>
+    <div style="margin-top:8px; font-size:13px;">MIT License © 2026 Jang Sunwoo · Mokpo National University Capstone 2026</div>
+  </div>
+</footer>
+
+<button id="scroll-top" class="scroll-top" aria-label="Scroll to top">↑</button>
+
+
+<script>
+  (() => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    window.mermaid.initialize({
+      startOnLoad: true,
+      theme: isDark ? 'dark' : 'default',
+      flowchart: { curve: 'basis', htmlLabels: true },
+      themeVariables: { fontFamily: 'Inter, sans-serif' }
+    });
+  })();
+</script>
+
+<script>
+(() => {
+  const html = document.documentElement;
+  const saved = localStorage.getItem('sdacs-theme');
+  if (saved === 'dark' || (!saved && matchMedia('(prefers-color-scheme: dark)').matches)) {
+    html.setAttribute('data-theme', 'dark');
+  }
+  const btn = document.getElementById('theme-toggle');
+  if (btn) {
+    const update = () => btn.textContent = html.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+    update();
+    btn.addEventListener('click', () => {
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('sdacs-theme', next);
+      update();
+      if (window.mermaid) {
+        window.mermaid.initialize({ startOnLoad: false, theme: next === 'dark' ? 'dark' : 'default' });
+        document.querySelectorAll('.mermaid').forEach((el, i) => {
+          if (el.dataset.source) {
+            el.removeAttribute('data-processed');
+            el.innerHTML = el.dataset.source;
+          }
+        });
+        window.mermaid.run();
+      }
+    });
+  }
+  // Scroll top
+  const top = document.getElementById('scroll-top');
+  if (top) {
+    window.addEventListener('scroll', () => {
+      top.classList.toggle('visible', window.scrollY > 400);
+    });
+    top.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+})();
+</script>
+</body>
+</html>

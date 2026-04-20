@@ -1,0 +1,43 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "SDACS — Swarm Drone Airspace Control System"
+abstract: >-
+  APF (Artificial Potential Field) + WebGPU-based swarm drone
+  airspace control automation system. Achieves 97.8% collision
+  resolution rate with 90-second preemptive prediction, validated
+  across 38,400 Monte Carlo simulations. Capstone design project
+  at Mokpo National University.
+type: software
+authors:
+  - family-names: "Jang"
+    given-names: "Sunwoo"
+    alternate-name: "장선우"
+    email: "sun475300@gmail.com"
+    affiliation: "Mokpo National University"
+date-released: "2026-04"
+version: "1.0.0"
+repository-code: "https://github.com/sun475300-sudo/swarm-drone-atc"
+url: "https://sun475300-sudo.github.io/swarm-drone-atc/"
+license: "MIT"
+keywords:
+  - "swarm drone"
+  - "airspace control"
+  - "collision avoidance"
+  - "artificial potential field"
+  - "APF"
+  - "WebGPU"
+  - "Three.js"
+  - "UAV"
+  - "UTM"
+  - "unmanned traffic management"
+  - "capstone design"
+  - "Monte Carlo simulation"
+preferred-citation:
+  type: software
+  title: "SDACS — Swarm Drone Airspace Control System"
+  authors:
+    - family-names: "Jang"
+      given-names: "Sunwoo"
+      affiliation: "Mokpo National University"
+  year: 2026
+  url: "https://sun475300-sudo.github.io/swarm-drone-atc/"

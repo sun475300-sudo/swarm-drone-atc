@@ -1,0 +1,48 @@
+{
+  "name": "SDACS — Swarm Drone Airspace Control System",
+  "short_name": "SDACS",
+  "description": "APF(Artificial Potential Field) + WebGPU 기반 군집드론 공역통제 자동화 시스템. 97.8% 충돌 회피율, 90초 선제 예측.",
+  "lang": "ko-KR",
+  "dir": "ltr",
+  "start_url": "/swarm-drone-atc/go.html",
+  "scope": "/swarm-drone-atc/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#05080f",
+  "theme_color": "#0055AA",
+  "categories": ["education", "science", "utilities"],
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "3D 시뮬레이터 v2",
+      "short_name": "시뮬 v2",
+      "url": "/swarm-drone-atc/swarm_3d_simulator_v2.html",
+      "icons": [{ "src": "favicon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "최종 보고서",
+      "short_name": "보고서",
+      "url": "/swarm-drone-atc/report/SDACS_Final_Report_v6.docx",
+      "icons": [{ "src": "favicon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

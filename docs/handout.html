@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SDACS · 발표 핸드아웃 (A4 1장)</title>
+  <meta name="description" content="SDACS Swarm Drone Airspace Control System — Capstone Design 2026 발표용 A4 핸드아웃." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="canonical" href="https://sun475300-sudo.github.io/swarm-drone-atc/handout.html" />
+
+  <style>
+    /* ───────── 디자인 토큰 ───────── */
+    :root {
+      --ink: #0a0f1c;
+      --ink-soft: #2a3142;
+      --muted: #5b6478;
+      --line: #d9dde5;
+      --accent: #0055aa;
+      --accent-soft: #e6efff;
+      --good: #0a8854;
+      --warn: #d97706;
+      --paper: #ffffff;
+      --card: #f7f9fc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      font-family: 'Pretendard', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+      background: #eceff4;
+      color: var(--ink);
+      line-height: 1.45;
+      word-break: keep-all;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* ───────── A4 용지 ─────────
+       A4 = 210 × 297 mm
+       여백 = 12mm 사방 → 실제 콘텐츠 영역 186 × 273 mm */
+    .sheet {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 12mm;
+      margin: 20px auto;
+      background: var(--paper);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 6mm;
+      position: relative;
+    }
+
+    /* ───────── 헤더 ───────── */
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding-bottom: 4mm;
+      border-bottom: 2px solid var(--accent);
+    }
+    .brand .title {
+      font-size: 22pt;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+    .brand .subtitle {
+      font-size: 10.5pt;
+      color: var(--ink-soft);
+      margin-top: 1mm;
+      font-weight: 500;
+    }
+    .brand .tagline {
+      font-size: 9pt;
+      color: var(--muted);
+      margin-top: 1.2mm;
+    }
+    .meta {
+      text-align: right;
+      font-size: 8.5pt;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .meta strong { color: var(--ink); font-weight: 700; }
+
+    /* ───────── 섹션 공통 ───────── */
+    section h2 {
+      font-size: 10.5pt;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2mm;
+      padding-bottom: 1mm;
+      border-bottom: 1px solid var(--line);
+    }
+
+    /* ───────── KPI ───────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3mm;
+    }
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      border-radius: 3px;
+      padding: 3mm 3.5mm;
+    }
+    .kpi .val {
+      font-size: 17pt;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+    .kpi .val .unit {
+      font-size: 10pt;
+      color: var(--muted);
+      font-weight: 600;
+      margin-left: 1px;
+    }
+    .kpi .lbl {
+      font-size: 8pt;
+      color: var(--muted);
+      margin-top: 1.5mm;
+      font-weight: 500;
+    }
+
+    /* ───────── 두 칼럼 본문 ───────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 6mm;
+    }
+
+    /* 요약/핵심 */
+    .bullet {
+      font-size: 9pt;
+      color: var(--ink-soft);
+      line-height: 1.55;
+      padding-left: 4mm;
+      position: relative;
+      margin-bottom: 1.5mm;
+    }
+    .bullet::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .bullet strong { color: var(--ink); font-weight: 700; }
+
+    /* 테이블 */
+    table.urls {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8.5pt;
+    }
+    table.urls th, table.urls td {
+      text-align: left;
+      padding: 1.5mm 2mm;
+      border-bottom: 1px solid var(--line);
+    }
+    table.urls th {
+      color: var(--accent);
+      font-weight: 700;
+      background: var(--accent-soft);
+      font-size: 8pt;
+    }
+    table.urls td.link {
+      font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+      color: var(--ink-soft);
+      font-size: 7.8pt;
+      word-break: break-all;
+    }
+
+    /* QR 블록 */
+    .qr-block {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 4mm;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .qr-block img {
+      width: 44mm;
+      height: 44mm;
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    .qr-block .label {
+      font-size: 9pt;
+      font-weight: 700;
+      color: var(--accent);
+      margin-top: 2mm;
+    }
+    .qr-block .url {
+      font-size: 7pt;
+      color: var(--muted);
+      font-family: 'SF Mono', monospace;
+      margin-top: 0.5mm;
+      word-break: break-all;
+    }
+
+    /* 3 QR 셀 (하단) */
+    .qr-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3mm;
+    }
+    .qr-mini {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 2.5mm;
+      display: flex;
+      align-items: center;
+      gap: 2.5mm;
+    }
+    .qr-mini img {
+      width: 22mm;
+      height: 22mm;
+      flex-shrink: 0;
+      image-rendering: pixelated;
+    }
+    .qr-mini .info { min-width: 0; }
+    .qr-mini .name {
+      font-size: 8.5pt;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .qr-mini .u {
+      font-size: 6.8pt;
+      font-family: monospace;
+      color: var(--muted);
+      margin-top: 0.5mm;
+      word-break: break-all;
+    }
+
+    /* 아키텍처 */
+    .arch {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 3mm;
+      font-size: 8.5pt;
+    }
+    .arch .pipe {
+      display: flex;
+      align-items: center;
+      gap: 2mm;
+      flex-wrap: wrap;
+      margin-top: 1mm;
+    }
+    .arch .blk {
+      padding: 1.5mm 2.5mm;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      font-size: 8pt;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .arch .blk.accent {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .arch .arrow { color: var(--accent); font-weight: 700; }
+
+    /* 푸터 */
+    footer {
+      margin-top: auto;
+      padding-top: 3mm;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 7.8pt;
+      color: var(--muted);
+    }
+    footer .contact strong { color: var(--ink); font-weight: 700; }
+    footer .cite {
+      font-family: monospace;
+      font-size: 7pt;
+      color: var(--ink-soft);
+    }
+
+    /* 키워드 배지 */
+    .badges {
+      display: flex;
+      gap: 1.5mm;
+      flex-wrap: wrap;
+      margin-top: 2mm;
+    }
+    .badge {
+      font-size: 7.5pt;
+      padding: 0.8mm 2mm;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 2mm;
+      font-weight: 600;
+    }
+
+    /* 화면 상단 안내 (인쇄 시 숨김) */
+    .print-hint {
+      max-width: 210mm;
+      margin: 14px auto -6px;
+      padding: 10px 14px;
+      background: #fff8e1;
+      border-left: 3px solid var(--warn);
+      border-radius: 3px;
+      font-size: 13px;
+      color: var(--ink-soft);
+    }
+    .print-hint kbd {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+
+    /* ───────── 인쇄 스타일 ───────── */
+    @page {
+      size: A4;
+      margin: 0;
+    }
+    @media print {
+      body { background: #fff; }
+      .print-hint { display: none; }
+      .sheet {
+        margin: 0;
+        box-shadow: none;
+        width: 210mm;
+        min-height: 297mm;
+        page-break-after: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="print-hint" role="note">
+    <strong>인쇄 안내</strong> — <kbd>Ctrl</kbd> + <kbd>P</kbd> (Mac: <kbd>⌘</kbd> + <kbd>P</kbd>) →
+    용지 <strong>A4</strong>, 여백 <strong>없음</strong>, <strong>배경 그래픽</strong> 체크 →
+    PDF 저장 또는 인쇄. (이 안내문은 인쇄 시 자동 제거됩니다.)
+  </div>
+
+  <article class="sheet" aria-label="SDACS Capstone Handout">
+
+    <!-- ───── 헤더 ───── -->
+    <header>
+      <div class="brand">
+        <div class="title">SDACS</div>
+        <div class="subtitle">Swarm Drone Airspace Control System</div>
+        <div class="tagline">군집드론 공역통제 자동화 시스템 · APF + WebGPU 기반 충돌 회피</div>
+        <div class="badges" aria-hidden="true">
+          <span class="badge">APF</span>
+          <span class="badge">Three.js r175</span>
+          <span class="badge">WebGPU</span>
+          <span class="badge">Monte Carlo</span>
+          <span class="badge">SimPy</span>
+        </div>
+      </div>
+      <div class="meta">
+        <div><strong>2026 Capstone Design</strong></div>
+        <div>Mokpo National University</div>
+        <div>장선우 (Sunwoo Jang)</div>
+        <div>Final Presentation · 2026-04-23</div>
+        <div style="margin-top: 2mm;">MIT License · v1.0.0</div>
+      </div>
+    </header>
+
+    <!-- ───── 핵심 KPI ───── -->
+    <section aria-label="핵심 성과 지표">
+      <h2>핵심 성과 (Key Results)</h2>
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="val">97.8<span class="unit">%</span></div>
+          <div class="lbl">충돌 회피 성공률<br/>(Baseline 대비 +18.4%p)</div>
+        </div>
+        <div class="kpi">
+          <div class="val">90<span class="unit">s</span></div>
+          <div class="lbl">선제 예측 시간<br/>(Preemptive Horizon)</div>
+        </div>
+        <div class="kpi">
+          <div class="val">38,400<span class="unit">회</span></div>
+          <div class="lbl">Monte Carlo 검증<br/>(8 시나리오 × 5 알고리즘 × 960)</div>
+        </div>
+        <div class="kpi">
+          <div class="val">200<span class="unit">기</span></div>
+          <div class="lbl">실시간 군집 렌더<br/>(60 FPS @ InstancedMesh)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───── 본문: 2칼럼 ───── -->
+    <div class="two-col">
+
+      <!-- 좌: 요약 + 아키텍처 + URL -->
+      <div>
+        <section aria-label="프로젝트 요약" style="margin-bottom: 4mm;">
+          <h2>Project Summary</h2>
+          <div class="bullet">
+            <strong>문제:</strong> 도심 항공 모빌리티(UAM) 시대에 수백 대 드론이 동시 운항할 때
+            충돌·지연·통제 부재로 인한 공역 안전성 저하.
+          </div>
+          <div class="bullet">
+            <strong>접근:</strong> <strong>APF</strong>(Artificial Potential Field) 기반 분산 제어
+            + 중앙 <strong>ATC 중재</strong> 레이어 + <strong>90초 선제 예측</strong> 창을
+            결합한 하이브리드 공역 통제 시스템.
+          </div>
+          <div class="bullet">
+            <strong>차별점:</strong> 5개 드론 역할(Quadrotor · Heavy-Lifter · Fixed-Wing ·
+            Tilt-Rotor · Micro-UAS) 이종 군집 지원 + 8개 시나리오(교차·바람·보티셀·CBS·GNN·
+            디퓨전·Vertiport) 벤치마크.
+          </div>
+          <div class="bullet">
+            <strong>구현:</strong> Python <strong>SimPy</strong>(백엔드 검증) +
+            <strong>Three.js r175</strong>(웹 기반 3D 시뮬레이터, PBR + Bloom + SMAA) +
+            GitHub Pages(영구 배포).
+          </div>
+        </section>
+
+        <section aria-label="시스템 아키텍처" style="margin-bottom: 4mm;">
+          <h2>Architecture</h2>
+          <div class="arch">
+            <div class="pipe">
+              <span class="blk">Mission Plan</span>
+              <span class="arrow">→</span>
+              <span class="blk">ATC Mediator</span>
+              <span class="arrow">→</span>
+              <span class="blk accent">APF Solver</span>
+              <span class="arrow">→</span>
+              <span class="blk">Conflict Detector</span>
+              <span class="arrow">→</span>
+              <span class="blk">Drone</span>
+            </div>
+            <div class="pipe" style="margin-top: 2mm;">
+              <span class="blk">SimPy Engine</span>
+              <span class="arrow">⇅</span>
+              <span class="blk">Event Bus</span>
+              <span class="arrow">⇅</span>
+              <span class="blk">Metrics/CSV</span>
+              <span class="arrow">⇅</span>
+              <span class="blk accent">3D Viewer</span>
+            </div>
+          </div>
+        </section>
+
+        <section aria-label="주요 링크">
+          <h2>Public URLs · 모든 링크는 무료 · 영구 접근</h2>
+          <table class="urls">
+            <thead>
+              <tr><th style="width: 32mm;">자원</th><th>URL</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>🚀 허브 (추천)</td>
+                <td class="link">sun475300-sudo.github.io/swarm-drone-atc/go.html</td>
+              </tr>
+              <tr>
+                <td>🏠 프로젝트 홈</td>
+                <td class="link">sun475300-sudo.github.io/swarm-drone-atc/</td>
+              </tr>
+              <tr>
+                <td>🎮 3D 시뮬 v2</td>
+                <td class="link">…/swarm_3d_simulator_v2.html</td>
+              </tr>
+              <tr>
+                <td>📄 최종 보고서</td>
+                <td class="link">…/report/SDACS_Final_Report_v6.docx</td>
+              </tr>
+              <tr>
+                <td>💻 GitHub</td>
+                <td class="link">github.com/sun475300-sudo/swarm-drone-atc</td>
+              </tr>
+              <tr>
+                <td>🔖 Zenodo DOI</td>
+                <td class="link">10.5281/zenodo.XXXXXXX <em style="color:#999;">(릴리즈 후 발급)</em></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+
+      <!-- 우: 메인 QR (허브) -->
+      <div>
+        <div class="qr-block" aria-label="메인 허브 QR 코드">
+          <img src="qr/go.png" alt="SDACS 허브 페이지 QR 코드" />
+          <div class="label">한 번 스캔 · 모든 자원</div>
+          <div class="url">→ .../go.html</div>
+          <div style="margin-top: 3mm; font-size: 7.5pt; color: var(--muted); line-height: 1.5;">
+            이 QR로 진입하면<br/>
+            시뮬레이터·보고서·GitHub<br/>
+            모두 연결됩니다.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───── 하단: 3개 QR ───── -->
+    <section aria-label="개별 자원 QR 코드">
+      <h2>Direct Access — 개별 QR</h2>
+      <div class="qr-row">
+        <div class="qr-mini">
+          <img src="qr/v2.png" alt="3D 시뮬레이터 v2 QR" />
+          <div class="info">
+            <div class="name">3D 시뮬 v2</div>
+            <div class="u">…/swarm_3d_simulator_v2.html</div>
+          </div>
+        </div>
+        <div class="qr-mini">
+          <img src="qr/report.png" alt="최종 보고서 QR" />
+          <div class="info">
+            <div class="name">최종 보고서</div>
+            <div class="u">…/SDACS_Final_Report_v6.docx</div>
+          </div>
+        </div>
+        <div class="qr-mini">
+          <img src="qr/github.png" alt="GitHub 저장소 QR" />
+          <div class="info">
+            <div class="name">GitHub 저장소</div>
+            <div class="u">github.com/sun475300-sudo/swarm-drone-atc</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───── 푸터 ───── -->
+    <footer>
+      <div class="contact">
+        <strong>장선우 Sunwoo Jang</strong> ·
+        Mokpo National University ·
+        <strong>sun475300@gmail.com</strong>
+      </div>
+      <div class="cite">
+        cite as: Jang, S. (2026). SDACS v1.0. MIT. github.com/sun475300-sudo/swarm-drone-atc
+      </div>
+    </footer>
+
+  </article>
+
+</body>
+</html>

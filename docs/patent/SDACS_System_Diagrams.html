@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>SDACS System Diagrams — 특허 도면 시각화</title>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: 'neutral', flowchart: { curve: 'basis' } });
+</script>
+<style>
+  :root { --ink:#1f3a6b; --sub:#5B21B6; --bg:#ffffff; --soft:#f6f8fb; --muted:#6b7280; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin: 0; padding: 0; color: #111827; background: var(--bg); line-height: 1.6;
+  }
+  .cover {
+    background: linear-gradient(135deg, #1f3a6b 0%, #5B21B6 100%);
+    color: #fff; padding: 80px 40px; text-align: center;
+  }
+  .cover h1 { font-size: 36px; margin: 0 0 10px; }
+  .cover h2 { font-size: 18px; font-weight: 400; margin: 0 0 30px; opacity: .9; }
+  .cover .meta { display: inline-block; background: rgba(255,255,255,.12);
+    padding: 12px 24px; border-radius: 8px; font-size: 14px; }
+  .container { max-width: 1160px; margin: 0 auto; padding: 40px; }
+  h3 { color: var(--ink); border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-top: 60px; }
+  h4 { color: var(--sub); margin-top: 30px; }
+  .diagram {
+    background: var(--soft); border-radius: 12px; padding: 20px;
+    margin: 18px 0 24px; overflow: auto;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .caption {
+    font-size: 13px; color: var(--muted); font-style: italic;
+    padding: 4px 0 0; text-align: center;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+  th, td { border: 1px solid #e5e7eb; padding: 8px 12px; text-align: left; }
+  th { background: #f3f4f6; color: var(--ink); }
+  .note { background: #fff7ed; border-left: 4px solid #ea580c; padding: 10px 14px; margin: 14px 0; font-size: 13px; color: #9a3f00; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 40px 0; border-top: 1px solid #e5e7eb; margin-top: 80px; }
+  code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>SDACS — System Diagrams</h1>
+  <h2>특허 도면 시각화 · Mermaid 기반 인터랙티브 다이어그램</h2>
+  <div class="meta">
+    발명자: 장선우 (sun475300@naver.com · 010-9058-3745) · v1.0 · 2026-04-21
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="note">
+    <b>사용 안내</b> — 본 HTML은 출원 명세서의 도면(Fig. 1~5) 시각화를 Mermaid로 구현한 문서입니다.
+    각 도면은 SVG로 고화질 내보내기가 가능하며, Mermaid 소스 그대로를 청구항 도면 제출용
+    SVG/PDF로 변환해 사용할 수 있습니다.
+  </div>
+
+  <!-- ============ Fig. 1 ============= -->
+  <h3>Fig. 1 — 4계층 시스템 아키텍처 (Representative Figure)</h3>
+  <p>SDACS는 에이전트(10 Hz) · 공역제어기(1 Hz) · 시뮬레이션 · UI/CLI의 4계층으로 구성된다.</p>
+  <div class="diagram">
+<pre class="mermaid">
+flowchart TB
+  subgraph L4["🖥️ Layer 4 · 운영 인터페이스 (on-demand)"]
+    UI[Dash 3D Dashboard]
+    CLI[CLI Console]
+  end
+
+  subgraph L3["🧪 Layer 3 · 시뮬레이션 엔진"]
+    SIM[SwarmSimulator]
+    WIND[WindModel]
+    MC[Monte Carlo 38,400회]
+  end
+
+  subgraph L2["🛰️ Layer 2 · 공역 제어기 (1 Hz)"]
+    DGF[동적 지오펜싱 모듈<br/>Dynamic 3D Geofencing]
+    APF[APF 경로 계획 모듈<br/>F_attr + ΣF_rep]
+    CDR[분산 CD&R 모듈<br/>Broadcast + Local Recompute]
+    WGP[WebGPU 병렬 가속<br/>Compute Shader]
+    WAD[기상 적응 전환<br/>DEFAULT ↔ WINDY]
+  end
+
+  subgraph L1["🛸 Layer 1 · 드론 에이전트 (10 Hz)"]
+    D1["_DroneAgent #1"]
+    D2["_DroneAgent #2"]
+    DN["_DroneAgent #N"]
+    LC[로컬 공역 캐시]
+  end
+
+  STATE[(공역 상태 저장소<br/>Airspace State Store)]
+
+  UI --> L2
+  CLI --> L2
+  L3 --> L2
+  L2 --> STATE
+  L2 --> L1
+  L1 --> STATE
+  L1 -->|상태 보고| L2
+  LC -.폴백.- L1
+
+  classDef layer fill:#eef2ff,stroke:#1f3a6b,color:#1f3a6b;
+  classDef store fill:#fef3c7,stroke:#d97706;
+  class STATE store;
+</pre>
+  </div>
+  <div class="caption">Fig. 1 · SDACS 4계층 시스템 아키텍처 — 대표도면 (Representative)</div>
+
+  <table>
+    <tr><th>계층</th><th>주기</th><th>주요 구성요소</th><th>역할</th></tr>
+    <tr><td>L1 드론 에이전트</td><td>10 Hz</td><td>_DroneAgent, Local Airspace Cache</td><td>상태 갱신, 통신 단절 시 폴백</td></tr>
+    <tr><td>L2 공역 제어기</td><td>1 Hz</td><td>DGF · APF · CDR · WGP · WAD</td><td>통합 실행</td></tr>
+    <tr><td>L3 시뮬레이션</td><td>이벤트</td><td>SwarmSimulator, WindModel, Monte Carlo</td><td>시나리오·외란·검증</td></tr>
+    <tr><td>L4 UI/CLI</td><td>on-demand</td><td>Dash 3D, CLI</td><td>사용자 I/O</td></tr>
+  </table>
+
+  <!-- ============ Fig. 2 ============= -->
+  <h3>Fig. 2 — 동적 3D 지오펜스 생성 절차 (Flowchart)</h3>
+  <div class="diagram">
+<pre class="mermaid">
+flowchart LR
+  S["🌐 외부 이벤트<br/>(기상·관제·긴급)"] --> S210["S210<br/>이벤트 감시"]
+  S210 --> S220{"S220<br/>이벤트 유형 분류"}
+  S220 -->|유인기 진입| F1["원통 r=500 m · h=±150 m"]
+  S220 -->|돌풍 경보| F2["구체 r=300 m"]
+  S220 -->|긴급구역| F3["프리즘 custom"]
+  F1 --> S230["S230<br/>저장소 등록 · TTL 부여"]
+  F2 --> S230
+  F3 --> S230
+  S230 --> S240["S240<br/>APF 반발 소스 주입"]
+  S240 --> BC["브로드캐스트<br/>(주변 드론 전원)"]
+  BC --> S250{"S250<br/>TTL 만료?"}
+  S250 -->|미만료| APF_REPULSE["반발력 계산 참여"]
+  S250 -->|만료| DEL["저장소에서 자동 제거"]
+  APF_REPULSE --> S250
+
+  classDef event fill:#fee2e2,stroke:#b91c1c;
+  classDef store fill:#fef3c7,stroke:#d97706;
+  class S,BC event;
+  class S230,DEL store;
+</pre>
+  </div>
+  <div class="caption">Fig. 2 · 동적 3D 지오펜스 생성 절차 (청구항 5, 11 대응)</div>
+
+  <!-- ============ Fig. 3 ============= -->
+  <h3>Fig. 3 — 분산 CD&amp;R 메시지 시퀀스 (Sequence Diagram)</h3>
+  <div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+  participant EXT as 외부 이벤트
+  participant CTRL as 공역 제어기
+  participant STORE as 공역 상태 저장소
+  participant D1 as 드론 #1
+  participant D2 as 드론 #2
+  participant DN as 드론 #N
+  participant DOUT as 드론 #X (통신단절)
+
+  EXT ->> CTRL: 유인기 진입 이벤트
+  CTRL ->> CTRL: 펜스 형상/크기 결정
+  CTRL ->> STORE: fence.create(r=500m, TTL=600s)
+  CTRL -) D1: broadcast(fence_payload)
+  CTRL -) D2: broadcast(fence_payload)
+  CTRL -) DN: broadcast(fence_payload)
+  CTRL -x DOUT: 브로드캐스트 실패
+  par 각 드론 병렬 재계산
+    D1 ->> D1: apf.recompute(...)
+    D2 ->> D2: apf.recompute(...)
+    DN ->> DN: apf.recompute(...)
+  end
+  D1 -->> CTRL: ack(new_path)
+  D2 -->> CTRL: ack(new_path)
+  DN -->> CTRL: ack(new_path)
+  note over DOUT: 로컬 캐시 기반 폴백<br/>→ 기본 회피 유지
+  DOUT ->> DOUT: local_cache.recompute()
+</pre>
+  </div>
+  <div class="caption">Fig. 3 · 분산 CD&amp;R 메시지 시퀀스 — SPOF 제거 (청구항 4, 12 대응)</div>
+
+  <!-- ============ Fig. 4 ============= -->
+  <h3>Fig. 4 — APF 벡터 합성 · 강풍 모드 전환 (FSM)</h3>
+  <div class="diagram">
+<pre class="mermaid">
+stateDiagram-v2
+  [*] --> DEFAULT
+  state DEFAULT {
+    direction LR
+    d_default: k_att=1.0<br/>k_rep=2.0<br/>d_safe=30m<br/>v_max=15 m/s
+  }
+  state WINDY {
+    direction LR
+    d_windy: k_att=0.6<br/>k_rep=3.5<br/>d_safe=50m<br/>v_max=10 m/s
+  }
+  DEFAULT --> WINDY: 풍속 > 10 m/s (임계)
+  WINDY --> DEFAULT: 풍속 ≤ 10 m/s (hysteresis 2 m/s)
+  DEFAULT --> DEFAULT: F = F_attr + ΣF_rep
+  WINDY --> WINDY: F = F_attr + ΣF_rep\n(robust gains)
+</pre>
+  </div>
+  <div class="caption">Fig. 4 · APF 파라미터 상태 다이어그램 (청구항 2, 9, 15 대응)</div>
+
+  <table>
+    <tr><th>파라미터</th><th>DEFAULT (≤10 m/s)</th><th>WINDY (>10 m/s)</th><th>의미</th></tr>
+    <tr><td>k_att</td><td>1.0</td><td>0.6</td><td>인력 이득</td></tr>
+    <tr><td>k_rep</td><td>2.0</td><td>3.5</td><td>반발 이득 (1.75×↑)</td></tr>
+    <tr><td>d_safe</td><td>30 m</td><td>50 m</td><td>안전거리</td></tr>
+    <tr><td>v_max</td><td>15 m/s</td><td>10 m/s</td><td>최대 속도</td></tr>
+  </table>
+
+  <!-- ============ Fig. 5 ============= -->
+  <h3>Fig. 5 — WebGPU Compute 병렬 파이프라인</h3>
+  <div class="diagram">
+<pre class="mermaid">
+flowchart LR
+  CPU[CPU<br/>드론 위치 수집] -->|write| UB[GPU Uniform Buffer<br/>N개 position]
+  UB --> WG{Workgroup<br/>분할<br/>size=64}
+  WG --> T1[Thread 0..63<br/>coalesced read]
+  WG --> T2[Thread 64..127]
+  WG --> T3[...]
+  T1 --> APF_CALC[APF 힘 벡터 계산<br/>F_attr + ΣF_rep]
+  T2 --> APF_CALC
+  T3 --> APF_CALC
+  APF_CALC --> SB[GPU Storage Buffer<br/>Force vectors]
+  SB -->|read| CPU2[CPU 제어 명령 생성<br/>드론별 명령 송출]
+
+  classDef gpu fill:#dcfce7,stroke:#166534;
+  classDef cpu fill:#dbeafe,stroke:#1e40af;
+  class UB,WG,T1,T2,T3,APF_CALC,SB gpu;
+  class CPU,CPU2 cpu;
+</pre>
+  </div>
+  <div class="caption">Fig. 5 · WebGPU Compute 파이프라인 — O(N²) → 사실상 O(log N) (청구항 13 대응)</div>
+
+  <!-- ============ 부록 FSM ============= -->
+  <h3>부록 — 드론 에이전트 내부 FSM (참고용)</h3>
+  <div class="diagram">
+<pre class="mermaid">
+stateDiagram-v2
+  [*] --> IDLE
+  IDLE --> PLAN: 임무 할당
+  PLAN --> FLYING: 경로 산출 완료
+  FLYING --> AVOIDING: 펜스 수신 / 충돌 감지
+  AVOIDING --> FLYING: 회피 경로 확보
+  FLYING --> OFFLINE: 통신 단절
+  OFFLINE --> FLYING: 통신 복구
+  OFFLINE --> SAFE_LAND: 장시간 단절
+  FLYING --> COMPLETE: 목적지 도착
+  COMPLETE --> [*]
+  SAFE_LAND --> [*]
+</pre>
+  </div>
+  <div class="caption">부록 · 드론 에이전트 내부 상태 전이 (청구항 4, 12 통신 단절 대응)</div>
+
+  <h3>요약 매트릭스 (청구항 ↔ 도면)</h3>
+  <table>
+    <tr><th>청구항</th><th>대응 도면</th><th>핵심 요지</th></tr>
+    <tr><td>청구항 1 (독립/시스템)</td><td>Fig. 1, 2, 3, 5</td><td>동적 지오펜싱 + APF + 분산 CD&amp;R + GPU 병렬</td></tr>
+    <tr><td>청구항 2, 9, 15</td><td>Fig. 4</td><td>강풍 모드 전환 FSM</td></tr>
+    <tr><td>청구항 3 (4계층)</td><td>Fig. 1</td><td>L1-L4 계층 구조</td></tr>
+    <tr><td>청구항 4, 12</td><td>Fig. 3, 부록 FSM</td><td>통신 단절 폴백</td></tr>
+    <tr><td>청구항 5, 11</td><td>Fig. 2</td><td>TTL 관리</td></tr>
+    <tr><td>청구항 6, 7</td><td>Fig. 2</td><td>펜스 형상, 센서 융합</td></tr>
+    <tr><td>청구항 8 (독립/방법)</td><td>Fig. 1, 2, 3, 5</td><td>방법 전체</td></tr>
+    <tr><td>청구항 13</td><td>Fig. 5</td><td>workgroup coalesced access</td></tr>
+    <tr><td>청구항 14</td><td>—</td><td>기록매체 (도면 불요)</td></tr>
+  </table>
+
+</div>
+
+<footer>
+  © 2026 SDACS Project · Jang Sunwoo · 문서 버전 v1.0 · 생성일 2026-04-21<br/>
+  본 문서는 특허 출원 사전 검토용이며, 외부 유출 금지 (Confidential)
+</footer>
+
+</body>
+</html>

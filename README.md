@@ -10,7 +10,7 @@
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
 [![Phase](https://img.shields.io/badge/Phase-660-gold?style=for-the-badge&logo=rocket)](simulation/)
-[![Tests](https://img.shields.io/badge/Tests-2%2C722%2B%20Passed-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-3%2C330%2B%20Collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Algorithms](https://img.shields.io/badge/Algorithms-600+-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#core-algorithms)
 [![Modules](https://img.shields.io/badge/Modules-590+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Languages](https://img.shields.io/badge/Languages-50+-FF5722?style=for-the-badge&logo=github&logoColor=white)](#multi-language-architecture)
@@ -145,7 +145,7 @@ SDACS는 이 단순한 발상에서 출발했습니다. 20대의 관제 드론�
 | **Scenario Coverage** | **63 scenarios** | 7대 광역시 도시환경 + 극한 기상 + 침입 + GPS 재밍 + 대규모 배송 |
 | **Concurrent Drones** | **100+** | 20대: 충돌 0, 50대: avg 15, 100대: avg 29 |
 | **Deployment Time** | **30 min** | No fixed infrastructure required |
-| **Test Coverage** | **2,722+ tests** | Automated pytest suite across 590+ modules |
+| **Test Coverage** | **3,330+ tests** | Automated pytest suite across 590+ modules |
 <div align="center">
 <img src="https://i.imgur.com/wHuMIfM.png" alt="기존 방식 대비 SDACS 성능 비교" width="750"/>
 <br/><sub>기존 Rule-based Static ATC vs SDACS Swarm Autonomous — 주요 KPI 비교</sub>
@@ -659,7 +659,7 @@ MIT License — Developed for academic and educational purposes.
 <div align="center">
 **Made with dedication by Sunwoo Jang**
 **장선우 · 국립 목포대학교 드론기계공학과**
-**Phase 660 · 590+ Modules · 2,722+ Tests Passed · 50+ Languages · 120K+ LOC**
+**Phase 660 · 590+ Modules · 3,330+ Tests Collected · 50+ Languages · 120K+ LOC**
 </div>
 
 ## 변경 이력 (Changelog)

@@ -11,7 +11,8 @@ import numpy as np
 try:
     import torch
     _TORCH = True
-except ImportError:
+except (ImportError, OSError):
+    # OSError covers Windows DLL load failures (e.g. WinError 4551).
     _TORCH = False
 
 

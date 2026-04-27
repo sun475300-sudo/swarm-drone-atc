@@ -1,0 +1,51 @@
+id: "08_stress_high_density"
+name: "Stress: High Density"
+version: "1.0.0"
+category: "stress"
+difficulty: "hard"
+
+duration_seconds: 300
+dt_seconds: 1.0
+
+airspace:
+  bounds_m: { x: [0, 1000], y: [0, 1000], z: [50, 150] }
+  volume_m3: 100_000_000              # ~ 1 km³
+  capacity_max_agents: 250            # operational ceiling for the test
+
+agents:
+  count: 200                          # 200 in 1 km³
+  kinematics: { max_speed_m_s: 15.0, max_accel_m_s2: 5.0, turn_rate_deg_s: 30.0 }
+  spawn_pattern: "uniform_random"
+  goal_pattern: "uniform_random_inside_volume"
+
+obstacles:
+  static: []
+  dynamic: []
+
+weather:
+  wind: { mean_m_s: 2.0, gust_m_s: 3.0, direction_deg: 0.0 }
+  visibility_m: 10000
+  precipitation_mm_per_h: 0.0
+
+communications:
+  quality: "perfect"
+  packet_loss: 0.0
+  blackout_windows_s: []
+
+regulatory:
+  remote_id_required: true
+  laanc_volume_class: "G"
+  geofences: []
+
+success_criteria:
+  NMR_max: 1.0e-3                    # higher floor — this is stress
+  MSD_min_m: 4.5                     # slight relaxation
+  geofence_violations_max: 0
+  RID_CR_min: 0.999
+
+expected_baseline_performance:
+  NMR: 4.5e-4
+  MSD_m: 5.0
+  PE: 0.79
+  MS_s: 235.0
+  RTF: 5.5                            # heavy load — RTF claim under test here

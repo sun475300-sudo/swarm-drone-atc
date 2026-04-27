@@ -1,0 +1,54 @@
+id: "07_communication_loss"
+name: "Communication Loss"
+version: "1.0.0"
+category: "standard"
+difficulty: "hard"
+
+duration_seconds: 300
+dt_seconds: 1.0
+
+airspace:
+  bounds_m: { x: [0, 1500], y: [0, 1500], z: [50, 250] }
+  volume_m3: 450_000_000
+  capacity_max_agents: 20
+
+agents:
+  count: 12
+  kinematics: { max_speed_m_s: 15.0, max_accel_m_s2: 5.0, turn_rate_deg_s: 30.0 }
+  spawn_pattern: "random_distributed"
+  goal_pattern: "delivery_endpoints"
+
+obstacles:
+  static: []
+  dynamic: []
+
+weather:
+  wind: { mean_m_s: 1.0, gust_m_s: 2.0, direction_deg: 0.0 }
+  visibility_m: 10000
+  precipitation_mm_per_h: 0.0
+
+communications:
+  quality: "degraded"
+  packet_loss: 0.30                    # 30% packet loss baseline
+  blackout_windows_s:
+    - [60, 90]                         # full blackout 30 s
+    - [180, 195]                       # second blackout 15 s
+
+regulatory:
+  remote_id_required: true             # but Network RID will fail during blackout
+  laanc_volume_class: "G"
+  geofences: []
+
+success_criteria:
+  NMR_max: 5.0e-4
+  MSD_min_m: 5.0
+  geofence_violations_max: 0
+  RID_CR_min: 0.85                     # blackouts pulled this floor down
+  hold_pattern_failure_max: 0          # all drones must enter hold during blackout
+
+expected_baseline_performance:
+  NMR: 3.0e-4
+  MSD_m: 5.5
+  PE: 0.71
+  MS_s: 240.0
+  RTF: 9.0

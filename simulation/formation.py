@@ -8,6 +8,8 @@ Formation 패턴 정의 + 리더-팔로워 프로토콜 + 동적 대형 전환.
   - 라인 (LINE): 일렬 종대
   - 서클 (CIRCLE): 원형 배치
   - 그리드 (GRID): 격자형 배치
+  - 다이아몬드 (DIAMOND): 리더 중심 4방향 마름모 (전·후·좌·우 → 외곽 확장)
+    영상 참조: youtube.com/shorts/UJP5GbvlpZs ("자율 군집 비행 — 사전 경로 없음")
 
 사용법:
     fc = FormationController(pattern="V_SHAPE", spacing=80.0)
@@ -29,6 +31,7 @@ class FormationPattern(str, Enum):
     LINE = "LINE"
     CIRCLE = "CIRCLE"
     GRID = "GRID"
+    DIAMOND = "DIAMOND"
 
 
 class FormationController:
@@ -101,6 +104,24 @@ class FormationController:
                 x_off = -(row + 1) * s
                 y_off = (col - cols // 2) * s
                 offsets.append(np.array([x_off, y_off, az]))
+            return offsets
+
+        elif self.pattern == FormationPattern.DIAMOND:
+            # 4-way diamond around leader, expanding outward in rings.
+            # Slot order (per ring): front, back, left, right.
+            # Each ring multiplies spacing by ring index, altitude offset stacks.
+            offsets = []
+            directions = [
+                np.array([1.0, 0.0]),   # front
+                np.array([-1.0, 0.0]),  # back
+                np.array([0.0, 1.0]),   # left
+                np.array([0.0, -1.0]),  # right
+            ]
+            for i in range(n_followers):
+                ring = (i // 4) + 1
+                slot = i % 4
+                xy = directions[slot] * (ring * s)
+                offsets.append(np.array([xy[0], xy[1], az * ring]))
             return offsets
 
         return []

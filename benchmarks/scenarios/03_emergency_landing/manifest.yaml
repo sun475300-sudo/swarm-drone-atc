@@ -1,0 +1,66 @@
+id: "03_emergency_landing"
+name: "Emergency Landing"
+version: "1.0.0"
+category: "standard"
+difficulty: "medium"
+
+duration_seconds: 180
+dt_seconds: 1.0
+
+airspace:
+  bounds_m:
+    x: [0, 1000]
+    y: [0, 1000]
+    z: [0, 200]
+  volume_m3: 200_000_000
+  capacity_max_agents: 15
+
+agents:
+  count: 8
+  kinematics:
+    max_speed_m_s: 15.0
+    max_accel_m_s2: 5.0
+    turn_rate_deg_s: 30.0
+  spawn_pattern: "random_distributed"
+  goal_pattern: "delivery_endpoints"
+
+events:
+  - at_s: 60
+    type: "emergency_landing"
+    agent_id: "drone_03"
+    target_position_m: [500, 500, 0]
+    priority: "PAN_PAN"
+
+obstacles:
+  static: []
+  dynamic: []
+
+weather:
+  wind: { mean_m_s: 1.0, gust_m_s: 2.0, direction_deg: 270.0 }
+  visibility_m: 10000
+  precipitation_mm_per_h: 0.0
+
+communications:
+  quality: "perfect"
+  packet_loss: 0.0
+  blackout_windows_s: []
+
+regulatory:
+  remote_id_required: true
+  laanc_volume_class: "G"
+  geofences: []
+
+success_criteria:
+  NMR_max: 1.0e-4
+  MSD_min_m: 5.0
+  geofence_violations_max: 0
+  RID_CR_min: 0.999
+  emergency_landing_clear_radius_m: 50          # all others ≥ 50 m from landing site
+  emergency_landing_clearance_time_s: 15        # within 15 s of declaration
+
+expected_baseline_performance:
+  NMR: 2.0e-5
+  MSD_m: 9.0
+  PE: 0.91
+  MS_s: 130.0
+  RTF: 10.0

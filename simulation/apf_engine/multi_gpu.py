@@ -13,7 +13,8 @@ try:
     import torch
     import torch.nn as nn
     _TORCH = True
-except ImportError:
+except (ImportError, OSError):
+    # OSError covers Windows DLL load failures (e.g. WinError 4551).
     _TORCH = False
 
 from .apf import APFState, APF_PARAMS

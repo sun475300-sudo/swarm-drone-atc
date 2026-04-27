@@ -1,0 +1,61 @@
+id: "06_priority_aircraft"
+name: "Priority Aircraft Transit"
+version: "1.0.0"
+category: "standard"
+difficulty: "medium"
+
+duration_seconds: 240
+dt_seconds: 1.0
+
+airspace:
+  bounds_m: { x: [0, 2000], y: [0, 2000], z: [0, 400] }
+  volume_m3: 1_600_000_000
+  capacity_max_agents: 25
+
+agents:
+  count: 12
+  kinematics: { max_speed_m_s: 15.0, max_accel_m_s2: 5.0, turn_rate_deg_s: 30.0 }
+  spawn_pattern: "delivery_grid"
+  goal_pattern: "delivery_endpoints"
+
+events:
+  - at_s: 90
+    type: "manned_aircraft_transit"
+    aircraft_class: "rotorcraft"
+    speed_m_s: 30.0
+    path: { from_m: [0, 1000, 200], to_m: [2000, 1000, 200] }
+    cleared_radius_m: 150              # keep all UAS ≥ 150 m laterally
+    advance_notice_s: 30               # appears in regulatory feed at t=60
+
+obstacles:
+  static: []
+  dynamic: []
+
+weather:
+  wind: { mean_m_s: 2.0, gust_m_s: 3.0, direction_deg: 180.0 }
+  visibility_m: 10000
+  precipitation_mm_per_h: 0.0
+
+communications:
+  quality: "perfect"
+  packet_loss: 0.0
+  blackout_windows_s: []
+
+regulatory:
+  remote_id_required: true
+  laanc_volume_class: "B"              # near a major airport
+  geofences: []
+
+success_criteria:
+  NMR_max: 1.0e-4
+  MSD_min_m: 5.0
+  geofence_violations_max: 0
+  RID_CR_min: 0.999
+  manned_aircraft_clear_violations_max: 0
+
+expected_baseline_performance:
+  NMR: 0.0
+  MSD_m: 8.5
+  PE: 0.86
+  MS_s: 175.0
+  RTF: 8.0

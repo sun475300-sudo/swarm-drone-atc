@@ -52,3 +52,15 @@ node_modules/
 package.json
 package-lock.json
 .coverage
+
+# Standardized common patterns (added 2026-04-27)
+*.bak
+*.bak.*
+*.orig
+_*.bat
+_*.log
+_*.txt
+_*.ps1
+htmlcov/
+.pytest_cache/
+pytest-cache-files-*/

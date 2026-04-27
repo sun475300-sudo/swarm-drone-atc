@@ -1,0 +1,39 @@
+# docker-compose for one-command reproduction.
+# Usage:
+#     docker compose -f docker-compose.reproducible.yml up sdacs-repro
+#     # or one scenario:
+#     docker compose -f docker-compose.reproducible.yml run --rm sdacs-repro \
+#         bash scripts/reproduce/run_one.sh 01_corridor_crossing sdacs_hybrid 42
+
+services:
+  sdacs-repro:
+    build:
+      context: .
+      dockerfile: Dockerfile.reproducible
+    image: sdacs-repro:0.1.0
+    environment:
+      # Mirror the determinism env from the Dockerfile, in case the image
+      # was rebuilt with weaker defaults.
+      PYTHONHASHSEED: "0"
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+      TZ: UTC
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+    volumes:
+      - ./results:/app/results
+      # Read-only mount of the source tree so iteration doesn't require
+      # a rebuild — comment out for paper-grade runs.
+      - .:/app:ro
+    # Default command runs the full benchmark suite.
+    command: ["scripts/reproduce/run_all.sh"]
+    # Optional GPU profile; uncomment if torch enters the dependency set.
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]

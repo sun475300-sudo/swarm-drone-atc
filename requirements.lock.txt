@@ -1,0 +1,44 @@
+# Locked dependency versions for SDACS — Phase 704 reproducibility.
+#
+# Generated FROM requirements.txt by:
+#     bash scripts/reproduce/make_lock.sh
+#
+# Regenerate when any requirements.txt entry changes.
+# Commit the regenerated file in the SAME commit as the requirements.txt change.
+#
+# Pin policy:
+#   * Exact == versions for everything actually imported by SDACS.
+#   * Build/test tooling (pip, setuptools, wheel) pinned in the Dockerfile.
+#   * Hashes (--hash=sha256:...) recommended for paper artifacts —
+#     uncomment the hash lines below and regenerate via pip-compile
+#     --generate-hashes.
+
+# ── Core simulation ───────────────────────────────────────────────────────
+numpy==2.0.1
+simpy==4.1.1
+pandas==2.2.2
+scipy==1.13.1
+pyyaml==6.0.2
+joblib==1.4.2
+tqdm==4.66.4
+
+# ── Visualization (only if Dash UI is in scope; the headless reproducible
+#    image can drop these — see Dockerfile.reproducible) ───────────────────
+matplotlib==3.9.0
+plotly==5.22.0
+seaborn==0.13.2
+dash==2.17.1
+
+# ── Dev / test ────────────────────────────────────────────────────────────
+pytest==8.2.2
+pytest-cov==5.0.0
+pytest-asyncio==0.23.7
+
+# ── Indirect / transitive (frequent breakers — pin explicitly) ────────────
+python-dateutil==2.9.0.post0
+pytz==2024.1
+six==1.16.0
+packaging==24.1
+jinja2==3.1.6
+markupsafe==2.1.5
+typing-extensions==4.12.2

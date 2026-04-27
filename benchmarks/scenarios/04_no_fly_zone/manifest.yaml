@@ -1,0 +1,56 @@
+id: "04_no_fly_zone"
+name: "No-Fly Zone"
+version: "1.0.0"
+category: "standard"
+difficulty: "medium"
+
+duration_seconds: 240
+dt_seconds: 1.0
+
+airspace:
+  bounds_m: { x: [0, 1500], y: [0, 1500], z: [50, 250] }
+  volume_m3: 450_000_000
+  capacity_max_agents: 20
+
+agents:
+  count: 8
+  kinematics: { max_speed_m_s: 15.0, max_accel_m_s2: 5.0, turn_rate_deg_s: 30.0 }
+  spawn_pattern: "perimeter_to_opposite"
+  goal_pattern: "shortest_path_through_NFZ"  # straight line WOULD cross NFZ
+
+obstacles:
+  static: []
+  dynamic: []
+
+weather:
+  wind: { mean_m_s: 0.0, gust_m_s: 0.0, direction_deg: 0.0 }
+  visibility_m: 10000
+  precipitation_mm_per_h: 0.0
+
+communications:
+  quality: "perfect"
+  packet_loss: 0.0
+  blackout_windows_s: []
+
+regulatory:
+  remote_id_required: true
+  laanc_volume_class: "C"               # near a controlled airport
+  geofences:
+    - id: "NFZ_centre"
+      type: "polygon"
+      polygon: [[600, 600], [900, 600], [900, 900], [600, 900]]
+      altitude_band_m: [0, 250]
+      severity: "hard_no_entry"
+
+success_criteria:
+  NMR_max: 1.0e-4
+  MSD_min_m: 5.0
+  geofence_violations_max: 0           # ZERO tolerance
+  RID_CR_min: 0.999
+
+expected_baseline_performance:
+  NMR: 0.0
+  MSD_m: 11.0
+  PE: 0.82                             # large detour expected
+  MS_s: 165.0
+  RTF: 11.0

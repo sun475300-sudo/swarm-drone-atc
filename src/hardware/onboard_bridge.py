@@ -133,48 +133,186 @@ class MavlinkAdapter:
             self._connection.target_component,
         )
 
+    # Aggregated state across multiple MAVLink message types.
+    # GLOBAL_POSITION_INT carries the position; SYS_STATUS carries battery;
+    # HEARTBEAT carries mode + armed flag. We keep the most-recent of each.
+    _last_sys_status_battery_pct: float = -1.0
+    _last_heartbeat_mode: str = "UNKNOWN"
+    _last_heartbeat_armed: bool = False
+    _last_gps_fix_type: int = 0
+
+    # Best-effort string for known PX4 base_mode flags. Vendor-specific
+    # custom_mode interpretation is left to the consumer.
+    _MAV_MODE_FLAGS = {
+        0x80: "SAFETY_ARMED",
+        0x40: "MANUAL_INPUT_ENABLED",
+        0x20: "HIL_ENABLED",
+        0x10: "STABILIZE_ENABLED",
+        0x08: "GUIDED_ENABLED",
+        0x04: "AUTO_ENABLED",
+        0x02: "TEST_ENABLED",
+        0x01: "CUSTOM_MODE_ENABLED",
+    }
+
+    @classmethod
+    def _decode_mode(cls, base_mode: int, custom_mode: int) -> str:
+        flags = [name for bit, name in cls._MAV_MODE_FLAGS.items() if base_mode & bit]
+        if custom_mode:
+            flags.append(f"custom={custom_mode}")
+        return "|".join(flags) if flags else "UNKNOWN"
+
     async def poll_telemetry(self, drone_id: int) -> Optional[TelemetrySnapshot]:
         if self._connection is None:
             raise RuntimeError("not connected")
 
-        msg = self._connection.recv_match(
-            type=["GLOBAL_POSITION_INT", "HEARTBEAT", "SYS_STATUS"],
-            blocking=False,
-        )
-        if msg is None:
-            return None
+        # Drain all available messages this tick so SYS_STATUS / HEARTBEAT
+        # state stays fresh between GLOBAL_POSITION_INT updates.
+        position_msg = None
+        for _ in range(64):  # cap drain to avoid starving the loop
+            msg = self._connection.recv_match(
+                type=["GLOBAL_POSITION_INT", "HEARTBEAT", "SYS_STATUS", "GPS_RAW_INT"],
+                blocking=False,
+            )
+            if msg is None:
+                break
+            mtype = msg.get_type()
+            if mtype == "GLOBAL_POSITION_INT":
+                position_msg = msg
+            elif mtype == "SYS_STATUS":
+                # battery_remaining is 0..100 % (or -1 if unknown)
+                br = getattr(msg, "battery_remaining", -1)
+                self._last_sys_status_battery_pct = float(br) if br >= 0 else -1.0
+            elif mtype == "HEARTBEAT":
+                self._last_heartbeat_mode = self._decode_mode(
+                    getattr(msg, "base_mode", 0),
+                    getattr(msg, "custom_mode", 0),
+                )
+                self._last_heartbeat_armed = bool(
+                    getattr(msg, "base_mode", 0) & 0x80
+                )
+            elif mtype == "GPS_RAW_INT":
+                self._last_gps_fix_type = int(getattr(msg, "fix_type", 0))
 
-        # This is a simplified assembly — real code aggregates multiple message types.
-        if msg.get_type() != "GLOBAL_POSITION_INT":
+        if position_msg is None:
             return None
 
         return TelemetrySnapshot(
             drone_id=drone_id,
             timestamp_ns=time.time_ns(),
-            lat_deg=msg.lat / 1e7,
-            lon_deg=msg.lon / 1e7,
-            alt_msl_m=msg.alt / 1000.0,
-            alt_rel_m=msg.relative_alt / 1000.0,
-            vx_mps=msg.vx / 100.0,
-            vy_mps=msg.vy / 100.0,
-            vz_mps=msg.vz / 100.0,
-            heading_deg=msg.hdg / 100.0,
-            battery_pct=-1.0,  # populated by SYS_STATUS handler (TODO)
-            mode="UNKNOWN",  # populated by HEARTBEAT handler (TODO)
-            armed=False,
-            gps_fix_type=3,
+            lat_deg=position_msg.lat / 1e7,
+            lon_deg=position_msg.lon / 1e7,
+            alt_msl_m=position_msg.alt / 1000.0,
+            alt_rel_m=position_msg.relative_alt / 1000.0,
+            vx_mps=position_msg.vx / 100.0,
+            vy_mps=position_msg.vy / 100.0,
+            vz_mps=position_msg.vz / 100.0,
+            heading_deg=position_msg.hdg / 100.0,
+            battery_pct=self._last_sys_status_battery_pct,
+            mode=self._last_heartbeat_mode,
+            armed=self._last_heartbeat_armed,
+            gps_fix_type=self._last_gps_fix_type,
         )
 
-    async def send_command(self, command_dict: dict) -> bool:
+    # Mapping table: high-level SDACS commands → (MAV_CMD_*, param tuple builder).
+    # The builder takes the command_dict and returns a 7-tuple of param1..param7
+    # exactly as MAV_CMD expects. Add entries here as the controller grows.
+    _COMMAND_MAP: dict = {
+        # name : (MAV_CMD constant string, builder)
+        "TAKEOFF": (
+            "MAV_CMD_NAV_TAKEOFF",
+            lambda d: (0, 0, 0, float("nan"), 0, 0, float(d.get("alt_m", 10.0))),
+        ),
+        "LAND": (
+            "MAV_CMD_NAV_LAND",
+            lambda d: (0, 0, 0, float("nan"), 0, 0, 0),
+        ),
+        "RTL": (
+            "MAV_CMD_NAV_RETURN_TO_LAUNCH",
+            lambda d: (0, 0, 0, 0, 0, 0, 0),
+        ),
+        "GOTO": (
+            "MAV_CMD_DO_REPOSITION",
+            lambda d: (
+                float(d.get("speed_mps", -1.0)),
+                0, 0, float("nan"),
+                int(float(d["lat_deg"]) * 1e7),
+                int(float(d["lon_deg"]) * 1e7),
+                float(d["alt_m"]),
+            ),
+        ),
+        "SET_MODE": (
+            "MAV_CMD_DO_SET_MODE",
+            lambda d: (
+                float(d.get("base_mode", 1)),  # MAV_MODE_FLAG_CUSTOM_MODE_ENABLED
+                float(d.get("custom_mode", 0)),
+                0, 0, 0, 0, 0,
+            ),
+        ),
+    }
+
+    async def send_command(
+        self,
+        command_dict: dict,
+        ack_timeout_s: float = 3.0,
+    ) -> bool:
         """Translate a high-level command into MAVLink and await ACK.
 
-        Returns True on COMMAND_ACK with MAV_RESULT_ACCEPTED within timeout.
+        ``command_dict`` shape::
+
+            {"name": "GOTO", "lat_deg": 36.5, "lon_deg": 126.4, "alt_m": 50}
+
+        Returns True on COMMAND_ACK with MAV_RESULT_ACCEPTED within
+        ``ack_timeout_s`` seconds. Returns False otherwise (logged).
         """
         if self._connection is None:
             raise RuntimeError("not connected")
-        # TODO: map command_dict → MAV_CMD_* and call command_long_send.
-        # For now, log only so the skeleton runs end-to-end.
-        LOGGER.warning("send_command stub: %s", command_dict)
+
+        name = command_dict.get("name", "").upper()
+        if name not in self._COMMAND_MAP:
+            LOGGER.warning("send_command unknown command: %s", name)
+            return False
+
+        cmd_const_name, builder = self._COMMAND_MAP[name]
+        try:
+            from pymavlink import mavutil  # type: ignore
+        except ImportError:
+            LOGGER.error("pymavlink unavailable; cannot send_command")
+            return False
+
+        cmd_const = getattr(mavutil.mavlink, cmd_const_name, None)
+        if cmd_const is None:
+            LOGGER.error("MAVLink dialect missing %s", cmd_const_name)
+            return False
+
+        try:
+            params = builder(command_dict)
+        except (KeyError, ValueError) as e:
+            LOGGER.error("send_command bad params for %s: %s", name, e)
+            return False
+
+        self._connection.mav.command_long_send(
+            self._connection.target_system,
+            self._connection.target_component,
+            cmd_const,
+            0,  # confirmation
+            *params,
+        )
+
+        # Wait for the matching COMMAND_ACK
+        deadline = time.monotonic() + ack_timeout_s
+        while time.monotonic() < deadline:
+            ack = self._connection.recv_match(type="COMMAND_ACK", blocking=False)
+            if ack is not None and getattr(ack, "command", None) == cmd_const:
+                accepted = getattr(ack, "result", -1) == mavutil.mavlink.MAV_RESULT_ACCEPTED
+                if not accepted:
+                    LOGGER.warning(
+                        "command %s rejected (result=%s)",
+                        name, getattr(ack, "result", "?"),
+                    )
+                return accepted
+            await asyncio.sleep(0.05)
+
+        LOGGER.warning("command %s ACK timeout after %ss", name, ack_timeout_s)
         return False
 
     async def close(self) -> None:

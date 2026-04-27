@@ -1,3 +1,19 @@
 # Deprecated: merged into ci.yml
-# This file is kept empty to avoid breaking any references.
-# All CI logic is now in ci.yml
+# Kept as a placeholder to satisfy any external references that pin this filename.
+# Manual-dispatch only — does NOT run on push/PR/schedule.
+# All CI logic lives in ci.yml.
+
+name: Python application (deprecated)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notice
+        run: |
+          echo "::notice::This workflow is deprecated."
+          echo "::notice::All CI logic moved to ci.yml."
+          echo "::notice::Triggered manually via workflow_dispatch only."

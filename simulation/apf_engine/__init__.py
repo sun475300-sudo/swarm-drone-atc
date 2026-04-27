@@ -14,10 +14,15 @@ from .apf import (
 # GPU 가속 엔진 자동 감지
 _USE_GPU = False
 try:
-    from .apf_gpu import gpu_batch_compute_forces, _get_device_info
+    from .apf_gpu import (
+        gpu_batch_compute_forces,
+        _get_device_info,
+        _TORCH_AVAILABLE as _APF_TORCH_OK,
+    )
 
-    _USE_GPU = True
-except ImportError:
+    _USE_GPU = bool(_APF_TORCH_OK)
+except (ImportError, OSError):
+    # OSError covers Windows DLL load failures during torch import inside apf_gpu.
     pass
 
 

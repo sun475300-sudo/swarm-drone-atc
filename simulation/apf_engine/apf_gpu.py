@@ -19,7 +19,9 @@ try:
     import torch
 
     _TORCH_AVAILABLE = True
-except ImportError:
+except (ImportError, OSError):
+    # OSError covers Windows DLL load failures (e.g. WinError 4551 — DLL blocked
+    # by Application Control policy) and other torch backend init failures.
     _TORCH_AVAILABLE = False
 
 from .apf import (

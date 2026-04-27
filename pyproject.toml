@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=69", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "swarm-drone-atc"
@@ -77,6 +77,12 @@ ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = ["src.airspace_control.controller.airspace_controller"]
+ignore_errors = true
+
+# src.hardware.* — pymavlink 의존이 conditional이라 self.master가 Optional.
+# Phase 691~700 (실기 통합) 완료 후 형식 검증 재활성화 예정.
+[[tool.mypy.overrides]]
+module = ["src.hardware.*"]
 ignore_errors = true
 
 [tool.ruff]

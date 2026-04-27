@@ -13,7 +13,8 @@ try:
     import torch
 
     _HAS_TORCH = True
-except ImportError:
+except (ImportError, OSError):
+    # OSError covers Windows DLL load failures (e.g. WinError 4551).
     _HAS_TORCH = False
 
 

@@ -26,7 +26,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.0",
+    # pytest 8.x line — see requirements.txt comment (PR #20 메이저 보류 사유).
+    "pytest>=8.4,<9",
     "pytest-asyncio>=0.23",
     "pytest-cov>=7.0",
     "mypy>=1.10",

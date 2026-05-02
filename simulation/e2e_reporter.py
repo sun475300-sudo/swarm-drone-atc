@@ -314,6 +314,10 @@ class E2EReporter:
         else:
             perf_state = "RED"
 
+        # Traffic congestion → state thresholds.
+        # 의도된 단계: GREEN (여유) <0.5 | YELLOW (주의) 0.5~0.8 | RED (포화) >=0.8
+        # ops_report 시나리오는 100% 포화 한계 검증이 목적이라 RED 가 정상 (의도된 동작).
+        # 자세한 분석: docs/OPS_TRAFFIC_RED_ANALYSIS_2026-05-03.md
         congestion = float(traffic.get("avg_congestion", 0.0))
         traffic_state = "GREEN" if congestion < 0.5 else ("YELLOW" if congestion < 0.8 else "RED")
 

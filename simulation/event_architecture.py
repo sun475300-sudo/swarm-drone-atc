@@ -9,8 +9,12 @@ CQRS 패턴 + 이벤트 소싱 + 상태 복원.
     state = ea.replay()
 """
 from __future__ import annotations
+
+import logging
 from dataclasses import dataclass, field
 from typing import Any
+
+_logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -34,8 +38,13 @@ class EventArchitecture:
         for handler in self._handlers.get(event_type, []):
             try:
                 handler(event)
-            except Exception:
-                pass
+            except Exception as exc:
+                # Subscriber 실패가 emit 전체를 막으면 안 됨(이벤트 fan-out 보장).
+                # 다만 silent swallow 는 디버깅을 어렵게 하므로 WARN 로그.
+                _logger.warning(
+                    "event handler failed for %s seq=%d: %s",
+                    event_type, event.seq, exc, exc_info=True,
+                )
         return event
 
     def on(self, event_type: str, handler) -> None:

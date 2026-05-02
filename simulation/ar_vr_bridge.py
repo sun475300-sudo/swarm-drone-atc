@@ -5,11 +5,15 @@ WebXR/Unity/Unreal 연동을 위한 장면 그래프 직렬화,
 """
 
 from __future__ import annotations
+
+import logging
 import numpy as np
 import json
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
+
+_logger = logging.getLogger(__name__)
 
 
 class RenderPrimitive(Enum):
@@ -162,8 +166,13 @@ class ARVRBridge:
         for cb in callbacks:
             try:
                 cb(event)
-            except Exception:
-                pass
+            except Exception as exc:
+                # 단일 callback 실패가 다른 callback 차단을 막지 않도록 swallow 유지하되,
+                # silent 는 디버깅을 어렵게 하므로 WARN 로그.
+                _logger.warning(
+                    "ar/vr interaction callback failed for %s: %s",
+                    event.event_type, exc, exc_info=True,
+                )
 
     def on_interaction(self, event_type: InteractionType, callback):
         self._callbacks.setdefault(event_type, []).append(callback)

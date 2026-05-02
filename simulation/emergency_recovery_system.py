@@ -5,10 +5,14 @@
 """
 
 from __future__ import annotations
+
+import logging
 import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional, Callable
+
+_logger = logging.getLogger(__name__)
 
 
 class EmergencyType(Enum):
@@ -126,8 +130,13 @@ class EmergencyRecoverySystem:
         for cb in self._callbacks:
             try:
                 cb(event, plan)
-            except Exception:
-                pass
+            except Exception as exc:
+                # Callback 실패가 비상 복구 흐름을 막지 않도록 swallow 유지하되,
+                # silent 는 디버깅을 어렵게 하므로 WARN 로그.
+                _logger.warning(
+                    "emergency callback failed for event %s: %s",
+                    event.event_id, exc, exc_info=True,
+                )
         return event
 
     def execute_recovery(self, event_id: str) -> bool:

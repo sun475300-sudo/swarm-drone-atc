@@ -105,6 +105,18 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 - [x] FAA LAANC 연동 인터페이스 (`faa_laanc.py`)
 - [x] 국제 표준 ICAO Doc 10019 준수 (`icao_doc10019.py`)
 
+### Phase 691-700: Aeronautical Information Management (완료)
+- [x] NOTAM 전자 관리 시스템 (`notam_manager.py`)
+- [x] TFR (Temporary Flight Restriction) 핸들러 (`tfr_handler.py`)
+- [x] 버티포트 운영 관리 (`vertiport_ops.py`)
+- [x] METAR/TAF 기상 보고 파서 (`metar_parser.py`)
+- [x] 국경 간 비행 조율 (`cross_border_coord.py`)
+- [x] 보험 리스크 계산기 (`insurance_risk.py`)
+- [x] 항공 차트 데이터베이스 (`aero_charts.py`)
+- [x] 비행 추적 서비스 (`flight_following.py`)
+- [x] 통합 AIM 브리핑 서비스 (`aim_briefing.py`)
+- [x] 후-비행 보고서 통합기 (`post_flight_report.py`)
+
 ---
 
 ## In Progress / 진행 예정
@@ -164,4 +176,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-04-19 (Phase 690 완료, Phase 691-720 로드맵 추가)*
+*Last updated: 2026-04-19 (Phase 700 완료, Phase 701-720 로드맵 유지)*

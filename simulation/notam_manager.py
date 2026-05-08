@@ -41,13 +41,19 @@ class NotamRecord:
     created_at: float = field(default_factory=time.time)
 
 
+_DEFAULT_HISTORY_CAP = 10_000
+
+
 class NotamManager:
     """전자 NOTAM 생성/갱신/만료/검색을 담당하는 매니저."""
 
-    def __init__(self, seed: int = 42) -> None:
+    def __init__(self, seed: int = 42, max_history: int = _DEFAULT_HISTORY_CAP) -> None:
+        if max_history <= 0:
+            raise ValueError("max_history must be positive")
         self.rng = np.random.default_rng(seed)
         self._next_id = 0
         self.notams: Dict[str, NotamRecord] = {}
+        self.max_history = max_history
         self.history: List[Dict[str, Any]] = []
 
     def _gen_id(self) -> str:
@@ -82,14 +88,20 @@ class NotamManager:
             issuer=issuer,
         )
         self.notams[notam_id] = record
-        self.history.append({"action": "create", "notam_id": notam_id, "ts": now})
+        self._record_history({"action": "create", "notam_id": notam_id, "ts": now})
         return notam_id
+
+    def _record_history(self, event: Dict[str, Any]) -> None:
+        self.history.append(event)
+        overflow = len(self.history) - self.max_history
+        if overflow > 0:
+            del self.history[:overflow]
 
     def cancel_notam(self, notam_id: str) -> bool:
         if notam_id not in self.notams:
             return False
         self.notams[notam_id].status = NotamStatus.CANCELLED
-        self.history.append({"action": "cancel", "notam_id": notam_id, "ts": time.time()})
+        self._record_history({"action": "cancel", "notam_id": notam_id, "ts": time.time()})
         return True
 
     def expire_old(self) -> int:

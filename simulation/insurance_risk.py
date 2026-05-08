@@ -39,11 +39,21 @@ TIER_LIMIT_KRW = {
 }
 
 
+_DEFAULT_INSURANCE_HISTORY = 10_000
+
+
 class InsuranceRiskCalculator:
     """드론 비행에 대한 보험 리스크 점수와 예상 보험료를 계산."""
 
-    def __init__(self, base_premium_krw: float = 50_000.0) -> None:
+    def __init__(
+        self,
+        base_premium_krw: float = 50_000.0,
+        max_history: int = _DEFAULT_INSURANCE_HISTORY,
+    ) -> None:
+        if max_history <= 0:
+            raise ValueError("max_history must be positive")
         self.base_premium_krw = base_premium_krw
+        self.max_history = max_history
         self.history: List[Dict[str, Any]] = []
 
     def compute_risk_score(self, f: RiskFactors) -> float:
@@ -84,6 +94,9 @@ class InsuranceRiskCalculator:
             "tier": tier.value,
             "premium_krw": premium,
         })
+        overflow = len(self.history) - self.max_history
+        if overflow > 0:
+            del self.history[:overflow]
         return premium
 
     def quote(self, f: RiskFactors) -> Dict[str, Any]:

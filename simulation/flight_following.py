@@ -36,14 +36,25 @@ class FlightTrack:
     deviation_alerts: int = 0
 
 
+_DEFAULT_TRACK_POINTS = 2_000
+
+
 class FlightFollowingService:
     """비행 계획 대비 실제 경로를 추적하고 이탈/통신두절을 감시."""
 
-    def __init__(self, comms_timeout_s: float = 60.0, deviation_tolerance_m: float = 500.0) -> None:
+    def __init__(
+        self,
+        comms_timeout_s: float = 60.0,
+        deviation_tolerance_m: float = 500.0,
+        max_points_per_track: int = _DEFAULT_TRACK_POINTS,
+    ) -> None:
+        if max_points_per_track <= 0:
+            raise ValueError("max_points_per_track must be positive")
         self.tracks: Dict[str, FlightTrack] = {}
         self.plans: Dict[str, List[Tuple[float, float, float]]] = {}
         self.comms_timeout_s = comms_timeout_s
         self.deviation_tolerance_m = deviation_tolerance_m
+        self.max_points_per_track = max_points_per_track
 
     def register_flight(
         self, callsign: str, plan_id: str, planned_waypoints: List[Tuple[float, float, float]]

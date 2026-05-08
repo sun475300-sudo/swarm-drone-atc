@@ -28,6 +28,9 @@ class BriefingResult:
     summary: str = ""
 
 
+_DEFAULT_BRIEFING_HISTORY = 5_000
+
+
 class AimBriefingService:
     """METAR + NOTAM + TFR + 항공차트를 통합해 운영자 브리핑을 생성한다."""
 
@@ -37,11 +40,15 @@ class AimBriefingService:
         tfr_handler: Optional[Any] = None,
         aero_charts: Optional[Any] = None,
         metar_parser: Optional[Any] = None,
+        max_history: int = _DEFAULT_BRIEFING_HISTORY,
     ) -> None:
+        if max_history <= 0:
+            raise ValueError("max_history must be positive")
         self.notam_manager = notam_manager
         self.tfr_handler = tfr_handler
         self.aero_charts = aero_charts
         self.metar_parser = metar_parser
+        self.max_history = max_history
         self.history: List[BriefingResult] = []
 
     def generate(
@@ -72,6 +79,9 @@ class AimBriefingService:
             summary=self._summarize(is_go, notam_ids, tfr_ids, hazard_ids, weather_ok),
         )
         self.history.append(result)
+        overflow = len(self.history) - self.max_history
+        if overflow > 0:
+            del self.history[:overflow]
         return result
 
     def _collect_notam_conflicts(self, request: BriefingRequest) -> List[str]:

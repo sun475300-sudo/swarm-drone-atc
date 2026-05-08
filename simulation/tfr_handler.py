@@ -32,13 +32,19 @@ class Tfr:
     authorized_callsigns: List[str] = field(default_factory=list)
 
 
+_DEFAULT_VIOLATION_CAP = 10_000
+
+
 class TfrHandler:
     """TFR 생성, 위반 감지, 인가 목록을 관리한다."""
 
-    def __init__(self, seed: int = 42) -> None:
+    def __init__(self, seed: int = 42, max_violations: int = _DEFAULT_VIOLATION_CAP) -> None:
+        if max_violations <= 0:
+            raise ValueError("max_violations must be positive")
         self.rng = np.random.default_rng(seed)
         self._next_id = 0
         self.tfrs: Dict[str, Tfr] = {}
+        self.max_violations = max_violations
         self.violation_log: List[Dict[str, Any]] = []
 
     def _gen_id(self) -> str:
@@ -106,6 +112,9 @@ class TfrHandler:
                     "position": position,
                     "ts": now,
                 })
+                overflow = len(self.violation_log) - self.max_violations
+                if overflow > 0:
+                    del self.violation_log[:overflow]
         return violations
 
     def authorize(self, tfr_id: str, callsign: str) -> bool:

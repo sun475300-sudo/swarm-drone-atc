@@ -23,7 +23,7 @@
 - `pyproject.toml` build-backend 오타 수정 (`setuptools.backends.legacy:build` → `setuptools.build_meta`) — CI 의존성 설치 단계 복구 (PR #19, `a59fd48`)
 - `src/hardware/onboard_bridge.py` mypy 4건 회귀 — `[tool.mypy.overrides]` 에 `src.hardware.*` 추가 (PR #19, `d6b437f`)
 - `python-app.yml` deprecated 빈 워크플로 — manual-dispatch 격리, 매 푸시 0초 fail 노이즈 제거 (PR #22)
-- README 테스트 수 동기화 (2,722+ → 3,330+) (PR #19)
+- README 테스트 수 동기화 (2,722+ → 3,481+) (PR #19)
 
 ### 의존성 (deps)
 

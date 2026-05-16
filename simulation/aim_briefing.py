@@ -5,6 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
+# 브리핑 파라미터 기본값 상수 — 하드코딩 방지
+_NOTAM_QUERY_RADIUS_M: float = 500.0
+_CHART_CORRIDOR_WIDTH_M: float = 300.0
+_HIGH_WIND_THRESHOLD_KT: int = 25
+
 
 @dataclass
 class BriefingRequest:
@@ -89,27 +94,31 @@ class AimBriefingService:
     def _collect_notam_conflicts(self, request: BriefingRequest) -> List[str]:
         if self.notam_manager is None:
             return []
+        seen: set = set()
         ids: List[str] = []
         route = [request.departure] + list(request.route_waypoints) + [request.destination]
         for wp in route:
             active = self.notam_manager.query_active(
-                area_center=wp, radius_m=500.0, altitude=request.planned_altitude_m
+                area_center=wp, radius_m=_NOTAM_QUERY_RADIUS_M, altitude=request.planned_altitude_m
             )
             for n in active:
-                if n.notam_id not in ids:
+                if n.notam_id not in seen:
+                    seen.add(n.notam_id)
                     ids.append(n.notam_id)
         return ids
 
     def _collect_tfr_conflicts(self, request: BriefingRequest) -> List[str]:
         if self.tfr_handler is None:
             return []
+        # check_conflict_readonly() 사용 — 감사 로그 오염 방지
+        seen: set = set()
         ids: List[str] = []
         route = [request.departure] + list(request.route_waypoints) + [request.destination]
         for wp in route:
             pos3 = (wp[0], wp[1], request.planned_altitude_m)
-            violations = self.tfr_handler.check_violation(request.callsign, pos3)
-            for v in violations:
-                if v not in ids:
+            for v in self.tfr_handler.check_conflict_readonly(request.callsign, pos3):
+                if v not in seen:
+                    seen.add(v)
                     ids.append(v)
         return ids
 
@@ -118,7 +127,7 @@ class AimBriefingService:
             return []
         route = [request.departure] + list(request.route_waypoints) + [request.destination]
         hazards = self.aero_charts.path_obstacles(
-            waypoints=route, corridor_width_m=300.0, min_altitude_m=0.0
+            waypoints=route, corridor_width_m=_CHART_CORRIDOR_WIDTH_M, min_altitude_m=0.0
         )
         return [h.feature_id for h in hazards]
 
@@ -130,7 +139,7 @@ class AimBriefingService:
         except ValueError as exc:
             warnings.append(f"METAR parse failed: {exc}")
             return True
-        if obs.wind_speed_kt >= 25:
+        if obs.wind_speed_kt >= _HIGH_WIND_THRESHOLD_KT:
             warnings.append(f"High winds {obs.wind_speed_kt} kt")
         if not self.metar_parser.is_vfr(obs):
             warnings.append("IFR conditions")

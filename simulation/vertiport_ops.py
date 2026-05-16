@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -98,6 +98,7 @@ class VertiportOps:
     def purge_completed(self, current_time: float) -> int:
         """start_time + duration_s가 current_time 이전인 만료 예약을 제거한다.
 
+        패드 상태가 RESERVED인 경우 AVAILABLE로 복원한다.
         반환값: 제거된 예약 수.
         """
         expired_keys = [
@@ -105,7 +106,13 @@ class VertiportOps:
             if v.start_time + v.duration_s < current_time
         ]
         for k in expired_keys:
+            pad_id = self.reservations[k].pad_id
             del self.reservations[k]
+            # 해당 패드에 남은 예약이 없고 RESERVED 상태이면 AVAILABLE로 복원
+            pad = self.pads.get(pad_id)
+            if pad is not None and pad.status == PadStatus.RESERVED:
+                if not any(r.pad_id == pad_id for r in self.reservations.values()):
+                    pad.status = PadStatus.AVAILABLE
         return len(expired_keys)
 
     def cancel_reservation(self, slot_id: str) -> bool:

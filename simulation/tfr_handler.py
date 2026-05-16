@@ -70,8 +70,8 @@ class TfrHandler:
         duration_hours: float,
         authorized: Optional[List[str]] = None,
     ) -> str:
-        if radius_m <= 0 or altitude_floor > altitude_ceiling:
-            raise ValueError("Invalid TFR geometry")
+        if radius_m <= 0 or altitude_floor > altitude_ceiling or duration_hours <= 0:
+            raise ValueError("Invalid TFR geometry or duration")
         tid = self._gen_id()
         now = time.time()
         self.tfrs[tid] = Tfr(
@@ -140,6 +140,27 @@ class TfrHandler:
         if overflow > 0:
             del self.violation_log[:overflow]
         return violations
+
+    def check_conflict_readonly(
+        self, callsign: str, position: Tuple[float, float, float]
+    ) -> List[str]:
+        """감사 로그를 기록하지 않고 TFR 충돌만 반환하는 읽기 전용 메서드.
+
+        브리핑 사전 검사 등 부작용이 없어야 하는 경우에 사용한다.
+        """
+        conflicts: List[str] = []
+        now = time.time()
+        for rec in self.tfrs.values():
+            if not (rec.start_time <= now <= rec.end_time):
+                continue
+            if callsign in rec.authorized_callsigns:
+                continue
+            dx = position[0] - rec.center[0]
+            dy = position[1] - rec.center[1]
+            dist = np.sqrt(dx * dx + dy * dy)
+            if dist <= rec.radius_m and rec.altitude_floor <= position[2] <= rec.altitude_ceiling:
+                conflicts.append(rec.tfr_id)
+        return conflicts
 
     def authorize(self, tfr_id: str, callsign: str) -> bool:
         rec = self.tfrs.get(tfr_id)

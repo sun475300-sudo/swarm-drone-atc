@@ -857,3 +857,117 @@ class TestPrecisionRound2:
         for i in range(cap * 4):
             svc.report_position("FF1", (float(i), 0.0, 50.0), (10, 0, 0), 90.0)
         assert len(svc.tracks["FF1"].points) == cap
+
+
+# ── Round-3 Precision Tests ──────────────────────────────────────────
+class TestPrecisionRound3:
+    """코드 리뷰 3라운드에서 발견된 CRITICAL/HIGH 이슈 검증."""
+
+    # ── CRITICAL: parse_taf 분수 SM 크래시 수정 ──────────────────────
+    def test_parse_taf_fractional_sm_no_crash(self):
+        """TAF 내 1/2SM 이 ValueError 없이 0.5 SM 으로 파싱되어야 한다."""
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        taf = p.parse_taf("TAF RKSI 091000Z 0912/1018 27010KT 1/2SM OVC010")
+        assert taf.visibility_sm == pytest.approx(0.5)
+
+    def test_parse_taf_quarter_sm(self):
+        """TAF 내 3/4SM 이 0.75 SM 으로 파싱되어야 한다."""
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        taf = p.parse_taf("TAF KJFK 091000Z 0912/1018 18020KT 3/4SM OVC003")
+        assert taf.visibility_sm == pytest.approx(0.75)
+
+    # ── CRITICAL: TFR 감사로그 오염 방지 ─────────────────────────────
+    def test_briefing_does_not_pollute_tfr_violation_log(self):
+        """브리핑 생성이 TFR violation_log에 항목을 추가하면 안 된다."""
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        from simulation.notam_manager import NotamManager
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        from simulation.aero_charts import AeroCharts
+        from simulation.metar_parser import MetarParser
+        tfr_handler = TfrHandler()
+        tfr_handler.declare_tfr(TfrReason.VIP, (500.0, 0.0), 1000.0, 0.0, 500.0, 1.0)
+        svc = AimBriefingService(
+            notam_manager=NotamManager(),
+            tfr_handler=tfr_handler,
+            aero_charts=AeroCharts(),
+            metar_parser=MetarParser(),
+        )
+        req = BriefingRequest(
+            callsign="AIR1",
+            departure=(0.0, 0.0),
+            destination=(1000.0, 0.0),
+            route_waypoints=[(500.0, 0.0)],
+            planned_altitude_m=50.0,
+            departure_time=time.time(),
+        )
+        log_len_before = len(tfr_handler.violation_log)
+        svc.generate(req)
+        # 브리핑 사전검사는 violation_log를 오염시키면 안 됨
+        assert len(tfr_handler.violation_log) == log_len_before
+
+    # ── HIGH: purge_completed 패드 상태 복원 ─────────────────────────
+    def test_purge_completed_restores_pad_status(self):
+        """purge_completed() 후 패드 상태가 AVAILABLE로 복원되어야 한다."""
+        from simulation.vertiport_ops import VertiportOps, PadStatus
+        ops = VertiportOps()
+        ops.add_pad("P1", (0.0, 0.0))
+        slot_id = ops.reserve_slot("CS1", desired_time=0.0, duration_s=600.0)
+        assert slot_id is not None
+        assert ops.pads["P1"].status == PadStatus.RESERVED
+        ops.purge_completed(current_time=time.time())
+        assert ops.pads["P1"].status == PadStatus.AVAILABLE
+
+    # ── HIGH: TFR duration_hours <= 0 검증 ───────────────────────────
+    def test_declare_tfr_zero_duration_raises(self):
+        """duration_hours <= 0 이면 ValueError 가 발생해야 한다."""
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        with pytest.raises(ValueError):
+            h.declare_tfr(TfrReason.VIP, (0, 0), 500.0, 0.0, 200.0, duration_hours=0.0)
+
+    def test_declare_tfr_negative_duration_raises(self):
+        """음수 duration_hours 도 ValueError 가 발생해야 한다."""
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        with pytest.raises(ValueError):
+            h.declare_tfr(TfrReason.VIP, (0, 0), 500.0, 0.0, 200.0, duration_hours=-1.0)
+
+    # ── HIGH: insurance_risk 음수 operator_experience 검증 ───────────
+    def test_negative_experience_hours_raises(self):
+        """operator_experience_hours < 0 이면 ValueError 가 발생해야 한다."""
+        from simulation.insurance_risk import InsuranceRiskCalculator, RiskFactors
+        calc = InsuranceRiskCalculator()
+        with pytest.raises(ValueError):
+            calc.compute_risk_score(RiskFactors(
+                population_density=5000, flight_hours=100, weather_severity=0.3,
+                drone_mtow_kg=5.0, operator_experience_hours=-1.0,
+                payload_hazard_level=1, proximity_airports_km=15.0,
+            ))
+
+    # ── HIGH: FlightTrack 직접 생성 시 deque maxlen 보장 ─────────────
+    def test_flight_track_default_maxlen(self):
+        """FlightTrack 직접 생성 시 points 에 maxlen 이 설정되어야 한다."""
+        from simulation.flight_following import FlightTrack, _DEFAULT_TRACK_POINTS
+        import collections
+        track = FlightTrack(callsign="FF1", plan_id="FP-1")
+        assert isinstance(track.points, collections.deque)
+        assert track.points.maxlen == _DEFAULT_TRACK_POINTS
+
+    # ── HIGH: check_conflict_readonly 로그 미기록 확인 ───────────────
+    def test_check_conflict_readonly_no_log(self):
+        """check_conflict_readonly() 는 violation_log 에 기록하지 않아야 한다."""
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        h.declare_tfr(TfrReason.VIP, (0, 0), 500.0, 0.0, 200.0, 1.0)
+        h.check_conflict_readonly("AIR1", (100.0, 100.0, 50.0))
+        assert len(h.violation_log) == 0
+
+    def test_check_violation_still_logs(self):
+        """기존 check_violation() 은 여전히 violation_log 에 기록해야 한다."""
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        h.declare_tfr(TfrReason.VIP, (0, 0), 500.0, 0.0, 200.0, 1.0)
+        h.check_violation("AIR1", (100.0, 100.0, 50.0))
+        assert len(h.violation_log) == 1

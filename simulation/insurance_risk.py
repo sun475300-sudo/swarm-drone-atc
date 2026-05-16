@@ -57,7 +57,7 @@ class InsuranceRiskCalculator:
         self.history: List[Dict[str, Any]] = []
 
     def compute_risk_score(self, f: RiskFactors) -> float:
-        if f.flight_hours < 0 or f.drone_mtow_kg <= 0:
+        if f.flight_hours < 0 or f.drone_mtow_kg <= 0 or f.operator_experience_hours < 0:
             raise ValueError("invalid factors")
         pop = min(f.population_density / 10_000.0, 5.0)
         weather = max(0.0, min(f.weather_severity, 1.0))

@@ -27,17 +27,21 @@ class TrackPoint:
     fuel_pct: float
 
 
+_DEFAULT_TRACK_POINTS = 2_000
+
+
 @dataclass
 class FlightTrack:
     callsign: str
     plan_id: str
-    points: Deque[TrackPoint] = field(default_factory=deque)
+    # maxlen은 FlightFollowingService.register_flight()에서 재설정된다.
+    # 직접 생성 시 기본값 _DEFAULT_TRACK_POINTS가 적용된다.
+    points: Deque[TrackPoint] = field(
+        default_factory=lambda: deque(maxlen=_DEFAULT_TRACK_POINTS)
+    )
     state: TrackState = TrackState.ENROUTE
     last_contact: float = 0.0
     deviation_alerts: int = 0
-
-
-_DEFAULT_TRACK_POINTS = 2_000
 
 
 class FlightFollowingService:

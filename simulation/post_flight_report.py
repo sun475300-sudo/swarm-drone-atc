@@ -7,6 +7,11 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
+# 분류 임계값 상수
+_DEGRADED_DEVIATION_THRESHOLD: int = 3
+_DEGRADED_CONFLICT_THRESHOLD: int = 5
+_DEGRADED_FUEL_THRESHOLD: float = 85.0
+
 import numpy as np
 
 
@@ -136,10 +141,11 @@ class PostFlightReporter:
         if any("ABORT" in e.upper() for e in events):
             issues.append("mission aborted")
             return ReportOutcome.ABORTED, issues
-        if metrics.deviation_alerts > 3 or metrics.conflicts_detected > 5:
+        if (metrics.deviation_alerts > _DEGRADED_DEVIATION_THRESHOLD
+                or metrics.conflicts_detected > _DEGRADED_CONFLICT_THRESHOLD):
             issues.append("excessive deviation or conflicts")
             return ReportOutcome.DEGRADED, issues
-        if metrics.fuel_used_pct > 85:
+        if metrics.fuel_used_pct > _DEGRADED_FUEL_THRESHOLD:
             issues.append("high fuel usage")
             return ReportOutcome.DEGRADED, issues
         return ReportOutcome.SUCCESS, issues

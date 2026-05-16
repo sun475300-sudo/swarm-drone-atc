@@ -158,7 +158,12 @@ class MetarParser:
         vis_sm: Optional[float] = None
         mvs = self.VIS_SM_RE.search(text)
         if mvs:
-            vis_sm = float(mvs.group(1))
+            raw_sm = mvs.group(1)
+            if "/" in raw_sm:
+                num, den = raw_sm.split("/")
+                vis_sm = float(num) / float(den)
+            else:
+                vis_sm = float(raw_sm)
 
         return TafForecast(
             station=station,

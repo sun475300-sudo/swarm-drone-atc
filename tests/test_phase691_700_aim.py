@@ -1734,3 +1734,103 @@ class TestPrecisionRound9:
         pts = [(t0, (0.0, 0.0, 50.0), 100.0), (t0 + 10, (100.0, 0.0, 50.0), 95.0)]
         report = r.build_report("A1", "P1", pts, events=["ABORT: battery critical"])
         assert report.outcome == ReportOutcome.ABORTED
+
+
+# ── Round 10 Precision Tests ─────────────────────────────────────────
+class TestPrecisionRound10:
+    # ── extend_notam NaN guard ────────────────────────────────────
+    def test_extend_notam_nan_returns_false(self):
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        nid = mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.1, 1.0, "x")
+        original_until = mgr.notams[nid].valid_until
+        result = mgr.extend_notam(nid, float("nan"))
+        assert result is False
+        assert mgr.notams[nid].valid_until == original_until  # unchanged
+
+    def test_extend_notam_inf_returns_false(self):
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        nid = mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.1, 1.0, "x")
+        assert not mgr.extend_notam(nid, float("inf"))
+
+    # ── CrossBorder hard-cap fallback ────────────────────────────
+    def test_cross_border_hard_cap_all_active(self):
+        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        coord = CrossBorderCoordinator(max_crossings=2)
+        coord.register_authority(AirspaceAuthority("A", "Alpha"))
+        coord.register_authority(AirspaceAuthority("B", "Beta"))
+        coord.register_authority(AirspaceAuthority("C", "Gamma"))
+        for i in range(6):
+            coord.propose_crossing(f"DR{i}", "A", "B", (0, 0), 1000.0, 100.0)
+        assert len(coord.crossings) <= 2
+
+    # ── add_pad max_weight validation ─────────────────────────────
+    def test_add_pad_zero_max_weight_rejected(self):
+        from simulation.vertiport_ops import VertiportOps
+        vp = VertiportOps()
+        with pytest.raises(ValueError, match="max_weight"):
+            vp.add_pad("P1", (0.0, 0.0), max_weight=0.0)
+
+    def test_add_pad_negative_max_weight_rejected(self):
+        from simulation.vertiport_ops import VertiportOps
+        vp = VertiportOps()
+        with pytest.raises(ValueError, match="max_weight"):
+            vp.add_pad("P1", (0.0, 0.0), max_weight=-100.0)
+
+    def test_add_pad_nan_max_weight_rejected(self):
+        from simulation.vertiport_ops import VertiportOps
+        vp = VertiportOps()
+        with pytest.raises(ValueError, match="max_weight"):
+            vp.add_pad("P1", (0.0, 0.0), max_weight=float("nan"))
+
+    # ── add_feature position validation ──────────────────────────
+    def test_add_feature_wrong_length_rejected(self):
+        from simulation.aero_charts import AeroCharts, ChartFeature, ChartFeatureType
+        charts = AeroCharts()
+        with pytest.raises(ValueError, match="2-element"):
+            charts.add_feature(ChartFeature("F1", ChartFeatureType.WAYPOINT, (0.0,), 0.0))
+
+    def test_add_feature_nan_position_rejected(self):
+        from simulation.aero_charts import AeroCharts, ChartFeature, ChartFeatureType
+        charts = AeroCharts()
+        with pytest.raises(ValueError, match="finite"):
+            charts.add_feature(ChartFeature("F1", ChartFeatureType.WAYPOINT,
+                                            (float("nan"), 0.0), 0.0))
+
+    # ── aim_briefing departure_time NaN ──────────────────────────
+    def test_briefing_nan_departure_time_rejected(self):
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        svc = AimBriefingService()
+        req = BriefingRequest(
+            callsign="DR1",
+            departure=(0.0, 0.0),
+            destination=(1.0, 1.0),
+            route_waypoints=[],
+            planned_altitude_m=50.0,
+            departure_time=float("nan"),
+        )
+        with pytest.raises(ValueError, match="departure_time"):
+            svc.generate(req)
+
+    # ── report_position fuel_pct / velocity validation ────────────
+    def test_report_position_fuel_above_100_rejected(self):
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService()
+        svc.register_flight("DR1", "P1", [(0, 0, 0), (1, 1, 1)])
+        with pytest.raises(ValueError, match="fuel_pct"):
+            svc.report_position("DR1", (0.0, 0.0, 50.0), (1.0, 0.0, 0.0), 101.0)
+
+    def test_report_position_negative_fuel_rejected(self):
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService()
+        svc.register_flight("DR1", "P1", [(0, 0, 0), (1, 1, 1)])
+        with pytest.raises(ValueError, match="fuel_pct"):
+            svc.report_position("DR1", (0.0, 0.0, 50.0), (1.0, 0.0, 0.0), -1.0)
+
+    def test_report_position_nan_velocity_rejected(self):
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService()
+        svc.register_flight("DR1", "P1", [(0, 0, 0), (1, 1, 1)])
+        with pytest.raises(ValueError, match="velocity"):
+            svc.report_position("DR1", (0.0, 0.0, 50.0), (float("nan"), 0.0, 0.0), 50.0)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import time
 from collections import deque
 from dataclasses import dataclass, field
@@ -101,6 +102,10 @@ class FlightFollowingService:
         velocity: Tuple[float, float, float],
         fuel_pct: float,
     ) -> Dict[str, Any]:
+        if not (0.0 <= fuel_pct <= 100.0):
+            raise ValueError(f"fuel_pct must be in [0.0, 100.0], got {fuel_pct}")
+        if not all(math.isfinite(v) for v in velocity):
+            raise ValueError(f"velocity components must be finite, got {velocity}")
         track = self.tracks.get(callsign)
         if track is None:
             return {"ok": False, "reason": "not_registered"}

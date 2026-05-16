@@ -48,6 +48,10 @@ class VertiportOps:
         self._next_slot = 0
 
     def add_pad(self, pad_id: str, position: Tuple[float, float], max_weight: float = 3000.0) -> None:
+        if not math.isfinite(max_weight) or max_weight <= 0:
+            raise ValueError(
+                f"max_weight must be a finite positive number, got {max_weight}"
+            )
         self.pads[pad_id] = LandingPad(pad_id=pad_id, position=position, max_weight_kg=max_weight)
 
     def reserve_slot(

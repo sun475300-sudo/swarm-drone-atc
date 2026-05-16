@@ -162,7 +162,7 @@ class NotamManager:
         return len(terminal)
 
     def extend_notam(self, notam_id: str, extra_hours: float) -> bool:
-        if notam_id not in self.notams or extra_hours <= 0:
+        if notam_id not in self.notams or not math.isfinite(extra_hours) or extra_hours <= 0:
             return False
         rec = self.notams[notam_id]
         if rec.status != NotamStatus.ACTIVE:

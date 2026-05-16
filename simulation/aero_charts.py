@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
@@ -36,7 +37,17 @@ class AeroCharts:
     def __init__(self) -> None:
         self.features: Dict[str, ChartFeature] = {}
 
+    @staticmethod
+    def _validate_feature_position(pos: Tuple[float, float]) -> None:
+        if len(pos) != 2:
+            raise ValueError(
+                f"position must be a 2-element (lat, lon) tuple, got {len(pos)} elements"
+            )
+        if not math.isfinite(pos[0]) or not math.isfinite(pos[1]):
+            raise ValueError(f"position coordinates must be finite, got {pos}")
+
     def add_feature(self, feature: ChartFeature) -> None:
+        self._validate_feature_position(feature.position)
         self.features[feature.feature_id] = feature
 
     def bulk_add(self, features: List[ChartFeature]) -> int:
@@ -46,6 +57,7 @@ class AeroCharts:
         """
         seen_in_batch: set[str] = set()
         for f in features:
+            self._validate_feature_position(f.position)
             if f.feature_id in self.features or f.feature_id in seen_in_batch:
                 raise ValueError(
                     f"duplicate feature_id {f.feature_id!r} in bulk_add"

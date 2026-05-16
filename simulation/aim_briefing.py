@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import math
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -63,6 +64,11 @@ class AimBriefingService:
         if request.planned_altitude_m < 0:
             raise ValueError(
                 f"planned_altitude_m must be non-negative, got {request.planned_altitude_m}"
+            )
+        if not math.isfinite(request.departure_time) or request.departure_time < 0:
+            raise ValueError(
+                f"departure_time must be a finite non-negative number, "
+                f"got {request.departure_time}"
             )
         warnings: List[str] = []
         # route 목록을 1회만 생성해 각 수집 메서드에 전달 (DRY + 성능)

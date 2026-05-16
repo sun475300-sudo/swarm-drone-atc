@@ -93,6 +93,10 @@ class CrossBorderCoordinator:
         # max_crossings 초과 시 종료 상태 레코드 자동 제거
         if len(self.crossings) > self.max_crossings:
             self.purge_terminal()
+        # 제거 후에도 초과 중이면 가장 오래된 항목 강제 제거
+        if len(self.crossings) > self.max_crossings:
+            oldest = next(iter(self.crossings))
+            del self.crossings[oldest]
         return cid
 
     def submit_document(self, crossing_id: str, doc_name: str) -> bool:

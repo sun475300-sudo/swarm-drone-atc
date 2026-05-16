@@ -85,7 +85,7 @@ class VertiportOps:
         for pad_id, pad in self.pads.items():
             if pad.max_weight_kg < weight_kg:
                 continue
-            if pad.status == PadStatus.MAINTENANCE:
+            if pad.status in (PadStatus.MAINTENANCE, PadStatus.OCCUPIED):
                 continue
             conflict = False
             for res in self.reservations.values():

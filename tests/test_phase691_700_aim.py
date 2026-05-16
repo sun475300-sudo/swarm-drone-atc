@@ -1539,3 +1539,81 @@ class TestPrecisionRound7:
         # last_contact is 0.0 — should not be flagged as LOST_COMMS
         lost = svc.sweep_lost_comms(current_time=1000.0)
         assert "DR1" not in lost
+
+
+# ── Round 8 Precision Tests ──────────────────────────────────────────
+class TestPrecisionRound8:
+    # ── _find_available_pad: OCCUPIED not allocatable ─────────────
+    def test_occupied_pad_not_allocated(self):
+        from simulation.vertiport_ops import VertiportOps
+        vp = VertiportOps()
+        vp.add_pad("P1", (0.0, 0.0))
+        sid = vp.reserve_slot("DR1", 1000.0, 600.0)
+        vp.land(sid)
+        # P1 is now OCCUPIED — second reservation must fail
+        sid2 = vp.reserve_slot("DR2", time.time() + 3600, 600.0)
+        assert sid2 is None  # no pad available
+
+    # ── parse_taf: METAR/SPECI prefix fix ─────────────────────────
+    def test_parse_taf_metar_prefix_station(self):
+        from simulation.metar_parser import MetarParser
+        mp = MetarParser()
+        taf = mp.parse_taf("METAR RKSI 010000Z 1000/1106 27010KT 9999 FEW040")
+        assert taf.station == "RKSI"
+
+    def test_parse_taf_speci_prefix_station(self):
+        from simulation.metar_parser import MetarParser
+        mp = MetarParser()
+        taf = mp.parse_taf("SPECI RKSI 010000Z 1000/1106 27010KT 9999 FEW040")
+        assert taf.station == "RKSI"
+
+    def test_parse_taf_taf_prefix_station_unchanged(self):
+        from simulation.metar_parser import MetarParser
+        mp = MetarParser()
+        taf = mp.parse_taf("TAF RKSI 010000Z 1000/1106 27010KT 9999 FEW040")
+        assert taf.station == "RKSI"
+
+    # ── hard cap: notam_manager always enforced ───────────────────
+    def test_notam_hard_cap_all_active(self):
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager(max_notams=2)
+        for _ in range(5):
+            mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.1, 999.0, "x")
+        assert len(mgr.notams) <= 2
+
+    # ── hard cap: tfr_handler always enforced ─────────────────────
+    def test_tfr_hard_cap_all_active(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler(max_tfrs=2)
+        for _ in range(5):
+            h.declare_tfr(TfrReason.VIP, (0, 0), 100.0, 0.0, 200.0, 999.0)
+        assert len(h.tfrs) <= 2
+
+    # ── hard cap: flight_following always enforced ────────────────
+    def test_flight_following_hard_cap_all_active(self):
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService(max_tracks=2)
+        for i in range(5):
+            try:
+                svc.register_flight(f"DR{i}", "P", [(0, 0, 0), (1, 1, 1)])
+            except ValueError:
+                pass  # active duplicate → declare_completed and re-register not needed here
+        assert len(svc.tracks) <= 2
+
+    # ── aim_briefing: METAR parse failure → NO-GO (fail-closed) ──
+    def test_briefing_bad_metar_is_nogo(self):
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        from simulation.metar_parser import MetarParser
+        svc = AimBriefingService(metar_parser=MetarParser())
+        req = BriefingRequest(
+            callsign="DR1",
+            departure=(0.0, 0.0),
+            destination=(1.0, 1.0),
+            route_waypoints=[],
+            planned_altitude_m=50.0,
+            departure_time=0.0,
+        )
+        result = svc.generate(req, metar_text="GARBAGE DATA")
+        assert result.go_nogo == "NO-GO"
+        assert result.weather_ok is False
+        assert any("METAR parse failed" in w for w in result.warnings)

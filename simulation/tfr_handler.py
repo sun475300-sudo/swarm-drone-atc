@@ -107,6 +107,10 @@ class TfrHandler:
         # max_tfrs 초과 시 만료된 TFR 자동 제거
         if len(self.tfrs) > self.max_tfrs:
             self.purge_expired()
+        # 제거 후에도 초과 중이면 가장 오래된 항목 강제 제거
+        if len(self.tfrs) > self.max_tfrs:
+            oldest = next(iter(self.tfrs))
+            del self.tfrs[oldest]
         return tid
 
     def _record_history(self, event: Dict[str, Any]) -> None:

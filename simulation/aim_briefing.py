@@ -142,8 +142,9 @@ class AimBriefingService:
         try:
             obs = self.metar_parser.parse_metar(metar_text)
         except ValueError as exc:
-            warnings.append(f"METAR parse failed: {exc}")
-            return True
+            # 기상 데이터 파싱 실패 → 안전 방향(fail-closed)으로 NO-GO 처리
+            warnings.append(f"METAR parse failed (weather unknown): {exc}")
+            return False
         if obs.wind_speed_kt >= _HIGH_WIND_THRESHOLD_KT:
             warnings.append(f"High winds {obs.wind_speed_kt} kt")
         if not self.metar_parser.is_vfr(obs):

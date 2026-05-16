@@ -118,6 +118,10 @@ class NotamManager:
         # max_notams 초과 시 종료 상태 레코드 자동 제거
         if len(self.notams) > self.max_notams:
             self.purge_terminal()
+        # 제거 후에도 여전히 초과 중이면 삽입 순서대로 가장 오래된 항목 강제 제거
+        if len(self.notams) > self.max_notams:
+            oldest = next(iter(self.notams))
+            del self.notams[oldest]
         return notam_id
 
     def _record_history(self, event: Dict[str, Any]) -> None:

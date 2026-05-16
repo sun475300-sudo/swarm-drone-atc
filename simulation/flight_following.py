@@ -88,6 +88,11 @@ class FlightFollowingService:
         # max_tracks 초과 시 완료된 트랙 자동 정리
         if len(self.tracks) > self.max_tracks:
             self.purge_completed()
+        # 제거 후에도 초과 중이면 가장 오래된 항목 강제 제거
+        if len(self.tracks) > self.max_tracks:
+            oldest = next(iter(self.tracks))
+            self.plans.pop(oldest, None)
+            del self.tracks[oldest]
 
     def report_position(
         self,

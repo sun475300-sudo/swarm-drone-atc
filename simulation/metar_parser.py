@@ -140,8 +140,10 @@ class MetarParser:
         if len(tokens) < 3:
             raise ValueError("TAF too short")
         idx = 0
-        if tokens[0] == "TAF":
+        if tokens[0] in ("TAF", "METAR", "SPECI"):
             idx = 1
+        if len(tokens) < idx + 3:
+            raise ValueError("TAF too short")
         station = tokens[idx]
         issued = tokens[idx + 1] if idx + 1 < len(tokens) else ""
         valid_from = ""

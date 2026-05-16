@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import time
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
@@ -52,6 +53,12 @@ class VertiportOps:
             raise ValueError(
                 f"max_weight must be a finite positive number, got {max_weight}"
             )
+        if len(position) != 2:
+            raise ValueError(
+                f"position must be a 2-element (lat, lon) tuple, got {len(position)} elements"
+            )
+        if not math.isfinite(position[0]) or not math.isfinite(position[1]):
+            raise ValueError(f"position coordinates must be finite, got {position}")
         self.pads[pad_id] = LandingPad(pad_id=pad_id, position=position, max_weight_kg=max_weight)
 
     def reserve_slot(
@@ -161,14 +168,15 @@ class VertiportOps:
         return True
 
     def depart(self, pad_id: str) -> bool:
-        import time as _time
         pad = self.pads.get(pad_id)
         if pad is None:
             return False
-        pad.status = PadStatus.AVAILABLE
+        # OCCUPIED 상태인 패드만 AVAILABLE로 복원 — MAINTENANCE 상태는 건드리지 않음
+        if pad.status == PadStatus.OCCUPIED:
+            pad.status = PadStatus.AVAILABLE
         pad.current_callsign = None
         # 현재 시각 이전에 시작된 예약(소모된 슬롯)만 제거 — 미래 예약은 유지
-        now = _time.time()
+        now = time.time()
         stale = [
             k for k, r in self.reservations.items()
             if r.pad_id == pad_id and r.start_time <= now

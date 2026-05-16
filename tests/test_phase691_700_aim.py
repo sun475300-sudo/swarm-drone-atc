@@ -1834,3 +1834,283 @@ class TestPrecisionRound10:
         svc.register_flight("DR1", "P1", [(0, 0, 0), (1, 1, 1)])
         with pytest.raises(ValueError, match="velocity"):
             svc.report_position("DR1", (0.0, 0.0, 50.0), (float("nan"), 0.0, 0.0), 50.0)
+
+
+# ── Round-11 Precision Tests ─────────────────────────────────────────
+class TestPrecisionRound11:
+    """코드 리뷰 11라운드 CRITICAL/HIGH/MEDIUM 이슈 검증."""
+
+    # ── CRITICAL: NaN area_center in create_notam ─────────────────
+    def test_create_notam_nan_lat_raises(self):
+        """area_center 좌표에 NaN이 있으면 ValueError가 발생해야 한다."""
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        with pytest.raises(ValueError, match="finite"):
+            mgr.create_notam(NotamCategory.HAZARD, (float("nan"), 0.0),
+                             100.0, 0.0, 200.0, 1.0, "NaN center test")
+
+    def test_create_notam_inf_lon_raises(self):
+        """area_center 좌표에 Inf가 있으면 ValueError가 발생해야 한다."""
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        with pytest.raises(ValueError, match="finite"):
+            mgr.create_notam(NotamCategory.HAZARD, (0.0, float("inf")),
+                             100.0, 0.0, 200.0, 1.0, "Inf center test")
+
+    def test_nan_notam_center_does_not_match_all_queries(self):
+        """유효한 NOTAM은 NaN center로 저장되지 않아 phantom match가 발생하지 않아야 한다.
+        좌표 시스템은 유클리드 거리(미터)를 사용하므로 거리 단위를 맞춰 테스트한다.
+        """
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        # NOTAM을 (10000, 0)에 반경 100m으로 생성
+        mgr.create_notam(NotamCategory.HAZARD, (10000.0, 0.0),
+                         100.0, 0.0, 200.0, 1.0, "Far NOTAM")
+        # 원점(0, 0)에서 반경 100m 쿼리 — 거리 10000m >> 100+100=200m 이므로 빈 결과여야 함
+        results = mgr.query_active(area_center=(0.0, 0.0), radius_m=100.0)
+        assert results == []
+
+    # ── CRITICAL: NaN center in declare_tfr ──────────────────────
+    def test_declare_tfr_nan_center_raises(self):
+        """TFR center 좌표에 NaN이 있으면 ValueError가 발생해야 한다."""
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        with pytest.raises(ValueError, match="finite"):
+            h.declare_tfr(TfrReason.VIP, (float("nan"), 0.0),
+                          500.0, 0.0, 200.0, 1.0)
+
+    def test_declare_tfr_inf_center_raises(self):
+        """TFR center 좌표에 Inf가 있으면 ValueError가 발생해야 한다."""
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        with pytest.raises(ValueError, match="finite"):
+            h.declare_tfr(TfrReason.VIP, (0.0, float("inf")),
+                          500.0, 0.0, 200.0, 1.0)
+
+    # ── CRITICAL: planned_altitude_m=inf crashes generate() ──────
+    def test_briefing_inf_altitude_raises(self):
+        """planned_altitude_m=inf 이면 ValueError가 발생해야 한다."""
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        svc = AimBriefingService()
+        req = BriefingRequest(
+            callsign="DR1",
+            departure=(0.0, 0.0),
+            destination=(1.0, 1.0),
+            route_waypoints=[],
+            planned_altitude_m=float("inf"),
+            departure_time=1000.0,
+        )
+        with pytest.raises(ValueError, match="planned_altitude_m"):
+            svc.generate(req)
+
+    def test_briefing_nan_altitude_raises(self):
+        """planned_altitude_m=nan 이면 ValueError가 발생해야 한다."""
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        svc = AimBriefingService()
+        req = BriefingRequest(
+            callsign="DR1",
+            departure=(0.0, 0.0),
+            destination=(1.0, 1.0),
+            route_waypoints=[],
+            planned_altitude_m=float("nan"),
+            departure_time=1000.0,
+        )
+        with pytest.raises(ValueError, match="planned_altitude_m"):
+            svc.generate(req)
+
+    # ── HIGH: report_position on COMPLETED track ──────────────────
+    def test_report_position_completed_track_rejected(self):
+        """COMPLETED 상태 트랙에 대한 위치 보고는 ok=False를 반환해야 한다."""
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService()
+        svc.register_flight("DR1", "P1", [(0, 0, 0), (1, 1, 1)])
+        svc.declare_completed("DR1")
+        result = svc.report_position("DR1", (0.0, 0.0, 50.0), (1.0, 0.0, 0.0), 80.0)
+        assert result["ok"] is False
+        assert result["reason"] == "flight_completed"
+
+    # ── HIGH: position validation in report_position ──────────────
+    def test_report_position_2tuple_position_raises(self):
+        """2-tuple position은 ValueError가 발생해야 한다."""
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService()
+        svc.register_flight("DR1", "P1", [(0, 0, 0), (1, 1, 1)])
+        with pytest.raises(ValueError, match="position"):
+            svc.report_position("DR1", (0.0, 0.0), (1.0, 0.0, 0.0), 80.0)
+
+    def test_report_position_nan_position_raises(self):
+        """NaN position은 ValueError가 발생해야 한다."""
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService()
+        svc.register_flight("DR1", "P1", [(0, 0, 0), (1, 1, 1)])
+        with pytest.raises(ValueError, match="finite"):
+            svc.report_position("DR1", (float("nan"), 0.0, 50.0), (1.0, 0.0, 0.0), 80.0)
+
+    # ── HIGH: velocity length validation in report_position ───────
+    def test_report_position_2tuple_velocity_raises(self):
+        """2-tuple velocity는 ValueError가 발생해야 한다."""
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService()
+        svc.register_flight("DR1", "P1", [(0, 0, 0), (1, 1, 1)])
+        with pytest.raises(ValueError, match="velocity"):
+            svc.report_position("DR1", (0.0, 0.0, 50.0), (1.0, 0.0), 80.0)
+
+    # ── HIGH: depart() does not clear MAINTENANCE status ─────────
+    def test_depart_does_not_clear_maintenance(self):
+        """MAINTENANCE 상태의 패드에서 depart()가 호출되어도 AVAILABLE로 변경되면 안 된다."""
+        from simulation.vertiport_ops import VertiportOps, PadStatus
+        ops = VertiportOps()
+        ops.add_pad("P1", (0.0, 0.0))
+        # 패드를 MAINTENANCE로 전환
+        ops.enable_maintenance("P1")
+        assert ops.pads["P1"].status == PadStatus.MAINTENANCE
+        # depart() 호출 — MAINTENANCE 상태는 유지되어야 함
+        result = ops.depart("P1")
+        assert result is True
+        assert ops.pads["P1"].status == PadStatus.MAINTENANCE
+
+    # ── HIGH: scheduled_time validation in propose_crossing ───────
+    def test_propose_crossing_nan_scheduled_time_raises(self):
+        """scheduled_time=nan이면 ValueError가 발생해야 한다."""
+        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        coord = CrossBorderCoordinator()
+        coord.register_authority(AirspaceAuthority("A", "Alpha"))
+        coord.register_authority(AirspaceAuthority("B", "Beta"))
+        with pytest.raises(ValueError, match="scheduled_time"):
+            coord.propose_crossing("DR1", "A", "B", (0.0, 0.0),
+                                   float("nan"), 100.0)
+
+    def test_propose_crossing_negative_scheduled_time_raises(self):
+        """scheduled_time < 0이면 ValueError가 발생해야 한다."""
+        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        coord = CrossBorderCoordinator()
+        coord.register_authority(AirspaceAuthority("A", "Alpha"))
+        coord.register_authority(AirspaceAuthority("B", "Beta"))
+        with pytest.raises(ValueError, match="scheduled_time"):
+            coord.propose_crossing("DR1", "A", "B", (0.0, 0.0),
+                                   -100.0, 100.0)
+
+    def test_propose_crossing_nan_crossing_point_raises(self):
+        """crossing_point에 NaN 좌표가 있으면 ValueError가 발생해야 한다."""
+        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        coord = CrossBorderCoordinator()
+        coord.register_authority(AirspaceAuthority("A", "Alpha"))
+        coord.register_authority(AirspaceAuthority("B", "Beta"))
+        with pytest.raises(ValueError, match="finite"):
+            coord.propose_crossing("DR1", "A", "B", (float("nan"), 0.0),
+                                   1000.0, 100.0)
+
+    # ── HIGH: get() methods for TfrHandler and CrossBorderCoordinator
+    def test_tfr_handler_get_returns_record(self):
+        """TfrHandler.get()이 올바른 Tfr 레코드를 반환해야 한다."""
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        tid = h.declare_tfr(TfrReason.VIP, (0.0, 0.0), 500.0, 0.0, 200.0, 1.0)
+        rec = h.get(tid)
+        assert rec is not None
+        assert rec.tfr_id == tid
+        assert rec.reason == TfrReason.VIP
+
+    def test_tfr_handler_get_missing_returns_none(self):
+        """TfrHandler.get()이 존재하지 않는 ID에 대해 None을 반환해야 한다."""
+        from simulation.tfr_handler import TfrHandler
+        h = TfrHandler()
+        assert h.get("nonexistent") is None
+
+    def test_cross_border_coordinator_get_returns_record(self):
+        """CrossBorderCoordinator.get()이 올바른 BorderCrossing 레코드를 반환해야 한다."""
+        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        coord = CrossBorderCoordinator()
+        coord.register_authority(AirspaceAuthority("A", "Alpha"))
+        coord.register_authority(AirspaceAuthority("B", "Beta"))
+        cid = coord.propose_crossing("DR1", "A", "B", (0.0, 0.0), 1000.0, 100.0)
+        assert cid is not None
+        bc = coord.get(cid)
+        assert bc is not None
+        assert bc.crossing_id == cid
+        assert bc.callsign == "DR1"
+
+    def test_cross_border_coordinator_get_missing_returns_none(self):
+        """CrossBorderCoordinator.get()이 존재하지 않는 ID에 대해 None을 반환해야 한다."""
+        from simulation.cross_border_coord import CrossBorderCoordinator
+        coord = CrossBorderCoordinator()
+        assert coord.get("nonexistent") is None
+
+    # ── MEDIUM: check_violation position finiteness ───────────────
+    def test_check_violation_nan_position_raises(self):
+        """check_violation()에 NaN position이 있으면 ValueError가 발생해야 한다."""
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        h.declare_tfr(TfrReason.VIP, (0, 0), 500.0, 0.0, 200.0, 1.0)
+        with pytest.raises(ValueError, match="finite"):
+            h.check_violation("DR1", (float("nan"), 0.0, 50.0))
+
+    def test_check_conflict_readonly_nan_position_raises(self):
+        """check_conflict_readonly()에 NaN position이 있으면 ValueError가 발생해야 한다."""
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        h.declare_tfr(TfrReason.VIP, (0, 0), 500.0, 0.0, 200.0, 1.0)
+        with pytest.raises(ValueError, match="finite"):
+            h.check_conflict_readonly("DR1", (float("inf"), 0.0, 50.0))
+
+    # ── MEDIUM: add_pad position finiteness ──────────────────────
+    def test_add_pad_nan_position_raises(self):
+        """add_pad()에 NaN position이 있으면 ValueError가 발생해야 한다."""
+        from simulation.vertiport_ops import VertiportOps
+        ops = VertiportOps()
+        with pytest.raises(ValueError, match="finite"):
+            ops.add_pad("P1", (float("nan"), 0.0))
+
+    def test_add_pad_inf_position_raises(self):
+        """add_pad()에 Inf position이 있으면 ValueError가 발생해야 한다."""
+        from simulation.vertiport_ops import VertiportOps
+        ops = VertiportOps()
+        with pytest.raises(ValueError, match="finite"):
+            ops.add_pad("P1", (0.0, float("inf")))
+
+    # ── MEDIUM: declare_tfr history event logged ──────────────────
+    def test_declare_tfr_logs_history_event(self):
+        """declare_tfr() 호출 후 history에 'declare' 이벤트가 기록되어야 한다."""
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        tid = h.declare_tfr(TfrReason.SECURITY, (0.0, 0.0), 1000.0, 0.0, 500.0, 2.0)
+        declare_events = [e for e in h.history if e.get("action") == "declare"]
+        assert len(declare_events) == 1
+        assert declare_events[0]["tfr_id"] == tid
+        assert declare_events[0]["reason"] == "security_operation"
+
+    # ── MEDIUM: max_history independent of max_violations ────────
+    def test_tfr_history_cap_independent_of_violations(self):
+        """max_violations=2로도 max_history=50으로 설정하면 history가 50개를 유지해야 한다."""
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler(max_violations=2, max_history=50)
+        # 20개 TFR 선언 → 20개 declare history 이벤트
+        for _ in range(20):
+            h.declare_tfr(TfrReason.VIP, (0.0, 0.0), 100.0, 0.0, 200.0, 0.001)
+        assert len(h.history) == 20  # max_history=50 이므로 잘리지 않아야 함
+        assert len(h.violation_log) == 0  # 위반 없음
+
+    # ── MEDIUM: events non-string raises ─────────────────────────
+    def test_build_report_non_string_event_raises(self):
+        """events 목록에 문자열이 아닌 항목이 있으면 ValueError가 발생해야 한다."""
+        from simulation.post_flight_report import PostFlightReporter
+        reporter = PostFlightReporter()
+        pts = [(0.0, (0.0, 0.0, 0.0), 100.0), (1.0, (10.0, 0.0, 0.0), 90.0)]
+        with pytest.raises(ValueError, match="events"):
+            reporter.build_report("DR1", "P1", pts, events=[42, "ABORT"])
+
+    # ── MEDIUM: weather fail-open warning ─────────────────────────
+    def test_generate_no_metar_adds_weather_skipped_warning(self):
+        """metar_text=None이면 warnings에 'weather assessment skipped' 경고가 추가되어야 한다."""
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        svc = AimBriefingService()
+        req = BriefingRequest(
+            callsign="DR1",
+            departure=(0.0, 0.0),
+            destination=(1.0, 1.0),
+            route_waypoints=[],
+            planned_altitude_m=50.0,
+            departure_time=1000.0,
+        )
+        result = svc.generate(req, metar_text=None)
+        assert any("weather assessment skipped" in w for w in result.warnings)

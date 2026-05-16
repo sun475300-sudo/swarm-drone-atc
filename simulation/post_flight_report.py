@@ -85,6 +85,8 @@ class PostFlightReporter:
             raise ValueError("collision/conflict/deviation counts must be non-negative")
         metrics = self._compute_metrics(track_points, conflicts_detected, collisions, deviation_alerts)
         events_list = list(events or [])
+        if not all(isinstance(e, str) for e in events_list):
+            raise ValueError("all events must be strings")
         outcome, issues = self._classify_outcome(metrics, events_list)
         report = PostFlightReport(
             report_id=self._gen_id(),

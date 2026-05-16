@@ -61,9 +61,10 @@ class AimBriefingService:
     def generate(
         self, request: BriefingRequest, metar_text: Optional[str] = None
     ) -> BriefingResult:
-        if request.planned_altitude_m < 0:
+        if not math.isfinite(request.planned_altitude_m) or request.planned_altitude_m < 0:
             raise ValueError(
-                f"planned_altitude_m must be non-negative, got {request.planned_altitude_m}"
+                f"planned_altitude_m must be a finite non-negative number, "
+                f"got {request.planned_altitude_m}"
             )
         if not math.isfinite(request.departure_time) or request.departure_time < 0:
             raise ValueError(
@@ -143,7 +144,14 @@ class AimBriefingService:
         return [h.feature_id for h in hazards]
 
     def _assess_weather(self, metar_text: Optional[str], warnings: List[str]) -> bool:
+        """Assess weather from METAR text.
+
+        Returns True (weather assumed OK / fail-open) when metar_text is None or
+        metar_parser is not configured — callers must be aware of this assumption.
+        Returns False (NO-GO) if METAR parsing fails or conditions are IFR.
+        """
         if metar_text is None or self.metar_parser is None:
+            warnings.append("weather assessment skipped (no METAR/parser available)")
             return True
         try:
             obs = self.metar_parser.parse_metar(metar_text)

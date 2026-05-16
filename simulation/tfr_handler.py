@@ -45,6 +45,7 @@ class TfrHandler:
         seed: int = 42,
         max_violations: int = _DEFAULT_VIOLATION_CAP,
         max_tfrs: int = _DEFAULT_TFR_CAP,
+        max_history: Optional[int] = None,
     ) -> None:
         if max_violations <= 0:
             raise ValueError("max_violations must be positive")
@@ -55,6 +56,10 @@ class TfrHandler:
         self.tfrs: Dict[str, Tfr] = {}
         self.max_violations = max_violations
         self.max_tfrs = max_tfrs
+        # max_history defaults to max_violations but is an independent cap for
+        # the audit trail (declare/revoke/authorize events). Keeping them separate
+        # prevents a small violation cap from silently truncating the audit log.
+        self.max_history = max_history if max_history is not None else max_violations
         self.violation_log: List[Dict[str, Any]] = []
         self.history: List[Dict[str, Any]] = []
 
@@ -91,6 +96,10 @@ class TfrHandler:
             raise ValueError(
                 f"center must be a 2-element (lat, lon) tuple, got {len(center)} elements"
             )
+        if not math.isfinite(center[0]) or not math.isfinite(center[1]):
+            raise ValueError(
+                f"center coordinates must be finite, got {center}"
+            )
         tid = self._gen_id()
         now = time.time()
         self.tfrs[tid] = Tfr(
@@ -104,6 +113,7 @@ class TfrHandler:
             end_time=now + duration_hours * 3600.0,
             authorized_callsigns=list(authorized or []),
         )
+        self._record_history({"action": "declare", "tfr_id": tid, "reason": reason.value, "ts": now})
         # max_tfrs 초과 시 만료된 TFR 자동 제거
         if len(self.tfrs) > self.max_tfrs:
             self.purge_expired()
@@ -115,7 +125,7 @@ class TfrHandler:
 
     def _record_history(self, event: Dict[str, Any]) -> None:
         self.history.append(event)
-        overflow = len(self.history) - self.max_violations
+        overflow = len(self.history) - self.max_history
         if overflow > 0:
             del self.history[:overflow]
 
@@ -151,6 +161,8 @@ class TfrHandler:
             raise ValueError(
                 f"position must be a 3-element (lat, lon, alt) tuple, got {len(position)} elements"
             )
+        if not all(math.isfinite(v) for v in position):
+            raise ValueError(f"position components must be finite, got {position}")
         violations: List[str] = []
         now = time.time()
         for rec in self.tfrs.values():
@@ -186,6 +198,8 @@ class TfrHandler:
             raise ValueError(
                 f"position must be a 3-element (lat, lon, alt) tuple, got {len(position)} elements"
             )
+        if not all(math.isfinite(v) for v in position):
+            raise ValueError(f"position components must be finite, got {position}")
         conflicts: List[str] = []
         now = time.time()
         for rec in self.tfrs.values():
@@ -213,6 +227,10 @@ class TfrHandler:
             "ts": time.time(),
         })
         return True
+
+    def get(self, tfr_id: str) -> Optional[Tfr]:
+        """Return the Tfr record for the given ID, or None if not found."""
+        return self.tfrs.get(tfr_id)
 
     def active_tfrs(self) -> List[Tfr]:
         now = time.time()

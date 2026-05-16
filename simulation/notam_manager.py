@@ -99,6 +99,10 @@ class NotamManager:
             raise ValueError(
                 f"area_center must be a 2-element (lat, lon) tuple, got {len(area_center)} elements"
             )
+        if not math.isfinite(area_center[0]) or not math.isfinite(area_center[1]):
+            raise ValueError(
+                f"area_center coordinates must be finite, got {area_center}"
+            )
         now = time.time()
         notam_id = self._gen_id()
         record = NotamRecord(

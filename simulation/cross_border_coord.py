@@ -72,6 +72,14 @@ class CrossBorderCoordinator:
                 f"crossing_point must be a 2-element (lat, lon) tuple, "
                 f"got {len(crossing_point)} elements"
             )
+        if not math.isfinite(crossing_point[0]) or not math.isfinite(crossing_point[1]):
+            raise ValueError(
+                f"crossing_point coordinates must be finite, got {crossing_point}"
+            )
+        if not math.isfinite(scheduled_time) or scheduled_time < 0:
+            raise ValueError(
+                f"scheduled_time must be a finite non-negative number, got {scheduled_time}"
+            )
         if not math.isfinite(altitude) or altitude < 0:
             raise ValueError(
                 f"altitude must be a finite non-negative number, got {altitude}"
@@ -149,6 +157,10 @@ class CrossBorderCoordinator:
             return False
         bc.status = HandoffStatus.COMPLETED
         return True
+
+    def get(self, crossing_id: str) -> Optional[BorderCrossing]:
+        """Return the BorderCrossing record for the given ID, or None if not found."""
+        return self.crossings.get(crossing_id)
 
     def pending_crossings(self) -> List[BorderCrossing]:
         return [c for c in self.crossings.values() if c.status == HandoffStatus.PROPOSED]

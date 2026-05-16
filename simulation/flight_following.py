@@ -104,11 +104,23 @@ class FlightFollowingService:
     ) -> Dict[str, Any]:
         if not (0.0 <= fuel_pct <= 100.0):
             raise ValueError(f"fuel_pct must be in [0.0, 100.0], got {fuel_pct}")
+        if len(position) != 3:
+            raise ValueError(
+                f"position must be a 3-element (lat, lon, alt) tuple, got {len(position)} elements"
+            )
+        if not all(math.isfinite(v) for v in position):
+            raise ValueError(f"position components must be finite, got {position}")
+        if len(velocity) != 3:
+            raise ValueError(
+                f"velocity must be a 3-element tuple, got {len(velocity)} elements"
+            )
         if not all(math.isfinite(v) for v in velocity):
             raise ValueError(f"velocity components must be finite, got {velocity}")
         track = self.tracks.get(callsign)
         if track is None:
             return {"ok": False, "reason": "not_registered"}
+        if track.state == TrackState.COMPLETED:
+            return {"ok": False, "reason": "flight_completed"}
         now = time.time()
         # deque(maxlen=max_points_per_track) 이 자동으로 오래된 항목 제거
         track.points.append(TrackPoint(ts=now, position=position, velocity=velocity, fuel_pct=fuel_pct))

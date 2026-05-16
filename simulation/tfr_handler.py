@@ -147,6 +147,10 @@ class TfrHandler:
     def check_violation(
         self, callsign: str, position: Tuple[float, float, float]
     ) -> List[str]:
+        if len(position) != 3:
+            raise ValueError(
+                f"position must be a 3-element (lat, lon, alt) tuple, got {len(position)} elements"
+            )
         violations: List[str] = []
         now = time.time()
         for rec in self.tfrs.values():
@@ -178,6 +182,10 @@ class TfrHandler:
 
         브리핑 사전 검사 등 부작용이 없어야 하는 경우에 사용한다.
         """
+        if len(position) != 3:
+            raise ValueError(
+                f"position must be a 3-element (lat, lon, alt) tuple, got {len(position)} elements"
+            )
         conflicts: List[str] = []
         now = time.time()
         for rec in self.tfrs.values():

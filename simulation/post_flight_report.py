@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -13,6 +14,10 @@ import numpy as np
 _DEGRADED_DEVIATION_THRESHOLD: int = 3
 _DEGRADED_CONFLICT_THRESHOLD: int = 5
 _DEGRADED_FUEL_THRESHOLD: float = 85.0
+
+# 단어 경계 기반 ABORT 감지 — "PRE_ABORT_CHECK" 등의 부분 문자열 오탐 방지
+# \bABORT\b 는 _ 로 붙은 경우 일치하지 않음 (e.g. PRE_ABORT → 불일치)
+_ABORT_RE = re.compile(r"\bABORT\b", re.IGNORECASE)
 
 
 class ReportOutcome(Enum):
@@ -143,7 +148,7 @@ class PostFlightReporter:
         if metrics.collisions > 0:
             issues.append(f"{metrics.collisions} collision(s)")
             return ReportOutcome.INCIDENT, issues
-        if any("ABORT" in e.upper() for e in events):
+        if any(_ABORT_RE.search(e) for e in events):
             issues.append("mission aborted")
             return ReportOutcome.ABORTED, issues
         if (metrics.deviation_alerts > _DEGRADED_DEVIATION_THRESHOLD

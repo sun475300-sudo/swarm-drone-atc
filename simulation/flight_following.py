@@ -158,14 +158,14 @@ class FlightFollowingService:
 
     def declare_diversion(self, callsign: str) -> bool:
         t = self.tracks.get(callsign)
-        if t is None:
+        if t is None or t.state == TrackState.COMPLETED:
             return False
         t.state = TrackState.DIVERTED
         return True
 
     def declare_hold(self, callsign: str) -> bool:
         t = self.tracks.get(callsign)
-        if t is None:
+        if t is None or t.state == TrackState.COMPLETED:
             return False
         t.state = TrackState.HOLDING
         return True

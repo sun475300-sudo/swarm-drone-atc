@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
@@ -71,8 +72,10 @@ class CrossBorderCoordinator:
                 f"crossing_point must be a 2-element (lat, lon) tuple, "
                 f"got {len(crossing_point)} elements"
             )
-        if altitude < 0:
-            raise ValueError(f"altitude must be non-negative, got {altitude}")
+        if not math.isfinite(altitude) or altitude < 0:
+            raise ValueError(
+                f"altitude must be a finite non-negative number, got {altitude}"
+            )
         self._next_id += 1
         cid = f"BC-{self._next_id:05d}"
         dest = self.authorities[to_code]

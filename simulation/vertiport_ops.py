@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
@@ -57,6 +58,10 @@ class VertiportOps:
         weight_kg: float = 1500.0,
         priority: int = 5,
     ) -> Optional[str]:
+        if not math.isfinite(desired_time) or desired_time < 0:
+            raise ValueError(
+                f"desired_time must be a finite non-negative number, got {desired_time}"
+            )
         if duration_s <= 0:
             raise ValueError("duration_s must be positive")
         if weight_kg < 0:
@@ -78,6 +83,11 @@ class VertiportOps:
             priority=priority,
         )
         self.pads[candidate].status = PadStatus.RESERVED
+        # 이전 실패 시도로 대기열에 있는 경우 제거 — 이제 슬롯이 확보됨
+        try:
+            self.wait_queue.remove(callsign)
+        except ValueError:
+            pass
         return slot_id
 
     def _find_available_pad(self, start: float, duration_s: float, weight_kg: float) -> Optional[str]:
@@ -138,6 +148,9 @@ class VertiportOps:
             return False
         pad = self.pads.get(res.pad_id)
         if pad is None:
+            return False
+        # RESERVED 상태인 패드만 착륙 허용 — 이미 OCCUPIED인 경우 이중 착륙 방지
+        if pad.status != PadStatus.RESERVED:
             return False
         pad.status = PadStatus.OCCUPIED
         pad.current_callsign = res.callsign

@@ -1617,3 +1617,120 @@ class TestPrecisionRound8:
         assert result.go_nogo == "NO-GO"
         assert result.weather_ok is False
         assert any("METAR parse failed" in w for w in result.warnings)
+
+
+# ── Round 9 Precision Tests ──────────────────────────────────────────
+class TestPrecisionRound9:
+    # ── land() RESERVED guard ────────────────────────────────────
+    def test_land_blocked_when_pad_not_reserved(self):
+        from simulation.vertiport_ops import VertiportOps, PadStatus
+        vp = VertiportOps()
+        vp.add_pad("P1", (0.0, 0.0))
+        sid = vp.reserve_slot("DR1", 1000.0, 600.0)
+        vp.cancel_reservation(sid)  # pad back to AVAILABLE
+        # Create a new slot and manually try the old slot
+        sid2 = vp.reserve_slot("DR2", 2000.0, 600.0)
+        assert sid2 is not None
+        vp.cancel_reservation(sid2)   # pad AVAILABLE again
+        # Attempt to land on a non-existent slot
+        assert not vp.land("SLOT-99999")
+
+    def test_double_land_same_slot_blocked(self):
+        from simulation.vertiport_ops import VertiportOps
+        vp = VertiportOps()
+        vp.add_pad("P1", (0.0, 0.0))
+        sid = vp.reserve_slot("DR1", 1000.0, 600.0)
+        assert vp.land(sid)   # first land succeeds
+        assert not vp.land(sid)  # second land blocked (OCCUPIED, not RESERVED)
+
+    # ── desired_time NaN/negative rejected ───────────────────────
+    def test_reserve_slot_nan_desired_time_rejected(self):
+        from simulation.vertiport_ops import VertiportOps
+        vp = VertiportOps()
+        vp.add_pad("P1", (0.0, 0.0))
+        with pytest.raises(ValueError, match="desired_time"):
+            vp.reserve_slot("DR1", float("nan"), 600.0)
+
+    def test_reserve_slot_negative_desired_time_rejected(self):
+        from simulation.vertiport_ops import VertiportOps
+        vp = VertiportOps()
+        vp.add_pad("P1", (0.0, 0.0))
+        with pytest.raises(ValueError, match="desired_time"):
+            vp.reserve_slot("DR1", -1.0, 600.0)
+
+    # ── wait_queue cleared on successful reservation ─────────────
+    def test_wait_queue_cleared_on_reservation_success(self):
+        from simulation.vertiport_ops import VertiportOps
+        vp = VertiportOps()
+        vp.add_pad("P1", (0.0, 0.0))
+        sid = vp.reserve_slot("DR1", 1000.0, 600.0)   # P1 reserved
+        vp.reserve_slot("DR2", 1000.0, 600.0)           # None — DR2 queued
+        assert "DR2" in vp.wait_queue
+        vp.depart("P1")
+        vp.reserve_slot("DR2", 2000.0, 600.0)           # succeeds
+        assert "DR2" not in vp.wait_queue               # removed from queue
+
+    # ── declare_diversion/hold blocked on COMPLETED ──────────────
+    def test_declare_diversion_blocked_on_completed(self):
+        from simulation.flight_following import FlightFollowingService, TrackState
+        svc = FlightFollowingService()
+        svc.register_flight("DR1", "P1", [(0, 0, 0), (1, 1, 1)])
+        svc.declare_completed("DR1")
+        assert not svc.declare_diversion("DR1")
+        assert svc.tracks["DR1"].state == TrackState.COMPLETED
+
+    def test_declare_hold_blocked_on_completed(self):
+        from simulation.flight_following import FlightFollowingService, TrackState
+        svc = FlightFollowingService()
+        svc.register_flight("DR1", "P1", [(0, 0, 0), (1, 1, 1)])
+        svc.declare_completed("DR1")
+        assert not svc.declare_hold("DR1")
+        assert svc.tracks["DR1"].state == TrackState.COMPLETED
+
+    # ── TFR position tuple length guard ─────────────────────────
+    def test_check_violation_2tuple_rejected(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        h.declare_tfr(TfrReason.VIP, (0, 0), 100.0, 0.0, 200.0, 1.0)
+        with pytest.raises(ValueError, match="3-element"):
+            h.check_violation("DR1", (0.0, 0.0))
+
+    def test_check_conflict_readonly_2tuple_rejected(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        h.declare_tfr(TfrReason.VIP, (0, 0), 100.0, 0.0, 200.0, 1.0)
+        with pytest.raises(ValueError, match="3-element"):
+            h.check_conflict_readonly("DR1", (0.0, 0.0))
+
+    # ── notam: altitude NaN rejected ─────────────────────────────
+    def test_query_active_nan_altitude_rejected(self):
+        from simulation.notam_manager import NotamManager
+        mgr = NotamManager()
+        with pytest.raises(ValueError, match="altitude"):
+            mgr.query_active(altitude=float("nan"))
+
+    # ── cross_border: NaN altitude rejected ──────────────────────
+    def test_crossing_nan_altitude_rejected(self):
+        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        coord = CrossBorderCoordinator()
+        coord.register_authority(AirspaceAuthority("A", "Alpha"))
+        coord.register_authority(AirspaceAuthority("B", "Beta"))
+        with pytest.raises(ValueError, match="altitude"):
+            coord.propose_crossing("DR1", "A", "B", (0, 0), 1000.0, float("nan"))
+
+    # ── ABORT false positive: unrelated event not classified ─────
+    def test_pre_abort_check_not_aborted(self):
+        from simulation.post_flight_report import PostFlightReporter, ReportOutcome
+        r = PostFlightReporter()
+        t0 = time.time()
+        pts = [(t0, (0.0, 0.0, 50.0), 100.0), (t0 + 10, (100.0, 0.0, 50.0), 95.0)]
+        report = r.build_report("A1", "P1", pts, events=["PRE_ABORT_CHECK_COMPLETE"])
+        assert report.outcome == ReportOutcome.SUCCESS
+
+    def test_abort_word_in_event_is_aborted(self):
+        from simulation.post_flight_report import PostFlightReporter, ReportOutcome
+        r = PostFlightReporter()
+        t0 = time.time()
+        pts = [(t0, (0.0, 0.0, 50.0), 100.0), (t0 + 10, (100.0, 0.0, 50.0), 95.0)]
+        report = r.build_report("A1", "P1", pts, events=["ABORT: battery critical"])
+        assert report.outcome == ReportOutcome.ABORTED

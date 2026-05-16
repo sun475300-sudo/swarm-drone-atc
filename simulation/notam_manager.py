@@ -185,6 +185,8 @@ class NotamManager:
     ) -> List[NotamRecord]:
         if radius_m < 0:
             raise ValueError("radius_m must be non-negative")
+        if altitude is not None and not math.isfinite(altitude):
+            raise ValueError(f"altitude must be finite, got {altitude}")
         now = time.time()
         result = []
         for rec in self.notams.values():

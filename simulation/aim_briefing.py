@@ -59,6 +59,10 @@ class AimBriefingService:
     def generate(
         self, request: BriefingRequest, metar_text: Optional[str] = None
     ) -> BriefingResult:
+        if request.planned_altitude_m < 0:
+            raise ValueError(
+                f"planned_altitude_m must be non-negative, got {request.planned_altitude_m}"
+            )
         warnings: List[str] = []
         # route 목록을 1회만 생성해 각 수집 메서드에 전달 (DRY + 성능)
         route = [request.departure, *request.route_waypoints, request.destination]

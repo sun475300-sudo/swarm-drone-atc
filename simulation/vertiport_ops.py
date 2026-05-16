@@ -149,17 +149,38 @@ class VertiportOps:
             return False
         pad.status = PadStatus.AVAILABLE
         pad.current_callsign = None
+        # 해당 패드의 소모된 예약을 즉시 제거 — 시간 기반 충돌 검사에서 허상 블록 방지
+        stale = [k for k, r in self.reservations.items() if r.pad_id == pad_id]
+        for k in stale:
+            del self.reservations[k]
         return True
 
     def set_maintenance(self, pad_id: str, enabled: bool = True) -> bool:
+        """패드를 정비 모드로 전환하거나 해제한다.
+
+        `enable_maintenance` / `disable_maintenance`를 선호한다.
+        """
+        if enabled:
+            return self.enable_maintenance(pad_id)
+        return self.disable_maintenance(pad_id)
+
+    def enable_maintenance(self, pad_id: str) -> bool:
+        """패드를 MAINTENANCE 상태로 전환한다."""
         pad = self.pads.get(pad_id)
         if pad is None:
             return False
-        if enabled:
-            pad.status = PadStatus.MAINTENANCE
-        elif pad.status == PadStatus.MAINTENANCE:
-            # MAINTENANCE 상태일 때만 복원 — OCCUPIED는 건드리지 않음
-            pad.status = PadStatus.AVAILABLE
+        pad.status = PadStatus.MAINTENANCE
+        return True
+
+    def disable_maintenance(self, pad_id: str) -> bool:
+        """MAINTENANCE 상태인 패드를 AVAILABLE로 복원한다.
+
+        OCCUPIED 또는 RESERVED 상태는 건드리지 않는다.
+        """
+        pad = self.pads.get(pad_id)
+        if pad is None or pad.status != PadStatus.MAINTENANCE:
+            return False
+        pad.status = PadStatus.AVAILABLE
         return True
 
     def occupancy_rate(self) -> float:

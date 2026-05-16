@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -70,8 +71,20 @@ class TfrHandler:
         duration_hours: float,
         authorized: Optional[List[str]] = None,
     ) -> str:
-        if radius_m <= 0 or altitude_floor > altitude_ceiling or duration_hours <= 0:
-            raise ValueError("Invalid TFR geometry or duration")
+        if not math.isfinite(radius_m) or radius_m <= 0:
+            raise ValueError(f"radius_m must be a finite positive number, got {radius_m}")
+        if not math.isfinite(altitude_floor) or not math.isfinite(altitude_ceiling):
+            raise ValueError("altitude_floor and altitude_ceiling must be finite")
+        if altitude_floor > altitude_ceiling:
+            raise ValueError(
+                f"altitude_floor ({altitude_floor}) must be <= altitude_ceiling ({altitude_ceiling})"
+            )
+        if not math.isfinite(duration_hours) or duration_hours <= 0:
+            raise ValueError(f"duration_hours must be a finite positive number, got {duration_hours}")
+        if len(center) != 2:
+            raise ValueError(
+                f"center must be a 2-element (lat, lon) tuple, got {len(center)} elements"
+            )
         tid = self._gen_id()
         now = time.time()
         self.tfrs[tid] = Tfr(

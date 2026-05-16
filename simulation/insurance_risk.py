@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List
@@ -52,14 +53,31 @@ class InsuranceRiskCalculator:
     ) -> None:
         if max_history <= 0:
             raise ValueError("max_history must be positive")
+        if base_premium_krw <= 0:
+            raise ValueError(f"base_premium_krw must be positive, got {base_premium_krw}")
         self.base_premium_krw = base_premium_krw
         self.max_history = max_history
         self.history: List[Dict[str, Any]] = []
 
     def compute_risk_score(self, f: RiskFactors) -> float:
-        if (f.flight_hours < 0 or f.drone_mtow_kg <= 0
-                or f.operator_experience_hours < 0 or f.proximity_airports_km < 0):
-            raise ValueError("invalid factors")
+        if not math.isfinite(f.drone_mtow_kg) or f.drone_mtow_kg <= 0:
+            raise ValueError(f"drone_mtow_kg must be finite and positive, got {f.drone_mtow_kg}")
+        if not math.isfinite(f.population_density) or f.population_density < 0:
+            raise ValueError(
+                f"population_density must be finite and non-negative, got {f.population_density}"
+            )
+        if not math.isfinite(f.flight_hours) or f.flight_hours < 0:
+            raise ValueError(f"flight_hours must be finite and non-negative, got {f.flight_hours}")
+        if not math.isfinite(f.operator_experience_hours) or f.operator_experience_hours < 0:
+            raise ValueError(
+                f"operator_experience_hours must be finite and non-negative, "
+                f"got {f.operator_experience_hours}"
+            )
+        if not math.isfinite(f.proximity_airports_km) or f.proximity_airports_km < 0:
+            raise ValueError(
+                f"proximity_airports_km must be finite and non-negative, "
+                f"got {f.proximity_airports_km}"
+            )
         pop = min(f.population_density / 10_000.0, 5.0)
         weather = max(0.0, min(f.weather_severity, 1.0))
         weight = min(f.drone_mtow_kg / 25.0, 2.0)

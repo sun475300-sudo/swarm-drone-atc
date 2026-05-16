@@ -1098,3 +1098,164 @@ class TestPrecisionRound4:
         ops.add_pad("P1", (0.0, 0.0))
         with pytest.raises(ValueError):
             ops.reserve_slot("CS1", desired_time=1000.0, weight_kg=-1.0)
+
+
+# ── Round 5 Precision Tests ──────────────────────────────────────────
+class TestPrecisionRound5:
+    # ── NaN guard: notam_manager ────────────────────────────────────
+    def test_notam_nan_radius_rejected(self):
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        with pytest.raises(ValueError, match="finite positive"):
+            mgr.create_notam(NotamCategory.HAZARD, (0, 0), float("nan"), 0.0, 100.0, 1.0, "x")
+
+    def test_notam_inf_duration_rejected(self):
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        with pytest.raises(ValueError, match="finite positive"):
+            mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.0, float("inf"), "x")
+
+    def test_notam_3element_center_rejected(self):
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        with pytest.raises(ValueError, match="2-element"):
+            mgr.create_notam(NotamCategory.HAZARD, (0, 0, 100), 100.0, 0.0, 100.0, 1.0, "x")
+
+    def test_notam_extend_recorded_in_history(self):
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        nid = mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.0, 1.0, "x")
+        before = len(mgr.history)
+        mgr.extend_notam(nid, 2.0)
+        assert len(mgr.history) == before + 1
+        assert mgr.history[-1]["action"] == "extend"
+        assert mgr.history[-1]["notam_id"] == nid
+
+    # ── NaN guard: tfr_handler ──────────────────────────────────────
+    def test_tfr_nan_radius_rejected(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        with pytest.raises(ValueError, match="finite positive"):
+            h.declare_tfr(TfrReason.VIP, (0, 0), float("nan"), 0.0, 200.0, 1.0)
+
+    def test_tfr_inf_radius_rejected(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        with pytest.raises(ValueError, match="finite positive"):
+            h.declare_tfr(TfrReason.VIP, (0, 0), float("inf"), 0.0, 200.0, 1.0)
+
+    def test_tfr_3element_center_rejected(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        with pytest.raises(ValueError, match="2-element"):
+            h.declare_tfr(TfrReason.VIP, (0, 0, 50), 100.0, 0.0, 200.0, 1.0)
+
+    def test_tfr_altitude_message_includes_values(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        with pytest.raises(ValueError, match=r"200"):
+            h.declare_tfr(TfrReason.VIP, (0, 0), 100.0, 300.0, 200.0, 1.0)
+
+    # ── NaN guard: insurance_risk ───────────────────────────────────
+    def test_insurance_nan_mtow_rejected(self):
+        from simulation.insurance_risk import InsuranceRiskCalculator, RiskFactors
+        calc = InsuranceRiskCalculator()
+        f = RiskFactors(1000.0, 10.0, 0.3, float("nan"), 100.0, 2, 5.0)
+        with pytest.raises(ValueError, match="drone_mtow_kg"):
+            calc.compute_risk_score(f)
+
+    def test_insurance_nan_population_rejected(self):
+        from simulation.insurance_risk import InsuranceRiskCalculator, RiskFactors
+        calc = InsuranceRiskCalculator()
+        f = RiskFactors(float("nan"), 10.0, 0.3, 5.0, 100.0, 2, 5.0)
+        with pytest.raises(ValueError, match="population_density"):
+            calc.compute_risk_score(f)
+
+    def test_insurance_zero_base_premium_rejected(self):
+        from simulation.insurance_risk import InsuranceRiskCalculator
+        with pytest.raises(ValueError, match="base_premium_krw"):
+            InsuranceRiskCalculator(base_premium_krw=0.0)
+
+    def test_insurance_negative_base_premium_rejected(self):
+        from simulation.insurance_risk import InsuranceRiskCalculator
+        with pytest.raises(ValueError, match="base_premium_krw"):
+            InsuranceRiskCalculator(base_premium_krw=-1.0)
+
+    # ── vertiport: depart clears reservations ───────────────────────
+    def test_depart_removes_stale_reservations(self):
+        from simulation.vertiport_ops import VertiportOps
+        vp = VertiportOps()
+        vp.add_pad("P1", (0.0, 0.0))
+        sid = vp.reserve_slot("DR1", 1000.0, 600.0)
+        assert sid is not None
+        vp.land(sid)
+        assert len(vp.reservations) == 1
+        vp.depart("P1")
+        assert len(vp.reservations) == 0
+
+    def test_depart_allows_new_overlapping_reservation_after(self):
+        from simulation.vertiport_ops import VertiportOps
+        vp = VertiportOps()
+        vp.add_pad("P1", (0.0, 0.0))
+        sid = vp.reserve_slot("DR1", 1000.0, 600.0)
+        vp.land(sid)
+        vp.depart("P1")
+        sid2 = vp.reserve_slot("DR2", 1000.0, 600.0)
+        assert sid2 is not None
+
+    # ── vertiport: enable/disable maintenance ───────────────────────
+    def test_enable_disable_maintenance_methods(self):
+        from simulation.vertiport_ops import VertiportOps, PadStatus
+        vp = VertiportOps()
+        vp.add_pad("P1", (0.0, 0.0))
+        assert vp.enable_maintenance("P1")
+        assert vp.pads["P1"].status == PadStatus.MAINTENANCE
+        assert vp.disable_maintenance("P1")
+        assert vp.pads["P1"].status == PadStatus.AVAILABLE
+
+    def test_disable_maintenance_noop_on_available(self):
+        from simulation.vertiport_ops import VertiportOps, PadStatus
+        vp = VertiportOps()
+        vp.add_pad("P1", (0.0, 0.0))
+        assert not vp.disable_maintenance("P1")
+        assert vp.pads["P1"].status == PadStatus.AVAILABLE
+
+    # ── aero_charts: negative corridor_width rejected ───────────────
+    def test_path_obstacles_negative_corridor_rejected(self):
+        from simulation.aero_charts import AeroCharts
+        charts = AeroCharts()
+        with pytest.raises(ValueError, match="corridor_width_m"):
+            charts.path_obstacles([(0.0, 0.0), (1.0, 1.0)], -10.0)
+
+    # ── aim_briefing: negative altitude rejected ─────────────────────
+    def test_briefing_negative_altitude_rejected(self):
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        svc = AimBriefingService()
+        req = BriefingRequest(
+            callsign="DR1",
+            departure=(0.0, 0.0),
+            destination=(1.0, 1.0),
+            route_waypoints=[],
+            planned_altitude_m=-50.0,
+            departure_time=0.0,
+        )
+        with pytest.raises(ValueError, match="planned_altitude_m"):
+            svc.generate(req)
+
+    # ── cross_border: max_crossings cap ─────────────────────────────
+    def test_cross_border_max_crossings_cap(self):
+        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        coord = CrossBorderCoordinator(max_crossings=2)
+        coord.register_authority(AirspaceAuthority("A", "Alpha"))
+        coord.register_authority(AirspaceAuthority("B", "Beta"))
+        coord.register_authority(AirspaceAuthority("C", "Gamma"))
+        c1 = coord.propose_crossing("DR1", "A", "B", (0, 0), 1000.0, 100.0)
+        coord.propose_crossing("DR2", "B", "C", (0, 0), 1000.0, 100.0)
+        coord.reject_handoff(c1, "test")
+        coord.propose_crossing("DR3", "A", "C", (0, 0), 1000.0, 100.0)
+        assert len(coord.crossings) <= 2
+
+    def test_cross_border_zero_max_crossings_rejected(self):
+        from simulation.cross_border_coord import CrossBorderCoordinator
+        with pytest.raises(ValueError, match="max_crossings"):
+            CrossBorderCoordinator(max_crossings=0)

@@ -36,12 +36,18 @@ class BorderCrossing:
     rejection_reason: str = ""
 
 
+_DEFAULT_CROSSING_CAP = 10_000
+
+
 class CrossBorderCoordinator:
     """두 공역 당국 사이의 핸드오프/서류 교환을 관리."""
 
-    def __init__(self) -> None:
+    def __init__(self, max_crossings: int = _DEFAULT_CROSSING_CAP) -> None:
+        if max_crossings <= 0:
+            raise ValueError("max_crossings must be positive")
         self.authorities: Dict[str, AirspaceAuthority] = {}
         self.crossings: Dict[str, BorderCrossing] = {}
+        self.max_crossings = max_crossings
         self._next_id = 0
 
     def register_authority(self, authority: AirspaceAuthority) -> None:
@@ -74,6 +80,9 @@ class CrossBorderCoordinator:
             altitude=altitude,
             documents=docs,
         )
+        # max_crossings 초과 시 종료 상태 레코드 자동 제거
+        if len(self.crossings) > self.max_crossings:
+            self.purge_terminal()
         return cid
 
     def submit_document(self, crossing_id: str, doc_name: str) -> bool:

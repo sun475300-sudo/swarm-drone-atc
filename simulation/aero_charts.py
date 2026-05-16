@@ -93,6 +93,10 @@ class AeroCharts:
         corridor_width_m: float,
         min_altitude_m: float = 0.0,
     ) -> List[ChartFeature]:
+        if corridor_width_m < 0:
+            raise ValueError(
+                f"corridor_width_m must be non-negative, got {corridor_width_m}"
+            )
         hazards: List[ChartFeature] = []
         seen: set[str] = set()
         for a, b in zip(waypoints[:-1], waypoints[1:]):

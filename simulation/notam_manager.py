@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -80,8 +81,20 @@ class NotamManager:
         description: str,
         issuer: str = "ATC",
     ) -> str:
-        if radius_m <= 0 or altitude_min > altitude_max or duration_hours <= 0:
-            raise ValueError("Invalid NOTAM parameters")
+        if not math.isfinite(radius_m) or radius_m <= 0:
+            raise ValueError(f"radius_m must be a finite positive number, got {radius_m}")
+        if not math.isfinite(altitude_min) or not math.isfinite(altitude_max):
+            raise ValueError("altitude_min and altitude_max must be finite")
+        if altitude_min > altitude_max:
+            raise ValueError(
+                f"altitude_min ({altitude_min}) must be <= altitude_max ({altitude_max})"
+            )
+        if not math.isfinite(duration_hours) or duration_hours <= 0:
+            raise ValueError(f"duration_hours must be a finite positive number, got {duration_hours}")
+        if len(area_center) != 2:
+            raise ValueError(
+                f"area_center must be a 2-element (lat, lon) tuple, got {len(area_center)} elements"
+            )
         now = time.time()
         notam_id = self._gen_id()
         record = NotamRecord(
@@ -147,6 +160,13 @@ class NotamManager:
         if rec.status != NotamStatus.ACTIVE:
             return False
         rec.valid_until += extra_hours * 3600.0
+        self._record_history({
+            "action": "extend",
+            "notam_id": notam_id,
+            "extra_hours": extra_hours,
+            "new_valid_until": rec.valid_until,
+            "ts": time.time(),
+        })
         return True
 
     def query_active(

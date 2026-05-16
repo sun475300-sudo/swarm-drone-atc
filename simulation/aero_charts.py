@@ -59,8 +59,8 @@ class AeroCharts:
         radius_m: float,
         feature_type: Optional[ChartFeatureType] = None,
     ) -> List[ChartFeature]:
-        if radius_m <= 0:
-            return []
+        if radius_m < 0:
+            raise ValueError(f"radius_m must be non-negative, got {radius_m}")
         out: List[ChartFeature] = []
         for f in self.features.values():
             if feature_type is not None and f.feature_type != feature_type:

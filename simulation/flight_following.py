@@ -47,11 +47,14 @@ class FlightTrack:
 class FlightFollowingService:
     """비행 계획 대비 실제 경로를 추적하고 이탈/통신두절을 감시."""
 
+    _DEFAULT_MAX_TRACKS = 10_000
+
     def __init__(
         self,
         comms_timeout_s: float = 60.0,
         deviation_tolerance_m: float = 500.0,
         max_points_per_track: int = _DEFAULT_TRACK_POINTS,
+        max_tracks: int = _DEFAULT_MAX_TRACKS,
     ) -> None:
         if comms_timeout_s <= 0:
             raise ValueError("comms_timeout_s must be positive")
@@ -59,20 +62,32 @@ class FlightFollowingService:
             raise ValueError("deviation_tolerance_m must be non-negative")
         if max_points_per_track <= 0:
             raise ValueError("max_points_per_track must be positive")
+        if max_tracks <= 0:
+            raise ValueError("max_tracks must be positive")
         self.tracks: Dict[str, FlightTrack] = {}
         self.plans: Dict[str, List[Tuple[float, float, float]]] = {}
         self.comms_timeout_s = comms_timeout_s
         self.deviation_tolerance_m = deviation_tolerance_m
         self.max_points_per_track = max_points_per_track
+        self.max_tracks = max_tracks
 
     def register_flight(
         self, callsign: str, plan_id: str, planned_waypoints: List[Tuple[float, float, float]]
     ) -> None:
+        existing = self.tracks.get(callsign)
+        if existing is not None and existing.state != TrackState.COMPLETED:
+            raise ValueError(
+                f"callsign {callsign!r} is already tracked "
+                f"(state={existing.state.value!r}); call declare_completed() first"
+            )
         track = FlightTrack(callsign=callsign, plan_id=plan_id)
         # deque(maxlen=) — O(1) append-and-drop-left, 수동 trim 불필요
         track.points = deque(maxlen=self.max_points_per_track)
         self.tracks[callsign] = track
         self.plans[callsign] = list(planned_waypoints)
+        # max_tracks 초과 시 완료된 트랙 자동 정리
+        if len(self.tracks) > self.max_tracks:
+            self.purge_completed()
 
     def report_position(
         self,
@@ -156,6 +171,18 @@ class FlightFollowingService:
             return False
         t.state = TrackState.COMPLETED
         return True
+
+    def purge_completed(self) -> int:
+        """COMPLETED 상태의 트랙과 계획을 제거해 메모리를 회수한다.
+
+        max_tracks 초과 시 자동 호출되며, 수동으로도 호출 가능하다.
+        반환값: 제거된 트랙 수.
+        """
+        done = [cs for cs, t in self.tracks.items() if t.state == TrackState.COMPLETED]
+        for cs in done:
+            del self.tracks[cs]
+            self.plans.pop(cs, None)
+        return len(done)
 
     def get_track(self, callsign: str) -> Optional[FlightTrack]:
         return self.tracks.get(callsign)

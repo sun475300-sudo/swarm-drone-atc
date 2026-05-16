@@ -73,8 +73,9 @@ class PostFlightReporter:
     ) -> PostFlightReport:
         if len(track_points) < 2:
             raise ValueError("need at least 2 track points")
-        if track_points[-1][0] <= track_points[0][0]:
-            raise ValueError("track_points timestamps must be strictly increasing")
+        ts_seq = [p[0] for p in track_points]
+        if any(t2 < t1 for t1, t2 in zip(ts_seq, ts_seq[1:])):
+            raise ValueError("track_points timestamps must not decrease (no backward steps)")
         if collisions < 0 or conflicts_detected < 0 or deviation_alerts < 0:
             raise ValueError("collision/conflict/deviation counts must be non-negative")
         metrics = self._compute_metrics(track_points, conflicts_detected, collisions, deviation_alerts)

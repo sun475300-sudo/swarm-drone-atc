@@ -81,6 +81,10 @@ class NotamManager:
         description: str,
         issuer: str = "ATC",
     ) -> str:
+        if not isinstance(category, NotamCategory):
+            raise ValueError(
+                f"category must be a NotamCategory enum, got {type(category).__name__!r}"
+            )
         if not math.isfinite(radius_m) or radius_m <= 0:
             raise ValueError(f"radius_m must be a finite positive number, got {radius_m}")
         if not math.isfinite(altitude_min) or not math.isfinite(altitude_max):

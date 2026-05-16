@@ -188,12 +188,15 @@ class MetarParser:
 
     def is_vfr(self, obs: WeatherObservation) -> bool:
         # SM 가시거리 우선, 없으면 미터 값을 SM으로 환산해 평가
+        # 가시거리 정보가 전혀 없으면 VFR 확인 불가 → False
         if obs.visibility_sm is not None:
             if obs.visibility_sm < 3:
                 return False
         elif obs.visibility_m is not None:
             if obs.visibility_m * self._SM_PER_M < 3:
                 return False
+        else:
+            return False
         ceiling = None
         for cover, height in obs.clouds:
             if cover in ("BKN", "OVC"):

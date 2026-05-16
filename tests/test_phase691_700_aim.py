@@ -1259,3 +1259,155 @@ class TestPrecisionRound5:
         from simulation.cross_border_coord import CrossBorderCoordinator
         with pytest.raises(ValueError, match="max_crossings"):
             CrossBorderCoordinator(max_crossings=0)
+
+
+# ── Round 6 Precision Tests ──────────────────────────────────────────
+class TestPrecisionRound6:
+    # ── Enum guard: notam_manager ──────────────────────────────────
+    def test_notam_non_enum_category_rejected(self):
+        from simulation.notam_manager import NotamManager
+        mgr = NotamManager()
+        with pytest.raises(ValueError, match="NotamCategory"):
+            mgr.create_notam("airspace", (0, 0), 100.0, 0.0, 100.0, 1.0, "x")
+
+    # ── Enum guard: tfr_handler ────────────────────────────────────
+    def test_tfr_non_enum_reason_rejected(self):
+        from simulation.tfr_handler import TfrHandler
+        h = TfrHandler()
+        with pytest.raises(ValueError, match="TfrReason"):
+            h.declare_tfr("vip_movement", (0, 0), 100.0, 0.0, 200.0, 1.0)
+
+    # ── TFR audit history: revoke + authorize ─────────────────────
+    def test_tfr_revoke_recorded_in_history(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        tid = h.declare_tfr(TfrReason.VIP, (0, 0), 100.0, 0.0, 200.0, 1.0)
+        h.revoke(tid)
+        assert any(e["action"] == "revoke" and e["tfr_id"] == tid for e in h.history)
+
+    def test_tfr_authorize_recorded_in_history(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        tid = h.declare_tfr(TfrReason.VIP, (0, 0), 100.0, 0.0, 200.0, 1.0)
+        h.authorize(tid, "DRONE1")
+        assert any(e["action"] == "authorize" and e["callsign"] == "DRONE1" for e in h.history)
+
+    # ── enable_maintenance: OCCUPIED/RESERVED protection ──────────
+    def test_enable_maintenance_blocked_on_occupied(self):
+        from simulation.vertiport_ops import VertiportOps, PadStatus
+        vp = VertiportOps()
+        vp.add_pad("P1", (0.0, 0.0))
+        sid = vp.reserve_slot("DR1", 1000.0, 600.0)
+        vp.land(sid)
+        assert vp.pads["P1"].status == PadStatus.OCCUPIED
+        assert not vp.enable_maintenance("P1")
+        assert vp.pads["P1"].status == PadStatus.OCCUPIED
+
+    def test_enable_maintenance_blocked_on_reserved(self):
+        from simulation.vertiport_ops import VertiportOps, PadStatus
+        vp = VertiportOps()
+        vp.add_pad("P1", (0.0, 0.0))
+        vp.reserve_slot("DR1", 1000.0, 600.0)
+        assert vp.pads["P1"].status == PadStatus.RESERVED
+        assert not vp.enable_maintenance("P1")
+        assert vp.pads["P1"].status == PadStatus.RESERVED
+
+    # ── depart: future reservations preserved ─────────────────────
+    def test_depart_preserves_future_reservations(self):
+        from simulation.vertiport_ops import VertiportOps
+        import time as _t
+        vp = VertiportOps()
+        vp.add_pad("P1", (0.0, 0.0))
+        # Past slot: depart will remove it
+        past_sid = vp.reserve_slot("DR1", _t.time() - 1000, 600.0)
+        # Future slot: should be kept
+        future_sid = vp.reserve_slot("DR2", _t.time() + 10000, 600.0)
+        vp.land(past_sid)
+        vp.depart("P1")
+        assert future_sid in vp.reservations
+        assert past_sid not in vp.reservations
+
+    # ── is_vfr: None visibility returns False ────────────────────
+    def test_isvfr_none_visibility_is_not_vfr(self):
+        from simulation.metar_parser import MetarParser, WeatherObservation
+        mp = MetarParser()
+        obs = WeatherObservation(
+            station="TEST",
+            time_utc="",
+            wind_dir_deg=None,
+            wind_speed_kt=0,
+            gust_kt=None,
+            visibility_m=None,
+            visibility_sm=None,
+            temperature_c=None,
+            dewpoint_c=None,
+            altimeter_hpa=None,
+        )
+        assert not mp.is_vfr(obs)
+
+    # ── insurance_risk: weather_severity NaN ─────────────────────
+    def test_insurance_nan_weather_severity_rejected(self):
+        from simulation.insurance_risk import InsuranceRiskCalculator, RiskFactors
+        calc = InsuranceRiskCalculator()
+        f = RiskFactors(1000.0, 10.0, float("nan"), 5.0, 100.0, 2, 5.0)
+        with pytest.raises(ValueError, match="weather_severity"):
+            calc.compute_risk_score(f)
+
+    # ── post_flight_report: backward timestamp mid-sequence ───────
+    def test_backward_mid_timestamp_rejected(self):
+        from simulation.post_flight_report import PostFlightReporter
+        r = PostFlightReporter()
+        t0 = time.time()
+        pts = [
+            (t0,       (0.0,   0.0, 50.0), 100.0),
+            (t0 + 10,  (100.0, 0.0, 50.0),  95.0),
+            (t0 + 5,   (200.0, 0.0, 50.0),  90.0),  # backward!
+            (t0 + 20,  (300.0, 0.0, 50.0),  85.0),
+        ]
+        with pytest.raises(ValueError, match="backward"):
+            r.build_report("AIR1", "FP", pts)
+
+    # ── flight_following: max_tracks cap + purge ──────────────────
+    def test_flight_following_purge_completed(self):
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService()
+        svc.register_flight("DR1", "P1", [(0, 0, 0), (1, 1, 1)])
+        svc.declare_completed("DR1")
+        purged = svc.purge_completed()
+        assert purged == 1
+        assert "DR1" not in svc.tracks
+        assert "DR1" not in svc.plans
+
+    def test_flight_following_register_active_callsign_rejected(self):
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService()
+        svc.register_flight("DR1", "P1", [(0, 0, 0), (1, 1, 1)])
+        with pytest.raises(ValueError, match="already tracked"):
+            svc.register_flight("DR1", "P2", [(0, 0, 0), (2, 2, 2)])
+
+    def test_flight_following_register_after_completed_ok(self):
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService()
+        svc.register_flight("DR1", "P1", [(0, 0, 0), (1, 1, 1)])
+        svc.declare_completed("DR1")
+        svc.register_flight("DR1", "P2", [(0, 0, 0), (2, 2, 2)])
+        assert svc.tracks["DR1"].plan_id == "P2"
+
+    def test_flight_following_invalid_max_tracks_rejected(self):
+        from simulation.flight_following import FlightFollowingService
+        with pytest.raises(ValueError, match="max_tracks"):
+            FlightFollowingService(max_tracks=0)
+
+    # ── aero_charts: nearby negative radius raises ────────────────
+    def test_aero_charts_nearby_negative_radius_raises(self):
+        from simulation.aero_charts import AeroCharts
+        charts = AeroCharts()
+        with pytest.raises(ValueError, match="radius_m"):
+            charts.nearby((0.0, 0.0), -1.0)
+
+    def test_aero_charts_nearby_zero_radius_returns_exact_match(self):
+        from simulation.aero_charts import AeroCharts, ChartFeature, ChartFeatureType
+        charts = AeroCharts()
+        charts.add_feature(ChartFeature("F1", ChartFeatureType.WAYPOINT, (0.0, 0.0), 0.0))
+        result = charts.nearby((0.0, 0.0), 0.0)
+        assert len(result) == 1

@@ -78,6 +78,10 @@ class InsuranceRiskCalculator:
                 f"proximity_airports_km must be finite and non-negative, "
                 f"got {f.proximity_airports_km}"
             )
+        if not math.isfinite(f.weather_severity):
+            raise ValueError(
+                f"weather_severity must be finite, got {f.weather_severity}"
+            )
         pop = min(f.population_density / 10_000.0, 5.0)
         weather = max(0.0, min(f.weather_severity, 1.0))
         weight = min(f.drone_mtow_kg / 25.0, 2.0)

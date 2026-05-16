@@ -56,6 +56,7 @@ class TfrHandler:
         self.max_violations = max_violations
         self.max_tfrs = max_tfrs
         self.violation_log: List[Dict[str, Any]] = []
+        self.history: List[Dict[str, Any]] = []
 
     def _gen_id(self) -> str:
         self._next_id += 1
@@ -71,6 +72,10 @@ class TfrHandler:
         duration_hours: float,
         authorized: Optional[List[str]] = None,
     ) -> str:
+        if not isinstance(reason, TfrReason):
+            raise ValueError(
+                f"reason must be a TfrReason enum, got {type(reason).__name__!r}"
+            )
         if not math.isfinite(radius_m) or radius_m <= 0:
             raise ValueError(f"radius_m must be a finite positive number, got {radius_m}")
         if not math.isfinite(altitude_floor) or not math.isfinite(altitude_ceiling):
@@ -103,10 +108,17 @@ class TfrHandler:
             self.purge_expired()
         return tid
 
+    def _record_history(self, event: Dict[str, Any]) -> None:
+        self.history.append(event)
+        overflow = len(self.history) - self.max_violations
+        if overflow > 0:
+            del self.history[:overflow]
+
     def revoke(self, tfr_id: str) -> bool:
         if tfr_id not in self.tfrs:
             return False
         del self.tfrs[tfr_id]
+        self._record_history({"action": "revoke", "tfr_id": tfr_id, "ts": time.time()})
         return True
 
     def purge_expired(self) -> int:
@@ -181,6 +193,12 @@ class TfrHandler:
             return False
         if callsign not in rec.authorized_callsigns:
             rec.authorized_callsigns.append(callsign)
+        self._record_history({
+            "action": "authorize",
+            "tfr_id": tfr_id,
+            "callsign": callsign,
+            "ts": time.time(),
+        })
         return True
 
     def active_tfrs(self) -> List[Tfr]:

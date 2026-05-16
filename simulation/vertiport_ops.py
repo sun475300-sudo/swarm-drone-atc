@@ -144,13 +144,18 @@ class VertiportOps:
         return True
 
     def depart(self, pad_id: str) -> bool:
+        import time as _time
         pad = self.pads.get(pad_id)
         if pad is None:
             return False
         pad.status = PadStatus.AVAILABLE
         pad.current_callsign = None
-        # 해당 패드의 소모된 예약을 즉시 제거 — 시간 기반 충돌 검사에서 허상 블록 방지
-        stale = [k for k, r in self.reservations.items() if r.pad_id == pad_id]
+        # 현재 시각 이전에 시작된 예약(소모된 슬롯)만 제거 — 미래 예약은 유지
+        now = _time.time()
+        stale = [
+            k for k, r in self.reservations.items()
+            if r.pad_id == pad_id and r.start_time <= now
+        ]
         for k in stale:
             del self.reservations[k]
         return True
@@ -165,9 +170,14 @@ class VertiportOps:
         return self.disable_maintenance(pad_id)
 
     def enable_maintenance(self, pad_id: str) -> bool:
-        """패드를 MAINTENANCE 상태로 전환한다."""
+        """패드를 MAINTENANCE 상태로 전환한다.
+
+        OCCUPIED 또는 RESERVED 상태(드론 운영 중)인 경우 False를 반환해 보호한다.
+        """
         pad = self.pads.get(pad_id)
         if pad is None:
+            return False
+        if pad.status in (PadStatus.OCCUPIED, PadStatus.RESERVED):
             return False
         pad.status = PadStatus.MAINTENANCE
         return True

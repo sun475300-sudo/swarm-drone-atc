@@ -644,3 +644,216 @@ class TestMemoryLeakDefence:
             r.build_report(f"A{i+2}", "FP", pts)
         # 첫 번째 보고서는 사라져 있어야 함
         assert first.report_id not in r.reports
+
+
+# ── Round-2 Precision Tests ──────────────────────────────────────────
+class TestPrecisionRound2:
+    """코드 리뷰 2라운드에서 발견된 HIGH/MEDIUM 이슈 검증."""
+
+    # ── metar_parser: 분수 SM 가시거리 ──────────────────────────────
+    def test_fractional_sm_visibility(self):
+        """1/2SM 은 0.5 SM 으로 파싱되어야 한다."""
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        obs = p.parse_metar("KJFK 091200Z 18020KT 1/2SM OVC003 15/14 Q1005")
+        assert obs.visibility_sm == pytest.approx(0.5)
+
+    def test_three_quarter_sm_visibility(self):
+        """3/4SM 은 0.75 SM 으로 파싱되어야 한다."""
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        obs = p.parse_metar("RKSI 091200Z 27010KT 3/4SM FEW020 15/10 Q1013")
+        assert obs.visibility_sm == pytest.approx(0.75)
+
+    def test_fractional_sm_triggers_ifr_in_is_vfr(self):
+        """1/2SM 가시거리(IFR)는 is_vfr()에서 False를 반환해야 한다."""
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        obs = p.parse_metar("KJFK 091200Z 18020KT 1/2SM OVC003 15/14 Q1005")
+        assert p.is_vfr(obs) is False
+
+    # ── metar_parser: 조건 코드 오탐 방지 ───────────────────────────
+    def test_no_false_positive_conditions_on_station_id(self):
+        """스테이션 ID에 조건 코드 문자열이 포함되어도 오탐되면 안 된다."""
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        # RKSHI 에 SH(shower), RKSBR 에 BR(mist) 포함 → 오탐 없어야 함
+        obs = p.parse_metar("RKSHI 091200Z 27010KT 9999 FEW040 18/10 Q1013")
+        assert obs.conditions == []
+
+    def test_condition_correctly_detected_in_token(self):
+        """실제 조건 코드 토큰(RA)은 조건 목록에 포함되어야 한다."""
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        obs = p.parse_metar("RKSI 091200Z 27010KT 5000 RA FEW020 15/14 Q1005")
+        assert "rain" in obs.conditions
+
+    def test_is_vfr_uses_metric_visibility_fallback(self):
+        """visibility_sm 없이 visibility_m 만 있는 경우도 IFR 판정이 가능해야 한다."""
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        # 0600m = ~0.37 SM → IFR
+        obs = p.parse_metar("RKSI 091200Z 27010KT 0600 FEW020 15/14 Q1013")
+        # visibility_m 은 파싱되지만 SM 토큰이 없으므로 visibility_sm=None
+        assert obs.visibility_m == 600
+        assert p.is_vfr(obs) is False
+
+    # ── aim_briefing: chart hazard NO-GO ─────────────────────────────
+    def test_chart_hazard_triggers_nogo(self):
+        """차트 장애물이 있는 경로는 NO-GO 가 되어야 한다."""
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        from simulation.notam_manager import NotamManager
+        from simulation.tfr_handler import TfrHandler
+        from simulation.aero_charts import AeroCharts, ChartFeature, ChartFeatureType
+        from simulation.metar_parser import MetarParser
+        charts = AeroCharts()
+        charts.add_feature(ChartFeature("OBS1", ChartFeatureType.OBSTACLE, (500.0, 0.0), 120.0, "Tower"))
+        svc = AimBriefingService(
+            notam_manager=NotamManager(),
+            tfr_handler=TfrHandler(),
+            aero_charts=charts,
+            metar_parser=MetarParser(),
+        )
+        req = BriefingRequest(
+            callsign="AIR1",
+            departure=(0.0, 0.0),
+            destination=(1000.0, 0.0),
+            route_waypoints=[(500.0, 0.0)],
+            planned_altitude_m=50.0,
+            departure_time=time.time(),
+        )
+        result = svc.generate(req)
+        assert result.go_nogo == "NO-GO"
+        assert len(result.chart_hazards) >= 1
+
+    def test_clear_route_still_go(self):
+        """장애물/NOTAM/TFR 없는 맑은 경로는 GO 여야 한다."""
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        from simulation.notam_manager import NotamManager
+        from simulation.tfr_handler import TfrHandler
+        from simulation.aero_charts import AeroCharts
+        from simulation.metar_parser import MetarParser
+        svc = AimBriefingService(NotamManager(), TfrHandler(), AeroCharts(), MetarParser())
+        req = BriefingRequest(
+            callsign="AIR2",
+            departure=(0.0, 0.0),
+            destination=(1000.0, 0.0),
+            route_waypoints=[],
+            planned_altitude_m=50.0,
+            departure_time=time.time(),
+        )
+        result = svc.generate(req, metar_text="RKSI 091200Z 27010KT 9999 FEW040 18/10 Q1013")
+        assert result.go_nogo == "GO"
+
+    # ── notam_manager: purge_terminal ────────────────────────────────
+    def test_notam_purge_terminal_removes_expired(self):
+        """purge_terminal()은 EXPIRED/CANCELLED NOTAM을 제거한다."""
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        nid = mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.0, 1.0, "x")
+        mgr.get(nid).valid_until = time.time() - 10.0
+        mgr.expire_old()
+        assert nid in mgr.notams  # purge 전에는 남아있음
+        mgr.purge_terminal()
+        assert nid not in mgr.notams  # purge 후에는 제거됨
+
+    def test_notam_expire_records_history(self):
+        """expire_old() 가 히스토리 이벤트를 기록해야 한다."""
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        nid = mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.0, 1.0, "x")
+        mgr.get(nid).valid_until = time.time() - 10.0
+        before = len(mgr.history)
+        mgr.expire_old()
+        assert len(mgr.history) > before
+
+    # ── tfr_handler: purge_expired ───────────────────────────────────
+    def test_tfr_purge_expired(self):
+        """purge_expired()는 end_time이 지난 TFR을 제거한다."""
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        tid = h.declare_tfr(TfrReason.VIP, (0, 0), 500.0, 0.0, 200.0, 0.001)
+        # end_time 을 과거로 설정
+        h.tfrs[tid].end_time = time.time() - 10.0
+        count = h.purge_expired()
+        assert count == 1
+        assert tid not in h.tfrs
+
+    # ── cross_border_coord: rejection_reason 저장 + purge_terminal ──
+    def test_reject_handoff_stores_reason(self):
+        """reject_handoff()가 reason을 BorderCrossing에 저장해야 한다."""
+        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        c = CrossBorderCoordinator()
+        c.register_authority(AirspaceAuthority("KR", "Korea"))
+        c.register_authority(AirspaceAuthority("JP", "Japan"))
+        cid = c.propose_crossing("AIR1", "KR", "JP", (0, 0), 1000.0, 100.0)
+        c.reject_handoff(cid, reason="airspace closed")
+        assert c.crossings[cid].rejection_reason == "airspace closed"
+
+    def test_cross_border_purge_terminal(self):
+        """purge_terminal()은 COMPLETED/REJECTED 크로싱을 제거한다."""
+        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        c = CrossBorderCoordinator()
+        c.register_authority(AirspaceAuthority("KR", "Korea", required_docs=[]))
+        c.register_authority(AirspaceAuthority("JP", "Japan", required_docs=[]))
+        cid = c.propose_crossing("AIR1", "KR", "JP", (0, 0), 1000.0, 100.0)
+        c.accept_handoff(cid)
+        c.complete_handoff(cid)
+        count = c.purge_terminal()
+        assert count == 1
+        assert cid not in c.crossings
+
+    # ── vertiport_ops: purge_completed ───────────────────────────────
+    def test_vertiport_purge_completed(self):
+        """purge_completed()는 만료된 예약을 제거한다."""
+        from simulation.vertiport_ops import VertiportOps
+        ops = VertiportOps()
+        ops.add_pad("P1", (0.0, 0.0))
+        slot_id = ops.reserve_slot("CS1", desired_time=0.0, duration_s=600.0)
+        assert slot_id is not None
+        # 현재 시간 기준 이미 만료된 예약 (start=0, duration=600 → end=600 < now)
+        count = ops.purge_completed(current_time=time.time())
+        assert count >= 1
+        assert slot_id not in ops.reservations
+
+    # ── insurance_risk: DRY 검증 ─────────────────────────────────────
+    def test_insurance_quote_history_recorded_once(self):
+        """quote() 호출 시 히스토리가 정확히 1번만 기록되어야 한다."""
+        from simulation.insurance_risk import InsuranceRiskCalculator, RiskFactors
+        calc = InsuranceRiskCalculator()
+        f = RiskFactors(
+            population_density=5000, flight_hours=100, weather_severity=0.3,
+            drone_mtow_kg=5.0, operator_experience_hours=200, payload_hazard_level=1,
+            proximity_airports_km=15.0,
+        )
+        calc.quote(f)
+        assert calc.stats()["quotes"] == 1
+
+    # ── post_flight_report: zero-dt 속도 ─────────────────────────────
+    def test_zero_dt_segments_excluded_from_speed(self):
+        """동일 타임스탬프 포인트가 있어도 avg/max_speed 가 과대계산되면 안 된다."""
+        from simulation.post_flight_report import PostFlightReporter
+        r = PostFlightReporter()
+        t0 = time.time()
+        # 3번째와 4번째 포인트가 동일 ts (dt=0)
+        pts = [
+            (t0,      (0.0,   0.0, 50.0), 100.0),
+            (t0 + 10, (100.0, 0.0, 50.0),  95.0),
+            (t0 + 10, (200.0, 0.0, 50.0),  90.0),  # dt=0 세그먼트
+            (t0 + 20, (300.0, 0.0, 50.0),  85.0),
+        ]
+        report = r.build_report("AIR1", "FP", pts)
+        # dt=0 세그먼트(0→100m) 가 speed=100/1 로 잘못 계산되면 max_speed >= 100
+        # 올바르게 제외되면 max_speed = 100/10 = 10 m/s
+        assert report.metrics.max_speed_mps == pytest.approx(10.0, rel=0.01)
+
+    # ── flight_following: deque ring-buffer ──────────────────────────
+    def test_flight_following_deque_cap(self):
+        """deque(maxlen=) 으로 교체 후에도 points cap 이 유지된다."""
+        from simulation.flight_following import FlightFollowingService
+        cap = 5
+        svc = FlightFollowingService(max_points_per_track=cap)
+        svc.register_flight("FF1", "FP-1", [(0, 0, 50), (1000, 0, 50)])
+        for i in range(cap * 4):
+            svc.report_position("FF1", (float(i), 0.0, 50.0), (10, 0, 0), 90.0)
+        assert len(svc.tracks["FF1"].points) == cap

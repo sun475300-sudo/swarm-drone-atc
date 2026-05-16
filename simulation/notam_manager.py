@@ -42,18 +42,27 @@ class NotamRecord:
 
 
 _DEFAULT_HISTORY_CAP = 10_000
+_DEFAULT_NOTAM_CAP = 50_000
 
 
 class NotamManager:
     """전자 NOTAM 생성/갱신/만료/검색을 담당하는 매니저."""
 
-    def __init__(self, seed: int = 42, max_history: int = _DEFAULT_HISTORY_CAP) -> None:
+    def __init__(
+        self,
+        seed: int = 42,
+        max_history: int = _DEFAULT_HISTORY_CAP,
+        max_notams: int = _DEFAULT_NOTAM_CAP,
+    ) -> None:
         if max_history <= 0:
             raise ValueError("max_history must be positive")
+        if max_notams <= 0:
+            raise ValueError("max_notams must be positive")
         self.rng = np.random.default_rng(seed)
         self._next_id = 0
         self.notams: Dict[str, NotamRecord] = {}
         self.max_history = max_history
+        self.max_notams = max_notams
         self.history: List[Dict[str, Any]] = []
 
     def _gen_id(self) -> str:
@@ -89,6 +98,9 @@ class NotamManager:
         )
         self.notams[notam_id] = record
         self._record_history({"action": "create", "notam_id": notam_id, "ts": now})
+        # max_notams 초과 시 종료 상태 레코드 자동 제거
+        if len(self.notams) > self.max_notams:
+            self.purge_terminal()
         return notam_id
 
     def _record_history(self, event: Dict[str, Any]) -> None:
@@ -110,8 +122,23 @@ class NotamManager:
         for rec in self.notams.values():
             if rec.status == NotamStatus.ACTIVE and rec.valid_until < now:
                 rec.status = NotamStatus.EXPIRED
+                self._record_history({"action": "expire", "notam_id": rec.notam_id, "ts": now})
                 expired += 1
         return expired
+
+    def purge_terminal(self) -> int:
+        """EXPIRED/CANCELLED NOTAM을 dict에서 제거해 메모리를 회수한다.
+
+        max_notams 초과 시 자동 호출되며, 수동으로도 호출 가능하다.
+        반환값: 제거된 레코드 수.
+        """
+        terminal = {
+            k for k, v in self.notams.items()
+            if v.status in (NotamStatus.EXPIRED, NotamStatus.CANCELLED)
+        }
+        for k in terminal:
+            del self.notams[k]
+        return len(terminal)
 
     def extend_notam(self, notam_id: str, extra_hours: float) -> bool:
         if notam_id not in self.notams or extra_hours <= 0:

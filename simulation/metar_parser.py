@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 
 @dataclass
@@ -41,9 +41,10 @@ class MetarParser:
 
     WIND_RE = re.compile(r"(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?KT")
     # TAF 유효기간 토큰(예: 0912/1018)의 두 부분을 모두 가시거리로 오탐하지 않도록
-    # '/' 앞에 오거나('/' 뒤에 오는) 경우를 lookbehind/lookahead로 제외한다.
+    # '/' 앞에 오거나 '/' 뒤에 오는 경우를 lookbehind/lookahead로 제외한다.
     VIS_M_RE = re.compile(r"(?<!/)\b(\d{4})\b(?![/\d])")
-    VIS_SM_RE = re.compile(r"(\d+)SM")
+    # 정수 및 분수 SM 가시거리 지원: 1/2SM, 3/4SM, 10SM 등
+    VIS_SM_RE = re.compile(r"(\d+(?:/\d+)?)SM")
     TEMP_RE = re.compile(r"\b(M?\d{2})/(M?\d{2})\b")
     ALT_RE = re.compile(r"Q(\d{4})")
     CLOUD_RE = re.compile(r"(FEW|SCT|BKN|OVC)(\d{3})")
@@ -81,7 +82,12 @@ class MetarParser:
                 vis_m = candidate
         mvs = self.VIS_SM_RE.search(text)
         if mvs:
-            vis_sm = float(mvs.group(1))
+            raw_sm = mvs.group(1)
+            if "/" in raw_sm:
+                num, den = raw_sm.split("/")
+                vis_sm = float(num) / float(den)
+            else:
+                vis_sm = float(raw_sm)
 
         temp: Optional[int] = None
         dew: Optional[int] = None
@@ -95,8 +101,16 @@ class MetarParser:
         if ma:
             alt = int(ma.group(1))
 
+        # 스테이션 ID(index 0)와 시각(index 1)을 제외한 나머지 토큰에서만 매칭
+        # — "RKSHI"처럼 스테이션 이름에 조건 코드 문자열이 포함되는 오탐 방지
+        all_tokens = text.strip().split()
+        # METAR/SPECI 키워드가 앞에 올 경우 건너뜀
+        skip = 1 if all_tokens and all_tokens[0] in ("METAR", "SPECI") else 0
+        check_tokens = set(all_tokens[skip + 2:])  # 스테이션 + 시각 이후
         conditions = [
-            name for code, name in self.CONDITION_CODES.items() if code in text
+            name
+            for code, name in self.CONDITION_CODES.items()
+            if any(code in tok for tok in check_tokens)
         ]
         clouds = [(c.group(1), int(c.group(2)) * 100) for c in self.CLOUD_RE.finditer(text)]
 
@@ -163,9 +177,16 @@ class MetarParser:
             return -int(token[1:])
         return int(token)
 
+    _SM_PER_M = 1.0 / 1609.344
+
     def is_vfr(self, obs: WeatherObservation) -> bool:
-        if obs.visibility_sm is not None and obs.visibility_sm < 3:
-            return False
+        # SM 가시거리 우선, 없으면 미터 값을 SM으로 환산해 평가
+        if obs.visibility_sm is not None:
+            if obs.visibility_sm < 3:
+                return False
+        elif obs.visibility_m is not None:
+            if obs.visibility_m * self._SM_PER_M < 3:
+                return False
         ceiling = None
         for cover, height in obs.clouds:
             if cover in ("BKN", "OVC"):

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import numpy as np
 
@@ -85,24 +85,26 @@ class InsuranceRiskCalculator:
             return CoverageTier.STANDARD
         return CoverageTier.PREMIUM
 
+    def _record_quote(self, score: float, tier: CoverageTier, premium: float) -> None:
+        self.history.append({"score": score, "tier": tier.value, "premium_krw": premium})
+        overflow = len(self.history) - self.max_history
+        if overflow > 0:
+            del self.history[:overflow]
+
     def estimate_premium_krw(self, f: RiskFactors, tier: CoverageTier) -> float:
         score = self.compute_risk_score(f)
         multiplier = TIER_MULTIPLIER[tier]
         premium = self.base_premium_krw * (1.0 + score) * multiplier
-        self.history.append({
-            "score": score,
-            "tier": tier.value,
-            "premium_krw": premium,
-        })
-        overflow = len(self.history) - self.max_history
-        if overflow > 0:
-            del self.history[:overflow]
+        self._record_quote(score, tier, premium)
         return premium
 
     def quote(self, f: RiskFactors) -> Dict[str, Any]:
+        # compute_risk_score 를 1회만 호출 (DRY)
         score = self.compute_risk_score(f)
         tier = self.recommend_tier(score)
-        premium = self.estimate_premium_krw(f, tier)
+        multiplier = TIER_MULTIPLIER[tier]
+        premium = self.base_premium_krw * (1.0 + score) * multiplier
+        self._record_quote(score, tier, premium)
         return {
             "risk_score": score,
             "recommended_tier": tier.value,

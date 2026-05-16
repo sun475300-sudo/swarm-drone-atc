@@ -82,6 +82,7 @@ class PostFlightReporter:
         )
         self.reports[report.report_id] = report
         # FIFO 방식으로 오래된 보고서 제거 — reports dict 무한 증가 방어
+        # dict 삽입 순서는 CPython 3.7+ 에서 보장됨
         if len(self.reports) > self.max_reports:
             oldest_key = next(iter(self.reports))
             del self.reports[oldest_key]
@@ -102,10 +103,14 @@ class PostFlightReporter:
         segment_dists = np.linalg.norm(deltas, axis=1)
         distance = float(np.sum(segment_dists))
         dt = np.diff(times)
-        safe_dt = np.where(dt > 0, dt, 1.0)
-        speeds = segment_dists / safe_dt
-        avg_speed = float(np.mean(speeds)) if len(speeds) else 0.0
-        max_speed = float(np.max(speeds)) if len(speeds) else 0.0
+        # dt == 0 인 세그먼트는 속도 계산에서 제외 (1.0 대체 시 속도 과대 계산됨)
+        valid = dt > 0
+        if valid.any():
+            speeds = segment_dists[valid] / dt[valid]
+            avg_speed = float(np.mean(speeds))
+            max_speed = float(np.max(speeds))
+        else:
+            avg_speed = max_speed = 0.0
         fuel_used = float(max(0.0, fuels[0] - fuels[-1]))
         max_alt = float(np.max(positions[:, 2]))
         return FlightMetrics(

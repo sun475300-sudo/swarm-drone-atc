@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
@@ -60,8 +59,8 @@ class VertiportOps:
     ) -> Optional[str]:
         candidate = self._find_available_pad(desired_time, duration_s, weight_kg)
         if candidate is None:
-            # wait_queue 무한 증가 방어 — max_queue_size 초과 시 거부
-            if len(self.wait_queue) < self.max_queue_size:
+            # 중복 callsign 및 max_queue_size 초과 거부
+            if callsign not in self.wait_queue and len(self.wait_queue) < self.max_queue_size:
                 self.wait_queue.append(callsign)
             return None
         self._next_slot += 1
@@ -95,6 +94,19 @@ class VertiportOps:
             if not conflict:
                 return pad_id
         return None
+
+    def purge_completed(self, current_time: float) -> int:
+        """start_time + duration_s가 current_time 이전인 만료 예약을 제거한다.
+
+        반환값: 제거된 예약 수.
+        """
+        expired_keys = [
+            k for k, v in self.reservations.items()
+            if v.start_time + v.duration_s < current_time
+        ]
+        for k in expired_keys:
+            del self.reservations[k]
+        return len(expired_keys)
 
     def cancel_reservation(self, slot_id: str) -> bool:
         if slot_id not in self.reservations:

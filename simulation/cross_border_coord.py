@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
@@ -34,6 +33,7 @@ class BorderCrossing:
     altitude: float
     status: HandoffStatus = HandoffStatus.PROPOSED
     documents: Dict[str, bool] = field(default_factory=dict)
+    rejection_reason: str = ""
 
 
 class CrossBorderCoordinator:
@@ -103,7 +103,21 @@ class CrossBorderCoordinator:
         if bc is None:
             return False
         bc.status = HandoffStatus.REJECTED
+        bc.rejection_reason = reason
         return True
+
+    def purge_terminal(self) -> int:
+        """COMPLETED/REJECTED 크로싱을 제거해 메모리를 회수한다.
+
+        반환값: 제거된 레코드 수.
+        """
+        terminal = {
+            k for k, v in self.crossings.items()
+            if v.status in (HandoffStatus.COMPLETED, HandoffStatus.REJECTED)
+        }
+        for k in terminal:
+            del self.crossings[k]
+        return len(terminal)
 
     def complete_handoff(self, crossing_id: str) -> bool:
         bc = self.crossings.get(crossing_id)

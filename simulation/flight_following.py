@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import time
+from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Deque, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -30,7 +31,7 @@ class TrackPoint:
 class FlightTrack:
     callsign: str
     plan_id: str
-    points: List[TrackPoint] = field(default_factory=list)
+    points: Deque[TrackPoint] = field(default_factory=deque)
     state: TrackState = TrackState.ENROUTE
     last_contact: float = 0.0
     deviation_alerts: int = 0
@@ -59,7 +60,10 @@ class FlightFollowingService:
     def register_flight(
         self, callsign: str, plan_id: str, planned_waypoints: List[Tuple[float, float, float]]
     ) -> None:
-        self.tracks[callsign] = FlightTrack(callsign=callsign, plan_id=plan_id)
+        track = FlightTrack(callsign=callsign, plan_id=plan_id)
+        # deque(maxlen=) — O(1) append-and-drop-left, 수동 trim 불필요
+        track.points = deque(maxlen=self.max_points_per_track)
+        self.tracks[callsign] = track
         self.plans[callsign] = list(planned_waypoints)
 
     def report_position(
@@ -73,10 +77,8 @@ class FlightFollowingService:
         if track is None:
             return {"ok": False, "reason": "not_registered"}
         now = time.time()
+        # deque(maxlen=max_points_per_track) 이 자동으로 오래된 항목 제거
         track.points.append(TrackPoint(ts=now, position=position, velocity=velocity, fuel_pct=fuel_pct))
-        # 링-버퍼 방식으로 오래된 포인트 제거 — 메모리 무한 증가 방어
-        if len(track.points) > self.max_points_per_track:
-            del track.points[: len(track.points) - self.max_points_per_track]
         track.last_contact = now
         if track.state == TrackState.LOST_COMMS:
             track.state = TrackState.ENROUTE

@@ -33,18 +33,27 @@ class Tfr:
 
 
 _DEFAULT_VIOLATION_CAP = 10_000
+_DEFAULT_TFR_CAP = 20_000
 
 
 class TfrHandler:
     """TFR 생성, 위반 감지, 인가 목록을 관리한다."""
 
-    def __init__(self, seed: int = 42, max_violations: int = _DEFAULT_VIOLATION_CAP) -> None:
+    def __init__(
+        self,
+        seed: int = 42,
+        max_violations: int = _DEFAULT_VIOLATION_CAP,
+        max_tfrs: int = _DEFAULT_TFR_CAP,
+    ) -> None:
         if max_violations <= 0:
             raise ValueError("max_violations must be positive")
+        if max_tfrs <= 0:
+            raise ValueError("max_tfrs must be positive")
         self.rng = np.random.default_rng(seed)
         self._next_id = 0
         self.tfrs: Dict[str, Tfr] = {}
         self.max_violations = max_violations
+        self.max_tfrs = max_tfrs
         self.violation_log: List[Dict[str, Any]] = []
 
     def _gen_id(self) -> str:
@@ -76,6 +85,9 @@ class TfrHandler:
             end_time=now + duration_hours * 3600.0,
             authorized_callsigns=list(authorized or []),
         )
+        # max_tfrs 초과 시 만료된 TFR 자동 제거
+        if len(self.tfrs) > self.max_tfrs:
+            self.purge_expired()
         return tid
 
     def revoke(self, tfr_id: str) -> bool:
@@ -83,6 +95,17 @@ class TfrHandler:
             return False
         del self.tfrs[tfr_id]
         return True
+
+    def purge_expired(self) -> int:
+        """만료된 TFR을 dict에서 제거해 메모리를 회수한다.
+
+        반환값: 제거된 TFR 수.
+        """
+        now = time.time()
+        expired_keys = [k for k, v in self.tfrs.items() if v.end_time < now]
+        for k in expired_keys:
+            del self.tfrs[k]
+        return len(expired_keys)
 
     def is_active(self, tfr_id: str) -> bool:
         rec = self.tfrs.get(tfr_id)
@@ -112,9 +135,10 @@ class TfrHandler:
                     "position": position,
                     "ts": now,
                 })
-                overflow = len(self.violation_log) - self.max_violations
-                if overflow > 0:
-                    del self.violation_log[:overflow]
+        # loop 완료 후 1회만 trim — 루프 내 N회 중복 방지
+        overflow = len(self.violation_log) - self.max_violations
+        if overflow > 0:
+            del self.violation_log[:overflow]
         return violations
 
     def authorize(self, tfr_id: str, callsign: str) -> bool:

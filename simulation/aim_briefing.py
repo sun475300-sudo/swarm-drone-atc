@@ -60,10 +60,12 @@ class AimBriefingService:
         hazard_ids = self._collect_chart_hazards(request)
         weather_ok = self._assess_weather(metar_text, warnings)
 
+        # chart_hazards도 NO-GO 조건에 포함 — 안전 로직 수정
         is_go = (
             weather_ok
             and not tfr_ids
-            and len(notam_ids) == 0
+            and not notam_ids
+            and not hazard_ids
         )
         if hazard_ids:
             warnings.append(f"{len(hazard_ids)} obstacle(s) within corridor")

@@ -59,10 +59,12 @@ class MetarParser:
         if not text:
             raise ValueError("empty METAR text")
         tokens = text.strip().split()
-        if len(tokens) < 3:
+        # METAR/SPECI 키워드가 앞에 붙은 경우 station/time 토큰 위치를 조정
+        skip = 1 if tokens and tokens[0] in ("METAR", "SPECI") else 0
+        if len(tokens) < skip + 3:
             raise ValueError("METAR too short")
-        station = tokens[0]
-        time_utc = tokens[1] if len(tokens) > 1 else ""
+        station = tokens[skip]
+        time_utc = tokens[skip + 1]
 
         wind_dir: Optional[int] = None
         wind_speed = 0

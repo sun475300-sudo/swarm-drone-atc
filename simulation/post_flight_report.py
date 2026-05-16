@@ -173,8 +173,9 @@ class PostFlightReporter:
             "conflicts": r.metrics.conflicts_detected,
             "collisions": r.metrics.collisions,
             "deviations": r.metrics.deviation_alerts,
-            "events": r.events,
-            "issues": r.issues,
+            # 리스트 복사본 반환 — 호출자 수정이 저장된 보고서에 영향 미치지 않도록
+            "events": list(r.events),
+            "issues": list(r.issues),
         }
 
     def outcome_distribution(self) -> Dict[str, int]:

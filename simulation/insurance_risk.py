@@ -82,13 +82,18 @@ class InsuranceRiskCalculator:
             raise ValueError(
                 f"weather_severity must be finite, got {f.weather_severity}"
             )
+        if not (0 <= f.payload_hazard_level <= 5):
+            raise ValueError(
+                f"payload_hazard_level must be in [0, 5], got {f.payload_hazard_level}"
+            )
         pop = min(f.population_density / 10_000.0, 5.0)
         weather = max(0.0, min(f.weather_severity, 1.0))
         weight = min(f.drone_mtow_kg / 25.0, 2.0)
         experience_bonus = max(0.0, 1.0 - f.operator_experience_hours / 500.0)
-        payload = max(0, min(f.payload_hazard_level, 5)) / 5.0
+        payload = f.payload_hazard_level / 5.0
         airport = max(0.0, min(1.0, 1.0 - f.proximity_airports_km / 30.0))
-        hours = np.log1p(max(0.0, f.flight_hours)) / 5.0
+        # hours에 상한선을 적용해 가중치 해석 가능성을 유지한다
+        hours = min(np.log1p(max(0.0, f.flight_hours)) / 5.0, 1.0)
 
         score = (
             0.30 * pop

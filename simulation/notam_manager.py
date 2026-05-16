@@ -89,9 +89,9 @@ class NotamManager:
             raise ValueError(f"radius_m must be a finite positive number, got {radius_m}")
         if not math.isfinite(altitude_min) or not math.isfinite(altitude_max):
             raise ValueError("altitude_min and altitude_max must be finite")
-        if altitude_min > altitude_max:
+        if altitude_min >= altitude_max:
             raise ValueError(
-                f"altitude_min ({altitude_min}) must be <= altitude_max ({altitude_max})"
+                f"altitude_min ({altitude_min}) must be strictly less than altitude_max ({altitude_max})"
             )
         if not math.isfinite(duration_hours) or duration_hours <= 0:
             raise ValueError(f"duration_hours must be a finite positive number, got {duration_hours}")

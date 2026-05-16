@@ -66,6 +66,13 @@ class CrossBorderCoordinator:
             return None
         if from_code == to_code:
             return None
+        if len(crossing_point) != 2:
+            raise ValueError(
+                f"crossing_point must be a 2-element (lat, lon) tuple, "
+                f"got {len(crossing_point)} elements"
+            )
+        if altitude < 0:
+            raise ValueError(f"altitude must be non-negative, got {altitude}")
         self._next_id += 1
         cid = f"BC-{self._next_id:05d}"
         dest = self.authorities[to_code]

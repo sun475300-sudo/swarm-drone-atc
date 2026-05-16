@@ -80,9 +80,10 @@ class TfrHandler:
             raise ValueError(f"radius_m must be a finite positive number, got {radius_m}")
         if not math.isfinite(altitude_floor) or not math.isfinite(altitude_ceiling):
             raise ValueError("altitude_floor and altitude_ceiling must be finite")
-        if altitude_floor > altitude_ceiling:
+        if altitude_floor >= altitude_ceiling:
             raise ValueError(
-                f"altitude_floor ({altitude_floor}) must be <= altitude_ceiling ({altitude_ceiling})"
+                f"altitude_floor ({altitude_floor}) must be strictly less than "
+                f"altitude_ceiling ({altitude_ceiling})"
             )
         if not math.isfinite(duration_hours) or duration_hours <= 0:
             raise ValueError(f"duration_hours must be a finite positive number, got {duration_hours}")

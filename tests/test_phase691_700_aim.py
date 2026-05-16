@@ -1411,3 +1411,131 @@ class TestPrecisionRound6:
         charts.add_feature(ChartFeature("F1", ChartFeatureType.WAYPOINT, (0.0, 0.0), 0.0))
         result = charts.nearby((0.0, 0.0), 0.0)
         assert len(result) == 1
+
+
+# ── Round 7 Precision Tests ──────────────────────────────────────────
+class TestPrecisionRound7:
+    # ── payload_hazard_level range guard ─────────────────────────
+    def test_payload_hazard_above_5_rejected(self):
+        from simulation.insurance_risk import InsuranceRiskCalculator, RiskFactors
+        calc = InsuranceRiskCalculator()
+        f = RiskFactors(1000.0, 10.0, 0.3, 5.0, 100.0, 6, 5.0)
+        with pytest.raises(ValueError, match="payload_hazard_level"):
+            calc.compute_risk_score(f)
+
+    def test_payload_hazard_negative_rejected(self):
+        from simulation.insurance_risk import InsuranceRiskCalculator, RiskFactors
+        calc = InsuranceRiskCalculator()
+        f = RiskFactors(1000.0, 10.0, 0.3, 5.0, 100.0, -1, 5.0)
+        with pytest.raises(ValueError, match="payload_hazard_level"):
+            calc.compute_risk_score(f)
+
+    # ── hours factor bounded ──────────────────────────────────────
+    def test_risk_score_bounded_high_flight_hours(self):
+        from simulation.insurance_risk import InsuranceRiskCalculator, RiskFactors
+        calc = InsuranceRiskCalculator()
+        # Very high flight hours should not push score above 2.0
+        f = RiskFactors(0.0, 1_000_000.0, 0.0, 1.0, 0.0, 0, 100.0)
+        score = calc.compute_risk_score(f)
+        assert 0.0 <= score <= 2.0
+
+    # ── bulk_add duplicate raises ─────────────────────────────────
+    def test_bulk_add_duplicate_feature_id_raises(self):
+        from simulation.aero_charts import AeroCharts, ChartFeature, ChartFeatureType
+        charts = AeroCharts()
+        charts.add_feature(ChartFeature("F1", ChartFeatureType.WAYPOINT, (0.0, 0.0)))
+        from simulation.aero_charts import ChartFeature
+        with pytest.raises(ValueError, match="duplicate"):
+            charts.bulk_add([ChartFeature("F1", ChartFeatureType.OBSTACLE, (1.0, 1.0), 50.0)])
+
+    def test_bulk_add_duplicate_within_list_raises(self):
+        from simulation.aero_charts import AeroCharts, ChartFeature, ChartFeatureType
+        charts = AeroCharts()
+        with pytest.raises(ValueError, match="duplicate"):
+            charts.bulk_add([
+                ChartFeature("F1", ChartFeatureType.WAYPOINT, (0.0, 0.0)),
+                ChartFeature("F1", ChartFeatureType.OBSTACLE, (1.0, 1.0), 50.0),
+            ])
+
+    # ── aim_briefing history isolation ───────────────────────────
+    def test_briefing_history_not_mutated_by_caller(self):
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        svc = AimBriefingService()
+        req = BriefingRequest(
+            callsign="DR1",
+            departure=(0.0, 0.0),
+            destination=(1.0, 1.0),
+            route_waypoints=[],
+            planned_altitude_m=50.0,
+            departure_time=0.0,
+        )
+        result = svc.generate(req)
+        result.warnings.append("TAMPERED")
+        # History entry should not be affected
+        assert "TAMPERED" not in svc.history[0].warnings
+
+    # ── export_summary returns copies ────────────────────────────
+    def test_export_summary_events_is_copy(self):
+        from simulation.post_flight_report import PostFlightReporter
+        r = PostFlightReporter()
+        t0 = time.time()
+        pts = [
+            (t0,      (0.0, 0.0, 50.0), 100.0),
+            (t0 + 10, (100.0, 0.0, 50.0), 95.0),
+        ]
+        report = r.build_report("A1", "P1", pts, events=["EVT1"])
+        summary = r.export_summary(report.report_id)
+        summary["events"].append("TAMPERED")
+        assert "TAMPERED" not in r.reports[report.report_id].events
+
+    # ── zero-height NOTAM/TFR bands rejected ─────────────────────
+    def test_notam_equal_altitude_rejected(self):
+        from simulation.notam_manager import NotamManager, NotamCategory
+        mgr = NotamManager()
+        with pytest.raises(ValueError, match="strictly less"):
+            mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 100.0, 100.0, 1.0, "x")
+
+    def test_tfr_equal_altitude_rejected(self):
+        from simulation.tfr_handler import TfrHandler, TfrReason
+        h = TfrHandler()
+        with pytest.raises(ValueError, match="strictly less"):
+            h.declare_tfr(TfrReason.VIP, (0, 0), 100.0, 200.0, 200.0, 1.0)
+
+    # ── cross_border: altitude + crossing_point validation ───────
+    def test_crossing_negative_altitude_rejected(self):
+        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        coord = CrossBorderCoordinator()
+        coord.register_authority(AirspaceAuthority("A", "Alpha"))
+        coord.register_authority(AirspaceAuthority("B", "Beta"))
+        with pytest.raises(ValueError, match="altitude"):
+            coord.propose_crossing("DR1", "A", "B", (0, 0), 1000.0, -100.0)
+
+    def test_crossing_3element_point_rejected(self):
+        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        coord = CrossBorderCoordinator()
+        coord.register_authority(AirspaceAuthority("A", "Alpha"))
+        coord.register_authority(AirspaceAuthority("B", "Beta"))
+        with pytest.raises(ValueError, match="2-element"):
+            coord.propose_crossing("DR1", "A", "B", (0, 0, 100), 1000.0, 100.0)
+
+    # ── metar_parser: METAR keyword prefix ───────────────────────
+    def test_parse_metar_with_metar_prefix(self):
+        from simulation.metar_parser import MetarParser
+        mp = MetarParser()
+        obs = mp.parse_metar("METAR RKSI 161200Z 27010KT 9999 FEW040 18/10 Q1013")
+        assert obs.station == "RKSI"
+
+    def test_parse_metar_with_speci_prefix(self):
+        from simulation.metar_parser import MetarParser
+        mp = MetarParser()
+        obs = mp.parse_metar("SPECI RKSI 161200Z 27010KT 9999 FEW040 18/10 Q1013")
+        assert obs.station == "RKSI"
+
+    # ── flight_following: float sentinel consistency ──────────────
+    def test_sweep_never_contacted_not_flagged(self):
+        from simulation.flight_following import FlightFollowingService
+        svc = FlightFollowingService(comms_timeout_s=1.0)
+        svc.register_flight("DR1", "P1", [(0, 0, 0), (1, 1, 1)])
+        # last_contact is 0.0 — should not be flagged as LOST_COMMS
+        lost = svc.sweep_lost_comms(current_time=1000.0)
+        assert "DR1" not in lost

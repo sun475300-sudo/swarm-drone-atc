@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -91,7 +92,8 @@ class AimBriefingService:
             warnings=warnings,
             summary=self._summarize(is_go, notam_ids, tfr_ids, hazard_ids, weather_ok),
         )
-        self.history.append(result)
+        # 심층 복사본을 이력에 저장 — 호출자가 반환된 result를 수정해도 이력이 오염되지 않음
+        self.history.append(copy.deepcopy(result))
         overflow = len(self.history) - self.max_history
         if overflow > 0:
             del self.history[:overflow]

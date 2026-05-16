@@ -144,7 +144,7 @@ class FlightFollowingService:
         for cs, track in self.tracks.items():
             if track.state in (TrackState.COMPLETED, TrackState.LOST_COMMS):
                 continue
-            if track.last_contact == 0:
+            if track.last_contact == 0.0:  # 등록 후 한 번도 보고 없음 — 센티널
                 continue
             if current_time - track.last_contact > self.comms_timeout_s:
                 track.state = TrackState.LOST_COMMS

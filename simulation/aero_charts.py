@@ -40,6 +40,17 @@ class AeroCharts:
         self.features[feature.feature_id] = feature
 
     def bulk_add(self, features: List[ChartFeature]) -> int:
+        """피처를 일괄 추가한다. 중복 feature_id(기존 차트 내 또는 입력 목록 내)는 ValueError.
+
+        반환값: 새로 추가된 피처 수.
+        """
+        seen_in_batch: set[str] = set()
+        for f in features:
+            if f.feature_id in self.features or f.feature_id in seen_in_batch:
+                raise ValueError(
+                    f"duplicate feature_id {f.feature_id!r} in bulk_add"
+                )
+            seen_in_batch.add(f.feature_id)
         for f in features:
             self.features[f.feature_id] = f
         return len(features)

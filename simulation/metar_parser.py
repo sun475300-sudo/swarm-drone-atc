@@ -85,7 +85,8 @@ class MetarParser:
             raw_sm = mvs.group(1)
             if "/" in raw_sm:
                 num, den = raw_sm.split("/")
-                vis_sm = float(num) / float(den)
+                den_f = float(den)
+                vis_sm = float(num) / den_f if den_f != 0 else 0.0
             else:
                 vis_sm = float(raw_sm)
 
@@ -161,7 +162,8 @@ class MetarParser:
             raw_sm = mvs.group(1)
             if "/" in raw_sm:
                 num, den = raw_sm.split("/")
-                vis_sm = float(num) / float(den)
+                den_f = float(den)
+                vis_sm = float(num) / den_f if den_f != 0 else 0.0
             else:
                 vis_sm = float(raw_sm)
 

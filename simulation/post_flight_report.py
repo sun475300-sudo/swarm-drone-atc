@@ -7,12 +7,12 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
+import numpy as np
+
 # 분류 임계값 상수
 _DEGRADED_DEVIATION_THRESHOLD: int = 3
 _DEGRADED_CONFLICT_THRESHOLD: int = 5
 _DEGRADED_FUEL_THRESHOLD: float = 85.0
-
-import numpy as np
 
 
 class ReportOutcome(Enum):
@@ -73,6 +73,10 @@ class PostFlightReporter:
     ) -> PostFlightReport:
         if len(track_points) < 2:
             raise ValueError("need at least 2 track points")
+        if track_points[-1][0] <= track_points[0][0]:
+            raise ValueError("track_points timestamps must be strictly increasing")
+        if collisions < 0 or conflicts_detected < 0 or deviation_alerts < 0:
+            raise ValueError("collision/conflict/deviation counts must be non-negative")
         metrics = self._compute_metrics(track_points, conflicts_detected, collisions, deviation_alerts)
         events_list = list(events or [])
         outcome, issues = self._classify_outcome(metrics, events_list)

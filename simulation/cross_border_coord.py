@@ -63,7 +63,7 @@ class CrossBorderCoordinator:
         self._next_id += 1
         cid = f"BC-{self._next_id:05d}"
         dest = self.authorities[to_code]
-        docs = {doc: False for doc in dest.required_docs}
+        docs = dict.fromkeys(dest.required_docs, False)
         self.crossings[cid] = BorderCrossing(
             crossing_id=cid,
             callsign=callsign,
@@ -100,7 +100,8 @@ class CrossBorderCoordinator:
 
     def reject_handoff(self, crossing_id: str, reason: str = "") -> bool:
         bc = self.crossings.get(crossing_id)
-        if bc is None:
+        # PROPOSED 상태만 거부 가능 — ACCEPTED 이후 소급 거부 방지
+        if bc is None or bc.status != HandoffStatus.PROPOSED:
             return False
         bc.status = HandoffStatus.REJECTED
         bc.rejection_reason = reason

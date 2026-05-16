@@ -60,9 +60,11 @@ class AimBriefingService:
         self, request: BriefingRequest, metar_text: Optional[str] = None
     ) -> BriefingResult:
         warnings: List[str] = []
-        notam_ids = self._collect_notam_conflicts(request)
-        tfr_ids = self._collect_tfr_conflicts(request)
-        hazard_ids = self._collect_chart_hazards(request)
+        # route 목록을 1회만 생성해 각 수집 메서드에 전달 (DRY + 성능)
+        route = [request.departure, *request.route_waypoints, request.destination]
+        notam_ids = self._collect_notam_conflicts(request, route)
+        tfr_ids = self._collect_tfr_conflicts(request, route)
+        hazard_ids = self._collect_chart_hazards(request, route)
         weather_ok = self._assess_weather(metar_text, warnings)
 
         # chart_hazards도 NO-GO 조건에 포함 — 안전 로직 수정
@@ -91,12 +93,11 @@ class AimBriefingService:
             del self.history[:overflow]
         return result
 
-    def _collect_notam_conflicts(self, request: BriefingRequest) -> List[str]:
+    def _collect_notam_conflicts(self, request: BriefingRequest, route: List[Tuple[float, float]]) -> List[str]:
         if self.notam_manager is None:
             return []
-        seen: set = set()
+        seen: set[str] = set()
         ids: List[str] = []
-        route = [request.departure] + list(request.route_waypoints) + [request.destination]
         for wp in route:
             active = self.notam_manager.query_active(
                 area_center=wp, radius_m=_NOTAM_QUERY_RADIUS_M, altitude=request.planned_altitude_m
@@ -107,13 +108,12 @@ class AimBriefingService:
                     ids.append(n.notam_id)
         return ids
 
-    def _collect_tfr_conflicts(self, request: BriefingRequest) -> List[str]:
+    def _collect_tfr_conflicts(self, request: BriefingRequest, route: List[Tuple[float, float]]) -> List[str]:
         if self.tfr_handler is None:
             return []
         # check_conflict_readonly() 사용 — 감사 로그 오염 방지
-        seen: set = set()
+        seen: set[str] = set()
         ids: List[str] = []
-        route = [request.departure] + list(request.route_waypoints) + [request.destination]
         for wp in route:
             pos3 = (wp[0], wp[1], request.planned_altitude_m)
             for v in self.tfr_handler.check_conflict_readonly(request.callsign, pos3):
@@ -122,10 +122,9 @@ class AimBriefingService:
                     ids.append(v)
         return ids
 
-    def _collect_chart_hazards(self, request: BriefingRequest) -> List[str]:
+    def _collect_chart_hazards(self, request: BriefingRequest, route: List[Tuple[float, float]]) -> List[str]:
         if self.aero_charts is None:
             return []
-        route = [request.departure] + list(request.route_waypoints) + [request.destination]
         hazards = self.aero_charts.path_obstacles(
             waypoints=route, corridor_width_m=_CHART_CORRIDOR_WIDTH_M, min_altitude_m=0.0
         )

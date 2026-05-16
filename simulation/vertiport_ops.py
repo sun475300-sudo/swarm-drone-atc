@@ -57,6 +57,10 @@ class VertiportOps:
         weight_kg: float = 1500.0,
         priority: int = 5,
     ) -> Optional[str]:
+        if duration_s <= 0:
+            raise ValueError("duration_s must be positive")
+        if weight_kg < 0:
+            raise ValueError("weight_kg must be non-negative")
         candidate = self._find_available_pad(desired_time, duration_s, weight_kg)
         if candidate is None:
             # 중복 callsign 및 max_queue_size 초과 거부
@@ -120,8 +124,12 @@ class VertiportOps:
             return False
         pad_id = self.reservations[slot_id].pad_id
         del self.reservations[slot_id]
-        if not any(r.pad_id == pad_id for r in self.reservations.values()):
-            self.pads[pad_id].status = PadStatus.AVAILABLE
+        pad = self.pads.get(pad_id)
+        # OCCUPIED 상태(이미 착륙) 또는 MAINTENANCE 상태는 건드리지 않음
+        if (pad is not None
+                and pad.status == PadStatus.RESERVED
+                and not any(r.pad_id == pad_id for r in self.reservations.values())):
+            pad.status = PadStatus.AVAILABLE
         return True
 
     def land(self, slot_id: str) -> bool:
@@ -147,7 +155,11 @@ class VertiportOps:
         pad = self.pads.get(pad_id)
         if pad is None:
             return False
-        pad.status = PadStatus.MAINTENANCE if enabled else PadStatus.AVAILABLE
+        if enabled:
+            pad.status = PadStatus.MAINTENANCE
+        elif pad.status == PadStatus.MAINTENANCE:
+            # MAINTENANCE 상태일 때만 복원 — OCCUPIED는 건드리지 않음
+            pad.status = PadStatus.AVAILABLE
         return True
 
     def occupancy_rate(self) -> float:

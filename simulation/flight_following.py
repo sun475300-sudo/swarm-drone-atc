@@ -53,6 +53,10 @@ class FlightFollowingService:
         deviation_tolerance_m: float = 500.0,
         max_points_per_track: int = _DEFAULT_TRACK_POINTS,
     ) -> None:
+        if comms_timeout_s <= 0:
+            raise ValueError("comms_timeout_s must be positive")
+        if deviation_tolerance_m < 0:
+            raise ValueError("deviation_tolerance_m must be non-negative")
         if max_points_per_track <= 0:
             raise ValueError("max_points_per_track must be positive")
         self.tracks: Dict[str, FlightTrack] = {}

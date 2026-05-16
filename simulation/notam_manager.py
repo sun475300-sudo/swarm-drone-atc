@@ -155,6 +155,8 @@ class NotamManager:
         radius_m: float = 10000.0,
         altitude: Optional[float] = None,
     ) -> List[NotamRecord]:
+        if radius_m < 0:
+            raise ValueError("radius_m must be non-negative")
         now = time.time()
         result = []
         for rec in self.notams.values():

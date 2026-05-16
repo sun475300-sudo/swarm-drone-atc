@@ -107,6 +107,8 @@ class InsuranceRiskCalculator:
         return float(min(max(score, 0.0), 2.0))
 
     def recommend_tier(self, risk_score: float) -> CoverageTier:
+        if not math.isfinite(risk_score):
+            raise ValueError(f"risk_score must be finite, got {risk_score}")
         if risk_score < 0.4:
             return CoverageTier.BASIC
         if risk_score < 0.9:

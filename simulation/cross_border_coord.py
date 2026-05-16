@@ -52,7 +52,22 @@ class CrossBorderCoordinator:
         self._next_id = 0
 
     def register_authority(self, authority: AirspaceAuthority) -> None:
-        self.authorities[authority.code] = authority
+        if authority.code in self.authorities:
+            raise ValueError(
+                f"authority code {authority.code!r} is already registered; "
+                "use update_authority() to replace it intentionally"
+            )
+        # Defensive copy of required_docs to prevent external mutation
+        # altering document requirements for future crossings
+        stored_docs = list(authority.required_docs)
+        from dataclasses import replace
+        self.authorities[authority.code] = replace(authority, required_docs=stored_docs)
+
+    def update_authority(self, authority: AirspaceAuthority) -> None:
+        """Replace an existing authority record. Use when updating contact info or docs."""
+        stored_docs = list(authority.required_docs)
+        from dataclasses import replace
+        self.authorities[authority.code] = replace(authority, required_docs=stored_docs)
 
     def propose_crossing(
         self,

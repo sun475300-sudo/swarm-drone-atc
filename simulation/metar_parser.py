@@ -22,6 +22,9 @@ class WeatherObservation:
     conditions: List[str] = field(default_factory=list)
     clouds: List[Tuple[str, int]] = field(default_factory=list)
     raw: str = ""
+    # CAVOK (Ceiling And Visibility OK): visibility >= 10 km, no cloud below 5000 ft.
+    # When True, is_vfr() short-circuits to True regardless of parsed visibility/cloud fields.
+    cavok: bool = False
 
 
 @dataclass
@@ -74,6 +77,9 @@ class MetarParser:
             wind_dir = None if m.group(1) == "VRB" else int(m.group(1))
             wind_speed = int(m.group(2))
             gust = int(m.group(3)) if m.group(3) else None
+
+        # CAVOK (Ceiling And Visibility OK) — definitively VFR, skip detailed vis/cloud parsing
+        cavok = "CAVOK" in tokens
 
         vis_m: Optional[int] = None
         vis_sm: Optional[float] = None
@@ -131,6 +137,7 @@ class MetarParser:
             conditions=conditions,
             clouds=clouds,
             raw=text.strip(),
+            cavok=cavok,
         )
 
     def parse_taf(self, text: str) -> TafForecast:
@@ -191,6 +198,9 @@ class MetarParser:
     _SM_PER_M = 1.0 / 1609.344
 
     def is_vfr(self, obs: WeatherObservation) -> bool:
+        # CAVOK guarantees ceiling >= 5000 ft and visibility >= 10 km — definitively VFR
+        if obs.cavok:
+            return True
         # SM 가시거리 우선, 없으면 미터 값을 SM으로 환산해 평가
         # 가시거리 정보가 전혀 없으면 VFR 확인 불가 → False
         if obs.visibility_sm is not None:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 import time
 from dataclasses import dataclass, field
@@ -78,6 +79,16 @@ class PostFlightReporter:
     ) -> PostFlightReport:
         if len(track_points) < 2:
             raise ValueError("need at least 2 track points")
+        for i, pt in enumerate(track_points):
+            if len(pt[1]) != 3:
+                raise ValueError(
+                    f"track_points[{i}] position must be a 3-element (lat, lon, alt) tuple, "
+                    f"got {len(pt[1])} elements"
+                )
+            if not all(math.isfinite(v) for v in pt[1]):
+                raise ValueError(
+                    f"track_points[{i}] position components must be finite, got {pt[1]!r}"
+                )
         ts_seq = [p[0] for p in track_points]
         if any(t2 < t1 for t1, t2 in zip(ts_seq, ts_seq[1:])):
             raise ValueError("track_points timestamps must not decrease (no backward steps)")

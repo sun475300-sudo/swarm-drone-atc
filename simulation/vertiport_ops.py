@@ -49,6 +49,8 @@ class VertiportOps:
         self._next_slot = 0
 
     def add_pad(self, pad_id: str, position: Tuple[float, float], max_weight: float = 3000.0) -> None:
+        if pad_id in self.pads:
+            raise ValueError(f"pad_id {pad_id!r} already exists; remove it first or use a unique ID")
         if not math.isfinite(max_weight) or max_weight <= 0:
             raise ValueError(
                 f"max_weight must be a finite positive number, got {max_weight}"
@@ -73,10 +75,10 @@ class VertiportOps:
             raise ValueError(
                 f"desired_time must be a finite non-negative number, got {desired_time}"
             )
-        if duration_s <= 0:
-            raise ValueError("duration_s must be positive")
-        if weight_kg < 0:
-            raise ValueError("weight_kg must be non-negative")
+        if not math.isfinite(duration_s) or duration_s <= 0:
+            raise ValueError(f"duration_s must be a finite positive number, got {duration_s}")
+        if not math.isfinite(weight_kg) or weight_kg < 0:
+            raise ValueError(f"weight_kg must be a finite non-negative number, got {weight_kg}")
         candidate = self._find_available_pad(desired_time, duration_s, weight_kg)
         if candidate is None:
             # 중복 callsign 및 max_queue_size 초과 거부

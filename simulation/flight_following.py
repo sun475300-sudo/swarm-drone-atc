@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import math
 import time
 from collections import deque
@@ -207,7 +208,16 @@ class FlightFollowingService:
         return len(done)
 
     def get_track(self, callsign: str) -> Optional[FlightTrack]:
-        return self.tracks.get(callsign)
+        """Return a shallow copy of the FlightTrack as a read-only snapshot.
+
+        The returned object's `points` deque is shared (shallow copy), but
+        mutating the returned FlightTrack fields (state, last_contact, etc.)
+        has no effect on the internally stored track.
+        """
+        original = self.tracks.get(callsign)
+        if original is None:
+            return None
+        return copy.copy(original)
 
     def stats(self) -> Dict[str, Any]:
         counts: Dict[str, int] = {}

@@ -61,6 +61,12 @@ class AimBriefingService:
     def generate(
         self, request: BriefingRequest, metar_text: Optional[str] = None
     ) -> BriefingResult:
+        """Generate a GO/NO-GO briefing.
+
+        If metar_text is None or metar_parser is not configured, weather assessment
+        is SKIPPED and weather_ok defaults to True (fail-open). Check result.warnings
+        for a 'weather assessment skipped' entry to detect this case.
+        """
         if not math.isfinite(request.planned_altitude_m) or request.planned_altitude_m < 0:
             raise ValueError(
                 f"planned_altitude_m must be a finite non-negative number, "
@@ -71,6 +77,11 @@ class AimBriefingService:
                 f"departure_time must be a finite non-negative number, "
                 f"got {request.departure_time}"
             )
+        for label, coord in (("departure", request.departure), ("destination", request.destination)):
+            if len(coord) != 2 or not (math.isfinite(coord[0]) and math.isfinite(coord[1])):
+                raise ValueError(
+                    f"{label} must be a 2-element tuple of finite floats, got {coord!r}"
+                )
         warnings: List[str] = []
         # route 목록을 1회만 생성해 각 수집 메서드에 전달 (DRY + 성능)
         route = [request.departure, *request.route_waypoints, request.destination]
@@ -109,12 +120,19 @@ class AimBriefingService:
     def _collect_notam_conflicts(self, request: BriefingRequest, route: List[Tuple[float, float]]) -> List[str]:
         if self.notam_manager is None:
             return []
+        import logging
         seen: set[str] = set()
         ids: List[str] = []
         for wp in route:
-            active = self.notam_manager.query_active(
-                area_center=wp, radius_m=_NOTAM_QUERY_RADIUS_M, altitude=request.planned_altitude_m
-            )
+            try:
+                active = self.notam_manager.query_active(
+                    area_center=wp, radius_m=_NOTAM_QUERY_RADIUS_M, altitude=request.planned_altitude_m
+                )
+            except Exception as exc:
+                # Fail-safe: treat query failure as unknown conflict (conservative NO-GO)
+                logging.warning("NOTAM query failed for waypoint %s: %s", wp, exc)
+                ids.append("NOTAM-QUERY-ERROR")
+                break
             for n in active:
                 if n.notam_id not in seen:
                     seen.add(n.notam_id)
@@ -124,12 +142,20 @@ class AimBriefingService:
     def _collect_tfr_conflicts(self, request: BriefingRequest, route: List[Tuple[float, float]]) -> List[str]:
         if self.tfr_handler is None:
             return []
+        import logging
         # check_conflict_readonly() 사용 — 감사 로그 오염 방지
         seen: set[str] = set()
         ids: List[str] = []
         for wp in route:
             pos3 = (wp[0], wp[1], request.planned_altitude_m)
-            for v in self.tfr_handler.check_conflict_readonly(request.callsign, pos3):
+            try:
+                conflicts = self.tfr_handler.check_conflict_readonly(request.callsign, pos3)
+            except Exception as exc:
+                # Fail-safe: treat query failure as unknown conflict (conservative NO-GO)
+                logging.warning("TFR query failed for waypoint %s: %s", wp, exc)
+                ids.append("TFR-QUERY-ERROR")
+                break
+            for v in conflicts:
                 if v not in seen:
                     seen.add(v)
                     ids.append(v)

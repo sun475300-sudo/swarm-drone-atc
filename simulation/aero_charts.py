@@ -84,6 +84,7 @@ class AeroCharts:
     ) -> List[ChartFeature]:
         if radius_m < 0:
             raise ValueError(f"radius_m must be non-negative, got {radius_m}")
+        self._validate_feature_position(position)
         out: List[ChartFeature] = []
         for f in self.features.values():
             if feature_type is not None and f.feature_type != feature_type:
@@ -97,6 +98,12 @@ class AeroCharts:
     def nearest(
         self, position: Tuple[float, float], feature_type: Optional[ChartFeatureType] = None
     ) -> Optional[ChartFeature]:
+        """Return the nearest feature to position, or None if no features match.
+
+        If feature_type is specified, only features of that type are considered.
+        Returns None if features dict is empty or no feature matches the type filter.
+        """
+        self._validate_feature_position(position)
         best: Optional[ChartFeature] = None
         best_d = float("inf")
         for f in self.features.values():
@@ -119,6 +126,11 @@ class AeroCharts:
         if corridor_width_m < 0:
             raise ValueError(
                 f"corridor_width_m must be non-negative, got {corridor_width_m}"
+            )
+        if len(waypoints) < 2:
+            raise ValueError(
+                f"path_obstacles requires at least 2 waypoints to define a path segment, "
+                f"got {len(waypoints)}"
             )
         hazards: List[ChartFeature] = []
         seen: set[str] = set()

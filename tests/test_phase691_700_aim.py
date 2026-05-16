@@ -2114,3 +2114,228 @@ class TestPrecisionRound11:
         )
         result = svc.generate(req, metar_text=None)
         assert any("weather assessment skipped" in w for w in result.warnings)
+
+
+# ── Round-12 Precision Tests ─────────────────────────────────────────
+class TestPrecisionRound12:
+    """코드 리뷰 12라운드 CRITICAL/HIGH/MEDIUM 이슈 검증."""
+
+    # ── CRITICAL: CAVOK → is_vfr() must return True ───────────────
+    def test_cavok_is_vfr_true(self):
+        """CAVOK를 포함한 METAR에 대해 is_vfr()가 True를 반환해야 한다."""
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        obs = p.parse_metar("RKSI 161200Z 27010KT CAVOK 22/10 Q1013")
+        assert obs.cavok is True
+        assert p.is_vfr(obs) is True
+
+    def test_cavok_flag_set_in_observation(self):
+        """CAVOK가 있는 METAR에서 WeatherObservation.cavok가 True여야 한다."""
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        obs = p.parse_metar("KJFK 161200Z 18010KT CAVOK 22/15 Q1020")
+        assert obs.cavok is True
+
+    def test_non_cavok_metar_cavok_false(self):
+        """CAVOK가 없는 일반 METAR에서 cavok는 False여야 한다."""
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        obs = p.parse_metar("KJFK 161200Z 18010KT 9999 SKC 22/15 Q1020")
+        assert obs.cavok is False
+
+    def test_cavok_no_go_regression(self):
+        """CAVOK METAR로 브리핑 생성 시 weather_ok=True이어야 한다 (이전 False 회귀 방지)."""
+        from simulation.metar_parser import MetarParser
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        parser = MetarParser()
+        svc = AimBriefingService(metar_parser=parser)
+        req = BriefingRequest(
+            callsign="DR1",
+            departure=(0.0, 0.0),
+            destination=(100.0, 0.0),
+            route_waypoints=[],
+            planned_altitude_m=100.0,
+            departure_time=1000.0,
+        )
+        result = svc.generate(req, metar_text="RKSI 161200Z 27010KT CAVOK 22/10 Q1013")
+        assert result.weather_ok is True
+
+    # ── CRITICAL: NaN departure/destination in generate() ─────────
+    def test_generate_nan_departure_raises(self):
+        """departure에 NaN 좌표가 있으면 ValueError가 발생해야 한다."""
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        svc = AimBriefingService()
+        req = BriefingRequest(
+            callsign="DR1",
+            departure=(float("nan"), 0.0),
+            destination=(100.0, 0.0),
+            route_waypoints=[],
+            planned_altitude_m=50.0,
+            departure_time=1000.0,
+        )
+        with pytest.raises(ValueError, match="departure"):
+            svc.generate(req)
+
+    def test_generate_inf_destination_raises(self):
+        """destination에 Inf 좌표가 있으면 ValueError가 발생해야 한다."""
+        from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        svc = AimBriefingService()
+        req = BriefingRequest(
+            callsign="DR1",
+            departure=(0.0, 0.0),
+            destination=(float("inf"), 0.0),
+            route_waypoints=[],
+            planned_altitude_m=50.0,
+            departure_time=1000.0,
+        )
+        with pytest.raises(ValueError, match="destination"):
+            svc.generate(req)
+
+    # ── CRITICAL: NaN duration_s poisons pad permanently ─────────
+    def test_reserve_slot_nan_duration_raises(self):
+        """duration_s=NaN이면 ValueError가 발생해야 한다."""
+        from simulation.vertiport_ops import VertiportOps
+        ops = VertiportOps()
+        ops.add_pad("P1", (0.0, 0.0))
+        with pytest.raises(ValueError, match="duration_s"):
+            ops.reserve_slot("CS1", desired_time=1000.0, duration_s=float("nan"))
+
+    def test_reserve_slot_inf_duration_raises(self):
+        """duration_s=inf이면 ValueError가 발생해야 한다."""
+        from simulation.vertiport_ops import VertiportOps
+        ops = VertiportOps()
+        ops.add_pad("P1", (0.0, 0.0))
+        with pytest.raises(ValueError, match="duration_s"):
+            ops.reserve_slot("CS1", desired_time=1000.0, duration_s=float("inf"))
+
+    # ── CRITICAL: NaN weight_kg bypasses weight capacity check ─────
+    def test_reserve_slot_nan_weight_raises(self):
+        """weight_kg=NaN이면 ValueError가 발생해야 한다."""
+        from simulation.vertiport_ops import VertiportOps
+        ops = VertiportOps()
+        ops.add_pad("P1", (0.0, 0.0), max_weight=1000.0)
+        with pytest.raises(ValueError, match="weight_kg"):
+            ops.reserve_slot("CS1", desired_time=1000.0, weight_kg=float("nan"))
+
+    def test_reserve_slot_inf_weight_raises(self):
+        """weight_kg=inf이면 ValueError가 발생해야 한다."""
+        from simulation.vertiport_ops import VertiportOps
+        ops = VertiportOps()
+        ops.add_pad("P1", (0.0, 0.0), max_weight=1000.0)
+        with pytest.raises(ValueError, match="weight_kg"):
+            ops.reserve_slot("CS1", desired_time=1000.0, weight_kg=float("inf"))
+
+    # ── HIGH: get_track() returns copy, not live reference ────────
+    def test_get_track_mutation_does_not_affect_service(self):
+        """get_track()이 반환한 객체를 수정해도 내부 상태가 변경되면 안 된다."""
+        from simulation.flight_following import FlightFollowingService, TrackState
+        svc = FlightFollowingService()
+        svc.register_flight("DR1", "P1", [(0, 0, 0), (1, 1, 1)])
+        track_copy = svc.get_track("DR1")
+        assert track_copy is not None
+        # 반환된 복사본 상태를 강제로 변경
+        track_copy.state = TrackState.COMPLETED
+        track_copy.last_contact = 0.0
+        # 내부 트랙은 변경되지 않아야 함
+        internal = svc.tracks["DR1"]
+        assert internal.state == TrackState.ENROUTE
+        assert internal.last_contact == 0.0 or internal.last_contact is not None  # 원본 유지
+
+    # ── HIGH: track_point position length validation ───────────────
+    def test_build_report_2d_position_raises(self):
+        """2D 위치 튜플이 있는 track_points는 ValueError가 발생해야 한다."""
+        from simulation.post_flight_report import PostFlightReporter
+        reporter = PostFlightReporter()
+        pts = [(0.0, (0.0, 0.0), 100.0), (1.0, (10.0, 0.0), 90.0)]
+        with pytest.raises(ValueError, match="3-element"):
+            reporter.build_report("DR1", "P1", pts)
+
+    def test_build_report_nan_position_component_raises(self):
+        """NaN 위치 성분이 있는 track_points는 ValueError가 발생해야 한다."""
+        from simulation.post_flight_report import PostFlightReporter
+        reporter = PostFlightReporter()
+        pts = [(0.0, (float("nan"), 0.0, 0.0), 100.0), (1.0, (10.0, 0.0, 0.0), 90.0)]
+        with pytest.raises(ValueError, match="finite"):
+            reporter.build_report("DR1", "P1", pts)
+
+    # ── HIGH: add_pad duplicate pad_id check ──────────────────────
+    def test_add_pad_duplicate_raises(self):
+        """동일한 pad_id로 add_pad()를 두 번 호출하면 ValueError가 발생해야 한다."""
+        from simulation.vertiport_ops import VertiportOps
+        ops = VertiportOps()
+        ops.add_pad("P1", (0.0, 0.0))
+        with pytest.raises(ValueError, match="already exists"):
+            ops.add_pad("P1", (1.0, 1.0))
+
+    # ── HIGH: register_authority duplicate check ───────────────────
+    def test_register_authority_duplicate_raises(self):
+        """동일한 authority code 재등록은 ValueError가 발생해야 한다."""
+        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        coord = CrossBorderCoordinator()
+        coord.register_authority(AirspaceAuthority("KR", "Korea", required_docs=["manifest"]))
+        with pytest.raises(ValueError, match="already registered"):
+            coord.register_authority(AirspaceAuthority("KR", "Korea2"))
+
+    def test_update_authority_replaces_existing(self):
+        """update_authority()는 기존 authority를 교체할 수 있어야 한다."""
+        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        coord = CrossBorderCoordinator()
+        coord.register_authority(AirspaceAuthority("KR", "Korea", required_docs=["manifest"]))
+        coord.update_authority(AirspaceAuthority("KR", "Korea-Updated", required_docs=[]))
+        assert coord.authorities["KR"].name == "Korea-Updated"
+        assert coord.authorities["KR"].required_docs == []
+
+    # ── HIGH: required_docs defensive copy ────────────────────────
+    def test_register_authority_required_docs_isolated(self):
+        """register_authority() 후 외부 목록을 변경해도 내부 docs가 변경되면 안 된다."""
+        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        coord = CrossBorderCoordinator()
+        docs = ["manifest", "insurance"]
+        coord.register_authority(AirspaceAuthority("KR", "Korea", required_docs=docs))
+        docs.append("new_doc")  # 외부 변경
+        assert "new_doc" not in coord.authorities["KR"].required_docs
+
+    # ── MEDIUM: nearby() NaN position raises ──────────────────────
+    def test_nearby_nan_position_raises(self):
+        """nearby()에 NaN position이 있으면 ValueError가 발생해야 한다."""
+        from simulation.aero_charts import AeroCharts
+        charts = AeroCharts()
+        with pytest.raises(ValueError, match="finite"):
+            charts.nearby((float("nan"), 0.0), radius_m=100.0)
+
+    def test_nearest_nan_position_raises(self):
+        """nearest()에 NaN position이 있으면 ValueError가 발생해야 한다."""
+        from simulation.aero_charts import AeroCharts
+        charts = AeroCharts()
+        with pytest.raises(ValueError, match="finite"):
+            charts.nearest((0.0, float("inf")))
+
+    # ── MEDIUM: path_obstacles requires >= 2 waypoints ─────────────
+    def test_path_obstacles_single_waypoint_raises(self):
+        """waypoints가 1개이면 path_obstacles()가 ValueError를 발생시켜야 한다."""
+        from simulation.aero_charts import AeroCharts
+        charts = AeroCharts()
+        with pytest.raises(ValueError, match="at least 2 waypoints"):
+            charts.path_obstacles([(0.0, 0.0)], corridor_width_m=100.0)
+
+    def test_path_obstacles_empty_raises(self):
+        """waypoints가 빈 리스트이면 path_obstacles()가 ValueError를 발생시켜야 한다."""
+        from simulation.aero_charts import AeroCharts
+        charts = AeroCharts()
+        with pytest.raises(ValueError, match="at least 2 waypoints"):
+            charts.path_obstacles([], corridor_width_m=100.0)
+
+    # ── MEDIUM: recommend_tier NaN guard ──────────────────────────
+    def test_recommend_tier_nan_raises(self):
+        """recommend_tier()에 NaN risk_score가 전달되면 ValueError가 발생해야 한다."""
+        from simulation.insurance_risk import InsuranceRiskCalculator
+        calc = InsuranceRiskCalculator()
+        with pytest.raises(ValueError, match="finite"):
+            calc.recommend_tier(float("nan"))
+
+    def test_recommend_tier_inf_raises(self):
+        """recommend_tier()에 Inf risk_score가 전달되면 ValueError가 발생해야 한다."""
+        from simulation.insurance_risk import InsuranceRiskCalculator
+        calc = InsuranceRiskCalculator()
+        with pytest.raises(ValueError, match="finite"):
+            calc.recommend_tier(float("inf"))

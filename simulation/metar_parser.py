@@ -40,7 +40,9 @@ class MetarParser:
     """METAR/TAF 문자열을 구조화된 관측/예보로 변환한다."""
 
     WIND_RE = re.compile(r"(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?KT")
-    VIS_M_RE = re.compile(r"\b(\d{4})\b")
+    # TAF 유효기간 토큰(예: 0912/1018)의 두 부분을 모두 가시거리로 오탐하지 않도록
+    # '/' 앞에 오거나('/' 뒤에 오는) 경우를 lookbehind/lookahead로 제외한다.
+    VIS_M_RE = re.compile(r"(?<!/)\b(\d{4})\b(?![/\d])")
     VIS_SM_RE = re.compile(r"(\d+)SM")
     TEMP_RE = re.compile(r"\b(M?\d{2})/(M?\d{2})\b")
     ALT_RE = re.compile(r"Q(\d{4})")

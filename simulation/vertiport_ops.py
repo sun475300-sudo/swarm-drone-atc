@@ -37,11 +37,14 @@ class SlotReservation:
 class VertiportOps:
     """버티포트 패드/슬롯 예약, 큐, 운영을 관리."""
 
-    def __init__(self, vertiport_id: str = "VP-01") -> None:
+    def __init__(self, vertiport_id: str = "VP-01", max_queue_size: int = 500) -> None:
+        if max_queue_size <= 0:
+            raise ValueError("max_queue_size must be positive")
         self.vertiport_id = vertiport_id
         self.pads: Dict[str, LandingPad] = {}
         self.reservations: Dict[str, SlotReservation] = {}
         self.wait_queue: List[str] = []
+        self.max_queue_size = max_queue_size
         self._next_slot = 0
 
     def add_pad(self, pad_id: str, position: Tuple[float, float], max_weight: float = 3000.0) -> None:
@@ -57,7 +60,9 @@ class VertiportOps:
     ) -> Optional[str]:
         candidate = self._find_available_pad(desired_time, duration_s, weight_kg)
         if candidate is None:
-            self.wait_queue.append(callsign)
+            # wait_queue 무한 증가 방어 — max_queue_size 초과 시 거부
+            if len(self.wait_queue) < self.max_queue_size:
+                self.wait_queue.append(callsign)
             return None
         self._next_slot += 1
         slot_id = f"SLOT-{self._next_slot:05d}"

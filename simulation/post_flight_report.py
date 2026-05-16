@@ -45,8 +45,11 @@ class PostFlightReport:
 class PostFlightReporter:
     """경로/이벤트/메트릭을 수집해 운영 보고서를 생성."""
 
-    def __init__(self) -> None:
+    def __init__(self, max_reports: int = 10_000) -> None:
+        if max_reports <= 0:
+            raise ValueError("max_reports must be positive")
         self.reports: Dict[str, PostFlightReport] = {}
+        self.max_reports = max_reports
         self._next_id = 0
 
     def _gen_id(self) -> str:
@@ -78,6 +81,10 @@ class PostFlightReporter:
             issues=issues,
         )
         self.reports[report.report_id] = report
+        # FIFO 방식으로 오래된 보고서 제거 — reports dict 무한 증가 방어
+        if len(self.reports) > self.max_reports:
+            oldest_key = next(iter(self.reports))
+            del self.reports[oldest_key]
         return report
 
     @staticmethod

@@ -74,6 +74,9 @@ class FlightFollowingService:
             return {"ok": False, "reason": "not_registered"}
         now = time.time()
         track.points.append(TrackPoint(ts=now, position=position, velocity=velocity, fuel_pct=fuel_pct))
+        # 링-버퍼 방식으로 오래된 포인트 제거 — 메모리 무한 증가 방어
+        if len(track.points) > self.max_points_per_track:
+            del track.points[: len(track.points) - self.max_points_per_track]
         track.last_contact = now
         if track.state == TrackState.LOST_COMMS:
             track.state = TrackState.ENROUTE

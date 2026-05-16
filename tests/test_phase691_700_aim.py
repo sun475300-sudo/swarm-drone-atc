@@ -530,3 +530,117 @@ class TestPostFlightReporter:
         dist = r.outcome_distribution()
         assert dist.get("success", 0) == 1
         assert dist.get("incident", 0) == 1
+
+
+# ── Memory-Leak Defence Tests ────────────────────────────────────────
+class TestMemoryLeakDefence:
+    """각 모듈의 overflow trimming / cap 동작을 검증."""
+
+    # ── MetarParser: VIS_M_RE TAF 오탐 수정 ──────────────────────────
+    def test_metar_vis_not_match_taf_period(self):
+        """TAF 유효기간 토큰(0912/1018)이 가시거리로 오탐되면 안 된다."""
+        from simulation.metar_parser import MetarParser
+        import re
+        m = MetarParser.VIS_M_RE.search("0912/1018")
+        assert m is None, "TAF 유효기간이 VIS_M_RE에 매칭되면 안 된다"
+
+    def test_metar_vis_still_matches_real_visibility(self):
+        """실제 가시거리 4자리 숫자는 여전히 매칭돼야 한다."""
+        from simulation.metar_parser import MetarParser
+        p = MetarParser()
+        obs = p.parse_metar("RKSI 091200Z 27010KT 9999 FEW040 18/10 Q1013")
+        assert obs.visibility_m == 9999
+
+    def test_metar_vis_matches_standalone_4digits(self):
+        """공백으로 분리된 4자리 숫자는 정상 매칭된다."""
+        from simulation.metar_parser import MetarParser
+        import re
+        m = MetarParser.VIS_M_RE.search("27010KT 6000 FEW040")
+        assert m is not None
+        assert m.group(1) == "6000"
+
+    # ── FlightFollowingService: track points ring-buffer ─────────────
+    def test_flight_following_track_points_capped(self):
+        """report_position() 초과 호출 후 points 길이가 cap을 넘지 않는다."""
+        from simulation.flight_following import FlightFollowingService
+        cap = 10
+        svc = FlightFollowingService(max_points_per_track=cap)
+        svc.register_flight("FF1", "FP-1", [(0, 0, 50), (1000, 0, 50)])
+        for i in range(cap * 3):
+            svc.report_position("FF1", (float(i), 0.0, 50.0), (10, 0, 0), 90.0)
+        assert len(svc.tracks["FF1"].points) <= cap
+
+    def test_flight_following_invalid_cap_raises(self):
+        from simulation.flight_following import FlightFollowingService
+        with pytest.raises(ValueError):
+            FlightFollowingService(max_points_per_track=0)
+
+    def test_flight_following_recent_points_retained(self):
+        """ring-buffer는 가장 최근 포인트를 유지해야 한다."""
+        from simulation.flight_following import FlightFollowingService
+        cap = 5
+        svc = FlightFollowingService(max_points_per_track=cap)
+        svc.register_flight("FF1", "FP-1", [(0, 0, 50), (1000, 0, 50)])
+        for i in range(cap + 2):
+            svc.report_position("FF1", (float(i * 100), 0.0, 50.0), (10, 0, 0), 90.0)
+        # 마지막 포인트의 x 좌표가 cap 범위 안에 있어야 함
+        last_x = svc.tracks["FF1"].points[-1].position[0]
+        assert last_x == float((cap + 1) * 100)
+
+    # ── VertiportOps: wait_queue cap ─────────────────────────────────
+    def test_vertiport_wait_queue_capped(self):
+        """패드가 없을 때 큐 요청이 max_queue_size를 초과하면 추가 거부된다."""
+        from simulation.vertiport_ops import VertiportOps
+        cap = 5
+        ops = VertiportOps(max_queue_size=cap)
+        for i in range(cap + 10):
+            ops.reserve_slot(f"CS{i}", desired_time=1000.0)
+        assert len(ops.wait_queue) == cap
+
+    def test_vertiport_invalid_queue_size_raises(self):
+        from simulation.vertiport_ops import VertiportOps
+        with pytest.raises(ValueError):
+            VertiportOps(max_queue_size=0)
+
+    def test_vertiport_queue_accepts_when_below_cap(self):
+        """cap 미만일 때는 정상적으로 큐에 추가된다."""
+        from simulation.vertiport_ops import VertiportOps
+        ops = VertiportOps(max_queue_size=3)
+        ops.reserve_slot("CS1", desired_time=1000.0)
+        ops.reserve_slot("CS2", desired_time=1000.0)
+        assert len(ops.wait_queue) == 2
+
+    # ── PostFlightReporter: reports dict FIFO cap ────────────────────
+    def test_post_flight_reports_capped(self):
+        """build_report() 초과 시 오래된 보고서가 제거된다."""
+        from simulation.post_flight_report import PostFlightReporter
+        cap = 5
+        r = PostFlightReporter(max_reports=cap)
+        t0 = time.time()
+        pts = [(t0, (0, 0, 50), 100.0), (t0 + 10, (100, 0, 50), 90.0)]
+        all_ids = []
+        for i in range(cap + 3):
+            report = r.build_report(f"AIR{i}", "FP", pts)
+            all_ids.append(report.report_id)
+        assert len(r.reports) == cap
+        # 가장 최근 cap개가 남아있어야 함
+        for rid in all_ids[-cap:]:
+            assert rid in r.reports
+
+    def test_post_flight_invalid_max_raises(self):
+        from simulation.post_flight_report import PostFlightReporter
+        with pytest.raises(ValueError):
+            PostFlightReporter(max_reports=0)
+
+    def test_post_flight_oldest_evicted(self):
+        """FIFO: max 초과 시 가장 먼저 추가된 보고서가 제거된다."""
+        from simulation.post_flight_report import PostFlightReporter
+        cap = 3
+        r = PostFlightReporter(max_reports=cap)
+        t0 = time.time()
+        pts = [(t0, (0, 0, 50), 100.0), (t0 + 10, (100, 0, 50), 90.0)]
+        first = r.build_report("A1", "FP", pts)
+        for i in range(cap):
+            r.build_report(f"A{i+2}", "FP", pts)
+        # 첫 번째 보고서는 사라져 있어야 함
+        assert first.report_id not in r.reports

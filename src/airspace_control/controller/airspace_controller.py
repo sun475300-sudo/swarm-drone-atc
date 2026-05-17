@@ -10,38 +10,39 @@
 """
 
 from __future__ import annotations
+
 import heapq
 import logging
 import uuid
-import numpy as np
 from typing import TYPE_CHECKING
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
 import simpy
 
+from simulation.cbs_planner.cbs import (
+    GRID_RESOLUTION,
+    cbs_plan,
+    position_to_grid,
+)
+from simulation.spatial_hash import SpatialHash
+from simulation.voronoi_airspace.voronoi_partition import compute_voronoi_partition
+from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
 from src.airspace_control.agents.drone_state import DroneState, FlightPhase
-from src.airspace_control.comms.communication_bus import CommunicationBus, CommMessage
+from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
+from src.airspace_control.comms.communication_bus import CommMessage, CommunicationBus
 from src.airspace_control.comms.message_types import (
-    TelemetryMessage,
     ClearanceRequest,
     ClearanceResponse,
-    ResolutionAdvisory,
     IntrusionAlert,
+    ResolutionAdvisory,
+    TelemetryMessage,
 )
 from src.airspace_control.controller.priority_queue import FlightPriorityQueue
 from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
-from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
 from src.airspace_control.utils.geo_math import closest_approach, distance_3d
-from simulation.voronoi_airspace.voronoi_partition import compute_voronoi_partition
-from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
-from simulation.spatial_hash import SpatialHash
-from simulation.cbs_planner.cbs import (
-    cbs_plan,
-    position_to_grid,
-    GridNode,
-    GRID_RESOLUTION,
-)
 
 if TYPE_CHECKING:
     from simulation.analytics import SimulationAnalytics
@@ -76,7 +77,7 @@ class AirspaceController:
         advisory_gen: AdvisoryGenerator,
         priority_queue: FlightPriorityQueue,
         config: dict,
-        analytics: "SimulationAnalytics | None" = None,
+        analytics: SimulationAnalytics | None = None,
     ) -> None:
         self.env = env
         self.comm_bus = comm_bus
@@ -276,7 +277,7 @@ class AirspaceController:
         try:
             drone.flight_phase = FlightPhase[tm.flight_phase]
         except KeyError:
-            logger.warning("알 수 없는 FlightPhase: %s (drone=%s)", tm.flight_phase, tm.sender_id)
+            logger.warning("알 수 없는 FlightPhase: %s (drone=%s)", tm.flight_phase, tm.drone_id)
 
     # ── 허가 처리 ────────────────────────────────────────────
 
@@ -490,7 +491,7 @@ class AirspaceController:
                 30.0,
                 min(
                     self._lookahead,
-                    self._lat_min * 3.0 / max(rel_vel, 0.5),  # 분리기준 3배 거리 / 접근 속도
+                    self._lat_min * 3.0 / max(float(rel_vel), 0.5),  # 분리기준 3배 거리 / 접근 속도
                 ),
             )
 
@@ -743,7 +744,7 @@ class AirspaceController:
 
             # 고밀도 셀 드론: 고도 밴드 + 분리 확대
             if cell.area_km2 < HIGH_DENSITY_THRESHOLD_KM2:
-                drone._voronoi_alt_band = cell.altitude_band
+                setattr(drone, "_voronoi_alt_band", cell.altitude_band)
 
     def _get_density_priority_boost(self, drone_id: str) -> float:
         """고밀도 지역 드론의 허가 우선순위 부스트 (0.0~0.5)"""

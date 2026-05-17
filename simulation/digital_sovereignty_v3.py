@@ -3,11 +3,12 @@ Phase 501: Digital Sovereignty V3
 제로 트러스트 데이터 라우팅, 국가별 암호화 정책, 실시간 컴플라이언스 감사.
 """
 
-import numpy as np
 import hashlib
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Set
+from typing import Dict, List, Set
+
+import numpy as np
 
 
 class DataClassification(Enum):

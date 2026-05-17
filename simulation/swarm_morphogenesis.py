@@ -3,10 +3,11 @@ Phase 487: Swarm Morphogenesis
 반응-확산 패턴 형성, 형태발생 기반 군집 자기조직화.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Tuple
+
+import numpy as np
 
 
 class MorphogenType(Enum):

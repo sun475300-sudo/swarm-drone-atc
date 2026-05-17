@@ -21,9 +21,9 @@
 """
 
 from src.analytics.core_analytics import (
+    MonteCarloAnalyzer,
     PerformanceAnalyzer,
     SwarmMetricsCollector,
-    MonteCarloAnalyzer,
 )
 
 __all__ = [

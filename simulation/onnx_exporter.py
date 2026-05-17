@@ -6,7 +6,7 @@ from pathlib import Path
 
 import torch
 
-from simulation.collision_predictor import CollisionPredictor, INPUT_DIM
+from simulation.collision_predictor import INPUT_DIM, CollisionPredictor
 
 
 def export_collision_model(

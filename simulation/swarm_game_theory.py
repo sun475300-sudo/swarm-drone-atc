@@ -4,10 +4,11 @@ Phase 337: Swarm Game Theory
 Nash 균형 탐색, 반복 죄수 딜레마, Pareto 최적.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Tuple
+
+import numpy as np
 
 
 class Strategy(Enum):
@@ -127,9 +128,7 @@ class SwarmGameTheory:
         elif player.strategy == Strategy.PAVLOV:
             if not player.history:
                 return "cooperate"
-            if player.history[-1] == "cooperate" and opponent_history and opponent_history[-1] == "cooperate":
-                return "cooperate"
-            elif player.history[-1] == "defect" and opponent_history and opponent_history[-1] == "defect":
+            if player.history[-1] == "cooperate" and opponent_history and opponent_history[-1] == "cooperate" or player.history[-1] == "defect" and opponent_history and opponent_history[-1] == "defect":
                 return "cooperate"
             else:
                 return "defect"

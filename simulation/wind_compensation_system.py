@@ -2,8 +2,9 @@
 Phase 476: Wind Compensation System
 """
 
-import numpy as np
 from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass

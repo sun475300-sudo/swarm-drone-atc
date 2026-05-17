@@ -3,10 +3,11 @@ Phase 483: Swarm Evolution Engine
 유전 알고리즘 기반 군집 행동 진화, NEAT 토폴로지 변이.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Tuple, Callable
+from typing import Callable, Dict, List
+
+import numpy as np
 
 
 class MutationType(Enum):

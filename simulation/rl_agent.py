@@ -298,5 +298,5 @@ if __name__ == "__main__":
     print("=== PPO 충돌 회피 에이전트 학습 시작 ===")
     agent = PPOAgent(seed=42)
     rewards = agent.train(n_episodes=100)
-    print(f"\n=== 학습 완료 ===")
+    print("\n=== 학습 완료 ===")
     print(f"최종 10 에피소드 평균 보상: {np.mean(rewards[-10:]):.2f}")

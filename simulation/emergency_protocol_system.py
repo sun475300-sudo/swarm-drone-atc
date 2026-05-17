@@ -2,10 +2,9 @@
 Phase 469: Emergency Protocol System for Critical Situations
 """
 
-import numpy as np
-from typing import Dict, List
-from dataclasses import dataclass
 import time
+from dataclasses import dataclass
+from typing import List
 
 
 @dataclass

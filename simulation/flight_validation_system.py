@@ -2,9 +2,10 @@
 Phase 456: Flight Validation System for Safety Checks
 """
 
-import numpy as np
-from typing import Dict, List, Tuple
 from dataclasses import dataclass
+from typing import List, Tuple
+
+import numpy as np
 
 
 @dataclass

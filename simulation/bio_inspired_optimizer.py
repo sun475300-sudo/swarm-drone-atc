@@ -3,10 +3,11 @@ Phase 475: Bio-Inspired Optimizer
 개미군집(ACO v2), 벌집(ABC), 반딧불이(FA) 최적화.
 """
 
-import numpy as np
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Callable, Optional, Tuple
+from typing import Callable, Dict, List
+
+import numpy as np
 
 
 class BioAlgorithm(Enum):

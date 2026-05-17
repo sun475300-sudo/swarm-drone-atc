@@ -10,10 +10,9 @@ PKI 기반 인증 + 인증서 만료 + 갱신 프로토콜.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any
-
 import hashlib
+from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass

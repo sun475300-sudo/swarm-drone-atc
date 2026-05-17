@@ -9,8 +9,8 @@ re-evaluated offline by the CLI.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Optional, Sequence, Tuple
+from dataclasses import asdict, dataclass, field
+from typing import Dict, List, Optional, Tuple
 
 Position = Tuple[float, float, float]
 
@@ -101,7 +101,7 @@ class SimulationTrace:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "SimulationTrace":
+    def from_dict(cls, data: dict) -> SimulationTrace:
         """Construct from a dict produced by :meth:`to_dict`."""
         agents = [
             AgentTrajectory(

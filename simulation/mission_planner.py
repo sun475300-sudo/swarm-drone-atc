@@ -12,7 +12,7 @@ Hungarian 알고리즘 기반 드론-임무 최적 매칭.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import IntEnum
 from typing import Any
 

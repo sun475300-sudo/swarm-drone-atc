@@ -4,10 +4,11 @@ Spiking Neural Network (SNN) 기반 드론 제어.
 LIF(Leaky Integrate-and-Fire) 뉴런 + STDP 학습.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List
+
+import numpy as np
 
 
 class NeuronType(Enum):

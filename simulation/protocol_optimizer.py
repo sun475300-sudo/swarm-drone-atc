@@ -5,11 +5,13 @@
 """
 
 from __future__ import annotations
-import numpy as np
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Dict, List, Optional, Deque
+
 from collections import deque
+from dataclasses import dataclass
+from enum import Enum
+from typing import Deque, List, Optional
+
+import numpy as np
 
 
 class Protocol(Enum):

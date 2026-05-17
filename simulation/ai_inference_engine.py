@@ -2,13 +2,14 @@
 Phase 403: AI Inference Engine for Real-time Drone Decision Making
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, field
-from enum import Enum
+import threading
 import time
 from collections import deque
-import threading
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 
 class InferenceModel(Enum):

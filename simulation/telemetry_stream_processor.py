@@ -5,11 +5,13 @@
 """
 
 from __future__ import annotations
-import numpy as np
+
+from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Deque, Callable
-from collections import deque
+from typing import Callable, Deque, Dict, List, Optional
+
+import numpy as np
 
 
 class TelemetryField(Enum):

@@ -4,8 +4,9 @@
 암호문 상태에서 덧셈/곱셈 연산, 노이즈 관리.
 """
 
-import numpy as np
 from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass

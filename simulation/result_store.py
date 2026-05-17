@@ -13,9 +13,8 @@ JSON 또는 CSV로 SimulationResult를 저장/로드하고
 """
 from __future__ import annotations
 
-import json
 import csv
-import os
+import json
 from datetime import datetime
 from pathlib import Path
 from typing import Optional

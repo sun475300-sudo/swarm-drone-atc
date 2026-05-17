@@ -2,10 +2,10 @@
 Phase 426: Model Compression Engine for Edge Deployment
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
-import time
+from typing import Dict
+
+import numpy as np
 
 
 @dataclass

@@ -4,8 +4,9 @@
 지수 평활법으로 추세 분석하여 잔여 수명(RUL) 추정.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
+
+import numpy as np
 
 
 @dataclass

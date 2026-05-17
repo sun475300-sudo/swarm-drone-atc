@@ -4,8 +4,9 @@
 교차수, 라이데마이스터 이동, 얽힘 지표.
 """
 
-import numpy as np
 from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass

@@ -2,11 +2,10 @@
 Phase 449: Data Encryption System for Secure Storage
 """
 
-import numpy as np
-from typing import Dict, List
-from dataclasses import dataclass
 import hashlib
 import time
+from dataclasses import dataclass
+from typing import Dict
 
 
 @dataclass

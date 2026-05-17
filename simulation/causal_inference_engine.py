@@ -2,10 +2,10 @@
 Phase 423: Causal Inference Engine for Drone Behavior Analysis
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
-import time
+from typing import Dict, List, Tuple
+
+import numpy as np
 
 
 @dataclass

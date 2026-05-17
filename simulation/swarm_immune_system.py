@@ -4,9 +4,10 @@
 Negative Selection, Clonal Selection, 위험 이론 기반 방어.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
+
+import numpy as np
 
 
 class ThreatLevel(Enum):

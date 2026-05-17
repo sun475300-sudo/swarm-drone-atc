@@ -1,8 +1,8 @@
 """어드바이저리 생명주기 관리 및 충돌 회피 어드바이저리 생성기"""
 from __future__ import annotations
+
 import math
 import uuid
-from typing import Optional
 
 import numpy as np
 

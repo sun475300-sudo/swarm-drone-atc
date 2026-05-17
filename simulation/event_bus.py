@@ -10,7 +10,7 @@ Pub/Sub 이벤트 브로커 + 필터 + 이력.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable
 
 

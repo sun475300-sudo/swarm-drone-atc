@@ -2,7 +2,6 @@
 Phase 472: Battery Management System
 """
 
-import numpy as np
 from typing import Dict
 
 

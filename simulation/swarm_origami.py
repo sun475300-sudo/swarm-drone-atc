@@ -4,8 +4,9 @@
 크리즈 패턴, 강체 접힘, 연속 변형.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

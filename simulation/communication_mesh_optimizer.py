@@ -5,11 +5,13 @@
 """
 
 from __future__ import annotations
-import numpy as np
+
+import heapq
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional, Set, Tuple
-import heapq
+
+import numpy as np
 
 
 class LinkQuality(Enum):

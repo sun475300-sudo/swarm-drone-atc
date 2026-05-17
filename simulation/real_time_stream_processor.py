@@ -2,12 +2,11 @@
 Phase 428: Real-Time Stream Processor for Telemetry Data
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any, Callable
-from dataclasses import dataclass, field
-from enum import Enum
 import time
 from collections import deque
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Callable, Dict, List
 
 
 class StreamType(Enum):

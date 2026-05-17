@@ -4,10 +4,11 @@ Phase 476: Digital Twin Federation v2
 """
 
 import hashlib
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
+
+import numpy as np
 
 
 class SyncStatus(Enum):

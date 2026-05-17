@@ -9,7 +9,6 @@ from __future__ import annotations
 from dataclasses import asdict, is_dataclass
 from typing import Any
 
-
 INPUT_CONTRACT_VERSION = "phase180.report_inputs.v1"
 
 

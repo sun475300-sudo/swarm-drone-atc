@@ -3,9 +3,10 @@
 Phase 641-649 전체 모듈 통합 실행 및 성능 리포트 생성.
 """
 
-import numpy as np
 import time
 from dataclasses import dataclass, field
+
+import numpy as np
 
 
 @dataclass

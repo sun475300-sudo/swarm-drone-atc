@@ -4,8 +4,9 @@
 푸앵카레 디스크 모델, 쌍곡 거리, 계층 탐색.
 """
 
-import numpy as np
 from dataclasses import dataclass
+
+import numpy as np
 
 
 def poincare_distance(u: np.ndarray, v: np.ndarray) -> float:

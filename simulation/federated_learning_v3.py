@@ -2,12 +2,12 @@
 Phase 405: Federated Learning v3 with Differential Privacy
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, field
-from enum import Enum
 import time
-import hashlib
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 
 class AggregationMethod(Enum):

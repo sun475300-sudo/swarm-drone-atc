@@ -4,8 +4,9 @@
 비용-정확도 트레이드오프, 적응형 LOD.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

@@ -2,10 +2,11 @@
 Phase 432: Object Detection Engine for Real-Time Tracking
 """
 
-import numpy as np
-from typing import Dict, List, Tuple
-from dataclasses import dataclass
 import time
+from dataclasses import dataclass
+from typing import List
+
+import numpy as np
 
 
 @dataclass

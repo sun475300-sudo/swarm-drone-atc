@@ -4,8 +4,9 @@ GAN 기반 기상 시나리오 생성: 극한 기상 조건 합성,
 풍속/강수/시정 분포 학습 및 생성.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

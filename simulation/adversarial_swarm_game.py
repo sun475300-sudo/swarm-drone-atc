@@ -4,8 +4,9 @@
 알파-베타 가지치기, 군집 전술 최적화.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass
@@ -108,10 +109,7 @@ class MinimaxEngine:
         for m in moves:
             child = self.apply_move(state, m)
             val = self.minimax(child, self.max_depth - 1, -np.inf, np.inf, state.turn != "blue")
-            if state.turn == "blue" and val > best_val:
-                best_val = val
-                best = m
-            elif state.turn == "red" and val < best_val:
+            if state.turn == "blue" and val > best_val or state.turn == "red" and val < best_val:
                 best_val = val
                 best = m
         return best

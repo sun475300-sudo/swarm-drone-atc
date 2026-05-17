@@ -4,8 +4,9 @@ Neural ODE 제어기: 연속 시간 신경망,
 ODE 솔버(RK4), 궤적 최적화.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

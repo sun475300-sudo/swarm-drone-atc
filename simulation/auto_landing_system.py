@@ -2,9 +2,10 @@
 Phase 475: Auto Landing System for Precision Landing
 """
 
-import numpy as np
-from typing import Optional
 from dataclasses import dataclass
+from typing import Optional
+
+import numpy as np
 
 
 @dataclass

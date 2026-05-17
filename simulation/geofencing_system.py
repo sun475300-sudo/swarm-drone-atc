@@ -2,9 +2,8 @@
 Phase 474: Geofencing System for Airspace Restrictions
 """
 
-import numpy as np
-from typing import Dict, List, Tuple
 from dataclasses import dataclass
+from typing import Dict, List, Tuple
 
 
 @dataclass

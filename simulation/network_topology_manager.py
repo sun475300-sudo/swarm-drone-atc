@@ -2,10 +2,11 @@
 Phase 450: Network Topology Manager for Mesh Networks
 """
 
-import numpy as np
-from typing import Dict, List, Set, Tuple
-from dataclasses import dataclass
 import time
+from dataclasses import dataclass
+from typing import Dict, List, Set
+
+import numpy as np
 
 
 @dataclass

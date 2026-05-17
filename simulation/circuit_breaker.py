@@ -5,10 +5,9 @@ Failure-rate based breaker with CLOSED, OPEN, HALF_OPEN state transitions.
 """
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from typing import Any, Callable
-
-import time
 
 
 @dataclass

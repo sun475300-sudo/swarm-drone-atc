@@ -2,12 +2,13 @@
 Phase 412: Predictive Analytics Engine for Swarm Operations
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, field
-from enum import Enum
 import time
 from collections import deque
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, List
+
+import numpy as np
 
 
 class ForecastType(Enum):

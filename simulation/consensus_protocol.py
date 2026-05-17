@@ -5,10 +5,12 @@ Byzantine Fault Tolerance 지원.
 """
 
 from __future__ import annotations
-import numpy as np
+
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional, Set
+
+import numpy as np
 
 
 class NodeRole(Enum):

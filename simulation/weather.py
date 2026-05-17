@@ -8,7 +8,9 @@
   shear     — 고도별 선형 풍속 변화
 """
 from __future__ import annotations
+
 import math
+
 import numpy as np
 
 

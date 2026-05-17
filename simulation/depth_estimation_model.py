@@ -2,9 +2,9 @@
 Phase 435: Depth Estimation Model for 3D Scene Understanding
 """
 
-import numpy as np
-from typing import Tuple
 from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass

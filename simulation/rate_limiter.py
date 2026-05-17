@@ -5,10 +5,9 @@ Token-bucket limiter with per-key quotas and burst control.
 """
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from typing import Any
-
-import time
 
 
 @dataclass

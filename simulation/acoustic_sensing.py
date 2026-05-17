@@ -4,10 +4,11 @@ FFT 스펙트럼 분석 + 빔포밍 + DoA(Direction of Arrival) 추정.
 드론 프로펠러 소음 감지 및 위치 추정.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 
 
 class SignalType(Enum):

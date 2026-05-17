@@ -3,10 +3,11 @@ Phase 513: Cooperative Perception
 다중 드론 협력 인식, 분산 물체 추적, 뷰 퓨전.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Tuple
+
+import numpy as np
 
 
 class ObjectClass(Enum):

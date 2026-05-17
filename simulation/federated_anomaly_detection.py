@@ -4,8 +4,9 @@
 중앙 서버에서 가중치 집계(FedAvg). 프라이버시 보존.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

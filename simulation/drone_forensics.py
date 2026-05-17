@@ -3,11 +3,12 @@ Phase 506: Drone Forensics
 비행 기록 분석, 사고 재구성, 디지털 포렌식 체인.
 """
 
-import numpy as np
 import hashlib
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional
+from typing import Dict, List
+
+import numpy as np
 
 
 class IncidentType(Enum):
@@ -131,9 +132,9 @@ class DroneForensics:
         chain.add(EvidenceType.FLIGHT_LOG, drone_id,
                  f"flight_log_{len(logs)}_records", incident_time or 0)
         chain.add(EvidenceType.TELEMETRY, drone_id,
-                 f"telemetry_snapshot", incident_time or 0)
+                 "telemetry_snapshot", incident_time or 0)
         chain.add(EvidenceType.SENSOR_DATA, drone_id,
-                 f"sensor_dump", incident_time or 0)
+                 "sensor_dump", incident_time or 0)
 
         root_cause = self._determine_root_cause(logs, incident_type)
         confidence = self.rng.uniform(0.6, 0.95)

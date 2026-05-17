@@ -2,10 +2,8 @@
 Phase 447: Fault Diagnosis System for Predictive Maintenance
 """
 
-import numpy as np
-from typing import Dict, List, Optional
 from dataclasses import dataclass
-import time
+from typing import Dict, List, Optional
 
 
 @dataclass

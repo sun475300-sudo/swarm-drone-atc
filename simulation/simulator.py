@@ -15,10 +15,10 @@ SimPy 기반 이산 이벤트 시뮬레이션.
 """
 
 from __future__ import annotations
+
 import logging
 import os
 import sys
-from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -31,34 +31,31 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
+from simulation.analytics import SimulationAnalytics, SimulationResult
 from simulation.apf_engine.apf import (
     APFState,
     batch_compute_forces,
-    force_to_velocity,
 )
+from simulation.spatial_hash import SpatialHash
 from simulation.weather import WindModel, build_wind_models
-from simulation.analytics import SimulationAnalytics, SimulationResult
-from src.airspace_control.agents.drone_state import (
-    DroneState,
-    FlightPhase,
-    CommsStatus,
-    FailureType,
-)
 from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
-from src.airspace_control.comms.communication_bus import CommunicationBus, CommMessage
+from src.airspace_control.agents.drone_state import (
+    CommsStatus,
+    DroneState,
+    FailureType,
+    FlightPhase,
+)
+from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
+from src.airspace_control.comms.communication_bus import CommMessage, CommunicationBus
 from src.airspace_control.comms.message_types import (
-    TelemetryMessage,
     ClearanceRequest,
     ClearanceResponse,
     ResolutionAdvisory,
+    TelemetryMessage,
 )
+from src.airspace_control.controller.airspace_controller import AirspaceController
 from src.airspace_control.controller.priority_queue import FlightPriorityQueue
 from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
-from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
-from src.airspace_control.controller.airspace_controller import AirspaceController
-from src.airspace_control.utils.geo_math import distance_3d
-from simulation.spatial_hash import SpatialHash
-
 
 # ─────────────────────────────────────────────────────────────
 # 유틸리티
@@ -134,7 +131,7 @@ class _DroneAgent:
         self,
         env: simpy.Environment,
         drone: DroneState,
-        sim: "SwarmSimulator",
+        sim: SwarmSimulator,
         dt: float,
     ) -> None:
         self.env = env
@@ -843,7 +840,8 @@ class SwarmSimulator:
 # ─────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    import argparse, json
+    import argparse
+    import json
 
     parser = argparse.ArgumentParser(description="군집드론 시뮬레이터")
     parser.add_argument("--config", default="config/default_simulation.yaml")

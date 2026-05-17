@@ -9,8 +9,10 @@
     pred = gnn.predict_density(horizon=30)
 """
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Any
+
 import numpy as np
 
 

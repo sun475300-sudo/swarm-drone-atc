@@ -3,11 +3,11 @@ Phase 477: UAM Corridor Manager
 도심항공모빌리티 회랑 관리 — 버티포트 스케줄링, 수직이착륙 경로.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
-import heapq
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 
 
 class CorridorType(Enum):

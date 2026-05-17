@@ -4,8 +4,9 @@
 영향력 전파, 평판 시스템, 커뮤니티 탐지.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
+
+import numpy as np
 
 
 @dataclass

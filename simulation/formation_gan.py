@@ -3,10 +3,11 @@ Phase 516: Formation GAN
 GAN 기반 최적 대형 생성, 적대적 훈련, 대형 평가.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List
+
+import numpy as np
 
 
 class FormationType(Enum):

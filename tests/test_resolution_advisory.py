@@ -89,3 +89,33 @@ class TestAdvisoryGenerator:
         threat = _drone("B", [200.0, 0.0, 60.0], [-10.0, 0.0, 0.0])
         adv = self.gen.generate(own, threat, cpa_dist_m=20.0, cpa_t_s=15.0, now=0.0)
         assert adv.advisory_type in ("TURN_RIGHT", "CLIMB", "DESCEND", "EVADE_APF")
+
+    def test_rear_lateral_crossing_right_rear(self):
+        """후측면 교차 (90°~150°): 위협이 우측 후방"""
+        # own moving east, threat behind-right (bearing ~135° → abs_angle ~135°)
+        # dz=100 ensures vertical sep branch is skipped
+        own    = _drone("A", [0.0,   0.0, 0.0], [5.0, 0.0, 0.0])
+        threat = _drone("B", [-30.0, 30.0, 100.0], [5.0, 0.0, 0.0])
+        adv = self.gen.generate(own, threat, cpa_dist_m=40.0, cpa_t_s=15.0, now=0.0)
+        assert adv.advisory_type in ("TURN_LEFT", "TURN_RIGHT", "CLIMB", "DESCEND")
+
+    def test_rear_lateral_crossing_left_rear(self):
+        """후측면 교차 (90°~150°): 위협이 좌측 후방"""
+        own    = _drone("A", [0.0,   0.0, 0.0], [5.0, 0.0, 0.0])
+        threat = _drone("B", [-30.0, -30.0, 100.0], [5.0, 0.0, 0.0])
+        adv = self.gen.generate(own, threat, cpa_dist_m=40.0, cpa_t_s=15.0, now=0.0)
+        assert adv.advisory_type in ("TURN_LEFT", "TURN_RIGHT", "CLIMB", "DESCEND")
+
+    def test_rear_overtaking_threat_above(self):
+        """후방 추월 (≥150°): 위협이 정후방 위쪽 → DESCEND 또는 수평 회피"""
+        own    = _drone("A", [0.0,   0.0,   0.0], [5.0, 0.0, 0.0])
+        threat = _drone("B", [-50.0, 0.0, 100.0], [8.0, 0.0, 0.0])
+        adv = self.gen.generate(own, threat, cpa_dist_m=60.0, cpa_t_s=15.0, now=0.0)
+        assert adv.advisory_type in ("DESCEND", "CLIMB", "TURN_LEFT", "TURN_RIGHT")
+
+    def test_rear_overtaking_threat_below(self):
+        """후방 추월 (≥150°): 위협이 정후방 아래 → CLIMB 또는 수평 회피"""
+        own    = _drone("A", [0.0,   0.0, 100.0], [5.0, 0.0, 0.0])
+        threat = _drone("B", [-50.0, 0.0,   0.0], [8.0, 0.0, 0.0])
+        adv = self.gen.generate(own, threat, cpa_dist_m=60.0, cpa_t_s=15.0, now=0.0)
+        assert adv.advisory_type in ("CLIMB", "DESCEND", "TURN_LEFT", "TURN_RIGHT")

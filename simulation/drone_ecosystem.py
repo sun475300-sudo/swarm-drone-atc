@@ -4,8 +4,9 @@
 자원 경쟁, 생태적 균형 시뮬레이션.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

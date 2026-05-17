@@ -139,7 +139,7 @@ def has_conflict(context: dict[str, Any]) -> bool:
 
 def has_advisory(context: dict[str, Any]) -> bool:
     """회피 어드바이저리가 할당되었는지 확인."""
-    return context.get("advisory", None) is not None
+    return context.get("advisory") is not None
 
 
 def is_at_waypoint(context: dict[str, Any]) -> bool:

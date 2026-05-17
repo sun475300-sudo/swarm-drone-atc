@@ -3,10 +3,11 @@ Phase 514: Satellite Relay Communication
 LEO 위성 릴레이, 지연 보상, 핸드오버 관리.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Optional
+
+import numpy as np
 
 
 class OrbitType(Enum):

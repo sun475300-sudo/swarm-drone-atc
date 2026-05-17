@@ -4,8 +4,9 @@ L-시스템 기반 대형 생성: 문법 규칙으로 군집 대형 정의,
 프랙탈/재귀 패턴 대형 생성 및 진화.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

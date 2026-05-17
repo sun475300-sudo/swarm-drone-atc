@@ -4,8 +4,9 @@
 토큰화, 임베딩, 시퀀스 생성.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

@@ -4,8 +4,9 @@
 홀로그래픽 축소 표현(HRR), 바인딩/언바인딩.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

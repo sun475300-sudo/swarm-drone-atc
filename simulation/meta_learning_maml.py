@@ -5,8 +5,9 @@ Inner loop(태스크 적응) + Outer loop(메타 업데이트) 구조.
 Phase 416 meta_learning_controller.py와 별도 — MAML 특화 구현.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

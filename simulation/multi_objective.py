@@ -13,8 +13,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-import numpy as np
-
 
 @dataclass
 class Solution:
@@ -75,7 +73,7 @@ class MultiObjectiveOptimizer:
         self, solution: Solution, weights: dict[str, float] | None = None,
     ) -> float:
         """가중 합산 점수 (lower is better)"""
-        w = weights or {k: 1.0 for k in self._objectives}
+        w = weights or dict.fromkeys(self._objectives, 1.0)
         score = 0.0
         for k, v in solution.objectives.items():
             score += v * w.get(k, 1.0)

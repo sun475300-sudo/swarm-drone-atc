@@ -9,8 +9,10 @@ SLA 계약 엔진
     sla.record_performance("c1", latency_s=1.5, available=True)
 """
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Any
+
 import numpy as np
 
 

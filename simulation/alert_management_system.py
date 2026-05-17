@@ -2,10 +2,9 @@
 Phase 454: Alert Management System for Real-Time Notifications
 """
 
-import numpy as np
-from typing import Dict, List
-from dataclasses import dataclass
 import time
+from dataclasses import dataclass
+from typing import Dict, List
 
 
 @dataclass

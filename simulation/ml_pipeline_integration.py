@@ -255,7 +255,7 @@ class DemandForecaster(BaseModelWrapper):
                     base = 180.0
                 elif 17 <= hour <= 20:
                     base = 200.0
-                elif 22 <= hour or hour <= 5:
+                elif hour >= 22 or hour <= 5:
                     base = 20.0
                 demands.append(base)
             else:
@@ -292,7 +292,7 @@ class DemandForecaster(BaseModelWrapper):
                 base = 180.0
             elif 17 <= hour <= 20:
                 base = 200.0
-            elif 22 <= hour or hour <= 5:
+            elif hour >= 22 or hour <= 5:
                 base = 20.0
             forecasts.append({"hour": hour, "demand": base * weather_factor})
 

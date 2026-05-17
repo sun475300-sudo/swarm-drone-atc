@@ -3,12 +3,12 @@ Phase 517: Drone Digital Passport
 드론 신원 관리, 인증서 체인, 비행 이력 기록.
 """
 
-import numpy as np
 import hashlib
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional
-from datetime import datetime
+from typing import Dict, List, Optional
+
+import numpy as np
 
 
 class CertificateType(Enum):

@@ -3,10 +3,11 @@ Phase 509: Autonomous Landing System
 정밀 착륙, 비상 착륙, 지형 적응형 접근.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Optional
+
+import numpy as np
 
 
 class LandingMode(Enum):

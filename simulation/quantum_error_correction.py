@@ -4,9 +4,10 @@
 비트 플립/위상 플립 오류 모델.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
+
+import numpy as np
 
 
 class ErrorType(Enum):

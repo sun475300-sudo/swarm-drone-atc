@@ -8,10 +8,12 @@ Voronoi Tessellation 기반 동적 공역 분할
   - 드론 추가/제거 시 실시간 재분할
 """
 from __future__ import annotations
-import numpy as np
-from scipy.spatial import Voronoi, ConvexHull
+
 from dataclasses import dataclass
 from typing import Optional
+
+import numpy as np
+from scipy.spatial import ConvexHull, Voronoi
 
 
 @dataclass

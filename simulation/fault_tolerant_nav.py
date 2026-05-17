@@ -3,10 +3,11 @@ Phase 512: Fault-Tolerant Navigation
 센서 퓨전 기반 내결함성 항법, IMU/GPS/비전 삼중 중복.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Tuple
+
+import numpy as np
 
 
 class NavSensor(Enum):
@@ -107,8 +108,7 @@ class FaultTolerantNav:
         self.rng = np.random.default_rng(seed)
         self.ekf = ExtendedKalmanFilter(seed=seed)
         self.voter = SensorVoter()
-        self.sensor_health: Dict[NavSensor, NavHealth] = {
-            s: NavHealth.NOMINAL for s in NavSensor}
+        self.sensor_health: Dict[NavSensor, NavHealth] = dict.fromkeys(NavSensor, NavHealth.NOMINAL)
         self.solutions: List[NavSolution] = []
         self.true_pos = np.array([0.0, 0.0, 50.0])
         self.true_vel = np.array([2.0, 1.0, 0.0])

@@ -5,10 +5,9 @@ Models hourly traffic demand, congestion, and incident probability for urban air
 """
 from __future__ import annotations
 
+import random
 from dataclasses import dataclass
 from typing import Any
-
-import random
 
 
 @dataclass

@@ -10,7 +10,7 @@
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -79,14 +79,14 @@ class WindTunnel:
 
     def wind_field_slice(self, z: float, grid_n: int = 10, area: float = 1000) -> list[dict[str, Any]]:
         """수평 슬라이스 풍속 필드"""
-        field = []
+        points = []
         step = area / grid_n
         for i in range(grid_n):
             for j in range(grid_n):
                 x, y = i * step, j * step
                 w = self.wind_at((x, y, z))
-                field.append({"x": x, "y": y, "z": z, "wx": w[0], "wy": w[1], "wz": w[2]})
-        return field
+                points.append({"x": x, "y": y, "z": z, "wx": w[0], "wy": w[1], "wz": w[2]})
+        return points
 
     def summary(self) -> dict[str, Any]:
         return {

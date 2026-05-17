@@ -2,11 +2,12 @@
 Phase 430: Swarm Collaborative Perception for Extended Sensing
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, field
-from enum import Enum
 import time
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 
 class PerceptionModality(Enum):

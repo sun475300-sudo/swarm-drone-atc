@@ -4,8 +4,9 @@
 밀도장/속도장 PDE 시뮬레이션, 유체 근사.
 """
 
-import numpy as np
 from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass

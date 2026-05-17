@@ -5,10 +5,9 @@ Phase 332: WebAssembly Runtime Engine
 """
 
 import struct
-import numpy as np
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import List, Dict, Optional, Callable, Any
+from typing import Any, Callable, Dict, List, Optional
 
 
 class WasmOpcode(IntEnum):

@@ -5,10 +5,12 @@ V2N(Vehicle-to-Network) 통신 프로토콜 시뮬레이션.
 """
 
 from __future__ import annotations
-import numpy as np
+
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
+
+import numpy as np
 
 
 class V2XMode(Enum):

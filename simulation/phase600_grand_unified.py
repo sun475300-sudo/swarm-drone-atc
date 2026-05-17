@@ -5,9 +5,10 @@ Phase 600 기념 통합 오케스트레이터:
 각 서브시스템 상태를 수집하고 종합 리포트 생성.
 """
 
-import numpy as np
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass

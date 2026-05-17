@@ -3,12 +3,12 @@ Phase 510: Swarm Blockchain
 분산 원장, 합의 알고리즘, 스마트 계약 기반 군집 관리.
 """
 
-import numpy as np
 import hashlib
-import time as _time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Callable
+from typing import Dict, List, Optional
+
+import numpy as np
 
 
 class ConsensusType(Enum):

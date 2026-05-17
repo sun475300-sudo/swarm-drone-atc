@@ -4,8 +4,9 @@
 퍼시스턴트 호몰로지, 베티 수, 장애물 위상 분류.
 """
 
-import numpy as np
 from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass

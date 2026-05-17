@@ -6,8 +6,6 @@ detect_conflict의 O(N²×T) 이중 루프를 텐서 연산으로 일괄 처리.
 
 from __future__ import annotations
 
-import numpy as np
-
 try:
     import torch
     _TORCH = True
@@ -18,7 +16,7 @@ except (ImportError, OSError):
 from .cbs import Conflict, GridNode
 
 
-def _select_device() -> "torch.device":
+def _select_device() -> torch.device:
     if torch.cuda.is_available():
         return torch.device("cuda")
     return torch.device("cpu")

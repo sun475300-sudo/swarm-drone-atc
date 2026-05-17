@@ -5,11 +5,11 @@
 """
 
 from __future__ import annotations
-import numpy as np
+
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Callable, Any
+from typing import Callable, Dict, List, Optional
 
 
 class TestResult(Enum):

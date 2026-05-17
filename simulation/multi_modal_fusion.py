@@ -2,11 +2,12 @@
 Phase 424: Multi-Modal Fusion for Sensor Integration
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
+import time
 from dataclasses import dataclass
 from enum import Enum
-import time
+from typing import Dict, List
+
+import numpy as np
 
 
 class SensorType(Enum):

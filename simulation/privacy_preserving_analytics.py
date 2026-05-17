@@ -2,10 +2,11 @@
 Phase 427: Privacy-Preserving Analytics for Sensitive Data
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass
 import hashlib
+from dataclasses import dataclass
+from typing import Any, Dict, List
+
+import numpy as np
 
 
 @dataclass

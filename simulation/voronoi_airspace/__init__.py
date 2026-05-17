@@ -6,7 +6,7 @@ from .voronoi_partition import (
 
 # GPU 가속 유틸리티
 try:
-    from .voronoi_gpu import gpu_nearest_cell_assignment, gpu_detect_intrusions
+    from .voronoi_gpu import gpu_detect_intrusions, gpu_nearest_cell_assignment
 except ImportError:
     gpu_nearest_cell_assignment = None
     gpu_detect_intrusions = None

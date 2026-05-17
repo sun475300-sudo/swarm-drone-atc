@@ -4,8 +4,9 @@
 대역폭 50-80% 절감, 무손실 복원 보장.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
+
+import numpy as np
 
 
 @dataclass

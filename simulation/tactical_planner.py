@@ -3,11 +3,11 @@ Phase 508: Tactical Mission Planner
 다중 목표 할당, 시간-공간 최적화, 동적 재계획.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
-import heapq
+from typing import Dict, List, Tuple
+
+import numpy as np
 
 
 class MissionPriority(Enum):

@@ -4,8 +4,9 @@
 Betti 수로 군집 대형의 위상적 특성 분석.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass
@@ -107,7 +108,7 @@ class PersistentHomology:
 
         # 엣지를 birth 순으로 정렬하여 처리
         edges = sorted([s for s in simplices if s.dimension == 1], key=lambda s: s.birth)
-        birth_times = {v: 0.0 for v in vertices}
+        birth_times = dict.fromkeys(vertices, 0.0)
 
         for edge in edges:
             i, j = edge.vertices

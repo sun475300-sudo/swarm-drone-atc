@@ -2,10 +2,10 @@
 Phase 440: Battery Optimization Controller for Extended Flight Time
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
-import time
+from typing import Dict, List
+
+import numpy as np
 
 
 @dataclass

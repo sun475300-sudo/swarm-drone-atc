@@ -12,7 +12,6 @@ from typing import Optional
 import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-
 # ── 개별 섹션 모델 ──────────────────────────────────────────
 
 
@@ -59,7 +58,7 @@ class SeparationSection(BaseModel):
     conflict_lookahead_s: float = Field(default=90.0, gt=0, le=600)
 
     @model_validator(mode="after")
-    def near_miss_less_than_separation(self) -> "SeparationSection":
+    def near_miss_less_than_separation(self) -> SeparationSection:
         if self.near_miss_lateral_m >= self.lateral_min_m:
             raise ValueError(
                 f"near_miss_lateral_m({self.near_miss_lateral_m}) >= "
@@ -78,7 +77,7 @@ class DronesSection(BaseModel):
     comm_range_m: float = Field(default=2000.0, gt=0)
 
     @model_validator(mode="after")
-    def altitude_range_valid(self) -> "DronesSection":
+    def altitude_range_valid(self) -> DronesSection:
         if self.min_altitude_m >= self.max_altitude_m:
             raise ValueError(
                 f"min_altitude_m({self.min_altitude_m}) >= "
@@ -87,7 +86,7 @@ class DronesSection(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def cruise_less_than_max(self) -> "DronesSection":
+    def cruise_less_than_max(self) -> DronesSection:
         if self.cruise_speed_ms > self.max_speed_ms:
             raise ValueError(
                 f"cruise_speed_ms({self.cruise_speed_ms}) > "

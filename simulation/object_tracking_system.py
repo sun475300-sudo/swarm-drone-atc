@@ -2,10 +2,11 @@
 Phase 462: Object Tracking System for Moving Target Following
 """
 
-import numpy as np
-from typing import Dict, List, Tuple
-from dataclasses import dataclass
 import time
+from dataclasses import dataclass
+from typing import Dict, List
+
+import numpy as np
 
 
 @dataclass

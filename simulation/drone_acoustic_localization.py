@@ -4,9 +4,9 @@
 딜레이-앤-섬 빔포밍, 도플러 보정.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
+import numpy as np
 
 SOUND_SPEED = 343.0  # m/s
 

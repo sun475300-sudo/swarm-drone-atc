@@ -3,10 +3,11 @@ Phase 471: Quantum Machine Learning Pipeline
 양자 머신러닝 — QNN, Quantum Kernel, 양자 서포트 벡터 분류.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Optional
+
+import numpy as np
 
 
 class QMLMethod(Enum):

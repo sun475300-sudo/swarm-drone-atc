@@ -4,8 +4,9 @@
 자원 할당, 수익 분석.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

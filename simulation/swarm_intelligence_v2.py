@@ -5,10 +5,12 @@ Firefly Algorithm 다중 메타휴리스틱 최적화 프레임워크.
 """
 
 from __future__ import annotations
-import numpy as np
+
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Callable
+from typing import Callable, Dict, List, Optional, Tuple
+
+import numpy as np
 
 
 class OptimizerType(Enum):

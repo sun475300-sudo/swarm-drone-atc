@@ -6,10 +6,11 @@ Phase 336: Digital Thread Manager
 
 import hashlib
 import time
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Any
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 
 
 class LifecyclePhase(Enum):

@@ -10,7 +10,7 @@ K-UTM 준수 보고 + 감사 로그 + 시간대별 규정 준수율.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 

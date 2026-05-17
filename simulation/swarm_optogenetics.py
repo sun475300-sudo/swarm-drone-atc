@@ -4,8 +4,9 @@
 흥분/억제 상태 전이, 파동 전파.
 """
 
-import numpy as np
 from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass

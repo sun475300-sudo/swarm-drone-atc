@@ -4,8 +4,9 @@
 미니컬럼, 시냅스 성장, 시퀀스 학습.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
+
+import numpy as np
 
 
 @dataclass

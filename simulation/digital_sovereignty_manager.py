@@ -6,10 +6,11 @@ GDPR/개인정보보호법 준수를 위한 데이터 분류 및 지역 제한.
 
 import hashlib
 import time
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
+
+import numpy as np
 
 
 class DataClassification(Enum):

@@ -4,8 +4,9 @@
 STDP 학습, 이벤트 기반 드론 제어.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

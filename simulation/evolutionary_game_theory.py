@@ -5,9 +5,10 @@ Hawk-Dove/Prisoner's Dilemma로 군집 행동 전략 분석.
 Phase 337 swarm_game_theory.py와 별도 — 진화적 다이내믹스 특화.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
+
+import numpy as np
 
 
 class EvoStrategy(Enum):

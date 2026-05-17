@@ -4,8 +4,9 @@
 패턴 저장/검색, 에너지 함수 최소화.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

@@ -3,11 +3,12 @@ Phase 472: Swarm Operating System
 군집 드론 운영체제 — 프로세스 스케줄러, IPC, 자원 관리.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import List, Dict, Optional, Deque
 from collections import deque
+from dataclasses import dataclass
+from enum import Enum
+from typing import Deque, Dict, List, Optional
+
+import numpy as np
 
 
 class ProcessState(Enum):

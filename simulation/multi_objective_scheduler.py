@@ -4,8 +4,9 @@
 에너지 소모, 비행 시간, 충돌 위험을 동시 최소화하는 임무 스케줄링.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
+
+import numpy as np
 
 
 @dataclass

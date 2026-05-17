@@ -11,7 +11,7 @@ CQRS 패턴 + 이벤트 소싱 + 상태 복원.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 _logger = logging.getLogger(__name__)

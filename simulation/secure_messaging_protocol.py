@@ -2,11 +2,10 @@
 Phase 446: Secure Messaging Protocol for Drone Communication
 """
 
-import numpy as np
-from typing import Dict, List, Optional
-from dataclasses import dataclass
 import hashlib
 import time
+from dataclasses import dataclass
+from typing import Dict, List
 
 
 @dataclass

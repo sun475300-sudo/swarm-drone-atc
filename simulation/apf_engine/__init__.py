@@ -1,23 +1,27 @@
 from .apf import (
-    APFState,
     APF_PARAMS,
-    APF_PARAMS_WINDY,
     APF_PARAMS_HIGH_DENSITY,
-    compute_total_force,
-    batch_compute_forces as _batch_compute_forces_cpu,
-    force_to_velocity,
+    APF_PARAMS_WINDY,
+    APFState,
     attractive_force,
+    compute_total_force,
+    force_to_velocity,
     repulsive_force_drone,
     repulsive_force_obstacle,
+)
+from .apf import (
+    batch_compute_forces as _batch_compute_forces_cpu,
 )
 
 # GPU 가속 엔진 자동 감지
 _USE_GPU = False
 try:
     from .apf_gpu import (
-        gpu_batch_compute_forces,
-        _get_device_info,
         _TORCH_AVAILABLE as _APF_TORCH_OK,
+    )
+    from .apf_gpu import (
+        _get_device_info,
+        gpu_batch_compute_forces,
     )
 
     _USE_GPU = bool(_APF_TORCH_OK)

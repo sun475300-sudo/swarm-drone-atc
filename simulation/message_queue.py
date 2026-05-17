@@ -5,10 +5,9 @@ Priority queue with bounded capacity, backpressure, retry, and dead-letter queue
 """
 from __future__ import annotations
 
+import heapq
 from dataclasses import dataclass, field
 from typing import Any
-
-import heapq
 
 
 @dataclass(order=True)

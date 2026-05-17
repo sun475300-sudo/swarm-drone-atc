@@ -2,11 +2,12 @@
 Phase 425: Distributed Training Coordinator for Swarm Learning
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, field
-from enum import Enum
 import time
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 
 
 class WorkerStatus(Enum):

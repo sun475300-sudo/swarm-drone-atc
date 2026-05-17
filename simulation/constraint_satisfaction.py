@@ -4,9 +4,10 @@ CSP 솔버: 백트래킹 탐색, AC-3 아크 일관성,
 드론 스케줄링/할당 제약 만족.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
 from collections import deque
+from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass

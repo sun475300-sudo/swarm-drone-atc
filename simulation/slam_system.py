@@ -2,10 +2,10 @@
 Phase 436: SLAM System for Simultaneous Localization and Mapping
 """
 
-import numpy as np
-from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
-import time
+from typing import Dict, List, Optional
+
+import numpy as np
 
 
 @dataclass

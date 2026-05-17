@@ -4,8 +4,9 @@
 전하 기반 분리/응집, 전위장 탐색.
 """
 
-import numpy as np
 from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass

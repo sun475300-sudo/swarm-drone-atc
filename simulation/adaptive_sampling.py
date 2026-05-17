@@ -4,8 +4,9 @@
 텔레메트리 샘플링 주기를 동적 조절하여 대역폭 최적화.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

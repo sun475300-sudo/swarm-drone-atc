@@ -7,10 +7,11 @@
 from __future__ import annotations
 
 import logging
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Callable
+from typing import Callable, Dict, List, Optional
+
+import numpy as np
 
 _logger = logging.getLogger(__name__)
 

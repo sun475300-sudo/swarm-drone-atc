@@ -3,10 +3,11 @@ Phase 507: Aero-Acoustic Analysis V2
 프로펠러 소음 모델링, 음향 스텔스, 도심 소음 영향 평가.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List
+
+import numpy as np
 
 
 class NoiseSource(Enum):

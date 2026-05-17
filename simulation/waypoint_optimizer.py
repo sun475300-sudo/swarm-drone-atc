@@ -59,9 +59,7 @@ class WaypointOptimizer:
         for i in range(n - 1):
             for t_step in range(resolution):
                 t = t_step / resolution
-                if i == 0:
-                    p = (1 - t) * pts[i] + t * pts[i + 1]
-                elif i == n - 2:
+                if i == 0 or i == n - 2:
                     p = (1 - t) * pts[i] + t * pts[i + 1]
                 else:
                     # 3점 Bezier

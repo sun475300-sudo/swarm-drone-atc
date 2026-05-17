@@ -2,9 +2,10 @@
 Phase 438: Collision Prediction System with Trajectory Forecasting
 """
 
-import numpy as np
-from typing import List, Tuple, Optional
 from dataclasses import dataclass
+from typing import List
+
+import numpy as np
 
 
 @dataclass

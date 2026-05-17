@@ -3,10 +3,11 @@ Phase 474: Autonomous Negotiation Engine
 다자간 협상 — 양보 전략, 효용 함수, 합의 도출.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 
 
 class ConcessionStrategy(Enum):

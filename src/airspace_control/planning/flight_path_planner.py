@@ -4,15 +4,17 @@ CBS cbs.py의 GridNode/get_neighbors 구조를 재활용하되,
 NFZ 블록 셀을 직접 처리하는 독립 A* 구현.
 """
 from __future__ import annotations
+
 import heapq
-import uuid
 import math
-import numpy as np
+import uuid
 from dataclasses import dataclass, field
 from typing import Optional
 
-from src.airspace_control.planning.waypoint import Waypoint, Route, RouteCost
-from simulation.cbs_planner.cbs import GridNode, GRID_RESOLUTION, position_to_grid
+import numpy as np
+
+from simulation.cbs_planner.cbs import GRID_RESOLUTION, GridNode
+from src.airspace_control.planning.waypoint import Route, RouteCost, Waypoint
 
 
 @dataclass(order=True)
@@ -20,7 +22,7 @@ class _Node:
     f: float
     g: float       = field(compare=False)
     node: GridNode = field(compare=False)
-    parent: Optional["_Node"] = field(compare=False, default=None)
+    parent: Optional[_Node] = field(compare=False, default=None)
 
 
 class FlightPathPlanner:

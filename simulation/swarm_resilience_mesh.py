@@ -4,8 +4,9 @@
 Kruskal MST + 증강 엣지로 k-connected 그래프 유지.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
+
+import numpy as np
 
 
 @dataclass

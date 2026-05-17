@@ -4,8 +4,9 @@
 시뮬레이티드 어닐링으로 최적 배치 탐색, 엔트로피/자유에너지 계산.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

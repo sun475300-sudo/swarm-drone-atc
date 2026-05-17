@@ -4,8 +4,9 @@
 정보 밀도 경사 추종, 센서 융합.
 """
 
-import numpy as np
 from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass

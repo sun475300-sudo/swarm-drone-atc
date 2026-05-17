@@ -22,20 +22,16 @@ CLI::
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Mapping, Sequence, Tuple
-
 import math
+from dataclasses import dataclass
+from typing import Dict, List, Sequence, Tuple
 
 import numpy as np
 
 from .types import (
-    AgentTrajectory,
     AirspaceCapacity,
-    NearMissEvent,
     SimulationTrace,
 )
-
 
 # =============================================================================
 # 1. Safety metrics (Section 1 of EVALUATION_METRICS.md)
@@ -548,7 +544,7 @@ def _main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--d-safe", type=float, default=5.0)
     args = parser.parse_args(argv)
 
-    with open(args.trace, "r", encoding="utf-8") as f:
+    with open(args.trace, encoding="utf-8") as f:
         trace_dict = json.load(f)
     trace = SimulationTrace.from_dict(trace_dict)
     cfg = EvaluatorConfig(d_safe_m=args.d_safe)

@@ -11,9 +11,11 @@ Classes:
 """
 
 from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Optional
+
+from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
+
 import numpy as np
 
 
@@ -96,8 +98,8 @@ class KalmanFilter:
 
     def __init__(
         self,
-        initial_position: np.ndarray = None,
-        initial_velocity: np.ndarray = None,
+        initial_position: Optional[np.ndarray] = None,
+        initial_velocity: Optional[np.ndarray] = None,
         process_noise_std: float = 0.1,
         dt: float = 0.1,
     ):

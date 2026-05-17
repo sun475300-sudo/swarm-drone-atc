@@ -5,10 +5,12 @@
 """
 
 from __future__ import annotations
-import numpy as np
-from dataclasses import dataclass, field
+
+from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
+
+import numpy as np
 
 
 class ThreatLevel(Enum):
@@ -58,8 +60,8 @@ class IsolationTree:
     """Single isolation tree node."""
     split_feature: int = 0
     split_value: float = 0.0
-    left: Optional['IsolationTree'] = None
-    right: Optional['IsolationTree'] = None
+    left: Optional[IsolationTree] = None
+    right: Optional[IsolationTree] = None
     size: int = 0
     is_leaf: bool = False
 

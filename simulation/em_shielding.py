@@ -3,10 +3,11 @@ Phase 515: Electromagnetic Shielding
 EMI 차폐 설계, 전자기 호환성(EMC), 간섭 분석.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List
+
+import numpy as np
 
 
 class ShieldMaterial(Enum):

@@ -4,8 +4,9 @@
 고려한 에너지 비용 함수 기반 A* 탐색.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

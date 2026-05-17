@@ -10,8 +10,10 @@ Classes:
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Optional
+
 import numpy as np
 
 
@@ -162,11 +164,11 @@ class AirspaceGrid:
 
         # Generate all cell IDs
         x_range = range(int((self.bounds[0][0]) // self.grid_size),
-                       int((self.bounds[0][1] // self.grid_size)) + 1)
+                       int(self.bounds[0][1] // self.grid_size) + 1)
         y_range = range(int((self.bounds[1][0]) // self.grid_size),
-                       int((self.bounds[1][1] // self.grid_size)) + 1)
+                       int(self.bounds[1][1] // self.grid_size) + 1)
         z_range = range(int((self.bounds[2][0]) // self.grid_size),
-                       int((self.bounds[2][1] // self.grid_size)) + 1)
+                       int(self.bounds[2][1] // self.grid_size) + 1)
 
         for gx in x_range:
             for gy in y_range:

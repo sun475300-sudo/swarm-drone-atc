@@ -8,6 +8,7 @@
     price = pe.calculate(distance_km=5, demand_level=0.8, wind_speed=12)
 """
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any
 

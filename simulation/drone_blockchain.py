@@ -4,10 +4,11 @@
 작업 증명(PoW), 블록 검증, 체인 무결성.
 """
 
-import numpy as np
 import hashlib
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass

@@ -4,8 +4,9 @@
 do-calculus 개입 효과 추정, 반사실 분석.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
+
+import numpy as np
 
 
 @dataclass
@@ -35,7 +36,7 @@ class CausalDAG:
             self.adjacency[p].append(node.name)
 
     def topological_sort(self) -> list[str]:
-        in_degree = {n: 0 for n in self.nodes}
+        in_degree = dict.fromkeys(self.nodes, 0)
         for n, node in self.nodes.items():
             for p in node.parents:
                 in_degree[n] = in_degree.get(n, 0) + 1

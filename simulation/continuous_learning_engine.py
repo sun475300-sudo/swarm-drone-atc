@@ -2,11 +2,12 @@
 Phase 418: Continuous Learning Engine for Lifelong Drone Adaptation
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, field
-from enum import Enum
 import time
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, List
+
+import numpy as np
 
 
 class LearningMode(Enum):

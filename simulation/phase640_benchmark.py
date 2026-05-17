@@ -4,9 +4,10 @@
 메모리 사용량, 스루풋 분석, 성능 리포트 생성.
 """
 
-import numpy as np
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass

@@ -2,11 +2,11 @@
 Phase 419: Federated Edge Computer for Distributed Inference
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-import time
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 
 
 class EdgeDeviceType(Enum):

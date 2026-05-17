@@ -3,10 +3,11 @@ Phase 478: Swarm Consciousness Simulator
 집합지능, 창발 행동, 자기조직화 시뮬레이션.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional
+from typing import Dict, List
+
+import numpy as np
 
 
 class EmergentBehavior(Enum):

@@ -5,11 +5,9 @@ Provides weather lookup with in-memory TTL cache and deterministic fallback.
 """
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from typing import Any, Callable
-
-import time
-
 
 WeatherProvider = Callable[[str], dict[str, Any]]
 

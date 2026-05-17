@@ -29,7 +29,7 @@ class ProfileReport:
     def summary(self) -> str:
         lines = [
             f"{'='*70}",
-            f"  SDACS 시뮬레이션 성능 프로파일 보고서",
+            "  SDACS 시뮬레이션 성능 프로파일 보고서",
             f"{'='*70}",
             f"  총 실행 시간:  {self.wall_time_s:.2f}초",
             f"  총 함수 호출:  {self.total_calls:,}회",

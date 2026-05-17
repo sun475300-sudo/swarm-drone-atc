@@ -2,10 +2,10 @@
 Phase 406: Graph Neural Network for Drone Swarm Topology Learning
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, field
-import time
+from typing import Dict, List, Tuple
+
+import numpy as np
 
 
 @dataclass

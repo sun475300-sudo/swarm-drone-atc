@@ -25,7 +25,7 @@ class _Node:
     f_cost: float
     g_cost: float = field(compare=False)
     position: tuple[float, float, float] = field(compare=False)
-    parent: Optional["_Node"] = field(default=None, compare=False)
+    parent: Optional[_Node] = field(default=None, compare=False)
 
 
 class EnergyPathPlanner:

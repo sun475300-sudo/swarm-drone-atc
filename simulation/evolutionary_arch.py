@@ -4,8 +4,9 @@
 NEAT 토폴로지 진화, 적합도 평가, 종분화.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
+
+import numpy as np
 
 
 @dataclass

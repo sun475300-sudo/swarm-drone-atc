@@ -2,9 +2,8 @@
 Phase 467: Coverage Planning System for Area Survey
 """
 
-import numpy as np
-from typing import List, Tuple
 from dataclasses import dataclass
+from typing import List, Tuple
 
 
 @dataclass

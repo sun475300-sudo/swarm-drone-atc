@@ -2,10 +2,9 @@
 Phase 460: Logging Aggregation System for Centralized Logging
 """
 
-import numpy as np
-from typing import Dict, List
-from dataclasses import dataclass
 import time
+from dataclasses import dataclass
+from typing import Dict, List
 
 
 @dataclass

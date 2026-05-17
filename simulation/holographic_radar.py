@@ -3,10 +3,11 @@ Phase 473: Holographic Radar Simulation
 SAR 이미징 + 위상배열 빔포밍 + 도플러 처리.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Tuple
+
+import numpy as np
 
 
 class RadarMode(Enum):

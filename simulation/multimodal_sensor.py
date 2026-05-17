@@ -9,8 +9,10 @@
     detections = ms.detect("d1", objects=[{"id":"o1","pos":(100,200,50)}])
 """
 from __future__ import annotations
-from dataclasses import dataclass, field
+
+from dataclasses import dataclass
 from typing import Any
+
 import numpy as np
 
 

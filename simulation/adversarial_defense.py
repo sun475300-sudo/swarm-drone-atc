@@ -3,10 +3,11 @@ Phase 481: Adversarial Defense System
 적대적 공격 탐지, GPS 스푸핑 방어, 안티재밍.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
+
+import numpy as np
 
 
 class AttackType(Enum):
@@ -52,7 +53,7 @@ class AdversarialDefense:
         self.n_drones = n_drones
         self.threats_detected: List[ThreatSignature] = []
         self.defense_log: List[DefenseEvent] = []
-        self.drone_trust: Dict[int, float] = {i: 1.0 for i in range(n_drones)}
+        self.drone_trust: Dict[int, float] = dict.fromkeys(range(n_drones), 1.0)
         self.gps_baseline: Dict[int, np.ndarray] = {}
         self.time = 0.0
 

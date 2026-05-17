@@ -11,7 +11,7 @@ SLA 자동 위반 감지 + 자가 튜닝
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 

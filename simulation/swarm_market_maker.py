@@ -4,9 +4,9 @@
 주문서 모델, 매수/매도 스프레드, 자원 가격 발견.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
-from collections import deque
 
 
 @dataclass

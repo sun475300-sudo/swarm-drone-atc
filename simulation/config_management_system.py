@@ -2,10 +2,8 @@
 Phase 455: Configuration Management System
 """
 
-import numpy as np
-from typing import Dict, Any, List
-import json
 import time
+from typing import Any, Dict, List
 
 
 class ConfigurationManagementSystem:

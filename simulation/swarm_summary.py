@@ -2,9 +2,8 @@
 Phase 480: Swarm Summary - Central Aggregation Module
 """
 
-import numpy as np
-from typing import Dict, List
 from dataclasses import dataclass
+from typing import Dict, List
 
 
 @dataclass

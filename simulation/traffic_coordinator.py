@@ -2,10 +2,10 @@
 Phase 445: Traffic Coordinator for UAV Airspace Management
 """
 
-import numpy as np
-from typing import Dict, List, Tuple
 from dataclasses import dataclass
-import time
+from typing import Dict, List, Tuple
+
+import numpy as np
 
 
 @dataclass

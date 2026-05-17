@@ -37,7 +37,7 @@ import logging
 import signal
 import sys
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 LOGGER = logging.getLogger("sdacs.onboard_bridge")

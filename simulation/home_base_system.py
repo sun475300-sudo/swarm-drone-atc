@@ -2,9 +2,10 @@
 Phase 478: Home Base System for Return to Home
 """
 
-import numpy as np
-from typing import Optional
 from dataclasses import dataclass
+from typing import Optional
+
+import numpy as np
 
 
 @dataclass

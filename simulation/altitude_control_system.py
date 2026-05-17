@@ -2,9 +2,9 @@
 Phase 465: Altitude Control System for Precision Height Maintenance
 """
 
-import numpy as np
-from typing import Dict
 from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass

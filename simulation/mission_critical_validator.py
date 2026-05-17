@@ -3,10 +3,11 @@ Phase 488: Mission Critical Validator
 비행 임무 사전/실시간 검증, 안전 제약 조건 체크, 비상 절차 검증.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Set
+from typing import Dict, List, Optional
+
+import numpy as np
 
 
 class ValidationLevel(Enum):

@@ -2,12 +2,10 @@
 Phase 409: Edge-Cloud Orchestrator for Dynamic Resource Allocation
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
+import time
 from dataclasses import dataclass, field
 from enum import Enum
-import time
-from collections import defaultdict
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class ResourceType(Enum):

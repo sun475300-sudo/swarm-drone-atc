@@ -4,8 +4,9 @@
 개미 군집 최적화(ACO)로 경로 탐색, 집단 의사결정.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
+
+import numpy as np
 
 
 @dataclass

@@ -5,10 +5,12 @@ V-formation, grid, circle, line 등 다양한 대형 패턴을 지원하며,
 """
 
 from __future__ import annotations
-import numpy as np
+
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
+
+import numpy as np
 
 
 class FormationType(Enum):

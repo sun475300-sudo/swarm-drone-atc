@@ -2,10 +2,10 @@
 Phase 433: Traffic Sign Recognition for Autonomous Navigation
 """
 
-import numpy as np
-from typing import Dict, List, Tuple
 from dataclasses import dataclass
-import time
+from typing import List, Tuple
+
+import numpy as np
 
 
 @dataclass

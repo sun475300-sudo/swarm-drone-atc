@@ -2,9 +2,10 @@
 Phase 437: Path Planning Optimizer with Dynamic Obstacles
 """
 
-import numpy as np
-from typing import List, Tuple, Optional
 from dataclasses import dataclass
+from typing import List
+
+import numpy as np
 
 
 @dataclass

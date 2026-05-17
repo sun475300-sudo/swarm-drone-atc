@@ -5,11 +5,13 @@
 """
 
 from __future__ import annotations
-import numpy as np
+
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Callable
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 
 
 class ModelFormat(Enum):
@@ -38,7 +40,7 @@ class EdgeModel:
     accuracy: float = 0.95
     weights: Optional[np.ndarray] = None  # simplified weight matrix
 
-    def quantize(self, target: ModelFormat) -> 'EdgeModel':
+    def quantize(self, target: ModelFormat) -> EdgeModel:
         """Simulate model quantization."""
         scale = {"float32": 1.0, "float16": 0.5, "int8": 0.25, "int4": 0.125}
         acc_loss = {"float32": 0, "float16": 0.001, "int8": 0.01, "int4": 0.03}

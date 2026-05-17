@@ -4,8 +4,9 @@ KDTree 기반 공간 인덱스로 근접 드론 쌍 탐색 성능 개선.
 scipy.spatial.KDTree를 래핑하여 bulk query_pairs 지원.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

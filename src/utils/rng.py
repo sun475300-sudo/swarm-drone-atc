@@ -40,7 +40,6 @@ from typing import Optional
 
 import numpy as np
 
-
 _GLOBAL_RNG: Optional[np.random.Generator] = None
 _GLOBAL_SEED: Optional[int] = None
 

@@ -5,12 +5,14 @@ PBFT (Practical Byzantine Fault Tolerance) 기반 다중 노드 합의,
 """
 
 from __future__ import annotations
-import numpy as np
+
 import hashlib
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
+
+import numpy as np
 
 
 class PBFTPhase(Enum):

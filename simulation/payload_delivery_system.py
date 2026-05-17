@@ -2,8 +2,9 @@
 Phase 479: Payload Delivery System
 """
 
-import numpy as np
 from typing import Dict
+
+import numpy as np
 
 
 class PayloadDeliverySystem:

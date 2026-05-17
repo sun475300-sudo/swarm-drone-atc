@@ -12,11 +12,8 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-import sys
 import os
-import time
-
-import numpy as np
+import sys
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:
@@ -31,8 +28,8 @@ async def _run_simulation(drones: int, seed: int, port: int):
         print("websockets 패키지가 필요합니다: pip install websockets")
         return
 
-    from simulation.simulator import SwarmSimulator
     from simulation.apf_engine import get_apf_backend_info
+    from simulation.simulator import SwarmSimulator
 
     backend = get_apf_backend_info()
     gpu_name = backend.get("gpu", "CPU") or "CPU"

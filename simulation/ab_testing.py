@@ -6,7 +6,6 @@ Provides statistical comparison between algorithms and policies.
 from __future__ import annotations
 
 import json
-import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -67,7 +66,7 @@ class ABTestRunner:
         self._rng = np.random.default_rng(seed) if seed else np.random.default_rng()
         self._results: dict[str, list[float]] = {}
 
-    def add_variant(self, name: str, values: list[float]) -> "ABTestRunner":
+    def add_variant(self, name: str, values: list[float]) -> ABTestRunner:
         """Add a variant with pre-computed values."""
         self._results[name] = values
         return self
@@ -183,8 +182,8 @@ class MultiArmedBandit:
         self._arms = arms
         self._epsilon = epsilon
         self._rng = np.random.default_rng(seed) if seed else np.random.default_rng()
-        self._counts: dict[str, int] = {arm: 0 for arm in arms}
-        self._values: dict[str, float] = {arm: 0.0 for arm in arms}
+        self._counts: dict[str, int] = dict.fromkeys(arms, 0)
+        self._values: dict[str, float] = dict.fromkeys(arms, 0.0)
         self._history: list[tuple[str, float]] = []
 
     def select_arm(self) -> str:
@@ -253,7 +252,7 @@ class ScenarioABComparator:
         scenario: str,
         algorithm: str,
         metric_value: float,
-    ) -> "ScenarioABComparator":
+    ) -> ScenarioABComparator:
         """Add a comparison result."""
         if scenario not in self._comparisons:
             self._comparisons[scenario] = {}

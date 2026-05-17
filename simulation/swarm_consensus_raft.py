@@ -4,9 +4,10 @@ Raft 합의 프로토콜 기반 군집 분산 의사결정.
 리더 선출, 로그 복제, 다수결 기반 경로 합의.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
+
+import numpy as np
 
 
 class NodeRole(Enum):

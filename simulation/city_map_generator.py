@@ -5,10 +5,9 @@ Generates urban obstacles, corridors, and landing pads for scenario simulation.
 """
 from __future__ import annotations
 
+import random
 from dataclasses import dataclass
 from typing import Any
-
-import random
 
 
 @dataclass

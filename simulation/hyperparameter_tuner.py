@@ -62,7 +62,7 @@ class ParameterSpace:
         name: str,
         low: float,
         high: float,
-    ) -> "ParameterSpace":
+    ) -> ParameterSpace:
         """Add uniform continuous parameter."""
         self._spaces[name] = {"type": "uniform", "low": low, "high": high}
         return self
@@ -72,7 +72,7 @@ class ParameterSpace:
         name: str,
         low: float,
         high: float,
-    ) -> "ParameterSpace":
+    ) -> ParameterSpace:
         """Add log-uniform continuous parameter."""
         self._spaces[name] = {"type": "log_uniform", "low": low, "high": high}
         return self
@@ -81,7 +81,7 @@ class ParameterSpace:
         self,
         name: str,
         choices: list[Any],
-    ) -> "ParameterSpace":
+    ) -> ParameterSpace:
         """Add categorical parameter."""
         self._spaces[name] = {"type": "categorical", "choices": choices}
         return self
@@ -91,7 +91,7 @@ class ParameterSpace:
         name: str,
         low: int,
         high: int,
-    ) -> "ParameterSpace":
+    ) -> ParameterSpace:
         """Add integer parameter."""
         self._spaces[name] = {"type": "int", "low": low, "high": high}
         return self
@@ -147,7 +147,7 @@ class ScenarioTuner:
     def define_search_space(
         self,
         func: Callable[[ParameterSpace], None],
-    ) -> "ScenarioTuner":
+    ) -> ScenarioTuner:
         """Define the parameter search space.
 
         Example:
@@ -164,7 +164,7 @@ class ScenarioTuner:
     def set_objective(
         self,
         objective: Callable[[dict[str, Any]], float],
-    ) -> "ScenarioTuner":
+    ) -> ScenarioTuner:
         """Set the objective function to optimize."""
         self._objective = objective
         return self
@@ -299,7 +299,7 @@ class ScenarioSpecificTuner(ScenarioTuner):
         },
     }
 
-    def load_preset(self, preset_name: str) -> "ScenarioSpecificTuner":
+    def load_preset(self, preset_name: str) -> ScenarioSpecificTuner:
         """Load a predefined scenario preset."""
         if preset_name not in self.PRESETS:
             raise ValueError(f"Unknown preset: {preset_name}")
@@ -333,7 +333,7 @@ class EnsembleTuner:
         self,
         name: str,
         tuner: ScenarioTuner,
-    ) -> "EnsembleTuner":
+    ) -> EnsembleTuner:
         """Add a scenario tuner."""
         self._tuners[name] = tuner
         return self

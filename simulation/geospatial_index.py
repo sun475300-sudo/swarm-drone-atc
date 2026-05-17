@@ -5,9 +5,11 @@ R-Tree, Quadtree, Geohash 기반 공간 검색,
 """
 
 from __future__ import annotations
-import numpy as np
+
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 
 
 @dataclass
@@ -26,7 +28,7 @@ class BoundingBox:
     def contains(self, point: np.ndarray) -> bool:
         return all(self.min_corner[:3] <= point[:3]) and all(point[:3] <= self.max_corner[:3])
 
-    def intersects(self, other: 'BoundingBox') -> bool:
+    def intersects(self, other: BoundingBox) -> bool:
         return all(self.min_corner[:3] <= other.max_corner[:3]) and all(other.min_corner[:3] <= self.max_corner[:3])
 
     @property

@@ -3,10 +3,11 @@ Phase 479: Resilience Orchestrator
 카오스 엔지니어링, 자가치유, 장애 주입 및 복구 오케스트레이션.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Callable
+from typing import Dict, List, Optional
+
+import numpy as np
 
 
 class FaultType(Enum):

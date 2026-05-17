@@ -9,8 +9,10 @@
     lc.record_operation("d1", hours=10, maintenance_cost=100)
 """
 from __future__ import annotations
-from dataclasses import dataclass, field
+
+from dataclasses import dataclass
 from typing import Any
+
 import numpy as np
 
 

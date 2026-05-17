@@ -4,8 +4,9 @@
 평판 갱신, 악의적 드론 탐지.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

@@ -41,19 +41,19 @@ class _TensorCache:
     """
 
     def __init__(self) -> None:
-        self._cache: dict[str, "torch.Tensor"] = {}
-        self._device: "torch.device | None" = None
+        self._cache: dict[str, torch.Tensor] = {}
+        self._device: torch.device | None = None
 
-    def _key(self, name: str, shape: tuple, dtype: "torch.dtype") -> str:
+    def _key(self, name: str, shape: tuple, dtype: torch.dtype) -> str:
         return f"{name}_{shape}_{dtype}"
 
     def get(
         self,
         name: str,
         shape: tuple,
-        dtype: "torch.dtype",
-        device: "torch.device",
-    ) -> "torch.Tensor":
+        dtype: torch.dtype,
+        device: torch.device,
+    ) -> torch.Tensor:
         """캐시된 텐서 반환. 크기/타입이 다르면 새로 할당."""
         # 디바이스 변경 시 캐시 초기화
         if self._device != device:
@@ -73,9 +73,9 @@ class _TensorCache:
         self,
         name: str,
         arr: np.ndarray,
-        dtype: "torch.dtype",
-        device: "torch.device",
-    ) -> "torch.Tensor":
+        dtype: torch.dtype,
+        device: torch.device,
+    ) -> torch.Tensor:
         """NumPy 배열을 캐시된 텐서에 복사. 크기 일치 시 재할당 없음."""
         shape = arr.shape
         tensor = self.get(name, shape, dtype, device)
@@ -94,7 +94,7 @@ class _TensorCache:
 _tensor_cache = _TensorCache()
 
 
-def _select_device() -> "torch.device":
+def _select_device() -> torch.device:
     """CUDA > CPU 자동 선택."""
     if torch.cuda.is_available():
         return torch.device("cuda")

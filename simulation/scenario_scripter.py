@@ -26,7 +26,6 @@ from typing import Any
 
 import yaml
 
-
 # 지원 이벤트 타입
 VALID_EVENT_TYPES = frozenset({
     "SPAWN_DRONES",

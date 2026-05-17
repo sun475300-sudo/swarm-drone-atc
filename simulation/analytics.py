@@ -5,9 +5,10 @@ SimulationAnalytics — 드론 상태 스냅샷, 이벤트 로그, 지표 계산
 SimulationResult    — 최종 결과 데이터클래스 (Monte Carlo 집계용)
 """
 from __future__ import annotations
+
 import time
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -188,7 +189,7 @@ class SimulationAnalytics:
 
     def record_snapshot(
         self,
-        drones: dict[str, "DroneState"],
+        drones: dict[str, DroneState],
         t: float,
     ) -> None:
         if not self._save_traj:

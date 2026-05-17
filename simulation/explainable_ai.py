@@ -3,10 +3,11 @@ Phase 484: Explainable AI (XAI) for Drone Decisions
 SHAP-like 특성 중요도, LIME 로컬 설명, 의사결정 투명성.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Callable
+from typing import Callable, Dict, List, Optional
+
+import numpy as np
 
 
 class ExplanationType(Enum):

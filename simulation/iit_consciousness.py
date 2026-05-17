@@ -4,9 +4,10 @@
 Phi(Φ) 계산, 인과 구조 분석, 창발 측정.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from itertools import combinations
+
+import numpy as np
 
 
 @dataclass

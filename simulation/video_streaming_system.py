@@ -2,10 +2,8 @@
 Phase 461: Video Streaming System for Real-Time Surveillance
 """
 
-import numpy as np
-from typing import Dict, List
 from dataclasses import dataclass
-import time
+from typing import Dict, List
 
 
 @dataclass

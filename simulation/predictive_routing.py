@@ -3,11 +3,12 @@ Phase 518: Predictive Routing
 트래픽 예측 기반 경로 최적화, 시공간 네트워크, 동적 가중치.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import List, Dict, Optional, Tuple
 import heapq
+from dataclasses import dataclass
+from enum import Enum
+from typing import Dict, List, Optional
+
+import numpy as np
 
 
 class CongestionLevel(Enum):

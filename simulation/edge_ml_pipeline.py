@@ -3,10 +3,11 @@ Phase 511: Edge ML Pipeline
 엣지 디바이스 ML 추론, 모델 경량화, 온디바이스 학습.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 
 
 class ModelFormat(Enum):

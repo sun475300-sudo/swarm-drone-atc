@@ -5,9 +5,10 @@ Phase 404: Blockchain Ledger for Drone Mission Audit Trail
 import hashlib
 import json
 import time
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List
+
 import numpy as np
 
 

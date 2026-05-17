@@ -4,9 +4,10 @@
 IPC 메시지 큐, 간이 메모리 관리.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
+
+import numpy as np
 
 
 class ProcessState(Enum):

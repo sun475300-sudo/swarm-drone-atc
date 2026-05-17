@@ -1,7 +1,9 @@
 """분산 드론 통신 메시지 타입 (MAVLink/DDS 추상화)"""
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Optional
+
 import numpy as np
 
 

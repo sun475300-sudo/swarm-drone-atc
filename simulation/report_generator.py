@@ -15,8 +15,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-import numpy as np
-
 
 @dataclass
 class ReportSection:
@@ -249,7 +247,7 @@ class ReportGenerator:
         data = {**sim, **perf}
 
         lines = []
-        tick_p95 = data.get("tick_p95_ms", None)
+        tick_p95 = data.get("tick_p95_ms")
         if tick_p95 is not None:
             status = "PASS" if tick_p95 < 50 else "WARNING"
             lines.append(f"  틱 처리시간 P95: {tick_p95:.1f}ms [{status}]")
@@ -262,11 +260,11 @@ class ReportGenerator:
                     current_value=tick_p95, target_value=50.0,
                 ))
 
-        battery_min = data.get("min_battery_pct", None)
+        battery_min = data.get("min_battery_pct")
         if battery_min is not None:
             lines.append(f"  최소 배터리 잔량: {battery_min:.1f}%")
 
-        energy_avg = data.get("avg_energy_wh_km", None)
+        energy_avg = data.get("avg_energy_wh_km")
         if energy_avg is not None:
             lines.append(f"  평균 에너지 효율: {energy_avg:.2f} Wh/km")
 

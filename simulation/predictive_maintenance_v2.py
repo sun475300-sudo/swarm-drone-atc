@@ -4,10 +4,11 @@ RUL(Remaining Useful Life) 추정 + Weibull 분석 + 이상 징후 탐지.
 센서 데이터 기반 부품 수명 예측.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 
 
 class ComponentType(Enum):

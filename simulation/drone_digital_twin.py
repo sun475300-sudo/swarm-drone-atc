@@ -4,8 +4,9 @@
 상태 예측, 이상 탐지, 예지 정비.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

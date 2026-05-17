@@ -3,10 +3,11 @@ Phase 486: Cognitive Electronic Warfare
 적응형 재밍 대응, 스펙트럼 전쟁, 인지 레이더.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 
 
 class SpectrumBand(Enum):

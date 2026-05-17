@@ -5,10 +5,12 @@ LSTM/Transformer 기반 기상 예측, 시계열 임베딩,
 """
 
 from __future__ import annotations
-import numpy as np
+
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
+
+import numpy as np
 
 
 class WeatherVariable(Enum):

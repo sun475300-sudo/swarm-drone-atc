@@ -2,10 +2,11 @@
 Phase 429: Anomaly Federated Detector for Cross-Fleet Learning
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass
 import time
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 
 
 @dataclass

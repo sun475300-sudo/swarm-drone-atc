@@ -8,8 +8,10 @@
     cm.record_delivery("c1", promised_min=30, actual_min=25)
 """
 from __future__ import annotations
-from dataclasses import dataclass, field
+
+from dataclasses import dataclass
 from typing import Any
+
 import numpy as np
 
 

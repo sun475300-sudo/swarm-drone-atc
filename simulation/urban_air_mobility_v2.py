@@ -3,10 +3,11 @@ Phase 489: Urban Air Mobility V2
 도심항공교통 통합, 버티포트 네트워크, 수요 예측.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Optional
+
+import numpy as np
 
 
 class VehicleType(Enum):

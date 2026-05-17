@@ -4,8 +4,9 @@
 리더-팔로워, 대형 유지/전환.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

@@ -3,11 +3,12 @@ Phase 480: Regulatory Compliance V2
 K-UTM 통합, 항공법 검증, 실시간 규제 준수 모니터링.
 """
 
-import numpy as np
+import hashlib
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Set
-import hashlib
+from typing import Dict, List, Optional, Set
+
+import numpy as np
 
 
 class RegulationType(Enum):

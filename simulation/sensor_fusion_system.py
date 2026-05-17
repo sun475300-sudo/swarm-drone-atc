@@ -2,10 +2,10 @@
 Phase 463: Sensor Fusion System for Multi-Sensor Integration
 """
 
-import numpy as np
-from typing import Dict, List
 from dataclasses import dataclass
-import time
+from typing import Dict, List
+
+import numpy as np
 
 
 @dataclass

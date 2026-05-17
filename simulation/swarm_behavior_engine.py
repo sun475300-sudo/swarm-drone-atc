@@ -5,10 +5,12 @@ Reynolds Boids 모델 확장, 분리/정렬/응집 + 장애물 회피,
 """
 
 from __future__ import annotations
-import numpy as np
+
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
+
+import numpy as np
 
 
 class BehaviorMode(Enum):

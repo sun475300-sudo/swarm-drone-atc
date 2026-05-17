@@ -4,8 +4,9 @@
 블라소프 방정식, 데바이 차폐, 랑다우 감쇠.
 """
 
-import numpy as np
 from dataclasses import dataclass
+
+import numpy as np
 
 
 @dataclass

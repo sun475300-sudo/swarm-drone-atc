@@ -9,9 +9,9 @@
     missions = amp.generate_missions(available_drones=["d1","d2","d3"])
 """
 from __future__ import annotations
-from dataclasses import dataclass, field
+
+from dataclasses import dataclass
 from typing import Any
-import numpy as np
 
 
 @dataclass

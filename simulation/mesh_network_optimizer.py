@@ -5,10 +5,11 @@ Dijkstra/Bellman-Ford 라우팅 + 자가치유 + 링크 품질 관리.
 """
 
 import heapq
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Tuple, Set
+from typing import Dict, List, Optional, Set, Tuple
+
+import numpy as np
 
 
 class LinkStatus(Enum):
@@ -129,7 +130,7 @@ class MeshNetworkOptimizer:
 
     def _dijkstra(self, source: str) -> Dict[str, RouteEntry]:
         dist: Dict[str, float] = {nid: float('inf') for nid in self.nodes}
-        prev: Dict[str, Optional[str]] = {nid: None for nid in self.nodes}
+        prev: Dict[str, Optional[str]] = dict.fromkeys(self.nodes)
         dist[source] = 0
         heap = [(0.0, source)]
         visited: Set[str] = set()
@@ -170,7 +171,7 @@ class MeshNetworkOptimizer:
 
     def _bellman_ford(self, source: str) -> Dict[str, RouteEntry]:
         dist = {nid: float('inf') for nid in self.nodes}
-        prev: Dict[str, Optional[str]] = {nid: None for nid in self.nodes}
+        prev: Dict[str, Optional[str]] = dict.fromkeys(self.nodes)
         dist[source] = 0
 
         for _ in range(len(self.nodes) - 1):

@@ -4,8 +4,9 @@ NAS 컨트롤러: 아키텍처 샘플링, 성능 평가, 진화 알고리즘 기
 드론 제어 신경망 최적 구조 자동 탐색.
 """
 
+from dataclasses import dataclass
+
 import numpy as np
-from dataclasses import dataclass, field
 
 
 @dataclass

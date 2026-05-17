@@ -3,10 +3,11 @@ Phase 502: Collective Intelligence Engine
 집단지성 강화: 정보 공유 네트워크, 합의 알고리즘, 분산 학습.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Tuple, Set
+from typing import Dict, List, Set, Tuple
+
+import numpy as np
 
 
 class ConsensusAlgorithm(Enum):

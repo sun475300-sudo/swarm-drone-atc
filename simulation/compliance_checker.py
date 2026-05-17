@@ -16,7 +16,7 @@ K-UTM 규정 및 ICAO 분리 기준 기반 비행 제한 자동 검증.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 

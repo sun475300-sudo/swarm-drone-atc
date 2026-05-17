@@ -2,9 +2,10 @@
 Phase 434: Lane Detection System for Ground Navigation
 """
 
-import numpy as np
-from typing import List, Tuple, Optional
 from dataclasses import dataclass
+from typing import List, Optional
+
+import numpy as np
 
 
 @dataclass

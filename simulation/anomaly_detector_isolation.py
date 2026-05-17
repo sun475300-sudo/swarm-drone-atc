@@ -4,8 +4,9 @@ Isolation Forest 기반 이상 비행 탐지.
 비정상 궤적, 속도 이상, 배터리 급강하 등 다변량 이상 검출.
 """
 
-import numpy as np
 from dataclasses import dataclass, field
+
+import numpy as np
 
 
 @dataclass

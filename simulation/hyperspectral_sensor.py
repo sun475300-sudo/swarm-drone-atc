@@ -3,10 +3,11 @@ Phase 504: Hyperspectral Sensor Fusion
 초분광 센서 데이터 처리, 스펙트럼 분류, 환경 매핑.
 """
 
-import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Tuple
+
+import numpy as np
 
 
 class SpectralBand(Enum):

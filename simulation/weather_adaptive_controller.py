@@ -2,10 +2,9 @@
 Phase 441: Weather Adaptive Controller for Dynamic Conditions
 """
 
-import numpy as np
-from typing import Dict, List, Optional
-from dataclasses import dataclass
 import time
+from dataclasses import dataclass
+from typing import Dict, List, Optional
 
 
 @dataclass

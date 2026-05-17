@@ -17,7 +17,7 @@ except (ImportError, OSError):
     # OSError covers Windows DLL load failures (e.g. WinError 4551).
     _TORCH = False
 
-from .apf import APFState, APF_PARAMS
+from .apf import APF_PARAMS, APFState
 
 
 class _APFBatchModule(nn.Module):

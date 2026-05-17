@@ -10,7 +10,7 @@ IF-THEN 규칙 기반 빠른 관제 결정 + 규칙 학습.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable
 
 

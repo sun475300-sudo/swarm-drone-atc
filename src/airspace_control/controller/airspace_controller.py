@@ -17,9 +17,6 @@ import uuid
 from typing import TYPE_CHECKING
 
 import numpy as np
-
-logger = logging.getLogger(__name__)
-
 import simpy
 
 from simulation.cbs_planner.cbs import (
@@ -46,6 +43,8 @@ from src.airspace_control.utils.geo_math import closest_approach, distance_3d
 
 if TYPE_CHECKING:
     from simulation.analytics import SimulationAnalytics
+
+logger = logging.getLogger(__name__)
 
 
 class AirspaceController:

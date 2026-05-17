@@ -164,13 +164,13 @@ def _clip_polygon_to_bounds(
             prev = input_list[i - 1]
 
             if edge_type == "x_min":
-                inside = lambda p: p[0] >= edge_val
+                inside = lambda p, v=edge_val: p[0] >= v
             elif edge_type == "x_max":
-                inside = lambda p: p[0] <= edge_val
+                inside = lambda p, v=edge_val: p[0] <= v
             elif edge_type == "y_min":
-                inside = lambda p: p[1] >= edge_val
+                inside = lambda p, v=edge_val: p[1] >= v
             else:
-                inside = lambda p: p[1] <= edge_val
+                inside = lambda p, v=edge_val: p[1] <= v
 
             if inside(cur):
                 if not inside(prev):

@@ -267,7 +267,6 @@ class SwarmSimulator:
         Returns force vector away from nearby obstacles.
         """
         force = np.zeros(3, dtype=np.float64)
-        obstacle_radius = 10.0
         avoidance_distance = 50.0
 
         for obstacle_pos in self.obstacles:
@@ -297,9 +296,6 @@ class SwarmSimulator:
         """
         if boid.is_leader:
             return np.zeros(3, dtype=np.float64)
-
-        force = np.zeros(3, dtype=np.float64)
-        follow_distance = 40.0
 
         # Steer toward leader
         steering = leader.position - boid.position

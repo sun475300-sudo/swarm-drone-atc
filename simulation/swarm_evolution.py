@@ -167,7 +167,7 @@ class SwarmEvolution:
 
     def evaluate(self, fitness_fn: Callable[[Genome, Callable], float]):
         for genome in self.population:
-            genome.fitness = fitness_fn(genome, lambda inp: self._activate(genome, inp))
+            genome.fitness = fitness_fn(genome, lambda inp, g=genome: self._activate(g, inp))
 
     def evolve(self) -> Dict:
         self.generation += 1

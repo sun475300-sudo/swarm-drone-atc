@@ -174,7 +174,6 @@ class AdvisoryGenerator:
         dz = float(rel_pos[2])
         dx = float(rel_pos[0])
         dy = float(rel_pos[1])
-        horiz_dist = math.sqrt(dx * dx + dy * dy)
 
         # 상대 속도 분석
         rel_vel = threat.velocity - target.velocity

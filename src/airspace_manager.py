@@ -158,9 +158,6 @@ class AirspaceGrid:
 
     def _initialize_grid(self) -> None:
         """Create grid cells covering the airspace."""
-        for dim in range(3):
-            min_b, max_b = self.bounds[dim]
-            num_cells = int(np.ceil((max_b - min_b) / self.grid_size))
 
         # Generate all cell IDs
         x_range = range(int((self.bounds[0][0]) // self.grid_size),

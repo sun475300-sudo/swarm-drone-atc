@@ -107,8 +107,6 @@ class FlightPathPlanner:
 
         blocked: set[tuple[int, int]] = set()
         res = self.grid_res
-        bx = self.bounds.get('x', [-5000, 5000])
-        by = self.bounds.get('y', [-5000, 5000])
 
         for nfz in self.nfz_list:
             cx, cy = float(nfz['center'][0]), float(nfz['center'][1])
@@ -172,7 +170,6 @@ class FlightPathPlanner:
                     n = n.parent
                 return list(reversed(path))
 
-            step = 1.0
             for nb in self._neighbors_2d(cur.node):
                 # 대각선 이동 비용
                 is_diag = (nb.x != cur.node.x and nb.y != cur.node.y)

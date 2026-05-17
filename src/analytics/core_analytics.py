@@ -675,7 +675,6 @@ class MonteCarloAnalyzer:
         collision_counts = np.array(
             [r.get("collision_count", 0) for r in results]
         )
-        collision_rate = np.sum(collision_counts > 0) / len(results)
 
         # 임계 시나리오: 해당 구간의 충돌 확률이 threshold 이상
         critical_mask = collision_counts > np.percentile(

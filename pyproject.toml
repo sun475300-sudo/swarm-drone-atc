@@ -26,12 +26,12 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    # pytest 8.x line — see requirements.txt comment (PR #20 메이저 보류 사유).
     "pytest>=8.4,<9",
     "pytest-asyncio>=0.23",
     "pytest-cov>=7.0",
+    "pytest-timeout>=2.3",
     "mypy>=1.10",
-    # A1-05 property-based tests for APF (단조성 / cutoff / clamp).
+    "ruff>=0.4",
     "hypothesis>=6.100",
 ]
 gpu = [
@@ -50,7 +50,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --tb=short --cov=src --cov=simulation --cov-report=term-missing"
+addopts = "-v --tb=short --cov=src --cov=simulation --cov-report=term-missing --cov-fail-under=80 --timeout=60"
 markers = [
     "unit: 단위 테스트 (개별 함수/클래스)",
     "integration: 통합 테스트 (다중 모듈 상호작용)",
@@ -71,19 +71,14 @@ warn_return_any = false
 warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
-no_implicit_optional = false
+no_implicit_optional = true
 exclude = ["tests/", "archive/", "visualization/"]
 
 [[tool.mypy.overrides]]
 module = ["simulation.*"]
 ignore_errors = true
 
-[[tool.mypy.overrides]]
-module = ["src.airspace_control.controller.airspace_controller"]
-ignore_errors = true
-
-# src.hardware.* — pymavlink 의존이 conditional이라 self.master가 Optional.
-# Phase 691~700 (실기 통합) 완료 후 형식 검증 재활성화 예정.
+# 실기 통합(Phase 691-700) 완료 후 ignore 제거 예정
 [[tool.mypy.overrides]]
 module = ["src.hardware.*"]
 ignore_errors = true

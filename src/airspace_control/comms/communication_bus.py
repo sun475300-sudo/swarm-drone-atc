@@ -12,7 +12,7 @@ import simpy
 import numpy as np
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Callable, Generator, Optional
 
 
 @dataclass
@@ -56,15 +56,15 @@ class CommunicationBus:
         self._message_log: deque = deque(maxlen=10000)
         self.stats = {"sent": 0, "delivered": 0, "dropped": 0}
 
-    def update_position(self, drone_id: str, position: np.ndarray):
+    def update_position(self, drone_id: str, position: np.ndarray) -> None:
         """드론 위치 업데이트 (통신 범위 계산용)"""
         self._positions[drone_id] = position
 
-    def subscribe(self, drone_id: str, callback: Callable):
+    def subscribe(self, drone_id: str, callback: Callable) -> None:
         """메시지 수신 콜백 등록"""
         self._subscribers[drone_id].append(callback)
 
-    def send(self, msg: CommMessage):
+    def send(self, msg: CommMessage) -> None:
         """메시지 발송 (비동기, SimPy 프로세스로 지연 처리)"""
         self.stats["sent"] += 1
 
@@ -75,7 +75,7 @@ class CommunicationBus:
 
         self.env.process(self._deliver(msg))
 
-    def _deliver(self, msg: CommMessage):
+    def _deliver(self, msg: CommMessage) -> Generator:
         """지연 후 메시지 전달 (SimPy 제너레이터)"""
         delay_s = max(0, self.rng.normal(
             self.latency_ms_mean, self.latency_ms_std

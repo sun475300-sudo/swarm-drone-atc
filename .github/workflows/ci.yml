@@ -5,10 +5,66 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: "0 2 * * *"  # nightly at 02:00 UTC
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install ".[dev]"
+
+      - name: Lint (ruff)
+        run: ruff check src/ simulation/ --select=E9,F63,F7,F82,W,I
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ --tb=short -q \
+            --cov=src --cov=simulation \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            --cov-fail-under=80
+
+      - name: Upload coverage report
+        if: matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 30
+
+      - name: Type check (src/)
+        run: mypy src/ --error-summary
+
+  benchmark:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.ref == 'refs/heads/main'
+    needs: test
+
     steps:
       - uses: actions/checkout@v4
 
@@ -17,22 +73,20 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install ".[dev]"
 
-      - name: Run tests with coverage
-        run: pytest tests/ --tb=short -q --cov=src --cov=simulation --cov-report=term-missing --cov-fail-under=75
+      - name: Run nightly benchmark (20/50 drones)
+        run: |
+          python main.py simulate --duration 60 --drones 20 --output results/bench_20.json
+          python main.py simulate --duration 60 --drones 50 --output results/bench_50.json
 
-      - name: Type check (src/)
-        run: mypy src/
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-${{ github.sha }}
+          path: results/
+          retention-days: 90

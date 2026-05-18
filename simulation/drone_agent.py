@@ -15,18 +15,18 @@ import numpy as np
 import simpy
 
 from simulation.apf_engine.apf import APFState
-from src.airspace_control.agents.drone_state import (
-    DroneState,
-    FlightPhase,
-    CommsStatus,
-    FailureType,
-)
 from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
-from src.airspace_control.comms.communication_bus import CommunicationBus, CommMessage
+from src.airspace_control.agents.drone_state import (
+    CommsStatus,
+    DroneState,
+    FailureType,
+    FlightPhase,
+)
+from src.airspace_control.comms.communication_bus import CommMessage, CommunicationBus
 from src.airspace_control.comms.message_types import (
-    TelemetryMessage,
     ClearanceResponse,
     ResolutionAdvisory,
+    TelemetryMessage,
 )
 
 if TYPE_CHECKING:

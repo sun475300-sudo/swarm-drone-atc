@@ -665,6 +665,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-18 22:19 | `13b987f` | fix: resolve shallow copy bug in NAS and boost test coverage to 87% | simulation/neural_architecture_search.py, tests/analytics/test_metrics.py, tests/test_onboard_bridge.py, tests/test_ws_bridge.py |
 | 2026-05-18 21:07 | `05d9e44` | perf: enable full GPU power and parallel test execution | config/monte_carlo.yaml, pyproject.toml, simulation/apf_engine/__init__.py, simulation/apf_engine/apf_gpu.py |
 | 2026-04-27 15:58 | `810611f` | Merge remote-tracking branch 'origin/main' into claude/atc-auto-batch-20260425-180304 | .gitignore, README.md, SECURITY.md, benchmarks/CITATION.bib, benchmarks/DATASET_CARD.md, benchmarks/LICENSE … |
 | 2026-04-19 10:49 | `46ce01a` | fix: IntegrationTestResult/Outcome alias 추가 (import 호환성) | simulation/integration_test_framework.py |

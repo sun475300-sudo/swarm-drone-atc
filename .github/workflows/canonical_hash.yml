@@ -1,0 +1,74 @@
+name: Canonical Hash Verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - "config/canonical_hashes.yaml"
+      - "config/seeds.yaml"
+      - "scripts/reproduce/**"
+      - "src/utils/rng.py"
+      - "src/analytics/metrics.py"
+      - "simulation/**"
+      - "benchmarks/scenarios/**"
+      - ".github/workflows/canonical_hash.yml"
+
+  # Allow manual re-runs after refreshing hashes.
+  workflow_dispatch:
+
+# Determinism contract: every env var set here must match
+# docs/REPRODUCIBILITY.md, otherwise CI hashes will not match local hashes.
+env:
+  PYTHONHASHSEED: "0"
+  OMP_NUM_THREADS: "1"
+  MKL_NUM_THREADS: "1"
+  OPENBLAS_NUM_THREADS: "1"
+
+jobs:
+  canonical-hash:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.lock.txt', 'pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies (CPU-default, no torch)
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.lock.txt ]; then
+            pip install --require-hashes -r requirements.lock.txt
+          else
+            pip install ".[dev]"
+          fi
+          pip install pyyaml
+
+      - name: Verify canonical hashes
+        id: verify
+        run: |
+          python scripts/reproduce/verify_canonical_hashes.py
+
+      # If verification failed, surface the diff between expected and actual
+      # outputs so a human can decide whether the change was intentional.
+      - name: Upload mismatched outputs
+        if: failure() && steps.verify.conclusion == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: canonical-mismatch-results
+          path: results/**
+          if-no-files-found: ignore
+          retention-days: 14

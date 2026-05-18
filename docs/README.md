@@ -42,6 +42,8 @@ sdacs-official-site/
 ├── scenarios.html          # Chart.js 시나리오 비교 대시보드
 ├── test-report.html        # pytest 커버리지 리포트
 ├── 404.html                # 커스텀 404 페이지
+├── government_presentation.md        # 정부기관 소개 발표 자료
+├── government_presentation_script.md # 정부기관 발표 스크립트
 ├── favicon.svg             # SVG 파비콘 (SDACS 로고)
 ├── manifest.webmanifest    # PWA 매니페스트
 ├── robots.txt              # 검색 크롤러 설정

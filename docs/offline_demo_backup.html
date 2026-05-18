@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SDACS · 오프라인 데모 백업</title>
+  <meta name="description" content="발표 라이브 시연 실패 시 사용하는 오프라인 백업 페이지 — 시뮬레이터 없이 모든 핵심 결과를 보여줍니다.">
+  <style>
+    :root {
+      --bg: #05080f;
+      --panel: #0e1420;
+      --accent: #3b82d9;
+      --accent-strong: #60a5fa;
+      --success: #43A047;
+      --warning: #FB8C00;
+      --danger: #E53935;
+      --text: #e6ebf5;
+      --text-muted: #8a93a6;
+      --border: rgba(255,255,255,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', 'Inter', 'Malgun Gothic', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 24px;
+      background: linear-gradient(135deg, rgba(59,130,217,0.15), rgba(167,139,250,0.10));
+      border-radius: 16px;
+      border: 1px solid var(--border);
+    }
+    h1 {
+      font-size: 32px;
+      color: var(--accent-strong);
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    .alert {
+      background: rgba(251,140,0,0.1);
+      border-left: 4px solid var(--warning);
+      padding: 14px 18px;
+      margin: 20px 0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    h2 {
+      font-size: 22px;
+      color: var(--accent-strong);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border);
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .kpi-card {
+      background: rgba(59,130,217,0.08);
+      border: 1px solid rgba(59,130,217,0.25);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    .kpi-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--warning);
+      margin-bottom: 4px;
+    }
+    .kpi-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: rgba(59,130,217,0.15);
+      color: var(--accent-strong);
+      font-weight: 600;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-pass {
+      background: rgba(67,160,71,0.2);
+      color: #66bb6a;
+    }
+    .badge-warn {
+      background: rgba(251,140,0,0.2);
+      color: #ffb74d;
+    }
+    .badge-info {
+      background: rgba(59,130,217,0.2);
+      color: var(--accent-strong);
+    }
+    .scenario-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+    }
+    .scenario-name {
+      flex: 0 0 240px;
+      font-size: 14px;
+    }
+    .bar-track {
+      flex: 1;
+      height: 22px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 11px;
+      overflow: hidden;
+      position: relative;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+      transition: width 0.8s ease;
+    }
+    .bar-fill.warn { background: linear-gradient(90deg, #fb8c00, #ffb74d); }
+    .bar-fill.success { background: linear-gradient(90deg, #43a047, #66bb6a); }
+    .bar-value {
+      flex: 0 0 70px;
+      text-align: right;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 10px;
+      margin-top: 12px;
+      border: 1px solid var(--border);
+    }
+    .img-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .img-card {
+      text-align: center;
+    }
+    .img-card .caption {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+    .demo-step {
+      display: flex;
+      gap: 16px;
+      padding: 12px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .demo-step .time {
+      flex: 0 0 60px;
+      font-weight: 700;
+      color: var(--accent-strong);
+    }
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    @media print {
+      body { background: white; color: black; }
+      section { background: white; border: 1px solid #ddd; }
+      h1, h2 { color: #0055AA; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>SDACS · 오프라인 데모 백업</h1>
+    <div class="subtitle">라이브 시뮬레이터 실패 시 사용 · 핵심 결과 단일 페이지</div>
+  </header>
+
+  <div class="alert">
+    💡 <strong>발표자 멘트</strong>: "라이브 시뮬레이터가 잠시 막혔습니다.
+    같은 결과를 정리한 백업 자료로 보여드리겠습니다."
+  </div>
+
+  <!-- 핵심 KPI -->
+  <section>
+    <h2>핵심 KPI 8개</h2>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-value">90만+</div>
+        <div class="kpi-label">대한민국 등록 드론</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">90초</div>
+        <div class="kpi-label">충돌 예측 시간 창</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">38,400</div>
+        <div class="kpi-label">Monte Carlo 반복 실험</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">3,083+</div>
+        <div class="kpi-label">자동 테스트 수집</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">9 + 10</div>
+        <div class="kpi-label">운영 시나리오 + 벤치마크</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">590+</div>
+        <div class="kpi-label">핵심 알고리즘 모듈</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">5겹</div>
+        <div class="kpi-label">안전장치 계층</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">4계층</div>
+        <div class="kpi-label">시스템 아키텍처</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9개 시나리오 결과 -->
+  <section>
+    <h2>9개 시나리오 실측 검증 결과</h2>
+    <p style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">
+      실측 일자: 2026-05-08 · 시드 191664964 · 1회씩 실행 (학술용 100회 반복은 별도 Monte Carlo)
+    </p>
+
+    <div class="scenario-bar">
+      <div class="scenario-name">swarm_autonomous_no_preplan</div>
+      <div class="bar-track"><div class="bar-fill success" style="width: 100%"></div></div>
+      <div class="bar-value">100.00%</div>
+    </div>
+    <div class="scenario-bar">
+      <div class="scenario-name">route_conflict</div>
+      <div class="bar-track"><div class="bar-fill success" style="width: 99.8%"></div></div>
+      <div class="bar-value">99.80%</div>
+    </div>
+    <div class="scenario-bar">
+      <div class="scenario-name">high_density</div>
+      <div class="bar-track"><div class="bar-fill success" style="width: 99.56%"></div></div>
+      <div class="bar-value">99.56%</div>
+    </div>
+    <div class="scenario-bar">
+      <div class="scenario-name">mass_takeoff</div>
+      <div class="bar-track"><div class="bar-fill success" style="width: 99.56%"></div></div>
+      <div class="bar-value">99.56%</div>
+    </div>
+    <div class="scenario-bar">
+      <div class="scenario-name">emergency_failure</div>
+      <div class="bar-track"><div class="bar-fill warn" style="width: 99.45%"></div></div>
+      <div class="bar-value">99.45%</div>
+    </div>
+    <div class="scenario-bar">
+      <div class="scenario-name">weather_disturbance</div>
+      <div class="bar-track"><div class="bar-fill warn" style="width: 99.38%"></div></div>
+      <div class="bar-value">99.38%</div>
+    </div>
+    <div class="scenario-bar">
+      <div class="scenario-name">adversarial_intrusion</div>
+      <div class="bar-track"><div class="bar-fill warn" style="width: 98.96%"></div></div>
+      <div class="bar-value">98.96%</div>
+    </div>
+    <div class="scenario-bar">
+      <div class="scenario-name">multi_city</div>
+      <div class="bar-track"><div class="bar-fill warn" style="width: 98.49%"></div></div>
+      <div class="bar-value">98.49%</div>
+    </div>
+    <div class="scenario-bar">
+      <div class="scenario-name">comms_loss</div>
+      <div class="bar-track"><div class="bar-fill warn" style="width: 97.59%"></div></div>
+      <div class="bar-value">97.59%</div>
+    </div>
+
+    <p style="margin-top:20px; padding:12px; background:rgba(255,255,255,0.04); border-radius:8px; font-size:13px;">
+      <strong>SLA 99.5% 엄격 통과</strong>: 4/9 시나리오 (정상 환경) ·
+      <strong>한계 도전</strong>: 통신 두절·침입·240대 다중도시 등 5개 악조건 시나리오 (97.59~99.45%)
+    </p>
+  </section>
+
+  <!-- 5겹 안전장치 -->
+  <section>
+    <h2>5겹 안전장치 (Defense in Depth)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:60px;">단계</th>
+          <th>시점</th>
+          <th>메커니즘</th>
+          <th>일상 비유</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1</strong></td>
+          <td>출발 전</td>
+          <td>경로 사전 계획 (A* / CBS)</td>
+          <td>내비게이션</td>
+        </tr>
+        <tr>
+          <td><strong>2</strong></td>
+          <td>비행 중</td>
+          <td>90초 충돌 예측 (CPA)</td>
+          <td>일기예보</td>
+        </tr>
+        <tr>
+          <td><strong>3</strong></td>
+          <td>즉시</td>
+          <td>분산 자동 회피 (APF)</td>
+          <td>자석 척력</td>
+        </tr>
+        <tr>
+          <td><strong>4</strong></td>
+          <td>임박 시</td>
+          <td>긴급 대기 / 우회 (Advisory)</td>
+          <td>비상 브레이크</td>
+        </tr>
+        <tr>
+          <td><strong>5</strong></td>
+          <td>통신 두절</td>
+          <td>자동 귀환 (RTL)</td>
+          <td>비둘기 귀소</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 시각자료 -->
+  <section>
+    <h2>핵심 시각자료</h2>
+    <div class="img-grid">
+      <div class="img-card">
+        <img src="images/architecture.svg" alt="4계층 시스템 아키텍처">
+        <div class="caption">4계층 시스템 아키텍처</div>
+      </div>
+      <div class="img-card">
+        <img src="images/detection_pipeline.svg" alt="충돌 예측 파이프라인">
+        <div class="caption">충돌 예측 파이프라인</div>
+      </div>
+      <div class="img-card">
+        <img src="images/algorithm_flow.svg" alt="알고리즘 흐름도">
+        <div class="caption">알고리즘 흐름도</div>
+      </div>
+      <div class="img-card">
+        <img src="images/idea1_drone_as_radar.svg" alt="드론으로 드론을 관제">
+        <div class="caption">드론으로 드론을 관제</div>
+      </div>
+      <div class="img-card">
+        <img src="images/idea3_multi_layer_safety.png" alt="5겹 안전망">
+        <div class="caption">5겹 안전망</div>
+      </div>
+      <div class="img-card">
+        <img src="images/idea4_weather_adaptive.png" alt="기상 적응형 회피">
+        <div class="caption">기상 적응형 회피</div>
+      </div>
+      <div class="img-card">
+        <img src="images/conflict_resolution_heatmap.png" alt="충돌 해결 히트맵">
+        <div class="caption">충돌 해결 히트맵</div>
+      </div>
+      <div class="img-card">
+        <img src="images/scenario_kpi_radar.png" alt="시나리오 KPI 레이더">
+        <div class="caption">시나리오 KPI 레이더</div>
+      </div>
+      <div class="img-card">
+        <img src="images/throughput_vs_drones.png" alt="처리량 vs 드론 수">
+        <div class="caption">처리량 vs 드론 수</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 시연 단계 (라이브 시뮬레이터를 못 보여줄 때) -->
+  <section>
+    <h2>데모 시연 5단계 (말로 설명)</h2>
+    <div class="demo-step">
+      <div class="time">0:00</div>
+      <div>
+        <strong>기본 비행</strong> — 3D 공간에서 드론들이 같은 공역에서 움직이는 모습.
+        "지금 보이는 것은 낮은 하늘의 가상 공역입니다. 여러 드론이 동시에 움직이고 있습니다."
+      </div>
+    </div>
+    <div class="demo-step">
+      <div class="time">1:00</div>
+      <div>
+        <strong>드론 수 증가</strong> — 드론이 많아질수록 경고와 회피 발생.
+        "드론이 많아질수록 관제가 어려워집니다. 그래서 자동 예측과 회피가 필요합니다."
+      </div>
+    </div>
+    <div class="demo-step">
+      <div class="time">2:00</div>
+      <div>
+        <strong>강풍 조건</strong> — 환경 바꿔도 더 보수적으로 움직임.
+        "바람이 강하면 안전 간격을 더 넓게 잡아야 합니다."
+      </div>
+    </div>
+    <div class="demo-step">
+      <div class="time">3:00</div>
+      <div>
+        <strong>침입 드론</strong> — 비협조 드론이 들어와도 주변 드론들이 회피.
+        "예상하지 못한 드론이 들어와도, 주변 드론들이 위험을 줄이는 방향으로 움직입니다."
+      </div>
+    </div>
+    <div class="demo-step">
+      <div class="time">4:00</div>
+      <div>
+        <strong>결과 지표</strong> — 충돌, 근접, 어드바이저리 패널 표시.
+        "발표에서는 한 장면을 보여드리지만, 실제 검증은 많은 조건을 바꿔 반복하는 방식으로 진행했습니다."
+      </div>
+    </div>
+  </section>
+
+  <!-- 솔직한 한계 -->
+  <section>
+    <h2>솔직한 한계 (공개 사항)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>항목</th>
+          <th>현재 상태</th>
+          <th>상태</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>시뮬레이션 검증</td>
+          <td>9개 시나리오, Monte Carlo 설계</td>
+          <td><span class="badge badge-pass">완료</span></td>
+        </tr>
+        <tr>
+          <td>실제 드론 연동</td>
+          <td>다음 단계 (실기 통합 계획)</td>
+          <td><span class="badge badge-info">진행 예정</span></td>
+        </tr>
+        <tr>
+          <td>규제 협의</td>
+          <td>현재 진행 안 함</td>
+          <td><span class="badge badge-warn">미진행</span></td>
+        </tr>
+        <tr>
+          <td>도심 환경 실증</td>
+          <td>3D 시뮬에서만 검증</td>
+          <td><span class="badge badge-warn">미실증</span></td>
+        </tr>
+        <tr>
+          <td>통신·보안 강건성</td>
+          <td>comms_loss 시나리오 검증 일부</td>
+          <td><span class="badge badge-info">부분 검증</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="margin-top:16px; padding:12px; background:rgba(67,160,71,0.08); border-radius:8px; font-size:14px; border-left:3px solid var(--success);">
+      "완성된 상용 서비스가 아니라, <strong>검증 가능한 다음 단계의 기반</strong>입니다."
+    </p>
+  </section>
+
+  <!-- 자료 링크 -->
+  <section>
+    <h2>관련 자료</h2>
+    <table>
+      <tbody>
+        <tr>
+          <td><strong>공식 허브</strong></td>
+          <td><a href="go.html" style="color:var(--accent-strong);">go.html</a></td>
+        </tr>
+        <tr>
+          <td><strong>3D 시뮬레이터 v2</strong> (라이브)</td>
+          <td><a href="swarm_3d_simulator_v2.html" style="color:var(--accent-strong);">swarm_3d_simulator_v2.html</a></td>
+        </tr>
+        <tr>
+          <td><strong>검증 보고서</strong></td>
+          <td><a href="verification_report.md" style="color:var(--accent-strong);">verification_report.md</a></td>
+        </tr>
+        <tr>
+          <td><strong>Q&A 응답 카드</strong></td>
+          <td><a href="qa_response_card.md" style="color:var(--accent-strong);">qa_response_card.md</a></td>
+        </tr>
+        <tr>
+          <td><strong>Q&A 응답 카드</strong></td>
+          <td><a href="qa_response_card.md" style="color:var(--accent-strong);">qa_response_card.md</a></td>
+        </tr>
+        <tr>
+          <td><strong>GitHub</strong></td>
+          <td><a href="https://github.com/sun475300-sudo/swarm-drone-atc" target="_blank" style="color:var(--accent-strong);">github.com/sun475300-sudo/swarm-drone-atc</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    SDACS · Swarm Drone Airspace Control System<br>
+    오프라인 백업 데모 페이지 · 2026-05-08<br>
+    캡스톤 3조 · 장선우 (Sunwoo Jang) · Mokpo National University
+  </footer>
+
+</div>
+</body>
+</html>

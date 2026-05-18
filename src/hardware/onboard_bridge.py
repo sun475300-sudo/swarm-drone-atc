@@ -1,4 +1,4 @@
-"""Onboard bridge — Jetson companion computer ⇄ Pixhawk (MAVLink) ⇄ AirspaceController.
+"""Onboard bridge - Jetson companion computer <-> Pixhawk (MAVLink) <-> AirspaceController.
 
 Phase: P692
 Role: the piece of code that runs on the drone itself. Subscribes to Pixhawk
@@ -9,36 +9,38 @@ Design principles (from .claude/rules/coding-style.md):
 - Immutable telemetry snapshots (dataclass with frozen=True).
 - Small, focused functions.
 - Explicit error handling.
-- No hardcoded secrets — connection details come from config.
+- No hardcoded secrets - connection details come from config.
 
 Runtime deps (add to requirements-hardware.txt):
     pymavlink >= 2.4.42
     pyserial >= 3.5
 
 Quickstart:
-    python -m src.hardware.onboard_bridge \\
-        --mavlink-uri udp:0.0.0.0:14550 \\
-        --ground-uri tcp://ground.example:5555 \\
+    python -m src.hardware.onboard_bridge \
+        --mavlink-uri udp:0.0.0.0:14550 \
+        --ground-uri tcp://ground.example:5555 \
         --drone-id 7
 
 Exit codes:
-    0 — clean shutdown
-    1 — config error
-    2 — MAVLink link lost beyond retry budget
-    3 — ground link lost beyond retry budget
+    0 - clean shutdown
+    1 - config error
+    2 - MAVLink link lost beyond retry budget
+    3 - ground link lost beyond retry budget
 """
 
 from __future__ import annotations
 
 import argparse
 import asyncio
+import importlib
 import json
 import logging
+import os
 import signal
 import sys
 import time
 from dataclasses import dataclass
-from typing import Optional
+from typing import Callable, Optional
 
 LOGGER = logging.getLogger("sdacs.onboard_bridge")
 
@@ -106,13 +108,19 @@ class MavlinkAdapter:
     """Thin wrapper around pymavlink so the bridge does not depend on it directly.
 
     Implementations:
-    - RealAdapter — calls into pymavlink.
-    - FakeAdapter — for unit tests, yields scripted frames.
+    - RealAdapter - calls into pymavlink.
+    - FakeAdapter - for unit tests, yields scripted frames.
     """
 
     def __init__(self, uri: str) -> None:
         self.uri = uri
         self._connection = None
+        # Per-instance aggregated state - not class-level so each adapter tracks
+        # its own drone independently.
+        self._last_sys_status_battery_pct: float = -1.0
+        self._last_heartbeat_mode: str = "UNKNOWN"
+        self._last_heartbeat_armed: bool = False
+        self._last_gps_fix_type: int = 0
 
     async def connect(self) -> None:
         # Deferred import so tests can import this module without pymavlink installed.
@@ -133,16 +141,6 @@ class MavlinkAdapter:
             self._connection.target_component,
         )
 
-    # Aggregated state across multiple MAVLink message types.
-    # GLOBAL_POSITION_INT carries the position; SYS_STATUS carries battery;
-    # HEARTBEAT carries mode + armed flag. We keep the most-recent of each.
-    _last_sys_status_battery_pct: float = -1.0
-    _last_heartbeat_mode: str = "UNKNOWN"
-    _last_heartbeat_armed: bool = False
-    _last_gps_fix_type: int = 0
-
-    # Best-effort string for known PX4 base_mode flags. Vendor-specific
-    # custom_mode interpretation is left to the consumer.
     _MAV_MODE_FLAGS = {
         0x80: "SAFETY_ARMED",
         0x40: "MANUAL_INPUT_ENABLED",
@@ -168,7 +166,7 @@ class MavlinkAdapter:
         # Drain all available messages this tick so SYS_STATUS / HEARTBEAT
         # state stays fresh between GLOBAL_POSITION_INT updates.
         position_msg = None
-        for _ in range(64):  # cap drain to avoid starving the loop
+        for _ in range(64):
             msg = self._connection.recv_match(
                 type=["GLOBAL_POSITION_INT", "HEARTBEAT", "SYS_STATUS", "GPS_RAW_INT"],
                 blocking=False,
@@ -179,7 +177,6 @@ class MavlinkAdapter:
             if mtype == "GLOBAL_POSITION_INT":
                 position_msg = msg
             elif mtype == "SYS_STATUS":
-                # battery_remaining is 0..100 % (or -1 if unknown)
                 br = getattr(msg, "battery_remaining", -1)
                 self._last_sys_status_battery_pct = float(br) if br >= 0 else -1.0
             elif mtype == "HEARTBEAT":
@@ -187,9 +184,7 @@ class MavlinkAdapter:
                     getattr(msg, "base_mode", 0),
                     getattr(msg, "custom_mode", 0),
                 )
-                self._last_heartbeat_armed = bool(
-                    getattr(msg, "base_mode", 0) & 0x80
-                )
+                self._last_heartbeat_armed = bool(getattr(msg, "base_mode", 0) & 0x80)
             elif mtype == "GPS_RAW_INT":
                 self._last_gps_fix_type = int(getattr(msg, "fix_type", 0))
 
@@ -213,11 +208,7 @@ class MavlinkAdapter:
             gps_fix_type=self._last_gps_fix_type,
         )
 
-    # Mapping table: high-level SDACS commands → (MAV_CMD_*, param tuple builder).
-    # The builder takes the command_dict and returns a 7-tuple of param1..param7
-    # exactly as MAV_CMD expects. Add entries here as the controller grows.
     _COMMAND_MAP: dict = {
-        # name : (MAV_CMD constant string, builder)
         "TAKEOFF": (
             "MAV_CMD_NAV_TAKEOFF",
             lambda d: (0, 0, 0, float("nan"), 0, 0, float(d.get("alt_m", 10.0))),
@@ -234,7 +225,9 @@ class MavlinkAdapter:
             "MAV_CMD_DO_REPOSITION",
             lambda d: (
                 float(d.get("speed_mps", -1.0)),
-                0, 0, float("nan"),
+                0,
+                0,
+                float("nan"),
                 int(float(d["lat_deg"]) * 1e7),
                 int(float(d["lon_deg"]) * 1e7),
                 float(d["alt_m"]),
@@ -243,9 +236,13 @@ class MavlinkAdapter:
         "SET_MODE": (
             "MAV_CMD_DO_SET_MODE",
             lambda d: (
-                float(d.get("base_mode", 1)),  # MAV_MODE_FLAG_CUSTOM_MODE_ENABLED
+                float(d.get("base_mode", 1)),
                 float(d.get("custom_mode", 0)),
-                0, 0, 0, 0, 0,
+                0,
+                0,
+                0,
+                0,
+                0,
             ),
         ),
     }
@@ -255,15 +252,7 @@ class MavlinkAdapter:
         command_dict: dict,
         ack_timeout_s: float = 3.0,
     ) -> bool:
-        """Translate a high-level command into MAVLink and await ACK.
-
-        ``command_dict`` shape::
-
-            {"name": "GOTO", "lat_deg": 36.5, "lon_deg": 126.4, "alt_m": 50}
-
-        Returns True on COMMAND_ACK with MAV_RESULT_ACCEPTED within
-        ``ack_timeout_s`` seconds. Returns False otherwise (logged).
-        """
+        """Translate a high-level command into MAVLink and await ACK."""
         if self._connection is None:
             raise RuntimeError("not connected")
 
@@ -286,28 +275,30 @@ class MavlinkAdapter:
 
         try:
             params = builder(command_dict)
-        except (KeyError, ValueError) as e:
-            LOGGER.error("send_command bad params for %s: %s", name, e)
+        except (KeyError, ValueError) as exc:
+            LOGGER.error("send_command bad params for %s: %s", name, exc)
             return False
 
         self._connection.mav.command_long_send(
             self._connection.target_system,
             self._connection.target_component,
             cmd_const,
-            0,  # confirmation
+            0,
             *params,
         )
 
-        # Wait for the matching COMMAND_ACK
         deadline = time.monotonic() + ack_timeout_s
         while time.monotonic() < deadline:
             ack = self._connection.recv_match(type="COMMAND_ACK", blocking=False)
             if ack is not None and getattr(ack, "command", None) == cmd_const:
-                accepted = getattr(ack, "result", -1) == mavutil.mavlink.MAV_RESULT_ACCEPTED
+                accepted = (
+                    getattr(ack, "result", -1) == mavutil.mavlink.MAV_RESULT_ACCEPTED
+                )
                 if not accepted:
                     LOGGER.warning(
                         "command %s rejected (result=%s)",
-                        name, getattr(ack, "result", "?"),
+                        name,
+                        getattr(ack, "result", "?"),
                     )
                 return accepted
             await asyncio.sleep(0.05)
@@ -362,8 +353,7 @@ class GroundLink:
         except asyncio.TimeoutError:
             return None
         except Exception as exc:
-            LOGGER.warning("ground recv error: %s", exc)
-            return None
+            raise RuntimeError(f"ground recv error: {exc}") from exc
 
     async def close(self) -> None:
         if self._ws is not None:
@@ -371,12 +361,91 @@ class GroundLink:
             self._ws = None
 
 
+# --- Remote-ID transport ---
+
+
+class RemoteIDTransport:
+    """Minimal transport interface for ASTM F3411 broadcast backends."""
+
+    def emit(self, snapshot: TelemetrySnapshot) -> None:
+        raise NotImplementedError
+
+
+class LogRemoteIDTransport(RemoteIDTransport):
+    """Fallback transport that logs the broadcast frame."""
+
+    def emit(self, snapshot: TelemetrySnapshot) -> None:
+        LOGGER.debug(
+            "remote_id frame drone=%d lat=%.6f lon=%.6f alt=%.1fm",
+            snapshot.drone_id,
+            snapshot.lat_deg,
+            snapshot.lon_deg,
+            snapshot.alt_msl_m,
+        )
+
+
+class CallableRemoteIDTransport(RemoteIDTransport):
+    """Adapter for externally supplied transport callables."""
+
+    def __init__(self, emitter: Callable[[TelemetrySnapshot], None]) -> None:
+        self._emitter = emitter
+
+    def emit(self, snapshot: TelemetrySnapshot) -> None:
+        self._emitter(snapshot)
+
+
+def _load_remote_id_transport(spec: str | None = None) -> RemoteIDTransport:
+    """Load a Remote ID transport from env/config.
+
+    Supported forms:
+    - ``log`` or empty: built-in log-only fallback
+    - ``pkg.module:factory_or_object``: imported object. If it is a class it
+      will be instantiated with no args. If it is callable it will be wrapped
+      as a transport emitter.
+    """
+    raw_spec = spec if spec is not None else os.getenv("SDACS_REMOTE_ID_TRANSPORT", "log")
+    resolved = (raw_spec or "log").strip()
+    if resolved in {"", "log"}:
+        return LogRemoteIDTransport()
+
+    if ":" not in resolved:
+        raise RuntimeError(
+            "remote ID transport spec must be 'log' or 'module:attribute'"
+        )
+
+    module_name, attr_name = resolved.split(":", 1)
+    module = importlib.import_module(module_name)
+    transport_obj = getattr(module, attr_name)
+    if isinstance(transport_obj, type):
+        transport_obj = transport_obj()
+    if isinstance(transport_obj, RemoteIDTransport):
+        return transport_obj
+    if hasattr(transport_obj, "emit") and callable(transport_obj.emit):
+        return transport_obj
+    if callable(transport_obj):
+        return CallableRemoteIDTransport(transport_obj)
+    raise RuntimeError(
+        f"remote ID transport '{resolved}' must be a RemoteIDTransport or callable"
+    )
+
+
+# --- Remote-ID broadcast helper ---
+
+
+def _broadcast_remote_id(
+    snapshot: TelemetrySnapshot,
+    transport: RemoteIDTransport | None = None,
+) -> None:
+    """Emit a Remote-ID (ASTM F3411-22a) compatible broadcast for one frame."""
+    (transport or _load_remote_id_transport()).emit(snapshot)
+
+
 # --- Bridge main loop ---
 
 
 @dataclass
 class BridgeState:
-    """Mutable runtime state, kept in ONE place for inspectability."""
+    """Mutable runtime state, kept in one place for inspectability."""
 
     frames_in: int = 0
     frames_out: int = 0
@@ -393,12 +462,16 @@ class OnboardBridge:
         config: BridgeConfig,
         mav: MavlinkAdapter,
         ground: GroundLink,
+        remote_id_transport: RemoteIDTransport | None = None,
     ) -> None:
         self.config = config
         self.mav = mav
         self.ground = ground
+        self.remote_id_transport = remote_id_transport
         self.state = BridgeState()
         self._stop_event = asyncio.Event()
+        self._reconnect_lock = asyncio.Lock()
+        self._connection_generation = 0
 
     async def run(self) -> int:
         try:
@@ -423,42 +496,131 @@ class OnboardBridge:
     async def stop(self) -> None:
         self._stop_event.set()
 
-    # ---- phase 1: connect ----
-
     async def _connect_with_retry(self) -> None:
         for attempt in range(MAX_RECONNECT_ATTEMPTS):
             try:
                 await self.mav.connect()
                 await self.ground.connect()
+                self._connection_generation += 1
                 return
             except Exception as exc:
                 backoff = RECONNECT_BACKOFF_S[min(attempt, len(RECONNECT_BACKOFF_S) - 1)]
-                LOGGER.warning("connect attempt %d failed: %s (sleep %.1fs)", attempt, exc, backoff)
+                LOGGER.warning(
+                    "connect attempt %d failed: %s (sleep %.1fs)",
+                    attempt,
+                    exc,
+                    backoff,
+                )
                 await asyncio.sleep(backoff)
 
         raise RuntimeError("max reconnect attempts exhausted")
 
-    # ---- phase 2: loops ----
+    async def _reconnect_runtime(
+        self,
+        *,
+        reason: str,
+        generation: int,
+        mav_failed: bool = False,
+        ground_failed: bool = False,
+    ) -> bool:
+        async with self._reconnect_lock:
+            if generation != self._connection_generation:
+                return True
+
+            LOGGER.warning("runtime reconnect requested: %s", reason)
+            await self._close_links()
+
+            for attempt in range(MAX_RECONNECT_ATTEMPTS):
+                try:
+                    await self.mav.connect()
+                    await self.ground.connect()
+                    self._connection_generation += 1
+                    if mav_failed:
+                        self.state.mavlink_reconnects += 1
+                    if ground_failed:
+                        self.state.ground_reconnects += 1
+                    LOGGER.info("runtime reconnect succeeded")
+                    return True
+                except Exception as exc:
+                    backoff = RECONNECT_BACKOFF_S[min(attempt, len(RECONNECT_BACKOFF_S) - 1)]
+                    LOGGER.warning(
+                        "runtime reconnect attempt %d failed: %s (sleep %.1fs)",
+                        attempt,
+                        exc,
+                        backoff,
+                    )
+                    await asyncio.sleep(backoff)
+
+            LOGGER.error("runtime reconnect exhausted; stopping bridge")
+            await self.stop()
+            return False
 
     async def _telemetry_loop(self) -> None:
         period = 1.0 / max(1, self.config.telemetry_poll_hz)
         while not self._stop_event.is_set():
-            snapshot = await self.mav.poll_telemetry(self.config.drone_id)
+            generation = self._connection_generation
+            try:
+                snapshot = await self.mav.poll_telemetry(self.config.drone_id)
+            except Exception as exc:
+                LOGGER.warning("telemetry poll error: %s", exc)
+                recovered = await self._reconnect_runtime(
+                    reason=f"telemetry poll failed: {exc}",
+                    generation=generation,
+                    mav_failed=True,
+                )
+                if not recovered:
+                    break
+                continue
+
             if snapshot is not None:
                 self.state.frames_in += 1
                 try:
                     await self.ground.publish(snapshot)
                     self.state.frames_out += 1
                 except Exception as exc:
-                    LOGGER.warning("publish failed: %s", exc)
+                    LOGGER.warning("ground publish failed: %s", exc)
+                    recovered = await self._reconnect_runtime(
+                        reason=f"ground publish failed: {exc}",
+                        generation=self._connection_generation,
+                        ground_failed=True,
+                    )
+                    if not recovered:
+                        break
+                if self.config.enable_remote_id:
+                    _broadcast_remote_id(snapshot, transport=self.remote_id_transport)
             await asyncio.sleep(period)
 
     async def _command_loop(self) -> None:
         while not self._stop_event.is_set():
-            cmd = await self.ground.next_command()
+            generation = self._connection_generation
+            try:
+                cmd = await self.ground.next_command()
+            except Exception as exc:
+                LOGGER.warning("ground command poll failed: %s", exc)
+                recovered = await self._reconnect_runtime(
+                    reason=f"ground command poll failed: {exc}",
+                    generation=generation,
+                    ground_failed=True,
+                )
+                if not recovered:
+                    break
+                continue
+
             if cmd is not None:
                 self.state.commands_in += 1
-                ok = await self.mav.send_command(cmd)
+                try:
+                    ok = await self.mav.send_command(cmd)
+                except Exception as exc:
+                    LOGGER.warning("command send failed: %s", exc)
+                    recovered = await self._reconnect_runtime(
+                        reason=f"command send failed: {exc}",
+                        generation=self._connection_generation,
+                        mav_failed=True,
+                    )
+                    if not recovered:
+                        break
+                    await asyncio.sleep(0.01)
+                    continue
                 if ok:
                     self.state.commands_ok += 1
             await asyncio.sleep(0.01)
@@ -477,6 +639,9 @@ class OnboardBridge:
 
     async def _shutdown(self) -> None:
         LOGGER.info("shutting down bridge")
+        await self._close_links()
+
+    async def _close_links(self) -> None:
         await self.mav.close()
         await self.ground.close()
 
@@ -495,7 +660,10 @@ def parse_args(argv: list[str]) -> BridgeConfig:
     parser.add_argument("--log-level", default="INFO")
     args = parser.parse_args(argv)
 
-    logging.basicConfig(level=args.log_level.upper(), format="%(asctime)s %(name)s %(levelname)s %(message)s")
+    logging.basicConfig(
+        level=args.log_level.upper(),
+        format="%(asctime)s %(name)s %(levelname)s %(message)s",
+    )
 
     if args.drone_id < 0:
         raise SystemExit("--drone-id must be non-negative")
@@ -529,7 +697,6 @@ async def _async_main(config: BridgeConfig) -> int:
         try:
             loop.add_signal_handler(getattr(signal, sig_name), _on_signal, sig_name)
         except NotImplementedError:
-            # Windows: signal handlers on the loop are limited.
             pass
 
     return await bridge.run()

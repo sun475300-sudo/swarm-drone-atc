@@ -163,6 +163,100 @@ def cmd_monte_carlo(args: argparse.Namespace) -> None:
 
 # ── visualize ────────────────────────────────────────────────
 
+def _normalize_benchmark_method(method: str) -> str:
+    return {
+        "hybrid": "sdacs_hybrid",
+    }.get(method, method)
+
+
+def _load_benchmark_manifest(scenario_id: str) -> dict:
+    from pathlib import Path
+
+    import yaml
+
+    manifest_path = Path(__file__).parent / "benchmarks" / "scenarios" / scenario_id / "manifest.yaml"
+    if not manifest_path.exists():
+        raise FileNotFoundError(f"benchmark manifest not found: {manifest_path}")
+    with open(manifest_path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def cmd_benchmark(args: argparse.Namespace) -> None:
+    _setup_logging(getattr(args, "log_level", "INFO"))
+
+    import json
+    import time
+    from pathlib import Path
+
+    from benchmarks.baselines._base import make_adapter
+    from src.analytics.metrics import Evaluator, EvaluatorConfig
+    from src.analytics.types import AirspaceCapacity, SimulationTrace
+
+    scenario = getattr(args, "scenario")
+    method = _normalize_benchmark_method(getattr(args, "method", "sdacs_hybrid"))
+    seed = int(getattr(args, "seed", 0))
+    hard_wall_s = float(getattr(args, "hard_wall_s", 120.0))
+    quiet = bool(getattr(args, "quiet", False))
+
+    manifest = _load_benchmark_manifest(scenario)
+    if not quiet:
+        print(f"[benchmark] scenario={scenario} method={method} seed={seed}")
+
+    adapter = make_adapter(method, manifest, seed)
+    t0 = time.perf_counter()
+    trace = adapter.run(hard_wall_time_s=hard_wall_s)
+    wall_time_s = time.perf_counter() - t0
+
+    trace_dict = trace.to_dict()
+    if float(trace_dict.get("wall_clock_seconds", 0.0) or 0.0) <= 0:
+        trace_dict["wall_clock_seconds"] = wall_time_s
+        trace = SimulationTrace.from_dict(trace_dict)
+
+    airspace_cfg = manifest.get("airspace", {}) if isinstance(manifest, dict) else {}
+    capacity_max_agents = airspace_cfg.get("capacity_max_agents")
+    capacity = (
+        AirspaceCapacity(max_agents=int(capacity_max_agents))
+        if capacity_max_agents is not None
+        else None
+    )
+    metrics = Evaluator(EvaluatorConfig(capacity=capacity)).evaluate(trace)
+
+    result = {
+        "scenario_id": scenario,
+        "method": method,
+        "seed": seed,
+        "wall_time_s": wall_time_s,
+        "agent_count": len(trace.agents),
+        "tick_count": len(trace.tick_latencies_ms),
+        "near_miss_rate": metrics["NMR"],
+        "min_separation_m": metrics["MSD"],
+        "path_efficiency": metrics["PE"],
+        "makespan_s": metrics["MS_s"],
+        "flowtime_s": metrics["FT_drone_s"],
+        "airspace_utilization": metrics["AU"],
+        "rid_compliance_rate": metrics["RID_CR"],
+        "rtf": metrics["RTF"],
+        "metrics": metrics,
+    }
+
+    output_arg = getattr(args, "output", None)
+    if output_arg:
+        out_path = Path(output_arg)
+    else:
+        out_path = Path("results") / scenario / method / f"seed{seed}.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(result, f, indent=2, sort_keys=True)
+
+    if not quiet:
+        print(f"[benchmark] wrote {out_path}")
+        print(
+            f"[benchmark] nmr={result['near_miss_rate']:.6g} "
+            f"pe={result['path_efficiency']:.4f} "
+            f"rtf={result['rtf']:.4f}"
+        )
+
+
 def cmd_visualize(args: argparse.Namespace) -> None:
     _setup_logging(getattr(args, "log_level", "INFO"))
     import threading
@@ -217,6 +311,23 @@ def cmd_chatbot_sim(args: argparse.Namespace) -> None:
     from chatbot.simulator import run_simulator
 
     run_simulator()
+
+
+def cmd_api(args: argparse.Namespace) -> None:
+    _setup_logging(getattr(args, "log_level", "INFO"))
+    try:
+        from api.fastapi_server import run_dev_server
+    except Exception as exc:
+        raise RuntimeError(
+            "API backend dependencies are not available. "
+            "Install with `pip install .[api]` or install fastapi/uvicorn manually."
+        ) from exc
+
+    host = getattr(args, "host", "0.0.0.0")
+    port = int(getattr(args, "port", 8000))
+    log_level = str(getattr(args, "log_level", "info")).lower()
+    print(f"\nSDACS API 시작: http://{host}:{port}\n")
+    run_dev_server(host=host, port=port, log_level=log_level)
 
 
 def cmd_ops_report(args: argparse.Namespace) -> None:
@@ -362,6 +473,15 @@ def main() -> None:
     p_mc.add_argument("--mode",      default="quick", choices=["quick", "full"])
     p_mc.add_argument("--log-level", default="INFO")
 
+    p_bench = sub.add_parser("benchmark", help="Reproducible benchmark cell runner")
+    p_bench.add_argument("--scenario", required=True, help="benchmark scenario id, e.g. 01_corridor_crossing")
+    p_bench.add_argument("--method", default="sdacs_hybrid", help="orca | vo | cbs | sdacs_hybrid")
+    p_bench.add_argument("--seed", type=int, default=0, help="deterministic seed")
+    p_bench.add_argument("--output", default=None, help="output JSON path")
+    p_bench.add_argument("--hard-wall-s", type=float, default=120.0, help="per-run wall time ceiling")
+    p_bench.add_argument("--quiet", action="store_true", help="suppress progress prints")
+    p_bench.add_argument("--log-level", default="INFO")
+
     # ── visualize ───────────────────────────────────────────────
     p_vis = sub.add_parser("visualize", help="3D 대시보드 실행 (Dash/Plotly)")
     p_vis.add_argument("--port",     type=int,   default=8050, help="대시보드 포트")
@@ -384,6 +504,12 @@ def main() -> None:
     p_chatsim = sub.add_parser("chatbot-sim", help="보세전시장 챗봇 CLI 시뮬레이터 (터미널)")
     p_chatsim.add_argument("--log-level", default="INFO")
 
+    # ── api ─────────────────────────────────────────────────────
+    p_api = sub.add_parser("api", help="FastAPI 백엔드 실행")
+    p_api.add_argument("--host", default="0.0.0.0", help="API 바인드 호스트")
+    p_api.add_argument("--port", type=int, default=8000, help="API 포트")
+    p_api.add_argument("--log-level", default="INFO")
+
     p_ops = sub.add_parser("ops-report", help="E2E 운영 리포트 번들 생성")
     p_ops.add_argument("--scenario", default="ops_report", help="리포트 시나리오 이름")
     p_ops.add_argument("--seed", type=int, default=42, help="샘플 데이터 생성 시드")
@@ -405,10 +531,12 @@ def main() -> None:
         "simulate":      cmd_simulate,
         "scenario":      cmd_scenario,
         "monte-carlo":   cmd_monte_carlo,
+        "benchmark":     cmd_benchmark,
         "visualize":     cmd_visualize,
         "visualize-3d":  cmd_visualize_3d,
         "chatbot":       cmd_chatbot,
         "chatbot-sim":   cmd_chatbot_sim,
+        "api":           cmd_api,
         "ops-report":    cmd_ops_report,
     }
     dispatch[args.command](args)

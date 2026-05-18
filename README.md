@@ -665,6 +665,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-19 08:37 | `3a9ff98` | ci: drop --require-hashes from canonical_hash workflow | .github/workflows/canonical_hash.yml |
 | 2026-05-19 08:28 | `b15d590` | fix: sort imports in drone_agent.py to satisfy CI ruff I001 | simulation/drone_agent.py |
 | 2026-05-19 08:24 | `aeb710a` | feat: integrate 3 RuView-inspired modules for outdoor swarm context | simulation/csi_attention_fusion.py, simulation/meridian_calibrator.py, simulation/passive_rf_detector.py, tests/test_ruview_integrations.py |
 | 2026-05-18 22:19 | `13b987f` | fix: resolve shallow copy bug in NAS and boost test coverage to 87% | simulation/neural_architecture_search.py, tests/analytics/test_metrics.py, tests/test_onboard_bridge.py, tests/test_ws_bridge.py |

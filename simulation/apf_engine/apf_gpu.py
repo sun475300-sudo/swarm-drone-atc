@@ -19,6 +19,13 @@ try:
     import torch
 
     _TORCH_AVAILABLE = True
+
+    # GPU 풀파워: CUDNN 자동 알고리즘 튜닝 + TF32 활성화 (Ampere 이상 3x 속도)
+    if torch.cuda.is_available():
+        torch.backends.cudnn.benchmark = True
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True
+
 except (ImportError, OSError):
     # OSError covers Windows DLL load failures (e.g. WinError 4551 — DLL blocked
     # by Application Control policy) and other torch backend init failures.
@@ -95,10 +102,14 @@ _tensor_cache = _TensorCache()
 
 
 def _select_device() -> torch.device:
-    """CUDA > CPU 자동 선택."""
-    if torch.cuda.is_available():
-        return torch.device("cuda")
-    return torch.device("cpu")
+    """VRAM 최대 GPU 자동 선택. GPU 없으면 CPU."""
+    if not torch.cuda.is_available():
+        return torch.device("cpu")
+    n = torch.cuda.device_count()
+    if n == 1:
+        return torch.device("cuda:0")
+    best = max(range(n), key=lambda i: torch.cuda.get_device_properties(i).total_memory)
+    return torch.device(f"cuda:{best}")
 
 
 def _get_device_info() -> dict:
@@ -106,10 +117,15 @@ def _get_device_info() -> dict:
     if not _TORCH_AVAILABLE:
         return {"backend": "numpy", "device": "cpu", "gpu": None}
     device = _select_device()
-    info = {"backend": "torch", "device": str(device), "gpu": None}
+    info: dict = {"backend": "torch", "device": str(device), "gpu": None}
     if device.type == "cuda":
-        info["gpu"] = torch.cuda.get_device_name(0)
-        info["vram_gb"] = round(torch.cuda.get_device_properties(0).total_memory / 1e9, 1)
+        idx = device.index or 0
+        props = torch.cuda.get_device_properties(idx)
+        info["gpu"] = props.name
+        info["vram_gb"] = round(props.total_memory / 1e9, 1)
+        info["n_gpus"] = torch.cuda.device_count()
+        info["cudnn_benchmark"] = torch.backends.cudnn.benchmark
+        info["tf32"] = torch.backends.cuda.matmul.allow_tf32
     return info
 
 

@@ -2,6 +2,7 @@
 Phase 415: Neural Architecture Search for Optimal Drone AI Models
 """
 
+import copy
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -51,12 +52,14 @@ class NeuralArchitectureSearch:
         population_size: int = 50,
         generations: int = 100,
         fitness_fn: Optional[Callable] = None,
+        seed: Optional[int] = None,
     ):
         self.search_space = search_space
         self.strategy = strategy
         self.population_size = population_size
         self.generations = generations
         self.fitness_fn = fitness_fn or self._default_fitness
+        self._rng = np.random.default_rng(seed)
 
         self.population: List[Architecture] = []
         self.best_architecture: Optional[Architecture] = None
@@ -71,13 +74,13 @@ class NeuralArchitectureSearch:
             self.population.append(arch)
 
     def _generate_random_architecture(self, arch_id: str) -> Architecture:
-        num_blocks = np.random.randint(3, 10)
+        num_blocks = int(self._rng.integers(3, 10))
         blocks = []
 
         input_shape = (224, 224, 3)
 
         for i in range(num_blocks):
-            op_type = np.random.choice(list(OperationType))
+            op_type = self._rng.choice(list(OperationType))
             params = self._sample_parameters(op_type)
 
             block = NeuralBlock(
@@ -98,20 +101,20 @@ class NeuralArchitectureSearch:
     def _sample_parameters(self, op_type: OperationType) -> Dict[str, Any]:
         if op_type == OperationType.CONV2D:
             return {
-                "filters": np.random.choice([16, 32, 64, 128, 256]),
-                "kernel_size": np.random.choice([3, 5, 7]),
-                "strides": np.random.choice([1, 2]),
-                "activation": np.random.choice(["relu", "swish", "gelu"]),
+                "filters": int(self._rng.choice([16, 32, 64, 128, 256])),
+                "kernel_size": int(self._rng.choice([3, 5, 7])),
+                "strides": int(self._rng.choice([1, 2])),
+                "activation": str(self._rng.choice(["relu", "swish", "gelu"])),
             }
         elif op_type == OperationType.DENSE:
             return {
-                "units": np.random.choice([64, 128, 256, 512]),
-                "activation": np.random.choice(["relu", "tanh", "gelu"]),
+                "units": int(self._rng.choice([64, 128, 256, 512])),
+                "activation": str(self._rng.choice(["relu", "tanh", "gelu"])),
             }
         elif op_type == OperationType.ATTENTION:
             return {
-                "heads": np.random.choice([4, 8, 16]),
-                "key_dim": np.random.choice([32, 64, 128]),
+                "heads": int(self._rng.choice([4, 8, 16])),
+                "key_dim": int(self._rng.choice([32, 64, 128])),
             }
         else:
             return {"pool_size": 2}
@@ -145,7 +148,7 @@ class NeuralArchitectureSearch:
         return input_shape
 
     def _default_fitness(self, arch: Architecture) -> float:
-        accuracy = np.random.uniform(0.7, 0.95)
+        accuracy = self._rng.uniform(0.7, 0.95)
 
         params = sum(self._estimate_params(b) for b in arch.blocks)
         latency = params * 0.001
@@ -218,17 +221,21 @@ class NeuralArchitectureSearch:
         return self._generate_random_architecture(f"{parent.arch_id}_child")
 
     def _mutate(self, arch: Architecture) -> Architecture:
-        mutated = Architecture(
-            arch_id=f"{arch.arch_id}_mutated",
-            blocks=arch.blocks.copy(),
-        )
+        blocks = copy.deepcopy(arch.blocks)
 
-        if np.random.random() < 0.3 and mutated.blocks:
-            idx = np.random.randint(0, len(mutated.blocks))
-            new_params = self._sample_parameters(mutated.blocks[idx].operation)
-            mutated.blocks[idx].parameters.update(new_params)
+        if self._rng.random() < 0.3 and blocks:
+            idx = int(self._rng.integers(0, len(blocks)))
+            old = blocks[idx]
+            new_params = self._sample_parameters(old.operation)
+            blocks[idx] = NeuralBlock(
+                block_id=old.block_id,
+                operation=old.operation,
+                parameters=new_params,
+                input_shape=old.input_shape,
+                output_shape=old.output_shape,
+            )
 
-        return mutated
+        return Architecture(arch_id=f"{arch.arch_id}_mutated", blocks=blocks)
 
     def get_best_architecture(self) -> Optional[Architecture]:
         return self.best_architecture

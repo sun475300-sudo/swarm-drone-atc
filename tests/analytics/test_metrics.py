@@ -315,3 +315,164 @@ class TestEvaluator:
         original = _make_two_agent_straight_trace()
         roundtrip = SimulationTrace.from_dict(original.to_dict())
         assert Evaluator().evaluate(original) == Evaluator().evaluate(roundtrip)
+
+
+# ---------------------------------------------------------------------------
+# Edge cases — boost coverage for early-return paths and private helpers
+# ---------------------------------------------------------------------------
+
+import numpy as np  # noqa: E402
+
+from src.analytics.metrics import _has_separated_since, _main  # noqa: E402
+
+
+class TestEdgeCases:
+    # --- near_miss_rate ---
+
+    def test_nmr_zero_horizon_returns_zero(self) -> None:
+        a = AgentTrajectory("a", [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0)])
+        b = AgentTrajectory("b", [(0.0, 1.0, 0.0), (1.0, 1.0, 0.0)])
+        trace = SimulationTrace(horizon_seconds=0.0, dt_s=1.0, agents=[a, b])
+        assert near_miss_rate(trace) == 0.0
+
+    # --- minimum_separation_distance ---
+
+    def test_msd_zero_horizon_returns_inf(self) -> None:
+        a = AgentTrajectory("a", [(0.0, 0.0, 0.0)])
+        b = AgentTrajectory("b", [(1.0, 0.0, 0.0)])
+        trace = SimulationTrace(horizon_seconds=0.0, dt_s=1.0, agents=[a, b])
+        assert math.isinf(minimum_separation_distance(trace))
+
+    def test_msd_one_agent_no_positions_returns_inf(self) -> None:
+        a = AgentTrajectory("a", [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0)])
+        b = AgentTrajectory("b", positions=[])
+        trace = SimulationTrace(horizon_seconds=10.0, dt_s=1.0, agents=[a, b])
+        assert math.isinf(minimum_separation_distance(trace))
+
+    # --- path_efficiency ---
+
+    def test_path_efficiency_single_position_agent_skipped(self) -> None:
+        agent = AgentTrajectory("a", positions=[(0.0, 0.0, 0.0)])
+        trace = SimulationTrace(horizon_seconds=10.0, agents=[agent])
+        assert path_efficiency(trace) == 0.0
+
+    def test_path_efficiency_stationary_agent_skipped(self) -> None:
+        agent = AgentTrajectory("a", positions=[(0.0, 0.0, 0.0)] * 5)
+        trace = SimulationTrace(horizon_seconds=10.0, agents=[agent])
+        assert path_efficiency(trace) == 0.0
+
+    # --- makespan ---
+
+    def test_makespan_no_agents_returns_zero(self) -> None:
+        trace = SimulationTrace(horizon_seconds=10.0, agents=[])
+        assert makespan(trace) == 0.0
+
+    # --- airspace_utilization ---
+
+    def test_airspace_util_zero_horizon_returns_zero(self) -> None:
+        a = AgentTrajectory("a", [(0.0, 0.0, 0.0)])
+        trace = SimulationTrace(horizon_seconds=0.0, dt_s=1.0, agents=[a])
+        assert airspace_utilization(trace) == 0.0
+
+    def test_airspace_util_zero_capacity_returns_zero(self) -> None:
+        trace = _make_two_agent_straight_trace(horizon=4.0)
+        result = airspace_utilization(trace, capacity=AirspaceCapacity(max_agents=0))
+        assert result == 0.0
+
+    # --- voronoi_cell_metrics ---
+
+    def test_voronoi_empty_step_assignment_skipped(self) -> None:
+        trace = SimulationTrace(
+            horizon_seconds=4.0,
+            voronoi_assignments=[{}, {"a": 1}],
+        )
+        m = voronoi_cell_metrics(trace)
+        assert math.isfinite(m["handoff_rate"])
+
+    # --- remote_id_compliance_rate ---
+
+    def test_remote_id_no_agents_returns_zero(self) -> None:
+        trace = SimulationTrace(horizon_seconds=10.0, agents=[])
+        assert remote_id_compliance_rate(trace) == 0.0
+
+    def test_remote_id_tiny_horizon_rounds_to_zero(self) -> None:
+        a = AgentTrajectory("a", positions=[(0.0, 0.0, 0.0)])
+        trace = SimulationTrace(
+            horizon_seconds=0.4,
+            agents=[a],
+            remote_id_valid_seconds_per_agent={"a": 1},
+        )
+        assert remote_id_compliance_rate(trace) == 0.0
+
+    # --- per_tick_latency_percentiles ---
+
+    def test_per_tick_no_data_returns_nan(self) -> None:
+        trace = SimulationTrace()
+        p = per_tick_latency_percentiles(trace)
+        assert all(math.isnan(v) for v in p.values())
+
+
+# ---------------------------------------------------------------------------
+# _has_separated_since (lines 508-522)
+# ---------------------------------------------------------------------------
+
+
+class TestHasSeparatedSince:
+    def test_negative_last_event_returns_true(self) -> None:
+        far = np.array([False, False, False])
+        assert _has_separated_since(far, -1, 2, 2) is True
+
+    def test_current_le_last_returns_true(self) -> None:
+        far = np.array([True, True, True])
+        assert _has_separated_since(far, 3, 3, 2) is True
+
+    def test_sufficient_consecutive_returns_true(self) -> None:
+        far = np.array([False, True, True, True, False])
+        assert _has_separated_since(far, 0, 4, 3) is True
+
+    def test_insufficient_consecutive_returns_false(self) -> None:
+        far = np.array([False, True, True, False, True])
+        assert _has_separated_since(far, 0, 4, 3) is False
+
+    def test_alternating_never_enough_returns_false(self) -> None:
+        far = np.array([False, True, False, True, False])
+        assert _has_separated_since(far, 0, 4, 2) is False
+
+    def test_empty_window_returns_false(self) -> None:
+        far = np.array([False, False])
+        # window = far[2:3] — but last=1, current=2, window=[False] → run=0 → False
+        assert _has_separated_since(far, 1, 2, 2) is False
+
+
+# ---------------------------------------------------------------------------
+# _main() CLI entry point (lines 532-559)
+# ---------------------------------------------------------------------------
+
+
+class TestMainCLI:
+    def test_main_writes_to_stdout(self, tmp_path, capsys) -> None:
+        import json
+
+        trace = _make_two_agent_straight_trace()
+        trace_file = tmp_path / "trace.json"
+        trace_file.write_text(json.dumps(trace.to_dict()), encoding="utf-8")
+
+        rc = _main([str(trace_file)])
+        assert rc == 0
+        out = capsys.readouterr().out
+        data = json.loads(out)
+        assert "NMR" in data
+        assert "MSD" in data
+
+    def test_main_writes_to_output_file(self, tmp_path) -> None:
+        import json
+
+        trace = _make_two_agent_straight_trace()
+        trace_file = tmp_path / "trace.json"
+        result_file = tmp_path / "result.json"
+        trace_file.write_text(json.dumps(trace.to_dict()), encoding="utf-8")
+
+        rc = _main([str(trace_file), "--output", str(result_file)])
+        assert rc == 0
+        data = json.loads(result_file.read_text(encoding="utf-8"))
+        assert "PE" in data

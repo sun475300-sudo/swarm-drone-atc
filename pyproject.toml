@@ -79,10 +79,6 @@ exclude = ["tests/", "archive/", "visualization/"]
 module = ["simulation.*"]
 ignore_errors = true
 
-# 실기 통합(Phase 691-700) 완료 후 ignore 제거 예정
-[[tool.mypy.overrides]]
-module = ["src.hardware.*"]
-ignore_errors = true
 
 [tool.ruff]
 line-length = 120

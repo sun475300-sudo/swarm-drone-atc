@@ -135,11 +135,11 @@ class MavlinkAdapter:
 
         LOGGER.info("connecting to MAVLink at %s", self.uri)
         self._connection = mavutil.mavlink_connection(self.uri)
-        self._connection.wait_heartbeat(timeout=10)
+        self._connection.wait_heartbeat(timeout=10)  # type: ignore[attr-defined]
         LOGGER.info(
             "heartbeat received from system %d component %d",
-            self._connection.target_system,
-            self._connection.target_component,
+            self._connection.target_system,  # type: ignore[attr-defined]
+            self._connection.target_component,  # type: ignore[attr-defined]
         )
 
     _MAV_MODE_FLAGS = {
@@ -336,8 +336,8 @@ class GroundLink:
             ) from exc
 
         LOGGER.info("connecting to ground at %s", self.uri)
-        self._ws = await websockets.connect(self.uri, max_size=2**20)
-        await self._ws.send(json.dumps({"type": "hello", "drone_id": self.drone_id}))
+        self._ws = await websockets.connect(self.uri, max_size=2**20)  # type: ignore[assignment]
+        await self._ws.send(json.dumps({"type": "hello", "drone_id": self.drone_id}))  # type: ignore[attr-defined]
 
     async def publish(self, snapshot: TelemetrySnapshot) -> None:
         if self._ws is None:

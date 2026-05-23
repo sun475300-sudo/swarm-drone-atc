@@ -14,7 +14,7 @@ python main.py visualize                      # 3D 대시보드 (localhost:8050)
 ```
 
 ## Architecture
-- **Layer 1** (드론): `simulation/simulator.py` — `_DroneAgent` 10Hz SimPy 프로세스
+- **Layer 1** (드론): `simulation/drone_agent.py` — `DroneAgent` 10Hz SimPy 프로세스 (simulator.py가 `_DroneAgent` 별칭으로 임포트)
 - **Layer 2** (제어): `src/airspace_control/controller/` — `AirspaceController` 1Hz
 - **Layer 3** (시뮬): `simulation/` — `SwarmSimulator`, `WindModel`, Monte Carlo
 - **Layer 4** (UI): `main.py` CLI, `visualization/simulator_3d.py` Dash

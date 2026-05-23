@@ -68,6 +68,9 @@ class DroneState:
     evade_end_s: float | None = None    # EVADING 단계 종료 시각
     hold_start_s: float | None = None   # HOLDING 단계 시작 시각
 
+    # Voronoi 밀도 관리 (AirspaceController 관리)
+    _voronoi_alt_band: str = ""
+
     def __post_init__(self):
         if not isinstance(self.position, np.ndarray):
             self.position = np.array(self.position, dtype=float)

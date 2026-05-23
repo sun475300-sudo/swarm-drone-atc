@@ -45,10 +45,7 @@ class CausalInferenceEngine:
     def estimate_ate(
         self, treatment: str, outcome: str, graph_id: str
     ) -> TreatmentEffect:
-        if graph_id not in self.observational_data:
-            data = []
-        else:
-            data = self.observational_data[graph_id]
+        data = self.observational_data.get(graph_id, [])
 
         treated = [d for d in data if d.get(treatment) == 1]
         control = [d for d in data if d.get(treatment) == 0]
@@ -75,7 +72,7 @@ class CausalInferenceEngine:
         graph = self.causal_graphs[graph_id]
 
         confounder_effect = 0.0
-        for conf in graph.confounders:
+        for _conf in graph.confounders:
             confounder_effect += np.random.uniform(-0.1, 0.1)
 
         return confounder_effect

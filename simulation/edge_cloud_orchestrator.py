@@ -82,7 +82,7 @@ class EdgeCloudOrchestrator:
             ("edge_3", "192.168.1.12", 80),
         ]
 
-        for node_id, ip, capacity in edge_nodes:
+        for node_id, _ip, capacity in edge_nodes:
             self.add_node(
                 node_id=node_id,
                 tier=DeploymentTier.EDGE,
@@ -98,7 +98,7 @@ class EdgeCloudOrchestrator:
             ("cloud_2", "10.0.0.2", 500),
         ]
 
-        for node_id, ip, capacity in cloud_nodes:
+        for node_id, _ip, capacity in cloud_nodes:
             self.add_node(
                 node_id=node_id,
                 tier=DeploymentTier.CLOUD,
@@ -192,10 +192,7 @@ class EdgeCloudOrchestrator:
         node: ComputeNode,
         required: dict[ResourceType, float],
     ) -> bool:
-        for resource_type, amount in required.items():
-            if node.available.get(resource_type, 0) < amount:
-                return False
-        return True
+        return all(node.available.get(resource_type, 0) >= amount for resource_type, amount in required.items())
 
     def _calculate_placement_score(
         self,

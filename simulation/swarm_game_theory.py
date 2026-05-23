@@ -205,7 +205,7 @@ class SwarmGameTheory:
         return equilibria
 
     def _is_pareto_optimal(self, pa: float, pb: float) -> bool:
-        for (a1, a2), (qa, qb) in self.payoff_matrix.items():
+        for (_a1, _a2), (qa, qb) in self.payoff_matrix.items():
             if qa >= pa and qb >= pb and (qa > pa or qb > pb):
                 return False
         return True

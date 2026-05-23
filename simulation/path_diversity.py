@@ -35,7 +35,7 @@ class PathDiversity:
     def _straight_distance(
         self, a: tuple[float, float, float], b: tuple[float, float, float],
     ) -> float:
-        return float(np.sqrt(sum((ai - bi) ** 2 for ai, bi in zip(a, b))))
+        return float(np.sqrt(sum((ai - bi) ** 2 for ai, bi in zip(a, b, strict=False))))
 
     def _generate_detour(
         self, start: tuple[float, float, float],
@@ -47,7 +47,7 @@ class PathDiversity:
         waypoints = [start]
         for i in range(n_waypoints):
             t = (i + 1) / (n_waypoints + 1)
-            mid = tuple(s + (g - s) * t for s, g in zip(start, goal))
+            mid = tuple(s + (g - s) * t for s, g in zip(start, goal, strict=False))
             offset = tuple(self._rng.normal(0, spread) for _ in range(3))
             wp = (mid[0] + offset[0], mid[1] + offset[1], max(30, mid[2] + offset[2] * 0.3))
             waypoints.append(wp)

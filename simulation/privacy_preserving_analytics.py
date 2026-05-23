@@ -46,7 +46,7 @@ class PrivacyPreservingAnalytics:
         return int(max(0, noisy_count))
 
     def compute_private_variance(self, data: np.ndarray) -> float:
-        mean = np.mean(data)
+        np.mean(data)
         variance = np.var(data)
 
         noisy_variance = variance + np.random.laplace(0, 2.0 / self.epsilon)

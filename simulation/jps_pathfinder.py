@@ -29,10 +29,7 @@ def _heuristic_euclidean(a: tuple, b: tuple) -> float:
 
 def _in_bounds(pos: tuple, shape: tuple) -> bool:
     """좌표가 격자 범위 안에 있는지 확인."""
-    for i, v in enumerate(pos):
-        if v < 0 or v >= shape[i]:
-            return False
-    return True
+    return all(not (v < 0 or v >= shape[i]) for i, v in enumerate(pos))
 
 
 def _is_walkable(grid: np.ndarray, pos: tuple, wall: int = 0) -> bool:
@@ -67,7 +64,7 @@ def jps_search_2d(
     def walkable(r, c):
         return 0 <= r < rows and 0 <= c < cols and grid[r, c] != wall_value
 
-    SQRT2 = math.sqrt(2)
+    math.sqrt(2)
 
     # (f_cost, g_cost, (r,c), (dr,dc) or None)
     open_list: list[tuple[float, float, tuple, tuple | None]] = []
@@ -114,9 +111,8 @@ def jps_search_2d(
                     return (nr, nc)
 
         # 대각선이면 다음 셀 이동 가능 확인
-        if dr != 0 and dc != 0:
-            if not walkable(nr + dr, nc) and not walkable(nr, nc + dc):
-                return None
+        if dr != 0 and dc != 0 and not walkable(nr + dr, nc) and not walkable(nr, nc + dc):
+            return None
 
         return _jump(nr, nc, dr, dc)
 

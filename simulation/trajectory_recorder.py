@@ -7,7 +7,8 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict, deque
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 
 class TrajectoryRecorder:

@@ -56,16 +56,13 @@ class DemandForecaster:
     def forecast(self, hour: int, sector: str | None = None) -> Forecast:
         h = hour % self.n_slots
 
-        if sector and sector in self._sector_history:
-            data = self._sector_history[sector][h]
-        else:
-            data = self._history[h]
+        data = self._sector_history[sector][h] if sector and sector in self._sector_history else self._history[h]
 
         if not data:
             return Forecast(hour=h, predicted_count=0, confidence=0, trend="STABLE", recommended_capacity=0)
 
         predicted = float(np.mean(data))
-        std = float(np.std(data)) if len(data) > 1 else predicted * 0.3
+        float(np.std(data)) if len(data) > 1 else predicted * 0.3
         confidence = min(1.0, len(data) / 20.0)
 
         # 트렌드

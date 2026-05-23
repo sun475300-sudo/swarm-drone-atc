@@ -82,7 +82,7 @@ class BatteryOptimizationController:
             current_charge = state.current_charge_wh
             capacity = state.capacity_wh
 
-            remaining = capacity - current_charge
+            capacity - current_charge
 
             model = self.consumption_models[drone_id]
             avg_power = (model.hover_watts + model.cruise_watts) / 2

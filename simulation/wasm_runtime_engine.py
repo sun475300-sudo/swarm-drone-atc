@@ -5,9 +5,10 @@ Phase 332: WebAssembly Runtime Engine
 """
 
 import struct
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import Any, Callable
+from typing import Any
 
 
 class WasmOpcode(IntEnum):
@@ -200,11 +201,13 @@ class WasmVM:
                 self._push(float(a) / float(b) if b != 0 else 0.0)
 
             elif op == WasmOpcode.LOCAL_GET:
-                idx = bytecode[pc]; pc += 1
+                idx = bytecode[pc]
+                pc += 1
                 self._push(locals_arr[idx] if idx < len(locals_arr) else 0)
 
             elif op == WasmOpcode.LOCAL_SET:
-                idx = bytecode[pc]; pc += 1
+                idx = bytecode[pc]
+                pc += 1
                 val = self._pop()
                 if idx < len(locals_arr):
                     locals_arr[idx] = val
@@ -234,7 +237,8 @@ class WasmVM:
                 self._pop()
 
             elif op == WasmOpcode.CALL:
-                func_idx = bytecode[pc]; pc += 1
+                func_idx = bytecode[pc]
+                pc += 1
                 # Simplified: call host function by index
                 host_names = list(self.host_functions.keys())
                 if func_idx < len(host_names):

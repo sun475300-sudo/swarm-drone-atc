@@ -6,10 +6,11 @@
 
 from __future__ import annotations
 
+import contextlib
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable
 
 import numpy as np
 
@@ -134,10 +135,8 @@ class TelemetryStreamProcessor:
             self._alerts.append(alert)
             self._total_anomalies += 1
             for cb in self._callbacks:
-                try:
+                with contextlib.suppress(Exception):
                     cb(alert)
-                except Exception:
-                    pass
         return alert
 
     def ingest_batch(self, points: list[TelemetryPoint]) -> list[AnomalyAlert]:
@@ -160,10 +159,10 @@ class TelemetryStreamProcessor:
 
     def get_drone_dashboard(self, drone_id: str) -> dict[str, dict]:
         result = {}
-        for field in TelemetryField:
-            stats = self.get_window_stats(drone_id, field)
+        for tfield in TelemetryField:
+            stats = self.get_window_stats(drone_id, tfield)
             if stats:
-                result[field.value] = stats
+                result[tfield.value] = stats
         return result
 
     def get_alerts(self, drone_id: str | None = None, severity: str | None = None) -> list[AnomalyAlert]:

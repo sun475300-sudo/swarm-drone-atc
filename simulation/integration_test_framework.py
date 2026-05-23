@@ -6,10 +6,11 @@
 
 from __future__ import annotations
 
+import contextlib
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable
 
 
 class TestResult(Enum):
@@ -123,10 +124,8 @@ class IntegrationTestFramework:
     def run_all(self, tags: list[str] | None = None) -> TestSuiteReport:
         # Setup
         for hook in self._setup_hooks:
-            try:
+            with contextlib.suppress(Exception):
                 hook()
-            except Exception:
-                pass
         # Topological sort by dependencies
         order = self._resolve_order()
         report = TestSuiteReport()
@@ -148,10 +147,8 @@ class IntegrationTestFramework:
                 report.errors += 1
         # Teardown
         for hook in self._teardown_hooks:
-            try:
+            with contextlib.suppress(Exception):
                 hook()
-            except Exception:
-                pass
         return report
 
     def _resolve_order(self) -> list[str]:

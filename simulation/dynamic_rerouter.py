@@ -63,13 +63,10 @@ class AStarPathfinder:
         return np.array([g * self.grid_size + self.grid_size / 2 for g in grid])
 
     def _heuristic(self, a: tuple[int, int, int], b: tuple[int, int, int]) -> float:
-        return sum((ai - bi) ** 2 for ai, bi in zip(a, b)) ** 0.5 * self.grid_size
+        return sum((ai - bi) ** 2 for ai, bi in zip(a, b, strict=False)) ** 0.5 * self.grid_size
 
     def _is_blocked(self, pos: np.ndarray, obstacles: list[Obstacle]) -> bool:
-        for obs in obstacles:
-            if obs.active and np.linalg.norm(pos[:3] - obs.center[:3]) < obs.radius:
-                return True
-        return False
+        return any(obs.active and np.linalg.norm(pos[:3] - obs.center[:3]) < obs.radius for obs in obstacles)
 
     def find_path(self, start: np.ndarray, goal: np.ndarray, obstacles: list[Obstacle], max_iterations: int = 2000) -> list[np.ndarray]:
         start_g = self._to_grid(start)

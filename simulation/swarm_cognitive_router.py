@@ -73,9 +73,8 @@ class SwarmCognitiveRouter:
         self.routing_tables[node.node_id] = {}
 
     def update_link_quality(self, node1_id: str, node2_id: str, quality: float):
-        if node1_id in self.nodes:
-            if node2_id not in self.nodes[node1_id].neighbors:
-                self.nodes[node1_id].neighbors.append(node2_id)
+        if node1_id in self.nodes and node2_id not in self.nodes[node1_id].neighbors:
+            self.nodes[node1_id].neighbors.append(node2_id)
 
     def compute_routes(self, source: str, destination: str) -> list[str] | None:
         if source not in self.nodes or destination not in self.nodes:

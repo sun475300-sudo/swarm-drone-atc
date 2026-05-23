@@ -66,10 +66,7 @@ class MultiModalFusion:
             total_weight += weight
             sources_used.append(sensor_type)
 
-        if total_weight > 0:
-            fused_state = weighted_sum / total_weight
-        else:
-            fused_state = self.state_estimate
+        fused_state = weighted_sum / total_weight if total_weight > 0 else self.state_estimate
 
         confidence = min(total_weight / len(SensorType), 1.0)
 

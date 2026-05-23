@@ -91,7 +91,7 @@ class SensorVoter:
 
         weights = np.array([s.confidence for s in healthy])
         weights /= weights.sum() + 1e-10
-        pos = sum(w * s.position_est for w, s in zip(weights, healthy))
+        pos = sum(w * s.position_est for w, s in zip(weights, healthy, strict=False))
 
         spread = np.std([s.position_est for s in healthy], axis=0)
         integrity = max(0, 1 - np.linalg.norm(spread) / 10)

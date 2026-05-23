@@ -57,7 +57,7 @@ class ExtendedKalmanPredictor:
         pos = position.copy()
         vel = velocity.copy()
         confidence = 1.0
-        for i in range(n_steps):
+        for _i in range(n_steps):
             vel = vel + acceleration * self.dt
             pos = pos + vel * self.dt
             confidence *= (1.0 - self.process_noise * self.dt * 0.1)
@@ -93,7 +93,7 @@ class ORCAVelocityPlanner:
                 orca_planes.append((-direction, np.dot(-direction, rel_vel)))
             else:
                 # Project to velocity obstacle
-                leg = np.sqrt(max(0, dist * dist - combined_radius * combined_radius))
+                np.sqrt(max(0, dist * dist - combined_radius * combined_radius))
                 direction = rel_pos / dist
                 # Normal to half-plane
                 n = np.array([-direction[1], direction[0], 0]) if len(direction) >= 3 else np.array([-direction[1], direction[0]])

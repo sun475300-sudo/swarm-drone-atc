@@ -292,8 +292,8 @@ class AirspaceGrid:
         c2 = self.corridors[corridor_id2]
 
         # Check if corridor cells overlap
-        cells1 = set(c.cell_id for c in c1.cells)
-        cells2 = set(c.cell_id for c in c2.cells)
+        cells1 = {c.cell_id for c in c1.cells}
+        cells2 = {c.cell_id for c in c2.cells}
 
         if cells1 & cells2:  # If cells overlap
             # Do more precise check: sample points from both corridors

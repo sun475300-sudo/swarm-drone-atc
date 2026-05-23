@@ -176,8 +176,8 @@ class QuantumResilienceManager:
         if len(ciphertext) < 48:
             raise ValueError("Invalid ciphertext")
 
-        iv = ciphertext[:16]
-        signature = ciphertext[-32:]
+        ciphertext[:16]
+        ciphertext[-32:]
         encrypted = ciphertext[16:-32]
 
         classical_key = key[:32]

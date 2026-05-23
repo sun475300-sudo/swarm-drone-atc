@@ -49,7 +49,7 @@ class SecureMessagingProtocol:
             encrypted = bytes(
                 a ^ b
                 for a, b in zip(
-                    message.content, key * (len(message.content) // len(key) + 1)
+                    message.content, key * (len(message.content) // len(key) + 1), strict=False
                 )
             )
             message.content = encrypted

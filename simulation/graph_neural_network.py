@@ -93,7 +93,7 @@ class GraphNeuralNetwork:
         for node_id, embedding in self.node_embeddings.items():
             node_states[node_id] = np.tanh(self.W_node @ embedding)
 
-        for step in range(self.message_passing_steps):
+        for _step in range(self.message_passing_steps):
             new_states = {}
 
             for node_id in node_states:
@@ -143,7 +143,7 @@ class GraphNeuralNetwork:
                 rel_vel = np.array(drone1.get("velocity", [0, 0, 0])) - np.array(
                     drone2.get("velocity", [0, 0, 0])
                 )
-                closing_speed = np.linalg.norm(rel_vel)
+                np.linalg.norm(rel_vel)
 
                 base_risk = 1.0 / (1.0 + distance / 10.0)
 

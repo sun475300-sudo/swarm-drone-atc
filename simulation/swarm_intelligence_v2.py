@@ -6,9 +6,9 @@ Firefly Algorithm 다중 메타휴리스틱 최적화 프레임워크.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable
 
 import numpy as np
 

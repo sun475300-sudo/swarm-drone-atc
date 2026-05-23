@@ -23,8 +23,8 @@ CLI::
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
 
 import numpy as np
 
@@ -261,7 +261,7 @@ def voronoi_cell_metrics(trace: SimulationTrace) -> dict[str, float]:
         unique_cells = set(cells)
         if unique_cells:
             occupancies.append(len(cells) / len(unique_cells))
-    for prev, cur in zip(by_step, by_step[1:]):
+    for prev, cur in zip(by_step, by_step[1:], strict=False):
         for agent_id, cell in cur.items():
             if prev.get(agent_id) is not None and prev[agent_id] != cell:
                 handoffs += 1

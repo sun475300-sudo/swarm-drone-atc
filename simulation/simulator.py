@@ -20,8 +20,6 @@ import logging
 import os
 import sys
 
-logger = logging.getLogger(__name__)
-
 import numpy as np
 import simpy
 import yaml
@@ -36,6 +34,7 @@ from simulation.apf_engine.apf import (
     APFState,
     batch_compute_forces,
 )
+from simulation.drone_agent import DroneAgent as _DroneAgent
 from simulation.spatial_hash import SpatialHash
 from simulation.weather import WindModel, build_wind_models
 from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
@@ -49,14 +48,12 @@ from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
 from src.airspace_control.comms.communication_bus import CommMessage, CommunicationBus
 from src.airspace_control.comms.message_types import (
     ClearanceRequest,
-    ClearanceResponse,
-    ResolutionAdvisory,
-    TelemetryMessage,
 )
 from src.airspace_control.controller.airspace_controller import AirspaceController
 from src.airspace_control.controller.priority_queue import FlightPriorityQueue
 from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
-from simulation.drone_agent import DroneAgent as _DroneAgent
+
+logger = logging.getLogger(__name__)
 
 # ─────────────────────────────────────────────────────────────
 # 유틸리티

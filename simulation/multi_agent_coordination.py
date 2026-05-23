@@ -91,9 +91,7 @@ class Agent:
         """Check if agent can accept a new task."""
         if self.state in (AgentState.OFFLINE, AgentState.EMERGENCY):
             return False
-        if self.load >= self.max_load:
-            return False
-        return True
+        return not self.load >= self.max_load
 
     def assign_task(self, task: Task) -> bool:
         """Assign a task to this agent."""
@@ -270,10 +268,9 @@ class MultiAgentCoordinator:
         with self.coordination_lock:
             for task in list(self.pending_tasks):
                 best_agent = self._select_best_agent(task)
-                if best_agent:
-                    if best_agent.assign_task(task):
-                        self.pending_tasks.remove(task)
-                        assigned_count += 1
+                if best_agent and best_agent.assign_task(task):
+                    self.pending_tasks.remove(task)
+                    assigned_count += 1
         return assigned_count
 
     def _select_best_agent(self, task: Task) -> Agent | None:
@@ -465,12 +462,11 @@ class MultiAgentCoordinator:
                 for task in list(overload.tasks):
                     if task.priority in (TaskPriority.LOW, TaskPriority.NORMAL):
                         for under in underutilized:
-                            if under.can_accept_task(task):
-                                if self.handover_task(
-                                    task.task_id, overload.agent_id, under.agent_id
-                                ):
-                                    handoffs += 1
-                                    break
+                            if under.can_accept_task(task) and self.handover_task(
+                                task.task_id, overload.agent_id, under.agent_id
+                            ):
+                                handoffs += 1
+                                break
 
             return {
                 "overloaded_agents": len(overloaded),

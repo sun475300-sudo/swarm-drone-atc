@@ -31,7 +31,7 @@ class DataEncryptionSystem:
 
         key = self.keys[key_id]
         encrypted = bytes(
-            a ^ b for a, b in zip(content, key * (len(content) // len(key) + 1))
+            a ^ b for a, b in zip(content, key * (len(content) // len(key) + 1), strict=False)
         )
 
         enc_data = EncryptedData(data_id, encrypted, key_id, time.time())
@@ -50,7 +50,7 @@ class DataEncryptionSystem:
             a ^ b
             for a, b in zip(
                 enc.encrypted_content,
-                key * (len(enc.encrypted_content) // len(key) + 1),
+                key * (len(enc.encrypted_content) // len(key) + 1), strict=False,
             )
         )
 
@@ -60,7 +60,7 @@ class DataEncryptionSystem:
         if old_key_id not in self.keys:
             return False
 
-        old_key = self.keys[old_key_id]
+        self.keys[old_key_id]
 
         for data_id, enc in self.encrypted_data.items():
             if enc.key_id == old_key_id:

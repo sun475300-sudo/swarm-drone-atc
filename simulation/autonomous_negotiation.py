@@ -104,10 +104,7 @@ class AutonomousNegotiation:
         values = {}
         for issue in self.issues:
             pref = agent.issues.get(issue.name)
-            if pref:
-                ideal = (pref[0] + pref[1]) / 2
-            else:
-                ideal = (issue.max_value + issue.min_value) / 2
+            ideal = (pref[0] + pref[1]) / 2 if pref else (issue.max_value + issue.min_value) / 2
             midpoint = (issue.max_value + issue.min_value) / 2
             value = ideal + cf * (midpoint - ideal)
             value += self.rng.standard_normal() * (issue.max_value - issue.min_value) * 0.02

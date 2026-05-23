@@ -58,10 +58,7 @@ class AnomalyFederatedDetector:
     def detect_anomaly(
         self, drone_id: str, metrics: dict[str, float]
     ) -> AnomalyReport | None:
-        if drone_id in self.local_models:
-            thresholds = self.local_models[drone_id].thresholds
-        else:
-            thresholds = self.global_thresholds
+        thresholds = self.local_models[drone_id].thresholds if drone_id in self.local_models else self.global_thresholds
 
         anomalies = []
 
@@ -105,7 +102,7 @@ class AnomalyFederatedDetector:
 
         aggregated = {}
 
-        for key in self.global_thresholds.keys():
+        for key in self.global_thresholds:
             values = [u.get(key, self.global_thresholds[key]) for u in updates]
             aggregated[key] = np.mean(values)
 

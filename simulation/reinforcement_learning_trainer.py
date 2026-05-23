@@ -72,7 +72,7 @@ class ReinforcementLearningTrainer:
         if len(self.replay_buffer) < self.config.batch_size:
             return 0.0
 
-        batch = np.random.choice(
+        np.random.choice(
             len(self.replay_buffer), self.config.batch_size, replace=False
         )
 

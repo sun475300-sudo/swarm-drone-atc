@@ -51,10 +51,9 @@ class Scheduler:
         self.ready_queue.sort(key=lambda p: p.priority, reverse=True)
 
     def schedule(self) -> Process | None:
-        if self.current:
-            if self.current.state == ProcessState.RUNNING:
-                self.current.state = ProcessState.READY
-                self.ready_queue.append(self.current)
+        if self.current and self.current.state == ProcessState.RUNNING:
+            self.current.state = ProcessState.READY
+            self.ready_queue.append(self.current)
         ready = [p for p in self.ready_queue if p.state == ProcessState.READY]
         if not ready:
             self.current = None

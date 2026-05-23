@@ -67,7 +67,7 @@ class BB84Protocol:
         alice_bases = self.rng.choice(list(QKDBasis), n_bits)
         bob_bases = self.rng.choice(list(QKDBasis), n_bits)
 
-        qubits = [self._prepare_qubit(int(b), basis) for b, basis in zip(alice_bits, alice_bases)]
+        qubits = [self._prepare_qubit(int(b), basis) for b, basis in zip(alice_bits, alice_bases, strict=False)]
 
         if eve_present:
             eve_bases = self.rng.choice(list(QKDBasis), n_bits)
@@ -86,7 +86,7 @@ class BB84Protocol:
         sifted_alice = [int(alice_bits[i]) for i in matching]
         sifted_bob = [bob_results[i] for i in matching]
 
-        errors = sum(a != b for a, b in zip(sifted_alice, sifted_bob))
+        errors = sum(a != b for a, b in zip(sifted_alice, sifted_bob, strict=False))
         error_rate = errors / max(len(matching), 1)
         secure = error_rate < 0.11
 
@@ -109,7 +109,7 @@ class QuantumTeleportation:
         norm = np.sqrt(abs(alpha)**2 + abs(beta)**2)
         alpha, beta = alpha / norm, beta / norm
 
-        bell_measurement = self.rng.integers(0, 4)
+        self.rng.integers(0, 4)
         noise_alpha = alpha + self.rng.standard_normal() * noise
         noise_beta = beta + self.rng.standard_normal() * noise
         norm2 = np.sqrt(abs(noise_alpha)**2 + abs(noise_beta)**2)

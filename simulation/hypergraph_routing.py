@@ -57,7 +57,7 @@ class HyperGraph:
             d, u = heapq.heappop(pq)
             if d > dist[u]:
                 continue
-            for eid, neighbors, cost in self.adj.get(u, []):
+            for _eid, neighbors, cost in self.adj.get(u, []):
                 for v in neighbors:
                     nd = d + cost
                     if nd < dist.get(v, float('inf')):
@@ -70,7 +70,6 @@ class HyperGraph:
         dist = self.dijkstra(source)
         total_cost = 0.0
         reachable = 0
-        edges_used = set()
         for dest in destinations:
             if dist.get(dest, float('inf')) < float('inf'):
                 total_cost += dist[dest]

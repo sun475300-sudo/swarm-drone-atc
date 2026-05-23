@@ -178,7 +178,7 @@ class DroneSwarmEncryption:
         # Simplified XOR encryption (production would use AES-GCM)
         key_stream = hashlib.sha256(key + nonce).digest()
         extended_key = key_stream * (len(plaintext) // len(key_stream) + 1)
-        ciphertext = bytes(p ^ k for p, k in zip(plaintext, extended_key[:len(plaintext)]))
+        ciphertext = bytes(p ^ k for p, k in zip(plaintext, extended_key[:len(plaintext)], strict=False))
         tag = hashlib.sha256(key + ciphertext + nonce).digest()[:16]
 
         return EncryptedMessage(
@@ -212,7 +212,7 @@ class DroneSwarmEncryption:
 
         key_stream = hashlib.sha256(key + nonce).digest()
         extended_key = key_stream * (len(msg.ciphertext) // len(key_stream) + 1)
-        plaintext = bytes(c ^ k for c, k in zip(msg.ciphertext, extended_key[:len(msg.ciphertext)]))
+        plaintext = bytes(c ^ k for c, k in zip(msg.ciphertext, extended_key[:len(msg.ciphertext)], strict=False))
         return plaintext
 
     def rotate_group_key(self) -> GroupKey | None:

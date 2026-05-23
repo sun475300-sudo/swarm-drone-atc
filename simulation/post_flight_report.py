@@ -90,7 +90,7 @@ class PostFlightReporter:
                     f"track_points[{i}] position components must be finite, got {pt[1]!r}"
                 )
         ts_seq = [p[0] for p in track_points]
-        if any(t2 < t1 for t1, t2 in zip(ts_seq, ts_seq[1:])):
+        if any(t2 < t1 for t1, t2 in zip(ts_seq, ts_seq[1:], strict=False)):
             raise ValueError("track_points timestamps must not decrease (no backward steps)")
         if collisions < 0 or conflicts_detected < 0 or deviation_alerts < 0:
             raise ValueError("collision/conflict/deviation counts must be non-negative")

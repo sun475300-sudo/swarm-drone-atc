@@ -134,7 +134,7 @@ class AeroCharts:
             )
         hazards: list[ChartFeature] = []
         seen: set[str] = set()
-        for a, b in zip(waypoints[:-1], waypoints[1:]):
+        for a, b in zip(waypoints[:-1], waypoints[1:], strict=False):
             for f in self.features.values():
                 if f.feature_id in seen:
                     continue

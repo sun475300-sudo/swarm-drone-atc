@@ -54,7 +54,7 @@ class ModelCompressionEngine:
     ) -> dict[str, np.ndarray]:
         distilled = {}
 
-        for name in student_model.keys():
+        for name in student_model:
             if name in self.model_params:
                 distilled[name] = (
                     0.5 * student_model[name] + 0.5 * self.model_params[name]

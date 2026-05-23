@@ -81,7 +81,7 @@ class SimulatedAnnealing:
         accepted = 0
         rejected = 0
 
-        for step in range(max_steps):
+        for _step in range(max_steps):
             # 랜덤 드론 하나 이동
             idx = int(self.rng.integers(0, len(current)))
             delta = self.rng.normal(0, t * 0.1, 3)

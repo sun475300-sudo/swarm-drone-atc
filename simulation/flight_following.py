@@ -138,7 +138,7 @@ class FlightFollowingService:
         if len(plan) < 2:
             return 0.0
         best = float("inf")
-        for a, b in zip(plan[:-1], plan[1:]):
+        for a, b in zip(plan[:-1], plan[1:], strict=False):
             d = self._segment_3d_distance(a, b, position)
             if d < best:
                 best = d

@@ -19,53 +19,55 @@ except (ImportError, OSError):
 
 from .apf import APF_PARAMS, APFState
 
+if _TORCH:
+    class _APFBatchModule(nn.Module):
+        """DataParallel 호환 APF 배치 연산 모듈."""
 
-class _APFBatchModule(nn.Module):
-    """DataParallel 호환 APF 배치 연산 모듈."""
+        def __init__(self, k_att: float, k_rep: float, d0: float, max_force: float):
+            super().__init__()
+            self.k_att = k_att
+            self.k_rep = k_rep
+            self.d0 = d0
+            self.max_force = max_force
 
-    def __init__(self, k_att: float, k_rep: float, d0: float, max_force: float):
-        super().__init__()
-        self.k_att = k_att
-        self.k_rep = k_rep
-        self.d0 = d0
-        self.max_force = max_force
+        def forward(self, positions: torch.Tensor, goals: torch.Tensor,
+                    all_positions: torch.Tensor) -> torch.Tensor:
+            """
+            Args:
+                positions: (batch, 3) — 이 배치의 드론 위치
+                goals: (batch, 3) — 이 배치의 목표
+                all_positions: (N, 3) — 전체 드론 위치 (척력 계산용)
+            Returns:
+                forces: (batch, 3)
+            """
+            positions.shape[0]
+            F = torch.zeros_like(positions)
 
-    def forward(self, positions: torch.Tensor, goals: torch.Tensor,
-                all_positions: torch.Tensor) -> torch.Tensor:
-        """
-        Args:
-            positions: (batch, 3) — 이 배치의 드론 위치
-            goals: (batch, 3) — 이 배치의 목표
-            all_positions: (N, 3) — 전체 드론 위치 (척력 계산용)
-        Returns:
-            forces: (batch, 3)
-        """
-        batch = positions.shape[0]
-        F = torch.zeros_like(positions)
+            # 인력
+            goal_diff = goals - positions
+            goal_dist = torch.linalg.norm(goal_diff, dim=1, keepdim=True).clamp(min=0.1)
+            F += self.k_att * goal_diff / goal_dist
 
-        # 인력
-        goal_diff = goals - positions
-        goal_dist = torch.linalg.norm(goal_diff, dim=1, keepdim=True).clamp(min=0.1)
-        F += self.k_att * goal_diff / goal_dist
+            # 척력 (전체 드론 대비)
+            diff = positions.unsqueeze(1) - all_positions.unsqueeze(0)  # (batch, N, 3)
+            dist = torch.linalg.norm(diff, dim=2).clamp(min=1e-6)       # (batch, N)
 
-        # 척력 (전체 드론 대비)
-        diff = positions.unsqueeze(1) - all_positions.unsqueeze(0)  # (batch, N, 3)
-        dist = torch.linalg.norm(diff, dim=2).clamp(min=1e-6)       # (batch, N)
+            in_range = (dist < self.d0) & (dist > 0.5)
+            if in_range.any():
+                n_hat = diff / dist.unsqueeze(2)
+                mag = self.k_rep * (1.0 / dist - 1.0 / self.d0) / dist ** 2
+                mag = mag * in_range.float()
+                F += (mag.unsqueeze(2) * n_hat).sum(dim=1)
 
-        in_range = (dist < self.d0) & (dist > 0.5)
-        if in_range.any():
-            n_hat = diff / dist.unsqueeze(2)
-            mag = self.k_rep * (1.0 / dist - 1.0 / self.d0) / dist ** 2
-            mag = mag * in_range.float()
-            F += (mag.unsqueeze(2) * n_hat).sum(dim=1)
+            # 클리핑
+            f_mag = torch.linalg.norm(F, dim=1, keepdim=True)
+            clip_mask = (f_mag > self.max_force).squeeze(1)
+            if clip_mask.any():
+                F[clip_mask] = F[clip_mask] / f_mag[clip_mask] * self.max_force
 
-        # 클리핑
-        f_mag = torch.linalg.norm(F, dim=1, keepdim=True)
-        clip_mask = (f_mag > self.max_force).squeeze(1)
-        if clip_mask.any():
-            F[clip_mask] = F[clip_mask] / f_mag[clip_mask] * self.max_force
-
-        return F
+            return F
+else:
+    _APFBatchModule = None
 
 
 def get_gpu_count() -> int:

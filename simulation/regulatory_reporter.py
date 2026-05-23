@@ -102,10 +102,7 @@ class RegulatoryReporter:
     def audit_trail(
         self, drone_id: str | None = None, limit: int = 50
     ) -> list[AuditEntry]:
-        if drone_id:
-            entries = [e for e in self._log if e.drone_id == drone_id]
-        else:
-            entries = list(self._log)
+        entries = [e for e in self._log if e.drone_id == drone_id] if drone_id else list(self._log)
         return entries[-limit:]
 
     def summary(self) -> dict[str, Any]:

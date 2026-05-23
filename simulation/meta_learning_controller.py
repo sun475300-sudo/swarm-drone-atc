@@ -64,7 +64,7 @@ class MetaLearningController:
     def meta_train(
         self, tasks: list[Task], num_iterations: int = 100
     ) -> MetaLearnedModel:
-        for iteration in range(num_iterations):
+        for _iteration in range(num_iterations):
             for task in tasks:
                 adapted_params = self._inner_update(task.support_set)
 
@@ -135,7 +135,7 @@ class MetaLearningController:
         params = self.meta_parameters.copy()
 
         for _ in range(5):
-            for key, data in task.support_set.items():
+            for key, _data in task.support_set.items():
                 if key in params:
                     grad = np.random.randn(*params[key].shape) * 0.01
                     params[key] = params[key] - self.inner_lr * grad
@@ -148,7 +148,7 @@ class MetaLearningController:
     def evaluate_adaptation(
         self, model: MetaLearnedModel, test_task: Task
     ) -> dict[str, float]:
-        adapted_params = self.adapt_to_task(model, test_task)
+        self.adapt_to_task(model, test_task)
 
         accuracy = np.random.uniform(0.6, 0.9)
 

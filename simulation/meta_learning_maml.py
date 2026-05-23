@@ -77,7 +77,8 @@ class MAMLTaskGenerator:
         self.task_count += 1
         A = self.rng.normal(0, 1, (4, 2))
         b = self.rng.normal(0, 0.5, 2)
-        target_fn = lambda x, A=A, b=b: x @ A + b
+        def target_fn(x, A=A, b=b):
+            return x @ A + b
         sx = self.rng.normal(0, 1, (n_support, 4))
         sy = target_fn(sx) + self.rng.normal(0, 0.1, (n_support, 2))
         qx = self.rng.normal(0, 1, (n_query, 4))
@@ -133,7 +134,7 @@ class MetaLearningMAML:
         self.meta_losses.append(meta_loss)
 
     def train(self, n_epochs=10, tasks_per_epoch=5):
-        for epoch in range(n_epochs):
+        for _epoch in range(n_epochs):
             tasks = [self.task_gen.generate() for _ in range(tasks_per_epoch)]
             for t in tasks:
                 self.adapt(t)

@@ -143,9 +143,8 @@ class FlightPathPlanner:
         result = []
         for dx, dy in [(1,0),(-1,0),(0,1),(0,-1),(1,1),(1,-1),(-1,1),(-1,-1)]:
             nx, ny = node.x + dx, node.y + dy
-            if ix_min <= nx <= ix_max and iy_min <= ny <= iy_max:
-                if not self._is_blocked(nx, ny):
-                    result.append(GridNode(nx, ny, z))
+            if ix_min <= nx <= ix_max and iy_min <= ny <= iy_max and not self._is_blocked(nx, ny):
+                result.append(GridNode(nx, ny, z))
         return result
 
     def _astar_2d(self, start: GridNode, goal: GridNode) -> list[GridNode]:

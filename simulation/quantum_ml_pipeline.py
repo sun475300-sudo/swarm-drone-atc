@@ -163,7 +163,7 @@ class QuantumMLPipeline:
             return {"accuracy": float(acc), "samples": len(X)}
         else:
             losses = []
-            for x, label in zip(X, y):
+            for x, label in zip(X, y, strict=False):
                 pred = self.model.predict(x)
                 loss = float(np.mean((pred[:1] - label) ** 2))
                 losses.append(loss)

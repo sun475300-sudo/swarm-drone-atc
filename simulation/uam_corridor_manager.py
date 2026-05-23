@@ -26,7 +26,9 @@ class VertiportStatus(Enum):
 @dataclass
 class Vertiport:
     port_id: str
-    x: float; y: float; z: float
+    x: float
+    y: float
+    z: float
     capacity: int = 4
     current_load: int = 0
     status: VertiportStatus = VertiportStatus.OPEN
@@ -165,10 +167,9 @@ class UAMCorridorManager:
         best_cid = None
         best_load = float('inf')
         for cid, cor in self.corridors.items():
-            if cor.start_port == origin and cor.end_port == destination:
-                if cor.current_traffic < best_load:
-                    best_load = cor.current_traffic
-                    best_cid = cid
+            if cor.start_port == origin and cor.end_port == destination and cor.current_traffic < best_load:
+                best_load = cor.current_traffic
+                best_cid = cid
         return best_cid
 
     def get_corridor_load(self) -> dict[str, float]:

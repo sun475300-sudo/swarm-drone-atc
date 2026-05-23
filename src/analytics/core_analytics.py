@@ -406,7 +406,7 @@ class SwarmMetricsCollector:
         sample_times = np.linspace(0, 600, sample_size)  # 0 ~ 600s
 
         wind_vectors = np.array(
-            [wind_model.get_wind_vector(pos, t) for pos, t in zip(sample_positions, sample_times)]
+            [wind_model.get_wind_vector(pos, t) for pos, t in zip(sample_positions, sample_times, strict=False)]
         )
 
         wind_speeds = np.linalg.norm(wind_vectors[:, :2], axis=1)  # 수평 성분만

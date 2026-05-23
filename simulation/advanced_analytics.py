@@ -153,7 +153,7 @@ class AnalyticsAggregator:
 
     def get_all_metric_names(self) -> list[str]:
         """Get list of all unique metric names."""
-        return sorted(list(self._metric_names))
+        return sorted(self._metric_names)
 
 
 class PerformanceComparator:

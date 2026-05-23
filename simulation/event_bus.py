@@ -10,8 +10,9 @@ Pub/Sub 이벤트 브로커 + 필터 + 이력.
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 
 @dataclass
@@ -110,7 +111,7 @@ class EventBus:
 
     def event_types(self) -> list[str]:
         """발행된 이벤트 타입 목록"""
-        return list(set(e.event_type for e in self._history))
+        return list({e.event_type for e in self._history})
 
     def clear_history(self) -> None:
         self._history.clear()

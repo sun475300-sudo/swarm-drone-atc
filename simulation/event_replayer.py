@@ -6,8 +6,9 @@ Event sourcing replay with sequence/time filtering and deterministic state resto
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 T = TypeVar("T")
 

@@ -19,8 +19,12 @@ class RadarMode(Enum):
 @dataclass
 class RadarTarget:
     target_id: str
-    x: float; y: float; z: float
-    vx: float = 0; vy: float = 0; vz: float = 0
+    x: float
+    y: float
+    z: float
+    vx: float = 0
+    vy: float = 0
+    vz: float = 0
     rcs: float = 1.0  # radar cross section m²
 
 
@@ -37,7 +41,9 @@ class RadarDetection:
 
 @dataclass
 class AntennaElement:
-    x: float; y: float; z: float
+    x: float
+    y: float
+    z: float
     weight: complex = 1.0 + 0j
 
 

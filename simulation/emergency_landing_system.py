@@ -25,16 +25,14 @@ class EmergencyLandingSystem:
             return True
         if sensor_status.get("gps_lost", False):
             return True
-        if sensor_status.get("motor_failure", False):
-            return True
-        return False
+        return bool(sensor_status.get("motor_failure", False))
 
     def find_safe_landing_site(
         self, position: np.ndarray, terrain: np.ndarray
     ) -> LandingSite | None:
         candidates = []
 
-        for i in range(10):
+        for _i in range(10):
             offset = np.random.randn(3) * 50
             candidate_pos = position + offset
             candidate_pos[2] = 0

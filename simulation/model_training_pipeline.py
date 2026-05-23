@@ -356,7 +356,7 @@ class ModelTrainer:
         train_mse = float(np.mean((model.predict(X_train) - y_train) ** 2))
         test_mse = float(np.mean((model.predict(X_test) - y_test) ** 2))
 
-        train_mae = float(np.mean(np.abs(model.predict(X_train) - y_train)))
+        float(np.mean(np.abs(model.predict(X_train) - y_train)))
         test_mae = float(np.mean(np.abs(model.predict(X_test) - y_test)))
 
         training_time = time.perf_counter() - start_time
@@ -439,7 +439,7 @@ class ModelTrainer:
         """Get feature importance scores."""
         if hasattr(model, "feature_importances_"):
             importances = model.feature_importances_
-            return dict(zip(feature_names, importances.tolist()))
+            return dict(zip(feature_names, importances.tolist(), strict=False))
         return {name: 1.0 / len(feature_names) for name in feature_names}
 
     def _get_model_params(self, model: Any) -> dict[str, Any]:
@@ -465,14 +465,11 @@ class _CollisionModel:
         n_features = X.shape[1]
         self._weights = self._rng.normal(0, 0.1, n_features + 1)
 
-        for epoch in range(self._config.epochs):
+        for _epoch in range(self._config.epochs):
             logits = X @ self._weights[:-1] + self._weights[-1]
             probs = 1 / (1 + np.exp(-logits))
 
-            if sample_weight is not None:
-                error = sample_weight * (probs - y)
-            else:
-                error = probs - y
+            error = sample_weight * (probs - y) if sample_weight is not None else probs - y
 
             gradient = X.T @ error / len(y)
             bias_grad = np.mean(error)
@@ -516,8 +513,8 @@ class _RouteModel:
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> None:
         """Fit the model."""
-        n_features = X.shape[1]
-        n_targets = y.shape[1] if len(y.shape) > 1 else 1
+        X.shape[1]
+        y.shape[1] if len(y.shape) > 1 else 1
 
         self._weights = np.linalg.lstsq(X, y, rcond=None)[0]
         if len(self._weights.shape) == 1:
@@ -694,7 +691,7 @@ def train_models_cli() -> None:
 
     args = parser.parse_args()
 
-    config = TrainingConfig(
+    TrainingConfig(
         epochs=args.epochs,
         batch_size=args.batch_size,
     )

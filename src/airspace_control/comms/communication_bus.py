@@ -10,8 +10,8 @@ MAVLink/DDS 통신의 지연, 패킷 손실, 재순서화를 시뮬레이션
 from __future__ import annotations
 
 from collections import defaultdict, deque
+from collections.abc import Callable, Generator
 from dataclasses import dataclass
-from typing import Callable, Generator
 
 import numpy as np
 import simpy

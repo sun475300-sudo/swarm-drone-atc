@@ -120,11 +120,10 @@ class AIInferenceEngine:
     def get_result(
         self, request_id: str, timeout_ms: float = 1000
     ) -> InferenceResult | None:
-        for model_name, result_queue in self.results.items():
+        for _model_name, result_queue in self.results.items():
             for result in result_queue:
-                if hasattr(result, "request_id"):
-                    if result.request_id == request_id:
-                        return result
+                if hasattr(result, "request_id") and result.request_id == request_id:
+                    return result
 
         return None
 

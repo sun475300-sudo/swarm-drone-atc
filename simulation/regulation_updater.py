@@ -10,6 +10,7 @@
 """
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass
 from typing import Any
 
@@ -69,10 +70,8 @@ class RegulationUpdater:
 
         # 콜백 실행
         for cb in self._callbacks.get(name, []):
-            try:
+            with contextlib.suppress(Exception):
                 cb(name, value)
-            except Exception:
-                pass
 
         return True
 

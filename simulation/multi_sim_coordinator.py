@@ -10,8 +10,9 @@
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 
@@ -64,10 +65,7 @@ class MultiSimCoordinator:
             configs = self.generate_configs(scenario)
             for cfg in configs:
                 try:
-                    if runner_fn:
-                        metrics = runner_fn(cfg)
-                    else:
-                        metrics = {"placeholder": 0.0}
+                    metrics = runner_fn(cfg) if runner_fn else {"placeholder": 0.0}
                     results.append(SimResult(
                         scenario=scenario, seed=cfg.seed,
                         metrics=metrics, success=True,

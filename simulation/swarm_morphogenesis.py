@@ -120,7 +120,7 @@ class SwarmMorphogenesis:
                 r = 20 + 10 * np.sin(3 * angle)
                 targets.append(np.array([r * np.cos(angle), r * np.sin(angle), 30.0]))
         else:
-            for i in range(n):
+            for _ in range(n):
                 targets.append(self.rng.uniform(-30, 30, 3))
                 targets[-1][2] = abs(targets[-1][2]) + 10
         return targets

@@ -81,15 +81,14 @@ class AdvancedPathPlanner:
                 return False
         for nfz in self.no_fly_zones:
             x_min_nfz, x_max_nfz, y_min_nfz, y_max_nfz = nfz
-            if x_min_nfz <= x <= x_max_nfz and y_min_nfz <= y <= y_max_nfz:
-                if z < 120:
-                    return False
+            if x_min_nfz <= x <= x_max_nfz and y_min_nfz <= y <= y_max_nfz and z < 120:
+                return False
         return True
 
     def distance(
         self, p1: tuple[float, float, float], p2: tuple[float, float, float]
     ) -> float:
-        return np.sqrt(sum((a - b) ** 2 for a, b in zip(p1, p2)))
+        return np.sqrt(sum((a - b) ** 2 for a, b in zip(p1, p2, strict=False)))
 
     def heuristic(
         self, current: tuple[float, float, float], goal: tuple[float, float, float]
@@ -117,7 +116,7 @@ class AdvancedPathPlanner:
         g_score: dict[tuple[int, int, int], float] = {}
 
         start_key = self._pos_to_key(start, resolution)
-        goal_key = self._pos_to_key(goal, resolution)
+        self._pos_to_key(goal, resolution)
 
         open_set[start_key] = self.heuristic(start, goal)
         g_score[start_key] = 0
@@ -267,10 +266,7 @@ class AdvancedPathPlanner:
         while iterations < self.max_iterations:
             iterations += 1
 
-            if np.random.random() < goal_sample_rate:
-                sample = goal
-            else:
-                sample = self._random_sample()
+            sample = goal if np.random.random() < goal_sample_rate else self._random_sample()
 
             if not self.is_valid_position(*sample):
                 continue
@@ -293,7 +289,7 @@ class AdvancedPathPlanner:
                 continue
 
             near_nodes = [
-                n for n in tree.keys() if self.distance(n, new_node) < step_size * 3
+                n for n in tree if self.distance(n, new_node) < step_size * 3
             ]
 
             min_cost = costs[nearest] + self.distance(nearest, new_node)

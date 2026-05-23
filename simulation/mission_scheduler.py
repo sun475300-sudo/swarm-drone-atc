@@ -72,7 +72,6 @@ class MissionScheduler:
 
     def schedule(self) -> list[tuple[str, str]]:
         assignments = []
-        next_queue = []
 
         while self._queue:
             mission = heapq.heappop(self._queue)

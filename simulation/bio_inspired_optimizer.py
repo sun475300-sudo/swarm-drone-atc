@@ -3,9 +3,9 @@ Phase 475: Bio-Inspired Optimizer
 개미군집(ACO v2), 벌집(ABC), 반딧불이(FA) 최적화.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable
 
 import numpy as np
 
@@ -72,7 +72,8 @@ class ArtificialBeeColony:
         for _ in range(max_iter):
             for i in range(self.n_bees):
                 k = self.rng.integers(0, self.n_bees)
-                while k == i: k = self.rng.integers(0, self.n_bees)
+                while k == i:
+                    k = self.rng.integers(0, self.n_bees)
                 j = self.rng.integers(0, self.n_dim)
                 new = pop[i].copy()
                 new[j] += self.rng.uniform(-1, 1) * (pop[i, j] - pop[k, j])

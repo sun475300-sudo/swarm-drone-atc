@@ -129,7 +129,7 @@ class PredictiveAnalyticsEngine:
             return 0.0
 
         variance = np.var(history, axis=0)
-        prediction_variance = np.var(predictions) if len(predictions) > 0 else 1.0
+        np.var(predictions) if len(predictions) > 0 else 1.0
 
         stability = 1.0 / (1.0 + np.mean(variance))
 
@@ -227,10 +227,7 @@ class PredictiveAnalyticsEngine:
                 distance = np.linalg.norm(pos_diff)
                 closing_speed = np.linalg.norm(vel_diff)
 
-                if closing_speed > 0:
-                    time_to_collision = distance / closing_speed
-                else:
-                    time_to_collision = float("inf")
+                time_to_collision = distance / closing_speed if closing_speed > 0 else float("inf")
 
                 risk_score = (
                     1.0 / (1.0 + distance / 10.0) * min(closing_speed / 20.0, 1.0)

@@ -62,14 +62,14 @@ class DynamicObstacle:
             if not obs.active:
                 continue
             obs.position = tuple(
-                p + v * dt for p, v in zip(obs.position, obs.velocity)
+                p + v * dt for p, v in zip(obs.position, obs.velocity, strict=False)
             )
 
     def predicted_position(self, obstacle_id: str, t_ahead: float) -> tuple[float, float, float] | None:
         obs = self._obstacles.get(obstacle_id)
         if not obs:
             return None
-        return tuple(p + v * t_ahead for p, v in zip(obs.position, obs.velocity))
+        return tuple(p + v * t_ahead for p, v in zip(obs.position, obs.velocity, strict=False))
 
     def check_threats(
         self, drone_pos: tuple[float, float, float],

@@ -127,7 +127,7 @@ class SwarmFormationController:
     ) -> FormationState:
         offsets = FormationGenerator.generate(ftype, len(drone_ids), **kwargs)
         slots = []
-        for i, (did, offset) in enumerate(zip(drone_ids, offsets)):
+        for i, (did, offset) in enumerate(zip(drone_ids, offsets, strict=False)):
             slots.append(FormationSlot(slot_id=i, offset=offset, drone_id=did, priority=len(drone_ids) - i))
         state = FormationState(formation_type=ftype, leader_id=leader_id, slots=slots)
         self._formations[formation_id] = state
@@ -145,7 +145,7 @@ class SwarmFormationController:
         for step in range(steps + 1):
             t = step / steps
             t_smooth = 3 * t**2 - 2 * t**3  # smoothstep
-            frame = [old * (1 - t_smooth) + new * t_smooth for old, new in zip(old_offsets, new_offsets)]
+            frame = [old * (1 - t_smooth) + new * t_smooth for old, new in zip(old_offsets, new_offsets, strict=False)]
             trajectory.append(frame)
         for i, offset in enumerate(new_offsets):
             state.slots[i].offset = offset

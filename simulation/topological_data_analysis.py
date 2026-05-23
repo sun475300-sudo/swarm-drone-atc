@@ -108,7 +108,7 @@ class PersistentHomology:
 
         # 엣지를 birth 순으로 정렬하여 처리
         edges = sorted([s for s in simplices if s.dimension == 1], key=lambda s: s.birth)
-        birth_times = dict.fromkeys(vertices, 0.0)
+        dict.fromkeys(vertices, 0.0)
 
         for edge in edges:
             i, j = edge.vertices
@@ -117,14 +117,14 @@ class PersistentHomology:
                 self.intervals.append(PersistenceInterval(0, 0.0, edge.birth, edge.birth))
 
         # 살아남은 성분
-        components = len(set(find(v) for v in vertices))
+        components = len({find(v) for v in vertices})
         for _ in range(components):
             self.intervals.append(PersistenceInterval(0, 0.0, max_radius, max_radius))
 
         # Betti-1: 삼각형으로 루프 소멸 추적 (근사)
         triangles = sorted([s for s in simplices if s.dimension == 2], key=lambda s: s.birth)
         n_loops = max(0, len(edges) - (n - components))
-        for i, tri in enumerate(triangles[:n_loops]):
+        for _i, tri in enumerate(triangles[:n_loops]):
             self.intervals.append(PersistenceInterval(1, tri.birth * 0.5, tri.birth, tri.birth * 0.5))
 
         return self.intervals

@@ -94,7 +94,7 @@ class RiskHedgeCalculator:
         )
 
         risk_contributions = []
-        for category, factors in self.risk_factors.items():
+        for _category, factors in self.risk_factors.items():
             if not factors:
                 continue
             for factor in factors:

@@ -123,9 +123,8 @@ class SwarmScheduler:
                     self.schedule()
                 return completed
 
-            if self.policy == SchedulerPolicy.ROUND_ROBIN:
-                if (self.current_time % self.quantum) < dt:
-                    self.schedule()
+            if self.policy == SchedulerPolicy.ROUND_ROBIN and (self.current_time % self.quantum) < dt:
+                self.schedule()
         elif self.ready_queue:
             self.schedule()
 

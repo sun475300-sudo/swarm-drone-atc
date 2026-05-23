@@ -139,7 +139,7 @@ class AutonomousMissionPlannerV2:
         ordered_wps = [waypoints[i] for i in order]
         # Split among drones
         n_drones = max(1, len(drone_ids))
-        chunk_size = max(1, len(ordered_wps) // n_drones)
+        max(1, len(ordered_wps) // n_drones)
         # Calculate metrics
         total_dist = self._calculate_distance(ordered_wps, start_pos)
         est_duration = total_dist / 10.0  # assume 10 m/s
@@ -177,10 +177,7 @@ class AutonomousMissionPlannerV2:
         return plan
 
     def _in_nfz(self, pos: np.ndarray) -> bool:
-        for center, radius in self._constraints.no_fly_zones:
-            if np.linalg.norm(pos[:2] - center[:2]) < radius:
-                return True
-        return False
+        return any(np.linalg.norm(pos[:2] - center[:2]) < radius for center, radius in self._constraints.no_fly_zones)
 
     def _calculate_distance(self, waypoints: list[Waypoint], start: np.ndarray) -> float:
         if not waypoints:

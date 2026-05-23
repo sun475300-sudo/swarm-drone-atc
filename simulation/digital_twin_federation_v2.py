@@ -6,7 +6,6 @@ Phase 476: Digital Twin Federation v2
 import hashlib
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Tuple
 
 import numpy as np
 
@@ -191,11 +190,10 @@ class DigitalTwinFederationV2:
         return {
             "nodes": len(self.nodes),
             "total_twin_instances": total_twins,
-            "unique_twins": len(set(t for n in self.nodes.values() for t in n.twins)),
+            "unique_twins": len({t for n in self.nodes.values() for t in n.twins}),
             "sync_events": len(self.sync_log),
             "conflicts_resolved": self.conflicts_resolved,
             "resolution_policy": self.cr.value,
         }
 
 
-Tuple = tuple  # fix typing import

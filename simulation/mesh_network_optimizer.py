@@ -219,14 +219,12 @@ class MeshNetworkOptimizer:
         healed = 0
         for (src, dst), link in self.links.items():
             if link.status == LinkStatus.FAILED:
-                if self.nodes[src].is_active and self.nodes[dst].is_active:
-                    if self.rng.random() < 0.3:
-                        link.status = LinkStatus.DEGRADED
-                        healed += 1
-            elif link.status == LinkStatus.DEGRADED:
-                if self.rng.random() < 0.5:
-                    link.status = LinkStatus.ACTIVE
+                if self.nodes[src].is_active and self.nodes[dst].is_active and self.rng.random() < 0.3:
+                    link.status = LinkStatus.DEGRADED
                     healed += 1
+            elif link.status == LinkStatus.DEGRADED and self.rng.random() < 0.5:
+                link.status = LinkStatus.ACTIVE
+                healed += 1
 
         if healed > 0:
             self.compute_routes()

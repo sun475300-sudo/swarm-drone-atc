@@ -168,10 +168,7 @@ class SwarmFormationV2:
             # Attraction to target
             to_target = target - drone.position
             dist = np.linalg.norm(to_target)
-            if dist > 0.1:
-                attract = to_target / dist * min(dist, self._config.speed)
-            else:
-                attract = np.zeros(3)
+            attract = to_target / dist * min(dist, self._config.speed) if dist > 0.1 else np.zeros(3)
 
             # Obstacle repulsion
             repel = np.zeros(3)

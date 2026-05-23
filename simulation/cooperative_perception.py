@@ -70,7 +70,7 @@ class MultiViewFusion:
         for idx, cluster in enumerate(clusters):
             weights = np.array([d.confidence for d in cluster])
             weights /= weights.sum() + 1e-10
-            pos = sum(w * d.position for w, d in zip(weights, cluster))
+            pos = sum(w * d.position for w, d in zip(weights, cluster, strict=False))
             conf = 1 - np.prod([1 - d.confidence for d in cluster])
             cls_votes = {}
             for d in cluster:
@@ -94,7 +94,7 @@ class DistributedTracker:
     def update(self, new_tracks: list[TrackedObject]) -> dict[str, TrackedObject]:
         for nt in new_tracks:
             matched = False
-            for tid, existing in self.tracks.items():
+            for _tid, existing in self.tracks.items():
                 dist = np.linalg.norm(existing.position - nt.position)
                 if dist < 15 and existing.obj_class == nt.obj_class:
                     alpha = 0.7

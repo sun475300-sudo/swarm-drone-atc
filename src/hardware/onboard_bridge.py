@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 import importlib
 import json
 import logging
@@ -39,8 +40,8 @@ import os
 import signal
 import sys
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 LOGGER = logging.getLogger("sdacs.onboard_bridge")
 
@@ -694,10 +695,8 @@ async def _async_main(config: BridgeConfig) -> int:
         loop.create_task(bridge.stop())
 
     for sig_name in ("SIGINT", "SIGTERM"):
-        try:
+        with contextlib.suppress(NotImplementedError):
             loop.add_signal_handler(getattr(signal, sig_name), _on_signal, sig_name)
-        except NotImplementedError:
-            pass
 
     return await bridge.run()
 

@@ -177,7 +177,7 @@ class AutonomousLanding:
         time_elapsed = 0.0
         phase = LandingPhase.APPROACH
 
-        for step in range(1000):
+        for _step in range(1000):
             cmd = self.glidepath.compute_guidance(pos, zone.center, vel)
             vel = vel * 0.95 + cmd * dt
             pos = pos + vel * dt

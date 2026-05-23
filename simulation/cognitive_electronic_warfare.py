@@ -165,7 +165,7 @@ class CognitiveEW:
         prob = base_effectiveness.get(cm, 0.5)
         success = self.rng.random() < prob
         snr_after = snr_before + (self.rng.uniform(10, 25) if success else self.rng.uniform(-5, 5))
-        response_time = self.rng.exponential(50) + 10
+        self.rng.exponential(50) + 10
         return success, snr_before, snr_after
 
     def engage(self, threat: ThreatType) -> EWEngagement:

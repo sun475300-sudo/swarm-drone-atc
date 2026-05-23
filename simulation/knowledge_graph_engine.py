@@ -54,9 +54,8 @@ class KnowledgeGraphEngine:
 
         results = []
         for rel in self.relations:
-            if rel.source_id == entity_id:
-                if relation_type is None or rel.relation_type == relation_type:
-                    results.append(rel.target_id)
+            if rel.source_id == entity_id and (relation_type is None or rel.relation_type == relation_type):
+                results.append(rel.target_id)
 
         return results
 

@@ -98,7 +98,8 @@ class SpatioTemporalGraph:
         if start not in self.waypoints or end not in self.waypoints:
             return None
         if weight_fn is None:
-            weight_fn = lambda seg: seg.base_time_s + seg.predicted_delay_s
+            def weight_fn(seg):
+                return seg.base_time_s + seg.predicted_delay_s
 
         dist_map = {start: 0}
         prev = {}
@@ -158,7 +159,7 @@ class PredictiveRouting:
             self.graph.add_waypoint(wp)
 
         wp_ids = list(self.graph.waypoints.keys())
-        for i, wid in enumerate(wp_ids):
+        for _i, wid in enumerate(wp_ids):
             neighbors = self.rng.choice(
                 [w for w in wp_ids if w != wid],
                 size=min(4, len(wp_ids) - 1), replace=False)

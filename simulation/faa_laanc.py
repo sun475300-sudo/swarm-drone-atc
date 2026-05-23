@@ -170,10 +170,9 @@ class FAA_LAANC:
         now = time.time()
         active = []
         for tfr in self.tfrs:
-            if tfr.valid_until > now:
-                if (tfr.area[0] <= area[2] and tfr.area[2] >= area[0] and
-                        tfr.area[1] <= area[3] and tfr.area[3] >= area[1]):
-                    active.append(tfr)
+            if tfr.valid_until > now and (tfr.area[0] <= area[2] and tfr.area[2] >= area[0] and
+                    tfr.area[1] <= area[3] and tfr.area[3] >= area[1]):
+                active.append(tfr)
         return active
 
     def add_tfr(self, tfr: TFR) -> None:

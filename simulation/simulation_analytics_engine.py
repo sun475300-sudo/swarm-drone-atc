@@ -32,9 +32,8 @@ class KPI:
 
     @property
     def status(self) -> str:
-        if self.target is not None:
-            if abs(self.value - self.target) / max(abs(self.target), 1e-6) < 0.05:
-                return "on_target"
+        if self.target is not None and abs(self.value - self.target) / max(abs(self.target), 1e-6) < 0.05:
+            return "on_target"
         if self.threshold_critical is not None and self.value > self.threshold_critical:
             return "critical"
         if self.threshold_warning is not None and self.value > self.threshold_warning:

@@ -3,9 +3,10 @@ Phase 415: Neural Architecture Search for Optimal Drone AI Models
 """
 
 import copy
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 
@@ -198,7 +199,7 @@ class NeuralArchitectureSearch:
 
     def _evolve_population(self, fitnesses: list[float]):
         sorted_pop = sorted(
-            zip(fitnesses, self.population), key=lambda x: x[0], reverse=True
+            zip(fitnesses, self.population, strict=False), key=lambda x: x[0], reverse=True
         )
 
         top_50 = [arch for _, arch in sorted_pop[: self.population_size // 2]]

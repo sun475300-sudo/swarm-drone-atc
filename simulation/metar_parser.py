@@ -214,6 +214,4 @@ class MetarParser:
         for cover, height in obs.clouds:
             if cover in ("BKN", "OVC"):
                 ceiling = height if ceiling is None else min(ceiling, height)
-        if ceiling is not None and ceiling < 1000:
-            return False
-        return True
+        return not (ceiling is not None and ceiling < 1000)

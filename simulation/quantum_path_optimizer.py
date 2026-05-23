@@ -138,7 +138,7 @@ class QuantumPathOptimizer:
         best_bits: list[int] = []
         energy_history: list[float] = []
 
-        for iteration in range(max_iter):
+        for _iteration in range(max_iter):
             circuit.reset()
             for q in range(circuit.n_qubits):
                 circuit.hadamard(q)

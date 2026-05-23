@@ -86,7 +86,7 @@ class TopologyManager:
             degree[l.dst] = degree.get(l.dst, 0) + 1
 
         extra = []
-        node_map = {n.node_id: n for n in nodes}
+        {n.node_id: n for n in nodes}
         for n in nodes:
             if not n.alive:
                 continue

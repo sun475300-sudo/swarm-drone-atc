@@ -127,7 +127,7 @@ class FederatedLearningV3:
         total_samples = sum(u.num_samples for u in updates)
 
         aggregated_params = {}
-        for param_name in self.global_model.keys():
+        for param_name in self.global_model:
             weighted_sum = np.zeros_like(self.global_model[param_name])
 
             for update in updates:
@@ -157,7 +157,7 @@ class FederatedLearningV3:
         total_samples = sum(u.num_samples for u in updates)
 
         aggregated_params = {}
-        for param_name in self.global_model.keys():
+        for param_name in self.global_model:
             weighted_sum = np.zeros_like(self.global_model[param_name])
 
             for update in updates:
@@ -188,13 +188,13 @@ class FederatedLearningV3:
         )
 
     def _fednova(self, updates: list[ModelUpdate]) -> AggregatedModel:
-        total_samples = sum(u.num_samples for u in updates)
+        sum(u.num_samples for u in updates)
 
         local_steps = [u.num_samples for u in updates]
         rho = sum(local_steps) / max(local_steps)
 
         aggregated_params = {}
-        for param_name in self.global_model.keys():
+        for param_name in self.global_model:
             weighted_sum = np.zeros_like(self.global_model[param_name])
 
             for i, update in enumerate(updates):

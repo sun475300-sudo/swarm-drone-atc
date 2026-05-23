@@ -70,10 +70,7 @@ def _estimate_power_w(
 
     alt_factor = 1.0 + altitude_m * 0.00012
 
-    if climb_rate_ms > 0:
-        p_climb = climb_rate_ms * 25.0
-    else:
-        p_climb = climb_rate_ms * 5.0
+    p_climb = climb_rate_ms * 25.0 if climb_rate_ms > 0 else climb_rate_ms * 5.0
 
     return max(0.0, (p_hover + p_drag) * alt_factor + p_climb)
 
@@ -142,10 +139,9 @@ class DroneAgent:
                     drone.hold_start_s = None
                     drone.evade_end_s = None
 
-        elif isinstance(payload, ClearanceResponse):
-            if payload.approved and payload.assigned_waypoints:
-                drone.waypoints = [np.array(wp) for wp in payload.assigned_waypoints]
-                drone.current_waypoint_idx = 0
+        elif isinstance(payload, ClearanceResponse) and payload.approved and payload.assigned_waypoints:
+            drone.waypoints = [np.array(wp) for wp in payload.assigned_waypoints]
+            drone.current_waypoint_idx = 0
 
     def run(self):
         drone = self.drone
@@ -371,16 +367,15 @@ class DroneAgent:
                     drone.velocity = diff / norm * spd
 
     def _handle_comms(self, drone, t, profile):
-        if drone.comms_status == CommsStatus.LOST:
-            if drone.flight_phase not in (
-                FlightPhase.RTL,
-                FlightPhase.LANDING,
-                FlightPhase.FAILED,
-                FlightPhase.GROUNDED,
-                FlightPhase.HOLDING,
-            ):
-                drone.flight_phase = FlightPhase.HOLDING
-                drone.hold_start_s = None
+        if drone.comms_status == CommsStatus.LOST and drone.flight_phase not in (
+            FlightPhase.RTL,
+            FlightPhase.LANDING,
+            FlightPhase.FAILED,
+            FlightPhase.GROUNDED,
+            FlightPhase.HOLDING,
+        ):
+            drone.flight_phase = FlightPhase.HOLDING
+            drone.hold_start_s = None
 
     def _handle_failure(self, drone, t):
         if drone.failure_type == FailureType.MOTOR_FAILURE:

@@ -130,8 +130,8 @@ class DigitalTwinFederation:
         velocities = np.array([s.velocity for s in states])
         avg_velocity = np.average(velocities, axis=0, weights=weights)
 
-        avg_battery = sum(s.battery_level * w for s, w in zip(states, weights))
-        avg_progress = sum(s.mission_progress * w for s, w in zip(states, weights))
+        avg_battery = sum(s.battery_level * w for s, w in zip(states, weights, strict=False))
+        avg_progress = sum(s.mission_progress * w for s, w in zip(states, weights, strict=False))
 
         latest_state = max(states, key=lambda s: s.timestamp)
 

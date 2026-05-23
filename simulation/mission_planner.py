@@ -183,7 +183,7 @@ class MissionPlanner:
 
         candidates.sort()
 
-        for cost, i, j in candidates:
+        for _cost, i, j in candidates:
             if i in used_drones or j in used_missions:
                 continue
 

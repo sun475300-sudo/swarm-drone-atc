@@ -186,7 +186,7 @@ class AutoMLPipeline:
         else:
             score = self._train_neural_network(config, X, y)
 
-        training_time = time.time() - start_time
+        time.time() - start_time
 
         return score
 
@@ -197,7 +197,7 @@ class AutoMLPipeline:
 
         if len(y.shape) == 1:
             y_pred = np.zeros(n_samples)
-            for i in range(config.n_estimators):
+            for _i in range(config.n_estimators):
                 residual = y - y_pred
                 y_pred += config.learning_rate * residual * np.random.randn(n_samples)
 
@@ -228,7 +228,7 @@ class AutoMLPipeline:
     def _train_neural_network(
         self, config: HyperparameterConfig, X: np.ndarray, y: np.ndarray
     ) -> float:
-        n_samples = X.shape[0]
+        X.shape[0]
 
         np.random.seed(int(time.time() * 1000) % 10000)
 

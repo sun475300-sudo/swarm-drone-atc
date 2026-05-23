@@ -258,5 +258,5 @@ class RegulatoryComplianceV2:
             "total_violations": len(self.violations),
             "resolved_violations": sum(1 for v in self.violations if v.auto_resolved),
             "rules_count": len(self.rules),
-            "regulations": list(set(r.regulation.value for r in self.rules)),
+            "regulations": list({r.regulation.value for r in self.rules}),
         }

@@ -77,9 +77,8 @@ class TDMAScheduler:
     def get_slot(self, drone_id: int, time_us: int) -> TimeSlot | None:
         frame_offset = time_us % self.frame_duration
         for slot in self.slots:
-            if slot.owner == drone_id:
-                if slot.start_us <= frame_offset < slot.start_us + slot.duration_us:
-                    return slot
+            if slot.owner == drone_id and slot.start_us <= frame_offset < slot.start_us + slot.duration_us:
+                return slot
         return None
 
     def can_transmit(self, drone_id: int, time_us: int) -> bool:

@@ -117,7 +117,7 @@ class ADSBReceiver:
     def generate_simulated_traffic(self, count: int = 5, center: tuple[float, float] = (37.5, 127.0)) -> list[ADSBMessage]:
         """Generate random ADS-B traffic for testing."""
         messages = []
-        for i in range(count):
+        for _i in range(count):
             msg = ADSBMessage(
                 icao_address=f"A{self.rng.integers(10000, 99999):05X}",
                 callsign=f"KAL{self.rng.integers(100, 999)}",

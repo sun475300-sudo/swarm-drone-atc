@@ -109,7 +109,7 @@ class SwarmCollaborativePerception:
             "covered_cells": int(covered_cells),
             "total_cells": total_cells,
             "active_modalities": len(
-                set(f.modality for f in self.perception_frames.values())
+                {f.modality for f in self.perception_frames.values()}
             ),
         }
 

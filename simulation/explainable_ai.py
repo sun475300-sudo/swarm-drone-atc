@@ -3,9 +3,9 @@ Phase 484: Explainable AI (XAI) for Drone Decisions
 SHAP-like 특성 중요도, LIME 로컬 설명, 의사결정 투명성.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable
 
 import numpy as np
 
@@ -61,7 +61,7 @@ class SHAPExplainer:
         for i, name in enumerate(self.feature_names):
             perturbed_with = baseline.copy()
             perturbed_with[i] = instance[i]
-            contribution = self.model_fn(perturbed_with) - base_pred
+            self.model_fn(perturbed_with) - base_pred
 
             samples = []
             for _ in range(self.n_samples):
@@ -125,7 +125,7 @@ class CounterfactualExplainer:
 
     def explain(self, instance: np.ndarray, target_class: float,
                 threshold: float = 0.5, max_iter: int = 500) -> dict | None:
-        original_pred = self.model_fn(instance)
+        self.model_fn(instance)
         best = None
         best_dist = float('inf')
         for _ in range(max_iter):
@@ -170,7 +170,7 @@ class ExplainableAI:
         self.explanations.append(explanation)
 
         record = DecisionRecord(drone_id, len(self.decision_log),
-                               decision_name, dict(zip(feature_names, instance.tolist())),
+                               decision_name, dict(zip(feature_names, instance.tolist(), strict=False)),
                                float(prediction), explanation)
         self.decision_log.append(record)
         return explanation
@@ -178,6 +178,6 @@ class ExplainableAI:
     def summary(self) -> dict:
         return {
             "decisions_explained": len(self.decision_log),
-            "explanation_types": list(set(e.explanation_type.value for e in self.explanations)),
+            "explanation_types": list({e.explanation_type.value for e in self.explanations}),
             "avg_confidence": round(float(np.mean([e.confidence for e in self.explanations])), 4) if self.explanations else 0,
         }

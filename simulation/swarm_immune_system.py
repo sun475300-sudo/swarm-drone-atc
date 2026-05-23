@@ -54,7 +54,7 @@ class NegativeSelection:
 
     def generate_detectors(self, n=30, dim=5):
         candidates = self.rng.normal(0, 1, (n * 3, dim))
-        for i, cand in enumerate(candidates):
+        for _i, cand in enumerate(candidates):
             if len(self.detectors) >= n:
                 break
             # self 패턴과 매칭 안 되는 것만 채택

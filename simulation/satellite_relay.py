@@ -145,7 +145,7 @@ class SatelliteRelay:
             self.orbital.propagate(sat, dt_s)
 
         handovers = 0
-        for did, link in self.links.items():
+        for _did, link in self.links.items():
             if self.rng.random() < 0.05:
                 best = self.handover.select_best(
                     np.array([self.orbital.earth_radius_km, 0, 0.1]),

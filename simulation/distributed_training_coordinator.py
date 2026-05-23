@@ -83,14 +83,14 @@ class DistributedTrainingCoordinator:
         if not self.sync_queue:
             return False
 
-        num_workers = len(set(r.worker_id for r in self.sync_queue))
+        num_workers = len({r.worker_id for r in self.sync_queue})
 
         if num_workers < 2:
             return False
 
         aggregated_gradients = {}
 
-        for key in self.sync_queue[0].model_gradients.keys():
+        for key in self.sync_queue[0].model_gradients:
             grads = [
                 r.model_gradients[key]
                 for r in self.sync_queue

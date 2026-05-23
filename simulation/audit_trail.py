@@ -83,7 +83,7 @@ class AuditTrail:
         return entries[-n:]
 
     def actions_by_actor(self, actor: str) -> list[str]:
-        return list(set(e.action for e in self._entries if e.actor == actor))
+        return list({e.action for e in self._entries if e.actor == actor})
 
     def entry_count(self) -> int:
         return len(self._entries)
@@ -92,6 +92,6 @@ class AuditTrail:
         return {
             "entries": len(self._entries),
             "chain_valid": self.verify_chain(),
-            "actors": len(set(e.actor for e in self._entries)),
-            "actions": len(set(e.action for e in self._entries)),
+            "actors": len({e.actor for e in self._entries}),
+            "actions": len({e.action for e in self._entries}),
         }

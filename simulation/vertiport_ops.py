@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import math
 import time
 from dataclasses import dataclass
@@ -97,10 +98,8 @@ class VertiportOps:
         )
         self.pads[candidate].status = PadStatus.RESERVED
         # 이전 실패 시도로 대기열에 있는 경우 제거 — 이제 슬롯이 확보됨
-        try:
+        with contextlib.suppress(ValueError):
             self.wait_queue.remove(callsign)
-        except ValueError:
-            pass
         return slot_id
 
     def _find_available_pad(self, start: float, duration_s: float, weight_kg: float) -> str | None:

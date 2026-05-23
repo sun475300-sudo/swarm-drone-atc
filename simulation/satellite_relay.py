@@ -5,7 +5,6 @@ LEO 위성 릴레이, 지연 보상, 핸드오버 관리.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -55,7 +54,7 @@ class OrbitalMechanics:
         self.mu = 398600.4418  # km³/s²
 
     def create_constellation(self, n_sats: int = 12, altitude_km: float = 550,
-                              orbit: OrbitType = OrbitType.LEO) -> List[Satellite]:
+                              orbit: OrbitType = OrbitType.LEO) -> list[Satellite]:
         sats = []
         r = self.earth_radius_km + altitude_km
         v_circ = np.sqrt(self.mu / r)
@@ -84,10 +83,10 @@ class HandoverManager:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.handover_log: List[Dict] = []
+        self.handover_log: list[dict] = []
 
     def select_best(self, drone_pos_km: np.ndarray,
-                    satellites: List[Satellite]) -> Optional[Satellite]:
+                    satellites: list[Satellite]) -> Satellite | None:
         best = None
         best_score = -1
         for sat in satellites:
@@ -124,7 +123,7 @@ class SatelliteRelay:
         self.orbital = OrbitalMechanics(seed)
         self.handover = HandoverManager(seed)
         self.satellites = self.orbital.create_constellation(n_sats)
-        self.links: Dict[str, RelayLink] = {}
+        self.links: dict[str, RelayLink] = {}
         self.time = 0.0
 
         for i in range(n_drones):
@@ -140,7 +139,7 @@ class SatelliteRelay:
                     f"LNK-{i:03d}", did, best.sat_id, LinkStatus.CONNECTED,
                     round(snr, 1), best.latency_ms, round(best.bandwidth_mbps * snr / 30, 1))
 
-    def step(self, dt_s: float = 10) -> Dict:
+    def step(self, dt_s: float = 10) -> dict:
         self.time += dt_s
         for sat in self.satellites:
             self.orbital.propagate(sat, dt_s)
@@ -160,7 +159,7 @@ class SatelliteRelay:
         return {"time": self.time, "handovers": handovers,
                 "connected": sum(1 for l in self.links.values() if l.status == LinkStatus.CONNECTED)}
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "drones": self.n_drones,
             "satellites": len(self.satellites),

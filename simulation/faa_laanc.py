@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -37,7 +37,7 @@ class OperationType(Enum):
 class LAANCRequest:
     operator_id: str
     drone_registration: str
-    operation_area: Tuple[float, float, float, float]  # min_lat, min_lon, max_lat, max_lon
+    operation_area: tuple[float, float, float, float]  # min_lat, min_lon, max_lat, max_lon
     max_altitude_ft: float
     start_time: float
     end_time: float
@@ -49,7 +49,7 @@ class LAANCAuthorization:
     request_id: str
     status: AuthorizationStatus
     authorized_altitude_ft: float
-    conditions: List[str] = field(default_factory=list)
+    conditions: list[str] = field(default_factory=list)
     valid_from: float = 0.0
     valid_until: float = 0.0
     facility_map_id: str = ""
@@ -58,7 +58,7 @@ class LAANCAuthorization:
 @dataclass
 class TFR:
     tfr_id: str
-    area: Tuple[float, float, float, float]
+    area: tuple[float, float, float, float]
     altitude_min_ft: float
     altitude_max_ft: float
     reason: str
@@ -67,7 +67,7 @@ class TFR:
 
 
 # Simulated UASFM grid: airspace class -> max altitude (ft AGL)
-UASFM_DEFAULTS: Dict[str, int] = {
+UASFM_DEFAULTS: dict[str, int] = {
     "B": 0, "C": 0, "D": 0, "E-surface": 0,
     "E-other": 400, "G": 400,
 }
@@ -86,9 +86,9 @@ class FAA_LAANC:
     def __init__(self, seed: int = 42) -> None:
         self.rng = np.random.default_rng(seed)
         self._next_id = 0
-        self.authorizations: Dict[str, LAANCAuthorization] = {}
-        self.tfrs: List[TFR] = []
-        self.facility_map: Dict[str, int] = dict(UASFM_DEFAULTS)
+        self.authorizations: dict[str, LAANCAuthorization] = {}
+        self.tfrs: list[TFR] = []
+        self.facility_map: dict[str, int] = dict(UASFM_DEFAULTS)
 
     def _gen_id(self) -> str:
         self._next_id += 1
@@ -103,7 +103,7 @@ class FAA_LAANC:
 
         max_allowed = UASFM_DEFAULTS.get(airspace, 400)
 
-        conditions: List[str] = []
+        conditions: list[str] = []
         if request.max_altitude_ft > 400:
             status = AuthorizationStatus.REJECTED
             authorized_alt = 0.0
@@ -140,7 +140,7 @@ class FAA_LAANC:
         self.authorizations[request_id].status = AuthorizationStatus.CANCELLED
         return True
 
-    def get_facility_map(self, area: Tuple[float, float, float, float]) -> Dict[str, Any]:
+    def get_facility_map(self, area: tuple[float, float, float, float]) -> dict[str, Any]:
         center_lat = (area[0] + area[2]) / 2
         center_lon = (area[1] + area[3]) / 2
         airspace = self.check_airspace_class(center_lat, center_lon)
@@ -166,7 +166,7 @@ class FAA_LAANC:
                 return True
         return False
 
-    def get_tfrs(self, area: Tuple[float, float, float, float]) -> List[TFR]:
+    def get_tfrs(self, area: tuple[float, float, float, float]) -> list[TFR]:
         now = time.time()
         active = []
         for tfr in self.tfrs:
@@ -179,7 +179,7 @@ class FAA_LAANC:
     def add_tfr(self, tfr: TFR) -> None:
         self.tfrs.append(tfr)
 
-    def validate_part107_compliance(self, operation: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_part107_compliance(self, operation: dict[str, Any]) -> dict[str, Any]:
         violations = []
         if operation.get("altitude_ft", 0) > 400:
             violations.append("Exceeds 400ft AGL")

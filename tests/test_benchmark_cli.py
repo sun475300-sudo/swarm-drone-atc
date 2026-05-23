@@ -5,7 +5,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 _ROOT = Path(__file__).resolve().parent.parent
 _MAIN = _ROOT / "main.py"
 

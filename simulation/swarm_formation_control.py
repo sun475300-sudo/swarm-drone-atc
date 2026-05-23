@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -28,7 +27,7 @@ class FormationType(Enum):
 class FormationSlot:
     slot_id: int
     offset: np.ndarray  # relative to leader
-    drone_id: Optional[str] = None
+    drone_id: str | None = None
     priority: int = 0
 
 
@@ -36,7 +35,7 @@ class FormationSlot:
 class FormationState:
     formation_type: FormationType
     leader_id: str
-    slots: List[FormationSlot] = field(default_factory=list)
+    slots: list[FormationSlot] = field(default_factory=list)
     cohesion: float = 1.0
     stability: float = 1.0
     transition_progress: float = 1.0
@@ -46,7 +45,7 @@ class FormationGenerator:
     """대형 패턴 좌표 생성기."""
 
     @staticmethod
-    def v_formation(n: int, spacing: float = 15.0, angle_deg: float = 30.0) -> List[np.ndarray]:
+    def v_formation(n: int, spacing: float = 15.0, angle_deg: float = 30.0) -> list[np.ndarray]:
         offsets = [np.array([0.0, 0.0, 0.0])]
         angle = np.radians(angle_deg)
         for i in range(1, n):
@@ -58,7 +57,7 @@ class FormationGenerator:
         return offsets
 
     @staticmethod
-    def grid_formation(n: int, spacing: float = 20.0) -> List[np.ndarray]:
+    def grid_formation(n: int, spacing: float = 20.0) -> list[np.ndarray]:
         cols = int(np.ceil(np.sqrt(n)))
         offsets = []
         for i in range(n):
@@ -67,7 +66,7 @@ class FormationGenerator:
         return offsets
 
     @staticmethod
-    def circle_formation(n: int, radius: float = 50.0) -> List[np.ndarray]:
+    def circle_formation(n: int, radius: float = 50.0) -> list[np.ndarray]:
         offsets = []
         for i in range(n):
             theta = 2.0 * np.pi * i / n
@@ -75,11 +74,11 @@ class FormationGenerator:
         return offsets
 
     @staticmethod
-    def line_formation(n: int, spacing: float = 15.0) -> List[np.ndarray]:
+    def line_formation(n: int, spacing: float = 15.0) -> list[np.ndarray]:
         return [np.array([0.0, i * spacing, 0.0]) for i in range(n)]
 
     @staticmethod
-    def diamond_formation(n: int, spacing: float = 20.0) -> List[np.ndarray]:
+    def diamond_formation(n: int, spacing: float = 20.0) -> list[np.ndarray]:
         offsets = [np.array([0.0, 0.0, 0.0])]
         layers = int(np.ceil(np.sqrt(n)))
         idx = 1
@@ -92,7 +91,7 @@ class FormationGenerator:
         return offsets[:n]
 
     @staticmethod
-    def generate(ftype: FormationType, n: int, **kwargs) -> List[np.ndarray]:
+    def generate(ftype: FormationType, n: int, **kwargs) -> list[np.ndarray]:
         generators = {
             FormationType.V_FORMATION: FormationGenerator.v_formation,
             FormationType.GRID: FormationGenerator.grid_formation,
@@ -114,15 +113,15 @@ class SwarmFormationController:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._formations: Dict[str, FormationState] = {}
-        self._drone_positions: Dict[str, np.ndarray] = {}
-        self._history: List[dict] = []
+        self._formations: dict[str, FormationState] = {}
+        self._drone_positions: dict[str, np.ndarray] = {}
+        self._history: list[dict] = []
 
     def create_formation(
         self,
         formation_id: str,
         leader_id: str,
-        drone_ids: List[str],
+        drone_ids: list[str],
         ftype: FormationType = FormationType.V_FORMATION,
         **kwargs,
     ) -> FormationState:
@@ -135,7 +134,7 @@ class SwarmFormationController:
         self._history.append({"event": "created", "id": formation_id, "type": ftype.value, "size": len(drone_ids)})
         return state
 
-    def transition_formation(self, formation_id: str, new_type: FormationType, steps: int = 10) -> List[List[np.ndarray]]:
+    def transition_formation(self, formation_id: str, new_type: FormationType, steps: int = 10) -> list[list[np.ndarray]]:
         state = self._formations.get(formation_id)
         if not state:
             return []
@@ -155,7 +154,7 @@ class SwarmFormationController:
         self._history.append({"event": "transition", "id": formation_id, "new_type": new_type.value})
         return trajectory
 
-    def update_positions(self, positions: Dict[str, np.ndarray]):
+    def update_positions(self, positions: dict[str, np.ndarray]):
         self._drone_positions.update(positions)
 
     def compute_cohesion(self, formation_id: str) -> float:
@@ -207,10 +206,10 @@ class SwarmFormationController:
                 return True
         return False
 
-    def get_formation(self, formation_id: str) -> Optional[FormationState]:
+    def get_formation(self, formation_id: str) -> FormationState | None:
         return self._formations.get(formation_id)
 
-    def list_formations(self) -> List[str]:
+    def list_formations(self) -> list[str]:
         return list(self._formations.keys())
 
     def summary(self) -> dict:

@@ -4,7 +4,6 @@ Phase 462: Object Tracking System for Moving Target Following
 
 import time
 from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 
@@ -20,10 +19,10 @@ class TrackedObject:
 
 class ObjectTrackingSystem:
     def __init__(self):
-        self.tracked_objects: Dict[str, TrackedObject] = {}
-        self.track_history: Dict[str, List] = {}
+        self.tracked_objects: dict[str, TrackedObject] = {}
+        self.track_history: dict[str, list] = {}
 
-    def update(self, detections: List[Dict]) -> List[TrackedObject]:
+    def update(self, detections: list[dict]) -> list[TrackedObject]:
         for det in detections:
             obj_id = det.get("id", f"obj_{det['class_id']}")
 

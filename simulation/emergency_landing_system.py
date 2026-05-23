@@ -4,7 +4,6 @@ Phase 442: Emergency Landing System for Critical Situations
 
 import time
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -19,9 +18,9 @@ class LandingSite:
 class EmergencyLandingSystem:
     def __init__(self, max_altitude_m: float = 120):
         self.max_altitude = max_altitude_m
-        self.emergency_history: List[Dict] = []
+        self.emergency_history: list[dict] = []
 
-    def detect_emergency(self, battery_percent: float, sensor_status: Dict) -> bool:
+    def detect_emergency(self, battery_percent: float, sensor_status: dict) -> bool:
         if battery_percent < 5:
             return True
         if sensor_status.get("gps_lost", False):
@@ -32,7 +31,7 @@ class EmergencyLandingSystem:
 
     def find_safe_landing_site(
         self, position: np.ndarray, terrain: np.ndarray
-    ) -> Optional[LandingSite]:
+    ) -> LandingSite | None:
         candidates = []
 
         for i in range(10):
@@ -53,8 +52,8 @@ class EmergencyLandingSystem:
         self,
         start: np.ndarray,
         goal: np.ndarray,
-        obstacles: List[np.ndarray],
-    ) -> List[np.ndarray]:
+        obstacles: list[np.ndarray],
+    ) -> list[np.ndarray]:
         points = []
 
         for t in np.linspace(0, 1, 20):

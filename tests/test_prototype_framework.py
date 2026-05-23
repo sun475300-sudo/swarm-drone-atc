@@ -4,16 +4,18 @@ Unit Tests for Prototype Framework
 Tests for boids_swarm, sensor_fusion, and airspace_manager modules.
 """
 
-import pytest
 import numpy as np
-from src.boids_swarm import BoidAgent, SwarmSimulator as BoidsSimulator
+import pytest
+
+from src.airspace_manager import AirspaceGrid, Corridor
+from src.boids_swarm import BoidAgent
+from src.boids_swarm import SwarmSimulator as BoidsSimulator
 from src.sensor_fusion import (
-    SensorMeasurement,
-    SensorType,
     KalmanFilter,
     SensorFusion,
+    SensorMeasurement,
+    SensorType,
 )
-from src.airspace_manager import Corridor, AirspaceGrid
 
 
 class TestBoidAgent:

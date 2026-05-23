@@ -7,7 +7,6 @@ Dijkstra/Bellman-Ford 라우팅 + 자가치유 + 링크 품질 관리.
 import heapq
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
 
 import numpy as np
 
@@ -34,7 +33,7 @@ class MeshNode:
     is_active: bool = True
     battery_level: float = 100.0
     tx_power_dbm: float = 20.0
-    neighbors: Set[str] = field(default_factory=set)
+    neighbors: set[str] = field(default_factory=set)
 
 
 @dataclass
@@ -64,7 +63,7 @@ class RouteEntry:
     next_hop: str
     cost: float
     hop_count: int
-    path: List[str]
+    path: list[str]
 
 
 class MeshNetworkOptimizer:
@@ -74,9 +73,9 @@ class MeshNetworkOptimizer:
                  seed: int = 42):
         self.protocol = protocol
         self.rng = np.random.default_rng(seed)
-        self.nodes: Dict[str, MeshNode] = {}
-        self.links: Dict[Tuple[str, str], MeshLink] = {}
-        self.routing_tables: Dict[str, Dict[str, RouteEntry]] = {}
+        self.nodes: dict[str, MeshNode] = {}
+        self.links: dict[tuple[str, str], MeshLink] = {}
+        self.routing_tables: dict[str, dict[str, RouteEntry]] = {}
         self.heal_count = 0
         self.route_updates = 0
 
@@ -117,7 +116,7 @@ class MeshNetworkOptimizer:
                     connected += 1
         return connected
 
-    def compute_routes(self, source: Optional[str] = None) -> None:
+    def compute_routes(self, source: str | None = None) -> None:
         sources = [source] if source else list(self.nodes.keys())
         for src in sources:
             if self.protocol == RoutingProtocol.DIJKSTRA:
@@ -128,12 +127,12 @@ class MeshNetworkOptimizer:
                 self.routing_tables[src] = self._dijkstra(src)
             self.route_updates += 1
 
-    def _dijkstra(self, source: str) -> Dict[str, RouteEntry]:
-        dist: Dict[str, float] = {nid: float('inf') for nid in self.nodes}
-        prev: Dict[str, Optional[str]] = dict.fromkeys(self.nodes)
+    def _dijkstra(self, source: str) -> dict[str, RouteEntry]:
+        dist: dict[str, float] = {nid: float('inf') for nid in self.nodes}
+        prev: dict[str, str | None] = dict.fromkeys(self.nodes)
         dist[source] = 0
         heap = [(0.0, source)]
-        visited: Set[str] = set()
+        visited: set[str] = set()
 
         while heap:
             d, u = heapq.heappop(heap)
@@ -169,9 +168,9 @@ class MeshNetworkOptimizer:
                                      len(path) - 1, path)
         return routes
 
-    def _bellman_ford(self, source: str) -> Dict[str, RouteEntry]:
+    def _bellman_ford(self, source: str) -> dict[str, RouteEntry]:
         dist = {nid: float('inf') for nid in self.nodes}
-        prev: Dict[str, Optional[str]] = dict.fromkeys(self.nodes)
+        prev: dict[str, str | None] = dict.fromkeys(self.nodes)
         dist[source] = 0
 
         for _ in range(len(self.nodes) - 1):
@@ -199,7 +198,7 @@ class MeshNetworkOptimizer:
                                      len(path) - 1, path)
         return routes
 
-    def get_route(self, src: str, dst: str) -> Optional[RouteEntry]:
+    def get_route(self, src: str, dst: str) -> RouteEntry | None:
         table = self.routing_tables.get(src)
         if not table:
             return None
@@ -234,7 +233,7 @@ class MeshNetworkOptimizer:
             self.heal_count += healed
         return healed
 
-    def get_network_stats(self) -> Dict:
+    def get_network_stats(self) -> dict:
         active_links = sum(1 for l in self.links.values()
                           if l.status == LinkStatus.ACTIVE)
         degraded = sum(1 for l in self.links.values()
@@ -256,7 +255,7 @@ class MeshNetworkOptimizer:
             "healed": self.heal_count,
         }
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return self.get_network_stats()
 
 

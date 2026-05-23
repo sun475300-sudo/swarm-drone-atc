@@ -3,7 +3,7 @@ Phase 422: Knowledge Graph Engine for Drone Mission Reasoning
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 import numpy as np
 
@@ -12,7 +12,7 @@ import numpy as np
 class Entity:
     entity_id: str
     entity_type: str
-    properties: Dict[str, Any]
+    properties: dict[str, Any]
     embeddings: np.ndarray
 
 
@@ -27,11 +27,11 @@ class Relation:
 class KnowledgeGraphEngine:
     def __init__(self, embedding_dim: int = 128):
         self.embedding_dim = embedding_dim
-        self.entities: Dict[str, Entity] = {}
-        self.relations: List[Relation] = []
-        self.adjacency: Dict[str, Set[str]] = {}
+        self.entities: dict[str, Entity] = {}
+        self.relations: list[Relation] = []
+        self.adjacency: dict[str, set[str]] = {}
 
-    def add_entity(self, entity_id: str, entity_type: str, properties: Dict[str, Any]):
+    def add_entity(self, entity_id: str, entity_type: str, properties: dict[str, Any]):
         embeddings = np.random.randn(self.embedding_dim) * 0.1
         entity = Entity(entity_id, entity_type, properties, embeddings)
         self.entities[entity_id] = entity
@@ -48,7 +48,7 @@ class KnowledgeGraphEngine:
 
         self.adjacency[source_id].add(target_id)
 
-    def query(self, entity_id: str, relation_type: Optional[str] = None) -> List[str]:
+    def query(self, entity_id: str, relation_type: str | None = None) -> list[str]:
         if entity_id not in self.adjacency:
             return []
 
@@ -62,7 +62,7 @@ class KnowledgeGraphEngine:
 
     def find_path(
         self, source: str, target: str, max_depth: int = 3
-    ) -> Optional[List[str]]:
+    ) -> list[str] | None:
         queue = [(source, [source])]
         visited = {source}
 
@@ -91,7 +91,7 @@ class KnowledgeGraphEngine:
 
         return float(np.dot(e1, e2) / (np.linalg.norm(e1) * np.linalg.norm(e2) + 1e-6))
 
-    def get_subgraph(self, entity_id: str, depth: int = 2) -> Dict[str, Any]:
+    def get_subgraph(self, entity_id: str, depth: int = 2) -> dict[str, Any]:
         subgraph_entities = {entity_id}
         queue = [(entity_id, 0)]
         visited = {entity_id}

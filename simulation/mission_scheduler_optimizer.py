@@ -4,7 +4,6 @@ Phase 444: Mission Scheduler Optimizer
 
 import time
 from dataclasses import dataclass
-from typing import Dict, List
 
 
 @dataclass
@@ -12,20 +11,20 @@ class Mission:
     mission_id: str
     start_time: float
     duration: float
-    drones_required: List[str]
+    drones_required: list[str]
     priority: int
 
 
 class MissionSchedulerOptimizer:
     def __init__(self):
-        self.missions: List[Mission] = []
-        self.schedule: Dict[str, float] = {}
+        self.missions: list[Mission] = []
+        self.schedule: dict[str, float] = {}
 
     def add_mission(self, mission: Mission):
         self.missions.append(mission)
         self.missions.sort(key=lambda m: -m.priority)
 
-    def optimize_schedule(self) -> Dict[str, float]:
+    def optimize_schedule(self) -> dict[str, float]:
         schedule = {}
 
         current_time = time.time()

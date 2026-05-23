@@ -40,7 +40,7 @@ import signal
 import sys
 import time
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Callable
 
 LOGGER = logging.getLogger("sdacs.onboard_bridge")
 
@@ -159,7 +159,7 @@ class MavlinkAdapter:
             flags.append(f"custom={custom_mode}")
         return "|".join(flags) if flags else "UNKNOWN"
 
-    async def poll_telemetry(self, drone_id: int) -> Optional[TelemetrySnapshot]:
+    async def poll_telemetry(self, drone_id: int) -> TelemetrySnapshot | None:
         if self._connection is None:
             raise RuntimeError("not connected")
 
@@ -343,7 +343,7 @@ class GroundLink:
             raise RuntimeError("ground link not connected")
         await self._ws.send(snapshot.to_json())
 
-    async def next_command(self) -> Optional[dict]:
+    async def next_command(self) -> dict | None:
         """Non-blocking poll for commands from the ground."""
         if self._ws is None:
             return None
@@ -702,7 +702,7 @@ async def _async_main(config: BridgeConfig) -> int:
     return await bridge.run()
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     config = parse_args(argv if argv is not None else sys.argv[1:])
     return asyncio.run(_async_main(config))
 

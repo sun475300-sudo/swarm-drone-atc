@@ -7,7 +7,6 @@ Verlet 적분, 강체 역학, 충돌 응답, 바람/중력 외력 모델링.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -31,7 +30,7 @@ class ForceField:
     name: str
     direction: np.ndarray = field(default_factory=lambda: np.array([0.0, 0.0, -9.81]))
     strength: float = 1.0
-    position: Optional[np.ndarray] = None  # None = uniform, else point source
+    position: np.ndarray | None = None  # None = uniform, else point source
     radius: float = float("inf")
 
 
@@ -57,9 +56,9 @@ class RealtimePhysicsV2:
     def __init__(self, dt: float = 0.01, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
         self.dt = dt
-        self._bodies: Dict[str, RigidBody] = {}
-        self._forces: List[ForceField] = []
-        self._collisions: List[CollisionInfo] = []
+        self._bodies: dict[str, RigidBody] = {}
+        self._forces: list[ForceField] = []
+        self._collisions: list[CollisionInfo] = []
         self._step_count = 0
         self._bounds_min = np.array([-1000, -1000, 0])
         self._bounds_max = np.array([1000, 1000, 500])
@@ -181,14 +180,14 @@ class RealtimePhysicsV2:
         for _ in range(steps):
             self.step()
 
-    def get_body(self, body_id: str) -> Optional[RigidBody]:
+    def get_body(self, body_id: str) -> RigidBody | None:
         return self._bodies.get(body_id)
 
     def get_kinetic_energy(self) -> float:
         return sum(0.5 * b.mass * np.dot(b.velocity, b.velocity)
                    for b in self._bodies.values() if not b.is_static)
 
-    def get_collisions(self) -> List[CollisionInfo]:
+    def get_collisions(self) -> list[CollisionInfo]:
         return self._collisions.copy()
 
     def summary(self) -> dict:

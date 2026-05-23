@@ -5,7 +5,7 @@ Phase 407: AutoML Pipeline for Hyperparameter Optimization
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -60,15 +60,15 @@ class AutoMLPipeline:
         self.timeout_per_trial = timeout_per_trial
         self.n_jobs = n_jobs
 
-        self.trials: List[TrialResult] = []
-        self.best_trial: Optional[TrialResult] = None
+        self.trials: list[TrialResult] = []
+        self.best_trial: TrialResult | None = None
         self.search_space = self._define_search_space()
 
-        self.history_scores: List[float] = []
+        self.history_scores: list[float] = []
 
         self._initialize_search()
 
-    def _define_search_space(self) -> Dict[str, List[Any]]:
+    def _define_search_space(self) -> dict[str, list[Any]]:
         return {
             "learning_rate": [0.01, 0.05, 0.1, 0.2],
             "max_depth": [3, 4, 5, 6, 8, 10],
@@ -255,8 +255,8 @@ class AutoMLPipeline:
         self,
         X_train: np.ndarray,
         y_train: np.ndarray,
-        X_val: Optional[np.ndarray] = None,
-        y_val: Optional[np.ndarray] = None,
+        X_val: np.ndarray | None = None,
+        y_val: np.ndarray | None = None,
     ) -> HyperparameterConfig:
         X = X_train
         y = y_train
@@ -288,14 +288,14 @@ class AutoMLPipeline:
 
         return self.best_trial.config
 
-    def get_best_config(self) -> Optional[HyperparameterConfig]:
+    def get_best_config(self) -> HyperparameterConfig | None:
         return self.best_trial.config if self.best_trial else None
 
-    def get_leaderboard(self, top_k: int = 10) -> List[TrialResult]:
+    def get_leaderboard(self, top_k: int = 10) -> list[TrialResult]:
         sorted_trials = sorted(self.trials, key=lambda t: t.score, reverse=True)
         return sorted_trials[:top_k]
 
-    def get_optimization_history(self) -> Dict[str, List[float]]:
+    def get_optimization_history(self) -> dict[str, list[float]]:
         return {
             "scores": self.history_scores,
             "best_scores": np.maximum.accumulate(self.history_scores).tolist(),

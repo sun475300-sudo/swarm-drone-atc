@@ -6,7 +6,6 @@ Phase 472: Swarm Operating System
 from collections import deque
 from dataclasses import dataclass
 from enum import Enum
-from typing import Deque, Dict, List, Optional
 
 import numpy as np
 
@@ -53,7 +52,7 @@ class IPCMessage:
     sender_pid: int
     receiver_pid: int
     msg_type: str
-    payload: Dict
+    payload: dict
     timestamp: float
 
 
@@ -72,8 +71,8 @@ class SwarmScheduler:
                  quantum: float = 0.1):
         self.policy = policy
         self.quantum = quantum
-        self.ready_queue: Deque[SwarmProcess] = deque()
-        self.running: Optional[SwarmProcess] = None
+        self.ready_queue: deque[SwarmProcess] = deque()
+        self.running: SwarmProcess | None = None
         self.current_time = 0.0
         self.context_switches = 0
 
@@ -82,7 +81,7 @@ class SwarmScheduler:
         process.arrival_time = self.current_time
         self.ready_queue.append(process)
 
-    def schedule(self) -> Optional[SwarmProcess]:
+    def schedule(self) -> SwarmProcess | None:
         if not self.ready_queue:
             return None
 
@@ -107,7 +106,7 @@ class SwarmScheduler:
         self.context_switches += 1
         return best
 
-    def tick(self, dt: float = 0.1) -> Optional[SwarmProcess]:
+    def tick(self, dt: float = 0.1) -> SwarmProcess | None:
         self.current_time += dt
 
         for p in self.ready_queue:
@@ -137,15 +136,15 @@ class SwarmIPC:
     """Inter-Process Communication for swarm."""
 
     def __init__(self):
-        self.mailboxes: Dict[int, Deque[IPCMessage]] = {}
-        self.shared_memory: Dict[str, bytes] = {}
+        self.mailboxes: dict[int, deque[IPCMessage]] = {}
+        self.shared_memory: dict[str, bytes] = {}
         self.msg_count = 0
 
     def register(self, pid: int) -> None:
         self.mailboxes[pid] = deque()
 
     def send(self, sender: int, receiver: int, msg_type: str,
-             payload: Dict, timestamp: float = 0) -> bool:
+             payload: dict, timestamp: float = 0) -> bool:
         if receiver not in self.mailboxes:
             return False
         msg = IPCMessage(sender, receiver, msg_type, payload, timestamp)
@@ -153,12 +152,12 @@ class SwarmIPC:
         self.msg_count += 1
         return True
 
-    def receive(self, pid: int) -> Optional[IPCMessage]:
+    def receive(self, pid: int) -> IPCMessage | None:
         if pid in self.mailboxes and self.mailboxes[pid]:
             return self.mailboxes[pid].popleft()
         return None
 
-    def broadcast(self, sender: int, msg_type: str, payload: Dict, timestamp: float = 0) -> int:
+    def broadcast(self, sender: int, msg_type: str, payload: dict, timestamp: float = 0) -> int:
         count = 0
         for pid in self.mailboxes:
             if pid != sender:
@@ -175,7 +174,7 @@ class SwarmResourceManager:
         self.total_memory = total_memory_kb
         self.used_cpu = 0.0
         self.used_memory = 0
-        self.allocations: Dict[int, Dict[str, float]] = {}
+        self.allocations: dict[int, dict[str, float]] = {}
 
     def allocate(self, pid: int, cpu: float, memory_kb: int) -> bool:
         if self.used_cpu + cpu > self.total_cpu:
@@ -195,7 +194,7 @@ class SwarmResourceManager:
         self.used_memory -= int(alloc["memory"])
         return True
 
-    def utilization(self) -> Dict[str, float]:
+    def utilization(self) -> dict[str, float]:
         return {
             "cpu_pct": self.used_cpu / self.total_cpu * 100,
             "mem_pct": self.used_memory / self.total_memory * 100,
@@ -212,12 +211,12 @@ class SwarmOperatingSystem:
         self.resources = SwarmResourceManager()
         self.rng = np.random.default_rng(seed)
         self._pid_counter = 0
-        self.processes: Dict[int, SwarmProcess] = {}
-        self.completed: List[SwarmProcess] = []
+        self.processes: dict[int, SwarmProcess] = {}
+        self.completed: list[SwarmProcess] = []
 
     def spawn(self, name: str, priority: Priority = Priority.MEDIUM,
               cpu_burst: float = 1.0, memory_kb: int = 64,
-              deadline: float = float('inf')) -> Optional[SwarmProcess]:
+              deadline: float = float('inf')) -> SwarmProcess | None:
         self._pid_counter += 1
         pid = self._pid_counter
         proc = SwarmProcess(pid, name, priority, cpu_burst=cpu_burst,
@@ -231,14 +230,14 @@ class SwarmOperatingSystem:
         self.scheduler.admit(proc)
         return proc
 
-    def tick(self, dt: float = 0.1) -> Optional[SwarmProcess]:
+    def tick(self, dt: float = 0.1) -> SwarmProcess | None:
         completed = self.scheduler.tick(dt)
         if completed:
             self.resources.release(completed.pid)
             self.completed.append(completed)
         return completed
 
-    def run_for(self, duration: float, dt: float = 0.1) -> List[SwarmProcess]:
+    def run_for(self, duration: float, dt: float = 0.1) -> list[SwarmProcess]:
         results = []
         steps = int(duration / dt)
         for _ in range(steps):
@@ -247,7 +246,7 @@ class SwarmOperatingSystem:
                 results.append(c)
         return results
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         avg_wait = np.mean([p.wait_time for p in self.completed]) if self.completed else 0
         avg_turnaround = np.mean([p.completion_time - p.arrival_time for p in self.completed]) if self.completed else 0
         return {

@@ -6,7 +6,6 @@ Phase 510: Swarm Blockchain
 import hashlib
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -33,7 +32,7 @@ class Transaction:
     tx_type: TxType
     sender: str
     receiver: str
-    data: Dict
+    data: dict
     timestamp: float
     signature: str = ""
 
@@ -42,7 +41,7 @@ class Transaction:
 class Block:
     index: int
     timestamp: float
-    transactions: List[Transaction]
+    transactions: list[Transaction]
     prev_hash: str
     nonce: int = 0
     block_hash: str = ""
@@ -57,7 +56,7 @@ class Block:
 class SmartContract:
     contract_id: str
     name: str
-    conditions: Dict
+    conditions: dict
     active: bool = True
     executions: int = 0
 
@@ -67,8 +66,8 @@ class SwarmLedger:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.chain: List[Block] = []
-        self.pending: List[Transaction] = []
+        self.chain: list[Block] = []
+        self.pending: list[Transaction] = []
         self._tx_counter = 0
         self._create_genesis()
 
@@ -78,7 +77,7 @@ class SwarmLedger:
         self.chain.append(genesis)
 
     def add_transaction(self, tx_type: TxType, sender: str,
-                        receiver: str, data: Dict) -> Transaction:
+                        receiver: str, data: dict) -> Transaction:
         self._tx_counter += 1
         tx = Transaction(
             f"TX-{self._tx_counter:06d}", tx_type, sender, receiver,
@@ -87,7 +86,7 @@ class SwarmLedger:
         self.pending.append(tx)
         return tx
 
-    def mine_block(self) -> Optional[Block]:
+    def mine_block(self) -> Block | None:
         if not self.pending:
             return None
         block = Block(
@@ -119,9 +118,9 @@ class PBFTConsensus:
         self.rng = np.random.default_rng(seed)
         self.n_nodes = n_nodes
         self.f = (n_nodes - 1) // 3  # max faulty
-        self.rounds: List[Dict] = []
+        self.rounds: list[dict] = []
 
-    def propose(self, block: Block) -> Dict:
+    def propose(self, block: Block) -> dict:
         votes = []
         for i in range(self.n_nodes):
             honest = self.rng.random() > 0.1
@@ -148,16 +147,16 @@ class SmartContractEngine:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.contracts: Dict[str, SmartContract] = {}
+        self.contracts: dict[str, SmartContract] = {}
         self._counter = 0
 
-    def deploy(self, name: str, conditions: Dict) -> SmartContract:
+    def deploy(self, name: str, conditions: dict) -> SmartContract:
         self._counter += 1
         sc = SmartContract(f"SC-{self._counter:04d}", name, conditions)
         self.contracts[sc.contract_id] = sc
         return sc
 
-    def execute(self, contract_id: str, context: Dict) -> Dict:
+    def execute(self, contract_id: str, context: dict) -> dict:
         sc = self.contracts.get(contract_id)
         if not sc or not sc.active:
             return {"executed": False, "reason": "contract not found or inactive"}
@@ -183,7 +182,7 @@ class SwarmBlockchain:
         self.ledger = SwarmLedger(seed)
         self.consensus = PBFTConsensus(min(n_drones, 10), seed)
         self.contracts = SmartContractEngine(seed)
-        self.drone_stakes: Dict[str, float] = {}
+        self.drone_stakes: dict[str, float] = {}
 
         for i in range(n_drones):
             did = f"drone_{i}"
@@ -199,7 +198,7 @@ class SwarmBlockchain:
         self.contracts.deploy("mission_complete",
                              {"distance_to_target": 5, "time_remaining": 0})
 
-    def assign_mission(self, drone_id: str, mission: Dict) -> Dict:
+    def assign_mission(self, drone_id: str, mission: dict) -> dict:
         tx = self.ledger.add_transaction(
             TxType.MISSION_ASSIGN, "controller", drone_id, mission)
         block = self.ledger.mine_block()
@@ -209,12 +208,12 @@ class SwarmBlockchain:
                     "block": block.index}
         return {"tx": tx.tx_id, "accepted": False, "block": -1}
 
-    def update_status(self, drone_id: str, status: Dict) -> str:
+    def update_status(self, drone_id: str, status: dict) -> str:
         tx = self.ledger.add_transaction(
             TxType.STATUS_UPDATE, drone_id, "ledger", status)
         return tx.tx_id
 
-    def check_clearance(self, drone_id: str, context: Dict) -> Dict:
+    def check_clearance(self, drone_id: str, context: dict) -> dict:
         sc_ids = [k for k, v in self.contracts.contracts.items()
                   if v.name == "airspace_clearance"]
         if sc_ids:
@@ -228,7 +227,7 @@ class SwarmBlockchain:
             {"reason": reason, "amount": amount})
         return tx.tx_id
 
-    def run_epoch(self) -> Dict:
+    def run_epoch(self) -> dict:
         for i in range(min(self.n_drones, 10)):
             did = f"drone_{i}"
             self.update_status(did, {
@@ -244,7 +243,7 @@ class SwarmBlockchain:
             "consensus": result.get("accepted", False),
         }
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "drones": self.n_drones,
             "chain_height": self.ledger.height,

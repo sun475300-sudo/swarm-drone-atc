@@ -1,9 +1,10 @@
 """FlightPriorityQueue + DroneProfiles 테스트"""
 import numpy as np
 import pytest
-from src.airspace_control.controller.priority_queue import FlightPriorityQueue, PRIORITY_LABELS
-from src.airspace_control.planning.waypoint import Route, Waypoint
+
 from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
+from src.airspace_control.controller.priority_queue import PRIORITY_LABELS, FlightPriorityQueue
+from src.airspace_control.planning.waypoint import Route, Waypoint
 
 pytestmark = pytest.mark.unit
 

@@ -6,11 +6,13 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from src.airspace_control.agents.drone_state import (
-    DroneState, FlightPhase, CommsStatus, FailureType,
-)
-from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
 from simulation.simulator import _estimate_power_w
+from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
+from src.airspace_control.agents.drone_state import (
+    DroneState,
+    FailureType,
+    FlightPhase,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -105,7 +107,6 @@ class TestSimulator3dUpdate:
 
     def _make_sim(self):
         """최소한의 SimState mock"""
-        from collections import deque
 
         class MinimalSim:
             wind = np.zeros(3)

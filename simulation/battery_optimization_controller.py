@@ -3,7 +3,6 @@ Phase 440: Battery Optimization Controller for Extended Flight Time
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 
@@ -28,8 +27,8 @@ class ConsumptionModel:
 class BatteryOptimizationController:
     def __init__(self, num_drones: int = 10):
         self.num_drones = num_drones
-        self.battery_states: Dict[str, BatteryState] = {}
-        self.consumption_models: Dict[str, ConsumptionModel] = {}
+        self.battery_states: dict[str, BatteryState] = {}
+        self.consumption_models: dict[str, ConsumptionModel] = {}
         self._initialize_batteries()
 
     def _initialize_batteries(self):
@@ -76,7 +75,7 @@ class BatteryOptimizationController:
     def optimize_charging_schedule(
         self,
         mission_duration_hours: float,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         schedules = {}
 
         for drone_id, state in self.battery_states.items():
@@ -102,7 +101,7 @@ class BatteryOptimizationController:
     def balance_fleet_battery(
         self,
         target_soc: float = 0.8,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         balancing_actions = {}
 
         total_charge = sum(s.current_charge_wh for s in self.battery_states.values())
@@ -118,8 +117,8 @@ class BatteryOptimizationController:
     def predict_battery_failure(
         self,
         drone_id: str,
-        flight_history: List[float],
-    ) -> Dict[str, any]:
+        flight_history: list[float],
+    ) -> dict[str, any]:
         if drone_id not in self.battery_states:
             return {"risk": "unknown"}
 

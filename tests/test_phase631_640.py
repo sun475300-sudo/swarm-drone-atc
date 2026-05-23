@@ -4,7 +4,6 @@ Phase 631-639: Multi-language file existence (9 tests)
 Phase 640: Benchmark functional test (6 tests)
 """
 
-import pytest
 import os
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

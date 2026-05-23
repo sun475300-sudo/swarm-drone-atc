@@ -5,7 +5,7 @@ Phase 475: Bio-Inspired Optimizer
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Dict, List
+from typing import Callable
 
 import numpy as np
 
@@ -136,7 +136,7 @@ class BioInspiredOptimizer:
         self.algorithm = algorithm
         self.n_dim = n_dim
         self.rng = np.random.default_rng(seed)
-        self.results: List[Solution] = []
+        self.results: list[Solution] = []
 
     def optimize(self, func: Callable, bounds: np.ndarray,
                  max_iter: int = 50, pop_size: int = 30) -> Solution:
@@ -152,14 +152,14 @@ class BioInspiredOptimizer:
         return result
 
     def compare_all(self, func: Callable, bounds: np.ndarray,
-                    max_iter: int = 50) -> Dict[str, Solution]:
+                    max_iter: int = 50) -> dict[str, Solution]:
         results = {}
         for algo in [BioAlgorithm.ACO, BioAlgorithm.ABC, BioAlgorithm.FIREFLY]:
             self.algorithm = algo
             results[algo.value] = self.optimize(func, bounds, max_iter)
         return results
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "algorithm": self.algorithm.value,
             "dimensions": self.n_dim,

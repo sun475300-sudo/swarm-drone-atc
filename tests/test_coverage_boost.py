@@ -12,7 +12,6 @@ import numpy as np
 import pytest
 
 # ── wind_compensation_system ────────────────────────────────────────────────
-
 from simulation.wind_compensation_system import WindCompensationSystem, WindVector
 
 
@@ -138,7 +137,7 @@ class TestSwarmSummary:
 
 # ── video_streaming_system ──────────────────────────────────────────────────
 
-from simulation.video_streaming_system import VideoStreamingSystem, VideoFrame
+from simulation.video_streaming_system import VideoFrame, VideoStreamingSystem
 
 
 class TestVideoStreamingSystem:
@@ -245,9 +244,9 @@ class TestTelemetryAggregationSystem:
 # ── traffic_sign_recognition ────────────────────────────────────────────────
 
 from simulation.traffic_sign_recognition import (
-    TrafficSignRecognition,
-    SignDetection,
     SignClass,
+    SignDetection,
+    TrafficSignRecognition,
 )
 
 
@@ -425,10 +424,10 @@ class TestWeatherAdaptiveController:
 # ── zero_shot_adaptor ───────────────────────────────────────────────────────
 
 from simulation.zero_shot_adaptor import (
-    ZeroShotAdaptor,
+    AdaptationResult,
     TaskDescriptor,
     TaskDomain,
-    AdaptationResult,
+    ZeroShotAdaptor,
 )
 
 
@@ -543,7 +542,6 @@ class TestZeroShotAdaptor:
 
 # ── ws_bridge (argument parser only — no network) ──────────────────────────
 
-from simulation.ws_bridge import main as ws_main
 
 
 class TestWsBridge:

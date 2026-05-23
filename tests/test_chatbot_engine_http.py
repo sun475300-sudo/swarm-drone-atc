@@ -7,7 +7,6 @@ from pathlib import Path
 
 from chatbot.engine.llm_engine import LLMEngine
 
-
 _KNOWLEDGE_DIR = Path(__file__).parent.parent / "chatbot" / "knowledge"
 
 

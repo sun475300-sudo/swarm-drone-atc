@@ -14,17 +14,17 @@ import numpy as np
 
 from simulation.apf_engine.apf import APFState, batch_compute_forces, force_to_velocity
 from simulation.spatial_hash import SpatialHash
-from src.airspace_control.agents.drone_state import DroneState, FailureType, FlightPhase
 from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
+from src.airspace_control.agents.drone_state import DroneState, FailureType, FlightPhase
 from visualization._scene_traces import (
+    _NFZ_OBSTACLES,
+    _PAD_LIST,
     ALT_MAX,
     ALT_MIN,
     BOUNDS_M,
     CRUISE_ALT,
     NFZ_X,
     NFZ_Y,
-    _NFZ_OBSTACLES,
-    _PAD_LIST,
 )
 
 if TYPE_CHECKING:

@@ -6,7 +6,7 @@ import time
 from collections import deque
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -34,7 +34,7 @@ class AnomalyAlert:
     anomaly_type: str
     severity: str
     detected_at: float
-    affected_drones: List[str]
+    affected_drones: list[str]
     description: str
 
 
@@ -49,16 +49,16 @@ class PredictiveAnalyticsEngine:
         self.forecast_horizon = forecast_horizon
         self.anomaly_threshold = anomaly_threshold
 
-        self.data_streams: Dict[ForecastType, deque] = {
+        self.data_streams: dict[ForecastType, deque] = {
             ft: deque(maxlen=history_window) for ft in ForecastType
         }
 
-        self.forecasts: Dict[ForecastType, Forecast] = {}
-        self.anomaly_history: List[AnomalyAlert] = []
+        self.forecasts: dict[ForecastType, Forecast] = {}
+        self.anomaly_history: list[AnomalyAlert] = []
 
         self.model_params = self._initialize_models()
 
-    def _initialize_models(self) -> Dict:
+    def _initialize_models(self) -> dict:
         return {
             "arima_order": (5, 1, 2),
             "lstm_units": 64,
@@ -140,8 +140,8 @@ class PredictiveAnalyticsEngine:
         return min(confidence, 1.0)
 
     def detect_anomalies(
-        self, data: np.ndarray, drone_ids: List[str]
-    ) -> List[AnomalyAlert]:
+        self, data: np.ndarray, drone_ids: list[str]
+    ) -> list[AnomalyAlert]:
         alerts = []
 
         mean = (
@@ -180,7 +180,7 @@ class PredictiveAnalyticsEngine:
 
     def predict_battery_failure(
         self, drone_id: str, battery_history: np.ndarray
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         if len(battery_history) < 10:
             return {"risk_level": "unknown", "hours_remaining": None}
 
@@ -215,7 +215,7 @@ class PredictiveAnalyticsEngine:
 
     def predict_collision_risk(
         self, positions: np.ndarray, velocities: np.ndarray
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         n = len(positions)
         risks = []
 
@@ -255,7 +255,7 @@ class PredictiveAnalyticsEngine:
             "all_risks": risks,
         }
 
-    def get_analytics_summary(self) -> Dict[str, Any]:
+    def get_analytics_summary(self) -> dict[str, Any]:
         return {
             "data_points": {
                 ft.value: len(self.data_streams[ft]) for ft in ForecastType

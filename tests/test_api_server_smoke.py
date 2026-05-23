@@ -5,7 +5,6 @@ import json
 
 import pytest
 
-
 pytest.importorskip("fastapi")
 
 

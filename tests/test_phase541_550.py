@@ -1,5 +1,4 @@
 # Phase 541-550 통합 테스트
-import pytest
 import numpy as np
 
 
@@ -181,7 +180,7 @@ class TestPhase546AcousticLocalization:
         assert len(dal.results) == 3
 
     def test_tdoa(self):
-        from simulation.drone_acoustic_localization import TDOALocalizer, Microphone
+        from simulation.drone_acoustic_localization import Microphone, TDOALocalizer
         mics = [Microphone(f"m{i}", np.array([i*10.0, 0, 0])) for i in range(3)]
         loc = TDOALocalizer(mics, 42)
         tdoa = loc.compute_tdoa(np.array([15.0, 20.0, 5.0]))
@@ -311,7 +310,7 @@ class TestPhase550DigitalTwin:
         assert len(dts.twin_results) == 50
 
     def test_physics_model(self):
-        from simulation.drone_digital_twin import PhysicsModel, DronePhysicalState
+        from simulation.drone_digital_twin import DronePhysicalState, PhysicsModel
         pm = PhysicsModel()
         state = DronePhysicalState("d0", np.zeros(3), np.ones(3), 100,
                                     np.full(4, 3000.0), 25.0, 0.0)

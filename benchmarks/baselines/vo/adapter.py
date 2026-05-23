@@ -5,14 +5,12 @@ Reuses the position-stepping helpers from the ORCA fallback path.
 """
 from __future__ import annotations
 
-import math
 import time
-from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
-from src.analytics.types import AgentTrajectory, SimulationTrace
 from benchmarks.baselines.orca.adapter import Adapter as OrcaAdapter
+from src.analytics.types import AgentTrajectory, SimulationTrace
 
 
 class Adapter(OrcaAdapter):
@@ -21,7 +19,7 @@ class Adapter(OrcaAdapter):
     name = "vo"
 
     def run(self, hard_wall_time_s: float = 300.0) -> SimulationTrace:
-        from src.utils.rng import set_global_seed, get_rng
+        from src.utils.rng import get_rng, set_global_seed
 
         set_global_seed(self.seed)
         rng = get_rng()
@@ -30,7 +28,7 @@ class Adapter(OrcaAdapter):
         spawns = self._spawn_positions(rng)
         goals = [self._goal_for(i, s, rng) for i, s in enumerate(spawns)]
 
-        agents: List[AgentTrajectory] = [
+        agents: list[AgentTrajectory] = [
             AgentTrajectory(
                 agent_id=f"drone_{i:02d}",
                 positions=[spawns[i]],

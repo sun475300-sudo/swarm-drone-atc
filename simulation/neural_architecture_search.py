@@ -5,7 +5,7 @@ Phase 415: Neural Architecture Search for Optimal Drone AI Models
 import copy
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable
 
 import numpy as np
 
@@ -30,15 +30,15 @@ class SearchStrategy(Enum):
 class NeuralBlock:
     block_id: str
     operation: OperationType
-    parameters: Dict[str, Any]
-    input_shape: Tuple[int, ...]
-    output_shape: Tuple[int, ...]
+    parameters: dict[str, Any]
+    input_shape: tuple[int, ...]
+    output_shape: tuple[int, ...]
 
 
 @dataclass
 class Architecture:
     arch_id: str
-    blocks: List[NeuralBlock]
+    blocks: list[NeuralBlock]
     accuracy: float = 0.0
     latency_ms: float = 0.0
     params_count: int = 0
@@ -47,12 +47,12 @@ class Architecture:
 class NeuralArchitectureSearch:
     def __init__(
         self,
-        search_space: Dict[str, List[Any]],
+        search_space: dict[str, list[Any]],
         strategy: SearchStrategy = SearchStrategy.EVOLUTION,
         population_size: int = 50,
         generations: int = 100,
-        fitness_fn: Optional[Callable] = None,
-        seed: Optional[int] = None,
+        fitness_fn: Callable | None = None,
+        seed: int | None = None,
     ):
         self.search_space = search_space
         self.strategy = strategy
@@ -61,10 +61,10 @@ class NeuralArchitectureSearch:
         self.fitness_fn = fitness_fn or self._default_fitness
         self._rng = np.random.default_rng(seed)
 
-        self.population: List[Architecture] = []
-        self.best_architecture: Optional[Architecture] = None
+        self.population: list[Architecture] = []
+        self.best_architecture: Architecture | None = None
 
-        self.history: List[float] = []
+        self.history: list[float] = []
 
         self._initialize_population()
 
@@ -98,7 +98,7 @@ class NeuralArchitectureSearch:
             blocks=blocks,
         )
 
-    def _sample_parameters(self, op_type: OperationType) -> Dict[str, Any]:
+    def _sample_parameters(self, op_type: OperationType) -> dict[str, Any]:
         if op_type == OperationType.CONV2D:
             return {
                 "filters": int(self._rng.choice([16, 32, 64, 128, 256])),
@@ -121,10 +121,10 @@ class NeuralArchitectureSearch:
 
     def _compute_output_shape(
         self,
-        input_shape: Tuple[int, ...],
+        input_shape: tuple[int, ...],
         op_type: OperationType,
-        params: Dict[str, Any],
-    ) -> Tuple[int, ...]:
+        params: dict[str, Any],
+    ) -> tuple[int, ...]:
         if op_type == OperationType.CONV2D:
             if len(input_shape) < 3:
                 filters = params.get("filters", 32)
@@ -196,7 +196,7 @@ class NeuralArchitectureSearch:
 
         return self.best_architecture
 
-    def _evolve_population(self, fitnesses: List[float]):
+    def _evolve_population(self, fitnesses: list[float]):
         sorted_pop = sorted(
             zip(fitnesses, self.population), key=lambda x: x[0], reverse=True
         )
@@ -237,8 +237,8 @@ class NeuralArchitectureSearch:
 
         return Architecture(arch_id=f"{arch.arch_id}_mutated", blocks=blocks)
 
-    def get_best_architecture(self) -> Optional[Architecture]:
+    def get_best_architecture(self) -> Architecture | None:
         return self.best_architecture
 
-    def get_search_history(self) -> List[float]:
+    def get_search_history(self) -> list[float]:
         return self.history

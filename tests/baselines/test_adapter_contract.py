@@ -5,14 +5,11 @@ on a small scenario without raising and produces a populated SimulationTrace.
 """
 from __future__ import annotations
 
-import math
-
 import pytest
 
 from benchmarks.baselines._base import BaselineAdapter, make_adapter
 from src.analytics.metrics import Evaluator
 from src.analytics.types import SimulationTrace
-
 
 _TINY_MANIFEST = {
     "id": "tiny_smoke",

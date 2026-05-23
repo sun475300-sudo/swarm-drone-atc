@@ -5,7 +5,6 @@ Phase 471: Quantum Machine Learning Pipeline
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -24,7 +23,7 @@ class QuantumFeatureMap:
     params: np.ndarray
 
     @staticmethod
-    def create(n_features: int, depth: int = 2, rng: Optional[np.random.Generator] = None) -> 'QuantumFeatureMap':
+    def create(n_features: int, depth: int = 2, rng: np.random.Generator | None = None) -> 'QuantumFeatureMap':
         rng = rng or np.random.default_rng(42)
         return QuantumFeatureMap(n_features, depth, rng.uniform(0, 2 * np.pi, (depth, n_features)))
 
@@ -107,9 +106,9 @@ class QSVC:
     def __init__(self, n_qubits: int = 4, seed: int = 42):
         self.kernel = QuantumKernel(n_qubits, seed)
         self.rng = np.random.default_rng(seed)
-        self.support_vectors: Optional[np.ndarray] = None
-        self.alphas: Optional[np.ndarray] = None
-        self.labels: Optional[np.ndarray] = None
+        self.support_vectors: np.ndarray | None = None
+        self.alphas: np.ndarray | None = None
+        self.labels: np.ndarray | None = None
         self.bias = 0.0
 
     def fit(self, X: np.ndarray, y: np.ndarray, max_iter: int = 100, lr: float = 0.01) -> None:
@@ -144,7 +143,7 @@ class QuantumMLPipeline:
         self.n_qubits = n_qubits
         self.rng = np.random.default_rng(seed)
         self.model = self._build_model(seed)
-        self.training_history: List[float] = []
+        self.training_history: list[float] = []
 
     def _build_model(self, seed: int):
         if self.method == QMLMethod.QNN:
@@ -155,7 +154,7 @@ class QuantumMLPipeline:
             return QuantumKernel(self.n_qubits, seed=seed)
         return QuantumNeuralNetwork(self.n_qubits, seed=seed)
 
-    def train(self, X: np.ndarray, y: np.ndarray) -> Dict:
+    def train(self, X: np.ndarray, y: np.ndarray) -> dict:
         if self.method == QMLMethod.QSVC:
             self.model.fit(X, y)
             preds = [self.model.predict(x) for x in X]
@@ -180,7 +179,7 @@ class QuantumMLPipeline:
         else:
             return self.model.compute(x, x)
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "method": self.method.value,
             "n_qubits": self.n_qubits,

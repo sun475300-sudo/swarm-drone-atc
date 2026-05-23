@@ -3,7 +3,6 @@ Phase 434: Lane Detection System for Ground Navigation
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
 
 import numpy as np
 
@@ -18,7 +17,7 @@ class LanePoint:
 @dataclass
 class Lane:
     lane_id: int
-    points: List[LanePoint]
+    points: list[LanePoint]
     lane_type: str
 
 
@@ -26,7 +25,7 @@ class LaneDetectionSystem:
     def __init__(self, num_lanes: int = 4):
         self.num_lanes = num_lanes
 
-    def detect_lanes(self, image: np.ndarray) -> List[Lane]:
+    def detect_lanes(self, image: np.ndarray) -> list[Lane]:
         lanes = []
 
         for i in range(self.num_lanes):
@@ -42,7 +41,7 @@ class LaneDetectionSystem:
 
         return lanes
 
-    def estimate_center_line(self, lanes: List[Lane]) -> Optional[List[LanePoint]]:
+    def estimate_center_line(self, lanes: list[Lane]) -> list[LanePoint] | None:
         if not lanes:
             return None
 

@@ -8,9 +8,11 @@ import pytest
 import simpy
 
 from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
-from src.airspace_control.comms.communication_bus import CommunicationBus, CommMessage
+from src.airspace_control.comms.communication_bus import CommMessage, CommunicationBus
 from src.airspace_control.comms.message_types import (
-    TelemetryMessage, ClearanceRequest, ResolutionAdvisory,
+    ClearanceRequest,
+    ResolutionAdvisory,
+    TelemetryMessage,
 )
 from src.airspace_control.controller.airspace_controller import AirspaceController
 from src.airspace_control.controller.priority_queue import FlightPriorityQueue

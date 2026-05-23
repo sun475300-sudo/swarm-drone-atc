@@ -2,14 +2,13 @@
 Phase 479: Payload Delivery System
 """
 
-from typing import Dict
 
 import numpy as np
 
 
 class PayloadDeliverySystem:
     def __init__(self):
-        self.payloads: Dict[str, Dict] = {}
+        self.payloads: dict[str, dict] = {}
 
     def load_payload(self, drone_id: str, weight_kg: float, target: np.ndarray):
         self.payloads[drone_id] = {

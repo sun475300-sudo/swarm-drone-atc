@@ -9,7 +9,6 @@ import heapq
 import math
 import uuid
 from dataclasses import dataclass, field
-from typing import Optional
 
 import numpy as np
 
@@ -22,7 +21,7 @@ class _Node:
     f: float
     g: float       = field(compare=False)
     node: GridNode = field(compare=False)
-    parent: Optional[_Node] = field(compare=False, default=None)
+    parent: _Node | None = field(compare=False, default=None)
 
 
 class FlightPathPlanner:
@@ -55,7 +54,7 @@ class FlightPathPlanner:
         origin: np.ndarray,
         destination: np.ndarray,
         priority: int = 3,
-        route_id: Optional[str] = None,
+        route_id: str | None = None,
         cruise_speed_ms: float = 8.0,
     ) -> Route:
         if route_id is None:
@@ -86,7 +85,7 @@ class FlightPathPlanner:
         destination: np.ndarray,
         blocked_node: GridNode,
         priority: int = 3,
-        route_id: Optional[str] = None,
+        route_id: str | None = None,
     ) -> Route:
         """임시 장애물을 추가해 재계획"""
         extra = frozenset([(blocked_node.x, blocked_node.y)])

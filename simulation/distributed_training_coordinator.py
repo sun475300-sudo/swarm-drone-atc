@@ -5,7 +5,7 @@ Phase 425: Distributed Training Coordinator for Swarm Learning
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -31,7 +31,7 @@ class TrainingWorker:
 class SyncRequest:
     request_id: str
     worker_id: str
-    model_gradients: Dict[str, np.ndarray]
+    model_gradients: dict[str, np.ndarray]
     timestamp: float
 
 
@@ -40,10 +40,10 @@ class DistributedTrainingCoordinator:
         self.coordinator_id = coordinator_id
         self.sync_interval = sync_interval
 
-        self.workers: Dict[str, TrainingWorker] = {}
-        self.sync_queue: List[SyncRequest] = []
+        self.workers: dict[str, TrainingWorker] = {}
+        self.sync_queue: list[SyncRequest] = []
 
-        self.global_model: Dict[str, np.ndarray] = {}
+        self.global_model: dict[str, np.ndarray] = {}
         self.training_config = {}
 
         self.metrics = {
@@ -67,7 +67,7 @@ class DistributedTrainingCoordinator:
         if worker_id in self.workers:
             self.workers[worker_id].status = WorkerStatus.TRAINING
 
-    def submit_gradients(self, worker_id: str, gradients: Dict[str, np.ndarray]):
+    def submit_gradients(self, worker_id: str, gradients: dict[str, np.ndarray]):
         request = SyncRequest(
             request_id=f"sync_{int(time.time())}_{worker_id}",
             worker_id=worker_id,
@@ -110,10 +110,10 @@ class DistributedTrainingCoordinator:
 
         return True
 
-    def get_worker_status(self, worker_id: str) -> Optional[TrainingWorker]:
+    def get_worker_status(self, worker_id: str) -> TrainingWorker | None:
         return self.workers.get(worker_id)
 
-    def get_coordinator_status(self) -> Dict[str, Any]:
+    def get_coordinator_status(self) -> dict[str, Any]:
         status_counts = {}
         for worker in self.workers.values():
             status_counts[worker.status.value] = (

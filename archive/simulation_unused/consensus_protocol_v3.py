@@ -63,7 +63,7 @@ class RaftNode:
 
         self.leader_id: Optional[str] = None
         self.next_index: Dict[str, int] = {p: len(self.log) + 1 for p in peers}
-        self.match_index: Dict[str, int] = {p: 0 for p in peers}
+        self.match_index: Dict[str, int] = dict.fromkeys(peers, 0)
 
         self.last_election_time = time.time()
         self.last_heartbeat = time.time()
@@ -83,7 +83,7 @@ class RaftNode:
         self.state = NodeState.LEADER
         self.leader_id = self.node_id
         self.next_index = {p: len(self.log) + 1 for p in self.peers}
-        self.match_index = {p: 0 for p in self.peers}
+        self.match_index = dict.fromkeys(self.peers, 0)
 
     def request_vote(
         self,
@@ -428,7 +428,7 @@ def simulate_swarm_consensus():
         result = manager.run_consensus_round(f"command_{i}", {"data": i})
         print(f"Round {i}: {result['status']}")
 
-    print(f"\n--- DAG State ---")
+    print("\n--- DAG State ---")
     print(f"Total vertices: {len(manager.dag.vertex_data)}")
     print(f"Tips: {manager.dag.tip_hashes}")
 

@@ -3,7 +3,6 @@ Phase 447: Fault Diagnosis System for Predictive Maintenance
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 
 @dataclass
@@ -16,9 +15,9 @@ class FaultCode:
 @dataclass
 class DiagnosticResult:
     drone_id: str
-    fault_code: Optional[FaultCode]
+    fault_code: FaultCode | None
     health_score: float
-    recommendations: List[str]
+    recommendations: list[str]
 
 
 class FaultDiagnosisSystem:
@@ -29,9 +28,9 @@ class FaultDiagnosisSystem:
             "E003": FaultCode("E003", "medium", "GPS signal loss"),
             "E004": FaultCode("E004", "low", "Sensor calibration needed"),
         }
-        self.diagnostic_history: List[DiagnosticResult] = []
+        self.diagnostic_history: list[DiagnosticResult] = []
 
-    def diagnose(self, drone_id: str, telemetry: Dict) -> DiagnosticResult:
+    def diagnose(self, drone_id: str, telemetry: dict) -> DiagnosticResult:
         health_score = 1.0
 
         if telemetry.get("motor_temp", 25) > 80:
@@ -55,7 +54,7 @@ class FaultDiagnosisSystem:
 
         return result
 
-    def predict_failure(self, drone_id: str, history: List[Dict]) -> float:
+    def predict_failure(self, drone_id: str, history: list[dict]) -> float:
         if len(history) < 5:
             return 0.0
 

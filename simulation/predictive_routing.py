@@ -6,7 +6,6 @@ Phase 518: Predictive Routing
 import heapq
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -41,7 +40,7 @@ class RouteSegment:
 @dataclass
 class Route:
     route_id: str
-    waypoints: List[str]
+    waypoints: list[str]
     total_distance_m: float
     total_time_s: float
     risk: float
@@ -53,7 +52,7 @@ class TrafficPredictor:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.history: Dict[str, List[float]] = {}
+        self.history: dict[str, list[float]] = {}
 
     def record(self, wp_id: str, load: float):
         if wp_id not in self.history:
@@ -77,8 +76,8 @@ class SpatioTemporalGraph:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.waypoints: Dict[str, Waypoint] = {}
-        self.edges: Dict[str, List[RouteSegment]] = {}
+        self.waypoints: dict[str, Waypoint] = {}
+        self.edges: dict[str, list[RouteSegment]] = {}
 
     def add_waypoint(self, wp: Waypoint):
         self.waypoints[wp.wp_id] = wp
@@ -95,7 +94,7 @@ class SpatioTemporalGraph:
         seg = RouteSegment(from_wp, to_wp, round(dist, 1), round(dist / speed, 1))
         self.edges.setdefault(from_wp, []).append(seg)
 
-    def dijkstra(self, start: str, end: str, weight_fn=None) -> Optional[Route]:
+    def dijkstra(self, start: str, end: str, weight_fn=None) -> Route | None:
         if start not in self.waypoints or end not in self.waypoints:
             return None
         if weight_fn is None:
@@ -150,7 +149,7 @@ class PredictiveRouting:
         self.rng = np.random.default_rng(seed)
         self.predictor = TrafficPredictor(seed)
         self.graph = SpatioTemporalGraph(seed)
-        self.routes: List[Route] = []
+        self.routes: list[Route] = []
 
         for i in range(n_waypoints):
             pos = self.rng.uniform(-500, 500, 3)
@@ -184,14 +183,14 @@ class PredictiveRouting:
                 seg.predicted_delay_s = round(pred * 30, 1)
                 seg.risk_score = round(pred * 0.5, 3)
 
-    def find_route(self, start: str, end: str) -> Optional[Route]:
+    def find_route(self, start: str, end: str) -> Route | None:
         self.update_traffic()
         route = self.graph.dijkstra(start, end)
         if route:
             self.routes.append(route)
         return route
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "waypoints": len(self.graph.waypoints),
             "edges": sum(len(e) for e in self.graph.edges.values()),

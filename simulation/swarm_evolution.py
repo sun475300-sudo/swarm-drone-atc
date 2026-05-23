@@ -5,7 +5,7 @@ Phase 483: Swarm Evolution Engine
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable, Dict, List
+from typing import Callable
 
 import numpy as np
 
@@ -30,7 +30,7 @@ class Gene:
 @dataclass
 class Genome:
     genome_id: int
-    genes: List[Gene] = field(default_factory=list)
+    genes: list[Gene] = field(default_factory=list)
     n_inputs: int = 4
     n_outputs: int = 2
     n_hidden: int = 0
@@ -42,7 +42,7 @@ class Genome:
 class Species:
     species_id: int
     representative: Genome
-    members: List[int] = field(default_factory=list)
+    members: list[int] = field(default_factory=list)
     best_fitness: float = 0.0
     stagnation: int = 0
 
@@ -56,8 +56,8 @@ class SwarmEvolution:
         self.pop_size = pop_size
         self.n_inputs = n_inputs
         self.n_outputs = n_outputs
-        self.population: List[Genome] = []
-        self.species_list: List[Species] = []
+        self.population: list[Genome] = []
+        self.species_list: list[Species] = []
         self.generation = 0
         self._innovation_counter = 0
         self._genome_counter = 0
@@ -169,7 +169,7 @@ class SwarmEvolution:
         for genome in self.population:
             genome.fitness = fitness_fn(genome, lambda inp, g=genome: self._activate(g, inp))
 
-    def evolve(self) -> Dict:
+    def evolve(self) -> dict:
         self.generation += 1
         self._speciate()
         sorted_pop = sorted(self.population, key=lambda g: g.fitness, reverse=True)
@@ -196,7 +196,7 @@ class SwarmEvolution:
             "best_genes": len(best.genes),
         }
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         best = max(self.population, key=lambda g: g.fitness) if self.population else None
         return {
             "generation": self.generation,

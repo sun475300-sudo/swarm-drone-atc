@@ -6,7 +6,6 @@ LIF(Leaky Integrate-and-Fire) 뉴런 + STDP 학습.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List
 
 import numpy as np
 
@@ -20,7 +19,7 @@ class NeuronType(Enum):
 @dataclass
 class SpikeTrain:
     neuron_id: int
-    spike_times: List[float] = field(default_factory=list)
+    spike_times: list[float] = field(default_factory=list)
     rate: float = 0.0
 
 
@@ -104,11 +103,11 @@ class SNNLayer:
                  label: str = ""):
         self.label = label
         self.neurons = [LIFNeuron(i) for i in range(n_neurons)]
-        self.spike_trains: Dict[int, SpikeTrain] = {
+        self.spike_trains: dict[int, SpikeTrain] = {
             i: SpikeTrain(i) for i in range(n_neurons)
         }
 
-    def step(self, dt: float, t: float) -> List[int]:
+    def step(self, dt: float, t: float) -> list[int]:
         spiked = []
         for neuron in self.neurons:
             if neuron.step(dt, t):
@@ -131,8 +130,8 @@ class NeuromorphicController:
         self.hidden_layer = SNNLayer(n_hidden, label="hidden")
         self.output_layer = SNNLayer(n_outputs, label="output")
 
-        self.synapses_ih: List[Synapse] = []
-        self.synapses_ho: List[Synapse] = []
+        self.synapses_ih: list[Synapse] = []
+        self.synapses_ho: list[Synapse] = []
 
         for i in range(n_inputs):
             for h in range(n_hidden):
@@ -150,12 +149,12 @@ class NeuromorphicController:
         self.total_spikes = 0
         self.step_count = 0
 
-    def encode_input(self, values: List[float]) -> None:
+    def encode_input(self, values: list[float]) -> None:
         for i, val in enumerate(values[:self.n_inputs]):
             current = val * 15.0 + self.rng.standard_normal() * 0.5
             self.input_layer.neurons[i].input_current = current
 
-    def step(self) -> List[float]:
+    def step(self) -> list[float]:
         self.current_time += self.dt
         self.step_count += 1
 
@@ -190,7 +189,7 @@ class NeuromorphicController:
             outputs.append(rate)
         return outputs
 
-    def control_step(self, sensor_data: Dict[str, float]) -> Dict[str, float]:
+    def control_step(self, sensor_data: dict[str, float]) -> dict[str, float]:
         inputs = [
             sensor_data.get("roll_error", 0),
             sensor_data.get("pitch_error", 0),
@@ -209,14 +208,14 @@ class NeuromorphicController:
             "thrust_cmd": outputs[3] * scale if len(outputs) > 3 else 0,
         }
 
-    def run_for(self, sensor_sequence: List[Dict[str, float]]) -> List[Dict[str, float]]:
+    def run_for(self, sensor_sequence: list[dict[str, float]]) -> list[dict[str, float]]:
         results = []
         for sensor_data in sensor_sequence:
             cmd = self.control_step(sensor_data)
             results.append(cmd)
         return results
 
-    def get_weight_stats(self) -> Dict[str, float]:
+    def get_weight_stats(self) -> dict[str, float]:
         all_w = [s.weight for s in self.synapses_ih + self.synapses_ho]
         return {
             "mean": float(np.mean(all_w)),
@@ -225,7 +224,7 @@ class NeuromorphicController:
             "max": float(np.max(all_w)),
         }
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "layers": f"{self.n_inputs}-{self.n_hidden}-{self.n_outputs}",
             "synapses": len(self.synapses_ih) + len(self.synapses_ho),

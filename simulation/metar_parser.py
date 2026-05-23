@@ -4,23 +4,22 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
 
 
 @dataclass
 class WeatherObservation:
     station: str
     time_utc: str
-    wind_dir_deg: Optional[int]
+    wind_dir_deg: int | None
     wind_speed_kt: int
-    gust_kt: Optional[int]
-    visibility_m: Optional[int]
-    visibility_sm: Optional[float]
-    temperature_c: Optional[int]
-    dewpoint_c: Optional[int]
-    altimeter_hpa: Optional[int]
-    conditions: List[str] = field(default_factory=list)
-    clouds: List[Tuple[str, int]] = field(default_factory=list)
+    gust_kt: int | None
+    visibility_m: int | None
+    visibility_sm: float | None
+    temperature_c: int | None
+    dewpoint_c: int | None
+    altimeter_hpa: int | None
+    conditions: list[str] = field(default_factory=list)
+    clouds: list[tuple[str, int]] = field(default_factory=list)
     raw: str = ""
     # CAVOK (Ceiling And Visibility OK): visibility >= 10 km, no cloud below 5000 ft.
     # When True, is_vfr() short-circuits to True regardless of parsed visibility/cloud fields.
@@ -33,9 +32,9 @@ class TafForecast:
     issued: str
     valid_from: str
     valid_to: str
-    wind_dir_deg: Optional[int]
+    wind_dir_deg: int | None
     wind_speed_kt: int
-    visibility_sm: Optional[float]
+    visibility_sm: float | None
     raw: str = ""
 
 
@@ -69,9 +68,9 @@ class MetarParser:
         station = tokens[skip]
         time_utc = tokens[skip + 1]
 
-        wind_dir: Optional[int] = None
+        wind_dir: int | None = None
         wind_speed = 0
-        gust: Optional[int] = None
+        gust: int | None = None
         m = self.WIND_RE.search(text)
         if m:
             wind_dir = None if m.group(1) == "VRB" else int(m.group(1))
@@ -81,8 +80,8 @@ class MetarParser:
         # CAVOK (Ceiling And Visibility OK) — definitively VFR, skip detailed vis/cloud parsing
         cavok = "CAVOK" in tokens
 
-        vis_m: Optional[int] = None
-        vis_sm: Optional[float] = None
+        vis_m: int | None = None
+        vis_sm: float | None = None
         mvm = self.VIS_M_RE.search(text)
         if mvm:
             candidate = int(mvm.group(1))
@@ -98,14 +97,14 @@ class MetarParser:
             else:
                 vis_sm = float(raw_sm)
 
-        temp: Optional[int] = None
-        dew: Optional[int] = None
+        temp: int | None = None
+        dew: int | None = None
         mt = self.TEMP_RE.search(text)
         if mt:
             temp = self._signed(mt.group(1))
             dew = self._signed(mt.group(2))
 
-        alt: Optional[int] = None
+        alt: int | None = None
         ma = self.ALT_RE.search(text)
         if ma:
             alt = int(ma.group(1))
@@ -160,14 +159,14 @@ class MetarParser:
                 valid_from, valid_to = t.split("/")
                 break
 
-        wind_dir: Optional[int] = None
+        wind_dir: int | None = None
         wind_speed = 0
         m = self.WIND_RE.search(text)
         if m:
             wind_dir = None if m.group(1) == "VRB" else int(m.group(1))
             wind_speed = int(m.group(2))
 
-        vis_sm: Optional[float] = None
+        vis_sm: float | None = None
         mvs = self.VIS_SM_RE.search(text)
         if mvs:
             raw_sm = mvs.group(1)

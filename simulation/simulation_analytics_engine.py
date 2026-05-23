@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -27,9 +26,9 @@ class KPI:
     category: KPICategory
     value: float
     unit: str = ""
-    target: Optional[float] = None
-    threshold_warning: Optional[float] = None
-    threshold_critical: Optional[float] = None
+    target: float | None = None
+    threshold_warning: float | None = None
+    threshold_critical: float | None = None
 
     @property
     def status(self) -> str:
@@ -47,7 +46,7 @@ class KPI:
 class SimulationRun:
     run_id: str
     config: dict = field(default_factory=dict)
-    metrics: Dict[str, float] = field(default_factory=dict)
+    metrics: dict[str, float] = field(default_factory=dict)
     duration_sec: float = 0.0
     timestamp: float = 0.0
 
@@ -66,7 +65,7 @@ class StatisticalTests:
     """통계 검정 도구."""
 
     @staticmethod
-    def welch_t_test(a: List[float], b: List[float]) -> Tuple[float, float]:
+    def welch_t_test(a: list[float], b: list[float]) -> tuple[float, float]:
         """Welch's t-test (unequal variance)."""
         na, nb = len(a), len(b)
         if na < 2 or nb < 2:
@@ -82,7 +81,7 @@ class StatisticalTests:
         return float(t_stat), float(p_value)
 
     @staticmethod
-    def effect_size(a: List[float], b: List[float]) -> float:
+    def effect_size(a: list[float], b: list[float]) -> float:
         """Cohen's d effect size."""
         ma, mb = np.mean(a), np.mean(b)
         pooled_std = np.sqrt((np.var(a, ddof=1) + np.var(b, ddof=1)) / 2)
@@ -91,7 +90,7 @@ class StatisticalTests:
         return float((ma - mb) / pooled_std)
 
     @staticmethod
-    def confidence_interval(data: List[float], confidence: float = 0.95) -> Tuple[float, float]:
+    def confidence_interval(data: list[float], confidence: float = 0.95) -> tuple[float, float]:
         n = len(data)
         if n < 2:
             return (np.mean(data), np.mean(data)) if data else (0.0, 0.0)
@@ -111,9 +110,9 @@ class SimulationAnalyticsEngine:
     """
 
     def __init__(self):
-        self._runs: Dict[str, SimulationRun] = {}
-        self._kpis: Dict[str, KPI] = {}
-        self._groups: Dict[str, List[str]] = {}  # group_name -> [run_ids]
+        self._runs: dict[str, SimulationRun] = {}
+        self._kpis: dict[str, KPI] = {}
+        self._groups: dict[str, list[str]] = {}  # group_name -> [run_ids]
         self._stats = StatisticalTests()
 
     def record_run(self, run: SimulationRun):
@@ -123,7 +122,7 @@ class SimulationAnalyticsEngine:
         self._groups.setdefault(group_name, []).append(run_id)
 
     def compute_kpi(self, name: str, category: KPICategory, metric_key: str,
-                    aggregation: str = "mean", **kwargs) -> Optional[KPI]:
+                    aggregation: str = "mean", **kwargs) -> KPI | None:
         values = [r.metrics.get(metric_key, 0) for r in self._runs.values() if metric_key in r.metrics]
         if not values:
             return None
@@ -141,7 +140,7 @@ class SimulationAnalyticsEngine:
         self._kpis[name] = kpi
         return kpi
 
-    def compare_groups(self, group_a: str, group_b: str, metric_key: str) -> Optional[ComparisonResult]:
+    def compare_groups(self, group_a: str, group_b: str, metric_key: str) -> ComparisonResult | None:
         runs_a = [self._runs[rid] for rid in self._groups.get(group_a, []) if rid in self._runs]
         runs_b = [self._runs[rid] for rid in self._groups.get(group_b, []) if rid in self._runs]
         vals_a = [r.metrics.get(metric_key, 0) for r in runs_a if metric_key in r.metrics]
@@ -176,7 +175,7 @@ class SimulationAnalyticsEngine:
             "std": round(float(np.std(values)), 4),
         }
 
-    def get_kpi_dashboard(self) -> Dict[str, dict]:
+    def get_kpi_dashboard(self) -> dict[str, dict]:
         dashboard = {}
         for name, kpi in self._kpis.items():
             dashboard[name] = {
@@ -199,8 +198,8 @@ class SimulationAnalyticsEngine:
             },
         }
 
-    def _aggregate_metrics(self) -> Dict[str, List[float]]:
-        agg: Dict[str, List[float]] = {}
+    def _aggregate_metrics(self) -> dict[str, list[float]]:
+        agg: dict[str, list[float]] = {}
         for run in self._runs.values():
             for k, v in run.metrics.items():
                 agg.setdefault(k, []).append(v)

@@ -6,7 +6,7 @@ import math
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 class PadStatus(Enum):
@@ -19,10 +19,10 @@ class PadStatus(Enum):
 @dataclass
 class LandingPad:
     pad_id: str
-    position: Tuple[float, float]
+    position: tuple[float, float]
     status: PadStatus = PadStatus.AVAILABLE
     max_weight_kg: float = 3000.0
-    current_callsign: Optional[str] = None
+    current_callsign: str | None = None
 
 
 @dataclass
@@ -42,13 +42,13 @@ class VertiportOps:
         if max_queue_size <= 0:
             raise ValueError("max_queue_size must be positive")
         self.vertiport_id = vertiport_id
-        self.pads: Dict[str, LandingPad] = {}
-        self.reservations: Dict[str, SlotReservation] = {}
-        self.wait_queue: List[str] = []
+        self.pads: dict[str, LandingPad] = {}
+        self.reservations: dict[str, SlotReservation] = {}
+        self.wait_queue: list[str] = []
         self.max_queue_size = max_queue_size
         self._next_slot = 0
 
-    def add_pad(self, pad_id: str, position: Tuple[float, float], max_weight: float = 3000.0) -> None:
+    def add_pad(self, pad_id: str, position: tuple[float, float], max_weight: float = 3000.0) -> None:
         if pad_id in self.pads:
             raise ValueError(f"pad_id {pad_id!r} already exists; remove it first or use a unique ID")
         if not math.isfinite(max_weight) or max_weight <= 0:
@@ -70,7 +70,7 @@ class VertiportOps:
         duration_s: float = 600.0,
         weight_kg: float = 1500.0,
         priority: int = 5,
-    ) -> Optional[str]:
+    ) -> str | None:
         if not math.isfinite(desired_time) or desired_time < 0:
             raise ValueError(
                 f"desired_time must be a finite non-negative number, got {desired_time}"
@@ -103,7 +103,7 @@ class VertiportOps:
             pass
         return slot_id
 
-    def _find_available_pad(self, start: float, duration_s: float, weight_kg: float) -> Optional[str]:
+    def _find_available_pad(self, start: float, duration_s: float, weight_kg: float) -> str | None:
         end = start + duration_s
         for pad_id, pad in self.pads.items():
             if pad.max_weight_kg < weight_kg:
@@ -229,8 +229,8 @@ class VertiportOps:
         )
         return busy / len(self.pads)
 
-    def get_stats(self) -> Dict[str, Any]:
-        status_counts: Dict[str, int] = {}
+    def get_stats(self) -> dict[str, Any]:
+        status_counts: dict[str, int] = {}
         for p in self.pads.values():
             status_counts[p.status.value] = status_counts.get(p.status.value, 0) + 1
         return {

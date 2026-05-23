@@ -12,7 +12,6 @@ Classes:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 import numpy as np
 
@@ -98,13 +97,13 @@ class SwarmSimulator:
         self,
         n_boids: int = 10,
         dimension: int = 3,
-        bounds: Optional[tuple] = None,
+        bounds: tuple | None = None,
         separation_weight: float = 1.5,
         alignment_weight: float = 1.0,
         cohesion_weight: float = 1.0,
         obstacle_avoidance_weight: float = 2.0,
         leader_follow_weight: float = 0.5,
-        seed: Optional[int] = None,
+        seed: int | None = None,
     ):
         """
         Initialize SwarmSimulator.

@@ -5,7 +5,6 @@ Phase 509: Autonomous Landing System
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -99,7 +98,7 @@ class TerrainAnalyzer:
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
 
-    def assess_zone(self, zone: LandingZone) -> Dict:
+    def assess_zone(self, zone: LandingZone) -> dict:
         slope = self.rng.uniform(0, 15)
         roughness = self.rng.uniform(0, 1)
         surface_score = {
@@ -131,8 +130,8 @@ class AutonomousLanding:
         self.rng = np.random.default_rng(seed)
         self.glidepath = GlidepathController(seed=seed)
         self.terrain = TerrainAnalyzer(seed)
-        self.zones: Dict[str, LandingZone] = {}
-        self.attempts: List[LandingAttempt] = []
+        self.zones: dict[str, LandingZone] = {}
+        self.attempts: list[LandingAttempt] = []
 
         surfaces = list(SurfaceType)
         for i in range(n_zones):
@@ -145,7 +144,7 @@ class AutonomousLanding:
             self.zones[zone.zone_id] = zone
 
     def select_zone(self, drone_pos: np.ndarray,
-                    mode: LandingMode = LandingMode.PRECISION) -> Optional[str]:
+                    mode: LandingMode = LandingMode.PRECISION) -> str | None:
         best_id = None
         best_score = -1
         for zid, zone in self.zones.items():
@@ -213,7 +212,7 @@ class AutonomousLanding:
             return LandingAttempt(drone_id, "NONE", LandingMode.EMERGENCY, LandingPhase.ABORTED)
         return self.execute_landing(drone_id, zone_id, LandingMode.EMERGENCY)
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "zones": len(self.zones),
             "attempts": len(self.attempts),

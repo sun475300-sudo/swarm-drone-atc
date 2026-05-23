@@ -6,8 +6,8 @@ from __future__ import annotations
 import pytest
 
 from simulation.scenario_runner import (
-    list_scenarios,
     _translate_scenario,
+    list_scenarios,
     run_scenario,
 )
 

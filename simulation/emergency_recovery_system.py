@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable, Dict, List, Optional
+from typing import Callable
 
 import numpy as np
 
@@ -55,14 +55,14 @@ class EmergencyEvent:
     position: np.ndarray
     timestamp: float = 0.0
     status: RecoveryStatus = RecoveryStatus.DETECTED
-    actions_taken: List[RecoveryAction] = field(default_factory=list)
+    actions_taken: list[RecoveryAction] = field(default_factory=list)
     resolved: bool = False
 
 
 @dataclass
 class RecoveryPlan:
     event_id: str
-    actions: List[RecoveryAction]
+    actions: list[RecoveryAction]
     priority: int = 0
     estimated_time_sec: float = 0.0
     success_probability: float = 0.8
@@ -105,9 +105,9 @@ class EmergencyRecoverySystem:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._events: Dict[str, EmergencyEvent] = {}
-        self._plans: Dict[str, RecoveryPlan] = {}
-        self._callbacks: List[Callable] = []
+        self._events: dict[str, EmergencyEvent] = {}
+        self._plans: dict[str, RecoveryPlan] = {}
+        self._callbacks: list[Callable] = []
         self._resolved_count = 0
         self._escalated_count = 0
         self._event_counter = 0
@@ -166,16 +166,16 @@ class EmergencyRecoverySystem:
         self._resolved_count += 1
         return True
 
-    def get_active_emergencies(self) -> List[EmergencyEvent]:
+    def get_active_emergencies(self) -> list[EmergencyEvent]:
         return [e for e in self._events.values() if not e.resolved]
 
-    def get_event(self, event_id: str) -> Optional[EmergencyEvent]:
+    def get_event(self, event_id: str) -> EmergencyEvent | None:
         return self._events.get(event_id)
 
-    def get_plan(self, event_id: str) -> Optional[RecoveryPlan]:
+    def get_plan(self, event_id: str) -> RecoveryPlan | None:
         return self._plans.get(event_id)
 
-    def get_drone_emergencies(self, drone_id: str) -> List[EmergencyEvent]:
+    def get_drone_emergencies(self, drone_id: str) -> list[EmergencyEvent]:
         return [e for e in self._events.values() if e.drone_id == drone_id]
 
     def summary(self) -> dict:

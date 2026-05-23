@@ -1,7 +1,5 @@
 # Phase 541-560 통합 테스트 — Python(541-550) + 다국어(551-560)
-import pytest
 import os
-import numpy as np
 
 
 def open_utf8(path, *args, **kwargs):

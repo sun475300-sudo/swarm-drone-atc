@@ -5,7 +5,6 @@ Phase 449: Data Encryption System for Secure Storage
 import hashlib
 import time
 from dataclasses import dataclass
-from typing import Dict
 
 
 @dataclass
@@ -18,8 +17,8 @@ class EncryptedData:
 
 class DataEncryptionSystem:
     def __init__(self):
-        self.keys: Dict[str, bytes] = {}
-        self.encrypted_data: Dict[str, EncryptedData] = {}
+        self.keys: dict[str, bytes] = {}
+        self.encrypted_data: dict[str, EncryptedData] = {}
 
     def generate_key(self, key_id: str) -> bytes:
         key = hashlib.sha256(f"{key_id}{time.time()}".encode()).digest()

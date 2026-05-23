@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Set
 
 import numpy as np
 
@@ -38,11 +37,11 @@ class ConsensusNode:
     node_id: str
     role: NodeRole = NodeRole.FOLLOWER
     current_term: int = 0
-    voted_for: Optional[str] = None
-    log: List[LogEntry] = field(default_factory=list)
+    voted_for: str | None = None
+    log: list[LogEntry] = field(default_factory=list)
     commit_index: int = 0
     last_applied: int = 0
-    votes_received: Set[str] = field(default_factory=set)
+    votes_received: set[str] = field(default_factory=set)
     is_alive: bool = True
 
 
@@ -57,10 +56,10 @@ class RaftConsensus:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._nodes: Dict[str, ConsensusNode] = {}
-        self._leader_id: Optional[str] = None
-        self._history: List[dict] = []
-        self._committed_entries: List[LogEntry] = []
+        self._nodes: dict[str, ConsensusNode] = {}
+        self._leader_id: str | None = None
+        self._history: list[dict] = []
+        self._committed_entries: list[LogEntry] = []
 
     def add_node(self, node_id: str) -> ConsensusNode:
         node = ConsensusNode(node_id=node_id)
@@ -107,7 +106,7 @@ class RaftConsensus:
         node.role = NodeRole.FOLLOWER
         return False
 
-    def propose(self, data: dict) -> Optional[LogEntry]:
+    def propose(self, data: dict) -> LogEntry | None:
         if not self._leader_id:
             return None
         leader = self._nodes.get(self._leader_id)
@@ -135,10 +134,10 @@ class RaftConsensus:
             return entry
         return None
 
-    def get_leader(self) -> Optional[str]:
+    def get_leader(self) -> str | None:
         return self._leader_id
 
-    def get_node(self, node_id: str) -> Optional[ConsensusNode]:
+    def get_node(self, node_id: str) -> ConsensusNode | None:
         return self._nodes.get(node_id)
 
     def kill_node(self, node_id: str):

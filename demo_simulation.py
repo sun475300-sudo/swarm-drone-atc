@@ -18,10 +18,12 @@ Execution:
 """
 
 from __future__ import annotations
+
 import numpy as np
-from src.boids_swarm import SwarmSimulator as BoidsSimulator, BoidAgent
-from src.sensor_fusion import SensorFusion, SensorMeasurement, SensorType
+
 from src.airspace_manager import AirspaceGrid
+from src.boids_swarm import SwarmSimulator as BoidsSimulator
+from src.sensor_fusion import SensorFusion, SensorMeasurement, SensorType
 
 
 def spawn_random_measurements(
@@ -110,7 +112,7 @@ def demo_simulation(
     print("=" * 80)
     print("SWARM DRONE AIRSPACE CONTROL - PROTOTYPE INTEGRATION DEMO")
     print("=" * 80)
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Drones:           {n_drones}")
     print(f"  Duration:         {duration}s")
     print(f"  Time step:        {dt}s")
@@ -282,27 +284,27 @@ def demo_simulation(
         else 100.0
     )
 
-    print(f"\nSwarm Dynamics:")
+    print("\nSwarm Dynamics:")
     print(f"  Total drones:                {n_drones}")
     print(f"  Simulation duration:         {duration}s")
     print(f"  Average swarm separation:    {avg_separation_final:.2f}m")
     print(f"  Minimum separation achieved: {stats['min_separation']:.2f}m")
     print(f"  Maximum separation:          {stats['max_separation']:.2f}m")
 
-    print(f"\nConflict Detection & Resolution:")
+    print("\nConflict Detection & Resolution:")
     print(f"  Conflicts detected:          {stats['conflicts_detected']}")
     print(f"  Conflicts resolved:          {stats['conflicts_resolved']}")
     print(f"  Resolution rate:             {resolution_rate:.1f}%")
     print(f"  Separation violations:       {stats['total_separation_violations']}")
 
-    print(f"\nSensor Fusion Performance:")
+    print("\nSensor Fusion Performance:")
     print(f"  Average fusion confidence:   {avg_confidence_final:.2f} (0-1)")
     print(f"  Sensors available:           {len(available_sensors)}")
-    print(f"    - RF (σ=5m):               enabled")
-    print(f"    - YOLO (σ=2m):             enabled (50% availability)")
-    print(f"    - RemoteID (σ=1m):         enabled (80% availability)")
+    print("    - RF (σ=5m):               enabled")
+    print("    - YOLO (σ=2m):             enabled (50% availability)")
+    print("    - RemoteID (σ=1m):         enabled (80% availability)")
 
-    print(f"\nAirspace Management:")
+    print("\nAirspace Management:")
     airspace_stats = airspace.get_statistics()
     print(f"  Grid cell size:              {airspace.grid_size}m")
     print(f"  Total cells:                 {airspace_stats['total_cells']}")

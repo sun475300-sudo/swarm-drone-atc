@@ -10,7 +10,6 @@ Voronoi Tessellation 기반 동적 공역 분할
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 from scipy.spatial import ConvexHull, Voronoi
@@ -29,7 +28,7 @@ class AirspaceCell:
 def compute_voronoi_partition(
     drone_positions: dict[str, np.ndarray],
     bounds_m: dict,             # {"x": [-5000, 5000], "y": [-5000, 5000]}
-    altitude_bands: Optional[dict[str, tuple[float, float]]] = None,
+    altitude_bands: dict[str, tuple[float, float]] | None = None,
 ) -> dict[str, AirspaceCell]:
     """
     2D Voronoi 분할 계산 (고도는 별도 레이어로 처리)

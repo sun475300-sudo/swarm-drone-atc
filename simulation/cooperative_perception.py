@@ -5,7 +5,6 @@ Phase 513: Cooperative Perception
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -26,7 +25,7 @@ class Detection:
     position: np.ndarray
     confidence: float
     timestamp: float
-    bbox: Tuple[float, float, float, float] = (0, 0, 0, 0)
+    bbox: tuple[float, float, float, float] = (0, 0, 0, 0)
 
 
 @dataclass
@@ -47,10 +46,10 @@ class MultiViewFusion:
         self.rng = np.random.default_rng(seed)
         self.association_threshold = 10.0  # meters
 
-    def fuse(self, detections: List[Detection]) -> List[TrackedObject]:
+    def fuse(self, detections: list[Detection]) -> list[TrackedObject]:
         if not detections:
             return []
-        clusters: List[List[Detection]] = []
+        clusters: list[list[Detection]] = []
         used = set()
 
         for i, d in enumerate(detections):
@@ -89,10 +88,10 @@ class DistributedTracker:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.tracks: Dict[str, TrackedObject] = {}
+        self.tracks: dict[str, TrackedObject] = {}
         self._track_counter = 0
 
-    def update(self, new_tracks: List[TrackedObject]) -> Dict[str, TrackedObject]:
+    def update(self, new_tracks: list[TrackedObject]) -> dict[str, TrackedObject]:
         for nt in new_tracks:
             matched = False
             for tid, existing in self.tracks.items():
@@ -126,7 +125,7 @@ class CooperativePerception:
         self.drone_positions[:, 2] = self.rng.uniform(30, 100, n_drones)
         self._det_counter = 0
 
-    def simulate_detections(self, n_objects: int = 20) -> List[Detection]:
+    def simulate_detections(self, n_objects: int = 20) -> list[Detection]:
         objects = self.rng.uniform(-150, 150, (n_objects, 3))
         objects[:, 2] = 0
         classes = self.rng.choice(list(ObjectClass)[:-1], n_objects)
@@ -149,7 +148,7 @@ class CooperativePerception:
                     classes[obj_idx], pos_est, round(conf, 3), 0.0))
         return detections
 
-    def perceive(self, n_objects: int = 20) -> Dict:
+    def perceive(self, n_objects: int = 20) -> dict:
         dets = self.simulate_detections(n_objects)
         fused = self.fusion.fuse(dets)
         self.tracker.update(fused)
@@ -159,7 +158,7 @@ class CooperativePerception:
             "global_tracks": len(self.tracker.tracks),
         }
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "drones": self.n_drones,
             "total_detections": self._det_counter,

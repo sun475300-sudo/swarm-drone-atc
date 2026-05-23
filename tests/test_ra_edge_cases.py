@@ -4,15 +4,12 @@ AdvisoryGenerator edge-case tests
 """
 from __future__ import annotations
 
-import math
-
 import numpy as np
 import pytest
 
 from src.airspace_control.agents.drone_state import DroneState, FlightPhase
 from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
 from src.airspace_control.comms.message_types import ResolutionAdvisory
-
 
 # ── Helper ──────────────────────────────────────────────────────
 

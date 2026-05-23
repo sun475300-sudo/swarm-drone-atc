@@ -3,7 +3,6 @@ Phase 451: Mission Planning System for Complex Operations
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 
@@ -19,15 +18,15 @@ class Waypoint:
 @dataclass
 class Mission:
     mission_id: str
-    waypoints: List[Waypoint]
+    waypoints: list[Waypoint]
     drones_required: int
     estimated_duration: float
 
 
 class MissionPlanningSystem:
     def __init__(self):
-        self.missions: Dict[str, Mission] = {}
-        self.completed: List[str] = []
+        self.missions: dict[str, Mission] = {}
+        self.completed: list[str] = []
 
     def plan_mission(
         self, mission_id: str, num_waypoints: int, area_bounds: tuple
@@ -46,5 +45,5 @@ class MissionPlanningSystem:
         self.missions[mission_id] = mission
         return mission
 
-    def optimize_route(self, mission: Mission) -> List[Waypoint]:
+    def optimize_route(self, mission: Mission) -> list[Waypoint]:
         return sorted(mission.waypoints, key=lambda w: w.x + w.y)

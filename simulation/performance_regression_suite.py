@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional
+from typing import Callable
 
 import numpy as np
 
@@ -20,7 +20,7 @@ class BenchmarkResult:
     value: float
     unit: str = ""
     timestamp: float = 0.0
-    baseline: Optional[float] = None
+    baseline: float | None = None
     regression: bool = False
     delta_pct: float = 0.0
 
@@ -32,7 +32,7 @@ class BenchmarkConfig:
     metric: str
     unit: str = ""
     n_runs: int = 10
-    baseline: Optional[float] = None
+    baseline: float | None = None
     threshold_pct: float = 10.0  # regression if >10% slower
 
 
@@ -46,13 +46,13 @@ class PerformanceRegressionSuite:
     """
 
     def __init__(self):
-        self._benchmarks: Dict[str, BenchmarkConfig] = {}
-        self._history: Dict[str, List[BenchmarkResult]] = {}
-        self._baselines: Dict[str, float] = {}
-        self._alerts: List[str] = []
+        self._benchmarks: dict[str, BenchmarkConfig] = {}
+        self._history: dict[str, list[BenchmarkResult]] = {}
+        self._baselines: dict[str, float] = {}
+        self._alerts: list[str] = []
 
     def register(self, name: str, func: Callable, metric: str = "time_ms",
-                 unit: str = "ms", n_runs: int = 10, baseline: Optional[float] = None,
+                 unit: str = "ms", n_runs: int = 10, baseline: float | None = None,
                  threshold_pct: float = 10.0):
         config = BenchmarkConfig(
             name=name, func=func, metric=metric, unit=unit,
@@ -62,7 +62,7 @@ class PerformanceRegressionSuite:
         if baseline is not None:
             self._baselines[name] = baseline
 
-    def run(self, name: str) -> Optional[BenchmarkResult]:
+    def run(self, name: str) -> BenchmarkResult | None:
         config = self._benchmarks.get(name)
         if not config:
             return None
@@ -97,13 +97,13 @@ class PerformanceRegressionSuite:
             self._alerts.append(f"REGRESSION: {name} — {delta_pct:+.1f}% ({median_value:.2f} vs baseline {baseline:.2f})")
         return result
 
-    def run_all(self) -> List[BenchmarkResult]:
+    def run_all(self) -> list[BenchmarkResult]:
         return [r for name in self._benchmarks if (r := self.run(name)) is not None]
 
     def set_baseline(self, name: str, value: float):
         self._baselines[name] = value
 
-    def auto_baseline(self, name: str) -> Optional[float]:
+    def auto_baseline(self, name: str) -> float | None:
         """최근 결과의 중앙값을 기준선으로 설정."""
         history = self._history.get(name, [])
         if not history:
@@ -127,7 +127,7 @@ class PerformanceRegressionSuite:
             "mean": round(float(np.mean(values)), 4),
         }
 
-    def get_alerts(self) -> List[str]:
+    def get_alerts(self) -> list[str]:
         return self._alerts.copy()
 
     def clear_alerts(self):

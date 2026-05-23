@@ -2,12 +2,11 @@
 Phase 472: Battery Management System
 """
 
-from typing import Dict
 
 
 class BatteryManagementSystem:
     def __init__(self):
-        self.batteries: Dict[str, Dict] = {}
+        self.batteries: dict[str, dict] = {}
 
     def register_battery(self, drone_id: str, capacity_wh: float):
         self.batteries[drone_id] = {

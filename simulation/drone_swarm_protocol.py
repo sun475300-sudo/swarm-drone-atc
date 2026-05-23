@@ -7,7 +7,6 @@ import hashlib
 from collections import deque
 from dataclasses import dataclass
 from enum import Enum
-from typing import Deque, Dict, List, Optional
 
 import numpy as np
 
@@ -71,11 +70,11 @@ class TDMAScheduler:
         self.n_drones = n_drones
         self.frame_duration = frame_duration_us
         self.slot_duration = frame_duration_us // max(n_drones, 1)
-        self.slots: List[TimeSlot] = []
+        self.slots: list[TimeSlot] = []
         for i in range(n_drones):
             self.slots.append(TimeSlot(i, i, i * self.slot_duration, self.slot_duration))
 
-    def get_slot(self, drone_id: int, time_us: int) -> Optional[TimeSlot]:
+    def get_slot(self, drone_id: int, time_us: int) -> TimeSlot | None:
         frame_offset = time_us % self.frame_duration
         for slot in self.slots:
             if slot.owner == drone_id:
@@ -122,12 +121,12 @@ class SwarmProtocol:
         self.tdma = TDMAScheduler(n_drones)
         self.cdma = CDMAEncoder(max(8, n_drones))
         self.mac_mode = MACProtocol.HYBRID
-        self.queues: Dict[int, Deque[SwarmMessage]] = {i: deque(maxlen=100) for i in range(n_drones)}
-        self.delivered: List[SwarmMessage] = []
+        self.queues: dict[int, deque[SwarmMessage]] = {i: deque(maxlen=100) for i in range(n_drones)}
+        self.delivered: list[SwarmMessage] = []
         self.stats = ChannelStats()
         self.time_us = 0
         self._msg_counter = 0
-        self.routing_table: Dict[int, Dict[int, int]] = {}  # src -> {dst: next_hop}
+        self.routing_table: dict[int, dict[int, int]] = {}  # src -> {dst: next_hop}
 
         for i in range(n_drones):
             self.routing_table[i] = {}
@@ -149,7 +148,7 @@ class SwarmProtocol:
                   priority: MessagePriority = MessagePriority.STATUS) -> SwarmMessage:
         return self.send(src, -1, payload, priority)
 
-    def _process_queue(self, drone_id: int) -> List[SwarmMessage]:
+    def _process_queue(self, drone_id: int) -> list[SwarmMessage]:
         delivered = []
         queue = self.queues[drone_id]
         sorted_msgs = sorted(queue, key=lambda m: m.priority.value)
@@ -182,7 +181,7 @@ class SwarmProtocol:
                 queue.remove(msg)
         return delivered
 
-    def tick(self, dt_us: int = 1000) -> Dict:
+    def tick(self, dt_us: int = 1000) -> dict:
         self.time_us += dt_us
         all_delivered = []
         for i in range(self.n_drones):
@@ -207,7 +206,7 @@ class SwarmProtocol:
                 self.send(src, dst, b"telemetry_data_packet")
         return self.stats
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "protocol": self.mac_mode.value,
             "drones": self.n_drones,

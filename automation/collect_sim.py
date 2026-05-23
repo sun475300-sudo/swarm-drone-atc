@@ -8,11 +8,10 @@ from __future__ import annotations
 
 import logging
 import sys
-import os
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -28,7 +27,7 @@ logger = logging.getLogger("automation.collect_sim")
 
 def collect_monte_carlo(
     mode: str = "quick",
-    override_params: Optional[dict] = None,
+    override_params: dict | None = None,
 ) -> dict[str, Any]:
     """
     Monte Carlo 스윕을 실행하고 결과를 구조화된 dict로 반환.
@@ -110,7 +109,7 @@ def _summarize_mc(results: list[dict]) -> dict:
 # ── 시나리오 벤치마크 수집 ────────────────────────────────────
 
 def collect_scenario_benchmarks(
-    scenarios: Optional[list[str]] = None,
+    scenarios: list[str] | None = None,
     n_runs: int = 3,
     seed: int = 42,
 ) -> dict[str, Any]:

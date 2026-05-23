@@ -6,7 +6,6 @@ K-UTM 통합, 항공법 검증, 실시간 규제 준수 모니터링.
 import hashlib
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Set
 
 import numpy as np
 
@@ -47,7 +46,7 @@ class DroneRegistration:
     has_remote_id: bool = True
     insurance_valid: bool = True
     pilot_certified: bool = True
-    regulations: Set[RegulationType] = field(default_factory=lambda: {RegulationType.KUTM})
+    regulations: set[RegulationType] = field(default_factory=lambda: {RegulationType.KUTM})
 
 
 @dataclass
@@ -61,7 +60,7 @@ class FlightAuthorization:
     end_time: float
     airspace_class: AirspaceClass
     status: ComplianceStatus = ComplianceStatus.PENDING_REVIEW
-    conditions: List[str] = field(default_factory=list)
+    conditions: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -90,10 +89,10 @@ class RegulatoryComplianceV2:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.registrations: Dict[str, DroneRegistration] = {}
-        self.authorizations: Dict[str, FlightAuthorization] = {}
-        self.violations: List[ComplianceViolation] = []
-        self.rules: List[RegulationRule] = []
+        self.registrations: dict[str, DroneRegistration] = {}
+        self.authorizations: dict[str, FlightAuthorization] = {}
+        self.violations: list[ComplianceViolation] = []
+        self.rules: list[RegulationRule] = []
         self._violation_counter = 0
         self._auth_counter = 0
         self._init_rules()
@@ -130,7 +129,7 @@ class RegulatoryComplianceV2:
     def request_authorization(self, drone_id: str, area_center: tuple,
                               radius_m: float, max_alt: float,
                               start_time: float, end_time: float,
-                              airspace: AirspaceClass = AirspaceClass.G) -> Optional[FlightAuthorization]:
+                              airspace: AirspaceClass = AirspaceClass.G) -> FlightAuthorization | None:
         if drone_id not in self.registrations:
             return None
         reg = self.registrations[drone_id]
@@ -164,7 +163,7 @@ class RegulatoryComplianceV2:
 
     def check_flight_compliance(self, drone_id: str, altitude_m: float,
                                 speed_mps: float, position: tuple,
-                                timestamp: float) -> List[ComplianceViolation]:
+                                timestamp: float) -> list[ComplianceViolation]:
         new_violations = []
         reg = self.registrations.get(drone_id)
         if not reg:
@@ -209,7 +208,7 @@ class RegulatoryComplianceV2:
         self.violations.append(v)
         return v
 
-    def auto_enforce(self, drone_id: str) -> List[str]:
+    def auto_enforce(self, drone_id: str) -> list[str]:
         """Generate enforcement actions for active violations."""
         actions = []
         drone_violations = [v for v in self.violations
@@ -235,7 +234,7 @@ class RegulatoryComplianceV2:
         recovery = resolved * 0.05
         return round(max(0, 1.0 - penalty + recovery), 4)
 
-    def generate_kutm_report(self) -> Dict:
+    def generate_kutm_report(self) -> dict:
         by_regulation = {}
         for v in self.violations:
             key = v.regulation.value
@@ -252,7 +251,7 @@ class RegulatoryComplianceV2:
             ) if self.violations else 0,
         }
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "registered_drones": len(self.registrations),
             "authorizations": len(self.authorizations),

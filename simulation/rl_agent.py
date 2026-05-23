@@ -8,7 +8,6 @@ Actor-Critic 구조의 PPO 알고리즘으로 드론 충돌 회피 정책을 학
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Tuple
 
 import numpy as np
 import torch
@@ -83,7 +82,7 @@ class DroneEnv:
         goal_rel = self._goal - self._pos
         return np.concatenate([self._pos, self._vel, goal_rel, nearest_rel]).astype(np.float32)
 
-    def _compute_reward(self) -> Tuple[float, bool]:
+    def _compute_reward(self) -> tuple[float, bool]:
         """보상 및 종료 조건 계산"""
         dist_to_goal = float(np.linalg.norm(self._goal - self._pos))
         rel_positions = self._neighbors - self._pos
@@ -131,7 +130,7 @@ class ActorCritic(nn.Module):
             nn.Linear(64, 1),
         )
 
-    def forward(self, obs: torch.Tensor) -> Tuple[Normal, torch.Tensor]:
+    def forward(self, obs: torch.Tensor) -> tuple[Normal, torch.Tensor]:
         """관측 → (행동 분포, 상태 가치)"""
         h = self.actor_net(obs)
         mean = torch.tanh(self.actor_mean(h))  # -1 ~ 1 범위
@@ -181,7 +180,7 @@ class PPOAgent:
         self._optimizer = torch.optim.Adam(self._net.parameters(), lr=lr)
         self._buffer = RolloutBuffer()
 
-    def select_action(self, obs: np.ndarray) -> Tuple[np.ndarray, float, float]:
+    def select_action(self, obs: np.ndarray) -> tuple[np.ndarray, float, float]:
         """관측에서 행동 선택, (행동, 로그확률, 가치) 반환"""
         obs_t = torch.as_tensor(obs, dtype=torch.float32, device=self._device).unsqueeze(0)
         with torch.no_grad():
@@ -217,7 +216,7 @@ class PPOAgent:
 
         return total_reward
 
-    def _compute_gae(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _compute_gae(self) -> tuple[torch.Tensor, torch.Tensor]:
         """GAE(Generalized Advantage Estimation) 계산"""
         rewards = self._buffer.rewards
         values = self._buffer.values

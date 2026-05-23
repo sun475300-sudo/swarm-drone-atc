@@ -9,7 +9,6 @@ Phase 60-67 테스트
 - 공역-기상 통합 (AirspaceWeatherIntegration)
 - 드론 건강 모니터 (DroneHealthMonitor)
 """
-import pytest
 import numpy as np
 
 
@@ -255,7 +254,7 @@ class TestTelemetryRecorder:
 # ──────────────────────────────────────────────
 class TestLandingManager:
     def _make(self):
-        from simulation.landing_manager import LandingManager, LandingPad
+        from simulation.landing_manager import LandingManager
         lm = LandingManager()
         lm.add_pad("P1", position=(0, 0))
         lm.add_pad("P2", position=(100, 0))

@@ -42,6 +42,7 @@ def _setup_logging(level: str = "INFO"):
 def cmd_simulate(args: argparse.Namespace) -> None:
     _setup_logging(getattr(args, "log_level", "INFO"))
     import time as _time
+
     from simulation.simulator import SwarmSimulator
 
     duration = args.duration
@@ -177,7 +178,7 @@ def _load_benchmark_manifest(scenario_id: str) -> dict:
     manifest_path = Path(__file__).parent / "benchmarks" / "scenarios" / scenario_id / "manifest.yaml"
     if not manifest_path.exists():
         raise FileNotFoundError(f"benchmark manifest not found: {manifest_path}")
-    with open(manifest_path, "r", encoding="utf-8") as f:
+    with open(manifest_path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -192,7 +193,7 @@ def cmd_benchmark(args: argparse.Namespace) -> None:
     from src.analytics.metrics import Evaluator, EvaluatorConfig
     from src.analytics.types import AirspaceCapacity, SimulationTrace
 
-    scenario = getattr(args, "scenario")
+    scenario = args.scenario
     method = _normalize_benchmark_method(getattr(args, "method", "sdacs_hybrid"))
     seed = int(getattr(args, "seed", 0))
     hard_wall_s = float(getattr(args, "hard_wall_s", 120.0))
@@ -260,6 +261,7 @@ def cmd_benchmark(args: argparse.Namespace) -> None:
 def cmd_visualize(args: argparse.Namespace) -> None:
     _setup_logging(getattr(args, "log_level", "INFO"))
     import threading
+
     from visualization.simulator_3d import SIM, _sim_loop, app
 
     port = getattr(args, "port", 8050)

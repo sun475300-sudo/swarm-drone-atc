@@ -20,6 +20,7 @@ from visualization._scene_traces import PHASE_KO, build_figure
 
 if TYPE_CHECKING:
     import dash
+
     from visualization._domain import SimState
 
 

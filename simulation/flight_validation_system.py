@@ -3,7 +3,6 @@ Phase 456: Flight Validation System for Safety Checks
 """
 
 from dataclasses import dataclass
-from typing import List, Tuple
 
 import numpy as np
 
@@ -11,7 +10,7 @@ import numpy as np
 @dataclass
 class FlightPlan:
     drone_id: str
-    waypoints: List[np.ndarray]
+    waypoints: list[np.ndarray]
     max_altitude: float
     battery_required: float
 
@@ -23,7 +22,7 @@ class FlightValidationSystem:
 
     def validate_plan(
         self, plan: FlightPlan, current_battery: float
-    ) -> Tuple[bool, List[str]]:
+    ) -> tuple[bool, list[str]]:
         errors = []
 
         for i, wp in enumerate(plan.waypoints):

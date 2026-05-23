@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import heapq
 import math
-from typing import Optional
 
 import numpy as np
 
@@ -48,7 +47,7 @@ def jps_search_2d(
     goal: tuple[int, int],
     grid: np.ndarray,
     wall_value: int = 0,
-) -> Optional[list[tuple[int, int]]]:
+) -> list[tuple[int, int]] | None:
     """
     2D Jump Point Search.
 
@@ -71,7 +70,7 @@ def jps_search_2d(
     SQRT2 = math.sqrt(2)
 
     # (f_cost, g_cost, (r,c), (dr,dc) or None)
-    open_list: list[tuple[float, float, tuple, Optional[tuple]]] = []
+    open_list: list[tuple[float, float, tuple, tuple | None]] = []
     g_costs: dict[tuple, float] = {start: 0.0}
     parent: dict[tuple, tuple] = {}
     closed: set[tuple] = set()
@@ -210,7 +209,7 @@ def jps_search_3d(
     grid: np.ndarray,
     wall_value: int = 0,
     max_iterations: int = 100000,
-) -> Optional[list[tuple[int, int, int]]]:
+) -> list[tuple[int, int, int]] | None:
     """
     3D A* with jump-point-style pruning.
 

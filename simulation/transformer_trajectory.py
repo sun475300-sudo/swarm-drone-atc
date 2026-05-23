@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from typing import Dict, List
 
 import numpy as np
 import torch
@@ -17,8 +16,8 @@ POS_DIM = 3    # x, y, z
 @dataclass
 class TrajectoryData:
     drone_id: str
-    positions: List[np.ndarray] = field(default_factory=list)
-    timestamps: List[float] = field(default_factory=list)
+    positions: list[np.ndarray] = field(default_factory=list)
+    timestamps: list[float] = field(default_factory=list)
 
 
 class PositionalEncoding(nn.Module):
@@ -109,8 +108,8 @@ class TrajectoryPredictor:
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.loss_fn = nn.MSELoss()
 
-        self.trajectories: Dict[str, TrajectoryData] = {}
-        self.train_losses: List[float] = []
+        self.trajectories: dict[str, TrajectoryData] = {}
+        self.train_losses: list[float] = []
         self.train_steps = 0
 
     def add_trajectory(self, drone_id: str, positions: np.ndarray) -> None:
@@ -174,7 +173,7 @@ class TrajectoryPredictor:
         result = preds.cpu().numpy()
         return result[0] if squeeze else result
 
-    def get_prediction_accuracy(self) -> Dict[str, float]:
+    def get_prediction_accuracy(self) -> dict[str, float]:
         """Return training metrics."""
         if not self.train_losses:
             return {"mean_loss": 0.0, "min_loss": 0.0, "latest_loss": 0.0, "steps": 0}

@@ -6,7 +6,6 @@ Phase 503: Quantum Communication
 import hashlib
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -102,10 +101,10 @@ class QuantumTeleportation:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.fidelity_log: List[float] = []
+        self.fidelity_log: list[float] = []
 
-    def teleport(self, state: Tuple[complex, complex],
-                 noise: float = 0.01) -> Tuple[complex, complex]:
+    def teleport(self, state: tuple[complex, complex],
+                 noise: float = 0.01) -> tuple[complex, complex]:
         alpha, beta = state
         norm = np.sqrt(abs(alpha)**2 + abs(beta)**2)
         alpha, beta = alpha / norm, beta / norm
@@ -132,8 +131,8 @@ class QuantumCommunication:
         self.n_drones = n_drones
         self.bb84 = BB84Protocol(seed)
         self.teleport = QuantumTeleportation(seed)
-        self.channels: Dict[str, QuantumChannel] = {}
-        self.shared_keys: Dict[str, str] = {}
+        self.channels: dict[str, QuantumChannel] = {}
+        self.shared_keys: dict[str, str] = {}
 
     def establish_qkd(self, alice_id: str, bob_id: str,
                       n_bits: int = 256, eve: bool = False) -> QKDResult:
@@ -146,7 +145,7 @@ class QuantumCommunication:
             self.shared_keys[key] = result.final_key
         return result
 
-    def secure_send(self, sender: str, receiver: str, message: str) -> Dict:
+    def secure_send(self, sender: str, receiver: str, message: str) -> dict:
         key = f"{sender}-{receiver}"
         alt_key = f"{receiver}-{sender}"
         shared = self.shared_keys.get(key) or self.shared_keys.get(alt_key)
@@ -160,7 +159,7 @@ class QuantumCommunication:
         return {"sent": True, "sender": sender, "receiver": receiver,
                 "msg_hash": msg_hash, "key_id": key}
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "drones": self.n_drones,
             "channels": len(self.channels),

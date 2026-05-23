@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -465,7 +465,7 @@ class MonteCarloAnalyzer:
       - Markdown 형식 보고서 생성
     """
 
-    def __init__(self, seed: Optional[int] = None) -> None:
+    def __init__(self, seed: int | None = None) -> None:
         """
         초기화.
 

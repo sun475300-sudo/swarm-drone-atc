@@ -5,7 +5,6 @@ SAR 이미징 + 위상배열 빔포밍 + 도플러 처리.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -84,8 +83,8 @@ class HolographicRadar:
         self.rng = np.random.default_rng(seed)
         self.position = np.array([0.0, 0.0, 50.0])
         self.mode = RadarMode.SEARCH
-        self.targets: Dict[str, RadarTarget] = {}
-        self.detections: List[RadarDetection] = []
+        self.targets: dict[str, RadarTarget] = {}
+        self.detections: list[RadarDetection] = []
         self.scan_count = 0
 
     def add_target(self, target: RadarTarget) -> None:
@@ -96,7 +95,7 @@ class HolographicRadar:
                              (target.y - self.position[1])**2 +
                              (target.z - self.position[2])**2))
 
-    def _angles_to(self, target: RadarTarget) -> Tuple[float, float]:
+    def _angles_to(self, target: RadarTarget) -> tuple[float, float]:
         dx = target.x - self.position[0]
         dy = target.y - self.position[1]
         dz = target.z - self.position[2]
@@ -121,7 +120,7 @@ class HolographicRadar:
         snr_linear = numerator / max(denominator, 1e-30)
         return float(10 * np.log10(max(snr_linear, 1e-10)))
 
-    def scan(self, timestamp: float = 0.0) -> List[RadarDetection]:
+    def scan(self, timestamp: float = 0.0) -> list[RadarDetection]:
         self.scan_count += 1
         new_detections = []
 
@@ -169,7 +168,7 @@ class HolographicRadar:
                             image[ni, nj] += intensity * 0.2
         return image
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "mode": self.mode.value,
             "freq_ghz": self.freq / 1e9,

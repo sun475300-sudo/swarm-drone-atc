@@ -12,9 +12,7 @@ Phase 609: Swarm Electrostatics
 Phase 610: Constraint Satisfaction
 """
 
-import pytest
 import numpy as np
-
 
 # ── Phase 601: Swarm Topology Control ──────────────────────────
 

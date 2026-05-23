@@ -6,7 +6,6 @@ CPS 보안 모니터링, 물리-사이버 공격 벡터 탐지, 무결성 검증
 import hashlib
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List
 
 import numpy as np
 
@@ -60,8 +59,8 @@ class FirmwareVerifier:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.firmware_hashes: Dict[str, str] = {}
-        self.verification_log: List[IntegrityCheck] = []
+        self.firmware_hashes: dict[str, str] = {}
+        self.verification_log: list[IntegrityCheck] = []
 
     def register(self, component: str, firmware_data: str):
         h = hashlib.sha256(firmware_data.encode()).hexdigest()
@@ -81,7 +80,7 @@ class SensorAnomalyDetector:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.history: Dict[str, List[float]] = {}
+        self.history: dict[str, list[float]] = {}
         self.window_size = 20
 
     def check(self, reading: SensorReading) -> float:
@@ -119,7 +118,7 @@ class CyberPhysicalSecurity:
         self.n_drones = n_drones
         self.firmware = FirmwareVerifier(seed)
         self.anomaly_detector = SensorAnomalyDetector(seed)
-        self.alerts: List[CPSAlert] = []
+        self.alerts: list[CPSAlert] = []
         self.time = 0.0
         self._alert_counter = 0
 
@@ -153,7 +152,7 @@ class CyberPhysicalSecurity:
                            f"Sensor anomaly d{drone_id}/{sensor_name}: score={score:.2f}")
         return score
 
-    def run_scan(self) -> Dict:
+    def run_scan(self) -> dict:
         self.time += 1.0
         firmware_ok = 0
         sensor_alerts = 0
@@ -172,7 +171,7 @@ class CyberPhysicalSecurity:
         return {"firmware_ok": firmware_ok, "sensor_alerts": sensor_alerts,
                 "total_alerts": len(self.alerts)}
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "drones": self.n_drones,
             "total_alerts": len(self.alerts),

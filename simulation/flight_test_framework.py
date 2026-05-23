@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -22,11 +22,11 @@ class TestStatus(Enum):
 class TestCase:
     name: str
     description: str
-    preconditions: List[str] = field(default_factory=list)
-    steps: List[str] = field(default_factory=list)
-    expected_outcomes: List[str] = field(default_factory=list)
+    preconditions: list[str] = field(default_factory=list)
+    steps: list[str] = field(default_factory=list)
+    expected_outcomes: list[str] = field(default_factory=list)
     timeout_s: float = 60.0
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -34,9 +34,9 @@ class FlightTestResult:
     test_name: str
     passed: bool
     duration_s: float
-    metrics: Dict[str, float] = field(default_factory=dict)
-    errors: List[str] = field(default_factory=list)
-    log: List[str] = field(default_factory=list)
+    metrics: dict[str, float] = field(default_factory=dict)
+    errors: list[str] = field(default_factory=list)
+    log: list[str] = field(default_factory=list)
 
 
 class FlightTestRunner:
@@ -44,8 +44,8 @@ class FlightTestRunner:
 
     def __init__(self, seed: int = 42) -> None:
         self.rng = np.random.default_rng(seed)
-        self.tests: Dict[str, TestCase] = {}
-        self.results: List[FlightTestResult] = []
+        self.tests: dict[str, TestCase] = {}
+        self.results: list[FlightTestResult] = []
         self._register_builtin_tests()
 
     def _register_builtin_tests(self) -> None:
@@ -107,9 +107,9 @@ class FlightTestRunner:
 
         tc = self.tests[test_name]
         start = time.monotonic()
-        log: List[str] = []
-        metrics: Dict[str, float] = {}
-        errors: List[str] = []
+        log: list[str] = []
+        metrics: dict[str, float] = {}
+        errors: list[str] = []
 
         log.append(f"Starting: {tc.description}")
         for step in tc.steps:
@@ -154,20 +154,20 @@ class FlightTestRunner:
         self.results.append(result)
         return result
 
-    def run_all(self) -> List[FlightTestResult]:
+    def run_all(self) -> list[FlightTestResult]:
         results = []
         for name in self.tests:
             results.append(self.run_test(name))
         return results
 
-    def run_by_tag(self, tag: str) -> List[FlightTestResult]:
+    def run_by_tag(self, tag: str) -> list[FlightTestResult]:
         results = []
         for name, tc in self.tests.items():
             if tag in tc.tags:
                 results.append(self.run_test(name))
         return results
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         total = len(self.results)
         passed = sum(1 for r in self.results if r.passed)
         failed = total - passed

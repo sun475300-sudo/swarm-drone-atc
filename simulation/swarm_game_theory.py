@@ -6,7 +6,6 @@ Nash 균형 탐색, 반복 죄수 딜레마, Pareto 최적.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -37,7 +36,7 @@ class Player:
     games_played: int = 0
     cooperation_rate: float = 0.0
     _coop_count: int = 0
-    history: List[str] = field(default_factory=list)
+    history: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -53,8 +52,8 @@ class GameResult:
 
 @dataclass
 class NashEquilibrium:
-    strategies: Dict[str, str]
-    payoffs: Dict[str, float]
+    strategies: dict[str, str]
+    payoffs: dict[str, float]
     is_pure: bool
     is_pareto_optimal: bool
 
@@ -84,7 +83,7 @@ class PayoffMatrix:
     }
 
     @classmethod
-    def get_matrix(cls, game_type: GameType) -> Dict[Tuple[str, str], Tuple[float, float]]:
+    def get_matrix(cls, game_type: GameType) -> dict[tuple[str, str], tuple[float, float]]:
         return {
             GameType.PRISONERS_DILEMMA: cls.PRISONERS_DILEMMA,
             GameType.STAG_HUNT: cls.STAG_HUNT,
@@ -101,8 +100,8 @@ class SwarmGameTheory:
         self.rng = np.random.default_rng(seed)
         self.game_type = game_type
         self.payoff_matrix = PayoffMatrix.get_matrix(game_type)
-        self.players: Dict[str, Player] = {}
-        self.results: List[GameResult] = []
+        self.players: dict[str, Player] = {}
+        self.results: list[GameResult] = []
         self.round_num = 0
 
     def add_player(self, player_id: str, strategy: Strategy) -> Player:
@@ -110,7 +109,7 @@ class SwarmGameTheory:
         self.players[player_id] = player
         return player
 
-    def _choose_action(self, player: Player, opponent_history: List[str]) -> str:
+    def _choose_action(self, player: Player, opponent_history: list[str]) -> str:
         if player.strategy == Strategy.ALWAYS_COOPERATE:
             return "cooperate"
         elif player.strategy == Strategy.ALWAYS_DEFECT:
@@ -164,7 +163,7 @@ class SwarmGameTheory:
         self.results.append(result)
         return result
 
-    def play_tournament(self, n_rounds: int = 50) -> Dict[str, float]:
+    def play_tournament(self, n_rounds: int = 50) -> dict[str, float]:
         ids = list(self.players.keys())
         for _ in range(n_rounds):
             for i in range(len(ids)):
@@ -173,7 +172,7 @@ class SwarmGameTheory:
 
         return {pid: p.total_payoff for pid, p in self.players.items()}
 
-    def find_nash_equilibria(self) -> List[NashEquilibrium]:
+    def find_nash_equilibria(self) -> list[NashEquilibrium]:
         equilibria = []
         actions = ["cooperate", "defect"]
 
@@ -211,7 +210,7 @@ class SwarmGameTheory:
                 return False
         return True
 
-    def find_pareto_frontier(self) -> List[Tuple[str, str, float, float]]:
+    def find_pareto_frontier(self) -> list[tuple[str, str, float, float]]:
         outcomes = []
         for (a1, a2), (pa, pb) in self.payoff_matrix.items():
             if self._is_pareto_optimal(pa, pb):
@@ -221,10 +220,10 @@ class SwarmGameTheory:
     def get_social_welfare(self) -> float:
         return sum(p.total_payoff for p in self.players.values())
 
-    def get_cooperation_stats(self) -> Dict[str, float]:
+    def get_cooperation_stats(self) -> dict[str, float]:
         return {pid: p.cooperation_rate for pid, p in self.players.items()}
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         scores = {pid: p.total_payoff for pid, p in self.players.items()}
         best = max(scores, key=scores.get) if scores else ""
         return {

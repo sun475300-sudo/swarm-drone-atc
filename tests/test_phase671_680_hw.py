@@ -1,7 +1,6 @@
 """Phase 671-680: Hardware Integration 모듈 테스트."""
 
 import numpy as np
-import pytest
 
 
 # ── PX4 SITL Bridge ────────────────────────────────────────────────────
@@ -313,7 +312,7 @@ class TestJetsonEdgeDeployer:
         assert deployer.deploy_model(dev_id, profile)
 
     def test_deploy_exceeds_memory(self):
-        from simulation.jetson_edge_deployer import JetsonEdgeDeployer, EdgeDeviceConfig, ModelProfile
+        from simulation.jetson_edge_deployer import EdgeDeviceConfig, JetsonEdgeDeployer, ModelProfile
         deployer = JetsonEdgeDeployer()
         config = EdgeDeviceConfig(device_type="tiny", memory_mb=1)
         dev_id = deployer.register_device(config)

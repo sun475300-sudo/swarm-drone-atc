@@ -8,7 +8,6 @@ import hashlib
 import secrets
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -39,7 +38,7 @@ class GroupKey:
     key_id: str
     key_data: bytes
     epoch: int
-    member_ids: List[str]
+    member_ids: list[str]
     created_at: float
     expires_at: float
 
@@ -48,7 +47,7 @@ class GroupKey:
 class EncryptedMessage:
     msg_id: str
     sender_id: str
-    recipient_ids: List[str]
+    recipient_ids: list[str]
     ciphertext: bytes
     nonce: bytes
     tag: bytes
@@ -72,14 +71,14 @@ class LatticeKEM:
         self.q = q
         self.rng = np.random.default_rng(seed)
 
-    def keygen(self) -> Tuple[np.ndarray, np.ndarray]:
+    def keygen(self) -> tuple[np.ndarray, np.ndarray]:
         s = self.rng.integers(-2, 3, size=self.n)
         a = self.rng.integers(0, self.q, size=self.n)
         e = self.rng.integers(-1, 2, size=self.n)
         b = (a * s + e) % self.q
         return b, s  # public, private
 
-    def encapsulate(self, public_key: np.ndarray) -> Tuple[np.ndarray, bytes]:
+    def encapsulate(self, public_key: np.ndarray) -> tuple[np.ndarray, bytes]:
         r = self.rng.integers(-1, 2, size=self.n)
         a = self.rng.integers(0, self.q, size=self.n)
         e1 = self.rng.integers(-1, 2, size=self.n)
@@ -100,11 +99,11 @@ class GroupKeyManager:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.group_keys: Dict[str, GroupKey] = {}
+        self.group_keys: dict[str, GroupKey] = {}
         self.epoch = 0
         self._key_counter = 0
 
-    def generate_group_key(self, member_ids: List[str],
+    def generate_group_key(self, member_ids: list[str],
                            ttl_seconds: float = 3600.0) -> GroupKey:
         self._key_counter += 1
         self.epoch += 1
@@ -123,7 +122,7 @@ class GroupKeyManager:
         return gk
 
     def rotate_key(self, old_key_id: str,
-                   exclude_members: Optional[List[str]] = None) -> Optional[GroupKey]:
+                   exclude_members: list[str] | None = None) -> GroupKey | None:
         old = self.group_keys.get(old_key_id)
         if not old:
             return None
@@ -131,7 +130,7 @@ class GroupKeyManager:
                    if not exclude_members or m not in exclude_members]
         return self.generate_group_key(members)
 
-    def revoke_member(self, key_id: str, member_id: str) -> Optional[GroupKey]:
+    def revoke_member(self, key_id: str, member_id: str) -> GroupKey | None:
         return self.rotate_key(key_id, exclude_members=[member_id])
 
 
@@ -144,9 +143,9 @@ class DroneSwarmEncryption:
         self.rng = np.random.default_rng(seed)
         self.lattice_kem = LatticeKEM(seed=seed)
         self.key_manager = GroupKeyManager(seed=seed)
-        self.drone_keys: Dict[str, KeyPair] = {}
-        self.active_group_key: Optional[GroupKey] = None
-        self.security_events: List[SecurityEvent] = []
+        self.drone_keys: dict[str, KeyPair] = {}
+        self.active_group_key: GroupKey | None = None
+        self.security_events: list[SecurityEvent] = []
         self._msg_counter = 0
 
     def register_drone(self, drone_id: str) -> KeyPair:
@@ -159,7 +158,7 @@ class DroneSwarmEncryption:
         self.drone_keys[drone_id] = kp
         return kp
 
-    def establish_group(self, member_ids: List[str]) -> GroupKey:
+    def establish_group(self, member_ids: list[str]) -> GroupKey:
         gk = self.key_manager.generate_group_key(member_ids)
         self.active_group_key = gk
         self._log_event("group_established", "system",
@@ -167,7 +166,7 @@ class DroneSwarmEncryption:
         return gk
 
     def encrypt_message(self, sender_id: str, plaintext: bytes,
-                        recipients: Optional[List[str]] = None) -> EncryptedMessage:
+                        recipients: list[str] | None = None) -> EncryptedMessage:
         self._msg_counter += 1
 
         if not self.active_group_key:
@@ -194,7 +193,7 @@ class DroneSwarmEncryption:
         )
 
     def decrypt_message(self, msg: EncryptedMessage,
-                        drone_id: str) -> Optional[bytes]:
+                        drone_id: str) -> bytes | None:
         if drone_id not in msg.recipient_ids:
             return None
 
@@ -216,7 +215,7 @@ class DroneSwarmEncryption:
         plaintext = bytes(c ^ k for c, k in zip(msg.ciphertext, extended_key[:len(msg.ciphertext)]))
         return plaintext
 
-    def rotate_group_key(self) -> Optional[GroupKey]:
+    def rotate_group_key(self) -> GroupKey | None:
         if not self.active_group_key:
             return None
         new_key = self.key_manager.rotate_key(self.active_group_key.key_id)
@@ -226,7 +225,7 @@ class DroneSwarmEncryption:
                             f"Rotated to {new_key.key_id} (epoch {new_key.epoch})")
         return new_key
 
-    def revoke_drone(self, drone_id: str) -> Optional[GroupKey]:
+    def revoke_drone(self, drone_id: str) -> GroupKey | None:
         if not self.active_group_key:
             return None
         self._log_event("revocation", drone_id, f"Drone {drone_id} revoked")
@@ -245,7 +244,7 @@ class DroneSwarmEncryption:
             description=desc, timestamp=time.time()
         ))
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "cipher_suite": self.cipher_suite.value,
             "registered_drones": len(self.drone_keys),

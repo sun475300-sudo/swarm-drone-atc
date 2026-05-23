@@ -5,7 +5,6 @@ Phase 520: Swarm Diplomacy
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -48,8 +47,8 @@ class SwarmFaction:
 class Treaty:
     treaty_id: str
     treaty_type: TreatyType
-    parties: List[str]
-    terms: Dict
+    parties: list[str]
+    terms: dict
     active: bool = True
     duration_s: float = 3600
     violations: int = 0
@@ -58,10 +57,10 @@ class Treaty:
 @dataclass
 class DiplomaticEvent:
     event_id: str
-    factions: List[str]
+    factions: list[str]
     action: DiplomacyAction
     outcome: str
-    payoff: Dict[str, float]
+    payoff: dict[str, float]
     timestamp: float
 
 
@@ -72,7 +71,7 @@ class NashBargaining:
         self.rng = np.random.default_rng(seed)
 
     def solve(self, utilities_a: np.ndarray, utilities_b: np.ndarray,
-              disagreement: Tuple[float, float] = (0, 0)) -> Tuple[int, float, float]:
+              disagreement: tuple[float, float] = (0, 0)) -> tuple[int, float, float]:
         da, db = disagreement
         products = (utilities_a - da) * (utilities_b - db)
         products[products < 0] = 0
@@ -84,7 +83,7 @@ class ReputationSystem:
     """Track and update faction reputations."""
 
     def __init__(self):
-        self.history: Dict[str, List[float]] = {}
+        self.history: dict[str, list[float]] = {}
 
     def update(self, faction_id: str, delta: float):
         if faction_id not in self.history:
@@ -107,10 +106,10 @@ class SwarmDiplomacy:
         self.n_factions = n_factions
         self.bargaining = NashBargaining(seed)
         self.reputation = ReputationSystem()
-        self.factions: Dict[str, SwarmFaction] = {}
-        self.treaties: List[Treaty] = []
-        self.events: List[DiplomaticEvent] = []
-        self.relations: Dict[Tuple[str, str], SwarmRelation] = {}
+        self.factions: dict[str, SwarmFaction] = {}
+        self.treaties: list[Treaty] = []
+        self.events: list[DiplomaticEvent] = []
+        self.relations: dict[tuple[str, str], SwarmRelation] = {}
         self._event_counter = 0
         self._treaty_counter = 0
 
@@ -176,7 +175,7 @@ class SwarmDiplomacy:
         self.events.append(event)
         return event
 
-    def resolve_dispute(self, faction_a: str, faction_b: str) -> Dict:
+    def resolve_dispute(self, faction_a: str, faction_b: str) -> dict:
         fa = self.factions.get(faction_a)
         fb = self.factions.get(faction_b)
         if not fa or not fb:
@@ -195,7 +194,7 @@ class SwarmDiplomacy:
             return {"resolved": True, "method": "enforcement",
                     "winner": faction_b}
 
-    def run_round(self) -> Dict:
+    def run_round(self) -> dict:
         fids = list(self.factions.keys())
         negotiations = 0
         for _ in range(min(3, len(fids))):
@@ -208,7 +207,7 @@ class SwarmDiplomacy:
             "events": len(self.events),
         }
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "factions": len(self.factions),
             "treaties": len(self.treaties),

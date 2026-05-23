@@ -2,7 +2,6 @@
 Phase 501-520 통합 테스트 — 20개 모듈 × 5 테스트 = 100 테스트
 """
 
-import pytest
 import numpy as np
 
 
@@ -63,7 +62,7 @@ class TestCollectiveIntelligence:
         assert isinstance(result, dict)
 
     def test_consensus_engine(self):
-        from simulation.collective_intelligence import ConsensusEngine, ConsensusAlgorithm
+        from simulation.collective_intelligence import ConsensusEngine
         ce = ConsensusEngine(n_drones=10, seed=42)
         assert ce is not None
 
@@ -254,7 +253,7 @@ class TestTacticalPlanner:
         assert len(tp.drones) == 10
 
     def test_add_task(self):
-        from simulation.tactical_planner import TacticalPlanner, MissionPriority
+        from simulation.tactical_planner import MissionPriority, TacticalPlanner
         tp = TacticalPlanner(seed=42)
         task = tp.add_task(np.array([100, 200, 50]), MissionPriority.HIGH)
         assert task.priority == MissionPriority.HIGH
@@ -295,7 +294,7 @@ class TestAutonomousLanding:
         assert zone_id is not None  # emergency mode accepts any zone
 
     def test_execute_landing(self):
-        from simulation.autonomous_landing import AutonomousLanding, LandingMode
+        from simulation.autonomous_landing import AutonomousLanding
         al = AutonomousLanding(seed=42)
         zone_id = list(al.zones.keys())[0]
         attempt = al.execute_landing("d0", zone_id)
@@ -356,7 +355,7 @@ class TestEdgeMLPipeline:
         assert len(ep.engine.models) == 6  # 3 original + 3 quantized
 
     def test_quantize(self):
-        from simulation.edge_ml_pipeline import ModelQuantizer, EdgeModel, ModelFormat
+        from simulation.edge_ml_pipeline import EdgeModel, ModelFormat, ModelQuantizer
         q = ModelQuantizer(seed=42)
         m = EdgeModel("m1", "det", 10, 3, ModelFormat.FLOAT32,
                      np.random.randn(10, 3), np.zeros(3), 5.0, 0.95)
@@ -398,7 +397,7 @@ class TestFaultTolerantNav:
         assert 0 <= sol.confidence <= 2
 
     def test_fault_injection(self):
-        from simulation.fault_tolerant_nav import FaultTolerantNav, NavSensor, NavHealth
+        from simulation.fault_tolerant_nav import FaultTolerantNav, NavHealth, NavSensor
         fn = FaultTolerantNav(seed=42)
         fn.inject_fault(NavSensor.GPS, NavHealth.FAILED)
         sol = fn.step()
@@ -432,7 +431,7 @@ class TestCooperativePerception:
         assert len(dets) > 0
 
     def test_fusion(self):
-        from simulation.cooperative_perception import MultiViewFusion, Detection, ObjectClass
+        from simulation.cooperative_perception import Detection, MultiViewFusion, ObjectClass
         f = MultiViewFusion(seed=42)
         dets = [
             Detection("d0", "o0", ObjectClass.VEHICLE, np.array([10, 20, 0]), 0.8, 0),
@@ -499,7 +498,7 @@ class TestEMShielding:
         assert len(em.shields) == 2
 
     def test_shielding_effectiveness(self):
-        from simulation.em_shielding import ShieldingEffectiveness, ShieldConfig, ShieldMaterial
+        from simulation.em_shielding import ShieldConfig, ShieldingEffectiveness, ShieldMaterial
         se = ShieldingEffectiveness()
         cfg = ShieldConfig(ShieldMaterial.COPPER, 0.5, 90, 50, 20)
         val = se.compute_se(cfg, 1000)

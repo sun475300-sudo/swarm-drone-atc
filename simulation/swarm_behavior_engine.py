@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -50,7 +49,7 @@ class ReynoldsBoids:
     """확장 Reynolds Boids 모델."""
 
     @staticmethod
-    def separation(agent: BoidState, neighbors: List[BoidState], desired_dist: float = 15.0) -> np.ndarray:
+    def separation(agent: BoidState, neighbors: list[BoidState], desired_dist: float = 15.0) -> np.ndarray:
         steer = np.zeros(3)
         count = 0
         for nb in neighbors:
@@ -64,14 +63,14 @@ class ReynoldsBoids:
         return steer
 
     @staticmethod
-    def alignment(agent: BoidState, neighbors: List[BoidState]) -> np.ndarray:
+    def alignment(agent: BoidState, neighbors: list[BoidState]) -> np.ndarray:
         if not neighbors:
             return np.zeros(3)
         avg_vel = np.mean([n.velocity for n in neighbors], axis=0)
         return avg_vel - agent.velocity
 
     @staticmethod
-    def cohesion(agent: BoidState, neighbors: List[BoidState]) -> np.ndarray:
+    def cohesion(agent: BoidState, neighbors: list[BoidState]) -> np.ndarray:
         if not neighbors:
             return np.zeros(3)
         center = np.mean([n.position for n in neighbors], axis=0)
@@ -117,14 +116,14 @@ class SwarmBehaviorEngine:
     - 실시간 군집 분석
     """
 
-    def __init__(self, weights: Optional[BehaviorWeights] = None, rng_seed: int = 42):
+    def __init__(self, weights: BehaviorWeights | None = None, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
         self.weights = weights or BehaviorWeights()
-        self._agents: Dict[str, BoidState] = {}
+        self._agents: dict[str, BoidState] = {}
         self._boids = ReynoldsBoids()
-        self._obstacles: List[np.ndarray] = []
-        self._goal: Optional[np.ndarray] = None
-        self._leader_id: Optional[str] = None
+        self._obstacles: list[np.ndarray] = []
+        self._goal: np.ndarray | None = None
+        self._leader_id: str | None = None
         self._step_count = 0
 
     def add_agent(self, agent: BoidState):
@@ -151,7 +150,7 @@ class SwarmBehaviorEngine:
         for agent in self._agents.values():
             agent.behavior = mode
 
-    def _get_neighbors(self, agent: BoidState) -> List[BoidState]:
+    def _get_neighbors(self, agent: BoidState) -> list[BoidState]:
         neighbors = []
         for other in self._agents.values():
             if other.agent_id == agent.agent_id:
@@ -204,7 +203,7 @@ class SwarmBehaviorEngine:
             force = force / mag * agent.max_force
         return force
 
-    def step(self, dt: float = 0.1) -> Dict[str, np.ndarray]:
+    def step(self, dt: float = 0.1) -> dict[str, np.ndarray]:
         self._step_count += 1
         new_positions = {}
         for agent in self._agents.values():

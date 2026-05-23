@@ -7,13 +7,12 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from simulation.digital_twin import DigitalTwin, TelemetrySnapshot
 import simulation.heatmap_generator as _heatmap_mod
-from simulation.heatmap_generator import generate_risk_heatmap
-from simulation.trajectory_recorder import TrajectoryRecorder
-from simulation.structured_logger import get_logger
 from simulation.apf_engine.multi_gpu import get_gpu_count, multi_gpu_batch_compute
-
+from simulation.digital_twin import DigitalTwin
+from simulation.heatmap_generator import generate_risk_heatmap
+from simulation.structured_logger import get_logger
+from simulation.trajectory_recorder import TrajectoryRecorder
 
 # ── DigitalTwin ──────────────────────────────────────────────
 

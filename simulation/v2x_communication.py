@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List
 
 import numpy as np
 
@@ -79,9 +78,9 @@ class V2XCommunicationSystem:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._endpoints: Dict[str, V2XEndpoint] = {}
-        self._message_log: List[V2XMessage] = []
-        self._delivery_log: List[dict] = []
+        self._endpoints: dict[str, V2XEndpoint] = {}
+        self._message_log: list[V2XMessage] = []
+        self._delivery_log: list[dict] = []
         self._channel = ChannelModel()
         self._msg_counter = 0
 
@@ -113,7 +112,7 @@ class V2XCommunicationSystem:
         self._message_log.append(msg)
         return msg
 
-    def broadcast(self, msg: V2XMessage) -> List[str]:
+    def broadcast(self, msg: V2XMessage) -> list[str]:
         """메시지 브로드캐스트: 수신 가능한 엔드포인트에 전달."""
         delivered_to = []
         sender_ep = self._endpoints.get(msg.sender)
@@ -134,7 +133,7 @@ class V2XCommunicationSystem:
                 })
         return delivered_to
 
-    def multicast(self, msg: V2XMessage, targets: List[str]) -> List[str]:
+    def multicast(self, msg: V2XMessage, targets: list[str]) -> list[str]:
         delivered = []
         sender_ep = self._endpoints.get(msg.sender)
         if not sender_ep:
@@ -150,7 +149,7 @@ class V2XCommunicationSystem:
                 delivered.append(tid)
         return delivered
 
-    def get_neighbors(self, endpoint_id: str) -> List[str]:
+    def get_neighbors(self, endpoint_id: str) -> list[str]:
         ep = self._endpoints.get(endpoint_id)
         if not ep:
             return []

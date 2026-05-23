@@ -8,7 +8,7 @@ import json
 import os
 import subprocess
 import sys
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 README_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "README.md")
 SECTION_HEADER = "## 변경 이력 (Changelog)"
@@ -54,7 +54,7 @@ def main():
     entry = f"| {kst} | `{h}` | {msg} | {files} |"
 
     # ── 4. README.md 업데이트 ────────────────────────────────
-    with open(README_PATH, "r", encoding="utf-8") as f:
+    with open(README_PATH, encoding="utf-8") as f:
         content = f.read()
 
     if SECTION_HEADER in content:

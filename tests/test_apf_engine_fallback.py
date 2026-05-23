@@ -13,9 +13,6 @@ from __future__ import annotations
 import importlib
 import sys
 
-import numpy as np
-import pytest
-
 
 def test_apf_engine_imports_without_torch(monkeypatch):
     """torch import가 OSError로 깨져도 apf_engine 모듈은 정상 로드되어야 한다."""

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any
 
 import numpy as np
 
@@ -26,7 +26,7 @@ class ModelProfile:
     quantization: str = "fp32"  # fp32, fp16, int8
 
 
-SUPPORTED_DEVICES: Dict[str, EdgeDeviceConfig] = {
+SUPPORTED_DEVICES: dict[str, EdgeDeviceConfig] = {
     "jetson_nano": EdgeDeviceConfig(
         device_type="jetson_nano", compute_capability=5.3,
         memory_mb=4096, power_budget_w=10.0, cuda_cores=128,
@@ -45,7 +45,7 @@ SUPPORTED_DEVICES: Dict[str, EdgeDeviceConfig] = {
 @dataclass
 class _DeviceState:
     config: EdgeDeviceConfig
-    deployed_models: Dict[str, ModelProfile] = field(default_factory=dict)
+    deployed_models: dict[str, ModelProfile] = field(default_factory=dict)
     utilization: float = 0.0
     temperature_c: float = 35.0
     memory_used_mb: float = 0.0
@@ -58,9 +58,9 @@ class JetsonEdgeDeployer:
     def __init__(self, seed: int = 42) -> None:
         self.rng = np.random.default_rng(seed)
         self._next_id = 0
-        self.devices: Dict[int, _DeviceState] = {}
+        self.devices: dict[int, _DeviceState] = {}
 
-    def register_device(self, config: Optional[EdgeDeviceConfig] = None) -> int:
+    def register_device(self, config: EdgeDeviceConfig | None = None) -> int:
         self._next_id += 1
         dev_id = self._next_id
         if config is None:
@@ -103,8 +103,8 @@ class JetsonEdgeDeployer:
         return True
 
     def run_inference(
-        self, device_id: int, input_data: Any, model_name: Optional[str] = None
-    ) -> Optional[Dict[str, Any]]:
+        self, device_id: int, input_data: Any, model_name: str | None = None
+    ) -> dict[str, Any] | None:
         if device_id not in self.devices:
             return None
         dev = self.devices[device_id]
@@ -132,7 +132,7 @@ class JetsonEdgeDeployer:
             "model": profile.name,
         }
 
-    def get_device_stats(self, device_id: int) -> Optional[Dict[str, Any]]:
+    def get_device_stats(self, device_id: int) -> dict[str, Any] | None:
         if device_id not in self.devices:
             return None
         dev = self.devices[device_id]
@@ -146,7 +146,7 @@ class JetsonEdgeDeployer:
             "inference_count": dev.inference_count,
         }
 
-    def benchmark(self, device_id: int, iterations: int = 100) -> Optional[Dict[str, Any]]:
+    def benchmark(self, device_id: int, iterations: int = 100) -> dict[str, Any] | None:
         if device_id not in self.devices:
             return None
         dev = self.devices[device_id]

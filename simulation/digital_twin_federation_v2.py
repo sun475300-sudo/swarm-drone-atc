@@ -6,7 +6,7 @@ Phase 476: Digital Twin Federation v2
 import hashlib
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Tuple
 
 import numpy as np
 
@@ -28,7 +28,7 @@ class ConflictResolution(Enum):
 class TwinState:
     twin_id: str
     version: int
-    data: Dict
+    data: dict
     timestamp: float
     node_id: str
     checksum: str = ""
@@ -42,8 +42,8 @@ class TwinState:
 @dataclass
 class FederationNode:
     node_id: str
-    twins: Dict[str, TwinState] = field(default_factory=dict)
-    peers: Set[str] = field(default_factory=set)
+    twins: dict[str, TwinState] = field(default_factory=dict)
+    peers: set[str] = field(default_factory=set)
     is_leader: bool = False
     sync_count: int = 0
 
@@ -65,8 +65,8 @@ class DigitalTwinFederationV2:
                  seed: int = 42):
         self.cr = conflict_resolution
         self.rng = np.random.default_rng(seed)
-        self.nodes: Dict[str, FederationNode] = {}
-        self.sync_log: List[SyncEvent] = []
+        self.nodes: dict[str, FederationNode] = {}
+        self.sync_log: list[SyncEvent] = []
         self.conflicts_resolved = 0
 
     def add_node(self, node_id: str, is_leader: bool = False) -> FederationNode:
@@ -78,7 +78,7 @@ class DigitalTwinFederationV2:
                 node.peers.add(existing.node_id)
         return node
 
-    def create_twin(self, node_id: str, twin_id: str, data: Dict, timestamp: float = 0) -> Optional[TwinState]:
+    def create_twin(self, node_id: str, twin_id: str, data: dict, timestamp: float = 0) -> TwinState | None:
         node = self.nodes.get(node_id)
         if not node:
             return None
@@ -87,7 +87,7 @@ class DigitalTwinFederationV2:
         node.twins[twin_id] = state
         return state
 
-    def update_twin(self, node_id: str, twin_id: str, data: Dict, timestamp: float = 0) -> Optional[TwinState]:
+    def update_twin(self, node_id: str, twin_id: str, data: dict, timestamp: float = 0) -> TwinState | None:
         node = self.nodes.get(node_id)
         if not node or twin_id not in node.twins:
             return None
@@ -161,7 +161,7 @@ class DigitalTwinFederationV2:
 
         return SyncStatus.SYNCED
 
-    def sync_all(self) -> Dict[str, int]:
+    def sync_all(self) -> dict[str, int]:
         synced = 0
         conflicts = 0
         node_ids = list(self.nodes.keys())
@@ -178,7 +178,7 @@ class DigitalTwinFederationV2:
                             conflicts += 1
         return {"synced": synced, "conflicts": conflicts}
 
-    def query_federation(self, twin_id: str) -> List[Tuple]:
+    def query_federation(self, twin_id: str) -> list[tuple]:
         results = []
         for node in self.nodes.values():
             twin = node.twins.get(twin_id)
@@ -186,7 +186,7 @@ class DigitalTwinFederationV2:
                 results.append((node.node_id, twin.version, twin.checksum))
         return results
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         total_twins = sum(len(n.twins) for n in self.nodes.values())
         return {
             "nodes": len(self.nodes),

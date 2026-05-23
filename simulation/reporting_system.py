@@ -3,7 +3,6 @@ Phase 470: Reporting System for Mission Summaries
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 
@@ -19,10 +18,10 @@ class MissionReport:
 
 class ReportingSystem:
     def __init__(self):
-        self.reports: List[MissionReport] = []
+        self.reports: list[MissionReport] = []
 
     def generate_report(
-        self, mission_id: str, drone_id: str, stats: Dict
+        self, mission_id: str, drone_id: str, stats: dict
     ) -> MissionReport:
         report = MissionReport(
             mission_id=mission_id,
@@ -34,7 +33,7 @@ class ReportingSystem:
         self.reports.append(report)
         return report
 
-    def get_summary(self) -> Dict:
+    def get_summary(self) -> dict:
         if not self.reports:
             return {}
 

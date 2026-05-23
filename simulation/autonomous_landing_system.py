@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -35,7 +34,7 @@ class LandingPad:
     position: np.ndarray
     status: PadStatus = PadStatus.AVAILABLE
     size_m: float = 3.0
-    reserved_for: Optional[str] = None
+    reserved_for: str | None = None
     wind_exposure: float = 1.0  # 1.0 = fully exposed
 
 
@@ -55,7 +54,7 @@ class DescentProfile:
     """착륙 하강 프로파일 생성기."""
 
     @staticmethod
-    def standard_descent(start_alt: float, rate: float, dt: float = 0.1) -> List[float]:
+    def standard_descent(start_alt: float, rate: float, dt: float = 0.1) -> list[float]:
         altitudes = []
         alt = start_alt
         while alt > 0:
@@ -64,7 +63,7 @@ class DescentProfile:
         return altitudes
 
     @staticmethod
-    def exponential_descent(start_alt: float, tau: float = 5.0, dt: float = 0.1) -> List[float]:
+    def exponential_descent(start_alt: float, tau: float = 5.0, dt: float = 0.1) -> list[float]:
         altitudes = []
         alt = start_alt
         t = 0.0
@@ -78,7 +77,7 @@ class DescentProfile:
     @staticmethod
     def wind_corrected_trajectory(
         start_pos: np.ndarray, pad_pos: np.ndarray, wind: np.ndarray, n_points: int = 50
-    ) -> List[np.ndarray]:
+    ) -> list[np.ndarray]:
         trajectory = []
         for i in range(n_points):
             t = i / (n_points - 1)
@@ -100,9 +99,9 @@ class AutonomousLandingSystem:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._pads: Dict[str, LandingPad] = {}
-        self._sequences: Dict[str, LandingSequence] = {}
-        self._history: List[dict] = []
+        self._pads: dict[str, LandingPad] = {}
+        self._sequences: dict[str, LandingSequence] = {}
+        self._history: list[dict] = []
         self._profile = DescentProfile()
 
     def add_pad(self, pad: LandingPad):
@@ -116,7 +115,7 @@ class AutonomousLandingSystem:
         pad.reserved_for = drone_id
         return True
 
-    def find_best_pad(self, drone_pos: np.ndarray, wind: Optional[np.ndarray] = None) -> Optional[str]:
+    def find_best_pad(self, drone_pos: np.ndarray, wind: np.ndarray | None = None) -> str | None:
         best_id, best_score = None, float("inf")
         for pad in self._pads.values():
             if pad.status != PadStatus.AVAILABLE:
@@ -129,7 +128,7 @@ class AutonomousLandingSystem:
                 best_id = pad.pad_id
         return best_id
 
-    def initiate_landing(self, drone_id: str, pad_id: str, is_emergency: bool = False) -> Optional[LandingSequence]:
+    def initiate_landing(self, drone_id: str, pad_id: str, is_emergency: bool = False) -> LandingSequence | None:
         pad = self._pads.get(pad_id)
         if not pad:
             return None
@@ -144,7 +143,7 @@ class AutonomousLandingSystem:
         self._history.append({"event": "initiate", "drone": drone_id, "pad": pad_id, "emergency": is_emergency})
         return seq
 
-    def advance_phase(self, drone_id: str) -> Optional[LandingPhase]:
+    def advance_phase(self, drone_id: str) -> LandingPhase | None:
         seq = self._sequences.get(drone_id)
         if not seq:
             return None
@@ -186,13 +185,13 @@ class AutonomousLandingSystem:
         pad.reserved_for = None
         return True
 
-    def get_descent_profile(self, drone_id: str) -> List[float]:
+    def get_descent_profile(self, drone_id: str) -> list[float]:
         seq = self._sequences.get(drone_id)
         if not seq:
             return []
         return self._profile.standard_descent(seq.approach_altitude, seq.descent_rate)
 
-    def get_sequence(self, drone_id: str) -> Optional[LandingSequence]:
+    def get_sequence(self, drone_id: str) -> LandingSequence | None:
         return self._sequences.get(drone_id)
 
     def summary(self) -> dict:

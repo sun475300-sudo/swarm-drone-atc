@@ -6,7 +6,6 @@ Phase 517: Drone Digital Passport
 import hashlib
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -58,8 +57,8 @@ class DigitalPassport:
     model: str
     serial: str
     status: PassportStatus
-    certificates: List[Certificate] = field(default_factory=list)
-    flight_history: List[FlightEntry] = field(default_factory=list)
+    certificates: list[Certificate] = field(default_factory=list)
+    flight_history: list[FlightEntry] = field(default_factory=list)
     total_flight_hours: float = 0.0
     maintenance_due: bool = False
 
@@ -70,7 +69,7 @@ class CertificateAuthority:
     def __init__(self, ca_name: str = "SDACS-CA", seed: int = 42):
         self.rng = np.random.default_rng(seed)
         self.ca_name = ca_name
-        self.issued: List[Certificate] = []
+        self.issued: list[Certificate] = []
         self.revoked: set = set()
         self._counter = 0
 
@@ -107,7 +106,7 @@ class DroneDigitalPassport:
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.ca = CertificateAuthority(seed=seed)
-        self.passports: Dict[str, DigitalPassport] = {}
+        self.passports: dict[str, DigitalPassport] = {}
         self._flight_counter = 0
 
         manufacturers = ["DroneCorp", "SkyTech", "AeroSystems", "SwarmWorks"]
@@ -132,7 +131,7 @@ class DroneDigitalPassport:
 
     def record_flight(self, drone_id: str, departure: str = "A",
                       destination: str = "B", duration_s: float = 600,
-                      distance_km: float = 5.0) -> Optional[FlightEntry]:
+                      distance_km: float = 5.0) -> FlightEntry | None:
         pp = self.passports.get(drone_id)
         if not pp or pp.status != PassportStatus.VALID:
             return None
@@ -151,7 +150,7 @@ class DroneDigitalPassport:
         if pp:
             pp.status = PassportStatus.SUSPENDED
 
-    def validate(self, drone_id: str) -> Dict:
+    def validate(self, drone_id: str) -> dict:
         pp = self.passports.get(drone_id)
         if not pp:
             return {"valid": False, "reason": "no passport"}
@@ -165,7 +164,7 @@ class DroneDigitalPassport:
             "flights": len(pp.flight_history),
         }
 
-    def audit(self) -> Dict:
+    def audit(self) -> dict:
         valid = sum(1 for p in self.passports.values() if p.status == PassportStatus.VALID)
         maint = sum(1 for p in self.passports.values() if p.maintenance_due)
         return {
@@ -177,5 +176,5 @@ class DroneDigitalPassport:
             "total_certs": len(self.ca.issued),
         }
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return self.audit()

@@ -9,14 +9,13 @@ Phase 44-51 테스트
 - Phase 51: ComplianceChecker (규제 준수 검증)
 """
 import numpy as np
-import pytest
-
 
 # ────────────────────────────────────────────
 #  Phase 44: BehaviorAnalyzer
 # ────────────────────────────────────────────
 from simulation.behavior_analyzer import (
-    BehaviorAnalyzer, BehaviorClass, TrajectoryFeatures,
+    BehaviorAnalyzer,
+    BehaviorClass,
 )
 
 
@@ -106,7 +105,10 @@ class TestBehaviorAnalyzer:
 #  Phase 45: PriorityScheduler
 # ────────────────────────────────────────────
 from simulation.priority_scheduler import (
-    PriorityScheduler, Mission, MissionPriority, CongestionInfo,
+    CongestionInfo,
+    Mission,
+    MissionPriority,
+    PriorityScheduler,
 )
 
 
@@ -189,7 +191,7 @@ class TestPriorityScheduler:
 #  Phase 46: ReplayAnalyzer
 # ────────────────────────────────────────────
 from simulation.replay_analyzer import (
-    ReplayAnalyzer, IncidentEvent, IncidentReport,
+    ReplayAnalyzer,
 )
 
 

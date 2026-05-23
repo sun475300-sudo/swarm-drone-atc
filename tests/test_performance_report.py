@@ -7,13 +7,10 @@
 from __future__ import annotations
 
 import json
-import os
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
-
-import numpy as np
+from typing import Any
 
 
 @dataclass
@@ -263,7 +260,7 @@ class PerformanceReport:
 """
         return html
 
-    def save_report(self, filepath: Optional[str] = None) -> str:
+    def save_report(self, filepath: str | None = None) -> str:
         """리포트 HTML 저장"""
         if filepath is None:
             filepath = self.output_dir / f"performance_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"

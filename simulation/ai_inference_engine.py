@@ -7,7 +7,7 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -33,16 +33,16 @@ class InferenceTask(Enum):
 @dataclass
 class InferenceRequest:
     task: InferenceTask
-    inputs: Dict[str, np.ndarray]
+    inputs: dict[str, np.ndarray]
     priority: int = 5
     timestamp: float = field(default_factory=time.time)
-    deadline: Optional[float] = None
+    deadline: float | None = None
 
 
 @dataclass
 class InferenceResult:
     task: InferenceTask
-    outputs: Dict[str, np.ndarray]
+    outputs: dict[str, np.ndarray]
     latency_ms: float
     confidence: float
     timestamp: float
@@ -52,8 +52,8 @@ class InferenceResult:
 class ModelMetadata:
     name: str
     model_type: InferenceModel
-    input_shapes: Dict[str, Tuple[int, ...]]
-    output_shapes: Dict[str, Tuple[int, ...]]
+    input_shapes: dict[str, tuple[int, ...]]
+    output_shapes: dict[str, tuple[int, ...]]
     loaded_at: float = field(default_factory=time.time)
     inference_count: int = 0
     total_inference_time: float = 0.0
@@ -72,14 +72,14 @@ class AIInferenceEngine:
         self.enable_batch_inference = enable_batch_inference
         self.batch_timeout_ms = batch_timeout_ms
 
-        self.models: Dict[str, ModelMetadata] = {}
-        self.inference_queues: Dict[InferenceTask, deque] = {
+        self.models: dict[str, ModelMetadata] = {}
+        self.inference_queues: dict[InferenceTask, deque] = {
             task: deque(maxlen=max_queue_size) for task in InferenceTask
         }
-        self.results: Dict[str, deque] = {}
+        self.results: dict[str, deque] = {}
 
         self.is_running = False
-        self.worker_threads: List[threading.Thread] = []
+        self.worker_threads: list[threading.Thread] = []
 
         self.metrics = {
             "total_requests": 0,
@@ -93,8 +93,8 @@ class AIInferenceEngine:
         model_name: str,
         model_type: InferenceModel,
         model_path: str,
-        input_shapes: Dict[str, Tuple[int, ...]],
-        output_shapes: Dict[str, Tuple[int, ...]],
+        input_shapes: dict[str, tuple[int, ...]],
+        output_shapes: dict[str, tuple[int, ...]],
     ):
         metadata = ModelMetadata(
             name=model_name,
@@ -119,7 +119,7 @@ class AIInferenceEngine:
 
     def get_result(
         self, request_id: str, timeout_ms: float = 1000
-    ) -> Optional[InferenceResult]:
+    ) -> InferenceResult | None:
         for model_name, result_queue in self.results.items():
             for result in result_queue:
                 if hasattr(result, "request_id"):
@@ -131,8 +131,8 @@ class AIInferenceEngine:
     def infer(
         self,
         task: InferenceTask,
-        inputs: Dict[str, np.ndarray],
-        model_name: Optional[str] = None,
+        inputs: dict[str, np.ndarray],
+        model_name: str | None = None,
         priority: int = 5,
     ) -> InferenceResult:
         start_time = time.time()
@@ -177,8 +177,8 @@ class AIInferenceEngine:
     def _run_inference(
         self,
         model_name: str,
-        inputs: Dict[str, np.ndarray],
-    ) -> Dict[str, np.ndarray]:
+        inputs: dict[str, np.ndarray],
+    ) -> dict[str, np.ndarray]:
         metadata = self.models[model_name]
 
         if metadata.model_type == InferenceModel.LIGHTGBM:
@@ -195,8 +195,8 @@ class AIInferenceEngine:
     def _infer_lightgbm(
         self,
         metadata: ModelMetadata,
-        inputs: Dict[str, np.ndarray],
-    ) -> Dict[str, np.ndarray]:
+        inputs: dict[str, np.ndarray],
+    ) -> dict[str, np.ndarray]:
         output = {}
         for key, arr in inputs.items():
             output[key] = (
@@ -209,8 +209,8 @@ class AIInferenceEngine:
     def _infer_xgboost(
         self,
         metadata: ModelMetadata,
-        inputs: Dict[str, np.ndarray],
-    ) -> Dict[str, np.ndarray]:
+        inputs: dict[str, np.ndarray],
+    ) -> dict[str, np.ndarray]:
         output = {}
         for key, arr in inputs.items():
             output[key] = (
@@ -223,8 +223,8 @@ class AIInferenceEngine:
     def _infer_onnx(
         self,
         metadata: ModelMetadata,
-        inputs: Dict[str, np.ndarray],
-    ) -> Dict[str, np.ndarray]:
+        inputs: dict[str, np.ndarray],
+    ) -> dict[str, np.ndarray]:
         output = {}
         for key, arr in inputs.items():
             output[key] = (
@@ -237,8 +237,8 @@ class AIInferenceEngine:
     def _infer_lstm(
         self,
         metadata: ModelMetadata,
-        inputs: Dict[str, np.ndarray],
-    ) -> Dict[str, np.ndarray]:
+        inputs: dict[str, np.ndarray],
+    ) -> dict[str, np.ndarray]:
         batch_size = next(iter(inputs.values())).shape[0] if inputs else 1
         output = {
             "prediction": np.random.rand(batch_size, 10),
@@ -249,8 +249,8 @@ class AIInferenceEngine:
     def _infer_default(
         self,
         metadata: ModelMetadata,
-        inputs: Dict[str, np.ndarray],
-    ) -> Dict[str, np.ndarray]:
+        inputs: dict[str, np.ndarray],
+    ) -> dict[str, np.ndarray]:
         output = {}
         for key, arr in inputs.items():
             output[key] = (
@@ -271,7 +271,7 @@ class AIInferenceEngine:
         }
         return model_mapping.get(task, "default_model")
 
-    def _calculate_confidence(self, outputs: Dict[str, np.ndarray]) -> float:
+    def _calculate_confidence(self, outputs: dict[str, np.ndarray]) -> float:
         if not outputs:
             return 0.0
 
@@ -286,7 +286,7 @@ class AIInferenceEngine:
 
         return np.mean(confidences) if confidences else 0.5
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         model_metrics = {}
         for name, metadata in self.models.items():
             model_metrics[name] = {
@@ -312,7 +312,7 @@ class AIInferenceEngine:
         for _ in range(num_iterations):
             self.infer(task, default_inputs)
 
-    def _generate_dummy_inputs(self, task: InferenceTask) -> Dict[str, np.ndarray]:
+    def _generate_dummy_inputs(self, task: InferenceTask) -> dict[str, np.ndarray]:
         if task == InferenceTask.COLLISION_PREDICTION:
             return {
                 "positions": np.random.rand(10, 3),

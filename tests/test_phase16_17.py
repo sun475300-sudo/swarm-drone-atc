@@ -6,7 +6,6 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-
 # ── SpatialHash 테스트 ──────────────────────────────────────
 
 
@@ -267,7 +266,8 @@ class TestSimulatorCore:
 class TestCommBusExtended:
     def test_stats_tracking(self):
         import simpy
-        from src.airspace_control.comms.communication_bus import CommunicationBus, CommMessage
+
+        from src.airspace_control.comms.communication_bus import CommMessage, CommunicationBus
         env = simpy.Environment()
         rng = np.random.default_rng(42)
         bus = CommunicationBus(env, rng, packet_loss_rate=0.0)
@@ -279,7 +279,8 @@ class TestCommBusExtended:
 
     def test_packet_loss(self):
         import simpy
-        from src.airspace_control.comms.communication_bus import CommunicationBus, CommMessage
+
+        from src.airspace_control.comms.communication_bus import CommMessage, CommunicationBus
         env = simpy.Environment()
         rng = np.random.default_rng(42)
         bus = CommunicationBus(env, rng, packet_loss_rate=1.0)  # 100% loss
@@ -291,7 +292,8 @@ class TestCommBusExtended:
 
     def test_broadcast(self):
         import simpy
-        from src.airspace_control.comms.communication_bus import CommunicationBus, CommMessage
+
+        from src.airspace_control.comms.communication_bus import CommMessage, CommunicationBus
         env = simpy.Environment()
         rng = np.random.default_rng(42)
         bus = CommunicationBus(env, rng)
@@ -305,7 +307,8 @@ class TestCommBusExtended:
 
     def test_range_filtering(self):
         import simpy
-        from src.airspace_control.comms.communication_bus import CommunicationBus, CommMessage
+
+        from src.airspace_control.comms.communication_bus import CommMessage, CommunicationBus
         env = simpy.Environment()
         rng = np.random.default_rng(42)
         bus = CommunicationBus(env, rng, comm_range_m=100.0)

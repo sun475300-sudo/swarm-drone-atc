@@ -7,7 +7,6 @@ R-Tree, Quadtree, Geohash 기반 공간 검색,
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -49,8 +48,8 @@ class QuadtreeNode:
     def __init__(self, bbox: BoundingBox, depth: int = 0):
         self.bbox = bbox
         self.depth = depth
-        self.objects: List[SpatialObject] = []
-        self.children: List[Optional[QuadtreeNode]] = []
+        self.objects: list[SpatialObject] = []
+        self.children: list[QuadtreeNode | None] = []
 
     def _subdivide(self):
         center = self.bbox.center
@@ -83,7 +82,7 @@ class QuadtreeNode:
         self.objects.append(obj)
         return True
 
-    def query_range(self, bbox: BoundingBox) -> List[SpatialObject]:
+    def query_range(self, bbox: BoundingBox) -> list[SpatialObject]:
         results = []
         if not self.bbox.intersects(bbox):
             return results
@@ -95,7 +94,7 @@ class QuadtreeNode:
                 results.extend(child.query_range(bbox))
         return results
 
-    def query_radius(self, center: np.ndarray, radius: float) -> List[SpatialObject]:
+    def query_radius(self, center: np.ndarray, radius: float) -> list[SpatialObject]:
         bbox = BoundingBox(center - radius, center + radius)
         candidates = self.query_range(bbox)
         return [o for o in candidates if np.linalg.norm(o.position[:3] - center[:3]) <= radius]
@@ -138,7 +137,7 @@ class GeohashEncoder:
         return result
 
     @staticmethod
-    def neighbors(ghash: str) -> List[str]:
+    def neighbors(ghash: str) -> list[str]:
         """인접 geohash 반환 (간이 구현)."""
         if not ghash:
             return []
@@ -167,20 +166,20 @@ class GeospatialIndex:
         if bounds_max is None:
             bounds_max = np.array([1000.0, 1000.0, 500.0])
         self._tree = QuadtreeNode(BoundingBox(bounds_min, bounds_max))
-        self._objects: Dict[str, SpatialObject] = {}
+        self._objects: dict[str, SpatialObject] = {}
         self._geohash = GeohashEncoder()
 
     def insert(self, obj: SpatialObject) -> bool:
         self._objects[obj.obj_id] = obj
         return self._tree.insert(obj)
 
-    def query_range(self, min_corner: np.ndarray, max_corner: np.ndarray) -> List[SpatialObject]:
+    def query_range(self, min_corner: np.ndarray, max_corner: np.ndarray) -> list[SpatialObject]:
         return self._tree.query_range(BoundingBox(min_corner, max_corner))
 
-    def query_radius(self, center: np.ndarray, radius: float) -> List[SpatialObject]:
+    def query_radius(self, center: np.ndarray, radius: float) -> list[SpatialObject]:
         return self._tree.query_radius(center, radius)
 
-    def query_knn(self, center: np.ndarray, k: int) -> List[Tuple[SpatialObject, float]]:
+    def query_knn(self, center: np.ndarray, k: int) -> list[tuple[SpatialObject, float]]:
         """K-최근접 이웃 검색."""
         distances = []
         for obj in self._objects.values():
@@ -189,13 +188,13 @@ class GeospatialIndex:
         distances.sort(key=lambda x: x[1])
         return distances[:k]
 
-    def get_geohash(self, obj_id: str, precision: int = 6) -> Optional[str]:
+    def get_geohash(self, obj_id: str, precision: int = 6) -> str | None:
         obj = self._objects.get(obj_id)
         if not obj:
             return None
         return self._geohash.encode(obj.position[0], obj.position[1], obj.position[2] if len(obj.position) > 2 else 0, precision)
 
-    def get_object(self, obj_id: str) -> Optional[SpatialObject]:
+    def get_object(self, obj_id: str) -> SpatialObject | None:
         return self._objects.get(obj_id)
 
     def remove(self, obj_id: str) -> bool:

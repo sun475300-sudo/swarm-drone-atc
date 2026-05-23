@@ -5,7 +5,6 @@ Phase 446: Secure Messaging Protocol for Drone Communication
 import hashlib
 import time
 from dataclasses import dataclass
-from typing import Dict, List
 
 
 @dataclass
@@ -20,8 +19,8 @@ class Message:
 
 class SecureMessagingProtocol:
     def __init__(self):
-        self.message_queue: Dict[str, List[Message]] = {}
-        self.encryption_keys: Dict[str, bytes] = {}
+        self.message_queue: dict[str, list[Message]] = {}
+        self.encryption_keys: dict[str, bytes] = {}
 
     def generate_key(self, drone_id: str) -> bytes:
         key = hashlib.sha256(f"{drone_id}{time.time()}".encode()).digest()
@@ -57,5 +56,5 @@ class SecureMessagingProtocol:
             message.encrypted = True
         return message
 
-    def get_messages(self, drone_id: str) -> List[Message]:
+    def get_messages(self, drone_id: str) -> list[Message]:
         return self.message_queue.get(drone_id, [])

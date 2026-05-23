@@ -6,7 +6,7 @@ import math
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -24,13 +24,13 @@ class TfrReason(Enum):
 class Tfr:
     tfr_id: str
     reason: TfrReason
-    center: Tuple[float, float]
+    center: tuple[float, float]
     radius_m: float
     altitude_floor: float
     altitude_ceiling: float
     start_time: float
     end_time: float
-    authorized_callsigns: List[str] = field(default_factory=list)
+    authorized_callsigns: list[str] = field(default_factory=list)
 
 
 _DEFAULT_VIOLATION_CAP = 10_000
@@ -45,7 +45,7 @@ class TfrHandler:
         seed: int = 42,
         max_violations: int = _DEFAULT_VIOLATION_CAP,
         max_tfrs: int = _DEFAULT_TFR_CAP,
-        max_history: Optional[int] = None,
+        max_history: int | None = None,
     ) -> None:
         if max_violations <= 0:
             raise ValueError("max_violations must be positive")
@@ -53,15 +53,15 @@ class TfrHandler:
             raise ValueError("max_tfrs must be positive")
         self.rng = np.random.default_rng(seed)
         self._next_id = 0
-        self.tfrs: Dict[str, Tfr] = {}
+        self.tfrs: dict[str, Tfr] = {}
         self.max_violations = max_violations
         self.max_tfrs = max_tfrs
         # max_history defaults to max_violations but is an independent cap for
         # the audit trail (declare/revoke/authorize events). Keeping them separate
         # prevents a small violation cap from silently truncating the audit log.
         self.max_history = max_history if max_history is not None else max_violations
-        self.violation_log: List[Dict[str, Any]] = []
-        self.history: List[Dict[str, Any]] = []
+        self.violation_log: list[dict[str, Any]] = []
+        self.history: list[dict[str, Any]] = []
 
     def _gen_id(self) -> str:
         self._next_id += 1
@@ -70,12 +70,12 @@ class TfrHandler:
     def declare_tfr(
         self,
         reason: TfrReason,
-        center: Tuple[float, float],
+        center: tuple[float, float],
         radius_m: float,
         altitude_floor: float,
         altitude_ceiling: float,
         duration_hours: float,
-        authorized: Optional[List[str]] = None,
+        authorized: list[str] | None = None,
     ) -> str:
         if not isinstance(reason, TfrReason):
             raise ValueError(
@@ -123,7 +123,7 @@ class TfrHandler:
             del self.tfrs[oldest]
         return tid
 
-    def _record_history(self, event: Dict[str, Any]) -> None:
+    def _record_history(self, event: dict[str, Any]) -> None:
         self.history.append(event)
         overflow = len(self.history) - self.max_history
         if overflow > 0:
@@ -155,15 +155,15 @@ class TfrHandler:
         return rec.start_time <= now <= rec.end_time
 
     def check_violation(
-        self, callsign: str, position: Tuple[float, float, float]
-    ) -> List[str]:
+        self, callsign: str, position: tuple[float, float, float]
+    ) -> list[str]:
         if len(position) != 3:
             raise ValueError(
                 f"position must be a 3-element (lat, lon, alt) tuple, got {len(position)} elements"
             )
         if not all(math.isfinite(v) for v in position):
             raise ValueError(f"position components must be finite, got {position}")
-        violations: List[str] = []
+        violations: list[str] = []
         now = time.time()
         for rec in self.tfrs.values():
             if not (rec.start_time <= now <= rec.end_time):
@@ -188,8 +188,8 @@ class TfrHandler:
         return violations
 
     def check_conflict_readonly(
-        self, callsign: str, position: Tuple[float, float, float]
-    ) -> List[str]:
+        self, callsign: str, position: tuple[float, float, float]
+    ) -> list[str]:
         """감사 로그를 기록하지 않고 TFR 충돌만 반환하는 읽기 전용 메서드.
 
         브리핑 사전 검사 등 부작용이 없어야 하는 경우에 사용한다.
@@ -200,7 +200,7 @@ class TfrHandler:
             )
         if not all(math.isfinite(v) for v in position):
             raise ValueError(f"position components must be finite, got {position}")
-        conflicts: List[str] = []
+        conflicts: list[str] = []
         now = time.time()
         for rec in self.tfrs.values():
             if not (rec.start_time <= now <= rec.end_time):
@@ -228,15 +228,15 @@ class TfrHandler:
         })
         return True
 
-    def get(self, tfr_id: str) -> Optional[Tfr]:
+    def get(self, tfr_id: str) -> Tfr | None:
         """Return the Tfr record for the given ID, or None if not found."""
         return self.tfrs.get(tfr_id)
 
-    def active_tfrs(self) -> List[Tfr]:
+    def active_tfrs(self) -> list[Tfr]:
         now = time.time()
         return [t for t in self.tfrs.values() if t.start_time <= now <= t.end_time]
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         return {
             "total": len(self.tfrs),
             "active": len(self.active_tfrs()),

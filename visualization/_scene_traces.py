@@ -20,12 +20,12 @@ from simulation.apf_engine.apf import (
     APFState,
     compute_total_force,
 )
+from simulation.threat_assessment import ThreatLevel
 from src.airspace_control.agents.drone_state import (
     DroneState,
     FailureType,
     FlightPhase,
 )
-from simulation.threat_assessment import ThreatLevel
 
 if TYPE_CHECKING:
     from visualization._domain import SimState

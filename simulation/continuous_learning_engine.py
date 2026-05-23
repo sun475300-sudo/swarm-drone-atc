@@ -5,7 +5,7 @@ Phase 418: Continuous Learning Engine for Lifelong Drone Adaptation
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -27,7 +27,7 @@ class LearningTask:
 @dataclass
 class ModelSnapshot:
     snapshot_id: str
-    parameters: Dict[str, np.ndarray]
+    parameters: dict[str, np.ndarray]
     accuracy: float
     created_at: float
 
@@ -43,10 +43,10 @@ class ContinuousLearningEngine:
         self.memory_size = memory_size
         self.replay_ratio = replay_ratio
 
-        self.model_params: Dict[str, np.ndarray] = {}
-        self.experience_memory: List[LearningTask] = []
+        self.model_params: dict[str, np.ndarray] = {}
+        self.experience_memory: list[LearningTask] = []
 
-        self.snapshots: List[ModelSnapshot] = []
+        self.snapshots: list[ModelSnapshot] = []
 
         self._initialize_model()
 
@@ -123,7 +123,7 @@ class ContinuousLearningEngine:
                 return True
         return False
 
-    def get_learning_stats(self) -> Dict[str, Any]:
+    def get_learning_stats(self) -> dict[str, Any]:
         return {
             "experience_memory_size": len(self.experience_memory),
             "snapshots_count": len(self.snapshots),

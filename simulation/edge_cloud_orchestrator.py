@@ -5,7 +5,7 @@ Phase 409: Edge-Cloud Orchestrator for Dynamic Resource Allocation
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 class ResourceType(Enum):
@@ -25,9 +25,9 @@ class DeploymentTier(Enum):
 class ComputeNode:
     node_id: str
     tier: DeploymentTier
-    capacity: Dict[ResourceType, float]
-    available: Dict[ResourceType, float]
-    latency_to_drones: Dict[str, float]
+    capacity: dict[ResourceType, float]
+    available: dict[ResourceType, float]
+    latency_to_drones: dict[str, float]
     cost_per_unit: float
     is_active: bool = True
 
@@ -36,18 +36,18 @@ class ComputeNode:
 class Workload:
     workload_id: str
     drone_id: str
-    required_resources: Dict[ResourceType, float]
+    required_resources: dict[ResourceType, float]
     priority: int
     deadline: float
     created_at: float
-    tier_preference: List[DeploymentTier] = field(default_factory=list)
+    tier_preference: list[DeploymentTier] = field(default_factory=list)
 
 
 @dataclass
 class Placement:
     workload_id: str
     node_id: str
-    allocated_resources: Dict[ResourceType, float]
+    allocated_resources: dict[ResourceType, float]
     start_time: float
     estimated_completion: float
 
@@ -65,12 +65,12 @@ class EdgeCloudOrchestrator:
         self.latency_weight = latency_weight
         self.availability_weight = availability_weight
 
-        self.nodes: Dict[str, ComputeNode] = {}
-        self.workloads: Dict[str, Workload] = {}
-        self.placements: Dict[str, Placement] = {}
+        self.nodes: dict[str, ComputeNode] = {}
+        self.workloads: dict[str, Workload] = {}
+        self.placements: dict[str, Placement] = {}
 
-        self.resource_history: Dict[
-            str, List[Tuple[float, Dict[ResourceType, float]]]
+        self.resource_history: dict[
+            str, list[tuple[float, dict[ResourceType, float]]]
         ] = []
 
         self._initialize_infrastructure()
@@ -145,7 +145,7 @@ class EdgeCloudOrchestrator:
         self.workloads[workload.workload_id] = workload
         return True
 
-    def schedule_workload(self, workload_id: str) -> Optional[Placement]:
+    def schedule_workload(self, workload_id: str) -> Placement | None:
         if workload_id not in self.workloads:
             return None
 
@@ -190,7 +190,7 @@ class EdgeCloudOrchestrator:
     def _can_allocate(
         self,
         node: ComputeNode,
-        required: Dict[ResourceType, float],
+        required: dict[ResourceType, float],
     ) -> bool:
         for resource_type, amount in required.items():
             if node.available.get(resource_type, 0) < amount:
@@ -260,7 +260,7 @@ class EdgeCloudOrchestrator:
 
         del self.placements[workload_id]
 
-    def get_system_status(self) -> Dict[str, Any]:
+    def get_system_status(self) -> dict[str, Any]:
         status = {
             "total_nodes": len(self.nodes),
             "active_nodes": len([n for n in self.nodes.values() if n.is_active]),
@@ -293,7 +293,7 @@ class EdgeCloudOrchestrator:
             node.capacity[resource] *= scale_factor
             node.available[resource] *= scale_factor
 
-    def failover_node(self, failed_node_id: str) -> List[str]:
+    def failover_node(self, failed_node_id: str) -> list[str]:
         if failed_node_id not in self.nodes:
             return []
 

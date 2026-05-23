@@ -1,8 +1,8 @@
 """Phase 561-570 Python 모듈 테스트 (50개)."""
-import pytest
-import numpy as np
-import sys
 import os
+import sys
+
+import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 

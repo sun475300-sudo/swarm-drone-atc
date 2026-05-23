@@ -3,7 +3,6 @@ Phase 443: Load Balancing Controller for Swarm Tasks
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 
 @dataclass
@@ -24,9 +23,9 @@ class DroneLoad:
 
 class LoadBalancingController:
     def __init__(self):
-        self.task_queue: List[TaskLoad] = []
-        self.drone_loads: Dict[str, DroneLoad] = {}
-        self.assignments: Dict[str, str] = {}
+        self.task_queue: list[TaskLoad] = []
+        self.drone_loads: dict[str, DroneLoad] = {}
+        self.assignments: dict[str, str] = {}
 
     def register_drone(
         self, drone_id: str, capacity_compute: float, capacity_memory: float
@@ -39,7 +38,7 @@ class LoadBalancingController:
         self.task_queue.append(task)
         self.task_queue.sort(key=lambda t: -t.priority)
 
-    def balance(self) -> Dict[str, str]:
+    def balance(self) -> dict[str, str]:
         new_assignments = {}
 
         while self.task_queue and any(d.available for d in self.drone_loads.values()):
@@ -68,7 +67,7 @@ class LoadBalancingController:
         self.assignments.update(new_assignments)
         return new_assignments
 
-    def get_load_stats(self) -> Dict:
+    def get_load_stats(self) -> dict:
         total_compute = sum(d.current_compute for d in self.drone_loads.values())
         total_memory = sum(d.current_memory_mb for d in self.drone_loads.values())
 

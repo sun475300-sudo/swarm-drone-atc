@@ -5,7 +5,6 @@ Phase 487: Swarm Morphogenesis
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -56,7 +55,7 @@ class ReactionDiffusion:
         self.f = 0.055  # feed rate
         self.k = 0.062  # kill rate
 
-    def step(self, dt: float = 0.1) -> Tuple[np.ndarray, np.ndarray]:
+    def step(self, dt: float = 0.1) -> tuple[np.ndarray, np.ndarray]:
         a, b = self.activator, self.inhibitor
         lap_a = np.roll(a, 1) + np.roll(a, -1) - 2 * a
         lap_b = np.roll(b, 1) + np.roll(b, -1) - 2 * b
@@ -67,7 +66,7 @@ class ReactionDiffusion:
         self.inhibitor = np.clip(b + db * dt, 0, 1)
         return self.activator.copy(), self.inhibitor.copy()
 
-    def run(self, steps: int = 100, dt: float = 0.1) -> List[np.ndarray]:
+    def run(self, steps: int = 100, dt: float = 0.1) -> list[np.ndarray]:
         history = []
         for _ in range(steps):
             a, _ = self.step(dt)
@@ -81,7 +80,7 @@ class SwarmMorphogenesis:
     def __init__(self, n_drones: int = 20, seed: int = 42):
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
-        self.cells: List[CellState] = []
+        self.cells: list[CellState] = []
         self.rd = ReactionDiffusion(n_drones, seed)
         self.target_formation = FormationType.CIRCLE
         self.time = 0.0
@@ -91,7 +90,7 @@ class SwarmMorphogenesis:
             pos[2] = self.rng.uniform(10, 50)
             self.cells.append(CellState(i, pos))
 
-    def _target_positions(self, formation: FormationType) -> List[np.ndarray]:
+    def _target_positions(self, formation: FormationType) -> list[np.ndarray]:
         n = self.n_drones
         targets = []
         if formation == FormationType.CIRCLE:
@@ -138,7 +137,7 @@ class SwarmMorphogenesis:
             else:
                 cell.fate = "follower"
 
-    def step(self, dt: float = 0.1) -> Dict:
+    def step(self, dt: float = 0.1) -> dict:
         self.time += dt
         self.rd.step(dt)
         self._assign_roles()
@@ -160,7 +159,7 @@ class SwarmMorphogenesis:
             "scouts": sum(1 for c in self.cells if c.fate == "scout"),
         }
 
-    def morph_to(self, formation: FormationType, steps: int = 100, dt: float = 0.1) -> List[Dict]:
+    def morph_to(self, formation: FormationType, steps: int = 100, dt: float = 0.1) -> list[dict]:
         self.target_formation = formation
         history = []
         for _ in range(steps):
@@ -179,7 +178,7 @@ class SwarmMorphogenesis:
         avg_error = np.mean(errors)
         return round(float(max(0, 1.0 - avg_error / 50.0)), 4)
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         roles = {}
         for c in self.cells:
             roles[c.fate] = roles.get(c.fate, 0) + 1

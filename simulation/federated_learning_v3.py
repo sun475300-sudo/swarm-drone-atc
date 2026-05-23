@@ -5,7 +5,7 @@ Phase 405: Federated Learning v3 with Differential Privacy
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -21,7 +21,7 @@ class AggregationMethod(Enum):
 class ModelUpdate:
     drone_id: str
     round_number: int
-    parameters: Dict[str, np.ndarray]
+    parameters: dict[str, np.ndarray]
     num_samples: int
     timestamp: float
     loss: float
@@ -31,9 +31,9 @@ class ModelUpdate:
 @dataclass
 class AggregatedModel:
     round_number: int
-    parameters: Dict[str, np.ndarray]
+    parameters: dict[str, np.ndarray]
     timestamp: float
-    participating_drones: List[str]
+    participating_drones: list[str]
     avg_loss: float
     avg_accuracy: float
 
@@ -41,7 +41,7 @@ class AggregatedModel:
 class FederatedLearningV3:
     def __init__(
         self,
-        model_shape: Dict[str, Tuple[int, ...]],
+        model_shape: dict[str, tuple[int, ...]],
         aggregation_method: AggregationMethod = AggregationMethod.FEDAVG,
         differential_privacy: bool = True,
         noise_multiplier: float = 1.0,
@@ -56,8 +56,8 @@ class FederatedLearningV3:
         self.min_clients_per_round = min_clients_per_round
 
         self.global_model = self._initialize_model()
-        self.client_models: Dict[str, Dict[str, np.ndarray]] = {}
-        self.update_history: List[ModelUpdate] = []
+        self.client_models: dict[str, dict[str, np.ndarray]] = {}
+        self.update_history: list[ModelUpdate] = []
 
         self.current_round = 0
         self.noise_budget = 10.0
@@ -68,7 +68,7 @@ class FederatedLearningV3:
             "avg_loss_per_round": [],
         }
 
-    def _initialize_model(self) -> Dict[str, np.ndarray]:
+    def _initialize_model(self) -> dict[str, np.ndarray]:
         model = {}
         for name, shape in self.model_shape.items():
             model[name] = np.zeros(shape)
@@ -77,7 +77,7 @@ class FederatedLearningV3:
     def register_client(self, drone_id: str):
         self.client_models[drone_id] = self._initialize_model()
 
-    def get_client_model(self, drone_id: str) -> Dict[str, np.ndarray]:
+    def get_client_model(self, drone_id: str) -> dict[str, np.ndarray]:
         if drone_id not in self.client_models:
             self.register_client(drone_id)
         return self.client_models[drone_id]
@@ -97,7 +97,7 @@ class FederatedLearningV3:
     def should_aggregate(self) -> bool:
         return self.get_pending_updates_count() >= self.min_clients_per_round
 
-    def aggregate(self) -> Optional[AggregatedModel]:
+    def aggregate(self) -> AggregatedModel | None:
         if not self.should_aggregate():
             return None
 
@@ -123,7 +123,7 @@ class FederatedLearningV3:
 
         return aggregated
 
-    def _fedavg(self, updates: List[ModelUpdate]) -> AggregatedModel:
+    def _fedavg(self, updates: list[ModelUpdate]) -> AggregatedModel:
         total_samples = sum(u.num_samples for u in updates)
 
         aggregated_params = {}
@@ -151,7 +151,7 @@ class FederatedLearningV3:
             avg_accuracy=avg_accuracy,
         )
 
-    def _fedprox(self, updates: List[ModelUpdate]) -> AggregatedModel:
+    def _fedprox(self, updates: list[ModelUpdate]) -> AggregatedModel:
         mu = 0.01
 
         total_samples = sum(u.num_samples for u in updates)
@@ -187,7 +187,7 @@ class FederatedLearningV3:
             avg_accuracy=avg_accuracy,
         )
 
-    def _fednova(self, updates: List[ModelUpdate]) -> AggregatedModel:
+    def _fednova(self, updates: list[ModelUpdate]) -> AggregatedModel:
         total_samples = sum(u.num_samples for u in updates)
 
         local_steps = [u.num_samples for u in updates]
@@ -231,7 +231,7 @@ class FederatedLearningV3:
 
         return params + noise
 
-    def get_global_model(self) -> Dict[str, np.ndarray]:
+    def get_global_model(self) -> dict[str, np.ndarray]:
         return self.global_model.copy()
 
     def simulate_local_training(
@@ -263,7 +263,7 @@ class FederatedLearningV3:
 
         return update
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         return {
             "current_round": self.current_round,
             "total_clients": len(self.client_models),

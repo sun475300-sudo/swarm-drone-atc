@@ -11,16 +11,15 @@ import json
 import logging
 import time
 from datetime import datetime, timezone
-from typing import Any, Optional
-from urllib.request import urlopen, Request
-from urllib.error import URLError
+from typing import Any
+from urllib.request import Request, urlopen
 
 logger = logging.getLogger("automation.collect_external")
 
 _TIMEOUT = 15  # HTTP 요청 타임아웃 (초)
 
 
-def _fetch_json(url: str, headers: Optional[dict] = None) -> Any:
+def _fetch_json(url: str, headers: dict | None = None) -> Any:
     """URL에서 JSON 응답을 가져온다."""
     req = Request(url)
     if headers:
@@ -33,7 +32,7 @@ def _fetch_json(url: str, headers: Optional[dict] = None) -> Any:
 # ── 암호화폐 시세 (Upbit 공개 API) ───────────────────────────
 
 def collect_crypto(
-    markets: Optional[list[str]] = None,
+    markets: list[str] | None = None,
 ) -> dict[str, Any]:
     """
     Upbit 공개 API에서 암호화폐 시세를 수집.
@@ -171,7 +170,7 @@ def collect_weather(
 # ── SC2 래더/리플레이 (Aligulac 공개 API) ─────────────────────
 
 def collect_sc2(
-    player_ids: Optional[list[int]] = None,
+    player_ids: list[int] | None = None,
 ) -> dict[str, Any]:
     """
     SC2 공개 API에서 래더 및 최근 경기 데이터를 수집.
@@ -231,7 +230,7 @@ def collect_sc2(
 # ── 통합 수집 함수 ────────────────────────────────────────────
 
 def collect_all_external(
-    config: Optional[dict] = None,
+    config: dict | None = None,
 ) -> dict[str, Any]:
     """
     모든 외부 데이터를 수집하고 통합 결과를 반환.

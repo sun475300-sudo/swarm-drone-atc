@@ -1,8 +1,12 @@
 """DroneState 데이터클래스 테스트"""
 import numpy as np
 import pytest
+
 from src.airspace_control.agents.drone_state import (
-    DroneState, FlightPhase, CommsStatus, FailureType,
+    CommsStatus,
+    DroneState,
+    FailureType,
+    FlightPhase,
 )
 
 pytestmark = pytest.mark.unit

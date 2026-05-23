@@ -3,7 +3,6 @@ Phase 464: Path Smoothing System for Trajectory Optimization
 """
 
 from dataclasses import dataclass
-from typing import List
 
 import numpy as np
 
@@ -19,7 +18,7 @@ class PathSmoothingSystem:
     def __init__(self, smoothness_factor: float = 0.5):
         self.smoothness = smoothness_factor
 
-    def smooth_path(self, waypoints: List[PathPoint]) -> List[PathPoint]:
+    def smooth_path(self, waypoints: list[PathPoint]) -> list[PathPoint]:
         if len(waypoints) < 3:
             return waypoints
 
@@ -48,7 +47,7 @@ class PathSmoothingSystem:
         smoothed.append(waypoints[-1])
         return smoothed
 
-    def calculate_curvature(self, waypoints: List[PathPoint]) -> List[float]:
+    def calculate_curvature(self, waypoints: list[PathPoint]) -> list[float]:
         curvatures = []
 
         for i in range(1, len(waypoints) - 1):

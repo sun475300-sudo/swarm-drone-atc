@@ -8,7 +8,7 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Deque, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -24,8 +24,8 @@ class TrackState(Enum):
 @dataclass
 class TrackPoint:
     ts: float
-    position: Tuple[float, float, float]
-    velocity: Tuple[float, float, float]
+    position: tuple[float, float, float]
+    velocity: tuple[float, float, float]
     fuel_pct: float
 
 
@@ -38,7 +38,7 @@ class FlightTrack:
     plan_id: str
     # maxlen은 FlightFollowingService.register_flight()에서 재설정된다.
     # 직접 생성 시 기본값 _DEFAULT_TRACK_POINTS가 적용된다.
-    points: Deque[TrackPoint] = field(
+    points: deque[TrackPoint] = field(
         default_factory=lambda: deque(maxlen=_DEFAULT_TRACK_POINTS)
     )
     state: TrackState = TrackState.ENROUTE
@@ -66,15 +66,15 @@ class FlightFollowingService:
             raise ValueError("max_points_per_track must be positive")
         if max_tracks <= 0:
             raise ValueError("max_tracks must be positive")
-        self.tracks: Dict[str, FlightTrack] = {}
-        self.plans: Dict[str, List[Tuple[float, float, float]]] = {}
+        self.tracks: dict[str, FlightTrack] = {}
+        self.plans: dict[str, list[tuple[float, float, float]]] = {}
         self.comms_timeout_s = comms_timeout_s
         self.deviation_tolerance_m = deviation_tolerance_m
         self.max_points_per_track = max_points_per_track
         self.max_tracks = max_tracks
 
     def register_flight(
-        self, callsign: str, plan_id: str, planned_waypoints: List[Tuple[float, float, float]]
+        self, callsign: str, plan_id: str, planned_waypoints: list[tuple[float, float, float]]
     ) -> None:
         existing = self.tracks.get(callsign)
         if existing is not None and existing.state != TrackState.COMPLETED:
@@ -99,10 +99,10 @@ class FlightFollowingService:
     def report_position(
         self,
         callsign: str,
-        position: Tuple[float, float, float],
-        velocity: Tuple[float, float, float],
+        position: tuple[float, float, float],
+        velocity: tuple[float, float, float],
         fuel_pct: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         if not (0.0 <= fuel_pct <= 100.0):
             raise ValueError(f"fuel_pct must be in [0.0, 100.0], got {fuel_pct}")
         if len(position) != 3:
@@ -133,7 +133,7 @@ class FlightFollowingService:
             track.deviation_alerts += 1
         return {"ok": True, "deviation_m": deviation, "state": track.state.value}
 
-    def _deviation(self, callsign: str, position: Tuple[float, float, float]) -> float:
+    def _deviation(self, callsign: str, position: tuple[float, float, float]) -> float:
         plan = self.plans.get(callsign, [])
         if len(plan) < 2:
             return 0.0
@@ -146,9 +146,9 @@ class FlightFollowingService:
 
     @staticmethod
     def _segment_3d_distance(
-        a: Tuple[float, float, float],
-        b: Tuple[float, float, float],
-        p: Tuple[float, float, float],
+        a: tuple[float, float, float],
+        b: tuple[float, float, float],
+        p: tuple[float, float, float],
     ) -> float:
         av = np.asarray(a, dtype=float)
         bv = np.asarray(b, dtype=float)
@@ -161,9 +161,9 @@ class FlightFollowingService:
         closest = av + t * d
         return float(np.linalg.norm(pv - closest))
 
-    def sweep_lost_comms(self, current_time: Optional[float] = None) -> List[str]:
+    def sweep_lost_comms(self, current_time: float | None = None) -> list[str]:
         current_time = current_time if current_time is not None else time.time()
-        lost: List[str] = []
+        lost: list[str] = []
         for cs, track in self.tracks.items():
             if track.state in (TrackState.COMPLETED, TrackState.LOST_COMMS):
                 continue
@@ -207,7 +207,7 @@ class FlightFollowingService:
             self.plans.pop(cs, None)
         return len(done)
 
-    def get_track(self, callsign: str) -> Optional[FlightTrack]:
+    def get_track(self, callsign: str) -> FlightTrack | None:
         """Return a shallow copy of the FlightTrack as a read-only snapshot.
 
         The returned object's `points` deque is shared (shallow copy), but
@@ -219,8 +219,8 @@ class FlightFollowingService:
             return None
         return copy.copy(original)
 
-    def stats(self) -> Dict[str, Any]:
-        counts: Dict[str, int] = {}
+    def stats(self) -> dict[str, Any]:
+        counts: dict[str, int] = {}
         total_points = 0
         for t in self.tracks.values():
             counts[t.state.value] = counts.get(t.state.value, 0) + 1

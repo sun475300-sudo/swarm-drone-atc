@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable
 
 import numpy as np
 
@@ -31,7 +31,7 @@ class Particle:
 
 @dataclass
 class Ant:
-    path: List[int] = field(default_factory=list)
+    path: list[int] = field(default_factory=list)
     path_length: float = float("inf")
     visited: set = field(default_factory=set)
 
@@ -41,7 +41,7 @@ class OptimizationResult:
     best_position: np.ndarray
     best_fitness: float
     iterations: int
-    convergence_history: List[float] = field(default_factory=list)
+    convergence_history: list[float] = field(default_factory=list)
     optimizer_type: OptimizerType = OptimizerType.PSO
 
 
@@ -54,10 +54,10 @@ class PSOEngine:
         self.w = w  # inertia
         self.c1 = c1  # cognitive
         self.c2 = c2  # social
-        self.global_best_pos: Optional[np.ndarray] = None
+        self.global_best_pos: np.ndarray | None = None
         self.global_best_fitness = float("inf")
 
-    def optimize(self, objective: Callable, bounds: List[Tuple[float, float]], max_iter: int = 100) -> OptimizationResult:
+    def optimize(self, objective: Callable, bounds: list[tuple[float, float]], max_iter: int = 100) -> OptimizationResult:
         dim = len(bounds)
         particles = []
         for _ in range(self.n_particles):
@@ -150,7 +150,7 @@ class ACOEngine:
             convergence_history=history, optimizer_type=OptimizerType.ACO,
         )
 
-    def _path_length(self, path: List[int], dm: np.ndarray) -> float:
+    def _path_length(self, path: list[int], dm: np.ndarray) -> float:
         return sum(dm[path[i], path[i + 1]] for i in range(len(path) - 1))
 
     def _transition_probs(self, current: int, visited: set, pheromone: np.ndarray,
@@ -185,10 +185,10 @@ class SwarmIntelligenceV2:
         self._rng = np.random.default_rng(rng_seed)
         self._pso = PSOEngine(rng_seed=rng_seed)
         self._aco = ACOEngine(rng_seed=rng_seed)
-        self._results: Dict[str, OptimizationResult] = {}
+        self._results: dict[str, OptimizationResult] = {}
 
     def optimize_continuous(self, name: str, objective: Callable,
-                           bounds: List[Tuple[float, float]], max_iter: int = 100) -> OptimizationResult:
+                           bounds: list[tuple[float, float]], max_iter: int = 100) -> OptimizationResult:
         result = self._pso.optimize(objective, bounds, max_iter)
         self._results[name] = result
         return result
@@ -198,7 +198,7 @@ class SwarmIntelligenceV2:
         self._results[name] = result
         return result
 
-    def get_result(self, name: str) -> Optional[OptimizationResult]:
+    def get_result(self, name: str) -> OptimizationResult | None:
         return self._results.get(name)
 
     def summary(self) -> dict:

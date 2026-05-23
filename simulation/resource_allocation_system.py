@@ -3,7 +3,6 @@ Phase 457: Resource Allocation System for Efficient Computing
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 
 @dataclass
@@ -21,8 +20,8 @@ class ResourceAllocationSystem:
         self.total_memory = total_memory
         self.allocated_compute = 0
         self.allocated_memory = 0
-        self.pending_requests: List[ResourceRequest] = []
-        self.active_allocations: Dict[str, ResourceRequest] = {}
+        self.pending_requests: list[ResourceRequest] = []
+        self.active_allocations: dict[str, ResourceRequest] = {}
 
     def request_resources(self, request: ResourceRequest) -> bool:
         available_compute = self.total_compute - self.allocated_compute
@@ -48,7 +47,7 @@ class ResourceAllocationSystem:
             self.allocated_memory -= req.memory_mb
             del self.active_allocations[request_id]
 
-    def get_available_resources(self) -> Dict:
+    def get_available_resources(self) -> dict:
         return {
             "compute": self.total_compute - self.allocated_compute,
             "memory": self.total_memory - self.allocated_memory,

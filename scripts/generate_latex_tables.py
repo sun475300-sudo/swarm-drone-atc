@@ -6,8 +6,8 @@
 """
 from __future__ import annotations
 
-import sys
 import os
+import sys
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:

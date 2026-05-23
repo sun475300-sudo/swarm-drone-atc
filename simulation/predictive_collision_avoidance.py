@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -15,10 +14,10 @@ import numpy as np
 @dataclass
 class TrajectoryPrediction:
     drone_id: str
-    positions: List[np.ndarray]  # future positions
-    velocities: List[np.ndarray]
-    timestamps: List[float]
-    confidence: List[float]
+    positions: list[np.ndarray]  # future positions
+    velocities: list[np.ndarray]
+    timestamps: list[float]
+    confidence: list[float]
 
 
 @dataclass
@@ -49,8 +48,8 @@ class ExtendedKalmanPredictor:
 
     def predict_trajectory(
         self, position: np.ndarray, velocity: np.ndarray,
-        acceleration: Optional[np.ndarray] = None, horizon_sec: float = 5.0,
-    ) -> Tuple[List[np.ndarray], List[np.ndarray], List[float]]:
+        acceleration: np.ndarray | None = None, horizon_sec: float = 5.0,
+    ) -> tuple[list[np.ndarray], list[np.ndarray], list[float]]:
         if acceleration is None:
             acceleration = np.zeros(3)
         n_steps = int(horizon_sec / self.dt)
@@ -77,7 +76,7 @@ class ORCAVelocityPlanner:
 
     def compute_orca_velocity(
         self, agent_pos: np.ndarray, agent_vel: np.ndarray, agent_radius: float,
-        neighbors: List[Tuple[np.ndarray, np.ndarray, float]], preferred_vel: np.ndarray,
+        neighbors: list[tuple[np.ndarray, np.ndarray, float]], preferred_vel: np.ndarray,
         max_speed: float = 15.0,
     ) -> np.ndarray:
         orca_planes = []
@@ -130,16 +129,16 @@ class PredictiveCollisionAvoidance:
         self.prediction_horizon = prediction_horizon
         self._predictor = ExtendedKalmanPredictor()
         self._orca = ORCAVelocityPlanner(safety_radius=safety_distance * 0.3)
-        self._drone_states: Dict[str, Tuple[np.ndarray, np.ndarray]] = {}  # pos, vel
-        self._predictions: Dict[str, TrajectoryPrediction] = {}
-        self._risks: List[CollisionRisk] = []
-        self._maneuvers: Dict[str, AvoidanceManeuver] = {}
-        self._history: List[dict] = []
+        self._drone_states: dict[str, tuple[np.ndarray, np.ndarray]] = {}  # pos, vel
+        self._predictions: dict[str, TrajectoryPrediction] = {}
+        self._risks: list[CollisionRisk] = []
+        self._maneuvers: dict[str, AvoidanceManeuver] = {}
+        self._history: list[dict] = []
 
     def update_state(self, drone_id: str, position: np.ndarray, velocity: np.ndarray):
         self._drone_states[drone_id] = (position.copy(), velocity.copy())
 
-    def predict_all(self) -> Dict[str, TrajectoryPrediction]:
+    def predict_all(self) -> dict[str, TrajectoryPrediction]:
         self._predictions.clear()
         for did, (pos, vel) in self._drone_states.items():
             positions, velocities, confidences = self._predictor.predict_trajectory(
@@ -153,7 +152,7 @@ class PredictiveCollisionAvoidance:
             self._predictions[did] = pred
         return self._predictions
 
-    def assess_risks(self) -> List[CollisionRisk]:
+    def assess_risks(self) -> list[CollisionRisk]:
         self._risks.clear()
         drone_ids = list(self._predictions.keys())
         for i in range(len(drone_ids)):
@@ -188,7 +187,7 @@ class PredictiveCollisionAvoidance:
                     self._risks.append(risk)
         return self._risks
 
-    def compute_avoidance(self, drone_id: str, preferred_vel: Optional[np.ndarray] = None) -> Optional[AvoidanceManeuver]:
+    def compute_avoidance(self, drone_id: str, preferred_vel: np.ndarray | None = None) -> AvoidanceManeuver | None:
         state = self._drone_states.get(drone_id)
         if not state:
             return None

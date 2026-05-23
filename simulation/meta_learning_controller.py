@@ -5,7 +5,7 @@ Phase 416: Meta-Learning Controller for Rapid Task Adaptation
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -20,15 +20,15 @@ class AdaptationType(Enum):
 @dataclass
 class Task:
     task_id: str
-    support_set: Dict[str, np.ndarray]
-    query_set: Dict[str, np.ndarray]
-    labels: Dict[str, int]
+    support_set: dict[str, np.ndarray]
+    query_set: dict[str, np.ndarray]
+    labels: dict[str, int]
 
 
 @dataclass
 class MetaLearnedModel:
     model_id: str
-    parameters: Dict[str, np.ndarray]
+    parameters: dict[str, np.ndarray]
     adaptation_type: AdaptationType
     trained_on_tasks: int
     accuracy: float
@@ -47,10 +47,10 @@ class MetaLearningController:
         self.outer_lr = outer_lr
         self.support_size = support_size
 
-        self.meta_parameters: Dict[str, np.ndarray] = {}
-        self.learned_models: Dict[str, MetaLearnedModel] = {}
+        self.meta_parameters: dict[str, np.ndarray] = {}
+        self.learned_models: dict[str, MetaLearnedModel] = {}
 
-        self.adaptation_history: List[Dict] = []
+        self.adaptation_history: list[dict] = []
 
         self._initialize_meta_parameters()
 
@@ -62,7 +62,7 @@ class MetaLearningController:
         }
 
     def meta_train(
-        self, tasks: List[Task], num_iterations: int = 100
+        self, tasks: list[Task], num_iterations: int = 100
     ) -> MetaLearnedModel:
         for iteration in range(num_iterations):
             for task in tasks:
@@ -85,8 +85,8 @@ class MetaLearningController:
         return model
 
     def _inner_update(
-        self, support_set: Dict[str, np.ndarray]
-    ) -> Dict[str, np.ndarray]:
+        self, support_set: dict[str, np.ndarray]
+    ) -> dict[str, np.ndarray]:
         params = self.meta_parameters.copy()
 
         for key, data in support_set.items():
@@ -98,8 +98,8 @@ class MetaLearningController:
 
     def _compute_loss(
         self,
-        params: Dict[str, np.ndarray],
-        query_set: Dict[str, np.ndarray],
+        params: dict[str, np.ndarray],
+        query_set: dict[str, np.ndarray],
     ) -> float:
         return np.random.uniform(0.1, 0.5)
 
@@ -110,7 +110,7 @@ class MetaLearningController:
 
     def adapt_to_task(
         self, model: MetaLearnedModel, task: Task
-    ) -> Dict[str, np.ndarray]:
+    ) -> dict[str, np.ndarray]:
         start_time = time.time()
 
         if self.adaptation_type == AdaptationType.FEW_SHOT:
@@ -131,7 +131,7 @@ class MetaLearningController:
 
         return adapted
 
-    def _few_shot_adaptation(self, task: Task) -> Dict[str, np.ndarray]:
+    def _few_shot_adaptation(self, task: Task) -> dict[str, np.ndarray]:
         params = self.meta_parameters.copy()
 
         for _ in range(5):
@@ -142,12 +142,12 @@ class MetaLearningController:
 
         return params
 
-    def _zero_shot_adaptation(self, task: Task) -> Dict[str, np.ndarray]:
+    def _zero_shot_adaptation(self, task: Task) -> dict[str, np.ndarray]:
         return self.meta_parameters.copy()
 
     def evaluate_adaptation(
         self, model: MetaLearnedModel, test_task: Task
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         adapted_params = self.adapt_to_task(model, test_task)
 
         accuracy = np.random.uniform(0.6, 0.9)
@@ -158,7 +158,7 @@ class MetaLearningController:
             "convergence": "achieved",
         }
 
-    def get_controller_status(self) -> Dict[str, Any]:
+    def get_controller_status(self) -> dict[str, Any]:
         return {
             "adaptation_type": self.adaptation_type.value,
             "learned_models": len(self.learned_models),

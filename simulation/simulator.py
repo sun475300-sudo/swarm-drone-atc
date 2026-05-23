@@ -56,6 +56,7 @@ from src.airspace_control.comms.message_types import (
 from src.airspace_control.controller.airspace_controller import AirspaceController
 from src.airspace_control.controller.priority_queue import FlightPriorityQueue
 from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
+from simulation.drone_agent import DroneAgent as _DroneAgent
 
 # ─────────────────────────────────────────────────────────────
 # 유틸리티
@@ -75,98 +76,8 @@ def _drone_to_apf(d: DroneState) -> APFState:
     )
 
 
-def _estimate_power_w(
-    speed_ms: float,
-    profile,
-    altitude_m: float = 60.0,
-    headwind_ms: float = 0.0,
-    climb_rate_ms: float = 0.0,
-) -> float:
-    """
-    정밀 동력 모델 (W)
-
-    - 호버 기본 소모 (배터리 용량 / 체공 시간)
-    - 공기 저항: 속도² 비례
-    - 고도 보정: 공기 밀도 저하 → 효율 감소 (1% / 100m)
-    - 역풍 보정: 실효 속도 증가분만큼 추가 소모
-    - 상승/하강: 상승 시 추가 에너지, 하강 시 미세 회수
-    """
-    endurance_s = profile.endurance_min * 60.0
-    p_hover = profile.battery_wh * 3600.0 / endurance_s if endurance_s > 0 else 0.0
-
-    # 공기 저항 (속도² 비례)
-    effective_speed = max(0.0, speed_ms + headwind_ms * 0.5)
-    p_drag = 0.5 * effective_speed**2
-
-    # 고도 보정 (공기 밀도 저하: ~1.2% / 100m AGL)
-    alt_factor = 1.0 + altitude_m * 0.00012
-
-    # 상승/하강 (상승: +25W/m/s, 하강: -5W/m/s 회수)
-    if climb_rate_ms > 0:
-        p_climb = climb_rate_ms * 25.0
-    else:
-        p_climb = climb_rate_ms * 5.0  # 약간 회수 (음수)
-
-    return max(0.0, (p_hover + p_drag) * alt_factor + p_climb)
 
 
-# ─────────────────────────────────────────────────────────────
-# 드론 에이전트 (SimPy 프로세스)
-# ─────────────────────────────────────────────────────────────
-
-
-class _DroneAgent:
-    """드론 1기를 담당하는 SimPy 프로세스 래퍼"""
-
-    CRUISE_ALT = 60.0           # 기본 순항 고도 (m)
-    TAKEOFF_RATE = 3.5          # 상승 속도 (m/s)
-    LAND_RATE    = 2.5          # 하강 속도 (m/s)
-    WAYPOINT_TOL = 80.0         # 웨이포인트 도달 허용 오차 (m)
-    BATTERY_TICK_INTERVAL = 5   # 배터리 계산 주기 (틱, 2Hz = 매 5틱)
-    BATTERY_CRITICAL_PCT = 5.0  # 배터리 임계 잔량 (%)
-    TELEMETRY_INTERVAL = 5      # 텔레메트리 전송 주기 (틱)
-    EMERGENCY_WIND_SPEED = 10.0 # 강풍 모드 전환 기준 (m/s)
-
-    def __init__(
-        self,
-        env: simpy.Environment,
-        drone: DroneState,
-        sim: SwarmSimulator,
-        dt: float,
-    ) -> None:
-        self.env = env
-        self.drone = drone
-        self.sim = sim
-        self.dt = dt
-
-        # CommunicationBus 메시지 수신 등록
-        sim.comm_bus.subscribe(drone.drone_id, self._on_message)
-
-    def _on_message(self, msg: CommMessage) -> None:
-        """컨트롤러로부터 Advisory/Clearance 수신 처리"""
-        payload = msg.payload
-        drone = self.drone
-
-        if isinstance(payload, ResolutionAdvisory):
-            # 충돌 회피 어드바이저리 → EVADING 전환
-            if drone.flight_phase in (FlightPhase.ENROUTE, FlightPhase.HOLDING, FlightPhase.EVADING):
-                t_now = float(self.env.now)
-                if payload.advisory_type in ("EVADE_APF", "CLIMB", "DESCEND", "TURN_LEFT", "TURN_RIGHT"):
-                    drone.flight_phase = FlightPhase.EVADING
-                    new_end = t_now + float(getattr(payload, "duration_s", 10.0))
-                    if drone.evade_end_s is None or new_end > drone.evade_end_s:
-                        drone.evade_end_s = new_end
-                elif payload.advisory_type == "HOLD":
-                    drone.flight_phase = FlightPhase.HOLDING
-                    drone.hold_start_s = None
-                    drone.evade_end_s = None  # 잔류 EVADING 타이머 초기화
-
-        elif isinstance(payload, ClearanceResponse):
-            if payload.approved and payload.assigned_waypoints:
-                drone.waypoints = [np.array(wp) for wp in payload.assigned_waypoints]
-                drone.current_waypoint_idx = 0
-
-    def run(self):
         drone = self.drone
         sim = self.sim
         dt = self.dt

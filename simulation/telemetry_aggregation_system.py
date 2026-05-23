@@ -4,7 +4,6 @@ Phase 458: Telemetry Aggregation System
 
 import time
 from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 
@@ -12,22 +11,22 @@ import numpy as np
 @dataclass
 class TelemetryPacket:
     drone_id: str
-    data: Dict
+    data: dict
     timestamp: float
 
 
 class TelemetryAggregationSystem:
     def __init__(self, aggregation_window_sec: float = 60):
         self.window = aggregation_window_sec
-        self.telemetry_buffer: Dict[str, List[TelemetryPacket]] = {}
-        self.aggregated: Dict[str, Dict] = {}
+        self.telemetry_buffer: dict[str, list[TelemetryPacket]] = {}
+        self.aggregated: dict[str, dict] = {}
 
     def ingest(self, packet: TelemetryPacket):
         if packet.drone_id not in self.telemetry_buffer:
             self.telemetry_buffer[packet.drone_id] = []
         self.telemetry_buffer[packet.drone_id].append(packet)
 
-    def aggregate(self, drone_id: str) -> Dict:
+    def aggregate(self, drone_id: str) -> dict:
         if drone_id not in self.telemetry_buffer:
             return {}
 

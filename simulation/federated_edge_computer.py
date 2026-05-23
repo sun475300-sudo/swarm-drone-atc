@@ -4,7 +4,7 @@ Phase 419: Federated Edge Computer for Distributed Inference
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -43,9 +43,9 @@ class FederatedEdgeComputer:
         self.federation_id = federation_id
         self.load_balancing = load_balancing
 
-        self.devices: Dict[str, EdgeDevice] = {}
-        self.task_queue: List[InferenceTask] = []
-        self.active_tasks: Dict[str, str] = {}
+        self.devices: dict[str, EdgeDevice] = {}
+        self.task_queue: list[InferenceTask] = []
+        self.active_tasks: dict[str, str] = {}
 
         self._initialize_devices()
 
@@ -92,7 +92,7 @@ class FederatedEdgeComputer:
         self.task_queue.append(task)
         self.task_queue.sort(key=lambda t: t.priority)
 
-    def schedule_task(self, task_id: str) -> Optional[str]:
+    def schedule_task(self, task_id: str) -> str | None:
         for task in self.task_queue:
             if task.task_id == task_id:
                 break
@@ -108,7 +108,7 @@ class FederatedEdgeComputer:
 
         return None
 
-    def _select_device(self, task: InferenceTask) -> Optional[EdgeDevice]:
+    def _select_device(self, task: InferenceTask) -> EdgeDevice | None:
         candidates = [d for d in self.devices.values() if d.is_online]
 
         if not candidates:
@@ -125,7 +125,7 @@ class FederatedEdgeComputer:
         if task_id in self.active_tasks:
             del self.active_tasks[task_id]
 
-    def get_federation_status(self) -> Dict[str, Any]:
+    def get_federation_status(self) -> dict[str, Any]:
         return {
             "federation_id": self.federation_id,
             "total_devices": len(self.devices),

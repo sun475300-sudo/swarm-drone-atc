@@ -350,7 +350,7 @@ def generate_rtm() -> None:
     # Markdown
     md_path = reports_dir / "rtm.md"
     with open(md_path, "w", encoding="utf-8") as f:
-        f.write(f"# SDACS 요구사항-테스트 추적 매트릭스 (RTM)\n\n")
+        f.write("# SDACS 요구사항-테스트 추적 매트릭스 (RTM)\n\n")
         f.write(f"> 생성일시: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  \n")
         f.write(f"> 총 요구사항: {len(REQUIREMENTS)}개  \n")
         f.write(f"> 총 테스트 매핑: {len(MAPPINGS)}건  \n\n")

@@ -5,8 +5,6 @@ Phase 92-107 테스트
   대시보드, 배치 시뮬, 공역 이력, 성능 프로필, 임무 평가,
   접근 제어, 시스템 건강
 """
-import pytest
-import numpy as np
 
 
 # ── Phase 92: 리더 선출 ──

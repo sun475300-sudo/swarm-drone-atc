@@ -1,13 +1,14 @@
-# -*- coding: utf-8 -*-
 """Generate SDACS v6 report as Word docx"""
-import sys, io
+import io
+import sys
+
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 from docx import Document
-from docx.shared import Pt, Cm, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
+from docx.shared import Cm, Pt, RGBColor
 
 doc = Document()
 

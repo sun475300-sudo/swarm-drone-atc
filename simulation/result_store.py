@@ -17,7 +17,6 @@ import csv
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from simulation.analytics import SimulationResult
 
@@ -91,7 +90,7 @@ class ResultStore:
     def compare(
         self,
         tags: list[str],
-        metrics: Optional[list[str]] = None,
+        metrics: list[str] | None = None,
     ) -> str:
         """
         태그별 결과를 비교 테이블로 출력.

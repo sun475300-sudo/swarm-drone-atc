@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -76,9 +75,9 @@ class DigitalTwinSyncEngine:
     def __init__(self, mode: SyncMode = SyncMode.REAL_TIME, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
         self.mode = mode
-        self._twins: Dict[str, TwinState] = {}
+        self._twins: dict[str, TwinState] = {}
         self._predictor = StatePredictor()
-        self._event_log: List[SyncEvent] = []
+        self._event_log: list[SyncEvent] = []
         self._sync_count = 0
         self._event_counter = 0
 
@@ -134,16 +133,16 @@ class DigitalTwinSyncEngine:
         ))
         return twin.status
 
-    def sync_all(self, current_time: float = 0.0) -> Dict[str, TwinStatus]:
+    def sync_all(self, current_time: float = 0.0) -> dict[str, TwinStatus]:
         return {tid: self.sync(tid, current_time) for tid in self._twins}
 
-    def get_twin(self, twin_id: str) -> Optional[TwinState]:
+    def get_twin(self, twin_id: str) -> TwinState | None:
         return self._twins.get(twin_id)
 
-    def get_divergent_twins(self, threshold_m: float = 2.0) -> List[str]:
+    def get_divergent_twins(self, threshold_m: float = 2.0) -> list[str]:
         return [tid for tid, t in self._twins.items() if t.divergence > threshold_m]
 
-    def get_events(self, twin_id: Optional[str] = None, limit: int = 100) -> List[SyncEvent]:
+    def get_events(self, twin_id: str | None = None, limit: int = 100) -> list[SyncEvent]:
         events = self._event_log
         if twin_id:
             events = [e for e in events if e.twin_id == twin_id]

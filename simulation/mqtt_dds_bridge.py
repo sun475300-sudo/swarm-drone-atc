@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable
 
 import numpy as np
 
@@ -52,15 +52,15 @@ class MQTTClient:
     def __init__(self, seed: int = 42) -> None:
         self.rng = np.random.default_rng(seed)
         self.connected = False
-        self.config: Optional[MQTTConfig] = None
-        self.subscriptions: Dict[str, Callable] = {}
-        self._message_buffer: List[Dict[str, Any]] = []
+        self.config: MQTTConfig | None = None
+        self.subscriptions: dict[str, Callable] = {}
+        self._message_buffer: list[dict[str, Any]] = []
         self.stats = {
             "msgs_sent": 0, "msgs_received": 0,
             "latency_sum_ms": 0.0, "connect_time": 0.0,
         }
 
-    def connect(self, config: Optional[MQTTConfig] = None) -> bool:
+    def connect(self, config: MQTTConfig | None = None) -> bool:
         self.config = config or MQTTConfig()
         self.connected = True
         self.stats["connect_time"] = time.time()
@@ -91,7 +91,7 @@ class MQTTClient:
         self.connected = False
         self.subscriptions.clear()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         sent = max(self.stats["msgs_sent"], 1)
         return {
             "connected": self.connected,
@@ -105,12 +105,12 @@ class MQTTClient:
 class DDSParticipant:
     """Simulated DDS Domain Participant."""
 
-    def __init__(self, config: Optional[DDSConfig] = None, seed: int = 42) -> None:
+    def __init__(self, config: DDSConfig | None = None, seed: int = 42) -> None:
         self.rng = np.random.default_rng(seed)
         self.config = config or DDSConfig()
         self._next_id = 0
-        self.writers: Dict[int, Dict[str, Any]] = {}
-        self.readers: Dict[int, Dict[str, Any]] = {}
+        self.writers: dict[int, dict[str, Any]] = {}
+        self.readers: dict[int, dict[str, Any]] = {}
         self.stats = {
             "samples_written": 0, "samples_read": 0, "latency_sum_ms": 0.0,
         }
@@ -144,7 +144,7 @@ class DDSParticipant:
                 self.stats["samples_read"] += 1
         return True
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         written = max(self.stats["samples_written"], 1)
         return {
             "domain_id": self.config.domain_id,
@@ -162,10 +162,10 @@ class MQTTDDSBridge:
     def __init__(self, seed: int = 42) -> None:
         self.mqtt = MQTTClient(seed=seed)
         self.dds = DDSParticipant(seed=seed)
-        self.topic_mapping: Dict[str, str] = {}
+        self.topic_mapping: dict[str, str] = {}
 
     def setup(
-        self, mqtt_config: Optional[MQTTConfig] = None, dds_config: Optional[DDSConfig] = None
+        self, mqtt_config: MQTTConfig | None = None, dds_config: DDSConfig | None = None
     ) -> bool:
         mqtt_ok = self.mqtt.connect(mqtt_config)
         if dds_config:
@@ -175,14 +175,14 @@ class MQTTDDSBridge:
     def map_topic(self, mqtt_topic: str, dds_topic: str) -> None:
         self.topic_mapping[mqtt_topic] = dds_topic
 
-    def publish_hybrid(self, topic: str, data: Any) -> Dict[str, bool]:
+    def publish_hybrid(self, topic: str, data: Any) -> dict[str, bool]:
         mqtt_ok = self.mqtt.publish(topic, data)
         dds_topic = self.topic_mapping.get(topic, topic)
         wid = self.dds.create_writer(dds_topic)
         dds_ok = self.dds.write(wid, data)
         return {"mqtt": mqtt_ok, "dds": dds_ok}
 
-    def get_combined_stats(self) -> Dict[str, Any]:
+    def get_combined_stats(self) -> dict[str, Any]:
         return {
             "mqtt": self.mqtt.get_stats(),
             "dds": self.dds.get_stats(),

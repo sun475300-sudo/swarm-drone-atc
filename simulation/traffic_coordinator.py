@@ -3,7 +3,6 @@ Phase 445: Traffic Coordinator for UAV Airspace Management
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -18,18 +17,18 @@ class UAVTraffic:
 
 class TrafficCoordinator:
     def __init__(
-        self, airspace_bounds: Tuple[float, float, float, float, float, float]
+        self, airspace_bounds: tuple[float, float, float, float, float, float]
     ):
         self.bounds = airspace_bounds
-        self.uavs: Dict[str, UAVTraffic] = {}
-        self.conflicts: List[Tuple[str, str]] = []
+        self.uavs: dict[str, UAVTraffic] = {}
+        self.conflicts: list[tuple[str, str]] = []
 
     def register_uav(self, uav: UAVTraffic):
         self.uavs[uav.uav_id] = uav
 
     def detect_conflicts(
         self, separation_distance: float = 50.0
-    ) -> List[Tuple[str, str]]:
+    ) -> list[tuple[str, str]]:
         conflicts = []
 
         uav_list = list(self.uavs.values())
@@ -44,7 +43,7 @@ class TrafficCoordinator:
         self.conflicts = conflicts
         return conflicts
 
-    def resolve_conflicts(self) -> Dict[str, np.ndarray]:
+    def resolve_conflicts(self) -> dict[str, np.ndarray]:
         maneuvers = {}
 
         for uav1_id, uav2_id in self.conflicts:
@@ -59,7 +58,7 @@ class TrafficCoordinator:
 
         return maneuvers
 
-    def get_traffic_density(self, region: Tuple[float, float, float, float]) -> int:
+    def get_traffic_density(self, region: tuple[float, float, float, float]) -> int:
         count = 0
         for uav in self.uavs.values():
             if (

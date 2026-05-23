@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -19,10 +19,10 @@ except (ImportError, OSError):
 
 
 def generate_risk_heatmap(
-    drone_states: Sequence[Dict[str, Any]],
+    drone_states: Sequence[dict[str, Any]],
     grid_size: int = 50,
-    bounds: Tuple[float, float] = (-5000.0, 5000.0),
-) -> Dict[str, Any]:
+    bounds: tuple[float, float] = (-5000.0, 5000.0),
+) -> dict[str, Any]:
     """드론 밀도 기반 충돌 위험 히트맵을 생성한다.
 
     Args:
@@ -48,9 +48,9 @@ def generate_risk_heatmap(
     return {"grid": grid, "bounds": {"min": lo, "max": hi}, "max_density": max_density}
 
 
-def _extract_xy(drone_states: Sequence[Dict[str, Any]]) -> np.ndarray:
+def _extract_xy(drone_states: Sequence[dict[str, Any]]) -> np.ndarray:
     """드론 상태에서 (x, y) 좌표 배열을 추출한다."""
-    coords: List[Tuple[float, float]] = []
+    coords: list[tuple[float, float]] = []
     for state in drone_states:
         pos = state.get("position")
         if pos is not None and len(pos) >= 2:

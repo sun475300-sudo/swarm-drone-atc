@@ -94,3 +94,6 @@ ignore = ["E501", "B008"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+"archive/**" = ["F401", "F811", "F841", "F821", "E402", "E701", "E702", "B007", "N806", "UP006", "UP035", "UP045", "I001", "E999"]
+"visualization/**" = ["E402", "F401"]
+"tests/**" = ["N806", "B007", "F841"]

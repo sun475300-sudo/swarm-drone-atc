@@ -257,10 +257,9 @@ class TestThreatAssessment:
 #  Phase 34: ScenarioScripter
 # ────────────────────────────────────────────
 from simulation.scenario_scripter import (
+    ScenarioScript,
     ScenarioScripter,
     ScriptedEvent,
-    ScenarioScript,
-    VALID_EVENT_TYPES,
 )
 
 

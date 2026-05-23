@@ -8,7 +8,7 @@ import hashlib
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -46,7 +46,7 @@ class ThreadEvent:
     phase: LifecyclePhase
     timestamp: float
     description: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     prev_hash: str = ""
     event_hash: str = ""
 
@@ -68,8 +68,8 @@ class DroneThread:
     model: str
     serial_number: str
     current_phase: LifecyclePhase
-    events: List[ThreadEvent] = field(default_factory=list)
-    components: Dict[str, ComponentRecord] = field(default_factory=dict)
+    events: list[ThreadEvent] = field(default_factory=list)
+    components: dict[str, ComponentRecord] = field(default_factory=dict)
     total_flight_hours: float = 0.0
     total_missions: int = 0
     firmware_version: str = "1.0.0"
@@ -81,7 +81,7 @@ class DigitalThreadManager:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.threads: Dict[str, DroneThread] = {}
+        self.threads: dict[str, DroneThread] = {}
         self._event_counter = 0
 
     def create_thread(self, drone_id: str, model: str,
@@ -100,7 +100,7 @@ class DigitalThreadManager:
 
     def add_component(self, drone_id: str, component_id: str,
                       component_type: str, serial_number: str,
-                      max_hours: float = 500.0) -> Optional[ComponentRecord]:
+                      max_hours: float = 500.0) -> ComponentRecord | None:
         thread = self.threads.get(drone_id)
         if not thread:
             return None
@@ -163,12 +163,12 @@ class DigitalThreadManager:
         return True
 
     def record_fault(self, drone_id: str, fault_desc: str,
-                     component_id: Optional[str] = None) -> bool:
+                     component_id: str | None = None) -> bool:
         thread = self.threads.get(drone_id)
         if not thread:
             return False
 
-        meta: Dict[str, Any] = {"fault": fault_desc}
+        meta: dict[str, Any] = {"fault": fault_desc}
         if component_id and component_id in thread.components:
             thread.components[component_id].status = "faulty"
             meta["component"] = component_id
@@ -189,7 +189,7 @@ class DigitalThreadManager:
                         {"old_version": old_ver, "new_version": version})
         return True
 
-    def get_maintenance_needs(self, drone_id: str) -> List[Dict]:
+    def get_maintenance_needs(self, drone_id: str) -> list[dict]:
         thread = self.threads.get(drone_id)
         if not thread:
             return []
@@ -207,7 +207,7 @@ class DigitalThreadManager:
         return needs
 
     def get_thread_history(self, drone_id: str,
-                           event_type: Optional[EventType] = None) -> List[ThreadEvent]:
+                           event_type: EventType | None = None) -> list[ThreadEvent]:
         thread = self.threads.get(drone_id)
         if not thread:
             return []
@@ -215,7 +215,7 @@ class DigitalThreadManager:
             return [e for e in thread.events if e.event_type == event_type]
         return thread.events
 
-    def fleet_health(self) -> Dict:
+    def fleet_health(self) -> dict:
         operational = sum(1 for t in self.threads.values()
                         if t.current_phase == LifecyclePhase.OPERATIONAL)
         maintenance = sum(1 for t in self.threads.values()
@@ -237,7 +237,7 @@ class DigitalThreadManager:
 
     def _add_event(self, drone_id: str, event_type: EventType,
                    phase: LifecyclePhase, description: str,
-                   metadata: Optional[Dict] = None) -> ThreadEvent:
+                   metadata: dict | None = None) -> ThreadEvent:
         self._event_counter += 1
         thread = self.threads[drone_id]
         prev_hash = thread.events[-1].event_hash if thread.events else "genesis"
@@ -258,7 +258,7 @@ class DigitalThreadManager:
         thread.events.append(event)
         return event
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             **self.fleet_health(),
             "total_events": self._event_counter,

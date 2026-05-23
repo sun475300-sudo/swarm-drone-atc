@@ -5,7 +5,6 @@ Phase 477: UAM Corridor Manager
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -46,7 +45,7 @@ class UAMCorridor:
     altitude_max: float = 300.0
     max_traffic: int = 10
     current_traffic: int = 0
-    waypoints: List[Tuple[float, float, float]] = field(default_factory=list)
+    waypoints: list[tuple[float, float, float]] = field(default_factory=list)
 
 
 @dataclass
@@ -66,10 +65,10 @@ class UAMCorridorManager:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.vertiports: Dict[str, Vertiport] = {}
-        self.corridors: Dict[str, UAMCorridor] = {}
-        self.flights: Dict[str, UAMFlight] = {}
-        self.schedule: List[UAMFlight] = []
+        self.vertiports: dict[str, Vertiport] = {}
+        self.corridors: dict[str, UAMCorridor] = {}
+        self.flights: dict[str, UAMFlight] = {}
+        self.schedule: list[UAMFlight] = []
         self._flight_counter = 0
 
     def add_vertiport(self, port_id: str, x: float, y: float, z: float = 0,
@@ -80,7 +79,7 @@ class UAMCorridorManager:
 
     def create_corridor(self, start: str, end: str,
                         corridor_type: CorridorType = CorridorType.MEDIUM_ALTITUDE,
-                        width: float = 50.0) -> Optional[UAMCorridor]:
+                        width: float = 50.0) -> UAMCorridor | None:
         if start not in self.vertiports or end not in self.vertiports:
             return None
         cid = f"COR-{start}-{end}"
@@ -114,7 +113,7 @@ class UAMCorridorManager:
         return count
 
     def schedule_flight(self, origin: str, destination: str,
-                        departure_time: float, passengers: int = 1) -> Optional[UAMFlight]:
+                        departure_time: float, passengers: int = 1) -> UAMFlight | None:
         cid = f"COR-{origin}-{destination}"
         corridor = self.corridors.get(cid)
         if not corridor:
@@ -162,7 +161,7 @@ class UAMCorridorManager:
             op.current_load = max(0, op.current_load - 1)
         return True
 
-    def find_best_route(self, origin: str, destination: str) -> Optional[str]:
+    def find_best_route(self, origin: str, destination: str) -> str | None:
         best_cid = None
         best_load = float('inf')
         for cid, cor in self.corridors.items():
@@ -172,13 +171,13 @@ class UAMCorridorManager:
                     best_cid = cid
         return best_cid
 
-    def get_corridor_load(self) -> Dict[str, float]:
+    def get_corridor_load(self) -> dict[str, float]:
         loads = {}
         for cid, cor in self.corridors.items():
             loads[cid] = cor.current_traffic / max(cor.max_traffic, 1) * 100
         return loads
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         completed = sum(1 for f in self.flights.values() if f.status == "completed")
         total_pax = sum(f.passengers for f in self.flights.values())
         return {

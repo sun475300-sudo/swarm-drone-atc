@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -69,7 +69,7 @@ class RemoteIDTransmitter:
     def __init__(self, seed: int = 42) -> None:
         self.rng = np.random.default_rng(seed)
         self.broadcast_interval_s = 1.0
-        self.last_broadcast: Optional[float] = None
+        self.last_broadcast: float | None = None
         self.broadcast_count = 0
         self.network_publish_count = 0
 
@@ -91,7 +91,7 @@ class RemoteIDTransmitter:
     def set_broadcast_interval(self, seconds: float) -> None:
         self.broadcast_interval_s = max(0.1, seconds)
 
-    def get_compliance_status(self) -> Dict[str, Any]:
+    def get_compliance_status(self) -> dict[str, Any]:
         return {
             "is_broadcasting": self.broadcast_count > 0,
             "broadcast_count": self.broadcast_count,
@@ -106,19 +106,19 @@ class RemoteIDReceiver:
 
     def __init__(self, seed: int = 42) -> None:
         self.rng = np.random.default_rng(seed)
-        self.received_messages: Dict[str, RemoteIDMessage] = {}
+        self.received_messages: dict[str, RemoteIDMessage] = {}
         self.scan_count = 0
 
     def receive(self, message: RemoteIDMessage) -> None:
         """Receive a Remote ID message."""
         self.received_messages[message.uas_id] = message
 
-    def scan(self) -> List[RemoteIDMessage]:
+    def scan(self) -> list[RemoteIDMessage]:
         """Scan for nearby Remote ID broadcasts."""
         self.scan_count += 1
         return list(self.received_messages.values())
 
-    def get_nearby_uas(self, center_lat: float, center_lon: float, radius_m: float = 1000.0) -> List[RemoteIDMessage]:
+    def get_nearby_uas(self, center_lat: float, center_lon: float, radius_m: float = 1000.0) -> list[RemoteIDMessage]:
         results = []
         for msg in self.received_messages.values():
             lat_diff = (msg.latitude - center_lat) * 111320.0
@@ -128,7 +128,7 @@ class RemoteIDReceiver:
                 results.append(msg)
         return results
 
-    def verify_message(self, message: RemoteIDMessage) -> Dict[str, Any]:
+    def verify_message(self, message: RemoteIDMessage) -> dict[str, Any]:
         """Validate required fields per ASTM F3411."""
         missing = []
         if not message.uas_id:

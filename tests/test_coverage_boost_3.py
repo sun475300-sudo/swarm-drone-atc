@@ -10,10 +10,8 @@ import numpy as np
 import pytest
 
 # ── autonomous_fleet_composer ─────────────────────────────────────────────
-
 from simulation.autonomous_fleet_composer import (
     AutonomousFleetComposer,
-    Drone,
     DroneCapability,
     DroneStatus,
     FleetAssignment,
@@ -231,7 +229,7 @@ class TestBlockchainLedger:
 
 # ── graph_neural_network ─────────────────────────────────────────────────
 
-from simulation.graph_neural_network import GraphEdge, GraphNode, GraphNeuralNetwork
+from simulation.graph_neural_network import GraphNeuralNetwork, GraphNode
 
 
 class TestGraphNode:
@@ -317,11 +315,9 @@ class TestGraphNeuralNetwork:
 # ── risk_hedge_calculator ─────────────────────────────────────────────────
 
 from simulation.risk_hedge_calculator import (
-    HedgeAction,
     HedgeStrategy,
     PortfolioMetrics,
     RiskCategory,
-    RiskFactor,
     RiskHedgeCalculator,
 )
 
@@ -401,10 +397,7 @@ class TestRiskHedgeCalculator:
 
 from simulation.quantum_resilience import (
     EncryptionScheme,
-    KeyExchange,
-    QuantumKey,
     QuantumResilienceManager,
-    SecureChannel,
 )
 
 
@@ -499,6 +492,8 @@ from simulation.neural_architecture_search import (
     NeuralArchitectureSearch,
     NeuralBlock,
     OperationType,
+)
+from simulation.neural_architecture_search import (
     SearchStrategy as NASSearchStrategy,
 )
 

@@ -11,7 +11,6 @@ import pytest
 import torch
 
 # ── advanced_path_planner ─────────────────────────────────────────────────
-
 from simulation.advanced_path_planner import (
     AdvancedPathPlanner,
     PathMetric,
@@ -661,7 +660,6 @@ class TestAIInferenceEngine:
 # ── edge_cloud_orchestrator ───────────────────────────────────────────────
 
 from simulation.edge_cloud_orchestrator import (
-    ComputeNode,
     DeploymentTier,
     EdgeCloudOrchestrator,
     Placement,

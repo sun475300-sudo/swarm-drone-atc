@@ -3,26 +3,25 @@ Phase 474: Geofencing System for Airspace Restrictions
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
 
 
 @dataclass
 class GeoZone:
     zone_id: str
     zone_type: str
-    boundaries: List[Tuple[float, float]]
+    boundaries: list[tuple[float, float]]
     min_altitude: float
     max_altitude: float
 
 
 class GeofencingSystem:
     def __init__(self):
-        self.zones: Dict[str, GeoZone] = {}
+        self.zones: dict[str, GeoZone] = {}
 
     def add_zone(self, zone: GeoZone):
         self.zones[zone.zone_id] = zone
 
-    def check_position(self, position: Tuple[float, float, float]) -> List[str]:
+    def check_position(self, position: tuple[float, float, float]) -> list[str]:
         x, y, z = position
         violations = []
 
@@ -34,7 +33,7 @@ class GeofencingSystem:
         return violations
 
     def _point_in_polygon(
-        self, x: float, y: float, polygon: List[Tuple[float, float]]
+        self, x: float, y: float, polygon: list[tuple[float, float]]
     ) -> bool:
         n = len(polygon)
         inside = False

@@ -4,7 +4,7 @@ Phase 420: Adaptive Communication Protocol for Dynamic Networks
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 class ProtocolMode(Enum):
@@ -40,8 +40,8 @@ class AdaptiveCommProtocol:
         self.default_mode = default_mode
         self.adaptation_interval = adaptation_interval
 
-        self.link_qualities: Dict[Tuple[str, str], LinkQuality] = {}
-        self.transmission_configs: Dict[Tuple[str, str], TransmissionConfig] = {}
+        self.link_qualities: dict[tuple[str, str], LinkQuality] = {}
+        self.transmission_configs: dict[tuple[str, str], TransmissionConfig] = {}
 
         self.metrics = {
             "packets_sent": 0,
@@ -69,7 +69,7 @@ class AdaptiveCommProtocol:
 
         self._adapt_transmission_config(key)
 
-    def _adapt_transmission_config(self, link: Tuple[str, str]):
+    def _adapt_transmission_config(self, link: tuple[str, str]):
         if link not in self.link_qualities:
             return
 
@@ -107,11 +107,11 @@ class AdaptiveCommProtocol:
         self.transmission_configs[link] = config
         self.metrics["adaptation_events"] += 1
 
-    def get_config(self, node1: str, node2: str) -> Optional[TransmissionConfig]:
+    def get_config(self, node1: str, node2: str) -> TransmissionConfig | None:
         key = tuple(sorted([node1, node2]))
         return self.transmission_configs.get(key)
 
-    def select_best_neighbor(self, node: str, neighbors: List[str]) -> Optional[str]:
+    def select_best_neighbor(self, node: str, neighbors: list[str]) -> str | None:
         if not neighbors:
             return None
 
@@ -137,7 +137,7 @@ class AdaptiveCommProtocol:
 
         return best_neighbor
 
-    def get_protocol_stats(self) -> Dict[str, Any]:
+    def get_protocol_stats(self) -> dict[str, Any]:
         return {
             "mode": self.default_mode.value,
             "active_links": len(self.link_qualities),

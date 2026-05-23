@@ -1,8 +1,10 @@
 """Voronoi 공역 분할 테스트"""
 import numpy as np
 import pytest
+
 from simulation.voronoi_airspace.voronoi_partition import (
-    compute_voronoi_partition, AirspaceCell,
+    AirspaceCell,
+    compute_voronoi_partition,
 )
 
 pytestmark = pytest.mark.unit

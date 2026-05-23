@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable, Deque, Dict, List, Optional
+from typing import Callable
 
 import numpy as np
 
@@ -37,8 +37,8 @@ class TelemetryPoint:
 @dataclass
 class StreamWindow:
     field: TelemetryField
-    values: Deque[float] = field(default_factory=lambda: deque(maxlen=100))
-    timestamps: Deque[float] = field(default_factory=lambda: deque(maxlen=100))
+    values: deque[float] = field(default_factory=lambda: deque(maxlen=100))
+    timestamps: deque[float] = field(default_factory=lambda: deque(maxlen=100))
 
     @property
     def mean(self) -> float:
@@ -90,16 +90,16 @@ class TelemetryStreamProcessor:
     def __init__(self, window_size: int = 100, z_threshold: float = 3.0):
         self._window_size = window_size
         self._z_threshold = z_threshold
-        self._windows: Dict[str, Dict[TelemetryField, StreamWindow]] = {}
-        self._alerts: List[AnomalyAlert] = []
-        self._callbacks: List[Callable] = []
+        self._windows: dict[str, dict[TelemetryField, StreamWindow]] = {}
+        self._alerts: list[AnomalyAlert] = []
+        self._callbacks: list[Callable] = []
         self._total_points = 0
         self._total_anomalies = 0
 
     def register_callback(self, cb: Callable):
         self._callbacks.append(cb)
 
-    def ingest(self, point: TelemetryPoint) -> Optional[AnomalyAlert]:
+    def ingest(self, point: TelemetryPoint) -> AnomalyAlert | None:
         self._total_points += 1
         if point.drone_id not in self._windows:
             self._windows[point.drone_id] = {}
@@ -140,10 +140,10 @@ class TelemetryStreamProcessor:
                     pass
         return alert
 
-    def ingest_batch(self, points: List[TelemetryPoint]) -> List[AnomalyAlert]:
+    def ingest_batch(self, points: list[TelemetryPoint]) -> list[AnomalyAlert]:
         return [a for p in points if (a := self.ingest(p)) is not None]
 
-    def get_window_stats(self, drone_id: str, field: TelemetryField) -> Optional[dict]:
+    def get_window_stats(self, drone_id: str, field: TelemetryField) -> dict | None:
         windows = self._windows.get(drone_id, {})
         w = windows.get(field)
         if not w or not w.values:
@@ -158,7 +158,7 @@ class TelemetryStreamProcessor:
             "latest": round(float(w.values[-1]), 3),
         }
 
-    def get_drone_dashboard(self, drone_id: str) -> Dict[str, dict]:
+    def get_drone_dashboard(self, drone_id: str) -> dict[str, dict]:
         result = {}
         for field in TelemetryField:
             stats = self.get_window_stats(drone_id, field)
@@ -166,7 +166,7 @@ class TelemetryStreamProcessor:
                 result[field.value] = stats
         return result
 
-    def get_alerts(self, drone_id: Optional[str] = None, severity: Optional[str] = None) -> List[AnomalyAlert]:
+    def get_alerts(self, drone_id: str | None = None, severity: str | None = None) -> list[AnomalyAlert]:
         alerts = self._alerts
         if drone_id:
             alerts = [a for a in alerts if a.drone_id == drone_id]

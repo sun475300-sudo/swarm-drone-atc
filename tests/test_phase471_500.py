@@ -2,7 +2,6 @@
 Phase 471-500 통합 테스트 — 150개 테스트
 """
 
-import pytest
 import numpy as np
 
 
@@ -328,14 +327,14 @@ class TestResilienceOrchestrator:
         assert node.node_id == "node_0"
 
     def test_fault_injection(self):
-        from simulation.resilience_orchestrator import ResilienceOrchestrator, FaultType
+        from simulation.resilience_orchestrator import FaultType, ResilienceOrchestrator
         ro = ResilienceOrchestrator()
         ro.add_node("n1")
         fault = ro.inject_fault("n1", FaultType.NODE_CRASH, severity=0.8)
         assert fault is not None and fault.severity == 0.8
 
     def test_self_heal(self):
-        from simulation.resilience_orchestrator import ResilienceOrchestrator, FaultType
+        from simulation.resilience_orchestrator import FaultType, ResilienceOrchestrator
         ro = ResilienceOrchestrator()
         ro.add_node("n1")
         ro.inject_fault("n1", FaultType.CPU_OVERLOAD)
@@ -351,7 +350,7 @@ class TestResilienceOrchestrator:
         assert isinstance(faults, list)
 
     def test_resilience_score(self):
-        from simulation.resilience_orchestrator import ResilienceOrchestrator, FaultType
+        from simulation.resilience_orchestrator import FaultType, ResilienceOrchestrator
         ro = ResilienceOrchestrator()
         ro.add_node("n1")
         ro.inject_fault("n1", FaultType.SENSOR_DRIFT)
@@ -413,7 +412,7 @@ class TestAdversarialDefense:
         assert threat is not None
 
     def test_respond(self):
-        from simulation.adversarial_defense import AdversarialDefense, ThreatSignature, AttackType
+        from simulation.adversarial_defense import AdversarialDefense, AttackType, ThreatSignature
         ad = AdversarialDefense()
         threat = ThreatSignature(AttackType.GPS_SPOOFING, 0.7, timestamp=0)
         event = ad.respond_to_threat(threat)
@@ -624,13 +623,13 @@ class TestSwarmMorphogenesis:
         assert len(history) == 50
 
     def test_formation_morph(self):
-        from simulation.swarm_morphogenesis import SwarmMorphogenesis, FormationType
+        from simulation.swarm_morphogenesis import FormationType, SwarmMorphogenesis
         sm = SwarmMorphogenesis(n_drones=10)
         history = sm.morph_to(FormationType.CIRCLE, steps=50)
         assert len(history) == 50
 
     def test_quality(self):
-        from simulation.swarm_morphogenesis import SwarmMorphogenesis, FormationType
+        from simulation.swarm_morphogenesis import FormationType, SwarmMorphogenesis
         sm = SwarmMorphogenesis(n_drones=10)
         sm.morph_to(FormationType.LINE, steps=100)
         q = sm.formation_quality()

@@ -14,7 +14,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 import numpy as np
 
@@ -98,8 +97,8 @@ class KalmanFilter:
 
     def __init__(
         self,
-        initial_position: Optional[np.ndarray] = None,
-        initial_velocity: Optional[np.ndarray] = None,
+        initial_position: np.ndarray | None = None,
+        initial_velocity: np.ndarray | None = None,
         process_noise_std: float = 0.1,
         dt: float = 0.1,
     ):
@@ -346,7 +345,7 @@ class SensorFusion:
             timestamp=timestamp,
         )
 
-    def get_filter(self, drone_id: int) -> Optional[KalmanFilter]:
+    def get_filter(self, drone_id: int) -> KalmanFilter | None:
         """Get Kalman filter for a drone, if it exists."""
         return self.kalman_filters.get(drone_id)
 

@@ -9,7 +9,6 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -38,7 +37,7 @@ class EdgeModel:
     size_mb: float = 10.0
     latency_ms: float = 5.0
     accuracy: float = 0.95
-    weights: Optional[np.ndarray] = None  # simplified weight matrix
+    weights: np.ndarray | None = None  # simplified weight matrix
 
     def quantize(self, target: ModelFormat) -> EdgeModel:
         """Simulate model quantization."""
@@ -80,8 +79,8 @@ class EdgeAIInferenceEngine:
 
     def __init__(self, cache_size: int = 100, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._models: Dict[str, EdgeModel] = {}
-        self._cache: Dict[str, InferenceResult] = {}
+        self._models: dict[str, EdgeModel] = {}
+        self._cache: dict[str, InferenceResult] = {}
         self._cache_size = cache_size
         self._inference_count = 0
         self._cache_hits = 0
@@ -95,7 +94,7 @@ class EdgeAIInferenceEngine:
             ).astype(np.float32)
         self._models[model.model_id] = model
 
-    def quantize_model(self, model_id: str, target: ModelFormat) -> Optional[EdgeModel]:
+    def quantize_model(self, model_id: str, target: ModelFormat) -> EdgeModel | None:
         model = self._models.get(model_id)
         if not model:
             return None
@@ -103,7 +102,7 @@ class EdgeAIInferenceEngine:
         self._models[quantized.model_id] = quantized
         return quantized
 
-    def infer(self, model_id: str, input_data: np.ndarray) -> Optional[InferenceResult]:
+    def infer(self, model_id: str, input_data: np.ndarray) -> InferenceResult | None:
         model = self._models.get(model_id)
         if not model:
             return None
@@ -157,11 +156,11 @@ class EdgeAIInferenceEngine:
         self._total_latency_ms += total_latency
         return result
 
-    def batch_infer(self, model_id: str, batch: List[np.ndarray]) -> List[Optional[InferenceResult]]:
+    def batch_infer(self, model_id: str, batch: list[np.ndarray]) -> list[InferenceResult | None]:
         return [self.infer(model_id, inp) for inp in batch]
 
     def detect_anomaly(self, model_id: str, input_data: np.ndarray,
-                       threshold: float = 0.5) -> Tuple[bool, float]:
+                       threshold: float = 0.5) -> tuple[bool, float]:
         """Run anomaly detection using model output confidence."""
         result = self.infer(model_id, input_data)
         if not result:
@@ -169,7 +168,7 @@ class EdgeAIInferenceEngine:
         is_anomaly = result.confidence < threshold
         return is_anomaly, result.confidence
 
-    def get_model(self, model_id: str) -> Optional[EdgeModel]:
+    def get_model(self, model_id: str) -> EdgeModel | None:
         return self._models.get(model_id)
 
     def summary(self) -> dict:

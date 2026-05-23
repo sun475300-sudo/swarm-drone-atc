@@ -29,7 +29,7 @@ python main.py visualize                      # 3D 대시보드 (localhost:8050)
 ## Config Files
 - `config/default_simulation.yaml` — 기본 시뮬레이션 파라미터
 - `config/monte_carlo.yaml` — MC 스윕 설정
-- `config/scenario_params/*.yaml` — 7개 시나리오 정의
+- `config/scenario_params/*.yaml` — 9개 시나리오 정의
 
 ## Do NOT
 - `engine_legacy.py` 다시 만들지 말 것 (SwarmSimulator로 일원화 완료)

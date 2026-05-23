@@ -100,14 +100,14 @@ class TestResultStore:
 
 class TestBatteryModel:
     def test_basic_power(self):
-        from simulation.simulator import _estimate_power_w
+        from simulation.drone_agent import _estimate_power_w
         from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         profile = DRONE_PROFILES["COMMERCIAL_DELIVERY"]
         pw = _estimate_power_w(10.0, profile)
         assert pw > 0
 
     def test_altitude_increases_power(self):
-        from simulation.simulator import _estimate_power_w
+        from simulation.drone_agent import _estimate_power_w
         from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         profile = DRONE_PROFILES["COMMERCIAL_DELIVERY"]
         pw_low = _estimate_power_w(10.0, profile, altitude_m=30.0)
@@ -115,7 +115,7 @@ class TestBatteryModel:
         assert pw_high > pw_low
 
     def test_headwind_increases_power(self):
-        from simulation.simulator import _estimate_power_w
+        from simulation.drone_agent import _estimate_power_w
         from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         profile = DRONE_PROFILES["COMMERCIAL_DELIVERY"]
         pw_calm = _estimate_power_w(10.0, profile, headwind_ms=0.0)
@@ -123,7 +123,7 @@ class TestBatteryModel:
         assert pw_wind > pw_calm
 
     def test_climb_increases_power(self):
-        from simulation.simulator import _estimate_power_w
+        from simulation.drone_agent import _estimate_power_w
         from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         profile = DRONE_PROFILES["COMMERCIAL_DELIVERY"]
         pw_level = _estimate_power_w(10.0, profile, climb_rate_ms=0.0)
@@ -131,7 +131,7 @@ class TestBatteryModel:
         assert pw_climb > pw_level
 
     def test_descent_reduces_power(self):
-        from simulation.simulator import _estimate_power_w
+        from simulation.drone_agent import _estimate_power_w
         from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         profile = DRONE_PROFILES["COMMERCIAL_DELIVERY"]
         pw_level = _estimate_power_w(10.0, profile, climb_rate_ms=0.0)
@@ -139,14 +139,14 @@ class TestBatteryModel:
         assert pw_desc < pw_level
 
     def test_power_never_negative(self):
-        from simulation.simulator import _estimate_power_w
+        from simulation.drone_agent import _estimate_power_w
         from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         profile = DRONE_PROFILES["COMMERCIAL_DELIVERY"]
         pw = _estimate_power_w(0.0, profile, climb_rate_ms=-10.0)
         assert pw >= 0.0
 
     def test_zero_speed_hover_power(self):
-        from simulation.simulator import _estimate_power_w
+        from simulation.drone_agent import _estimate_power_w
         from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         profile = DRONE_PROFILES["COMMERCIAL_DELIVERY"]
         pw = _estimate_power_w(0.0, profile)
@@ -259,4 +259,4 @@ class TestSimulatorIntegration:
             },
         )
         result = sim.run(duration_s=5.0)
-        assert result.duration_s == 5.0
+        assert result.durat

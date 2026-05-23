@@ -6,7 +6,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from simulation.simulator import _estimate_power_w
+from simulation.drone_agent import _estimate_power_w
 from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
 from src.airspace_control.agents.drone_state import (
     DroneState,

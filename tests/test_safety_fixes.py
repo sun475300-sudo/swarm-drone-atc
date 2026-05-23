@@ -521,19 +521,19 @@ class TestBoundaryConditions:
         assert d.speed == pytest.approx(5.0)
 
     def test_clamp_speed_at_max(self):
-        from simulation.simulator import _clamp_speed
+        from simulation.drone_agent import _clamp_speed
         vel = np.array([20.0, 0.0, 0.0])
         clamped = _clamp_speed(vel, max_spd=15.0)
         assert np.linalg.norm(clamped) <= 15.0 + 1e-6
 
     def test_clamp_speed_below_max(self):
-        from simulation.simulator import _clamp_speed
+        from simulation.drone_agent import _clamp_speed
         vel = np.array([5.0, 0.0, 0.0])
         clamped = _clamp_speed(vel, max_spd=15.0)
         assert np.allclose(clamped, vel)
 
     def test_clamp_speed_windy_mode(self):
-        from simulation.simulator import _clamp_speed
+        from simulation.drone_agent import _clamp_speed
         vel = np.array([20.0, 0.0, 0.0])
         clamped = _clamp_speed(vel, max_spd=15.0, wind_speed=12.0)
         # 강풍 모드: effective_max = max(15, 12+5) = 17
@@ -546,4 +546,4 @@ class TestBoundaryConditions:
             config_path="nonexistent_config_12345.yaml",
             scenario_cfg={"comms_loss_rate": 2.0}, seed=1)
         # CommunicationBus가 생성되면 packet_loss_rate가 1.0으로 클램핑
-        assert sim.comm_bus.packet_loss_rate <= 1.0
+        assert sim.comm_bus.packet_loss_rate <=

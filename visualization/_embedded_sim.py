@@ -1,11 +1,12 @@
 """
 임베디드 시뮬레이션 루프 — Dash 시각화용 물리 엔진.
 
-_in_nfz, _assign_goal, _step, _update, _sim_loop
+_in_nfz, _assign_goal, _step, _step_gpu, _update, _sim_loop
 """
 
 from __future__ import annotations
 
+import logging
 import math
 import time
 from typing import TYPE_CHECKING
@@ -13,6 +14,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from simulation.apf_engine.apf import APFState, batch_compute_forces, force_to_velocity
+from simulation.apf_engine.gpu_physics import create_gpu_physics_engine
 from simulation.spatial_hash import SpatialHash
 from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
 from src.airspace_control.agents.drone_state import DroneState, FailureType, FlightPhase
@@ -29,6 +31,20 @@ from visualization._scene_traces import (
 
 if TYPE_CHECKING:
     from visualization._domain import SimState
+
+logger = logging.getLogger(__name__)
+
+# ─────────────────────────────────────────────────────────────
+# GPU 물리 엔진 초기화 (CUDA 없으면 None → CPU 폴백)
+# ─────────────────────────────────────────────────────────────
+
+_gpu_engine = create_gpu_physics_engine(max_drones=500)
+_USE_GPU_PHYSICS = _gpu_engine is not None
+
+if _USE_GPU_PHYSICS:
+    logger.info("GPU physics engine enabled for embedded simulation.")
+else:
+    logger.info("GPU physics engine unavailable. Using CPU path.")
 
 
 def _in_nfz(pos: np.ndarray) -> bool:
@@ -50,8 +66,293 @@ def _assign_goal(drone: DroneState, rng: np.random.Generator | None = None) -> N
     drone.goal = goal
 
 
+# ─────────────────────────────────────────────────────────────
+# GPU 가속 스텝 함수
+# ─────────────────────────────────────────────────────────────
+
+def _step_gpu(sim: SimState) -> None:
+    """GPU 가속 시뮬레이션 틱 1회.
+
+    물리 연산(APF, 충돌 감지, 위치 적분, 배터리)은 GPU에서 수행하고,
+    상태 머신 전이(이륙 확률, 착륙, 홀딩→RTL 등) 및 트레일 갱신은 CPU에서 처리.
+    """
+    assert _gpu_engine is not None
+
+    with sim.lock:
+        drones = sim.drones
+        dt = sim.dt
+
+        # ── 1. CPU → GPU 동기화 ──
+        _gpu_engine.sync_from_cpu(drones)
+
+        # ── 2. GPU APF 합력 계산 (모든 활성 드론) ──
+        wind_spd = float(np.linalg.norm(sim.wind[:2]))
+        wind_speeds = {did: wind_spd for did in drones}
+        forces = _gpu_engine.compute_all_forces(
+            wind_speeds=wind_speeds,
+            nfz_obstacles=_NFZ_OBSTACLES,
+            params=None,
+        )
+
+        # ── 3. GPU 충돌 감지 ──
+        collision_result = _gpu_engine.detect_collisions(
+            collision_dist=5.0,
+            near_miss_dist=10.0,
+            conflict_dist=50.0,
+        )
+
+        # 충돌 처리 — CPU 측 상태 갱신
+        if not hasattr(sim, '_active_conflict_pairs'):
+            sim._active_conflict_pairs = set()
+
+        current_conflicts = set()
+
+        for id_a, id_b, _dist in collision_result.collisions:
+            sim.collisions += 1
+            drones[id_a].flight_phase = FlightPhase.FAILED
+            drones[id_b].flight_phase = FlightPhase.FAILED
+
+        for id_a, id_b, _dist in collision_result.near_misses:
+            pair = frozenset((id_a, id_b))
+            if pair not in sim._active_conflict_pairs:
+                sim.near_misses += 1
+            current_conflicts.add(pair)
+
+        for id_a, id_b, _dist in collision_result.conflicts:
+            pair = frozenset((id_a, id_b))
+            current_conflicts.add(pair)
+            if pair not in sim._active_conflict_pairs:
+                sim.conflicts += 1
+                sim.advisories += 1
+                if drones[id_a].flight_phase == FlightPhase.ENROUTE:
+                    drones[id_a].flight_phase = FlightPhase.EVADING
+                if drones[id_b].flight_phase == FlightPhase.ENROUTE:
+                    drones[id_b].flight_phase = FlightPhase.EVADING
+
+        sim._active_conflict_pairs = current_conflicts
+
+        # ── 4. GPU 위치 적분 ──
+        _gpu_engine.update_positions(
+            dt=dt,
+            wind_vector=sim.wind,
+            bounds=BOUNDS_M,
+            alt_range=(ALT_MIN, ALT_MAX),
+            max_speed=15.0,
+        )
+
+        # ── 5. GPU 배터리 감쇠 ──
+        _gpu_engine.update_batteries(dt=dt, profiles_data=None)
+
+        # ── 6. GPU → CPU 동기화 ──
+        _gpu_engine.sync_to_cpu(drones)
+
+        # ── 7. CPU 상태 머신 전이 (분기 로직) ──
+        for drone in drones.values():
+            profile = DRONE_PROFILES.get(
+                drone.profile_name, DRONE_PROFILES["COMMERCIAL_DELIVERY"]
+            )
+
+            # 배터리 위기 → 강제 착륙
+            if (drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED)
+                    and drone.battery_pct < 5.0
+                    and drone.failure_type == FailureType.NONE):
+                drone.failure_type = FailureType.BATTERY_CRITICAL
+                drone.flight_phase = FlightPhase.LANDING
+
+            phase = drone.flight_phase
+
+            # ── 지상 대기
+            if phase == FlightPhase.GROUNDED:
+                if drone.battery_pct > 20.0 and sim.rng.random() < 0.015:
+                    drone.flight_phase = FlightPhase.TAKEOFF
+
+            # ── 이륙
+            elif phase == FlightPhase.TAKEOFF:
+                if drone.position[2] < CRUISE_ALT - 2.0:
+                    drone.velocity = np.array([0.0, 0.0, 3.5])
+                    drone.position += drone.velocity * dt
+                else:
+                    drone.position[2] = CRUISE_ALT
+                    drone.velocity = np.zeros(3)
+                    drone.flight_phase = FlightPhase.ENROUTE
+
+            # ── 비행 (ENROUTE → LANDING / EVADING 전환 판정)
+            elif phase == FlightPhase.ENROUTE:
+                if drone.goal is None:
+                    drone.flight_phase = FlightPhase.LANDING
+                else:
+                    lookahead = drone.position + drone.velocity * 3.0
+                    if _in_nfz(lookahead) or _in_nfz(drone.position):
+                        drone.flight_phase = FlightPhase.EVADING
+                    else:
+                        diff = drone.goal - drone.position
+                        dist_xy = float(np.linalg.norm(diff[:2]))
+                        if dist_xy < 80.0:
+                            drone.flight_phase = FlightPhase.LANDING
+
+            # ── APF 회피 → ENROUTE 복귀 판정
+            elif phase == FlightPhase.EVADING:
+                should_exit = False
+                if (hasattr(drone, 'evade_end_s')
+                        and drone.evade_end_s is not None
+                        and sim.t >= drone.evade_end_s):
+                    should_exit = True
+                    drone.evade_end_s = None
+                elif not _in_nfz(drone.position) and sim.rng.random() < 0.04 * dt * 10:
+                    should_exit = True
+
+                if should_exit:
+                    if drone.goal is None:
+                        drone.flight_phase = FlightPhase.LANDING
+                    else:
+                        drone.flight_phase = FlightPhase.ENROUTE
+
+            # ── 착륙
+            elif phase == FlightPhase.LANDING:
+                if drone.position[2] > 1.5:
+                    drone.velocity = np.array([0.0, 0.0, -2.5])
+                    drone.position += drone.velocity * dt
+                else:
+                    drone.position[2] = 0.0
+                    drone.velocity = np.zeros(3)
+                    drone.flight_phase = FlightPhase.GROUNDED
+                    drone.failure_type = FailureType.NONE
+                    drone.battery_pct = min(100.0, drone.battery_pct + 40.0)
+                    _assign_goal(drone, sim.rng)
+
+            # ── 공중 대기 (HOLDING) — Lost-Link Phase 1
+            elif phase == FlightPhase.HOLDING:
+                drone.velocity = np.zeros(3)
+                if not hasattr(drone, 'hold_start_s') or drone.hold_start_s is None:
+                    drone.hold_start_s = sim.t
+                if sim.t > drone.hold_start_s + 5.0:
+                    drone.hold_start_s = None
+                    drone.flight_phase = FlightPhase.RTL
+
+            # ── 귀환 (RTL)
+            elif phase == FlightPhase.RTL:
+                if drone.goal is None or drone.goal[2] > 0.1:
+                    nearest = min(
+                        _PAD_LIST,
+                        key=lambda p: float(np.linalg.norm(p[:2] - drone.position[:2])),
+                    )
+                    drone.goal = nearest.copy()
+                    drone.goal[2] = 0.0
+
+                diff = drone.goal - drone.position
+                dist = float(np.linalg.norm(diff[:2]))
+                if dist < 50.0:
+                    drone.flight_phase = FlightPhase.LANDING
+
+            # ── 장애 발생
+            elif phase == FlightPhase.FAILED:
+                if drone.position[2] > 0.0:
+                    drone.position[2] = max(0.0, drone.position[2] - 1.5 * dt)
+
+            # 공통 갱신
+            drone.last_update_s = sim.t
+            if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
+                drone.flight_time_s += dt
+                drone.distance_flown_m += float(np.linalg.norm(drone.velocity[:2])) * dt
+
+            # 트레일 갱신
+            trail = sim.trails.get(drone.drone_id, [])
+            trail.append((
+                float(drone.position[0]),
+                float(drone.position[1]),
+                float(drone.position[2]),
+            ))
+            if len(trail) > sim.trail_len:
+                trail = trail[-sim.trail_len:]
+            sim.trails[drone.drone_id] = trail
+
+        # ── 시간 갱신 ──
+        sim.t += dt
+
+        # ── 틱 성능 기록 ──
+        _tick_end = time.perf_counter()
+        if hasattr(sim, '_tick_start'):
+            tick_ms = (_tick_end - sim._tick_start) * 1000
+            sim.tick_times_ms.append(tick_ms)
+            if len(sim.tick_times_ms) > sim.max_tick_history:
+                sim.tick_times_ms = sim.tick_times_ms[-sim.max_tick_history:]
+        sim._tick_start = _tick_end
+
+        # ── 메트릭 수집 (매 1초 = 10틱) ──
+        if int(sim.t * 10) % 10 == 0:
+            sim.metrics.record(
+                t=sim.t,
+                drones=list(drones.values()),
+                conflicts=sim.conflicts,
+                collisions=sim.collisions,
+                near_misses=sim.near_misses,
+                advisories=sim.advisories,
+                dt=dt,
+            )
+
+            # 위협 평가 (매 1초)
+            evading_cnt = sum(1 for d in drones.values()
+                              if d.flight_phase == FlightPhase.EVADING)
+            failed_cnt = sum(1 for d in drones.values()
+                             if d.flight_phase == FlightPhase.FAILED)
+            low_bat_cnt = sum(1 for d in drones.values()
+                              if d.battery_pct < 20 and d.is_active)
+            wind_spd_metric = float(np.linalg.norm(sim.wind[:2]))
+
+            threats = sim.threat_engine.assess(
+                collision_count=sim.collisions,
+                near_miss_count=sim.near_misses,
+                wind_speed=wind_spd_metric,
+                failure_count=failed_cnt,
+                low_battery_count=low_bat_cnt,
+                evading_count=evading_cnt,
+            )
+            sim.threat_matrix = sim.threat_engine.priority_matrix(threats)
+
+            # 구역 업데이트
+            for did, d in drones.items():
+                if d.is_active:
+                    sim.sector_mgr.update_drone_position(did, d.position)
+
+            # SLA 체크
+            active_cnt = sum(1 for d in drones.values() if d.is_active)
+            cr_rate = 1.0 - (sim.collisions / max(sim.conflicts + sim.collisions, 1))
+            violations = sim.sla_monitor.check(
+                collision_rate=sim.collisions / max(active_cnt, 1),
+                resolution_rate=cr_rate,
+                near_miss_rate=sim.near_misses / max(active_cnt, 1),
+            )
+            if violations:
+                sim.sla_violations = violations
+
+            # 이벤트 타임라인 기록
+            if sim.collisions > 0 and (not sim.timeline._events or
+                    sim.timeline._events[-1].details.get("count") != sim.collisions):
+                sim.timeline.add(
+                    event_type="COLLISION",
+                    t=sim.t,
+                    severity="CRITICAL",
+                    details={"count": sim.collisions},
+                )
+            if evading_cnt > 0:
+                sim.timeline.add(
+                    event_type="EVADING",
+                    t=sim.t,
+                    severity="HIGH" if evading_cnt >= 3 else "MEDIUM",
+                    details={"count": evading_cnt},
+                )
+
+
+# ─────────────────────────────────────────────────────────────
+# CPU 전용 스텝 함수 (기존 코드 — 변경 없음)
+# ─────────────────────────────────────────────────────────────
+
 def _step(sim: SimState) -> None:
     """시뮬레이션 틱 1회"""
+    if _USE_GPU_PHYSICS:
+        _step_gpu(sim)
+        return
+
     with sim.lock:
         drones = sim.drones
         dt = sim.dt
@@ -350,4 +651,9 @@ def _sim_loop(sim: SimState) -> None:
             spd = max(0.25, sim.speed_multiplier)
             for _ in range(max(1, int(spd))):
                 _step(sim)
+
+            # GPU 통계 저장 (대시보드 표시용)
+            if _USE_GPU_PHYSICS and _gpu_engine is not None:
+                sim._gpu_info = _gpu_engine.get_gpu_utilization_info()
+
         time.sleep(0.05 / max(0.25, sim.speed_multiplier))

@@ -259,4 +259,4 @@ class TestSimulatorIntegration:
             },
         )
         result = sim.run(duration_s=5.0)
-        assert result.durat
+        assert result.duration_s == 5.0

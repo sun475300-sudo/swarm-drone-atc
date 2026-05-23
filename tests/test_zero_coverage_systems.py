@@ -246,4 +246,3 @@ class TestObstacleAvoidanceSystem:
         obs = Obstacle(np.zeros(3), radius=1.0)
         result = oas.compute_avoidance_vector(drone, [obs])
         assert np.allclose(result, np.zeros(3))
-        

@@ -546,4 +546,4 @@ class TestBoundaryConditions:
             config_path="nonexistent_config_12345.yaml",
             scenario_cfg={"comms_loss_rate": 2.0}, seed=1)
         # CommunicationBus가 생성되면 packet_loss_rate가 1.0으로 클램핑
-        assert sim.comm_bus.packet_loss_rate <=
+        assert sim.comm_bus.packet_loss_rate <= 1.0

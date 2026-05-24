@@ -35,16 +35,24 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # ─────────────────────────────────────────────────────────────
-# GPU 물리 엔진 초기화 (CUDA 없으면 None → CPU 폴백)
+# GPU 물리 엔진 지연 초기화 (CUDA 없으면 None → CPU 폴백)
 # ─────────────────────────────────────────────────────────────
 
-_gpu_engine = create_gpu_physics_engine(max_drones=500)
-_USE_GPU_PHYSICS = _gpu_engine is not None
+_gpu_engine = None
+_gpu_engine_initialized = False
 
-if _USE_GPU_PHYSICS:
-    logger.info("GPU physics engine enabled for embedded simulation.")
-else:
-    logger.info("GPU physics engine unavailable. Using CPU path.")
+
+def _get_gpu_engine(max_drones: int = 500):
+    """GPU 엔진 지연 초기화 — 최초 호출 시 한 번만 생성."""
+    global _gpu_engine, _gpu_engine_initialized
+    if not _gpu_engine_initialized:
+        _gpu_engine_initialized = True
+        _gpu_engine = create_gpu_physics_engine(max_drones=max_drones)
+        if _gpu_engine is not None:
+            logger.info("GPU physics engine enabled for embedded simulation.")
+        else:
+            logger.info("GPU physics engine unavailable. Using CPU path.")
+    return _gpu_engine
 
 
 def _in_nfz(pos: np.ndarray) -> bool:
@@ -76,26 +84,29 @@ def _step_gpu(sim: SimState) -> None:
     물리 연산(APF, 충돌 감지, 위치 적분, 배터리)은 GPU에서 수행하고,
     상태 머신 전이(이륙 확률, 착륙, 홀딩→RTL 등) 및 트레일 갱신은 CPU에서 처리.
     """
-    assert _gpu_engine is not None
+    engine = _get_gpu_engine()
+    assert engine is not None
 
     with sim.lock:
         drones = sim.drones
         dt = sim.dt
 
+        sim.gpu_active = True
+
         # ── 1. CPU → GPU 동기화 ──
-        _gpu_engine.sync_from_cpu(drones)
+        engine.sync_from_cpu(drones)
 
         # ── 2. GPU APF 합력 계산 (모든 활성 드론) ──
         wind_spd = float(np.linalg.norm(sim.wind[:2]))
         wind_speeds = {did: wind_spd for did in drones}
-        forces = _gpu_engine.compute_all_forces(
+        forces = engine.compute_all_forces(
             wind_speeds=wind_speeds,
             nfz_obstacles=_NFZ_OBSTACLES,
             params=None,
         )
 
         # ── 3. GPU 충돌 감지 ──
-        collision_result = _gpu_engine.detect_collisions(
+        collision_result = engine.detect_collisions(
             collision_dist=5.0,
             near_miss_dist=10.0,
             conflict_dist=50.0,
@@ -132,7 +143,7 @@ def _step_gpu(sim: SimState) -> None:
         sim._active_conflict_pairs = current_conflicts
 
         # ── 4. GPU 위치 적분 ──
-        _gpu_engine.update_positions(
+        engine.update_positions(
             dt=dt,
             wind_vector=sim.wind,
             bounds=BOUNDS_M,
@@ -141,10 +152,13 @@ def _step_gpu(sim: SimState) -> None:
         )
 
         # ── 5. GPU 배터리 감쇠 ──
-        _gpu_engine.update_batteries(dt=dt, profiles_data=None)
+        engine.update_batteries(dt=dt, profiles_data=None)
 
         # ── 6. GPU → CPU 동기화 ──
-        _gpu_engine.sync_to_cpu(drones)
+        engine.sync_to_cpu(drones)
+
+        # ── GPU 활용 정보 저장 (대시보드 표시용) ──
+        sim.gpu_info = engine.get_gpu_utilization_info()
 
         # ── 7. CPU 상태 머신 전이 (분기 로직) ──
         for drone in drones.values():
@@ -349,10 +363,11 @@ def _step_gpu(sim: SimState) -> None:
 
 def _step(sim: SimState) -> None:
     """시뮬레이션 틱 1회"""
-    if _USE_GPU_PHYSICS:
+    if _get_gpu_engine() is not None:
         _step_gpu(sim)
         return
 
+    sim.gpu_active = False
     with sim.lock:
         drones = sim.drones
         dt = sim.dt
@@ -481,16 +496,22 @@ def _step(sim: SimState) -> None:
                 )
 
 
-def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
-    """드론 1기 상태 머신 업데이트"""
+def _update(drone: DroneState, forces: dict, sim: SimState, dt: float,
+            gpu_mode: bool = False) -> None:
+    """드론 1기 상태 머신 업데이트.
+
+    gpu_mode=True 이면 GPU가 물리 연산(위치/속도/배터리)을 처리했으므로
+    상태 머신 전이(phase 변경)만 수행하고 위치·속도·배터리 갱신은 건너뜀.
+    """
     profile = DRONE_PROFILES.get(drone.profile_name,
                                   DRONE_PROFILES["COMMERCIAL_DELIVERY"])
 
-    # 배터리 소모 (비행 중)
-    if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
+    # 배터리 소모 (비행 중) — GPU 모드에서는 GPU가 처리
+    if not gpu_mode and drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
         rate = 100.0 / (profile.endurance_min * 60.0 / dt)
         drone.battery_pct = max(0.0, drone.battery_pct - rate)
-        if drone.battery_pct < 5.0 and drone.failure_type == FailureType.NONE:
+    if drone.battery_pct < 5.0 and drone.failure_type == FailureType.NONE:
+        if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
             drone.failure_type = FailureType.BATTERY_CRITICAL
             drone.flight_phase = FlightPhase.LANDING
 
@@ -504,11 +525,13 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
     # ── 이륙
     elif phase == FlightPhase.TAKEOFF:
         if drone.position[2] < CRUISE_ALT - 2.0:
-            drone.velocity = np.array([0.0, 0.0, 3.5])
-            drone.position += drone.velocity * dt
+            if not gpu_mode:
+                drone.velocity = np.array([0.0, 0.0, 3.5])
+                drone.position += drone.velocity * dt
         else:
-            drone.position[2] = CRUISE_ALT
-            drone.velocity    = np.zeros(3)
+            if not gpu_mode:
+                drone.position[2] = CRUISE_ALT
+                drone.velocity    = np.zeros(3)
             drone.flight_phase = FlightPhase.ENROUTE
 
     # ── 비행
@@ -528,7 +551,7 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
 
         if dist_xy < 80.0:
             drone.flight_phase = FlightPhase.LANDING
-        else:
+        elif not gpu_mode:
             spd = profile.cruise_speed_ms
             norm = float(np.linalg.norm(diff))
             if norm < 0.1:
@@ -550,16 +573,17 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
 
     # ── APF 회피 기동
     elif phase == FlightPhase.EVADING:
-        force = forces.get(drone.drone_id, np.zeros(3))
-        drone.velocity = force_to_velocity(
-            drone.velocity, force, dt, profile.max_speed_ms
-        )
-        drone.velocity += sim.wind
-        drone.position += drone.velocity * dt
-        drone.position[0] = float(np.clip(drone.position[0], -BOUNDS_M, BOUNDS_M))
-        drone.position[1] = float(np.clip(drone.position[1], -BOUNDS_M, BOUNDS_M))
-        drone.position[2] = float(np.clip(drone.position[2], ALT_MIN, ALT_MAX))
-        drone.distance_flown_m += float(np.linalg.norm(drone.velocity[:2])) * dt
+        if not gpu_mode:
+            force = forces.get(drone.drone_id, np.zeros(3))
+            drone.velocity = force_to_velocity(
+                drone.velocity, force, dt, profile.max_speed_ms
+            )
+            drone.velocity += sim.wind
+            drone.position += drone.velocity * dt
+            drone.position[0] = float(np.clip(drone.position[0], -BOUNDS_M, BOUNDS_M))
+            drone.position[1] = float(np.clip(drone.position[1], -BOUNDS_M, BOUNDS_M))
+            drone.position[2] = float(np.clip(drone.position[2], ALT_MIN, ALT_MAX))
+            drone.distance_flown_m += float(np.linalg.norm(drone.velocity[:2])) * dt
 
         # NFZ 밖이면 ENROUTE 복귀 (evade_end_s 타이머 또는 확률적 전환)
         should_exit = False
@@ -578,20 +602,23 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
     # ── 착륙
     elif phase == FlightPhase.LANDING:
         if drone.position[2] > 1.5:
-            drone.velocity = np.array([0.0, 0.0, -2.5])
-            drone.position += drone.velocity * dt
+            if not gpu_mode:
+                drone.velocity = np.array([0.0, 0.0, -2.5])
+                drone.position += drone.velocity * dt
         else:
-            drone.position[2] = 0.0
-            drone.velocity    = np.zeros(3)
+            if not gpu_mode:
+                drone.position[2] = 0.0
+                drone.velocity    = np.zeros(3)
             drone.flight_phase = FlightPhase.GROUNDED
             drone.failure_type = FailureType.NONE
-            # 배터리 부분 충전
+            # 배터리 부분 충전 — GPU 모드에서도 착륙 시 충전은 CPU에서 처리
             drone.battery_pct = min(100.0, drone.battery_pct + 40.0)
             _assign_goal(drone, sim.rng)
 
     # ── 공중 대기 (HOLDING) — Lost-Link Phase 1
     elif phase == FlightPhase.HOLDING:
-        drone.velocity = np.zeros(3)
+        if not gpu_mode:
+            drone.velocity = np.zeros(3)
         # 5초 후 고도 상승(RTL 준비)으로 전이
         if not hasattr(drone, 'hold_start_s') or drone.hold_start_s is None:
             drone.hold_start_s = sim.t
@@ -611,7 +638,7 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
         dist = float(np.linalg.norm(diff[:2]))
         if dist < 50.0:
             drone.flight_phase = FlightPhase.LANDING
-        else:
+        elif not gpu_mode:
             spd = profile.cruise_speed_ms * 0.7  # 감속 귀환
             norm = float(np.linalg.norm(diff))
             if norm < 0.1:
@@ -627,7 +654,7 @@ def _update(drone: DroneState, forces: dict, sim: SimState, dt: float) -> None:
 
     # ── 장애 발생
     elif phase == FlightPhase.FAILED:
-        if drone.position[2] > 0.0:
+        if not gpu_mode and drone.position[2] > 0.0:
             drone.position[2] = max(0.0, drone.position[2] - 1.5 * dt)
 
     drone.last_update_s = sim.t
@@ -653,7 +680,8 @@ def _sim_loop(sim: SimState) -> None:
                 _step(sim)
 
             # GPU 통계 저장 (대시보드 표시용)
-            if _USE_GPU_PHYSICS and _gpu_engine is not None:
-                sim._gpu_info = _gpu_engine.get_gpu_utilization_info()
+            gpu_eng = _get_gpu_engine()
+            if gpu_eng is not None:
+                sim.gpu_info = gpu_eng.get_gpu_utilization_info()
 
         time.sleep(0.05 / max(0.25, sim.speed_multiplier))

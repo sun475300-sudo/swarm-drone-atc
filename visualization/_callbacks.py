@@ -15,7 +15,7 @@ from dash import Input, Output, State, callback_context, html
 
 from simulation.threat_assessment import ThreatLevel
 from src.airspace_control.agents.drone_state import FlightPhase
-from visualization._layout import _stat
+from visualization._layout import _gpu_progress_bar, _stat
 from visualization._scene_traces import PHASE_KO, build_figure
 
 if TYPE_CHECKING:
@@ -121,7 +121,10 @@ def register_callbacks(app: dash.Dash, sim: SimState) -> None:
     @app.callback(
         Output("graph-3d",           "figure"),
         Output("hdr-time",           "children"),
+        Output("hdr-fps",            "children"),
         Output("gpu-stats",          "children"),
+        Output("gpu-utilization",    "children"),
+        Output("drone-count-panel",  "children"),
         Output("stats",              "children"),
         Output("alert-log",          "children"),
         Output("chart-battery-dist", "figure"),
@@ -330,12 +333,53 @@ def register_callbacks(app: dash.Dash, sim: SimState) -> None:
             gpu_name = gpu_info.get("gpu", "N/A") or "CPU"
             gpu_backend = gpu_info.get("backend", "numpy")
             gpu_vram = gpu_info.get("vram_gb", "")
-            gpu_children = [_stat("백엔드", gpu_backend), _stat("디바이스", gpu_name)]
+            is_gpu = gpu_info.get("device", "cpu") != "cpu" and gpu_name != "CPU"
+            mode_label = "GPU" if is_gpu else "CPU"
+            mode_color = "#00ff88" if is_gpu else "#FF9800"
+            gpu_children = [
+                _stat("연산 모드", mode_label),
+                _stat("백엔드", gpu_backend),
+                _stat("디바이스", gpu_name),
+            ]
             if gpu_vram:
                 gpu_children.append(_stat("VRAM", f"{gpu_vram} GB"))
+            if gpu_info.get("n_gpus", 0) > 1:
+                gpu_children.append(_stat("GPU 수", str(gpu_info["n_gpus"])))
+            if gpu_info.get("multi_gpu"):
+                gpu_children.append(_stat("멀티GPU", "활성"))
         except Exception:
-            gpu_children = [_stat("백엔드", "numpy-cpu")]
+            gpu_children = [_stat("연산 모드", "CPU"), _stat("백엔드", "numpy-cpu")]
+            mode_color = "#FF9800"
         gpu_div = html.Div(gpu_children)
 
-        return (fig, time_str, gpu_div, stats_div, alert_div, fig_bat, fig_energy, fig_cr,
+        # ── GPU 사용률 (타이밍 기반)
+        gpu_util_children = []
+        if tick_times:
+            recent = tick_times[-20:]
+            avg_tick = sum(recent) / len(recent)
+            max_tick = max(recent)
+            gpu_util_children.append(_stat("평균 틱", f"{avg_tick:.1f} ms"))
+            gpu_util_children.append(_stat("최대 틱", f"{max_tick:.1f} ms"))
+            load_pct = min(avg_tick / 100.0 * 100, 100)
+            gpu_util_children.append(
+                _gpu_progress_bar("연산 부하", load_pct, 100.0, color=mode_color))
+        gpu_util_div = html.Div(gpu_util_children)
+
+        # ── FPS / 틱 레이트
+        if tick_times and len(tick_times) >= 2:
+            recent_ticks = tick_times[-10:]
+            avg_ms = sum(recent_ticks) / len(recent_ticks)
+            tps = 1000.0 / max(avg_ms, 0.1)
+            fps_str = f"{tps:.1f} tps | {avg_ms:.1f} ms/tick"
+        else:
+            fps_str = "— tps"
+
+        # ── 드론 현황 패널
+        drone_count_children = []
+        for phase_label, count in sorted(phase_cnt.items()):
+            drone_count_children.append(_stat(phase_label, str(count)))
+        drone_count_div = html.Div(drone_count_children)
+
+        return (fig, time_str, fps_str, gpu_div, gpu_util_div, drone_count_div,
+                stats_div, alert_div, fig_bat, fig_energy, fig_cr,
                 threat_div, sla_div, sector_div, fig_tick, fig_tl)

@@ -492,4 +492,4 @@ class TestGPUEngine:
         engine.sync_from_cpu(drones)
         forces = engine.compute_all_forces()
         has_nonzero = any(np.linalg.norm(f) > 1e-6 for f in forces.values())
-        assert has
+        assert has_nonzero, "활성 드론에 대해 0이 아닌 힘이 계산되어야 함"

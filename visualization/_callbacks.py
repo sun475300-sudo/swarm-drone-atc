@@ -16,7 +16,7 @@ from dash import Input, Output, State, callback_context, html
 from simulation.threat_assessment import ThreatLevel
 from src.airspace_control.agents.drone_state import FlightPhase
 from visualization._layout import _gpu_progress_bar, _stat
-from visualization._scene_traces import PHASE_KO, build_figure
+from visualization._scene_traces import CAMERA_PRESETS, PHASE_KO, build_figure
 
 if TYPE_CHECKING:
     import dash
@@ -98,20 +98,30 @@ def register_callbacks(app: dash.Dash, sim: SimState) -> None:
         return ""
 
     @app.callback(
+        Output("store-camera", "data"),
+        Input("dropdown-camera", "value"),
+        prevent_initial_call=True,
+    )
+    def _camera_preset(value: str):
+        return value or "기본 3D"
+
+    @app.callback(
         Output("_dummy-scenario", "children"),
         Input("dropdown-scenario", "value"),
         prevent_initial_call=True,
     )
     def _apply_scenario(scenario: str):
         drone_counts = {
-            "default":                30,
-            "high_density":           80,
-            "emergency_failure":      40,
-            "mass_takeoff":           60,
-            "route_conflict":         20,
-            "comms_loss":             30,
-            "weather_disturbance":    25,
-            "adversarial_intrusion":  35,
+            "default":                      30,
+            "high_density":                 80,
+            "emergency_failure":            40,
+            "mass_takeoff":                 60,
+            "route_conflict":               20,
+            "comms_loss":                   30,
+            "weather_disturbance":          25,
+            "adversarial_intrusion":        35,
+            "swarm_autonomous_no_preplan":  50,
+            "multi_city":                   70,
         }
         n = drone_counts.get(scenario, 30)
         sim.running = False
@@ -128,6 +138,8 @@ def register_callbacks(app: dash.Dash, sim: SimState) -> None:
         Output("stats",              "children"),
         Output("alert-log",          "children"),
         Output("chart-battery-dist", "figure"),
+        Output("chart-alt-dist",     "figure"),
+        Output("chart-speed-dist",   "figure"),
         Output("chart-energy-ts",    "figure"),
         Output("chart-cr-rate",      "figure"),
         Output("threat-panel",       "children"),
@@ -136,9 +148,15 @@ def register_callbacks(app: dash.Dash, sim: SimState) -> None:
         Output("chart-tick-perf",    "figure"),
         Output("chart-timeline",     "figure"),
         Input("interval",            "n_intervals"),
+        State("store-camera",        "data"),
     )
-    def _refresh(_n):
+    def _refresh(_n, camera_preset):
         fig = build_figure(sim)
+
+        # 카메라 프리셋 적용
+        cam = CAMERA_PRESETS.get(camera_preset or "기본 3D",
+                                CAMERA_PRESETS["기본 3D"])
+        fig.update_layout(scene_camera=cam)
 
         with sim.lock:
             t          = sim.t
@@ -218,6 +236,38 @@ def register_callbacks(app: dash.Dash, sim: SimState) -> None:
                       else "#4CAF50" for i in range(10)]
         fig_bat = go.Figure(go.Bar(x=bat_labels, y=bat_hist, marker_color=bat_colors))
         fig_bat.update_layout(**_mini_chart_layout())
+
+        # ── 고도 분포 히스토그램
+        alts = [d.position[2] for d in drones if d.is_active and d.position[2] > 1]
+        fig_alt = go.Figure()
+        if alts:
+            fig_alt.add_trace(go.Histogram(
+                x=alts, nbinsx=12,
+                marker_color="#29B6F6",
+                opacity=0.8,
+            ))
+            # 순항 고도 기준선
+            fig_alt.add_vline(x=60, line_dash="dash", line_color="#FFD700",
+                              line_width=1, annotation_text="순항",
+                              annotation_font_size=8, annotation_font_color="#FFD700")
+        fig_alt.update_layout(**_mini_chart_layout())
+        fig_alt.update_xaxes(title_text="고도 (m)", title_font_size=8)
+
+        # ── 속도 분포 히스토그램
+        speeds = [d.speed for d in drones if d.is_active and d.speed > 0.1]
+        fig_spd = go.Figure()
+        if speeds:
+            fig_spd.add_trace(go.Histogram(
+                x=speeds, nbinsx=10,
+                marker_color="#69F0AE",
+                opacity=0.8,
+            ))
+            avg_spd = sum(speeds) / len(speeds)
+            fig_spd.add_vline(x=avg_spd, line_dash="dash", line_color="#FFEA00",
+                              line_width=1, annotation_text=f"평균 {avg_spd:.1f}",
+                              annotation_font_size=8, annotation_font_color="#FFEA00")
+        fig_spd.update_layout(**_mini_chart_layout())
+        fig_spd.update_xaxes(title_text="속도 (m/s)", title_font_size=8)
 
         # ── 에너지 소모 시계열
         ts_t, ts_e = sim.metrics.time_series("total_energy_wh")
@@ -381,5 +431,6 @@ def register_callbacks(app: dash.Dash, sim: SimState) -> None:
         drone_count_div = html.Div(drone_count_children)
 
         return (fig, time_str, fps_str, gpu_div, gpu_util_div, drone_count_div,
-                stats_div, alert_div, fig_bat, fig_energy, fig_cr,
+                stats_div, alert_div, fig_bat, fig_alt, fig_spd,
+                fig_energy, fig_cr,
                 threat_div, sla_div, sector_div, fig_tick, fig_tl)

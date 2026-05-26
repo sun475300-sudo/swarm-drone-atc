@@ -608,6 +608,7 @@
         <label><input type="checkbox" id="cb-conflicts" checked /> Show conflict markers</label>
         <label><input type="checkbox" id="cb-minimap" checked /> Show minimap</label>
         <label><input type="checkbox" id="cb-trails" /> Show trails</label>
+        <label><input type="checkbox" id="cb-nfz" checked /> Show NFZ zones</label>
         <label><input type="checkbox" id="cb-wind" /> Show wind field</label>
         <label><input type="checkbox" id="cb-reduced" /> Reduced motion</label>
       </div>
@@ -1078,6 +1079,22 @@
           }
         }
 
+        // NFZ repulsion
+        for (const nfz of NFZ_ZONES) {
+          const ndx = px - nfz.x;
+          const ndz = pz - nfz.z;
+          const ndist = Math.sqrt(ndx*ndx + ndz*ndz);
+          const nfzBuffer = nfz.radius + 1.0;
+          if (ndist < nfzBuffer && py < nfz.height / (MAX_ALT * 2) * MAX_ALT + 0.2) {
+            const nfzForce = 2.0 * (1.0 / Math.max(ndist - nfz.radius, 0.1) - 1.0 / (nfzBuffer - nfz.radius));
+            if (ndist > 0.01) {
+              ax += (ndx / ndist) * nfzForce;
+              az += (ndz / ndist) * nfzForce;
+            }
+            ay += 0.3; // push drones up to avoid NFZ
+          }
+        }
+
         // Wind
         ax += windX;
         az += windZ;
@@ -1248,6 +1265,91 @@
       scene.add(corridorLines);
     }
 
+    // ── NFZ (No-Fly Zone) cylinders ──
+    const NFZ_ZONES = [
+      { x: 12, z: -8, radius: 4, height: MAX_ALT * 2 },
+      { x: -15, z: 10, radius: 3, height: MAX_ALT * 1.5 },
+      { x: 5, z: 18, radius: 2.5, height: MAX_ALT * 1.8 },
+    ];
+    const nfzGroup = new THREE.Group();
+    NFZ_ZONES.forEach(z => {
+      const cyl = new THREE.Mesh(
+        new THREE.CylinderGeometry(z.radius, z.radius, z.height, 24, 1, true),
+        new THREE.MeshBasicMaterial({ color: 0xff2244, transparent: true, opacity: 0.08, side: THREE.DoubleSide, depthWrite: false })
+      );
+      cyl.position.set(z.x, z.height / 2, z.z);
+      nfzGroup.add(cyl);
+      // NFZ ring at base
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(z.radius - 0.1, z.radius, 32),
+        new THREE.MeshBasicMaterial({ color: 0xff2244, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
+      );
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.set(z.x, 0.01, z.z);
+      nfzGroup.add(ring);
+      // NFZ top cap ring
+      const topRing = ring.clone();
+      topRing.position.y = z.height;
+      nfzGroup.add(topRing);
+    });
+    scene.add(nfzGroup);
+
+    // ── Helipad markers ──
+    const helipadGroup = new THREE.Group();
+    const HELIPAD_POSITIONS = [
+      { x: 0, z: 0 }, { x: -20, z: -15 }, { x: 18, z: 12 }, { x: -10, z: 20 },
+    ];
+    HELIPAD_POSITIONS.forEach(hp => {
+      // Outer circle
+      const outerRing = new THREE.Mesh(
+        new THREE.RingGeometry(1.2, 1.4, 32),
+        new THREE.MeshBasicMaterial({ color: 0x00ff88, transparent: true, opacity: 0.7, side: THREE.DoubleSide })
+      );
+      outerRing.rotation.x = -Math.PI / 2;
+      outerRing.position.set(hp.x, 0.005, hp.z);
+      helipadGroup.add(outerRing);
+      // Inner H cross
+      const hMat = new THREE.MeshBasicMaterial({ color: 0x00ff88, transparent: true, opacity: 0.55 });
+      const vBar = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 1.6), hMat);
+      vBar.rotation.x = -Math.PI / 2;
+      vBar.position.set(hp.x - 0.4, 0.006, hp.z);
+      helipadGroup.add(vBar);
+      const vBar2 = vBar.clone();
+      vBar2.position.x = hp.x + 0.4;
+      helipadGroup.add(vBar2);
+      const hBar = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.15), hMat);
+      hBar.rotation.x = -Math.PI / 2;
+      hBar.position.set(hp.x, 0.006, hp.z);
+      helipadGroup.add(hBar);
+    });
+    scene.add(helipadGroup);
+
+    // ── Altitude shadow circles (projected on ground) ──
+    const SHADOW_MAX = 60;
+    const shadowGeom = new THREE.CircleGeometry(0.2, 12);
+    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
+    const shadowMesh = new THREE.InstancedMesh(shadowGeom, shadowMat, SHADOW_MAX);
+    shadowMesh.count = 0;
+    shadowMesh.rotation.x = -Math.PI / 2;
+    shadowMesh.position.y = 0.003;
+    scene.add(shadowMesh);
+
+    // ── Selection ring (glowing circle around selected drone) ──
+    const selectRingGeom = new THREE.RingGeometry(0.2, 0.28, 24);
+    const selectRingMat = new THREE.MeshBasicMaterial({ color: 0xffdd00, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
+    const selectRing = new THREE.Mesh(selectRingGeom, selectRingMat);
+    selectRing.visible = false;
+    scene.add(selectRing);
+
+    // ── Velocity arrows (heading cones) ──
+    const arrowGeom = new THREE.ConeGeometry(0.04, 0.18, 8);
+    arrowGeom.translate(0, 0.09, 0);
+    arrowGeom.rotateX(Math.PI / 2);
+    const arrowMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.7 });
+    const arrowMesh = new THREE.InstancedMesh(arrowGeom, arrowMat, MAX_DRONES);
+    arrowMesh.count = 0;
+    scene.add(arrowMesh);
+
     // Wind-field particles (simple sprite points)
     const windGeom = new THREE.BufferGeometry();
     const WIND_COUNT = 400;
@@ -1282,8 +1384,16 @@
     function updateInstances() {
       const n = swarm.n;
       droneMesh.count = n;
+      arrowMesh.count = n;
+      const shadowCount = Math.min(n, SHADOW_MAX);
+      shadowMesh.count = shadowCount;
+
+      const tmpDir = new THREE.Vector3();
+      const upVec = new THREE.Vector3(0, 0, 1);
+
       for (let i = 0; i < n; i++) {
-        tmpPos.set(swarm.pos[i*3], swarm.pos[i*3+1], swarm.pos[i*3+2]);
+        const px = swarm.pos[i*3], py = swarm.pos[i*3+1], pz = swarm.pos[i*3+2];
+        tmpPos.set(px, py, pz);
         const s = swarm.size[i] * 2;
         tmpScale.set(s, s, s);
         tmpQuat.identity();
@@ -1293,9 +1403,50 @@
           swarm.color[i*3+0],
           swarm.color[i*3+1],
           swarm.color[i*3+2]);
+
+        // Velocity arrow (heading cone)
+        const vx = swarm.vel[i*3], vy = swarm.vel[i*3+1], vz = swarm.vel[i*3+2];
+        const speed = Math.sqrt(vx*vx + vy*vy + vz*vz);
+        if (speed > 0.01) {
+          tmpDir.set(vx, vy, vz).normalize();
+          tmpQuat.setFromUnitVectors(upVec, tmpDir);
+          const arrowOffset = s * 0.6;
+          tmpPos.set(px + tmpDir.x * arrowOffset, py + tmpDir.y * arrowOffset, pz + tmpDir.z * arrowOffset);
+          const arrowScale = clamp(speed * 0.8, 0.5, 2.0);
+          tmpScale.set(arrowScale, arrowScale, arrowScale);
+          tmpMatrix.compose(tmpPos, tmpQuat, tmpScale);
+        } else {
+          tmpScale.set(0, 0, 0);
+          tmpMatrix.compose(tmpPos, tmpQuat, tmpScale);
+        }
+        arrowMesh.setMatrixAt(i, tmpMatrix);
+
+        // Ground shadow (altitude reference)
+        if (i < shadowCount) {
+          const shadowScale = clamp(py * 0.5, 0.3, 1.5);
+          tmpPos.set(px, 0, pz);
+          tmpScale.set(shadowScale, shadowScale, 1);
+          tmpQuat.identity();
+          tmpMatrix.compose(tmpPos, tmpQuat, tmpScale);
+          shadowMesh.setMatrixAt(i, tmpMatrix);
+        }
       }
       droneMesh.instanceMatrix.needsUpdate = true;
       droneMesh.instanceColor.needsUpdate = true;
+      arrowMesh.instanceMatrix.needsUpdate = true;
+      shadowMesh.instanceMatrix.needsUpdate = true;
+
+      // Selection ring
+      if (selectedDroneId >= 0 && selectedDroneId < n) {
+        const si = selectedDroneId;
+        selectRing.visible = true;
+        selectRing.position.set(swarm.pos[si*3], swarm.pos[si*3+1], swarm.pos[si*3+2]);
+        selectRing.lookAt(camera.position);
+        const pulse = 1 + 0.15 * Math.sin(performance.now() * 0.005);
+        selectRing.scale.setScalar(pulse);
+      } else {
+        selectRing.visible = false;
+      }
     }
 
     function updateConflictMarkers(hits) {
@@ -1341,6 +1492,41 @@
           break;
       }
       controls.update();
+    }
+
+    /* ---------------------------------------------------------------------- *
+     *  Trail rendering (line segments with gradient opacity)
+     * ---------------------------------------------------------------------- */
+    let trailLines = null;
+    function updateTrails() {
+      if (!config.showTrails) {
+        if (trailLines) trailLines.visible = false;
+        return;
+      }
+      if (trailLines) { scene.remove(trailLines); trailLines.geometry.dispose(); }
+      const n = swarm.n;
+      const tLen = swarm.trailLen;
+      const positions = [];
+      const colors = [];
+      for (let i = 0; i < n; i++) {
+        const cr = swarm.color[i*3], cg = swarm.color[i*3+1], cb = swarm.color[i*3+2];
+        for (let t = 0; t < tLen - 1; t++) {
+          const idx0 = (i * tLen + t) * 3;
+          const idx1 = (i * tLen + t + 1) * 3;
+          positions.push(
+            swarm.trails[idx0], swarm.trails[idx0+1], swarm.trails[idx0+2],
+            swarm.trails[idx1], swarm.trails[idx1+1], swarm.trails[idx1+2]
+          );
+          const alpha = (t + 1) / tLen;
+          colors.push(cr * alpha, cg * alpha, cb * alpha, cr * alpha, cg * alpha, cb * alpha);
+        }
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      trailLines = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.6 }));
+      trailLines.frustumCulled = false;
+      scene.add(trailLines);
     }
 
     /* ---------------------------------------------------------------------- *
@@ -1503,6 +1689,9 @@
       }
 
       updateInstances();
+
+      // Trail update (every 4th frame for performance)
+      if (fpsFrames % 4 === 0) updateTrails();
 
       // Follow camera
       if (config.cameraMode === 'follow' && selectedDroneId >= 0 && selectedDroneId < swarm.n) {
@@ -1740,6 +1929,9 @@
     });
     document.getElementById('cb-trails').addEventListener('change', (e) => {
       config = { ...config, showTrails: e.target.checked };
+    });
+    document.getElementById('cb-nfz').addEventListener('change', (e) => {
+      nfzGroup.visible = e.target.checked;
     });
     document.getElementById('cb-wind').addEventListener('change', (e) => {
       config = { ...config, showWind: e.target.checked };

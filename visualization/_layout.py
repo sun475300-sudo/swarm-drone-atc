@@ -13,7 +13,7 @@ import dash
 from dash import dcc, html
 
 from src.airspace_control.agents.drone_state import FlightPhase
-from visualization._scene_traces import PHASE_COLORS, PHASE_KO, build_figure
+from visualization._scene_traces import CAMERA_PRESETS, PHASE_COLORS, PHASE_KO, build_figure
 
 if TYPE_CHECKING:
     from visualization._domain import SimState
@@ -155,7 +155,7 @@ def make_layout(sim: SimState) -> html.Div:
                     # ── 사이드 패널
                     html.Div(
                         style={
-                            "width": "240px",
+                            "width": "280px",
                             "backgroundColor": "#0d1117",
                             "padding": "14px",
                             "borderRight": "1px solid #21262d",
@@ -212,6 +212,23 @@ def make_layout(sim: SimState) -> html.Div:
                                 style={"backgroundColor": "#161b22", "color": "#c9d1d9",
                                        "fontSize": "11px", "border": "1px solid #30363d"},
                             ),
+
+                            # 카메라 프리셋
+                            html.Div([
+                                html.Label("📷 카메라",
+                                           style={"color": "#8b949e", "fontSize": "11px",
+                                                  "display": "block", "marginTop": "12px",
+                                                  "marginBottom": "4px"}),
+                                dcc.Dropdown(
+                                    id="dropdown-camera",
+                                    options=[{"label": k, "value": k}
+                                             for k in CAMERA_PRESETS],
+                                    value="기본 3D",
+                                    clearable=False,
+                                    style={"backgroundColor": "#161b22", "color": "#c9d1d9",
+                                           "fontSize": "11px", "border": "1px solid #30363d"},
+                                ),
+                            ]),
 
                             # 바람 토글
                             html.Div([
@@ -284,6 +301,30 @@ def make_layout(sim: SimState) -> html.Div:
                                             "fontWeight": "600", "marginBottom": "8px"}),
                             dcc.Graph(
                                 id="chart-battery-dist",
+                                style={"height": "120px"},
+                                config={"displayModeBar": False},
+                            ),
+
+                            html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
+
+                            # 고도 분포 차트
+                            html.Div("📐 고도 분포",
+                                     style={"color": "#58a6ff", "fontSize": "12px",
+                                            "fontWeight": "600", "marginBottom": "8px"}),
+                            dcc.Graph(
+                                id="chart-alt-dist",
+                                style={"height": "120px"},
+                                config={"displayModeBar": False},
+                            ),
+
+                            html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
+
+                            # 속도 분포 차트
+                            html.Div("💨 속도 분포",
+                                     style={"color": "#58a6ff", "fontSize": "12px",
+                                            "fontWeight": "600", "marginBottom": "8px"}),
+                            dcc.Graph(
+                                id="chart-speed-dist",
                                 style={"height": "120px"},
                                 config={"displayModeBar": False},
                             ),
@@ -378,7 +419,7 @@ def make_layout(sim: SimState) -> html.Div:
                     "backgroundColor": "#0d1117",
                     "borderTop": "1px solid #21262d",
                     "flexShrink": "0",
-                    "height": "90px",
+                    "height": "110px",
                     "display": "flex",
                 },
                 children=[
@@ -434,5 +475,6 @@ def make_layout(sim: SimState) -> html.Div:
             html.Div(id="_dummy-wind", style={"display": "none"}),
             html.Div(id="_dummy-apf", style={"display": "none"}),
             html.Div(id="_dummy-scenario", style={"display": "none"}),
+            dcc.Store(id="store-camera", data="기본 3D"),
         ],
     )

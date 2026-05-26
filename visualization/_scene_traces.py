@@ -81,6 +81,15 @@ PHASE_KO: dict[FlightPhase, str] = {
     FlightPhase.EVADING:  "회피 기동",
 }
 
+# 카메라 프리셋 (뷰포트 선택용)
+CAMERA_PRESETS: dict[str, dict] = {
+    "기본 3D": dict(eye=dict(x=1.6, y=-1.9, z=1.1), up=dict(x=0, y=0, z=1)),
+    "탑다운": dict(eye=dict(x=0.0, y=0.0, z=3.5), up=dict(x=0, y=1, z=0)),
+    "측면": dict(eye=dict(x=2.5, y=0.0, z=0.4), up=dict(x=0, y=0, z=1)),
+    "대각선": dict(eye=dict(x=1.8, y=-1.8, z=0.6), up=dict(x=0, y=0, z=1)),
+    "NFZ 클로즈업": dict(eye=dict(x=0.4, y=-0.5, z=0.3), up=dict(x=0, y=0, z=1)),
+}
+
 # 장애물 포인트 (NFZ 경계 샘플)
 _NFZ_OBSTACLES: list[np.ndarray] = [
     np.array([  0.0,    0.0, CRUISE_ALT]),
@@ -107,7 +116,6 @@ def _nfz_mesh() -> go.Mesh3d:
     vx = [x0, x1, x1, x0, x0, x1, x1, x0]
     vy = [y0, y0, y1, y1, y0, y0, y1, y1]
     vz = [z0, z0, z0, z0, z1, z1, z1, z1]
-    # 12개 삼각형 인덱스 (6면 × 2삼각형)
     ii = [0, 0,  4, 4,  0, 0,  2, 2,  0, 0,  1, 1]
     jj = [1, 2,  5, 6,  1, 5,  3, 7,  3, 7,  2, 6]
     kk = [2, 3,  6, 7,  5, 4,  7, 6,  7, 4,  6, 5]
@@ -115,7 +123,7 @@ def _nfz_mesh() -> go.Mesh3d:
         x=vx, y=vy, z=vz,
         i=ii, j=jj, k=kk,
         color="#FF1744",
-        opacity=0.12,
+        opacity=0.25,
         flatshading=True,
         name="비행금지구역",
         showlegend=True,
@@ -135,7 +143,7 @@ def _nfz_edges() -> list[go.Scatter3d]:
             y=[y0, y0, y1, y1, y0],
             z=[z, z, z, z, z],
             mode="lines",
-            line=dict(color="#FF5252", width=2, dash="dot"),
+            line=dict(color="#FF5252", width=4, dash="dot"),
             showlegend=False, hoverinfo="skip",
         ))
     # 수직 모서리
@@ -157,8 +165,8 @@ def _corridor_traces() -> list[go.Scatter3d]:
             y=[p[1] for p in pts],
             z=[p[2] for p in pts],
             mode="lines",
-            line=dict(color=color, width=5),
-            opacity=0.55,
+            line=dict(color=color, width=8),
+            opacity=0.75,
             name=name,
         )
     return [
@@ -167,16 +175,53 @@ def _corridor_traces() -> list[go.Scatter3d]:
     ]
 
 
-def _pad_trace() -> go.Scatter3d:
+def _pad_trace() -> list:
+    """착륙 패드 — 헬리패드 링 + 중심 마커 + H 라벨"""
+    traces = []
     pad_names = list(LANDING_PADS.keys())
-    pads      = list(LANDING_PADS.values())
-    return go.Scatter3d(
+    pads = list(LANDING_PADS.values())
+
+    # 각 패드에 원형 링
+    n_pts = 24
+    radius = 150.0
+    for _name, pad in LANDING_PADS.items():
+        ring_x, ring_y, ring_z = [], [], []
+        for i in range(n_pts + 1):
+            angle = 2 * np.pi * i / n_pts
+            ring_x.append(pad[0] + radius * np.cos(angle))
+            ring_y.append(pad[1] + radius * np.sin(angle))
+            ring_z.append(1.0)
+        traces.append(go.Scatter3d(
+            x=ring_x, y=ring_y, z=ring_z,
+            mode="lines",
+            line=dict(color="#FFD600", width=3),
+            opacity=0.7,
+            showlegend=False, hoverinfo="skip",
+        ))
+        # 내부 십자 (H 표시)
+        cr = radius * 0.5
+        traces.append(go.Scatter3d(
+            x=[pad[0] - cr, pad[0] + cr, None,
+               pad[0], pad[0], None,
+               pad[0] - cr, pad[0] + cr],
+            y=[pad[1], pad[1], None,
+               pad[1] - cr, pad[1] + cr, None,
+               pad[1], pad[1]],
+            z=[1.5] * 8,
+            mode="lines",
+            line=dict(color="#FFD600", width=2),
+            opacity=0.5,
+            showlegend=False, hoverinfo="skip",
+        ))
+
+    # 중심 마커 + 라벨
+    traces.append(go.Scatter3d(
         x=[p[0] for p in pads],
         y=[p[1] for p in pads],
-        z=[p[2] for p in pads],
+        z=[p[2] + 2 for p in pads],
         mode="markers+text",
         marker=dict(
-            size=14, color="#FFD600", symbol="circle",
+            size=10, color="#FFD600", symbol="circle",
             opacity=1.0, line=dict(color="#ffffff", width=2),
         ),
         text=pad_names,
@@ -184,24 +229,83 @@ def _pad_trace() -> go.Scatter3d:
         textfont=dict(color="#FFD600", size=9),
         name="착륙 패드",
         hovertemplate="%{text}<extra>착륙 패드</extra>",
-    )
+    ))
+    return traces
 
 
-def _ground_grid() -> go.Scatter3d:
-    """지면 그리드 (z=0 평면)"""
+def _ground_grid() -> list[go.Scatter3d]:
+    """지면 그리드 (z=0 평면) + 공역 경계 + 순항 고도 + 거리 라벨"""
+    traces = []
+    b = BOUNDS_M
+
+    # 지면 그리드 — 1km 간격, 밝은 색
     lines_x, lines_y, lines_z = [], [], []
     step = 1000.0
-    for v in np.arange(-BOUNDS_M, BOUNDS_M + step, step):
-        lines_x += [v, v, None, -BOUNDS_M, BOUNDS_M, None]
-        lines_y += [-BOUNDS_M, BOUNDS_M, None, v, v, None]
+    for v in np.arange(-b, b + step, step):
+        lines_x += [v, v, None, -b, b, None]
+        lines_y += [-b, b, None, v, v, None]
         lines_z += [0, 0, None, 0, 0, None]
-    return go.Scatter3d(
+    traces.append(go.Scatter3d(
         x=lines_x, y=lines_y, z=lines_z,
         mode="lines",
-        line=dict(color="#1c2128", width=1),
+        line=dict(color="#3d4663", width=1.5),
         showlegend=False, hoverinfo="skip",
-        opacity=0.6,
-    )
+        opacity=0.5,
+    ))
+
+    # 지면 채움 (반투명 면으로 바닥을 시각화)
+    traces.append(go.Mesh3d(
+        x=[-b, b, b, -b], y=[-b, -b, b, b], z=[0, 0, 0, 0],
+        i=[0, 0], j=[1, 2], k=[2, 3],
+        color="#1a2233", opacity=0.4,
+        flatshading=True, showlegend=False, hoverinfo="skip",
+    ))
+
+    # 공역 경계 강조 (굵은 외곽선)
+    traces.append(go.Scatter3d(
+        x=[-b, b, b, -b, -b], y=[-b, -b, b, b, -b],
+        z=[0, 0, 0, 0, 0],
+        mode="lines",
+        line=dict(color="#5a6a8a", width=4),
+        opacity=0.9,
+        showlegend=False, hoverinfo="skip",
+    ))
+
+    # 거리 라벨 (모서리에 km 표시)
+    dist_x, dist_y, dist_z, dist_text = [], [], [], []
+    for km in range(-4, 5, 2):
+        if km == 0:
+            continue
+        dist_x.append(km * 1000)
+        dist_y.append(-b - 200)
+        dist_z.append(0)
+        dist_text.append(f"{km}km")
+    traces.append(go.Scatter3d(
+        x=dist_x, y=dist_y, z=dist_z,
+        mode="text",
+        text=dist_text,
+        textfont=dict(color="#7a8aaa", size=10),
+        showlegend=False, hoverinfo="skip",
+    ))
+
+    # 순항 고도 기준면 (60m — 밝은 점선 + 라벨)
+    traces.append(go.Scatter3d(
+        x=[-b, b, b, -b, -b], y=[-b, -b, b, b, -b],
+        z=[CRUISE_ALT] * 5,
+        mode="lines",
+        line=dict(color="#2d5a8a", width=2, dash="dash"),
+        opacity=0.35,
+        showlegend=False, hoverinfo="skip",
+    ))
+    traces.append(go.Scatter3d(
+        x=[b], y=[b], z=[CRUISE_ALT],
+        mode="text",
+        text=[f"순항고도 {CRUISE_ALT:.0f}m"],
+        textfont=dict(color="#5a8abb", size=9),
+        showlegend=False, hoverinfo="skip",
+    ))
+
+    return traces
 
 
 def _apf_vector_field(drones: list[DroneState], wind: np.ndarray) -> list:
@@ -211,13 +315,11 @@ def _apf_vector_field(drones: list[DroneState], wind: np.ndarray) -> list:
     if not active:
         return []
 
-    # 그리드: 공역을 1km 간격으로 샘플 (순항 고도)
     grid_step = 1000.0
     xs = np.arange(-BOUNDS_M + 500, BOUNDS_M, grid_step)
     ys = np.arange(-BOUNDS_M + 500, BOUNDS_M, grid_step)
     z_sample = CRUISE_ALT
 
-    # 이웃 상태 준비
     neighbors = [
         APFState(d.position.copy(), d.velocity.copy(), d.drone_id)
         for d in active
@@ -231,9 +333,7 @@ def _apf_vector_field(drones: list[DroneState], wind: np.ndarray) -> list:
     for xi in xs:
         for yi in ys:
             pos = np.array([xi, yi, z_sample])
-            # 가상 프로브 드론
             probe = APFState(pos, np.zeros(3), "__probe__")
-            # 가장 가까운 착륙 패드를 목표로 사용
             goal_pad = min(_PAD_LIST, key=lambda p: float(np.linalg.norm(p[:2] - pos[:2])))
             goal = goal_pad.copy()
             goal[2] = z_sample
@@ -256,7 +356,6 @@ def _apf_vector_field(drones: list[DroneState], wind: np.ndarray) -> list:
     if not gx:
         return []
 
-    # 크기 정규화 (시각적 일관성)
     mags = np.sqrt(np.array(fu)**2 + np.array(fv)**2 + np.array(fw)**2)
     max_mag = float(np.max(mags)) if len(mags) > 0 else 1.0
 
@@ -276,15 +375,14 @@ def _apf_vector_field(drones: list[DroneState], wind: np.ndarray) -> list:
 
 
 def _wind_arrow(wind: np.ndarray) -> list[go.Scatter3d]:
-    """공역 우측 상단에 바람 방향 화살표 표시"""
+    """공역 좌측 상단에 바람 방향 화살표 표시"""
     speed = float(np.linalg.norm(wind[:2]))
     if speed < 0.1:
         return []
 
-    # 바람 화살표: 공역 좌측 상단에 고정 표시
     origin = np.array([-BOUNDS_M * 0.85, BOUNDS_M * 0.85, CRUISE_ALT])
     direction = wind[:3].copy()
-    direction[2] = 0.0  # 수평 성분만
+    direction[2] = 0.0
     scale = BOUNDS_M * 0.15 / max(speed, 0.1)
     end = origin + direction * scale
 
@@ -319,7 +417,6 @@ def _sector_overlay(sim: SimState) -> list[go.Scatter3d]:
         n_drones = stats[sid]["drones"]
         density = stats[sid]["density"]
 
-        # 밀도 기반 색상 (초록→노랑→빨강)
         if density > 4.0:
             color = "#FF1744"
         elif density > 2.0:
@@ -329,11 +426,10 @@ def _sector_overlay(sim: SimState) -> list[go.Scatter3d]:
         else:
             color = "#00E676"
 
-        # 구역 경계선
         traces.append(go.Scatter3d(
             x=[x0, x1, x1, x0, x0],
             y=[y0, y0, y1, y1, y0],
-            z=[2, 2, 2, 2, 2],  # 지면 약간 위
+            z=[2, 2, 2, 2, 2],
             mode="lines+text",
             line=dict(color=color, width=3),
             opacity=0.6,
@@ -356,7 +452,6 @@ def _threat_heatmap_overlay(sim: SimState) -> list:
     if overall == ThreatLevel.LOW:
         return []
 
-    # 위협 레벨 → 공역 전체 틴트 (경계 박스)
     level_colors = {
         ThreatLevel.MEDIUM: "rgba(255,234,0,0.03)",
         ThreatLevel.HIGH: "rgba(255,152,0,0.05)",
@@ -393,8 +488,9 @@ def build_figure(sim: SimState) -> go.Figure:
 
     fig = go.Figure()
 
-    # 지면 그리드
-    fig.add_trace(_ground_grid())
+    # 지면 그리드 + 공역 경계 + 순항 고도 기준면
+    for t in _ground_grid():
+        fig.add_trace(t)
 
     # NFZ
     fig.add_trace(_nfz_mesh())
@@ -405,8 +501,9 @@ def build_figure(sim: SimState) -> go.Figure:
     for t in _corridor_traces():
         fig.add_trace(t)
 
-    # 착륙 패드
-    fig.add_trace(_pad_trace())
+    # 착륙 패드 (헬리패드 링)
+    for t in _pad_trace():
+        fig.add_trace(t)
 
     # 바람 화살표
     for t in _wind_arrow(wind):
@@ -425,21 +522,31 @@ def build_figure(sim: SimState) -> go.Figure:
     for t in _threat_heatmap_overlay(sim):
         fig.add_trace(t)
 
-    # 드론 트레일
+    # 드론 트레일 — 그라데이션 페이드 (최신→과거 투명도 감소)
     for drone in drones:
         trail = trails.get(drone.drone_id, [])
         if len(trail) < 2 or not drone.is_active:
             continue
         color = PHASE_COLORS[drone.flight_phase]
-        fig.add_trace(go.Scatter3d(
-            x=[p[0] for p in trail],
-            y=[p[1] for p in trail],
-            z=[p[2] for p in trail],
-            mode="lines",
-            line=dict(color=color, width=1.5),
-            opacity=0.3,
-            showlegend=False, hoverinfo="skip",
-        ))
+        n = len(trail)
+        seg_count = min(4, n - 1)
+        seg_size = max(n // seg_count, 2)
+        for si in range(seg_count):
+            start = si * seg_size
+            end = min(start + seg_size + 1, n)
+            if end - start < 2:
+                continue
+            opacity = 0.15 + 0.55 * (si / max(seg_count - 1, 1))
+            width = 2.0 + 3.0 * (si / max(seg_count - 1, 1))
+            fig.add_trace(go.Scatter3d(
+                x=[trail[j][0] for j in range(start, end)],
+                y=[trail[j][1] for j in range(start, end)],
+                z=[trail[j][2] for j in range(start, end)],
+                mode="lines",
+                line=dict(color=color, width=width),
+                opacity=opacity,
+                showlegend=False, hoverinfo="skip",
+            ))
 
     # 드론 마커 — 비행 단계별로 묶어서 렌더
     phase_groups: dict[FlightPhase, list[DroneState]] = {p: [] for p in FlightPhase}
@@ -449,16 +556,37 @@ def build_figure(sim: SimState) -> go.Figure:
     for phase, grp in phase_groups.items():
         if not grp:
             continue
-        size = 10 if phase == FlightPhase.EVADING else (
-               7  if phase == FlightPhase.FAILED   else 6)
+        # 단계별 마커 크기 및 심볼 분화 (가독성 위해 대형화)
+        if phase == FlightPhase.EVADING:
+            size, symbol = 22, "diamond"
+        elif phase == FlightPhase.FAILED:
+            size, symbol = 18, "x"
+        elif phase == FlightPhase.GROUNDED:
+            size, symbol = 10, "square"
+        elif phase == FlightPhase.RTL:
+            size, symbol = 16, "diamond"
+        else:
+            size, symbol = 14, "circle"
+
+        # 배터리 기반 색상 변조 (저배터리 드론 강조)
+        colors = []
+        for d in grp:
+            if d.battery_pct < 15:
+                colors.append("#FF1744")
+            elif d.battery_pct < 30:
+                colors.append("#FF9100")
+            else:
+                colors.append(PHASE_COLORS[phase])
+
         hover = [
-            f"<b>{d.drone_id}</b> [{PHASE_KO[d.flight_phase]}]<br>"
-            f"프로파일: {d.profile_name}<br>"
-            f"속도: {d.speed:.1f} m/s | 고도: {d.position[2]:.0f} m<br>"
-            f"배터리: {d.battery_pct:.0f} %<br>"
-            f"비행시간: {d.flight_time_s:.0f}s | 거리: {d.distance_flown_m:.0f}m<br>"
-            f"위치: ({d.position[0]:.0f}, {d.position[1]:.0f})"
-            + (f"<br>⚠ 고장: {d.failure_type.name}" if d.failure_type != FailureType.NONE else "")
+            (f"<b>{d.drone_id}</b> [{PHASE_KO[d.flight_phase]}]<br>"
+             f"프로파일: {d.profile_name}<br>"
+             f"속도: {d.speed:.1f} m/s | 고도: {d.position[2]:.0f} m<br>"
+             f"배터리: {d.battery_pct:.0f} %<br>"
+             f"비행시간: {d.flight_time_s:.0f}s | 거리: {d.distance_flown_m:.0f}m<br>"
+             f"위치: ({d.position[0]:.0f}, {d.position[1]:.0f})"
+             + (f"<br>⚠ 고장: {d.failure_type.name}"
+                if d.failure_type != FailureType.NONE else ""))
             for d in grp
         ]
         fig.add_trace(go.Scatter3d(
@@ -468,13 +596,32 @@ def build_figure(sim: SimState) -> go.Figure:
             mode="markers",
             marker=dict(
                 size=size,
-                color=PHASE_COLORS[phase],
+                color=colors,
+                symbol=symbol,
                 opacity=0.95,
                 line=dict(color="white", width=0.5),
             ),
             name=PHASE_KO[phase],
             text=hover,
             hovertemplate="%{text}<extra></extra>",
+        ))
+
+    # 고도 참조선 — 활성 드론에서 지면까지 수직 점선 (최대 30기)
+    alt_drones = [d for d in drones if d.is_active
+                  and d.flight_phase != FlightPhase.GROUNDED
+                  and d.position[2] > 5][:30]
+    if alt_drones:
+        alt_x, alt_y, alt_z = [], [], []
+        for d in alt_drones:
+            alt_x += [d.position[0], d.position[0], None]
+            alt_y += [d.position[1], d.position[1], None]
+            alt_z += [0, d.position[2], None]
+        fig.add_trace(go.Scatter3d(
+            x=alt_x, y=alt_y, z=alt_z,
+            mode="lines",
+            line=dict(color="#30363d", width=0.8, dash="dot"),
+            opacity=0.25,
+            showlegend=False, hoverinfo="skip",
         ))
 
     # NFZ 근접 경고 (NFZ 경계 200m 이내 활성 드론)
@@ -499,66 +646,74 @@ def build_figure(sim: SimState) -> go.Figure:
             name="NFZ 경고",
         ))
 
-    # 속도 화살표 (활성 드론 최대 20기)
-    active = [d for d in drones if d.is_active and d.speed > 0.5][:20]
+    # 속도 벡터 — Cone 3D (활성 드론 최대 30기)
+    active = [d for d in drones if d.is_active and d.speed > 0.5][:30]
     if active:
-        arr_x, arr_y, arr_z = [], [], []
+        cx, cy, cz, cu, cv, cw = [], [], [], [], [], []
         for d in active:
-            scale = 600.0 / max(d.speed, 0.1)
-            ex = d.position[0] + d.velocity[0] * scale
-            ey = d.position[1] + d.velocity[1] * scale
-            ez = d.position[2] + d.velocity[2] * scale
-            arr_x += [d.position[0], ex, None]
-            arr_y += [d.position[1], ey, None]
-            arr_z += [d.position[2], ez, None]
-        fig.add_trace(go.Scatter3d(
-            x=arr_x, y=arr_y, z=arr_z,
-            mode="lines",
-            line=dict(color="#80CBC4", width=1.5),
-            opacity=0.5,
-            showlegend=False, hoverinfo="skip",
+            cx.append(d.position[0])
+            cy.append(d.position[1])
+            cz.append(d.position[2])
+            cu.append(float(d.velocity[0]))
+            cv.append(float(d.velocity[1]))
+            cw.append(float(d.velocity[2]))
+        max_spd = max(d.speed for d in active)
+        fig.add_trace(go.Cone(
+            x=cx, y=cy, z=cz,
+            u=cu, v=cv, w=cw,
+            sizemode="scaled",
+            sizeref=max_spd * 1.2,
+            anchor="tail",
+            colorscale=[[0, "#26C6DA"], [0.5, "#80CBC4"], [1, "#FFD54F"]],
+            cmin=0, cmax=max_spd,
+            opacity=0.7,
+            showscale=False,
             name="속도 벡터",
+            hovertemplate="속도: %{u:.1f}, %{v:.1f}, %{w:.1f}<extra></extra>",
         ))
 
     fig.update_layout(
-        paper_bgcolor="#0d1117",
-        plot_bgcolor="#0d1117",
+        paper_bgcolor="#0f1318",
+        plot_bgcolor="#0f1318",
         scene=dict(
             xaxis=dict(
-                range=[-BOUNDS_M, BOUNDS_M], title="East  (m)",
-                backgroundcolor="#010409",
-                gridcolor="#21262d", zerolinecolor="#30363d",
-                showbackground=True, color="#6e7681",
+                range=[-BOUNDS_M, BOUNDS_M], title="East (m)",
+                backgroundcolor="#141d2b",
+                gridcolor="#2a3a55", zerolinecolor="#4a6080",
+                showbackground=True, color="#a0b0c8",
+                tickfont=dict(size=11, color="#8899aa"),
             ),
             yaxis=dict(
-                range=[-BOUNDS_M, BOUNDS_M], title="North  (m)",
-                backgroundcolor="#010409",
-                gridcolor="#21262d", zerolinecolor="#30363d",
-                showbackground=True, color="#6e7681",
+                range=[-BOUNDS_M, BOUNDS_M], title="North (m)",
+                backgroundcolor="#141d2b",
+                gridcolor="#2a3a55", zerolinecolor="#4a6080",
+                showbackground=True, color="#a0b0c8",
+                tickfont=dict(size=11, color="#8899aa"),
             ),
             zaxis=dict(
-                range=[0, ALT_MAX + 20], title="고도  (m AGL)",
-                backgroundcolor="#010409",
-                gridcolor="#21262d", zerolinecolor="#30363d",
-                showbackground=True, color="#6e7681",
+                range=[0, ALT_MAX + 20], title="고도 (m)",
+                backgroundcolor="#141d2b",
+                gridcolor="#2a3a55", zerolinecolor="#4a6080",
+                showbackground=True, color="#a0b0c8",
+                tickfont=dict(size=11, color="#8899aa"),
             ),
-            bgcolor="#010409",
+            bgcolor="#0a1020",
             camera=dict(
-                eye=dict(x=1.6, y=-1.9, z=1.1),
+                eye=dict(x=1.5, y=-1.7, z=1.3),
                 up=dict(x=0, y=0, z=1),
             ),
             aspectmode="manual",
-            aspectratio=dict(x=2.0, y=2.0, z=0.28),
+            aspectratio=dict(x=2.0, y=2.0, z=0.55),
             dragmode="orbit",
         ),
         legend=dict(
-            font=dict(color="#c9d1d9", size=10),
-            bgcolor="rgba(13,17,23,0.85)",
-            bordercolor="#30363d",
+            font=dict(color="#d0d8e0", size=11),
+            bgcolor="rgba(15,19,24,0.9)",
+            bordercolor="#3a4a60",
             borderwidth=1,
             x=0.01, y=0.98,
         ),
         margin=dict(l=0, r=0, t=0, b=0),
-        uirevision="stable",  # 카메라 각도 유지
+        uirevision="stable",
     )
     return fig

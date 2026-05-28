@@ -402,6 +402,103 @@
             font-weight: 600;
         }
 
+        /* Analysis View (2x2 dashboard) */
+        #analysis-view {
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 70px;
+            bottom: 0;
+            z-index: 9;
+            background: #03050a;
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 8px;
+            padding: 8px;
+        }
+
+        #analysis-view.active {
+            display: grid;
+        }
+
+        .av-cell {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(0, 229, 255, 0.18);
+            border-radius: 8px;
+            background: rgba(6, 10, 19, 0.6);
+            overflow: hidden;
+            min-height: 0;
+            min-width: 0;
+        }
+
+        .av-head {
+            font: 700 11px 'JetBrains Mono', monospace;
+            color: #00e5ff;
+            letter-spacing: 1px;
+            padding: 6px 10px;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.12);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 0 0 auto;
+        }
+
+        .av-body {
+            flex: 1 1 auto;
+            position: relative;
+            min-height: 0;
+            min-width: 0;
+        }
+
+        .av-body canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #av-q1 .av-body {
+            background: transparent;
+        }
+
+        .av-kpi {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            padding: 8px;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .kpi-card {
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            border-radius: 6px;
+            background: rgba(0, 229, 255, 0.04);
+            padding: 6px 9px;
+        }
+
+        .kpi-label {
+            font: 8px 'JetBrains Mono', monospace;
+            color: #4a6785;
+            letter-spacing: 1px;
+        }
+
+        .kpi-value {
+            font: 700 17px 'JetBrains Mono', monospace;
+            color: #00e5ff;
+        }
+
+        body.analysis #panel-left,
+        body.analysis #panel-right,
+        body.analysis .hud-bottom-log,
+        body.analysis #analytics-panel,
+        body.analysis .hud-bottom,
+        body.analysis #drone-detail,
+        body.analysis #drone-tooltip {
+            display: none !important;
+        }
+
         .hud-bottom {
             bottom: 0;
             left: 0;
@@ -898,6 +995,9 @@
                 <button class="ctrl-btn" id="btn-pause">일시정지</button>
                 <button class="ctrl-btn danger" id="btn-reset">초기화</button>
             </div>
+            <div style="display:flex;gap:6px;margin-top:6px;">
+                <button class="ctrl-btn" id="btn-analysis" style="flex:1;">📊 분석 뷰 (4분할)</button>
+            </div>
             <div class="ctrl-row" style="margin-top:8px;">
                 <span class="ctrl-label">경과 시간</span>
                 <span class="ctrl-value" id="sim-time">00:00</span>
@@ -966,6 +1066,29 @@
 
     <!-- HUD: Drone Live Tooltip -->
     <div class="drone-tooltip" id="drone-tooltip" style="display:none;"></div>
+
+    <!-- Analysis View: 2x2 dashboard -->
+    <div id="analysis-view">
+        <div class="av-cell" id="av-q1">
+            <div class="av-head">① 3D 비행 궤적
+                <div style="flex:1;"></div>
+                <button class="detail-close" id="av-close" title="분석 뷰 닫기" style="position:static;">✕</button>
+            </div>
+            <div class="av-body" id="av-q1-body"></div>
+        </div>
+        <div class="av-cell" id="av-q2">
+            <div class="av-head">② XY 평면도 (고도 컬러맵)</div>
+            <div class="av-body"><canvas id="av-canvas-xy"></canvas></div>
+        </div>
+        <div class="av-cell" id="av-q3">
+            <div class="av-head">③ 배터리 소모 추이 (샘플 10대)</div>
+            <div class="av-body"><canvas id="av-canvas-batt"></canvas></div>
+        </div>
+        <div class="av-cell" id="av-q4">
+            <div class="av-head">④ KPI 대시보드</div>
+            <div class="av-body"><div class="av-kpi" id="av-kpi"></div></div>
+        </div>
+    </div>
 
     <!-- HUD: Event Log -->
     <div class="hud-overlay hud-bottom-log hud-interactive">
@@ -2338,6 +2461,7 @@
             // 선택/호버 해제 (제거될 드론 dangling 참조 방지)
             if (typeof deselectDrone === 'function') deselectDrone();
             if (typeof setHover === 'function') setHover(null);
+            if (typeof resetBatteryTracked === 'function') resetBatteryTracked();
             // Clear (geometry/material 해제 — GPU 메모리 누수 방지)
             while (droneGroup.children.length) {
                 const grp = droneGroup.children[0];
@@ -4051,6 +4175,187 @@
         });
         renderer.domElement.addEventListener('pointerleave', () => setHover(null));
 
+        // ===== Analysis View (2x2 dashboard) =====
+        let analysisMode = false;
+        const battTracked = []; // {d, color, vals:[]}
+        const AV_BATT_MAX = 120;
+
+        function resetBatteryTracked() { battTracked.length = 0; }
+
+        function pickBatteryTracked() {
+            battTracked.length = 0;
+            const n = drones.length;
+            if (n === 0) return;
+            const step = Math.max(1, Math.floor(n / 10));
+            for (let i = 0; i < n && battTracked.length < 10; i += step) {
+                const d = drones[i];
+                battTracked.push({ d, color: '#' + d.role.color.toString(16).padStart(6, '0'), vals: [] });
+            }
+        }
+
+        function sampleBatteryTracked() {
+            if (battTracked.length === 0) pickBatteryTracked();
+            for (const t of battTracked) {
+                t.vals.push(t.d ? t.d.battery : 0);
+                if (t.vals.length > AV_BATT_MAX) t.vals.shift();
+            }
+        }
+
+        // 고도 → 색상 (저:청 → 고:적)
+        function altColor(alt) {
+            const stops = [
+                [0, [40, 90, 220]], [0.25, [0, 200, 220]], [0.5, [40, 200, 90]],
+                [0.75, [240, 200, 40]], [1, [240, 60, 40]],
+            ];
+            const f = Math.max(0, Math.min(1, alt / MAX_ALT));
+            for (let i = 1; i < stops.length; i++) {
+                if (f <= stops[i][0]) {
+                    const [f0, c0] = stops[i - 1], [f1, c1] = stops[i];
+                    const u = (f - f0) / (f1 - f0 || 1);
+                    const r = Math.round(c0[0] + (c1[0] - c0[0]) * u);
+                    const g = Math.round(c0[1] + (c1[1] - c0[1]) * u);
+                    const b = Math.round(c0[2] + (c1[2] - c0[2]) * u);
+                    return `rgb(${r},${g},${b})`;
+                }
+            }
+            return 'rgb(240,60,40)';
+        }
+
+        function drawTopDown(ctx, w, h) {
+            const pad = 10, legendW = 16;
+            const mw = w - pad * 2 - legendW - 8, mh = h - pad * 2;
+            const ox = pad, oy = pad;
+            // 배경 그리드
+            ctx.strokeStyle = 'rgba(0,229,255,0.07)';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= 8; i++) {
+                const gx = ox + (mw / 8) * i, gy = oy + (mh / 8) * i;
+                ctx.beginPath(); ctx.moveTo(gx, oy); ctx.lineTo(gx, oy + mh); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(ox, gy); ctx.lineTo(ox + mw, gy); ctx.stroke();
+            }
+            // NFZ 중앙 참조 박스 (±500m)
+            const toX = (wx) => ox + ((wx + WORLD) / (2 * WORLD)) * mw;
+            const toY = (wz) => oy + ((wz + WORLD) / (2 * WORLD)) * mh;
+            ctx.strokeStyle = 'rgba(239,68,68,0.6)';
+            ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
+            ctx.strokeRect(toX(-500), toY(-500), toX(500) - toX(-500), toY(500) - toY(-500));
+            ctx.setLineDash([]);
+            // 드론
+            for (const d of drones) {
+                if (d.phase === 'GROUNDED') continue;
+                const x = toX(d.wx), y = toY(d.wz);
+                const r = (d.role.id && d.role.id.startsWith('uam')) ? 3.2 : 2.2;
+                ctx.fillStyle = d.phase === 'FAILED' ? '#ef4444' : altColor(d.wy);
+                ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+                if (selectedDrone && selectedDrone.id === d.id) {
+                    ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 1.5;
+                    ctx.beginPath(); ctx.arc(x, y, r + 3, 0, Math.PI * 2); ctx.stroke();
+                }
+            }
+            // 고도 컬러맵 레전드
+            const lx = ox + mw + 8, lh = mh;
+            for (let i = 0; i < lh; i++) {
+                ctx.fillStyle = altColor(MAX_ALT * (1 - i / lh));
+                ctx.fillRect(lx, oy + i, legendW, 1);
+            }
+            ctx.fillStyle = '#4a6785';
+            ctx.font = '8px JetBrains Mono, monospace';
+            ctx.fillText(MAX_ALT + 'm', lx - 2, oy + 8);
+            ctx.fillText('0m', lx + 2, oy + lh - 2);
+        }
+
+        function drawBatteryLines(ctx, w, h) {
+            ctx.strokeStyle = 'rgba(0,229,255,0.06)';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= 4; i++) {
+                const y = h * 0.1 + (h * 0.8 / 4) * i;
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            }
+            let maxLen = 0;
+            for (const t of battTracked) maxLen = Math.max(maxLen, t.vals.length);
+            if (maxLen < 2) return;
+            const px = w / (maxLen - 1);
+            const toY = (v) => h * 0.9 - (Math.max(0, Math.min(100, v)) / 100) * h * 0.8;
+            for (const t of battTracked) {
+                if (t.vals.length < 2) continue;
+                ctx.strokeStyle = t.color; ctx.lineWidth = 1.3; ctx.globalAlpha = 0.9;
+                ctx.beginPath();
+                t.vals.forEach((v, i) => { const x = i * px, y = toY(v); i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = '#4a6785'; ctx.font = '8px JetBrains Mono, monospace';
+            ctx.fillText('100%', 2, toY(100) + 8); ctx.fillText('0%', 2, toY(0) - 1);
+        }
+
+        function renderKPI() {
+            const n = drones.length || 1;
+            const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED').length;
+            const avgBat = drones.reduce((s, d) => s + d.battery, 0) / n;
+            const totalDist = drones.reduce((s, d) => s + (d.distanceTraveled || 0), 0) / 1000;
+            const cr = (stats.conflicts + stats.collisions) > 0
+                ? (1 - stats.collisions / (stats.conflicts + stats.collisions)) * 100 : 100;
+            const crColor = cr >= 95 ? '#22c55e' : cr >= 80 ? '#f59e0b' : '#ef4444';
+            const batColor = avgBat < 20 ? '#ef4444' : avgBat < 50 ? '#f59e0b' : '#22c55e';
+            const mm = String(Math.floor(simTime / 60)).padStart(2, '0');
+            const ss = String(Math.floor(simTime % 60)).padStart(2, '0');
+            const cards = [
+                ['충돌 해결률', cr.toFixed(1) + '%', crColor],
+                ['충돌 수', stats.collisions, '#ef4444'],
+                ['근접 경고', stats.nearMisses, '#f59e0b'],
+                ['충돌 감지', stats.conflicts, '#06b6d4'],
+                ['어드바이저리', stats.advisories, '#8b5cf6'],
+                ['비행 중', airborne + ' 대', '#22c55e'],
+                ['평균 배터리', avgBat.toFixed(1) + '%', batColor],
+                ['총 비행거리', totalDist.toFixed(1) + ' km', '#00e5ff'],
+                ['시뮬 시간', mm + ':' + ss, '#00e5ff'],
+                ['총 드론', drones.length + ' 대', '#00e5ff'],
+            ];
+            document.getElementById('av-kpi').innerHTML = cards.map(([k, v, c]) =>
+                `<div class="kpi-card"><div class="kpi-label">${k}</div><div class="kpi-value" style="color:${c};">${v}</div></div>`
+            ).join('');
+        }
+
+        function layoutAnalysisCanvas() {
+            const body = document.getElementById('av-q1-body');
+            const r = body.getBoundingClientRect();
+            const cc = document.getElementById('canvas-container');
+            cc.style.left = r.left + 'px'; cc.style.top = r.top + 'px';
+            cc.style.width = r.width + 'px'; cc.style.height = r.height + 'px';
+            cc.style.zIndex = '10';
+            camera.aspect = (r.width || 1) / (r.height || 1);
+            camera.updateProjectionMatrix();
+            renderer.setSize(r.width, r.height);
+        }
+
+        function restoreMainCanvas() {
+            const cc = document.getElementById('canvas-container');
+            cc.style.left = '0'; cc.style.top = '0';
+            cc.style.width = '100%'; cc.style.height = '100%';
+            cc.style.zIndex = '1';
+            camera.aspect = innerWidth / innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(innerWidth, innerHeight);
+        }
+
+        function toggleAnalysis(on) {
+            analysisMode = on;
+            document.body.classList.toggle('analysis', on);
+            document.getElementById('analysis-view').classList.toggle('active', on);
+            document.getElementById('btn-analysis').classList.toggle('active', on);
+            if (on) {
+                layoutAnalysisCanvas();
+                renderKPI();
+                drawChart('av-canvas-xy', drawTopDown);
+                drawChart('av-canvas-batt', drawBatteryLines);
+            } else {
+                restoreMainCanvas();
+            }
+        }
+
+        document.getElementById('btn-analysis').addEventListener('click', () => toggleAnalysis(!analysisMode));
+        document.getElementById('av-close').addEventListener('click', () => toggleAnalysis(false));
+
         // ===== Controls =====
         document.getElementById('btn-clear-log').addEventListener('click', () => { eventLog.length = 0; });
         document.getElementById('btn-start').addEventListener('click', () => {
@@ -5016,6 +5321,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 }
             }
 
+            // 분석 뷰: XY 평면도/배터리 차트 재그리기 (저빈도)
+            if (analysisMode && frameCount % 6 === 0) {
+                drawChart('av-canvas-xy', drawTopDown);
+                drawChart('av-canvas-batt', drawBatteryLines);
+            }
+
             controls.update();
             const gpuStart = performance.now();
             renderer.render(scene, camera);
@@ -5050,15 +5361,24 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             if (drones.length <= 80 || uiUpdateCount % 3 === 0) updateFleetList();
             // 선택된 드론 상세 패널 실시간 갱신
             if (selectedDrone) renderDroneDetail();
+            // 분석 뷰 데이터 샘플링 + KPI 갱신
+            sampleBatteryTracked();
+            if (analysisMode) renderKPI();
         }, 500);
 
         animate();
 
         // ===== Resize =====
         window.addEventListener('resize', () => {
-            camera.aspect = innerWidth / innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(innerWidth, innerHeight);
+            if (analysisMode) {
+                layoutAnalysisCanvas();
+                drawChart('av-canvas-xy', drawTopDown);
+                drawChart('av-canvas-batt', drawBatteryLines);
+            } else {
+                camera.aspect = innerWidth / innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(innerWidth, innerHeight);
+            }
         });
 
         // ── 자동 테스트 API (외부 접근용) ──
@@ -5078,6 +5398,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             getSelected() { return selectedDrone ? { ...selectedDrone, group: undefined, body: undefined, rotor: undefined, glow: undefined } : null; },
             hoverDrone(idOrIndex) { let d = idOrIndex; if (typeof idOrIndex === 'string') d = drones.find(x => x.id === idOrIndex); else if (typeof idOrIndex === 'number') d = drones[idOrIndex]; setHover(d); return d ? d.id : null; },
             clearHover() { setHover(null); },
+            setAnalysisView(on) { toggleAnalysis(!!on); return analysisMode; },
+            get analysisMode() { return analysisMode; },
             selectScenario(name) { document.getElementById('scenario-select').value = name; document.getElementById('scenario-select').dispatchEvent(new Event('change')); },
             camera, renderer, scene, controls,
             captureScreenshot() { renderer.render(scene, camera); return renderer.domElement.toDataURL('image/png'); },

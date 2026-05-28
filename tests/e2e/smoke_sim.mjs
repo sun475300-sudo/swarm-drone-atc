@@ -41,6 +41,10 @@ try {
   const airborne = await page.evaluate(() => window._sdacs.airborne);
   ok(airborne > 0, `이륙/비행 (${airborne}대 공중)`);
 
+  // 2b. 외부 탐지·식별 (조류·비협조)
+  const dni = await page.evaluate(() => window._sdacs.dni);
+  ok(dni.detected > 0 && dni.identified > 0, `외부 탐지·식별 (탐지 ${dni.detected}/식별 ${dni.identified}/조류 ${dni.birds})`);
+
   // 3. 드론 선택 + 상세 조회
   const selId = await page.evaluate(() => window._sdacs.selectDrone(0));
   const sel = await page.evaluate(() => window._sdacs.getSelected());

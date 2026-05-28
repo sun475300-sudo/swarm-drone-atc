@@ -210,9 +210,14 @@ SimPy 기반 이산 이벤트 시뮬레이션 엔진으로, 다양한 환경 조
   - 22개 드론 직군, 21-zone ATC 네트워크
   - 극한 기상: 마이크로버스트, 태풍, 결빙, 다중셀 폭풍, 풍속 전단
   - CPU/GPU/Worker 성능 모니터링 HUD
-  - **드론 라이브 상태 조회** — 드론 호버 시 실시간 툴팁(직군/고도/속도/기수/배터리), 클릭 시 상세 패널(상태/수직속도/좌표/출발·목표/텔레메트리) + 선택 하이라이트
-  - `window._sdacs` API — 자동화 테스트 및 외부 연동 (`selectDrone`/`hoverDrone`/`getSelected` 포함)
-- **파일**: `main.py`, `visualization/simulator_3d.py`, `swarm_3d_simulator.html`
+  - **드론 라이브 상태 조회** — 드론 호버 시 실시간 툴팁(직군/고도/속도/기수/배터리/ETA), 클릭 시 상세 패널(상태/수직속도/좌표/출발·목표/텔레메트리/경로효율/최근접 이웃) + 선택 하이라이트
+  - **충돌·공역 관제 시각화** — CPA 충돌 예측선(TTC·이격거리 라벨), 회피 어드바이저리 빌보드, 웨이포인트·이동경로, 레이어 토글(NFZ/회랑/고도레이어 9단/ATC)
+  - **분석 뷰(2×2)** — 3D 궤적 + XY 평면도(고도 컬러맵) + 배터리 추이 + KPI 대시보드
+  - **리플레이·타임라인** — 0.5s 스냅샷 레코더 + 스크러버(재생/속도/LIVE)
+  - **리포트 내보내기** — 4분할 PNG / CSV(시계열·텔레메트리) / KPI 클립보드 복사
+  - `window._sdacs` API — 자동화 테스트 및 외부 연동 (`selectDrone`/`hoverDrone`/`setAnalysisView`/`replaySeek`/`reportDataURL` 등)
+  - 헤드리스 스모크 테스트: `tests/e2e/smoke_sim.mjs` (CI: `.github/workflows/sim-smoke.yml`)
+- **파일**: `main.py`, `visualization/simulator_3d.py`, `swarm_3d_simulator.html` · _구버전 `swarm_3d_simulator_v2.html`·`*.v1.backup.html`은 디프리케이트(참고용)_
 ```mermaid
 sequenceDiagram
     participant D as Drone (10Hz)

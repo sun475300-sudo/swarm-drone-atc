@@ -671,6 +671,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-28 20:06 | `558145b` | feat: 대규모 GPU 군집 InstancedMesh (Phase 2) — 1k~10k 단일 드로우콜 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/smoke_sim.mjs, visualization/swarm_3d_simulator.html |
 | 2026-05-28 19:40 | `0523742` | test: 시뮬레이터 헤드리스 스모크 + CI (Phase 5) + README 기능 반영 | .github/workflows/sim-smoke.yml, README.md, tests/e2e/smoke_sim.mjs |
 | 2026-05-28 19:37 | `c58711d` | feat: 리플레이·타임라인 (Phase 3) — 상태 레코더 + 스크러버 재생 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-28 19:34 | `412ab36` | feat: 리포트·내보내기 (Phase 4) — 4분할 PNG / CSV / KPI 복사 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |

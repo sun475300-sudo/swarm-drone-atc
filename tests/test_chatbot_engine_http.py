@@ -1,3 +1,5 @@
+"""Module: tests/test_chatbot_engine_http.py."""
+
 from __future__ import annotations
 
 import json

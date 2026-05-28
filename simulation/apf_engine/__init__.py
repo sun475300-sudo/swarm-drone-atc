@@ -1,3 +1,5 @@
+"""Module: simulation/apf_engine/__init__.py."""
+
 from .apf import (
     APF_PARAMS,
     APF_PARAMS_HIGH_DENSITY,

@@ -1,3 +1,5 @@
+"""Module: tests/test_phase541_550.py."""
+
 # Phase 541-550 통합 테스트
 import numpy as np
 

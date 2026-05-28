@@ -1,3 +1,5 @@
+"""Module: tests/test_phase541_560.py."""
+
 # Phase 541-560 통합 테스트 — Python(541-550) + 다국어(551-560)
 import os
 

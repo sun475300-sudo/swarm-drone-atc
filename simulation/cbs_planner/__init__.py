@@ -1,3 +1,5 @@
+"""Module: simulation/cbs_planner/__init__.py."""
+
 from .cbs import (
     GRID_RESOLUTION,
     Conflict,

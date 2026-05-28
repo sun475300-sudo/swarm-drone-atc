@@ -1,3 +1,5 @@
+"""Module: tests/test_benchmark_cli.py."""
+
 from __future__ import annotations
 
 import json

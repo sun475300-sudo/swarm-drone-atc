@@ -1,3 +1,5 @@
+"""Module: simulation/voronoi_airspace/__init__.py."""
+
 from .voronoi_partition import (
     AirspaceCell,
     compute_voronoi_partition,

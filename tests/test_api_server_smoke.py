@@ -1,3 +1,5 @@
+"""Module: tests/test_api_server_smoke.py."""
+
 from __future__ import annotations
 
 import importlib

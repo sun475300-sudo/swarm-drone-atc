@@ -666,6 +666,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-28 19:37 | `c58711d` | feat: 리플레이·타임라인 (Phase 3) — 상태 레코더 + 스크러버 재생 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-28 19:34 | `412ab36` | feat: 리포트·내보내기 (Phase 4) — 4분할 PNG / CSV / KPI 복사 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-28 19:30 | `d5a2ef0` | feat: 상세 패널/툴팁 확장 + Phase 1 잔여(회랑·고도레이어 토글, CPA 라벨, Q2 오버레이) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-28 15:58 | `c3db825` | docs: simulation/simulator.py 주석 샘플 — 핵심 함수/클래스 docstring 보강 | simulation/simulator.py |

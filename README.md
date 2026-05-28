@@ -21,7 +21,7 @@
 
 **국립 목포대학교 드론기계공학과 캡스톤 디자인**
 
-[**3D Simulator Demo**](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [**최종 보고서 v6 (기술)**](docs/report/SDACS_Final_Report_v6.docx) | [**최종 보고서 v7 (일반인용)**](docs/report/SDACS_Final_Report_v7_Easy.docx) | [Performance Charts](docs/images/)
+[**3D Simulator Demo (메인 시뮬레이터)**](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [**최종 보고서 v6 (기술)**](docs/report/SDACS_Final_Report_v6.docx) | [**최종 보고서 v7 (일반인용)**](docs/report/SDACS_Final_Report_v7_Easy.docx) | [Performance Charts](docs/images/)
 
 </div>
 <div align="center">
@@ -201,7 +201,7 @@ SimPy 기반 이산 이벤트 시뮬레이션 엔진으로, 다양한 환경 조
 ### Layer 4 — User Interface (사용자 인터페이스)
 - **CLI**: `main.py` — simulate, scenario, monte-carlo, visualize, ops-report 명령
 - **3D Dashboard**: Dash + Plotly 실시간 3D 시각화, 드론 궤적/충돌 경고/편대 표시
-- **[3D Web Simulator (Demo)](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html)**: Three.js 브라우저 기반 인터랙티브 시뮬레이터
+- **[3D Web Simulator (메인 데모)](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html)**: Three.js 브라우저 기반 인터랙티브 시뮬레이터 (프로젝트 대표 시뮬레이터)
   - **63개 시나리오** — 7대 광역시(서울/부산/인천/대구/광주/대전/울산) 도시환경 + 극한 기상 + 메가 스케일 500대
   - **WebGPU Compute Shader** — APF 힘 계산 GPU 가속 (WGSL 컴퓨트 파이프라인, WebGPU 미지원 시 Web Worker 자동 폴백)
   - **실시간 분석 대시보드** — 배터리/에너지/충돌해결률/위협레벨/관제구역/틱처리시간/비행단계 7종 차트
@@ -210,7 +210,8 @@ SimPy 기반 이산 이벤트 시뮬레이션 엔진으로, 다양한 환경 조
   - 22개 드론 직군, 21-zone ATC 네트워크
   - 극한 기상: 마이크로버스트, 태풍, 결빙, 다중셀 폭풍, 풍속 전단
   - CPU/GPU/Worker 성능 모니터링 HUD
-  - `window._sdacs` API — 자동화 테스트 및 외부 연동
+  - **드론 라이브 상태 조회** — 드론 호버 시 실시간 툴팁(직군/고도/속도/기수/배터리), 클릭 시 상세 패널(상태/수직속도/좌표/출발·목표/텔레메트리) + 선택 하이라이트
+  - `window._sdacs` API — 자동화 테스트 및 외부 연동 (`selectDrone`/`hoverDrone`/`getSelected` 포함)
 - **파일**: `main.py`, `visualization/simulator_3d.py`, `swarm_3d_simulator.html`
 ```mermaid
 sequenceDiagram

@@ -261,6 +261,147 @@
             background: rgba(239, 68, 68, 0.06) !important;
         }
 
+        .drone-card.selected {
+            background: rgba(0, 229, 255, 0.12) !important;
+            border-color: rgba(0, 229, 255, 0.55) !important;
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+        }
+
+        /* Drone detail panel */
+        .hud-detail {
+            top: 84px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 272px;
+            max-height: calc(100vh - 320px);
+            overflow-y: auto;
+            background: rgba(6, 10, 19, 0.94);
+            border: 1px solid rgba(0, 229, 255, 0.35);
+            border-radius: 8px;
+            box-shadow: 0 0 24px rgba(0, 229, 255, 0.15);
+            padding: 10px 12px;
+        }
+
+        .detail-close {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 18px;
+            height: 18px;
+            line-height: 16px;
+            text-align: center;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #4a6785;
+            font-size: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .detail-close:hover {
+            border-color: #00e5ff;
+            color: #00e5ff;
+        }
+
+        .detail-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #e0e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2px;
+            padding-right: 22px;
+        }
+
+        .detail-sub {
+            font-size: 9px;
+            color: #4a6785;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .detail-section {
+            font-size: 8px;
+            color: #00e5ff;
+            letter-spacing: 1.5px;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 8px 0 3px;
+            opacity: 0.85;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            padding: 1px 0;
+        }
+
+        .detail-row .k {
+            color: #4a6785;
+        }
+
+        .detail-row .v {
+            color: #cdd9e8;
+            font-weight: 600;
+        }
+
+        .detail-rogue {
+            margin-top: 8px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 700;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Drone live hover tooltip */
+        .drone-tooltip {
+            position: fixed;
+            z-index: 30;
+            pointer-events: none;
+            min-width: 150px;
+            max-width: 220px;
+            padding: 7px 9px;
+            background: rgba(6, 10, 19, 0.96);
+            border: 1px solid rgba(0, 229, 255, 0.45);
+            border-radius: 6px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .tt-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: #e0e8f0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 4px;
+        }
+
+        .tt-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            padding: 1px 0;
+        }
+
+        .tt-row .k {
+            color: #4a6785;
+        }
+
+        .tt-row .v {
+            color: #cdd9e8;
+            font-weight: 600;
+        }
+
         .hud-bottom {
             bottom: 0;
             left: 0;
@@ -816,6 +957,15 @@
             <div class="fleet-list" id="fleet-list"></div>
         </div>
     </div>
+
+    <!-- HUD: Drone Detail -->
+    <div class="hud-overlay hud-detail hud-interactive" id="drone-detail" style="display:none;">
+        <button class="detail-close" id="detail-close" title="닫기">✕</button>
+        <div id="detail-body"></div>
+    </div>
+
+    <!-- HUD: Drone Live Tooltip -->
+    <div class="drone-tooltip" id="drone-tooltip" style="display:none;"></div>
 
     <!-- HUD: Event Log -->
     <div class="hud-overlay hud-bottom-log hud-interactive">
@@ -2185,6 +2335,9 @@
         }
 
         function initDrones(scenario) {
+            // 선택/호버 해제 (제거될 드론 dangling 참조 방지)
+            if (typeof deselectDrone === 'function') deselectDrone();
+            if (typeof setHover === 'function') setHover(null);
             // Clear (geometry/material 해제 — GPU 메모리 누수 방지)
             while (droneGroup.children.length) {
                 const grp = droneGroup.children[0];
@@ -3697,10 +3850,11 @@
             list.innerHTML = shown.map(d => {
                 const ph = PHASES[d.phase] || PHASES.GROUNDED;
                 const color = '#' + ph.color.toString(16).padStart(6, '0');
-                const cardClass = d.phase === 'FAILED' ? 'drone-card-expired' : '';
+                const selClass = (selectedDrone && selectedDrone.id === d.id) ? 'selected' : '';
+                const cardClass = (d.phase === 'FAILED' ? 'drone-card-expired' : '') + ' ' + selClass;
                 const batColor = d.battery < 20 ? '#ef4444' : d.battery < 50 ? '#f59e0b' : '#10b981';
                 return `
-      <div class="drone-card ${cardClass}">
+      <div class="drone-card ${cardClass}" data-id="${d.id}">
         <div class="drone-card-header">
           <div class="drone-id">
             <div class="drone-status-dot" style="background:${color};"></div>
@@ -3728,6 +3882,174 @@
       ... 외 ${drones.length - 30}대</div>`;
             }
         }
+
+        // ===== Drone Selection & Detail =====
+        let selectedDrone = null;
+        let selectionRing = null;
+
+        selectionRing = new THREE.Mesh(
+            new THREE.TorusGeometry(1.1, 0.04, 8, 40),
+            new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.9, depthTest: false })
+        );
+        selectionRing.rotation.x = Math.PI / 2;
+        selectionRing.renderOrder = 999;
+        selectionRing.visible = false;
+        scene.add(selectionRing);
+
+        function renderDroneDetail() {
+            const d = selectedDrone;
+            if (!d) return;
+            const ph = PHASES[d.phase] || PHASES.GROUNDED;
+            const phColor = '#' + ph.color.toString(16).padStart(6, '0');
+            const batColor = d.battery < 20 ? '#ef4444' : d.battery < 50 ? '#f59e0b' : '#10b981';
+            const vspd = d.vy || 0;
+            const row = (k, v) => `<div class="detail-row"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+            let html = `
+      <div class="detail-title">${d.role.icon} ${d.id}
+        <span class="drone-status-dot" style="background:${phColor};box-shadow:0 0 6px ${phColor};"></span>
+      </div>
+      <div class="detail-sub">${d.role.label} · 우선순위 P${d.priority}</div>
+      <div class="detail-row"><span class="k">상태</span><span class="v" style="color:${phColor};">${ph.label}</span></div>
+      <div class="detail-row"><span class="k">배터리</span><span class="v" style="color:${batColor};">${d.battery.toFixed(1)}%</span></div>
+      <div class="drone-progress"><div class="drone-progress-bar" style="width:${Math.max(0, Math.min(100, d.battery))}%;background:${batColor};box-shadow:0 0 4px ${batColor};"></div></div>
+      <div class="detail-section">비행 상태</div>
+      ${row('고도', Math.round(d.wy) + ' m')}
+      ${row('속도', d.speed.toFixed(1) + ' / ' + d.maxSpeed.toFixed(0) + ' m/s')}
+      ${row('수직속도', (vspd >= 0 ? '+' : '') + vspd.toFixed(1) + ' m/s')}
+      ${row('기수', Math.round(d.heading) + '°')}
+      ${row('목표고도', Math.round(d.targetAlt) + ' m')}
+      <div class="detail-section">위치 · 경로</div>
+      ${row('좌표(x,y,z)', `${d.wx.toFixed(0)}, ${d.wy.toFixed(0)}, ${d.wz.toFixed(0)}`)}
+      ${row('출발', d.startPad ? d.startPad.name : '-')}
+      ${row('목표', d.goalPad ? d.goalPad.name : '-')}
+      <div class="detail-section">텔레메트리</div>
+      ${row('비행거리', d.distanceTraveled.toFixed(0) + ' m')}
+      ${row('비행시간', d.flightTime.toFixed(0) + ' s')}
+      ${row('최대고도', Math.round(d.maxAltReached) + ' m')}
+      ${row('경유점', d.waypointHits)}
+      ${row('회피', d.evasionCount + ' 회')}`;
+            if (d.isRogue) {
+                html += `<div class="detail-rogue" style="color:#ff3d00;background:rgba(255,61,0,0.12);border:1px solid rgba(255,61,0,0.4);">⚠ 침입(ROGUE) 드론</div>`;
+            } else if (d.phase === 'FAILED') {
+                html += `<div class="detail-rogue" style="color:#ef4444;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);">🔴 장애 발생</div>`;
+            }
+            document.getElementById('detail-body').innerHTML = html;
+        }
+
+        function selectDrone(target) {
+            // target: drone object | id string | index number
+            let d = target;
+            if (typeof target === 'string') d = drones.find(x => x.id === target);
+            else if (typeof target === 'number') d = drones[target];
+            if (!d) return null;
+            selectedDrone = d;
+            document.getElementById('drone-detail').style.display = 'block';
+            renderDroneDetail();
+            updateFleetList();
+            return d;
+        }
+
+        function deselectDrone() {
+            selectedDrone = null;
+            const panel = document.getElementById('drone-detail');
+            if (panel) panel.style.display = 'none';
+            if (selectionRing) selectionRing.visible = false;
+        }
+
+        // 3D 클릭 선택 (OrbitControls 드래그와 구분)
+        const _ray = new THREE.Raycaster();
+        const _ptr = new THREE.Vector2();
+        let _pDown = null;
+        renderer.domElement.addEventListener('pointerdown', (e) => { _pDown = { x: e.clientX, y: e.clientY }; });
+        renderer.domElement.addEventListener('pointerup', (e) => {
+            if (!_pDown) return;
+            const moved = Math.hypot(e.clientX - _pDown.x, e.clientY - _pDown.y);
+            _pDown = null;
+            if (moved > 5) return; // 드래그(회전/이동)는 선택 아님
+            const rect = renderer.domElement.getBoundingClientRect();
+            _ptr.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            _ptr.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            _ray.setFromCamera(_ptr, camera);
+            const hits = _ray.intersectObjects(droneGroup.children, true);
+            for (const h of hits) {
+                let obj = h.object;
+                while (obj && !(obj.userData && obj.userData.id)) obj = obj.parent;
+                if (obj && obj.userData && obj.userData.id) { selectDrone(obj.userData); return; }
+            }
+            deselectDrone();
+        });
+
+        // 편대 목록 카드 클릭 선택
+        document.getElementById('fleet-list').addEventListener('click', (e) => {
+            const card = e.target.closest('.drone-card');
+            if (!card) return;
+            const id = card.getAttribute('data-id');
+            if (id) selectDrone(id);
+        });
+
+        document.getElementById('detail-close').addEventListener('click', deselectDrone);
+
+        // ===== Live Hover Tooltip =====
+        let hoveredDrone = null;
+        const _tt = document.getElementById('drone-tooltip');
+        const _proj = new THREE.Vector3();
+
+        function renderTooltip(d) {
+            const ph = PHASES[d.phase] || PHASES.GROUNDED;
+            const phColor = '#' + ph.color.toString(16).padStart(6, '0');
+            const batColor = d.battery < 20 ? '#ef4444' : d.battery < 50 ? '#f59e0b' : '#10b981';
+            _tt.innerHTML = `
+      <div class="tt-title">${d.role.icon} ${d.id}
+        <span class="drone-status-dot" style="background:${phColor};box-shadow:0 0 6px ${phColor};"></span>
+        <span style="margin-left:auto;font-size:8px;color:${phColor};">${ph.label}</span>
+      </div>
+      <div class="tt-row"><span class="k">직군</span><span class="v">${d.role.label}</span></div>
+      <div class="tt-row"><span class="k">고도</span><span class="v">${Math.round(d.wy)} m</span></div>
+      <div class="tt-row"><span class="k">속도</span><span class="v">${d.speed.toFixed(1)} m/s</span></div>
+      <div class="tt-row"><span class="k">기수</span><span class="v">${Math.round(d.heading)}°</span></div>
+      <div class="tt-row"><span class="k">배터리</span><span class="v" style="color:${batColor};">${d.battery.toFixed(1)}%</span></div>
+      ${d.isRogue ? '<div class="tt-row"><span class="v" style="color:#ff3d00;font-weight:700;">⚠ 침입(ROGUE)</span></div>' : ''}`;
+        }
+
+        function positionTooltip(d) {
+            _proj.copy(d.group.position).project(camera);
+            if (_proj.z > 1) { _tt.style.display = 'none'; return; }
+            const rect = renderer.domElement.getBoundingClientRect();
+            let x = (_proj.x * 0.5 + 0.5) * rect.width + rect.left + 14;
+            let y = (-_proj.y * 0.5 + 0.5) * rect.height + rect.top - 10;
+            // 화면 밖으로 나가지 않도록 보정
+            x = Math.min(x, window.innerWidth - 230);
+            y = Math.max(8, Math.min(y, window.innerHeight - 120));
+            _tt.style.left = x + 'px';
+            _tt.style.top = y + 'px';
+            _tt.style.display = 'block';
+        }
+
+        function setHover(d) {
+            hoveredDrone = d || null;
+            if (hoveredDrone) { renderTooltip(hoveredDrone); positionTooltip(hoveredDrone); }
+            else { _tt.style.display = 'none'; }
+        }
+
+        let _lastHoverTs = 0;
+        renderer.domElement.addEventListener('pointermove', (e) => {
+            if (_pDown) return; // 카메라 드래그 중엔 무시
+            const now = performance.now();
+            if (now - _lastHoverTs < 40) return; // ~25Hz 스로틀
+            _lastHoverTs = now;
+            const rect = renderer.domElement.getBoundingClientRect();
+            _ptr.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            _ptr.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            _ray.setFromCamera(_ptr, camera);
+            const hits = _ray.intersectObjects(droneGroup.children, true);
+            for (const h of hits) {
+                let obj = h.object;
+                while (obj && !(obj.userData && obj.userData.id)) obj = obj.parent;
+                if (obj && obj.userData && obj.userData.id) { setHover(obj.userData); return; }
+            }
+            setHover(null);
+        });
+        renderer.domElement.addEventListener('pointerleave', () => setHover(null));
 
         // ===== Controls =====
         document.getElementById('btn-clear-log').addEventListener('click', () => { eventLog.length = 0; });
@@ -4671,6 +4993,29 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 cameraShake = 0;
             }
 
+            // 선택 링: 선택 드론 추종 (드론 제거 시 자동 숨김)
+            if (selectionRing) {
+                if (selectedDrone && selectedDrone.group && selectedDrone.group.parent) {
+                    selectionRing.visible = true;
+                    selectionRing.position.copy(selectedDrone.group.position);
+                    selectionRing.rotation.z = t * 1.5;
+                    const s = 1 + Math.sin(t * 4) * 0.06;
+                    selectionRing.scale.set(s, s, s);
+                } else {
+                    selectionRing.visible = false;
+                }
+            }
+
+            // 라이브 툴팁: 호버 드론을 따라다니며 상태 실시간 갱신
+            if (hoveredDrone) {
+                if (hoveredDrone.group && hoveredDrone.group.parent) {
+                    positionTooltip(hoveredDrone);
+                    if (frameCount % 4 === 0) renderTooltip(hoveredDrone);
+                } else {
+                    setHover(null);
+                }
+            }
+
             controls.update();
             const gpuStart = performance.now();
             renderer.render(scene, camera);
@@ -4703,6 +5048,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             uiUpdateCount++;
             // Fleet list는 무거우므로 대형 시나리오 시 빈도 낮춤
             if (drones.length <= 80 || uiUpdateCount % 3 === 0) updateFleetList();
+            // 선택된 드론 상세 패널 실시간 갱신
+            if (selectedDrone) renderDroneDetail();
         }, 500);
 
         animate();
@@ -4726,6 +5073,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get landed() { return drones.filter(d => d.phase === 'GROUNDED').length; },
             startSim() { simRunning = true; },
             stopSim() { simRunning = false; },
+            selectDrone(idOrIndex) { const d = selectDrone(idOrIndex); return d ? d.id : null; },
+            deselectDrone() { deselectDrone(); },
+            getSelected() { return selectedDrone ? { ...selectedDrone, group: undefined, body: undefined, rotor: undefined, glow: undefined } : null; },
+            hoverDrone(idOrIndex) { let d = idOrIndex; if (typeof idOrIndex === 'string') d = drones.find(x => x.id === idOrIndex); else if (typeof idOrIndex === 'number') d = drones[idOrIndex]; setHover(d); return d ? d.id : null; },
+            clearHover() { setHover(null); },
             selectScenario(name) { document.getElementById('scenario-select').value = name; document.getElementById('scenario-select').dispatchEvent(new Event('change')); },
             camera, renderer, scene, controls,
             captureScreenshot() { renderer.render(scene, camera); return renderer.domElement.toDataURL('image/png'); },

@@ -1025,6 +1025,25 @@
             </div>
         </div>
 
+        <!-- 리플레이 타임라인 -->
+        <div class="ctrl-panel">
+            <div class="ctrl-title">
+                <div style="width:6px;height:6px;border-radius:50%;background:#a855f7;"></div>
+                ⏱ 리플레이 타임라인
+            </div>
+            <input type="range" id="replay-slider" min="0" max="0" value="0" step="1" style="width:100%;accent-color:#a855f7;cursor:pointer;">
+            <div style="display:flex;gap:4px;align-items:center;margin-top:5px;">
+                <button class="ctrl-btn" id="replay-play" style="flex:0 0 34px;">▶</button>
+                <button class="ctrl-btn active" id="replay-live" style="flex:1;">● LIVE</button>
+                <span class="ctrl-value" id="replay-time" style="font-size:9px;min-width:42px;text-align:right;">LIVE</span>
+            </div>
+            <div style="display:flex;gap:4px;margin-top:4px;">
+                <button class="ctrl-btn replay-spd active" data-spd="1" style="flex:1;">1×</button>
+                <button class="ctrl-btn replay-spd" data-spd="2" style="flex:1;">2×</button>
+                <button class="ctrl-btn replay-spd" data-spd="4" style="flex:1;">4×</button>
+            </div>
+        </div>
+
         <!-- 공역·관제 레이어 토글 -->
         <div class="ctrl-panel">
             <div class="ctrl-title">
@@ -2522,6 +2541,7 @@
             if (typeof deselectDrone === 'function') deselectDrone();
             if (typeof setHover === 'function') setHover(null);
             if (typeof resetBatteryTracked === 'function') resetBatteryTracked();
+            if (typeof resetReplay === 'function') resetReplay();
             // Clear (geometry/material 해제 — GPU 메모리 누수 방지)
             while (droneGroup.children.length) {
                 const grp = droneGroup.children[0];
@@ -4757,6 +4777,101 @@
         document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
         document.getElementById('btn-copy-kpi').addEventListener('click', copyKPI);
 
+        // ===== 리플레이·타임라인 (Phase 3) =====
+        const recorder = { frames: [], max: 1200 }; // 0.5s 간격, 최대 ~10분
+        let replayMode = false, replayPlaying = false, replaySpeed = 1, replayIdx = 0, _replayAccum = 0;
+
+        function recordSnapshot() {
+            if (!simRunning || replayMode || drones.length === 0) return;
+            const snap = new Array(drones.length);
+            for (let i = 0; i < drones.length; i++) {
+                const dr = drones[i];
+                snap[i] = [Math.round(dr.wx), Math.round(dr.wy), Math.round(dr.wz), dr.phase, Math.round(dr.battery)];
+            }
+            recorder.frames.push({ t: simTime, d: snap });
+            if (recorder.frames.length > recorder.max) recorder.frames.shift();
+            const sl = document.getElementById('replay-slider');
+            sl.max = recorder.frames.length - 1;
+            if (!replayPlaying) sl.value = sl.max; // 라이브: 최신 프레임에 고정
+        }
+
+        function applyFrame(idx) {
+            const f = recorder.frames[idx];
+            if (!f) return;
+            for (let i = 0; i < drones.length && i < f.d.length; i++) {
+                const dr = drones[i], s = f.d[i];
+                dr.wx = s[0]; dr.wy = s[1]; dr.wz = s[2]; dr.phase = s[3]; dr.battery = s[4];
+                dr.group.position.set(dr.wx * SCALE, dr.wy * SCALE * 3, dr.wz * SCALE);
+                const col = (PHASES[dr.phase] || PHASES.GROUNDED).color;
+                dr.body.material.color.setHex(col);
+                if (dr.body.material.emissive) dr.body.material.emissive.setHex(col);
+                if (dr.rotor) dr.rotor.material.color.setHex(col);
+            }
+            const mm = String(Math.floor(f.t / 60)).padStart(2, '0');
+            const ss = String(Math.floor(f.t % 60)).padStart(2, '0');
+            document.getElementById('replay-time').textContent = mm + ':' + ss;
+        }
+
+        function enterReplay() {
+            if (recorder.frames.length === 0) return;
+            replayMode = true; simRunning = false;
+            document.getElementById('replay-live').classList.remove('active');
+        }
+
+        function goLive() {
+            replayMode = false; replayPlaying = false;
+            document.getElementById('replay-play').textContent = '▶';
+            document.getElementById('replay-live').classList.add('active');
+            document.getElementById('replay-time').textContent = 'LIVE';
+            simRunning = true;
+        }
+
+        function resetReplay() {
+            recorder.frames.length = 0;
+            replayMode = false; replayPlaying = false; replayIdx = 0; _replayAccum = 0;
+            const sl = document.getElementById('replay-slider'); if (sl) { sl.max = 0; sl.value = 0; }
+            const pl = document.getElementById('replay-play'); if (pl) pl.textContent = '▶';
+            const lv = document.getElementById('replay-live'); if (lv) lv.classList.add('active');
+            const tm = document.getElementById('replay-time'); if (tm) tm.textContent = 'LIVE';
+        }
+
+        function advanceReplay(dt) {
+            if (!replayMode || !replayPlaying) return;
+            _replayAccum += dt * replaySpeed;
+            while (_replayAccum >= 0.5) {
+                _replayAccum -= 0.5;
+                replayIdx++;
+                if (replayIdx >= recorder.frames.length - 1) {
+                    replayIdx = recorder.frames.length - 1;
+                    replayPlaying = false;
+                    document.getElementById('replay-play').textContent = '▶';
+                    break;
+                }
+            }
+            document.getElementById('replay-slider').value = replayIdx;
+            applyFrame(replayIdx);
+        }
+
+        document.getElementById('replay-slider').addEventListener('input', e => {
+            enterReplay();
+            replayPlaying = false;
+            document.getElementById('replay-play').textContent = '▶';
+            replayIdx = parseInt(e.target.value, 10) || 0;
+            applyFrame(replayIdx);
+        });
+        document.getElementById('replay-play').addEventListener('click', () => {
+            if (recorder.frames.length === 0) return;
+            if (!replayMode) enterReplay();
+            replayPlaying = !replayPlaying;
+            document.getElementById('replay-play').textContent = replayPlaying ? '⏸' : '▶';
+            if (replayPlaying && replayIdx >= recorder.frames.length - 1) replayIdx = 0;
+        });
+        document.getElementById('replay-live').addEventListener('click', goLive);
+        document.querySelectorAll('.replay-spd').forEach(b => b.addEventListener('click', () => {
+            replaySpeed = parseInt(b.dataset.spd, 10) || 1;
+            document.querySelectorAll('.replay-spd').forEach(x => x.classList.toggle('active', x === b));
+        }));
+
         // ===== Controls =====
         document.getElementById('btn-clear-log').addEventListener('click', () => { eventLog.length = 0; });
         document.getElementById('btn-start').addEventListener('click', () => {
@@ -5615,6 +5730,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             }
             frameCount++;
 
+            // 리플레이 재생 (라이브 정지 상태에서 기록 프레임 적용)
+            advanceReplay(dt);
+
             // Update weather & drones (CPU Main)
             if (simRunning) {
                 simTime += dt * simSpeed;
@@ -5770,6 +5888,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // 분석 뷰 데이터 샘플링 + KPI 갱신
             sampleBatteryTracked();
             if (analysisMode) renderKPI();
+            // 리플레이 레코더 (0.5s 스냅샷)
+            recordSnapshot();
         }, 500);
 
         animate();
@@ -5808,6 +5928,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get analysisMode() { return analysisMode; },
             async reportDataURL() { return (await buildReportCanvas()).toDataURL('image/png'); },
             exportPNG, exportCSV,
+            get replayFrames() { return recorder.frames.length; },
+            replaySeek(idx) { enterReplay(); replayIdx = Math.max(0, Math.min(idx, recorder.frames.length - 1)); applyFrame(replayIdx); return replayIdx; },
+            goLive,
             selectScenario(name) { document.getElementById('scenario-select').value = name; document.getElementById('scenario-select').dispatchEvent(new Event('change')); },
             camera, renderer, scene, controls,
             captureScreenshot() { renderer.render(scene, camera); return renderer.domElement.toDataURL('image/png'); },

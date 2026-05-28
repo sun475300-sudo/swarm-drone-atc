@@ -666,6 +666,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-28 14:56 | `0611b62` | feat: 드론 라이브 상태 툴팁 + 클릭 상세 패널 추가 및 메인 시뮬레이터 진입점 일원화 | .github/workflows/deploy-pages.yml, README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-20 13:50 | `593745d` | ci: trigger rerun to verify Python 3.10 stability | - |
 | 2026-05-19 08:37 | `3a9ff98` | ci: drop --require-hashes from canonical_hash workflow | .github/workflows/canonical_hash.yml |
 | 2026-05-19 08:28 | `b15d590` | fix: sort imports in drone_agent.py to satisfy CI ruff I001 | simulation/drone_agent.py |

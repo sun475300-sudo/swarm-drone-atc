@@ -1099,6 +1099,7 @@
             <label class="av-toggle"><input type="checkbox" id="tg-atc" checked> ATC 관제망</label>
             <label class="av-toggle"><input type="checkbox" id="tg-prox" checked> 근접/충돌선</label>
             <label class="av-toggle"><input type="checkbox" id="tg-trail" checked> 침입 드론 트레일</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-cull" checked> 대규모 컬링·LOD</label>
         </div>
 
         <!-- Legend -->
@@ -1238,6 +1239,7 @@
             <span style="color:#06b6d4;">GPU</span>:<span id="perf-gpu">0</span>ms
             <span style="color:#a855f7;">APF</span>:<span id="perf-apf">-</span>ms
             <span style="color:#f59e0b;" id="perf-apf-label">WRK</span> |
+            <span style="color:#22d3ee;">DRN</span>:<span id="perf-drn">0</span><span id="perf-render"></span> |
             드래그: 회전 | 스크롤: 줌
         </div>
     </div>
@@ -2501,18 +2503,37 @@
         scene.add(bodyInst);
         const _iM = new THREE.Matrix4(), _iPos = new THREE.Vector3(), _iScl = new THREE.Vector3(1, 1, 1);
         const _iQ = new THREE.Quaternion(), _iCol = new THREE.Color();
+        // 대규모 프러스텀 컬링 + LOD
+        let megaCull = true;
+        let _visibleInst = 0;
+        const _frustum = new THREE.Frustum(), _frMat = new THREE.Matrix4();
+        const LOD_FAR = 90; // 이 거리(world units) 이상은 축소
 
         function syncInstances() {
             if (!megaMode) return;
             const n = Math.min(drones.length, MAX_INST);
             const flt = (typeof filterActive === 'function') && filterActive();
+            // 프러스텀 컬링용 절두체 갱신
+            if (megaCull) _frustum.setFromProjectionMatrix(_frMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+            _visibleInst = 0;
             for (let i = 0; i < n; i++) {
                 const d = drones[i];
-                // 필터 활성 + 비매칭 → 스케일 0으로 숨김
-                const hidden = flt && !droneMatches(d);
-                const s = hidden ? 0 : (d._uam ? 1.6 : 1.0);
+                const pos = d.group.position;
+                // 필터 활성 + 비매칭 → 숨김 / 화면 밖(프러스텀 컬링) → 숨김
+                let hidden = flt && !droneMatches(d);
+                if (!hidden && megaCull && !_frustum.containsPoint(pos)) hidden = true;
+                let s = 0;
+                if (!hidden) {
+                    s = d._uam ? 1.6 : 1.0;
+                    // LOD: 원거리 드론 축소(픽셀 점유 ↓ → 래스터 비용 절감)
+                    if (megaCull) {
+                        const dist = camera.position.distanceTo(pos);
+                        if (dist > LOD_FAR) s *= Math.max(0.45, LOD_FAR / dist);
+                    }
+                    _visibleInst++;
+                }
                 _iScl.set(s, s, s);
-                _iM.compose(_iPos.copy(d.group.position), _iQ, _iScl);
+                _iM.compose(_iPos.copy(pos), _iQ, _iScl);
                 bodyInst.setMatrixAt(i, _iM);
                 _iCol.setHex((PHASES[d.phase] || PHASES.GROUNDED).color);
                 bodyInst.setColorAt(i, _iCol);
@@ -4775,6 +4796,7 @@
         document.getElementById('tg-atc').addEventListener('change', e => { const v = e.target.checked; atcLinkGroup.visible = v; scanRings.forEach(r => r.visible = v); atcDrones.forEach(a => { if (a.grp) a.grp.visible = v; }); });
         document.getElementById('tg-prox').addEventListener('change', e => { proximityLines.visible = e.target.checked; });
         document.getElementById('tg-trail').addEventListener('change', e => { trailGroup.visible = e.target.checked; });
+        document.getElementById('tg-cull').addEventListener('change', e => { megaCull = e.target.checked; });
 
         // ===== 리포트·내보내기 (Phase 4) =====
         function _download(filename, url) {
@@ -6108,6 +6130,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // 성능 모니터 업데이트
             document.getElementById('perf-cpu').textContent = perfMetrics.cpuMs.toFixed(1);
             document.getElementById('perf-gpu').textContent = perfMetrics.gpuMs.toFixed(1);
+            document.getElementById('perf-drn').textContent = drones.length;
+            document.getElementById('perf-render').textContent = megaMode
+                ? ` ⚡INST ${_visibleInst}/${drones.length}${megaCull ? ' cull' : ''}`
+                : '';
             if (perfMetrics.useGpuCompute) {
                 document.getElementById('perf-apf').textContent = perfMetrics.gpuComputeMs.toFixed(1);
                 document.getElementById('perf-apf-label').textContent = 'GPU⚡';
@@ -6173,6 +6199,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             exportPNG, exportCSV, exportHTML, exportMD,
             get megaMode() { return megaMode; },
             get instanceCount() { return bodyInst.count; },
+            get visibleInstances() { return _visibleInst; },
+            set megaCull(v) { megaCull = !!v; },
+            get megaCull() { return megaCull; },
             get replayFrames() { return recorder.frames.length; },
             replaySeek(idx) { enterReplay(); replayIdx = Math.max(0, Math.min(idx, recorder.frames.length - 1)); applyFrame(replayIdx); return replayIdx; },
             goLive,

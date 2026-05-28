@@ -1002,6 +1002,16 @@
                 <span class="ctrl-label">경과 시간</span>
                 <span class="ctrl-value" id="sim-time">00:00</span>
             </div>
+            <div style="margin-top:8px;border-top:1px solid rgba(0,229,255,0.12);padding-top:6px;">
+                <label class="ctrl-label" style="display:block;margin-bottom:4px;">Airspace Layers</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;font-size:10px;color:#9db7d1;">
+                    <label><input type="checkbox" id="layer-nfz" checked> NFZ</label>
+                    <label><input type="checkbox" id="layer-altitude" checked> ALT</label>
+                    <label><input type="checkbox" id="layer-corridor" checked> COR</label>
+                    <label><input type="checkbox" id="layer-atc" checked> ATC</label>
+                    <label><input type="checkbox" id="layer-cpa" checked> CPA</label>
+                </div>
+            </div>
         </div>
 
         <!-- Legend -->
@@ -1306,6 +1316,10 @@
         const SEPARATION_ALT = 20; // meters - 수직 분리 최소 고도차
         const CPA_LOOKAHEAD = 12;  // seconds - 최근접점 예측 시간
         const ALTITUDE_LAYERS = [40, 55, 70, 85, 100, 115, 130, 145, 160]; // 고도 레이어 (9개)
+        const CORRIDOR_CONFIGS = [
+            { altitude: 60, axis: 'EW', color: 0x3b82f6, label: '동서 회랑 (60m)' },
+            { altitude: 80, axis: 'NS', color: 0x10b981, label: '남북 회랑 (80m)' },
+        ];
 
         // ===== 정밀 비행 역학 상수 =====
         const PHYSICS = {
@@ -1346,6 +1360,13 @@
         let drones = [];
         let stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
         let windEnabled = false;
+        const layerVisibility = {
+            nfz: true,
+            altitude: true,
+            corridor: true,
+            atc: true,
+            cpa: true,
+        };
 
         // ===== 확장 기상 시스템 (정밀 모델) =====
         const weather = {
@@ -1691,6 +1712,16 @@
         const buildingGroup = new THREE.Group();
         buildingGroup.visible = false;
         scene.add(buildingGroup);
+        const altitudeLayerGroup = new THREE.Group();
+        scene.add(altitudeLayerGroup);
+        const corridorGroup = new THREE.Group();
+        scene.add(corridorGroup);
+        const atcCoverageGroup = new THREE.Group();
+        scene.add(atcCoverageGroup);
+        const advisoryGroup = new THREE.Group();
+        scene.add(advisoryGroup);
+        const cpaVizGroup = new THREE.Group();
+        scene.add(cpaVizGroup);
 
         // ===== 다중 도시 환경 시스템 =====
         // 건물: {x,z}=월드좌표(m), w/d=폭/깊이(m), h=높이(m), name=랜드마크명
@@ -2097,6 +2128,34 @@
         }
         createBuildings();
 
+        // ===== Altitude Layers (9개 레이어 시각화) =====
+        function createAltitudeLayers() {
+            const layerRadius = W * 0.78;
+            ALTITUDE_LAYERS.forEach((alt, idx) => {
+                const y = alt * SCALE * 3;
+                const ring = new THREE.Mesh(
+                    new THREE.RingGeometry(layerRadius - 0.03, layerRadius, 96),
+                    new THREE.MeshBasicMaterial({
+                        color: idx % 2 === 0 ? 0x22d3ee : 0x60a5fa,
+                        transparent: true,
+                        opacity: 0.07,
+                        side: THREE.DoubleSide,
+                    })
+                );
+                ring.rotation.x = -Math.PI / 2;
+                ring.position.set(0, y, 0);
+                altitudeLayerGroup.add(ring);
+
+                if (idx % 2 === 0) {
+                    const lbl = makeTextSprite(`${alt}m`, '#8ec5ff', 8);
+                    lbl.position.set(layerRadius * 0.78, y + 0.25, 0);
+                    lbl.scale.set(2.2, 0.7, 1);
+                    altitudeLayerGroup.add(lbl);
+                }
+            });
+        }
+        createAltitudeLayers();
+
         function inBuilding(wx, wz, wy) {
             for (const b of BUILDINGS) {
                 const halfW = (b.w + BLDG_BUFFER) / 2, halfD = (b.d + BLDG_BUFFER) / 2;
@@ -2108,26 +2167,29 @@
         }
 
         // ===== NFZ (No-Fly Zone) =====
+        const nfzGroup = new THREE.Group();
+        scene.add(nfzGroup);
         const nfzW = 500 * SCALE, nfzH = 120 * SCALE * 3;
         const nfzGeo = new THREE.BoxGeometry(nfzW * 2, nfzH, nfzW * 2);
         const nfzMat = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.08, side: THREE.DoubleSide });
         const nfz = new THREE.Mesh(nfzGeo, nfzMat);
         nfz.position.y = nfzH / 2;
-        scene.add(nfz);
+        nfzGroup.add(nfz);
         // NFZ wireframe
         const nfzEdge = new THREE.LineSegments(
             new THREE.EdgesGeometry(nfzGeo),
             new THREE.LineBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.4 })
         );
         nfzEdge.position.copy(nfz.position);
-        scene.add(nfzEdge);
+        nfzGroup.add(nfzEdge);
         // NFZ label
         const nfzLabel = makeTextSprite('NFZ 비행금지구역', '#ff4444', 10);
         nfzLabel.position.set(0, nfzH + 0.5, 0);
         nfzLabel.scale.set(6, 1.5, 1);
-        scene.add(nfzLabel);
+        nfzGroup.add(nfzLabel);
 
         // ===== Corridors =====
+        const corridorOverlays = [];
         function makeCorridor(altitude, axis, color, labelText) {
             const h = altitude * SCALE * 3;
             const thickness = 0.15;
@@ -2143,22 +2205,22 @@
             const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.06, side: THREE.DoubleSide });
             const mesh = new THREE.Mesh(geo, mat);
             mesh.position.copy(pos);
-            scene.add(mesh);
+            corridorGroup.add(mesh);
             // Edge lines
             const edge = new THREE.LineSegments(
                 new THREE.EdgesGeometry(geo),
                 new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.25 })
             );
             edge.position.copy(pos);
-            scene.add(edge);
+            corridorGroup.add(edge);
             // Label
             const lbl = makeTextSprite(labelText, '#' + color.toString(16).padStart(6, '0'), 8);
             lbl.position.set(axis === 'EW' ? -W + 3 : 0, h + 0.8, axis === 'NS' ? -W + 3 : 0);
             lbl.scale.set(5, 1.2, 1);
-            scene.add(lbl);
+            corridorGroup.add(lbl);
+            corridorOverlays.push({ altitude, axis, color });
         }
-        makeCorridor(60, 'EW', 0x3b82f6, '동서 회랑 (60m)');
-        makeCorridor(80, 'NS', 0x10b981, '남북 회랑 (80m)');
+        CORRIDOR_CONFIGS.forEach(c => makeCorridor(c.altitude, c.axis, c.color, c.label));
 
         // ===== Landing Pads =====
         LANDING_PADS.forEach(pad => {
@@ -2237,6 +2299,34 @@
             return new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
         }
 
+        function makeDynamicTextSprite(fontSize = 10) {
+            const c = document.createElement('canvas');
+            c.width = 256; c.height = 64;
+            const ctx = c.getContext('2d');
+            const tex = new THREE.CanvasTexture(c);
+            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+            sprite.userData.textCanvas = c;
+            sprite.userData.textCtx = ctx;
+            sprite.userData.textTex = tex;
+            sprite.userData.fontSize = fontSize;
+            return sprite;
+        }
+
+        function setDynamicSpriteText(sprite, text, color = '#ffffff') {
+            const ctx = sprite.userData.textCtx;
+            const c = sprite.userData.textCanvas;
+            const tex = sprite.userData.textTex;
+            const fs = sprite.userData.fontSize || 10;
+            if (!ctx || !c || !tex) return;
+            ctx.clearRect(0, 0, c.width, c.height);
+            ctx.font = `bold ${fs}px JetBrains Mono, monospace`;
+            ctx.fillStyle = color;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, c.width / 2, c.height / 2);
+            tex.needsUpdate = true;
+        }
+
         // ===== ATC Control Drones (관제 드론) =====
         const ATC_POSITIONS = [
             { name: 'ATC-01', x: 0, z: 0, alt: 130, role: '중앙 총괄 관제' },
@@ -2268,6 +2358,8 @@
             { name: 'ATC-21', x: 0, z: 1500, alt: 120, role: '중앙 순찰' },
         ];
         const atcDrones = [];
+        const atcDroneGroup = new THREE.Group();
+        scene.add(atcDroneGroup);
 
         ATC_POSITIONS.forEach(atc => {
             const grp = new THREE.Group();
@@ -2296,7 +2388,7 @@
             const radar = new THREE.Mesh(radarGeo, radarMat);
             radar.rotation.x = -Math.PI / 2;
             radar.position.set(px, 0.02, pz);
-            scene.add(radar);
+            atcCoverageGroup.add(radar);
 
             // 레이더 범위 외곽선
             const radarEdge = new THREE.Mesh(
@@ -2305,7 +2397,7 @@
             );
             radarEdge.rotation.x = -Math.PI / 2;
             radarEdge.position.set(px, 0.03, pz);
-            scene.add(radarEdge);
+            atcCoverageGroup.add(radarEdge);
 
             // 연결선 (지면→관제 드론)
             const connGeo = new THREE.BufferGeometry().setFromPoints([
@@ -2316,7 +2408,7 @@
                 color: 0x00e5ff, transparent: true, opacity: 0.2, dashSize: 0.3, gapSize: 0.2,
             }));
             connLine.computeLineDistances();
-            scene.add(connLine);
+            atcCoverageGroup.add(connLine);
 
             // Glow
             const glow = new THREE.Sprite(
@@ -2332,7 +2424,7 @@
             grp.add(lbl);
 
             grp.position.set(px, py, pz);
-            scene.add(grp);
+            atcDroneGroup.add(grp);
             atcDrones.push({ grp, body, dish, glow, radar, radarEdge, ...atc });
         });
 
@@ -2361,8 +2453,243 @@
         // 근접선 오브젝트 풀 (GC 압력 방지)
         const _linePool = [];
         let _linePoolIdx = 0;
+        const _cpaLinePool = [];
+        const _cpaMarkerPool = [];
+        const _cpaLabelPool = [];
+        let _cpaLinePoolIdx = 0;
+        let _cpaMarkerPoolIdx = 0;
+        let _cpaLabelPoolIdx = 0;
+        const cpaTopDownPairs = [];
+        let atcLinkGroup = null;
 
         let _lightweight = false; // 100대 초과 시 경량 모드
+
+        function applyLayerVisibility() {
+            nfzGroup.visible = layerVisibility.nfz;
+            altitudeLayerGroup.visible = layerVisibility.altitude;
+            corridorGroup.visible = layerVisibility.corridor;
+            atcDroneGroup.visible = layerVisibility.atc;
+            atcCoverageGroup.visible = layerVisibility.atc;
+            if (atcLinkGroup) atcLinkGroup.visible = layerVisibility.atc;
+            cpaVizGroup.visible = layerVisibility.cpa;
+            advisoryGroup.visible = layerVisibility.cpa;
+        }
+
+        function resetConflictViz() {
+            for (let i = 0; i < _cpaLinePoolIdx; i++) _cpaLinePool[i].visible = false;
+            for (let i = 0; i < _cpaMarkerPoolIdx; i++) _cpaMarkerPool[i].visible = false;
+            for (let i = 0; i < _cpaLabelPoolIdx; i++) _cpaLabelPool[i].visible = false;
+            _cpaLinePoolIdx = 0;
+            _cpaMarkerPoolIdx = 0;
+            _cpaLabelPoolIdx = 0;
+            cpaTopDownPairs.length = 0;
+        }
+
+        function acquireConflictLine(color) {
+            let line;
+            if (_cpaLinePoolIdx < _cpaLinePool.length) {
+                line = _cpaLinePool[_cpaLinePoolIdx];
+            } else {
+                const geo = new THREE.BufferGeometry();
+                geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+                line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.6 }));
+                cpaVizGroup.add(line);
+                _cpaLinePool.push(line);
+            }
+            line.material.color.set(color);
+            line.visible = true;
+            _cpaLinePoolIdx++;
+            return line;
+        }
+
+        function acquireConflictMarker(color) {
+            let marker;
+            if (_cpaMarkerPoolIdx < _cpaMarkerPool.length) {
+                marker = _cpaMarkerPool[_cpaMarkerPoolIdx];
+            } else {
+                marker = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.05, 10, 10),
+                    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85 })
+                );
+                cpaVizGroup.add(marker);
+                _cpaMarkerPool.push(marker);
+            }
+            marker.material.color.set(color);
+            marker.visible = true;
+            _cpaMarkerPoolIdx++;
+            return marker;
+        }
+
+        function acquireConflictLabel(text, color) {
+            let label;
+            if (_cpaLabelPoolIdx < _cpaLabelPool.length) {
+                label = _cpaLabelPool[_cpaLabelPoolIdx];
+            } else {
+                label = makeDynamicTextSprite(10);
+                label.scale.set(3.4, 0.8, 1);
+                cpaVizGroup.add(label);
+                _cpaLabelPool.push(label);
+            }
+            setDynamicSpriteText(label, text, color);
+            label.visible = true;
+            _cpaLabelPoolIdx++;
+            return label;
+        }
+
+        function advisoryTextForDrone(d) {
+            if (d.phase === 'RTL') return 'RTL';
+            if (d.phase === 'HOLDING') return 'HOLD';
+            if (d.phase !== 'EVADING') return '';
+            if ((d.apfVy || 0) > 0.6) return 'CLIMB';
+            if ((d.apfVy || 0) < -0.6) return 'DESCEND';
+            const turnDiff = ((d.targetHeading - d.heading + 540) % 360) - 180;
+            if (turnDiff > 20) return 'TURN R';
+            if (turnDiff < -20) return 'TURN L';
+            return 'EVADE';
+        }
+
+        function updateAdvisoryOverlay(t) {
+            if (!layerVisibility.cpa) {
+                for (const d of drones) {
+                    if (d._advisorySprite) d._advisorySprite.visible = false;
+                }
+                return;
+            }
+            const blinkOn = Math.sin(t * 8) > 0;
+            for (const d of drones) {
+                const txt = advisoryTextForDrone(d);
+                if (!txt || !d.group || !d.group.parent) {
+                    if (d._advisorySprite) d._advisorySprite.visible = false;
+                    continue;
+                }
+                if (!d._advisorySprite) {
+                    const s = makeDynamicTextSprite(11);
+                    s.scale.set(2.8, 0.72, 1);
+                    s.visible = false;
+                    advisoryGroup.add(s);
+                    d._advisorySprite = s;
+                    d._advisoryText = '';
+                }
+                if (d._advisoryText !== txt) {
+                    const color = txt === 'EVADE' ? '#ff6b00' : (txt === 'HOLD' ? '#3b82f6' : '#ffb300');
+                    setDynamicSpriteText(d._advisorySprite, txt, color);
+                    d._advisoryText = txt;
+                }
+                d._advisorySprite.position.set(
+                    d.group.position.x,
+                    d.group.position.y + 1.6,
+                    d.group.position.z
+                );
+                d._advisorySprite.visible = blinkOn;
+            }
+        }
+
+        function updateConflictViz() {
+            resetConflictViz();
+            if (!layerVisibility.cpa) return;
+            const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+            if (airborne.length < 2) return;
+
+            const cellSize = EVADE_DIST;
+            const grid = new Map();
+            const processed = new Set();
+            const maxPairs = _lightweight ? 18 : 50;
+            let pairCount = 0;
+
+            airborne.forEach(d => {
+                const cx = Math.floor(d.wx / cellSize);
+                const cz = Math.floor(d.wz / cellSize);
+                const key = `${cx},${cz}`;
+                if (!grid.has(key)) grid.set(key, []);
+                grid.get(key).push(d);
+            });
+
+            for (const a of airborne) {
+                if (pairCount >= maxPairs) break;
+                const cx = Math.floor(a.wx / cellSize);
+                const cz = Math.floor(a.wz / cellSize);
+                for (let di = -1; di <= 1; di++) {
+                    for (let dj = -1; dj <= 1; dj++) {
+                        const neighbors = grid.get(`${cx + di},${cz + dj}`);
+                        if (!neighbors) continue;
+                        for (const b of neighbors) {
+                            if (a === b || pairCount >= maxPairs) continue;
+                            const pairKey = a.id < b.id ? `${a.id}-${b.id}` : `${b.id}-${a.id}`;
+                            if (processed.has(pairKey)) continue;
+                            processed.add(pairKey);
+
+                            const dx = a.wx - b.wx;
+                            const dz = a.wz - b.wz;
+                            const dy = a.wy - b.wy;
+                            const dist3d = Math.sqrt(dx * dx + dz * dz + dy * dy);
+                            if (dist3d > EVADE_DIST * 1.8) continue;
+
+                            const radA = a.heading * Math.PI / 180;
+                            const radB = b.heading * Math.PI / 180;
+                            const avx = Math.sin(radA) * a.speed;
+                            const avz = Math.cos(radA) * a.speed;
+                            const avy = a.vy || 0;
+                            const bvx = Math.sin(radB) * b.speed;
+                            const bvz = Math.cos(radB) * b.speed;
+                            const bvy = b.vy || 0;
+                            const dvx = avx - bvx;
+                            const dvz = avz - bvz;
+                            const dvy = avy - bvy;
+                            const relV2 = dvx * dvx + dvz * dvz + dvy * dvy;
+                            if (relV2 < 0.1) continue;
+
+                            const tCPA = Math.max(0, Math.min(CPA_LOOKAHEAD, -(dx * dvx + dz * dvz + dy * dvy) / relV2));
+                            if (tCPA <= 0.01 || tCPA >= CPA_LOOKAHEAD) continue;
+
+                            const cpaDx = dx + dvx * tCPA;
+                            const cpaDz = dz + dvz * tCPA;
+                            const cpaDy = dy + dvy * tCPA;
+                            const cpaDist = Math.sqrt(cpaDx * cpaDx + cpaDz * cpaDz + cpaDy * cpaDy);
+                            const isConverging = (dx * dvx + dz * dvz + dy * dvy) < 0;
+                            if (!isConverging || cpaDist >= NEAR_MISS_DIST) continue;
+
+                            const aCpa = { x: a.wx + avx * tCPA, y: a.wy + avy * tCPA, z: a.wz + avz * tCPA };
+                            const bCpa = { x: b.wx + bvx * tCPA, y: b.wy + bvy * tCPA, z: b.wz + bvz * tCPA };
+                            const mid = {
+                                x: (aCpa.x + bCpa.x) * 0.5,
+                                y: (aCpa.y + bCpa.y) * 0.5,
+                                z: (aCpa.z + bCpa.z) * 0.5,
+                            };
+
+                            let color = 0xfacc15;
+                            let labelColor = '#facc15';
+                            let level = 'WARN';
+                            if (cpaDist < COLLISION_DIST) {
+                                color = 0xef4444;
+                                labelColor = '#ef4444';
+                                level = 'CRIT';
+                            } else if (cpaDist < NEAR_MISS_DIST * 0.5) {
+                                color = 0xf97316;
+                                labelColor = '#f97316';
+                                level = 'HIGH';
+                            }
+
+                            const line = acquireConflictLine(color);
+                            const p = line.geometry.attributes.position.array;
+                            p[0] = aCpa.x * SCALE; p[1] = aCpa.y * SCALE * 3; p[2] = aCpa.z * SCALE;
+                            p[3] = bCpa.x * SCALE; p[4] = bCpa.y * SCALE * 3; p[5] = bCpa.z * SCALE;
+                            line.geometry.attributes.position.needsUpdate = true;
+
+                            const mA = acquireConflictMarker(color);
+                            mA.position.set(aCpa.x * SCALE, aCpa.y * SCALE * 3, aCpa.z * SCALE);
+                            const mB = acquireConflictMarker(color);
+                            mB.position.set(bCpa.x * SCALE, bCpa.y * SCALE * 3, bCpa.z * SCALE);
+
+                            const lbl = acquireConflictLabel(`${level} TTC ${tCPA.toFixed(1)}s D ${Math.round(cpaDist)}m`, labelColor);
+                            lbl.position.set(mid.x * SCALE, mid.y * SCALE * 3 + 0.45, mid.z * SCALE);
+
+                            cpaTopDownPairs.push({ a: aCpa, b: bCpa, color });
+                            pairCount++;
+                        }
+                    }
+                }
+            }
+        }
 
         function createDrone(id, startPad) {
             const group = new THREE.Group();
@@ -2493,6 +2820,13 @@
             // 근접선 풀 숨기기
             for (let li = 0; li < _linePoolIdx; li++) _linePool[li].visible = false;
             _linePoolIdx = 0;
+            resetConflictViz();
+            while (advisoryGroup.children.length) {
+                const s = advisoryGroup.children[0];
+                advisoryGroup.remove(s);
+                if (s.material && s.material.map) s.material.map.dispose();
+                if (s.material) s.material.dispose();
+            }
 
             const cfg = SCENARIOS[scenario] || SCENARIOS.default;
             windEnabled = cfg.wind;
@@ -3107,8 +3441,9 @@
         }
 
         // ===== NFZ Check =====
+        const NFZ_HALF_EXTENT = 500;
         function inNFZ(wx, wz) {
-            return Math.abs(wx) < 500 && Math.abs(wz) < 500;
+            return Math.abs(wx) < NFZ_HALF_EXTENT && Math.abs(wz) < NFZ_HALF_EXTENT;
         }
 
         // ===== 착륙 시퀀스 관리자 =====
@@ -3200,6 +3535,9 @@
             if (!simRunning) return;
             const sDt = dt * simSpeed;
             const isFlying = d.phase !== 'GROUNDED' && d.phase !== 'FAILED';
+            const prevWx = d.wx;
+            const prevWy = d.wy;
+            const prevWz = d.wz;
 
             // 정밀 배터리 모델: 고도·속도·바람에 따른 차등 소모
             if (isFlying) {
@@ -3208,7 +3546,6 @@
                 const windPenalty = windEnabled ? 0.005 : 0;      // 바람 저항
                 d.battery = Math.max(0, d.battery - sDt * (0.02 + altCost + spdCost + windPenalty));
                 d.flightTime += sDt;
-                d.distanceTraveled += d.speed * sDt;
                 d.maxAltReached = Math.max(d.maxAltReached, d.wy);
             } else {
                 d.battery = Math.max(0, d.battery - sDt * 0.005); // 지상 대기 소모
@@ -3606,6 +3943,15 @@
                 d.phase = 'FAILED';
                 d.failed = true;
                 logEvent('fail', `${d.id} 배터리 방전 → 비상 착륙!`);
+            }
+
+            // 실제 좌표 변화량 기반 이동거리 누적 (KPI 총 비행거리)
+            if (isFlying) {
+                const dx = d.wx - prevWx;
+                const dy = d.wy - prevWy;
+                const dz = d.wz - prevWz;
+                const stepDistance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                if (Number.isFinite(stepDistance)) d.distanceTraveled += stepDistance;
             }
 
             // Update 3D position
@@ -4233,13 +4579,54 @@
                 ctx.beginPath(); ctx.moveTo(gx, oy); ctx.lineTo(gx, oy + mh); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(ox, gy); ctx.lineTo(ox + mw, gy); ctx.stroke();
             }
-            // NFZ 중앙 참조 박스 (±500m)
             const toX = (wx) => ox + ((wx + WORLD) / (2 * WORLD)) * mw;
             const toY = (wz) => oy + ((wz + WORLD) / (2 * WORLD)) * mh;
-            ctx.strokeStyle = 'rgba(239,68,68,0.6)';
-            ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
-            ctx.strokeRect(toX(-500), toY(-500), toX(500) - toX(-500), toY(500) - toY(-500));
-            ctx.setLineDash([]);
+            const colorToRgba = (hex, alpha) => {
+                const r = (hex >> 16) & 255;
+                const g = (hex >> 8) & 255;
+                const b = hex & 255;
+                return `rgba(${r},${g},${b},${alpha})`;
+            };
+            if (layerVisibility.corridor) {
+                const corridorHalfWidth = 200;
+                corridorOverlays.forEach(c => {
+                    ctx.fillStyle = colorToRgba(c.color, 0.12);
+                    ctx.strokeStyle = colorToRgba(c.color, 0.35);
+                    ctx.lineWidth = 1;
+                    if (c.axis === 'EW') {
+                        const y0 = toY(-corridorHalfWidth);
+                        const y1 = toY(corridorHalfWidth);
+                        ctx.fillRect(ox, Math.min(y0, y1), mw, Math.abs(y1 - y0));
+                        ctx.strokeRect(ox, Math.min(y0, y1), mw, Math.abs(y1 - y0));
+                    } else {
+                        const x0 = toX(-corridorHalfWidth);
+                        const x1 = toX(corridorHalfWidth);
+                        ctx.fillRect(Math.min(x0, x1), oy, Math.abs(x1 - x0), mh);
+                        ctx.strokeRect(Math.min(x0, x1), oy, Math.abs(x1 - x0), mh);
+                    }
+                });
+            }
+            if (layerVisibility.nfz) {
+                ctx.strokeStyle = 'rgba(239,68,68,0.6)';
+                ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
+                ctx.strokeRect(
+                    toX(-NFZ_HALF_EXTENT),
+                    toY(-NFZ_HALF_EXTENT),
+                    toX(NFZ_HALF_EXTENT) - toX(-NFZ_HALF_EXTENT),
+                    toY(NFZ_HALF_EXTENT) - toY(-NFZ_HALF_EXTENT),
+                );
+                ctx.setLineDash([]);
+            }
+            if (layerVisibility.cpa && cpaTopDownPairs.length > 0) {
+                cpaTopDownPairs.forEach(p => {
+                    ctx.strokeStyle = colorToRgba(p.color, 0.75);
+                    ctx.lineWidth = 1.2;
+                    ctx.beginPath();
+                    ctx.moveTo(toX(p.a.x), toY(p.a.z));
+                    ctx.lineTo(toX(p.b.x), toY(p.b.z));
+                    ctx.stroke();
+                });
+            }
             // 드론
             for (const d of drones) {
                 if (d.phase === 'GROUNDED') continue;
@@ -4286,6 +4673,25 @@
             ctx.globalAlpha = 1;
             ctx.fillStyle = '#4a6785'; ctx.font = '8px JetBrains Mono, monospace';
             ctx.fillText('100%', 2, toY(100) + 8); ctx.fillText('0%', 2, toY(0) - 1);
+
+            // 하단 시간축 라벨(시작/중간/현재)
+            if (chartHistory.time.length > 1) {
+                const startT = chartHistory.time[0];
+                const midT = chartHistory.time[Math.floor((chartHistory.time.length - 1) / 2)];
+                const endT = chartHistory.time[chartHistory.time.length - 1];
+                const fmt = (sec) => {
+                    const mm = String(Math.floor(sec / 60)).padStart(2, '0');
+                    const ss = String(Math.floor(sec % 60)).padStart(2, '0');
+                    return `${mm}:${ss}`;
+                };
+                ctx.fillStyle = 'rgba(148,163,184,0.9)';
+                ctx.font = '8px JetBrains Mono, monospace';
+                ctx.fillText(fmt(startT), 2, h - 2);
+                const midLabel = fmt(midT);
+                ctx.fillText(midLabel, Math.max(2, w * 0.5 - ctx.measureText(midLabel).width * 0.5), h - 2);
+                const endLabel = fmt(endT);
+                ctx.fillText(endLabel, Math.max(2, w - ctx.measureText(endLabel).width - 2), h - 2);
+            }
         }
 
         function renderKPI() {
@@ -4382,6 +4788,23 @@
             simSpeed = parseFloat(e.target.value);
             document.getElementById('speed-label').textContent = simSpeed.toFixed(2) + 'x';
         });
+        const layerControlMap = {
+            'layer-nfz': 'nfz',
+            'layer-altitude': 'altitude',
+            'layer-corridor': 'corridor',
+            'layer-atc': 'atc',
+            'layer-cpa': 'cpa',
+        };
+        Object.entries(layerControlMap).forEach(([id, key]) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.checked = layerVisibility[key];
+            el.addEventListener('change', () => {
+                layerVisibility[key] = !!el.checked;
+                applyLayerVisibility();
+            });
+        });
+        applyLayerVisibility();
 
         // 패널 접기/펼치기 토글
         document.getElementById('toggle-left').addEventListener('click', () => {
@@ -4634,8 +5057,9 @@
         }
 
         // ===== ATC 관제선 (탐지·통제 시각화) =====
-        const atcLinkGroup = new THREE.Group();
+        atcLinkGroup = new THREE.Group();
         scene.add(atcLinkGroup);
+        applyLayerVisibility();
 
         function updateATCLinks() {
             while (atcLinkGroup.children.length) {
@@ -5233,6 +5657,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                     apfCollisionAvoidance(); // CPU 폴백
                 }
             }
+            if (simRunning && frameCount % 6 === 0) updateConflictViz();
+            updateAdvisoryOverlay(t);
             perfMetrics.cpuMs = performance.now() - cpuStart;
 
             // Rotor spin
@@ -5274,7 +5700,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             });
 
             // ATC 관제선 (매 30프레임) — 범위 내 드론 탐지 시각화
-            if (simRunning && frameCount % 30 === 0) updateATCLinks();
+            if (simRunning && layerVisibility.atc && frameCount % 30 === 0) updateATCLinks();
 
             // Trails (매 5프레임, ROGUE만)
             if (simRunning && frameCount % 5 === 0) updateTrails();
@@ -5401,6 +5827,16 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             setAnalysisView(on) { toggleAnalysis(!!on); return analysisMode; },
             get analysisMode() { return analysisMode; },
             selectScenario(name) { document.getElementById('scenario-select').value = name; document.getElementById('scenario-select').dispatchEvent(new Event('change')); },
+            setLayer(name, on) {
+                if (!(name in layerVisibility)) return null;
+                layerVisibility[name] = !!on;
+                const id = Object.keys(layerControlMap).find(k => layerControlMap[k] === name);
+                const el = id ? document.getElementById(id) : null;
+                if (el) el.checked = layerVisibility[name];
+                applyLayerVisibility();
+                return layerVisibility[name];
+            },
+            get layers() { return { ...layerVisibility }; },
             camera, renderer, scene, controls,
             captureScreenshot() { renderer.render(scene, camera); return renderer.domElement.toDataURL('image/png'); },
         };

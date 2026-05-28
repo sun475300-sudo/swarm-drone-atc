@@ -671,6 +671,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-28 20:47 | `38014bc` | feat: 대규모 프러스텀 컬링·LOD + 성능 HUD (Bundle 3) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-28 20:45 | `fb75f43` | feat: 세션 리포트 HTML/MD 내보내기 (Bundle 2) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-28 20:42 | `160f9fb` | feat: 뷰 프리셋·추적캠 + 드론 검색/필터 (Bundle 1) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-28 20:15 | `312bcb7` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | .claude/update-changelog.py, CLAUDE.md, README.md, api/fastapi_server.py, archive/polyglot/ada/safety_critical.adb, archive/polyglot/ada/tmr_voter_v2.adb … |

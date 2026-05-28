@@ -21,7 +21,9 @@
 
 **국립 목포대학교 드론기계공학과 캡스톤 디자인**
 
-[**3D Simulator Demo (메인 시뮬레이터)**](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [**최종 보고서 v6 (기술)**](docs/report/SDACS_Final_Report_v6.docx) | [**최종 보고서 v7 (일반인용)**](docs/report/SDACS_Final_Report_v7_Easy.docx) | [Performance Charts](docs/images/)
+[**🌐 메인 페이지 (Live Site)**](https://sun475300-sudo.github.io/swarm-drone-atc/) | [**🛰 3D 시뮬레이터 (메인 데모)**](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [**최종 보고서 v6 (기술)**](docs/report/SDACS_Final_Report_v6.docx) | [**최종 보고서 v7 (일반인용)**](docs/report/SDACS_Final_Report_v7_Easy.docx) | [Performance Charts](docs/images/)
+
+> 🔗 **GitHub Pages 라이브 사이트**: <https://sun475300-sudo.github.io/swarm-drone-atc/> — 랜딩 페이지(소개·성과·아키텍처)에서 3D 시뮬레이터·시나리오 비교·테스트 리포트로 이동할 수 있습니다.
 
 </div>
 <div align="center">
@@ -202,7 +204,7 @@ SimPy 기반 이산 이벤트 시뮬레이션 엔진으로, 다양한 환경 조
 - **CLI**: `main.py` — simulate, scenario, monte-carlo, visualize, ops-report 명령
 - **3D Dashboard**: Dash + Plotly 실시간 3D 시각화, 드론 궤적/충돌 경고/편대 표시
 - **[3D Web Simulator (메인 데모)](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html)**: Three.js 브라우저 기반 인터랙티브 시뮬레이터 (프로젝트 대표 시뮬레이터)
-  - **63개 시나리오** — 7대 광역시(서울/부산/인천/대구/광주/대전/울산) 도시환경 + 극한 기상 + 메가 스케일 500대
+  - **63+개 시나리오** — 7대 광역시(서울/부산/인천/대구/광주/대전/울산) 도시환경 + 극한 기상 + 메가 스케일 최대 10,000대
   - **WebGPU Compute Shader** — APF 힘 계산 GPU 가속 (WGSL 컴퓨트 파이프라인, WebGPU 미지원 시 Web Worker 자동 폴백)
   - **실시간 분석 대시보드** — 배터리/에너지/충돌해결률/위협레벨/관제구역/틱처리시간/비행단계 7종 차트
   - **도시별 랜드마크 환경** — 각 도시의 실제 빌딩, 강, 산, 공원을 3D로 재현 (롯데월드타워, 해운대, 무등산 등)
@@ -210,12 +212,16 @@ SimPy 기반 이산 이벤트 시뮬레이션 엔진으로, 다양한 환경 조
   - 22개 드론 직군, 21-zone ATC 네트워크
   - 극한 기상: 마이크로버스트, 태풍, 결빙, 다중셀 폭풍, 풍속 전단
   - CPU/GPU/Worker 성능 모니터링 HUD
-  - **드론 라이브 상태 조회** — 드론 호버 시 실시간 툴팁(직군/고도/속도/기수/배터리/ETA), 클릭 시 상세 패널(상태/수직속도/좌표/출발·목표/텔레메트리/경로효율/최근접 이웃) + 선택 하이라이트
-  - **충돌·공역 관제 시각화** — CPA 충돌 예측선(TTC·이격거리 라벨), 회피 어드바이저리 빌보드, 웨이포인트·이동경로, 레이어 토글(NFZ/회랑/고도레이어 9단/ATC)
-  - **분석 뷰(2×2)** — 3D 궤적 + XY 평면도(고도 컬러맵) + 배터리 추이 + KPI 대시보드
+  - **드론 라이브 상태 조회** — 호버 실시간 툴팁(직군/고도/속도/기수/배터리/ETA), 클릭 상세 패널(상태/수직속도/좌표/출발·목표/텔레메트리/경로효율/최근접 이웃) + 선택 하이라이트
+  - **충돌·공역 관제 시각화** — CPA 충돌 예측선(TTC·이격거리 라벨), 단계별 조치 빌보드(EVADE/HOLD/RTL), 웨이포인트·이동경로, 충돌위험 히트맵, 분리간격 위반 경보(화면 플래시), 분석 차트 이벤트 마커
+  - **외부 탐지·식별(DnI)** — 조류·비협조 드론 외부 객체 + ATC·군집 센서망 탐지(2.5km) → 4등급 식별(정상/미등록/위험/조류) + **식별 정확도(클래스별 + 오분류)** + 버드스트라이크 경보
+  - **대규모 GPU 군집** — InstancedMesh 1,000~10,000대(`mega_swarm_1k/5k/10k`) + 프러스텀 컬링·LOD + 성능 HUD(가시 인스턴스 수)
+  - **분석 뷰(2×2)** — 3D 궤적 + XY 평면도(고도 컬러맵·혼잡 히트맵) + 배터리 추이 + KPI 대시보드
   - **리플레이·타임라인** — 0.5s 스냅샷 레코더 + 스크러버(재생/속도/LIVE)
-  - **리포트 내보내기** — 4분할 PNG / CSV(시계열·텔레메트리) / KPI 클립보드 복사
-  - `window._sdacs` API — 자동화 테스트 및 외부 연동 (`selectDrone`/`hoverDrone`/`setAnalysisView`/`replaySeek`/`reportDataURL` 등)
+  - **뷰·제어** — 카메라 프리셋(탑다운/추적캠/오빗) · 드론 검색(ID·직군) · 단계·배터리 필터 · 단축키(Space/A/F/1~4/`/`/H/Esc)·도움말 오버레이
+  - **리포트 내보내기** — 4분할 PNG / CSV(시계열·텔레메트리) / 세션 리포트 HTML·MD / KPI 클립보드 복사
+  - **ATC 통제드론 비주얼** — 파란 구체 + 4링 로터(쿼드콥터)
+  - `window._sdacs` API — 자동화·외부 연동 (`selectDrone`/`hoverDrone`/`setAnalysisView`/`replaySeek`/`reportDataURL`/`dni`/`megaMode` 등)
   - 헤드리스 스모크 테스트: `tests/e2e/smoke_sim.mjs` (CI: `.github/workflows/sim-smoke.yml`)
 - **파일**: `main.py`, `visualization/simulator_3d.py`, `swarm_3d_simulator.html` · _구버전 `swarm_3d_simulator_v2.html`·`*.v1.backup.html`은 디프리케이트(참고용)_
 ```mermaid

@@ -1022,6 +1022,10 @@
                 <button class="ctrl-btn" id="btn-export-csv" style="flex:1;" title="시계열·텔레메트리 CSV">📑 CSV</button>
                 <button class="ctrl-btn" id="btn-copy-kpi" style="flex:1;" title="KPI 클립보드 복사">📋 KPI</button>
             </div>
+            <div style="display:flex;gap:6px;margin-top:4px;">
+                <button class="ctrl-btn" id="btn-export-html" style="flex:1;" title="세션 리포트 HTML">📄 HTML</button>
+                <button class="ctrl-btn" id="btn-export-md" style="flex:1;" title="세션 리포트 Markdown">📝 MD</button>
+            </div>
             <div class="ctrl-row" style="margin-top:8px;">
                 <span class="ctrl-label">경과 시간</span>
                 <span class="ctrl-value" id="sim-time">00:00</span>
@@ -4868,9 +4872,74 @@
             logEvent('info', '📷 PNG 리포트 저장됨');
         }
 
+        function _reportMeta() {
+            const scen = document.getElementById('scenario-select')?.value || 'default';
+            const mm = String(Math.floor(simTime / 60)).padStart(2, '0');
+            const ss = String(Math.floor(simTime % 60)).padStart(2, '0');
+            return { scen, simStr: `${mm}:${ss}`, ts: new Date().toISOString(), n: drones.length };
+        }
+
+        async function exportHTML() {
+            const png = (await buildReportCanvas()).toDataURL('image/png');
+            const m = _reportMeta();
+            const kpiRows = kpiList().map(([k, v, c]) => `<tr><td>${k}</td><td style="color:${c || '#0bf'};text-align:right;font-weight:600">${v}</td></tr>`).join('');
+            const evRows = eventLog.slice(0, 50).map(e => `<li><span class="t">[${e.ts}]</span> ${e.msg}</li>`).join('');
+            const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<title>SDACS 리포트 · ${m.scen}</title>
+<style>body{margin:0;background:#03050a;color:#cdd9e8;font-family:'JetBrains Mono',ui-monospace,monospace;padding:24px}
+h1{color:#00e5ff;font-size:20px}h2{color:#22d3ee;font-size:14px;border-bottom:1px solid #123;padding-bottom:4px;margin-top:24px}
+.meta{color:#4a6785;font-size:12px}img{max-width:100%;border:1px solid #123;border-radius:8px;margin-top:12px}
+table{border-collapse:collapse;width:320px}td{border-bottom:1px solid #0d1622;padding:4px 8px;font-size:13px}td:first-child{color:#4a6785}
+ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{padding:2px 0;border-bottom:1px solid #0a121c}.t{color:#4a6785}
+.note{color:#4a6785;font-size:11px;margin-top:8px}</style></head><body>
+<h1>SDACS 군집드론 공역통제 시뮬레이션 리포트</h1>
+<div class="meta">시나리오 <b>${m.scen}</b> · 경과 ${m.simStr} · 드론 ${m.n}대 · 생성 ${m.ts}</div>
+<h2>4분할 스냅샷</h2><img src="${png}" alt="report">
+<h2>KPI</h2><table>${kpiRows}</table>
+<div class="note">※ 경로효율·에너지효율(Wh/km)·CBS 성공률·통신손실률 등 엔진 전용 지표는 Python <code>gen_report_v6/v7.py</code> 파이프라인 산출물을 참조하세요.</div>
+<h2>이벤트 로그 (최근 50)</h2><ul>${evRows}</ul>
+</body></html>`;
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            _download(`sdacs_report_${Date.now()}.html`, URL.createObjectURL(blob));
+            logEvent('info', '📄 HTML 리포트 저장됨');
+        }
+
+        async function exportMD() {
+            const png = (await buildReportCanvas()).toDataURL('image/png');
+            const m = _reportMeta();
+            const lines = [];
+            lines.push(`# SDACS 군집드론 공역통제 시뮬레이션 리포트`);
+            lines.push('');
+            lines.push(`- **시나리오**: ${m.scen}`);
+            lines.push(`- **경과 시간**: ${m.simStr}`);
+            lines.push(`- **드론 수**: ${m.n}대`);
+            lines.push(`- **생성**: ${m.ts}`);
+            lines.push('');
+            lines.push(`## KPI`);
+            lines.push('');
+            lines.push('| 지표 | 값 |');
+            lines.push('|---|---|');
+            for (const [k, v] of kpiList()) lines.push(`| ${k} | ${v} |`);
+            lines.push('');
+            lines.push('> 경로효율·에너지효율(Wh/km)·CBS 성공률·통신손실률 등 엔진 전용 지표는 Python `gen_report_v6/v7.py` 산출물을 참조.');
+            lines.push('');
+            lines.push(`## 4분할 스냅샷`);
+            lines.push('');
+            lines.push(`![SDACS report](${png})`);
+            lines.push('');
+            lines.push(`## 이벤트 로그 (최근 30)`);
+            lines.push('');
+            for (const e of eventLog.slice(0, 30)) lines.push(`- \`[${e.ts}]\` ${e.msg}`);
+            const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
+            _download(`sdacs_report_${Date.now()}.md`, URL.createObjectURL(blob));
+            logEvent('info', '📝 Markdown 리포트 저장됨');
+        }
+
         document.getElementById('btn-export-png').addEventListener('click', exportPNG);
         document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
         document.getElementById('btn-copy-kpi').addEventListener('click', copyKPI);
+        document.getElementById('btn-export-html').addEventListener('click', exportHTML);
+        document.getElementById('btn-export-md').addEventListener('click', exportMD);
 
         // ===== 리플레이·타임라인 (Phase 3) =====
         const recorder = { frames: [], max: 1200 }; // 0.5s 간격, 최대 ~10분
@@ -6101,7 +6170,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             setAnalysisView(on) { toggleAnalysis(!!on); return analysisMode; },
             get analysisMode() { return analysisMode; },
             async reportDataURL() { return (await buildReportCanvas()).toDataURL('image/png'); },
-            exportPNG, exportCSV,
+            exportPNG, exportCSV, exportHTML, exportMD,
             get megaMode() { return megaMode; },
             get instanceCount() { return bodyInst.count; },
             get replayFrames() { return recorder.frames.length; },

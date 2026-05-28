@@ -1165,6 +1165,29 @@
     <!-- HUD: Drone Live Tooltip -->
     <div class="drone-tooltip" id="drone-tooltip" style="display:none;"></div>
 
+    <!-- 도움말 오버레이 -->
+    <button id="btn-help" title="도움말 (H)"
+        style="position:fixed;right:14px;bottom:14px;z-index:32;width:32px;height:32px;border-radius:50%;background:rgba(6,10,19,0.92);border:1px solid rgba(0,229,255,0.4);color:#00e5ff;font-size:15px;font-weight:700;cursor:pointer;font-family:'JetBrains Mono',monospace;">?</button>
+    <div id="help-overlay" style="display:none;position:fixed;inset:0;z-index:40;background:rgba(3,5,8,0.82);backdrop-filter:blur(2px);">
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(560px,92vw);max-height:84vh;overflow:auto;background:rgba(6,10,19,0.97);border:1px solid rgba(0,229,255,0.35);border-radius:12px;padding:20px 24px;font-family:'JetBrains Mono',monospace;color:#cdd9e8;box-shadow:0 0 40px rgba(0,229,255,0.2);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                <div style="font-size:16px;font-weight:700;color:#00e5ff;">SDACS 시뮬레이터 — 도움말</div>
+                <div style="flex:1;"></div>
+                <button id="help-close" style="background:none;border:1px solid rgba(255,255,255,0.15);color:#4a6785;border-radius:4px;cursor:pointer;font-size:12px;padding:2px 8px;">✕</button>
+            </div>
+            <div style="font-size:11px;color:#22d3ee;letter-spacing:1px;margin:10px 0 4px;">마우스</div>
+            <div style="font-size:12px;line-height:1.8;">드래그=회전 · 스크롤=줌 · <b>드론 클릭=선택</b> · 드론 호버=라이브 툴팁</div>
+            <div style="font-size:11px;color:#22d3ee;letter-spacing:1px;margin:12px 0 4px;">단축키</div>
+            <div style="font-size:12px;line-height:1.9;">
+                <b>Space</b> 재생/정지 · <b>A</b> 분석 뷰 · <b>F</b> 선택 드론 추적 · <b>1~4</b> 카메라(기본/탑다운/추적/오빗)<br>
+                <b>/</b> 검색창 · <b>H</b> 또는 <b>?</b> 도움말 · <b>Esc</b> 닫기/선택 해제
+            </div>
+            <div style="font-size:11px;color:#22d3ee;letter-spacing:1px;margin:12px 0 4px;">패널</div>
+            <div style="font-size:12px;line-height:1.8;">좌측: 시나리오·뷰/검색·리플레이·공역 레이어 · 우측: 편대 추적기 · 하단: 이벤트 로그·분석 차트<br>📊 분석 뷰=2×2 대시보드 · 📷/📑/📄/📝=리포트 내보내기(PNG/CSV/HTML/MD)</div>
+            <div style="font-size:10px;color:#4a6785;margin-top:14px;">메가 군집(≥500대)은 InstancedMesh + 프러스텀 컬링으로 렌더됩니다.</div>
+        </div>
+    </div>
+
     <!-- 분리간격 위반 경보 (플래시 + 배너) -->
     <div id="alert-flash" style="position:fixed;inset:0;z-index:8;pointer-events:none;opacity:0;transition:opacity 0.45s ease;"></div>
     <div id="alert-banner" style="position:fixed;top:84px;left:50%;transform:translateX(-50%);z-index:31;pointer-events:none;opacity:0;transition:opacity 0.45s ease;background:rgba(6,10,19,0.9);border:1px solid rgba(239,68,68,0.6);color:#fff;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;padding:6px 16px;border-radius:8px;box-shadow:0 0 24px rgba(239,68,68,0.4);"></div>
@@ -5154,6 +5177,54 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
             document.getElementById('filter-batt-val').textContent = filterBattMax + '%';
             applyFilterVisibility();
         });
+
+        // ===== 단축키 · 도움말 · UI 상태 저장 (Bundle 5) =====
+        function toggleHelp(force) {
+            const o = document.getElementById('help-overlay');
+            const show = force !== undefined ? force : o.style.display === 'none';
+            o.style.display = show ? 'block' : 'none';
+        }
+        document.getElementById('btn-help').addEventListener('click', () => toggleHelp());
+        document.getElementById('help-close').addEventListener('click', () => toggleHelp(false));
+        document.getElementById('help-overlay').addEventListener('click', e => { if (e.target.id === 'help-overlay') toggleHelp(false); });
+
+        document.addEventListener('keydown', (e) => {
+            const tag = (e.target && e.target.tagName) || '';
+            if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') {
+                if (e.key === 'Escape') e.target.blur();
+                return;
+            }
+            switch (e.key) {
+                case ' ': e.preventDefault();
+                    (simRunning ? document.getElementById('btn-pause') : document.getElementById('btn-start')).click(); break;
+                case 'a': case 'A': toggleAnalysis(!analysisMode); break;
+                case 'f': case 'F': if (selectedDrone) { setCamMode('follow'); focusDrone(selectedDrone); } break;
+                case '1': setCamMode('reset'); break;
+                case '2': setCamMode('top'); break;
+                case '3': setCamMode('follow'); break;
+                case '4': setCamMode('orbit'); break;
+                case '/': e.preventDefault(); document.getElementById('drone-search').focus(); break;
+                case 'h': case 'H': case '?': toggleHelp(); break;
+                case 'Escape':
+                    if (document.getElementById('help-overlay').style.display !== 'none') toggleHelp(false);
+                    else if (analysisMode) toggleAnalysis(false);
+                    else deselectDrone();
+                    break;
+            }
+        });
+
+        // 패널 접힘 상태 localStorage 저장/복원
+        (function persistPanels() {
+            const map = [['#panel-left', 'toggle-left'], ['#panel-right', 'toggle-right'], ['.hud-bottom-log', 'btn-toggle-log'], ['#analytics-panel', 'btn-toggle-analytics']];
+            for (const [sel] of map) {
+                try { if (localStorage.getItem('sdacs_collapse_' + sel) === '1') document.querySelector(sel)?.classList.add('collapsed'); } catch (_) { }
+            }
+            for (const [sel, btnId] of map) {
+                document.getElementById(btnId)?.addEventListener('click', () => {
+                    setTimeout(() => { try { localStorage.setItem('sdacs_collapse_' + sel, document.querySelector(sel)?.classList.contains('collapsed') ? '1' : '0'); } catch (_) { } }, 0);
+                });
+            }
+        })();
 
         // ===== Controls =====
         document.getElementById('btn-clear-log').addEventListener('click', () => { eventLog.length = 0; });

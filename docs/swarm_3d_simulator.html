@@ -1028,6 +1028,39 @@
             </div>
         </div>
 
+        <!-- 뷰 · 검색 · 필터 -->
+        <div class="ctrl-panel">
+            <div class="ctrl-title">
+                <div style="width:6px;height:6px;border-radius:50%;background:#22d3ee;"></div>
+                🎥 뷰 · 검색
+            </div>
+            <input id="drone-search" type="text" placeholder="드론 검색 (ID/직군) → Enter"
+                style="width:100%;box-sizing:border-box;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.25);color:#cdd9e8;font-size:10px;padding:4px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;">
+            <div style="display:flex;gap:4px;margin-top:5px;">
+                <button class="ctrl-btn cam-preset active" data-cam="reset" style="flex:1;">기본</button>
+                <button class="ctrl-btn cam-preset" data-cam="top" style="flex:1;">탑다운</button>
+                <button class="ctrl-btn cam-preset" data-cam="follow" style="flex:1;">추적</button>
+                <button class="ctrl-btn cam-preset" data-cam="orbit" style="flex:1;">오빗</button>
+            </div>
+            <div style="display:flex;gap:4px;margin-top:5px;align-items:center;">
+                <select id="filter-phase" class="ctrl-select" style="flex:1;font-size:9px;">
+                    <option value="">전체 단계</option>
+                    <option value="GROUNDED">지상</option>
+                    <option value="TAKEOFF">이륙</option>
+                    <option value="ENROUTE">비행</option>
+                    <option value="HOLDING">체공</option>
+                    <option value="LANDING">착륙</option>
+                    <option value="EVADING">회피</option>
+                    <option value="RTL">귀환</option>
+                    <option value="FAILED">장애</option>
+                </select>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:5px;align-items:center;font-size:9px;color:#4a6785;font-family:'JetBrains Mono',monospace;">
+                배터리≤<input type="range" id="filter-batt" min="0" max="100" value="100" step="5" style="flex:1;accent-color:#22d3ee;">
+                <span id="filter-batt-val" style="min-width:30px;text-align:right;color:#cdd9e8;">100%</span>
+            </div>
+        </div>
+
         <!-- 리플레이 타임라인 -->
         <div class="ctrl-panel">
             <div class="ctrl-title">
@@ -2468,9 +2501,12 @@
         function syncInstances() {
             if (!megaMode) return;
             const n = Math.min(drones.length, MAX_INST);
+            const flt = (typeof filterActive === 'function') && filterActive();
             for (let i = 0; i < n; i++) {
                 const d = drones[i];
-                const s = d._uam ? 1.6 : 1.0;
+                // 필터 활성 + 비매칭 → 스케일 0으로 숨김
+                const hidden = flt && !droneMatches(d);
+                const s = hidden ? 0 : (d._uam ? 1.6 : 1.0);
                 _iScl.set(s, s, s);
                 _iM.compose(_iPos.copy(d.group.position), _iQ, _iScl);
                 bodyInst.setMatrixAt(i, _iM);
@@ -2583,6 +2619,7 @@
             if (typeof setHover === 'function') setHover(null);
             if (typeof resetBatteryTracked === 'function') resetBatteryTracked();
             if (typeof resetReplay === 'function') resetReplay();
+            if (typeof resetViewFilter === 'function') resetViewFilter();
             // Clear (geometry/material 해제 — GPU 메모리 누수 방지)
             while (droneGroup.children.length) {
                 const grp = droneGroup.children[0];
@@ -4932,6 +4969,75 @@
             document.querySelectorAll('.replay-spd').forEach(x => x.classList.toggle('active', x === b));
         }));
 
+        // ===== 뷰 프리셋 · 추적캠 · 검색 · 필터 (Bundle 1) =====
+        let camMode = 'reset';
+        const _followOffset = new THREE.Vector3(20, 16, 20);
+
+        function setCamMode(mode) {
+            camMode = mode;
+            controls.autoRotate = (mode === 'orbit');
+            if (mode === 'orbit') controls.autoRotateSpeed = 0.6;
+            document.querySelectorAll('.cam-preset').forEach(b => b.classList.toggle('active', b.dataset.cam === mode));
+            if (mode === 'reset') { camera.position.set(70, 50, 70); controls.target.set(0, 2, 0); }
+            else if (mode === 'top') { camera.position.set(0, 130, 0.1); controls.target.set(0, 0, 0); }
+            else if (mode === 'follow') {
+                _followOffset.copy(camera.position).sub(controls.target);
+                if (_followOffset.lengthSq() < 1) _followOffset.set(20, 16, 20);
+            }
+            controls.update();
+        }
+        document.querySelectorAll('.cam-preset').forEach(b => b.addEventListener('click', () => setCamMode(b.dataset.cam)));
+
+        function updateFollowCam() {
+            if (camMode !== 'follow') return;
+            const d = selectedDrone;
+            if (d && d.group && d.group.parent) {
+                controls.target.lerp(d.group.position, 0.15);
+                camera.position.lerp(d.group.position.clone().add(_followOffset), 0.1);
+            }
+        }
+
+        function focusDrone(d) {
+            if (!d) return;
+            selectDrone(d);
+            controls.target.copy(d.group.position);
+            const off = camMode === 'follow' ? _followOffset : new THREE.Vector3(18, 14, 18);
+            camera.position.copy(d.group.position).add(off);
+            controls.update();
+        }
+        document.getElementById('drone-search').addEventListener('keydown', e => {
+            if (e.key !== 'Enter') return;
+            const q = e.target.value.trim().toUpperCase();
+            if (!q) return;
+            const d = drones.find(x => x.id.toUpperCase() === q)
+                || drones.find(x => x.id.toUpperCase().includes(q))
+                || drones.find(x => (x.role.label || '').toUpperCase().includes(q) || (x.role.id || '').toUpperCase().includes(q));
+            if (d) { focusDrone(d); logEvent('info', `🔍 ${d.id} 포커스`); }
+            else logEvent('info', `🔍 '${e.target.value}' 검색 결과 없음`);
+        });
+
+        // 필터 (단계 + 배터리 상한) — 활성 시 매칭 드론만 표시
+        let filterPhase = '', filterBattMax = 100;
+        function filterActive() { return filterPhase !== '' || filterBattMax < 100; }
+        function droneMatches(d) { return (filterPhase === '' || d.phase === filterPhase) && (d.battery <= filterBattMax); }
+        function applyFilterVisibility() {
+            if (megaMode) return; // 대규모는 syncInstances가 처리
+            const active = filterActive();
+            for (const d of drones) if (d.group) d.group.visible = !active || droneMatches(d);
+        }
+        function resetViewFilter() {
+            filterPhase = ''; filterBattMax = 100;
+            const fp = document.getElementById('filter-phase'); if (fp) fp.value = '';
+            const fb = document.getElementById('filter-batt'); if (fb) fb.value = 100;
+            const fv = document.getElementById('filter-batt-val'); if (fv) fv.textContent = '100%';
+        }
+        document.getElementById('filter-phase').addEventListener('change', e => { filterPhase = e.target.value; applyFilterVisibility(); });
+        document.getElementById('filter-batt').addEventListener('input', e => {
+            filterBattMax = parseInt(e.target.value, 10);
+            document.getElementById('filter-batt-val').textContent = filterBattMax + '%';
+            applyFilterVisibility();
+        });
+
         // ===== Controls =====
         document.getElementById('btn-clear-log').addEventListener('click', () => { eventLog.length = 0; });
         document.getElementById('btn-start').addEventListener('click', () => {
@@ -5916,6 +6022,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 drawChart('av-canvas-batt', drawBatteryLines);
             }
 
+            updateFollowCam();
             controls.update();
             const gpuStart = performance.now();
             renderer.render(scene, camera);
@@ -5955,6 +6062,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             if (analysisMode) renderKPI();
             // 리플레이 레코더 (0.5s 스냅샷)
             recordSnapshot();
+            // 필터 활성 시 가시성 갱신(단계 변화 반영)
+            if (filterActive()) applyFilterVisibility();
         }, 500);
 
         animate();

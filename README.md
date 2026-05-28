@@ -671,6 +671,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-28 20:54 | `df7cce2` | docs: simulation/drone_agent.py 핵심 함수 docstring 보강 (Bundle 6 / 부채) | simulation/drone_agent.py |
 | 2026-05-28 20:52 | `83ff46e` | feat: 단축키 + 도움말 오버레이 + 패널상태 저장 (Bundle 5 / F) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-28 20:50 | `b774a77` | feat: 분리간격 위반 경보 + 단계별 조치 아이콘 (Bundle 4 / A) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-28 20:47 | `38014bc` | feat: 대규모 프러스텀 컬링·LOD + 성능 HUD (Bundle 3) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |

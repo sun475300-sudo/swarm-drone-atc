@@ -2767,6 +2767,7 @@
             if (typeof resetReplay === 'function') resetReplay();
             if (typeof resetViewFilter === 'function') resetViewFilter();
             if (typeof resetDnI === 'function') resetDnI();
+            if (typeof resetChartEvents === 'function') resetChartEvents();
             _prevColl = 0; _prevNear = 0;
             // Clear (geometry/material 해제 — GPU 메모리 누수 방지)
             while (droneGroup.children.length) {
@@ -5610,6 +5611,25 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
             activeChart = e.target.dataset.chart;
         });
 
+        // 분석 차트 이벤트 마커 (충돌/근접 발생 시점) — chartHistory와 분리(시간 기반)
+        const chartEvents = [];
+        let _chCollPrev = 0, _chNearPrev = 0;
+        function resetChartEvents() { chartEvents.length = 0; _chCollPrev = 0; _chNearPrev = 0; }
+        function drawEventMarkers(ctx, w, h) {
+            const T = chartHistory.time;
+            if (T.length < 2 || !chartEvents.length) return;
+            const t0 = T[0], t1 = T[T.length - 1], span = (t1 - t0) || 1;
+            for (const e of chartEvents) {
+                if (e.t < t0 || e.t > t1) continue;
+                const x = ((e.t - t0) / span) * w;
+                ctx.strokeStyle = e.type === 'collision' ? 'rgba(239,68,68,0.7)' : 'rgba(245,158,11,0.55)';
+                ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+                ctx.fillStyle = ctx.strokeStyle;
+                ctx.beginPath(); ctx.arc(x, 5, 2.2, 0, Math.PI * 2); ctx.fill();
+            }
+        }
+
         function sampleChartData() {
             if (!simRunning || drones.length === 0) return;
             const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
@@ -5643,6 +5663,14 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
             ['GROUNDED', 'TAKEOFF', 'ENROUTE', 'HOLDING', 'LANDING', 'EVADING', 'FAILED', 'RTL'].forEach(p => phases[p] = 0);
             drones.forEach(d => { phases[d.phase] = (phases[d.phase] || 0) + 1; });
             chartHistory.phases.push(phases);
+
+            // 이벤트 마커 기록 (충돌/근접 증가 시점)
+            if (stats.collisions > _chCollPrev) chartEvents.push({ t: simTime, type: 'collision' });
+            if (stats.nearMisses > _chNearPrev) chartEvents.push({ t: simTime, type: 'near' });
+            _chCollPrev = stats.collisions; _chNearPrev = stats.nearMisses;
+            // 차트 범위 밖(오래된) 이벤트 정리
+            const t0 = chartHistory.time[0];
+            while (chartEvents.length && chartEvents[0].t < t0) chartEvents.shift();
 
             // 히스토리 제한
             if (chartHistory.time.length > MAX_HISTORY) {
@@ -5779,6 +5807,7 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                         if (h.phases.length > 0) drawBars(ctx, w, ht, h.phases[h.phases.length - 1]);
                         break;
                 }
+                if (activeChart !== 'phase') drawEventMarkers(ctx, w, ht); // 충돌/근접 발생 시점 마커
             });
 
             drawChart('chart-sub', (ctx, w, ht) => {

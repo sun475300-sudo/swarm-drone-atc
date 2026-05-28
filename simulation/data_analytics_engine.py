@@ -3,7 +3,6 @@ Phase 453: Data Analytics Engine for Flight Data Analysis
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 
@@ -19,15 +18,15 @@ class FlightData:
 
 class DataAnalyticsEngine:
     def __init__(self):
-        self.flight_data: Dict[str, List[FlightData]] = {}
-        self.analytics_results: Dict = {}
+        self.flight_data: dict[str, list[FlightData]] = {}
+        self.analytics_results: dict = {}
 
     def ingest_data(self, data: FlightData):
         if data.drone_id not in self.flight_data:
             self.flight_data[data.drone_id] = []
         self.flight_data[data.drone_id].append(data)
 
-    def calculate_statistics(self, drone_id: str) -> Dict:
+    def calculate_statistics(self, drone_id: str) -> dict:
         if drone_id not in self.flight_data:
             return {}
 
@@ -40,7 +39,7 @@ class DataAnalyticsEngine:
             "max_speed": max(np.linalg.norm(v) for v in velocities),
         }
 
-    def detect_patterns(self, drone_id: str) -> List[str]:
+    def detect_patterns(self, drone_id: str) -> list[str]:
         patterns = []
         if drone_id in self.flight_data and len(self.flight_data[drone_id]) > 100:
             patterns.append("frequent_flying")

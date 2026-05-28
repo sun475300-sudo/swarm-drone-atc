@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -74,14 +73,14 @@ class AutoTuner:
     """PID 자동 튜닝 (Ziegler-Nichols 방법)."""
 
     def __init__(self):
-        self._oscillation_history: Dict[str, List[float]] = {}
+        self._oscillation_history: dict[str, list[float]] = {}
 
     def record_response(self, drone_id: str, error: float):
         if drone_id not in self._oscillation_history:
             self._oscillation_history[drone_id] = []
         self._oscillation_history[drone_id].append(error)
 
-    def compute_gains(self, drone_id: str, dt: float = 0.1) -> Optional[PIDGains]:
+    def compute_gains(self, drone_id: str, dt: float = 0.1) -> PIDGains | None:
         history = self._oscillation_history.get(drone_id, [])
         if len(history) < 20:
             return None
@@ -110,12 +109,12 @@ class AdaptiveControlSystem:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._states: Dict[str, ControlState] = {}
+        self._states: dict[str, ControlState] = {}
         self._tuner = AutoTuner()
-        self._history: List[dict] = []
-        self._wind_compensation: Dict[str, np.ndarray] = {}
+        self._history: list[dict] = []
+        self._wind_compensation: dict[str, np.ndarray] = {}
 
-    def register_drone(self, drone_id: str, mode: ControlMode = ControlMode.PID, gains: Optional[PIDGains] = None) -> ControlState:
+    def register_drone(self, drone_id: str, mode: ControlMode = ControlMode.PID, gains: PIDGains | None = None) -> ControlState:
         state = ControlState(drone_id=drone_id, mode=mode, gains=gains or PIDGains())
         self._states[drone_id] = state
         return state
@@ -140,7 +139,7 @@ class AdaptiveControlSystem:
     def set_wind_compensation(self, drone_id: str, wind_vector: np.ndarray):
         self._wind_compensation[drone_id] = wind_vector * 0.3  # 30% feed-forward
 
-    def auto_tune(self, drone_id: str, dt: float = 0.1) -> Optional[PIDGains]:
+    def auto_tune(self, drone_id: str, dt: float = 0.1) -> PIDGains | None:
         gains = self._tuner.compute_gains(drone_id, dt)
         if gains:
             state = self._states.get(drone_id)
@@ -154,7 +153,7 @@ class AdaptiveControlSystem:
         if state:
             state.mode = mode
 
-    def get_state(self, drone_id: str) -> Optional[ControlState]:
+    def get_state(self, drone_id: str) -> ControlState | None:
         return self._states.get(drone_id)
 
     def get_tracking_error(self, drone_id: str) -> float:

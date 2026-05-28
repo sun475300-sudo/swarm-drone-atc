@@ -121,7 +121,7 @@ class SwarmStigmergy:
     def step(self):
         self.total_steps += 1
         for agent in self.agents:
-            path = self.aco.find_path(agent, self.target[0], self.target[1], 50)
+            self.aco.find_path(agent, self.target[0], self.target[1], 50)
             if (agent.x, agent.y) == self.target:
                 self.paths_found += 1
                 # 리셋

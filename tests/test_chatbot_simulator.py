@@ -1,7 +1,6 @@
 """챗봇 CLI 시뮬레이터 단위 테스트."""
 
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 

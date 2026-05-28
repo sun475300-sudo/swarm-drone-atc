@@ -5,7 +5,6 @@ Phase 490: Grand Unified Controller
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List
 
 import numpy as np
 
@@ -56,18 +55,18 @@ class SystemEvent:
     priority: Priority
     message: str
     timestamp: float
-    data: Dict = field(default_factory=dict)
+    data: dict = field(default_factory=dict)
 
 
 @dataclass
 class ControlDecision:
     decision_id: str
-    affected_drones: List[str]
+    affected_drones: list[str]
     action: str
     priority: Priority
     reason: str
     timestamp: float
-    overrides: Dict = field(default_factory=dict)
+    overrides: dict = field(default_factory=dict)
 
 
 class GrandUnifiedController:
@@ -77,10 +76,10 @@ class GrandUnifiedController:
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.state = SystemState.NOMINAL
-        self.modules: Dict[SystemModule, ModuleStatus] = {}
-        self.event_log: List[SystemEvent] = []
-        self.decisions: List[ControlDecision] = []
-        self.drone_states: Dict[str, Dict] = {}
+        self.modules: dict[SystemModule, ModuleStatus] = {}
+        self.event_log: list[SystemEvent] = []
+        self.decisions: list[ControlDecision] = []
+        self.drone_states: dict[str, dict] = {}
         self.time = 0.0
         self._event_counter = 0
         self._decision_counter = 0
@@ -100,7 +99,7 @@ class GrandUnifiedController:
             }
 
     def _emit_event(self, source: SystemModule, priority: Priority,
-                    message: str, data: Dict = None) -> SystemEvent:
+                    message: str, data: dict = None) -> SystemEvent:
         self._event_counter += 1
         event = SystemEvent(
             f"EVT-{self._event_counter:06d}", source, priority,
@@ -108,7 +107,7 @@ class GrandUnifiedController:
         self.event_log.append(event)
         return event
 
-    def _make_decision(self, drones: List[str], action: str,
+    def _make_decision(self, drones: list[str], action: str,
                        priority: Priority, reason: str) -> ControlDecision:
         self._decision_counter += 1
         decision = ControlDecision(
@@ -144,7 +143,7 @@ class GrandUnifiedController:
             return SystemState.DEGRADED
         return SystemState.NOMINAL
 
-    def _safety_checks(self) -> List[ControlDecision]:
+    def _safety_checks(self) -> list[ControlDecision]:
         decisions = []
         for did, state in self.drone_states.items():
             if state["battery"] < 15:
@@ -158,7 +157,7 @@ class GrandUnifiedController:
                     f"Outside geofence: {np.linalg.norm(pos[:2]):.0f}m"))
         return decisions
 
-    def _optimize_swarm(self) -> List[ControlDecision]:
+    def _optimize_swarm(self) -> list[ControlDecision]:
         decisions = []
         if self.state != SystemState.NOMINAL:
             return decisions
@@ -173,7 +172,7 @@ class GrandUnifiedController:
                         Priority.SAFETY, f"Proximity alert: {dist:.1f}m"))
         return decisions
 
-    def tick(self, dt: float = 1.0) -> Dict:
+    def tick(self, dt: float = 1.0) -> dict:
         self.time += dt
 
         for mod in self.modules.values():
@@ -204,7 +203,7 @@ class GrandUnifiedController:
             "active_modules": sum(1 for m in self.modules.values() if m.active),
         }
 
-    def run(self, duration: float = 60, dt: float = 1.0) -> Dict:
+    def run(self, duration: float = 60, dt: float = 1.0) -> dict:
         steps = int(duration / dt)
         state_counts = {s.value: 0 for s in SystemState}
         total_decisions = 0
@@ -219,7 +218,7 @@ class GrandUnifiedController:
             "total_events": len(self.event_log),
         }
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "state": self.state.value,
             "drones": self.n_drones,

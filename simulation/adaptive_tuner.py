@@ -93,7 +93,7 @@ class AdaptiveTuner:
                 continue
 
             current_val = np.mean(vals[-5:])
-            trend = self._metric_trend(metric_name)
+            self._metric_trend(metric_name)
 
             # 목표 대비 차이
             if direction == "minimize":
@@ -107,10 +107,7 @@ class AdaptiveTuner:
             # 관련 파라미터 조정
             for pname, param in self._params.items():
                 adjustment = param.step * self.sensitivity * min(gap, 1.0)
-                if direction == "minimize":
-                    new_val = param.current + adjustment
-                else:
-                    new_val = param.current - adjustment
+                new_val = param.current + adjustment if direction == "minimize" else param.current - adjustment
 
                 new_val = max(param.min_val, min(param.max_val, new_val))
                 if abs(new_val - param.current) < 1e-6:

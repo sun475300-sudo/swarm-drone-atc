@@ -5,7 +5,6 @@ Phase 504: Hyperspectral Sensor Fusion
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -51,7 +50,7 @@ class SpectralLibrary:
         self.rng = np.random.default_rng(seed)
         self.n_bands = n_bands
         self.wavelengths = np.linspace(400, 2500, n_bands)
-        self.signatures: Dict[TerrainType, np.ndarray] = {}
+        self.signatures: dict[TerrainType, np.ndarray] = {}
         self._init_signatures()
 
     def _init_signatures(self):
@@ -76,7 +75,7 @@ class SpectralClassifier:
     def __init__(self, library: SpectralLibrary):
         self.library = library
 
-    def classify(self, spectrum: np.ndarray) -> Tuple[TerrainType, float]:
+    def classify(self, spectrum: np.ndarray) -> tuple[TerrainType, float]:
         best_type = TerrainType.UNKNOWN
         best_angle = np.pi
         for terrain, ref in self.library.signatures.items():
@@ -98,9 +97,9 @@ class HyperspectralSensor:
         self.resolution = resolution
         self.library = SpectralLibrary(n_bands, seed)
         self.classifier = SpectralClassifier(self.library)
-        self.scans: List[np.ndarray] = []
+        self.scans: list[np.ndarray] = []
 
-    def capture(self, altitude_m: float = 100) -> List[HyperspectralPixel]:
+    def capture(self, altitude_m: float = 100) -> list[HyperspectralPixel]:
         snr_factor = max(0.5, 1.0 - altitude_m / 500)
         pixels = []
         terrain_map = self.rng.choice(list(TerrainType)[:-1], (self.resolution, self.resolution))
@@ -117,14 +116,14 @@ class HyperspectralSensor:
         self.scans.append(np.array([p.spectrum for p in pixels]))
         return pixels
 
-    def generate_map(self, pixels: List[HyperspectralPixel]) -> Dict[str, int]:
+    def generate_map(self, pixels: list[HyperspectralPixel]) -> dict[str, int]:
         counts = {}
         for p in pixels:
             key = p.classified.value
             counts[key] = counts.get(key, 0) + 1
         return counts
 
-    def ndvi(self, pixels: List[HyperspectralPixel]) -> List[float]:
+    def ndvi(self, pixels: list[HyperspectralPixel]) -> list[float]:
         """Normalized Difference Vegetation Index."""
         red_idx = self.n_bands // 4
         nir_idx = self.n_bands // 2
@@ -136,7 +135,7 @@ class HyperspectralSensor:
             ndvi_values.append(round(float(val), 4))
         return ndvi_values
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "bands": self.n_bands,
             "resolution": self.resolution,

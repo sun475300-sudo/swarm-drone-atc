@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 
@@ -50,7 +49,7 @@ class ResolutionAdvisory:
     magnitude: float            # 변경량 (m 또는 도)
     duration_s: float
     timestamp_s: float
-    conflict_pair: Optional[str] = None  # 충돌 상대 드론 ID
+    conflict_pair: str | None = None  # 충돌 상대 드론 ID
 
 
 @dataclass
@@ -61,4 +60,4 @@ class IntrusionAlert:
     detection_position: np.ndarray
     detection_time_s: float
     threat_level: str           # LOW, MEDIUM, HIGH, CRITICAL
-    nearest_registered_id: Optional[str] = None
+    nearest_registered_id: str | None = None

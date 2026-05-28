@@ -72,7 +72,7 @@ class DroneAuctionMarket:
             "rounds": self.rounds,
             "total_revenue": round(self.total_revenue, 2),
             "avg_price": round(self.total_revenue / max(1, self.rounds), 2),
-            "unique_winners": len(set(a["winner"] for a in self.allocations)),
+            "unique_winners": len({a["winner"] for a in self.allocations}),
         }
 
 

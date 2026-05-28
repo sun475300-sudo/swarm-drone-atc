@@ -3,7 +3,6 @@ Phase 467: Coverage Planning System for Area Survey
 """
 
 from dataclasses import dataclass
-from typing import List, Tuple
 
 
 @dataclass
@@ -16,14 +15,14 @@ class CoverageRegion:
 
 class CoveragePlanningSystem:
     def __init__(self):
-        self.regions: List[CoverageRegion] = []
+        self.regions: list[CoverageRegion] = []
 
     def add_region(self, region: CoverageRegion):
         self.regions.append(region)
 
     def plan_survey_path(
         self, drone_count: int
-    ) -> List[List[Tuple[float, float, float]]]:
+    ) -> list[list[tuple[float, float, float]]]:
         if not self.regions:
             return []
 
@@ -36,7 +35,7 @@ class CoveragePlanningSystem:
 
     def _generate_lawnmower(
         self, region: CoverageRegion, drones: int
-    ) -> List[Tuple[float, float, float]]:
+    ) -> list[tuple[float, float, float]]:
         path = []
         x = region.x_min
         y = region.y_min

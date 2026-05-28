@@ -172,10 +172,7 @@ class AirspaceWeatherIntegration:
         """신규 이륙 가능 여부"""
         if self._airspace_class == AirspaceClass.RED:
             return False
-        for r in self.get_restrictions():
-            if r.no_new_launches:
-                return False
-        return True
+        return all(not r.no_new_launches for r in self.get_restrictions())
 
     def max_allowed_drones(self) -> int | None:
         """현재 최대 허용 드론 수"""

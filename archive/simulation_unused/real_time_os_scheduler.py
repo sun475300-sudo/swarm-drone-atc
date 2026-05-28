@@ -276,7 +276,7 @@ class DroneFlightController:
                 self.scheduler.current_time = current_time
 
         metrics = self.scheduler.metrics
-        print(f"\n=== Results ===")
+        print("\n=== Results ===")
         print(f"CPU Utilization: {metrics.cpu_utilization:.2%}")
         print(f"Task Completions: {metrics.task_completions}")
         print(f"Task Misses: {metrics.task_misses}")

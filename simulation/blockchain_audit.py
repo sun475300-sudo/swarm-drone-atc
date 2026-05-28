@@ -10,7 +10,6 @@ import hashlib
 import json
 import time
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 
 @dataclass
@@ -52,8 +51,8 @@ class BlockchainAuditTrail:
     DIFFICULTY = 2  # Number of leading zeros
 
     def __init__(self):
-        self._chain: List[Block] = []
-        self._pending: List[AuditEvent] = []
+        self._chain: list[Block] = []
+        self._pending: list[AuditEvent] = []
         self._create_genesis()
 
     def _create_genesis(self):
@@ -96,16 +95,16 @@ class BlockchainAuditTrail:
                 return False
         return True
 
-    def query_by_type(self, event_type: str) -> List[Block]:
+    def query_by_type(self, event_type: str) -> list[Block]:
         return [b for b in self._chain[1:] if b.data.get("event") == event_type]
 
-    def query_by_actor(self, actor: str) -> List[Block]:
+    def query_by_actor(self, actor: str) -> list[Block]:
         return [b for b in self._chain[1:] if b.data.get("actor") == actor]
 
-    def query_by_time_range(self, start: float, end: float) -> List[Block]:
+    def query_by_time_range(self, start: float, end: float) -> list[Block]:
         return [b for b in self._chain[1:] if start <= b.timestamp <= end]
 
-    def get_block(self, index: int) -> Optional[Block]:
+    def get_block(self, index: int) -> Block | None:
         if 0 <= index < len(self._chain):
             return self._chain[index]
         return None
@@ -117,7 +116,7 @@ class BlockchainAuditTrail:
     def chain_length(self) -> int:
         return len(self._chain)
 
-    def export_chain(self) -> List[dict]:
+    def export_chain(self) -> list[dict]:
         return [{
             "index": b.index, "timestamp": b.timestamp, "hash": b.hash,
             "previous_hash": b.previous_hash, "data": b.data, "nonce": b.nonce,

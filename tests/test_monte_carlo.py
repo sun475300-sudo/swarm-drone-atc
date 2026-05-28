@@ -3,11 +3,9 @@ Monte Carlo 파라미터 스윕 단위 테스트
 """
 from __future__ import annotations
 
-from unittest.mock import patch, MagicMock
-
 import pytest
 
-from simulation.monte_carlo import _run_single, _load_mc_config, summarize_results
+from simulation.monte_carlo import _load_mc_config, _run_single, summarize_results
 
 pytestmark = pytest.mark.e2e
 

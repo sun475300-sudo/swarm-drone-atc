@@ -14,9 +14,10 @@ Behavior Tree 노드 유형:
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any
 
 
 class NodeStatus(Enum):
@@ -67,7 +68,7 @@ class SelectorNode(BTNode):
 @dataclass
 class ConditionNode(BTNode):
     """조건 확인 노드. predicate가 True면 SUCCESS."""
-    predicate: Optional[Callable[[dict[str, Any]], bool]] = None
+    predicate: Callable[[dict[str, Any]], bool] | None = None
 
     def tick(self, context: dict[str, Any]) -> NodeStatus:
         if self.predicate is None:
@@ -78,7 +79,7 @@ class ConditionNode(BTNode):
 @dataclass
 class ActionNode(BTNode):
     """실행 노드. action 함수를 호출하여 결과를 반환."""
-    action: Optional[Callable[[dict[str, Any]], NodeStatus]] = None
+    action: Callable[[dict[str, Any]], NodeStatus] | None = None
 
     def tick(self, context: dict[str, Any]) -> NodeStatus:
         if self.action is None:
@@ -89,7 +90,7 @@ class ActionNode(BTNode):
 @dataclass
 class InverterNode(BTNode):
     """데코레이터: 자식 결과를 반전 (SUCCESS ↔ FAILURE)."""
-    child: Optional[BTNode] = None
+    child: BTNode | None = None
 
     def tick(self, context: dict[str, Any]) -> NodeStatus:
         if self.child is None:
@@ -105,7 +106,7 @@ class InverterNode(BTNode):
 @dataclass
 class RepeatUntilSuccess(BTNode):
     """데코레이터: 자식이 SUCCESS될 때까지 반복 (max_repeats 제한)."""
-    child: Optional[BTNode] = None
+    child: BTNode | None = None
     max_repeats: int = 10
 
     def tick(self, context: dict[str, Any]) -> NodeStatus:

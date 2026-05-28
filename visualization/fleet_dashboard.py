@@ -8,6 +8,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
+
 import numpy as np
 
 
@@ -26,13 +27,13 @@ class FleetDrone:
     status: str = DroneStatus.IDLE
     battery_percent: float = 100.0
     position: tuple = (0.0, 0.0, 0.0)
-    target: Optional[tuple] = None
+    target: tuple | None = None
     speed_mps: float = 0.0
     mission_progress: float = 0.0
     total_flights: int = 0
     flight_hours: float = 0.0
-    last_maintenance: Optional[datetime] = None
-    next_maintenance: Optional[datetime] = None
+    last_maintenance: datetime | None = None
+    next_maintenance: datetime | None = None
 
 
 class FleetMetrics:
@@ -51,9 +52,9 @@ class FleetMetrics:
 
 class FleetManager:
     def __init__(self, fleet_size: int = 100):
-        self.drones: Dict[str, FleetDrone] = {}
-        self.mission_history: List[Dict] = []
-        self.alerts: List[Dict] = []
+        self.drones: dict[str, FleetDrone] = {}
+        self.mission_history: list[dict] = []
+        self.alerts: list[dict] = []
         self._initialize_fleet(fleet_size)
         self.start_time = datetime.now()
 
@@ -167,7 +168,7 @@ class FleetManager:
             drone.status = DroneStatus.IDLE
             drone.target = None
 
-    def check_alerts(self) -> List[Dict]:
+    def check_alerts(self) -> list[dict]:
         alerts = []
         for drone in self.drones.values():
             if drone.battery_percent < 20:
@@ -234,7 +235,7 @@ class FleetManager:
         }
         return json.dumps(status, indent=2)
 
-    def optimize_fleet_allocation(self) -> Dict:
+    def optimize_fleet_allocation(self) -> dict:
         idle_drones = [d for d in self.drones.values() if d.status == DroneStatus.IDLE]
         low_battery = [d for d in self.drones.values() if d.battery_percent < 30]
 

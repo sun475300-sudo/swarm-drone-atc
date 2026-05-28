@@ -5,7 +5,6 @@ Phase 489: Urban Air Mobility V2
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -71,7 +70,7 @@ class DemandPredictor:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.history: Dict[str, List[float]] = {}
+        self.history: dict[str, list[float]] = {}
 
     def add_observation(self, route: str, demand: float):
         if route not in self.history:
@@ -102,12 +101,12 @@ class UrbanAirMobilityV2:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.vertiports: Dict[str, Vertiport] = {}
-        self.flights: List[UAMFlight] = []
+        self.vertiports: dict[str, Vertiport] = {}
+        self.flights: list[UAMFlight] = []
         self.demand = DemandPredictor(seed)
         self.time = 0.0
         self._flight_counter = 0
-        self.corridors: Dict[str, Dict] = {}
+        self.corridors: dict[str, dict] = {}
 
     def add_vertiport(self, port_id: str, lat: float, lon: float, alt: float = 0,
                       capacity: int = 4, pads: int = 2) -> Vertiport:
@@ -116,7 +115,7 @@ class UrbanAirMobilityV2:
         return vp
 
     def create_corridor(self, origin: str, dest: str, altitude_m: float = 300,
-                        width_m: float = 100) -> Dict:
+                        width_m: float = 100) -> dict:
         key = f"{origin}->{dest}"
         p1 = self.vertiports[origin].position
         p2 = self.vertiports[dest].position
@@ -133,7 +132,7 @@ class UrbanAirMobilityV2:
 
     def schedule_flight(self, origin: str, dest: str,
                         vehicle: VehicleType = VehicleType.AIR_TAXI,
-                        passengers: int = 2) -> Optional[UAMFlight]:
+                        passengers: int = 2) -> UAMFlight | None:
         if origin not in self.vertiports or dest not in self.vertiports:
             return None
         op = self.vertiports[origin]
@@ -155,7 +154,7 @@ class UrbanAirMobilityV2:
         op.current_load += 1
         return flight
 
-    def tick(self, dt: float = 60) -> Dict:
+    def tick(self, dt: float = 60) -> dict:
         self.time += dt
         departed = 0
         arrived = 0
@@ -173,7 +172,7 @@ class UrbanAirMobilityV2:
                     dp.current_load = min(dp.capacity, dp.current_load + 1)
         return {"time": self.time, "departed": departed, "arrived": arrived}
 
-    def network_status(self) -> Dict:
+    def network_status(self) -> dict:
         return {
             "vertiports": len(self.vertiports),
             "corridors": len(self.corridors) // 2,
@@ -185,5 +184,5 @@ class UrbanAirMobilityV2:
             "total_passengers": sum(f.passengers for f in self.flights),
         }
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return self.network_status()

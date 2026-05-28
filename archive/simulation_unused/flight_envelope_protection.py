@@ -103,7 +103,7 @@ class StallProtection:
                 level=ProtectionLevel.WARNING,
                 current_value=speed,
                 limit_value=current_stall,
-                message=f"STALL CAUTION: Approaching stall speed",
+                message="STALL CAUTION: Approaching stall speed",
                 recommended_action="Reduce angle of attack",
             )
 
@@ -170,7 +170,7 @@ class LoadFactorProtection:
                 level=ProtectionLevel.CAUTION,
                 current_value=total_load,
                 limit_value=self.envelope.max_load_factor,
-                message=f"LOAD CAUTION: Approaching load limit",
+                message="LOAD CAUTION: Approaching load limit",
                 recommended_action="Reduce maneuver intensity",
             )
 
@@ -210,7 +210,7 @@ class SpeedProtection:
                 level=ProtectionLevel.WARNING,
                 current_value=speed,
                 limit_value=self.envelope.max_speed_ms,
-                message=f"SPEED CAUTION: Approaching max speed",
+                message="SPEED CAUTION: Approaching max speed",
                 recommended_action="Reduce airspeed",
             )
 
@@ -241,7 +241,7 @@ class AltitudeProtection:
                 level=ProtectionLevel.WARNING,
                 current_value=altitude,
                 limit_value=self.envelope.max_altitude_m,
-                message=f"ALTITUDE CAUTION: Approaching ceiling",
+                message="ALTITUDE CAUTION: Approaching ceiling",
                 recommended_action="Reduce climb rate",
             )
 
@@ -260,7 +260,7 @@ class AltitudeProtection:
                 level=ProtectionLevel.WARNING,
                 current_value=altitude,
                 limit_value=self.envelope.min_altitude_m,
-                message=f"LOW ALTITUDE WARNING",
+                message="LOW ALTITUDE WARNING",
                 recommended_action="Monitor altitude",
             )
 
@@ -476,7 +476,7 @@ def simulate_flight_envelope():
         if result.get("command"):
             print(f"  Command: {result['command']}")
 
-    print(f"\n=== Summary ===")
+    print("\n=== Summary ===")
     print(f"Total alerts: {len(system.alert_history)}")
     print(
         f"Hard limits: {sum(1 for a in system.alert_history if a.level == ProtectionLevel.HARD_LIMIT)}"

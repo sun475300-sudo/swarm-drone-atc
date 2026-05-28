@@ -10,7 +10,6 @@ import hashlib
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -59,10 +58,10 @@ class PBFTNode:
     role: NodeRole = NodeRole.BACKUP
     view: int = 0
     sequence: int = 0
-    log: List[PBFTMessage] = field(default_factory=list)
-    prepare_count: Dict[int, int] = field(default_factory=dict)
-    commit_count: Dict[int, int] = field(default_factory=dict)
-    committed: List[int] = field(default_factory=list)
+    log: list[PBFTMessage] = field(default_factory=list)
+    prepare_count: dict[int, int] = field(default_factory=dict)
+    commit_count: dict[int, int] = field(default_factory=dict)
+    committed: list[int] = field(default_factory=list)
     is_faulty: bool = False
 
 
@@ -79,11 +78,11 @@ class DistributedConsensusV2:
         self._rng = np.random.default_rng(rng_seed)
         self.n_nodes = max(n_nodes, 3 * f_faulty + 1)
         self.f_faulty = f_faulty
-        self._nodes: Dict[int, PBFTNode] = {}
+        self._nodes: dict[int, PBFTNode] = {}
         self._view = 0
         self._sequence = 0
-        self._committed_ops: List[dict] = []
-        self._message_log: List[PBFTMessage] = []
+        self._committed_ops: list[dict] = []
+        self._message_log: list[PBFTMessage] = []
         self._init_nodes()
 
     def _init_nodes(self):
@@ -176,10 +175,10 @@ class DistributedConsensusV2:
                 node.role = NodeRole.BACKUP
         return self._view
 
-    def get_node(self, node_id: int) -> Optional[PBFTNode]:
+    def get_node(self, node_id: int) -> PBFTNode | None:
         return self._nodes.get(node_id)
 
-    def get_committed_ops(self) -> List[dict]:
+    def get_committed_ops(self) -> list[dict]:
         return self._committed_ops.copy()
 
     def get_primary(self) -> int:

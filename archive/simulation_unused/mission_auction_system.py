@@ -405,21 +405,21 @@ def simulate_mission_auction():
     manager.create_missions(10)
     manager.create_drones(5)
 
-    print(f"\n--- Vickrey Auctions ---")
+    print("\n--- Vickrey Auctions ---")
     manager.submit_bids()
     vickrey_results = manager.run_auction()
 
     for result in vickrey_results[:5]:
         print(f"{result.mission_id}: {result.winning_drone_id} - ${result.payment:.2f}")
 
-    print(f"\n--- Combinatorial Auction ---")
+    print("\n--- Combinatorial Auction ---")
     combo_results = manager.run_combinatorial_auction()
 
     for mission_id, result in list(combo_results.items())[:3]:
         print(f"{mission_id}: {result.winning_drone_id} - ${result.payment:.2f}")
 
     summary = manager.get_auction_summary()
-    print(f"\n=== Summary ===")
+    print("\n=== Summary ===")
     print(f"Missions: {summary['total_missions']}")
     print(f"Allocated: {summary['allocated_missions']}")
     print(f"Revenue: ${summary['total_revenue']:.2f}")

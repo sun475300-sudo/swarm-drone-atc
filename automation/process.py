@@ -7,9 +7,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Optional
-
-import numpy as np
+from typing import Any
 
 logger = logging.getLogger("automation.process")
 
@@ -17,9 +15,9 @@ logger = logging.getLogger("automation.process")
 # ── 시뮬레이션 결과 가공 ──────────────────────────────────────
 
 def process_sim_data(
-    mc_data: Optional[dict] = None,
-    scenario_data: Optional[dict] = None,
-    filters: Optional[dict] = None,
+    mc_data: dict | None = None,
+    scenario_data: dict | None = None,
+    filters: dict | None = None,
 ) -> dict[str, Any]:
     """
     시뮬레이션 수집 결과를 필터링·집계·정리.
@@ -264,10 +262,10 @@ def _count_races(rankings: list[dict]) -> dict[str, int]:
 # ── 통합 가공 함수 ────────────────────────────────────────────
 
 def process_all(
-    mc_data: Optional[dict] = None,
-    scenario_data: Optional[dict] = None,
-    external_data: Optional[dict] = None,
-    filters: Optional[dict] = None,
+    mc_data: dict | None = None,
+    scenario_data: dict | None = None,
+    external_data: dict | None = None,
+    filters: dict | None = None,
 ) -> dict[str, Any]:
     """
     모든 수집 데이터를 가공하여 통합 결과를 반환.

@@ -4,9 +4,6 @@ import json
 import tempfile
 from pathlib import Path
 
-import numpy as np
-import pytest
-
 
 class TestABTestRunner:
     def test_init_defaults(self):

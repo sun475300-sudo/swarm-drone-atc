@@ -8,12 +8,10 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import sqlite3
-import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger("automation.store")
 
@@ -26,8 +24,8 @@ _DEFAULT_DB_PATH = _ROOT / "data" / "pipeline" / "sdacs_pipeline.db"
 
 def store_local(
     data: dict[str, Any],
-    output_dir: Optional[str] = None,
-    formats: Optional[list[str]] = None,
+    output_dir: str | None = None,
+    formats: list[str] | None = None,
 ) -> dict[str, Any]:
     """
     가공된 데이터를 로컬 파일로 저장.
@@ -194,7 +192,7 @@ def _save_xlsx(data: dict, out_dir: Path, ts: str) -> list[str]:
 
 def store_db(
     data: dict[str, Any],
-    db_path: Optional[str] = None,
+    db_path: str | None = None,
 ) -> dict[str, Any]:
     """
     가공된 데이터를 SQLite DB에 저장.
@@ -345,7 +343,7 @@ def _init_tables(conn: sqlite3.Connection):
 
 def store_google_drive(
     data: dict[str, Any],
-    config: Optional[dict] = None,
+    config: dict | None = None,
 ) -> dict[str, Any]:
     """
     Google Drive/Sheets에 데이터를 저장.
@@ -381,7 +379,7 @@ def store_google_drive(
 
 def store_all(
     data: dict[str, Any],
-    config: Optional[dict] = None,
+    config: dict | None = None,
 ) -> dict[str, Any]:
     """
     모든 저장소에 동시 저장.

@@ -71,7 +71,7 @@ class WeatherGenerator:
         d_fake2 = self.discriminate(fake2)
         g_error = d_fake2 - 1.0
         h_g = np.maximum(0, fake2 @ self.d_w1 + self.d_b1)
-        dg = h_g.T @ g_error / n
+        h_g.T @ g_error / n
         # Backprop through discriminator to generator (approximate)
         self.g_w2 -= lr * 0.1 * self.rng.normal(0, 0.01, self.g_w2.shape)
 

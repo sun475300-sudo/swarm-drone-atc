@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -52,7 +52,7 @@ class SimulationAnalyticsHook:
       - JSON 내보내기
     """
 
-    def __init__(self, simulator: Optional[Any] = None):
+    def __init__(self, simulator: Any | None = None):
         """
         초기화.
 
@@ -373,7 +373,7 @@ class SimulationAnalyticsHook:
         """
         return self.collision_events.copy()
 
-    def get_metrics_summary(self, start_time: float = 0.0, end_time: Optional[float] = None) -> dict[str, Any]:
+    def get_metrics_summary(self, start_time: float = 0.0, end_time: float | None = None) -> dict[str, Any]:
         """
         지정된 시간 범위의 메트릭 요약.
 

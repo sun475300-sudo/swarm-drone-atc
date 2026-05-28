@@ -1,3 +1,5 @@
+"""Module: tests/test_onboard_bridge.py."""
+
 from __future__ import annotations
 
 import asyncio
@@ -9,6 +11,7 @@ import pytest
 
 import src.hardware.onboard_bridge as _bridge_module
 from src.hardware.onboard_bridge import (
+    TELEMETRY_POLL_HZ,
     BridgeConfig,
     BridgeState,
     CallableRemoteIDTransport,
@@ -17,7 +20,6 @@ from src.hardware.onboard_bridge import (
     MavlinkAdapter,
     OnboardBridge,
     RemoteIDTransport,
-    TELEMETRY_POLL_HZ,
     TelemetrySnapshot,
     _load_remote_id_transport,
     parse_args,

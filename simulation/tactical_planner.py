@@ -5,7 +5,6 @@ Phase 508: Tactical Mission Planner
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -46,7 +45,7 @@ class DroneCapability:
     speed_ms: float
     endurance_s: float
     payload_kg: float
-    sensors: List[str] = field(default_factory=list)
+    sensors: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -55,7 +54,7 @@ class Assignment:
     task_id: str
     eta_s: float
     cost: float
-    path: List[np.ndarray] = field(default_factory=list)
+    path: list[np.ndarray] = field(default_factory=list)
 
 
 class HungarianAssigner:
@@ -64,8 +63,8 @@ class HungarianAssigner:
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
 
-    def compute_cost_matrix(self, drones: List[DroneCapability],
-                            tasks: List[MissionTask]) -> np.ndarray:
+    def compute_cost_matrix(self, drones: list[DroneCapability],
+                            tasks: list[MissionTask]) -> np.ndarray:
         n_d = len(drones)
         n_t = len(tasks)
         cost = np.full((n_d, n_t), 1e6)
@@ -78,8 +77,8 @@ class HungarianAssigner:
                     cost[i, j] = travel_time - priority_bonus + t.duration_s
         return cost
 
-    def assign(self, drones: List[DroneCapability],
-               tasks: List[MissionTask]) -> List[Assignment]:
+    def assign(self, drones: list[DroneCapability],
+               tasks: list[MissionTask]) -> list[Assignment]:
         if not drones or not tasks:
             return []
         cost = self.compute_cost_matrix(drones, tasks)
@@ -109,10 +108,10 @@ class TemporalScheduler:
     """Time-window based scheduling with conflict avoidance."""
 
     def __init__(self):
-        self.timeline: List[Tuple[float, float, str, str]] = []
+        self.timeline: list[tuple[float, float, str, str]] = []
 
-    def schedule(self, assignments: List[Assignment],
-                 tasks: Dict[str, MissionTask]) -> List[Tuple[str, float, float]]:
+    def schedule(self, assignments: list[Assignment],
+                 tasks: dict[str, MissionTask]) -> list[tuple[str, float, float]]:
         schedule = []
         for a in sorted(assignments, key=lambda x: x.eta_s):
             task = tasks.get(a.task_id)
@@ -136,9 +135,9 @@ class TacticalPlanner:
         self.n_drones = n_drones
         self.assigner = HungarianAssigner(seed)
         self.scheduler = TemporalScheduler()
-        self.tasks: Dict[str, MissionTask] = {}
-        self.drones: Dict[str, DroneCapability] = {}
-        self.assignments: List[Assignment] = []
+        self.tasks: dict[str, MissionTask] = {}
+        self.drones: dict[str, DroneCapability] = {}
+        self.assignments: list[Assignment] = []
         self._task_counter = 0
 
         for i in range(n_drones):
@@ -159,7 +158,7 @@ class TacticalPlanner:
         self.tasks[task.task_id] = task
         return task
 
-    def generate_mission(self, n_tasks: int = 15) -> List[MissionTask]:
+    def generate_mission(self, n_tasks: int = 15) -> list[MissionTask]:
         tasks = []
         for _ in range(n_tasks):
             pos = self.rng.uniform(-1000, 1000, 3)
@@ -171,7 +170,7 @@ class TacticalPlanner:
             tasks.append(task)
         return tasks
 
-    def plan(self) -> Dict:
+    def plan(self) -> dict:
         drone_list = list(self.drones.values())
         task_list = [t for t in self.tasks.values() if t.status == TaskStatus.PENDING]
         self.assignments = self.assigner.assign(drone_list, task_list)
@@ -189,7 +188,7 @@ class TacticalPlanner:
             "avg_eta": round(np.mean([a.eta_s for a in self.assignments]), 1) if self.assignments else 0,
         }
 
-    def replan(self, failed_drone: str) -> Dict:
+    def replan(self, failed_drone: str) -> dict:
         affected = [a for a in self.assignments if a.drone_id == failed_drone]
         for a in affected:
             if a.task_id in self.tasks:
@@ -200,7 +199,7 @@ class TacticalPlanner:
             del self.drones[failed_drone]
         return self.plan()
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "drones": len(self.drones),
             "tasks": len(self.tasks),

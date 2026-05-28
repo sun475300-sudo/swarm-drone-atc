@@ -95,7 +95,7 @@ class AutonomousFleetManagement:
         return {"assignments": assignments, "available": len(available)}
 
     def get_fleet_stats(self) -> Dict[str, Any]:
-        status_counts = {s: 0 for s in FleetStatus}
+        status_counts = dict.fromkeys(FleetStatus, 0)
         for unit in self.units.values():
             status_counts[unit.status] += 1
         return {

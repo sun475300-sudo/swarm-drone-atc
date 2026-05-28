@@ -379,7 +379,7 @@ def simulate_mesh_network():
     print(f"Optimization suggestions: {len(suggestions)}")
 
     final_stats = network.get_network_stats()
-    print(f"\n--- Final Stats ---")
+    print("\n--- Final Stats ---")
     print(f"Nodes: {final_stats['total_nodes']}")
     print(f"Connected: {final_stats['connected_nodes']}")
     print(f"Links: {final_stats['total_links']}")

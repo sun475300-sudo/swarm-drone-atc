@@ -7,7 +7,8 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict, deque
-from typing import Any, Dict, List, Sequence, Tuple
+from collections.abc import Sequence
+from typing import Any
 
 
 class TrajectoryRecorder:
@@ -20,7 +21,7 @@ class TrajectoryRecorder:
     def __init__(self, max_snapshots: int = 1000) -> None:
         self._max = max_snapshots
         # drone_id → deque[(t, (x, y, z))]
-        self._data: Dict[str, deque[Tuple[float, Tuple[float, ...]]]] = defaultdict(
+        self._data: dict[str, deque[tuple[float, tuple[float, ...]]]] = defaultdict(
             lambda: deque(maxlen=self._max)
         )
 
@@ -34,12 +35,12 @@ class TrajectoryRecorder:
         """
         self._data[drone_id].append((float(t), tuple(float(v) for v in position)))
 
-    def get_trajectory(self, drone_id: str) -> List[Tuple[float, Tuple[float, ...]]]:
+    def get_trajectory(self, drone_id: str) -> list[tuple[float, tuple[float, ...]]]:
         """특정 드론의 궤적을 ``[(t, (x, y, z)), ...]`` 형태로 반환한다."""
         return list(self._data.get(drone_id, []))
 
     @property
-    def drone_ids(self) -> List[str]:
+    def drone_ids(self) -> list[str]:
         """기록된 드론 ID 목록."""
         return list(self._data.keys())
 
@@ -49,7 +50,7 @@ class TrajectoryRecorder:
         Args:
             filepath: 저장할 파일 경로.
         """
-        payload: Dict[str, Any] = {}
+        payload: dict[str, Any] = {}
         for drone_id, records in self._data.items():
             payload[drone_id] = [
                 {"t": t, "position": list(pos)} for t, pos in records

@@ -6,10 +6,11 @@
 
 from __future__ import annotations
 
+import contextlib
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable, Dict, List, Optional
 
 
 class TestResult(Enum):
@@ -27,9 +28,9 @@ class IntegrationTest:
     name: str
     description: str
     test_fn: Callable
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
     timeout_sec: float = 30.0
-    dependencies: List[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -53,7 +54,7 @@ class TestSuiteReport:
     skipped: int = 0
     errors: int = 0
     duration_ms: float = 0.0
-    outcomes: List[TestOutcome] = field(default_factory=list)
+    outcomes: list[TestOutcome] = field(default_factory=list)
 
     @property
     def pass_rate(self) -> float:
@@ -70,14 +71,14 @@ class IntegrationTestFramework:
     """
 
     def __init__(self):
-        self._tests: Dict[str, IntegrationTest] = {}
-        self._results: List[TestOutcome] = []
-        self._setup_hooks: List[Callable] = []
-        self._teardown_hooks: List[Callable] = []
+        self._tests: dict[str, IntegrationTest] = {}
+        self._results: list[TestOutcome] = []
+        self._setup_hooks: list[Callable] = []
+        self._teardown_hooks: list[Callable] = []
 
     def register(self, name: str, test_fn: Callable, description: str = "",
-                 tags: Optional[List[str]] = None, timeout_sec: float = 30.0,
-                 dependencies: Optional[List[str]] = None):
+                 tags: list[str] | None = None, timeout_sec: float = 30.0,
+                 dependencies: list[str] | None = None):
         test = IntegrationTest(
             name=name, description=description, test_fn=test_fn,
             tags=tags or [], timeout_sec=timeout_sec,
@@ -120,13 +121,11 @@ class IntegrationTestFramework:
         self._results.append(outcome)
         return outcome
 
-    def run_all(self, tags: Optional[List[str]] = None) -> TestSuiteReport:
+    def run_all(self, tags: list[str] | None = None) -> TestSuiteReport:
         # Setup
         for hook in self._setup_hooks:
-            try:
+            with contextlib.suppress(Exception):
                 hook()
-            except Exception:
-                pass
         # Topological sort by dependencies
         order = self._resolve_order()
         report = TestSuiteReport()
@@ -148,13 +147,11 @@ class IntegrationTestFramework:
                 report.errors += 1
         # Teardown
         for hook in self._teardown_hooks:
-            try:
+            with contextlib.suppress(Exception):
                 hook()
-            except Exception:
-                pass
         return report
 
-    def _resolve_order(self) -> List[str]:
+    def _resolve_order(self) -> list[str]:
         visited = set()
         order = []
         def visit(name):
@@ -170,7 +167,7 @@ class IntegrationTestFramework:
             visit(name)
         return order
 
-    def get_results(self) -> List[TestOutcome]:
+    def get_results(self) -> list[TestOutcome]:
         return self._results.copy()
 
     def clear_results(self):

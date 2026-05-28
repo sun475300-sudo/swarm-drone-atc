@@ -142,7 +142,7 @@ class AutonomousRepairSystem:
         return success
 
     def get_swarm_health(self) -> Dict[str, Any]:
-        status_counts = {s: 0 for s in HealthStatus}
+        status_counts = dict.fromkeys(HealthStatus, 0)
         for status in self.health_status.values():
             status_counts[status] += 1
         return {

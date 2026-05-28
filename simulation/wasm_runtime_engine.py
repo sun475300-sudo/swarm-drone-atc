@@ -5,9 +5,10 @@ Phase 332: WebAssembly Runtime Engine
 """
 
 import struct
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 
 class WasmOpcode(IntEnum):
@@ -43,16 +44,16 @@ class WasmFunction:
     name: str
     param_count: int
     local_count: int
-    bytecode: List[int]
+    bytecode: list[int]
     is_export: bool = True
 
 
 @dataclass
 class WasmModule:
     name: str
-    functions: Dict[str, WasmFunction] = field(default_factory=dict)
+    functions: dict[str, WasmFunction] = field(default_factory=dict)
     memory_pages: int = 1  # 64KB per page
-    globals: Dict[str, Any] = field(default_factory=dict)
+    globals: dict[str, Any] = field(default_factory=dict)
 
 
 class WasmMemory:
@@ -99,11 +100,11 @@ class WasmVM:
     MAX_CALL_DEPTH = 64
 
     def __init__(self):
-        self.stack: List[Any] = []
-        self.call_stack: List[Dict] = []
+        self.stack: list[Any] = []
+        self.call_stack: list[dict] = []
         self.memory = WasmMemory()
-        self.modules: Dict[str, WasmModule] = {}
-        self.host_functions: Dict[str, Callable] = {}
+        self.modules: dict[str, WasmModule] = {}
+        self.host_functions: dict[str, Callable] = {}
         self.step_count = 0
 
     def load_module(self, module: WasmModule) -> None:
@@ -124,7 +125,7 @@ class WasmVM:
         return self.stack.pop()
 
     def execute(self, module_name: str, func_name: str,
-                args: Optional[List[Any]] = None) -> Any:
+                args: list[Any] | None = None) -> Any:
         module = self.modules.get(module_name)
         if not module:
             raise RuntimeError(f"Module not found: {module_name}")
@@ -147,7 +148,7 @@ class WasmVM:
             self.call_stack.pop()
         return result
 
-    def _run(self, bytecode: List[int], locals_arr: List[Any]) -> Any:
+    def _run(self, bytecode: list[int], locals_arr: list[Any]) -> Any:
         pc = 0
         while pc < len(bytecode):
             op = bytecode[pc]
@@ -200,11 +201,13 @@ class WasmVM:
                 self._push(float(a) / float(b) if b != 0 else 0.0)
 
             elif op == WasmOpcode.LOCAL_GET:
-                idx = bytecode[pc]; pc += 1
+                idx = bytecode[pc]
+                pc += 1
                 self._push(locals_arr[idx] if idx < len(locals_arr) else 0)
 
             elif op == WasmOpcode.LOCAL_SET:
-                idx = bytecode[pc]; pc += 1
+                idx = bytecode[pc]
+                pc += 1
                 val = self._pop()
                 if idx < len(locals_arr):
                     locals_arr[idx] = val
@@ -234,7 +237,8 @@ class WasmVM:
                 self._pop()
 
             elif op == WasmOpcode.CALL:
-                func_idx = bytecode[pc]; pc += 1
+                func_idx = bytecode[pc]
+                pc += 1
                 # Simplified: call host function by index
                 host_names = list(self.host_functions.keys())
                 if func_idx < len(host_names):
@@ -251,7 +255,7 @@ class WasmVM:
 
         return self._pop() if self.stack else None
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "modules": len(self.modules),
             "host_functions": len(self.host_functions),

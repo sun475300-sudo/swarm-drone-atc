@@ -91,7 +91,7 @@ class Beamformer:
     def steer(self, direction: np.ndarray, frequency_hz: float) -> np.ndarray:
         """빔 조향 가중치 계산."""
         direction = direction / (np.linalg.norm(direction) + 1e-10)
-        wavelength = SOUND_SPEED / frequency_hz
+        SOUND_SPEED / frequency_hz
         weights = []
         for mic in self.mics:
             delay = np.dot(mic.position, direction) / SOUND_SPEED

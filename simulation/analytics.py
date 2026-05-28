@@ -269,10 +269,7 @@ class SimulationAnalytics:
         # 충돌 해결률: 전체 위험 상황 중 충돌 미발생 비율
         # total_events = 충돌예측 + 실제충돌 (예측 없이 발생한 충돌 포함)
         total_events = self._conflicts_total + self._collision_count
-        if total_events > 0:
-            res_rate = 100.0 * (1.0 - self._collision_count / total_events)
-        else:
-            res_rate = 100.0
+        res_rate = 100.0 * (1.0 - self._collision_count / total_events) if total_events > 0 else 100.0
 
         # 어드바이저리 지연
         lats = self._adv_latencies

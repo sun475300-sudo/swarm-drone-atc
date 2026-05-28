@@ -24,19 +24,18 @@ Quickstart:
 from __future__ import annotations
 
 import asyncio
-import math
 import json
 import logging
 import time
 import uuid
 from contextlib import asynccontextmanager
 from dataclasses import asdict, dataclass, field
-from typing import Any, AsyncIterator, Optional
+from typing import Any, AsyncIterator
 
 import numpy as np
 
 try:
-    from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Depends, Header
+    from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
     from fastapi.middleware.cors import CORSMiddleware
     from pydantic import BaseModel, Field
 except ImportError as exc:  # pragma: no cover
@@ -65,7 +64,7 @@ class RunRecord:
     scenario_id: str
     status: str  # queued | running | completed | failed
     started_at_ns: int
-    finished_at_ns: Optional[int] = None
+    finished_at_ns: int | None = None
     metrics: dict = field(default_factory=dict)
 
 

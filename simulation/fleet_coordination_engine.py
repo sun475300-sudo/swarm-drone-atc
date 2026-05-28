@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -30,11 +29,11 @@ class CoordinationMode(Enum):
 @dataclass
 class Fleet:
     fleet_id: str
-    drone_ids: List[str] = field(default_factory=list)
+    drone_ids: list[str] = field(default_factory=list)
     status: FleetStatus = FleetStatus.STANDBY
-    assigned_zone: Optional[str] = None
+    assigned_zone: str | None = None
     priority: int = 5
-    leader_id: Optional[str] = None
+    leader_id: str | None = None
     max_size: int = 50
 
 
@@ -43,8 +42,8 @@ class AirspaceZone:
     zone_id: str
     center: np.ndarray
     radius: float
-    altitude_range: Tuple[float, float] = (0.0, 200.0)
-    assigned_fleet: Optional[str] = None
+    altitude_range: tuple[float, float] = (0.0, 200.0)
+    assigned_fleet: str | None = None
     capacity: int = 50
 
 
@@ -69,11 +68,11 @@ class FleetCoordinationEngine:
     def __init__(self, mode: CoordinationMode = CoordinationMode.HIERARCHICAL, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
         self.mode = mode
-        self._fleets: Dict[str, Fleet] = {}
-        self._zones: Dict[str, AirspaceZone] = {}
-        self._messages: List[CoordinationMessage] = []
-        self._handoff_history: List[dict] = []
-        self._drone_fleet_map: Dict[str, str] = {}  # drone_id -> fleet_id
+        self._fleets: dict[str, Fleet] = {}
+        self._zones: dict[str, AirspaceZone] = {}
+        self._messages: list[CoordinationMessage] = []
+        self._handoff_history: list[dict] = []
+        self._drone_fleet_map: dict[str, str] = {}  # drone_id -> fleet_id
 
     def register_fleet(self, fleet: Fleet):
         self._fleets[fleet.fleet_id] = fleet
@@ -117,7 +116,7 @@ class FleetCoordinationEngine:
         ))
         return True
 
-    def request_support(self, requester_fleet: str, n_drones: int) -> List[str]:
+    def request_support(self, requester_fleet: str, n_drones: int) -> list[str]:
         requester = self._fleets.get(requester_fleet)
         if not requester:
             return []
@@ -139,10 +138,10 @@ class FleetCoordinationEngine:
                 break
         return transferred
 
-    def resolve_zone_conflicts(self) -> List[dict]:
+    def resolve_zone_conflicts(self) -> list[dict]:
         """공역 할당 충돌 해결."""
         conflicts = []
-        zone_claims: Dict[str, List[str]] = {}
+        zone_claims: dict[str, list[str]] = {}
         for fid, fleet in self._fleets.items():
             if fleet.assigned_zone:
                 zone_claims.setdefault(fleet.assigned_zone, []).append(fid)
@@ -157,13 +156,13 @@ class FleetCoordinationEngine:
                     conflicts.append({"zone": zid, "winner": winner, "displaced": loser})
         return conflicts
 
-    def get_fleet(self, fleet_id: str) -> Optional[Fleet]:
+    def get_fleet(self, fleet_id: str) -> Fleet | None:
         return self._fleets.get(fleet_id)
 
-    def get_drone_fleet(self, drone_id: str) -> Optional[str]:
+    def get_drone_fleet(self, drone_id: str) -> str | None:
         return self._drone_fleet_map.get(drone_id)
 
-    def get_fleet_positions(self, fleet_id: str, positions: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
+    def get_fleet_positions(self, fleet_id: str, positions: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
         fleet = self._fleets.get(fleet_id)
         if not fleet:
             return {}

@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
 
 import numpy as np
 
@@ -25,7 +25,7 @@ class MAVLinkMessage:
     seq: int
     system_id: int
     component_id: int
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
     timestamp: float = field(default_factory=time.time)
 
 
@@ -47,9 +47,9 @@ class PX4SITLBridge:
     def __init__(self, seed: int = 42) -> None:
         self.rng = np.random.default_rng(seed)
         self.connected = False
-        self.host: Optional[str] = None
-        self.port: Optional[int] = None
-        self.vehicles: Dict[str, VehicleState] = {}
+        self.host: str | None = None
+        self.port: int | None = None
+        self.vehicles: dict[str, VehicleState] = {}
         self.msg_seq = 0
         self.stats = {
             "msgs_sent": 0, "msgs_received": 0,
@@ -83,14 +83,14 @@ class PX4SITLBridge:
             )
         return self.vehicles[drone_id]
 
-    def send_command(self, command_type: str, params: Dict[str, Any]) -> bool:
+    def send_command(self, command_type: str, params: dict[str, Any]) -> bool:
         if not self._check_connection():
             return False
         self.msg_seq += 1
         self.stats["msgs_sent"] += 1
         return True
 
-    def receive_telemetry(self) -> Optional[MAVLinkMessage]:
+    def receive_telemetry(self) -> MAVLinkMessage | None:
         if not self._check_connection():
             return None
         self.msg_seq += 1
@@ -161,7 +161,7 @@ class PX4SITLBridge:
         self.stats["msgs_sent"] += 1
         return True
 
-    def get_vehicle_state(self, drone_id: str) -> Dict[str, Any]:
+    def get_vehicle_state(self, drone_id: str) -> dict[str, Any]:
         vs = self._ensure_vehicle(drone_id)
         return {
             "drone_id": vs.drone_id,
@@ -174,7 +174,7 @@ class PX4SITLBridge:
             "mode": vs.mode.value,
         }
 
-    def get_connection_stats(self) -> Dict[str, Any]:
+    def get_connection_stats(self) -> dict[str, Any]:
         return {
             **self.stats,
             "connected": self.connected,

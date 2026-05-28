@@ -10,8 +10,8 @@
 from __future__ import annotations
 
 import json
-import sys
 import os
+import sys
 import types
 
 import numpy as np
@@ -28,8 +28,8 @@ pytestmark = pytest.mark.integration
 
 class TestSwarmSimulatorRun:
     def test_run_returns_simulation_result(self):
-        from simulation.simulator import SwarmSimulator
         from simulation.analytics import SimulationResult
+        from simulation.simulator import SwarmSimulator
 
         sim = SwarmSimulator(seed=0, scenario_cfg={"drones": {"default_count": 5}})
         result = sim.run(duration_s=10.0)
@@ -119,11 +119,12 @@ class TestVoronoiConflictDetection:
     def _make_controller(self):
         """최소 의존성 AirspaceController 인스턴스 생성"""
         import simpy
+
+        from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
         from src.airspace_control.comms.communication_bus import CommunicationBus
+        from src.airspace_control.controller.airspace_controller import AirspaceController
         from src.airspace_control.controller.priority_queue import FlightPriorityQueue
         from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
-        from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
-        from src.airspace_control.controller.airspace_controller import AirspaceController
 
         env  = simpy.Environment()
         rng  = np.random.default_rng(0)
@@ -196,8 +197,9 @@ class TestMainCmdSimulate:
 
         called_with = {}
 
-        from simulation.analytics import SimulationAnalytics
         from unittest.mock import MagicMock
+
+        from simulation.analytics import SimulationAnalytics
 
         class MockSim:
             def __init__(self, seed, scenario_cfg):
@@ -215,8 +217,9 @@ class TestMainCmdSimulate:
         import simulation.simulator as sim_mod
         monkeypatch.setattr(sim_mod, "SwarmSimulator", MockSim)
 
-        import main as main_mod
         import types
+
+        import main as main_mod
 
         args = types.SimpleNamespace(
             duration=10.0,

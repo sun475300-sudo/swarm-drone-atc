@@ -3,16 +3,15 @@ Phase 423: Causal Inference Engine for Drone Behavior Analysis
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
 
 import numpy as np
 
 
 @dataclass
 class CausalGraph:
-    nodes: List[str]
-    edges: List[Tuple[str, str]]
-    confounders: List[str]
+    nodes: list[str]
+    edges: list[tuple[str, str]]
+    confounders: list[str]
 
 
 @dataclass
@@ -20,18 +19,18 @@ class TreatmentEffect:
     treatment: str
     outcome: str
     ate: float
-    confidence_interval: Tuple[float, float]
+    confidence_interval: tuple[float, float]
     p_value: float
 
 
 class CausalInferenceEngine:
     def __init__(self):
-        self.causal_graphs: Dict[str, CausalGraph] = {}
-        self.observational_data: Dict[str, List[Dict]] = {}
-        self.treatment_effects: List[TreatmentEffect] = []
+        self.causal_graphs: dict[str, CausalGraph] = {}
+        self.observational_data: dict[str, list[dict]] = {}
+        self.treatment_effects: list[TreatmentEffect] = []
 
     def build_causal_graph(
-        self, graph_id: str, nodes: List[str], edges: List[Tuple[str, str]]
+        self, graph_id: str, nodes: list[str], edges: list[tuple[str, str]]
     ):
         confounders = [
             n for n in nodes if any(n in e for e in edges) and nodes.count(n) > 1
@@ -40,16 +39,13 @@ class CausalInferenceEngine:
         graph = CausalGraph(nodes, edges, confounders)
         self.causal_graphs[graph_id] = graph
 
-    def add_observational_data(self, graph_id: str, data: List[Dict]):
+    def add_observational_data(self, graph_id: str, data: list[dict]):
         self.observational_data[graph_id] = data
 
     def estimate_ate(
         self, treatment: str, outcome: str, graph_id: str
     ) -> TreatmentEffect:
-        if graph_id not in self.observational_data:
-            data = []
-        else:
-            data = self.observational_data[graph_id]
+        data = self.observational_data.get(graph_id, [])
 
         treated = [d for d in data if d.get(treatment) == 1]
         control = [d for d in data if d.get(treatment) == 0]
@@ -76,14 +72,14 @@ class CausalInferenceEngine:
         graph = self.causal_graphs[graph_id]
 
         confounder_effect = 0.0
-        for conf in graph.confounders:
+        for _conf in graph.confounders:
             confounder_effect += np.random.uniform(-0.1, 0.1)
 
         return confounder_effect
 
     def get_causal_paths(
         self, source: str, target: str, graph_id: str
-    ) -> List[List[str]]:
+    ) -> list[list[str]]:
         if graph_id not in self.causal_graphs:
             return []
 
@@ -110,7 +106,7 @@ class CausalInferenceEngine:
         return paths
 
     def estimate_counterfactual(
-        self, treatment: str, outcome: str, individual: Dict
+        self, treatment: str, outcome: str, individual: dict
     ) -> float:
         base_outcome = individual.get(outcome, 0.0)
 

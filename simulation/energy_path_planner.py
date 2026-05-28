@@ -14,7 +14,6 @@ from __future__ import annotations
 import heapq
 import math
 from dataclasses import dataclass, field
-from typing import Optional
 
 import numpy as np
 
@@ -25,7 +24,7 @@ class _Node:
     f_cost: float
     g_cost: float = field(compare=False)
     position: tuple[float, float, float] = field(compare=False)
-    parent: Optional[_Node] = field(default=None, compare=False)
+    parent: _Node | None = field(default=None, compare=False)
 
 
 class EnergyPathPlanner:

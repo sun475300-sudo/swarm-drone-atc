@@ -3,7 +3,6 @@ Phase 426: Model Compression Engine for Edge Deployment
 """
 
 from dataclasses import dataclass
-from typing import Dict
 
 import numpy as np
 
@@ -20,12 +19,12 @@ class CompressionResult:
 class ModelCompressionEngine:
     def __init__(self, target_size_mb: float = 10.0):
         self.target_size_mb = target_size_mb
-        self.model_params: Dict[str, np.ndarray] = {}
+        self.model_params: dict[str, np.ndarray] = {}
 
-    def load_model(self, params: Dict[str, np.ndarray]):
+    def load_model(self, params: dict[str, np.ndarray]):
         self.model_params = params
 
-    def prune_weights(self, threshold: float = 0.1) -> Dict[str, np.ndarray]:
+    def prune_weights(self, threshold: float = 0.1) -> dict[str, np.ndarray]:
         pruned = {}
 
         for name, weights in self.model_params.items():
@@ -34,7 +33,7 @@ class ModelCompressionEngine:
 
         return pruned
 
-    def quantize(self, bits: int = 8) -> Dict[str, np.ndarray]:
+    def quantize(self, bits: int = 8) -> dict[str, np.ndarray]:
         quantized = {}
 
         for name, weights in self.model_params.items():
@@ -51,11 +50,11 @@ class ModelCompressionEngine:
         return quantized
 
     def knowledge_distillation(
-        self, student_model: Dict[str, np.ndarray]
-    ) -> Dict[str, np.ndarray]:
+        self, student_model: dict[str, np.ndarray]
+    ) -> dict[str, np.ndarray]:
         distilled = {}
 
-        for name in student_model.keys():
+        for name in student_model:
             if name in self.model_params:
                 distilled[name] = (
                     0.5 * student_model[name] + 0.5 * self.model_params[name]

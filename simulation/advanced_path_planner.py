@@ -5,7 +5,7 @@ Phase 402: Advanced Path Planner with Dynamic RRT*, A*, and Hybrid Optimization
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 
@@ -30,7 +30,7 @@ class Waypoint:
 
 @dataclass
 class PathResult:
-    waypoints: List[Waypoint]
+    waypoints: list[Waypoint]
     total_distance: float
     total_time: float
     total_energy: float
@@ -42,7 +42,7 @@ class PathResult:
 class AdvancedPathPlanner:
     def __init__(
         self,
-        bounds: Tuple[float, float, float, float, float, float] = (
+        bounds: tuple[float, float, float, float, float, float] = (
             -500,
             500,
             -500,
@@ -58,9 +58,9 @@ class AdvancedPathPlanner:
         self.safety_margin = safety_margin
         self.max_iterations = max_iterations
         self.goal_tolerance = goal_tolerance
-        self.obstacles: List[Tuple[float, float, float, float]] = []
-        self.no_fly_zones: List[Tuple[float, float, float, float]] = []
-        self.wind_field: Optional[callable] = None
+        self.obstacles: list[tuple[float, float, float, float]] = []
+        self.no_fly_zones: list[tuple[float, float, float, float]] = []
+        self.wind_field: callable | None = None
 
     def add_obstacle(self, x: float, y: float, z: float, radius: float):
         self.obstacles.append((x, y, z, radius))
@@ -81,18 +81,17 @@ class AdvancedPathPlanner:
                 return False
         for nfz in self.no_fly_zones:
             x_min_nfz, x_max_nfz, y_min_nfz, y_max_nfz = nfz
-            if x_min_nfz <= x <= x_max_nfz and y_min_nfz <= y <= y_max_nfz:
-                if z < 120:
-                    return False
+            if x_min_nfz <= x <= x_max_nfz and y_min_nfz <= y <= y_max_nfz and z < 120:
+                return False
         return True
 
     def distance(
-        self, p1: Tuple[float, float, float], p2: Tuple[float, float, float]
+        self, p1: tuple[float, float, float], p2: tuple[float, float, float]
     ) -> float:
-        return np.sqrt(sum((a - b) ** 2 for a, b in zip(p1, p2)))
+        return np.sqrt(sum((a - b) ** 2 for a, b in zip(p1, p2, strict=False)))
 
     def heuristic(
-        self, current: Tuple[float, float, float], goal: Tuple[float, float, float]
+        self, current: tuple[float, float, float], goal: tuple[float, float, float]
     ) -> float:
         base_dist = self.distance(current, goal)
         if self.wind_field:
@@ -103,8 +102,8 @@ class AdvancedPathPlanner:
 
     def plan_astar(
         self,
-        start: Tuple[float, float, float],
-        goal: Tuple[float, float, float],
+        start: tuple[float, float, float],
+        goal: tuple[float, float, float],
         resolution: float = 5.0,
     ) -> PathResult:
         start_time = time.time()
@@ -112,12 +111,12 @@ class AdvancedPathPlanner:
         if not self.is_valid_position(*start) or not self.is_valid_position(*goal):
             return PathResult([], 0, 0, 0, 0, "A*", 0)
 
-        open_set: Dict[Tuple[int, int, int], float] = {}
-        came_from: Dict[Tuple[int, int, int], Tuple[int, int, int]] = {}
-        g_score: Dict[Tuple[int, int, int], float] = {}
+        open_set: dict[tuple[int, int, int], float] = {}
+        came_from: dict[tuple[int, int, int], tuple[int, int, int]] = {}
+        g_score: dict[tuple[int, int, int], float] = {}
 
         start_key = self._pos_to_key(start, resolution)
-        goal_key = self._pos_to_key(goal, resolution)
+        self._pos_to_key(goal, resolution)
 
         open_set[start_key] = self.heuristic(start, goal)
         g_score[start_key] = 0
@@ -172,8 +171,8 @@ class AdvancedPathPlanner:
         return PathResult([], 0, 0, 0, 0, "A*", time.time() - start_time)
 
     def _pos_to_key(
-        self, pos: Tuple[float, float, float], resolution: float
-    ) -> Tuple[int, int, int]:
+        self, pos: tuple[float, float, float], resolution: float
+    ) -> tuple[int, int, int]:
         return (
             int(round(pos[0] / resolution)),
             int(round(pos[1] / resolution)),
@@ -181,8 +180,8 @@ class AdvancedPathPlanner:
         )
 
     def _key_to_pos(
-        self, key: Tuple[int, int, int], resolution: float
-    ) -> Tuple[float, float, float]:
+        self, key: tuple[int, int, int], resolution: float
+    ) -> tuple[float, float, float]:
         return (
             key[0] * resolution,
             key[1] * resolution,
@@ -191,10 +190,10 @@ class AdvancedPathPlanner:
 
     def _reconstruct_path(
         self,
-        start: Tuple[float, float, float],
-        current: Tuple[float, float, float],
-        came_from: Dict,
-        g_score: Dict,
+        start: tuple[float, float, float],
+        current: tuple[float, float, float],
+        came_from: dict,
+        g_score: dict,
         algorithm: str,
         start_time: float,
     ) -> PathResult:
@@ -227,7 +226,7 @@ class AdvancedPathPlanner:
             computation_time=time.time() - start_time,
         )
 
-    def _calculate_safety_score(self, path: List[Tuple[float, float, float]]) -> float:
+    def _calculate_safety_score(self, path: list[tuple[float, float, float]]) -> float:
         if not path:
             return 0.0
 
@@ -248,8 +247,8 @@ class AdvancedPathPlanner:
 
     def plan_rrt_star(
         self,
-        start: Tuple[float, float, float],
-        goal: Tuple[float, float, float],
+        start: tuple[float, float, float],
+        goal: tuple[float, float, float],
         step_size: float = 10.0,
         goal_sample_rate: float = 0.1,
     ) -> PathResult:
@@ -258,19 +257,16 @@ class AdvancedPathPlanner:
         if not self.is_valid_position(*start) or not self.is_valid_position(*goal):
             return PathResult([], 0, 0, 0, 0, "RRT*", 0)
 
-        tree: Dict[Tuple[float, float, float], Tuple[float, float, float]] = {
+        tree: dict[tuple[float, float, float], tuple[float, float, float]] = {
             start: None
         }
-        costs: Dict[Tuple[float, float, float], float] = {start: 0}
+        costs: dict[tuple[float, float, float], float] = {start: 0}
 
         iterations = 0
         while iterations < self.max_iterations:
             iterations += 1
 
-            if np.random.random() < goal_sample_rate:
-                sample = goal
-            else:
-                sample = self._random_sample()
+            sample = goal if np.random.random() < goal_sample_rate else self._random_sample()
 
             if not self.is_valid_position(*sample):
                 continue
@@ -293,7 +289,7 @@ class AdvancedPathPlanner:
                 continue
 
             near_nodes = [
-                n for n in tree.keys() if self.distance(n, new_node) < step_size * 3
+                n for n in tree if self.distance(n, new_node) < step_size * 3
             ]
 
             min_cost = costs[nearest] + self.distance(nearest, new_node)
@@ -323,7 +319,7 @@ class AdvancedPathPlanner:
 
         return PathResult([], 0, 0, 0, 0, "RRT*", time.time() - start_time)
 
-    def _random_sample(self) -> Tuple[float, float, float]:
+    def _random_sample(self) -> tuple[float, float, float]:
         x_min, x_max, y_min, y_max, z_min, z_max = self.bounds
         return (
             np.random.uniform(x_min, x_max),
@@ -333,8 +329,8 @@ class AdvancedPathPlanner:
 
     def _check_collision_free(
         self,
-        p1: Tuple[float, float, float],
-        p2: Tuple[float, float, float],
+        p1: tuple[float, float, float],
+        p2: tuple[float, float, float],
     ) -> bool:
         steps = max(int(self.distance(p1, p2) / 2.0), 2)
         for t in np.linspace(0, 1, steps):
@@ -349,9 +345,9 @@ class AdvancedPathPlanner:
 
     def _reconstruct_rrt_path(
         self,
-        tree: Dict,
-        start: Tuple[float, float, float],
-        goal: Tuple[float, float, float],
+        tree: dict,
+        start: tuple[float, float, float],
+        goal: tuple[float, float, float],
         algorithm: str,
         start_time: float,
     ) -> PathResult:
@@ -385,8 +381,8 @@ class AdvancedPathPlanner:
 
     def plan_hybrid(
         self,
-        start: Tuple[float, float, float],
-        goal: Tuple[float, float, float],
+        start: tuple[float, float, float],
+        goal: tuple[float, float, float],
     ) -> PathResult:
         astar_result = self.plan_astar(start, goal)
         rrt_result = self.plan_rrt_star(start, goal)
@@ -404,8 +400,8 @@ class AdvancedPathPlanner:
         return rrt_result
 
     def smooth_path(
-        self, waypoints: List[Waypoint], iterations: int = 50
-    ) -> List[Waypoint]:
+        self, waypoints: list[Waypoint], iterations: int = 50
+    ) -> list[Waypoint]:
         if len(waypoints) < 3:
             return waypoints
 

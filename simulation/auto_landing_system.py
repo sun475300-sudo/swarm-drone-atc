@@ -3,7 +3,6 @@ Phase 475: Auto Landing System for Precision Landing
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 
@@ -18,7 +17,7 @@ class LandingTarget:
 
 class AutoLandingSystem:
     def __init__(self):
-        self.target: Optional[LandingTarget] = None
+        self.target: LandingTarget | None = None
 
     def set_target(self, target: LandingTarget):
         self.target = target

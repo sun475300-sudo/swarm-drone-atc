@@ -1,8 +1,9 @@
 """CommunicationBus 테스트"""
 import numpy as np
-import simpy
 import pytest
-from src.airspace_control.comms.communication_bus import CommunicationBus, CommMessage
+import simpy
+
+from src.airspace_control.comms.communication_bus import CommMessage, CommunicationBus
 
 pytestmark = pytest.mark.integration
 

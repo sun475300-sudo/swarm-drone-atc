@@ -38,7 +38,7 @@ class CausalDAG:
     def topological_sort(self) -> list[str]:
         in_degree = dict.fromkeys(self.nodes, 0)
         for n, node in self.nodes.items():
-            for p in node.parents:
+            for _p in node.parents:
                 in_degree[n] = in_degree.get(n, 0) + 1
 
         queue = [n for n, d in in_degree.items() if d == 0]

@@ -5,7 +5,7 @@ Phase 417: Zero-Shot Adaptor for Unseen Task Handling
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -21,8 +21,8 @@ class TaskDomain(Enum):
 class TaskDescriptor:
     domain: TaskDomain
     description: str
-    required_capabilities: List[str]
-    constraints: Dict[str, Any]
+    required_capabilities: list[str]
+    constraints: dict[str, Any]
 
 
 @dataclass
@@ -31,13 +31,13 @@ class AdaptationResult:
     success: bool
     confidence: float
     adaptation_time: float
-    output: Dict[str, Any]
+    output: dict[str, Any]
 
 
 class ZeroShotAdaptor:
     def __init__(
         self,
-        base_model_path: Optional[str] = None,
+        base_model_path: str | None = None,
         use_llm_descriptor: bool = True,
         confidence_threshold: float = 0.7,
     ):
@@ -45,10 +45,10 @@ class ZeroShotAdaptor:
         self.use_llm_descriptor = use_llm_descriptor
         self.confidence_threshold = confidence_threshold
 
-        self.capability_embeddings: Dict[str, np.ndarray] = {}
-        self.adaptation_strategies: Dict[TaskDomain, callable] = {}
+        self.capability_embeddings: dict[str, np.ndarray] = {}
+        self.adaptation_strategies: dict[TaskDomain, callable] = {}
 
-        self.task_history: List[AdaptationResult] = []
+        self.task_history: list[AdaptationResult] = []
 
         self._initialize_capabilities()
         self._register_strategies()
@@ -76,7 +76,7 @@ class ZeroShotAdaptor:
             TaskDomain.OBSTACLE_AVOIDANCE: self._adapt_obstacle_avoidance,
         }
 
-    def describe_task(self, task: TaskDescriptor) -> Dict[str, Any]:
+    def describe_task(self, task: TaskDescriptor) -> dict[str, Any]:
         description_embedding = self._encode_description(task.description)
 
         required_caps = []
@@ -160,8 +160,8 @@ class ZeroShotAdaptor:
     def _adapt_detection(
         self,
         task: TaskDescriptor,
-        task_info: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        task_info: dict[str, Any],
+    ) -> dict[str, Any]:
         return {
             "model_type": "yolov8",
             "input_size": [640, 640],
@@ -172,8 +172,8 @@ class ZeroShotAdaptor:
     def _adapt_tracking(
         self,
         task: TaskDescriptor,
-        task_info: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        task_info: dict[str, Any],
+    ) -> dict[str, Any]:
         return {
             "tracker_type": "bytetrack",
             "max_time_lost": 30,
@@ -184,8 +184,8 @@ class ZeroShotAdaptor:
     def _adapt_navigation(
         self,
         task: TaskDescriptor,
-        task_info: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        task_info: dict[str, Any],
+    ) -> dict[str, Any]:
         return {
             "planner_type": "astar",
             "heuristic": "euclidean",
@@ -196,8 +196,8 @@ class ZeroShotAdaptor:
     def _adapt_obstacle_avoidance(
         self,
         task: TaskDescriptor,
-        task_info: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        task_info: dict[str, Any],
+    ) -> dict[str, Any]:
         return {
             "method": "apf",
             "repulsion_gain": 1.5,
@@ -207,8 +207,8 @@ class ZeroShotAdaptor:
 
     def _calculate_confidence(
         self,
-        task_info: Dict[str, Any],
-        output: Dict[str, Any],
+        task_info: dict[str, Any],
+        output: dict[str, Any],
     ) -> float:
         base_confidence = 0.8
 
@@ -226,7 +226,7 @@ class ZeroShotAdaptor:
 
         return min(base_confidence + cap_bonus, 1.0)
 
-    def get_adaptation_stats(self) -> Dict[str, Any]:
+    def get_adaptation_stats(self) -> dict[str, Any]:
         if not self.task_history:
             return {"total_tasks": 0}
 

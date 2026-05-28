@@ -10,8 +10,8 @@ MAVLink/DDS 통신의 지연, 패킷 손실, 재순서화를 시뮬레이션
 from __future__ import annotations
 
 from collections import defaultdict, deque
+from collections.abc import Callable, Generator
 from dataclasses import dataclass
-from typing import Callable, Generator, Optional
 
 import numpy as np
 import simpy
@@ -125,7 +125,7 @@ class CommunicationBus:
         return bool(dist <= self.comm_range_m)
 
     def get_neighbors(
-        self, drone_id: str, range_m: Optional[float] = None
+        self, drone_id: str, range_m: float | None = None
     ) -> list[str]:
         """통신 범위 내 이웃 드론 ID 목록"""
         r = range_m or self.comm_range_m

@@ -68,7 +68,7 @@ class MultiFidelitySim:
 
     def run(self, steps=200):
         for _ in range(steps):
-            state = self.sim.step()
+            self.sim.step()
             error = self.sim.evaluate_error()
             self._select_fidelity(error)
             self.history.append({

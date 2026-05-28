@@ -3,7 +3,6 @@ Phase 436: SLAM System for Simultaneous Localization and Mapping
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -26,9 +25,9 @@ class Landmark:
 class SLAMSystem:
     def __init__(self, voc_file: str = None):
         self.voc_file = voc_file
-        self.poses: List[Pose] = []
-        self.landmarks: Dict[int, Landmark] = {}
-        self.current_pose: Optional[Pose] = None
+        self.poses: list[Pose] = []
+        self.landmarks: dict[int, Landmark] = {}
+        self.current_pose: Pose | None = None
         self.map_initialized = False
 
     def initialize_map(self, initial_pose: Pose):
@@ -61,7 +60,7 @@ class SLAMSystem:
 
     def detect_loop_closure(
         self, image: np.ndarray, threshold: float = 0.6
-    ) -> Optional[int]:
+    ) -> int | None:
         if len(self.poses) < 50:
             return None
 
@@ -73,7 +72,7 @@ class SLAMSystem:
     def optimize_trajectory(self):
         pass
 
-    def get_map(self) -> Dict:
+    def get_map(self) -> dict:
         return {
             "num_poses": len(self.poses),
             "num_landmarks": len(self.landmarks),

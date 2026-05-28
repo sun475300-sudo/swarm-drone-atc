@@ -9,8 +9,8 @@ Phase 52-59 테스트
 - 공역 용량 분석 (AirspaceCapacity)
 - 비상 프로토콜 관리 (EmergencyManager)
 """
-import pytest
 import numpy as np
+import pytest
 
 
 # ──────────────────────────────────────────────
@@ -18,7 +18,7 @@ import numpy as np
 # ──────────────────────────────────────────────
 class TestCommQuality:
     def _make(self):
-        from simulation.comm_quality import CommQualitySimulator, CommConfig
+        from simulation.comm_quality import CommConfig, CommQualitySimulator
         return CommQualitySimulator(config=CommConfig())
 
     def test_basic_link(self):
@@ -415,7 +415,7 @@ class TestCommRelay:
 # ──────────────────────────────────────────────
 class TestMissionPlanner:
     def _make(self):
-        from simulation.mission_planner import MissionPlanner, Mission, DroneAsset
+        from simulation.mission_planner import DroneAsset, Mission, MissionPlanner
         return MissionPlanner(), Mission, DroneAsset
 
     def test_basic_assignment(self):

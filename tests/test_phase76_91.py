@@ -17,8 +17,6 @@ Phase 76-91 테스트
 - 센서 퓨전 (SensorFusion)
 - 벤치마크 (BenchmarkSuite)
 """
-import pytest
-import numpy as np
 
 
 # ──────────────────────────────────────────────

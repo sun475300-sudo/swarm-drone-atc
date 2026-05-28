@@ -6,7 +6,6 @@ FFT 스펙트럼 분석 + 빔포밍 + DoA(Direction of Arrival) 추정.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -64,7 +63,7 @@ class AcousticDetection:
     doa: DoAEstimate
     status: DetectionStatus
     timestamp: float
-    spectral_peaks: List[SpectralPeak]
+    spectral_peaks: list[SpectralPeak]
 
 
 class FFTAnalyzer:
@@ -75,7 +74,7 @@ class FFTAnalyzer:
         self.fft_size = fft_size
         self.freq_resolution = sample_rate / fft_size
 
-    def compute_spectrum(self, signal: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def compute_spectrum(self, signal: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         n = min(len(signal), self.fft_size)
         windowed = signal[:n] * np.hanning(n)
         spectrum = np.fft.rfft(windowed, n=self.fft_size)
@@ -84,7 +83,7 @@ class FFTAnalyzer:
         return freqs, magnitudes
 
     def find_peaks(self, freqs: np.ndarray, magnitudes: np.ndarray,
-                   threshold: float = 0.01, max_peaks: int = 10) -> List[SpectralPeak]:
+                   threshold: float = 0.01, max_peaks: int = 10) -> list[SpectralPeak]:
         peaks = []
         for i in range(1, len(magnitudes) - 1):
             if (magnitudes[i] > magnitudes[i-1] and
@@ -98,7 +97,7 @@ class FFTAnalyzer:
         peaks.sort(key=lambda p: -p.magnitude)
         return peaks[:max_peaks]
 
-    def classify_signal(self, peaks: List[SpectralPeak]) -> SignalType:
+    def classify_signal(self, peaks: list[SpectralPeak]) -> SignalType:
         if not peaks:
             return SignalType.UNKNOWN
 
@@ -121,7 +120,7 @@ class Beamformer:
 
     SPEED_OF_SOUND = 343.0  # m/s
 
-    def __init__(self, mics: List[Microphone]):
+    def __init__(self, mics: list[Microphone]):
         self.mics = mics
         self.n_mics = len(mics)
         self.positions = np.array([[m.x, m.y, m.z] for m in mics])
@@ -151,8 +150,8 @@ class Beamformer:
         return float(output)
 
     def scan_doa(self, signals: np.ndarray, freq: float,
-                 az_range: Tuple[float, float] = (-180, 180),
-                 el_range: Tuple[float, float] = (-30, 90),
+                 az_range: tuple[float, float] = (-180, 180),
+                 el_range: tuple[float, float] = (-30, 90),
                  step: float = 5.0) -> DoAEstimate:
         best_power = 0.0
         best_az = 0.0
@@ -190,7 +189,7 @@ class AcousticSensingSystem:
         self.mics = mics
         self.fft = FFTAnalyzer(sample_rate)
         self.beamformer = Beamformer(mics)
-        self.detections: List[AcousticDetection] = []
+        self.detections: list[AcousticDetection] = []
         self._det_counter = 0
 
     def generate_test_signal(self, freq: float, duration: float = 0.1,
@@ -208,7 +207,7 @@ class AcousticSensingSystem:
             signals[i] = clean + noise
         return signals
 
-    def process(self, signals: np.ndarray, timestamp: float = 0.0) -> Optional[AcousticDetection]:
+    def process(self, signals: np.ndarray, timestamp: float = 0.0) -> AcousticDetection | None:
         if signals.ndim == 1:
             freqs, mags = self.fft.compute_spectrum(signals)
             peaks = self.fft.find_peaks(freqs, mags)
@@ -239,8 +238,8 @@ class AcousticSensingSystem:
         self.detections.append(detection)
         return detection
 
-    def summary(self) -> Dict:
-        type_counts: Dict[str, int] = {}
+    def summary(self) -> dict:
+        type_counts: dict[str, int] = {}
         for d in self.detections:
             t = d.doa.source_type.value
             type_counts[t] = type_counts.get(t, 0) + 1

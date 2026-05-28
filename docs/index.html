@@ -231,6 +231,36 @@
     .hero .hero-stats { grid-template-columns: repeat(2,1fr); }
   }
 
+  /* Resource Hub */
+  .resource-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
+  }
+  .resource-category { margin-bottom: 40px; }
+  .resource-category h3 {
+    font-size: 15px; font-weight: 700; color: var(--primary);
+    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 16px;
+    padding-bottom: 8px; border-bottom: 2px solid var(--border);
+  }
+  .resource-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px 20px;
+    box-shadow: var(--shadow-sm); transition: transform .2s, box-shadow .2s;
+    display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: inherit;
+  }
+  .resource-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); color: inherit; }
+  .resource-card .rc-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: grid; place-items: center; font-size: 18px;
+    background: rgba(0,85,170,.08); flex-shrink: 0;
+  }
+  .resource-card h4 { font-size: 15px; font-weight: 700; color: var(--text-strong); margin: 0; }
+  .resource-card p { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+  .resource-card .rc-tag {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .5px;
+    padding: 2px 8px; border-radius: 6px; background: rgba(0,85,170,.1); color: var(--primary);
+    width: fit-content;
+  }
+
   /* Buttons */
   .btn {
     display: inline-flex; align-items: center; gap: 8px;
@@ -559,6 +589,7 @@
       <li><a href="#architecture" data-i18n="ko">아키텍처</a><a href="#architecture" data-i18n="en">Architecture</a></li>
       <li><a href="#reports" data-i18n="ko">보고서</a><a href="#reports" data-i18n="en">Reports</a></li>
       <li><a href="#gallery" data-i18n="ko">갤러리</a><a href="#gallery" data-i18n="en">Gallery</a></li>
+      <li><a href="#resources" data-i18n="ko">리소스</a><a href="#resources" data-i18n="en">Resources</a></li>
     </ul>
     <div class="nav-tools">
       <button class="icon-btn lang-toggle" id="langBtn" aria-label="Toggle language">EN</button>
@@ -594,9 +625,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span data-i18n="ko">보고서 다운로드</span><span data-i18n="en">Download Report</span>
       </a>
-      <a class="btn btn-accent" href="simulator.html">
+      <a class="btn btn-accent" href="swarm_3d_simulator_v2.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        <span data-i18n="ko">3D 시뮬레이터 열기</span><span data-i18n="en">Launch 3D Simulator</span>
+        <span data-i18n="ko">3D 시뮬레이터 v2 열기</span><span data-i18n="en">Launch 3D Simulator v2</span>
       </a>
       <a class="btn btn-secondary" href="https://github.com/sun475300-sudo/swarm-drone-atc" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4 18.3 4.3 18.3 4.3c.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.7-2.8 5.7-5.5 6 .4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg>
@@ -1008,6 +1039,116 @@
   </div>
 </section>
 
+<!-- Resource Hub -->
+<section id="resources" style="background: var(--bg-elev);">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-label">Resources</span>
+      <h2 data-i18n="ko">리소스 허브</h2>
+      <h2 data-i18n="en">Resource Hub</h2>
+      <p data-i18n="ko">프로젝트의 모든 페이지를 한곳에서 — 시뮬레이터, 문서, 보고서, 발표 자료</p>
+      <p data-i18n="en">Every project page in one place — simulators, docs, reports, and presentations.</p>
+    </div>
+
+    <div class="resource-category reveal">
+      <h3 data-i18n="ko">시뮬레이터</h3><h3 data-i18n="en">Simulators</h3>
+      <div class="resource-grid">
+        <a class="resource-card" href="swarm_3d_simulator_v2.html">
+          <div class="rc-icon">🚀</div>
+          <span class="rc-tag">LATEST</span>
+          <h4 data-i18n="ko">3D 시뮬레이터 v2</h4><h4 data-i18n="en">3D Simulator v2</h4>
+          <p data-i18n="ko">Three.js r175 + PBR + 후처리. 4개 카메라 모드, 5개 시나리오, 실시간 KPI.</p>
+          <p data-i18n="en">Three.js r175 + PBR + post-processing. 4 camera modes, 5 scenarios, real-time KPI.</p>
+        </a>
+        <a class="resource-card" href="offline_demo_backup.html">
+          <div class="rc-icon">📋</div>
+          <h4 data-i18n="ko">오프라인 데모 백업</h4><h4 data-i18n="en">Offline Demo Backup</h4>
+          <p data-i18n="ko">발표 라이브 시연 실패 시 사용하는 정적 백업 페이지.</p>
+          <p data-i18n="en">Static fallback page for live demo failure during presentations.</p>
+        </a>
+      </div>
+    </div>
+
+    <div class="resource-category reveal">
+      <h3 data-i18n="ko">문서</h3><h3 data-i18n="en">Documentation</h3>
+      <div class="resource-grid">
+        <a class="resource-card" href="docs/user-manual.html">
+          <div class="rc-icon">📖</div>
+          <h4 data-i18n="ko">사용자 매뉴얼</h4><h4 data-i18n="en">User Manual</h4>
+          <p data-i18n="ko">설치, CLI, 시나리오, GPU, Docker, REST API, FAQ.</p>
+          <p data-i18n="en">Installation, CLI, scenarios, GPU, Docker, REST API, FAQ.</p>
+        </a>
+        <a class="resource-card" href="docs/architecture.html">
+          <div class="rc-icon">🏗️</div>
+          <h4 data-i18n="ko">시스템 아키텍처</h4><h4 data-i18n="en">System Architecture</h4>
+          <p data-i18n="ko">4-Layer 아키텍처, 데이터 흐름, GPU 가속 모듈 설명.</p>
+          <p data-i18n="en">4-Layer architecture, data flow, GPU acceleration modules.</p>
+        </a>
+        <a class="resource-card" href="docs/gpu-benchmark.html">
+          <div class="rc-icon">⚡</div>
+          <h4>GPU Benchmark</h4>
+          <p data-i18n="ko">RTX 5070 Ti — APF 엔진 CPU vs GPU 성능 비교 리포트.</p>
+          <p data-i18n="en">RTX 5070 Ti — APF engine CPU vs GPU performance comparison.</p>
+        </a>
+        <a class="resource-card" href="patent/SDACS_System_Diagrams.html">
+          <div class="rc-icon">📐</div>
+          <h4 data-i18n="ko">특허 시스템 다이어그램</h4><h4 data-i18n="en">Patent System Diagrams</h4>
+          <p data-i18n="ko">Mermaid 기반 특허 도면 시각화 (10종).</p>
+          <p data-i18n="en">Mermaid-based patent figure visualizations (10 diagrams).</p>
+        </a>
+      </div>
+    </div>
+
+    <div class="resource-category reveal">
+      <h3 data-i18n="ko">테스트 & 분석</h3><h3 data-i18n="en">Testing & Analysis</h3>
+      <div class="resource-grid">
+        <a class="resource-card" href="scenario_comparison.html">
+          <div class="rc-icon">📊</div>
+          <h4 data-i18n="ko">시나리오 비교 대시보드</h4><h4 data-i18n="en">Scenario Dashboard</h4>
+          <p data-i18n="ko">7개 시나리오 충돌/해결률/경고 Chart.js 시각화.</p>
+          <p data-i18n="en">Chart.js visualizations for 7 scenario collision/resolution/warning metrics.</p>
+        </a>
+        <a class="resource-card" href="test_report.html">
+          <div class="rc-icon">🧪</div>
+          <h4 data-i18n="ko">pytest 테스트 리포트</h4><h4 data-i18n="en">pytest Test Report</h4>
+          <p data-i18n="ko">2,823+ 테스트 케이스 자동화 검증 결과.</p>
+          <p data-i18n="en">Automated verification results from 2,823+ test cases.</p>
+        </a>
+      </div>
+    </div>
+
+    <div class="resource-category reveal">
+      <h3 data-i18n="ko">발표 자료</h3><h3 data-i18n="en">Presentations</h3>
+      <div class="resource-grid">
+        <a class="resource-card" href="docs/presentation-script.html">
+          <div class="rc-icon">🎤</div>
+          <h4 data-i18n="ko">최종 발표 스크립트</h4><h4 data-i18n="en">Final Presentation Script</h4>
+          <p data-i18n="ko">Capstone 최종 발표 진행 스크립트.</p>
+          <p data-i18n="en">Capstone final defense presentation script.</p>
+        </a>
+        <a class="resource-card" href="docs/midterm-presentation-script.html">
+          <div class="rc-icon">🎓</div>
+          <h4 data-i18n="ko">중간 발표 스크립트</h4><h4 data-i18n="en">Midterm Presentation Script</h4>
+          <p data-i18n="ko">Capstone 중간 발표 진행 스크립트.</p>
+          <p data-i18n="en">Capstone midterm presentation script.</p>
+        </a>
+        <a class="resource-card" href="handout.html">
+          <div class="rc-icon">📄</div>
+          <h4 data-i18n="ko">발표 핸드아웃 (A4)</h4><h4 data-i18n="en">Presentation Handout (A4)</h4>
+          <p data-i18n="ko">A4 1장 분량 인쇄용 요약 핸드아웃.</p>
+          <p data-i18n="en">One-page A4 printable summary handout.</p>
+        </a>
+        <a class="resource-card" href="go.html">
+          <div class="rc-icon">🔗</div>
+          <h4 data-i18n="ko">빠른 접속 허브 (QR)</h4><h4 data-i18n="en">Quick Access Hub (QR)</h4>
+          <p data-i18n="ko">QR 코드 하나로 시뮬레이터, 보고서, GitHub 모두 연결.</p>
+          <p data-i18n="en">One QR code links to simulator, reports, and GitHub.</p>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- CTA strip -->
 <section class="cta-strip">
   <div class="container">
@@ -1016,17 +1157,21 @@
     <p data-i18n="ko">브라우저에서 100대 군집드론이 스스로 충돌을 회피하는 장면을 바로 재생할 수 있습니다.</p>
     <p data-i18n="en">Watch 100 drones deconflict themselves in your browser. No install required.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-      <a class="btn btn-primary" href="simulator.html">
+      <a class="btn btn-primary" href="swarm_3d_simulator_v2.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        <span data-i18n="ko">3D 시뮬레이터</span><span data-i18n="en">3D Simulator</span>
+        <span data-i18n="ko">3D 시뮬레이터 v2</span><span data-i18n="en">3D Simulator v2</span>
       </a>
-      <a class="btn btn-secondary" href="scenarios.html">
+      <a class="btn btn-secondary" href="scenario_comparison.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
         <span data-i18n="ko">시나리오 비교</span><span data-i18n="en">Scenario Comparison</span>
       </a>
-      <a class="btn btn-secondary" href="test-report.html">
+      <a class="btn btn-secondary" href="test_report.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         <span data-i18n="ko">테스트 리포트</span><span data-i18n="en">Test Report</span>
+      </a>
+      <a class="btn btn-secondary" href="#resources">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span data-i18n="ko">전체 리소스</span><span data-i18n="en">All Resources</span>
       </a>
     </div>
   </div>
@@ -1063,9 +1208,11 @@
           <li><a href="report/SDACS_Final_Report_v6.docx" download>Report v6</a></li>
           <li><a href="report/SDACS_Final_Report_v7_Easy.docx" download>Report v7 (Easy)</a></li>
           <li><a href="report/SDACS_Technical_Report_v3.docx" download>Technical Report v3</a></li>
-          <li><a href="simulator.html">3D Simulator</a></li>
-          <li><a href="scenarios.html" data-i18n="ko">시나리오 비교</a><a href="scenarios.html" data-i18n="en">Scenarios</a></li>
-          <li><a href="test-report.html">Test Report</a></li>
+          <li><a href="swarm_3d_simulator_v2.html">3D Simulator v2</a></li>
+          <li><a href="scenario_comparison.html" data-i18n="ko">시나리오 비교</a><a href="scenario_comparison.html" data-i18n="en">Scenarios</a></li>
+          <li><a href="test_report.html">Test Report</a></li>
+          <li><a href="handout.html" data-i18n="ko">핸드아웃</a><a href="handout.html" data-i18n="en">Handout</a></li>
+          <li><a href="go.html" data-i18n="ko">빠른 접속 허브</a><a href="go.html" data-i18n="en">Quick Hub</a></li>
         </ul>
       </div>
       <div>
@@ -1074,10 +1221,10 @@
           <li><a href="docs/architecture.html">Architecture</a></li>
           <li><a href="docs/user-manual.html" data-i18n="ko">사용자 매뉴얼</a><a href="docs/user-manual.html" data-i18n="en">User Manual</a></li>
           <li><a href="docs/gpu-benchmark.html">GPU Benchmark</a></li>
-          <li><a href="docs/presentation-script.html" data-i18n="ko">발표 스크립트</a><a href="docs/presentation-script.html" data-i18n="en">Presentation Script</a></li>
-          <li><a href="government_presentation.md" data-i18n="ko">정부기관 발표자료</a><a href="government_presentation.md" data-i18n="en">Government Briefing Deck</a></li>
-          <li><a href="government_presentation_script.md" data-i18n="ko">정부기관 발표 스크립트</a><a href="government_presentation_script.md" data-i18n="en">Government Briefing Script</a></li>
+          <li><a href="docs/presentation-script.html" data-i18n="ko">최종 발표 스크립트</a><a href="docs/presentation-script.html" data-i18n="en">Final Script</a></li>
           <li><a href="docs/midterm-presentation-script.html" data-i18n="ko">중간 발표 스크립트</a><a href="docs/midterm-presentation-script.html" data-i18n="en">Midterm Script</a></li>
+          <li><a href="offline_demo_backup.html" data-i18n="ko">오프라인 데모</a><a href="offline_demo_backup.html" data-i18n="en">Offline Demo</a></li>
+          <li><a href="patent/SDACS_System_Diagrams.html" data-i18n="ko">특허 다이어그램</a><a href="patent/SDACS_System_Diagrams.html" data-i18n="en">Patent Diagrams</a></li>
         </ul>
       </div>
       <div>

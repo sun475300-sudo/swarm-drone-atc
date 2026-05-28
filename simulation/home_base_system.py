@@ -3,7 +3,6 @@ Phase 478: Home Base System for Return to Home
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 
@@ -16,12 +15,12 @@ class HomeBase:
 
 class HomeBaseSystem:
     def __init__(self):
-        self.home_base: Optional[HomeBase] = None
+        self.home_base: HomeBase | None = None
 
     def set_home(self, position: np.ndarray, radius: float = 10.0):
         self.home_base = HomeBase(position, radius)
 
-    def get_home_position(self) -> Optional[np.ndarray]:
+    def get_home_position(self) -> np.ndarray | None:
         if self.home_base:
             return self.home_base.position
         return None

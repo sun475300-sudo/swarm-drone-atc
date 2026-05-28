@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -27,7 +26,7 @@ class MissionConstraint:
     max_distance_m: float = 10000.0
     min_battery_pct: float = 20.0
     max_altitude_m: float = 120.0
-    no_fly_zones: List[Tuple[np.ndarray, float]] = field(default_factory=list)
+    no_fly_zones: list[tuple[np.ndarray, float]] = field(default_factory=list)
     weather_limit_wind_ms: float = 15.0
 
 
@@ -43,8 +42,8 @@ class Waypoint:
 @dataclass
 class MissionPlan:
     plan_id: str
-    waypoints: List[Waypoint] = field(default_factory=list)
-    assigned_drones: List[str] = field(default_factory=list)
+    waypoints: list[Waypoint] = field(default_factory=list)
+    assigned_drones: list[str] = field(default_factory=list)
     objective: MissionObjective = MissionObjective.BALANCED
     estimated_duration_sec: float = 0.0
     estimated_energy_wh: float = 0.0
@@ -60,7 +59,7 @@ class CoverageOptimizer:
     def compute_coverage_waypoints(
         area_min: np.ndarray, area_max: np.ndarray, sensor_radius: float = 50.0,
         altitude: float = 50.0,
-    ) -> List[Waypoint]:
+    ) -> list[Waypoint]:
         waypoints = []
         step = sensor_radius * 1.5  # overlap
         x = area_min[0]
@@ -83,7 +82,7 @@ class TSPSolver:
     """Nearest-Neighbor TSP 솔버."""
 
     @staticmethod
-    def solve(waypoints: List[Waypoint], start_pos: np.ndarray) -> List[int]:
+    def solve(waypoints: list[Waypoint], start_pos: np.ndarray) -> list[int]:
         n = len(waypoints)
         if n == 0:
             return []
@@ -117,18 +116,18 @@ class AutonomousMissionPlannerV2:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._plans: Dict[str, MissionPlan] = {}
+        self._plans: dict[str, MissionPlan] = {}
         self._constraints = MissionConstraint()
         self._tsp = TSPSolver()
         self._coverage = CoverageOptimizer()
-        self._history: List[dict] = []
+        self._history: list[dict] = []
 
     def set_constraints(self, constraints: MissionConstraint):
         self._constraints = constraints
 
     def plan_coverage_mission(
         self, plan_id: str, area_min: np.ndarray, area_max: np.ndarray,
-        drone_ids: List[str], start_pos: np.ndarray,
+        drone_ids: list[str], start_pos: np.ndarray,
         objective: MissionObjective = MissionObjective.BALANCED,
     ) -> MissionPlan:
         # Generate coverage waypoints
@@ -140,7 +139,7 @@ class AutonomousMissionPlannerV2:
         ordered_wps = [waypoints[i] for i in order]
         # Split among drones
         n_drones = max(1, len(drone_ids))
-        chunk_size = max(1, len(ordered_wps) // n_drones)
+        max(1, len(ordered_wps) // n_drones)
         # Calculate metrics
         total_dist = self._calculate_distance(ordered_wps, start_pos)
         est_duration = total_dist / 10.0  # assume 10 m/s
@@ -158,7 +157,7 @@ class AutonomousMissionPlannerV2:
         return plan
 
     def plan_delivery_mission(
-        self, plan_id: str, delivery_points: List[np.ndarray],
+        self, plan_id: str, delivery_points: list[np.ndarray],
         drone_id: str, start_pos: np.ndarray,
     ) -> MissionPlan:
         waypoints = [Waypoint(position=p, action="deliver") for p in delivery_points]
@@ -178,12 +177,9 @@ class AutonomousMissionPlannerV2:
         return plan
 
     def _in_nfz(self, pos: np.ndarray) -> bool:
-        for center, radius in self._constraints.no_fly_zones:
-            if np.linalg.norm(pos[:2] - center[:2]) < radius:
-                return True
-        return False
+        return any(np.linalg.norm(pos[:2] - center[:2]) < radius for center, radius in self._constraints.no_fly_zones)
 
-    def _calculate_distance(self, waypoints: List[Waypoint], start: np.ndarray) -> float:
+    def _calculate_distance(self, waypoints: list[Waypoint], start: np.ndarray) -> float:
         if not waypoints:
             return 0.0
         total = np.linalg.norm(waypoints[0].position - start)
@@ -207,7 +203,7 @@ class AutonomousMissionPlannerV2:
             return time_score * 0.2 + energy_score * 0.6 + coverage_score * 0.2
         return (time_score + energy_score + coverage_score) / 3
 
-    def get_plan(self, plan_id: str) -> Optional[MissionPlan]:
+    def get_plan(self, plan_id: str) -> MissionPlan | None:
         return self._plans.get(plan_id)
 
     def summary(self) -> dict:

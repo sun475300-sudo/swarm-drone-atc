@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -30,7 +29,7 @@ class ClientStatus(Enum):
 class FLClient:
     client_id: str
     data_size: int = 100
-    model_weights: Optional[np.ndarray] = None
+    model_weights: np.ndarray | None = None
     local_loss: float = float("inf")
     status: ClientStatus = ClientStatus.IDLE
     rounds_participated: int = 0
@@ -40,7 +39,7 @@ class FLClient:
 @dataclass
 class FLRound:
     round_id: int
-    participants: List[str]
+    participants: list[str]
     global_loss: float = 0.0
     avg_local_loss: float = 0.0
     model_divergence: float = 0.0
@@ -81,9 +80,9 @@ class FederatedLearningV2:
         self._global = GlobalModel(
             weights=self._rng.normal(0, 0.1, model_dim)
         )
-        self._clients: Dict[str, FLClient] = {}
-        self._rounds: List[FLRound] = []
-        self._convergence_history: List[float] = []
+        self._clients: dict[str, FLClient] = {}
+        self._rounds: list[FLRound] = []
+        self._convergence_history: list[float] = []
 
     def register_client(self, client_id: str, data_size: int = 100) -> FLClient:
         client = FLClient(
@@ -93,7 +92,7 @@ class FederatedLearningV2:
         self._clients[client_id] = client
         return client
 
-    def select_clients(self, fraction: float = 0.5) -> List[str]:
+    def select_clients(self, fraction: float = 0.5) -> list[str]:
         """Random client selection weighted by data size."""
         all_ids = list(self._clients.keys())
         n_select = max(1, int(len(all_ids) * fraction))
@@ -125,7 +124,7 @@ class FederatedLearningV2:
         client.rounds_participated += 1
         return client.local_loss
 
-    def aggregate(self, participant_ids: List[str]) -> float:
+    def aggregate(self, participant_ids: list[str]) -> float:
         """Aggregate model updates from participants."""
         if not participant_ids:
             return float("inf")
@@ -197,7 +196,7 @@ class FederatedLearningV2:
         self.aggregate(selected)
         return self._rounds[-1]
 
-    def get_convergence(self) -> List[float]:
+    def get_convergence(self) -> list[float]:
         return self._convergence_history.copy()
 
     def get_global_model(self) -> GlobalModel:

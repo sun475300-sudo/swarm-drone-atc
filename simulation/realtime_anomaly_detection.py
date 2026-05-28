@@ -8,11 +8,12 @@ from __future__ import annotations
 
 import json
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 
@@ -355,7 +356,7 @@ class AnomalyDetector:
             return []
 
         anomalies = []
-        for i, (pos, expected) in enumerate(zip(positions, expected_formation)):
+        for i, (pos, expected) in enumerate(zip(positions, expected_formation, strict=False)):
             deviation = float(np.linalg.norm(pos - expected))
             if deviation > self._thresholds.path_deviation:
                 self._stat_monitors.setdefault(

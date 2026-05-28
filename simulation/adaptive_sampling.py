@@ -100,7 +100,7 @@ class AdaptiveSampler:
             for did in positions:
                 positions[did] = positions[did] + velocities[did] * 0.1
             self.update_positions(positions)
-            rates = self.update_all()
+            self.update_all()
             savings = self.bandwidth_savings()
             history.append({"step": step, **savings})
 

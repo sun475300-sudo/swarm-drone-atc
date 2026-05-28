@@ -3,13 +3,13 @@ Phase 455: Configuration Management System
 """
 
 import time
-from typing import Any, Dict, List
+from typing import Any
 
 
 class ConfigurationManagementSystem:
     def __init__(self):
-        self.configs: Dict[str, Dict] = {}
-        self.version_history: Dict[str, List] = {}
+        self.configs: dict[str, dict] = {}
+        self.version_history: dict[str, list] = {}
 
     def set_config(self, key: str, value: Any):
         if key not in self.configs:
@@ -24,7 +24,7 @@ class ConfigurationManagementSystem:
     def get_config(self, key: str, default: Any = None) -> Any:
         return self.configs.get(key, default)
 
-    def get_all_configs(self) -> Dict:
+    def get_all_configs(self) -> dict:
         return self.configs.copy()
 
     def rollback(self, key: str, version: int = -1) -> bool:

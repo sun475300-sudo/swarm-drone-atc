@@ -42,7 +42,7 @@ class ArchitectureSpace:
         layers = []
         total_params = 0
         prev_size = 10  # 입력 차원
-        for i in range(n_layers):
+        for _i in range(n_layers):
             ltype = self.LAYER_TYPES[int(self.rng.integers(0, len(self.LAYER_TYPES)))]
             hidden = self.HIDDEN_SIZES[int(self.rng.integers(0, len(self.HIDDEN_SIZES)))]
             act = self.ACTIVATIONS[int(self.rng.integers(0, len(self.ACTIVATIONS)))]
@@ -90,7 +90,7 @@ class FitnessEvaluator:
     def evaluate(self, arch: Architecture) -> float:
         # 시뮬레이션된 정확도: 레이어 수/다양성/크기에 따른 근사
         n_layers = len(arch.layers)
-        layer_types = set(l["type"] for l in arch.layers)
+        layer_types = {l["type"] for l in arch.layers}
         diversity_bonus = len(layer_types) * 0.05
         size_penalty = max(0, arch.params_count - 50000) * 1e-6
         latency_penalty = max(0, arch.latency_ms - 10) * 0.01
@@ -143,7 +143,7 @@ class NeuralArchSearch:
 
     def run(self) -> SearchResult:
         self.initialize()
-        for g in range(self.generations):
+        for _g in range(self.generations):
             self.evolve_one_generation()
         return SearchResult(
             self.generations, self.best.fitness, self.best,

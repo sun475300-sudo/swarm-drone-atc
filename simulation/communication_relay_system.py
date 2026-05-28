@@ -3,7 +3,6 @@ Phase 466: Communication Relay System for Extended Range
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -19,13 +18,13 @@ class RelayNode:
 class CommunicationRelaySystem:
     def __init__(self, max_hops: int = 3):
         self.max_hops = max_hops
-        self.relay_nodes: Dict[str, RelayNode] = {}
-        self.active_connections: Dict[str, List[str]] = {}
+        self.relay_nodes: dict[str, RelayNode] = {}
+        self.active_connections: dict[str, list[str]] = {}
 
     def add_relay(self, node: RelayNode):
         self.relay_nodes[node.node_id] = node
 
-    def find_route(self, source: str, destination: str) -> Optional[List[str]]:
+    def find_route(self, source: str, destination: str) -> list[str] | None:
         if source not in self.relay_nodes or destination not in self.relay_nodes:
             return None
 
@@ -48,5 +47,5 @@ class CommunicationRelaySystem:
 
         return None
 
-    def estimate_latency(self, route: List[str]) -> float:
+    def estimate_latency(self, route: list[str]) -> float:
         return len(route) * 5.0

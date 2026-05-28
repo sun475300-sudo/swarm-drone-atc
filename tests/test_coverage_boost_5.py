@@ -12,11 +12,9 @@ lane_detection_system, secure_messaging_protocol, plus remaining small modules.
 import time
 
 import numpy as np
-import pytest
 import torch
 
 # ── anomaly_federated_detector ────────────────────────────────────────────
-
 from simulation.anomaly_federated_detector import AnomalyFederatedDetector
 
 
@@ -46,9 +44,9 @@ class TestAnomalyFederatedDetector:
 
 from simulation.reinforcement_learning_trainer import (
     Algorithm,
+    Experience,
     ReinforcementLearningTrainer,
     TrainingConfig,
-    Experience,
 )
 
 
@@ -235,7 +233,7 @@ class TestLoadBalancingController:
 
 # ── formation_control_optimizer ───────────────────────────────────────────
 
-from simulation.formation_control_optimizer import FormationControlOptimizer, FormationConfig
+from simulation.formation_control_optimizer import FormationConfig, FormationControlOptimizer
 
 
 class TestFormationControlOptimizer:
@@ -344,7 +342,8 @@ class TestDroneGraphNetwork:
 
 # ── collision_prediction_system ───────────────────────────────────────────
 
-from simulation.collision_prediction_system import CollisionPredictionSystem, DroneState as CPDroneState
+from simulation.collision_prediction_system import CollisionPredictionSystem
+from simulation.collision_prediction_system import DroneState as CPDroneState
 
 
 class TestCollisionPredictionSystem:
@@ -371,7 +370,8 @@ class TestCollisionPredictionSystem:
 
 # ── path_planning_optimizer ───────────────────────────────────────────────
 
-from simulation.path_planning_optimizer import PathPlanningOptimizer, Waypoint as PPWaypoint, Obstacle
+from simulation.path_planning_optimizer import Obstacle, PathPlanningOptimizer
+from simulation.path_planning_optimizer import Waypoint as PPWaypoint
 
 
 class TestPathPlanningOptimizer:
@@ -470,7 +470,7 @@ class TestFaultDiagnosisSystem:
 
 # ── sensor_fusion_system ─────────────────────────────────────────────────
 
-from simulation.sensor_fusion_system import SensorFusionSystem, SensorData
+from simulation.sensor_fusion_system import SensorData, SensorFusionSystem
 
 
 class TestSensorFusionSystem:
@@ -514,7 +514,7 @@ class TestResourceAllocationSystem:
 
 # ── path_smoothing_system ────────────────────────────────────────────────
 
-from simulation.path_smoothing_system import PathSmoothingSystem, PathPoint
+from simulation.path_smoothing_system import PathPoint, PathSmoothingSystem
 
 
 class TestPathSmoothingSystem:

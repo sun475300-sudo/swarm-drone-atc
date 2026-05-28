@@ -93,7 +93,7 @@ class SwarmLanguageModel:
             "embed_dim": self.vocab.embed_dim,
             "messages_sent": len(self.messages),
             "total_tokens": self.encoded_count,
-            "unique_commands_used": len(set(t for m in self.messages for t in m)),
+            "unique_commands_used": len({t for m in self.messages for t in m}),
         }
 
 

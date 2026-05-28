@@ -8,10 +8,9 @@ from __future__ import annotations
 
 import math
 import time
-from typing import Any, Dict, List, Tuple
 
-from src.analytics.types import AgentTrajectory, SimulationTrace
 from benchmarks.baselines.orca.adapter import Adapter as OrcaAdapter
+from src.analytics.types import AgentTrajectory, SimulationTrace
 
 
 class Adapter(OrcaAdapter):
@@ -20,7 +19,7 @@ class Adapter(OrcaAdapter):
     name = "cbs"
 
     def run(self, hard_wall_time_s: float = 300.0) -> SimulationTrace:
-        from src.utils.rng import set_global_seed, get_rng
+        from src.utils.rng import get_rng, set_global_seed
 
         set_global_seed(self.seed)
         rng = get_rng()
@@ -37,14 +36,14 @@ class Adapter(OrcaAdapter):
         except ImportError:
             pass
 
-        agents: List[AgentTrajectory] = []
+        agents: list[AgentTrajectory] = []
         max_speed = float(self.kin.get("max_speed_m_s", 15.0))
         n_steps = int(round(self.horizon / self.dt))
         tick_latencies_ms = []
 
         # CBS pre-plan stage (single solve, expensive)
         plan_start = time.perf_counter()
-        plans: List[List[Tuple[float, float, float]]] = []
+        plans: list[list[tuple[float, float, float]]] = []
         for i, (start, goal) in enumerate(zip(spawns, goals)):
             # Straight-line interpolation as a placeholder for the actual
             # CBS-routed trajectory. Real CBS would produce time-staggered

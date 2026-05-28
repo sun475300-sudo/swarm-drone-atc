@@ -5,7 +5,6 @@ Phase 512: Fault-Tolerant Navigation
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -42,7 +41,7 @@ class NavSolution:
     velocity: np.ndarray
     heading_deg: float
     confidence: float
-    sensors_used: List[NavSensor]
+    sensors_used: list[NavSensor]
     integrity: float
 
 
@@ -73,7 +72,7 @@ class ExtendedKalmanFilter:
         self.x = self.x + K @ y
         self.P = (np.eye(self.dim) - K @ H) @ self.P
 
-    def state(self) -> Tuple[np.ndarray, np.ndarray]:
+    def state(self) -> tuple[np.ndarray, np.ndarray]:
         return self.x[:3].copy(), self.x[3:6].copy()
 
 
@@ -81,9 +80,9 @@ class SensorVoter:
     """Triple-redundancy sensor voting."""
 
     def __init__(self):
-        self.vote_log: List[Dict] = []
+        self.vote_log: list[dict] = []
 
-    def vote(self, states: List[SensorState]) -> Tuple[np.ndarray, float]:
+    def vote(self, states: list[SensorState]) -> tuple[np.ndarray, float]:
         if not states:
             return np.zeros(3), 0.0
         healthy = [s for s in states if s.health != NavHealth.FAILED]
@@ -92,7 +91,7 @@ class SensorVoter:
 
         weights = np.array([s.confidence for s in healthy])
         weights /= weights.sum() + 1e-10
-        pos = sum(w * s.position_est for w, s in zip(weights, healthy))
+        pos = sum(w * s.position_est for w, s in zip(weights, healthy, strict=False))
 
         spread = np.std([s.position_est for s in healthy], axis=0)
         integrity = max(0, 1 - np.linalg.norm(spread) / 10)
@@ -108,8 +107,8 @@ class FaultTolerantNav:
         self.rng = np.random.default_rng(seed)
         self.ekf = ExtendedKalmanFilter(seed=seed)
         self.voter = SensorVoter()
-        self.sensor_health: Dict[NavSensor, NavHealth] = dict.fromkeys(NavSensor, NavHealth.NOMINAL)
-        self.solutions: List[NavSolution] = []
+        self.sensor_health: dict[NavSensor, NavHealth] = dict.fromkeys(NavSensor, NavHealth.NOMINAL)
+        self.solutions: list[NavSolution] = []
         self.true_pos = np.array([0.0, 0.0, 50.0])
         self.true_vel = np.array([2.0, 1.0, 0.0])
 
@@ -162,13 +161,13 @@ class FaultTolerantNav:
         self.solutions.append(sol)
         return sol
 
-    def run(self, duration: float = 10, dt: float = 0.1) -> List[NavSolution]:
+    def run(self, duration: float = 10, dt: float = 0.1) -> list[NavSolution]:
         sols = []
         for _ in np.arange(0, duration, dt):
             sols.append(self.step(dt))
         return sols
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "solutions": len(self.solutions),
             "avg_confidence": round(np.mean([s.confidence for s in self.solutions]), 4) if self.solutions else 0,

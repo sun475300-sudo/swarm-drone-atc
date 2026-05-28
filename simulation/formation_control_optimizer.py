@@ -3,7 +3,6 @@ Phase 439: Formation Control Optimizer for Coordinated Flight
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 
@@ -24,7 +23,7 @@ class FormationControlOptimizer:
         leader_pos: np.ndarray,
         num_drones: int,
         config: FormationConfig,
-    ) -> List[np.ndarray]:
+    ) -> list[np.ndarray]:
         positions = [leader_pos.copy()]
 
         if config.formation_type == "wedge":
@@ -51,11 +50,11 @@ class FormationControlOptimizer:
 
     def compute_control_inputs(
         self,
-        current_positions: List[np.ndarray],
-        target_positions: List[np.ndarray],
-        velocities: List[np.ndarray],
-        gains: Dict[str, float],
-    ) -> List[np.ndarray]:
+        current_positions: list[np.ndarray],
+        target_positions: list[np.ndarray],
+        velocities: list[np.ndarray],
+        gains: dict[str, float],
+    ) -> list[np.ndarray]:
         controls = []
 
         for i in range(len(current_positions)):
@@ -77,7 +76,7 @@ class FormationControlOptimizer:
 
     def maintain_connectivity(
         self,
-        positions: List[np.ndarray],
+        positions: list[np.ndarray],
         min_distance: float = 10.0,
     ) -> bool:
         for i in range(len(positions)):

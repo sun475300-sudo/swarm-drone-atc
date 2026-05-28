@@ -8,7 +8,6 @@ import hashlib
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
 
 import numpy as np
 
@@ -40,7 +39,7 @@ class Region(Enum):
 @dataclass
 class DataPolicy:
     classification: DataClassification
-    allowed_regions: Set[Region]
+    allowed_regions: set[Region]
     encryption: EncryptionLevel
     retention_days: int
     requires_consent: bool = False
@@ -57,7 +56,7 @@ class DataRecord:
     timestamp: float
     encrypted: bool = False
     encryption_level: EncryptionLevel = EncryptionLevel.NONE
-    routed_to: Optional[Region] = None
+    routed_to: Region | None = None
 
 
 @dataclass
@@ -75,7 +74,7 @@ class AuditEntry:
     action: str
     record_id: str
     from_region: Region
-    to_region: Optional[Region]
+    to_region: Region | None
     timestamp: float
     compliant: bool
 
@@ -108,10 +107,10 @@ class DigitalSovereigntyManager:
     def __init__(self, home_region: Region = Region.KR, seed: int = 42):
         self.home_region = home_region
         self.rng = np.random.default_rng(seed)
-        self.policies: Dict[DataClassification, DataPolicy] = dict(self.DEFAULT_POLICIES)
-        self.records: Dict[str, DataRecord] = {}
-        self.violations: List[ComplianceViolation] = []
-        self.audit_log: List[AuditEntry] = []
+        self.policies: dict[DataClassification, DataPolicy] = dict(self.DEFAULT_POLICIES)
+        self.records: dict[str, DataRecord] = {}
+        self.violations: list[ComplianceViolation] = []
+        self.audit_log: list[AuditEntry] = []
         self._violation_counter = 0
 
     def set_policy(self, classification: DataClassification, policy: DataPolicy) -> None:
@@ -119,7 +118,7 @@ class DigitalSovereigntyManager:
 
     def ingest_data(self, record_id: str, source_region: Region,
                     classification: DataClassification,
-                    payload: bytes, timestamp: Optional[float] = None) -> DataRecord:
+                    payload: bytes, timestamp: float | None = None) -> DataRecord:
         ts = timestamp or time.time()
         payload_hash = hashlib.sha256(payload).hexdigest()
 
@@ -146,7 +145,7 @@ class DigitalSovereigntyManager:
         ))
         return record
 
-    def route_data(self, record_id: str, target_region: Region) -> Tuple[bool, Optional[str]]:
+    def route_data(self, record_id: str, target_region: Region) -> tuple[bool, str | None]:
         record = self.records.get(record_id)
         if not record:
             return False, "Record not found"
@@ -180,7 +179,7 @@ class DigitalSovereigntyManager:
         ))
         return True, None
 
-    def check_compliance(self, record_id: str) -> List[str]:
+    def check_compliance(self, record_id: str) -> list[str]:
         record = self.records.get(record_id)
         if not record:
             return ["Record not found"]
@@ -201,7 +200,7 @@ class DigitalSovereigntyManager:
 
         return issues
 
-    def bulk_compliance_scan(self) -> Dict[str, List[str]]:
+    def bulk_compliance_scan(self) -> dict[str, list[str]]:
         results = {}
         for rid in self.records:
             issues = self.check_compliance(rid)
@@ -223,8 +222,8 @@ class DigitalSovereigntyManager:
         ))
         return True
 
-    def get_region_data_count(self) -> Dict[str, int]:
-        counts: Dict[str, int] = {}
+    def get_region_data_count(self) -> dict[str, int]:
+        counts: dict[str, int] = {}
         for record in self.records.values():
             region = (record.routed_to or record.source_region).value
             counts[region] = counts.get(region, 0) + 1
@@ -240,7 +239,7 @@ class DigitalSovereigntyManager:
             timestamp=time.time()
         ))
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "home_region": self.home_region.value,
             "total_records": len(self.records),

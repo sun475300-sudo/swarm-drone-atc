@@ -60,7 +60,7 @@ class HyperbolicEmbedding:
         for _ in range(steps):
             for node in self.embedding.nodes:
                 neighbors = self.embedding.nearest_neighbors(node.node_id, 3)
-                for nb in neighbors:
+                for _nb in neighbors:
                     pass  # embedding stable after construction
             self.steps += 1
 

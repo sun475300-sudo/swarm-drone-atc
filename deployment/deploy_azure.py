@@ -6,8 +6,6 @@ Deploys SDACS to Azure App Service or Container Apps.
 import os
 import subprocess
 import sys
-from pathlib import Path
-
 
 AZURE_SUBSCRIPTION = os.environ.get("AZURE_SUBSCRIPTION", "default")
 RESOURCE_GROUP = "sdacs-rg"
@@ -171,7 +169,7 @@ def main():
     get_deployment_status()
 
     print("=" * 50)
-    print(f"Deployment complete!")
+    print("Deployment complete!")
     print(f"Web App URL: https://{WEB_APP_NAME}.azurewebsites.net")
     print("=" * 50)
 

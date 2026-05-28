@@ -6,7 +6,7 @@ import math
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -30,7 +30,7 @@ class NotamStatus(Enum):
 class NotamRecord:
     notam_id: str
     category: NotamCategory
-    area_center: Tuple[float, float]
+    area_center: tuple[float, float]
     radius_m: float
     altitude_min: float
     altitude_max: float
@@ -61,10 +61,10 @@ class NotamManager:
             raise ValueError("max_notams must be positive")
         self.rng = np.random.default_rng(seed)
         self._next_id = 0
-        self.notams: Dict[str, NotamRecord] = {}
+        self.notams: dict[str, NotamRecord] = {}
         self.max_history = max_history
         self.max_notams = max_notams
-        self.history: List[Dict[str, Any]] = []
+        self.history: list[dict[str, Any]] = []
 
     def _gen_id(self) -> str:
         self._next_id += 1
@@ -73,7 +73,7 @@ class NotamManager:
     def create_notam(
         self,
         category: NotamCategory,
-        area_center: Tuple[float, float],
+        area_center: tuple[float, float],
         radius_m: float,
         altitude_min: float,
         altitude_max: float,
@@ -128,7 +128,7 @@ class NotamManager:
             del self.notams[oldest]
         return notam_id
 
-    def _record_history(self, event: Dict[str, Any]) -> None:
+    def _record_history(self, event: dict[str, Any]) -> None:
         self.history.append(event)
         overflow = len(self.history) - self.max_history
         if overflow > 0:
@@ -183,10 +183,10 @@ class NotamManager:
 
     def query_active(
         self,
-        area_center: Optional[Tuple[float, float]] = None,
+        area_center: tuple[float, float] | None = None,
         radius_m: float = 10000.0,
-        altitude: Optional[float] = None,
-    ) -> List[NotamRecord]:
+        altitude: float | None = None,
+    ) -> list[NotamRecord]:
         if radius_m < 0:
             raise ValueError("radius_m must be non-negative")
         if altitude is not None and not math.isfinite(altitude):
@@ -206,17 +206,17 @@ class NotamManager:
             result.append(rec)
         return result
 
-    def get(self, notam_id: str) -> Optional[NotamRecord]:
+    def get(self, notam_id: str) -> NotamRecord | None:
         return self.notams.get(notam_id)
 
-    def count_by_status(self) -> Dict[str, int]:
-        counts: Dict[str, int] = {}
+    def count_by_status(self) -> dict[str, int]:
+        counts: dict[str, int] = {}
         for rec in self.notams.values():
             s = rec.status.value
             counts[s] = counts.get(s, 0) + 1
         return counts
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         return {
             "total": len(self.notams),
             "by_status": self.count_by_status(),

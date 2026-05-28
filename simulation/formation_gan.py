@@ -5,7 +5,6 @@ GAN 기반 최적 대형 생성, 적대적 훈련, 대형 평가.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List
 
 import numpy as np
 
@@ -128,8 +127,8 @@ class FormationGAN:
         self.generator = Generator(16, n_drones, seed)
         self.discriminator = Discriminator(n_drones, seed + 1)
         self.evaluator = FormationEvaluator()
-        self.metrics: List[GANMetrics] = []
-        self.formations: List[Formation] = []
+        self.metrics: list[GANMetrics] = []
+        self.formations: list[Formation] = []
         self._counter = 0
 
     def _make_real(self, ftype: FormationType) -> np.ndarray:
@@ -179,10 +178,10 @@ class FormationGAN:
         self.formations.append(f)
         return f
 
-    def train(self, epochs: int = 20) -> List[GANMetrics]:
+    def train(self, epochs: int = 20) -> list[GANMetrics]:
         return [self.train_epoch() for _ in range(epochs)]
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "n_drones": self.n_drones,
             "epochs_trained": len(self.metrics),

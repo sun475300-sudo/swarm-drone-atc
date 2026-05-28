@@ -29,7 +29,7 @@ class ConsensusController:
         return D - self.adj
 
     def consensus_step(self, target_offsets: np.ndarray, dt=0.1, gain=1.0):
-        L = self.laplacian()
+        self.laplacian()
         leader_pos = self.positions[self.leader_idx]
         for i in range(self.n):
             if i == self.leader_idx:

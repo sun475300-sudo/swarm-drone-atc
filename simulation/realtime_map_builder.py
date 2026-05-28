@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -24,7 +23,7 @@ class CellState(Enum):
 class MapObservation:
     observer_id: str
     position: np.ndarray
-    scan_points: List[np.ndarray]
+    scan_points: list[np.ndarray]
     timestamp: float = 0.0
     confidence: float = 0.8
 
@@ -52,7 +51,7 @@ class OccupancyGrid:
         self.LOG_ODD_OCC = 0.85
         self.CLAMP = 5.0
 
-    def _to_grid(self, pos: np.ndarray) -> Tuple[int, int, int]:
+    def _to_grid(self, pos: np.ndarray) -> tuple[int, int, int]:
         gx = int(pos[0] / self.resolution + self.size / 2) % self.size
         gy = int(pos[1] / self.resolution + self.size / 2) % self.size
         gz = max(0, min(19, int(pos[2] / self.resolution) if len(pos) > 2 else 5))
@@ -101,9 +100,9 @@ class RealtimeMapBuilder:
     def __init__(self, grid_size: int = 200, resolution: float = 5.0, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
         self._grid = OccupancyGrid(grid_size, resolution)
-        self._pois: Dict[str, PointOfInterest] = {}
-        self._observations: List[MapObservation] = []
-        self._drone_positions: Dict[str, np.ndarray] = {}
+        self._pois: dict[str, PointOfInterest] = {}
+        self._observations: list[MapObservation] = []
+        self._drone_positions: dict[str, np.ndarray] = {}
         self._poi_counter = 0
 
     def process_observation(self, obs: MapObservation):
@@ -143,7 +142,7 @@ class RealtimeMapBuilder:
             )
             self._pois[poi.poi_id] = poi
 
-    def query_area(self, center: np.ndarray, radius: float) -> Dict[str, CellState]:
+    def query_area(self, center: np.ndarray, radius: float) -> dict[str, CellState]:
         """영역 내 셀 상태 조회."""
         results = {}
         n = int(radius / self._grid.resolution)
@@ -155,14 +154,14 @@ class RealtimeMapBuilder:
                     results[key] = self._grid.get_state(pos)
         return results
 
-    def get_pois(self, category: Optional[str] = None, min_confidence: float = 0.0) -> List[PointOfInterest]:
+    def get_pois(self, category: str | None = None, min_confidence: float = 0.0) -> list[PointOfInterest]:
         pois = list(self._pois.values())
         if category:
             pois = [p for p in pois if p.category == category]
         pois = [p for p in pois if p.confidence >= min_confidence]
         return pois
 
-    def merge_map(self, other_observations: List[MapObservation]):
+    def merge_map(self, other_observations: list[MapObservation]):
         for obs in other_observations:
             self.process_observation(obs)
 

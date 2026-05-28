@@ -5,8 +5,8 @@ SDACS 데모 쇼케이스 — 자동 시나리오 순회 + 결과 출력
 """
 from __future__ import annotations
 
-import sys
 import os
+import sys
 import time
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -4,8 +4,8 @@ Phase 611-620: Multi-language file existence (10 tests)
 Phase 621-630: Python module functional tests (50 tests)
 """
 
-import pytest
 import os
+
 import numpy as np
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

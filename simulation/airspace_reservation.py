@@ -138,6 +138,6 @@ class AirspaceReservation:
         return {
             "total_reservations": len(self._reservations),
             "active_reservations": len(active),
-            "unique_drones": len(set(r.drone_id for r in active)),
-            "unique_sectors": len(set(r.sector for r in active)),
+            "unique_drones": len({r.drone_id for r in active}),
+            "unique_sectors": len({r.sector for r in active}),
         }

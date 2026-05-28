@@ -19,10 +19,8 @@ Tests cover:
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
-from typing import Any
 from unittest.mock import Mock
 
 import numpy as np
@@ -34,13 +32,13 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from simulation.simulator import SwarmSimulator
+from src.airspace_control.agents.drone_state import DroneState
 from src.analytics.core_analytics import (
+    MonteCarloAnalyzer,
     PerformanceAnalyzer,
     SwarmMetricsCollector,
-    MonteCarloAnalyzer,
 )
 from src.analytics.simulation_hook import SimulationAnalyticsHook
-from src.airspace_control.agents.drone_state import DroneState
 
 pytestmark = pytest.mark.e2e
 
@@ -184,8 +182,8 @@ class TestE2ESimulation:
         # Test SwarmMetricsCollector
         drone_metrics = metrics_collector.collect_drone_metrics(mock_drones)
         assert drone_metrics["count"] == 5
-        assert 0 < drone_metrics["position_variance_m2"]
-        assert 0 < drone_metrics["speed_std_ms"]  # Should have variance in speeds
+        assert drone_metrics["position_variance_m2"] > 0
+        assert drone_metrics["speed_std_ms"] > 0  # Should have variance in speeds
         assert 80 < drone_metrics["battery_mean_pct"] < 92
 
         # Test JSON serialization

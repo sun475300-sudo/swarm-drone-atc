@@ -6,7 +6,6 @@ Phase 501: Digital Sovereignty V3
 import hashlib
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Set
 
 import numpy as np
 
@@ -43,14 +42,14 @@ class DataPacket:
     payload_hash: str
     size_bytes: int
     encryption: EncryptionStandard = EncryptionStandard.AES256
-    route_log: List[str] = field(default_factory=list)
+    route_log: list[str] = field(default_factory=list)
     compliant: bool = True
 
 
 @dataclass
 class SovereigntyPolicy:
     region: Region
-    allowed_destinations: Set[Region]
+    allowed_destinations: set[Region]
     required_encryption: EncryptionStandard
     data_residency_required: bool = True
     audit_required: bool = True
@@ -73,8 +72,8 @@ class ZeroTrustGateway:
     def __init__(self, region: Region, seed: int = 42):
         self.rng = np.random.default_rng(seed)
         self.region = region
-        self.trust_scores: Dict[str, float] = {}
-        self.verified_sessions: Set[str] = set()
+        self.trust_scores: dict[str, float] = {}
+        self.verified_sessions: set[str] = set()
 
     def authenticate(self, entity_id: str, credential_hash: str) -> bool:
         expected = hashlib.sha256(f"{entity_id}:secret".encode()).hexdigest()[:16]
@@ -106,8 +105,8 @@ class DigitalSovereigntyV3:
         self.rng = np.random.default_rng(seed)
         self.home_region = home_region
         self.gateway = ZeroTrustGateway(home_region, seed)
-        self.policies: Dict[Region, SovereigntyPolicy] = {}
-        self.audit_log: List[AuditEntry] = []
+        self.policies: dict[Region, SovereigntyPolicy] = {}
+        self.audit_log: list[AuditEntry] = []
         self.packets_processed = 0
         self.violations = 0
         self.time = 0.0
@@ -130,7 +129,7 @@ class DigitalSovereigntyV3:
             Region.JP, {Region.JP, Region.KR, Region.US, Region.EU},
             EncryptionStandard.CAMELLIA, False, True)
 
-    def route_data(self, packet: DataPacket, destination: Region) -> Dict:
+    def route_data(self, packet: DataPacket, destination: Region) -> dict:
         self.time += 0.01
         self.packets_processed += 1
         origin_policy = self.policies.get(packet.origin_region)
@@ -185,7 +184,7 @@ class DigitalSovereigntyV3:
             return 1.0
         return round(1.0 - self.violations / self.packets_processed, 4)
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "home_region": self.home_region.value,
             "packets_processed": self.packets_processed,

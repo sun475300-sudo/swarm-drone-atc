@@ -159,9 +159,7 @@ class WeatherHazardZone:
         dy = pos[1] - zone.center[1]
         if dx*dx + dy*dy > zone.radius * zone.radius:
             return False
-        if pos[2] < zone.altitude_range[0] or pos[2] > zone.altitude_range[1]:
-            return False
-        return True
+        return not (pos[2] < zone.altitude_range[0] or pos[2] > zone.altitude_range[1])
 
     def active_zones(self) -> list[HazardZone]:
         return [z for z in self._zones.values() if z.active]

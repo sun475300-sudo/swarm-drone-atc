@@ -3,7 +3,6 @@ Phase 468: Obstacle Avoidance System with Reactive Control
 """
 
 from dataclasses import dataclass
-from typing import List
 
 import numpy as np
 
@@ -19,7 +18,7 @@ class ObstacleAvoidanceSystem:
         self.safety_distance = safety_distance
 
     def compute_avoidance_vector(
-        self, drone_pos: np.ndarray, obstacles: List[Obstacle]
+        self, drone_pos: np.ndarray, obstacles: list[Obstacle]
     ) -> np.ndarray:
         avoidance = np.zeros(3)
 

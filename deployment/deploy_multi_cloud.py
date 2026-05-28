@@ -5,7 +5,6 @@ Deploy to AWS, GCP, and Azure simultaneously.
 
 from __future__ import annotations
 
-import subprocess
 from dataclasses import dataclass
 from enum import Enum
 

@@ -5,7 +5,6 @@ Phase 488: Mission Critical Validator
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -44,20 +43,20 @@ class ValidationResult:
     level: ValidationLevel
     message: str
     passed: bool
-    value: Optional[float] = None
-    threshold: Optional[float] = None
+    value: float | None = None
+    threshold: float | None = None
 
 
 @dataclass
 class MissionPlan:
     mission_id: str
-    drone_ids: List[str]
-    waypoints: List[np.ndarray]
+    drone_ids: list[str]
+    waypoints: list[np.ndarray]
     max_altitude_m: float = 120.0
     duration_min: float = 30.0
     payload_kg: float = 0.0
     requires_rtk: bool = False
-    emergency_landing_sites: List[np.ndarray] = field(default_factory=list)
+    emergency_landing_sites: list[np.ndarray] = field(default_factory=list)
 
 
 @dataclass
@@ -78,7 +77,7 @@ class MissionCriticalValidator:
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
         self.envelope = SafetyEnvelope()
-        self.results: List[ValidationResult] = []
+        self.results: list[ValidationResult] = []
         self._check_counter = 0
 
     def _add_result(self, category: CheckCategory, level: ValidationLevel,
@@ -92,7 +91,7 @@ class MissionCriticalValidator:
         return result
 
     def validate_battery(self, battery_pct: float, flight_time_min: float,
-                         consumption_rate: float = 1.5) -> List[ValidationResult]:
+                         consumption_rate: float = 1.5) -> list[ValidationResult]:
         results = []
         required_pct = flight_time_min * consumption_rate + self.envelope.min_battery_pct
         results.append(self._add_result(
@@ -108,7 +107,7 @@ class MissionCriticalValidator:
         return results
 
     def validate_weather(self, wind_speed: float, visibility_m: float = 5000,
-                         precipitation: bool = False) -> List[ValidationResult]:
+                         precipitation: bool = False) -> list[ValidationResult]:
         results = []
         results.append(self._add_result(
             CheckCategory.WEATHER, ValidationLevel.CRITICAL,
@@ -124,8 +123,8 @@ class MissionCriticalValidator:
                 "Precipitation detected", False))
         return results
 
-    def validate_airspace(self, waypoints: List[np.ndarray],
-                          restricted_zones: List[Dict] = None) -> List[ValidationResult]:
+    def validate_airspace(self, waypoints: list[np.ndarray],
+                          restricted_zones: list[dict] = None) -> list[ValidationResult]:
         results = []
         for i, wp in enumerate(waypoints):
             alt = wp[2] if len(wp) > 2 else 0
@@ -159,7 +158,7 @@ class MissionCriticalValidator:
         return results
 
     def validate_mission(self, plan: MissionPlan, battery_pct: float = 95,
-                         wind_speed: float = 5.0) -> Dict:
+                         wind_speed: float = 5.0) -> dict:
         self.results = []
         self._check_counter = 0
 
@@ -200,7 +199,7 @@ class MissionCriticalValidator:
             "warnings": sum(1 for r in self.results if r.level == ValidationLevel.WARNING and not r.passed),
         }
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "total_validations": len(self.results),
             "passed": sum(1 for r in self.results if r.passed),

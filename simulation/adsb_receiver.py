@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -34,7 +34,7 @@ class ADSBReceiver:
         self.rng = np.random.default_rng(seed)
         self.listening = False
         self.frequency_mhz = 1090.0
-        self.aircraft: Dict[str, ADSBMessage] = {}
+        self.aircraft: dict[str, ADSBMessage] = {}
         self.stats = {
             "msgs_received": 0, "aircraft_tracked": 0,
             "conflicts_detected": 0, "update_rate_hz": 1.0,
@@ -48,7 +48,7 @@ class ADSBReceiver:
     def stop_listening(self) -> None:
         self.listening = False
 
-    def inject_traffic(self, messages: List[ADSBMessage]) -> int:
+    def inject_traffic(self, messages: list[ADSBMessage]) -> int:
         """Inject simulated ADS-B messages for testing."""
         count = 0
         for msg in messages:
@@ -58,15 +58,15 @@ class ADSBReceiver:
         self.stats["aircraft_tracked"] = len(self.aircraft)
         return count
 
-    def get_aircraft_list(self) -> List[ADSBMessage]:
+    def get_aircraft_list(self) -> list[ADSBMessage]:
         return list(self.aircraft.values())
 
-    def get_aircraft_by_icao(self, icao: str) -> Optional[ADSBMessage]:
+    def get_aircraft_by_icao(self, icao: str) -> ADSBMessage | None:
         return self.aircraft.get(icao)
 
     def detect_conflicts(
-        self, drone_positions: List[Tuple[float, float, float]],
-    ) -> List[Dict[str, Any]]:
+        self, drone_positions: list[tuple[float, float, float]],
+    ) -> list[dict[str, Any]]:
         """Detect conflicts between drones and manned aircraft.
 
         Args:
@@ -97,7 +97,7 @@ class ADSBReceiver:
         return conflicts
 
     def get_traffic_density(
-        self, area_bounds: Tuple[float, float, float, float],
+        self, area_bounds: tuple[float, float, float, float],
     ) -> int:
         """Count aircraft in area (min_lat, min_lon, max_lat, max_lon)."""
         count = 0
@@ -107,17 +107,17 @@ class ADSBReceiver:
                 count += 1
         return count
 
-    def get_receiver_stats(self) -> Dict[str, Any]:
+    def get_receiver_stats(self) -> dict[str, Any]:
         return {
             "listening": self.listening,
             "frequency_mhz": self.frequency_mhz,
             **self.stats,
         }
 
-    def generate_simulated_traffic(self, count: int = 5, center: Tuple[float, float] = (37.5, 127.0)) -> List[ADSBMessage]:
+    def generate_simulated_traffic(self, count: int = 5, center: tuple[float, float] = (37.5, 127.0)) -> list[ADSBMessage]:
         """Generate random ADS-B traffic for testing."""
         messages = []
-        for i in range(count):
+        for _i in range(count):
             msg = ADSBMessage(
                 icao_address=f"A{self.rng.integers(10000, 99999):05X}",
                 callsign=f"KAL{self.rng.integers(100, 999)}",

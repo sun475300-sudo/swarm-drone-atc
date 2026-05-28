@@ -144,10 +144,7 @@ class BatteryPredictor:
 
         # 예측 기반: 60초 후 critical 이하로 떨어지면 RTL
         remaining = self.predict_remaining_time(drone_id)
-        if 0 < remaining < 60:
-            return True
-
-        return False
+        return 0 < remaining < 60
 
     def drain_rate(self, drone_id: str) -> float:
         """현재 소모율 (%/s, 양수=소모)"""

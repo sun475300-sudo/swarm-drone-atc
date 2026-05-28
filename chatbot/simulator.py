@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from chatbot.engine.base import WELCOME_MESSAGE, CLARIFICATION_QUESTIONS
+from chatbot.engine.base import CLARIFICATION_QUESTIONS, WELCOME_MESSAGE
 from chatbot.engine.rule_engine import RuleEngine
 
 _KNOWLEDGE_DIR = Path(__file__).parent / "knowledge"

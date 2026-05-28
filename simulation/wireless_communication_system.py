@@ -2,12 +2,11 @@
 Phase 473: Wireless Communication System
 """
 
-from typing import Dict
 
 
 class WirelessCommunicationSystem:
     def __init__(self):
-        self.connections: Dict[str, Dict] = {}
+        self.connections: dict[str, dict] = {}
 
     def establish_link(self, drone1: str, drone2: str, distance: float) -> bool:
         max_range = 500

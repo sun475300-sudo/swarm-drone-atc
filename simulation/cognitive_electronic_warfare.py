@@ -5,7 +5,6 @@ Phase 486: Cognitive Electronic Warfare
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -43,7 +42,7 @@ class SpectrumSample:
     power_dbm: float
     timestamp: float
     is_threat: bool = False
-    threat_type: Optional[ThreatType] = None
+    threat_type: ThreatType | None = None
 
 
 @dataclass
@@ -60,13 +59,13 @@ class EWEngagement:
 class SpectrumAnalyzer:
     """Real-time spectrum monitoring and threat detection."""
 
-    def __init__(self, bands: List[SpectrumBand] = None, seed: int = 42):
+    def __init__(self, bands: list[SpectrumBand] = None, seed: int = 42):
         self.rng = np.random.default_rng(seed)
         self.bands = bands or [SpectrumBand.L_BAND, SpectrumBand.S_BAND, SpectrumBand.C_BAND]
         self.noise_floor_dbm = -90.0
-        self.history: List[SpectrumSample] = []
+        self.history: list[SpectrumSample] = []
 
-    def scan(self, n_points: int = 256, time: float = 0.0) -> List[SpectrumSample]:
+    def scan(self, n_points: int = 256, time: float = 0.0) -> list[SpectrumSample]:
         samples = []
         for band in self.bands:
             freqs = np.linspace(band.value[0], band.value[1], n_points // len(self.bands))
@@ -83,11 +82,11 @@ class SpectrumAnalyzer:
         self.history.extend(samples)
         return samples
 
-    def detect_threats(self, samples: List[SpectrumSample],
-                       threshold_dbm: float = -60) -> List[SpectrumSample]:
+    def detect_threats(self, samples: list[SpectrumSample],
+                       threshold_dbm: float = -60) -> list[SpectrumSample]:
         return [s for s in samples if s.power_dbm > threshold_dbm]
 
-    def classify_jammer(self, threat_samples: List[SpectrumSample]) -> Optional[ThreatType]:
+    def classify_jammer(self, threat_samples: list[SpectrumSample]) -> ThreatType | None:
         if not threat_samples:
             return None
         freqs = [s.frequency_hz for s in threat_samples]
@@ -110,18 +109,18 @@ class CognitiveEW:
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.analyzer = SpectrumAnalyzer(seed=seed)
-        self.engagements: List[EWEngagement] = []
+        self.engagements: list[EWEngagement] = []
         self.time = 0.0
         self._engagement_counter = 0
-        self.operating_freqs: Dict[int, float] = {}
-        self.freq_hop_table: Dict[int, List[float]] = {}
+        self.operating_freqs: dict[int, float] = {}
+        self.freq_hop_table: dict[int, list[float]] = {}
 
         for i in range(n_drones):
             base = 2.4e9 + i * 5e6
             self.operating_freqs[i] = base
             self.freq_hop_table[i] = [base + j * 1e6 for j in range(20)]
 
-        self._countermeasure_map: Dict[ThreatType, List[CountermeasureType]] = {
+        self._countermeasure_map: dict[ThreatType, list[CountermeasureType]] = {
             ThreatType.BARRAGE_JAM: [CountermeasureType.SPREAD_SPECTRUM, CountermeasureType.POWER_MANAGEMENT],
             ThreatType.SPOT_JAM: [CountermeasureType.FREQ_HOP, CountermeasureType.BEAM_NULL],
             ThreatType.SWEEP_JAM: [CountermeasureType.FREQ_HOP, CountermeasureType.SILENCE],
@@ -153,7 +152,7 @@ class CognitiveEW:
         return best
 
     def _apply_countermeasure(self, threat: ThreatType,
-                              cm: CountermeasureType) -> Tuple[bool, float, float]:
+                              cm: CountermeasureType) -> tuple[bool, float, float]:
         snr_before = self.rng.uniform(-5, 10)
         base_effectiveness = {
             CountermeasureType.FREQ_HOP: 0.8,
@@ -166,7 +165,7 @@ class CognitiveEW:
         prob = base_effectiveness.get(cm, 0.5)
         success = self.rng.random() < prob
         snr_after = snr_before + (self.rng.uniform(10, 25) if success else self.rng.uniform(-5, 5))
-        response_time = self.rng.exponential(50) + 10
+        self.rng.exponential(50) + 10
         return success, snr_before, snr_after
 
     def engage(self, threat: ThreatType) -> EWEngagement:
@@ -182,7 +181,7 @@ class CognitiveEW:
         self.engagements.append(engagement)
         return engagement
 
-    def run_cycle(self, n_scans: int = 10) -> Dict:
+    def run_cycle(self, n_scans: int = 10) -> dict:
         results = {"scans": n_scans, "threats": 0, "engagements": 0, "successful": 0}
         for _ in range(n_scans):
             self.time += 0.1
@@ -198,7 +197,7 @@ class CognitiveEW:
                         results["successful"] += 1
         return results
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "drones": self.n_drones,
             "total_engagements": len(self.engagements),

@@ -6,7 +6,6 @@ QAOA/VQE 시뮬레이션 기반 경로 최적화.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -62,7 +61,7 @@ class QuantumCircuit:
         ], dtype=complex)
         self.qubits[qubit_idx].apply_gate(gate)
 
-    def measure_all(self) -> List[int]:
+    def measure_all(self) -> list[int]:
         return [q.measure(self.rng) for q in self.qubits]
 
     def reset(self) -> None:
@@ -72,11 +71,11 @@ class QuantumCircuit:
 
 @dataclass
 class QAOAResult:
-    best_bitstring: List[int]
+    best_bitstring: list[int]
     best_cost: float
     iterations: int
-    energy_history: List[float]
-    optimal_params: List[float]
+    energy_history: list[float]
+    optimal_params: list[float]
 
 
 @dataclass
@@ -89,11 +88,11 @@ class PathNode:
 
 @dataclass
 class QuantumOptResult:
-    path: List[str]
+    path: list[str]
     total_cost: float
     method: str
     iterations: int
-    convergence: List[float]
+    convergence: list[float]
 
 
 class QuantumPathOptimizer:
@@ -102,16 +101,16 @@ class QuantumPathOptimizer:
     def __init__(self, seed: int = 42, backend: QuantumBackend = QuantumBackend.QAOA):
         self.rng = np.random.default_rng(seed)
         self.backend = backend
-        self.nodes: Dict[str, PathNode] = {}
-        self.edges: Dict[Tuple[str, str], float] = {}
-        self.results: List[QuantumOptResult] = []
+        self.nodes: dict[str, PathNode] = {}
+        self.edges: dict[tuple[str, str], float] = {}
+        self.results: list[QuantumOptResult] = []
 
     def add_node(self, node_id: str, x: float, y: float, z: float) -> PathNode:
         node = PathNode(node_id, x, y, z)
         self.nodes[node_id] = node
         return node
 
-    def add_edge(self, src: str, dst: str, cost: Optional[float] = None) -> float:
+    def add_edge(self, src: str, dst: str, cost: float | None = None) -> float:
         if cost is None:
             a, b = self.nodes[src], self.nodes[dst]
             cost = np.sqrt((a.x - b.x)**2 + (a.y - b.y)**2 + (a.z - b.z)**2)
@@ -119,7 +118,7 @@ class QuantumPathOptimizer:
         self.edges[(dst, src)] = cost
         return cost
 
-    def _build_cost_matrix(self, node_ids: List[str]) -> np.ndarray:
+    def _build_cost_matrix(self, node_ids: list[str]) -> np.ndarray:
         n = len(node_ids)
         cost_matrix = np.full((n, n), np.inf)
         idx_map = {nid: i for i, nid in enumerate(node_ids)}
@@ -136,10 +135,10 @@ class QuantumPathOptimizer:
         circuit = QuantumCircuit(max(n_qubits, 1), self.rng)
         params = self.rng.uniform(0, 2 * np.pi, size=2 * p_layers)
         best_cost = np.inf
-        best_bits: List[int] = []
-        energy_history: List[float] = []
+        best_bits: list[int] = []
+        energy_history: list[float] = []
 
-        for iteration in range(max_iter):
+        for _iteration in range(max_iter):
             circuit.reset()
             for q in range(circuit.n_qubits):
                 circuit.hadamard(q)
@@ -186,7 +185,7 @@ class QuantumPathOptimizer:
         )
 
     def _simulated_annealing(self, cost_matrix: np.ndarray,
-                             max_iter: int = 200) -> Tuple[List[int], float, List[float]]:
+                             max_iter: int = 200) -> tuple[list[int], float, list[float]]:
         n = cost_matrix.shape[0]
         current = list(range(n))
         self.rng.shuffle(current)
@@ -217,7 +216,7 @@ class QuantumPathOptimizer:
         return best, best_cost, history
 
     def _vqe_optimize(self, cost_matrix: np.ndarray,
-                      max_iter: int = 80) -> Tuple[List[int], float, List[float]]:
+                      max_iter: int = 80) -> tuple[list[int], float, list[float]]:
         n = cost_matrix.shape[0]
         params = self.rng.uniform(0, 2 * np.pi, size=n)
         best_perm = list(range(n))
@@ -239,7 +238,7 @@ class QuantumPathOptimizer:
 
         return best_perm, best_cost, history
 
-    def _bitstring_to_permutation(self, bits: List[int], n: int) -> List[int]:
+    def _bitstring_to_permutation(self, bits: list[int], n: int) -> list[int]:
         scores = []
         for i in range(n):
             val = 0
@@ -248,14 +247,14 @@ class QuantumPathOptimizer:
             scores.append(val + self.rng.random() * 0.01)
         return list(np.argsort(scores))
 
-    def _evaluate_path(self, perm: List[int], cost_matrix: np.ndarray) -> float:
+    def _evaluate_path(self, perm: list[int], cost_matrix: np.ndarray) -> float:
         total = 0.0
         for i in range(len(perm) - 1):
             c = cost_matrix[perm[i], perm[i + 1]]
             total += c if np.isfinite(c) else 1e6
         return total
 
-    def optimize_path(self, node_ids: Optional[List[str]] = None,
+    def optimize_path(self, node_ids: list[str] | None = None,
                       max_iter: int = 100) -> QuantumOptResult:
         if node_ids is None:
             node_ids = list(self.nodes.keys())
@@ -283,7 +282,7 @@ class QuantumPathOptimizer:
         self.results.append(result)
         return result
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "nodes": len(self.nodes),
             "edges": len(self.edges) // 2,

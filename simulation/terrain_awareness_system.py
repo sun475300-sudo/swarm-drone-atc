@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -93,7 +92,7 @@ class DigitalElevationModel:
         gy = int(world_y / self.resolution) % self.size
         return float(self._elevation[gx, gy] + self._obstacles[gx, gy])
 
-    def terrain_profile(self, start: np.ndarray, end: np.ndarray, n_samples: int = 50) -> List[float]:
+    def terrain_profile(self, start: np.ndarray, end: np.ndarray, n_samples: int = 50) -> list[float]:
         profile = []
         for i in range(n_samples):
             t = i / (n_samples - 1)
@@ -128,9 +127,9 @@ class TerrainAwarenessSystem:
 
     def __init__(self, dem_size: int = 100, resolution: float = 10.0, rng_seed: int = 42):
         self._dem = DigitalElevationModel(dem_size, resolution, rng_seed)
-        self._alerts: List[TAWSAlert] = []
-        self._drone_altitudes: Dict[str, float] = {}
-        self._msa_cache: Dict[Tuple[int, int], float] = {}
+        self._alerts: list[TAWSAlert] = []
+        self._drone_altitudes: dict[str, float] = {}
+        self._msa_cache: dict[tuple[int, int], float] = {}
 
     def get_elevation(self, x: float, y: float) -> float:
         return self._dem.elevation_at(x, y)
@@ -164,7 +163,7 @@ class TerrainAwarenessSystem:
             self._alerts.append(alert)
         return alert
 
-    def validate_path(self, waypoints: List[np.ndarray]) -> List[TAWSAlert]:
+    def validate_path(self, waypoints: list[np.ndarray]) -> list[TAWSAlert]:
         alerts = []
         for i, wp in enumerate(waypoints):
             elev = self.get_elevation(wp[0], wp[1])
@@ -179,10 +178,10 @@ class TerrainAwarenessSystem:
                 ))
         return alerts
 
-    def terrain_profile(self, start: np.ndarray, end: np.ndarray) -> List[float]:
+    def terrain_profile(self, start: np.ndarray, end: np.ndarray) -> list[float]:
         return self._dem.terrain_profile(start, end)
 
-    def get_alerts(self, level: Optional[AlertLevel] = None) -> List[TAWSAlert]:
+    def get_alerts(self, level: AlertLevel | None = None) -> list[TAWSAlert]:
         if level:
             return [a for a in self._alerts if a.level == level]
         return self._alerts.copy()

@@ -3,7 +3,6 @@ Phase 406: Graph Neural Network for Drone Swarm Topology Learning
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -13,7 +12,7 @@ class GraphNode:
     node_id: str
     position: np.ndarray
     velocity: np.ndarray
-    features: Dict[str, np.ndarray] = field(default_factory=dict)
+    features: dict[str, np.ndarray] = field(default_factory=dict)
 
 
 @dataclass
@@ -37,8 +36,8 @@ class GraphNeuralNetwork:
         self.num_layers = num_layers
         self.message_passing_steps = message_passing_steps
 
-        self.node_embeddings: Dict[str, np.ndarray] = {}
-        self.edge_features: Dict[Tuple[str, str], np.ndarray] = {}
+        self.node_embeddings: dict[str, np.ndarray] = {}
+        self.edge_features: dict[tuple[str, str], np.ndarray] = {}
 
         self._initialize_parameters()
 
@@ -66,7 +65,7 @@ class GraphNeuralNetwork:
         self.edge_features[(source, target)] = np.random.randn(self.hidden_dim) * 0.1
 
     def build_graph_from_drones(
-        self, drones: List[Dict], communication_range: float = 100.0
+        self, drones: list[dict], communication_range: float = 100.0
     ):
         self.node_embeddings.clear()
         self.edge_features.clear()
@@ -88,13 +87,13 @@ class GraphNeuralNetwork:
                 if distance < communication_range:
                     self.add_edge(drone1["id"], drone2["id"])
 
-    def message_passing(self) -> Dict[str, np.ndarray]:
+    def message_passing(self) -> dict[str, np.ndarray]:
         node_states = {}
 
         for node_id, embedding in self.node_embeddings.items():
             node_states[node_id] = np.tanh(self.W_node @ embedding)
 
-        for step in range(self.message_passing_steps):
+        for _step in range(self.message_passing_steps):
             new_states = {}
 
             for node_id in node_states:
@@ -121,8 +120,8 @@ class GraphNeuralNetwork:
         return node_states
 
     def predict_collision_risk(
-        self, drones: List[Dict]
-    ) -> Dict[Tuple[str, str], float]:
+        self, drones: list[dict]
+    ) -> dict[tuple[str, str], float]:
         self.build_graph_from_drones(drones)
 
         node_states = self.message_passing()
@@ -144,7 +143,7 @@ class GraphNeuralNetwork:
                 rel_vel = np.array(drone1.get("velocity", [0, 0, 0])) - np.array(
                     drone2.get("velocity", [0, 0, 0])
                 )
-                closing_speed = np.linalg.norm(rel_vel)
+                np.linalg.norm(rel_vel)
 
                 base_risk = 1.0 / (1.0 + distance / 10.0)
 
@@ -163,7 +162,7 @@ class GraphNeuralNetwork:
         self,
         drone_id: str,
         future_steps: int = 10,
-    ) -> List[np.ndarray]:
+    ) -> list[np.ndarray]:
         node_states = self.message_passing()
 
         current_state = node_states.get(drone_id, np.zeros(self.hidden_dim))

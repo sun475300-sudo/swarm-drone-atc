@@ -3,7 +3,6 @@ Phase 471: Flight Analysis System for Performance Review
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 
@@ -18,9 +17,9 @@ class FlightSegment:
 
 class FlightAnalysisSystem:
     def __init__(self):
-        self.flights: Dict[str, List[FlightSegment]] = {}
+        self.flights: dict[str, list[FlightSegment]] = {}
 
-    def analyze_flight(self, drone_id: str, telemetry: List[Dict]) -> Dict:
+    def analyze_flight(self, drone_id: str, telemetry: list[dict]) -> dict:
         speeds = [t.get("speed", 0) for t in telemetry]
         altitudes = [t.get("altitude", 0) for t in telemetry]
 

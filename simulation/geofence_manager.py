@@ -269,9 +269,7 @@ class GeofenceManager:
             return False
         if fence.active_start is not None and t < fence.active_start:
             return False
-        if fence.active_end is not None and t > fence.active_end:
-            return False
-        return True
+        return not (fence.active_end is not None and t > fence.active_end)
 
     def _distance_to_fence(self, fence: Geofence, x: float, y: float) -> float:
         """

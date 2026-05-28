@@ -34,12 +34,12 @@ class OpenCLAccelerator:
     def vector_add(self, a: list[float], b: list[float]) -> list[float]:
         if len(a) != len(b):
             raise ValueError("Inputs must have the same length")
-        return [float(x) + float(y) for x, y in zip(a, b)]
+        return [float(x) + float(y) for x, y in zip(a, b, strict=False)]
 
     def dot(self, a: list[float], b: list[float]) -> float:
         if len(a) != len(b):
             raise ValueError("Inputs must have the same length")
-        return float(sum(float(x) * float(y) for x, y in zip(a, b)))
+        return float(sum(float(x) * float(y) for x, y in zip(a, b, strict=False)))
 
     def summary(self) -> dict[str, Any]:
         return {

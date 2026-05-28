@@ -6,7 +6,7 @@ import time
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -31,7 +31,7 @@ class DroneStatus(Enum):
 @dataclass
 class Drone:
     drone_id: str
-    capabilities: List[DroneCapability]
+    capabilities: list[DroneCapability]
     max_payload_kg: float
     max_range_km: float
     battery_capacity_wh: float
@@ -43,18 +43,18 @@ class Drone:
 @dataclass
 class Mission:
     mission_id: str
-    required_capabilities: List[DroneCapability]
+    required_capabilities: list[DroneCapability]
     required_payload_kg: float
     priority: int
     deadline: float
     estimated_duration: float
-    waypoints: List[np.ndarray] = field(default_factory=list)
+    waypoints: list[np.ndarray] = field(default_factory=list)
 
 
 @dataclass
 class FleetAssignment:
     mission_id: str
-    assigned_drones: List[str]
+    assigned_drones: list[str]
     total_payload_capacity: float
     estimated_completion: float
 
@@ -74,11 +74,11 @@ class AutonomousFleetComposer:
         self.battery_threshold = battery_threshold
         self.load_balance_enabled = load_balance_enabled
 
-        self.drones: Dict[str, Drone] = {}
-        self.missions: Dict[str, Mission] = {}
-        self.assignments: Dict[str, FleetAssignment] = {}
+        self.drones: dict[str, Drone] = {}
+        self.missions: dict[str, Mission] = {}
+        self.assignments: dict[str, FleetAssignment] = {}
 
-        self.mission_history: List[Dict] = []
+        self.mission_history: list[dict] = []
 
         self._initialize_fleet()
 
@@ -107,7 +107,7 @@ class AutonomousFleetComposer:
     def register_drone(
         self,
         drone_id: str,
-        capabilities: List[DroneCapability],
+        capabilities: list[DroneCapability],
         max_payload_kg: float,
         max_range_km: float,
         battery_capacity_wh: float,
@@ -129,7 +129,7 @@ class AutonomousFleetComposer:
         self.missions[mission.mission_id] = mission
         return True
 
-    def compose_fleet(self, mission_id: str) -> Optional[FleetAssignment]:
+    def compose_fleet(self, mission_id: str) -> FleetAssignment | None:
         if mission_id not in self.missions:
             return None
 
@@ -158,7 +158,7 @@ class AutonomousFleetComposer:
 
         return assignment
 
-    def _find_candidates(self, mission: Mission) -> List[Drone]:
+    def _find_candidates(self, mission: Mission) -> list[Drone]:
         candidates = []
 
         for drone in self.drones.values():
@@ -189,8 +189,8 @@ class AutonomousFleetComposer:
         return candidates
 
     def _optimize_assignment(
-        self, mission: Mission, candidates: List[Drone]
-    ) -> Optional[FleetAssignment]:
+        self, mission: Mission, candidates: list[Drone]
+    ) -> FleetAssignment | None:
         if not candidates:
             return None
 
@@ -238,7 +238,7 @@ class AutonomousFleetComposer:
 
         del self.assignments[mission_id]
 
-    def rebalance_fleet(self) -> Dict[str, Any]:
+    def rebalance_fleet(self) -> dict[str, Any]:
         rebalancing_actions = []
 
         available_drones = [
@@ -265,7 +265,7 @@ class AutonomousFleetComposer:
             "in_mission": in_mission_count,
         }
 
-    def get_fleet_status(self) -> Dict[str, Any]:
+    def get_fleet_status(self) -> dict[str, Any]:
         status_counts = defaultdict(int)
         for drone in self.drones.values():
             status_counts[drone.status.value] += 1
@@ -280,7 +280,7 @@ class AutonomousFleetComposer:
 
     def predict_fleet_availability(
         self, time_horizon_hours: float = 24
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         available_predictions = {}
 
         for status in DroneStatus:

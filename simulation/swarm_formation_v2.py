@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -62,10 +61,10 @@ class SwarmFormationV2:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._drones: Dict[str, FormationDrone] = {}
+        self._drones: dict[str, FormationDrone] = {}
         self._config = FormationConfig(FormationType.V_FORMATION)
-        self._leader_id: Optional[str] = None
-        self._obstacles: List[Tuple[np.ndarray, float]] = []  # (center, radius)
+        self._leader_id: str | None = None
+        self._obstacles: list[tuple[np.ndarray, float]] = []  # (center, radius)
         self._step_count = 0
         self._morph_progress = 1.0  # 1.0 = complete
 
@@ -169,10 +168,7 @@ class SwarmFormationV2:
             # Attraction to target
             to_target = target - drone.position
             dist = np.linalg.norm(to_target)
-            if dist > 0.1:
-                attract = to_target / dist * min(dist, self._config.speed)
-            else:
-                attract = np.zeros(3)
+            attract = to_target / dist * min(dist, self._config.speed) if dist > 0.1 else np.zeros(3)
 
             # Obstacle repulsion
             repel = np.zeros(3)

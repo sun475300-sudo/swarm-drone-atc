@@ -6,25 +6,27 @@ Phase 10-13 신규 기능 테스트
 - Phase 12: 시뮬레이션 고도화 (고장 주입, Geofence, 에너지 메트릭)
 """
 from __future__ import annotations
-import math
+
 import numpy as np
 import pytest
 import simpy
 
-from src.airspace_control.agents.drone_state import (
-    DroneState, FlightPhase, CommsStatus, FailureType,
-)
-from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
-from src.airspace_control.controller.airspace_controller import AirspaceController
-from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
-from src.airspace_control.controller.priority_queue import FlightPriorityQueue
-from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
-from src.airspace_control.comms.communication_bus import CommunicationBus
 from simulation.analytics import SimulationAnalytics, SimulationResult
 from simulation.apf_engine.apf import (
-    APFState, compute_total_force, APF_PARAMS,
+    APF_PARAMS,
+    APFState,
+    compute_total_force,
 )
-
+from src.airspace_control.agents.drone_state import (
+    DroneState,
+    FailureType,
+    FlightPhase,
+)
+from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
+from src.airspace_control.comms.communication_bus import CommunicationBus
+from src.airspace_control.controller.airspace_controller import AirspaceController
+from src.airspace_control.controller.priority_queue import FlightPriorityQueue
+from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
 
 # ─────────────────────────────────────────────────────────────
 # Fixtures

@@ -5,7 +5,6 @@ Phase 478: Swarm Consciousness Simulator
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List
 
 import numpy as np
 
@@ -26,8 +25,8 @@ class ConsciousDrone:
     awareness: float = 1.0  # 0-1
     energy: float = 100.0
     state: str = "active"
-    neighbors: List[int] = field(default_factory=list)
-    memory: List[np.ndarray] = field(default_factory=list)
+    neighbors: list[int] = field(default_factory=list)
+    memory: list[np.ndarray] = field(default_factory=list)
 
 
 @dataclass
@@ -45,9 +44,9 @@ class SwarmConsciousness:
     def __init__(self, n_drones: int = 50, seed: int = 42):
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
-        self.drones: List[ConsciousDrone] = []
+        self.drones: list[ConsciousDrone] = []
         self.step_count = 0
-        self.metrics_history: List[SwarmMetric] = []
+        self.metrics_history: list[SwarmMetric] = []
 
         for i in range(n_drones):
             pos = self.rng.uniform(-100, 100, 3)
@@ -161,10 +160,10 @@ class SwarmConsciousness:
             collective_intelligence=round(float(ci), 4)
         )
 
-    def run_for(self, steps: int, dt: float = 0.1) -> List[SwarmMetric]:
+    def run_for(self, steps: int, dt: float = 0.1) -> list[SwarmMetric]:
         return [self.step(dt) for _ in range(steps)]
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         active = sum(1 for d in self.drones if d.state == "active")
         last = self.metrics_history[-1] if self.metrics_history else None
         return {

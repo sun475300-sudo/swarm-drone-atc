@@ -57,7 +57,7 @@ class GNNTraffic:
         for i in range(len(ids)):
             for j in range(i + 1, len(ids)):
                 d = np.sqrt(sum((a - b) ** 2 for a, b in
-                    zip(self._nodes[ids[i]].position, self._nodes[ids[j]].position)))
+                    zip(self._nodes[ids[i]].position, self._nodes[ids[j]].position, strict=False)))
                 if d < self._threshold:
                     self._adjacency[ids[i]].append(ids[j])
                     self._adjacency[ids[j]].append(ids[i])

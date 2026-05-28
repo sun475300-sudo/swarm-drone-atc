@@ -7,10 +7,11 @@ from __future__ import annotations
 
 import json
 import time
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 
@@ -202,7 +203,7 @@ class ScenarioTuner:
         self._trials = []
         self._best_trial = None
 
-        for i in range(self._config.n_trials):
+        for _i in range(self._config.n_trials):
             if self._config.timeout_seconds:
                 elapsed = sum(t.duration_ms for t in self._trials) / 1000
                 if elapsed >= self._config.timeout_seconds:

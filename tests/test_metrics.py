@@ -1,6 +1,7 @@
 """SimulationMetrics 테스트"""
 import numpy as np
 import pytest
+
 from simulation.metrics import SimulationMetrics, check_sla
 
 pytestmark = pytest.mark.unit

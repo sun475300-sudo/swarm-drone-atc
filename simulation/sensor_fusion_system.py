@@ -3,7 +3,6 @@ Phase 463: Sensor Fusion System for Multi-Sensor Integration
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 
@@ -18,7 +17,7 @@ class SensorData:
 
 class SensorFusionSystem:
     def __init__(self):
-        self.sensor_buffers: Dict[str, List[SensorData]] = {}
+        self.sensor_buffers: dict[str, list[SensorData]] = {}
         self.fused_state = np.zeros(12)
 
     def add_sensor_data(self, data: SensorData):

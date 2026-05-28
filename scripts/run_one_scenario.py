@@ -23,7 +23,6 @@ from pathlib import Path
 
 import yaml  # type: ignore
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -31,7 +30,7 @@ def load_manifest(scenario_id: str) -> dict:
     manifest_path = REPO_ROOT / "benchmarks" / "scenarios" / scenario_id / "manifest.yaml"
     if not manifest_path.exists():
         raise FileNotFoundError(f"No manifest at {manifest_path}")
-    with open(manifest_path, "r", encoding="utf-8") as f:
+    with open(manifest_path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 

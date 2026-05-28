@@ -11,7 +11,6 @@ import pytest
 import simulation.ws_bridge as ws_bridge
 from simulation.ws_bridge import _run_simulation, main
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

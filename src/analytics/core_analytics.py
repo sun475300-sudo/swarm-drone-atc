@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -406,7 +406,7 @@ class SwarmMetricsCollector:
         sample_times = np.linspace(0, 600, sample_size)  # 0 ~ 600s
 
         wind_vectors = np.array(
-            [wind_model.get_wind_vector(pos, t) for pos, t in zip(sample_positions, sample_times)]
+            [wind_model.get_wind_vector(pos, t) for pos, t in zip(sample_positions, sample_times, strict=False)]
         )
 
         wind_speeds = np.linalg.norm(wind_vectors[:, :2], axis=1)  # 수평 성분만
@@ -465,7 +465,7 @@ class MonteCarloAnalyzer:
       - Markdown 형식 보고서 생성
     """
 
-    def __init__(self, seed: Optional[int] = None) -> None:
+    def __init__(self, seed: int | None = None) -> None:
         """
         초기화.
 

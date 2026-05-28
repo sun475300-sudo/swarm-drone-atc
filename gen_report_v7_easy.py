@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 SDACS 최종보고서 v7 - 비전공자 일반인용 쉬운 버전
 - 기술 용어를 일상 비유로 설명
@@ -6,17 +5,17 @@ SDACS 최종보고서 v7 - 비전공자 일반인용 쉬운 버전
 - 숫자를 감각적으로 풀어쓰기
 - 이미지 15개 그대로 재사용
 """
-import sys
 import io
 import os
+import sys
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 from docx import Document
-from docx.shared import Pt, Cm, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
+from docx.shared import Cm, Pt, RGBColor
 
 doc = Document()
 style = doc.styles['Normal']

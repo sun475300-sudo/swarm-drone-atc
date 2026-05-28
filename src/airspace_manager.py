@@ -12,7 +12,6 @@ Classes:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 import numpy as np
 
@@ -126,7 +125,7 @@ class AirspaceGrid:
     def __init__(
         self,
         grid_size: float = 50.0,
-        bounds: Optional[tuple] = None,
+        bounds: tuple | None = None,
         min_separation: float = 30.0,
     ):
         """
@@ -184,7 +183,7 @@ class AirspaceGrid:
                         bounds=bounds,
                     )
 
-    def _get_cell_id(self, point: np.ndarray) -> Optional[tuple]:
+    def _get_cell_id(self, point: np.ndarray) -> tuple | None:
         """Get grid cell ID for a point."""
         point = np.asarray(point, dtype=np.float64)
 
@@ -293,8 +292,8 @@ class AirspaceGrid:
         c2 = self.corridors[corridor_id2]
 
         # Check if corridor cells overlap
-        cells1 = set(c.cell_id for c in c1.cells)
-        cells2 = set(c.cell_id for c in c2.cells)
+        cells1 = {c.cell_id for c in c1.cells}
+        cells2 = {c.cell_id for c in c2.cells}
 
         if cells1 & cells2:  # If cells overlap
             # Do more precise check: sample points from both corridors
@@ -321,7 +320,7 @@ class AirspaceGrid:
     def get_separation_violations(
         self,
         drones: dict[int, np.ndarray],
-        min_separation: Optional[float] = None,
+        min_separation: float | None = None,
     ) -> list[tuple[int, int, float]]:
         """
         Find pairs of drones that violate minimum separation.

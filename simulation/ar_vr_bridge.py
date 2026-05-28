@@ -10,7 +10,6 @@ import json
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -42,7 +41,7 @@ class SceneObject:
     position: np.ndarray
     rotation: np.ndarray = field(default_factory=lambda: np.zeros(3))
     scale: np.ndarray = field(default_factory=lambda: np.ones(3))
-    color: Tuple[float, float, float, float] = (1.0, 1.0, 1.0, 1.0)
+    color: tuple[float, float, float, float] = (1.0, 1.0, 1.0, 1.0)
     metadata: dict = field(default_factory=dict)
     visible: bool = True
     interactive: bool = False
@@ -53,7 +52,7 @@ class InteractionEvent:
     event_type: InteractionType
     target_id: str
     controller: str = "right"  # left/right/gaze
-    position: Optional[np.ndarray] = None
+    position: np.ndarray | None = None
     timestamp: float = 0.0
 
 
@@ -61,7 +60,7 @@ class InteractionEvent:
 class SceneFrame:
     frame_id: int
     timestamp: float
-    objects: List[dict] = field(default_factory=list)
+    objects: list[dict] = field(default_factory=list)
     camera_position: np.ndarray = field(default_factory=lambda: np.array([0, 0, 100]))
     camera_target: np.ndarray = field(default_factory=lambda: np.zeros(3))
 
@@ -83,10 +82,10 @@ class ARVRBridge:
     }
 
     def __init__(self):
-        self._objects: Dict[str, SceneObject] = {}
-        self._interaction_log: List[InteractionEvent] = []
+        self._objects: dict[str, SceneObject] = {}
+        self._interaction_log: list[InteractionEvent] = []
         self._frame_count = 0
-        self._callbacks: Dict[InteractionType, List] = {}
+        self._callbacks: dict[InteractionType, list] = {}
 
     def add_object(self, obj: SceneObject):
         self._objects[obj.obj_id] = obj
@@ -94,8 +93,8 @@ class ARVRBridge:
     def remove_object(self, obj_id: str) -> bool:
         return self._objects.pop(obj_id, None) is not None
 
-    def update_drone_positions(self, positions: Dict[str, np.ndarray],
-                                statuses: Optional[Dict[str, str]] = None):
+    def update_drone_positions(self, positions: dict[str, np.ndarray],
+                                statuses: dict[str, str] | None = None):
         statuses = statuses or {}
         for drone_id, pos in positions.items():
             status = statuses.get(drone_id, "normal")
@@ -111,7 +110,7 @@ class ARVRBridge:
                     metadata={"type": "drone", "status": status},
                 ))
 
-    def add_trajectory(self, drone_id: str, waypoints: List[np.ndarray], color: Tuple = (0.0, 1.0, 0.0, 0.5)):
+    def add_trajectory(self, drone_id: str, waypoints: list[np.ndarray], color: tuple = (0.0, 1.0, 0.0, 0.5)):
         for i, wp in enumerate(waypoints):
             obj = SceneObject(
                 obj_id=f"{drone_id}_wp_{i}", primitive=RenderPrimitive.SPHERE,
@@ -121,7 +120,7 @@ class ARVRBridge:
             self._objects[obj.obj_id] = obj
 
     def add_zone(self, zone_id: str, center: np.ndarray, radius: float,
-                 color: Tuple = (1.0, 0.0, 0.0, 0.2)):
+                 color: tuple = (1.0, 0.0, 0.0, 0.2)):
         obj = SceneObject(
             obj_id=zone_id, primitive=RenderPrimitive.CYLINDER,
             position=center, scale=np.array([radius, 100.0, radius]),
@@ -178,7 +177,7 @@ class ARVRBridge:
     def on_interaction(self, event_type: InteractionType, callback):
         self._callbacks.setdefault(event_type, []).append(callback)
 
-    def get_object(self, obj_id: str) -> Optional[SceneObject]:
+    def get_object(self, obj_id: str) -> SceneObject | None:
         return self._objects.get(obj_id)
 
     def summary(self) -> dict:

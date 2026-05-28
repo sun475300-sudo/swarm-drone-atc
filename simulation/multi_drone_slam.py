@@ -7,7 +7,6 @@ Factor Graph 기반 SLAM, 랜드마크 관측,
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 
@@ -51,8 +50,8 @@ class FactorGraph:
     """Simplified factor graph for pose optimization."""
 
     def __init__(self):
-        self._poses: Dict[str, List[Pose]] = {}
-        self._factors: List[dict] = []
+        self._poses: dict[str, list[Pose]] = {}
+        self._factors: list[dict] = []
 
     def add_pose(self, drone_id: str, pose: Pose):
         self._poses.setdefault(drone_id, []).append(pose)
@@ -103,11 +102,11 @@ class MultiDroneSLAM:
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
         self._graph = FactorGraph()
-        self._landmarks: Dict[str, Landmark] = {}
-        self._drone_poses: Dict[str, List[Pose]] = {}
-        self._observations: List[Observation] = []
-        self._loop_closures: List[LoopClosure] = []
-        self._merged_map: Dict[str, Landmark] = {}
+        self._landmarks: dict[str, Landmark] = {}
+        self._drone_poses: dict[str, list[Pose]] = {}
+        self._observations: list[Observation] = []
+        self._loop_closures: list[LoopClosure] = []
+        self._merged_map: dict[str, Landmark] = {}
 
     def add_drone(self, drone_id: str, initial_pose: Pose):
         self._drone_poses[drone_id] = [initial_pose]
@@ -179,7 +178,7 @@ class MultiDroneSLAM:
             lm.uncertainty *= 0.9
             lm.last_seen_by = drone_id
 
-    def detect_loop_closures(self, threshold_m: float = 5.0) -> List[LoopClosure]:
+    def detect_loop_closures(self, threshold_m: float = 5.0) -> list[LoopClosure]:
         """Detect loop closures between drones."""
         closures = []
         drone_ids = list(self._drone_poses.keys())
@@ -205,7 +204,7 @@ class MultiDroneSLAM:
         self._loop_closures.extend(closures)
         return closures
 
-    def merge_maps(self) -> Dict[str, Landmark]:
+    def merge_maps(self) -> dict[str, Landmark]:
         """Merge all drone observations into unified map."""
         self._merged_map = {}
         for lm_id, lm in self._landmarks.items():
@@ -218,7 +217,7 @@ class MultiDroneSLAM:
     def optimize(self, n_iter: int = 10) -> float:
         return self._graph.optimize(n_iter)
 
-    def get_drone_trajectory(self, drone_id: str) -> List[np.ndarray]:
+    def get_drone_trajectory(self, drone_id: str) -> list[np.ndarray]:
         return [p.position for p in self._drone_poses.get(drone_id, [])]
 
     def summary(self) -> dict:

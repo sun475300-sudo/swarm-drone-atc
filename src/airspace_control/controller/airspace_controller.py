@@ -189,8 +189,8 @@ class AirspaceController:
         - 선입선출(FIFO) 순서로 최대 3기씩 ENROUTE 복귀 허용
         - 최소 대기시간 5초 보장
         """
-        MAX_RELEASE_PER_TICK = 3
-        MIN_HOLD_S = 5.0
+        max_release_per_tick = 3
+        min_hold_s = 5.0
 
         # 새 HOLDING 드론 등록 (최대 큐 크기 제한)
         queued_ids = {did for _, did in self._holding_queue}
@@ -219,9 +219,9 @@ class AirspaceController:
 
         # FIFO 해제: 최소 대기시간 경과한 드론부터
         released = 0
-        while self._holding_queue and released < MAX_RELEASE_PER_TICK:
+        while self._holding_queue and released < max_release_per_tick:
             entry_time, did = self._holding_queue[0]
-            if t - entry_time < MIN_HOLD_S:
+            if t - entry_time < min_hold_s:
                 break
             heapq.heappop(self._holding_queue)
             drone = self._active_drones.get(did)
@@ -503,9 +503,8 @@ class AirspaceController:
             )
 
             # 근접 경고 로그
-            if cur_dist < self._near_lat:
-                if self.analytics:
-                    self.analytics.record_event("NEAR_MISS", t, drone_a=id_a, drone_b=id_b, dist_m=cur_dist)
+            if cur_dist < self._near_lat and self.analytics:
+                self.analytics.record_event("NEAR_MISS", t, drone_a=id_a, drone_b=id_b, dist_m=cur_dist)
 
             # 충돌 예측 → 어드바이저리 발령
             if cpa_dist < self._lat_min and cpa_t < self._lookahead:
@@ -611,14 +610,14 @@ class AirspaceController:
 
     def _detect_lost_link(self, t: float) -> None:
         """텔레메트리 타임아웃으로 Lost-Link 감지 → 3-phase RA 시퀀스 발령"""
-        TIMEOUT_S = 10.0  # 텔레메트리 타임아웃 (초)
+        timeout_s = 10.0  # 텔레메트리 타임아웃 (초)
         for did, drone in self._active_drones.items():
             if not drone.is_active:
                 continue
             if drone.flight_phase in (FlightPhase.GROUNDED, FlightPhase.FAILED):
                 continue
             stale = t - drone.last_update_s
-            if stale > TIMEOUT_S:
+            if stale > timeout_s:
                 # 이미 Lost-Link 어드바이저리 발령 중이면 스킵
                 existing = any(
                     adv.target_drone_id == did and adv.advisory_type == "HOLD" for adv in self._advisories.values()
@@ -724,7 +723,7 @@ class AirspaceController:
         if not self._voronoi_cells:
             return
 
-        HIGH_DENSITY_THRESHOLD_KM2 = 2.0
+        high_density_threshold_km2 = 2.0
         self._density_scores: dict[str, float] = {}
 
         for did, cell in self._voronoi_cells.items():
@@ -742,8 +741,8 @@ class AirspaceController:
                 continue
 
             # 고밀도 셀 드론: 고도 밴드 + 분리 확대
-            if cell.area_km2 < HIGH_DENSITY_THRESHOLD_KM2:
-                setattr(drone, "_voronoi_alt_band", cell.altitude_band)
+            if cell.area_km2 < high_density_threshold_km2:
+                drone._voronoi_alt_band = cell.altitude_band
 
     def _get_density_priority_boost(self, drone_id: str) -> float:
         """고밀도 지역 드론의 허가 우선순위 부스트 (0.0~0.5)"""

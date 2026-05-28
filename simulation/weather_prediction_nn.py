@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -26,7 +25,7 @@ class WeatherVariable(Enum):
 @dataclass
 class WeatherObservation:
     timestamp: float
-    values: Dict[str, float] = field(default_factory=dict)
+    values: dict[str, float] = field(default_factory=dict)
 
     def get(self, var: WeatherVariable, default: float = 0.0) -> float:
         return self.values.get(var.value, default)
@@ -35,7 +34,7 @@ class WeatherObservation:
 @dataclass
 class WeatherForecast:
     horizon_sec: float
-    predictions: Dict[str, float] = field(default_factory=dict)
+    predictions: dict[str, float] = field(default_factory=dict)
     confidence: float = 0.0
     model_used: str = ""
 
@@ -56,7 +55,7 @@ class LSTMCell:
         self.hidden_size = hidden_size
 
     def forward(self, x: np.ndarray, h_prev: np.ndarray, c_prev: np.ndarray
-                ) -> Tuple[np.ndarray, np.ndarray]:
+                ) -> tuple[np.ndarray, np.ndarray]:
         combined = np.concatenate([x, h_prev])
         ft = self._sigmoid(self.Wf @ combined + self.bf)
         it = self._sigmoid(self.Wi @ combined + self.bi)
@@ -87,8 +86,8 @@ class WeatherPredictionNN:
         self._hidden_size = hidden_size
         self._n_ensemble = n_ensemble
         self._input_size = len(self.VARIABLES)
-        self._observations: List[WeatherObservation] = []
-        self._forecasts: List[WeatherForecast] = []
+        self._observations: list[WeatherObservation] = []
+        self._forecasts: list[WeatherForecast] = []
 
         # Initialize ensemble of LSTM models
         self._models = []

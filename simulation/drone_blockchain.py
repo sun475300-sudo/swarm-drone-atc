@@ -77,7 +77,7 @@ class DroneBlockchain:
         })
 
     def run(self, n_drones=5, n_blocks=10):
-        for b in range(n_blocks):
+        for _b in range(n_blocks):
             for d in range(n_drones):
                 self.record_flight(
                     f"DRONE_{d:03d}",

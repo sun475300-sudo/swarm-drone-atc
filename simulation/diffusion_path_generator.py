@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
 
 import numpy as np
 import torch
@@ -17,7 +16,7 @@ PATH_DIM = 3  # x, y, z
 class DiffusionStats:
     train_steps: int = 0
     total_loss: float = 0.0
-    losses: List[float] = field(default_factory=list)
+    losses: list[float] = field(default_factory=list)
 
     @property
     def mean_loss(self) -> float:
@@ -40,7 +39,7 @@ class NoiseScheduler:
         self.alpha_bars_tensor = torch.from_numpy(self.alpha_bars)
 
     def add_noise(
-        self, x_0: torch.Tensor, t: torch.Tensor, noise: Optional[torch.Tensor] = None
+        self, x_0: torch.Tensor, t: torch.Tensor, noise: torch.Tensor | None = None
     ) -> tuple:
         """Add noise to clean data at timestep t.
 
@@ -180,7 +179,7 @@ class DiffusionPathGenerator:
         return loss_val
 
     @torch.no_grad()
-    def sample(self, num_paths: int = 1, path_length: Optional[int] = None) -> np.ndarray:
+    def sample(self, num_paths: int = 1, path_length: int | None = None) -> np.ndarray:
         """Generate paths by reverse diffusion.
 
         Args:
@@ -238,7 +237,7 @@ class DiffusionPathGenerator:
 
         return raw
 
-    def get_stats(self) -> Dict[str, float]:
+    def get_stats(self) -> dict[str, float]:
         return {
             "train_steps": self.stats.train_steps,
             "mean_loss": self.stats.mean_loss,

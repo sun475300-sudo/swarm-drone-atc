@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -46,13 +46,13 @@ class RPASAircraft:
 @dataclass
 class ComplianceResult:
     compliant: bool
-    violations: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    violations: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
     category: str = ""
 
 
 # ICAO Annex requirements mapping
-ANNEX_REQUIREMENTS: Dict[int, List[str]] = {
+ANNEX_REQUIREMENTS: dict[int, list[str]] = {
     2: ["Rules of the Air applicable to RPAS", "Right of way rules", "Flight plan requirements"],
     6: ["Operator certificate", "Maintenance program", "Flight crew licensing"],
     7: ["Aircraft registration marks", "RPAS nationality marks"],
@@ -64,7 +64,7 @@ ANNEX_REQUIREMENTS: Dict[int, List[str]] = {
 }
 
 # C2 link performance requirements by operation category
-C2_REQUIREMENTS: Dict[str, Dict[str, Any]] = {
+C2_REQUIREMENTS: dict[str, dict[str, Any]] = {
     OperationCategory.OPEN: {
         "required": False,
         "max_latency_ms": 500,
@@ -141,7 +141,7 @@ class ICAODoc10019:
 
     def check_c2_link_requirements(
         self, link_type: str, operation_category: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         reqs = C2_REQUIREMENTS.get(operation_category, C2_REQUIREMENTS[OperationCategory.OPEN])
 
         if not reqs.get("required", False):
@@ -174,7 +174,7 @@ class ICAODoc10019:
             return OperationCategory.OPEN
         return OperationCategory.SPECIFIC
 
-    def get_required_certifications(self, operation_class: str) -> List[str]:
+    def get_required_certifications(self, operation_class: str) -> list[str]:
         base = ["Remote pilot certificate"]
         if operation_class == OperationCategory.SPECIFIC:
             base.extend(["Operational authorization", "Risk assessment (SORA)"])
@@ -187,8 +187,8 @@ class ICAODoc10019:
         return base
 
     def check_detect_and_avoid(
-        self, aircraft: RPASAircraft, traffic: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, aircraft: RPASAircraft, traffic: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """Check DAA (Detect and Avoid) capability requirements."""
         needs_daa = aircraft.max_altitude_m > 120 or aircraft.mtow_kg > 25
 
@@ -205,8 +205,8 @@ class ICAODoc10019:
 
     def generate_compliance_report(
         self, operator: RPASOperator, aircraft: RPASAircraft,
-        operation: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        operation: dict[str, Any],
+    ) -> dict[str, Any]:
         op_result = self.validate_operator(operator)
         ac_result = self.validate_aircraft(aircraft)
         category = self.classify_operation(
@@ -233,5 +233,5 @@ class ICAODoc10019:
             "required_certifications": certs,
         }
 
-    def get_annex_requirements(self, annex_number: int) -> List[str]:
+    def get_annex_requirements(self, annex_number: int) -> list[str]:
         return ANNEX_REQUIREMENTS.get(annex_number, [f"No specific requirements for Annex {annex_number}"])

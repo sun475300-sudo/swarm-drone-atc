@@ -91,12 +91,10 @@ class CSPSolver:
 
     def _consistent(self, var: str, value, assignment: dict) -> bool:
         for c in self.constraints:
-            if c.var1 == var and c.var2 in assignment:
-                if not self._satisfies(c, value, assignment[c.var2]):
-                    return False
-            if c.var2 == var and c.var1 in assignment:
-                if not self._satisfies(c, assignment[c.var1], value):
-                    return False
+            if c.var1 == var and c.var2 in assignment and not self._satisfies(c, value, assignment[c.var2]):
+                return False
+            if c.var2 == var and c.var1 in assignment and not self._satisfies(c, assignment[c.var1], value):
+                return False
         return True
 
     def solve(self) -> dict | None:

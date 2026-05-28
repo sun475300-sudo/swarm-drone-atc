@@ -4,7 +4,7 @@ Phase 414: Swarm Cognitive Router for Intelligent Network Management
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -27,7 +27,7 @@ class PacketPriority(Enum):
 class NetworkNode:
     node_id: str
     position: np.ndarray
-    neighbors: List[str]
+    neighbors: list[str]
     bandwidth_mbps: float
     latency_ms: float
     packet_loss_rate: float
@@ -54,10 +54,10 @@ class SwarmCognitiveRouter:
         self.qos_enabled = qos_enabled
         self.adaptive_routing = adaptive_routing
 
-        self.nodes: Dict[str, NetworkNode] = {}
-        self.routing_tables: Dict[str, Dict[str, RoutingTable]] = {}
+        self.nodes: dict[str, NetworkNode] = {}
+        self.routing_tables: dict[str, dict[str, RoutingTable]] = {}
 
-        self.packet_queue: Dict[PacketPriority, List] = {
+        self.packet_queue: dict[PacketPriority, list] = {
             pp: [] for pp in PacketPriority
         }
 
@@ -73,11 +73,10 @@ class SwarmCognitiveRouter:
         self.routing_tables[node.node_id] = {}
 
     def update_link_quality(self, node1_id: str, node2_id: str, quality: float):
-        if node1_id in self.nodes:
-            if node2_id not in self.nodes[node1_id].neighbors:
-                self.nodes[node1_id].neighbors.append(node2_id)
+        if node1_id in self.nodes and node2_id not in self.nodes[node1_id].neighbors:
+            self.nodes[node1_id].neighbors.append(node2_id)
 
-    def compute_routes(self, source: str, destination: str) -> Optional[List[str]]:
+    def compute_routes(self, source: str, destination: str) -> list[str] | None:
         if source not in self.nodes or destination not in self.nodes:
             return None
 
@@ -118,7 +117,7 @@ class SwarmCognitiveRouter:
 
         return True
 
-    def _update_link_metrics(self, route: List[str]):
+    def _update_link_metrics(self, route: list[str]):
         self.metrics["routing_changes"] += 1
 
         for i in range(len(route) - 1):
@@ -126,7 +125,7 @@ class SwarmCognitiveRouter:
             if node:
                 node.latency_ms *= 0.99
 
-    def get_optimal_path(self, source: str, destination: str) -> Optional[List[str]]:
+    def get_optimal_path(self, source: str, destination: str) -> list[str] | None:
         routes = self.compute_routes(source, destination)
 
         if not routes:
@@ -144,7 +143,7 @@ class SwarmCognitiveRouter:
 
     def qos_route(
         self, source: str, destination: str, priority: PacketPriority
-    ) -> Optional[List[str]]:
+    ) -> list[str] | None:
         route = self.get_optimal_path(source, destination)
 
         if not route:
@@ -157,7 +156,7 @@ class SwarmCognitiveRouter:
 
         return route
 
-    def get_network_topology(self) -> Dict[str, Any]:
+    def get_network_topology(self) -> dict[str, Any]:
         return {
             "network_id": self.network_id,
             "total_nodes": len(self.nodes),

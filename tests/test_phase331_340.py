@@ -5,14 +5,14 @@ Neuromorphic Controller, Mesh Network, Digital Thread,
 Game Theory, Acoustic Sensing, Swarm Encryption, Predictive Maintenance v2
 """
 
-import pytest
 import numpy as np
+import pytest
 
 
 # ── Phase 331: Quantum Path Optimizer ───────────────────────────────
 class TestQuantumPathOptimizer:
     def test_add_nodes_and_edges(self):
-        from simulation.quantum_path_optimizer import QuantumPathOptimizer, QuantumBackend
+        from simulation.quantum_path_optimizer import QuantumBackend, QuantumPathOptimizer
         opt = QuantumPathOptimizer(seed=42, backend=QuantumBackend.ANNEALING)
         opt.add_node("A", 0, 0, 0)
         opt.add_node("B", 100, 0, 0)
@@ -21,7 +21,7 @@ class TestQuantumPathOptimizer:
         assert len(opt.nodes) == 2
 
     def test_annealing_optimize(self):
-        from simulation.quantum_path_optimizer import QuantumPathOptimizer, QuantumBackend
+        from simulation.quantum_path_optimizer import QuantumBackend, QuantumPathOptimizer
         opt = QuantumPathOptimizer(seed=42, backend=QuantumBackend.ANNEALING)
         for i in range(5):
             opt.add_node(f"n{i}", np.cos(i) * 50, np.sin(i) * 50, 0)
@@ -35,7 +35,7 @@ class TestQuantumPathOptimizer:
         assert result.method == "annealing"
 
     def test_qaoa_backend(self):
-        from simulation.quantum_path_optimizer import QuantumPathOptimizer, QuantumBackend
+        from simulation.quantum_path_optimizer import QuantumBackend, QuantumPathOptimizer
         opt = QuantumPathOptimizer(seed=42, backend=QuantumBackend.QAOA)
         for i in range(4):
             opt.add_node(f"n{i}", i * 10, 0, 0)
@@ -47,7 +47,7 @@ class TestQuantumPathOptimizer:
         assert len(result.convergence) > 0
 
     def test_vqe_backend(self):
-        from simulation.quantum_path_optimizer import QuantumPathOptimizer, QuantumBackend
+        from simulation.quantum_path_optimizer import QuantumBackend, QuantumPathOptimizer
         opt = QuantumPathOptimizer(seed=42, backend=QuantumBackend.VQE)
         for i in range(4):
             opt.add_node(f"n{i}", i * 20, i * 10, 0)
@@ -59,7 +59,7 @@ class TestQuantumPathOptimizer:
         assert result.method == "vqe"
 
     def test_summary(self):
-        from simulation.quantum_path_optimizer import QuantumPathOptimizer, QuantumBackend
+        from simulation.quantum_path_optimizer import QuantumBackend, QuantumPathOptimizer
         opt = QuantumPathOptimizer(seed=42, backend=QuantumBackend.ANNEALING)
         opt.add_node("a", 0, 0, 0)
         opt.add_node("b", 10, 0, 0)
@@ -73,7 +73,7 @@ class TestQuantumPathOptimizer:
 # ── Phase 332: WASM Runtime Engine ──────────────────────────────────
 class TestWasmRuntime:
     def test_vm_execute_add(self):
-        from simulation.wasm_runtime_engine import WasmVM, WasmModule, WasmFunction, WasmOpcode
+        from simulation.wasm_runtime_engine import WasmFunction, WasmModule, WasmOpcode, WasmVM
         vm = WasmVM()
         func = WasmFunction("add", param_count=0, local_count=0, bytecode=[
             WasmOpcode.CONST_I32, 10,
@@ -88,7 +88,7 @@ class TestWasmRuntime:
         assert result == 30
 
     def test_firmware_compiler_altitude(self):
-        from simulation.wasm_runtime_engine import WasmVM, WasmModule, DroneFirmwareCompiler
+        from simulation.wasm_runtime_engine import DroneFirmwareCompiler, WasmModule, WasmVM
         vm = WasmVM()
         compiler = DroneFirmwareCompiler()
         module = WasmModule("fw")
@@ -104,7 +104,7 @@ class TestWasmRuntime:
         assert mem.load_i32(0) == 42
 
     def test_geofence_check(self):
-        from simulation.wasm_runtime_engine import WasmVM, WasmModule, DroneFirmwareCompiler
+        from simulation.wasm_runtime_engine import DroneFirmwareCompiler, WasmModule, WasmVM
         vm = WasmVM()
         compiler = DroneFirmwareCompiler()
         module = WasmModule("fw")
@@ -114,7 +114,7 @@ class TestWasmRuntime:
         assert vm.execute("fw", "geo", [1500]) == 0
 
     def test_vm_summary(self):
-        from simulation.wasm_runtime_engine import WasmVM, WasmModule, WasmFunction, WasmOpcode
+        from simulation.wasm_runtime_engine import WasmFunction, WasmModule, WasmOpcode, WasmVM
         vm = WasmVM()
         module = WasmModule("test")
         module.functions["nop"] = WasmFunction("nop", 0, 0, [WasmOpcode.CONST_I32, 1, WasmOpcode.RETURN])
@@ -127,40 +127,35 @@ class TestWasmRuntime:
 # ── Phase 333: Digital Sovereignty Manager ──────────────────────────
 class TestDigitalSovereignty:
     def test_ingest_data(self):
-        from simulation.digital_sovereignty_manager import (
-            DigitalSovereigntyManager, Region, DataClassification)
+        from simulation.digital_sovereignty_manager import DataClassification, DigitalSovereigntyManager, Region
         mgr = DigitalSovereigntyManager(Region.KR)
         rec = mgr.ingest_data("r1", Region.KR, DataClassification.PUBLIC, b"hello", 1.0)
         assert rec.record_id == "r1"
         assert rec.size_bytes == 5
 
     def test_route_public_allowed(self):
-        from simulation.digital_sovereignty_manager import (
-            DigitalSovereigntyManager, Region, DataClassification)
+        from simulation.digital_sovereignty_manager import DataClassification, DigitalSovereigntyManager, Region
         mgr = DigitalSovereigntyManager(Region.KR)
         mgr.ingest_data("r1", Region.KR, DataClassification.PUBLIC, b"data", 1.0)
         ok, err = mgr.route_data("r1", Region.US)
         assert ok is True
 
     def test_route_confidential_blocked(self):
-        from simulation.digital_sovereignty_manager import (
-            DigitalSovereigntyManager, Region, DataClassification)
+        from simulation.digital_sovereignty_manager import DataClassification, DigitalSovereigntyManager, Region
         mgr = DigitalSovereigntyManager(Region.KR)
         mgr.ingest_data("r1", Region.KR, DataClassification.CONFIDENTIAL, b"secret", 1.0)
         ok, err = mgr.route_data("r1", Region.US)
         assert ok is False
 
     def test_compliance_check(self):
-        from simulation.digital_sovereignty_manager import (
-            DigitalSovereigntyManager, Region, DataClassification)
+        from simulation.digital_sovereignty_manager import DataClassification, DigitalSovereigntyManager, Region
         mgr = DigitalSovereigntyManager(Region.KR)
         mgr.ingest_data("r1", Region.KR, DataClassification.PUBLIC, b"data", 1.0)
         issues = mgr.check_compliance("r1")
         assert isinstance(issues, list)
 
     def test_summary(self):
-        from simulation.digital_sovereignty_manager import (
-            DigitalSovereigntyManager, Region, DataClassification)
+        from simulation.digital_sovereignty_manager import DataClassification, DigitalSovereigntyManager, Region
         mgr = DigitalSovereigntyManager(Region.KR)
         mgr.ingest_data("r1", Region.KR, DataClassification.INTERNAL, b"data", 1.0)
         s = mgr.summary()
@@ -304,7 +299,7 @@ class TestDigitalThreadManager:
 # ── Phase 337: Swarm Game Theory ────────────────────────────────────
 class TestSwarmGameTheory:
     def test_play_round(self):
-        from simulation.swarm_game_theory import SwarmGameTheory, Strategy, GameType
+        from simulation.swarm_game_theory import GameType, Strategy, SwarmGameTheory
         game = SwarmGameTheory(GameType.PRISONERS_DILEMMA)
         game.add_player("a", Strategy.ALWAYS_COOPERATE)
         game.add_player("b", Strategy.ALWAYS_DEFECT)
@@ -313,7 +308,7 @@ class TestSwarmGameTheory:
         assert result.payoff_b == 5
 
     def test_tournament(self):
-        from simulation.swarm_game_theory import SwarmGameTheory, Strategy, GameType
+        from simulation.swarm_game_theory import GameType, Strategy, SwarmGameTheory
         game = SwarmGameTheory(GameType.PRISONERS_DILEMMA)
         game.add_player("tft", Strategy.TIT_FOR_TAT)
         game.add_player("coop", Strategy.ALWAYS_COOPERATE)
@@ -322,19 +317,19 @@ class TestSwarmGameTheory:
         assert len(scores) == 3
 
     def test_nash_equilibria(self):
-        from simulation.swarm_game_theory import SwarmGameTheory, GameType
+        from simulation.swarm_game_theory import GameType, SwarmGameTheory
         game = SwarmGameTheory(GameType.PRISONERS_DILEMMA)
         nash = game.find_nash_equilibria()
         assert len(nash) >= 1
 
     def test_pareto_frontier(self):
-        from simulation.swarm_game_theory import SwarmGameTheory, GameType
+        from simulation.swarm_game_theory import GameType, SwarmGameTheory
         game = SwarmGameTheory(GameType.PRISONERS_DILEMMA)
         pareto = game.find_pareto_frontier()
         assert len(pareto) >= 1
 
     def test_summary(self):
-        from simulation.swarm_game_theory import SwarmGameTheory, Strategy, GameType
+        from simulation.swarm_game_theory import GameType, Strategy, SwarmGameTheory
         game = SwarmGameTheory(GameType.STAG_HUNT)
         game.add_player("a", Strategy.TIT_FOR_TAT)
         game.add_player("b", Strategy.PAVLOV)
@@ -377,7 +372,7 @@ class TestAcousticSensing:
 # ── Phase 339: Drone Swarm Encryption ───────────────────────────────
 class TestDroneSwarmEncryption:
     def test_register_and_group(self):
-        from simulation.drone_swarm_encryption import DroneSwarmEncryption, CipherSuite
+        from simulation.drone_swarm_encryption import CipherSuite, DroneSwarmEncryption
         enc = DroneSwarmEncryption(CipherSuite.HYBRID_PQ)
         enc.register_drone("d1")
         enc.register_drone("d2")
@@ -385,7 +380,7 @@ class TestDroneSwarmEncryption:
         assert gk is not None
 
     def test_encrypt_decrypt(self):
-        from simulation.drone_swarm_encryption import DroneSwarmEncryption, CipherSuite
+        from simulation.drone_swarm_encryption import CipherSuite, DroneSwarmEncryption
         enc = DroneSwarmEncryption(CipherSuite.HYBRID_PQ)
         enc.register_drone("d1")
         enc.register_drone("d2")
@@ -395,7 +390,7 @@ class TestDroneSwarmEncryption:
         assert plain == b"hello swarm"
 
     def test_key_rotation(self):
-        from simulation.drone_swarm_encryption import DroneSwarmEncryption, CipherSuite
+        from simulation.drone_swarm_encryption import CipherSuite, DroneSwarmEncryption
         enc = DroneSwarmEncryption(CipherSuite.HYBRID_PQ)
         enc.register_drone("d1")
         enc.establish_group(["d1"])
@@ -404,7 +399,7 @@ class TestDroneSwarmEncryption:
         assert enc.key_manager.epoch > old_epoch
 
     def test_revoke_drone(self):
-        from simulation.drone_swarm_encryption import DroneSwarmEncryption, CipherSuite
+        from simulation.drone_swarm_encryption import CipherSuite, DroneSwarmEncryption
         enc = DroneSwarmEncryption(CipherSuite.HYBRID_PQ)
         for i in range(3):
             enc.register_drone(f"d{i}")
@@ -413,7 +408,7 @@ class TestDroneSwarmEncryption:
         assert "d2" not in new_key.member_ids
 
     def test_summary(self):
-        from simulation.drone_swarm_encryption import DroneSwarmEncryption, CipherSuite
+        from simulation.drone_swarm_encryption import CipherSuite, DroneSwarmEncryption
         enc = DroneSwarmEncryption(CipherSuite.HYBRID_PQ)
         enc.register_drone("d1")
         s = enc.summary()
@@ -423,14 +418,13 @@ class TestDroneSwarmEncryption:
 # ── Phase 340: Predictive Maintenance v2 ────────────────────────────
 class TestPredictiveMaintenanceV2:
     def test_register_component(self):
-        from simulation.predictive_maintenance_v2 import PredictiveMaintenanceV2, ComponentType
+        from simulation.predictive_maintenance_v2 import ComponentType, PredictiveMaintenanceV2
         pm = PredictiveMaintenanceV2()
         pm.register_component("m1", ComponentType.MOTOR, 100)
         assert "m1" in pm.components
 
     def test_process_reading(self):
-        from simulation.predictive_maintenance_v2 import (
-            PredictiveMaintenanceV2, ComponentType, SensorReading)
+        from simulation.predictive_maintenance_v2 import ComponentType, PredictiveMaintenanceV2, SensorReading
         pm = PredictiveMaintenanceV2()
         pm.register_component("m1", ComponentType.MOTOR)
         reading = SensorReading(1.0, "m1", 0.5, 40, 5, 11.1, 5000)
@@ -438,7 +432,7 @@ class TestPredictiveMaintenanceV2:
         assert 0 <= health.health_score <= 100
 
     def test_weibull_reliability(self):
-        from simulation.predictive_maintenance_v2 import WeibullAnalyzer, ComponentType
+        from simulation.predictive_maintenance_v2 import ComponentType, WeibullAnalyzer
         w = WeibullAnalyzer()
         r = w.reliability(ComponentType.MOTOR, 0)
         assert r == pytest.approx(1.0, abs=0.01)
@@ -446,14 +440,13 @@ class TestPredictiveMaintenanceV2:
         assert r2 < 0.1
 
     def test_weibull_rul(self):
-        from simulation.predictive_maintenance_v2 import WeibullAnalyzer, ComponentType
+        from simulation.predictive_maintenance_v2 import ComponentType, WeibullAnalyzer
         w = WeibullAnalyzer()
         rul = w.rul_estimate(ComponentType.MOTOR, 0)
         assert rul > 0
 
     def test_fleet_report(self):
-        from simulation.predictive_maintenance_v2 import (
-            PredictiveMaintenanceV2, ComponentType, SensorReading)
+        from simulation.predictive_maintenance_v2 import ComponentType, PredictiveMaintenanceV2, SensorReading
         pm = PredictiveMaintenanceV2(seed=42)
         pm.register_component("m1", ComponentType.MOTOR)
         for t in range(10):

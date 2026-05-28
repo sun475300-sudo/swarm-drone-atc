@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -13,7 +14,7 @@ import numpy as np
 class ROSMessage:
     topic: str
     msg_type: str
-    data: Dict[str, Any]
+    data: dict[str, Any]
     timestamp: float = field(default_factory=time.time)
     frame_id: str = "world"
 
@@ -46,12 +47,12 @@ class ROS2Bridge:
         self.rng = np.random.default_rng(seed)
         self._next_id = 0
 
-        self.publishers: Dict[int, Dict[str, str]] = {}
-        self.subscribers: Dict[int, Dict[str, Any]] = {}
-        self.services: Dict[str, Callable] = {}
-        self.tf_buffer: Dict[str, TFTransform] = {}
+        self.publishers: dict[int, dict[str, str]] = {}
+        self.subscribers: dict[int, dict[str, Any]] = {}
+        self.services: dict[str, Callable] = {}
+        self.tf_buffer: dict[str, TFTransform] = {}
 
-        self._message_queue: List[ROSMessage] = []
+        self._message_queue: list[ROSMessage] = []
         self.stats = {
             "msgs_published": 0, "msgs_received": 0,
             "services_called": 0, "spin_cycles": 0,
@@ -71,7 +72,7 @@ class ROS2Bridge:
         self.subscribers[sub_id] = {"topic": topic, "callback": callback}
         return sub_id
 
-    def publish(self, publisher_id: int, data: Dict[str, Any]) -> bool:
+    def publish(self, publisher_id: int, data: dict[str, Any]) -> bool:
         if publisher_id not in self.publishers:
             return False
         pub = self.publishers[publisher_id]
@@ -87,7 +88,7 @@ class ROS2Bridge:
         self.services[name] = callback
         return name
 
-    def call_service(self, name: str, request: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def call_service(self, name: str, request: dict[str, Any]) -> dict[str, Any] | None:
         if name not in self.services:
             return None
         self.stats["services_called"] += 1
@@ -115,11 +116,11 @@ class ROS2Bridge:
 
     def lookup_transform(
         self, parent: str, child: str
-    ) -> Optional[TFTransform]:
+    ) -> TFTransform | None:
         key = f"{parent}->{child}"
         return self.tf_buffer.get(key)
 
-    def get_topic_list(self) -> List[str]:
+    def get_topic_list(self) -> list[str]:
         topics = set()
         for pub in self.publishers.values():
             topics.add(pub["topic"])
@@ -127,7 +128,7 @@ class ROS2Bridge:
             topics.add(sub["topic"])
         return sorted(topics)
 
-    def get_node_stats(self) -> Dict[str, Any]:
+    def get_node_stats(self) -> dict[str, Any]:
         return {
             "node_name": self.node_name,
             "publishers": len(self.publishers),

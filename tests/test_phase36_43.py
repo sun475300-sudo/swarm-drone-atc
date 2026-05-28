@@ -12,12 +12,11 @@ Phase 36-43 테스트
 - Phase 43: 성능 모니터
 """
 import numpy as np
-import pytest
 
 # ────────────────────────────────────────────
 #  Phase 36: 위협 평가 연동 (확장 테스트)
 # ────────────────────────────────────────────
-from simulation.threat_assessment import ThreatAssessmentEngine, ThreatLevel, Threat
+from simulation.threat_assessment import ThreatAssessmentEngine, ThreatLevel
 
 
 class TestThreatAssessmentExtended:
@@ -81,7 +80,7 @@ class TestThreatAssessmentExtended:
 # ────────────────────────────────────────────
 #  Phase 37: 시나리오 스크립터 확장
 # ────────────────────────────────────────────
-from simulation.scenario_scripter import ScenarioScripter, VALID_EVENT_TYPES
+from simulation.scenario_scripter import VALID_EVENT_TYPES, ScenarioScripter
 
 
 class TestScenarioScripterExtended:
@@ -90,7 +89,7 @@ class TestScenarioScripterExtended:
     def test_all_valid_event_types(self):
         expected = {"SPAWN_DRONES", "INJECT_ROGUE", "SET_WIND", "ADD_NFZ",
                     "REMOVE_NFZ", "FAIL_DRONE", "COMMS_JAM", "BATTERY_DRAIN"}
-        assert VALID_EVENT_TYPES == expected
+        assert expected == VALID_EVENT_TYPES
 
     def test_complex_scenario(self):
         yaml_str = """
@@ -305,7 +304,7 @@ class TestEventTimelineExtended:
 # ────────────────────────────────────────────
 #  Phase 43: 스트레스 테스트 확장
 # ────────────────────────────────────────────
-from simulation.stress_test import StressTestRunner, StressTestConfig
+from simulation.stress_test import StressTestConfig, StressTestRunner
 
 
 class TestStressTestExtended:

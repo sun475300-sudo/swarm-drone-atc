@@ -1,10 +1,11 @@
+"""Module: tests/test_benchmark_cli.py."""
+
 from __future__ import annotations
 
 import json
 import subprocess
 import sys
 from pathlib import Path
-
 
 _ROOT = Path(__file__).resolve().parent.parent
 _MAIN = _ROOT / "main.py"

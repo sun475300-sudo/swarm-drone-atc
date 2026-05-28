@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 SDACS 발표자료 v7 - PPT 생성 스크립트
 - 16:9 와이드 슬라이드 16장
@@ -13,12 +12,11 @@ from datetime import datetime
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 from pptx import Presentation
-from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
-from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+from pptx.enum.text import PP_ALIGN
 from pptx.oxml.ns import qn
-
+from pptx.util import Emu, Inches, Pt
 
 # ── 경로 설정 ────────────────────────────────────────
 REPO_ROOT = r"C:\Users\sun47\Desktop\swarm-drone-atc\.claude\worktrees\stupefied-hugle"

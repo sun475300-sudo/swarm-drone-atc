@@ -7,7 +7,6 @@ YAML 설정 파일 로드 시 타입·범위·필수키 검증.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
 
 import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -133,9 +132,9 @@ class SimulationConfig(BaseModel):
     drones: DronesSection = DronesSection()
     controller: ControllerSection = ControllerSection()
     logging: LoggingSection = LoggingSection()
-    failure_injection: Optional[FailureInjectionSection] = None
-    weather: Optional[dict] = None
-    scenario: Optional[dict] = None
+    failure_injection: FailureInjectionSection | None = None
+    weather: dict | None = None
+    scenario: dict | None = None
 
     model_config = {"extra": "allow"}  # 시나리오 오버라이드 등 추가 키 허용
 
@@ -166,7 +165,7 @@ class MonteCarloConfig(BaseModel):
     """monte_carlo.yaml 전체 스키마"""
     master_seed: int = 42
     quick_sweep: MCSweepSection = MCSweepSection()
-    full_sweep: Optional[MCSweepSection] = None
+    full_sweep: MCSweepSection | None = None
     acceptance_thresholds: AcceptanceThresholds = AcceptanceThresholds()
     parallel: dict = Field(default_factory=lambda: {"n_workers": -1})
 

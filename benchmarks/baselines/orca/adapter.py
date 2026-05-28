@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import math
 import time
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from src.analytics.types import (
     AgentTrajectory,
@@ -23,7 +23,7 @@ class Adapter:
 
     name = "orca"
 
-    def __init__(self, manifest: Dict[str, Any], seed: int) -> None:
+    def __init__(self, manifest: dict[str, Any], seed: int) -> None:
         self.manifest = manifest
         self.seed = seed
         self.dt = float(manifest.get("dt_seconds", 1.0))
@@ -45,7 +45,7 @@ class Adapter:
         except ImportError:
             return None
 
-    def _spawn_positions(self, rng) -> List[Tuple[float, float, float]]:
+    def _spawn_positions(self, rng) -> list[tuple[float, float, float]]:
         """Generate spawn positions per the manifest's spawn_pattern.
 
         Falls back to uniform random inside the airspace bounds if the pattern
@@ -69,7 +69,7 @@ class Adapter:
             positions.append((x, y, z))
         return positions
 
-    def _goal_for(self, idx: int, start: Tuple[float, float, float], rng) -> Tuple[float, float, float]:
+    def _goal_for(self, idx: int, start: tuple[float, float, float], rng) -> tuple[float, float, float]:
         """Pick a goal opposite to the spawn (default), or random."""
         x_lo, x_hi = self.bounds.get("x", [0, 1000])
         y_lo, y_hi = self.bounds.get("y", [0, 1000])
@@ -85,7 +85,7 @@ class Adapter:
     # ------------------------------------------------------------------
 
     def run(self, hard_wall_time_s: float = 300.0) -> SimulationTrace:
-        from src.utils.rng import set_global_seed, get_rng
+        from src.utils.rng import get_rng, set_global_seed
 
         set_global_seed(self.seed)
         rng = get_rng()
@@ -97,7 +97,7 @@ class Adapter:
         # Try real RVO2; fall back to lite VO step otherwise.
         rvo2 = self._try_import_rvo2()
 
-        agents: List[AgentTrajectory] = [
+        agents: list[AgentTrajectory] = [
             AgentTrajectory(
                 agent_id=f"drone_{i:02d}",
                 positions=[spawns[i]],

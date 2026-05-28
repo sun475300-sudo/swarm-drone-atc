@@ -5,7 +5,6 @@ Phase 507: Aero-Acoustic Analysis V2
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List
 
 import numpy as np
 
@@ -99,7 +98,7 @@ class AeroAcousticV2:
         self.n_drones = n_drones
         self.prop_model = PropellerNoiseModel(seed=seed)
         self.propagation = AcousticPropagation()
-        self.noise_map: Dict[str, float] = {}
+        self.noise_map: dict[str, float] = {}
         self.limits = {
             NoiseRegulation.KUTM_NOISE: 65.0,  # dBA at ground
             NoiseRegulation.EU_REG_2019: 60.0,
@@ -107,7 +106,7 @@ class AeroAcousticV2:
         }
 
     def compute_footprint(self, drone_positions: np.ndarray, rpms: np.ndarray,
-                          grid_size: int = 10, area_m: float = 500) -> List[NoiseImpact]:
+                          grid_size: int = 10, area_m: float = 500) -> list[NoiseImpact]:
         impacts = []
         grid_x = np.linspace(-area_m / 2, area_m / 2, grid_size)
         grid_y = np.linspace(-area_m / 2, area_m / 2, grid_size)
@@ -139,7 +138,7 @@ class AeroAcousticV2:
                 return max(1000, rpm - 100)
         return 10000
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "drones": self.n_drones,
             "stealth_rpm": self.stealth_rpm(),

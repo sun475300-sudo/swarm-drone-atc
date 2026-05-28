@@ -4,12 +4,10 @@ Phase 20-23 테스트: 프로파일러, 결과 저장소, 배터리 모델, 동�
 from __future__ import annotations
 
 import json
-import os
 import tempfile
 
 import numpy as np
 import pytest
-
 
 # ── 프로파일러 테스트 ────────────────────────────────────────
 
@@ -35,8 +33,8 @@ class TestProfiler:
 
 class TestResultStore:
     def test_save_json(self):
-        from simulation.result_store import ResultStore
         from simulation.analytics import SimulationResult
+        from simulation.result_store import ResultStore
         with tempfile.TemporaryDirectory() as tmpdir:
             store = ResultStore(tmpdir)
             result = SimulationResult(collision_count=5, seed=42)
@@ -47,8 +45,8 @@ class TestResultStore:
             assert data["_tag"] == "test_run"
 
     def test_save_csv(self):
-        from simulation.result_store import ResultStore
         from simulation.analytics import SimulationResult
+        from simulation.result_store import ResultStore
         with tempfile.TemporaryDirectory() as tmpdir:
             store = ResultStore(tmpdir)
             result = SimulationResult(seed=99)
@@ -57,8 +55,8 @@ class TestResultStore:
             assert path.suffix == ".csv"
 
     def test_load_all(self):
-        from simulation.result_store import ResultStore
         from simulation.analytics import SimulationResult
+        from simulation.result_store import ResultStore
         with tempfile.TemporaryDirectory() as tmpdir:
             store = ResultStore(tmpdir)
             store.save(SimulationResult(collision_count=1, seed=1), tag="a")
@@ -67,8 +65,8 @@ class TestResultStore:
             assert len(all_results) == 2
 
     def test_find_by_tag(self):
-        from simulation.result_store import ResultStore
         from simulation.analytics import SimulationResult
+        from simulation.result_store import ResultStore
         with tempfile.TemporaryDirectory() as tmpdir:
             store = ResultStore(tmpdir)
             store.save(SimulationResult(seed=1), tag="alpha")
@@ -78,8 +76,8 @@ class TestResultStore:
             assert found[0]["_tag"] == "alpha"
 
     def test_compare(self):
-        from simulation.result_store import ResultStore
         from simulation.analytics import SimulationResult
+        from simulation.result_store import ResultStore
         with tempfile.TemporaryDirectory() as tmpdir:
             store = ResultStore(tmpdir)
             store.save(SimulationResult(collision_count=0, seed=1), tag="v1")
@@ -89,8 +87,8 @@ class TestResultStore:
             assert "v1" in table
 
     def test_invalid_format(self):
-        from simulation.result_store import ResultStore
         from simulation.analytics import SimulationResult
+        from simulation.result_store import ResultStore
         with tempfile.TemporaryDirectory() as tmpdir:
             store = ResultStore(tmpdir)
             with pytest.raises(ValueError):
@@ -102,14 +100,14 @@ class TestResultStore:
 
 class TestBatteryModel:
     def test_basic_power(self):
-        from simulation.simulator import _estimate_power_w
+        from simulation.drone_agent import _estimate_power_w
         from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         profile = DRONE_PROFILES["COMMERCIAL_DELIVERY"]
         pw = _estimate_power_w(10.0, profile)
         assert pw > 0
 
     def test_altitude_increases_power(self):
-        from simulation.simulator import _estimate_power_w
+        from simulation.drone_agent import _estimate_power_w
         from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         profile = DRONE_PROFILES["COMMERCIAL_DELIVERY"]
         pw_low = _estimate_power_w(10.0, profile, altitude_m=30.0)
@@ -117,7 +115,7 @@ class TestBatteryModel:
         assert pw_high > pw_low
 
     def test_headwind_increases_power(self):
-        from simulation.simulator import _estimate_power_w
+        from simulation.drone_agent import _estimate_power_w
         from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         profile = DRONE_PROFILES["COMMERCIAL_DELIVERY"]
         pw_calm = _estimate_power_w(10.0, profile, headwind_ms=0.0)
@@ -125,7 +123,7 @@ class TestBatteryModel:
         assert pw_wind > pw_calm
 
     def test_climb_increases_power(self):
-        from simulation.simulator import _estimate_power_w
+        from simulation.drone_agent import _estimate_power_w
         from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         profile = DRONE_PROFILES["COMMERCIAL_DELIVERY"]
         pw_level = _estimate_power_w(10.0, profile, climb_rate_ms=0.0)
@@ -133,7 +131,7 @@ class TestBatteryModel:
         assert pw_climb > pw_level
 
     def test_descent_reduces_power(self):
-        from simulation.simulator import _estimate_power_w
+        from simulation.drone_agent import _estimate_power_w
         from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         profile = DRONE_PROFILES["COMMERCIAL_DELIVERY"]
         pw_level = _estimate_power_w(10.0, profile, climb_rate_ms=0.0)
@@ -141,14 +139,14 @@ class TestBatteryModel:
         assert pw_desc < pw_level
 
     def test_power_never_negative(self):
-        from simulation.simulator import _estimate_power_w
+        from simulation.drone_agent import _estimate_power_w
         from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         profile = DRONE_PROFILES["COMMERCIAL_DELIVERY"]
         pw = _estimate_power_w(0.0, profile, climb_rate_ms=-10.0)
         assert pw >= 0.0
 
     def test_zero_speed_hover_power(self):
-        from simulation.simulator import _estimate_power_w
+        from simulation.drone_agent import _estimate_power_w
         from src.airspace_control.agents.drone_profiles import DRONE_PROFILES
         profile = DRONE_PROFILES["COMMERCIAL_DELIVERY"]
         pw = _estimate_power_w(0.0, profile)
@@ -161,11 +159,12 @@ class TestBatteryModel:
 class TestDynamicNFZ:
     def _make_controller(self):
         import simpy
-        from src.airspace_control.controller.airspace_controller import AirspaceController
-        from src.airspace_control.comms.communication_bus import CommunicationBus
-        from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
+
         from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
+        from src.airspace_control.comms.communication_bus import CommunicationBus
+        from src.airspace_control.controller.airspace_controller import AirspaceController
         from src.airspace_control.controller.priority_queue import FlightPriorityQueue
+        from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
 
         env = simpy.Environment()
         rng = np.random.default_rng(42)

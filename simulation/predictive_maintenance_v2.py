@@ -6,7 +6,6 @@ RUL(Remaining Useful Life) 추정 + Weibull 분석 + 이상 징후 탐지.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -83,7 +82,7 @@ class WeibullAnalyzer:
     """Weibull distribution for reliability analysis."""
 
     def __init__(self):
-        self.params: Dict[ComponentType, WeibullParams] = {
+        self.params: dict[ComponentType, WeibullParams] = {
             ComponentType.MOTOR: WeibullParams(2.5, 800),
             ComponentType.ESC: WeibullParams(2.0, 1200),
             ComponentType.BATTERY: WeibullParams(3.0, 500),
@@ -122,9 +121,9 @@ class AnomalyDetector:
     def __init__(self, window_size: int = 50, threshold_sigma: float = 3.0):
         self.window_size = window_size
         self.threshold_sigma = threshold_sigma
-        self.history: Dict[str, List[float]] = {}
+        self.history: dict[str, list[float]] = {}
 
-    def add_reading(self, component_id: str, value: float) -> Optional[float]:
+    def add_reading(self, component_id: str, value: float) -> float | None:
         if component_id not in self.history:
             self.history[component_id] = []
         self.history[component_id].append(value)
@@ -154,10 +153,10 @@ class PredictiveMaintenanceV2:
         self.rng = np.random.default_rng(seed)
         self.weibull = WeibullAnalyzer()
         self.anomaly_detector = AnomalyDetector()
-        self.components: Dict[str, Tuple[ComponentType, float]] = {}  # id -> (type, hours)
-        self.health_records: Dict[str, ComponentHealth] = {}
-        self.alerts: List[MaintenanceAlert] = []
-        self.readings: List[SensorReading] = []
+        self.components: dict[str, tuple[ComponentType, float]] = {}  # id -> (type, hours)
+        self.health_records: dict[str, ComponentHealth] = {}
+        self.alerts: list[MaintenanceAlert] = []
+        self.readings: list[SensorReading] = []
         self._alert_counter = 0
 
     def register_component(self, component_id: str,
@@ -259,12 +258,12 @@ class PredictiveMaintenanceV2:
             timestamp=timestamp
         ))
 
-    def fleet_health_report(self) -> Dict:
+    def fleet_health_report(self) -> dict:
         if not self.health_records:
             return {"total_components": 0}
 
         scores = [h.health_score for h in self.health_records.values()]
-        statuses: Dict[str, int] = {}
+        statuses: dict[str, int] = {}
         for h in self.health_records.values():
             statuses[h.status.value] = statuses.get(h.status.value, 0) + 1
 
@@ -278,7 +277,7 @@ class PredictiveMaintenanceV2:
                                    if a.severity == AlertSeverity.CRITICAL),
         }
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             **self.fleet_health_report(),
             "total_readings": len(self.readings),

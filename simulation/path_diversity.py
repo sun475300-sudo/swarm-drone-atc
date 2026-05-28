@@ -29,6 +29,7 @@ class PathDiversity:
     """경로 다양성 생성."""
 
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(seed)
         self._generated: list[list[PathCandidate]] = []
 
@@ -124,6 +125,7 @@ class PathDiversity:
         self, candidates: list[PathCandidate],
         distance_weight: float = 0.6, diversity_weight: float = 0.4,
     ) -> PathCandidate | None:
+        """``best_diverse_path`` 동작을 수행한다."""
         if not candidates:
             return None
         min_dist = min(c.distance for c in candidates)
@@ -141,6 +143,7 @@ class PathDiversity:
         return best
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_generations": len(self._generated),
             "total_candidates": sum(len(g) for g in self._generated),

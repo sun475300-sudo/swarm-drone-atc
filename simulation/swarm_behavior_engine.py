@@ -13,6 +13,7 @@ import numpy as np
 
 
 class BehaviorMode(Enum):
+    """``BehaviorMode`` 관련 기능을 제공한다."""
     FLOCK = "flock"
     SCATTER = "scatter"
     CONVERGE = "converge"
@@ -25,6 +26,7 @@ class BehaviorMode(Enum):
 
 @dataclass
 class BoidState:
+    """``BoidState`` 데이터를 표현한다."""
     agent_id: str
     position: np.ndarray
     velocity: np.ndarray
@@ -37,6 +39,7 @@ class BoidState:
 
 @dataclass
 class BehaviorWeights:
+    """``BehaviorWeights`` 관련 기능을 제공한다."""
     separation: float = 2.0
     alignment: float = 1.0
     cohesion: float = 1.0
@@ -50,6 +53,7 @@ class ReynoldsBoids:
 
     @staticmethod
     def separation(agent: BoidState, neighbors: list[BoidState], desired_dist: float = 15.0) -> np.ndarray:
+        """``separation`` 동작을 수행한다."""
         steer = np.zeros(3)
         count = 0
         for nb in neighbors:
@@ -64,6 +68,7 @@ class ReynoldsBoids:
 
     @staticmethod
     def alignment(agent: BoidState, neighbors: list[BoidState]) -> np.ndarray:
+        """``alignment`` 동작을 수행한다."""
         if not neighbors:
             return np.zeros(3)
         avg_vel = np.mean([n.velocity for n in neighbors], axis=0)
@@ -71,6 +76,7 @@ class ReynoldsBoids:
 
     @staticmethod
     def cohesion(agent: BoidState, neighbors: list[BoidState]) -> np.ndarray:
+        """``cohesion`` 동작을 수행한다."""
         if not neighbors:
             return np.zeros(3)
         center = np.mean([n.position for n in neighbors], axis=0)
@@ -78,6 +84,7 @@ class ReynoldsBoids:
 
     @staticmethod
     def seek(agent: BoidState, target: np.ndarray) -> np.ndarray:
+        """``seek`` 동작을 수행한다."""
         desired = target - agent.position
         d = np.linalg.norm(desired)
         if d < 0.1:
@@ -87,6 +94,7 @@ class ReynoldsBoids:
 
     @staticmethod
     def evade(agent: BoidState, threat: np.ndarray) -> np.ndarray:
+        """``evade`` 동작을 수행한다."""
         away = agent.position - threat
         d = np.linalg.norm(away)
         if d < 0.1:
@@ -95,6 +103,7 @@ class ReynoldsBoids:
 
     @staticmethod
     def orbit(agent: BoidState, center: np.ndarray, radius: float = 30.0) -> np.ndarray:
+        """``orbit`` 동작을 수행한다."""
         to_center = center - agent.position
         dist = np.linalg.norm(to_center)
         if dist < 0.1:
@@ -117,6 +126,7 @@ class SwarmBehaviorEngine:
     """
 
     def __init__(self, weights: BehaviorWeights | None = None, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self.weights = weights or BehaviorWeights()
         self._agents: dict[str, BoidState] = {}
@@ -127,26 +137,33 @@ class SwarmBehaviorEngine:
         self._step_count = 0
 
     def add_agent(self, agent: BoidState):
+        """`agent` 항목을 추가한다."""
         self._agents[agent.agent_id] = agent
 
     def remove_agent(self, agent_id: str):
+        """`agent` 상태를 정리한다."""
         self._agents.pop(agent_id, None)
 
     def add_obstacle(self, position: np.ndarray, radius: float = 10.0):
+        """`obstacle` 항목을 추가한다."""
         self._obstacles.append(position)
 
     def set_goal(self, goal: np.ndarray):
+        """`goal` 상태를 갱신한다."""
         self._goal = goal
 
     def set_leader(self, leader_id: str):
+        """`leader` 상태를 갱신한다."""
         self._leader_id = leader_id
 
     def set_behavior(self, agent_id: str, mode: BehaviorMode):
+        """`behavior` 상태를 갱신한다."""
         agent = self._agents.get(agent_id)
         if agent:
             agent.behavior = mode
 
     def set_all_behavior(self, mode: BehaviorMode):
+        """`all behavior` 상태를 갱신한다."""
         for agent in self._agents.values():
             agent.behavior = mode
 
@@ -204,6 +221,7 @@ class SwarmBehaviorEngine:
         return force
 
     def step(self, dt: float = 0.1) -> dict[str, np.ndarray]:
+        """`대상` 실행 상태를 제어한다."""
         self._step_count += 1
         new_positions = {}
         for agent in self._agents.values():
@@ -218,17 +236,20 @@ class SwarmBehaviorEngine:
         return new_positions
 
     def get_swarm_center(self) -> np.ndarray:
+        """`swarm center` 정보를 조회한다."""
         if not self._agents:
             return np.zeros(3)
         return np.mean([a.position for a in self._agents.values()], axis=0)
 
     def get_swarm_spread(self) -> float:
+        """`swarm spread` 정보를 조회한다."""
         if len(self._agents) < 2:
             return 0.0
         center = self.get_swarm_center()
         return float(np.mean([np.linalg.norm(a.position - center) for a in self._agents.values()]))
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         behaviors = {}
         for a in self._agents.values():
             behaviors[a.behavior.value] = behaviors.get(a.behavior.value, 0) + 1

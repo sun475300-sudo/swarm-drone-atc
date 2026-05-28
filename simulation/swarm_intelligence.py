@@ -63,6 +63,7 @@ class SwarmIntelligence:
         pso_params: PSOParams | None = None,
         rng_seed: int = 42,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.n_agents = n_agents
         self.boid = boid_params or BoidParams()
         self.pso = pso_params or PSOParams()
@@ -297,13 +298,16 @@ class SwarmIntelligence:
 
     @property
     def positions(self) -> np.ndarray:
+        """``positions`` 동작을 수행한다."""
         return self._positions.copy()
 
     @property
     def velocities(self) -> np.ndarray:
+        """``velocities`` 동작을 수행한다."""
         return self._velocities.copy()
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         state = self.get_state()
         return {
             "n_agents": self.n_agents,

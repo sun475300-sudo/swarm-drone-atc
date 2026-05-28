@@ -14,6 +14,7 @@ import numpy as np
 
 
 class LinkQuality(Enum):
+    """``LinkQuality`` 관련 기능을 제공한다."""
     EXCELLENT = "excellent"
     GOOD = "good"
     FAIR = "fair"
@@ -23,6 +24,7 @@ class LinkQuality(Enum):
 
 @dataclass
 class MeshNode:
+    """``MeshNode`` 관련 기능을 제공한다."""
     node_id: str
     position: np.ndarray
     is_relay: bool = False
@@ -34,6 +36,7 @@ class MeshNode:
 
 @dataclass
 class MeshLink:
+    """``MeshLink`` 관련 기능을 제공한다."""
     node_a: str
     node_b: str
     distance_m: float
@@ -51,6 +54,7 @@ class PathLossModel:
 
     @classmethod
     def free_space_loss(cls, distance_m: float) -> float:
+        """``free_space_loss`` 동작을 수행한다."""
         if distance_m <= 0:
             return 0.0
         wavelength = cls.SPEED_OF_LIGHT / (cls.FREQ_GHZ * 1e9)
@@ -58,10 +62,12 @@ class PathLossModel:
 
     @classmethod
     def rssi(cls, tx_power_dbm: float, distance_m: float, obstacle_loss_db: float = 0.0) -> float:
+        """``rssi`` 동작을 수행한다."""
         return tx_power_dbm - cls.free_space_loss(distance_m) - obstacle_loss_db
 
     @classmethod
     def quality_from_rssi(cls, rssi_dbm: float) -> LinkQuality:
+        """``quality_from_rssi`` 동작을 수행한다."""
         if rssi_dbm > -50:
             return LinkQuality.EXCELLENT
         elif rssi_dbm > -70:
@@ -74,6 +80,7 @@ class PathLossModel:
 
     @classmethod
     def throughput(cls, rssi_dbm: float, bandwidth_mbps: float = 10.0) -> float:
+        """``throughput`` 동작을 수행한다."""
         if rssi_dbm < -90:
             return 0.0
         snr = rssi_dbm + 90  # simplified SNR
@@ -93,6 +100,7 @@ class CommunicationMeshOptimizer:
     MAX_RANGE_M = 500.0
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._nodes: dict[str, MeshNode] = {}
         self._links: dict[tuple[str, str], MeshLink] = {}
@@ -101,9 +109,11 @@ class CommunicationMeshOptimizer:
         self._history: list[dict] = []
 
     def add_node(self, node: MeshNode):
+        """`node` 항목을 추가한다."""
         self._nodes[node.node_id] = node
 
     def remove_node(self, node_id: str) -> bool:
+        """`node` 상태를 정리한다."""
         if node_id not in self._nodes:
             return False
         # Remove links
@@ -210,10 +220,12 @@ class CommunicationMeshOptimizer:
         return len(visited) / len(self._nodes)
 
     def get_link(self, a: str, b: str) -> MeshLink | None:
+        """`link` 정보를 조회한다."""
         key = tuple(sorted([a, b]))
         return self._links.get(key)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         quality_counts = {}
         for link in self._links.values():
             quality_counts[link.quality.value] = quality_counts.get(link.quality.value, 0) + 1

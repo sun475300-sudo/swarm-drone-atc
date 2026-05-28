@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class SamplingConfig:
+    """``SamplingConfig`` 데이터를 표현한다."""
     min_rate_hz: float = 1.0
     max_rate_hz: float = 10.0
     density_threshold: float = 0.5  # 밀도 0-1 스케일
@@ -19,6 +20,7 @@ class SamplingConfig:
 
 @dataclass
 class DroneRate:
+    """``DroneRate`` 관련 기능을 제공한다."""
     drone_id: str
     current_rate_hz: float
     density_score: float
@@ -26,16 +28,20 @@ class DroneRate:
 
 
 class AdaptiveSampler:
+    """``AdaptiveSampler`` 관련 기능을 제공한다."""
     def __init__(self, seed: int = 42, config: SamplingConfig | None = None):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.config = config or SamplingConfig()
         self._rates: dict[str, DroneRate] = {}
         self._positions: dict[str, np.ndarray] = {}
 
     def update_positions(self, positions: dict[str, np.ndarray]) -> None:
+        """`positions` 상태를 갱신한다."""
         self._positions = positions
 
     def compute_density(self, drone_id: str) -> tuple[float, int]:
+        """`density` 값을 계산한다."""
         if drone_id not in self._positions or len(self._positions) < 2:
             return 0.0, 0
 
@@ -53,6 +59,7 @@ class AdaptiveSampler:
         return density, count
 
     def compute_rate(self, drone_id: str) -> float:
+        """`rate` 값을 계산한다."""
         density, neighbors = self.compute_density(drone_id)
         cfg = self.config
 
@@ -64,12 +71,14 @@ class AdaptiveSampler:
         return rate
 
     def update_all(self) -> dict[str, float]:
+        """`all` 상태를 갱신한다."""
         rates = {}
         for drone_id in self._positions:
             rates[drone_id] = self.compute_rate(drone_id)
         return rates
 
     def bandwidth_savings(self) -> dict:
+        """``bandwidth_savings`` 동작을 수행한다."""
         if not self._rates:
             return {"total_drones": 0, "avg_rate_hz": 0, "savings_pct": 0}
 
@@ -87,6 +96,7 @@ class AdaptiveSampler:
         }
 
     def simulate(self, n_drones: int = 50, n_steps: int = 30) -> list[dict]:
+        """``simulate`` 동작을 수행한다."""
         history = []
         positions = {
             f"D-{i:04d}": self.rng.uniform(-2000, 2000, 3)

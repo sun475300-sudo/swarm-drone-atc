@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class HealthMetric:
+    """``HealthMetric`` 관련 기능을 제공한다."""
     name: str
     values: list[float] = field(default_factory=list)
     timestamps: list[float] = field(default_factory=list)
@@ -19,6 +20,7 @@ class HealthMetric:
 
 @dataclass
 class RULEstimate:
+    """``RULEstimate`` 관련 기능을 제공한다."""
     drone_id: str
     metric: str
     remaining_hours: float
@@ -27,13 +29,16 @@ class RULEstimate:
 
 
 class HealthPredictor:
+    """``HealthPredictor`` 관련 기능을 제공한다."""
     def __init__(self, seed: int = 42, alpha: float = 0.3, beta: float = 0.1):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.alpha = alpha  # level smoothing
         self.beta = beta    # trend smoothing
         self._metrics: dict[str, dict[str, HealthMetric]] = {}
 
     def register_drone(self, drone_id: str) -> None:
+        """`drone` 항목을 추가한다."""
         self._metrics[drone_id] = {
             "battery_health": HealthMetric("battery_health", threshold=20.0),
             "motor_vibration": HealthMetric("motor_vibration", threshold=80.0),
@@ -42,6 +47,7 @@ class HealthPredictor:
         }
 
     def record(self, drone_id: str, metric_name: str, value: float, t: float) -> None:
+        """`대상` 정보를 기록한다."""
         if drone_id not in self._metrics:
             self.register_drone(drone_id)
         m = self._metrics[drone_id].get(metric_name)
@@ -70,6 +76,7 @@ class HealthPredictor:
         return forecasts
 
     def predict_rul(self, drone_id: str, metric_name: str) -> RULEstimate:
+        """`rul` 결과를 계산하거나 판정한다."""
         if drone_id not in self._metrics:
             return RULEstimate(drone_id, metric_name, float("inf"), 0.0, "stable")
 
@@ -111,6 +118,7 @@ class HealthPredictor:
         return RULEstimate(drone_id, metric_name, rul_hours, confidence, trend)
 
     def fleet_health_summary(self) -> dict:
+        """``fleet_health_summary`` 동작을 수행한다."""
         summary = {"total_drones": len(self._metrics), "alerts": []}
         for drone_id in self._metrics:
             for metric_name in self._metrics[drone_id]:
@@ -125,6 +133,7 @@ class HealthPredictor:
         return summary
 
     def simulate_degradation(self, n_drones: int = 5, n_steps: int = 100) -> dict:
+        """``simulate_degradation`` 동작을 수행한다."""
         results = {}
         for i in range(n_drones):
             did = f"D-{i:04d}"

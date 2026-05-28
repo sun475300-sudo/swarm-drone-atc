@@ -12,6 +12,7 @@ import numpy as np
 
 
 class OperationType(Enum):
+    """``OperationType`` 관련 기능을 제공한다."""
     CONV2D = "conv2d"
     DENSE = "dense"
     ATTENTION = "attention"
@@ -21,6 +22,7 @@ class OperationType(Enum):
 
 
 class SearchStrategy(Enum):
+    """``SearchStrategy`` 관련 기능을 제공한다."""
     RANDOM = "random"
     EVOLUTION = "evolution"
     REINFORCEMENT = "reinforcement"
@@ -29,6 +31,7 @@ class SearchStrategy(Enum):
 
 @dataclass
 class NeuralBlock:
+    """``NeuralBlock`` 관련 기능을 제공한다."""
     block_id: str
     operation: OperationType
     parameters: dict[str, Any]
@@ -38,6 +41,7 @@ class NeuralBlock:
 
 @dataclass
 class Architecture:
+    """``Architecture`` 관련 기능을 제공한다."""
     arch_id: str
     blocks: list[NeuralBlock]
     accuracy: float = 0.0
@@ -46,6 +50,7 @@ class Architecture:
 
 
 class NeuralArchitectureSearch:
+    """``NeuralArchitectureSearch`` 관련 기능을 제공한다."""
     def __init__(
         self,
         search_space: dict[str, list[Any]],
@@ -55,6 +60,7 @@ class NeuralArchitectureSearch:
         fitness_fn: Callable | None = None,
         seed: int | None = None,
     ):
+        """인스턴스를 초기화한다."""
         self.search_space = search_space
         self.strategy = strategy
         self.population_size = population_size
@@ -171,6 +177,7 @@ class NeuralArchitectureSearch:
         return 0
 
     def search(self) -> Architecture:
+        """``search`` 동작을 수행한다."""
         for gen in range(self.generations):
             fitnesses = [self.fitness_fn(arch) for arch in self.population]
 
@@ -239,7 +246,9 @@ class NeuralArchitectureSearch:
         return Architecture(arch_id=f"{arch.arch_id}_mutated", blocks=blocks)
 
     def get_best_architecture(self) -> Architecture | None:
+        """`best architecture` 정보를 조회한다."""
         return self.best_architecture
 
     def get_search_history(self) -> list[float]:
+        """`search history` 정보를 조회한다."""
         return self.history

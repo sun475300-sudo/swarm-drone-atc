@@ -12,6 +12,7 @@ from typing import Any
 
 
 class WasmOpcode(IntEnum):
+    """``WasmOpcode`` 관련 기능을 제공한다."""
     NOP = 0x00
     CONST_I32 = 0x41
     CONST_F64 = 0x44
@@ -41,6 +42,7 @@ class WasmOpcode(IntEnum):
 
 @dataclass
 class WasmFunction:
+    """``WasmFunction`` 관련 기능을 제공한다."""
     name: str
     param_count: int
     local_count: int
@@ -50,6 +52,7 @@ class WasmFunction:
 
 @dataclass
 class WasmModule:
+    """``WasmModule`` 관련 기능을 제공한다."""
     name: str
     functions: dict[str, WasmFunction] = field(default_factory=dict)
     memory_pages: int = 1  # 64KB per page
@@ -61,30 +64,36 @@ class WasmMemory:
     PAGE_SIZE = 65536  # 64KB
 
     def __init__(self, initial_pages: int = 1, max_pages: int = 16):
+        """인스턴스를 초기화한다."""
         self.data = bytearray(initial_pages * self.PAGE_SIZE)
         self.max_pages = max_pages
 
     def load_i32(self, offset: int) -> int:
+        """`i32` 정보를 조회한다."""
         if offset + 4 > len(self.data):
             raise RuntimeError(f"Memory access out of bounds: {offset}")
         return struct.unpack_from('<i', self.data, offset)[0]
 
     def store_i32(self, offset: int, value: int) -> None:
+        """``store_i32`` 동작을 수행한다."""
         if offset + 4 > len(self.data):
             raise RuntimeError(f"Memory access out of bounds: {offset}")
         struct.pack_into('<i', self.data, offset, value)
 
     def load_f64(self, offset: int) -> float:
+        """`f64` 정보를 조회한다."""
         if offset + 8 > len(self.data):
             raise RuntimeError(f"Memory access out of bounds: {offset}")
         return struct.unpack_from('<d', self.data, offset)[0]
 
     def store_f64(self, offset: int, value: float) -> None:
+        """``store_f64`` 동작을 수행한다."""
         if offset + 8 > len(self.data):
             raise RuntimeError(f"Memory access out of bounds: {offset}")
         struct.pack_into('<d', self.data, offset, value)
 
     def grow(self, pages: int) -> int:
+        """``grow`` 동작을 수행한다."""
         old_pages = len(self.data) // self.PAGE_SIZE
         new_pages = old_pages + pages
         if new_pages > self.max_pages:
@@ -100,6 +109,7 @@ class WasmVM:
     MAX_CALL_DEPTH = 64
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.stack: list[Any] = []
         self.call_stack: list[dict] = []
         self.memory = WasmMemory()
@@ -108,10 +118,12 @@ class WasmVM:
         self.step_count = 0
 
     def load_module(self, module: WasmModule) -> None:
+        """`module` 정보를 조회한다."""
         self.modules[module.name] = module
         self.memory = WasmMemory(module.memory_pages)
 
     def register_host_function(self, name: str, func: Callable) -> None:
+        """`host function` 항목을 추가한다."""
         self.host_functions[name] = func
 
     def _push(self, value: Any) -> None:
@@ -126,6 +138,7 @@ class WasmVM:
 
     def execute(self, module_name: str, func_name: str,
                 args: list[Any] | None = None) -> Any:
+        """``execute`` 동작을 수행한다."""
         module = self.modules.get(module_name)
         if not module:
             raise RuntimeError(f"Module not found: {module_name}")
@@ -256,6 +269,7 @@ class WasmVM:
         return self._pop() if self.stack else None
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "modules": len(self.modules),
             "host_functions": len(self.host_functions),
@@ -269,6 +283,7 @@ class DroneFirmwareCompiler:
     """Compiles simple drone commands to WASM bytecode."""
 
     def compile_altitude_hold(self, target_alt: int, kp: int = 1) -> WasmFunction:
+        """``compile_altitude_hold`` 동작을 수행한다."""
         bytecode = [
             WasmOpcode.LOCAL_GET, 0,          # current_alt
             WasmOpcode.CONST_I32, target_alt,  # target
@@ -281,6 +296,7 @@ class DroneFirmwareCompiler:
                             bytecode=bytecode)
 
     def compile_waypoint_distance(self) -> WasmFunction:
+        """``compile_waypoint_distance`` 동작을 수행한다."""
         bytecode = [
             WasmOpcode.LOCAL_GET, 0,  # dx
             WasmOpcode.LOCAL_GET, 0,  # dx again
@@ -295,6 +311,7 @@ class DroneFirmwareCompiler:
                             bytecode=bytecode)
 
     def compile_geofence_check(self, max_range: int) -> WasmFunction:
+        """``compile_geofence_check`` 동작을 수행한다."""
         bytecode = [
             WasmOpcode.LOCAL_GET, 0,        # distance
             WasmOpcode.CONST_I32, max_range, # max

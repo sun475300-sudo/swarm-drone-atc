@@ -35,6 +35,7 @@ class EventTimeline:
     """
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._events: list[TimelineEvent] = []
         self._by_type: dict[str, list[TimelineEvent]] = {}
         self._by_drone: dict[str, list[TimelineEvent]] = {}

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 @dataclass
 class FaultCode:
+    """``FaultCode`` 관련 기능을 제공한다."""
     code: str
     severity: str
     description: str
@@ -14,6 +15,7 @@ class FaultCode:
 
 @dataclass
 class DiagnosticResult:
+    """``DiagnosticResult`` 데이터를 표현한다."""
     drone_id: str
     fault_code: FaultCode | None
     health_score: float
@@ -21,7 +23,9 @@ class DiagnosticResult:
 
 
 class FaultDiagnosisSystem:
+    """``FaultDiagnosisSystem`` 역할을 담당한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.fault_codes = {
             "E001": FaultCode("E001", "critical", "Motor failure"),
             "E002": FaultCode("E002", "high", "Battery malfunction"),
@@ -31,6 +35,7 @@ class FaultDiagnosisSystem:
         self.diagnostic_history: list[DiagnosticResult] = []
 
     def diagnose(self, drone_id: str, telemetry: dict) -> DiagnosticResult:
+        """``diagnose`` 동작을 수행한다."""
         health_score = 1.0
 
         if telemetry.get("motor_temp", 25) > 80:
@@ -55,6 +60,7 @@ class FaultDiagnosisSystem:
         return result
 
     def predict_failure(self, drone_id: str, history: list[dict]) -> float:
+        """`failure` 결과를 계산하거나 판정한다."""
         if len(history) < 5:
             return 0.0
 

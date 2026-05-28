@@ -129,6 +129,7 @@ class GPUPhysicsEngine:
     """
 
     def __init__(self, max_drones: int = 500, device: Any = None) -> None:
+        """인스턴스를 초기화한다."""
         if not _TORCH_AVAILABLE:
             raise RuntimeError(
                 "GPUPhysicsEngine requires PyTorch with CUDA. "

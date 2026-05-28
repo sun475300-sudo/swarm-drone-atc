@@ -17,6 +17,7 @@ import numpy as np
 
 @dataclass
 class MCTSNode:
+    """``MCTSNode`` 관련 기능을 제공한다."""
     position: tuple[float, float, float]
     visits: int = 0
     total_reward: float = 0.0
@@ -25,7 +26,9 @@ class MCTSNode:
 
 
 class MCTSPlanner:
+    """``MCTSPlanner`` 역할을 담당한다."""
     def __init__(self, step_size: float = 100, n_actions: int = 6, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.step_size = step_size
         self.n_actions = n_actions
         self._rng = np.random.default_rng(seed)
@@ -46,6 +49,7 @@ class MCTSPlanner:
         return float(np.sqrt(sum((ai-bi)**2 for ai, bi in zip(a, b, strict=False))))
 
     def plan(self, start: tuple[float, float, float], goal: tuple[float, float, float], n_iterations: int = 100) -> list[tuple[float, float, float]]:
+        """`대상` 작업을 계획한다."""
         self._nodes = [MCTSNode(position=start)]
         actions = self._actions()
 
@@ -98,4 +102,5 @@ class MCTSPlanner:
         return path
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {"plans": self._plans, "tree_size": len(self._nodes)}

@@ -62,6 +62,7 @@ class DroneHealthMonitor:
         maintenance_interval_hours: float = 50.0,
         motor_life_hours: float = 500.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._maintenance_interval = maintenance_interval_hours
         self._motor_life = motor_life_hours
         self._readings: dict[str, list[SensorReading]] = {}
@@ -257,4 +258,5 @@ class DroneHealthMonitor:
         return "CRITICAL"
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._readings.clear()

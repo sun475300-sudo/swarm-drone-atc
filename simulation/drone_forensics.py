@@ -11,6 +11,7 @@ import numpy as np
 
 
 class IncidentType(Enum):
+    """``IncidentType`` 관련 기능을 제공한다."""
     CRASH = "crash"
     NEAR_MISS = "near_miss"
     GEOFENCE_BREACH = "geofence_breach"
@@ -20,6 +21,7 @@ class IncidentType(Enum):
 
 
 class EvidenceType(Enum):
+    """``EvidenceType`` 관련 기능을 제공한다."""
     FLIGHT_LOG = "flight_log"
     TELEMETRY = "telemetry"
     VIDEO = "video"
@@ -30,6 +32,7 @@ class EvidenceType(Enum):
 
 @dataclass
 class FlightRecord:
+    """``FlightRecord`` 데이터를 표현한다."""
     timestamp: float
     position: np.ndarray
     velocity: np.ndarray
@@ -40,6 +43,7 @@ class FlightRecord:
 
 @dataclass
 class Evidence:
+    """``Evidence`` 관련 기능을 제공한다."""
     evidence_id: str
     etype: EvidenceType
     drone_id: str
@@ -51,6 +55,7 @@ class Evidence:
 
 @dataclass
 class ForensicReport:
+    """``ForensicReport`` 관련 기능을 제공한다."""
     incident_id: str
     incident_type: IncidentType
     drone_id: str
@@ -64,11 +69,13 @@ class EvidenceChain:
     """Tamper-proof evidence chain using hash linking."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.chain: list[Evidence] = []
         self._counter = 0
 
     def add(self, etype: EvidenceType, drone_id: str,
             data: str, timestamp: float) -> Evidence:
+        """`대상` 항목을 추가한다."""
         self._counter += 1
         data_hash = hashlib.sha256(data.encode()).hexdigest()[:16]
         prev_hash = self.chain[-1].chain_hash if self.chain else "GENESIS"
@@ -79,6 +86,7 @@ class EvidenceChain:
         return evidence
 
     def verify(self) -> bool:
+        """`대상` 결과를 계산하거나 판정한다."""
         prev_hash = "GENESIS"
         for ev in self.chain:
             expected = hashlib.sha256(f"{prev_hash}:{ev.data_hash}".encode()).hexdigest()[:16]
@@ -92,6 +100,7 @@ class DroneForensics:
     """Digital forensics system for drone incident investigation."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.flight_logs: dict[str, list[FlightRecord]] = {}
         self.evidence_chains: dict[str, EvidenceChain] = {}
@@ -99,12 +108,14 @@ class DroneForensics:
         self._incident_counter = 0
 
     def record_flight(self, drone_id: str, record: FlightRecord):
+        """`flight` 정보를 기록한다."""
         if drone_id not in self.flight_logs:
             self.flight_logs[drone_id] = []
         self.flight_logs[drone_id].append(record)
 
     def simulate_flight(self, drone_id: str, duration: float = 60,
                         dt: float = 1.0) -> list[FlightRecord]:
+        """``simulate_flight`` 동작을 수행한다."""
         records = []
         pos = self.rng.uniform(-100, 100, 3)
         pos[2] = 50
@@ -123,6 +134,7 @@ class DroneForensics:
 
     def investigate(self, drone_id: str, incident_type: IncidentType,
                     incident_time: float = None) -> ForensicReport:
+        """``investigate`` 동작을 수행한다."""
         self._incident_counter += 1
         logs = self.flight_logs.get(drone_id, [])
 
@@ -162,6 +174,7 @@ class DroneForensics:
         return self.rng.choice(options)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones_recorded": len(self.flight_logs),
             "total_records": sum(len(v) for v in self.flight_logs.values()),

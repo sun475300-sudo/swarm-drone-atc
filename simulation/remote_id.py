@@ -11,6 +11,7 @@ import numpy as np
 
 
 class UAType(Enum):
+    """``UAType`` 관련 기능을 제공한다."""
     HELICOPTER = 0
     AIRPLANE = 1
     MULTIROTOR = 2
@@ -19,6 +20,7 @@ class UAType(Enum):
 
 
 class IDType(Enum):
+    """``IDType`` 관련 기능을 제공한다."""
     SERIAL_NUMBER = 1
     REGISTRATION_ID = 2
     UTM_ASSIGNED = 3
@@ -26,6 +28,7 @@ class IDType(Enum):
 
 
 class OperationalStatus(Enum):
+    """``OperationalStatus`` 관련 기능을 제공한다."""
     UNDECLARED = 0
     GROUND = 1
     AIRBORNE = 2
@@ -35,6 +38,7 @@ class OperationalStatus(Enum):
 
 @dataclass
 class RemoteIDMessage:
+    """``RemoteIDMessage`` 데이터를 표현한다."""
     ua_type: UAType = UAType.MULTIROTOR
     id_type: IDType = IDType.SERIAL_NUMBER
     uas_id: str = ""
@@ -67,6 +71,7 @@ class RemoteIDTransmitter:
     """Simulated Remote ID transmitter (Bluetooth 5.0 + Network)."""
 
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.broadcast_interval_s = 1.0
         self.last_broadcast: float | None = None
@@ -89,9 +94,11 @@ class RemoteIDTransmitter:
         return True
 
     def set_broadcast_interval(self, seconds: float) -> None:
+        """`broadcast interval` 상태를 갱신한다."""
         self.broadcast_interval_s = max(0.1, seconds)
 
     def get_compliance_status(self) -> dict[str, Any]:
+        """`compliance status` 정보를 조회한다."""
         return {
             "is_broadcasting": self.broadcast_count > 0,
             "broadcast_count": self.broadcast_count,
@@ -105,6 +112,7 @@ class RemoteIDReceiver:
     """Simulated Remote ID receiver/scanner."""
 
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.received_messages: dict[str, RemoteIDMessage] = {}
         self.scan_count = 0
@@ -119,6 +127,7 @@ class RemoteIDReceiver:
         return list(self.received_messages.values())
 
     def get_nearby_uas(self, center_lat: float, center_lon: float, radius_m: float = 1000.0) -> list[RemoteIDMessage]:
+        """`nearby uas` 정보를 조회한다."""
         results = []
         for msg in self.received_messages.values():
             lat_diff = (msg.latitude - center_lat) * 111320.0

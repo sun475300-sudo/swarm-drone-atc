@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class PlasmaParticle:
+    """``PlasmaParticle`` 관련 기능을 제공한다."""
     pid: int
     position: np.ndarray
     velocity: np.ndarray
@@ -19,7 +20,9 @@ class PlasmaParticle:
 
 
 class VlasovSimulator:
+    """``VlasovSimulator`` 관련 기능을 제공한다."""
     def __init__(self, n_particles=30, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n = n_particles
         self.particles = []
@@ -35,6 +38,7 @@ class VlasovSimulator:
         self.damping = 0.98
 
     def compute_field(self) -> np.ndarray:
+        """`field` 값을 계산한다."""
         field = np.zeros((self.n, 2))
         for i in range(self.n):
             for j in range(self.n):
@@ -49,6 +53,7 @@ class VlasovSimulator:
         return field
 
     def step(self):
+        """`대상` 실행 상태를 제어한다."""
         field = self.compute_field()
         for i, p in enumerate(self.particles):
             p.velocity += field[i] * self.dt / p.mass
@@ -56,9 +61,11 @@ class VlasovSimulator:
             p.position += p.velocity * self.dt
 
     def kinetic_energy(self) -> float:
+        """``kinetic_energy`` 동작을 수행한다."""
         return float(sum(0.5 * p.mass * np.dot(p.velocity, p.velocity) for p in self.particles))
 
     def potential_energy(self) -> float:
+        """``potential_energy`` 동작을 수행한다."""
         pe = 0.0
         for i in range(self.n):
             for j in range(i+1, self.n):
@@ -69,13 +76,16 @@ class VlasovSimulator:
 
 
 class PlasmaPhysics:
+    """``PlasmaPhysics`` 관련 기능을 제공한다."""
     def __init__(self, n_particles=30, seed=42):
+        """인스턴스를 초기화한다."""
         self.sim = VlasovSimulator(n_particles, seed)
         self.steps = 0
         self.ke_history: list[float] = []
         self.pe_history: list[float] = []
 
     def run(self, steps=200):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             self.sim.step()
             self.ke_history.append(self.sim.kinetic_energy())
@@ -83,6 +93,7 @@ class PlasmaPhysics:
             self.steps += 1
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "particles": self.sim.n,
             "steps": self.steps,

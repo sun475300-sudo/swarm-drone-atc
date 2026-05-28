@@ -13,6 +13,7 @@ import numpy as np
 
 
 class KPICategory(Enum):
+    """``KPICategory`` 관련 기능을 제공한다."""
     SAFETY = "safety"
     EFFICIENCY = "efficiency"
     PERFORMANCE = "performance"
@@ -22,6 +23,7 @@ class KPICategory(Enum):
 
 @dataclass
 class KPI:
+    """``KPI`` 관련 기능을 제공한다."""
     name: str
     category: KPICategory
     value: float
@@ -32,6 +34,7 @@ class KPI:
 
     @property
     def status(self) -> str:
+        """``status`` 동작을 수행한다."""
         if self.target is not None and abs(self.value - self.target) / max(abs(self.target), 1e-6) < 0.05:
             return "on_target"
         if self.threshold_critical is not None and self.value > self.threshold_critical:
@@ -43,6 +46,7 @@ class KPI:
 
 @dataclass
 class SimulationRun:
+    """``SimulationRun`` 관련 기능을 제공한다."""
     run_id: str
     config: dict = field(default_factory=dict)
     metrics: dict[str, float] = field(default_factory=dict)
@@ -52,6 +56,7 @@ class SimulationRun:
 
 @dataclass
 class ComparisonResult:
+    """``ComparisonResult`` 데이터를 표현한다."""
     metric: str
     baseline_mean: float
     experiment_mean: float
@@ -90,6 +95,7 @@ class StatisticalTests:
 
     @staticmethod
     def confidence_interval(data: list[float], confidence: float = 0.95) -> tuple[float, float]:
+        """``confidence_interval`` 동작을 수행한다."""
         n = len(data)
         if n < 2:
             return (np.mean(data), np.mean(data)) if data else (0.0, 0.0)
@@ -109,19 +115,23 @@ class SimulationAnalyticsEngine:
     """
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self._runs: dict[str, SimulationRun] = {}
         self._kpis: dict[str, KPI] = {}
         self._groups: dict[str, list[str]] = {}  # group_name -> [run_ids]
         self._stats = StatisticalTests()
 
     def record_run(self, run: SimulationRun):
+        """`run` 정보를 기록한다."""
         self._runs[run.run_id] = run
 
     def add_to_group(self, group_name: str, run_id: str):
+        """`to group` 항목을 추가한다."""
         self._groups.setdefault(group_name, []).append(run_id)
 
     def compute_kpi(self, name: str, category: KPICategory, metric_key: str,
                     aggregation: str = "mean", **kwargs) -> KPI | None:
+        """`kpi` 값을 계산한다."""
         values = [r.metrics.get(metric_key, 0) for r in self._runs.values() if metric_key in r.metrics]
         if not values:
             return None
@@ -140,6 +150,7 @@ class SimulationAnalyticsEngine:
         return kpi
 
     def compare_groups(self, group_a: str, group_b: str, metric_key: str) -> ComparisonResult | None:
+        """``compare_groups`` 동작을 수행한다."""
         runs_a = [self._runs[rid] for rid in self._groups.get(group_a, []) if rid in self._runs]
         runs_b = [self._runs[rid] for rid in self._groups.get(group_b, []) if rid in self._runs]
         vals_a = [r.metrics.get(metric_key, 0) for r in runs_a if metric_key in r.metrics]
@@ -175,6 +186,7 @@ class SimulationAnalyticsEngine:
         }
 
     def get_kpi_dashboard(self) -> dict[str, dict]:
+        """`kpi dashboard` 정보를 조회한다."""
         dashboard = {}
         for name, kpi in self._kpis.items():
             dashboard[name] = {
@@ -205,6 +217,7 @@ class SimulationAnalyticsEngine:
         return agg
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         kpi_statuses = {}
         for kpi in self._kpis.values():
             kpi_statuses[kpi.status] = kpi_statuses.get(kpi.status, 0) + 1

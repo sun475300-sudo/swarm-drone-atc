@@ -13,12 +13,14 @@ import numpy as np
 
 
 class AggregationMethod(Enum):
+    """``AggregationMethod`` 관련 기능을 제공한다."""
     FEDAVG = "fedavg"
     FEDPROX = "fedprox"
     SCAFFOLD = "scaffold"
 
 
 class ClientStatus(Enum):
+    """``ClientStatus`` 관련 기능을 제공한다."""
     IDLE = "idle"
     TRAINING = "training"
     UPLOADING = "uploading"
@@ -27,6 +29,7 @@ class ClientStatus(Enum):
 
 @dataclass
 class FLClient:
+    """``FLClient`` 역할을 담당한다."""
     client_id: str
     data_size: int = 100
     model_weights: np.ndarray | None = None
@@ -38,6 +41,7 @@ class FLClient:
 
 @dataclass
 class FLRound:
+    """``FLRound`` 관련 기능을 제공한다."""
     round_id: int
     participants: list[str]
     global_loss: float = 0.0
@@ -49,6 +53,7 @@ class FLRound:
 
 @dataclass
 class GlobalModel:
+    """``GlobalModel`` 관련 기능을 제공한다."""
     weights: np.ndarray
     version: int = 0
     total_rounds: int = 0
@@ -69,6 +74,7 @@ class FederatedLearningV2:
                  method: AggregationMethod = AggregationMethod.FEDAVG,
                  dp_epsilon: float = 1.0, dp_delta: float = 1e-5,
                  rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._model_dim = model_dim
         self._lr = lr
@@ -85,6 +91,7 @@ class FederatedLearningV2:
         self._convergence_history: list[float] = []
 
     def register_client(self, client_id: str, data_size: int = 100) -> FLClient:
+        """`client` 항목을 추가한다."""
         client = FLClient(
             client_id=client_id, data_size=data_size,
             model_weights=self._global.weights.copy(),
@@ -197,12 +204,15 @@ class FederatedLearningV2:
         return self._rounds[-1]
 
     def get_convergence(self) -> list[float]:
+        """`convergence` 정보를 조회한다."""
         return self._convergence_history.copy()
 
     def get_global_model(self) -> GlobalModel:
+        """`global model` 정보를 조회한다."""
         return self._global
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_clients": len(self._clients),
             "total_rounds": self._global.total_rounds,

@@ -10,12 +10,15 @@ import numpy as np
 
 
 class PRMGraph:
+    """``PRMGraph`` 관련 기능을 제공한다."""
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.nodes: list[np.ndarray] = []
         self.edges: dict[int, list[tuple[int, float]]] = {}
 
     def build(self, n_samples: int, x_range: tuple, y_range: tuple, k_neighbors=5):
+        """`대상` 결과를 생성한다."""
         for _ in range(n_samples):
             x = self.rng.uniform(x_range[0], x_range[1])
             y = self.rng.uniform(y_range[0], y_range[1])
@@ -36,6 +39,7 @@ class PRMGraph:
         return int(np.argmin(dists))
 
     def query(self, start: np.ndarray, goal: np.ndarray) -> list[np.ndarray] | None:
+        """``query`` 동작을 수행한다."""
         s_idx = self._nearest(start)
         g_idx = self._nearest(goal)
         # A*
@@ -61,7 +65,9 @@ class PRMGraph:
 
 
 class ProbabilisticRoadmapPlanner:
+    """``ProbabilisticRoadmapPlanner`` 역할을 담당한다."""
     def __init__(self, n_samples=100, seed=42):
+        """인스턴스를 초기화한다."""
         self.graph = PRMGraph(seed)
         self.n_samples = n_samples
         self.path: list[np.ndarray] | None = None
@@ -69,10 +75,12 @@ class ProbabilisticRoadmapPlanner:
         self.goal = np.array([95.0, 95.0])
 
     def run(self):
+        """메인 실행 루프를 수행한다."""
         self.graph.build(self.n_samples, (0, 100), (0, 100))
         self.path = self.graph.query(self.start, self.goal)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         path_len = 0.0
         if self.path and len(self.path) > 1:
             for i in range(len(self.path) - 1):

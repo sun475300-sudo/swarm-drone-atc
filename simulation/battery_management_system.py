@@ -5,10 +5,13 @@ Phase 472: Battery Management System
 
 
 class BatteryManagementSystem:
+    """``BatteryManagementSystem`` 역할을 담당한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.batteries: dict[str, dict] = {}
 
     def register_battery(self, drone_id: str, capacity_wh: float):
+        """`battery` 항목을 추가한다."""
         self.batteries[drone_id] = {
             "capacity": capacity_wh,
             "current": capacity_wh,
@@ -17,6 +20,7 @@ class BatteryManagementSystem:
         }
 
     def get_charge_level(self, drone_id: str) -> float:
+        """`charge level` 정보를 조회한다."""
         if drone_id not in self.batteries:
             return 0.0
         return (
@@ -26,6 +30,7 @@ class BatteryManagementSystem:
         )
 
     def estimate_flight_time(self, drone_id: str, power_w: float) -> float:
+        """`flight time` 결과를 계산하거나 판정한다."""
         if drone_id not in self.batteries:
             return 0.0
         return self.batteries[drone_id]["current"] / power_w

@@ -33,17 +33,20 @@ class ABTestFramework:
     """A/B 테스트."""
 
     def __init__(self, significance_level: float = 0.05) -> None:
+        """인스턴스를 초기화한다."""
         self.significance_level = significance_level
         self._control: dict[str, list[float]] = {}
         self._treatment: dict[str, list[float]] = {}
         self._results: list[ABResult] = []
 
     def record_control(self, metric: str, values: list[float]) -> None:
+        """`control` 정보를 기록한다."""
         if metric not in self._control:
             self._control[metric] = []
         self._control[metric].extend(values)
 
     def record_treatment(self, metric: str, values: list[float]) -> None:
+        """`treatment` 정보를 기록한다."""
         if metric not in self._treatment:
             self._treatment[metric] = []
         self._treatment[metric].extend(values)
@@ -64,6 +67,7 @@ class ABTestFramework:
         return min(1.0, p)
 
     def analyze(self, metric: str) -> ABResult:
+        """`대상` 결과를 계산하거나 판정한다."""
         control = self._control.get(metric, [])
         treatment = self._treatment.get(metric, [])
 
@@ -96,10 +100,12 @@ class ABTestFramework:
         return result
 
     def analyze_all(self) -> list[ABResult]:
+        """`all` 결과를 계산하거나 판정한다."""
         metrics = set(self._control.keys()) | set(self._treatment.keys())
         return [self.analyze(m) for m in sorted(metrics)]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "metrics": len(set(self._control.keys()) | set(self._treatment.keys())),
             "results": len(self._results),

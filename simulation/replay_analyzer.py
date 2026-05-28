@@ -36,6 +36,7 @@ class CausalChain:
 
     @property
     def depth(self) -> int:
+        """``depth`` 동작을 수행한다."""
         return len(self.chain)
 
 
@@ -65,6 +66,7 @@ class ReplayAnalyzer:
         near_miss_dist: float = 15.0,
         lookback_s: float = 30.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.collision_dist = collision_dist
         self.near_miss_dist = near_miss_dist
         self.lookback_s = lookback_s
@@ -246,9 +248,11 @@ class ReplayAnalyzer:
         return " ".join(parts)
 
     def get_all_reports(self) -> list[IncidentReport]:
+        """`all reports` 정보를 조회한다."""
         return list(self._reports)
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._records.clear()
         self._incidents.clear()
         self._reports.clear()

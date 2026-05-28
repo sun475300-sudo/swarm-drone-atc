@@ -29,12 +29,14 @@ class SpatialHash:
     __slots__ = ("_cell_size", "_inv_cell", "_grid", "_positions")
 
     def __init__(self, cell_size: float = 50.0) -> None:
+        """인스턴스를 초기화한다."""
         self._cell_size = cell_size
         self._inv_cell = 1.0 / cell_size
         self._grid: dict[tuple[int, int, int], list[str]] = defaultdict(list)
         self._positions: dict[str, np.ndarray] = {}
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._grid.clear()
         self._positions.clear()
 
@@ -46,6 +48,7 @@ class SpatialHash:
         )
 
     def insert(self, drone_id: str, position: np.ndarray) -> None:
+        """`대상` 항목을 추가한다."""
         self._positions[drone_id] = position
         self._grid[self._key(position)].append(drone_id)
 

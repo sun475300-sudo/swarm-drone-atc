@@ -10,6 +10,7 @@ import numpy as np
 
 
 class OpCode(Enum):
+    """``OpCode`` 관련 기능을 제공한다."""
     NOP = auto()
     MOVE = auto()
     HOVER = auto()
@@ -25,12 +26,14 @@ class OpCode(Enum):
 
 @dataclass
 class Instruction:
+    """``Instruction`` 관련 기능을 제공한다."""
     opcode: OpCode
     operands: list = field(default_factory=list)
 
 
 @dataclass
 class ASTNode:
+    """``ASTNode`` 관련 기능을 제공한다."""
     node_type: str
     value: str = ""
     children: list = field(default_factory=list)
@@ -42,6 +45,7 @@ class Lexer:
     KEYWORDS = {"move", "hover", "land", "takeoff", "scan", "send", "wait", "if", "loop", "halt"}
 
     def tokenize(self, source: str) -> list[tuple[str, str]]:
+        """``tokenize`` 동작을 수행한다."""
         tokens = []
         for line in source.strip().split("\n"):
             line = line.strip()
@@ -62,6 +66,7 @@ class Parser:
     """간이 파서 → AST."""
 
     def parse(self, tokens: list[tuple[str, str]]) -> ASTNode:
+        """`대상` 입력을 해석한다."""
         root = ASTNode("program")
         i = 0
         while i < len(tokens):
@@ -104,6 +109,7 @@ class Compiler:
     }
 
     def compile(self, ast: ASTNode) -> list[Instruction]:
+        """``compile`` 동작을 수행한다."""
         code = []
         for child in ast.children:
             if child.node_type == "command":
@@ -123,11 +129,13 @@ class Interpreter:
     """바이트코드 인터프리터."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.pc = 0
         self.executed = 0
         self.output: list[str] = []
 
     def run(self, code: list[Instruction], max_steps=1000) -> list[str]:
+        """메인 실행 루프를 수행한다."""
         self.pc = 0
         self.executed = 0
         while self.pc < len(code) and self.executed < max_steps:
@@ -144,6 +152,7 @@ class DroneSwarmCompiler:
     """DSL → 바이트코드 → 실행 파이프라인."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.lexer = Lexer()
         self.parser = Parser()
         self.compiler = Compiler()
@@ -152,6 +161,7 @@ class DroneSwarmCompiler:
         self.programs_compiled = 0
 
     def compile_and_run(self, source: str) -> list[str]:
+        """``compile_and_run`` 동작을 수행한다."""
         tokens = self.lexer.tokenize(source)
         ast = self.parser.parse(tokens)
         code = self.compiler.compile(ast)
@@ -159,6 +169,7 @@ class DroneSwarmCompiler:
         return self.interpreter.run(code)
 
     def generate_random_program(self, n_commands=10) -> str:
+        """`random program` 결과를 생성한다."""
         commands = ["move 10 20 50", "hover", "scan", "wait 5", "send status",
                      "takeoff", "land", "move -5 10 30"]
         lines = []
@@ -168,6 +179,7 @@ class DroneSwarmCompiler:
         return "\n".join(lines)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "programs_compiled": self.programs_compiled,
             "instructions_executed": self.interpreter.executed,

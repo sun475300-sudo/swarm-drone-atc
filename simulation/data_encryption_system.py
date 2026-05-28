@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 @dataclass
 class EncryptedData:
+    """``EncryptedData`` 관련 기능을 제공한다."""
     data_id: str
     encrypted_content: bytes
     key_id: str
@@ -16,16 +17,20 @@ class EncryptedData:
 
 
 class DataEncryptionSystem:
+    """``DataEncryptionSystem`` 역할을 담당한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.keys: dict[str, bytes] = {}
         self.encrypted_data: dict[str, EncryptedData] = {}
 
     def generate_key(self, key_id: str) -> bytes:
+        """`key` 결과를 생성한다."""
         key = hashlib.sha256(f"{key_id}{time.time()}".encode()).digest()
         self.keys[key_id] = key
         return key
 
     def encrypt(self, data_id: str, content: bytes, key_id: str) -> EncryptedData:
+        """``encrypt`` 동작을 수행한다."""
         if key_id not in self.keys:
             self.generate_key(key_id)
 
@@ -40,6 +45,7 @@ class DataEncryptionSystem:
         return enc_data
 
     def decrypt(self, data_id: str) -> bytes:
+        """``decrypt`` 동작을 수행한다."""
         if data_id not in self.encrypted_data:
             return b""
 
@@ -57,6 +63,7 @@ class DataEncryptionSystem:
         return decrypted
 
     def rotate_key(self, old_key_id: str, new_key_id: str) -> bool:
+        """``rotate_key`` 동작을 수행한다."""
         if old_key_id not in self.keys:
             return False
 

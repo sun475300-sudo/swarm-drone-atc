@@ -37,6 +37,7 @@ class AltitudeManager:
         max_altitude: float = 120.0,
         layer_separation: float = 10.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._min_alt = min_altitude
         self._max_alt = max_altitude
         self._separation = layer_separation
@@ -74,6 +75,7 @@ class AltitudeManager:
         return assignment
 
     def release(self, drone_id: str) -> bool:
+        """``release`` 동작을 수행한다."""
         assignment = self._assignments.pop(drone_id, None)
         if assignment:
             layer = assignment.layer
@@ -82,12 +84,15 @@ class AltitudeManager:
         return False
 
     def get_assignment(self, drone_id: str) -> AltitudeAssignment | None:
+        """`assignment` 정보를 조회한다."""
         return self._assignments.get(drone_id)
 
     def layer_density(self, layer: int) -> int:
+        """``layer_density`` 동작을 수행한다."""
         return self._layer_counts.get(layer, 0)
 
     def congested_layers(self, threshold: int = 5) -> list[int]:
+        """``congested_layers`` 동작을 수행한다."""
         return [l for l, c in self._layer_counts.items() if c >= threshold]
 
     def reassign_congested(self, max_per_layer: int = 5) -> list[AltitudeAssignment]:
@@ -127,6 +132,7 @@ class AltitudeManager:
         return abs(a.altitude_m - b.altitude_m) >= self._separation
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_assigned": len(self._assignments),
             "layers_used": len([l for l, c in self._layer_counts.items() if c > 0]),

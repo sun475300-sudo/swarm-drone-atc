@@ -18,6 +18,7 @@ import numpy as np
 
 
 class ScaleAction(Enum):
+    """``ScaleAction`` 관련 기능을 제공한다."""
     NONE = "NONE"
     SCALE_UP = "SCALE_UP"
     SCALE_DOWN = "SCALE_DOWN"
@@ -45,6 +46,7 @@ class AutoScaler:
         scale_down_threshold: float = 0.3,
         cooldown_s: float = 30.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.min_drones = min_drones
         self.max_drones = max_drones
         self.scale_up_threshold = scale_up_threshold
@@ -57,14 +59,17 @@ class AutoScaler:
         self._decisions: list[ScaleDecision] = []
 
     def update_demand(self, current_demand: float, t: float) -> None:
+        """`demand` 상태를 갱신한다."""
         self._demand_history.append((t, current_demand))
         if len(self._demand_history) > 500:
             self._demand_history = self._demand_history[-500:]
 
     def set_count(self, count: int) -> None:
+        """`count` 상태를 갱신한다."""
         self._current_count = max(self.min_drones, min(count, self.max_drones))
 
     def utilization(self) -> float:
+        """``utilization`` 동작을 수행한다."""
         if self._current_count == 0:
             return 0.0
         if not self._demand_history:
@@ -141,9 +146,11 @@ class AutoScaler:
 
     @property
     def current_count(self) -> int:
+        """``current_count`` 동작을 수행한다."""
         return self._current_count
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "current_count": self._current_count,
             "utilization": round(self.utilization(), 3),

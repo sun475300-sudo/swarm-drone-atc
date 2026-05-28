@@ -12,6 +12,7 @@ import numpy as np
 
 @dataclass
 class HyperEdge:
+    """``HyperEdge`` 관련 기능을 제공한다."""
     edge_id: str
     nodes: list  # 연결된 노드 ID 리스트
     cost: float
@@ -20,6 +21,7 @@ class HyperEdge:
 
 @dataclass
 class RoutingResult:
+    """``RoutingResult`` 데이터를 표현한다."""
     source: str
     destinations: list
     path_cost: float
@@ -31,16 +33,19 @@ class HyperGraph:
     """하이퍼그래프: 하이퍼엣지로 다중 노드 연결."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.nodes: set = set()
         self.edges: list[HyperEdge] = []
         self.adj: dict = {}  # node -> [(edge_id, neighbor_nodes, cost)]
 
     def add_node(self, node_id: str):
+        """`node` 항목을 추가한다."""
         self.nodes.add(node_id)
         if node_id not in self.adj:
             self.adj[node_id] = []
 
     def add_hyperedge(self, edge_id: str, nodes: list, cost: float, bw: float = 100.0):
+        """`hyperedge` 항목을 추가한다."""
         he = HyperEdge(edge_id, nodes, cost, bw)
         self.edges.append(he)
         for n in nodes:
@@ -82,6 +87,7 @@ class HypergraphRouting:
     """하이퍼그래프 기반 라우팅 시뮬레이션."""
 
     def __init__(self, n_nodes=20, n_edges=30, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.graph = HyperGraph()
         self.n_nodes = n_nodes
@@ -101,11 +107,13 @@ class HypergraphRouting:
             self.graph.add_hyperedge(f"HE_{i}", selected, cost, bw)
 
     def route(self, source: str, destinations: list) -> RoutingResult:
+        """`대상` 작업을 계획한다."""
         result = self.graph.steiner_tree_approx(source, destinations)
         self.results.append(result)
         return result
 
     def run_batch(self, n_queries=10):
+        """``run_batch`` 동작을 수행한다."""
         node_list = [f"N_{i}" for i in range(self.n_nodes)]
         for _ in range(n_queries):
             src = node_list[int(self.rng.integers(0, self.n_nodes))]
@@ -115,6 +123,7 @@ class HypergraphRouting:
             self.route(src, dests)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         avg_cost = float(np.mean([r.path_cost for r in self.results])) if self.results else 0
         avg_reach = float(np.mean([r.reachable for r in self.results])) if self.results else 0
         return {

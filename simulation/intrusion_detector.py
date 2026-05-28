@@ -44,6 +44,7 @@ class IntrusionDetector:
         auth_fail_threshold: int = 5,
         error_rate_threshold: float = 0.3,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.flood_threshold = flood_threshold
         self.auth_fail_threshold = auth_fail_threshold
         self.error_rate_threshold = error_rate_threshold
@@ -56,6 +57,7 @@ class IntrusionDetector:
         self, node_id: str, msg_count: int = 0,
         error_count: int = 0, auth_failures: int = 0, t: float = 0.0,
     ) -> None:
+        """`traffic` 정보를 기록한다."""
         if node_id not in self._traffic:
             self._traffic[node_id] = []
         self._traffic[node_id].append(TrafficRecord(
@@ -66,6 +68,7 @@ class IntrusionDetector:
             self._traffic[node_id] = self._traffic[node_id][-100:]
 
     def detect(self) -> list[ThreatReport]:
+        """`대상` 결과를 계산하거나 판정한다."""
         threats = []
 
         for node_id, records in self._traffic.items():
@@ -115,19 +118,24 @@ class IntrusionDetector:
         return threats
 
     def blacklist(self, node_id: str) -> None:
+        """``blacklist`` 동작을 수행한다."""
         self._blacklist.add(node_id)
 
     def quarantine(self, node_id: str) -> None:
+        """``quarantine`` 동작을 수행한다."""
         self._quarantine.add(node_id)
 
     def release(self, node_id: str) -> None:
+        """``release`` 동작을 수행한다."""
         self._quarantine.discard(node_id)
         self._blacklist.discard(node_id)
 
     def is_blocked(self, node_id: str) -> bool:
+        """`blocked` 여부를 반환한다."""
         return node_id in self._blacklist or node_id in self._quarantine
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "nodes_monitored": len(self._traffic),
             "total_threats": len(self._threats),

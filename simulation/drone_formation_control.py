@@ -11,12 +11,15 @@ import numpy as np
 
 @dataclass
 class FormationPattern:
+    """``FormationPattern`` 관련 기능을 제공한다."""
     name: str
     offsets: np.ndarray  # (N, 2) relative to leader
 
 
 class ConsensusController:
+    """``ConsensusController`` 역할을 담당한다."""
     def __init__(self, n_agents: int, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n = n_agents
         self.positions = self.rng.uniform(-20, 20, (n_agents, 2))
@@ -25,10 +28,12 @@ class ConsensusController:
         self.leader_idx = 0
 
     def laplacian(self) -> np.ndarray:
+        """``laplacian`` 동작을 수행한다."""
         D = np.diag(self.adj.sum(axis=1))
         return D - self.adj
 
     def consensus_step(self, target_offsets: np.ndarray, dt=0.1, gain=1.0):
+        """``consensus_step`` 동작을 수행한다."""
         self.laplacian()
         leader_pos = self.positions[self.leader_idx]
         for i in range(self.n):
@@ -44,6 +49,7 @@ class ConsensusController:
             self.positions[i] += self.velocities[i] * dt
 
     def formation_error(self, target_offsets: np.ndarray) -> float:
+        """``formation_error`` 동작을 수행한다."""
         leader_pos = self.positions[self.leader_idx]
         errors = []
         for i in range(self.n):
@@ -55,7 +61,9 @@ class ConsensusController:
 
 
 class DroneFormationControl:
+    """``DroneFormationControl`` 관련 기능을 제공한다."""
     def __init__(self, n_drones=10, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.controller = ConsensusController(n_drones, seed)
         self.n = n_drones
@@ -88,6 +96,7 @@ class DroneFormationControl:
         }
 
     def step(self):
+        """`대상` 실행 상태를 제어한다."""
         pattern = self.patterns[self.current_pattern]
         self.controller.consensus_step(pattern.offsets)
         err = self.controller.formation_error(pattern.offsets)
@@ -95,14 +104,17 @@ class DroneFormationControl:
         self.steps += 1
 
     def run(self, steps=100):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             self.step()
 
     def switch_formation(self, name: str):
+        """``switch_formation`` 동작을 수행한다."""
         if name in self.patterns:
             self.current_pattern = name
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": self.n,
             "formation": self.current_pattern,

@@ -11,6 +11,7 @@ import numpy as np
 
 
 class ComponentType(Enum):
+    """``ComponentType`` 관련 기능을 제공한다."""
     MOTOR = "motor"
     ESC = "esc"
     BATTERY = "battery"
@@ -22,6 +23,7 @@ class ComponentType(Enum):
 
 
 class HealthStatus(Enum):
+    """``HealthStatus`` 관련 기능을 제공한다."""
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     WARNING = "warning"
@@ -30,6 +32,7 @@ class HealthStatus(Enum):
 
 
 class AlertSeverity(Enum):
+    """``AlertSeverity`` 관련 기능을 제공한다."""
     INFO = "info"
     LOW = "low"
     MEDIUM = "medium"
@@ -39,6 +42,7 @@ class AlertSeverity(Enum):
 
 @dataclass
 class SensorReading:
+    """``SensorReading`` 관련 기능을 제공한다."""
     timestamp: float
     component_id: str
     vibration: float  # g
@@ -51,6 +55,7 @@ class SensorReading:
 
 @dataclass
 class ComponentHealth:
+    """``ComponentHealth`` 관련 기능을 제공한다."""
     component_id: str
     component_type: ComponentType
     health_score: float  # 0-100
@@ -62,6 +67,7 @@ class ComponentHealth:
 
 @dataclass
 class MaintenanceAlert:
+    """``MaintenanceAlert`` 데이터를 표현한다."""
     alert_id: str
     component_id: str
     severity: AlertSeverity
@@ -73,6 +79,7 @@ class MaintenanceAlert:
 
 @dataclass
 class WeibullParams:
+    """``WeibullParams`` 관련 기능을 제공한다."""
     shape: float  # beta
     scale: float  # eta
     location: float = 0.0
@@ -82,6 +89,7 @@ class WeibullAnalyzer:
     """Weibull distribution for reliability analysis."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.params: dict[ComponentType, WeibullParams] = {
             ComponentType.MOTOR: WeibullParams(2.5, 800),
             ComponentType.ESC: WeibullParams(2.0, 1200),
@@ -94,22 +102,26 @@ class WeibullAnalyzer:
         }
 
     def reliability(self, comp_type: ComponentType, hours: float) -> float:
+        """``reliability`` 동작을 수행한다."""
         p = self.params.get(comp_type, WeibullParams(2.0, 1000))
         t = max(hours - p.location, 0)
         return float(np.exp(-(t / p.scale) ** p.shape))
 
     def failure_rate(self, comp_type: ComponentType, hours: float) -> float:
+        """``failure_rate`` 동작을 수행한다."""
         p = self.params.get(comp_type, WeibullParams(2.0, 1000))
         t = max(hours - p.location, 1e-10)
         return float((p.shape / p.scale) * (t / p.scale) ** (p.shape - 1))
 
     def rul_estimate(self, comp_type: ComponentType, current_hours: float,
                      target_reliability: float = 0.5) -> float:
+        """``rul_estimate`` 동작을 수행한다."""
         p = self.params.get(comp_type, WeibullParams(2.0, 1000))
         target_time = p.scale * (-np.log(target_reliability)) ** (1.0 / p.shape) + p.location
         return max(0, target_time - current_hours)
 
     def mtbf(self, comp_type: ComponentType) -> float:
+        """``mtbf`` 동작을 수행한다."""
         p = self.params.get(comp_type, WeibullParams(2.0, 1000))
         from math import gamma
         return p.scale * gamma(1 + 1.0 / p.shape) + p.location
@@ -119,11 +131,13 @@ class AnomalyDetector:
     """Sensor-based anomaly detection for predictive maintenance."""
 
     def __init__(self, window_size: int = 50, threshold_sigma: float = 3.0):
+        """인스턴스를 초기화한다."""
         self.window_size = window_size
         self.threshold_sigma = threshold_sigma
         self.history: dict[str, list[float]] = {}
 
     def add_reading(self, component_id: str, value: float) -> float | None:
+        """`reading` 항목을 추가한다."""
         if component_id not in self.history:
             self.history[component_id] = []
         self.history[component_id].append(value)
@@ -142,6 +156,7 @@ class AnomalyDetector:
         return float(z_score)
 
     def is_anomalous(self, component_id: str, value: float) -> bool:
+        """`anomalous` 여부를 반환한다."""
         z = self.add_reading(component_id, value)
         return z is not None and z > self.threshold_sigma
 
@@ -150,6 +165,7 @@ class PredictiveMaintenanceV2:
     """Advanced predictive maintenance engine."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.weibull = WeibullAnalyzer()
         self.anomaly_detector = AnomalyDetector()
@@ -162,9 +178,11 @@ class PredictiveMaintenanceV2:
     def register_component(self, component_id: str,
                            component_type: ComponentType,
                            initial_hours: float = 0.0) -> None:
+        """`component` 항목을 추가한다."""
         self.components[component_id] = (component_type, initial_hours)
 
     def process_reading(self, reading: SensorReading) -> ComponentHealth:
+        """`reading` 처리 로직을 수행한다."""
         self.readings.append(reading)
         comp_type, hours = self.components.get(
             reading.component_id, (ComponentType.MOTOR, 0))
@@ -259,6 +277,7 @@ class PredictiveMaintenanceV2:
         ))
 
     def fleet_health_report(self) -> dict:
+        """``fleet_health_report`` 동작을 수행한다."""
         if not self.health_records:
             return {"total_components": 0}
 
@@ -278,6 +297,7 @@ class PredictiveMaintenanceV2:
         }
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             **self.fleet_health_report(),
             "total_readings": len(self.readings),

@@ -17,6 +17,7 @@ from typing import Any
 
 
 class AirspaceClass(IntEnum):
+    """``AirspaceClass`` 관련 기능을 제공한다."""
     GREEN = 1    # 정상 운영
     YELLOW = 2   # 주의 (제한적 운영)
     ORANGE = 3   # 경고 (최소 운영)
@@ -63,6 +64,7 @@ class AirspaceWeatherIntegration:
         vis_orange: float = 2000.0,
         vis_red: float = 1000.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._thresholds = {
             "wind_yellow": wind_yellow,
             "wind_orange": wind_orange,
@@ -107,10 +109,12 @@ class AirspaceWeatherIntegration:
 
     @property
     def current_class(self) -> AirspaceClass:
+        """``current_class`` 동작을 수행한다."""
         return self._airspace_class
 
     @property
     def weather(self) -> WeatherState:
+        """``weather`` 동작을 수행한다."""
         return self._weather
 
     def get_restrictions(self) -> list[AirspaceRestriction]:
@@ -220,9 +224,11 @@ class AirspaceWeatherIntegration:
         return AirspaceClass.GREEN
 
     def class_history(self) -> list[tuple[float, str]]:
+        """``class_history`` 동작을 수행한다."""
         return [(t, cls.name) for t, cls in self._history]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "airspace_class": self._airspace_class.name,
             "wind_speed": self._weather.wind_speed_ms,

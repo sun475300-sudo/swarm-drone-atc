@@ -48,6 +48,7 @@ class AdaptiveTuner:
     }
 
     def __init__(self, sensitivity: float = 0.5) -> None:
+        """인스턴스를 초기화한다."""
         self._params: dict[str, TunableParam] = {}
         self._metrics: dict[str, list[float]] = {}
         self._history: list[TuneResult] = []
@@ -57,12 +58,14 @@ class AdaptiveTuner:
         self, name: str, current: float,
         min_val: float = 0.0, max_val: float = 100.0, step: float = 0.1,
     ) -> None:
+        """`param` 항목을 추가한다."""
         self._params[name] = TunableParam(
             name=name, current=current,
             min_val=min_val, max_val=max_val, step=step,
         )
 
     def record_metric(self, name: str, value: float) -> None:
+        """`metric` 정보를 기록한다."""
         if name not in self._metrics:
             self._metrics[name] = []
         self._metrics[name].append(value)
@@ -70,6 +73,7 @@ class AdaptiveTuner:
             self._metrics[name] = self._metrics[name][-200:]
 
     def get_param(self, name: str) -> float:
+        """`param` 정보를 조회한다."""
         p = self._params.get(name)
         return p.current if p else 0.0
 
@@ -129,14 +133,17 @@ class AdaptiveTuner:
         return results
 
     def reset_param(self, name: str, value: float) -> None:
+        """`param` 상태를 정리한다."""
         p = self._params.get(name)
         if p:
             p.current = value
 
     def tuning_history(self, n: int = 20) -> list[TuneResult]:
+        """``tuning_history`` 동작을 수행한다."""
         return self._history[-n:]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "params": len(self._params),
             "metrics_tracked": len(self._metrics),

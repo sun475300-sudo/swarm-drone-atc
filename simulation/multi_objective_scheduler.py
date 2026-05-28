@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class Mission:
+    """``Mission`` 관련 기능을 제공한다."""
     mission_id: str
     priority: float
     duration_s: float
@@ -21,6 +22,7 @@ class Mission:
 
 @dataclass
 class Schedule:
+    """``Schedule`` 관련 기능을 제공한다."""
     schedule_id: str
     assignments: list  # [(mission_id, drone_id, start_time)]
     objectives: np.ndarray = field(default_factory=lambda: np.zeros(3))
@@ -32,14 +34,17 @@ class NSGA2:
     """NSGA-II 다목적 최적화."""
 
     def __init__(self, pop_size=30, n_objectives=3, seed=42):
+        """인스턴스를 초기화한다."""
         self.pop_size = pop_size
         self.n_obj = n_objectives
         self.rng = np.random.default_rng(seed)
 
     def dominates(self, a: np.ndarray, b: np.ndarray) -> bool:
+        """``dominates`` 동작을 수행한다."""
         return bool(np.all(a <= b) and np.any(a < b))
 
     def fast_nondominated_sort(self, pop: list[Schedule]) -> list[list[int]]:
+        """``fast_nondominated_sort`` 동작을 수행한다."""
         n = len(pop)
         domination_count = [0] * n
         dominated_set: list[list[int]] = [[] for _ in range(n)]
@@ -72,6 +77,7 @@ class NSGA2:
         return [f for f in fronts if f]
 
     def crowding_distance(self, pop: list[Schedule], front: list[int]):
+        """``crowding_distance`` 동작을 수행한다."""
         if len(front) <= 2:
             for idx in front:
                 pop[idx].crowding = float('inf')
@@ -92,6 +98,7 @@ class NSGA2:
                 ) / obj_range
 
     def tournament_select(self, pop: list[Schedule]) -> Schedule:
+        """``tournament_select`` 동작을 수행한다."""
         i, j = int(self.rng.integers(0, len(pop))), int(self.rng.integers(0, len(pop)))
         if pop[i].rank < pop[j].rank:
             return pop[i]
@@ -104,6 +111,7 @@ class MultiObjectiveScheduler:
     """다목적 임무 스케줄러."""
 
     def __init__(self, n_missions=20, n_drones=8, pop_size=30, generations=15, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_missions = n_missions
         self.n_drones = n_drones
@@ -162,6 +170,7 @@ class MultiObjectiveScheduler:
 
     def run(self):
         # 초기 집단
+        """메인 실행 루프를 수행한다."""
         self.population = [self._random_schedule(f"S-{i}") for i in range(self.pop_size)]
         for s in self.population:
             self._evaluate(s)
@@ -198,6 +207,7 @@ class MultiObjectiveScheduler:
             self.pareto_front = [self.population[i] for i in fronts[0]]
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         best = min(self.population, key=lambda s: s.objectives.sum()) if self.population else None
         return {
             "missions": self.n_missions,

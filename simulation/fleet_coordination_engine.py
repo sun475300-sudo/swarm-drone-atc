@@ -13,6 +13,7 @@ import numpy as np
 
 
 class FleetStatus(Enum):
+    """``FleetStatus`` 관련 기능을 제공한다."""
     ACTIVE = "active"
     STANDBY = "standby"
     DEPLOYING = "deploying"
@@ -21,6 +22,7 @@ class FleetStatus(Enum):
 
 
 class CoordinationMode(Enum):
+    """``CoordinationMode`` 관련 기능을 제공한다."""
     CENTRALIZED = "centralized"
     DISTRIBUTED = "distributed"
     HIERARCHICAL = "hierarchical"
@@ -28,6 +30,7 @@ class CoordinationMode(Enum):
 
 @dataclass
 class Fleet:
+    """``Fleet`` 관련 기능을 제공한다."""
     fleet_id: str
     drone_ids: list[str] = field(default_factory=list)
     status: FleetStatus = FleetStatus.STANDBY
@@ -39,6 +42,7 @@ class Fleet:
 
 @dataclass
 class AirspaceZone:
+    """``AirspaceZone`` 관련 기능을 제공한다."""
     zone_id: str
     center: np.ndarray
     radius: float
@@ -49,6 +53,7 @@ class AirspaceZone:
 
 @dataclass
 class CoordinationMessage:
+    """``CoordinationMessage`` 데이터를 표현한다."""
     sender_fleet: str
     receiver_fleet: str
     msg_type: str  # "handoff", "resource_request", "conflict_notify", "status_update"
@@ -66,6 +71,7 @@ class FleetCoordinationEngine:
     """
 
     def __init__(self, mode: CoordinationMode = CoordinationMode.HIERARCHICAL, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self.mode = mode
         self._fleets: dict[str, Fleet] = {}
@@ -75,14 +81,17 @@ class FleetCoordinationEngine:
         self._drone_fleet_map: dict[str, str] = {}  # drone_id -> fleet_id
 
     def register_fleet(self, fleet: Fleet):
+        """`fleet` 항목을 추가한다."""
         self._fleets[fleet.fleet_id] = fleet
         for did in fleet.drone_ids:
             self._drone_fleet_map[did] = fleet.fleet_id
 
     def register_zone(self, zone: AirspaceZone):
+        """`zone` 항목을 추가한다."""
         self._zones[zone.zone_id] = zone
 
     def assign_zone(self, fleet_id: str, zone_id: str) -> bool:
+        """`zone` 항목을 추가한다."""
         fleet = self._fleets.get(fleet_id)
         zone = self._zones.get(zone_id)
         if not fleet or not zone:
@@ -98,6 +107,7 @@ class FleetCoordinationEngine:
         return True
 
     def handoff_drone(self, drone_id: str, from_fleet: str, to_fleet: str) -> bool:
+        """``handoff_drone`` 동작을 수행한다."""
         src = self._fleets.get(from_fleet)
         dst = self._fleets.get(to_fleet)
         if not src or not dst:
@@ -117,6 +127,7 @@ class FleetCoordinationEngine:
         return True
 
     def request_support(self, requester_fleet: str, n_drones: int) -> list[str]:
+        """``request_support`` 동작을 수행한다."""
         requester = self._fleets.get(requester_fleet)
         if not requester:
             return []
@@ -157,18 +168,22 @@ class FleetCoordinationEngine:
         return conflicts
 
     def get_fleet(self, fleet_id: str) -> Fleet | None:
+        """`fleet` 정보를 조회한다."""
         return self._fleets.get(fleet_id)
 
     def get_drone_fleet(self, drone_id: str) -> str | None:
+        """`drone fleet` 정보를 조회한다."""
         return self._drone_fleet_map.get(drone_id)
 
     def get_fleet_positions(self, fleet_id: str, positions: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
+        """`fleet positions` 정보를 조회한다."""
         fleet = self._fleets.get(fleet_id)
         if not fleet:
             return {}
         return {did: positions[did] for did in fleet.drone_ids if did in positions}
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         active = sum(1 for f in self._fleets.values() if f.status == FleetStatus.ACTIVE)
         total_drones = sum(len(f.drone_ids) for f in self._fleets.values())
         return {

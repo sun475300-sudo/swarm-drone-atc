@@ -42,6 +42,7 @@ class KnowledgeIndex:
     categories: list[CategoryInfo]
 
     def get_entry(self, entry_id: str) -> KnowledgeEntry | None:
+        """`entry` 정보를 조회한다."""
         return self.entries.get(entry_id)
 
 
@@ -49,6 +50,7 @@ class KnowledgeLoader:
     """YAML 파일에서 지식베이스를 로드하고 인덱스를 구축한다."""
 
     def __init__(self, knowledge_dir: str | Path | None = None):
+        """인스턴스를 초기화한다."""
         if knowledge_dir is None:
             knowledge_dir = Path(__file__).parent
         self.knowledge_dir = Path(knowledge_dir)

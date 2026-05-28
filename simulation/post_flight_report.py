@@ -22,6 +22,7 @@ _ABORT_RE = re.compile(r"\bABORT\b", re.IGNORECASE)
 
 
 class ReportOutcome(Enum):
+    """``ReportOutcome`` 관련 기능을 제공한다."""
     SUCCESS = "success"
     DEGRADED = "degraded"
     INCIDENT = "incident"
@@ -30,6 +31,7 @@ class ReportOutcome(Enum):
 
 @dataclass
 class FlightMetrics:
+    """``FlightMetrics`` 데이터를 표현한다."""
     duration_s: float
     distance_m: float
     avg_speed_mps: float
@@ -43,6 +45,7 @@ class FlightMetrics:
 
 @dataclass
 class PostFlightReport:
+    """``PostFlightReport`` 관련 기능을 제공한다."""
     report_id: str
     callsign: str
     plan_id: str
@@ -57,6 +60,7 @@ class PostFlightReporter:
     """경로/이벤트/메트릭을 수집해 운영 보고서를 생성."""
 
     def __init__(self, max_reports: int = 10_000) -> None:
+        """인스턴스를 초기화한다."""
         if max_reports <= 0:
             raise ValueError("max_reports must be positive")
         self.reports: dict[str, PostFlightReport] = {}
@@ -77,6 +81,7 @@ class PostFlightReporter:
         collisions: int = 0,
         deviation_alerts: int = 0,
     ) -> PostFlightReport:
+        """`report` 결과를 생성한다."""
         if len(track_points) < 2:
             raise ValueError("need at least 2 track points")
         for i, pt in enumerate(track_points):
@@ -174,6 +179,7 @@ class PostFlightReporter:
         return ReportOutcome.SUCCESS, issues
 
     def export_summary(self, report_id: str) -> dict[str, Any] | None:
+        """`summary` 결과를 저장한다."""
         r = self.reports.get(report_id)
         if r is None:
             return None
@@ -197,12 +203,14 @@ class PostFlightReporter:
         }
 
     def outcome_distribution(self) -> dict[str, int]:
+        """``outcome_distribution`` 동작을 수행한다."""
         dist: dict[str, int] = {}
         for r in self.reports.values():
             dist[r.outcome.value] = dist.get(r.outcome.value, 0) + 1
         return dist
 
     def stats(self) -> dict[str, Any]:
+        """``stats`` 동작을 수행한다."""
         return {
             "total_reports": len(self.reports),
             "outcomes": self.outcome_distribution(),

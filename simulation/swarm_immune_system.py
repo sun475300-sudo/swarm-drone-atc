@@ -11,6 +11,7 @@ import numpy as np
 
 
 class ThreatLevel(Enum):
+    """``ThreatLevel`` 관련 기능을 제공한다."""
     SAFE = "safe"
     SUSPICIOUS = "suspicious"
     DANGEROUS = "dangerous"
@@ -19,6 +20,7 @@ class ThreatLevel(Enum):
 
 @dataclass
 class Antibody:
+    """``Antibody`` 관련 기능을 제공한다."""
     ab_id: str
     pattern: np.ndarray  # 탐지 패턴
     affinity_threshold: float
@@ -28,6 +30,7 @@ class Antibody:
 
 @dataclass
 class Antigen:
+    """``Antigen`` 관련 기능을 제공한다."""
     ag_id: str
     features: np.ndarray
     is_threat: bool
@@ -36,6 +39,7 @@ class Antigen:
 
 @dataclass
 class ImmuneResponse:
+    """``ImmuneResponse`` 데이터를 표현한다."""
     detected: int
     missed: int
     false_positive: int
@@ -47,12 +51,14 @@ class NegativeSelection:
     """네거티브 셀렉션: 자기(self) 패턴 학습 → 비자기 탐지."""
 
     def __init__(self, self_patterns: np.ndarray, threshold=0.5, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.self_patterns = self_patterns
         self.threshold = threshold
         self.detectors: list[Antibody] = []
 
     def generate_detectors(self, n=30, dim=5):
+        """`detectors` 결과를 생성한다."""
         candidates = self.rng.normal(0, 1, (n * 3, dim))
         for _i, cand in enumerate(candidates):
             if len(self.detectors) >= n:
@@ -69,6 +75,7 @@ class NegativeSelection:
                 ))
 
     def detect(self, antigen: np.ndarray) -> bool:
+        """`대상` 결과를 계산하거나 판정한다."""
         for det in self.detectors:
             if np.linalg.norm(det.pattern - antigen) < det.affinity_threshold:
                 det.matches += 1
@@ -80,9 +87,11 @@ class ClonalSelection:
     """클론 선택: 성공적 항체 증식 및 초돌연변이."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
 
     def select_and_clone(self, antibodies: list[Antibody], top_k=5) -> list[Antibody]:
+        """`and clone` 동작을 수행한다."""
         sorted_abs = sorted(antibodies, key=lambda a: a.matches, reverse=True)
         clones = []
         for ab in sorted_abs[:top_k]:
@@ -99,19 +108,23 @@ class DangerTheory:
     """위험 이론: 위험 신호 기반 면역 활성화."""
 
     def __init__(self, danger_threshold=0.7):
+        """인스턴스를 초기화한다."""
         self.threshold = danger_threshold
         self.danger_signals: list[float] = []
 
     def signal(self, value: float):
+        """``signal`` 동작을 수행한다."""
         self.danger_signals.append(value)
 
     def is_danger_zone(self) -> bool:
+        """`danger zone` 여부를 반환한다."""
         if not self.danger_signals:
             return False
         recent = self.danger_signals[-10:]
         return float(np.mean(recent)) > self.threshold
 
     def threat_level(self) -> ThreatLevel:
+        """``threat_level`` 동작을 수행한다."""
         if not self.danger_signals:
             return ThreatLevel.SAFE
         avg = float(np.mean(self.danger_signals[-10:]))
@@ -128,6 +141,7 @@ class SwarmImmuneSystem:
     """군집 면역계 시뮬레이션."""
 
     def __init__(self, n_drones=20, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.dim = 5
@@ -145,6 +159,7 @@ class SwarmImmuneSystem:
         self.healed = 0
 
     def generate_antigens(self, n_normal=30, n_threat=10):
+        """`antigens` 결과를 생성한다."""
         self.antigens.clear()
         for i in range(n_normal):
             feat = self.self_patterns[int(self.rng.integers(0, self.n_drones))] + self.rng.normal(0, 0.1, self.dim)
@@ -155,6 +170,7 @@ class SwarmImmuneSystem:
             self.antigens.append(Antigen(f"AG-T{i}", feat, True, level))
 
     def run_detection(self) -> ImmuneResponse:
+        """``run_detection`` 동작을 수행한다."""
         detected = 0
         missed = 0
         fp = 0
@@ -187,6 +203,7 @@ class SwarmImmuneSystem:
         return self.response
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         total = len(self.antigens)
         threats = sum(1 for a in self.antigens if a.is_threat)
         return {

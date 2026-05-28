@@ -10,6 +10,7 @@ import numpy as np
 
 
 class NoiseSource(Enum):
+    """``NoiseSource`` 관련 기능을 제공한다."""
     PROPELLER = "propeller"
     MOTOR = "motor"
     AIRFRAME = "airframe"
@@ -17,6 +18,7 @@ class NoiseSource(Enum):
 
 
 class NoiseRegulation(Enum):
+    """``NoiseRegulation`` 관련 기능을 제공한다."""
     ICAO_ANNEX16 = "icao_annex16"
     FAA_PART36 = "faa_part36"
     EU_REG_2019 = "eu_2019"
@@ -25,6 +27,7 @@ class NoiseRegulation(Enum):
 
 @dataclass
 class NoiseProfile:
+    """``NoiseProfile`` 데이터를 표현한다."""
     frequency_hz: np.ndarray
     spl_db: np.ndarray  # Sound Pressure Level
     source: NoiseSource
@@ -33,6 +36,7 @@ class NoiseProfile:
 
 @dataclass
 class NoiseImpact:
+    """``NoiseImpact`` 관련 기능을 제공한다."""
     location: np.ndarray
     total_spl_db: float
     dominant_source: NoiseSource
@@ -44,12 +48,14 @@ class PropellerNoiseModel:
     """BPF-based propeller noise prediction."""
 
     def __init__(self, n_blades: int = 4, diameter_m: float = 0.3, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_blades = n_blades
         self.diameter = diameter_m
         self.freqs = np.arange(20, 20000, 10)  # Hz
 
     def predict(self, rpm: float, thrust_n: float = 10.0) -> NoiseProfile:
+        """`대상` 결과를 계산하거나 판정한다."""
         bpf = self.n_blades * rpm / 60.0  # Blade Pass Frequency
         harmonics = np.arange(1, 8) * bpf
         spl = np.zeros(len(self.freqs))
@@ -77,11 +83,13 @@ class AcousticPropagation:
     """Sound propagation with atmospheric absorption."""
 
     def __init__(self, temperature_c: float = 20, humidity_pct: float = 50):
+        """인스턴스를 초기화한다."""
         self.temp = temperature_c
         self.humidity = humidity_pct
         self.speed_of_sound = 331.3 + 0.606 * temperature_c
 
     def attenuate(self, spl_db: float, distance_m: float, frequency_hz: float = 1000) -> float:
+        """``attenuate`` 동작을 수행한다."""
         if distance_m <= 0:
             return spl_db
         spreading = 20 * np.log10(distance_m + 1)
@@ -94,6 +102,7 @@ class AeroAcousticV2:
     """Comprehensive aero-acoustic analysis for drone swarms."""
 
     def __init__(self, n_drones: int = 10, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.prop_model = PropellerNoiseModel(seed=seed)
@@ -107,6 +116,7 @@ class AeroAcousticV2:
 
     def compute_footprint(self, drone_positions: np.ndarray, rpms: np.ndarray,
                           grid_size: int = 10, area_m: float = 500) -> list[NoiseImpact]:
+        """`footprint` 값을 계산한다."""
         impacts = []
         grid_x = np.linspace(-area_m / 2, area_m / 2, grid_size)
         grid_y = np.linspace(-area_m / 2, area_m / 2, grid_size)
@@ -139,6 +149,7 @@ class AeroAcousticV2:
         return 10000
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": self.n_drones,
             "stealth_rpm": self.stealth_rpm(),

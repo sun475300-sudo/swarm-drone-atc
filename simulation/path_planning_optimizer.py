@@ -9,6 +9,7 @@ import numpy as np
 
 @dataclass
 class Waypoint:
+    """``Waypoint`` 관련 기능을 제공한다."""
     x: float
     y: float
     z: float
@@ -17,13 +18,16 @@ class Waypoint:
 
 @dataclass
 class Obstacle:
+    """``Obstacle`` 관련 기능을 제공한다."""
     position: np.ndarray
     velocity: np.ndarray
     radius: float
 
 
 class PathPlanningOptimizer:
+    """``PathPlanningOptimizer`` 관련 기능을 제공한다."""
     def __init__(self, algorithm: str = "astar"):
+        """인스턴스를 초기화한다."""
         self.algorithm = algorithm
 
     def plan_path(
@@ -32,6 +36,7 @@ class PathPlanningOptimizer:
         goal: Waypoint,
         obstacles: list[Obstacle],
     ) -> list[Waypoint]:
+        """`path` 작업을 계획한다."""
         num_points = 20
 
         points = []
@@ -75,4 +80,5 @@ class PathPlanningOptimizer:
         new_obstacle: Obstacle,
         current_index: int,
     ) -> list[Waypoint]:
+        """``replan_on_obstacle`` 동작을 수행한다."""
         return current_path[current_index:]

@@ -11,6 +11,7 @@ import numpy as np
 
 
 class FlightPhase(Enum):
+    """``FlightPhase`` 관련 기능을 제공한다."""
     GROUNDED = auto()
     TAKEOFF = auto()
     ENROUTE = auto()
@@ -22,12 +23,14 @@ class FlightPhase(Enum):
 
 
 class CommsStatus(Enum):
+    """``CommsStatus`` 관련 기능을 제공한다."""
     NOMINAL = auto()      # 정상
     DEGRADED = auto()     # 지연/패킷 손실
     LOST = auto()         # 두절 → Lost-link 프로토콜 활성화
 
 
 class FailureType(Enum):
+    """``FailureType`` 관련 기능을 제공한다."""
     NONE = auto()
     MOTOR_FAILURE = auto()       # 즉각 하강
     BATTERY_CRITICAL = auto()    # 비상 착륙
@@ -80,17 +83,21 @@ class DroneState:
 
     @property
     def is_active(self) -> bool:
+        """`active` 여부를 반환한다."""
         return self.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED)
 
     @property
     def is_failed(self) -> bool:
+        """`failed` 여부를 반환한다."""
         return self.failure_type != FailureType.NONE
 
     @property
     def speed(self) -> float:
+        """``speed`` 동작을 수행한다."""
         return float(np.linalg.norm(self.velocity))
 
     def to_dict(self) -> dict:
+        """현재 상태를 사전으로 변환한다."""
         return {
             "drone_id": self.drone_id,
             "position": self.position.tolist(),

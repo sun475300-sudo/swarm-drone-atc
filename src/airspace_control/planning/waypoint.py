@@ -8,19 +8,23 @@ import numpy as np
 
 @dataclass
 class Waypoint:
+    """``Waypoint`` 관련 기능을 제공한다."""
     position: np.ndarray    # [north, east, down] (미터)
     speed_ms: float = 8.0   # 이 경로점 도달 시 속도
     hover_s:  float = 0.0   # 도달 후 체공 시간
 
     def distance_to(self, other: Waypoint) -> float:
+        """``distance_to`` 동작을 수행한다."""
         return float(np.linalg.norm(other.position - self.position))
 
     def lateral_distance_to(self, other: Waypoint) -> float:
+        """``lateral_distance_to`` 동작을 수행한다."""
         return float(np.linalg.norm(other.position[:2] - self.position[:2]))
 
 
 @dataclass
 class Route:
+    """``Route`` 관련 기능을 제공한다."""
     route_id:   str
     drone_id:   str
     waypoints:  list[Waypoint] = field(default_factory=list)
@@ -29,6 +33,7 @@ class Route:
 
     @property
     def total_distance_m(self) -> float:
+        """``total_distance_m`` 동작을 수행한다."""
         if len(self.waypoints) < 2:
             return 0.0
         return sum(
@@ -38,13 +43,16 @@ class Route:
 
     @property
     def origin(self) -> np.ndarray | None:
+        """``origin`` 동작을 수행한다."""
         return self.waypoints[0].position if self.waypoints else None
 
     @property
     def destination(self) -> np.ndarray | None:
+        """``destination`` 동작을 수행한다."""
         return self.waypoints[-1].position if self.waypoints else None
 
     def get_current_waypoint(self, idx: int) -> Waypoint | None:
+        """`current waypoint` 정보를 조회한다."""
         if 0 <= idx < len(self.waypoints):
             return self.waypoints[idx]
         return None
@@ -52,6 +60,7 @@ class Route:
 
 @dataclass
 class RouteCost:
+    """``RouteCost`` 관련 기능을 제공한다."""
     distance_m:  float
     duration_s:  float
     energy_wh:   float

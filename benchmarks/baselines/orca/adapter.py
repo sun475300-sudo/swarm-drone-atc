@@ -24,6 +24,7 @@ class Adapter:
     name = "orca"
 
     def __init__(self, manifest: dict[str, Any], seed: int) -> None:
+        """인스턴스를 초기화한다."""
         self.manifest = manifest
         self.seed = seed
         self.dt = float(manifest.get("dt_seconds", 1.0))
@@ -85,6 +86,7 @@ class Adapter:
     # ------------------------------------------------------------------
 
     def run(self, hard_wall_time_s: float = 300.0) -> SimulationTrace:
+        """메인 실행 루프를 수행한다."""
         from src.utils.rng import get_rng, set_global_seed
 
         set_global_seed(self.seed)

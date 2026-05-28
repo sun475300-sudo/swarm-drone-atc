@@ -15,6 +15,7 @@ import numpy as np
 
 
 class PBFTPhase(Enum):
+    """``PBFTPhase`` 관련 기능을 제공한다."""
     IDLE = "idle"
     PRE_PREPARE = "pre_prepare"
     PREPARE = "prepare"
@@ -23,6 +24,7 @@ class PBFTPhase(Enum):
 
 
 class NodeRole(Enum):
+    """``NodeRole`` 관련 기능을 제공한다."""
     PRIMARY = "primary"
     BACKUP = "backup"
     FAULTY = "faulty"
@@ -30,6 +32,7 @@ class NodeRole(Enum):
 
 @dataclass
 class PBFTMessage:
+    """``PBFTMessage`` 데이터를 표현한다."""
     msg_type: str  # "pre-prepare", "prepare", "commit", "reply", "view-change"
     view: int
     sequence: int
@@ -40,12 +43,14 @@ class PBFTMessage:
     signature: str = ""
 
     def compute_digest(self) -> str:
+        """`digest` 값을 계산한다."""
         content = f"{self.msg_type}:{self.view}:{self.sequence}:{self.sender}"
         return hashlib.sha256(content.encode()).hexdigest()[:16]
 
 
 @dataclass
 class ConsensusRequest:
+    """``ConsensusRequest`` 데이터를 표현한다."""
     client_id: str
     operation: str
     data: dict = field(default_factory=dict)
@@ -54,6 +59,7 @@ class ConsensusRequest:
 
 @dataclass
 class PBFTNode:
+    """``PBFTNode`` 관련 기능을 제공한다."""
     node_id: int
     role: NodeRole = NodeRole.BACKUP
     view: int = 0
@@ -75,6 +81,7 @@ class DistributedConsensusV2:
     """
 
     def __init__(self, n_nodes: int = 4, f_faulty: int = 1, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self.n_nodes = max(n_nodes, 3 * f_faulty + 1)
         self.f_faulty = f_faulty
@@ -91,6 +98,7 @@ class DistributedConsensusV2:
             self._nodes[i] = PBFTNode(node_id=i, role=role, view=self._view)
 
     def set_faulty(self, node_id: int):
+        """`faulty` 상태를 갱신한다."""
         if node_id in self._nodes:
             self._nodes[node_id].is_faulty = True
             self._nodes[node_id].role = NodeRole.FAULTY
@@ -176,12 +184,15 @@ class DistributedConsensusV2:
         return self._view
 
     def get_node(self, node_id: int) -> PBFTNode | None:
+        """`node` 정보를 조회한다."""
         return self._nodes.get(node_id)
 
     def get_committed_ops(self) -> list[dict]:
+        """`committed ops` 정보를 조회한다."""
         return self._committed_ops.copy()
 
     def get_primary(self) -> int:
+        """`primary` 정보를 조회한다."""
         return self._view % self.n_nodes
 
     def verify_consistency(self) -> bool:
@@ -195,6 +206,7 @@ class DistributedConsensusV2:
         return all(s == committed_sets[0] for s in committed_sets)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         healthy = sum(1 for n in self._nodes.values() if not n.is_faulty)
         return {
             "total_nodes": self.n_nodes,

@@ -12,6 +12,7 @@ import numpy as np
 
 
 class SyncStatus(Enum):
+    """``SyncStatus`` 관련 기능을 제공한다."""
     IN_SYNC = "in_sync"
     SYNCING = "syncing"
     OUT_OF_SYNC = "out_of_sync"
@@ -20,6 +21,7 @@ class SyncStatus(Enum):
 
 @dataclass
 class TwinState:
+    """``TwinState`` 데이터를 표현한다."""
     drone_id: str
     position: np.ndarray
     velocity: np.ndarray
@@ -31,6 +33,7 @@ class TwinState:
 
 @dataclass
 class FederationMember:
+    """``FederationMember`` 관련 기능을 제공한다."""
     member_id: str
     twin_states: dict[str, TwinState]
     last_sync: float
@@ -39,6 +42,7 @@ class FederationMember:
 
 
 class DigitalTwinFederation:
+    """``DigitalTwinFederation`` 관련 기능을 제공한다."""
     def __init__(
         self,
         federation_id: str,
@@ -46,6 +50,7 @@ class DigitalTwinFederation:
         max_latency_ms: float = 100.0,
         consensus_threshold: float = 0.8,
     ):
+        """인스턴스를 초기화한다."""
         self.federation_id = federation_id
         self.sync_interval = sync_interval
         self.max_latency_ms = max_latency_ms
@@ -59,6 +64,7 @@ class DigitalTwinFederation:
         self._start_sync_loop()
 
     def register_member(self, member_id: str, priority: int = 5):
+        """`member` 항목을 추가한다."""
         member = FederationMember(
             member_id=member_id,
             twin_states={},
@@ -69,6 +75,7 @@ class DigitalTwinFederation:
         self.members[member_id] = member
 
     def update_twin_state(self, member_id: str, state: TwinState):
+        """`twin state` 상태를 갱신한다."""
         if member_id not in self.members:
             self.register_member(member_id)
 
@@ -79,6 +86,7 @@ class DigitalTwinFederation:
         self.global_state[state.drone_id] = state
 
     def synchronize(self) -> dict[str, Any]:
+        """``synchronize`` 동작을 수행한다."""
         sync_result = {
             "timestamp": time.time(),
             "members_synced": 0,
@@ -149,6 +157,7 @@ class DigitalTwinFederation:
         pass
 
     def get_federation_status(self) -> dict[str, Any]:
+        """`federation status` 정보를 조회한다."""
         return {
             "federation_id": self.federation_id,
             "total_members": len(self.members),
@@ -166,12 +175,15 @@ class DigitalTwinFederation:
         }
 
     def query_twin(self, drone_id: str) -> TwinState | None:
+        """``query_twin`` 동작을 수행한다."""
         return self.global_state.get(drone_id)
 
     def get_all_twins(self) -> dict[str, TwinState]:
+        """`all twins` 정보를 조회한다."""
         return self.global_state.copy()
 
     def export_state(self) -> str:
+        """`state` 결과를 저장한다."""
         data = {
             "federation_id": self.federation_id,
             "timestamp": time.time(),
@@ -193,6 +205,7 @@ class DigitalTwinFederation:
         return json.dumps(data, indent=2)
 
     def detect_anomalies(self) -> list[dict]:
+        """`anomalies` 결과를 계산하거나 판정한다."""
         anomalies = []
 
         for drone_id, state in self.global_state.items():

@@ -18,6 +18,7 @@ import numpy as np
 
 @dataclass
 class Contract:
+    """``Contract`` 관련 기능을 제공한다."""
     contract_id: str
     tier: str
     max_latency_s: float
@@ -27,18 +28,23 @@ class Contract:
 
 
 class SLAContract:
+    """``SLAContract`` 관련 기능을 제공한다."""
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._contracts: dict[str, Contract] = {}
 
     def add_contract(self, contract_id: str, tier: str = "SILVER", max_latency_s: float = 5.0, uptime_pct: float = 99.0, penalty: float = 1000) -> None:
+        """`contract` 항목을 추가한다."""
         self._contracts[contract_id] = Contract(contract_id=contract_id, tier=tier, max_latency_s=max_latency_s, uptime_pct=uptime_pct, penalty_per_violation=penalty)
 
     def record_performance(self, contract_id: str, latency_s: float = 0, available: bool = True) -> None:
+        """`performance` 정보를 기록한다."""
         c = self._contracts.get(contract_id)
         if c:
             c.records.append({"latency": latency_s, "available": available})
 
     def compliance(self, contract_id: str) -> dict[str, Any]:
+        """``compliance`` 동작을 수행한다."""
         c = self._contracts.get(contract_id)
         if not c or not c.records:
             return {"compliant": True, "uptime": 100, "avg_latency": 0}
@@ -54,6 +60,7 @@ class SLAContract:
         }
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "contracts": len(self._contracts),
             "compliant": sum(1 for cid in self._contracts if self.compliance(cid).get("compliant", True)),

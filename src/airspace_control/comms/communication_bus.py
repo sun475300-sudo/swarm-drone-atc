@@ -46,6 +46,7 @@ class CommunicationBus:
         packet_loss_rate: float = 0.0,    # 패킷 손실률 [0, 1]
         comm_range_m: float = 2000.0,     # 통신 범위 (m)
     ):
+        """인스턴스를 초기화한다."""
         self.env = env
         self.rng = rng
         self.latency_ms_mean = latency_ms_mean

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 @dataclass
 class DroneProfile:
+    """``DroneProfile`` 데이터를 표현한다."""
     name: str
     max_speed_ms: float
     cruise_speed_ms: float

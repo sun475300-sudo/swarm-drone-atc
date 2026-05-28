@@ -11,6 +11,7 @@ import numpy as np
 
 
 class ChartFeatureType(Enum):
+    """``ChartFeatureType`` 관련 기능을 제공한다."""
     AIRPORT = "airport"
     HELIPAD = "helipad"
     VERTIPORT = "vertiport"
@@ -23,6 +24,7 @@ class ChartFeatureType(Enum):
 
 @dataclass(frozen=True)
 class ChartFeature:
+    """``ChartFeature`` 관련 기능을 제공한다."""
     feature_id: str
     feature_type: ChartFeatureType
     position: tuple[float, float]
@@ -35,6 +37,7 @@ class AeroCharts:
     """비행 계획/경로 검증을 위한 항공 차트 인메모리 DB."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self.features: dict[str, ChartFeature] = {}
 
     @staticmethod
@@ -47,6 +50,7 @@ class AeroCharts:
             raise ValueError(f"position coordinates must be finite, got {pos}")
 
     def add_feature(self, feature: ChartFeature) -> None:
+        """`feature` 항목을 추가한다."""
         self._validate_feature_position(feature.position)
         self.features[feature.feature_id] = feature
 
@@ -68,12 +72,14 @@ class AeroCharts:
         return len(features)
 
     def remove(self, feature_id: str) -> bool:
+        """`대상` 상태를 정리한다."""
         if feature_id in self.features:
             del self.features[feature_id]
             return True
         return False
 
     def get(self, feature_id: str) -> ChartFeature | None:
+        """`대상` 정보를 조회한다."""
         return self.features.get(feature_id)
 
     def nearby(
@@ -82,6 +88,7 @@ class AeroCharts:
         radius_m: float,
         feature_type: ChartFeatureType | None = None,
     ) -> list[ChartFeature]:
+        """``nearby`` 동작을 수행한다."""
         if radius_m < 0:
             raise ValueError(f"radius_m must be non-negative, got {radius_m}")
         self._validate_feature_position(position)
@@ -123,6 +130,7 @@ class AeroCharts:
         corridor_width_m: float,
         min_altitude_m: float = 0.0,
     ) -> list[ChartFeature]:
+        """``path_obstacles`` 동작을 수행한다."""
         if corridor_width_m < 0:
             raise ValueError(
                 f"corridor_width_m must be non-negative, got {corridor_width_m}"
@@ -167,6 +175,7 @@ class AeroCharts:
         return float(np.sqrt((px - cx) ** 2 + (py - cy) ** 2))
 
     def stats(self) -> dict[str, Any]:
+        """``stats`` 동작을 수행한다."""
         counts: dict[str, int] = {}
         for f in self.features.values():
             counts[f.feature_type.value] = counts.get(f.feature_type.value, 0) + 1

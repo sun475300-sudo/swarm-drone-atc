@@ -59,6 +59,7 @@ class SLAMonitor:
         self,
         thresholds: list[SLAThreshold] | None = None,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.thresholds = thresholds or list(DEFAULT_THRESHOLDS)
         self._history: list[list[SLAViolation]] = []
         self._tune_history: list[dict] = []

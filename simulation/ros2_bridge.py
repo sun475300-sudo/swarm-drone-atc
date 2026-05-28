@@ -12,6 +12,7 @@ import numpy as np
 
 @dataclass
 class ROSMessage:
+    """``ROSMessage`` 데이터를 표현한다."""
     topic: str
     msg_type: str
     data: dict[str, Any]
@@ -21,6 +22,7 @@ class ROSMessage:
 
 @dataclass
 class TFTransform:
+    """``TFTransform`` 관련 기능을 제공한다."""
     parent_frame: str
     child_frame: str
     translation: np.ndarray  # (3,)
@@ -43,6 +45,7 @@ class ROS2Bridge:
     """Simulated ROS2 topic/service bridge for testing."""
 
     def __init__(self, node_name: str = "sdacs_bridge", seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.node_name = node_name
         self.rng = np.random.default_rng(seed)
         self._next_id = 0
@@ -63,16 +66,19 @@ class ROS2Bridge:
         return self._next_id
 
     def create_publisher(self, topic: str, msg_type: str = "std_msgs/String") -> int:
+        """`publisher` 결과를 생성한다."""
         pub_id = self._gen_id()
         self.publishers[pub_id] = {"topic": topic, "msg_type": msg_type}
         return pub_id
 
     def create_subscriber(self, topic: str, callback: Callable) -> int:
+        """`subscriber` 결과를 생성한다."""
         sub_id = self._gen_id()
         self.subscribers[sub_id] = {"topic": topic, "callback": callback}
         return sub_id
 
     def publish(self, publisher_id: int, data: dict[str, Any]) -> bool:
+        """``publish`` 동작을 수행한다."""
         if publisher_id not in self.publishers:
             return False
         pub = self.publishers[publisher_id]
@@ -85,10 +91,12 @@ class ROS2Bridge:
         return True
 
     def create_service(self, name: str, callback: Callable) -> str:
+        """`service` 결과를 생성한다."""
         self.services[name] = callback
         return name
 
     def call_service(self, name: str, request: dict[str, Any]) -> dict[str, Any] | None:
+        """``call_service`` 동작을 수행한다."""
         if name not in self.services:
             return None
         self.stats["services_called"] += 1
@@ -111,16 +119,19 @@ class ROS2Bridge:
         return delivered
 
     def set_transform(self, transform: TFTransform) -> None:
+        """`transform` 상태를 갱신한다."""
         key = f"{transform.parent_frame}->{transform.child_frame}"
         self.tf_buffer[key] = transform
 
     def lookup_transform(
         self, parent: str, child: str
     ) -> TFTransform | None:
+        """``lookup_transform`` 동작을 수행한다."""
         key = f"{parent}->{child}"
         return self.tf_buffer.get(key)
 
     def get_topic_list(self) -> list[str]:
+        """`topic list` 정보를 조회한다."""
         topics = set()
         for pub in self.publishers.values():
             topics.add(pub["topic"])
@@ -129,6 +140,7 @@ class ROS2Bridge:
         return sorted(topics)
 
     def get_node_stats(self) -> dict[str, Any]:
+        """`node stats` 정보를 조회한다."""
         return {
             "node_name": self.node_name,
             "publishers": len(self.publishers),

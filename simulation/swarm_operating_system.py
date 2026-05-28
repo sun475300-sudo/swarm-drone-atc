@@ -11,6 +11,7 @@ import numpy as np
 
 
 class ProcessState(Enum):
+    """``ProcessState`` 데이터를 표현한다."""
     READY = "ready"
     RUNNING = "running"
     BLOCKED = "blocked"
@@ -18,6 +19,7 @@ class ProcessState(Enum):
 
 
 class Priority(Enum):
+    """``Priority`` 관련 기능을 제공한다."""
     CRITICAL = 0
     HIGH = 1
     MEDIUM = 2
@@ -25,6 +27,7 @@ class Priority(Enum):
 
 
 class SchedulerPolicy(Enum):
+    """``SchedulerPolicy`` 관련 기능을 제공한다."""
     ROUND_ROBIN = "rr"
     PRIORITY = "priority"
     EDF = "edf"  # Earliest Deadline First
@@ -33,6 +36,7 @@ class SchedulerPolicy(Enum):
 
 @dataclass
 class SwarmProcess:
+    """``SwarmProcess`` 관련 기능을 제공한다."""
     pid: int
     name: str
     priority: Priority
@@ -49,6 +53,7 @@ class SwarmProcess:
 
 @dataclass
 class IPCMessage:
+    """``IPCMessage`` 데이터를 표현한다."""
     sender_pid: int
     receiver_pid: int
     msg_type: str
@@ -58,6 +63,7 @@ class IPCMessage:
 
 @dataclass
 class ResourceAllocation:
+    """``ResourceAllocation`` 관련 기능을 제공한다."""
     resource_id: str
     owner_pid: int
     amount: float
@@ -69,6 +75,7 @@ class SwarmScheduler:
 
     def __init__(self, policy: SchedulerPolicy = SchedulerPolicy.PRIORITY,
                  quantum: float = 0.1):
+        """인스턴스를 초기화한다."""
         self.policy = policy
         self.quantum = quantum
         self.ready_queue: deque[SwarmProcess] = deque()
@@ -77,11 +84,13 @@ class SwarmScheduler:
         self.context_switches = 0
 
     def admit(self, process: SwarmProcess) -> None:
+        """``admit`` 동작을 수행한다."""
         process.state = ProcessState.READY
         process.arrival_time = self.current_time
         self.ready_queue.append(process)
 
     def schedule(self) -> SwarmProcess | None:
+        """`대상` 작업을 계획한다."""
         if not self.ready_queue:
             return None
 
@@ -107,6 +116,7 @@ class SwarmScheduler:
         return best
 
     def tick(self, dt: float = 0.1) -> SwarmProcess | None:
+        """``tick`` 동작을 수행한다."""
         self.current_time += dt
 
         for p in self.ready_queue:
@@ -135,15 +145,18 @@ class SwarmIPC:
     """Inter-Process Communication for swarm."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.mailboxes: dict[int, deque[IPCMessage]] = {}
         self.shared_memory: dict[str, bytes] = {}
         self.msg_count = 0
 
     def register(self, pid: int) -> None:
+        """`대상` 항목을 추가한다."""
         self.mailboxes[pid] = deque()
 
     def send(self, sender: int, receiver: int, msg_type: str,
              payload: dict, timestamp: float = 0) -> bool:
+        """``send`` 동작을 수행한다."""
         if receiver not in self.mailboxes:
             return False
         msg = IPCMessage(sender, receiver, msg_type, payload, timestamp)
@@ -152,11 +165,13 @@ class SwarmIPC:
         return True
 
     def receive(self, pid: int) -> IPCMessage | None:
+        """``receive`` 동작을 수행한다."""
         if pid in self.mailboxes and self.mailboxes[pid]:
             return self.mailboxes[pid].popleft()
         return None
 
     def broadcast(self, sender: int, msg_type: str, payload: dict, timestamp: float = 0) -> int:
+        """``broadcast`` 동작을 수행한다."""
         count = 0
         for pid in self.mailboxes:
             if pid != sender:
@@ -169,6 +184,7 @@ class SwarmResourceManager:
     """Resource management for swarm OS."""
 
     def __init__(self, total_cpu: float = 100.0, total_memory_kb: int = 65536):
+        """인스턴스를 초기화한다."""
         self.total_cpu = total_cpu
         self.total_memory = total_memory_kb
         self.used_cpu = 0.0
@@ -176,6 +192,7 @@ class SwarmResourceManager:
         self.allocations: dict[int, dict[str, float]] = {}
 
     def allocate(self, pid: int, cpu: float, memory_kb: int) -> bool:
+        """``allocate`` 동작을 수행한다."""
         if self.used_cpu + cpu > self.total_cpu:
             return False
         if self.used_memory + memory_kb > self.total_memory:
@@ -186,6 +203,7 @@ class SwarmResourceManager:
         return True
 
     def release(self, pid: int) -> bool:
+        """``release`` 동작을 수행한다."""
         if pid not in self.allocations:
             return False
         alloc = self.allocations.pop(pid)
@@ -194,6 +212,7 @@ class SwarmResourceManager:
         return True
 
     def utilization(self) -> dict[str, float]:
+        """``utilization`` 동작을 수행한다."""
         return {
             "cpu_pct": self.used_cpu / self.total_cpu * 100,
             "mem_pct": self.used_memory / self.total_memory * 100,
@@ -205,6 +224,7 @@ class SwarmOperatingSystem:
     """Complete swarm operating system."""
 
     def __init__(self, policy: SchedulerPolicy = SchedulerPolicy.PRIORITY, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.scheduler = SwarmScheduler(policy)
         self.ipc = SwarmIPC()
         self.resources = SwarmResourceManager()
@@ -216,6 +236,7 @@ class SwarmOperatingSystem:
     def spawn(self, name: str, priority: Priority = Priority.MEDIUM,
               cpu_burst: float = 1.0, memory_kb: int = 64,
               deadline: float = float('inf')) -> SwarmProcess | None:
+        """`대상` 결과를 생성한다."""
         self._pid_counter += 1
         pid = self._pid_counter
         proc = SwarmProcess(pid, name, priority, cpu_burst=cpu_burst,
@@ -230,6 +251,7 @@ class SwarmOperatingSystem:
         return proc
 
     def tick(self, dt: float = 0.1) -> SwarmProcess | None:
+        """``tick`` 동작을 수행한다."""
         completed = self.scheduler.tick(dt)
         if completed:
             self.resources.release(completed.pid)
@@ -237,6 +259,7 @@ class SwarmOperatingSystem:
         return completed
 
     def run_for(self, duration: float, dt: float = 0.1) -> list[SwarmProcess]:
+        """``run_for`` 동작을 수행한다."""
         results = []
         steps = int(duration / dt)
         for _ in range(steps):
@@ -246,6 +269,7 @@ class SwarmOperatingSystem:
         return results
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         avg_wait = np.mean([p.wait_time for p in self.completed]) if self.completed else 0
         avg_turnaround = np.mean([p.completion_time - p.arrival_time for p in self.completed]) if self.completed else 0
         return {

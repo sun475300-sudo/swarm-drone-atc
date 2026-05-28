@@ -13,6 +13,7 @@ import numpy as np
 
 
 class EnergySource(Enum):
+    """``EnergySource`` 관련 기능을 제공한다."""
     SOLAR = "solar"
     WIND = "wind"
     RF = "rf"
@@ -22,6 +23,7 @@ class EnergySource(Enum):
 
 @dataclass
 class HarvestZone:
+    """``HarvestZone`` 관련 기능을 제공한다."""
     zone_id: str
     center: np.ndarray
     radius: float
@@ -33,6 +35,7 @@ class HarvestZone:
 
 @dataclass
 class DroneEnergy:
+    """``DroneEnergy`` 관련 기능을 제공한다."""
     drone_id: str
     battery_wh: float = 100.0
     max_battery_wh: float = 100.0
@@ -57,6 +60,7 @@ class SolarModel:
 
     @staticmethod
     def harvest_power(area_m2: float, efficiency: float, irradiance: float) -> float:
+        """``harvest_power`` 동작을 수행한다."""
         return area_m2 * efficiency * irradiance
 
 
@@ -65,6 +69,7 @@ class WindHarvestModel:
 
     @staticmethod
     def power(wind_speed: float, rotor_area: float = 0.01, efficiency: float = 0.3) -> float:
+        """``power`` 동작을 수행한다."""
         air_density = 1.225
         return 0.5 * air_density * rotor_area * efficiency * wind_speed ** 3
 
@@ -79,6 +84,7 @@ class EnergyHarvestOptimizer:
     """
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._zones: dict[str, HarvestZone] = {}
         self._drones: dict[str, DroneEnergy] = {}
@@ -88,12 +94,15 @@ class EnergyHarvestOptimizer:
         self._total_harvested_wh: float = 0.0
 
     def add_zone(self, zone: HarvestZone):
+        """`zone` 항목을 추가한다."""
         self._zones[zone.zone_id] = zone
 
     def register_drone(self, drone: DroneEnergy):
+        """`drone` 항목을 추가한다."""
         self._drones[drone.drone_id] = drone
 
     def compute_harvest_rate(self, drone_id: str, position: np.ndarray, hour: float = 12.0, wind_speed: float = 5.0) -> float:
+        """`harvest rate` 값을 계산한다."""
         drone = self._drones.get(drone_id)
         if not drone:
             return 0.0
@@ -117,6 +126,7 @@ class EnergyHarvestOptimizer:
         return total_power
 
     def simulate_step(self, dt_sec: float = 1.0, hour: float = 12.0, positions: dict[str, np.ndarray] | None = None):
+        """``simulate_step`` 동작을 수행한다."""
         if positions is None:
             positions = {}
         for did, drone in self._drones.items():
@@ -129,6 +139,7 @@ class EnergyHarvestOptimizer:
                 self._total_harvested_wh += energy_delta
 
     def find_best_harvest_zone(self, position: np.ndarray) -> str | None:
+        """``find_best_harvest_zone`` 동작을 수행한다."""
         best_id, best_score = None, -1
         for zone in self._zones.values():
             dist = np.linalg.norm(position[:3] - zone.center[:3])
@@ -158,6 +169,7 @@ class EnergyHarvestOptimizer:
         return visited
 
     def energy_share(self, donor_id: str, receiver_id: str, amount_wh: float) -> float:
+        """``energy_share`` 동작을 수행한다."""
         donor = self._drones.get(donor_id)
         receiver = self._drones.get(receiver_id)
         if not donor or not receiver:
@@ -170,9 +182,11 @@ class EnergyHarvestOptimizer:
         return actual * transfer_efficiency
 
     def get_critical_drones(self, threshold_pct: float = 20.0) -> list[str]:
+        """`critical drones` 정보를 조회한다."""
         return [did for did, d in self._drones.items() if (d.battery_wh / d.max_battery_wh) * 100 < threshold_pct]
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         avg_battery = np.mean([d.battery_wh / d.max_battery_wh * 100 for d in self._drones.values()]) if self._drones else 0
         return {
             "total_zones": len(self._zones),

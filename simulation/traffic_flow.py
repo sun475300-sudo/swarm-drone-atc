@@ -51,6 +51,7 @@ class TrafficFlowAnalyzer:
         congestion_threshold: float = 0.7,
         max_density_per_cell: int = 10,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.bounds = bounds
         self.n_rows, self.n_cols = grid
         self.congestion_threshold = congestion_threshold
@@ -136,12 +137,14 @@ class TrafficFlowAnalyzer:
         return grid
 
     def density_map(self) -> np.ndarray:
+        """``density_map`` 동작을 수행한다."""
         grid = np.zeros((self.n_rows, self.n_cols))
         for cell in self._cells.values():
             grid[cell.row, cell.col] = cell.density
         return grid
 
     def overall_congestion(self) -> float:
+        """``overall_congestion`` 동작을 수행한다."""
         if not self._cells:
             return 0.0
         return float(np.mean([c.congestion for c in self._cells.values()]))
@@ -157,6 +160,7 @@ class TrafficFlowAnalyzer:
         return f"{row}_{col}"
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         bns = self.detect_bottlenecks()
         return {
             "total_cells": len(self._cells),

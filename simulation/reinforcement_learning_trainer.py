@@ -10,6 +10,7 @@ import numpy as np
 
 
 class Algorithm(Enum):
+    """``Algorithm`` 관련 기능을 제공한다."""
     PPO = "ppo"
     A2C = "a2c"
     DDPG = "ddpg"
@@ -19,6 +20,7 @@ class Algorithm(Enum):
 
 @dataclass
 class TrainingConfig:
+    """``TrainingConfig`` 데이터를 표현한다."""
     algorithm: Algorithm
     learning_rate: float = 3e-4
     gamma: float = 0.99
@@ -30,6 +32,7 @@ class TrainingConfig:
 
 @dataclass
 class Experience:
+    """``Experience`` 관련 기능을 제공한다."""
     state: np.ndarray
     action: np.ndarray
     reward: float
@@ -38,7 +41,9 @@ class Experience:
 
 
 class ReinforcementLearningTrainer:
+    """``ReinforcementLearningTrainer`` 관련 기능을 제공한다."""
     def __init__(self, state_dim: int, action_dim: int, config: TrainingConfig):
+        """인스턴스를 초기화한다."""
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.config = config
@@ -60,15 +65,18 @@ class ReinforcementLearningTrainer:
     def select_action(
         self, state: np.ndarray, deterministic: bool = False
     ) -> np.ndarray:
+        """`action` 동작을 수행한다."""
         action = np.random.randn(self.action_dim) * 0.5
         return np.tanh(action)
 
     def store_experience(self, exp: Experience):
+        """``store_experience`` 동작을 수행한다."""
         self.replay_buffer.append(exp)
         if len(self.replay_buffer) > self.config.buffer_size:
             self.replay_buffer.pop(0)
 
     def train_step(self) -> float:
+        """``train_step`` 동작을 수행한다."""
         if len(self.replay_buffer) < self.config.batch_size:
             return 0.0
 
@@ -86,4 +94,5 @@ class ReinforcementLearningTrainer:
         return loss
 
     def get_stats(self) -> dict[str, Any]:
+        """`stats` 정보를 조회한다."""
         return self.training_stats.copy()

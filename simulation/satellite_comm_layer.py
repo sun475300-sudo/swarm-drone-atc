@@ -13,6 +13,7 @@ import numpy as np
 
 
 class OrbitType(Enum):
+    """``OrbitType`` 관련 기능을 제공한다."""
     LEO = "leo"       # 200-2000 km
     MEO = "meo"       # 2000-35786 km
     GEO = "geo"       # 35786 km
@@ -20,6 +21,7 @@ class OrbitType(Enum):
 
 
 class LinkStatus(Enum):
+    """``LinkStatus`` 관련 기능을 제공한다."""
     CONNECTED = "connected"
     HANDOVER = "handover"
     LOST = "lost"
@@ -28,6 +30,7 @@ class LinkStatus(Enum):
 
 @dataclass
 class Satellite:
+    """``Satellite`` 관련 기능을 제공한다."""
     sat_id: str
     orbit_type: OrbitType = OrbitType.LEO
     altitude_km: float = 550.0    # Starlink-like
@@ -40,6 +43,7 @@ class Satellite:
 
 @dataclass
 class SatLink:
+    """``SatLink`` 관련 기능을 제공한다."""
     satellite_id: str
     drone_id: str
     status: LinkStatus = LinkStatus.LOST
@@ -52,6 +56,7 @@ class SatLink:
 
 @dataclass
 class LinkBudget:
+    """``LinkBudget`` 관련 기능을 제공한다."""
     tx_power_dbw: float = 10.0
     tx_gain_dbi: float = 5.0
     rx_gain_dbi: float = 30.0
@@ -78,6 +83,7 @@ class SatelliteCommLayer:
     MIN_ELEVATION_DEG = 10.0
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._satellites: dict[str, Satellite] = {}
         self._links: dict[str, SatLink] = {}
@@ -187,15 +193,18 @@ class SatelliteCommLayer:
             )
 
     def get_link(self, drone_id: str) -> SatLink | None:
+        """`link` 정보를 조회한다."""
         return self._links.get(drone_id)
 
     def get_visible_satellites(self, drone_pos_km: np.ndarray) -> list[str]:
+        """`visible satellites` 정보를 조회한다."""
         return [
             sat.sat_id for sat in self._satellites.values()
             if sat.is_active and self.compute_elevation(sat, drone_pos_km) > self.MIN_ELEVATION_DEG
         ]
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         connected = sum(1 for l in self._links.values() if l.status == LinkStatus.CONNECTED)
         return {
             "total_satellites": len(self._satellites),

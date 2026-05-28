@@ -10,6 +10,7 @@ import numpy as np
 
 
 class ObjectClass(Enum):
+    """``ObjectClass`` 관련 기능을 제공한다."""
     VEHICLE = "vehicle"
     PEDESTRIAN = "pedestrian"
     DRONE = "drone"
@@ -19,6 +20,7 @@ class ObjectClass(Enum):
 
 @dataclass
 class Detection:
+    """``Detection`` 관련 기능을 제공한다."""
     detector_id: str
     object_id: str
     obj_class: ObjectClass
@@ -30,6 +32,7 @@ class Detection:
 
 @dataclass
 class TrackedObject:
+    """``TrackedObject`` 관련 기능을 제공한다."""
     track_id: str
     obj_class: ObjectClass
     position: np.ndarray
@@ -43,10 +46,12 @@ class MultiViewFusion:
     """Fuse detections from multiple drone viewpoints."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.association_threshold = 10.0  # meters
 
     def fuse(self, detections: list[Detection]) -> list[TrackedObject]:
+        """``fuse`` 동작을 수행한다."""
         if not detections:
             return []
         clusters: list[list[Detection]] = []
@@ -87,11 +92,13 @@ class DistributedTracker:
     """Multi-object tracking across drone swarm."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.tracks: dict[str, TrackedObject] = {}
         self._track_counter = 0
 
     def update(self, new_tracks: list[TrackedObject]) -> dict[str, TrackedObject]:
+        """`대상` 상태를 갱신한다."""
         for nt in new_tracks:
             matched = False
             for _tid, existing in self.tracks.items():
@@ -117,6 +124,7 @@ class CooperativePerception:
     """Multi-drone cooperative perception system."""
 
     def __init__(self, n_drones: int = 6, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.fusion = MultiViewFusion(seed)
@@ -126,6 +134,7 @@ class CooperativePerception:
         self._det_counter = 0
 
     def simulate_detections(self, n_objects: int = 20) -> list[Detection]:
+        """``simulate_detections`` 동작을 수행한다."""
         objects = self.rng.uniform(-150, 150, (n_objects, 3))
         objects[:, 2] = 0
         classes = self.rng.choice(list(ObjectClass)[:-1], n_objects)
@@ -149,6 +158,7 @@ class CooperativePerception:
         return detections
 
     def perceive(self, n_objects: int = 20) -> dict:
+        """``perceive`` 동작을 수행한다."""
         dets = self.simulate_detections(n_objects)
         fused = self.fusion.fuse(dets)
         self.tracker.update(fused)
@@ -159,6 +169,7 @@ class CooperativePerception:
         }
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": self.n_drones,
             "total_detections": self._det_counter,

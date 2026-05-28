@@ -12,6 +12,7 @@ import numpy as np
 
 @dataclass
 class MAMLTask:
+    """``MAMLTask`` 관련 기능을 제공한다."""
     task_id: str
     target_fn: object  # callable
     support_x: np.ndarray
@@ -22,6 +23,7 @@ class MAMLTask:
 
 @dataclass
 class MAMLAdaptResult:
+    """``MAMLAdaptResult`` 데이터를 표현한다."""
     task_id: str
     loss_before: float
     loss_after: float
@@ -32,6 +34,7 @@ class MAMLController:
     """간이 2-layer 제어기."""
 
     def __init__(self, input_dim=4, hidden=16, output_dim=2, seed=42):
+        """인스턴스를 초기화한다."""
         rng = np.random.default_rng(seed)
         self.w1 = rng.normal(0, 0.3, (input_dim, hidden))
         self.b1 = np.zeros(hidden)
@@ -39,20 +42,25 @@ class MAMLController:
         self.b2 = np.zeros(output_dim)
 
     def forward(self, x: np.ndarray) -> np.ndarray:
+        """``forward`` 동작을 수행한다."""
         h = np.maximum(0, x @ self.w1 + self.b1)
         return h @ self.w2 + self.b2
 
     def compute_loss(self, x: np.ndarray, y: np.ndarray) -> float:
+        """`loss` 값을 계산한다."""
         pred = self.forward(x)
         return float(np.mean((pred - y) ** 2))
 
     def get_params(self):
+        """`params` 정보를 조회한다."""
         return (self.w1.copy(), self.b1.copy(), self.w2.copy(), self.b2.copy())
 
     def set_params(self, params):
+        """`params` 상태를 갱신한다."""
         self.w1, self.b1, self.w2, self.b2 = params
 
     def gradient_step(self, x: np.ndarray, y: np.ndarray, lr=0.01):
+        """``gradient_step`` 동작을 수행한다."""
         h = np.maximum(0, x @ self.w1 + self.b1)
         pred = h @ self.w2 + self.b2
         error = pred - y
@@ -69,11 +77,14 @@ class MAMLController:
 
 
 class MAMLTaskGenerator:
+    """``MAMLTaskGenerator`` 역할을 담당한다."""
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.task_count = 0
 
     def generate(self, n_support=10, n_query=10) -> MAMLTask:
+        """`대상` 결과를 생성한다."""
         self.task_count += 1
         A = self.rng.normal(0, 1, (4, 2))
         b = self.rng.normal(0, 0.5, 2)
@@ -90,6 +101,7 @@ class MetaLearningMAML:
     """MAML 메타학습 시스템."""
 
     def __init__(self, inner_lr=0.01, outer_lr=0.001, inner_steps=5, seed=42):
+        """인스턴스를 초기화한다."""
         self.inner_lr = inner_lr
         self.outer_lr = outer_lr
         self.inner_steps = inner_steps
@@ -100,6 +112,7 @@ class MetaLearningMAML:
         self.meta_losses: list[float] = []
 
     def adapt(self, task: MAMLTask) -> MAMLAdaptResult:
+        """``adapt`` 동작을 수행한다."""
         original_params = self.controller.get_params()
         loss_before = self.controller.compute_loss(task.support_x, task.support_y)
         for _ in range(self.inner_steps):
@@ -111,6 +124,7 @@ class MetaLearningMAML:
         return result
 
     def meta_update(self, tasks: list[MAMLTask]):
+        """``meta_update`` 동작을 수행한다."""
         original_params = self.controller.get_params()
         meta_grads_w1 = np.zeros_like(self.controller.w1)
         meta_grads_w2 = np.zeros_like(self.controller.w2)
@@ -134,6 +148,7 @@ class MetaLearningMAML:
         self.meta_losses.append(meta_loss)
 
     def train(self, n_epochs=10, tasks_per_epoch=5):
+        """``train`` 동작을 수행한다."""
         for _epoch in range(n_epochs):
             tasks = [self.task_gen.generate() for _ in range(tasks_per_epoch)]
             for t in tasks:
@@ -141,6 +156,7 @@ class MetaLearningMAML:
             self.meta_update(tasks)
 
     def evaluate(self, n_tasks=5) -> dict:
+        """`대상` 결과를 계산하거나 판정한다."""
         results = []
         for _ in range(n_tasks):
             task = self.task_gen.generate()
@@ -155,6 +171,7 @@ class MetaLearningMAML:
         }
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         eval_result = self.evaluate()
         return {
             "total_tasks": len(self.adaptation_results),

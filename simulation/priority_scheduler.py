@@ -19,6 +19,7 @@ from typing import Any
 
 
 class MissionPriority(IntEnum):
+    """``MissionPriority`` 관련 기능을 제공한다."""
     EMERGENCY = 5
     MEDICAL = 4
     COMMERCIAL = 3
@@ -59,6 +60,7 @@ class CongestionInfo:
 
     @property
     def is_congested(self) -> bool:
+        """`congested` 여부를 반환한다."""
         return self.congestion_level > 0.7
 
 
@@ -75,6 +77,7 @@ class PriorityScheduler:
         max_concurrent: int = 50,
         stagger_interval_s: float = 2.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.max_concurrent = max_concurrent
         self.stagger_interval_s = stagger_interval_s
         self._missions: list[Mission] = []
@@ -185,9 +188,11 @@ class PriorityScheduler:
         }
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._missions.clear()
         self._congestion = CongestionInfo()
 
     @property
     def missions(self) -> list[Mission]:
+        """``missions`` 동작을 수행한다."""
         return list(self._missions)

@@ -11,6 +11,7 @@ import numpy as np
 
 
 class QuantumBackend(Enum):
+    """``QuantumBackend`` 관련 기능을 제공한다."""
     SIMULATOR = "simulator"
     QAOA = "qaoa"
     VQE = "vqe"
@@ -19,13 +20,16 @@ class QuantumBackend(Enum):
 
 @dataclass
 class Qubit:
+    """``Qubit`` 관련 기능을 제공한다."""
     index: int
     state: np.ndarray = field(default_factory=lambda: np.array([1.0, 0.0], dtype=complex))
 
     def apply_gate(self, gate: np.ndarray) -> None:
+        """``apply_gate`` 동작을 수행한다."""
         self.state = gate @ self.state
 
     def measure(self, rng: np.random.Generator) -> int:
+        """``measure`` 동작을 수행한다."""
         prob_one = float(np.abs(self.state[1]) ** 2)
         result = 1 if rng.random() < prob_one else 0
         self.state = np.array([1.0, 0.0] if result == 0 else [0.0, 1.0], dtype=complex)
@@ -40,14 +44,17 @@ class QuantumCircuit:
     PAULI_Z = np.array([[1, 0], [0, -1]], dtype=complex)
 
     def __init__(self, n_qubits: int, rng: np.random.Generator):
+        """인스턴스를 초기화한다."""
         self.n_qubits = n_qubits
         self.qubits = [Qubit(i) for i in range(n_qubits)]
         self.rng = rng
 
     def hadamard(self, qubit_idx: int) -> None:
+        """``hadamard`` 동작을 수행한다."""
         self.qubits[qubit_idx].apply_gate(self.HADAMARD)
 
     def rx(self, qubit_idx: int, theta: float) -> None:
+        """``rx`` 동작을 수행한다."""
         gate = np.array([
             [np.cos(theta / 2), -1j * np.sin(theta / 2)],
             [-1j * np.sin(theta / 2), np.cos(theta / 2)]
@@ -55,6 +62,7 @@ class QuantumCircuit:
         self.qubits[qubit_idx].apply_gate(gate)
 
     def rz(self, qubit_idx: int, theta: float) -> None:
+        """``rz`` 동작을 수행한다."""
         gate = np.array([
             [np.exp(-1j * theta / 2), 0],
             [0, np.exp(1j * theta / 2)]
@@ -62,15 +70,18 @@ class QuantumCircuit:
         self.qubits[qubit_idx].apply_gate(gate)
 
     def measure_all(self) -> list[int]:
+        """``measure_all`` 동작을 수행한다."""
         return [q.measure(self.rng) for q in self.qubits]
 
     def reset(self) -> None:
+        """`대상` 상태를 정리한다."""
         for q in self.qubits:
             q.state = np.array([1.0, 0.0], dtype=complex)
 
 
 @dataclass
 class QAOAResult:
+    """``QAOAResult`` 데이터를 표현한다."""
     best_bitstring: list[int]
     best_cost: float
     iterations: int
@@ -80,6 +91,7 @@ class QAOAResult:
 
 @dataclass
 class PathNode:
+    """``PathNode`` 관련 기능을 제공한다."""
     node_id: str
     x: float
     y: float
@@ -88,6 +100,7 @@ class PathNode:
 
 @dataclass
 class QuantumOptResult:
+    """``QuantumOptResult`` 데이터를 표현한다."""
     path: list[str]
     total_cost: float
     method: str
@@ -99,6 +112,7 @@ class QuantumPathOptimizer:
     """Quantum-inspired path optimizer using QAOA and simulated annealing."""
 
     def __init__(self, seed: int = 42, backend: QuantumBackend = QuantumBackend.QAOA):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.backend = backend
         self.nodes: dict[str, PathNode] = {}
@@ -106,11 +120,13 @@ class QuantumPathOptimizer:
         self.results: list[QuantumOptResult] = []
 
     def add_node(self, node_id: str, x: float, y: float, z: float) -> PathNode:
+        """`node` 항목을 추가한다."""
         node = PathNode(node_id, x, y, z)
         self.nodes[node_id] = node
         return node
 
     def add_edge(self, src: str, dst: str, cost: float | None = None) -> float:
+        """`edge` 항목을 추가한다."""
         if cost is None:
             a, b = self.nodes[src], self.nodes[dst]
             cost = np.sqrt((a.x - b.x)**2 + (a.y - b.y)**2 + (a.z - b.z)**2)
@@ -256,6 +272,7 @@ class QuantumPathOptimizer:
 
     def optimize_path(self, node_ids: list[str] | None = None,
                       max_iter: int = 100) -> QuantumOptResult:
+        """``optimize_path`` 동작을 수행한다."""
         if node_ids is None:
             node_ids = list(self.nodes.keys())
 
@@ -283,6 +300,7 @@ class QuantumPathOptimizer:
         return result
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "nodes": len(self.nodes),
             "edges": len(self.edges) // 2,

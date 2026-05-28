@@ -14,6 +14,7 @@ import numpy as np
 
 
 class LifecyclePhase(Enum):
+    """``LifecyclePhase`` 관련 기능을 제공한다."""
     DESIGN = "design"
     MANUFACTURING = "manufacturing"
     TESTING = "testing"
@@ -24,6 +25,7 @@ class LifecyclePhase(Enum):
 
 
 class EventType(Enum):
+    """``EventType`` 관련 기능을 제공한다."""
     CREATED = "created"
     DESIGN_UPDATE = "design_update"
     FIRMWARE_FLASH = "firmware_flash"
@@ -40,6 +42,7 @@ class EventType(Enum):
 
 @dataclass
 class ThreadEvent:
+    """``ThreadEvent`` 데이터를 표현한다."""
     event_id: str
     drone_id: str
     event_type: EventType
@@ -53,6 +56,7 @@ class ThreadEvent:
 
 @dataclass
 class ComponentRecord:
+    """``ComponentRecord`` 데이터를 표현한다."""
     component_id: str
     component_type: str  # motor, esc, battery, frame, sensor, fc
     serial_number: str
@@ -64,6 +68,7 @@ class ComponentRecord:
 
 @dataclass
 class DroneThread:
+    """``DroneThread`` 관련 기능을 제공한다."""
     drone_id: str
     model: str
     serial_number: str
@@ -80,12 +85,14 @@ class DigitalThreadManager:
     """Manages complete lifecycle digital threads for drone fleet."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.threads: dict[str, DroneThread] = {}
         self._event_counter = 0
 
     def create_thread(self, drone_id: str, model: str,
                       serial_number: str) -> DroneThread:
+        """`thread` 결과를 생성한다."""
         ts = time.time()
         thread = DroneThread(
             drone_id=drone_id, model=model,
@@ -101,6 +108,7 @@ class DigitalThreadManager:
     def add_component(self, drone_id: str, component_id: str,
                       component_type: str, serial_number: str,
                       max_hours: float = 500.0) -> ComponentRecord | None:
+        """`component` 항목을 추가한다."""
         thread = self.threads.get(drone_id)
         if not thread:
             return None
@@ -120,6 +128,7 @@ class DigitalThreadManager:
 
     def transition_phase(self, drone_id: str,
                          new_phase: LifecyclePhase) -> bool:
+        """``transition_phase`` 동작을 수행한다."""
         thread = self.threads.get(drone_id)
         if not thread:
             return False
@@ -144,6 +153,7 @@ class DigitalThreadManager:
 
     def record_flight(self, drone_id: str, duration_hours: float,
                       mission_type: str = "patrol") -> bool:
+        """`flight` 정보를 기록한다."""
         thread = self.threads.get(drone_id)
         if not thread or thread.current_phase != LifecyclePhase.OPERATIONAL:
             return False
@@ -164,6 +174,7 @@ class DigitalThreadManager:
 
     def record_fault(self, drone_id: str, fault_desc: str,
                      component_id: str | None = None) -> bool:
+        """`fault` 정보를 기록한다."""
         thread = self.threads.get(drone_id)
         if not thread:
             return False
@@ -178,6 +189,7 @@ class DigitalThreadManager:
         return True
 
     def update_firmware(self, drone_id: str, version: str) -> bool:
+        """`firmware` 상태를 갱신한다."""
         thread = self.threads.get(drone_id)
         if not thread:
             return False
@@ -190,6 +202,7 @@ class DigitalThreadManager:
         return True
 
     def get_maintenance_needs(self, drone_id: str) -> list[dict]:
+        """`maintenance needs` 정보를 조회한다."""
         thread = self.threads.get(drone_id)
         if not thread:
             return []
@@ -208,6 +221,7 @@ class DigitalThreadManager:
 
     def get_thread_history(self, drone_id: str,
                            event_type: EventType | None = None) -> list[ThreadEvent]:
+        """`thread history` 정보를 조회한다."""
         thread = self.threads.get(drone_id)
         if not thread:
             return []
@@ -216,6 +230,7 @@ class DigitalThreadManager:
         return thread.events
 
     def fleet_health(self) -> dict:
+        """``fleet_health`` 동작을 수행한다."""
         operational = sum(1 for t in self.threads.values()
                         if t.current_phase == LifecyclePhase.OPERATIONAL)
         maintenance = sum(1 for t in self.threads.values()
@@ -259,6 +274,7 @@ class DigitalThreadManager:
         return event
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             **self.fleet_health(),
             "total_events": self._event_counter,

@@ -10,6 +10,7 @@ import numpy as np
 
 @dataclass
 class NetworkNode:
+    """``NetworkNode`` 관련 기능을 제공한다."""
     node_id: str
     position: np.ndarray
     neighbors: set[str]
@@ -18,12 +19,15 @@ class NetworkNode:
 
 
 class NetworkTopologyManager:
+    """``NetworkTopologyManager`` 역할을 담당한다."""
     def __init__(self, max_neighbors: int = 10):
+        """인스턴스를 초기화한다."""
         self.nodes: dict[str, NetworkNode] = {}
         self.max_neighbors = max_neighbors
         self.topology_history: list[dict] = []
 
     def add_node(self, node_id: str, position: np.ndarray, bandwidth: float = 100):
+        """`node` 항목을 추가한다."""
         node = NetworkNode(
             node_id=node_id,
             position=position,
@@ -34,6 +38,7 @@ class NetworkTopologyManager:
         self.nodes[node_id] = node
 
     def update_topology(self):
+        """`topology` 상태를 갱신한다."""
         for node_id, node in self.nodes.items():
             node.neighbors.clear()
 
@@ -54,6 +59,7 @@ class NetworkTopologyManager:
         )
 
     def find_path(self, source: str, destination: str) -> list[str]:
+        """``find_path`` 동작을 수행한다."""
         if source not in self.nodes or destination not in self.nodes:
             return []
 
@@ -74,6 +80,7 @@ class NetworkTopologyManager:
         return []
 
     def get_connectivity(self) -> float:
+        """`connectivity` 정보를 조회한다."""
         if not self.nodes:
             return 0.0
 

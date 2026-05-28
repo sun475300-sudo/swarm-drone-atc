@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class FieldState:
+    """``FieldState`` 데이터를 표현한다."""
     time: float
     density: np.ndarray
     velocity_x: np.ndarray
@@ -22,6 +23,7 @@ class ContinuumField:
     """연속체 밀도/속도장."""
 
     def __init__(self, nx=32, ny=32, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.nx, self.ny = nx, ny
         self.dx = 1.0
@@ -69,6 +71,7 @@ class ContinuumField:
         self.vy = strength * dy / dist
 
     def total_mass(self) -> float:
+        """``total_mass`` 동작을 수행한다."""
         return float(np.sum(self.rho) * self.dx ** 2)
 
 
@@ -76,12 +79,14 @@ class SwarmCalculus:
     """군집 미적분 시뮬레이션."""
 
     def __init__(self, nx=32, ny=32, seed=42):
+        """인스턴스를 초기화한다."""
         self.field = ContinuumField(nx, ny, seed)
         self.history: list[FieldState] = []
         self.time = 0.0
         self.field.apply_potential(0.7, 0.0, 2.0)
 
     def step(self, dt=0.1):
+        """`대상` 실행 상태를 제어한다."""
         self.field.advection_step(dt)
         self.field.diffusion_step(dt)
         self.time += dt
@@ -92,10 +97,12 @@ class SwarmCalculus:
         ))
 
     def run(self, steps=100, dt=0.1):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             self.step(dt)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         masses = [h.total_mass for h in self.history]
         return {
             "grid": f"{self.field.nx}x{self.field.ny}",

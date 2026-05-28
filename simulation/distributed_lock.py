@@ -12,13 +12,16 @@ from typing import Any
 
 @dataclass
 class Lease:
+    """``Lease`` 관련 기능을 제공한다."""
     key: str
     owner: str
     expires_at: float
 
 
 class DistributedLock:
+    """``DistributedLock`` 관련 기능을 제공한다."""
     def __init__(self, default_ttl_sec: float = 5.0) -> None:
+        """인스턴스를 초기화한다."""
         self.default_ttl_sec = max(0.1, float(default_ttl_sec))
         self._locks: dict[str, Lease] = {}
         self._acquired = 0
@@ -34,6 +37,7 @@ class DistributedLock:
             del self._locks[key]
 
     def acquire(self, key: str, owner: str, ttl_sec: float | None = None) -> bool:
+        """``acquire`` 동작을 수행한다."""
         self._cleanup()
         ttl = self.default_ttl_sec if ttl_sec is None else max(0.1, float(ttl_sec))
         lock = self._locks.get(key)
@@ -45,6 +49,7 @@ class DistributedLock:
         return True
 
     def release(self, key: str, owner: str) -> bool:
+        """``release`` 동작을 수행한다."""
         self._cleanup()
         lock = self._locks.get(key)
         if lock is None or lock.owner != owner:
@@ -53,6 +58,7 @@ class DistributedLock:
         return True
 
     def renew(self, key: str, owner: str, ttl_sec: float | None = None) -> bool:
+        """``renew`` 동작을 수행한다."""
         self._cleanup()
         lock = self._locks.get(key)
         if lock is None or lock.owner != owner:
@@ -62,11 +68,13 @@ class DistributedLock:
         return True
 
     def owner_of(self, key: str) -> str | None:
+        """``owner_of`` 동작을 수행한다."""
         self._cleanup()
         lock = self._locks.get(key)
         return None if lock is None else lock.owner
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         self._cleanup()
         return {
             "active_locks": len(self._locks),

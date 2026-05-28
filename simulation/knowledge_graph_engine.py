@@ -10,6 +10,7 @@ import numpy as np
 
 @dataclass
 class Entity:
+    """``Entity`` 관련 기능을 제공한다."""
     entity_id: str
     entity_type: str
     properties: dict[str, Any]
@@ -18,6 +19,7 @@ class Entity:
 
 @dataclass
 class Relation:
+    """``Relation`` 관련 기능을 제공한다."""
     source_id: str
     target_id: str
     relation_type: str
@@ -25,13 +27,16 @@ class Relation:
 
 
 class KnowledgeGraphEngine:
+    """``KnowledgeGraphEngine`` 역할을 담당한다."""
     def __init__(self, embedding_dim: int = 128):
+        """인스턴스를 초기화한다."""
         self.embedding_dim = embedding_dim
         self.entities: dict[str, Entity] = {}
         self.relations: list[Relation] = []
         self.adjacency: dict[str, set[str]] = {}
 
     def add_entity(self, entity_id: str, entity_type: str, properties: dict[str, Any]):
+        """`entity` 항목을 추가한다."""
         embeddings = np.random.randn(self.embedding_dim) * 0.1
         entity = Entity(entity_id, entity_type, properties, embeddings)
         self.entities[entity_id] = entity
@@ -40,6 +45,7 @@ class KnowledgeGraphEngine:
             self.adjacency[entity_id] = set()
 
     def add_relation(self, source_id: str, target_id: str, relation_type: str):
+        """`relation` 항목을 추가한다."""
         if source_id not in self.entities or target_id not in self.entities:
             return
 
@@ -49,6 +55,7 @@ class KnowledgeGraphEngine:
         self.adjacency[source_id].add(target_id)
 
     def query(self, entity_id: str, relation_type: str | None = None) -> list[str]:
+        """``query`` 동작을 수행한다."""
         if entity_id not in self.adjacency:
             return []
 
@@ -62,6 +69,7 @@ class KnowledgeGraphEngine:
     def find_path(
         self, source: str, target: str, max_depth: int = 3
     ) -> list[str] | None:
+        """``find_path`` 동작을 수행한다."""
         queue = [(source, [source])]
         visited = {source}
 
@@ -82,6 +90,7 @@ class KnowledgeGraphEngine:
         return None
 
     def compute_similarity(self, entity1_id: str, entity2_id: str) -> float:
+        """`similarity` 값을 계산한다."""
         if entity1_id not in self.entities or entity2_id not in self.entities:
             return 0.0
 
@@ -91,6 +100,7 @@ class KnowledgeGraphEngine:
         return float(np.dot(e1, e2) / (np.linalg.norm(e1) * np.linalg.norm(e2) + 1e-6))
 
     def get_subgraph(self, entity_id: str, depth: int = 2) -> dict[str, Any]:
+        """`subgraph` 정보를 조회한다."""
         subgraph_entities = {entity_id}
         queue = [(entity_id, 0)]
         visited = {entity_id}

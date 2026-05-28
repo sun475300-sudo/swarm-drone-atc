@@ -10,18 +10,23 @@ from typing import Any
 
 @dataclass(frozen=True)
 class PerfSample:
+    """``PerfSample`` 관련 기능을 제공한다."""
     duration_ms: float
     success: bool = True
 
 
 class PerfBenchmark:
+    """``PerfBenchmark`` 관련 기능을 제공한다."""
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._samples: list[PerfSample] = []
 
     def add_sample(self, duration_ms: float, success: bool = True) -> None:
+        """`sample` 항목을 추가한다."""
         self._samples.append(PerfSample(duration_ms=max(0.0, float(duration_ms)), success=bool(success)))
 
     def add_batch(self, durations_ms: list[float]) -> None:
+        """`batch` 항목을 추가한다."""
         for d in durations_ms:
             self.add_sample(d)
 
@@ -34,6 +39,7 @@ class PerfBenchmark:
         return sorted_values[idx]
 
     def report(self, window_sec: float = 60.0) -> dict[str, Any]:
+        """``report`` 동작을 수행한다."""
         durations = [s.duration_ms for s in self._samples]
         sorted_vals = sorted(durations)
         n = len(sorted_vals)
@@ -65,4 +71,5 @@ class PerfBenchmark:
         }
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._samples.clear()

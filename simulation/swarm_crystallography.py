@@ -11,13 +11,16 @@ import numpy as np
 
 @dataclass
 class LatticePoint:
+    """``LatticePoint`` 관련 기능을 제공한다."""
     index: tuple  # (h, k, l)
     position: np.ndarray
     occupied: bool = False
 
 
 class BravaisLattice:
+    """``BravaisLattice`` 관련 기능을 제공한다."""
     def __init__(self, lattice_type="cubic", a=10.0, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.a = a
         self.lattice_type = lattice_type
@@ -43,6 +46,7 @@ class BravaisLattice:
         return [np.array([a, 0, 0]), np.array([0, a, 0]), np.array([0, 0, a])]
 
     def assign_drones(self, n_drones: int) -> list[np.ndarray]:
+        """`drones` 항목을 추가한다."""
         available = [p for p in self.points if not p.occupied]
         self.rng.shuffle(available)
         positions = []
@@ -53,19 +57,23 @@ class BravaisLattice:
 
 
 class SwarmCrystallography:
+    """``SwarmCrystallography`` 관련 기능을 제공한다."""
     def __init__(self, n_drones=20, lattice_type="cubic", seed=42):
+        """인스턴스를 초기화한다."""
         self.lattice = BravaisLattice(lattice_type, 15.0, seed)
         self.n_drones = n_drones
         self.positions = self.lattice.assign_drones(n_drones)
         self.steps = 0
 
     def run(self, steps=50):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             for i, pos in enumerate(self.positions):
                 self.positions[i] = pos + np.random.normal(0, 0.1, 3)
             self.steps += 1
 
     def packing_density(self) -> float:
+        """``packing_density`` 동작을 수행한다."""
         if len(self.positions) < 2:
             return 0.0
         dists = []
@@ -75,6 +83,7 @@ class SwarmCrystallography:
         return float(np.std(dists) / (np.mean(dists) + 1e-6))
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": self.n_drones,
             "lattice": self.lattice.lattice_type,

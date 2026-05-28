@@ -42,6 +42,7 @@ class PriorityAdjuster:
     }
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._missions: dict[str, MissionContext] = {}
         self._history: list[dict[str, Any]] = []
 
@@ -49,6 +50,7 @@ class PriorityAdjuster:
         self, mission_id: str, base_priority: int = 5,
         payload_value: float = 1.0,
     ) -> None:
+        """`mission` 항목을 추가한다."""
         self._missions[mission_id] = MissionContext(
             mission_id=mission_id,
             base_priority=base_priority,
@@ -64,6 +66,7 @@ class PriorityAdjuster:
         is_emergency: bool | None = None,
         weather_risk: float | None = None,
     ) -> None:
+        """`context` 상태를 갱신한다."""
         m = self._missions.get(mission_id)
         if not m:
             return
@@ -79,6 +82,7 @@ class PriorityAdjuster:
             m.weather_risk = weather_risk
 
     def adjusted_priority(self, mission_id: str) -> int:
+        """``adjusted_priority`` 동작을 수행한다."""
         m = self._missions.get(mission_id)
         if not m:
             return 5
@@ -136,12 +140,15 @@ class PriorityAdjuster:
         return items
 
     def emergency_missions(self) -> list[str]:
+        """``emergency_missions`` 동작을 수행한다."""
         return [mid for mid, m in self._missions.items() if m.is_emergency]
 
     def adjustment_history(self, n: int = 20) -> list[dict[str, Any]]:
+        """``adjustment_history`` 동작을 수행한다."""
         return self._history[-n:]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "missions": len(self._missions),
             "adjustments": len(self._history),

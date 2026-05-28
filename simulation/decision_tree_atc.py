@@ -39,6 +39,7 @@ class DecisionTreeATC:
     """규칙 기반 관제."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._rules: list[Rule] = []
         self._decisions: list[Decision] = []
         self._default_action = "MONITOR"
@@ -47,6 +48,7 @@ class DecisionTreeATC:
         self, name: str, condition: Callable[[dict[str, Any]], bool],
         action: str = "MONITOR", priority: int = 5,
     ) -> None:
+        """`rule` 항목을 추가한다."""
         self._rules.append(Rule(
             name=name, condition=condition,
             action=action, priority=priority,
@@ -54,6 +56,7 @@ class DecisionTreeATC:
         self._rules.sort(key=lambda r: -r.priority)
 
     def remove_rule(self, name: str) -> bool:
+        """`rule` 상태를 정리한다."""
         before = len(self._rules)
         self._rules = [r for r in self._rules if r.name != name]
         return len(self._rules) < before
@@ -85,9 +88,11 @@ class DecisionTreeATC:
         return decision
 
     def batch_decide(self, contexts: list[dict[str, Any]]) -> list[Decision]:
+        """``batch_decide`` 동작을 수행한다."""
         return [self.decide(ctx) for ctx in contexts]
 
     def rule_stats(self) -> list[dict[str, Any]]:
+        """``rule_stats`` 동작을 수행한다."""
         return [
             {
                 "name": r.name, "action": r.action, "priority": r.priority,
@@ -98,13 +103,16 @@ class DecisionTreeATC:
         ]
 
     def most_used_rules(self, n: int = 5) -> list[str]:
+        """``most_used_rules`` 동작을 수행한다."""
         sorted_rules = sorted(self._rules, key=lambda r: -r.hit_count)
         return [r.name for r in sorted_rules[:n]]
 
     def recent_decisions(self, n: int = 20) -> list[Decision]:
+        """``recent_decisions`` 동작을 수행한다."""
         return self._decisions[-n:]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "rules": len(self._rules),
             "decisions": len(self._decisions),

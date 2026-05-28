@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class Gene:
+    """``Gene`` 관련 기능을 제공한다."""
     innovation: int
     src: int
     dst: int
@@ -20,6 +21,7 @@ class Gene:
 
 @dataclass
 class Genome:
+    """``Genome`` 관련 기능을 제공한다."""
     genome_id: int
     nodes: list[int] = field(default_factory=list)
     genes: list[Gene] = field(default_factory=list)
@@ -28,7 +30,9 @@ class Genome:
 
 
 class NEATEvolver:
+    """``NEATEvolver`` 관련 기능을 제공한다."""
     def __init__(self, pop_size=30, n_inputs=4, n_outputs=2, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.pop_size = pop_size
         self.n_inputs = n_inputs
@@ -50,12 +54,14 @@ class NEATEvolver:
         return pop
 
     def evaluate(self, genome: Genome) -> float:
+        """`대상` 결과를 계산하거나 판정한다."""
         score = sum(abs(g.weight) for g in genome.genes if g.enabled)
         score += len(genome.nodes) * 0.1
         noise = self.rng.normal(0, 0.5)
         return float(score + noise)
 
     def mutate(self, genome: Genome):
+        """``mutate`` 동작을 수행한다."""
         if self.rng.random() < 0.8:
             for g in genome.genes:
                 if self.rng.random() < 0.3:
@@ -72,6 +78,7 @@ class NEATEvolver:
                 genome.genes.append(Gene(self.innovation, new_node, genome.genes[old].dst, genome.genes[old].weight))
 
     def evolve_step(self):
+        """``evolve_step`` 동작을 수행한다."""
         for g in self.population:
             g.fitness = self.evaluate(g)
         self.population.sort(key=lambda g: g.fitness, reverse=True)
@@ -91,12 +98,15 @@ class NEATEvolver:
 
 
 class EvolutionaryArchitecture:
+    """``EvolutionaryArchitecture`` 관련 기능을 제공한다."""
     def __init__(self, pop_size=30, seed=42):
+        """인스턴스를 초기화한다."""
         self.evolver = NEATEvolver(pop_size, 4, 2, seed)
         self.steps = 0
         self.best_fitness_history: list[float] = []
 
     def run(self, generations=50):
+        """메인 실행 루프를 수행한다."""
         for _ in range(generations):
             self.evolver.evolve_step()
             best = max(g.fitness for g in self.evolver.population)
@@ -104,6 +114,7 @@ class EvolutionaryArchitecture:
             self.steps += 1
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "population": self.evolver.pop_size,
             "generations": self.steps,

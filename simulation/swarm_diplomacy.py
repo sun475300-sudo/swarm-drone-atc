@@ -10,6 +10,7 @@ import numpy as np
 
 
 class DiplomacyAction(Enum):
+    """``DiplomacyAction`` 관련 기능을 제공한다."""
     COOPERATE = "cooperate"
     DEFECT = "defect"
     NEGOTIATE = "negotiate"
@@ -18,6 +19,7 @@ class DiplomacyAction(Enum):
 
 
 class TreatyType(Enum):
+    """``TreatyType`` 관련 기능을 제공한다."""
     AIRSPACE_SHARING = "airspace_sharing"
     RESOURCE_EXCHANGE = "resource_exchange"
     NON_AGGRESSION = "non_aggression"
@@ -26,6 +28,7 @@ class TreatyType(Enum):
 
 
 class SwarmRelation(Enum):
+    """``SwarmRelation`` 관련 기능을 제공한다."""
     ALLIED = "allied"
     NEUTRAL = "neutral"
     RIVAL = "rival"
@@ -34,6 +37,7 @@ class SwarmRelation(Enum):
 
 @dataclass
 class SwarmFaction:
+    """``SwarmFaction`` 관련 기능을 제공한다."""
     faction_id: str
     name: str
     n_drones: int
@@ -45,6 +49,7 @@ class SwarmFaction:
 
 @dataclass
 class Treaty:
+    """``Treaty`` 관련 기능을 제공한다."""
     treaty_id: str
     treaty_type: TreatyType
     parties: list[str]
@@ -56,6 +61,7 @@ class Treaty:
 
 @dataclass
 class DiplomaticEvent:
+    """``DiplomaticEvent`` 데이터를 표현한다."""
     event_id: str
     factions: list[str]
     action: DiplomacyAction
@@ -68,10 +74,12 @@ class NashBargaining:
     """Nash bargaining solution for resource allocation."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
 
     def solve(self, utilities_a: np.ndarray, utilities_b: np.ndarray,
               disagreement: tuple[float, float] = (0, 0)) -> tuple[int, float, float]:
+        """``solve`` 동작을 수행한다."""
         da, db = disagreement
         products = (utilities_a - da) * (utilities_b - db)
         products[products < 0] = 0
@@ -83,9 +91,11 @@ class ReputationSystem:
     """Track and update faction reputations."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.history: dict[str, list[float]] = {}
 
     def update(self, faction_id: str, delta: float):
+        """`대상` 상태를 갱신한다."""
         if faction_id not in self.history:
             self.history[faction_id] = [0.5]
         current = self.history[faction_id][-1]
@@ -93,6 +103,7 @@ class ReputationSystem:
         self.history[faction_id].append(round(float(new_rep), 4))
 
     def get(self, faction_id: str) -> float:
+        """`대상` 정보를 조회한다."""
         if faction_id not in self.history:
             return 0.5
         return self.history[faction_id][-1]
@@ -102,6 +113,7 @@ class SwarmDiplomacy:
     """Multi-swarm diplomacy and negotiation system."""
 
     def __init__(self, n_factions: int = 5, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_factions = n_factions
         self.bargaining = NashBargaining(seed)
@@ -135,6 +147,7 @@ class SwarmDiplomacy:
 
     def negotiate(self, faction_a: str, faction_b: str,
                   treaty_type: TreatyType = TreatyType.AIRSPACE_SHARING) -> DiplomaticEvent:
+        """``negotiate`` 동작을 수행한다."""
         self._event_counter += 1
         fa = self.factions.get(faction_a)
         fb = self.factions.get(faction_b)
@@ -176,6 +189,7 @@ class SwarmDiplomacy:
         return event
 
     def resolve_dispute(self, faction_a: str, faction_b: str) -> dict:
+        """``resolve_dispute`` 동작을 수행한다."""
         fa = self.factions.get(faction_a)
         fb = self.factions.get(faction_b)
         if not fa or not fb:
@@ -195,6 +209,7 @@ class SwarmDiplomacy:
                     "winner": faction_b}
 
     def run_round(self) -> dict:
+        """``run_round`` 동작을 수행한다."""
         fids = list(self.factions.keys())
         negotiations = 0
         for _ in range(min(3, len(fids))):
@@ -208,6 +223,7 @@ class SwarmDiplomacy:
         }
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "factions": len(self.factions),
             "treaties": len(self.treaties),

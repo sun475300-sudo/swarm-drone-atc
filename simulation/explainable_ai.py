@@ -11,6 +11,7 @@ import numpy as np
 
 
 class ExplanationType(Enum):
+    """``ExplanationType`` 관련 기능을 제공한다."""
     FEATURE_IMPORTANCE = "feature_importance"
     LOCAL_SURROGATE = "local_surrogate"
     COUNTERFACTUAL = "counterfactual"
@@ -19,6 +20,7 @@ class ExplanationType(Enum):
 
 @dataclass
 class FeatureAttribution:
+    """``FeatureAttribution`` 관련 기능을 제공한다."""
     feature_name: str
     value: float
     attribution: float
@@ -27,6 +29,7 @@ class FeatureAttribution:
 
 @dataclass
 class Explanation:
+    """``Explanation`` 관련 기능을 제공한다."""
     explanation_type: ExplanationType
     decision: str
     confidence: float
@@ -37,6 +40,7 @@ class Explanation:
 
 @dataclass
 class DecisionRecord:
+    """``DecisionRecord`` 데이터를 표현한다."""
     drone_id: str
     timestamp: float
     decision: str
@@ -49,12 +53,14 @@ class SHAPExplainer:
     """Simplified SHAP-like feature attribution."""
 
     def __init__(self, model_fn: Callable, feature_names: list[str], seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.model_fn = model_fn
         self.feature_names = feature_names
         self.rng = np.random.default_rng(seed)
         self.n_samples = 100
 
     def explain(self, instance: np.ndarray) -> list[FeatureAttribution]:
+        """``explain`` 동작을 수행한다."""
         baseline = np.zeros_like(instance)
         base_pred = self.model_fn(baseline)
         attributions = []
@@ -91,12 +97,14 @@ class LIMEExplainer:
     """Local Interpretable Model-agnostic Explanations."""
 
     def __init__(self, model_fn: Callable, feature_names: list[str], seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.model_fn = model_fn
         self.feature_names = feature_names
         self.rng = np.random.default_rng(seed)
         self.n_neighbors = 200
 
     def explain(self, instance: np.ndarray, sigma: float = 0.5) -> list[FeatureAttribution]:
+        """``explain`` 동작을 수행한다."""
         neighbors = instance + self.rng.standard_normal((self.n_neighbors, len(instance))) * sigma
         predictions = np.array([self.model_fn(n) for n in neighbors])
         distances = np.linalg.norm(neighbors - instance, axis=1)
@@ -119,12 +127,14 @@ class CounterfactualExplainer:
     """Find minimal changes to flip a decision."""
 
     def __init__(self, model_fn: Callable, feature_names: list[str], seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.model_fn = model_fn
         self.feature_names = feature_names
         self.rng = np.random.default_rng(seed)
 
     def explain(self, instance: np.ndarray, target_class: float,
                 threshold: float = 0.5, max_iter: int = 500) -> dict | None:
+        """``explain`` 동작을 수행한다."""
         self.model_fn(instance)
         best = None
         best_dist = float('inf')
@@ -150,6 +160,7 @@ class ExplainableAI:
     """Unified XAI system for drone decision transparency."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.decision_log: list[DecisionRecord] = []
         self.explanations: list[Explanation] = []
@@ -157,6 +168,7 @@ class ExplainableAI:
     def explain_decision(self, model_fn: Callable, feature_names: list[str],
                          instance: np.ndarray, drone_id: str = "drone_0",
                          decision_name: str = "action") -> Explanation:
+        """``explain_decision`` 동작을 수행한다."""
         shap = SHAPExplainer(model_fn, feature_names, self.rng.integers(0, 10000))
         attributions = shap.explain(instance)
         prediction = model_fn(instance)
@@ -176,6 +188,7 @@ class ExplainableAI:
         return explanation
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "decisions_explained": len(self.decision_log),
             "explanation_types": list({e.explanation_type.value for e in self.explanations}),

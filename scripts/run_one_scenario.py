@@ -27,6 +27,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 def load_manifest(scenario_id: str) -> dict:
+    """`manifest` 정보를 조회한다."""
     manifest_path = REPO_ROOT / "benchmarks" / "scenarios" / scenario_id / "manifest.yaml"
     if not manifest_path.exists():
         raise FileNotFoundError(f"No manifest at {manifest_path}")
@@ -35,6 +36,7 @@ def load_manifest(scenario_id: str) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """``main`` 동작을 수행한다."""
     p = argparse.ArgumentParser(prog="run_one_scenario")
     p.add_argument("scenario", help="e.g. 01_corridor_crossing")
     p.add_argument("method", help="orca | vo | cbs | sdacs_hybrid")

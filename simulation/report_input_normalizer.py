@@ -23,6 +23,7 @@ def normalize_report_inputs(
     scenario_summary: Any | None = None,
     perf_window_sec: float | None = None,
 ) -> dict[str, dict[str, Any]]:
+    """``normalize_report_inputs`` 동작을 수행한다."""
     scenario = normalize_scenario(scenario_summary)
     delivery = normalize_delivery(delivery_summary)
     compliance = normalize_compliance(compliance_report)
@@ -41,6 +42,7 @@ def normalize_report_inputs(
 
 
 def normalize_meta(meta: dict[str, Any] | None, scenario: dict[str, Any] | None = None) -> dict[str, Any]:
+    """``normalize_meta`` 동작을 수행한다."""
     out = dict(meta or {})
     scenario = dict(scenario or {})
     if scenario:
@@ -56,6 +58,7 @@ def normalize_meta(meta: dict[str, Any] | None, scenario: dict[str, Any] | None 
 
 
 def normalize_scenario(value: Any) -> dict[str, Any]:
+    """``normalize_scenario`` 동작을 수행한다."""
     raw = _coerce_mapping(value)
     if not raw:
         return {}
@@ -83,6 +86,7 @@ def normalize_scenario(value: Any) -> dict[str, Any]:
 
 
 def normalize_delivery(value: Any) -> dict[str, Any]:
+    """``normalize_delivery`` 동작을 수행한다."""
     raw = _coerce_mapping(value)
     if not raw and hasattr(value, "summary"):
         raw = _coerce_mapping(value.summary())
@@ -111,6 +115,7 @@ def normalize_delivery(value: Any) -> dict[str, Any]:
 
 
 def normalize_compliance(value: Any) -> dict[str, Any]:
+    """``normalize_compliance`` 동작을 수행한다."""
     raw: dict[str, Any] = {}
     if hasattr(value, "violation_report"):
         raw.update(_coerce_mapping(value.violation_report()))
@@ -141,6 +146,7 @@ def normalize_compliance(value: Any) -> dict[str, Any]:
 
 
 def normalize_recorder(value: Any) -> dict[str, Any]:
+    """``normalize_recorder`` 동작을 수행한다."""
     if isinstance(value, list):
         by_type: dict[str, int] = {}
         duration = 0.0
@@ -168,6 +174,7 @@ def normalize_recorder(value: Any) -> dict[str, Any]:
 
 
 def normalize_performance(value: Any, window_sec: float | None = None) -> dict[str, Any]:
+    """``normalize_performance`` 동작을 수행한다."""
     raw = {}
     if hasattr(value, "report"):
         if window_sec is None:
@@ -196,6 +203,7 @@ def normalize_performance(value: Any, window_sec: float | None = None) -> dict[s
 
 
 def normalize_traffic(value: Any) -> dict[str, Any]:
+    """``normalize_traffic`` 동작을 수행한다."""
     raw = _coerce_mapping(value)
     if not raw and hasattr(value, "summary"):
         raw = _coerce_mapping(value.summary())

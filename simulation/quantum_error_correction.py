@@ -11,6 +11,7 @@ import numpy as np
 
 
 class ErrorType(Enum):
+    """``ErrorType`` 관련 기능을 제공한다."""
     NONE = "none"
     BIT_FLIP = "X"
     PHASE_FLIP = "Z"
@@ -19,6 +20,7 @@ class ErrorType(Enum):
 
 @dataclass
 class Qubit:
+    """``Qubit`` 관련 기능을 제공한다."""
     index: int
     state: complex = 1.0 + 0j
     error: ErrorType = ErrorType.NONE
@@ -26,6 +28,7 @@ class Qubit:
 
 @dataclass
 class Syndrome:
+    """``Syndrome`` 관련 기능을 제공한다."""
     stabilizer_id: int
     value: int  # 0 or 1
     qubits: list = field(default_factory=list)
@@ -33,6 +36,7 @@ class Syndrome:
 
 @dataclass
 class CorrectionResult:
+    """``CorrectionResult`` 데이터를 표현한다."""
     errors_injected: int
     errors_detected: int
     errors_corrected: int
@@ -43,6 +47,7 @@ class SurfaceCode:
     """표면 코드: d×d 격자."""
 
     def __init__(self, distance=3, seed=42):
+        """인스턴스를 초기화한다."""
         self.d = distance
         self.rng = np.random.default_rng(seed)
         n_data = distance * distance
@@ -65,6 +70,7 @@ class SurfaceCode:
                 self.z_stabilizers.append(qubits)
 
     def inject_errors(self, error_rate=0.1) -> int:
+        """``inject_errors`` 동작을 수행한다."""
         count = 0
         for q in self.data_qubits:
             if self.rng.random() < error_rate:
@@ -79,6 +85,7 @@ class SurfaceCode:
         return count
 
     def measure_syndrome(self) -> list[Syndrome]:
+        """``measure_syndrome`` 동작을 수행한다."""
         syndromes = []
         for i, stab in enumerate(self.x_stabilizers):
             parity = 0
@@ -110,6 +117,7 @@ class SurfaceCode:
         return corrected
 
     def reset(self):
+        """`대상` 상태를 정리한다."""
         for q in self.data_qubits:
             q.error = ErrorType.NONE
 
@@ -118,11 +126,13 @@ class QuantumErrorCorrection:
     """양자 오류 정정 시뮬레이션."""
 
     def __init__(self, distance=3, seed=42):
+        """인스턴스를 초기화한다."""
         self.code = SurfaceCode(distance, seed)
         self.rng = np.random.default_rng(seed)
         self.results: list[CorrectionResult] = []
 
     def run_cycle(self, error_rate=0.1) -> CorrectionResult:
+        """``run_cycle`` 동작을 수행한다."""
         self.code.reset()
         injected = self.code.inject_errors(error_rate)
         syndromes = self.code.measure_syndrome()
@@ -134,10 +144,12 @@ class QuantumErrorCorrection:
         return result
 
     def run(self, cycles=50, error_rate=0.1):
+        """메인 실행 루프를 수행한다."""
         for _ in range(cycles):
             self.run_cycle(error_rate)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         n = len(self.results)
         logical_errors = sum(1 for r in self.results if r.logical_error)
         return {

@@ -13,6 +13,7 @@ import numpy as np
 
 
 class ControlMode(Enum):
+    """``ControlMode`` 관련 기능을 제공한다."""
     PID = "pid"
     MRAC = "mrac"
     FUZZY = "fuzzy"
@@ -21,6 +22,7 @@ class ControlMode(Enum):
 
 @dataclass
 class PIDGains:
+    """``PIDGains`` 관련 기능을 제공한다."""
     kp: float = 1.0
     ki: float = 0.1
     kd: float = 0.05
@@ -29,6 +31,7 @@ class PIDGains:
 
 @dataclass
 class ControlState:
+    """``ControlState`` 데이터를 표현한다."""
     drone_id: str
     mode: ControlMode = ControlMode.PID
     gains: PIDGains = field(default_factory=PIDGains)
@@ -44,6 +47,7 @@ class PIDController:
 
     @staticmethod
     def compute(state: ControlState, current: np.ndarray, target: np.ndarray, dt: float = 0.1) -> np.ndarray:
+        """`대상` 값을 계산한다."""
         error = target - current
         state.error_integral += error * dt
         # Anti-windup
@@ -62,6 +66,7 @@ class MRACController:
 
     @staticmethod
     def compute(state: ControlState, current: np.ndarray, target: np.ndarray, model_output: np.ndarray, dt: float = 0.1) -> np.ndarray:
+        """`대상` 값을 계산한다."""
         tracking_error = model_output - current
         # Adaptation law (MIT rule)
         state.gains.kp += state.adaptation_rate * np.dot(tracking_error, target - current) * dt
@@ -73,14 +78,17 @@ class AutoTuner:
     """PID 자동 튜닝 (Ziegler-Nichols 방법)."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self._oscillation_history: dict[str, list[float]] = {}
 
     def record_response(self, drone_id: str, error: float):
+        """`response` 정보를 기록한다."""
         if drone_id not in self._oscillation_history:
             self._oscillation_history[drone_id] = []
         self._oscillation_history[drone_id].append(error)
 
     def compute_gains(self, drone_id: str, dt: float = 0.1) -> PIDGains | None:
+        """`gains` 값을 계산한다."""
         history = self._oscillation_history.get(drone_id, [])
         if len(history) < 20:
             return None
@@ -108,6 +116,7 @@ class AdaptiveControlSystem:
     """
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._states: dict[str, ControlState] = {}
         self._tuner = AutoTuner()
@@ -115,11 +124,13 @@ class AdaptiveControlSystem:
         self._wind_compensation: dict[str, np.ndarray] = {}
 
     def register_drone(self, drone_id: str, mode: ControlMode = ControlMode.PID, gains: PIDGains | None = None) -> ControlState:
+        """`drone` 항목을 추가한다."""
         state = ControlState(drone_id=drone_id, mode=mode, gains=gains or PIDGains())
         self._states[drone_id] = state
         return state
 
     def compute_control(self, drone_id: str, current_pos: np.ndarray, target_pos: np.ndarray, dt: float = 0.1) -> np.ndarray:
+        """`control` 값을 계산한다."""
         state = self._states.get(drone_id)
         if not state:
             return np.zeros(3)
@@ -137,9 +148,11 @@ class AdaptiveControlSystem:
         return output
 
     def set_wind_compensation(self, drone_id: str, wind_vector: np.ndarray):
+        """`wind compensation` 상태를 갱신한다."""
         self._wind_compensation[drone_id] = wind_vector * 0.3  # 30% feed-forward
 
     def auto_tune(self, drone_id: str, dt: float = 0.1) -> PIDGains | None:
+        """``auto_tune`` 동작을 수행한다."""
         gains = self._tuner.compute_gains(drone_id, dt)
         if gains:
             state = self._states.get(drone_id)
@@ -149,20 +162,24 @@ class AdaptiveControlSystem:
         return gains
 
     def set_mode(self, drone_id: str, mode: ControlMode):
+        """`mode` 상태를 갱신한다."""
         state = self._states.get(drone_id)
         if state:
             state.mode = mode
 
     def get_state(self, drone_id: str) -> ControlState | None:
+        """`state` 정보를 조회한다."""
         return self._states.get(drone_id)
 
     def get_tracking_error(self, drone_id: str) -> float:
+        """`tracking error` 정보를 조회한다."""
         state = self._states.get(drone_id)
         if not state:
             return 0.0
         return float(np.linalg.norm(state.error_prev))
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         modes = {}
         avg_error = 0.0
         for s in self._states.values():

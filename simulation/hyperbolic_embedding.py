@@ -10,6 +10,7 @@ import numpy as np
 
 
 def poincare_distance(u: np.ndarray, v: np.ndarray) -> float:
+    """``poincare_distance`` 동작을 수행한다."""
     diff = np.linalg.norm(u - v) ** 2
     nu = 1 - np.linalg.norm(u) ** 2
     nv = 1 - np.linalg.norm(v) ** 2
@@ -18,6 +19,7 @@ def poincare_distance(u: np.ndarray, v: np.ndarray) -> float:
 
 @dataclass
 class HyperbolicNode:
+    """``HyperbolicNode`` 관련 기능을 제공한다."""
     node_id: int
     embedding: np.ndarray  # 2D Poincare disk
     depth: int = 0
@@ -25,7 +27,9 @@ class HyperbolicNode:
 
 
 class PoincareEmbedding:
+    """``PoincareEmbedding`` 관련 기능을 제공한다."""
     def __init__(self, n_nodes=20, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n = n_nodes
         self.nodes: list[HyperbolicNode] = []
@@ -42,21 +46,26 @@ class PoincareEmbedding:
             self.nodes.append(HyperbolicNode(i, emb, depth, parent))
 
     def distance(self, i: int, j: int) -> float:
+        """``distance`` 동작을 수행한다."""
         return poincare_distance(self.nodes[i].embedding, self.nodes[j].embedding)
 
     def nearest_neighbors(self, node_id: int, k=3) -> list[int]:
+        """``nearest_neighbors`` 동작을 수행한다."""
         dists = [(j, self.distance(node_id, j)) for j in range(self.n) if j != node_id]
         dists.sort(key=lambda x: x[1])
         return [d[0] for d in dists[:k]]
 
 
 class HyperbolicEmbedding:
+    """``HyperbolicEmbedding`` 관련 기능을 제공한다."""
     def __init__(self, n_nodes=20, seed=42):
+        """인스턴스를 초기화한다."""
         self.embedding = PoincareEmbedding(n_nodes, seed)
         self.n = n_nodes
         self.steps = 0
 
     def run(self, steps=50):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             for node in self.embedding.nodes:
                 neighbors = self.embedding.nearest_neighbors(node.node_id, 3)
@@ -65,6 +74,7 @@ class HyperbolicEmbedding:
             self.steps += 1
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         depths = [n.depth for n in self.embedding.nodes]
         dists = []
         for i in range(self.n):

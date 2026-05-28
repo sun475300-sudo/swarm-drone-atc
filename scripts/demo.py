@@ -121,6 +121,7 @@ def demo_profiles() -> None:
 
 
 def main() -> None:
+    """``main`` 동작을 수행한다."""
     parser = argparse.ArgumentParser(description="SDACS Demo Script")
     parser.add_argument("--quick", action="store_true", help="Quick demo (30s)")
     parser.add_argument("--scenario", action="store_true", help="Run all scenarios")

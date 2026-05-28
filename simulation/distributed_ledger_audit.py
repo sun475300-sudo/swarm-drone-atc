@@ -12,6 +12,7 @@ import numpy as np
 
 
 class AuditEventType(Enum):
+    """``AuditEventType`` 관련 기능을 제공한다."""
     FLIGHT_LOG = "flight_log"
     MAINTENANCE = "maintenance"
     CERT_ISSUE = "cert_issue"
@@ -21,6 +22,7 @@ class AuditEventType(Enum):
 
 @dataclass
 class AuditEntry:
+    """``AuditEntry`` 데이터를 표현한다."""
     entry_id: str
     event_type: AuditEventType
     drone_id: str
@@ -32,6 +34,7 @@ class AuditEntry:
 
 @dataclass
 class MerkleNode:
+    """``MerkleNode`` 관련 기능을 제공한다."""
     hash: str
     left: 'MerkleNode | None' = None
     right: 'MerkleNode | None' = None
@@ -39,6 +42,7 @@ class MerkleNode:
 
 
 def sha256(data: str) -> str:
+    """``sha256`` 동작을 수행한다."""
     return hashlib.sha256(data.encode()).hexdigest()
 
 
@@ -46,10 +50,12 @@ class MerkleTree:
     """Merkle 트리: 감사 로그 무결성 검증."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.root: MerkleNode | None = None
         self.leaves: list[MerkleNode] = []
 
     def build(self, entries: list[str]):
+        """`대상` 결과를 생성한다."""
         self.leaves = [MerkleNode(sha256(e), data=e) for e in entries]
         if not self.leaves:
             self.root = None
@@ -67,6 +73,7 @@ class MerkleTree:
         self.root = nodes[0]
 
     def root_hash(self) -> str:
+        """``root_hash`` 동작을 수행한다."""
         return self.root.hash if self.root else ""
 
     def verify_leaf(self, index: int) -> bool:
@@ -103,10 +110,12 @@ class AuditChain:
     """해시 체인 기반 감사 로그."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.entries: list[AuditEntry] = []
         self.prev_hash = "0" * 64
 
     def append(self, event_type: AuditEventType, drone_id: str, timestamp: float, data: str):
+        """`대상` 항목을 추가한다."""
         entry_id = f"AE-{len(self.entries):06d}"
         content = f"{entry_id}:{event_type.value}:{drone_id}:{timestamp}:{data}:{self.prev_hash}"
         h = sha256(content)
@@ -135,6 +144,7 @@ class DistributedLedgerAudit:
     """분산 감사 시스템 총괄."""
 
     def __init__(self, n_drones=20, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.chain = AuditChain()
         self.tree = MerkleTree()
@@ -142,6 +152,7 @@ class DistributedLedgerAudit:
         self.tamper_detected = 0
 
     def generate_logs(self, n_events=100):
+        """`logs` 결과를 생성한다."""
         event_types = list(AuditEventType)
         for i in range(n_events):
             etype = event_types[int(self.rng.integers(0, len(event_types)))]
@@ -151,10 +162,12 @@ class DistributedLedgerAudit:
             self.chain.append(etype, drone, ts, data)
 
     def build_merkle(self):
+        """`merkle` 결과를 생성한다."""
         entries_data = [f"{e.entry_id}:{e.data}" for e in self.chain.entries]
         self.tree.build(entries_data)
 
     def verify_all(self) -> dict:
+        """`all` 결과를 계산하거나 판정한다."""
         chain_valid, tamper_idx = self.chain.verify_chain()
         self.build_merkle()
         merkle_root = self.tree.root_hash()
@@ -168,6 +181,7 @@ class DistributedLedgerAudit:
         }
 
     def simulate_tamper(self, index=5):
+        """``simulate_tamper`` 동작을 수행한다."""
         self.chain.tamper(index, "TAMPERED_DATA")
         valid, idx = self.chain.verify_chain()
         if not valid:
@@ -175,6 +189,7 @@ class DistributedLedgerAudit:
         return {"detected": not valid, "at_index": idx}
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         v = self.verify_all()
         return {
             "total_entries": len(self.chain.entries),

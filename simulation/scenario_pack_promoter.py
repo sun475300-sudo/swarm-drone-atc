@@ -19,6 +19,7 @@ class ScenarioPackPromoter:
         collision_count: int = 0,
         resolution_rate_pct: float = 100.0,
     ) -> dict:
+        """``promote`` 동작을 수행한다."""
         validated = resolution_rate_pct >= 95.0
         return {
             "scenario": scenario_name,
@@ -32,4 +33,5 @@ class ScenarioPackPromoter:
         }
 
     def promote_batch(self, runs: list[dict]) -> list[dict]:
+        """``promote_batch`` 동작을 수행한다."""
         return [self.promote(**run) for run in runs]

@@ -18,14 +18,17 @@ import numpy as np
 
 @dataclass
 class Individual:
+    """``Individual`` 관련 기능을 제공한다."""
     waypoints: list[tuple[float, float, float]]
     fitness: float = 0.0
 
 
 class GeneticPathPlanner:
+    """``GeneticPathPlanner`` 역할을 담당한다."""
     def __init__(self, pop_size: int = 50, n_waypoints: int = 5,
                  mutation_rate: float = 0.1, crossover_rate: float = 0.7,
                  seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(seed)
         self.pop_size = pop_size
         self.n_waypoints = n_waypoints
@@ -37,6 +40,7 @@ class GeneticPathPlanner:
 
     def set_environment(self, obstacles: list | None = None,
                         nfz: list | None = None) -> None:
+        """`environment` 상태를 갱신한다."""
         self._obstacles = obstacles or []
         self._nfz = nfz or []
 
@@ -115,6 +119,7 @@ class GeneticPathPlanner:
                  goal: tuple[float, float, float],
                  generations: int = 100) -> dict[str, Any]:
         # 초기 집단 생성
+        """``optimize`` 동작을 수행한다."""
         population = [Individual(waypoints=self._random_path(start, goal))
                       for _ in range(self.pop_size)]
 
@@ -150,6 +155,7 @@ class GeneticPathPlanner:
         }
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "plans_generated": self._plans,
             "pop_size": self.pop_size,

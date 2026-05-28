@@ -8,7 +8,9 @@ import numpy as np
 
 
 class TopologyManager:
+    """``TopologyManager`` 역할을 담당한다."""
     def __init__(self, n_agents=15, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n = n_agents
         self.adj = np.zeros((n_agents, n_agents))
@@ -22,6 +24,7 @@ class TopologyManager:
             self.adj[j, i] = 1
 
     def algebraic_connectivity(self) -> float:
+        """``algebraic_connectivity`` 동작을 수행한다."""
         D = np.diag(self.adj.sum(axis=1))
         L = D - self.adj
         eigvals = np.linalg.eigvalsh(L)
@@ -29,6 +32,7 @@ class TopologyManager:
         return float(sorted_eig[1]) if len(sorted_eig) > 1 else 0.0
 
     def rewire_step(self, p_rewire=0.1):
+        """``rewire_step`` 동작을 수행한다."""
         for i in range(self.n):
             for j in range(i + 1, self.n):
                 if self.adj[i, j] == 1 and self.rng.random() < p_rewire:
@@ -42,6 +46,7 @@ class TopologyManager:
                     self.rewire_count += 1
 
     def add_shortcut(self):
+        """`shortcut` 항목을 추가한다."""
         i, j = self.rng.integers(0, self.n, 2)
         while i == j or self.adj[i, j] == 1:
             i, j = self.rng.integers(0, self.n, 2)
@@ -50,12 +55,15 @@ class TopologyManager:
 
 
 class SwarmTopologyControl:
+    """``SwarmTopologyControl`` 관련 기능을 제공한다."""
     def __init__(self, n_agents=15, seed=42):
+        """인스턴스를 초기화한다."""
         self.manager = TopologyManager(n_agents, seed)
         self.steps = 0
         self.connectivity_history: list[float] = []
 
     def run(self, steps=50):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             self.manager.rewire_step()
             if self.steps % 10 == 0:
@@ -64,6 +72,7 @@ class SwarmTopologyControl:
             self.steps += 1
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "agents": self.manager.n,
             "steps": self.steps,

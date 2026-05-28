@@ -10,12 +10,14 @@ import numpy as np
 
 
 class OrbitType(Enum):
+    """``OrbitType`` 관련 기능을 제공한다."""
     LEO = "leo"      # 160-2000 km
     MEO = "meo"      # 2000-35786 km
     GEO = "geo"      # 35786 km
 
 
 class LinkStatus(Enum):
+    """``LinkStatus`` 관련 기능을 제공한다."""
     CONNECTED = "connected"
     HANDOVER = "handover"
     DISCONNECTED = "disconnected"
@@ -24,6 +26,7 @@ class LinkStatus(Enum):
 
 @dataclass
 class Satellite:
+    """``Satellite`` 관련 기능을 제공한다."""
     sat_id: str
     orbit: OrbitType
     position: np.ndarray  # ECI coordinates
@@ -35,6 +38,7 @@ class Satellite:
 
 @dataclass
 class RelayLink:
+    """``RelayLink`` 관련 기능을 제공한다."""
     link_id: str
     drone_id: str
     sat_id: str
@@ -49,12 +53,14 @@ class OrbitalMechanics:
     """Simplified orbital propagation."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.earth_radius_km = 6371
         self.mu = 398600.4418  # km³/s²
 
     def create_constellation(self, n_sats: int = 12, altitude_km: float = 550,
                               orbit: OrbitType = OrbitType.LEO) -> list[Satellite]:
+        """`constellation` 결과를 생성한다."""
         sats = []
         r = self.earth_radius_km + altitude_km
         v_circ = np.sqrt(self.mu / r)
@@ -71,6 +77,7 @@ class OrbitalMechanics:
         return sats
 
     def propagate(self, sat: Satellite, dt_s: float) -> Satellite:
+        """``propagate`` 동작을 수행한다."""
         sat.position = sat.position + sat.velocity * dt_s / 1000
         r = np.linalg.norm(sat.position)
         if r > 0:
@@ -82,11 +89,13 @@ class HandoverManager:
     """Manage satellite handovers for continuous connectivity."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.handover_log: list[dict] = []
 
     def select_best(self, drone_pos_km: np.ndarray,
                     satellites: list[Satellite]) -> Satellite | None:
+        """`best` 동작을 수행한다."""
         best = None
         best_score = -1
         for sat in satellites:
@@ -103,6 +112,7 @@ class HandoverManager:
         return best
 
     def execute_handover(self, link: RelayLink, new_sat: Satellite) -> RelayLink:
+        """``execute_handover`` 동작을 수행한다."""
         link.sat_id = new_sat.sat_id
         link.status = LinkStatus.HANDOVER
         link.latency_ms = new_sat.latency_ms + self.rng.uniform(5, 20)
@@ -118,6 +128,7 @@ class SatelliteRelay:
     """Satellite relay communication system for drone swarms."""
 
     def __init__(self, n_drones: int = 10, n_sats: int = 12, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.orbital = OrbitalMechanics(seed)
@@ -140,6 +151,7 @@ class SatelliteRelay:
                     round(snr, 1), best.latency_ms, round(best.bandwidth_mbps * snr / 30, 1))
 
     def step(self, dt_s: float = 10) -> dict:
+        """`대상` 실행 상태를 제어한다."""
         self.time += dt_s
         for sat in self.satellites:
             self.orbital.propagate(sat, dt_s)
@@ -160,6 +172,7 @@ class SatelliteRelay:
                 "connected": sum(1 for l in self.links.values() if l.status == LinkStatus.CONNECTED)}
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": self.n_drones,
             "satellites": len(self.satellites),

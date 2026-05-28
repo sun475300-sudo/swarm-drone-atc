@@ -115,6 +115,7 @@ class DroneAgent:
         sim: SwarmSimulator,
         dt: float,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.env = env
         self.drone = drone
         self.sim = sim
@@ -144,6 +145,7 @@ class DroneAgent:
             drone.current_waypoint_idx = 0
 
     def run(self):
+        """메인 실행 루프를 수행한다."""
         drone = self.drone
         sim = self.sim
         dt = self.dt

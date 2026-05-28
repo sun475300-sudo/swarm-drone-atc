@@ -57,6 +57,7 @@ class ThreatAssessmentEngine:
     """
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._history: list[list[Threat]] = []
 
     def assess(
@@ -264,7 +265,9 @@ class ThreatAssessmentEngine:
         return max(t.level for t in latest)
 
     def history_len(self) -> int:
+        """``history_len`` 동작을 수행한다."""
         return len(self._history)
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._history.clear()

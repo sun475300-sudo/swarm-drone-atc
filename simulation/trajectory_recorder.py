@@ -19,6 +19,7 @@ class TrajectoryRecorder:
     """
 
     def __init__(self, max_snapshots: int = 1000) -> None:
+        """인스턴스를 초기화한다."""
         self._max = max_snapshots
         # drone_id → deque[(t, (x, y, z))]
         self._data: dict[str, deque[tuple[float, tuple[float, ...]]]] = defaultdict(

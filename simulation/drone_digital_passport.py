@@ -11,6 +11,7 @@ import numpy as np
 
 
 class CertificateType(Enum):
+    """``CertificateType`` 관련 기능을 제공한다."""
     AIRWORTHINESS = "airworthiness"
     OPERATOR_LICENSE = "operator_license"
     TYPE_CERTIFICATE = "type_certificate"
@@ -19,6 +20,7 @@ class CertificateType(Enum):
 
 
 class PassportStatus(Enum):
+    """``PassportStatus`` 관련 기능을 제공한다."""
     VALID = "valid"
     SUSPENDED = "suspended"
     REVOKED = "revoked"
@@ -28,6 +30,7 @@ class PassportStatus(Enum):
 
 @dataclass
 class Certificate:
+    """``Certificate`` 관련 기능을 제공한다."""
     cert_id: str
     cert_type: CertificateType
     issuer: str
@@ -40,6 +43,7 @@ class Certificate:
 
 @dataclass
 class FlightEntry:
+    """``FlightEntry`` 데이터를 표현한다."""
     flight_id: str
     departure: str
     destination: str
@@ -51,6 +55,7 @@ class FlightEntry:
 
 @dataclass
 class DigitalPassport:
+    """``DigitalPassport`` 관련 기능을 제공한다."""
     passport_id: str
     drone_id: str
     manufacturer: str
@@ -67,6 +72,7 @@ class CertificateAuthority:
     """Issue and verify drone certificates."""
 
     def __init__(self, ca_name: str = "SDACS-CA", seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.ca_name = ca_name
         self.issued: list[Certificate] = []
@@ -75,6 +81,7 @@ class CertificateAuthority:
 
     def issue(self, cert_type: CertificateType, subject: str,
               validity_days: float = 365) -> Certificate:
+        """``issue`` 동작을 수행한다."""
         self._counter += 1
         now = self._counter * 86400.0
         sig = hashlib.sha256(f"{self.ca_name}:{subject}:{self._counter}".encode()).hexdigest()[:24]
@@ -85,12 +92,14 @@ class CertificateAuthority:
         return cert
 
     def revoke(self, cert_id: str):
+        """`대상` 상태를 정리한다."""
         self.revoked.add(cert_id)
         for c in self.issued:
             if c.cert_id == cert_id:
                 c.revoked = True
 
     def verify(self, cert: Certificate, current_time: float = None) -> bool:
+        """`대상` 결과를 계산하거나 판정한다."""
         if cert.cert_id in self.revoked:
             return False
         if cert.revoked:
@@ -103,6 +112,7 @@ class DroneDigitalPassport:
     """Comprehensive drone identity and history management."""
 
     def __init__(self, n_drones: int = 20, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.ca = CertificateAuthority(seed=seed)
@@ -132,6 +142,7 @@ class DroneDigitalPassport:
     def record_flight(self, drone_id: str, departure: str = "A",
                       destination: str = "B", duration_s: float = 600,
                       distance_km: float = 5.0) -> FlightEntry | None:
+        """`flight` 정보를 기록한다."""
         pp = self.passports.get(drone_id)
         if not pp or pp.status != PassportStatus.VALID:
             return None
@@ -146,11 +157,13 @@ class DroneDigitalPassport:
         return entry
 
     def suspend(self, drone_id: str, reason: str = "violation"):
+        """``suspend`` 동작을 수행한다."""
         pp = self.passports.get(drone_id)
         if pp:
             pp.status = PassportStatus.SUSPENDED
 
     def validate(self, drone_id: str) -> dict:
+        """`대상` 결과를 계산하거나 판정한다."""
         pp = self.passports.get(drone_id)
         if not pp:
             return {"valid": False, "reason": "no passport"}
@@ -165,6 +178,7 @@ class DroneDigitalPassport:
         }
 
     def audit(self) -> dict:
+        """``audit`` 동작을 수행한다."""
         valid = sum(1 for p in self.passports.values() if p.status == PassportStatus.VALID)
         maint = sum(1 for p in self.passports.values() if p.maintenance_due)
         return {
@@ -177,4 +191,5 @@ class DroneDigitalPassport:
         }
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return self.audit()

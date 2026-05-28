@@ -10,6 +10,7 @@ import numpy as np
 
 
 class ConsensusAlgorithm(Enum):
+    """``ConsensusAlgorithm`` 관련 기능을 제공한다."""
     MAJORITY = "majority"
     WEIGHTED = "weighted"
     BYZANTINE = "byzantine"
@@ -17,6 +18,7 @@ class ConsensusAlgorithm(Enum):
 
 
 class KnowledgeType(Enum):
+    """``KnowledgeType`` 관련 기능을 제공한다."""
     OBSTACLE = "obstacle"
     TARGET = "target"
     WEATHER = "weather"
@@ -26,6 +28,7 @@ class KnowledgeType(Enum):
 
 @dataclass
 class KnowledgeItem:
+    """``KnowledgeItem`` 관련 기능을 제공한다."""
     item_id: str
     ktype: KnowledgeType
     position: np.ndarray
@@ -37,13 +40,16 @@ class KnowledgeItem:
 
 @dataclass
 class SwarmBelief:
+    """``SwarmBelief`` 관련 기능을 제공한다."""
     items: dict[str, KnowledgeItem] = field(default_factory=dict)
     consensus_count: int = 0
     conflict_count: int = 0
 
 
 class InformationNetwork:
+    """``InformationNetwork`` 관련 기능을 제공한다."""
     def __init__(self, n_drones: int, comm_range: float = 100.0, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.comm_range = comm_range
@@ -62,6 +68,7 @@ class InformationNetwork:
                     self.adjacency[j].add(i)
 
     def propagate(self, source: int, item: KnowledgeItem, max_hops: int = 3) -> list[int]:
+        """``propagate`` 동작을 수행한다."""
         reached = {source}
         frontier = {source}
         for _ in range(max_hops):
@@ -78,6 +85,7 @@ class InformationNetwork:
         return list(reached)
 
     def connectivity(self) -> float:
+        """``connectivity`` 동작을 수행한다."""
         if self.n_drones <= 1:
             return 1.0
         visited = set()
@@ -93,8 +101,10 @@ class InformationNetwork:
 
 
 class ConsensusEngine:
+    """``ConsensusEngine`` 역할을 담당한다."""
     def __init__(self, n_drones: int, algorithm: ConsensusAlgorithm = ConsensusAlgorithm.WEIGHTED,
                  seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.algorithm = algorithm
@@ -102,6 +112,7 @@ class ConsensusEngine:
         self.rounds = 0
 
     def vote(self, proposals: dict[int, float]) -> tuple[float, float]:
+        """``vote`` 동작을 수행한다."""
         self.rounds += 1
         if not proposals:
             return 0.0, 0.0
@@ -124,7 +135,9 @@ class ConsensusEngine:
 
 
 class CollectiveIntelligence:
+    """``CollectiveIntelligence`` 관련 기능을 제공한다."""
     def __init__(self, n_drones: int = 30, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.network = InformationNetwork(n_drones, seed=seed)
@@ -134,6 +147,7 @@ class CollectiveIntelligence:
         self._item_counter = 0
 
     def discover(self, drone_id: int, ktype: KnowledgeType, position: np.ndarray) -> KnowledgeItem:
+        """``discover`` 동작을 수행한다."""
         self._item_counter += 1
         item = KnowledgeItem(f"K-{self._item_counter:05d}", ktype, position,
                             self.rng.uniform(0.5, 1.0), drone_id, self.time)
@@ -142,6 +156,7 @@ class CollectiveIntelligence:
         return item
 
     def reach_consensus(self, topic: str) -> dict:
+        """``reach_consensus`` 동작을 수행한다."""
         proposals = {i: self.rng.standard_normal() + hash(topic) % 10
                     for i in range(self.n_drones) if self.rng.random() > 0.2}
         result, agreement = self.consensus.vote(proposals)
@@ -152,6 +167,7 @@ class CollectiveIntelligence:
         return {"topic": topic, "result": result, "agreement": agreement, "voters": len(proposals)}
 
     def step(self, dt: float = 0.1) -> dict:
+        """`대상` 실행 상태를 제어한다."""
         self.time += dt
         self.network.positions += self.rng.standard_normal((self.n_drones, 3)) * 2
         self.network._update_topology()
@@ -164,9 +180,11 @@ class CollectiveIntelligence:
                 "connectivity": round(self.network.connectivity(), 4)}
 
     def run(self, duration: float = 10, dt: float = 0.1) -> list[dict]:
+        """메인 실행 루프를 수행한다."""
         return [self.step(dt) for _ in range(int(duration / dt))]
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {"drones": self.n_drones, "knowledge_items": len(self.belief.items),
                 "consensus_count": self.belief.consensus_count,
                 "conflict_count": self.belief.conflict_count,

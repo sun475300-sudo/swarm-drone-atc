@@ -69,6 +69,7 @@ class CsiAttentionFusion:
         optimal_baseline_m: float = 150.0,
         recency_decay_s: float = 5.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.temperature = temperature
         self.optimal_baseline_m = optimal_baseline_m
         self.recency_decay_s = recency_decay_s
@@ -176,6 +177,7 @@ class CsiAttentionFusion:
         )
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "temperature": self.temperature,
             "optimal_baseline_m": self.optimal_baseline_m,

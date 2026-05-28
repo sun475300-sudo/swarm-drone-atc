@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class DroneAgent:
+    """``DroneAgent`` 역할을 담당한다."""
     agent_id: int
     trust_scores: dict = field(default_factory=dict)  # {peer_id: score}
     reputation: float = 0.5
@@ -22,18 +23,21 @@ class TrustGraph:
     """신뢰 그래프."""
 
     def __init__(self, n_nodes: int, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n = n_nodes
         self.adjacency = np.zeros((n_nodes, n_nodes))
         self.trust = np.ones((n_nodes, n_nodes)) * 0.5
 
     def connect(self, i: int, j: int, trust_val: float = 0.5):
+        """``connect`` 동작을 수행한다."""
         self.adjacency[i, j] = 1
         self.adjacency[j, i] = 1
         self.trust[i, j] = trust_val
         self.trust[j, i] = trust_val
 
     def random_connect(self, p=0.3):
+        """``random_connect`` 동작을 수행한다."""
         for i in range(self.n):
             for j in range(i + 1, self.n):
                 if self.rng.random() < p:
@@ -41,6 +45,7 @@ class TrustGraph:
                     self.connect(i, j, trust)
 
     def propagate_trust(self, iterations=10, decay=0.8):
+        """``propagate_trust`` 동작을 수행한다."""
         for _ in range(iterations):
             new_trust = self.trust.copy()
             for i in range(self.n):
@@ -60,6 +65,7 @@ class TrustGraph:
             self.trust = new_trust
 
     def pagerank(self, damping=0.85, iterations=20) -> np.ndarray:
+        """``pagerank`` 동작을 수행한다."""
         n = self.n
         rank = np.ones(n) / n
         degree = self.adjacency.sum(axis=1)
@@ -97,15 +103,18 @@ class DroneSocialNetwork:
     """드론 소셜 네트워크 시뮬레이션."""
 
     def __init__(self, n_drones=20, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.graph = TrustGraph(n_drones, seed)
         self.agents = [DroneAgent(i) for i in range(n_drones)]
         self.n = n_drones
 
     def build_network(self, connectivity=0.3):
+        """`network` 결과를 생성한다."""
         self.graph.random_connect(connectivity)
 
     def propagate(self, iterations=10):
+        """``propagate`` 동작을 수행한다."""
         self.graph.propagate_trust(iterations)
         ranks = self.graph.pagerank()
         labels = self.graph.community_detect(3)
@@ -116,10 +125,12 @@ class DroneSocialNetwork:
             a.reputation = float(np.mean(self.graph.trust[neighbors, i])) if len(neighbors) > 0 else 0.5
 
     def run(self):
+        """메인 실행 루프를 수행한다."""
         self.build_network()
         self.propagate()
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         edges = int(self.graph.adjacency.sum() / 2)
         communities = len({a.community for a in self.agents})
         return {

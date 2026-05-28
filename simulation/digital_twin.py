@@ -28,6 +28,7 @@ class DigitalTwin:
     """시뮬레이션 ↔ 실세계 동기화 관리자."""
 
     def __init__(self, max_history: int = 100):
+        """인스턴스를 초기화한다."""
         self._snapshots: dict[str, TelemetrySnapshot] = {}
         self._history: dict[str, list[TelemetrySnapshot]] = {}
         self._max_history = max_history
@@ -53,6 +54,7 @@ class DigitalTwin:
         return snap
 
     def get_state(self, drone_id: str) -> TelemetrySnapshot | None:
+        """`state` 정보를 조회한다."""
         return self._snapshots.get(drone_id)
 
     def get_prediction(self, drone_id: str, lookahead_s: float = 30.0) -> dict:
@@ -78,6 +80,7 @@ class DigitalTwin:
         return float(np.linalg.norm(snap.position - sim_position))
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "tracked_drones": len(self._snapshots),
             "total_snapshots": sum(len(h) for h in self._history.values()),

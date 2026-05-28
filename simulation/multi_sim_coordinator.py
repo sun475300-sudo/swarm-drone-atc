@@ -39,19 +39,23 @@ class MultiSimCoordinator:
     """다중 시뮬레이터 조율."""
 
     def __init__(self, n_sims: int = 10, base_seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.n_sims = n_sims
         self.base_seed = base_seed
         self._scenarios: dict[str, dict[str, Any]] = {}
         self._results: list[SimResult] = []
 
     def register_scenario(self, name: str, params: dict[str, Any] | None = None) -> None:
+        """`scenario` 항목을 추가한다."""
         self._scenarios[name] = params or {}
 
     def generate_seeds(self, n: int | None = None) -> list[int]:
+        """`seeds` 결과를 생성한다."""
         rng = np.random.default_rng(self.base_seed)
         return [int(s) for s in rng.integers(0, 10**6, size=n or self.n_sims)]
 
     def generate_configs(self, scenario: str) -> list[SimConfig]:
+        """`configs` 결과를 생성한다."""
         params = self._scenarios.get(scenario, {})
         seeds = self.generate_seeds()
         return [SimConfig(scenario=scenario, params=dict(params), seed=s) for s in seeds]
@@ -99,11 +103,13 @@ class MultiSimCoordinator:
         }
 
     def success_rate(self) -> float:
+        """``success_rate`` 동작을 수행한다."""
         if not self._results:
             return 0.0
         return round(sum(1 for r in self._results if r.success) / len(self._results) * 100, 1)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "scenarios": len(self._scenarios),
             "total_runs": len(self._results),

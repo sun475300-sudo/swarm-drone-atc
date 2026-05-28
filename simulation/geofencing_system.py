@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 @dataclass
 class GeoZone:
+    """``GeoZone`` 관련 기능을 제공한다."""
     zone_id: str
     zone_type: str
     boundaries: list[tuple[float, float]]
@@ -15,13 +16,17 @@ class GeoZone:
 
 
 class GeofencingSystem:
+    """``GeofencingSystem`` 역할을 담당한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.zones: dict[str, GeoZone] = {}
 
     def add_zone(self, zone: GeoZone):
+        """`zone` 항목을 추가한다."""
         self.zones[zone.zone_id] = zone
 
     def check_position(self, position: tuple[float, float, float]) -> list[str]:
+        """`position` 결과를 계산하거나 판정한다."""
         x, y, z = position
         violations = []
 

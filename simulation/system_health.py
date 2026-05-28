@@ -38,17 +38,21 @@ class SystemHealth:
     }
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._metrics: dict[str, float] = {}
         self._thresholds: dict[str, tuple[float, float]] = dict(self.DEFAULT_THRESHOLDS)
         self._alerts: list[dict[str, Any]] = []
 
     def update(self, metric: str, value: float) -> None:
+        """`대상` 상태를 갱신한다."""
         self._metrics[metric] = value
 
     def set_threshold(self, metric: str, warning: float, critical: float) -> None:
+        """`threshold` 상태를 갱신한다."""
         self._thresholds[metric] = (warning, critical)
 
     def check(self, metric: str) -> HealthCheck:
+        """`대상` 결과를 계산하거나 판정한다."""
         value = self._metrics.get(metric, 0)
         thresholds = self._thresholds.get(metric)
 
@@ -106,12 +110,15 @@ class SystemHealth:
         return "OK"
 
     def is_healthy(self) -> bool:
+        """`healthy` 여부를 반환한다."""
         return self.overall_status() == "OK"
 
     def recent_alerts(self, n: int = 20) -> list[dict[str, Any]]:
+        """``recent_alerts`` 동작을 수행한다."""
         return self._alerts[-n:]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         checks = self.diagnose()
         return {
             "overall": self.overall_status(),

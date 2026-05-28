@@ -9,6 +9,7 @@ import numpy as np
 
 
 class SegmentationClass:
+    """``SegmentationClass`` 관련 기능을 제공한다."""
     PERSON = 1
     VEHICLE = 2
     BUILDING = 3
@@ -19,18 +20,22 @@ class SegmentationClass:
 
 @dataclass
 class SegmentationResult:
+    """``SegmentationResult`` 데이터를 표현한다."""
     class_map: np.ndarray
     confidence: np.ndarray
     processing_time_ms: float
 
 
 class SemanticSegmentationEngine:
+    """``SemanticSegmentationEngine`` 역할을 담당한다."""
     def __init__(self, num_classes: int = 19, input_size: int = 512):
+        """인스턴스를 초기화한다."""
         self.num_classes = num_classes
         self.input_size = input_size
         self.model_loaded = True
 
     def segment(self, image: np.ndarray) -> SegmentationResult:
+        """``segment`` 동작을 수행한다."""
         start_time = time.time()
 
         class_map = np.random.randint(
@@ -43,6 +48,7 @@ class SemanticSegmentationEngine:
         return SegmentationResult(class_map, confidence, processing_time)
 
     def segment_thermal(self, thermal_image: np.ndarray) -> SegmentationResult:
+        """``segment_thermal`` 동작을 수행한다."""
         class_map = np.random.randint(
             0, self.num_classes, (self.input_size, self.input_size)
         )
@@ -51,4 +57,5 @@ class SemanticSegmentationEngine:
         return SegmentationResult(class_map, confidence, 15.0)
 
     def get_pedestrian_mask(self, class_map: np.ndarray) -> np.ndarray:
+        """`pedestrian mask` 정보를 조회한다."""
         return (class_map == SegmentationClass.PERSON).astype(np.uint8)

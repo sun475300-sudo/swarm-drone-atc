@@ -47,6 +47,7 @@ class EnergyPathPlanner:
         no_fly_zones: list[dict] | None = None,
         charging_stations: list[np.ndarray] | None = None,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.grid_res = grid_resolution
         self.bounds = bounds
         self.alt_min = alt_min

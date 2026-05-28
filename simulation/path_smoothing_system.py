@@ -9,16 +9,20 @@ import numpy as np
 
 @dataclass
 class PathPoint:
+    """``PathPoint`` 관련 기능을 제공한다."""
     x: float
     y: float
     z: float
 
 
 class PathSmoothingSystem:
+    """``PathSmoothingSystem`` 역할을 담당한다."""
     def __init__(self, smoothness_factor: float = 0.5):
+        """인스턴스를 초기화한다."""
         self.smoothness = smoothness_factor
 
     def smooth_path(self, waypoints: list[PathPoint]) -> list[PathPoint]:
+        """``smooth_path`` 동작을 수행한다."""
         if len(waypoints) < 3:
             return waypoints
 
@@ -48,6 +52,7 @@ class PathSmoothingSystem:
         return smoothed
 
     def calculate_curvature(self, waypoints: list[PathPoint]) -> list[float]:
+        """``calculate_curvature`` 동작을 수행한다."""
         curvatures = []
 
         for i in range(1, len(waypoints) - 1):

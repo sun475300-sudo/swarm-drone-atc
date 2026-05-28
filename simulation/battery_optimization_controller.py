@@ -9,6 +9,7 @@ import numpy as np
 
 @dataclass
 class BatteryState:
+    """``BatteryState`` 데이터를 표현한다."""
     drone_id: str
     capacity_wh: float
     current_charge_wh: float
@@ -19,13 +20,16 @@ class BatteryState:
 
 @dataclass
 class ConsumptionModel:
+    """``ConsumptionModel`` 관련 기능을 제공한다."""
     hover_watts: float
     cruise_watts: float
     max_watts: float
 
 
 class BatteryOptimizationController:
+    """``BatteryOptimizationController`` 역할을 담당한다."""
     def __init__(self, num_drones: int = 10):
+        """인스턴스를 초기화한다."""
         self.num_drones = num_drones
         self.battery_states: dict[str, BatteryState] = {}
         self.consumption_models: dict[str, ConsumptionModel] = {}
@@ -50,6 +54,7 @@ class BatteryOptimizationController:
             )
 
     def estimate_flight_time(self, drone_id: str, velocity: float) -> float:
+        """`flight time` 결과를 계산하거나 판정한다."""
         if drone_id not in self.battery_states:
             return 0.0
 
@@ -76,6 +81,7 @@ class BatteryOptimizationController:
         self,
         mission_duration_hours: float,
     ) -> dict[str, float]:
+        """``optimize_charging_schedule`` 동작을 수행한다."""
         schedules = {}
 
         for drone_id, state in self.battery_states.items():
@@ -102,6 +108,7 @@ class BatteryOptimizationController:
         self,
         target_soc: float = 0.8,
     ) -> dict[str, float]:
+        """``balance_fleet_battery`` 동작을 수행한다."""
         balancing_actions = {}
 
         total_charge = sum(s.current_charge_wh for s in self.battery_states.values())
@@ -119,6 +126,7 @@ class BatteryOptimizationController:
         drone_id: str,
         flight_history: list[float],
     ) -> dict[str, any]:
+        """`battery failure` 결과를 계산하거나 판정한다."""
         if drone_id not in self.battery_states:
             return {"risk": "unknown"}
 

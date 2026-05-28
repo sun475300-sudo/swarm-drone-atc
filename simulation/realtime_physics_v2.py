@@ -13,6 +13,7 @@ import numpy as np
 
 @dataclass
 class RigidBody:
+    """``RigidBody`` 관련 기능을 제공한다."""
     body_id: str
     position: np.ndarray = field(default_factory=lambda: np.zeros(3))
     prev_position: np.ndarray = field(default_factory=lambda: np.zeros(3))
@@ -27,6 +28,7 @@ class RigidBody:
 
 @dataclass
 class ForceField:
+    """``ForceField`` 관련 기능을 제공한다."""
     name: str
     direction: np.ndarray = field(default_factory=lambda: np.array([0.0, 0.0, -9.81]))
     strength: float = 1.0
@@ -36,6 +38,7 @@ class ForceField:
 
 @dataclass
 class CollisionInfo:
+    """``CollisionInfo`` 관련 기능을 제공한다."""
     body_a: str
     body_b: str
     contact_point: np.ndarray
@@ -54,6 +57,7 @@ class RealtimePhysicsV2:
     """
 
     def __init__(self, dt: float = 0.01, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self.dt = dt
         self._bodies: dict[str, RigidBody] = {}
@@ -66,20 +70,25 @@ class RealtimePhysicsV2:
         self._forces.append(ForceField(name="gravity", direction=np.array([0, 0, -9.81])))
 
     def add_body(self, body: RigidBody):
+        """`body` 항목을 추가한다."""
         body.prev_position = body.position.copy()
         self._bodies[body.body_id] = body
 
     def remove_body(self, body_id: str) -> bool:
+        """`body` 상태를 정리한다."""
         return self._bodies.pop(body_id, None) is not None
 
     def add_force_field(self, force: ForceField):
+        """`force field` 항목을 추가한다."""
         self._forces.append(force)
 
     def set_bounds(self, min_bounds: np.ndarray, max_bounds: np.ndarray):
+        """`bounds` 상태를 갱신한다."""
         self._bounds_min = min_bounds.copy()
         self._bounds_max = max_bounds.copy()
 
     def apply_force(self, body_id: str, force: np.ndarray):
+        """``apply_force`` 동작을 수행한다."""
         body = self._bodies.get(body_id)
         if body and not body.is_static:
             body.acceleration += force / body.mass
@@ -176,21 +185,26 @@ class RealtimePhysicsV2:
             ))
 
     def run_for(self, duration_sec: float):
+        """``run_for`` 동작을 수행한다."""
         steps = int(duration_sec / self.dt)
         for _ in range(steps):
             self.step()
 
     def get_body(self, body_id: str) -> RigidBody | None:
+        """`body` 정보를 조회한다."""
         return self._bodies.get(body_id)
 
     def get_kinetic_energy(self) -> float:
+        """`kinetic energy` 정보를 조회한다."""
         return sum(0.5 * b.mass * np.dot(b.velocity, b.velocity)
                    for b in self._bodies.values() if not b.is_static)
 
     def get_collisions(self) -> list[CollisionInfo]:
+        """`collisions` 정보를 조회한다."""
         return self._collisions.copy()
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_bodies": len(self._bodies),
             "static_bodies": sum(1 for b in self._bodies.values() if b.is_static),

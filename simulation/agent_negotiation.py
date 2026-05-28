@@ -40,6 +40,7 @@ class AgentNegotiation:
     """에이전트 간 협상."""
 
     def __init__(self, max_rounds: int = 5) -> None:
+        """인스턴스를 초기화한다."""
         self._agents: dict[str, AgentProfile] = {}
         self._history: list[NegotiationResult] = []
         self.max_rounds = max_rounds
@@ -47,6 +48,7 @@ class AgentNegotiation:
     def register_agent(
         self, agent_id: str, priority: int = 5, flexibility: float = 0.5,
     ) -> None:
+        """`agent` 항목을 추가한다."""
         self._agents[agent_id] = AgentProfile(
             agent_id=agent_id, priority=priority, flexibility=flexibility,
         )
@@ -61,6 +63,7 @@ class AgentNegotiation:
         self, agent_a: str, agent_b: str,
         conflict_point: tuple[float, ...] | None = None,
     ) -> NegotiationResult:
+        """``negotiate`` 동작을 수행한다."""
         pa = self._agents.get(agent_a)
         pb = self._agents.get(agent_b)
 
@@ -108,9 +111,11 @@ class AgentNegotiation:
         return result
 
     def deadlock_count(self) -> int:
+        """``deadlock_count`` 동작을 수행한다."""
         return sum(1 for r in self._history if r.action == "DEADLOCK")
 
     def agent_stats(self, agent_id: str) -> dict[str, Any]:
+        """``agent_stats`` 동작을 수행한다."""
         a = self._agents.get(agent_id)
         if not a:
             return {}
@@ -122,6 +127,7 @@ class AgentNegotiation:
         }
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "agents": len(self._agents),
             "negotiations": len(self._history),

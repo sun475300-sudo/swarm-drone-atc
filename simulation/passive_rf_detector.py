@@ -126,6 +126,7 @@ class PassiveRFDetector:
         noise_figure_db: float = DEFAULT_NOISE_FIGURE_DB,
         seed: int = 42,
     ) -> None:
+        """인스턴스를 초기화한다."""
         if len(nodes) < 2:
             raise ValueError("패시브 RF 탐지에는 최소 2개 노드 필요")
         self.nodes: dict[str, RFNode] = {n.node_id: n for n in nodes}
@@ -138,9 +139,11 @@ class PassiveRFDetector:
         self.contacts: list[RFContact] = []
 
     def add_emitter(self, emitter: RFEmitter) -> None:
+        """`emitter` 항목을 추가한다."""
         self.emitters[emitter.emitter_id] = emitter
 
     def remove_emitter(self, emitter_id: str) -> None:
+        """`emitter` 상태를 정리한다."""
         self.emitters.pop(emitter_id, None)
 
     def _measure_one(
@@ -276,6 +279,7 @@ class PassiveRFDetector:
         return (float(solution[0]), float(solution[1]), float(solution[2])), err
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "nodes": len(self.nodes),
             "emitters": len(self.emitters),

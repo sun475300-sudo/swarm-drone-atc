@@ -9,6 +9,7 @@ import numpy as np
 
 @dataclass
 class CompressionResult:
+    """``CompressionResult`` 데이터를 표현한다."""
     original_size_mb: float
     compressed_size_mb: float
     compression_ratio: float
@@ -17,14 +18,18 @@ class CompressionResult:
 
 
 class ModelCompressionEngine:
+    """``ModelCompressionEngine`` 역할을 담당한다."""
     def __init__(self, target_size_mb: float = 10.0):
+        """인스턴스를 초기화한다."""
         self.target_size_mb = target_size_mb
         self.model_params: dict[str, np.ndarray] = {}
 
     def load_model(self, params: dict[str, np.ndarray]):
+        """`model` 정보를 조회한다."""
         self.model_params = params
 
     def prune_weights(self, threshold: float = 0.1) -> dict[str, np.ndarray]:
+        """``prune_weights`` 동작을 수행한다."""
         pruned = {}
 
         for name, weights in self.model_params.items():
@@ -34,6 +39,7 @@ class ModelCompressionEngine:
         return pruned
 
     def quantize(self, bits: int = 8) -> dict[str, np.ndarray]:
+        """``quantize`` 동작을 수행한다."""
         quantized = {}
 
         for name, weights in self.model_params.items():
@@ -52,6 +58,7 @@ class ModelCompressionEngine:
     def knowledge_distillation(
         self, student_model: dict[str, np.ndarray]
     ) -> dict[str, np.ndarray]:
+        """``knowledge_distillation`` 동작을 수행한다."""
         distilled = {}
 
         for name in student_model:
@@ -65,6 +72,7 @@ class ModelCompressionEngine:
         return distilled
 
     def compress(self, method: str = "prune") -> CompressionResult:
+        """``compress`` 동작을 수행한다."""
         original_size = sum(w.nbytes for w in self.model_params.values()) / 1e6
 
         if method == "prune":
@@ -85,4 +93,5 @@ class ModelCompressionEngine:
         )
 
     def get_model_size(self) -> float:
+        """`model size` 정보를 조회한다."""
         return sum(w.nbytes for w in self.model_params.values()) / 1e6

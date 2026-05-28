@@ -13,12 +13,14 @@ import numpy as np
 
 
 class SyncMode(Enum):
+    """``SyncMode`` 관련 기능을 제공한다."""
     REAL_TIME = "real_time"
     BATCH = "batch"
     EVENT_DRIVEN = "event_driven"
 
 
 class TwinStatus(Enum):
+    """``TwinStatus`` 관련 기능을 제공한다."""
     SYNCED = "synced"
     LAGGING = "lagging"
     PREDICTED = "predicted"
@@ -27,6 +29,7 @@ class TwinStatus(Enum):
 
 @dataclass
 class TwinState:
+    """``TwinState`` 데이터를 표현한다."""
     twin_id: str
     physical_state: dict = field(default_factory=dict)
     digital_state: dict = field(default_factory=dict)
@@ -38,6 +41,7 @@ class TwinState:
 
 @dataclass
 class SyncEvent:
+    """``SyncEvent`` 데이터를 표현한다."""
     event_id: str
     twin_id: str
     event_type: str  # "state_update", "command", "alert", "prediction"
@@ -49,12 +53,15 @@ class StatePredictor:
     """칼만 필터 기반 상태 예측기."""
 
     def __init__(self, dt: float = 0.1):
+        """인스턴스를 초기화한다."""
         self.dt = dt
 
     def predict(self, position: np.ndarray, velocity: np.ndarray, dt: float) -> np.ndarray:
+        """`대상` 결과를 계산하거나 판정한다."""
         return position + velocity * dt
 
     def estimate_divergence(self, physical: dict, digital: dict) -> float:
+        """`divergence` 결과를 계산하거나 판정한다."""
         p_pos = np.array(physical.get("position", [0, 0, 0]), dtype=float)
         d_pos = np.array(digital.get("position", [0, 0, 0]), dtype=float)
         return float(np.linalg.norm(p_pos - d_pos))
@@ -73,6 +80,7 @@ class DigitalTwinSyncEngine:
     MAX_DIVERGENCE_M = 5.0
 
     def __init__(self, mode: SyncMode = SyncMode.REAL_TIME, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self.mode = mode
         self._twins: dict[str, TwinState] = {}
@@ -82,11 +90,13 @@ class DigitalTwinSyncEngine:
         self._event_counter = 0
 
     def register_twin(self, twin_id: str) -> TwinState:
+        """`twin` 항목을 추가한다."""
         state = TwinState(twin_id=twin_id)
         self._twins[twin_id] = state
         return state
 
     def update_physical(self, twin_id: str, state: dict, timestamp: float = 0.0):
+        """`physical` 상태를 갱신한다."""
         twin = self._twins.get(twin_id)
         if not twin:
             return
@@ -94,12 +104,14 @@ class DigitalTwinSyncEngine:
         twin.sync_timestamp = timestamp
 
     def update_digital(self, twin_id: str, state: dict, timestamp: float = 0.0):
+        """`digital` 상태를 갱신한다."""
         twin = self._twins.get(twin_id)
         if not twin:
             return
         twin.digital_state = state.copy()
 
     def sync(self, twin_id: str, current_time: float = 0.0) -> TwinStatus:
+        """`대상` 상태를 갱신한다."""
         twin = self._twins.get(twin_id)
         if not twin:
             return TwinStatus.DISCONNECTED
@@ -134,21 +146,26 @@ class DigitalTwinSyncEngine:
         return twin.status
 
     def sync_all(self, current_time: float = 0.0) -> dict[str, TwinStatus]:
+        """`all` 상태를 갱신한다."""
         return {tid: self.sync(tid, current_time) for tid in self._twins}
 
     def get_twin(self, twin_id: str) -> TwinState | None:
+        """`twin` 정보를 조회한다."""
         return self._twins.get(twin_id)
 
     def get_divergent_twins(self, threshold_m: float = 2.0) -> list[str]:
+        """`divergent twins` 정보를 조회한다."""
         return [tid for tid, t in self._twins.items() if t.divergence > threshold_m]
 
     def get_events(self, twin_id: str | None = None, limit: int = 100) -> list[SyncEvent]:
+        """`events` 정보를 조회한다."""
         events = self._event_log
         if twin_id:
             events = [e for e in events if e.twin_id == twin_id]
         return events[-limit:]
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         status_counts = {}
         avg_lag = 0.0
         avg_div = 0.0

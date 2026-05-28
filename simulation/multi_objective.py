@@ -26,6 +26,7 @@ class MultiObjectiveOptimizer:
     """다중 목표 최적화."""
 
     def __init__(self, objective_names: list[str] | None = None) -> None:
+        """인스턴스를 초기화한다."""
         self._objectives = objective_names or ["energy", "time", "risk"]
         self._solutions: list[Solution] = []
 
@@ -35,6 +36,7 @@ class MultiObjectiveOptimizer:
         metadata: dict[str, Any] | None = None,
         **objectives: float,
     ) -> Solution:
+        """`solution` 항목을 추가한다."""
         sol = Solution(
             solution_id=solution_id,
             objectives=objectives,
@@ -127,6 +129,7 @@ class MultiObjectiveOptimizer:
         return area
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         front = self.pareto_front()
         return {
             "total_solutions": len(self._solutions),

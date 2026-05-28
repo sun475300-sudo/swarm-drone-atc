@@ -10,6 +10,7 @@ import numpy as np
 
 
 class ValidationLevel(Enum):
+    """``ValidationLevel`` 관련 기능을 제공한다."""
     INFO = "info"
     WARNING = "warning"
     CRITICAL = "critical"
@@ -17,6 +18,7 @@ class ValidationLevel(Enum):
 
 
 class MissionPhase(Enum):
+    """``MissionPhase`` 관련 기능을 제공한다."""
     PRE_FLIGHT = "pre_flight"
     TAKEOFF = "takeoff"
     EN_ROUTE = "en_route"
@@ -26,6 +28,7 @@ class MissionPhase(Enum):
 
 
 class CheckCategory(Enum):
+    """``CheckCategory`` 관련 기능을 제공한다."""
     BATTERY = "battery"
     WEATHER = "weather"
     AIRSPACE = "airspace"
@@ -38,6 +41,7 @@ class CheckCategory(Enum):
 
 @dataclass
 class ValidationResult:
+    """``ValidationResult`` 데이터를 표현한다."""
     check_id: str
     category: CheckCategory
     level: ValidationLevel
@@ -49,6 +53,7 @@ class ValidationResult:
 
 @dataclass
 class MissionPlan:
+    """``MissionPlan`` 관련 기능을 제공한다."""
     mission_id: str
     drone_ids: list[str]
     waypoints: list[np.ndarray]
@@ -61,6 +66,7 @@ class MissionPlan:
 
 @dataclass
 class SafetyEnvelope:
+    """``SafetyEnvelope`` 관련 기능을 제공한다."""
     min_altitude_m: float = 5.0
     max_altitude_m: float = 150.0
     max_speed_mps: float = 20.0
@@ -75,6 +81,7 @@ class MissionCriticalValidator:
     """Comprehensive mission validation engine."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.envelope = SafetyEnvelope()
         self.results: list[ValidationResult] = []
@@ -92,6 +99,7 @@ class MissionCriticalValidator:
 
     def validate_battery(self, battery_pct: float, flight_time_min: float,
                          consumption_rate: float = 1.5) -> list[ValidationResult]:
+        """`battery` 결과를 계산하거나 판정한다."""
         results = []
         required_pct = flight_time_min * consumption_rate + self.envelope.min_battery_pct
         results.append(self._add_result(
@@ -108,6 +116,7 @@ class MissionCriticalValidator:
 
     def validate_weather(self, wind_speed: float, visibility_m: float = 5000,
                          precipitation: bool = False) -> list[ValidationResult]:
+        """`weather` 결과를 계산하거나 판정한다."""
         results = []
         results.append(self._add_result(
             CheckCategory.WEATHER, ValidationLevel.CRITICAL,
@@ -125,6 +134,7 @@ class MissionCriticalValidator:
 
     def validate_airspace(self, waypoints: list[np.ndarray],
                           restricted_zones: list[dict] = None) -> list[ValidationResult]:
+        """`airspace` 결과를 계산하거나 판정한다."""
         results = []
         for i, wp in enumerate(waypoints):
             alt = wp[2] if len(wp) > 2 else 0
@@ -159,6 +169,7 @@ class MissionCriticalValidator:
 
     def validate_mission(self, plan: MissionPlan, battery_pct: float = 95,
                          wind_speed: float = 5.0) -> dict:
+        """`mission` 결과를 계산하거나 판정한다."""
         self.results = []
         self._check_counter = 0
 
@@ -200,6 +211,7 @@ class MissionCriticalValidator:
         }
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_validations": len(self.results),
             "passed": sum(1 for r in self.results if r.passed),

@@ -10,6 +10,7 @@ import numpy as np
 
 @dataclass
 class TrackedObject:
+    """``TrackedObject`` 관련 기능을 제공한다."""
     object_id: str
     position: np.ndarray
     velocity: np.ndarray
@@ -18,11 +19,14 @@ class TrackedObject:
 
 
 class ObjectTrackingSystem:
+    """``ObjectTrackingSystem`` 역할을 담당한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.tracked_objects: dict[str, TrackedObject] = {}
         self.track_history: dict[str, list] = {}
 
     def update(self, detections: list[dict]) -> list[TrackedObject]:
+        """`대상` 상태를 갱신한다."""
         for det in detections:
             obj_id = det.get("id", f"obj_{det['class_id']}")
 
@@ -44,6 +48,7 @@ class ObjectTrackingSystem:
         return list(self.tracked_objects.values())
 
     def predict_position(self, object_id: str, dt: float) -> np.ndarray:
+        """`position` 결과를 계산하거나 판정한다."""
         if object_id not in self.tracked_objects:
             return np.zeros(3)
 

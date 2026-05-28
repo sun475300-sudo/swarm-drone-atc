@@ -13,6 +13,7 @@ import numpy as np
 
 
 class ThreatLevel(Enum):
+    """``ThreatLevel`` 관련 기능을 제공한다."""
     NONE = "none"
     LOW = "low"
     MEDIUM = "medium"
@@ -21,6 +22,7 @@ class ThreatLevel(Enum):
 
 
 class AttackType(Enum):
+    """``AttackType`` 관련 기능을 제공한다."""
     NONE = "none"
     DOS = "dos"
     SPOOFING = "spoofing"
@@ -33,6 +35,7 @@ class AttackType(Enum):
 
 @dataclass
 class NetworkPacket:
+    """``NetworkPacket`` 관련 기능을 제공한다."""
     source_id: str
     dest_id: str
     packet_type: str  # "telemetry", "command", "ack", "heartbeat"
@@ -44,6 +47,7 @@ class NetworkPacket:
 
 @dataclass
 class ThreatAlert:
+    """``ThreatAlert`` 데이터를 표현한다."""
     alert_id: str
     threat_level: ThreatLevel
     attack_type: AttackType
@@ -69,6 +73,7 @@ class IsolationForest:
     """Simplified Isolation Forest for anomaly detection."""
 
     def __init__(self, n_trees: int = 100, max_samples: int = 256, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self.n_trees = n_trees
         self.max_samples = max_samples
@@ -76,6 +81,7 @@ class IsolationForest:
         self._fitted = False
 
     def fit(self, data: np.ndarray):
+        """``fit`` 동작을 수행한다."""
         n_samples = min(len(data), self.max_samples)
         max_depth = int(np.ceil(np.log2(n_samples)))
         self._trees = []
@@ -138,6 +144,7 @@ class CybersecurityIDS:
     """
 
     def __init__(self, anomaly_threshold: float = 0.7, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._forest = IsolationForest(n_trees=50, rng_seed=rng_seed)
         self._threshold = anomaly_threshold
@@ -221,12 +228,14 @@ class CybersecurityIDS:
         return alert
 
     def get_alerts(self, level: ThreatLevel | None = None, limit: int = 50) -> list[ThreatAlert]:
+        """`alerts` 정보를 조회한다."""
         alerts = self._alerts
         if level:
             alerts = [a for a in alerts if a.threat_level == level]
         return alerts[-limit:]
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         level_counts = {}
         for a in self._alerts:
             level_counts[a.threat_level.value] = level_counts.get(a.threat_level.value, 0) + 1

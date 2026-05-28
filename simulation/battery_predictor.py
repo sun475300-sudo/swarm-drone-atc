@@ -41,6 +41,7 @@ class BatteryPredictor:
         rtl_pct: float = 20.0,
         max_history: int = 300,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.critical_pct = critical_pct
         self.rtl_pct = rtl_pct
         self.max_history = max_history
@@ -203,4 +204,5 @@ class BatteryPredictor:
         return [self.summary(did) for did in self._snapshots]
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._snapshots.clear()

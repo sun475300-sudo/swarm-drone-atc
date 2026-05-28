@@ -36,6 +36,7 @@ class DifficultyScorer:
     }
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._evaluations: list[DifficultyResult] = []
 
     def _density_score(self, drone_count: int, area_km2: float = 1.0) -> float:
@@ -71,6 +72,7 @@ class DifficultyScorer:
         comm_loss_rate: float = 0, max_altitude_var: float = 0,
         urban_density: float = 0,
     ) -> DifficultyResult:
+        """`대상` 결과를 계산하거나 판정한다."""
         breakdown = {
             "density": self._density_score(drone_count, area_km2),
             "weather": self._weather_score(wind_speed, visibility_km, precipitation),
@@ -108,6 +110,7 @@ class DifficultyScorer:
         return result
 
     def compare_scenarios(self, results: list[DifficultyResult]) -> dict[str, Any]:
+        """``compare_scenarios`` 동작을 수행한다."""
         if not results:
             return {}
         scores = [r.total_score for r in results]
@@ -118,6 +121,7 @@ class DifficultyScorer:
         }
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "evaluations": len(self._evaluations),
             "avg_difficulty": round(

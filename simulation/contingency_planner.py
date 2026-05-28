@@ -31,6 +31,7 @@ class ContingencyPlanner:
     """비상 대안 경로 사전 계획."""
 
     def __init__(self, grid_step: float = 50.0) -> None:
+        """인스턴스를 초기화한다."""
         self._primary: dict[str, list[tuple[float, float, float]]] = {}
         self._alternatives: dict[str, list[ContingencyRoute]] = {}
         self._grid_step = grid_step
@@ -38,6 +39,7 @@ class ContingencyPlanner:
     def set_primary_path(
         self, drone_id: str, waypoints: list[tuple[float, float, float]]
     ) -> None:
+        """`primary path` 상태를 갱신한다."""
         self._primary[drone_id] = list(waypoints)
 
     def compute_alternatives(
@@ -93,6 +95,7 @@ class ContingencyPlanner:
         return alternatives
 
     def get_best_alternative(self, drone_id: str) -> ContingencyRoute | None:
+        """`best alternative` 정보를 조회한다."""
         alts = self._alternatives.get(drone_id, [])
         if not alts:
             return None
@@ -118,6 +121,7 @@ class ContingencyPlanner:
         return total
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "primary_routes": len(self._primary),
             "alternatives_computed": sum(

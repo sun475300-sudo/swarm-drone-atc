@@ -25,6 +25,7 @@ class ResultStore:
     """시뮬레이션 결과 파일 저장소"""
 
     def __init__(self, base_dir: str = "data/results") -> None:
+        """인스턴스를 초기화한다."""
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(parents=True, exist_ok=True)
 

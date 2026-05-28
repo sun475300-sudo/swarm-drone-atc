@@ -11,6 +11,7 @@ import numpy as np
 
 
 class ProcessState(Enum):
+    """``ProcessState`` 데이터를 표현한다."""
     READY = "ready"
     RUNNING = "running"
     BLOCKED = "blocked"
@@ -19,6 +20,7 @@ class ProcessState(Enum):
 
 @dataclass
 class Process:
+    """``Process`` 관련 기능을 제공한다."""
     pid: int
     name: str
     priority: int
@@ -30,6 +32,7 @@ class Process:
 
 @dataclass
 class IPCMessage:
+    """``IPCMessage`` 데이터를 표현한다."""
     sender: int
     receiver: int
     msg_type: str
@@ -41,16 +44,19 @@ class Scheduler:
     """라운드로빈 + 우선순위 스케줄러."""
 
     def __init__(self, quantum_ms=10.0):
+        """인스턴스를 초기화한다."""
         self.quantum = quantum_ms
         self.ready_queue: list[Process] = []
         self.current: Process | None = None
         self.context_switches = 0
 
     def add(self, proc: Process):
+        """`대상` 항목을 추가한다."""
         self.ready_queue.append(proc)
         self.ready_queue.sort(key=lambda p: p.priority, reverse=True)
 
     def schedule(self) -> Process | None:
+        """`대상` 작업을 계획한다."""
         if self.current and self.current.state == ProcessState.RUNNING:
             self.current.state = ProcessState.READY
             self.ready_queue.append(self.current)
@@ -66,6 +72,7 @@ class Scheduler:
         return proc
 
     def tick(self, dt=1.0):
+        """``tick`` 동작을 수행한다."""
         if self.current and self.current.state == ProcessState.RUNNING:
             self.current.cpu_time += dt
 
@@ -74,11 +81,13 @@ class MemoryManager:
     """간이 메모리 할당기."""
 
     def __init__(self, total_kb=1024):
+        """인스턴스를 초기화한다."""
         self.total = total_kb
         self.used = 0
         self.allocations: dict[int, int] = {}  # pid -> kb
 
     def allocate(self, pid: int, size_kb: int) -> bool:
+        """``allocate`` 동작을 수행한다."""
         if self.used + size_kb > self.total:
             return False
         self.allocations[pid] = self.allocations.get(pid, 0) + size_kb
@@ -86,10 +95,12 @@ class MemoryManager:
         return True
 
     def free(self, pid: int):
+        """``free`` 동작을 수행한다."""
         freed = self.allocations.pop(pid, 0)
         self.used -= freed
 
     def usage_pct(self) -> float:
+        """``usage_pct`` 동작을 수행한다."""
         return self.used / self.total * 100
 
 
@@ -97,13 +108,16 @@ class MessageQueue:
     """IPC 메시지 큐."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.queue: list[IPCMessage] = []
         self.delivered = 0
 
     def send(self, msg: IPCMessage):
+        """``send`` 동작을 수행한다."""
         self.queue.append(msg)
 
     def receive(self, pid: int) -> list[IPCMessage]:
+        """``receive`` 동작을 수행한다."""
         msgs = [m for m in self.queue if m.receiver == pid]
         self.queue = [m for m in self.queue if m.receiver != pid]
         self.delivered += len(msgs)
@@ -114,6 +128,7 @@ class DroneSwarmOS:
     """군집 드론 OS 시뮬레이션."""
 
     def __init__(self, n_drones=10, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.scheduler = Scheduler()
         self.memory = MemoryManager(2048)
@@ -132,6 +147,7 @@ class DroneSwarmOS:
                 pid += 1
 
     def step(self):
+        """`대상` 실행 상태를 제어한다."""
         self.tick_count += 1
         proc = self.scheduler.schedule()
         if proc:
@@ -146,10 +162,12 @@ class DroneSwarmOS:
             proc.messages.extend(msgs)
 
     def run(self, steps=100):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             self.step()
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         active = sum(1 for p in self.processes if p.state != ProcessState.TERMINATED)
         total_cpu = sum(p.cpu_time for p in self.processes)
         return {

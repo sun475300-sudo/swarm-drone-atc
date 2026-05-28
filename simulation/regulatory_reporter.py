@@ -30,6 +30,7 @@ class RegulatoryReporter:
     """K-UTM 규제 보고서 생성."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._log: list[AuditEntry] = []
         self._violations: list[AuditEntry] = []
 
@@ -42,6 +43,7 @@ class RegulatoryReporter:
         compliant: bool = True,
         regulation: str = "",
     ) -> None:
+        """`event` 정보를 기록한다."""
         entry = AuditEntry(
             t=t, drone_id=drone_id, event_type=event_type,
             details=details, compliant=compliant, regulation=regulation,
@@ -88,12 +90,14 @@ class RegulatoryReporter:
         return "\n".join(lines)
 
     def compliance_rate(self) -> float:
+        """``compliance_rate`` 동작을 수행한다."""
         total = len(self._log)
         if total == 0:
             return 100.0
         return (total - len(self._violations)) / total * 100
 
     def violations_by_drone(self) -> dict[str, int]:
+        """``violations_by_drone`` 동작을 수행한다."""
         by_drone: dict[str, int] = {}
         for v in self._violations:
             by_drone[v.drone_id] = by_drone.get(v.drone_id, 0) + 1
@@ -102,10 +106,12 @@ class RegulatoryReporter:
     def audit_trail(
         self, drone_id: str | None = None, limit: int = 50
     ) -> list[AuditEntry]:
+        """``audit_trail`` 동작을 수행한다."""
         entries = [e for e in self._log if e.drone_id == drone_id] if drone_id else list(self._log)
         return entries[-limit:]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_events": len(self._log),
             "total_violations": len(self._violations),
@@ -114,5 +120,6 @@ class RegulatoryReporter:
         }
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._log.clear()
         self._violations.clear()

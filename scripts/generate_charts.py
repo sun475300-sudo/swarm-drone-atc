@@ -61,6 +61,7 @@ plt.rcParams.update({
 # ── 1. 처리량 vs 드론 수 ─────────────────────────────────────
 
 def chart_throughput(out: str) -> None:
+    """``chart_throughput`` 동작을 수행한다."""
     drones = np.array([10, 30, 50, 100, 200, 300, 500])
     # O(N²) @ 1 Hz
     n2_calc = drones * (drones - 1) / 2
@@ -89,6 +90,7 @@ def chart_throughput(out: str) -> None:
 # ── 2. 어드바이저리 지연 시간 ─────────────────────────────────
 
 def chart_latency(out: str) -> None:
+    """``chart_latency`` 동작을 수행한다."""
     scenarios = [
         "기본 시뮬레이션\n(100대)",
         "고밀도\n(100대)",
@@ -134,6 +136,7 @@ def chart_latency(out: str) -> None:
 # ── 3. 시나리오 KPI 비교 레이더 차트 ────────────────────────
 
 def chart_scenario_radar(out: str) -> None:
+    """``chart_scenario_radar`` 동작을 수행한다."""
     categories = ["충돌 해결률", "경로 효율\n(역방향)", "어드바이저리\n응답성", "시스템\n처리량", "침입 탐지\n정확도"]
     N = len(categories)
 
@@ -175,6 +178,7 @@ def chart_scenario_radar(out: str) -> None:
 # ── 4. 충돌 해결률 히트맵 (드론 수 × 시뮬레이션 시간) ───────
 
 def chart_resolution_heatmap(out: str) -> None:
+    """``chart_resolution_heatmap`` 동작을 수행한다."""
     drone_counts = [20, 40, 60, 80, 100, 150, 200]
     durations    = [60, 120, 300, 600]
 
@@ -319,6 +323,7 @@ def chart_scenario_comparison_live(out: str, live_data: dict[str, dict]) -> None
 
 
 def main() -> None:
+    """``main`` 동작을 수행한다."""
     parser = argparse.ArgumentParser(description="SDACS 성능 차트 생성")
     parser.add_argument("--output-dir", default="docs/images", help="출력 디렉터리")
     parser.add_argument("--live", action="store_true",

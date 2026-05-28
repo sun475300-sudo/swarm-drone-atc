@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class DronePhysicalState:
+    """``DronePhysicalState`` 데이터를 표현한다."""
     drone_id: str
     position: np.ndarray  # [x, y, z]
     velocity: np.ndarray
@@ -22,6 +23,7 @@ class DronePhysicalState:
 
 @dataclass
 class TwinState:
+    """``TwinState`` 데이터를 표현한다."""
     predicted_position: np.ndarray
     predicted_battery: float
     divergence: float  # physical vs twin 차이
@@ -33,10 +35,12 @@ class PhysicsModel:
     """간이 드론 물리 모델."""
 
     def __init__(self, mass=1.5, drag=0.1):
+        """인스턴스를 초기화한다."""
         self.mass = mass
         self.drag = drag
 
     def predict_next(self, state: DronePhysicalState, dt=0.1) -> DronePhysicalState:
+        """`next` 결과를 계산하거나 판정한다."""
         accel = -self.drag * state.velocity / self.mass
         new_vel = state.velocity + accel * dt
         new_pos = state.position + new_vel * dt
@@ -55,10 +59,12 @@ class AnomalyPredictor:
     """상태 이상 예측."""
 
     def __init__(self, threshold=5.0):
+        """인스턴스를 초기화한다."""
         self.threshold = threshold
         self.history: list[float] = []
 
     def score(self, physical: DronePhysicalState, predicted: DronePhysicalState) -> float:
+        """`대상` 결과를 계산하거나 판정한다."""
         pos_diff = float(np.linalg.norm(physical.position - predicted.predicted_position
                                          if hasattr(predicted, 'predicted_position')
                                          else physical.position - predicted.position))
@@ -69,6 +75,7 @@ class AnomalyPredictor:
         return score
 
     def needs_maintenance(self, state: DronePhysicalState) -> bool:
+        """`maintenance` 여부를 반환한다."""
         return (state.battery_pct < 20 or
                 state.temperature_c > 55 or
                 float(np.min(state.motor_rpm)) < 100)
@@ -78,6 +85,7 @@ class DigitalTwin:
     """단일 드론 디지털 트윈."""
 
     def __init__(self, drone_id: str, seed=42):
+        """인스턴스를 초기화한다."""
         self.drone_id = drone_id
         self.physics = PhysicsModel()
         self.anomaly = AnomalyPredictor()
@@ -103,6 +111,7 @@ class DroneDigitalTwinSystem:
     """다중 드론 디지털 트윈 시스템."""
 
     def __init__(self, n_drones=15, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.twins: dict[str, DigitalTwin] = {}
@@ -140,10 +149,12 @@ class DroneDigitalTwinSystem:
             self.twin_results.append(result)
 
     def run(self, steps=50, dt=0.1):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             self.step(dt)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         maint_needed = sum(1 for r in self.twin_results[-self.n_drones:]
                            if r.maintenance_needed)
         avg_div = float(np.mean([r.divergence for r in self.twin_results[-self.n_drones:]]))

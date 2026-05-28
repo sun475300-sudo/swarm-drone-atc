@@ -9,13 +9,16 @@ import numpy as np
 
 @dataclass
 class FormationConfig:
+    """``FormationConfig`` 데이터를 표현한다."""
     formation_type: str
     spacing: float
     altitude_diff: float
 
 
 class FormationControlOptimizer:
+    """``FormationControlOptimizer`` 관련 기능을 제공한다."""
     def __init__(self, formation_type: str = "wedge"):
+        """인스턴스를 초기화한다."""
         self.formation_type = formation_type
 
     def compute_formation_positions(
@@ -24,6 +27,7 @@ class FormationControlOptimizer:
         num_drones: int,
         config: FormationConfig,
     ) -> list[np.ndarray]:
+        """`formation positions` 값을 계산한다."""
         positions = [leader_pos.copy()]
 
         if config.formation_type == "wedge":
@@ -55,6 +59,7 @@ class FormationControlOptimizer:
         velocities: list[np.ndarray],
         gains: dict[str, float],
     ) -> list[np.ndarray]:
+        """`control inputs` 값을 계산한다."""
         controls = []
 
         for i in range(len(current_positions)):
@@ -79,6 +84,7 @@ class FormationControlOptimizer:
         positions: list[np.ndarray],
         min_distance: float = 10.0,
     ) -> bool:
+        """``maintain_connectivity`` 동작을 수행한다."""
         for i in range(len(positions)):
             for j in range(i + 1, len(positions)):
                 dist = np.linalg.norm(positions[i] - positions[j])

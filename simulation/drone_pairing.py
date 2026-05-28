@@ -31,12 +31,14 @@ class DronePairing:
     """드론 페어링 관리."""
 
     def __init__(self, max_pair_distance: float = 500.0) -> None:
+        """인스턴스를 초기화한다."""
         self._pairs: dict[str, PairInfo] = {}
         self._drone_to_pair: dict[str, str] = {}
         self._max_distance = max_pair_distance
         self._counter = 0
 
     def pair(self, drone_a: str, drone_b: str, mode: str = "ESCORT") -> PairInfo:
+        """``pair`` 동작을 수행한다."""
         self._counter += 1
         pid = f"P{self._counter:04d}"
         info = PairInfo(pair_id=pid, drone_a=drone_a, drone_b=drone_b, mode=mode)
@@ -46,6 +48,7 @@ class DronePairing:
         return info
 
     def unpair(self, pair_id: str) -> bool:
+        """``unpair`` 동작을 수행한다."""
         info = self._pairs.get(pair_id)
         if not info:
             return False
@@ -55,6 +58,7 @@ class DronePairing:
         return True
 
     def get_partner(self, drone_id: str) -> str | None:
+        """`partner` 정보를 조회한다."""
         pid = self._drone_to_pair.get(drone_id)
         if not pid:
             return None
@@ -64,6 +68,7 @@ class DronePairing:
         return info.drone_b if info.drone_a == drone_id else info.drone_a
 
     def pair_status(self, drone_id: str) -> PairInfo | None:
+        """``pair_status`` 동작을 수행한다."""
         pid = self._drone_to_pair.get(drone_id)
         if pid:
             info = self._pairs.get(pid)
@@ -91,9 +96,11 @@ class DronePairing:
         return warnings
 
     def active_pairs(self) -> list[PairInfo]:
+        """``active_pairs`` 동작을 수행한다."""
         return [p for p in self._pairs.values() if p.active]
 
     def by_mode(self, mode: str) -> list[PairInfo]:
+        """``by_mode`` 동작을 수행한다."""
         return [p for p in self._pairs.values() if p.active and p.mode == mode]
 
     def suggest_pair(
@@ -118,6 +125,7 @@ class DronePairing:
         return best_pair
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         active = self.active_pairs()
         by_mode: dict[str, int] = {}
         for p in active:

@@ -11,12 +11,14 @@ import numpy as np
 
 
 class ChannelState(Enum):
+    """``ChannelState`` 데이터를 표현한다."""
     IDLE = "idle"
     OCCUPIED_PRIMARY = "occupied_primary"
     OCCUPIED_SECONDARY = "occupied_secondary"
 
 
 class SensingMethod(Enum):
+    """``SensingMethod`` 관련 기능을 제공한다."""
     ENERGY_DETECTION = "energy"
     MATCHED_FILTER = "matched_filter"
     CYCLOSTATIONARY = "cyclostationary"
@@ -24,6 +26,7 @@ class SensingMethod(Enum):
 
 @dataclass
 class Channel:
+    """``Channel`` 관련 기능을 제공한다."""
     channel_id: int
     freq_mhz: float
     bandwidth_mhz: float
@@ -34,6 +37,7 @@ class Channel:
 
 @dataclass
 class SecondaryUser:
+    """``SecondaryUser`` 관련 기능을 제공한다."""
     su_id: str
     assigned_channel: int = -1
     throughput_mbps: float = 0.0
@@ -43,6 +47,7 @@ class SecondaryUser:
 
 @dataclass
 class SpectrumSensingResult:
+    """``SpectrumSensingResult`` 데이터를 표현한다."""
     channel_id: int
     detected_power_dbm: float
     is_primary_present: bool
@@ -54,9 +59,11 @@ class SpectrumSensor:
     """스펙트럼 센싱 엔진."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
 
     def energy_detect(self, channel: Channel, threshold_dbm=-90.0) -> SpectrumSensingResult:
+        """``energy_detect`` 동작을 수행한다."""
         if channel.state == ChannelState.OCCUPIED_PRIMARY:
             power = channel.noise_floor_dbm + 20 + self.rng.normal(0, 3)
         else:
@@ -76,10 +83,12 @@ class ChannelAllocator:
     """동적 채널 할당."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
 
     def allocate(self, channels: list[Channel], users: list[SecondaryUser],
                  sensing_results: dict[int, SpectrumSensingResult]):
+        """``allocate`` 동작을 수행한다."""
         idle_channels = [
             ch for ch in channels
             if not sensing_results.get(ch.channel_id, SpectrumSensingResult(0, 0, True, 0, SensingMethod.ENERGY_DETECTION)).is_primary_present
@@ -106,6 +115,7 @@ class CognitiveRadioNetwork:
     """인지 무선 네트워크 시뮬레이션."""
 
     def __init__(self, n_channels=16, n_users=10, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.sensor = SpectrumSensor(seed)
         self.allocator = ChannelAllocator(seed)
@@ -152,10 +162,12 @@ class CognitiveRadioNetwork:
                     self.collisions += 1
 
     def run(self, steps=50):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             self.step()
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         active = sum(1 for u in self.users if u.assigned_channel >= 0)
         avg_tp = float(np.mean([u.throughput_mbps for u in self.users]))
         total_ho = sum(u.handoffs for u in self.users)

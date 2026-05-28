@@ -36,6 +36,7 @@ def _pip_freeze() -> list[str]:
 
 
 def generate() -> None:
+    """`대상` 결과를 생성한다."""
     REPORTS.mkdir(exist_ok=True)
 
     git_sha   = _run(["git", "rev-parse", "HEAD"], cwd=ROOT)

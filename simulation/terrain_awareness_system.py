@@ -13,6 +13,7 @@ import numpy as np
 
 
 class TerrainType(Enum):
+    """``TerrainType`` 관련 기능을 제공한다."""
     FLAT = "flat"
     HILL = "hill"
     MOUNTAIN = "mountain"
@@ -23,6 +24,7 @@ class TerrainType(Enum):
 
 
 class AlertLevel(Enum):
+    """``AlertLevel`` 관련 기능을 제공한다."""
     NONE = "none"
     CAUTION = "caution"
     WARNING = "warning"
@@ -31,6 +33,7 @@ class AlertLevel(Enum):
 
 @dataclass
 class TerrainCell:
+    """``TerrainCell`` 관련 기능을 제공한다."""
     x: int
     y: int
     elevation_m: float
@@ -40,6 +43,7 @@ class TerrainCell:
 
 @dataclass
 class TAWSAlert:
+    """``TAWSAlert`` 데이터를 표현한다."""
     drone_id: str
     level: AlertLevel
     terrain_elevation: float
@@ -52,6 +56,7 @@ class DigitalElevationModel:
     """디지털 고도 모델 (절차적 생성)."""
 
     def __init__(self, size: int = 100, resolution: float = 10.0, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.size = size
         self.resolution = resolution
         self._rng = np.random.default_rng(rng_seed)
@@ -84,15 +89,18 @@ class DigitalElevationModel:
         return terrain
 
     def add_obstacle(self, x: int, y: int, height: float):
+        """`obstacle` 항목을 추가한다."""
         if 0 <= x < self.size and 0 <= y < self.size:
             self._obstacles[x, y] = max(self._obstacles[x, y], height)
 
     def elevation_at(self, world_x: float, world_y: float) -> float:
+        """``elevation_at`` 동작을 수행한다."""
         gx = int(world_x / self.resolution) % self.size
         gy = int(world_y / self.resolution) % self.size
         return float(self._elevation[gx, gy] + self._obstacles[gx, gy])
 
     def terrain_profile(self, start: np.ndarray, end: np.ndarray, n_samples: int = 50) -> list[float]:
+        """``terrain_profile`` 동작을 수행한다."""
         profile = []
         for i in range(n_samples):
             t = i / (n_samples - 1)
@@ -101,6 +109,7 @@ class DigitalElevationModel:
         return profile
 
     def max_elevation_in_radius(self, x: float, y: float, radius: float) -> float:
+        """``max_elevation_in_radius`` 동작을 수행한다."""
         gx = int(x / self.resolution)
         gy = int(y / self.resolution)
         r_cells = int(radius / self.resolution) + 1
@@ -126,19 +135,23 @@ class TerrainAwarenessSystem:
     CAUTION_CLEARANCE_M = 80.0
 
     def __init__(self, dem_size: int = 100, resolution: float = 10.0, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._dem = DigitalElevationModel(dem_size, resolution, rng_seed)
         self._alerts: list[TAWSAlert] = []
         self._drone_altitudes: dict[str, float] = {}
         self._msa_cache: dict[tuple[int, int], float] = {}
 
     def get_elevation(self, x: float, y: float) -> float:
+        """`elevation` 정보를 조회한다."""
         return self._dem.elevation_at(x, y)
 
     def compute_msa(self, x: float, y: float, radius: float = 100.0) -> float:
+        """`msa` 값을 계산한다."""
         max_terrain = self._dem.max_elevation_in_radius(x, y, radius)
         return max_terrain + self.MIN_CLEARANCE_M
 
     def check_clearance(self, drone_id: str, position: np.ndarray) -> TAWSAlert:
+        """`clearance` 결과를 계산하거나 판정한다."""
         terrain_elev = self.get_elevation(position[0], position[1])
         altitude = position[2] if len(position) > 2 else 50.0
         clearance = altitude - terrain_elev
@@ -164,6 +177,7 @@ class TerrainAwarenessSystem:
         return alert
 
     def validate_path(self, waypoints: list[np.ndarray]) -> list[TAWSAlert]:
+        """`path` 결과를 계산하거나 판정한다."""
         alerts = []
         for i, wp in enumerate(waypoints):
             elev = self.get_elevation(wp[0], wp[1])
@@ -179,17 +193,21 @@ class TerrainAwarenessSystem:
         return alerts
 
     def terrain_profile(self, start: np.ndarray, end: np.ndarray) -> list[float]:
+        """``terrain_profile`` 동작을 수행한다."""
         return self._dem.terrain_profile(start, end)
 
     def get_alerts(self, level: AlertLevel | None = None) -> list[TAWSAlert]:
+        """`alerts` 정보를 조회한다."""
         if level:
             return [a for a in self._alerts if a.level == level]
         return self._alerts.copy()
 
     def clear_alerts(self):
+        """`alerts` 상태를 정리한다."""
         self._alerts.clear()
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         level_counts = {}
         for a in self._alerts:
             level_counts[a.level.value] = level_counts.get(a.level.value, 0) + 1

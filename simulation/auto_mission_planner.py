@@ -16,6 +16,7 @@ from typing import Any
 
 @dataclass
 class Objective:
+    """``Objective`` 관련 기능을 제공한다."""
     name: str
     area: list[tuple[float, float]]
     priority: int = 5
@@ -25,6 +26,7 @@ class Objective:
 
 @dataclass
 class GeneratedMission:
+    """``GeneratedMission`` 관련 기능을 제공한다."""
     mission_id: str
     objective: str
     assigned_drones: list[str]
@@ -33,15 +35,19 @@ class GeneratedMission:
 
 
 class AutoMissionPlanner:
+    """``AutoMissionPlanner`` 역할을 담당한다."""
     def __init__(self, default_altitude: float = 50) -> None:
+        """인스턴스를 초기화한다."""
         self.default_altitude = default_altitude
         self._objectives: list[Objective] = []
         self._missions: list[GeneratedMission] = []
 
     def add_objective(self, name: str, area: list[tuple[float, float]] | None = None, priority: int = 5, duration: float = 30, drones: int = 1) -> None:
+        """`objective` 항목을 추가한다."""
         self._objectives.append(Objective(name=name, area=area or [(0,0),(500,500)], priority=priority, duration_min=duration, drones_needed=drones))
 
     def generate_missions(self, available_drones: list[str] | None = None) -> list[GeneratedMission]:
+        """`missions` 결과를 생성한다."""
         drones = list(available_drones or [])
         sorted_obj = sorted(self._objectives, key=lambda o: -o.priority)
         missions = []
@@ -70,6 +76,7 @@ class AutoMissionPlanner:
         return missions
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "objectives": len(self._objectives),
             "missions_generated": len(self._missions),

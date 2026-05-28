@@ -10,6 +10,7 @@ import numpy as np
 
 
 class QMLMethod(Enum):
+    """``QMLMethod`` 관련 기능을 제공한다."""
     QNN = "qnn"
     QSVC = "qsvc"
     QKERNEL = "qkernel"
@@ -18,23 +19,27 @@ class QMLMethod(Enum):
 
 @dataclass
 class QuantumFeatureMap:
+    """``QuantumFeatureMap`` 관련 기능을 제공한다."""
     n_qubits: int
     depth: int
     params: np.ndarray
 
     @staticmethod
     def create(n_features: int, depth: int = 2, rng: np.random.Generator | None = None) -> 'QuantumFeatureMap':
+        """`대상` 결과를 생성한다."""
         rng = rng or np.random.default_rng(42)
         return QuantumFeatureMap(n_features, depth, rng.uniform(0, 2 * np.pi, (depth, n_features)))
 
 
 @dataclass
 class QNNLayer:
+    """``QNNLayer`` 관련 기능을 제공한다."""
     n_qubits: int
     weights: np.ndarray
     bias: np.ndarray
 
     def forward(self, x: np.ndarray) -> np.ndarray:
+        """``forward`` 동작을 수행한다."""
         rotated = np.cos(self.weights @ x + self.bias)
         return rotated / (np.linalg.norm(rotated) + 1e-10)
 
@@ -43,6 +48,7 @@ class QuantumKernel:
     """Quantum kernel for SVM-like classification."""
 
     def __init__(self, n_qubits: int = 4, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.n_qubits = n_qubits
         self.rng = np.random.default_rng(seed)
         self.feature_map = QuantumFeatureMap.create(n_qubits, rng=self.rng)
@@ -64,10 +70,12 @@ class QuantumKernel:
         return state / (np.linalg.norm(state) + 1e-10)
 
     def compute(self, x1: np.ndarray, x2: np.ndarray) -> float:
+        """`대상` 값을 계산한다."""
         s1, s2 = self._encode(x1), self._encode(x2)
         return float(np.abs(np.dot(s1, s2)) ** 2)
 
     def gram_matrix(self, X: np.ndarray) -> np.ndarray:
+        """``gram_matrix`` 동작을 수행한다."""
         n = len(X)
         K = np.zeros((n, n))
         for i in range(n):
@@ -81,6 +89,7 @@ class QuantumNeuralNetwork:
     """Variational quantum neural network simulator."""
 
     def __init__(self, n_qubits: int = 4, n_layers: int = 3, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_qubits = n_qubits
         self.layers = []
@@ -90,12 +99,14 @@ class QuantumNeuralNetwork:
             self.layers.append(QNNLayer(n_qubits, w, b))
 
     def predict(self, x: np.ndarray) -> np.ndarray:
+        """`대상` 결과를 계산하거나 판정한다."""
         h = x[:self.n_qubits] if len(x) > self.n_qubits else np.pad(x, (0, self.n_qubits - len(x)))
         for layer in self.layers:
             h = layer.forward(h)
         return h
 
     def predict_class(self, x: np.ndarray) -> int:
+        """`class` 결과를 계산하거나 판정한다."""
         h = self.predict(x)
         return int(np.argmax(np.abs(h[:2])))
 
@@ -104,6 +115,7 @@ class QSVC:
     """Quantum Support Vector Classifier."""
 
     def __init__(self, n_qubits: int = 4, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.kernel = QuantumKernel(n_qubits, seed)
         self.rng = np.random.default_rng(seed)
         self.support_vectors: np.ndarray | None = None
@@ -112,6 +124,7 @@ class QSVC:
         self.bias = 0.0
 
     def fit(self, X: np.ndarray, y: np.ndarray, max_iter: int = 100, lr: float = 0.01) -> None:
+        """``fit`` 동작을 수행한다."""
         n = len(X)
         self.support_vectors = X
         self.labels = y.astype(float)
@@ -126,6 +139,7 @@ class QSVC:
                     self.bias += lr * self.labels[i]
 
     def predict(self, x: np.ndarray) -> int:
+        """`대상` 결과를 계산하거나 판정한다."""
         if self.support_vectors is None:
             return 0
         decision = self.bias
@@ -139,6 +153,7 @@ class QuantumMLPipeline:
     """End-to-end quantum ML pipeline."""
 
     def __init__(self, method: QMLMethod = QMLMethod.QNN, n_qubits: int = 4, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.method = method
         self.n_qubits = n_qubits
         self.rng = np.random.default_rng(seed)
@@ -155,6 +170,7 @@ class QuantumMLPipeline:
         return QuantumNeuralNetwork(self.n_qubits, seed=seed)
 
     def train(self, X: np.ndarray, y: np.ndarray) -> dict:
+        """``train`` 동작을 수행한다."""
         if self.method == QMLMethod.QSVC:
             self.model.fit(X, y)
             preds = [self.model.predict(x) for x in X]
@@ -172,6 +188,7 @@ class QuantumMLPipeline:
             return {"loss": avg_loss, "samples": len(X)}
 
     def predict(self, x: np.ndarray):
+        """`대상` 결과를 계산하거나 판정한다."""
         if self.method == QMLMethod.QSVC:
             return self.model.predict(x)
         elif self.method == QMLMethod.QNN:
@@ -180,6 +197,7 @@ class QuantumMLPipeline:
             return self.model.compute(x, x)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "method": self.method.value,
             "n_qubits": self.n_qubits,

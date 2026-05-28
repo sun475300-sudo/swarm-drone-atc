@@ -49,16 +49,19 @@ class PayloadManager:
     """페이로드 관리."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._drones: dict[str, DronePayload] = {}
         self._delivered: list[Cargo] = []
 
     def register_drone(self, drone_id: str, max_payload_kg: float = 5.0, base_weight_kg: float = 2.0) -> None:
+        """`drone` 항목을 추가한다."""
         self._drones[drone_id] = DronePayload(
             drone_id=drone_id, max_payload_kg=max_payload_kg,
             base_weight_kg=base_weight_kg,
         )
 
     def load_cargo(self, drone_id: str, cargo_id: str, weight_kg: float, volume_l: float = 0, priority: int = 5, destination: tuple[float, float] | None = None) -> bool:
+        """`cargo` 정보를 조회한다."""
         d = self._drones.get(drone_id)
         if not d:
             return False
@@ -69,6 +72,7 @@ class PayloadManager:
         return True
 
     def unload_cargo(self, drone_id: str, cargo_id: str) -> bool:
+        """``unload_cargo`` 동작을 수행한다."""
         d = self._drones.get(drone_id)
         if not d:
             return False
@@ -79,12 +83,14 @@ class PayloadManager:
         return False
 
     def current_weight(self, drone_id: str) -> float:
+        """``current_weight`` 동작을 수행한다."""
         d = self._drones.get(drone_id)
         if not d:
             return 0
         return round(d.base_weight_kg + sum(c.weight_kg for c in d.cargo), 2)
 
     def performance_impact(self, drone_id: str) -> PerformanceImpact:
+        """``performance_impact`` 동작을 수행한다."""
         d = self._drones.get(drone_id)
         if not d:
             return PerformanceImpact(0, 0, 0, 0)
@@ -100,15 +106,18 @@ class PayloadManager:
         )
 
     def available_capacity(self, drone_id: str) -> float:
+        """``available_capacity`` 동작을 수행한다."""
         d = self._drones.get(drone_id)
         if not d:
             return 0
         return round(d.max_payload_kg - sum(c.weight_kg for c in d.cargo), 2)
 
     def delivery_count(self) -> int:
+        """``delivery_count`` 동작을 수행한다."""
         return len(self._delivered)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": len(self._drones),
             "total_cargo": sum(len(d.cargo) for d in self._drones.values()),

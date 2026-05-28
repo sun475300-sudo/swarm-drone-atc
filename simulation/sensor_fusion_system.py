@@ -9,6 +9,7 @@ import numpy as np
 
 @dataclass
 class SensorData:
+    """``SensorData`` 관련 기능을 제공한다."""
     sensor_type: str
     data: np.ndarray
     timestamp: float
@@ -16,11 +17,14 @@ class SensorData:
 
 
 class SensorFusionSystem:
+    """``SensorFusionSystem`` 역할을 담당한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.sensor_buffers: dict[str, list[SensorData]] = {}
         self.fused_state = np.zeros(12)
 
     def add_sensor_data(self, data: SensorData):
+        """`sensor data` 항목을 추가한다."""
         if data.sensor_type not in self.sensor_buffers:
             self.sensor_buffers[data.sensor_type] = []
 
@@ -30,6 +34,7 @@ class SensorFusionSystem:
             self.sensor_buffers[data.sensor_type].pop(0)
 
     def fuse(self) -> np.ndarray:
+        """``fuse`` 동작을 수행한다."""
         total_weight = 0
         weighted_sum = np.zeros(12)
 

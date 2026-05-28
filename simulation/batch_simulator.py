@@ -38,10 +38,12 @@ class BatchSimulator:
     """다중 시나리오 배치 실행."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._scenarios: dict[str, ScenarioConfig] = {}
         self._results: dict[str, BatchResult] = {}
 
     def add_scenario(self, scenario_id: str, params: dict[str, Any] | None = None) -> ScenarioConfig:
+        """`scenario` 항목을 추가한다."""
         sc = ScenarioConfig(scenario_id=scenario_id, params=params or {})
         self._scenarios[scenario_id] = sc
         return sc
@@ -75,6 +77,7 @@ class BatchSimulator:
         self, scenario_id: str,
         run_func: Callable[[dict[str, Any]], dict[str, float]],
     ) -> BatchResult | None:
+        """``run_single`` 동작을 수행한다."""
         sc = self._scenarios.get(scenario_id)
         if not sc:
             return None
@@ -112,11 +115,13 @@ class BatchSimulator:
         }
 
     def success_rate(self) -> float:
+        """``success_rate`` 동작을 수행한다."""
         if not self._results:
             return 0.0
         return sum(1 for r in self._results.values() if r.success) / len(self._results) * 100
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "scenarios": len(self._scenarios),
             "completed": len(self._results),

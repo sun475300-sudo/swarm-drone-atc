@@ -19,6 +19,7 @@ import numpy as np
 
 @dataclass
 class Transition:
+    """``Transition`` 관련 기능을 제공한다."""
     state: list[float]
     action: int
     reward: float
@@ -27,17 +28,21 @@ class Transition:
 
 
 class ReplayBuffer:
+    """``ReplayBuffer`` 관련 기능을 제공한다."""
     def __init__(self, capacity: int = 10000, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self._buffer: list[Transition] = []
         self._capacity = capacity
         self._rng = np.random.default_rng(seed)
 
     def push(self, t: Transition) -> None:
+        """``push`` 동작을 수행한다."""
         if len(self._buffer) >= self._capacity:
             self._buffer.pop(0)
         self._buffer.append(t)
 
     def sample(self, batch_size: int) -> list[Transition]:
+        """`대상` 정보를 기록한다."""
         indices = self._rng.choice(len(self._buffer), size=min(batch_size, len(self._buffer)), replace=False)
         return [self._buffer[i] for i in indices]
 
@@ -48,6 +53,7 @@ class ReplayBuffer:
 class SimpleQNetwork:
     """간이 Q-네트워크 (NumPy 기반, 2-layer)"""
     def __init__(self, state_dim: int, n_actions: int, hidden: int = 64, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         rng = np.random.default_rng(seed)
         self.w1 = rng.normal(0, 0.1, (state_dim, hidden))
         self.b1 = np.zeros(hidden)
@@ -55,10 +61,12 @@ class SimpleQNetwork:
         self.b2 = np.zeros(n_actions)
 
     def forward(self, state: np.ndarray) -> np.ndarray:
+        """``forward`` 동작을 수행한다."""
         h = np.maximum(0, state @ self.w1 + self.b1)  # ReLU
         return h @ self.w2 + self.b2
 
     def copy_from(self, other: SimpleQNetwork) -> None:
+        """``copy_from`` 동작을 수행한다."""
         self.w1 = other.w1.copy()
         self.b1 = other.b1.copy()
         self.w2 = other.w2.copy()
@@ -66,10 +74,12 @@ class SimpleQNetwork:
 
 
 class DeepRLController:
+    """``DeepRLController`` 역할을 담당한다."""
     def __init__(self, state_dim: int = 8, n_actions: int = 5,
                  lr: float = 0.001, gamma: float = 0.99,
                  epsilon: float = 1.0, epsilon_min: float = 0.05,
                  epsilon_decay: float = 0.995, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(seed)
         self.state_dim = state_dim
         self.n_actions = n_actions
@@ -91,6 +101,7 @@ class DeepRLController:
         self._target_update_freq = 100
 
     def select_action(self, state: list[float]) -> int:
+        """`action` 동작을 수행한다."""
         self._steps += 1
         if self._rng.random() < self.epsilon:
             return int(self._rng.integers(0, self.n_actions))
@@ -100,6 +111,7 @@ class DeepRLController:
     def store_transition(self, state: list[float], action: int,
                          reward: float, next_state: list[float],
                          done: bool = False) -> None:
+        """``store_transition`` 동작을 수행한다."""
         self._buffer.push(Transition(state, action, reward, next_state, done))
         self._total_reward += reward
         if done:
@@ -107,6 +119,7 @@ class DeepRLController:
             self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
     def train_step(self, batch_size: int = 32) -> float:
+        """``train_step`` 동작을 수행한다."""
         if len(self._buffer) < batch_size:
             return 0.0
 
@@ -157,6 +170,7 @@ class DeepRLController:
         return loss
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "steps": self._steps,
             "episodes": self._episodes,

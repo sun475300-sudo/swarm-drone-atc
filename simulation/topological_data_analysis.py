@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class Simplex:
+    """``Simplex`` 관련 기능을 제공한다."""
     vertices: tuple
     birth: float
     death: float = float('inf')
@@ -19,6 +20,7 @@ class Simplex:
 
 @dataclass
 class PersistenceInterval:
+    """``PersistenceInterval`` 관련 기능을 제공한다."""
     dimension: int
     birth: float
     death: float
@@ -27,6 +29,7 @@ class PersistenceInterval:
 
 @dataclass
 class TopologicalFeatures:
+    """``TopologicalFeatures`` 관련 기능을 제공한다."""
     betti_0: int  # 연결 성분 수
     betti_1: int  # 루프 수
     betti_2: int  # 공동(void) 수
@@ -37,10 +40,12 @@ class VietorisRips:
     """Vietoris-Rips 복합체 구성."""
 
     def __init__(self, max_dim=2):
+        """인스턴스를 초기화한다."""
         self.max_dim = max_dim
         self.simplices: list[Simplex] = []
 
     def build(self, points: np.ndarray, max_radius=50.0, n_steps=20):
+        """`대상` 결과를 생성한다."""
         n = len(points)
         # 거리 행렬
         dist = np.zeros((n, n))
@@ -79,9 +84,11 @@ class PersistentHomology:
     """지속적 호몰로지 계산 (간이)."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.intervals: list[PersistenceInterval] = []
 
     def compute(self, simplices: list[Simplex], max_radius=50.0) -> list[PersistenceInterval]:
+        """`대상` 값을 계산한다."""
         self.intervals.clear()
 
         # Betti-0: 연결 성분 추적 (Union-Find)
@@ -130,6 +137,7 @@ class PersistentHomology:
         return self.intervals
 
     def betti_numbers(self, radius: float) -> tuple[int, int, int]:
+        """``betti_numbers`` 동작을 수행한다."""
         b0 = sum(1 for iv in self.intervals if iv.dimension == 0 and iv.birth <= radius < iv.death)
         b1 = sum(1 for iv in self.intervals if iv.dimension == 1 and iv.birth <= radius < iv.death)
         b2 = sum(1 for iv in self.intervals if iv.dimension == 2 and iv.birth <= radius < iv.death)
@@ -140,6 +148,7 @@ class TopologicalDataAnalysis:
     """TDA 기반 군집 대형 분석."""
 
     def __init__(self, n_drones=20, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.positions = self.rng.uniform(-50, 50, (n_drones, 3))
@@ -148,6 +157,7 @@ class TopologicalDataAnalysis:
         self.features: TopologicalFeatures | None = None
 
     def analyze(self, max_radius=50.0):
+        """`대상` 결과를 계산하거나 판정한다."""
         self.vr.build(self.positions, max_radius, n_steps=15)
         intervals = self.ph.compute(self.vr.simplices, max_radius)
         b0, b1, b2 = self.ph.betti_numbers(max_radius * 0.5)
@@ -155,6 +165,7 @@ class TopologicalDataAnalysis:
         self.features = TopologicalFeatures(b0, b1, b2, total_p)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         if not self.features:
             self.analyze()
         return {

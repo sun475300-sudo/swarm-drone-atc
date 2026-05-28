@@ -9,6 +9,7 @@ import numpy as np
 
 @dataclass
 class LanePoint:
+    """``LanePoint`` 관련 기능을 제공한다."""
     x: float
     y: float
     confidence: float
@@ -16,16 +17,20 @@ class LanePoint:
 
 @dataclass
 class Lane:
+    """``Lane`` 관련 기능을 제공한다."""
     lane_id: int
     points: list[LanePoint]
     lane_type: str
 
 
 class LaneDetectionSystem:
+    """``LaneDetectionSystem`` 역할을 담당한다."""
     def __init__(self, num_lanes: int = 4):
+        """인스턴스를 초기화한다."""
         self.num_lanes = num_lanes
 
     def detect_lanes(self, image: np.ndarray) -> list[Lane]:
+        """`lanes` 결과를 계산하거나 판정한다."""
         lanes = []
 
         for i in range(self.num_lanes):
@@ -42,6 +47,7 @@ class LaneDetectionSystem:
         return lanes
 
     def estimate_center_line(self, lanes: list[Lane]) -> list[LanePoint] | None:
+        """`center line` 결과를 계산하거나 판정한다."""
         if not lanes:
             return None
 

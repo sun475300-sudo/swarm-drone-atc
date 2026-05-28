@@ -10,6 +10,7 @@ class _JsonFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         # 기본 필드 구성
+        """``format`` 동작을 수행한다."""
         entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,

@@ -11,12 +11,14 @@ import numpy as np
 
 
 class AirspaceClass(Enum):
+    """``AirspaceClass`` 관련 기능을 제공한다."""
     RESTRICTED = "restricted"
     CONTROLLED = "controlled"
     OPEN = "open"
 
 
 class PlanStatus(Enum):
+    """``PlanStatus`` 관련 기능을 제공한다."""
     SUBMITTED = "submitted"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -27,6 +29,7 @@ class PlanStatus(Enum):
 
 @dataclass
 class FlightPlan:
+    """``FlightPlan`` 관련 기능을 제공한다."""
     plan_id: str
     operator_id: str
     drone_id: str
@@ -41,6 +44,7 @@ class FlightPlan:
 
 @dataclass
 class NOTAM:
+    """``NOTAM`` 관련 기능을 제공한다."""
     notam_id: str
     area_center: tuple[float, float]
     radius_m: float
@@ -53,6 +57,7 @@ class NOTAM:
 
 @dataclass
 class DroneRegistration:
+    """``DroneRegistration`` 관련 기능을 제공한다."""
     registration_id: str
     drone_id: str
     manufacturer: str
@@ -65,6 +70,7 @@ class KUTMProtocol:
     """Korean UTM standard protocol simulation."""
 
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self._next_id = 0
         self.flight_plans: dict[str, FlightPlan] = {}
@@ -80,6 +86,7 @@ class KUTMProtocol:
         return f"{prefix}-{self._next_id:06d}"
 
     def register_drone(self, drone_spec: dict[str, Any]) -> str:
+        """`drone` 항목을 추가한다."""
         reg_id = self._gen_id("REG")
         self.registered_drones[reg_id] = DroneRegistration(
             registration_id=reg_id,
@@ -92,6 +99,7 @@ class KUTMProtocol:
         return reg_id
 
     def validate_operator_credentials(self, operator_id: str) -> bool:
+        """`operator credentials` 결과를 계산하거나 판정한다."""
         if operator_id not in self.operators:
             self.operators[operator_id] = {
                 "certified": self.rng.random() > 0.1,
@@ -100,6 +108,7 @@ class KUTMProtocol:
         return self.operators[operator_id].get("certified", False)
 
     def submit_flight_plan(self, plan: FlightPlan) -> dict[str, Any]:
+        """``submit_flight_plan`` 동작을 수행한다."""
         conflicts = self.check_airspace_availability(
             plan.waypoints, (plan.departure_time, plan.arrival_time)
         )
@@ -119,12 +128,14 @@ class KUTMProtocol:
         return {"approved": True, "approval_id": approval_id, "plan_id": plan.plan_id}
 
     def cancel_flight_plan(self, plan_id: str) -> bool:
+        """``cancel_flight_plan`` 동작을 수행한다."""
         if plan_id not in self.flight_plans:
             return False
         self.flight_plans[plan_id].status = PlanStatus.CANCELLED
         return True
 
     def update_flight_plan(self, plan_id: str, updates: dict[str, Any]) -> bool:
+        """`flight plan` 상태를 갱신한다."""
         if plan_id not in self.flight_plans:
             return False
         plan = self.flight_plans[plan_id]
@@ -134,6 +145,7 @@ class KUTMProtocol:
         return True
 
     def get_flight_plan_status(self, plan_id: str) -> str:
+        """`flight plan status` 정보를 조회한다."""
         if plan_id not in self.flight_plans:
             return "not_found"
         return self.flight_plans[plan_id].status.value
@@ -142,6 +154,7 @@ class KUTMProtocol:
         self, drone_id: str, position: tuple[float, float, float],
         velocity: tuple[float, float, float], battery: float,
     ) -> bool:
+        """``report_telemetry`` 동작을 수행한다."""
         self.telemetry_log.append({
             "drone_id": drone_id,
             "position": position,
@@ -155,6 +168,7 @@ class KUTMProtocol:
         self, waypoints: list[tuple[float, float, float]],
         time_window: tuple[float, float],
     ) -> list[dict[str, Any]]:
+        """`airspace availability` 결과를 계산하거나 판정한다."""
         conflicts = []
         for wp in waypoints:
             for notam in self.notams:
@@ -170,6 +184,7 @@ class KUTMProtocol:
         return conflicts
 
     def get_notams(self, area_center: tuple[float, float], radius_m: float = 5000.0) -> list[NOTAM]:
+        """`notams` 정보를 조회한다."""
         result = []
         now = time.time()
         for notam in self.notams:
@@ -180,9 +195,11 @@ class KUTMProtocol:
         return result
 
     def add_notam(self, notam: NOTAM) -> None:
+        """`notam` 항목을 추가한다."""
         self.notams.append(notam)
 
     def get_stats(self) -> dict[str, Any]:
+        """`stats` 정보를 조회한다."""
         statuses = {}
         for plan in self.flight_plans.values():
             s = plan.status.value

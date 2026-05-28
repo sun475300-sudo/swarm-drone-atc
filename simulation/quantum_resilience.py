@@ -12,6 +12,7 @@ import numpy as np
 
 
 class EncryptionScheme(Enum):
+    """``EncryptionScheme`` 관련 기능을 제공한다."""
     CLASSICAL_AES256 = "aes256"
     HYBRID_CRYSTALS_KYBER = "crystals_kyber"
     HYBRID_CRYSTALS_DILITHIUM = "crystals_dilithium"
@@ -19,6 +20,7 @@ class EncryptionScheme(Enum):
 
 
 class KeyExchange(Enum):
+    """``KeyExchange`` 관련 기능을 제공한다."""
     ECDH = "ecdh"
     KYBER768 = "kyber768"
     KYBER1024 = "kyber1024"
@@ -26,6 +28,7 @@ class KeyExchange(Enum):
 
 @dataclass
 class QuantumKey:
+    """``QuantumKey`` 관련 기능을 제공한다."""
     key_id: str
     key_material: bytes
     created_at: float
@@ -36,6 +39,7 @@ class QuantumKey:
 
 @dataclass
 class SecureChannel:
+    """``SecureChannel`` 관련 기능을 제공한다."""
     channel_id: str
     drone_id: str
     current_key: QuantumKey
@@ -44,6 +48,7 @@ class SecureChannel:
 
 
 class QuantumResilienceManager:
+    """``QuantumResilienceManager`` 역할을 담당한다."""
     def __init__(
         self,
         default_encryption: EncryptionScheme = EncryptionScheme.HYBRID_CRYSTALS_KYBER,
@@ -51,6 +56,7 @@ class QuantumResilienceManager:
         key_rotation_interval: float = 3600.0,
         hybrid_mode: bool = True,
     ):
+        """인스턴스를 초기화한다."""
         self.default_encryption = default_encryption
         self.default_key_exchange = default_key_exchange
         self.key_rotation_interval = key_rotation_interval
@@ -69,6 +75,7 @@ class QuantumResilienceManager:
         }
 
     def initialize_secure_channel(self, drone_id: str) -> str:
+        """``initialize_secure_channel`` 동작을 수행한다."""
         channel_id = f"channel_{drone_id}_{int(time.time())}"
 
         key = self._generate_quantum_key(drone_id)
@@ -108,6 +115,7 @@ class QuantumResilienceManager:
         )
 
     def rotate_key(self, channel_id: str) -> bool:
+        """``rotate_key`` 동작을 수행한다."""
         if channel_id not in self.secure_channels:
             return False
 
@@ -128,6 +136,7 @@ class QuantumResilienceManager:
         return True
 
     def encrypt(self, channel_id: str, plaintext: bytes) -> bytes:
+        """``encrypt`` 동작을 수행한다."""
         if channel_id not in self.secure_channels:
             raise ValueError(f"Channel {channel_id} not found")
 
@@ -145,6 +154,7 @@ class QuantumResilienceManager:
         return ciphertext
 
     def decrypt(self, channel_id: str, ciphertext: bytes) -> bytes:
+        """``decrypt`` 동작을 수행한다."""
         if channel_id not in self.secure_channels:
             raise ValueError(f"Channel {channel_id} not found")
 
@@ -189,6 +199,7 @@ class QuantumResilienceManager:
         return bytes(decrypted)
 
     def perform_key_exchange(self, drone_id_1: str, drone_id_2: str) -> str:
+        """``perform_key_exchange`` 동작을 수행한다."""
         shared_secret = hashlib.sha256(
             f"{drone_id_1}{drone_id_2}{time.time()}".encode()
         ).digest()
@@ -205,6 +216,7 @@ class QuantumResilienceManager:
         return session_key_id
 
     def verify_quantum_readiness(self) -> dict[str, Any]:
+        """`quantum readiness` 결과를 계산하거나 판정한다."""
         return {
             "post_quantum_ready": self.post_quantum_ready,
             "encryption_scheme": self.default_encryption.value,
@@ -215,9 +227,11 @@ class QuantumResilienceManager:
         }
 
     def get_metrics(self) -> dict[str, Any]:
+        """`metrics` 정보를 조회한다."""
         return self.metrics.copy()
 
     def revoke_key(self, key_id: str) -> bool:
+        """`key` 상태를 정리한다."""
         if key_id not in self.key_store:
             return False
 
@@ -230,6 +244,7 @@ class QuantumResilienceManager:
         return True
 
     def emergency_key_rollover(self, drone_id: str):
+        """``emergency_key_rollover`` 동작을 수행한다."""
         for channel in self.secure_channels.values():
             if channel.drone_id == drone_id:
                 new_key = self._generate_quantum_key(drone_id)

@@ -41,6 +41,7 @@ class DynamicObstacle:
     """동적 장애물 관리."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._obstacles: dict[str, Obstacle] = {}
         self._threats: list[ThreatInfo] = []
 
@@ -49,15 +50,18 @@ class DynamicObstacle:
         velocity: tuple[float, float, float] = (0, 0, 0),
         radius: float = 10, obstacle_type: str = "UNKNOWN",
     ) -> None:
+        """`obstacle` 항목을 추가한다."""
         self._obstacles[obstacle_id] = Obstacle(
             obstacle_id=obstacle_id, obstacle_type=obstacle_type,
             position=pos, velocity=velocity, radius=radius,
         )
 
     def remove_obstacle(self, obstacle_id: str) -> None:
+        """`obstacle` 상태를 정리한다."""
         self._obstacles.pop(obstacle_id, None)
 
     def update_positions(self, dt: float) -> None:
+        """`positions` 상태를 갱신한다."""
         for obs in self._obstacles.values():
             if not obs.active:
                 continue
@@ -66,6 +70,7 @@ class DynamicObstacle:
             )
 
     def predicted_position(self, obstacle_id: str, t_ahead: float) -> tuple[float, float, float] | None:
+        """``predicted_position`` 동작을 수행한다."""
         obs = self._obstacles.get(obstacle_id)
         if not obs:
             return None
@@ -76,6 +81,7 @@ class DynamicObstacle:
         drone_vel: tuple[float, float, float] = (0, 0, 0),
         t: float = 0.0, lookahead: float = 30.0,
     ) -> list[ThreatInfo]:
+        """`threats` 결과를 계산하거나 판정한다."""
         threats = []
         dp = np.array(drone_pos)
         dv = np.array(drone_vel)
@@ -123,9 +129,11 @@ class DynamicObstacle:
         return threats
 
     def active_obstacles(self) -> int:
+        """``active_obstacles`` 동작을 수행한다."""
         return sum(1 for o in self._obstacles.values() if o.active)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         types = {}
         for o in self._obstacles.values():
             types[o.obstacle_type] = types.get(o.obstacle_type, 0) + 1

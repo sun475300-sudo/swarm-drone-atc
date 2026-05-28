@@ -10,6 +10,7 @@ import numpy as np
 
 
 class NavSensor(Enum):
+    """``NavSensor`` 관련 기능을 제공한다."""
     GPS = "gps"
     IMU = "imu"
     VISION = "vision"
@@ -19,6 +20,7 @@ class NavSensor(Enum):
 
 
 class NavHealth(Enum):
+    """``NavHealth`` 관련 기능을 제공한다."""
     NOMINAL = "nominal"
     DEGRADED = "degraded"
     FAILED = "failed"
@@ -26,6 +28,7 @@ class NavHealth(Enum):
 
 @dataclass
 class SensorState:
+    """``SensorState`` 데이터를 표현한다."""
     sensor: NavSensor
     health: NavHealth
     position_est: np.ndarray
@@ -37,6 +40,7 @@ class SensorState:
 
 @dataclass
 class NavSolution:
+    """``NavSolution`` 관련 기능을 제공한다."""
     position: np.ndarray
     velocity: np.ndarray
     heading_deg: float
@@ -49,6 +53,7 @@ class ExtendedKalmanFilter:
     """EKF for sensor fusion navigation."""
 
     def __init__(self, dim: int = 6, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.dim = dim
         self.x = np.zeros(dim)  # [px, py, pz, vx, vy, vz]
@@ -58,11 +63,13 @@ class ExtendedKalmanFilter:
         self.F[:3, 3:6] = np.eye(3) * 0.1  # dt
 
     def predict(self, dt: float = 0.1):
+        """`대상` 결과를 계산하거나 판정한다."""
         self.F[:3, 3:6] = np.eye(3) * dt
         self.x = self.F @ self.x
         self.P = self.F @ self.P @ self.F.T + self.Q * dt
 
     def update(self, z: np.ndarray, H: np.ndarray, R: np.ndarray):
+        """`대상` 상태를 갱신한다."""
         y = z - H @ self.x
         S = H @ self.P @ H.T + R
         try:
@@ -73,6 +80,7 @@ class ExtendedKalmanFilter:
         self.P = (np.eye(self.dim) - K @ H) @ self.P
 
     def state(self) -> tuple[np.ndarray, np.ndarray]:
+        """``state`` 동작을 수행한다."""
         return self.x[:3].copy(), self.x[3:6].copy()
 
 
@@ -80,9 +88,11 @@ class SensorVoter:
     """Triple-redundancy sensor voting."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.vote_log: list[dict] = []
 
     def vote(self, states: list[SensorState]) -> tuple[np.ndarray, float]:
+        """``vote`` 동작을 수행한다."""
         if not states:
             return np.zeros(3), 0.0
         healthy = [s for s in states if s.health != NavHealth.FAILED]
@@ -104,6 +114,7 @@ class FaultTolerantNav:
     """Fault-tolerant navigation system with sensor fusion."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.ekf = ExtendedKalmanFilter(seed=seed)
         self.voter = SensorVoter()
@@ -133,9 +144,11 @@ class FaultTolerantNav:
         return SensorState(sensor, health, pos_est, vel_est, cov, conf, dt)
 
     def inject_fault(self, sensor: NavSensor, health: NavHealth):
+        """``inject_fault`` 동작을 수행한다."""
         self.sensor_health[sensor] = health
 
     def step(self, dt: float = 0.1) -> NavSolution:
+        """`대상` 실행 상태를 제어한다."""
         self.true_pos += self.true_vel * dt + self.rng.standard_normal(3) * 0.01
         self.true_vel += self.rng.standard_normal(3) * 0.05
 
@@ -162,12 +175,14 @@ class FaultTolerantNav:
         return sol
 
     def run(self, duration: float = 10, dt: float = 0.1) -> list[NavSolution]:
+        """메인 실행 루프를 수행한다."""
         sols = []
         for _ in np.arange(0, duration, dt):
             sols.append(self.step(dt))
         return sols
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "solutions": len(self.solutions),
             "avg_confidence": round(np.mean([s.confidence for s in self.solutions]), 4) if self.solutions else 0,

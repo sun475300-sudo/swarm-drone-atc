@@ -34,6 +34,7 @@ class WeatherHazardZone:
     """동적 기상 위험 구역 관리."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._zones: dict[str, HazardZone] = {}
         self._alerts: list[dict[str, Any]] = []
 
@@ -47,6 +48,7 @@ class WeatherHazardZone:
         altitude_range: tuple[float, float] = (0, 500),
         movement: tuple[float, float] = (0, 0),
     ) -> HazardZone:
+        """`zone` 항목을 추가한다."""
         zone = HazardZone(
             zone_id=zone_id, center=center, radius=radius,
             hazard_type=hazard_type, severity=severity,
@@ -56,6 +58,7 @@ class WeatherHazardZone:
         return zone
 
     def remove_zone(self, zone_id: str) -> bool:
+        """`zone` 상태를 정리한다."""
         if zone_id in self._zones:
             self._zones[zone_id].active = False
             return True
@@ -162,9 +165,11 @@ class WeatherHazardZone:
         return not (pos[2] < zone.altitude_range[0] or pos[2] > zone.altitude_range[1])
 
     def active_zones(self) -> list[HazardZone]:
+        """``active_zones`` 동작을 수행한다."""
         return [z for z in self._zones.values() if z.active]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         active = self.active_zones()
         by_type: dict[str, int] = {}
         for z in active:

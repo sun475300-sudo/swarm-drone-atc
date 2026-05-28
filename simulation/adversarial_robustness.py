@@ -11,6 +11,7 @@ import numpy as np
 
 
 class AttackType(Enum):
+    """``AttackType`` 관련 기능을 제공한다."""
     FGSM = "fgsm"
     PGD = "pgd"
     NOISE = "noise"
@@ -19,6 +20,7 @@ class AttackType(Enum):
 
 @dataclass
 class AttackResult:
+    """``AttackResult`` 데이터를 표현한다."""
     attack_type: AttackType
     original_signal: np.ndarray
     perturbed_signal: np.ndarray
@@ -28,6 +30,7 @@ class AttackResult:
 
 @dataclass
 class DefenseResult:
+    """``DefenseResult`` 데이터를 표현한다."""
     detected: int
     blocked: int
     bypassed: int
@@ -39,6 +42,7 @@ class SimpleClassifier:
     """간이 드론 신호 분류기 (2-layer)."""
 
     def __init__(self, input_dim=10, hidden=16, output_dim=3, seed=42):
+        """인스턴스를 초기화한다."""
         rng = np.random.default_rng(seed)
         self.w1 = rng.normal(0, 0.5, (input_dim, hidden))
         self.b1 = np.zeros(hidden)
@@ -46,12 +50,14 @@ class SimpleClassifier:
         self.b2 = np.zeros(output_dim)
 
     def forward(self, x: np.ndarray) -> np.ndarray:
+        """``forward`` 동작을 수행한다."""
         h = np.maximum(0, x @ self.w1 + self.b1)  # ReLU
         logits = h @ self.w2 + self.b2
         exp_l = np.exp(logits - logits.max())
         return exp_l / exp_l.sum()
 
     def predict(self, x: np.ndarray) -> int:
+        """`대상` 결과를 계산하거나 판정한다."""
         return int(np.argmax(self.forward(x)))
 
     def loss_gradient(self, x: np.ndarray, target: int) -> np.ndarray:
@@ -73,9 +79,11 @@ class AdversarialAttacker:
     """적대적 공격 생성기."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
 
     def fgsm(self, model: SimpleClassifier, x: np.ndarray, target: int, epsilon=0.3) -> AttackResult:
+        """``fgsm`` 동작을 수행한다."""
         grad = model.loss_gradient(x, target)
         perturbation = epsilon * np.sign(grad)
         x_adv = x + perturbation
@@ -89,6 +97,7 @@ class AdversarialAttacker:
 
     def pgd(self, model: SimpleClassifier, x: np.ndarray, target: int,
             epsilon=0.3, steps=10, step_size=0.05) -> AttackResult:
+        """``pgd`` 동작을 수행한다."""
         x_adv = x.copy()
         original_pred = model.predict(x)
         for _ in range(steps):
@@ -105,6 +114,7 @@ class AdversarialAttacker:
         )
 
     def noise_attack(self, x: np.ndarray, sigma=0.5) -> np.ndarray:
+        """``noise_attack`` 동작을 수행한다."""
         return x + self.rng.normal(0, sigma, x.shape)
 
 
@@ -112,6 +122,7 @@ class AdversarialDefender:
     """적대적 방어: 입력 정제 + 적대적 훈련."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
 
     def input_smoothing(self, x: np.ndarray, window=3) -> np.ndarray:
@@ -143,6 +154,7 @@ class AdversarialRobustness:
     """적대적 강건성 시뮬레이션 총괄."""
 
     def __init__(self, n_samples=50, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.model = SimpleClassifier(seed=seed)
         self.attacker = AdversarialAttacker(seed)
@@ -152,6 +164,7 @@ class AdversarialRobustness:
         self.attack_results: list[AttackResult] = []
 
     def run_attacks(self, epsilon=0.3) -> dict:
+        """``run_attacks`` 동작을 수행한다."""
         fgsm_success = 0
         pgd_success = 0
         for i in range(len(self.samples)):
@@ -170,6 +183,7 @@ class AdversarialRobustness:
         }
 
     def run_defense(self) -> DefenseResult:
+        """``run_defense`` 동작을 수행한다."""
         detected = 0
         blocked = 0
         bypassed = 0
@@ -201,6 +215,7 @@ class AdversarialRobustness:
                              correct_before / n, correct_after / n)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         attacks = self.run_attacks()
         defense = self.run_defense()
         return {

@@ -19,6 +19,7 @@ class Adapter(OrcaAdapter):
     name = "vo"
 
     def run(self, hard_wall_time_s: float = 300.0) -> SimulationTrace:
+        """메인 실행 루프를 수행한다."""
         from src.utils.rng import get_rng, set_global_seed
 
         set_global_seed(self.seed)

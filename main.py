@@ -40,6 +40,7 @@ def _setup_logging(level: str = "INFO"):
 # ── simulate ─────────────────────────────────────────────────
 
 def cmd_simulate(args: argparse.Namespace) -> None:
+    """``cmd_simulate`` 동작을 수행한다."""
     _setup_logging(getattr(args, "log_level", "INFO"))
     import time as _time
 
@@ -100,6 +101,7 @@ def cmd_simulate(args: argparse.Namespace) -> None:
 # ── scenario ─────────────────────────────────────────────────
 
 def cmd_scenario(args: argparse.Namespace) -> None:
+    """``cmd_scenario`` 동작을 수행한다."""
     _setup_logging(getattr(args, "log_level", "INFO"))
     from simulation.scenario_runner import list_scenarios, run_scenario
 
@@ -149,6 +151,7 @@ def cmd_scenario(args: argparse.Namespace) -> None:
 # ── monte-carlo ──────────────────────────────────────────────
 
 def cmd_monte_carlo(args: argparse.Namespace) -> None:
+    """``cmd_monte_carlo`` 동작을 수행한다."""
     _setup_logging(getattr(args, "log_level", "INFO"))
     from simulation.monte_carlo import run_monte_carlo, summarize_results
 
@@ -183,6 +186,7 @@ def _load_benchmark_manifest(scenario_id: str) -> dict:
 
 
 def cmd_benchmark(args: argparse.Namespace) -> None:
+    """``cmd_benchmark`` 동작을 수행한다."""
     _setup_logging(getattr(args, "log_level", "INFO"))
 
     import json
@@ -259,6 +263,7 @@ def cmd_benchmark(args: argparse.Namespace) -> None:
 
 
 def cmd_visualize(args: argparse.Namespace) -> None:
+    """``cmd_visualize`` 동작을 수행한다."""
     _setup_logging(getattr(args, "log_level", "INFO"))
     import threading
 
@@ -279,6 +284,7 @@ def cmd_visualize(args: argparse.Namespace) -> None:
 # ── visualize-3d ────────────────────────────────────────────
 
 def cmd_visualize_3d(args: argparse.Namespace) -> None:
+    """``cmd_visualize_3d`` 동작을 수행한다."""
     import webbrowser
     from pathlib import Path
 
@@ -295,6 +301,7 @@ def cmd_visualize_3d(args: argparse.Namespace) -> None:
 # ── chatbot ────────────────────────────────────────────────
 
 def cmd_chatbot(args: argparse.Namespace) -> None:
+    """``cmd_chatbot`` 동작을 수행한다."""
     _setup_logging(getattr(args, "log_level", "INFO"))
     from chatbot.app import run_chatbot
 
@@ -309,6 +316,7 @@ def cmd_chatbot(args: argparse.Namespace) -> None:
 # ── chatbot-sim ───────────────────────────────────────────────
 
 def cmd_chatbot_sim(args: argparse.Namespace) -> None:
+    """``cmd_chatbot_sim`` 동작을 수행한다."""
     _setup_logging(getattr(args, "log_level", "INFO"))
     from chatbot.simulator import run_simulator
 
@@ -316,6 +324,7 @@ def cmd_chatbot_sim(args: argparse.Namespace) -> None:
 
 
 def cmd_api(args: argparse.Namespace) -> None:
+    """``cmd_api`` 동작을 수행한다."""
     _setup_logging(getattr(args, "log_level", "INFO"))
     try:
         from api.fastapi_server import run_dev_server
@@ -333,6 +342,7 @@ def cmd_api(args: argparse.Namespace) -> None:
 
 
 def cmd_ops_report(args: argparse.Namespace) -> None:
+    """``cmd_ops_report`` 동작을 수행한다."""
     _setup_logging(getattr(args, "log_level", "INFO"))
     from simulation.compliance_engine import ComplianceEngine
     from simulation.delivery_simulation import DeliverySimulation
@@ -449,6 +459,7 @@ def cmd_ops_report(args: argparse.Namespace) -> None:
 # ── main ─────────────────────────────────────────────────────
 
 def main() -> None:
+    """``main`` 동작을 수행한다."""
     parser = argparse.ArgumentParser(
         prog="sdacs",
         description="군집드론 공역통제 자동화 시스템 (SDACS)",

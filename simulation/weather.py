@@ -18,11 +18,14 @@ class WindModel:
     """기저 클래스 — get_wind_vector(position, t) → [wx, wy, 0]"""
 
     def get_wind_vector(self, position: np.ndarray, t: float) -> np.ndarray:
+        """`wind vector` 정보를 조회한다."""
         return np.zeros(3)
 
 
 class ConstantWind(WindModel):
+    """``ConstantWind`` 관련 기능을 제공한다."""
     def __init__(self, speed_ms: float, direction_deg: float) -> None:
+        """인스턴스를 초기화한다."""
         rad = math.radians(direction_deg)
         self._vec = np.array([
             speed_ms * math.cos(rad),
@@ -31,6 +34,7 @@ class ConstantWind(WindModel):
         ])
 
     def get_wind_vector(self, position: np.ndarray, t: float) -> np.ndarray:
+        """`wind vector` 정보를 조회한다."""
         return self._vec.copy()
 
 
@@ -48,6 +52,7 @@ class VariableWind(WindModel):
         gust_duration_s: float,
         rng: np.random.Generator | None = None,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._rng = rng or np.random.default_rng()
         rad = math.radians(direction_deg)
         self._base = np.array([
@@ -63,6 +68,7 @@ class VariableWind(WindModel):
 
     def get_wind_vector(self, position: np.ndarray, t: float) -> np.ndarray:
         # 돌풍 발생 체크
+        """`wind vector` 정보를 조회한다."""
         if t >= self._next_gust and self._gust_start is None:
             angle = self._rng.uniform(0, 2 * math.pi)
             self._gust_vec = np.array([
@@ -92,12 +98,14 @@ class ShearWind(WindModel):
         direction_deg: float,
         transition_alt_m: float = 60.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._low   = low_alt_speed_ms
         self._high  = high_alt_speed_ms
         self._dir   = math.radians(direction_deg)
         self._trans = transition_alt_m
 
     def get_wind_vector(self, position: np.ndarray, t: float) -> np.ndarray:
+        """`wind vector` 정보를 조회한다."""
         alt    = float(position[2]) if len(position) > 2 else 60.0
         ratio  = float(np.clip(alt / max(self._trans, 1.0), 0.0, 2.0))
         speed  = self._low + (self._high - self._low) * min(ratio, 1.0)

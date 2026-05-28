@@ -14,6 +14,7 @@ import numpy as np
 
 
 class OptimizerType(Enum):
+    """``OptimizerType`` 관련 기능을 제공한다."""
     PSO = "pso"
     ACO = "aco"
     FIREFLY = "firefly"
@@ -22,6 +23,7 @@ class OptimizerType(Enum):
 
 @dataclass
 class Particle:
+    """``Particle`` 관련 기능을 제공한다."""
     position: np.ndarray
     velocity: np.ndarray
     best_position: np.ndarray
@@ -31,6 +33,7 @@ class Particle:
 
 @dataclass
 class Ant:
+    """``Ant`` 관련 기능을 제공한다."""
     path: list[int] = field(default_factory=list)
     path_length: float = float("inf")
     visited: set = field(default_factory=set)
@@ -38,6 +41,7 @@ class Ant:
 
 @dataclass
 class OptimizationResult:
+    """``OptimizationResult`` 데이터를 표현한다."""
     best_position: np.ndarray
     best_fitness: float
     iterations: int
@@ -49,6 +53,7 @@ class PSOEngine:
     """Particle Swarm Optimization 엔진."""
 
     def __init__(self, n_particles: int = 30, w: float = 0.7, c1: float = 1.5, c2: float = 1.5, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self.n_particles = n_particles
         self.w = w  # inertia
@@ -58,6 +63,7 @@ class PSOEngine:
         self.global_best_fitness = float("inf")
 
     def optimize(self, objective: Callable, bounds: list[tuple[float, float]], max_iter: int = 100) -> OptimizationResult:
+        """``optimize`` 동작을 수행한다."""
         dim = len(bounds)
         particles = []
         for _ in range(self.n_particles):
@@ -103,6 +109,7 @@ class ACOEngine:
 
     def __init__(self, n_ants: int = 20, alpha: float = 1.0, beta: float = 2.0,
                  evaporation: float = 0.5, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self.n_ants = n_ants
         self.alpha = alpha  # pheromone importance
@@ -110,6 +117,7 @@ class ACOEngine:
         self.evaporation = evaporation
 
     def solve_tsp(self, distance_matrix: np.ndarray, max_iter: int = 50) -> OptimizationResult:
+        """``solve_tsp`` 동작을 수행한다."""
         n = distance_matrix.shape[0]
         pheromone = np.ones((n, n))
         best_path = list(range(n))
@@ -182,6 +190,7 @@ class SwarmIntelligenceV2:
     """
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._pso = PSOEngine(rng_seed=rng_seed)
         self._aco = ACOEngine(rng_seed=rng_seed)
@@ -189,19 +198,23 @@ class SwarmIntelligenceV2:
 
     def optimize_continuous(self, name: str, objective: Callable,
                            bounds: list[tuple[float, float]], max_iter: int = 100) -> OptimizationResult:
+        """``optimize_continuous`` 동작을 수행한다."""
         result = self._pso.optimize(objective, bounds, max_iter)
         self._results[name] = result
         return result
 
     def optimize_tsp(self, name: str, distance_matrix: np.ndarray, max_iter: int = 50) -> OptimizationResult:
+        """``optimize_tsp`` 동작을 수행한다."""
         result = self._aco.solve_tsp(distance_matrix, max_iter)
         self._results[name] = result
         return result
 
     def get_result(self, name: str) -> OptimizationResult | None:
+        """`result` 정보를 조회한다."""
         return self._results.get(name)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_optimizations": len(self._results),
             "results": {

@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class IntegrationResult:
+    """``IntegrationResult`` 데이터를 표현한다."""
     module_name: str
     phase: int
     execution_time: float
@@ -20,7 +21,9 @@ class IntegrationResult:
 
 
 class Phase650Integration:
+    """``Phase650Integration`` 관련 기능을 제공한다."""
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.results: list[IntegrationResult] = []
         self.total_time = 0.0
@@ -36,6 +39,7 @@ class Phase650Integration:
             return IntegrationResult(name, phase, elapsed, "fail", error=str(e))
 
     def run(self) -> None:
+        """메인 실행 루프를 수행한다."""
         modules = self._get_modules()
         for name, phase, func in modules:
             result = self._run_module(name, phase, func)
@@ -124,6 +128,7 @@ class Phase650Integration:
         return modules
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         passed = sum(1 for r in self.results if r.status == "pass")
         failed = sum(1 for r in self.results if r.status == "fail")
         return {
@@ -135,6 +140,7 @@ class Phase650Integration:
         }
 
     def report(self) -> str:
+        """``report`` 동작을 수행한다."""
         lines = ["=" * 60, "SDACS Phase 650 Integration Report", "=" * 60, ""]
         for r in sorted(self.results, key=lambda x: x.phase):
             status = "PASS" if r.status == "pass" else "FAIL"

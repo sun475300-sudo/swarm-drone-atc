@@ -13,6 +13,7 @@ import sys
 
 
 def main(argv: list[str] | None = None) -> int:
+    """``main`` 동작을 수행한다."""
     args = sys.argv[1:] if argv is None else argv
     if not args:
         print("usage: set_seed.py <seed> [-- <command...>]", file=sys.stderr)

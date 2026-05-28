@@ -12,6 +12,7 @@ import numpy as np
 
 @dataclass
 class BenchmarkResult:
+    """``BenchmarkResult`` 데이터를 표현한다."""
     module_name: str
     execution_time: float  # seconds
     status: str  # "pass" or "fail"
@@ -19,7 +20,9 @@ class BenchmarkResult:
 
 
 class SystemBenchmark:
+    """``SystemBenchmark`` 관련 기능을 제공한다."""
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.results: list[BenchmarkResult] = []
         self.total_time = 0.0
@@ -35,6 +38,7 @@ class SystemBenchmark:
             return BenchmarkResult(name, elapsed, "fail", str(e))
 
     def run(self):
+        """메인 실행 루프를 수행한다."""
         modules = self._get_module_list()
         for name, func in modules:
             result = self._bench_module(name, func)
@@ -85,6 +89,7 @@ class SystemBenchmark:
         return modules
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         passed = sum(1 for r in self.results if r.status == "pass")
         failed = sum(1 for r in self.results if r.status == "fail")
         times = [r.execution_time for r in self.results]
@@ -100,6 +105,7 @@ class SystemBenchmark:
         }
 
     def report(self) -> str:
+        """``report`` 동작을 수행한다."""
         lines = ["=" * 60, "SDACS Phase 640 System Benchmark Report", "=" * 60, ""]
         for r in sorted(self.results, key=lambda x: x.execution_time):
             status = "PASS" if r.status == "pass" else "FAIL"

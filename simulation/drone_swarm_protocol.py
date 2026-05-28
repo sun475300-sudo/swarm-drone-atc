@@ -12,6 +12,7 @@ import numpy as np
 
 
 class MACProtocol(Enum):
+    """``MACProtocol`` 관련 기능을 제공한다."""
     TDMA = "tdma"
     CDMA = "cdma"
     CSMA = "csma"
@@ -19,6 +20,7 @@ class MACProtocol(Enum):
 
 
 class MessagePriority(Enum):
+    """``MessagePriority`` 관련 기능을 제공한다."""
     EMERGENCY = 0
     COLLISION_AVOID = 1
     CONTROL = 2
@@ -29,6 +31,7 @@ class MessagePriority(Enum):
 
 @dataclass
 class SwarmMessage:
+    """``SwarmMessage`` 데이터를 표현한다."""
     msg_id: str
     src: int
     dst: int  # -1 for broadcast
@@ -47,6 +50,7 @@ class SwarmMessage:
 
 @dataclass
 class TimeSlot:
+    """``TimeSlot`` 관련 기능을 제공한다."""
     slot_id: int
     owner: int  # drone_id
     start_us: int
@@ -55,6 +59,7 @@ class TimeSlot:
 
 @dataclass
 class ChannelStats:
+    """``ChannelStats`` 관련 기능을 제공한다."""
     throughput_kbps: float = 0.0
     latency_ms: float = 0.0
     packet_loss: float = 0.0
@@ -67,6 +72,7 @@ class TDMAScheduler:
     """Time-Division Multiple Access scheduler."""
 
     def __init__(self, n_drones: int, frame_duration_us: int = 10000):
+        """인스턴스를 초기화한다."""
         self.n_drones = n_drones
         self.frame_duration = frame_duration_us
         self.slot_duration = frame_duration_us // max(n_drones, 1)
@@ -75,6 +81,7 @@ class TDMAScheduler:
             self.slots.append(TimeSlot(i, i, i * self.slot_duration, self.slot_duration))
 
     def get_slot(self, drone_id: int, time_us: int) -> TimeSlot | None:
+        """`slot` 정보를 조회한다."""
         frame_offset = time_us % self.frame_duration
         for slot in self.slots:
             if slot.owner == drone_id and slot.start_us <= frame_offset < slot.start_us + slot.duration_us:
@@ -82,6 +89,7 @@ class TDMAScheduler:
         return None
 
     def can_transmit(self, drone_id: int, time_us: int) -> bool:
+        """`transmit` 여부를 반환한다."""
         return self.get_slot(drone_id, time_us) is not None
 
 
@@ -89,6 +97,7 @@ class CDMAEncoder:
     """Code-Division Multiple Access with Walsh codes."""
 
     def __init__(self, n_codes: int = 8):
+        """인스턴스를 초기화한다."""
         self.n_codes = n_codes
         self.codes = self._generate_walsh(n_codes)
 
@@ -99,11 +108,13 @@ class CDMAEncoder:
         return np.block([[half, half], [half, -half]])
 
     def encode(self, data: np.ndarray, code_idx: int) -> np.ndarray:
+        """``encode`` 동작을 수행한다."""
         code = self.codes[code_idx % self.n_codes]
         encoded = np.outer(data, code).flatten()
         return encoded
 
     def decode(self, signal: np.ndarray, code_idx: int) -> np.ndarray:
+        """`대상` 입력을 해석한다."""
         code = self.codes[code_idx % self.n_codes]
         n = len(code)
         chunks = len(signal) // n
@@ -115,6 +126,7 @@ class SwarmProtocol:
     """Hybrid MAC protocol for drone swarm communication."""
 
     def __init__(self, n_drones: int = 20, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.tdma = TDMAScheduler(n_drones)
@@ -135,6 +147,7 @@ class SwarmProtocol:
 
     def send(self, src: int, dst: int, payload: bytes,
              priority: MessagePriority = MessagePriority.TELEMETRY) -> SwarmMessage:
+        """``send`` 동작을 수행한다."""
         self._msg_counter += 1
         msg = SwarmMessage(
             f"MSG-{self._msg_counter:06d}", src, dst, priority,
@@ -145,6 +158,7 @@ class SwarmProtocol:
 
     def broadcast(self, src: int, payload: bytes,
                   priority: MessagePriority = MessagePriority.STATUS) -> SwarmMessage:
+        """``broadcast`` 동작을 수행한다."""
         return self.send(src, -1, payload, priority)
 
     def _process_queue(self, drone_id: int) -> list[SwarmMessage]:
@@ -181,6 +195,7 @@ class SwarmProtocol:
         return delivered
 
     def tick(self, dt_us: int = 1000) -> dict:
+        """``tick`` 동작을 수행한다."""
         self.time_us += dt_us
         all_delivered = []
         for i in range(self.n_drones):
@@ -194,6 +209,7 @@ class SwarmProtocol:
         return {"delivered": len(all_delivered), "time_us": self.time_us}
 
     def run(self, duration_ms: int = 1000) -> ChannelStats:
+        """메인 실행 루프를 수행한다."""
         steps = duration_ms
         for _ in range(steps):
             self.tick(1000)
@@ -206,6 +222,7 @@ class SwarmProtocol:
         return self.stats
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "protocol": self.mac_mode.value,
             "drones": self.n_drones,

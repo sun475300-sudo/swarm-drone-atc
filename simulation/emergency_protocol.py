@@ -17,6 +17,7 @@ from typing import Any
 
 
 class EmergencyType(IntEnum):
+    """``EmergencyType`` 관련 기능을 제공한다."""
     COMM_LOSS = 1       # 통신 두절
     ENGINE_FAILURE = 2  # 엔진 고장
     BATTERY_CRITICAL = 3  # 배터리 위급
@@ -26,6 +27,7 @@ class EmergencyType(IntEnum):
 
 
 class EmergencyState(IntEnum):
+    """``EmergencyState`` 데이터를 표현한다."""
     DECLARED = 1   # 선언됨
     RESPONDING = 2  # 대응 중
     CONTAINED = 3  # 억제됨
@@ -109,6 +111,7 @@ class EmergencyManager:
     """
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._emergencies: dict[str, Emergency] = {}
         self._counter = 0
         self._resolved_count = 0
@@ -221,6 +224,7 @@ class EmergencyManager:
 
     @property
     def active_count(self) -> int:
+        """``active_count`` 동작을 수행한다."""
         return len(self.get_active())
 
     def response_time(self, emergency_id: str) -> float:
@@ -240,6 +244,7 @@ class EmergencyManager:
         return sum(times) / len(times) if times else 0.0
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         by_type: dict[str, int] = {}
         for e in self._emergencies.values():
             name = e.emergency_type.name
@@ -260,6 +265,7 @@ class EmergencyManager:
         }
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._emergencies.clear()
         self._counter = 0
         self._resolved_count = 0

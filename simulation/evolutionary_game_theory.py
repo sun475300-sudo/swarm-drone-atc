@@ -12,6 +12,7 @@ import numpy as np
 
 
 class EvoStrategy(Enum):
+    """``EvoStrategy`` 관련 기능을 제공한다."""
     COOPERATE = "cooperate"
     DEFECT = "defect"
     HAWK = "hawk"
@@ -21,6 +22,7 @@ class EvoStrategy(Enum):
 
 @dataclass
 class EvoPlayer:
+    """``EvoPlayer`` 관련 기능을 제공한다."""
     player_id: str
     strategy: EvoStrategy
     fitness: float = 0.0
@@ -29,6 +31,7 @@ class EvoPlayer:
 
 @dataclass
 class EvoGameResult:
+    """``EvoGameResult`` 데이터를 표현한다."""
     player_a: str
     player_b: str
     payoff_a: float
@@ -36,7 +39,9 @@ class EvoGameResult:
 
 
 class EvoPayoffMatrix:
+    """``EvoPayoffMatrix`` 관련 기능을 제공한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.hawk_dove = {
             (EvoStrategy.HAWK, EvoStrategy.HAWK): (-2, -2),
             (EvoStrategy.HAWK, EvoStrategy.DOVE): (3, 0),
@@ -51,6 +56,7 @@ class EvoPayoffMatrix:
         }
 
     def get_payoff(self, s1: EvoStrategy, s2: EvoStrategy, game="pd") -> tuple[float, float]:
+        """`payoff` 정보를 조회한다."""
         matrix = self.pd if game == "pd" else self.hawk_dove
         s1m = EvoStrategy.COOPERATE if s1 == EvoStrategy.TIT_FOR_TAT else s1
         s2m = EvoStrategy.COOPERATE if s2 == EvoStrategy.TIT_FOR_TAT else s2
@@ -58,7 +64,9 @@ class EvoPayoffMatrix:
 
 
 class EvoReplicatorDynamics:
+    """``EvoReplicatorDynamics`` 관련 기능을 제공한다."""
     def __init__(self, strategies: list[EvoStrategy], seed=42):
+        """인스턴스를 초기화한다."""
         self.strategies = strategies
         n = len(strategies)
         self.proportions = np.ones(n) / n
@@ -67,6 +75,7 @@ class EvoReplicatorDynamics:
         self.history: list[np.ndarray] = [self.proportions.copy()]
 
     def step(self, game="pd"):
+        """`대상` 실행 상태를 제어한다."""
         n = len(self.strategies)
         fitness = np.zeros(n)
         for i in range(n):
@@ -81,6 +90,7 @@ class EvoReplicatorDynamics:
         self.history.append(self.proportions.copy())
 
     def is_ess(self) -> list[tuple[EvoStrategy, float]]:
+        """`ess` 여부를 반환한다."""
         ess = []
         for i, s in enumerate(self.strategies):
             if self.proportions[i] > 0.5:
@@ -89,7 +99,9 @@ class EvoReplicatorDynamics:
 
 
 class EvolutionaryGameTheory:
+    """``EvolutionaryGameTheory`` 관련 기능을 제공한다."""
     def __init__(self, n_players=30, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_players = n_players
         self.matrix = EvoPayoffMatrix()
@@ -104,6 +116,7 @@ class EvolutionaryGameTheory:
         self.game_results: list[EvoGameResult] = []
 
     def play_round(self, game="pd"):
+        """``play_round`` 동작을 수행한다."""
         indices = self.rng.permutation(self.n_players)
         for k in range(0, self.n_players - 1, 2):
             i, j = indices[k], indices[k + 1]
@@ -117,11 +130,13 @@ class EvolutionaryGameTheory:
             ))
 
     def evolve(self, n_rounds=20, game="pd"):
+        """``evolve`` 동작을 수행한다."""
         for _ in range(n_rounds):
             self.play_round(game)
             self.replicator.step(game)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         coop_count = sum(1 for p in self.players if p.strategy in (EvoStrategy.COOPERATE, EvoStrategy.DOVE))
         avg_fitness = float(np.mean([p.fitness for p in self.players]))
         ess = self.replicator.is_ess()

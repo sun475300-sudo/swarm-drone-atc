@@ -12,6 +12,7 @@ import numpy as np
 
 
 class NotamCategory(Enum):
+    """``NotamCategory`` 관련 기능을 제공한다."""
     AIRSPACE = "airspace"
     OBSTACLE = "obstacle"
     HAZARD = "hazard"
@@ -20,6 +21,7 @@ class NotamCategory(Enum):
 
 
 class NotamStatus(Enum):
+    """``NotamStatus`` 관련 기능을 제공한다."""
     DRAFT = "draft"
     ACTIVE = "active"
     EXPIRED = "expired"
@@ -28,6 +30,7 @@ class NotamStatus(Enum):
 
 @dataclass
 class NotamRecord:
+    """``NotamRecord`` 데이터를 표현한다."""
     notam_id: str
     category: NotamCategory
     area_center: tuple[float, float]
@@ -55,6 +58,7 @@ class NotamManager:
         max_history: int = _DEFAULT_HISTORY_CAP,
         max_notams: int = _DEFAULT_NOTAM_CAP,
     ) -> None:
+        """인스턴스를 초기화한다."""
         if max_history <= 0:
             raise ValueError("max_history must be positive")
         if max_notams <= 0:
@@ -81,6 +85,7 @@ class NotamManager:
         description: str,
         issuer: str = "ATC",
     ) -> str:
+        """`notam` 결과를 생성한다."""
         if not isinstance(category, NotamCategory):
             raise ValueError(
                 f"category must be a NotamCategory enum, got {type(category).__name__!r}"
@@ -135,6 +140,7 @@ class NotamManager:
             del self.history[:overflow]
 
     def cancel_notam(self, notam_id: str) -> bool:
+        """``cancel_notam`` 동작을 수행한다."""
         if notam_id not in self.notams:
             return False
         self.notams[notam_id].status = NotamStatus.CANCELLED
@@ -142,6 +148,7 @@ class NotamManager:
         return True
 
     def expire_old(self) -> int:
+        """``expire_old`` 동작을 수행한다."""
         now = time.time()
         expired = 0
         for rec in self.notams.values():
@@ -166,6 +173,7 @@ class NotamManager:
         return len(terminal)
 
     def extend_notam(self, notam_id: str, extra_hours: float) -> bool:
+        """``extend_notam`` 동작을 수행한다."""
         if notam_id not in self.notams or not math.isfinite(extra_hours) or extra_hours <= 0:
             return False
         rec = self.notams[notam_id]
@@ -187,6 +195,7 @@ class NotamManager:
         radius_m: float = 10000.0,
         altitude: float | None = None,
     ) -> list[NotamRecord]:
+        """``query_active`` 동작을 수행한다."""
         if radius_m < 0:
             raise ValueError("radius_m must be non-negative")
         if altitude is not None and not math.isfinite(altitude):
@@ -207,9 +216,11 @@ class NotamManager:
         return result
 
     def get(self, notam_id: str) -> NotamRecord | None:
+        """`대상` 정보를 조회한다."""
         return self.notams.get(notam_id)
 
     def count_by_status(self) -> dict[str, int]:
+        """``count_by_status`` 동작을 수행한다."""
         counts: dict[str, int] = {}
         for rec in self.notams.values():
             s = rec.status.value
@@ -217,6 +228,7 @@ class NotamManager:
         return counts
 
     def get_stats(self) -> dict[str, Any]:
+        """`stats` 정보를 조회한다."""
         return {
             "total": len(self.notams),
             "by_status": self.count_by_status(),

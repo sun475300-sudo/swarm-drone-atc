@@ -13,6 +13,7 @@ import numpy as np
 
 @dataclass
 class TrajectoryPrediction:
+    """``TrajectoryPrediction`` 관련 기능을 제공한다."""
     drone_id: str
     positions: list[np.ndarray]  # future positions
     velocities: list[np.ndarray]
@@ -22,6 +23,7 @@ class TrajectoryPrediction:
 
 @dataclass
 class CollisionRisk:
+    """``CollisionRisk`` 관련 기능을 제공한다."""
     drone_a: str
     drone_b: str
     min_distance: float
@@ -32,6 +34,7 @@ class CollisionRisk:
 
 @dataclass
 class AvoidanceManeuver:
+    """``AvoidanceManeuver`` 관련 기능을 제공한다."""
     drone_id: str
     velocity_adjustment: np.ndarray
     start_time: float
@@ -43,6 +46,7 @@ class ExtendedKalmanPredictor:
     """확장 칼만 필터 기반 궤적 예측기."""
 
     def __init__(self, dt: float = 0.1, process_noise: float = 0.5):
+        """인스턴스를 초기화한다."""
         self.dt = dt
         self.process_noise = process_noise
 
@@ -50,6 +54,7 @@ class ExtendedKalmanPredictor:
         self, position: np.ndarray, velocity: np.ndarray,
         acceleration: np.ndarray | None = None, horizon_sec: float = 5.0,
     ) -> tuple[list[np.ndarray], list[np.ndarray], list[float]]:
+        """`trajectory` 결과를 계산하거나 판정한다."""
         if acceleration is None:
             acceleration = np.zeros(3)
         n_steps = int(horizon_sec / self.dt)
@@ -71,6 +76,7 @@ class ORCAVelocityPlanner:
     """ORCA 기반 속도 계획기."""
 
     def __init__(self, tau: float = 3.0, safety_radius: float = 5.0):
+        """인스턴스를 초기화한다."""
         self.tau = tau
         self.safety_radius = safety_radius
 
@@ -79,6 +85,7 @@ class ORCAVelocityPlanner:
         neighbors: list[tuple[np.ndarray, np.ndarray, float]], preferred_vel: np.ndarray,
         max_speed: float = 15.0,
     ) -> np.ndarray:
+        """`orca velocity` 값을 계산한다."""
         orca_planes = []
         for nb_pos, nb_vel, nb_radius in neighbors:
             rel_pos = nb_pos - agent_pos
@@ -124,6 +131,7 @@ class PredictiveCollisionAvoidance:
     """
 
     def __init__(self, safety_distance: float = 10.0, prediction_horizon: float = 5.0, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self.safety_distance = safety_distance
         self.prediction_horizon = prediction_horizon
@@ -136,9 +144,11 @@ class PredictiveCollisionAvoidance:
         self._history: list[dict] = []
 
     def update_state(self, drone_id: str, position: np.ndarray, velocity: np.ndarray):
+        """`state` 상태를 갱신한다."""
         self._drone_states[drone_id] = (position.copy(), velocity.copy())
 
     def predict_all(self) -> dict[str, TrajectoryPrediction]:
+        """`all` 결과를 계산하거나 판정한다."""
         self._predictions.clear()
         for did, (pos, vel) in self._drone_states.items():
             positions, velocities, confidences = self._predictor.predict_trajectory(
@@ -153,6 +163,7 @@ class PredictiveCollisionAvoidance:
         return self._predictions
 
     def assess_risks(self) -> list[CollisionRisk]:
+        """``assess_risks`` 동작을 수행한다."""
         self._risks.clear()
         drone_ids = list(self._predictions.keys())
         for i in range(len(drone_ids)):
@@ -188,6 +199,7 @@ class PredictiveCollisionAvoidance:
         return self._risks
 
     def compute_avoidance(self, drone_id: str, preferred_vel: np.ndarray | None = None) -> AvoidanceManeuver | None:
+        """`avoidance` 값을 계산한다."""
         state = self._drone_states.get(drone_id)
         if not state:
             return None
@@ -229,6 +241,7 @@ class PredictiveCollisionAvoidance:
         return {"risks": len(risks), "critical_drones": len(critical_drones), "maneuvers": len(maneuvers)}
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         risk_levels = {}
         for r in self._risks:
             risk_levels[r.risk_level] = risk_levels.get(r.risk_level, 0) + 1

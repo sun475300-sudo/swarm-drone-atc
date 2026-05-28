@@ -77,6 +77,7 @@ class TelemetrySnapshot:
     gps_fix_type: int
 
     def to_json(self) -> str:
+        """``to_json`` 동작을 수행한다."""
         return json.dumps(
             {
                 "drone_id": self.drone_id,
@@ -94,6 +95,7 @@ class TelemetrySnapshot:
 
 @dataclass(frozen=True)
 class BridgeConfig:
+    """``BridgeConfig`` 데이터를 표현한다."""
     drone_id: int
     mavlink_uri: str
     ground_uri: str
@@ -114,6 +116,7 @@ class MavlinkAdapter:
     """
 
     def __init__(self, uri: str) -> None:
+        """인스턴스를 초기화한다."""
         self.uri = uri
         self._connection = None
         # Per-instance aggregated state - not class-level so each adapter tracks
@@ -125,6 +128,7 @@ class MavlinkAdapter:
 
     async def connect(self) -> None:
         # Deferred import so tests can import this module without pymavlink installed.
+        """``connect`` 동작을 수행한다."""
         try:
             from pymavlink import mavutil  # type: ignore
         except ImportError as exc:
@@ -161,6 +165,7 @@ class MavlinkAdapter:
         return "|".join(flags) if flags else "UNKNOWN"
 
     async def poll_telemetry(self, drone_id: int) -> TelemetrySnapshot | None:
+        """``poll_telemetry`` 동작을 수행한다."""
         if self._connection is None:
             raise RuntimeError("not connected")
 
@@ -308,6 +313,7 @@ class MavlinkAdapter:
         return False
 
     async def close(self) -> None:
+        """``close`` 동작을 수행한다."""
         if self._connection is not None:
             self._connection.close()
             self._connection = None
@@ -323,11 +329,13 @@ class GroundLink:
     """
 
     def __init__(self, uri: str, drone_id: int) -> None:
+        """인스턴스를 초기화한다."""
         self.uri = uri
         self.drone_id = drone_id
         self._ws = None
 
     async def connect(self) -> None:
+        """``connect`` 동작을 수행한다."""
         try:
             import websockets  # type: ignore
         except ImportError as exc:
@@ -340,6 +348,7 @@ class GroundLink:
         await self._ws.send(json.dumps({"type": "hello", "drone_id": self.drone_id}))  # type: ignore[attr-defined]
 
     async def publish(self, snapshot: TelemetrySnapshot) -> None:
+        """``publish`` 동작을 수행한다."""
         if self._ws is None:
             raise RuntimeError("ground link not connected")
         await self._ws.send(snapshot.to_json())
@@ -357,6 +366,7 @@ class GroundLink:
             raise RuntimeError(f"ground recv error: {exc}") from exc
 
     async def close(self) -> None:
+        """``close`` 동작을 수행한다."""
         if self._ws is not None:
             await self._ws.close()
             self._ws = None
@@ -369,6 +379,7 @@ class RemoteIDTransport:
     """Minimal transport interface for ASTM F3411 broadcast backends."""
 
     def emit(self, snapshot: TelemetrySnapshot) -> None:
+        """``emit`` 동작을 수행한다."""
         raise NotImplementedError
 
 
@@ -376,6 +387,7 @@ class LogRemoteIDTransport(RemoteIDTransport):
     """Fallback transport that logs the broadcast frame."""
 
     def emit(self, snapshot: TelemetrySnapshot) -> None:
+        """``emit`` 동작을 수행한다."""
         LOGGER.debug(
             "remote_id frame drone=%d lat=%.6f lon=%.6f alt=%.1fm",
             snapshot.drone_id,
@@ -389,9 +401,11 @@ class CallableRemoteIDTransport(RemoteIDTransport):
     """Adapter for externally supplied transport callables."""
 
     def __init__(self, emitter: Callable[[TelemetrySnapshot], None]) -> None:
+        """인스턴스를 초기화한다."""
         self._emitter = emitter
 
     def emit(self, snapshot: TelemetrySnapshot) -> None:
+        """``emit`` 동작을 수행한다."""
         self._emitter(snapshot)
 
 
@@ -458,6 +472,7 @@ class BridgeState:
 
 
 class OnboardBridge:
+    """``OnboardBridge`` 역할을 담당한다."""
     def __init__(
         self,
         config: BridgeConfig,
@@ -465,6 +480,7 @@ class OnboardBridge:
         ground: GroundLink,
         remote_id_transport: RemoteIDTransport | None = None,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.config = config
         self.mav = mav
         self.ground = ground
@@ -475,6 +491,7 @@ class OnboardBridge:
         self._connection_generation = 0
 
     async def run(self) -> int:
+        """메인 실행 루프를 수행한다."""
         try:
             await self._connect_with_retry()
         except RuntimeError as exc:
@@ -495,6 +512,7 @@ class OnboardBridge:
         return 0
 
     async def stop(self) -> None:
+        """`대상` 실행 상태를 제어한다."""
         self._stop_event.set()
 
     async def _connect_with_retry(self) -> None:
@@ -651,6 +669,7 @@ class OnboardBridge:
 
 
 def parse_args(argv: list[str]) -> BridgeConfig:
+    """`args` 입력을 해석한다."""
     parser = argparse.ArgumentParser(prog="onboard_bridge")
     parser.add_argument("--drone-id", type=int, required=True)
     parser.add_argument("--mavlink-uri", required=True, help="e.g. udp:0.0.0.0:14550")
@@ -702,6 +721,7 @@ async def _async_main(config: BridgeConfig) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """``main`` 동작을 수행한다."""
     config = parse_args(argv if argv is not None else sys.argv[1:])
     return asyncio.run(_async_main(config))
 

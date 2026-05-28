@@ -13,6 +13,7 @@ import numpy as np
 
 
 class V2XMode(Enum):
+    """``V2XMode`` 관련 기능을 제공한다."""
     V2V = "v2v"  # Drone-to-Drone
     V2I = "v2i"  # Drone-to-Infrastructure
     V2N = "v2n"  # Drone-to-Network
@@ -20,6 +21,7 @@ class V2XMode(Enum):
 
 
 class MessageType(Enum):
+    """``MessageType`` 관련 기능을 제공한다."""
     BSM = "basic_safety_message"
     CAM = "cooperative_awareness"
     DENM = "decentralized_event_notification"
@@ -29,6 +31,7 @@ class MessageType(Enum):
 
 @dataclass
 class V2XMessage:
+    """``V2XMessage`` 데이터를 표현한다."""
     msg_id: str
     sender: str
     msg_type: MessageType
@@ -43,6 +46,7 @@ class V2XMessage:
 
 @dataclass
 class V2XEndpoint:
+    """``V2XEndpoint`` 관련 기능을 제공한다."""
     endpoint_id: str
     position: np.ndarray
     mode: V2XMode
@@ -57,12 +61,14 @@ class ChannelModel:
 
     @staticmethod
     def packet_delivery_ratio(distance_m: float, max_range: float = 300.0) -> float:
+        """``packet_delivery_ratio`` 동작을 수행한다."""
         if distance_m > max_range:
             return 0.0
         return max(0.0, 1.0 - (distance_m / max_range) ** 2)
 
     @staticmethod
     def latency_ms(distance_m: float, mode: V2XMode) -> float:
+        """``latency_ms`` 동작을 수행한다."""
         base = {"v2v": 2.0, "v2i": 5.0, "v2n": 20.0, "v2p": 10.0}
         return base.get(mode.value, 10.0) + distance_m / 3e5
 
@@ -77,6 +83,7 @@ class V2XCommunicationSystem:
     """
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._endpoints: dict[str, V2XEndpoint] = {}
         self._message_log: list[V2XMessage] = []
@@ -85,9 +92,11 @@ class V2XCommunicationSystem:
         self._msg_counter = 0
 
     def register_endpoint(self, endpoint: V2XEndpoint):
+        """`endpoint` 항목을 추가한다."""
         self._endpoints[endpoint.endpoint_id] = endpoint
 
     def send_bsm(self, sender_id: str, position: np.ndarray, velocity: np.ndarray, timestamp: float = 0.0) -> V2XMessage:
+        """``send_bsm`` 동작을 수행한다."""
         self._msg_counter += 1
         msg = V2XMessage(
             msg_id=f"BSM-{self._msg_counter:06d}", sender=sender_id,
@@ -102,6 +111,7 @@ class V2XCommunicationSystem:
         return msg
 
     def send_denm(self, sender_id: str, event_type: str, position: np.ndarray, timestamp: float = 0.0) -> V2XMessage:
+        """``send_denm`` 동작을 수행한다."""
         self._msg_counter += 1
         msg = V2XMessage(
             msg_id=f"DENM-{self._msg_counter:06d}", sender=sender_id,
@@ -134,6 +144,7 @@ class V2XCommunicationSystem:
         return delivered_to
 
     def multicast(self, msg: V2XMessage, targets: list[str]) -> list[str]:
+        """``multicast`` 동작을 수행한다."""
         delivered = []
         sender_ep = self._endpoints.get(msg.sender)
         if not sender_ep:
@@ -150,6 +161,7 @@ class V2XCommunicationSystem:
         return delivered
 
     def get_neighbors(self, endpoint_id: str) -> list[str]:
+        """`neighbors` 정보를 조회한다."""
         ep = self._endpoints.get(endpoint_id)
         if not ep:
             return []
@@ -162,6 +174,7 @@ class V2XCommunicationSystem:
         return neighbors
 
     def get_delivery_stats(self) -> dict:
+        """`delivery stats` 정보를 조회한다."""
         if not self._delivery_log:
             return {"total": 0, "avg_latency_ms": 0, "avg_distance_m": 0}
         latencies = [d["latency_ms"] for d in self._delivery_log]
@@ -174,6 +187,7 @@ class V2XCommunicationSystem:
         }
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         total_sent = sum(ep.messages_sent for ep in self._endpoints.values())
         total_recv = sum(ep.messages_received for ep in self._endpoints.values())
         return {

@@ -13,12 +13,14 @@ import numpy as np
 
 
 class NodeRole(Enum):
+    """``NodeRole`` 관련 기능을 제공한다."""
     FOLLOWER = "follower"
     CANDIDATE = "candidate"
     LEADER = "leader"
 
 
 class LogEntryType(Enum):
+    """``LogEntryType`` 관련 기능을 제공한다."""
     COMMAND = "command"
     CONFIG_CHANGE = "config_change"
     NO_OP = "no_op"
@@ -26,6 +28,7 @@ class LogEntryType(Enum):
 
 @dataclass
 class LogEntry:
+    """``LogEntry`` 데이터를 표현한다."""
     term: int
     index: int
     entry_type: LogEntryType
@@ -34,6 +37,7 @@ class LogEntry:
 
 @dataclass
 class ConsensusNode:
+    """``ConsensusNode`` 관련 기능을 제공한다."""
     node_id: str
     role: NodeRole = NodeRole.FOLLOWER
     current_term: int = 0
@@ -55,6 +59,7 @@ class RaftConsensus:
     """
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._nodes: dict[str, ConsensusNode] = {}
         self._leader_id: str | None = None
@@ -62,20 +67,24 @@ class RaftConsensus:
         self._committed_entries: list[LogEntry] = []
 
     def add_node(self, node_id: str) -> ConsensusNode:
+        """`node` 항목을 추가한다."""
         node = ConsensusNode(node_id=node_id)
         self._nodes[node_id] = node
         return node
 
     def remove_node(self, node_id: str):
+        """`node` 상태를 정리한다."""
         self._nodes.pop(node_id, None)
         if self._leader_id == node_id:
             self._leader_id = None
 
     @property
     def quorum_size(self) -> int:
+        """``quorum_size`` 동작을 수행한다."""
         return len(self._nodes) // 2 + 1
 
     def start_election(self, candidate_id: str) -> bool:
+        """`election` 실행 상태를 제어한다."""
         node = self._nodes.get(candidate_id)
         if not node or not node.is_alive:
             return False
@@ -107,6 +116,7 @@ class RaftConsensus:
         return False
 
     def propose(self, data: dict) -> LogEntry | None:
+        """``propose`` 동작을 수행한다."""
         if not self._leader_id:
             return None
         leader = self._nodes.get(self._leader_id)
@@ -135,12 +145,15 @@ class RaftConsensus:
         return None
 
     def get_leader(self) -> str | None:
+        """`leader` 정보를 조회한다."""
         return self._leader_id
 
     def get_node(self, node_id: str) -> ConsensusNode | None:
+        """`node` 정보를 조회한다."""
         return self._nodes.get(node_id)
 
     def kill_node(self, node_id: str):
+        """``kill_node`` 동작을 수행한다."""
         node = self._nodes.get(node_id)
         if node:
             node.is_alive = False
@@ -148,6 +161,7 @@ class RaftConsensus:
                 self._leader_id = None
 
     def revive_node(self, node_id: str):
+        """``revive_node`` 동작을 수행한다."""
         node = self._nodes.get(node_id)
         if node:
             node.is_alive = True
@@ -155,6 +169,7 @@ class RaftConsensus:
             node.voted_for = None
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         alive = sum(1 for n in self._nodes.values() if n.is_alive)
         return {
             "total_nodes": len(self._nodes),

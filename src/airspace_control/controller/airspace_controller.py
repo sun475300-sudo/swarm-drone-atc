@@ -78,6 +78,7 @@ class AirspaceController:
         config: dict,
         analytics: SimulationAnalytics | None = None,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.env = env
         self.comm_bus = comm_bus
         self.planner = planner

@@ -40,6 +40,7 @@ class MissionEvaluator:
     """임무 결과 평가."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._records: dict[str, MissionRecord] = {}
 
     def record_mission(
@@ -48,6 +49,7 @@ class MissionEvaluator:
         energy_wh: float = 0.0, incidents: int = 0,
         on_time: bool = True, drone_id: str = "",
     ) -> MissionRecord:
+        """`mission` 정보를 기록한다."""
         record = MissionRecord(
             mission_id=mission_id, success=success,
             duration_s=duration_s, distance_m=distance_m,
@@ -58,6 +60,7 @@ class MissionEvaluator:
         return record
 
     def evaluate(self, mission_id: str) -> EvaluationResult:
+        """`대상` 결과를 계산하거나 판정한다."""
         record = self._records.get(mission_id)
         if not record:
             return EvaluationResult(mission_id, 0, "F", ["임무 기록 없음"])
@@ -103,16 +106,19 @@ class MissionEvaluator:
         return EvaluationResult(mission_id=mission_id, score=score, grade=grade, recommendations=recs)
 
     def success_rate(self) -> float:
+        """``success_rate`` 동작을 수행한다."""
         if not self._records:
             return 0.0
         return sum(1 for r in self._records.values() if r.success) / len(self._records) * 100
 
     def on_time_rate(self) -> float:
+        """``on_time_rate`` 동작을 수행한다."""
         if not self._records:
             return 0.0
         return sum(1 for r in self._records.values() if r.on_time) / len(self._records) * 100
 
     def grade_distribution(self) -> dict[str, int]:
+        """``grade_distribution`` 동작을 수행한다."""
         dist: dict[str, int] = {}
         for mid in self._records:
             grade = self.evaluate(mid).grade
@@ -120,6 +126,7 @@ class MissionEvaluator:
         return dist
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_missions": len(self._records),
             "success_rate": round(self.success_rate(), 1),

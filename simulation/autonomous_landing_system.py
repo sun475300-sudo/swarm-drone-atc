@@ -13,6 +13,7 @@ import numpy as np
 
 
 class LandingPhase(Enum):
+    """``LandingPhase`` 관련 기능을 제공한다."""
     APPROACH = "approach"
     ALIGNMENT = "alignment"
     DESCENT = "descent"
@@ -22,6 +23,7 @@ class LandingPhase(Enum):
 
 
 class PadStatus(Enum):
+    """``PadStatus`` 관련 기능을 제공한다."""
     AVAILABLE = "available"
     RESERVED = "reserved"
     OCCUPIED = "occupied"
@@ -30,6 +32,7 @@ class PadStatus(Enum):
 
 @dataclass
 class LandingPad:
+    """``LandingPad`` 관련 기능을 제공한다."""
     pad_id: str
     position: np.ndarray
     status: PadStatus = PadStatus.AVAILABLE
@@ -40,6 +43,7 @@ class LandingPad:
 
 @dataclass
 class LandingSequence:
+    """``LandingSequence`` 관련 기능을 제공한다."""
     drone_id: str
     pad_id: str
     phase: LandingPhase = LandingPhase.APPROACH
@@ -55,6 +59,7 @@ class DescentProfile:
 
     @staticmethod
     def standard_descent(start_alt: float, rate: float, dt: float = 0.1) -> list[float]:
+        """``standard_descent`` 동작을 수행한다."""
         altitudes = []
         alt = start_alt
         while alt > 0:
@@ -64,6 +69,7 @@ class DescentProfile:
 
     @staticmethod
     def exponential_descent(start_alt: float, tau: float = 5.0, dt: float = 0.1) -> list[float]:
+        """``exponential_descent`` 동작을 수행한다."""
         altitudes = []
         alt = start_alt
         t = 0.0
@@ -78,6 +84,7 @@ class DescentProfile:
     def wind_corrected_trajectory(
         start_pos: np.ndarray, pad_pos: np.ndarray, wind: np.ndarray, n_points: int = 50
     ) -> list[np.ndarray]:
+        """``wind_corrected_trajectory`` 동작을 수행한다."""
         trajectory = []
         for i in range(n_points):
             t = i / (n_points - 1)
@@ -98,6 +105,7 @@ class AutonomousLandingSystem:
     """
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._pads: dict[str, LandingPad] = {}
         self._sequences: dict[str, LandingSequence] = {}
@@ -105,9 +113,11 @@ class AutonomousLandingSystem:
         self._profile = DescentProfile()
 
     def add_pad(self, pad: LandingPad):
+        """`pad` 항목을 추가한다."""
         self._pads[pad.pad_id] = pad
 
     def reserve_pad(self, pad_id: str, drone_id: str) -> bool:
+        """``reserve_pad`` 동작을 수행한다."""
         pad = self._pads.get(pad_id)
         if not pad or pad.status != PadStatus.AVAILABLE:
             return False
@@ -116,6 +126,7 @@ class AutonomousLandingSystem:
         return True
 
     def find_best_pad(self, drone_pos: np.ndarray, wind: np.ndarray | None = None) -> str | None:
+        """``find_best_pad`` 동작을 수행한다."""
         best_id, best_score = None, float("inf")
         for pad in self._pads.values():
             if pad.status != PadStatus.AVAILABLE:
@@ -129,6 +140,7 @@ class AutonomousLandingSystem:
         return best_id
 
     def initiate_landing(self, drone_id: str, pad_id: str, is_emergency: bool = False) -> LandingSequence | None:
+        """``initiate_landing`` 동작을 수행한다."""
         pad = self._pads.get(pad_id)
         if not pad:
             return None
@@ -144,6 +156,7 @@ class AutonomousLandingSystem:
         return seq
 
     def advance_phase(self, drone_id: str) -> LandingPhase | None:
+        """``advance_phase`` 동작을 수행한다."""
         seq = self._sequences.get(drone_id)
         if not seq:
             return None
@@ -158,6 +171,7 @@ class AutonomousLandingSystem:
         return seq.phase
 
     def abort_landing(self, drone_id: str) -> bool:
+        """``abort_landing`` 동작을 수행한다."""
         seq = self._sequences.get(drone_id)
         if not seq or seq.phase == LandingPhase.LANDED:
             return False
@@ -170,6 +184,7 @@ class AutonomousLandingSystem:
         return True
 
     def complete_landing(self, drone_id: str) -> bool:
+        """``complete_landing`` 동작을 수행한다."""
         seq = self._sequences.get(drone_id)
         if not seq:
             return False
@@ -178,6 +193,7 @@ class AutonomousLandingSystem:
         return True
 
     def release_pad(self, pad_id: str) -> bool:
+        """``release_pad`` 동작을 수행한다."""
         pad = self._pads.get(pad_id)
         if not pad:
             return False
@@ -186,15 +202,18 @@ class AutonomousLandingSystem:
         return True
 
     def get_descent_profile(self, drone_id: str) -> list[float]:
+        """`descent profile` 정보를 조회한다."""
         seq = self._sequences.get(drone_id)
         if not seq:
             return []
         return self._profile.standard_descent(seq.approach_altitude, seq.descent_rate)
 
     def get_sequence(self, drone_id: str) -> LandingSequence | None:
+        """`sequence` 정보를 조회한다."""
         return self._sequences.get(drone_id)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         available = sum(1 for p in self._pads.values() if p.status == PadStatus.AVAILABLE)
         active = sum(1 for s in self._sequences.values() if s.phase not in (LandingPhase.LANDED, LandingPhase.ABORTED))
         return {

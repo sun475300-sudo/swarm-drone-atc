@@ -10,6 +10,7 @@ import numpy as np
 
 
 class MissionPriority(Enum):
+    """``MissionPriority`` 관련 기능을 제공한다."""
     CRITICAL = 4
     HIGH = 3
     MEDIUM = 2
@@ -18,6 +19,7 @@ class MissionPriority(Enum):
 
 
 class TaskStatus(Enum):
+    """``TaskStatus`` 관련 기능을 제공한다."""
     PENDING = "pending"
     ASSIGNED = "assigned"
     IN_PROGRESS = "in_progress"
@@ -28,6 +30,7 @@ class TaskStatus(Enum):
 
 @dataclass
 class MissionTask:
+    """``MissionTask`` 관련 기능을 제공한다."""
     task_id: str
     position: np.ndarray
     priority: MissionPriority
@@ -40,6 +43,7 @@ class MissionTask:
 
 @dataclass
 class DroneCapability:
+    """``DroneCapability`` 관련 기능을 제공한다."""
     drone_id: str
     position: np.ndarray
     speed_ms: float
@@ -50,6 +54,7 @@ class DroneCapability:
 
 @dataclass
 class Assignment:
+    """``Assignment`` 관련 기능을 제공한다."""
     drone_id: str
     task_id: str
     eta_s: float
@@ -61,10 +66,12 @@ class HungarianAssigner:
     """Task assignment using auction-based approximation."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
 
     def compute_cost_matrix(self, drones: list[DroneCapability],
                             tasks: list[MissionTask]) -> np.ndarray:
+        """`cost matrix` 값을 계산한다."""
         n_d = len(drones)
         n_t = len(tasks)
         cost = np.full((n_d, n_t), 1e6)
@@ -79,6 +86,7 @@ class HungarianAssigner:
 
     def assign(self, drones: list[DroneCapability],
                tasks: list[MissionTask]) -> list[Assignment]:
+        """`대상` 항목을 추가한다."""
         if not drones or not tasks:
             return []
         cost = self.compute_cost_matrix(drones, tasks)
@@ -108,10 +116,12 @@ class TemporalScheduler:
     """Time-window based scheduling with conflict avoidance."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.timeline: list[tuple[float, float, str, str]] = []
 
     def schedule(self, assignments: list[Assignment],
                  tasks: dict[str, MissionTask]) -> list[tuple[str, float, float]]:
+        """`대상` 작업을 계획한다."""
         schedule = []
         for a in sorted(assignments, key=lambda x: x.eta_s):
             task = tasks.get(a.task_id)
@@ -131,6 +141,7 @@ class TacticalPlanner:
     """Integrated tactical mission planning system."""
 
     def __init__(self, n_drones: int = 20, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.assigner = HungarianAssigner(seed)
@@ -151,6 +162,7 @@ class TacticalPlanner:
 
     def add_task(self, position: np.ndarray, priority: MissionPriority = MissionPriority.MEDIUM,
                  duration: float = 60, deadline: float = 600) -> MissionTask:
+        """`task` 항목을 추가한다."""
         self._task_counter += 1
         task = MissionTask(f"TASK-{self._task_counter:04d}", position,
                           priority, duration, deadline,
@@ -159,6 +171,7 @@ class TacticalPlanner:
         return task
 
     def generate_mission(self, n_tasks: int = 15) -> list[MissionTask]:
+        """`mission` 결과를 생성한다."""
         tasks = []
         for _ in range(n_tasks):
             pos = self.rng.uniform(-1000, 1000, 3)
@@ -171,6 +184,7 @@ class TacticalPlanner:
         return tasks
 
     def plan(self) -> dict:
+        """`대상` 작업을 계획한다."""
         drone_list = list(self.drones.values())
         task_list = [t for t in self.tasks.values() if t.status == TaskStatus.PENDING]
         self.assignments = self.assigner.assign(drone_list, task_list)
@@ -189,6 +203,7 @@ class TacticalPlanner:
         }
 
     def replan(self, failed_drone: str) -> dict:
+        """``replan`` 동작을 수행한다."""
         affected = [a for a in self.assignments if a.drone_id == failed_drone]
         for a in affected:
             if a.task_id in self.tasks:
@@ -200,6 +215,7 @@ class TacticalPlanner:
         return self.plan()
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": len(self.drones),
             "tasks": len(self.tasks),

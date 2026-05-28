@@ -15,6 +15,7 @@ T = TypeVar("T")
 
 @dataclass
 class ReplayEvent:
+    """``ReplayEvent`` 데이터를 표현한다."""
     seq: int
     event_type: str
     payload: dict[str, Any]
@@ -22,11 +23,14 @@ class ReplayEvent:
 
 
 class EventReplayer:
+    """``EventReplayer`` 관련 기능을 제공한다."""
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._events: list[ReplayEvent] = []
         self._seq = 0
 
     def append(self, event_type: str, payload: dict[str, Any], ts: float | None = None) -> ReplayEvent:
+        """`대상` 항목을 추가한다."""
         self._seq += 1
         event = ReplayEvent(
             seq=self._seq,
@@ -44,6 +48,7 @@ class EventReplayer:
         event_type: str | None = None,
         until_ts: float | None = None,
     ) -> list[ReplayEvent]:
+        """``replay`` 동작을 수행한다."""
         items = [e for e in self._events if e.seq >= max(1, int(from_seq))]
         if to_seq is not None:
             items = [e for e in items if e.seq <= int(to_seq)]
@@ -60,12 +65,14 @@ class EventReplayer:
         from_seq: int = 1,
         to_seq: int | None = None,
     ) -> T:
+        """``restore_state`` 동작을 수행한다."""
         state = initial_state
         for event in self.replay(from_seq=from_seq, to_seq=to_seq):
             state = reducer(state, event)
         return state
 
     def snapshot(self, at_seq: int | None = None) -> dict[str, Any]:
+        """``snapshot`` 동작을 수행한다."""
         if not self._events:
             return {"events": 0, "last_seq": 0, "last_type": None}
         if at_seq is None:
@@ -83,6 +90,7 @@ class EventReplayer:
         }
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "events": len(self._events),
             "next_seq": self._seq + 1,

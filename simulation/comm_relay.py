@@ -54,6 +54,7 @@ class CommRelayPlanner:
         relay_range: float = 300.0,
         min_coverage: float = 0.95,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.base_pos = np.array(base_station, dtype=float)
         self.comm_range = comm_range
         self.relay_range = relay_range
@@ -261,6 +262,7 @@ class CommRelayPlanner:
         self._update_connectivity()
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         drones = [n for n in self._nodes.values()
                   if not n.is_base and not n.is_relay]
         relays = [n for n in self._nodes.values() if n.is_relay]

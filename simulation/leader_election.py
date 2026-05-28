@@ -31,6 +31,7 @@ class LeaderElection:
     """분산 리더 선출."""
 
     def __init__(self, min_score: float = 0.3, failover_timeout_s: float = 10.0) -> None:
+        """인스턴스를 초기화한다."""
         self._candidates: dict[str, Candidate] = {}
         self._current_leader: str | None = None
         self._min_score = min_score
@@ -42,12 +43,14 @@ class LeaderElection:
         self, drone_id: str, score: float = 0.5,
         battery_pct: float = 100.0, comm_quality: float = 1.0,
     ) -> Candidate:
+        """`candidate` 항목을 추가한다."""
         c = Candidate(drone_id=drone_id, score=score,
                        battery_pct=battery_pct, comm_quality=comm_quality)
         self._candidates[drone_id] = c
         return c
 
     def remove_candidate(self, drone_id: str) -> bool:
+        """`candidate` 상태를 정리한다."""
         if drone_id in self._candidates:
             was_leader = self._current_leader == drone_id
             del self._candidates[drone_id]
@@ -58,6 +61,7 @@ class LeaderElection:
         return False
 
     def update_score(self, drone_id: str, score: float, battery_pct: float | None = None) -> None:
+        """`score` 상태를 갱신한다."""
         c = self._candidates.get(drone_id)
         if c:
             c.score = score
@@ -93,9 +97,11 @@ class LeaderElection:
         return best.drone_id
 
     def get_leader(self) -> str | None:
+        """`leader` 정보를 조회한다."""
         return self._current_leader
 
     def is_leader(self, drone_id: str) -> bool:
+        """`leader` 여부를 반환한다."""
         return self._current_leader == drone_id
 
     def failover(self) -> str | None:
@@ -116,6 +122,7 @@ class LeaderElection:
         return leader.score / max(avg, 0.01)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "candidates": len(self._candidates),
             "current_leader": self._current_leader,

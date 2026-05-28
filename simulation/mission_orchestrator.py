@@ -13,6 +13,7 @@ import numpy as np
 
 
 class MissionType(Enum):
+    """``MissionType`` 관련 기능을 제공한다."""
     SURVEILLANCE = "surveillance"
     DELIVERY = "delivery"
     SEARCH_RESCUE = "search_rescue"
@@ -24,6 +25,7 @@ class MissionType(Enum):
 
 
 class TaskState(Enum):
+    """``TaskState`` 데이터를 표현한다."""
     WAITING = "waiting"
     READY = "ready"
     RUNNING = "running"
@@ -34,6 +36,7 @@ class TaskState(Enum):
 
 @dataclass
 class MissionTask:
+    """``MissionTask`` 관련 기능을 제공한다."""
     task_id: str
     mission_id: str
     task_type: str
@@ -48,6 +51,7 @@ class MissionTask:
 
 @dataclass
 class Mission:
+    """``Mission`` 관련 기능을 제공한다."""
     mission_id: str
     mission_type: MissionType
     tasks: list[MissionTask] = field(default_factory=list)
@@ -62,6 +66,7 @@ class DAGScheduler:
 
     @staticmethod
     def topological_sort(tasks: list[MissionTask]) -> list[str]:
+        """``topological_sort`` 동작을 수행한다."""
         task_map = {t.task_id: t for t in tasks}
         in_degree = {t.task_id: 0 for t in tasks}
         for t in tasks:
@@ -83,6 +88,7 @@ class DAGScheduler:
 
     @staticmethod
     def get_ready_tasks(tasks: list[MissionTask]) -> list[MissionTask]:
+        """`ready tasks` 정보를 조회한다."""
         completed = {t.task_id for t in tasks if t.state == TaskState.COMPLETED}
         ready = []
         for t in tasks:
@@ -104,6 +110,7 @@ class MissionOrchestrator:
     """
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._missions: dict[str, Mission] = {}
         self._scheduler = DAGScheduler()
@@ -111,11 +118,13 @@ class MissionOrchestrator:
         self._history: list[dict] = []
 
     def create_mission(self, mission_id: str, mission_type: MissionType, priority: int = 5) -> Mission:
+        """`mission` 결과를 생성한다."""
         mission = Mission(mission_id=mission_id, mission_type=mission_type, priority=priority)
         self._missions[mission_id] = mission
         return mission
 
     def add_task(self, mission_id: str, task: MissionTask) -> bool:
+        """`task` 항목을 추가한다."""
         mission = self._missions.get(mission_id)
         if not mission:
             return False
@@ -124,6 +133,7 @@ class MissionOrchestrator:
         return True
 
     def start_mission(self, mission_id: str) -> list[MissionTask]:
+        """`mission` 실행 상태를 제어한다."""
         mission = self._missions.get(mission_id)
         if not mission:
             return []
@@ -133,6 +143,7 @@ class MissionOrchestrator:
         return ready
 
     def assign_drone(self, task_id: str, drone_id: str) -> bool:
+        """`drone` 항목을 추가한다."""
         for mission in self._missions.values():
             for task in mission.tasks:
                 if task.task_id == task_id:
@@ -143,6 +154,7 @@ class MissionOrchestrator:
         return False
 
     def update_progress(self, task_id: str, progress: float) -> bool:
+        """`progress` 상태를 갱신한다."""
         for mission in self._missions.values():
             for task in mission.tasks:
                 if task.task_id == task_id:
@@ -169,6 +181,7 @@ class MissionOrchestrator:
         return newly_ready
 
     def fail_task(self, task_id: str) -> bool:
+        """``fail_task`` 동작을 수행한다."""
         for mission in self._missions.values():
             for task in mission.tasks:
                 if task.task_id == task_id:
@@ -179,6 +192,7 @@ class MissionOrchestrator:
         return False
 
     def get_mission_progress(self, mission_id: str) -> float:
+        """`mission progress` 정보를 조회한다."""
         mission = self._missions.get(mission_id)
         if not mission or not mission.tasks:
             return 0.0
@@ -186,12 +200,15 @@ class MissionOrchestrator:
         return completed / len(mission.tasks)
 
     def get_active_missions(self) -> list[Mission]:
+        """`active missions` 정보를 조회한다."""
         return [m for m in self._missions.values() if m.status == "active"]
 
     def get_mission(self, mission_id: str) -> Mission | None:
+        """`mission` 정보를 조회한다."""
         return self._missions.get(mission_id)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         statuses = {}
         total_tasks = 0
         completed_tasks = 0

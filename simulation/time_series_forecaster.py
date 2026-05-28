@@ -11,7 +11,9 @@ import numpy as np
 
 
 class TimeSeriesForecaster:
+    """``TimeSeriesForecaster`` 관련 기능을 제공한다."""
     def __init__(self, alpha: float = 0.3) -> None:
+        """인스턴스를 초기화한다."""
         self.alpha = float(np.clip(alpha, 0.01, 0.99))
         self._series: list[float] = []
         self._smooth: float | None = None
@@ -20,6 +22,7 @@ class TimeSeriesForecaster:
         self._forecasts = 0
 
     def fit(self, series: list[float]) -> dict[str, Any]:
+        """``fit`` 동작을 수행한다."""
         if len(series) < 2:
             raise ValueError("series must contain at least 2 points")
 
@@ -47,6 +50,7 @@ class TimeSeriesForecaster:
         }
 
     def update(self, value: float) -> None:
+        """`대상` 상태를 갱신한다."""
         v = float(value)
         self._series.append(v)
         if self._smooth is None:
@@ -56,6 +60,7 @@ class TimeSeriesForecaster:
         self._mean = float(np.mean(self._series))
 
     def forecast(self, steps: int = 5) -> list[float]:
+        """``forecast`` 동작을 수행한다."""
         if not self._series:
             return [0.0] * max(1, steps)
 
@@ -75,6 +80,7 @@ class TimeSeriesForecaster:
         return out
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "points": len(self._series),
             "alpha": round(self.alpha, 3),

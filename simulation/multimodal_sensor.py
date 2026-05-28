@@ -18,6 +18,7 @@ import numpy as np
 
 @dataclass
 class Sensor:
+    """``Sensor`` 관련 기능을 제공한다."""
     sensor_type: str  # CAMERA, LIDAR, RADAR, IR, ULTRASONIC
     accuracy: float = 0.9
     range_m: float = 200
@@ -27,6 +28,7 @@ class Sensor:
 
 @dataclass
 class Detection:
+    """``Detection`` 관련 기능을 제공한다."""
     object_id: str
     sensor_type: str
     position: tuple[float, float, float]
@@ -35,17 +37,21 @@ class Detection:
 
 
 class MultimodalSensor:
+    """``MultimodalSensor`` 관련 기능을 제공한다."""
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(seed)
         self._sensors: dict[str, list[Sensor]] = {}
         self._detections: list[Detection] = []
 
     def add_sensor(self, drone_id: str, sensor_type: str, accuracy: float = 0.9, range_m: float = 200) -> None:
+        """`sensor` 항목을 추가한다."""
         if drone_id not in self._sensors:
             self._sensors[drone_id] = []
         self._sensors[drone_id].append(Sensor(sensor_type=sensor_type, accuracy=accuracy, range_m=range_m))
 
     def detect(self, drone_id: str, drone_pos: tuple[float, float, float] = (0,0,50), objects: list[dict] | None = None) -> list[Detection]:
+        """`대상` 결과를 계산하거나 판정한다."""
         sensors = self._sensors.get(drone_id, [])
         if not sensors or not objects:
             return []
@@ -73,6 +79,7 @@ class MultimodalSensor:
         return detections
 
     def fuse_detections(self, object_id: str) -> tuple[float, float, float] | None:
+        """``fuse_detections`` 동작을 수행한다."""
         dets = [d for d in self._detections if d.object_id == object_id]
         if not dets:
             return None
@@ -87,6 +94,7 @@ class MultimodalSensor:
         return fused
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones_with_sensors": len(self._sensors),
             "total_sensors": sum(len(s) for s in self._sensors.values()),

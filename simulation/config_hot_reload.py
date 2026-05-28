@@ -17,6 +17,7 @@ import yaml
 
 @dataclass
 class ConfigSnapshot:
+    """``ConfigSnapshot`` 관련 기능을 제공한다."""
     version: int
     loaded_at: float
     checksum: str
@@ -24,7 +25,9 @@ class ConfigSnapshot:
 
 
 class ConfigHotReload:
+    """``ConfigHotReload`` 관련 기능을 제공한다."""
     def __init__(self, path: str) -> None:
+        """인스턴스를 초기화한다."""
         self.path = Path(path)
         self._current: ConfigSnapshot | None = None
         self._history: list[ConfigSnapshot] = []
@@ -48,6 +51,7 @@ class ConfigHotReload:
         raise ValueError(f"Unsupported config extension: {suffix}")
 
     def load(self) -> dict[str, Any]:
+        """`대상` 정보를 조회한다."""
         content = self._read_text()
         checksum = self._checksum(content)
         data = self._parse(content)
@@ -61,6 +65,7 @@ class ConfigHotReload:
         return dict(data)
 
     def reload_if_changed(self) -> bool:
+        """``reload_if_changed`` 동작을 수행한다."""
         if not self.path.exists():
             return False
         content = self._read_text()
@@ -71,17 +76,20 @@ class ConfigHotReload:
         return True
 
     def rollback(self) -> bool:
+        """``rollback`` 동작을 수행한다."""
         if not self._history:
             return False
         self._current = self._history.pop()
         return True
 
     def current(self) -> dict[str, Any]:
+        """``current`` 동작을 수행한다."""
         if self._current is None:
             return {}
         return dict(self._current.data)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "path": str(self.path),
             "version": self._current.version if self._current else 0,

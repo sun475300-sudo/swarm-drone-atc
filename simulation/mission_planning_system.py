@@ -9,6 +9,7 @@ import numpy as np
 
 @dataclass
 class Waypoint:
+    """``Waypoint`` 관련 기능을 제공한다."""
     x: float
     y: float
     z: float
@@ -17,6 +18,7 @@ class Waypoint:
 
 @dataclass
 class Mission:
+    """``Mission`` 관련 기능을 제공한다."""
     mission_id: str
     waypoints: list[Waypoint]
     drones_required: int
@@ -24,13 +26,16 @@ class Mission:
 
 
 class MissionPlanningSystem:
+    """``MissionPlanningSystem`` 역할을 담당한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.missions: dict[str, Mission] = {}
         self.completed: list[str] = []
 
     def plan_mission(
         self, mission_id: str, num_waypoints: int, area_bounds: tuple
     ) -> Mission:
+        """`mission` 작업을 계획한다."""
         waypoints = []
         for i in range(num_waypoints):
             wp = Waypoint(
@@ -46,4 +51,5 @@ class MissionPlanningSystem:
         return mission
 
     def optimize_route(self, mission: Mission) -> list[Waypoint]:
+        """``optimize_route`` 동작을 수행한다."""
         return sorted(mission.waypoints, key=lambda w: w.x + w.y)

@@ -8,6 +8,7 @@ from typing import Any
 
 
 class ProtocolMode(Enum):
+    """``ProtocolMode`` 관련 기능을 제공한다."""
     LOW_LATENCY = "low_latency"
     HIGH_RELIABILITY = "high_reliability"
     BALANCED = "balanced"
@@ -16,6 +17,7 @@ class ProtocolMode(Enum):
 
 @dataclass
 class LinkQuality:
+    """``LinkQuality`` 관련 기능을 제공한다."""
     snr_db: float
     packet_loss_rate: float
     latency_ms: float
@@ -24,6 +26,7 @@ class LinkQuality:
 
 @dataclass
 class TransmissionConfig:
+    """``TransmissionConfig`` 데이터를 표현한다."""
     modulation: str
     coding_rate: str
     power_dbm: float
@@ -32,11 +35,13 @@ class TransmissionConfig:
 
 
 class AdaptiveCommProtocol:
+    """``AdaptiveCommProtocol`` 관련 기능을 제공한다."""
     def __init__(
         self,
         default_mode: ProtocolMode = ProtocolMode.BALANCED,
         adaptation_interval: float = 1.0,
     ):
+        """인스턴스를 초기화한다."""
         self.default_mode = default_mode
         self.adaptation_interval = adaptation_interval
 
@@ -58,6 +63,7 @@ class AdaptiveCommProtocol:
         latency: float,
         bandwidth: float,
     ):
+        """`link quality` 상태를 갱신한다."""
         key = tuple(sorted([node1, node2]))
 
         self.link_qualities[key] = LinkQuality(
@@ -108,10 +114,12 @@ class AdaptiveCommProtocol:
         self.metrics["adaptation_events"] += 1
 
     def get_config(self, node1: str, node2: str) -> TransmissionConfig | None:
+        """`config` 정보를 조회한다."""
         key = tuple(sorted([node1, node2]))
         return self.transmission_configs.get(key)
 
     def select_best_neighbor(self, node: str, neighbors: list[str]) -> str | None:
+        """`best neighbor` 동작을 수행한다."""
         if not neighbors:
             return None
 
@@ -138,6 +146,7 @@ class AdaptiveCommProtocol:
         return best_neighbor
 
     def get_protocol_stats(self) -> dict[str, Any]:
+        """`protocol stats` 정보를 조회한다."""
         return {
             "mode": self.default_mode.value,
             "active_links": len(self.link_qualities),

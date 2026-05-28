@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Message:
+    """``Message`` 데이터를 표현한다."""
     msg_id: str
     sender_id: str
     recipient_id: str
@@ -18,16 +19,20 @@ class Message:
 
 
 class SecureMessagingProtocol:
+    """``SecureMessagingProtocol`` 관련 기능을 제공한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.message_queue: dict[str, list[Message]] = {}
         self.encryption_keys: dict[str, bytes] = {}
 
     def generate_key(self, drone_id: str) -> bytes:
+        """`key` 결과를 생성한다."""
         key = hashlib.sha256(f"{drone_id}{time.time()}".encode()).digest()
         self.encryption_keys[drone_id] = key
         return key
 
     def send_message(self, sender: str, recipient: str, content: str) -> Message:
+        """``send_message`` 동작을 수행한다."""
         msg = Message(
             msg_id=f"msg_{int(time.time() * 1000)}",
             sender_id=sender,
@@ -44,6 +49,7 @@ class SecureMessagingProtocol:
         return msg
 
     def encrypt_message(self, message: Message) -> Message:
+        """``encrypt_message`` 동작을 수행한다."""
         if message.recipient_id in self.encryption_keys:
             key = self.encryption_keys[message.recipient_id]
             encrypted = bytes(
@@ -57,4 +63,5 @@ class SecureMessagingProtocol:
         return message
 
     def get_messages(self, drone_id: str) -> list[Message]:
+        """`messages` 정보를 조회한다."""
         return self.message_queue.get(drone_id, [])

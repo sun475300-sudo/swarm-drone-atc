@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class RDParams:
+    """``RDParams`` 관련 기능을 제공한다."""
     Du: float = 0.16      # U 확산 계수
     Dv: float = 0.08      # V 확산 계수
     feed: float = 0.035   # 공급률
@@ -23,6 +24,7 @@ class GrayScottModel:
     """Gray-Scott 반응-확산 모델."""
 
     def __init__(self, size=64, params: RDParams = None, seed=42):
+        """인스턴스를 초기화한다."""
         self.size = size
         self.params = params or RDParams()
         self.rng = np.random.default_rng(seed)
@@ -43,6 +45,7 @@ class GrayScottModel:
         ) / (self.params.dx ** 2)
 
     def step(self):
+        """`대상` 실행 상태를 제어한다."""
         p = self.params
         lap_u = self._laplacian(self.U)
         lap_v = self._laplacian(self.V)
@@ -53,6 +56,7 @@ class GrayScottModel:
         self.V = np.clip(self.V, 0, 1)
 
     def pattern_entropy(self) -> float:
+        """``pattern_entropy`` 동작을 수행한다."""
         hist, _ = np.histogram(self.V.ravel(), bins=50, density=True)
         hist = hist[hist > 0]
         return float(-np.sum(hist * np.log(hist + 1e-12)))
@@ -60,6 +64,7 @@ class GrayScottModel:
 
 @dataclass
 class MorphoAgent:
+    """``MorphoAgent`` 역할을 담당한다."""
     agent_id: int
     x: float
     y: float
@@ -71,6 +76,7 @@ class ReactionDiffusionMorpho:
     """반응-확산 형태발생 시뮬레이션."""
 
     def __init__(self, grid_size=64, n_agents=20, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.model = GrayScottModel(grid_size, seed=seed)
         self.grid_size = grid_size
@@ -85,6 +91,7 @@ class ReactionDiffusionMorpho:
             ))
 
     def step(self):
+        """`대상` 실행 상태를 제어한다."""
         self.model.step()
         self.steps_run += 1
         for a in self.agents:
@@ -103,10 +110,12 @@ class ReactionDiffusionMorpho:
             a.y = float(np.clip(a.y, 0, self.grid_size - 1))
 
     def run(self, steps=100):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             self.step()
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         positions = [(a.x, a.y) for a in self.agents]
         xs = [p[0] for p in positions]
         ys = [p[1] for p in positions]

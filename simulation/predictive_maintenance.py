@@ -45,12 +45,14 @@ class PredictiveMaintenance:
     """예측 유지보수."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._drones: dict[str, DroneUsage] = {}
 
     def register_drone(
         self, drone_id: str, max_hours: float = 500.0,
         max_cycles: int = 2000, maintenance_interval: float = 100.0,
     ) -> None:
+        """`drone` 항목을 추가한다."""
         self._drones[drone_id] = DroneUsage(
             drone_id=drone_id, max_hours=max_hours,
             max_cycles=max_cycles, maintenance_interval=maintenance_interval,
@@ -60,6 +62,7 @@ class PredictiveMaintenance:
         self, drone_id: str, hours: float = 0.0,
         cycles: int = 0, vibration: float = 0.0,
     ) -> None:
+        """`usage` 상태를 갱신한다."""
         d = self._drones.get(drone_id)
         if not d:
             return
@@ -70,6 +73,7 @@ class PredictiveMaintenance:
             d.vibration_history = d.vibration_history[-200:]
 
     def record_maintenance(self, drone_id: str) -> None:
+        """`maintenance` 정보를 기록한다."""
         d = self._drones.get(drone_id)
         if d:
             d.last_maintenance_hours = d.total_hours
@@ -87,6 +91,7 @@ class PredictiveMaintenance:
         return max(0, min(100, (usage_score * 0.6 + vib_score * 0.4) * 100))
 
     def get_schedule(self, drone_id: str) -> MaintenanceSchedule | None:
+        """`schedule` 정보를 조회한다."""
         d = self._drones.get(drone_id)
         if not d:
             return None
@@ -117,6 +122,7 @@ class PredictiveMaintenance:
         )
 
     def overdue_drones(self) -> list[str]:
+        """``overdue_drones`` 동작을 수행한다."""
         result = []
         for did in self._drones:
             sched = self.get_schedule(did)
@@ -125,12 +131,14 @@ class PredictiveMaintenance:
         return result
 
     def fleet_health(self) -> float:
+        """``fleet_health`` 동작을 수행한다."""
         if not self._drones:
             return 100.0
         scores = [self._health_score(d) for d in self._drones.values()]
         return round(float(np.mean(scores)), 1)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_drones": len(self._drones),
             "fleet_health": self.fleet_health(),

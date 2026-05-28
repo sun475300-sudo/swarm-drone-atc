@@ -19,6 +19,7 @@ import numpy as np
 
 
 class BehaviorClass(str, Enum):
+    """``BehaviorClass`` 관련 기능을 제공한다."""
     NORMAL = "NORMAL"
     ABNORMAL = "ABNORMAL"
     DANGEROUS = "DANGEROUS"
@@ -56,6 +57,7 @@ class BehaviorAnalyzer:
         direction_change_threshold: int = 50,
         anomaly_z_threshold: float = 2.5,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.speed_threshold = speed_threshold
         self.altitude_std_threshold = altitude_std_threshold
         self.direction_change_threshold = direction_change_threshold
@@ -231,9 +233,11 @@ class BehaviorAnalyzer:
         }
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._features.clear()
         self._centroids.clear()
 
     @property
     def features(self) -> list[TrajectoryFeatures]:
+        """``features`` 동작을 수행한다."""
         return list(self._features)

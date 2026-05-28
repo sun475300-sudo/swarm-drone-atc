@@ -13,6 +13,7 @@ import numpy as np
 
 
 class MissionObjective(Enum):
+    """``MissionObjective`` 관련 기능을 제공한다."""
     MINIMIZE_TIME = "minimize_time"
     MINIMIZE_ENERGY = "minimize_energy"
     MAXIMIZE_COVERAGE = "maximize_coverage"
@@ -22,6 +23,7 @@ class MissionObjective(Enum):
 
 @dataclass
 class MissionConstraint:
+    """``MissionConstraint`` 관련 기능을 제공한다."""
     max_duration_sec: float = 3600.0
     max_distance_m: float = 10000.0
     min_battery_pct: float = 20.0
@@ -32,6 +34,7 @@ class MissionConstraint:
 
 @dataclass
 class Waypoint:
+    """``Waypoint`` 관련 기능을 제공한다."""
     position: np.ndarray
     altitude: float = 50.0
     loiter_time_sec: float = 0.0
@@ -41,6 +44,7 @@ class Waypoint:
 
 @dataclass
 class MissionPlan:
+    """``MissionPlan`` 관련 기능을 제공한다."""
     plan_id: str
     waypoints: list[Waypoint] = field(default_factory=list)
     assigned_drones: list[str] = field(default_factory=list)
@@ -60,6 +64,7 @@ class CoverageOptimizer:
         area_min: np.ndarray, area_max: np.ndarray, sensor_radius: float = 50.0,
         altitude: float = 50.0,
     ) -> list[Waypoint]:
+        """`coverage waypoints` 값을 계산한다."""
         waypoints = []
         step = sensor_radius * 1.5  # overlap
         x = area_min[0]
@@ -83,6 +88,7 @@ class TSPSolver:
 
     @staticmethod
     def solve(waypoints: list[Waypoint], start_pos: np.ndarray) -> list[int]:
+        """``solve`` 동작을 수행한다."""
         n = len(waypoints)
         if n == 0:
             return []
@@ -115,6 +121,7 @@ class AutonomousMissionPlannerV2:
     """
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._plans: dict[str, MissionPlan] = {}
         self._constraints = MissionConstraint()
@@ -123,6 +130,7 @@ class AutonomousMissionPlannerV2:
         self._history: list[dict] = []
 
     def set_constraints(self, constraints: MissionConstraint):
+        """`constraints` 상태를 갱신한다."""
         self._constraints = constraints
 
     def plan_coverage_mission(
@@ -131,6 +139,7 @@ class AutonomousMissionPlannerV2:
         objective: MissionObjective = MissionObjective.BALANCED,
     ) -> MissionPlan:
         # Generate coverage waypoints
+        """`coverage mission` 작업을 계획한다."""
         waypoints = self._coverage.compute_coverage_waypoints(area_min, area_max)
         # Filter by NFZ
         waypoints = [wp for wp in waypoints if not self._in_nfz(wp.position)]
@@ -160,6 +169,7 @@ class AutonomousMissionPlannerV2:
         self, plan_id: str, delivery_points: list[np.ndarray],
         drone_id: str, start_pos: np.ndarray,
     ) -> MissionPlan:
+        """`delivery mission` 작업을 계획한다."""
         waypoints = [Waypoint(position=p, action="deliver") for p in delivery_points]
         order = self._tsp.solve(waypoints, start_pos)
         ordered_wps = [waypoints[i] for i in order]
@@ -204,9 +214,11 @@ class AutonomousMissionPlannerV2:
         return (time_score + energy_score + coverage_score) / 3
 
     def get_plan(self, plan_id: str) -> MissionPlan | None:
+        """`plan` 정보를 조회한다."""
         return self._plans.get(plan_id)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         feasible = sum(1 for p in self._plans.values() if p.feasible)
         return {
             "total_plans": len(self._plans),

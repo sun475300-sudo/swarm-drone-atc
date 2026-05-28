@@ -10,6 +10,7 @@ import numpy as np
 
 @dataclass
 class EdgeDeviceConfig:
+    """``EdgeDeviceConfig`` 데이터를 표현한다."""
     device_type: str  # "jetson_nano", "jetson_xavier_nx", "jetson_orin"
     compute_capability: float = 5.3
     memory_mb: int = 4096
@@ -19,6 +20,7 @@ class EdgeDeviceConfig:
 
 @dataclass
 class ModelProfile:
+    """``ModelProfile`` 데이터를 표현한다."""
     name: str
     size_mb: float
     inference_time_ms: float
@@ -44,6 +46,7 @@ SUPPORTED_DEVICES: dict[str, EdgeDeviceConfig] = {
 
 @dataclass
 class _DeviceState:
+    """``_DeviceState`` 데이터를 표현한다."""
     config: EdgeDeviceConfig
     deployed_models: dict[str, ModelProfile] = field(default_factory=dict)
     utilization: float = 0.0
@@ -56,11 +59,13 @@ class JetsonEdgeDeployer:
     """Simulated edge device deployment and inference pipeline."""
 
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self._next_id = 0
         self.devices: dict[int, _DeviceState] = {}
 
     def register_device(self, config: EdgeDeviceConfig | None = None) -> int:
+        """`device` 항목을 추가한다."""
         self._next_id += 1
         dev_id = self._next_id
         if config is None:
@@ -93,6 +98,7 @@ class JetsonEdgeDeployer:
         )
 
     def deploy_model(self, device_id: int, model_profile: ModelProfile) -> bool:
+        """``deploy_model`` 동작을 수행한다."""
         if device_id not in self.devices:
             return False
         dev = self.devices[device_id]
@@ -105,6 +111,7 @@ class JetsonEdgeDeployer:
     def run_inference(
         self, device_id: int, input_data: Any, model_name: str | None = None
     ) -> dict[str, Any] | None:
+        """``run_inference`` 동작을 수행한다."""
         if device_id not in self.devices:
             return None
         dev = self.devices[device_id]
@@ -133,6 +140,7 @@ class JetsonEdgeDeployer:
         }
 
     def get_device_stats(self, device_id: int) -> dict[str, Any] | None:
+        """`device stats` 정보를 조회한다."""
         if device_id not in self.devices:
             return None
         dev = self.devices[device_id]
@@ -147,6 +155,7 @@ class JetsonEdgeDeployer:
         }
 
     def benchmark(self, device_id: int, iterations: int = 100) -> dict[str, Any] | None:
+        """``benchmark`` 동작을 수행한다."""
         if device_id not in self.devices:
             return None
         dev = self.devices[device_id]

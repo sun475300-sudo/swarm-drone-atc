@@ -12,6 +12,7 @@ import numpy as np
 
 
 class ForecastType(Enum):
+    """``ForecastType`` 관련 기능을 제공한다."""
     TRAFFIC = "traffic"
     BATTERY = "battery"
     WEATHER = "weather"
@@ -21,6 +22,7 @@ class ForecastType(Enum):
 
 @dataclass
 class Forecast:
+    """``Forecast`` 관련 기능을 제공한다."""
     forecast_type: ForecastType
     predictions: np.ndarray
     confidence: float
@@ -30,6 +32,7 @@ class Forecast:
 
 @dataclass
 class AnomalyAlert:
+    """``AnomalyAlert`` 데이터를 표현한다."""
     alert_id: str
     anomaly_type: str
     severity: str
@@ -39,12 +42,14 @@ class AnomalyAlert:
 
 
 class PredictiveAnalyticsEngine:
+    """``PredictiveAnalyticsEngine`` 역할을 담당한다."""
     def __init__(
         self,
         history_window: int = 1000,
         forecast_horizon: float = 3600.0,
         anomaly_threshold: float = 3.0,
     ):
+        """인스턴스를 초기화한다."""
         self.history_window = history_window
         self.forecast_horizon = forecast_horizon
         self.anomaly_threshold = anomaly_threshold
@@ -68,6 +73,7 @@ class PredictiveAnalyticsEngine:
     def ingest_data(
         self, forecast_type: ForecastType, data: np.ndarray, timestamp: float
     ):
+        """``ingest_data`` 동작을 수행한다."""
         self.data_streams[forecast_type].append(
             {
                 "data": data,
@@ -76,6 +82,7 @@ class PredictiveAnalyticsEngine:
         )
 
     def generate_forecast(self, forecast_type: ForecastType) -> Forecast:
+        """`forecast` 결과를 생성한다."""
         if len(self.data_streams[forecast_type]) < 10:
             return Forecast(
                 forecast_type=forecast_type,
@@ -142,6 +149,7 @@ class PredictiveAnalyticsEngine:
     def detect_anomalies(
         self, data: np.ndarray, drone_ids: list[str]
     ) -> list[AnomalyAlert]:
+        """`anomalies` 결과를 계산하거나 판정한다."""
         alerts = []
 
         mean = (
@@ -181,6 +189,7 @@ class PredictiveAnalyticsEngine:
     def predict_battery_failure(
         self, drone_id: str, battery_history: np.ndarray
     ) -> dict[str, Any]:
+        """`battery failure` 결과를 계산하거나 판정한다."""
         if len(battery_history) < 10:
             return {"risk_level": "unknown", "hours_remaining": None}
 
@@ -216,6 +225,7 @@ class PredictiveAnalyticsEngine:
     def predict_collision_risk(
         self, positions: np.ndarray, velocities: np.ndarray
     ) -> dict[str, Any]:
+        """`collision risk` 결과를 계산하거나 판정한다."""
         n = len(positions)
         risks = []
 
@@ -253,6 +263,7 @@ class PredictiveAnalyticsEngine:
         }
 
     def get_analytics_summary(self) -> dict[str, Any]:
+        """`analytics summary` 정보를 조회한다."""
         return {
             "data_points": {
                 ft.value: len(self.data_streams[ft]) for ft in ForecastType

@@ -13,6 +13,7 @@ import numpy as np
 
 
 class TaskPriority(Enum):
+    """``TaskPriority`` 관련 기능을 제공한다."""
     CRITICAL = 4
     HIGH = 3
     MEDIUM = 2
@@ -20,6 +21,7 @@ class TaskPriority(Enum):
 
 
 class TaskStatus(Enum):
+    """``TaskStatus`` 관련 기능을 제공한다."""
     PENDING = "pending"
     ASSIGNED = "assigned"
     IN_PROGRESS = "in_progress"
@@ -29,6 +31,7 @@ class TaskStatus(Enum):
 
 @dataclass
 class Task:
+    """``Task`` 관련 기능을 제공한다."""
     task_id: str
     position: np.ndarray
     priority: TaskPriority = TaskPriority.MEDIUM
@@ -41,6 +44,7 @@ class Task:
 
 @dataclass
 class DroneCapability:
+    """``DroneCapability`` 관련 기능을 제공한다."""
     drone_id: str
     position: np.ndarray
     battery_pct: float = 100.0
@@ -54,6 +58,7 @@ class HungarianSolver:
 
     @staticmethod
     def solve(cost_matrix: np.ndarray) -> list[tuple[int, int]]:
+        """``solve`` 동작을 수행한다."""
         n, m = cost_matrix.shape
         assignments = []
         used_cols = set()
@@ -79,6 +84,7 @@ class AuctionAllocator:
     """경매 기반 분산 할당."""
 
     def __init__(self, epsilon: float = 0.1):
+        """인스턴스를 초기화한다."""
         self.epsilon = epsilon
 
     def allocate(self, bids: dict[str, dict[str, float]]) -> dict[str, str]:
@@ -107,6 +113,7 @@ class CooperativeTaskAllocator:
     """
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._tasks: dict[str, Task] = {}
         self._drones: dict[str, DroneCapability] = {}
@@ -115,9 +122,11 @@ class CooperativeTaskAllocator:
         self._auction = AuctionAllocator()
 
     def add_task(self, task: Task):
+        """`task` 항목을 추가한다."""
         self._tasks[task.task_id] = task
 
     def register_drone(self, drone: DroneCapability):
+        """`drone` 항목을 추가한다."""
         self._drones[drone.drone_id] = drone
 
     def _compute_cost(self, drone: DroneCapability, task: Task) -> float:
@@ -129,6 +138,7 @@ class CooperativeTaskAllocator:
         return time_cost + battery_cost + payload_penalty + priority_bonus
 
     def allocate_hungarian(self) -> dict[str, str]:
+        """``allocate_hungarian`` 동작을 수행한다."""
         available_drones = [d for d in self._drones.values() if d.available]
         pending_tasks = [t for t in self._tasks.values() if t.status == TaskStatus.PENDING]
         if not available_drones or not pending_tasks:
@@ -152,6 +162,7 @@ class CooperativeTaskAllocator:
         return result
 
     def allocate_auction(self) -> dict[str, str]:
+        """``allocate_auction`` 동작을 수행한다."""
         available_drones = [d for d in self._drones.values() if d.available]
         pending_tasks = [t for t in self._tasks.values() if t.status == TaskStatus.PENDING]
         if not available_drones or not pending_tasks:
@@ -172,6 +183,7 @@ class CooperativeTaskAllocator:
         return allocation
 
     def complete_task(self, task_id: str) -> bool:
+        """``complete_task`` 동작을 수행한다."""
         task = self._tasks.get(task_id)
         if not task:
             return False
@@ -180,6 +192,7 @@ class CooperativeTaskAllocator:
         return True
 
     def fail_task(self, task_id: str) -> bool:
+        """``fail_task`` 동작을 수행한다."""
         task = self._tasks.get(task_id)
         if not task:
             return False
@@ -198,9 +211,11 @@ class CooperativeTaskAllocator:
         return self.allocate_hungarian()
 
     def get_allocation(self, task_id: str) -> str | None:
+        """`allocation` 정보를 조회한다."""
         return self._allocations.get(task_id)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         statuses = {}
         for t in self._tasks.values():
             statuses[t.status.value] = statuses.get(t.status.value, 0) + 1

@@ -12,12 +12,14 @@ import numpy as np
 
 
 class LinkStatus(Enum):
+    """``LinkStatus`` 관련 기능을 제공한다."""
     ACTIVE = "active"
     DEGRADED = "degraded"
     FAILED = "failed"
 
 
 class RoutingProtocol(Enum):
+    """``RoutingProtocol`` 관련 기능을 제공한다."""
     DIJKSTRA = "dijkstra"
     BELLMAN_FORD = "bellman_ford"
     AODV = "aodv"
@@ -25,6 +27,7 @@ class RoutingProtocol(Enum):
 
 @dataclass
 class MeshNode:
+    """``MeshNode`` 관련 기능을 제공한다."""
     node_id: str
     x: float
     y: float
@@ -38,6 +41,7 @@ class MeshNode:
 
 @dataclass
 class MeshLink:
+    """``MeshLink`` 관련 기능을 제공한다."""
     src: str
     dst: str
     rssi: float = -60.0   # dBm
@@ -49,6 +53,7 @@ class MeshLink:
 
     @property
     def cost(self) -> float:
+        """``cost`` 동작을 수행한다."""
         if self.status == LinkStatus.FAILED:
             return float('inf')
         base = self.latency_ms + (1.0 / max(self.bandwidth_mbps, 0.1))
@@ -59,6 +64,7 @@ class MeshLink:
 
 @dataclass
 class RouteEntry:
+    """``RouteEntry`` 데이터를 표현한다."""
     destination: str
     next_hop: str
     cost: float
@@ -71,6 +77,7 @@ class MeshNetworkOptimizer:
 
     def __init__(self, protocol: RoutingProtocol = RoutingProtocol.DIJKSTRA,
                  seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.protocol = protocol
         self.rng = np.random.default_rng(seed)
         self.nodes: dict[str, MeshNode] = {}
@@ -81,12 +88,14 @@ class MeshNetworkOptimizer:
 
     def add_node(self, node_id: str, x: float, y: float, z: float,
                  is_gateway: bool = False) -> MeshNode:
+        """`node` 항목을 추가한다."""
         node = MeshNode(node_id, x, y, z, is_gateway=is_gateway)
         self.nodes[node_id] = node
         return node
 
     def add_link(self, src: str, dst: str, rssi: float = -60.0,
                  bandwidth: float = 10.0) -> MeshLink:
+        """`link` 항목을 추가한다."""
         link = MeshLink(src, dst, rssi=rssi, bandwidth_mbps=bandwidth,
                         latency_ms=self._estimate_latency(src, dst))
         self.links[(src, dst)] = link
@@ -103,6 +112,7 @@ class MeshNetworkOptimizer:
         return dist / 300.0 + 1.0  # propagation + processing
 
     def auto_connect(self, max_range: float = 200.0) -> int:
+        """``auto_connect`` 동작을 수행한다."""
         connected = 0
         ids = list(self.nodes.keys())
         for i in range(len(ids)):
@@ -117,6 +127,7 @@ class MeshNetworkOptimizer:
         return connected
 
     def compute_routes(self, source: str | None = None) -> None:
+        """`routes` 값을 계산한다."""
         sources = [source] if source else list(self.nodes.keys())
         for src in sources:
             if self.protocol == RoutingProtocol.DIJKSTRA:
@@ -199,23 +210,27 @@ class MeshNetworkOptimizer:
         return routes
 
     def get_route(self, src: str, dst: str) -> RouteEntry | None:
+        """`route` 정보를 조회한다."""
         table = self.routing_tables.get(src)
         if not table:
             return None
         return table.get(dst)
 
     def fail_link(self, src: str, dst: str) -> None:
+        """``fail_link`` 동작을 수행한다."""
         if (src, dst) in self.links:
             self.links[(src, dst)].status = LinkStatus.FAILED
         if (dst, src) in self.links:
             self.links[(dst, src)].status = LinkStatus.FAILED
 
     def fail_node(self, node_id: str) -> None:
+        """``fail_node`` 동작을 수행한다."""
         self.nodes[node_id].is_active = False
         for neighbor in self.nodes[node_id].neighbors:
             self.fail_link(node_id, neighbor)
 
     def self_heal(self) -> int:
+        """``self_heal`` 동작을 수행한다."""
         healed = 0
         for (src, dst), link in self.links.items():
             if link.status == LinkStatus.FAILED:
@@ -232,6 +247,7 @@ class MeshNetworkOptimizer:
         return healed
 
     def get_network_stats(self) -> dict:
+        """`network stats` 정보를 조회한다."""
         active_links = sum(1 for l in self.links.values()
                           if l.status == LinkStatus.ACTIVE)
         degraded = sum(1 for l in self.links.values()
@@ -254,6 +270,7 @@ class MeshNetworkOptimizer:
         }
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return self.get_network_stats()
 
 

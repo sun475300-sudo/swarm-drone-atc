@@ -15,6 +15,7 @@ PRIORITY_LABELS = {
 
 @dataclass(order=True)
 class _PrioritizedItem:
+    """``_PrioritizedItem`` 관련 기능을 제공한다."""
     priority: int
     tie_breaker: float   # 요청 시각 (낮을수록 먼저)
     item: Any = field(compare=False)
@@ -29,10 +30,12 @@ class FlightPriorityQueue:
     """
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self._heap: list[_PrioritizedItem] = []
         self._counter = 0.0
 
     def push(self, item: Any, request_time: float) -> None:
+        """``push`` 동작을 수행한다."""
         entry = _PrioritizedItem(
             priority=item.priority,
             tie_breaker=request_time,
@@ -41,11 +44,13 @@ class FlightPriorityQueue:
         heapq.heappush(self._heap, entry)
 
     def pop(self) -> Any | None:
+        """``pop`` 동작을 수행한다."""
         if not self._heap:
             return None
         return heapq.heappop(self._heap).item
 
     def peek(self) -> Any | None:
+        """``peek`` 동작을 수행한다."""
         if not self._heap:
             return None
         return self._heap[0].item
@@ -54,4 +59,5 @@ class FlightPriorityQueue:
         return len(self._heap)
 
     def is_empty(self) -> bool:
+        """`empty` 여부를 반환한다."""
         return len(self._heap) == 0

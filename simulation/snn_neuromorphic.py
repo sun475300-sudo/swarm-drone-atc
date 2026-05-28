@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class LIFNeuron:
+    """``LIFNeuron`` 관련 기능을 제공한다."""
     neuron_id: int
     v_mem: float = 0.0        # 막전위
     v_rest: float = -65.0     # mV
@@ -23,6 +24,7 @@ class LIFNeuron:
 
 @dataclass
 class Synapse:
+    """``Synapse`` 관련 기능을 제공한다."""
     pre: int
     post: int
     weight: float
@@ -33,6 +35,7 @@ class LIFNetwork:
     """LIF 뉴런 네트워크."""
 
     def __init__(self, n_neurons: int, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.neurons = [
             LIFNeuron(i, v_mem=-65.0 + self.rng.normal(0, 2))
@@ -43,6 +46,7 @@ class LIFNetwork:
         self.time = 0.0
 
     def connect_random(self, p=0.3, w_range=(0.5, 2.0)):
+        """``connect_random`` 동작을 수행한다."""
         for i in range(self.n):
             for j in range(self.n):
                 if i != j and self.rng.random() < p:
@@ -50,6 +54,7 @@ class LIFNetwork:
                     self.synapses.append(Synapse(i, j, w))
 
     def step(self, dt=0.5, input_current: np.ndarray = None):
+        """`대상` 실행 상태를 제어한다."""
         self.time += dt
         spikes = []
         if input_current is None:
@@ -75,6 +80,7 @@ class LIFNetwork:
         return spikes
 
     def stdp_update(self, spikes: list[int], lr=0.01, tau_stdp=20.0):
+        """``stdp_update`` 동작을 수행한다."""
         for s in self.synapses:
             pre = self.neurons[s.pre]
             post = self.neurons[s.post]
@@ -91,6 +97,7 @@ class SNNNeuromorphic:
     """SNN 기반 뉴로모픽 제어 시뮬레이션."""
 
     def __init__(self, n_neurons=32, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.network = LIFNetwork(n_neurons, seed)
         self.network.connect_random(0.2)
@@ -100,6 +107,7 @@ class SNNNeuromorphic:
         self.spike_history: list[list[int]] = []
 
     def step(self, external_input: np.ndarray = None):
+        """`대상` 실행 상태를 제어한다."""
         if external_input is None:
             external_input = self.rng.normal(0, 3, self.n_neurons)
         spikes = self.network.step(0.5, external_input)
@@ -110,15 +118,18 @@ class SNNNeuromorphic:
         return spikes
 
     def run(self, steps=200):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             self.step()
 
     def firing_rate(self) -> float:
+        """``firing_rate`` 동작을 수행한다."""
         if self.steps_run == 0:
             return 0.0
         return self.total_spikes / (self.n_neurons * self.steps_run)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         weights = [s.weight for s in self.network.synapses]
         return {
             "neurons": self.n_neurons,

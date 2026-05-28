@@ -8,7 +8,9 @@ import numpy as np
 
 
 class FluidGrid:
+    """``FluidGrid`` 관련 기능을 제공한다."""
     def __init__(self, nx=40, ny=40, viscosity=0.1, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.nx, self.ny = nx, ny
         self.viscosity = viscosity
@@ -18,11 +20,13 @@ class FluidGrid:
         self.density = np.ones((nx, ny))
 
     def apply_source(self, x: int, y: int, fx: float, fy: float):
+        """``apply_source`` 동작을 수행한다."""
         x, y = int(np.clip(x, 1, self.nx-2)), int(np.clip(y, 1, self.ny-2))
         self.vx[x, y] += fx
         self.vy[x, y] += fy
 
     def diffuse(self, dt=0.01):
+        """``diffuse`` 동작을 수행한다."""
         a = self.viscosity * dt
         for _ in range(5):
             self.vx[1:-1, 1:-1] = (self.vx[1:-1, 1:-1] + a * (
@@ -35,6 +39,7 @@ class FluidGrid:
             )) / (1 + 4 * a)
 
     def advect(self, dt=0.01):
+        """``advect`` 동작을 수행한다."""
         new_vx = self.vx.copy()
         new_vy = self.vy.copy()
         for i in range(1, self.nx - 1):
@@ -51,15 +56,19 @@ class FluidGrid:
         self.vx, self.vy = new_vx, new_vy
 
     def step(self, dt=0.01):
+        """`대상` 실행 상태를 제어한다."""
         self.diffuse(dt)
         self.advect(dt)
 
     def kinetic_energy(self) -> float:
+        """``kinetic_energy`` 동작을 수행한다."""
         return float(0.5 * np.sum(self.vx**2 + self.vy**2))
 
 
 class SwarmHydraulics:
+    """``SwarmHydraulics`` 관련 기능을 제공한다."""
     def __init__(self, n_drones=15, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.fluid = FluidGrid(40, 40, 0.1, seed)
         self.n_drones = n_drones
@@ -69,12 +78,14 @@ class SwarmHydraulics:
         self.fluid.apply_source(30, 20, -3.0, 2.0)
 
     def run(self, steps=100):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             self.fluid.step()
             self.energy_history.append(self.fluid.kinetic_energy())
             self.steps += 1
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": self.n_drones,
             "grid": f"{self.fluid.nx}x{self.fluid.ny}",

@@ -32,6 +32,7 @@ class AirspaceHistory:
     """공역 상태 이력 관리."""
 
     def __init__(self, max_records: int = 1000) -> None:
+        """인스턴스를 초기화한다."""
         self._records: list[AirspaceSnapshot] = []
         self._max = max_records
 
@@ -41,6 +42,7 @@ class AirspaceHistory:
         avg_separation: float = 100.0, congestion: float = 0.0,
         advisories: int = 0,
     ) -> AirspaceSnapshot:
+        """`대상` 정보를 기록한다."""
         snap = AirspaceSnapshot(
             t=t, drone_count=drone_count,
             conflicts=conflicts, collisions=collisions,
@@ -56,6 +58,7 @@ class AirspaceHistory:
     def query(
         self, t_start: float | None = None, t_end: float | None = None,
     ) -> list[AirspaceSnapshot]:
+        """``query`` 동작을 수행한다."""
         result = self._records
         if t_start is not None:
             result = [r for r in result if r.t >= t_start]
@@ -64,6 +67,7 @@ class AirspaceHistory:
         return result
 
     def latest(self) -> AirspaceSnapshot | None:
+        """``latest`` 동작을 수행한다."""
         return self._records[-1] if self._records else None
 
     def collision_rate(self, window_s: float = 60.0) -> float:
@@ -79,6 +83,7 @@ class AirspaceHistory:
         return total_collisions / total_conflicts
 
     def avg_metric(self, metric: str, n: int = 20) -> float:
+        """``avg_metric`` 동작을 수행한다."""
         recent = self._records[-n:]
         if not recent:
             return 0.0
@@ -118,6 +123,7 @@ class AirspaceHistory:
         return result
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_records": len(self._records),
             "time_range": (self._records[0].t, self._records[-1].t) if self._records else (0, 0),

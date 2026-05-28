@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class WeatherObservation:
+    """``WeatherObservation`` 관련 기능을 제공한다."""
     station: str
     time_utc: str
     wind_dir_deg: int | None
@@ -28,6 +29,7 @@ class WeatherObservation:
 
 @dataclass
 class TafForecast:
+    """``TafForecast`` 관련 기능을 제공한다."""
     station: str
     issued: str
     valid_from: str
@@ -58,6 +60,7 @@ class MetarParser:
     }
 
     def parse_metar(self, text: str) -> WeatherObservation:
+        """`metar` 입력을 해석한다."""
         if not text:
             raise ValueError("empty METAR text")
         tokens = text.strip().split()
@@ -140,6 +143,7 @@ class MetarParser:
         )
 
     def parse_taf(self, text: str) -> TafForecast:
+        """`taf` 입력을 해석한다."""
         if not text:
             raise ValueError("empty TAF text")
         tokens = text.strip().split()
@@ -198,6 +202,7 @@ class MetarParser:
 
     def is_vfr(self, obs: WeatherObservation) -> bool:
         # CAVOK guarantees ceiling >= 5000 ft and visibility >= 10 km — definitively VFR
+        """`vfr` 여부를 반환한다."""
         if obs.cavok:
             return True
         # SM 가시거리 우선, 없으면 미터 값을 SM으로 환산해 평가

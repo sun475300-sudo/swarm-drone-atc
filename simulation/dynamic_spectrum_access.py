@@ -13,6 +13,7 @@ import numpy as np
 
 
 class ChannelStatus(Enum):
+    """``ChannelStatus`` 관련 기능을 제공한다."""
     IDLE = "idle"
     OCCUPIED = "occupied"
     SENSING = "sensing"
@@ -20,6 +21,7 @@ class ChannelStatus(Enum):
 
 
 class SpectrumBand(Enum):
+    """``SpectrumBand`` 관련 기능을 제공한다."""
     ISM_2_4GHZ = "ism_2.4ghz"
     ISM_5GHZ = "ism_5ghz"
     LTE_B7 = "lte_b7"
@@ -29,6 +31,7 @@ class SpectrumBand(Enum):
 
 @dataclass
 class Channel:
+    """``Channel`` 관련 기능을 제공한다."""
     channel_id: str
     center_freq_mhz: float
     bandwidth_mhz: float
@@ -42,6 +45,7 @@ class Channel:
 
 @dataclass
 class SpectrumHole:
+    """``SpectrumHole`` 관련 기능을 제공한다."""
     channel_id: str
     start_time: float
     duration_sec: float
@@ -51,6 +55,7 @@ class SpectrumHole:
 
 @dataclass
 class SpectrumAllocation:
+    """``SpectrumAllocation`` 관련 기능을 제공한다."""
     drone_id: str
     channel_id: str
     start_time: float
@@ -71,6 +76,7 @@ class DynamicSpectrumAccess:
     NOISE_FLOOR_DBM = -100.0
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._channels: dict[str, Channel] = {}
         self._allocations: dict[str, SpectrumAllocation] = {}
@@ -79,6 +85,7 @@ class DynamicSpectrumAccess:
         self._step_count = 0
 
     def add_channel(self, channel: Channel):
+        """`channel` 항목을 추가한다."""
         self._channels[channel.channel_id] = channel
 
     def init_default_channels(self):
@@ -177,6 +184,7 @@ class DynamicSpectrumAccess:
         return alloc
 
     def release_channel(self, drone_id: str):
+        """``release_channel`` 동작을 수행한다."""
         alloc = self._allocations.pop(drone_id, None)
         if alloc:
             ch = self._channels.get(alloc.channel_id)
@@ -184,6 +192,7 @@ class DynamicSpectrumAccess:
                 ch.status = ChannelStatus.IDLE
 
     def set_primary_user(self, channel_id: str, active: bool):
+        """`primary user` 상태를 갱신한다."""
         ch = self._channels.get(channel_id)
         if ch:
             ch.primary_user_active = active
@@ -195,9 +204,11 @@ class DynamicSpectrumAccess:
                         self.release_channel(drone_id)
 
     def get_allocation(self, drone_id: str) -> SpectrumAllocation | None:
+        """`allocation` 정보를 조회한다."""
         return self._allocations.get(drone_id)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         idle = sum(1 for ch in self._channels.values() if ch.status == ChannelStatus.IDLE)
         return {
             "total_channels": len(self._channels),

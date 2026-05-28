@@ -12,6 +12,7 @@ import numpy as np
 
 
 class TfrReason(Enum):
+    """``TfrReason`` 관련 기능을 제공한다."""
     VIP = "vip_movement"
     DISASTER = "disaster_response"
     SPORTS = "sporting_event"
@@ -22,6 +23,7 @@ class TfrReason(Enum):
 
 @dataclass
 class Tfr:
+    """``Tfr`` 관련 기능을 제공한다."""
     tfr_id: str
     reason: TfrReason
     center: tuple[float, float]
@@ -47,6 +49,7 @@ class TfrHandler:
         max_tfrs: int = _DEFAULT_TFR_CAP,
         max_history: int | None = None,
     ) -> None:
+        """인스턴스를 초기화한다."""
         if max_violations <= 0:
             raise ValueError("max_violations must be positive")
         if max_tfrs <= 0:
@@ -77,6 +80,7 @@ class TfrHandler:
         duration_hours: float,
         authorized: list[str] | None = None,
     ) -> str:
+        """``declare_tfr`` 동작을 수행한다."""
         if not isinstance(reason, TfrReason):
             raise ValueError(
                 f"reason must be a TfrReason enum, got {type(reason).__name__!r}"
@@ -130,6 +134,7 @@ class TfrHandler:
             del self.history[:overflow]
 
     def revoke(self, tfr_id: str) -> bool:
+        """`대상` 상태를 정리한다."""
         if tfr_id not in self.tfrs:
             return False
         del self.tfrs[tfr_id]
@@ -148,6 +153,7 @@ class TfrHandler:
         return len(expired_keys)
 
     def is_active(self, tfr_id: str) -> bool:
+        """`active` 여부를 반환한다."""
         rec = self.tfrs.get(tfr_id)
         if rec is None:
             return False
@@ -157,6 +163,7 @@ class TfrHandler:
     def check_violation(
         self, callsign: str, position: tuple[float, float, float]
     ) -> list[str]:
+        """`violation` 결과를 계산하거나 판정한다."""
         if len(position) != 3:
             raise ValueError(
                 f"position must be a 3-element (lat, lon, alt) tuple, got {len(position)} elements"
@@ -215,6 +222,7 @@ class TfrHandler:
         return conflicts
 
     def authorize(self, tfr_id: str, callsign: str) -> bool:
+        """``authorize`` 동작을 수행한다."""
         rec = self.tfrs.get(tfr_id)
         if rec is None:
             return False
@@ -233,10 +241,12 @@ class TfrHandler:
         return self.tfrs.get(tfr_id)
 
     def active_tfrs(self) -> list[Tfr]:
+        """``active_tfrs`` 동작을 수행한다."""
         now = time.time()
         return [t for t in self.tfrs.values() if t.start_time <= now <= t.end_time]
 
     def get_stats(self) -> dict[str, Any]:
+        """`stats` 정보를 조회한다."""
         return {
             "total": len(self.tfrs),
             "active": len(self.active_tfrs()),

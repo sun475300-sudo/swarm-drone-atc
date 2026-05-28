@@ -24,6 +24,7 @@ if _TORCH:
         """DataParallel 호환 APF 배치 연산 모듈."""
 
         def __init__(self, k_att: float, k_rep: float, d0: float, max_force: float):
+            """인스턴스를 초기화한다."""
             super().__init__()
             self.k_att = k_att
             self.k_rep = k_rep

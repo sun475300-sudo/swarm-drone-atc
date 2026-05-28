@@ -65,6 +65,7 @@ class SimulationResult:
     config_params: dict  = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """현재 상태를 사전으로 변환한다."""
         d = {}
         for f_name in self.__dataclass_fields__:
             v = getattr(self, f_name)
@@ -74,6 +75,7 @@ class SimulationResult:
         return d
 
     def summary_table(self) -> str:
+        """``summary_table`` 동작을 수행한다."""
         rows = [
             ("충돌 수",            str(self.collision_count)),
             ("근접 경고",          str(self.near_miss_count)),
@@ -130,6 +132,7 @@ class SimulationAnalytics:
     MAX_SNAPSHOTS = 100_000  # 메모리 제한: ~100대 × 600초 / 5초 간격
 
     def __init__(self, cfg: dict) -> None:
+        """인스턴스를 초기화한다."""
         self._cfg = cfg
         self._save_traj = bool(cfg.get("logging", {}).get("save_trajectory", True))
 
@@ -162,6 +165,7 @@ class SimulationAnalytics:
     # ── 이벤트 기록 ──────────────────────────────────────────
 
     def record_event(self, event_type: str, t: float, **kwargs) -> None:
+        """`event` 정보를 기록한다."""
         if len(self._events) >= self.MAX_EVENTS:
             return
         ev = {"type": event_type, "t": t, **kwargs}
@@ -183,6 +187,7 @@ class SimulationAnalytics:
             self._clearances_no += 1
 
     def record_advisory_latency(self, latency_s: float) -> None:
+        """`advisory latency` 정보를 기록한다."""
         self._adv_latencies.append(latency_s)
 
     # ── 스냅샷 ──────────────────────────────────────────────
@@ -192,6 +197,7 @@ class SimulationAnalytics:
         drones: dict[str, DroneState],
         t: float,
     ) -> None:
+        """`snapshot` 정보를 기록한다."""
         if not self._save_traj:
             return
         # 메모리 최적화: 5초 간격 샘플링 (1Hz 전체 → 0.2Hz)
@@ -220,6 +226,7 @@ class SimulationAnalytics:
             self._flight_time[did] = float(d.flight_time_s)
 
     def record_planned_distance(self, drone_id: str, dist_m: float) -> None:
+        """`planned distance` 정보를 기록한다."""
         self._dist_planned[drone_id] = dist_m
 
     def record_controller_stats(
@@ -256,6 +263,7 @@ class SimulationAnalytics:
         n_drones: int = 0,
     ) -> SimulationResult:
         # 경로 효율 (actual / planned)
+        """``finalize`` 동작을 수행한다."""
         efficiencies = []
         for did in self._dist_actual:
             planned = self._dist_planned.get(did, 0.0)
@@ -327,8 +335,10 @@ class SimulationAnalytics:
 
     @property
     def events(self) -> list[dict]:
+        """``events`` 동작을 수행한다."""
         return list(self._events)
 
     @property
     def snapshots(self) -> list[dict]:
+        """``snapshots`` 동작을 수행한다."""
         return list(self._snapshots)

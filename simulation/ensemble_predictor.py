@@ -12,6 +12,7 @@ from typing import Any
 
 @dataclass
 class EnsembleModel:
+    """``EnsembleModel`` 관련 기능을 제공한다."""
     name: str
     predict_fn: Callable[[list[float]], float]
     weight: float = 1.0
@@ -19,7 +20,9 @@ class EnsembleModel:
 
 
 class EnsemblePredictor:
+    """``EnsemblePredictor`` 관련 기능을 제공한다."""
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._models: dict[str, EnsembleModel] = {}
         self._predictions = 0
 
@@ -29,6 +32,7 @@ class EnsemblePredictor:
         predict_fn: Callable[[list[float]], float],
         weight: float = 1.0,
     ) -> None:
+        """`model` 항목을 추가한다."""
         self._models[name] = EnsembleModel(
             name=name,
             predict_fn=predict_fn,
@@ -44,6 +48,7 @@ class EnsemblePredictor:
         return {n: m.weight / total for n, m in self._models.items()}
 
     def predict(self, features: list[float]) -> dict[str, Any]:
+        """`대상` 결과를 계산하거나 판정한다."""
         if not self._models:
             return {"prediction": 0.0, "components": {}}
 
@@ -63,6 +68,7 @@ class EnsemblePredictor:
         }
 
     def calibrate(self, validation_data: list[tuple[list[float], float]]) -> dict[str, float]:
+        """``calibrate`` 동작을 수행한다."""
         if not self._models or not validation_data:
             return {}
 
@@ -80,11 +86,13 @@ class EnsemblePredictor:
         return {name: round(model.weight, 6) for name, model in self._models.items()}
 
     def top_model(self) -> str | None:
+        """``top_model`` 동작을 수행한다."""
         if not self._models:
             return None
         return max(self._models.values(), key=lambda m: m.weight).name
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "models": len(self._models),
             "predictions": self._predictions,

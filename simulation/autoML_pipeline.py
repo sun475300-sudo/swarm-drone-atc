@@ -11,6 +11,7 @@ import numpy as np
 
 
 class ModelType(Enum):
+    """``ModelType`` 관련 기능을 제공한다."""
     LIGHTGBM = "lightgbm"
     XGBOOST = "xgboost"
     RANDOM_FOREST = "random_forest"
@@ -18,6 +19,7 @@ class ModelType(Enum):
 
 
 class SearchStrategy(Enum):
+    """``SearchStrategy`` 관련 기능을 제공한다."""
     GRID_SEARCH = "grid_search"
     RANDOM_SEARCH = "random_search"
     BAYESIAN = "bayesian"
@@ -26,6 +28,7 @@ class SearchStrategy(Enum):
 
 @dataclass
 class HyperparameterConfig:
+    """``HyperparameterConfig`` 데이터를 표현한다."""
     learning_rate: float = 0.1
     max_depth: int = 6
     n_estimators: int = 100
@@ -38,6 +41,7 @@ class HyperparameterConfig:
 
 @dataclass
 class TrialResult:
+    """``TrialResult`` 데이터를 표현한다."""
     trial_id: str
     config: HyperparameterConfig
     score: float
@@ -46,6 +50,7 @@ class TrialResult:
 
 
 class AutoMLPipeline:
+    """``AutoMLPipeline`` 관련 기능을 제공한다."""
     def __init__(
         self,
         model_type: ModelType = ModelType.LIGHTGBM,
@@ -54,6 +59,7 @@ class AutoMLPipeline:
         timeout_per_trial: float = 60.0,
         n_jobs: int = 4,
     ):
+        """인스턴스를 초기화한다."""
         self.model_type = model_type
         self.search_strategy = search_strategy
         self.max_trials = max_trials
@@ -258,6 +264,7 @@ class AutoMLPipeline:
         X_val: np.ndarray | None = None,
         y_val: np.ndarray | None = None,
     ) -> HyperparameterConfig:
+        """메인 실행 루프를 수행한다."""
         X = X_train
         y = y_train
 
@@ -289,13 +296,16 @@ class AutoMLPipeline:
         return self.best_trial.config
 
     def get_best_config(self) -> HyperparameterConfig | None:
+        """`best config` 정보를 조회한다."""
         return self.best_trial.config if self.best_trial else None
 
     def get_leaderboard(self, top_k: int = 10) -> list[TrialResult]:
+        """`leaderboard` 정보를 조회한다."""
         sorted_trials = sorted(self.trials, key=lambda t: t.score, reverse=True)
         return sorted_trials[:top_k]
 
     def get_optimization_history(self) -> dict[str, list[float]]:
+        """`optimization history` 정보를 조회한다."""
         return {
             "scores": self.history_scores,
             "best_scores": np.maximum.accumulate(self.history_scores).tolist(),

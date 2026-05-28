@@ -18,6 +18,7 @@ import numpy as np
 
 @dataclass
 class MissionSlot:
+    """``MissionSlot`` 관련 기능을 제공한다."""
     mission_id: str
     duration_min: float
     earliest_hour: int = 6
@@ -27,11 +28,14 @@ class MissionSlot:
 
 
 class ScheduleOptimizer:
+    """``ScheduleOptimizer`` 관련 기능을 제공한다."""
     def __init__(self, available_drones: int = 50) -> None:
+        """인스턴스를 초기화한다."""
         self.available_drones = available_drones
         self._missions: dict[str, MissionSlot] = {}
 
     def add_mission(self, mission_id: str, duration_min: float = 30, earliest: int = 6, latest: int = 22, drones_needed: int = 1) -> None:
+        """`mission` 항목을 추가한다."""
         self._missions[mission_id] = MissionSlot(mission_id=mission_id, duration_min=duration_min, earliest_hour=earliest, latest_hour=latest, drones_needed=drones_needed)
 
     def optimize(self) -> list[dict[str, Any]]:
@@ -60,6 +64,7 @@ class ScheduleOptimizer:
         return schedule
 
     def utilization_by_hour(self) -> list[float]:
+        """``utilization_by_hour`` 동작을 수행한다."""
         self.optimize()
         hourly = [0] * 24
         for m in self._missions.values():
@@ -72,6 +77,7 @@ class ScheduleOptimizer:
         return [round(h / max(self.available_drones, 1) * 100, 1) for h in hourly]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         schedule = self.optimize()
         return {
             "missions": len(self._missions),

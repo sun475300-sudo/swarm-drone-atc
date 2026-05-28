@@ -9,6 +9,7 @@ from typing import Any
 
 
 class HandoffStatus(Enum):
+    """``HandoffStatus`` 관련 기능을 제공한다."""
     PROPOSED = "proposed"
     ACCEPTED = "accepted"
     REJECTED = "rejected"
@@ -17,6 +18,7 @@ class HandoffStatus(Enum):
 
 @dataclass
 class AirspaceAuthority:
+    """``AirspaceAuthority`` 관련 기능을 제공한다."""
     code: str
     name: str
     contact_endpoint: str = ""
@@ -25,6 +27,7 @@ class AirspaceAuthority:
 
 @dataclass
 class BorderCrossing:
+    """``BorderCrossing`` 관련 기능을 제공한다."""
     crossing_id: str
     callsign: str
     from_authority: str
@@ -44,6 +47,7 @@ class CrossBorderCoordinator:
     """두 공역 당국 사이의 핸드오프/서류 교환을 관리."""
 
     def __init__(self, max_crossings: int = _DEFAULT_CROSSING_CAP) -> None:
+        """인스턴스를 초기화한다."""
         if max_crossings <= 0:
             raise ValueError("max_crossings must be positive")
         self.authorities: dict[str, AirspaceAuthority] = {}
@@ -52,6 +56,7 @@ class CrossBorderCoordinator:
         self._next_id = 0
 
     def register_authority(self, authority: AirspaceAuthority) -> None:
+        """`authority` 항목을 추가한다."""
         if authority.code in self.authorities:
             raise ValueError(
                 f"authority code {authority.code!r} is already registered; "
@@ -78,6 +83,7 @@ class CrossBorderCoordinator:
         scheduled_time: float,
         altitude: float,
     ) -> str | None:
+        """``propose_crossing`` 동작을 수행한다."""
         if from_code not in self.authorities or to_code not in self.authorities:
             return None
         if from_code == to_code:
@@ -123,6 +129,7 @@ class CrossBorderCoordinator:
         return cid
 
     def submit_document(self, crossing_id: str, doc_name: str) -> bool:
+        """``submit_document`` 동작을 수행한다."""
         bc = self.crossings.get(crossing_id)
         if bc is None or doc_name not in bc.documents:
             return False
@@ -130,12 +137,14 @@ class CrossBorderCoordinator:
         return True
 
     def all_documents_ready(self, crossing_id: str) -> bool:
+        """``all_documents_ready`` 동작을 수행한다."""
         bc = self.crossings.get(crossing_id)
         if bc is None:
             return False
         return all(bc.documents.values())
 
     def accept_handoff(self, crossing_id: str) -> bool:
+        """``accept_handoff`` 동작을 수행한다."""
         bc = self.crossings.get(crossing_id)
         if bc is None or bc.status != HandoffStatus.PROPOSED:
             return False
@@ -145,6 +154,7 @@ class CrossBorderCoordinator:
         return True
 
     def reject_handoff(self, crossing_id: str, reason: str = "") -> bool:
+        """``reject_handoff`` 동작을 수행한다."""
         bc = self.crossings.get(crossing_id)
         # PROPOSED 상태만 거부 가능 — ACCEPTED 이후 소급 거부 방지
         if bc is None or bc.status != HandoffStatus.PROPOSED:
@@ -167,6 +177,7 @@ class CrossBorderCoordinator:
         return len(terminal)
 
     def complete_handoff(self, crossing_id: str) -> bool:
+        """``complete_handoff`` 동작을 수행한다."""
         bc = self.crossings.get(crossing_id)
         if bc is None or bc.status != HandoffStatus.ACCEPTED:
             return False
@@ -178,9 +189,11 @@ class CrossBorderCoordinator:
         return self.crossings.get(crossing_id)
 
     def pending_crossings(self) -> list[BorderCrossing]:
+        """``pending_crossings`` 동작을 수행한다."""
         return [c for c in self.crossings.values() if c.status == HandoffStatus.PROPOSED]
 
     def get_stats(self) -> dict[str, Any]:
+        """`stats` 정보를 조회한다."""
         counts: dict[str, int] = {}
         for c in self.crossings.values():
             counts[c.status.value] = counts.get(c.status.value, 0) + 1

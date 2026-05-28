@@ -13,11 +13,13 @@ import numpy as np
 
 @dataclass
 class AgentState:
+    """``AgentState`` 데이터를 표현한다."""
     q_table: dict[tuple[int, int], float]
     epsilon: float = 0.2
 
 
 class MARLCoordinator:
+    """``MARLCoordinator`` 관련 기능을 제공한다."""
     def __init__(
         self,
         n_actions: int = 5,
@@ -25,6 +27,7 @@ class MARLCoordinator:
         gamma: float = 0.95,
         seed: int = 42,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(seed)
         self.n_actions = n_actions
         self.lr = learning_rate
@@ -34,12 +37,14 @@ class MARLCoordinator:
         self._episodes = 0
 
     def register_agent(self, agent_id: str, epsilon: float = 0.2) -> None:
+        """`agent` 항목을 추가한다."""
         self._agents[agent_id] = AgentState(q_table={}, epsilon=float(np.clip(epsilon, 0.01, 1.0)))
 
     def _q(self, agent_id: str, state: int, action: int) -> float:
         return self._agents[agent_id].q_table.get((state, action), 0.0)
 
     def select_actions(self, states: dict[str, int]) -> dict[str, int]:
+        """`actions` 동작을 수행한다."""
         actions: dict[str, int] = {}
         for agent_id, state in states.items():
             if agent_id not in self._agents:
@@ -59,6 +64,7 @@ class MARLCoordinator:
         transitions: dict[str, tuple[int, int, float, int, bool]],
         shared_reward: float = 0.0,
     ) -> None:
+        """``store_step`` 동작을 수행한다."""
         for agent_id, (state, action, reward, next_state, done) in transitions.items():
             r = float(reward) + float(shared_reward)
             self._experiences.append((agent_id, state, action, r, next_state, done))
@@ -66,6 +72,7 @@ class MARLCoordinator:
                 self._episodes += 1
 
     def train_step(self, batch_size: int = 32) -> float:
+        """``train_step`` 동작을 수행한다."""
         if not self._experiences:
             return 0.0
 
@@ -89,6 +96,7 @@ class MARLCoordinator:
         return float(np.mean(np.square(td_errors))) if td_errors else 0.0
 
     def policy_snapshot(self) -> dict[str, dict[str, float]]:
+        """``policy_snapshot`` 동작을 수행한다."""
         out: dict[str, dict[str, float]] = {}
         for aid, agent in self._agents.items():
             out[aid] = {
@@ -98,6 +106,7 @@ class MARLCoordinator:
         return out
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "agents": len(self._agents),
             "experiences": len(self._experiences),

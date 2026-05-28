@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class CreasePattern:
+    """``CreasePattern`` 관련 기능을 제공한다."""
     vertices: np.ndarray    # (N, 3)
     edges: list             # [(i, j, fold_angle)]
     fold_type: str = "valley"
@@ -18,6 +19,7 @@ class CreasePattern:
 
 @dataclass
 class FoldState:
+    """``FoldState`` 데이터를 표현한다."""
     step: int
     positions: np.ndarray
     fold_angle: float
@@ -28,6 +30,7 @@ class OrigamiTransformer:
     """접힘 기반 대형 변환기."""
 
     def __init__(self, n_agents=20, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n = n_agents
         self.positions = self.rng.uniform(-10, 10, (n_agents, 3))
@@ -76,12 +79,14 @@ class SwarmOrigami:
     """군집 오리가미 시뮬레이션."""
 
     def __init__(self, n_agents=20, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.transformer = OrigamiTransformer(n_agents, seed)
         self.history: list[FoldState] = []
         self.steps = 0
 
     def run(self, n_folds=6):
+        """메인 실행 루프를 수행한다."""
         for i in range(n_folds):
             angle = float(self.rng.uniform(0.3, 1.5))
             axis = self.rng.normal(0, 1, 3)
@@ -91,6 +96,7 @@ class SwarmOrigami:
             self.steps += 1
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         energies = [h.energy for h in self.history]
         return {
             "agents": self.transformer.n,

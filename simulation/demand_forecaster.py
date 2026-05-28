@@ -38,12 +38,14 @@ class DemandForecaster:
     """공역 수요 예측."""
 
     def __init__(self, n_slots: int = 24, capacity_margin: float = 1.3) -> None:
+        """인스턴스를 초기화한다."""
         self.n_slots = n_slots
         self.capacity_margin = capacity_margin
         self._history: dict[int, list[int]] = {h: [] for h in range(n_slots)}
         self._sector_history: dict[str, dict[int, list[int]]] = {}
 
     def record_demand(self, hour: int, count: int, sector: str = "default") -> None:
+        """`demand` 정보를 기록한다."""
         h = hour % self.n_slots
         self._history[h].append(count)
         if len(self._history[h]) > 100:
@@ -54,6 +56,7 @@ class DemandForecaster:
         self._sector_history[sector][h].append(count)
 
     def forecast(self, hour: int, sector: str | None = None) -> Forecast:
+        """``forecast`` 동작을 수행한다."""
         h = hour % self.n_slots
 
         data = self._sector_history[sector][h] if sector and sector in self._sector_history else self._history[h]
@@ -87,6 +90,7 @@ class DemandForecaster:
         )
 
     def peak_hours(self, top_n: int = 3) -> list[int]:
+        """``peak_hours`` 동작을 수행한다."""
         avgs = []
         for h in range(self.n_slots):
             if self._history[h]:
@@ -97,12 +101,14 @@ class DemandForecaster:
         return [h for h, _ in avgs[:top_n]]
 
     def daily_pattern(self) -> list[float]:
+        """``daily_pattern`` 동작을 수행한다."""
         return [
             round(float(np.mean(self._history[h])), 1) if self._history[h] else 0
             for h in range(self.n_slots)
         ]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         total = sum(len(v) for v in self._history.values())
         return {
             "total_records": total,

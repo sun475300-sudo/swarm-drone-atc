@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class MeshNode:
+    """``MeshNode`` 관련 기능을 제공한다."""
     node_id: str
     position: np.ndarray
     neighbors: list = field(default_factory=list)
@@ -20,6 +21,7 @@ class MeshNode:
 
 @dataclass
 class MeshLink:
+    """``MeshLink`` 관련 기능을 제공한다."""
     src: str
     dst: str
     weight: float
@@ -28,17 +30,21 @@ class MeshLink:
 
 
 class UnionFind:
+    """``UnionFind`` 관련 기능을 제공한다."""
     def __init__(self, n):
+        """인스턴스를 초기화한다."""
         self.parent = list(range(n))
         self.rank = [0] * n
 
     def find(self, x):
+        """``find`` 동작을 수행한다."""
         while self.parent[x] != x:
             self.parent[x] = self.parent[self.parent[x]]
             x = self.parent[x]
         return x
 
     def union(self, a, b):
+        """``union`` 동작을 수행한다."""
         ra, rb = self.find(a), self.find(b)
         if ra == rb:
             return False
@@ -54,10 +60,12 @@ class TopologyManager:
     """Kruskal MST 기반 토폴로지 생성 + k-연결성 증강."""
 
     def __init__(self, k_connectivity=2, seed=42):
+        """인스턴스를 초기화한다."""
         self.k = k_connectivity
         self.rng = np.random.default_rng(seed)
 
     def build_mst(self, nodes: list[MeshNode], max_range=150.0) -> list[MeshLink]:
+        """`mst` 결과를 생성한다."""
         n = len(nodes)
         edges = []
         for i in range(n):
@@ -115,13 +123,16 @@ class FailureDetector:
     """하트비트 기반 장애 탐지."""
 
     def __init__(self, timeout_ms=500.0):
+        """인스턴스를 초기화한다."""
         self.timeout = timeout_ms
         self.last_heartbeat: dict[str, float] = {}
 
     def heartbeat(self, node_id: str, time_ms: float):
+        """``heartbeat`` 동작을 수행한다."""
         self.last_heartbeat[node_id] = time_ms
 
     def detect_failures(self, current_time_ms: float) -> list[str]:
+        """`failures` 결과를 계산하거나 판정한다."""
         failed = []
         for nid, t in self.last_heartbeat.items():
             if current_time_ms - t > self.timeout:
@@ -133,6 +144,7 @@ class SwarmResilienceMesh:
     """자가 복구 메시 네트워크 시뮬레이션."""
 
     def __init__(self, n_drones=30, k_connectivity=2, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.topo = TopologyManager(k_connectivity, seed)
         self.detector = FailureDetector()
@@ -162,16 +174,19 @@ class SwarmResilienceMesh:
                         n.neighbors.append(l.src)
 
     def kill_node(self, node_id: str):
+        """``kill_node`` 동작을 수행한다."""
         for n in self.nodes:
             if n.node_id == node_id:
                 n.alive = False
         self.links = [l for l in self.links if l.src != node_id and l.dst != node_id]
 
     def heal(self):
+        """``heal`` 동작을 수행한다."""
         self._rebuild()
         self.healed += 1
 
     def check_connectivity(self) -> int:
+        """`connectivity` 결과를 계산하거나 판정한다."""
         alive = [n for n in self.nodes if n.alive]
         if not alive:
             return 0
@@ -201,6 +216,7 @@ class SwarmResilienceMesh:
         return {"alive": alive_count, "links": len(self.links), "components": comps}
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         alive = sum(1 for n in self.nodes if n.alive)
         return {
             "total_nodes": len(self.nodes),

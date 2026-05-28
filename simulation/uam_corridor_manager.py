@@ -10,6 +10,7 @@ import numpy as np
 
 
 class CorridorType(Enum):
+    """``CorridorType`` 관련 기능을 제공한다."""
     LOW_ALTITUDE = "low_altitude"       # 0-120m
     MEDIUM_ALTITUDE = "medium_altitude"  # 120-300m
     HIGH_ALTITUDE = "high_altitude"      # 300-600m
@@ -17,6 +18,7 @@ class CorridorType(Enum):
 
 
 class VertiportStatus(Enum):
+    """``VertiportStatus`` 관련 기능을 제공한다."""
     OPEN = "open"
     BUSY = "busy"
     CLOSED = "closed"
@@ -25,6 +27,7 @@ class VertiportStatus(Enum):
 
 @dataclass
 class Vertiport:
+    """``Vertiport`` 관련 기능을 제공한다."""
     port_id: str
     x: float
     y: float
@@ -38,6 +41,7 @@ class Vertiport:
 
 @dataclass
 class UAMCorridor:
+    """``UAMCorridor`` 관련 기능을 제공한다."""
     corridor_id: str
     start_port: str
     end_port: str
@@ -52,6 +56,7 @@ class UAMCorridor:
 
 @dataclass
 class UAMFlight:
+    """``UAMFlight`` 관련 기능을 제공한다."""
     flight_id: str
     origin: str
     destination: str
@@ -66,6 +71,7 @@ class UAMCorridorManager:
     """Manages UAM corridors, vertiports, and flight scheduling."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.vertiports: dict[str, Vertiport] = {}
         self.corridors: dict[str, UAMCorridor] = {}
@@ -75,6 +81,7 @@ class UAMCorridorManager:
 
     def add_vertiport(self, port_id: str, x: float, y: float, z: float = 0,
                       capacity: int = 4) -> Vertiport:
+        """`vertiport` 항목을 추가한다."""
         vp = Vertiport(port_id, x, y, z, capacity)
         self.vertiports[port_id] = vp
         return vp
@@ -82,6 +89,7 @@ class UAMCorridorManager:
     def create_corridor(self, start: str, end: str,
                         corridor_type: CorridorType = CorridorType.MEDIUM_ALTITUDE,
                         width: float = 50.0) -> UAMCorridor | None:
+        """`corridor` 결과를 생성한다."""
         if start not in self.vertiports or end not in self.vertiports:
             return None
         cid = f"COR-{start}-{end}"
@@ -102,6 +110,7 @@ class UAMCorridorManager:
         return corridor
 
     def auto_create_corridors(self, max_distance: float = 5000) -> int:
+        """``auto_create_corridors`` 동작을 수행한다."""
         count = 0
         ports = list(self.vertiports.keys())
         for i in range(len(ports)):
@@ -116,6 +125,7 @@ class UAMCorridorManager:
 
     def schedule_flight(self, origin: str, destination: str,
                         departure_time: float, passengers: int = 1) -> UAMFlight | None:
+        """`flight` 작업을 계획한다."""
         cid = f"COR-{origin}-{destination}"
         corridor = self.corridors.get(cid)
         if not corridor:
@@ -148,6 +158,7 @@ class UAMCorridorManager:
         return flight
 
     def complete_flight(self, flight_id: str) -> bool:
+        """``complete_flight`` 동작을 수행한다."""
         flight = self.flights.get(flight_id)
         if not flight or flight.status != "scheduled":
             return False
@@ -164,6 +175,7 @@ class UAMCorridorManager:
         return True
 
     def find_best_route(self, origin: str, destination: str) -> str | None:
+        """``find_best_route`` 동작을 수행한다."""
         best_cid = None
         best_load = float('inf')
         for cid, cor in self.corridors.items():
@@ -173,12 +185,14 @@ class UAMCorridorManager:
         return best_cid
 
     def get_corridor_load(self) -> dict[str, float]:
+        """`corridor load` 정보를 조회한다."""
         loads = {}
         for cid, cor in self.corridors.items():
             loads[cid] = cor.current_traffic / max(cor.max_traffic, 1) * 100
         return loads
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         completed = sum(1 for f in self.flights.values() if f.status == "completed")
         total_pax = sum(f.passengers for f in self.flights.values())
         return {

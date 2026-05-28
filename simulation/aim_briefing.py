@@ -15,6 +15,7 @@ _HIGH_WIND_THRESHOLD_KT: int = 25
 
 @dataclass
 class BriefingRequest:
+    """``BriefingRequest`` 데이터를 표현한다."""
     callsign: str
     departure: tuple[float, float]
     destination: tuple[float, float]
@@ -25,6 +26,7 @@ class BriefingRequest:
 
 @dataclass
 class BriefingResult:
+    """``BriefingResult`` 데이터를 표현한다."""
     callsign: str
     go_nogo: str
     weather_ok: bool
@@ -49,6 +51,7 @@ class AimBriefingService:
         metar_parser: Any | None = None,
         max_history: int = _DEFAULT_BRIEFING_HISTORY,
     ) -> None:
+        """인스턴스를 초기화한다."""
         if max_history <= 0:
             raise ValueError("max_history must be positive")
         self.notam_manager = notam_manager
@@ -207,6 +210,7 @@ class AimBriefingService:
         )
 
     def stats(self) -> dict[str, Any]:
+        """``stats`` 동작을 수행한다."""
         go = sum(1 for r in self.history if r.go_nogo == "GO")
         nogo = len(self.history) - go
         return {"briefings": len(self.history), "go": go, "nogo": nogo}

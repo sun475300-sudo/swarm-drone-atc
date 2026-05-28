@@ -11,6 +11,7 @@ import numpy as np
 
 
 class CoverageTier(Enum):
+    """``CoverageTier`` 관련 기능을 제공한다."""
     BASIC = "basic"
     STANDARD = "standard"
     PREMIUM = "premium"
@@ -18,6 +19,7 @@ class CoverageTier(Enum):
 
 @dataclass(frozen=True)
 class RiskFactors:
+    """``RiskFactors`` 관련 기능을 제공한다."""
     population_density: float
     flight_hours: float
     weather_severity: float
@@ -51,6 +53,7 @@ class InsuranceRiskCalculator:
         base_premium_krw: float = 50_000.0,
         max_history: int = _DEFAULT_INSURANCE_HISTORY,
     ) -> None:
+        """인스턴스를 초기화한다."""
         if max_history <= 0:
             raise ValueError("max_history must be positive")
         if base_premium_krw <= 0:
@@ -60,6 +63,7 @@ class InsuranceRiskCalculator:
         self.history: list[dict[str, Any]] = []
 
     def compute_risk_score(self, f: RiskFactors) -> float:
+        """`risk score` 값을 계산한다."""
         if not math.isfinite(f.drone_mtow_kg) or f.drone_mtow_kg <= 0:
             raise ValueError(f"drone_mtow_kg must be finite and positive, got {f.drone_mtow_kg}")
         if not math.isfinite(f.population_density) or f.population_density < 0:
@@ -107,6 +111,7 @@ class InsuranceRiskCalculator:
         return float(min(max(score, 0.0), 2.0))
 
     def recommend_tier(self, risk_score: float) -> CoverageTier:
+        """``recommend_tier`` 동작을 수행한다."""
         if not math.isfinite(risk_score):
             raise ValueError(f"risk_score must be finite, got {risk_score}")
         if risk_score < 0.4:
@@ -122,6 +127,7 @@ class InsuranceRiskCalculator:
             del self.history[:overflow]
 
     def estimate_premium_krw(self, f: RiskFactors, tier: CoverageTier) -> float:
+        """`premium krw` 결과를 계산하거나 판정한다."""
         score = self.compute_risk_score(f)
         multiplier = TIER_MULTIPLIER[tier]
         premium = self.base_premium_krw * (1.0 + score) * multiplier
@@ -130,6 +136,7 @@ class InsuranceRiskCalculator:
 
     def quote(self, f: RiskFactors) -> dict[str, Any]:
         # compute_risk_score 를 1회만 호출 (DRY)
+        """``quote`` 동작을 수행한다."""
         score = self.compute_risk_score(f)
         tier = self.recommend_tier(score)
         multiplier = TIER_MULTIPLIER[tier]
@@ -143,6 +150,7 @@ class InsuranceRiskCalculator:
         }
 
     def stats(self) -> dict[str, Any]:
+        """``stats`` 동작을 수행한다."""
         if not self.history:
             return {"quotes": 0}
         avg_score = float(np.mean([h["score"] for h in self.history]))

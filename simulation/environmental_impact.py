@@ -34,6 +34,7 @@ class EnvironmentalImpact:
     ENERGY_TARGET_WH_KM = 10.0
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._records: dict[str, list[FlightImpact]] = {}
 
     def record_flight(
@@ -41,6 +42,7 @@ class EnvironmentalImpact:
         energy_wh: float = 0, noise_db: float = 50,
         altitude_m: float = 50, over_residential: bool = False,
     ) -> None:
+        """`flight` 정보를 기록한다."""
         if drone_id not in self._records:
             self._records[drone_id] = []
         self._records[drone_id].append(FlightImpact(
@@ -72,12 +74,14 @@ class EnvironmentalImpact:
         return round(float(np.mean(scores)), 1)
 
     def fleet_impact(self) -> float:
+        """``fleet_impact`` 동작을 수행한다."""
         if not self._records:
             return 100.0
         scores = [self.impact_score(did) for did in self._records]
         return round(float(np.mean(scores)), 1)
 
     def noise_violations(self) -> list[tuple[str, float]]:
+        """``noise_violations`` 동작을 수행한다."""
         violations = []
         for did, records in self._records.items():
             for r in records:
@@ -86,17 +90,20 @@ class EnvironmentalImpact:
         return violations
 
     def total_energy_wh(self) -> float:
+        """``total_energy_wh`` 동작을 수행한다."""
         total = sum(
             r.energy_wh for records in self._records.values() for r in records
         )
         return round(total, 1)
 
     def eco_ranking(self) -> list[tuple[str, float]]:
+        """``eco_ranking`` 동작을 수행한다."""
         ranking = [(did, self.impact_score(did)) for did in self._records]
         ranking.sort(key=lambda x: -x[1])
         return ranking
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": len(self._records),
             "fleet_score": self.fleet_impact(),

@@ -31,6 +31,7 @@ class WaypointOptimizer:
     """웨이포인트 경로 최적화."""
 
     def __init__(self, energy_per_meter: float = 0.01) -> None:
+        """인스턴스를 초기화한다."""
         self._energy_per_m = energy_per_meter
 
     def simplify(
@@ -168,6 +169,7 @@ class WaypointOptimizer:
     def summary(
         self, waypoints: list[tuple[float, float, float]], epsilon: float = 5.0
     ) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         result = self.optimize(waypoints, epsilon)
         return {
             "original": result.original_count,

@@ -11,6 +11,7 @@ import numpy as np
 
 
 class PathMetric(Enum):
+    """``PathMetric`` 관련 기능을 제공한다."""
     DISTANCE = "distance"
     TIME = "time"
     ENERGY = "energy"
@@ -19,6 +20,7 @@ class PathMetric(Enum):
 
 @dataclass
 class Waypoint:
+    """``Waypoint`` 관련 기능을 제공한다."""
     x: float
     y: float
     z: float
@@ -30,6 +32,7 @@ class Waypoint:
 
 @dataclass
 class PathResult:
+    """``PathResult`` 데이터를 표현한다."""
     waypoints: list[Waypoint]
     total_distance: float
     total_time: float
@@ -40,6 +43,7 @@ class PathResult:
 
 
 class AdvancedPathPlanner:
+    """``AdvancedPathPlanner`` 역할을 담당한다."""
     def __init__(
         self,
         bounds: tuple[float, float, float, float, float, float] = (
@@ -54,6 +58,7 @@ class AdvancedPathPlanner:
         max_iterations: int = 5000,
         goal_tolerance: float = 5.0,
     ):
+        """인스턴스를 초기화한다."""
         self.bounds = bounds
         self.safety_margin = safety_margin
         self.max_iterations = max_iterations
@@ -63,15 +68,19 @@ class AdvancedPathPlanner:
         self.wind_field: callable | None = None
 
     def add_obstacle(self, x: float, y: float, z: float, radius: float):
+        """`obstacle` 항목을 추가한다."""
         self.obstacles.append((x, y, z, radius))
 
     def add_no_fly_zone(self, x_min: float, x_max: float, y_min: float, y_max: float):
+        """`no fly zone` 항목을 추가한다."""
         self.no_fly_zones.append((x_min, x_max, y_min, y_max))
 
     def set_wind_field(self, wind_func: callable):
+        """`wind field` 상태를 갱신한다."""
         self.wind_field = wind_func
 
     def is_valid_position(self, x: float, y: float, z: float) -> bool:
+        """`valid position` 여부를 반환한다."""
         x_min, x_max, y_min, y_max, z_min, z_max = self.bounds
         if not (x_min <= x <= x_max and y_min <= y <= y_max and z_min <= z <= z_max):
             return False
@@ -88,11 +97,13 @@ class AdvancedPathPlanner:
     def distance(
         self, p1: tuple[float, float, float], p2: tuple[float, float, float]
     ) -> float:
+        """``distance`` 동작을 수행한다."""
         return np.sqrt(sum((a - b) ** 2 for a, b in zip(p1, p2, strict=False)))
 
     def heuristic(
         self, current: tuple[float, float, float], goal: tuple[float, float, float]
     ) -> float:
+        """``heuristic`` 동작을 수행한다."""
         base_dist = self.distance(current, goal)
         if self.wind_field:
             wx, wy, _ = self.wind_field(current[0], current[1], current[2])
@@ -106,6 +117,7 @@ class AdvancedPathPlanner:
         goal: tuple[float, float, float],
         resolution: float = 5.0,
     ) -> PathResult:
+        """`astar` 작업을 계획한다."""
         start_time = time.time()
 
         if not self.is_valid_position(*start) or not self.is_valid_position(*goal):
@@ -252,6 +264,7 @@ class AdvancedPathPlanner:
         step_size: float = 10.0,
         goal_sample_rate: float = 0.1,
     ) -> PathResult:
+        """`rrt star` 작업을 계획한다."""
         start_time = time.time()
 
         if not self.is_valid_position(*start) or not self.is_valid_position(*goal):
@@ -384,6 +397,7 @@ class AdvancedPathPlanner:
         start: tuple[float, float, float],
         goal: tuple[float, float, float],
     ) -> PathResult:
+        """`hybrid` 작업을 계획한다."""
         astar_result = self.plan_astar(start, goal)
         rrt_result = self.plan_rrt_star(start, goal)
 
@@ -402,6 +416,7 @@ class AdvancedPathPlanner:
     def smooth_path(
         self, waypoints: list[Waypoint], iterations: int = 50
     ) -> list[Waypoint]:
+        """``smooth_path`` 동작을 수행한다."""
         if len(waypoints) < 3:
             return waypoints
 

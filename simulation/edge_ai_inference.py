@@ -14,6 +14,7 @@ import numpy as np
 
 
 class ModelFormat(Enum):
+    """``ModelFormat`` 관련 기능을 제공한다."""
     FLOAT32 = "float32"
     FLOAT16 = "float16"
     INT8 = "int8"
@@ -21,6 +22,7 @@ class ModelFormat(Enum):
 
 
 class InferenceStatus(Enum):
+    """``InferenceStatus`` 관련 기능을 제공한다."""
     IDLE = "idle"
     RUNNING = "running"
     CACHED = "cached"
@@ -29,6 +31,7 @@ class InferenceStatus(Enum):
 
 @dataclass
 class EdgeModel:
+    """``EdgeModel`` 관련 기능을 제공한다."""
     model_id: str
     name: str
     input_shape: tuple
@@ -59,6 +62,7 @@ class EdgeModel:
 
 @dataclass
 class InferenceResult:
+    """``InferenceResult`` 데이터를 표현한다."""
     model_id: str
     output: np.ndarray
     latency_ms: float
@@ -78,6 +82,7 @@ class EdgeAIInferenceEngine:
     """
 
     def __init__(self, cache_size: int = 100, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._models: dict[str, EdgeModel] = {}
         self._cache: dict[str, InferenceResult] = {}
@@ -87,6 +92,7 @@ class EdgeAIInferenceEngine:
         self._total_latency_ms = 0.0
 
     def load_model(self, model: EdgeModel):
+        """`model` 정보를 조회한다."""
         if model.weights is None:
             model.weights = self._rng.standard_normal(
                 (model.input_shape[-1] if len(model.input_shape) > 0 else 10,
@@ -95,6 +101,7 @@ class EdgeAIInferenceEngine:
         self._models[model.model_id] = model
 
     def quantize_model(self, model_id: str, target: ModelFormat) -> EdgeModel | None:
+        """``quantize_model`` 동작을 수행한다."""
         model = self._models.get(model_id)
         if not model:
             return None
@@ -103,6 +110,7 @@ class EdgeAIInferenceEngine:
         return quantized
 
     def infer(self, model_id: str, input_data: np.ndarray) -> InferenceResult | None:
+        """``infer`` 동작을 수행한다."""
         model = self._models.get(model_id)
         if not model:
             return None
@@ -157,6 +165,7 @@ class EdgeAIInferenceEngine:
         return result
 
     def batch_infer(self, model_id: str, batch: list[np.ndarray]) -> list[InferenceResult | None]:
+        """``batch_infer`` 동작을 수행한다."""
         return [self.infer(model_id, inp) for inp in batch]
 
     def detect_anomaly(self, model_id: str, input_data: np.ndarray,
@@ -169,9 +178,11 @@ class EdgeAIInferenceEngine:
         return is_anomaly, result.confidence
 
     def get_model(self, model_id: str) -> EdgeModel | None:
+        """`model` 정보를 조회한다."""
         return self._models.get(model_id)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "loaded_models": len(self._models),
             "inference_count": self._inference_count,

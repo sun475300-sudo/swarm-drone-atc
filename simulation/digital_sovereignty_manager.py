@@ -13,6 +13,7 @@ import numpy as np
 
 
 class DataClassification(Enum):
+    """``DataClassification`` 관련 기능을 제공한다."""
     PUBLIC = "public"
     INTERNAL = "internal"
     CONFIDENTIAL = "confidential"
@@ -21,6 +22,7 @@ class DataClassification(Enum):
 
 
 class EncryptionLevel(Enum):
+    """``EncryptionLevel`` 관련 기능을 제공한다."""
     NONE = "none"
     AES128 = "aes128"
     AES256 = "aes256"
@@ -28,6 +30,7 @@ class EncryptionLevel(Enum):
 
 
 class Region(Enum):
+    """``Region`` 관련 기능을 제공한다."""
     KR = "kr"   # Korea
     US = "us"   # United States
     EU = "eu"   # European Union
@@ -38,6 +41,7 @@ class Region(Enum):
 
 @dataclass
 class DataPolicy:
+    """``DataPolicy`` 관련 기능을 제공한다."""
     classification: DataClassification
     allowed_regions: set[Region]
     encryption: EncryptionLevel
@@ -48,6 +52,7 @@ class DataPolicy:
 
 @dataclass
 class DataRecord:
+    """``DataRecord`` 데이터를 표현한다."""
     record_id: str
     source_region: Region
     classification: DataClassification
@@ -61,6 +66,7 @@ class DataRecord:
 
 @dataclass
 class ComplianceViolation:
+    """``ComplianceViolation`` 관련 기능을 제공한다."""
     violation_id: str
     record_id: str
     rule: str
@@ -71,6 +77,7 @@ class ComplianceViolation:
 
 @dataclass
 class AuditEntry:
+    """``AuditEntry`` 데이터를 표현한다."""
     action: str
     record_id: str
     from_region: Region
@@ -105,6 +112,7 @@ class DigitalSovereigntyManager:
     }
 
     def __init__(self, home_region: Region = Region.KR, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.home_region = home_region
         self.rng = np.random.default_rng(seed)
         self.policies: dict[DataClassification, DataPolicy] = dict(self.DEFAULT_POLICIES)
@@ -114,11 +122,13 @@ class DigitalSovereigntyManager:
         self._violation_counter = 0
 
     def set_policy(self, classification: DataClassification, policy: DataPolicy) -> None:
+        """`policy` 상태를 갱신한다."""
         self.policies[classification] = policy
 
     def ingest_data(self, record_id: str, source_region: Region,
                     classification: DataClassification,
                     payload: bytes, timestamp: float | None = None) -> DataRecord:
+        """``ingest_data`` 동작을 수행한다."""
         ts = timestamp or time.time()
         payload_hash = hashlib.sha256(payload).hexdigest()
 
@@ -146,6 +156,7 @@ class DigitalSovereigntyManager:
         return record
 
     def route_data(self, record_id: str, target_region: Region) -> tuple[bool, str | None]:
+        """`data` 작업을 계획한다."""
         record = self.records.get(record_id)
         if not record:
             return False, "Record not found"
@@ -180,6 +191,7 @@ class DigitalSovereigntyManager:
         return True, None
 
     def check_compliance(self, record_id: str) -> list[str]:
+        """`compliance` 결과를 계산하거나 판정한다."""
         record = self.records.get(record_id)
         if not record:
             return ["Record not found"]
@@ -201,6 +213,7 @@ class DigitalSovereigntyManager:
         return issues
 
     def bulk_compliance_scan(self) -> dict[str, list[str]]:
+        """``bulk_compliance_scan`` 동작을 수행한다."""
         results = {}
         for rid in self.records:
             issues = self.check_compliance(rid)
@@ -209,6 +222,7 @@ class DigitalSovereigntyManager:
         return results
 
     def anonymize_record(self, record_id: str) -> bool:
+        """``anonymize_record`` 동작을 수행한다."""
         record = self.records.get(record_id)
         if not record:
             return False
@@ -223,6 +237,7 @@ class DigitalSovereigntyManager:
         return True
 
     def get_region_data_count(self) -> dict[str, int]:
+        """`region data count` 정보를 조회한다."""
         counts: dict[str, int] = {}
         for record in self.records.values():
             region = (record.routed_to or record.source_region).value
@@ -240,6 +255,7 @@ class DigitalSovereigntyManager:
         ))
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "home_region": self.home_region.value,
             "total_records": len(self.records),

@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class MemoryPattern:
+    """``MemoryPattern`` 관련 기능을 제공한다."""
     pattern_id: str
     data: np.ndarray
     label: str
@@ -18,6 +19,7 @@ class MemoryPattern:
 
 @dataclass
 class RecallResult:
+    """``RecallResult`` 데이터를 표현한다."""
     query_id: str
     recalled_id: str
     similarity: float
@@ -29,6 +31,7 @@ class HopfieldNetwork:
     """Hopfield 연상 기억 네트워크."""
 
     def __init__(self, n_neurons: int):
+        """인스턴스를 초기화한다."""
         self.n = n_neurons
         self.weights = np.zeros((n_neurons, n_neurons))
         self.patterns_stored = 0
@@ -53,6 +56,7 @@ class HopfieldNetwork:
         return state, max_iter, False
 
     def energy(self, state: np.ndarray) -> float:
+        """``energy`` 동작을 수행한다."""
         s = np.where(state > 0, 1, -1).astype(float)
         return -0.5 * s @ self.weights @ s
 
@@ -65,6 +69,7 @@ class CollectiveMemoryNetwork:
     """집단 기억 네트워크 시뮬레이션."""
 
     def __init__(self, n_neurons=64, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.network = HopfieldNetwork(n_neurons)
         self.n_neurons = n_neurons
@@ -72,6 +77,7 @@ class CollectiveMemoryNetwork:
         self.recall_results: list[RecallResult] = []
 
     def store_patterns(self, n_patterns=10):
+        """``store_patterns`` 동작을 수행한다."""
         for i in range(n_patterns):
             data = self.rng.choice([-1, 1], self.n_neurons).astype(float)
             pattern = MemoryPattern(f"PAT_{i:04d}", data, f"formation_{i}")
@@ -79,6 +85,7 @@ class CollectiveMemoryNetwork:
             self.network.store(data)
 
     def recall_with_noise(self, pattern_idx: int, noise_ratio=0.2) -> RecallResult:
+        """``recall_with_noise`` 동작을 수행한다."""
         if pattern_idx >= len(self.stored_patterns):
             return RecallResult("?", "?", 0, 0, False)
 
@@ -106,12 +113,14 @@ class CollectiveMemoryNetwork:
         return result
 
     def run(self, n_patterns=10, n_recalls=20, noise=0.2):
+        """메인 실행 루프를 수행한다."""
         self.store_patterns(n_patterns)
         for _ in range(n_recalls):
             idx = int(self.rng.integers(0, len(self.stored_patterns)))
             self.recall_with_noise(idx, noise)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         correct = sum(1 for r in self.recall_results if r.similarity > 0.9)
         avg_sim = float(np.mean([r.similarity for r in self.recall_results])) if self.recall_results else 0
         avg_iter = float(np.mean([r.iterations for r in self.recall_results])) if self.recall_results else 0

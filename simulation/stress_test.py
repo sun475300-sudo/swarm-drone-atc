@@ -73,18 +73,21 @@ class StressTestResult:
 
     @property
     def avg_tick_ms(self) -> float:
+        """``avg_tick_ms`` 동작을 수행한다."""
         if not self.tick_metrics:
             return 0.0
         return sum(m.wall_time_ms for m in self.tick_metrics) / len(self.tick_metrics)
 
     @property
     def max_tick_ms(self) -> float:
+        """``max_tick_ms`` 동작을 수행한다."""
         if not self.tick_metrics:
             return 0.0
         return max(m.wall_time_ms for m in self.tick_metrics)
 
     @property
     def p95_tick_ms(self) -> float:
+        """``p95_tick_ms`` 동작을 수행한다."""
         if not self.tick_metrics:
             return 0.0
         sorted_times = sorted(m.wall_time_ms for m in self.tick_metrics)
@@ -93,6 +96,7 @@ class StressTestResult:
 
     @property
     def p99_tick_ms(self) -> float:
+        """``p99_tick_ms`` 동작을 수행한다."""
         if not self.tick_metrics:
             return 0.0
         sorted_times = sorted(m.wall_time_ms for m in self.tick_metrics)
@@ -120,6 +124,7 @@ class StressTestResult:
         return self.config.duration_s / self.total_wall_time_s
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "n_drones": self.config.n_drones,
             "duration_s": self.config.duration_s,
@@ -149,6 +154,7 @@ class StressTestRunner:
     """
 
     def __init__(self, config: StressTestConfig | None = None, **kwargs: Any) -> None:
+        """인스턴스를 초기화한다."""
         if config is not None:
             self.config = config
         else:
@@ -278,6 +284,7 @@ class StressTestRunner:
 
     @property
     def result(self) -> StressTestResult | None:
+        """``result`` 동작을 수행한다."""
         return self._result
 
     def compare(

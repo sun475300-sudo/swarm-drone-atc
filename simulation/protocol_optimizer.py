@@ -14,6 +14,7 @@ import numpy as np
 
 
 class Protocol(Enum):
+    """``Protocol`` 관련 기능을 제공한다."""
     UDP_LITE = "udp_lite"
     TCP = "tcp"
     QUIC = "quic"
@@ -23,6 +24,7 @@ class Protocol(Enum):
 
 
 class QoSLevel(Enum):
+    """``QoSLevel`` 관련 기능을 제공한다."""
     BEST_EFFORT = 0
     NORMAL = 1
     HIGH = 2
@@ -32,6 +34,7 @@ class QoSLevel(Enum):
 
 @dataclass
 class Packet:
+    """``Packet`` 관련 기능을 제공한다."""
     packet_id: str
     source: str
     destination: str
@@ -45,6 +48,7 @@ class Packet:
 
 @dataclass
 class ChannelState:
+    """``ChannelState`` 데이터를 표현한다."""
     bandwidth_bps: float = 10e6  # 10 Mbps
     utilization: float = 0.0
     packet_loss_rate: float = 0.01
@@ -54,6 +58,7 @@ class ChannelState:
 
 @dataclass
 class TransmissionResult:
+    """``TransmissionResult`` 데이터를 표현한다."""
     packet_id: str
     success: bool
     latency_ms: float
@@ -65,6 +70,7 @@ class AdaptiveRateController:
     """적응형 전송률 제어기 (AIMD 기반)."""
 
     def __init__(self, initial_rate_bps: float = 1e6):
+        """인스턴스를 초기화한다."""
         self.rate_bps = initial_rate_bps
         self.max_rate_bps = 10e6
         self.min_rate_bps = 100e3
@@ -72,19 +78,23 @@ class AdaptiveRateController:
         self._loss_history: deque[bool] = deque(maxlen=self._window_size)
 
     def on_ack(self):
+        """``on_ack`` 동작을 수행한다."""
         self._loss_history.append(False)
         # Additive increase
         self.rate_bps = min(self.max_rate_bps, self.rate_bps + 50e3)
 
     def on_loss(self):
+        """``on_loss`` 동작을 수행한다."""
         self._loss_history.append(True)
         # Multiplicative decrease
         self.rate_bps = max(self.min_rate_bps, self.rate_bps * 0.5)
 
     def current_rate(self) -> float:
+        """``current_rate`` 동작을 수행한다."""
         return self.rate_bps
 
     def loss_ratio(self) -> float:
+        """``loss_ratio`` 동작을 수행한다."""
         if not self._loss_history:
             return 0.0
         return sum(self._loss_history) / len(self._loss_history)
@@ -95,12 +105,14 @@ class PacketCompressor:
 
     @staticmethod
     def compress(payload_bytes: int, data_type: str = "telemetry") -> int:
+        """``compress`` 동작을 수행한다."""
         ratios = {"telemetry": 0.4, "video": 0.7, "command": 0.3, "status": 0.35}
         ratio = ratios.get(data_type, 0.5)
         return max(8, int(payload_bytes * ratio))
 
     @staticmethod
     def decompress_overhead_ms(compressed_bytes: int) -> float:
+        """``decompress_overhead_ms`` 동작을 수행한다."""
         return compressed_bytes * 0.001  # ~1us per byte
 
 
@@ -114,6 +126,7 @@ class ProtocolOptimizer:
     """
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._channel = ChannelState()
         self._rate_ctrl = AdaptiveRateController()
@@ -123,9 +136,11 @@ class ProtocolOptimizer:
         self._stats = {"sent": 0, "delivered": 0, "lost": 0, "compressed": 0}
 
     def set_channel(self, channel: ChannelState):
+        """`channel` 상태를 갱신한다."""
         self._channel = channel
 
     def select_protocol(self, qos: QoSLevel, payload_bytes: int) -> Protocol:
+        """`protocol` 동작을 수행한다."""
         if qos == QoSLevel.REAL_TIME:
             return Protocol.CUSTOM_LOW_LATENCY
         elif qos == QoSLevel.CRITICAL:
@@ -137,12 +152,14 @@ class ProtocolOptimizer:
         return Protocol.UDP_LITE
 
     def enqueue(self, packet: Packet):
+        """``enqueue`` 동작을 수행한다."""
         packet.protocol = self.select_protocol(packet.qos, packet.payload_bytes)
         self._queue.append(packet)
         # Sort by QoS priority (highest first)
         self._queue.sort(key=lambda p: p.qos.value, reverse=True)
 
     def transmit_next(self) -> TransmissionResult | None:
+        """``transmit_next`` 동작을 수행한다."""
         if not self._queue:
             return None
         packet = self._queue.pop(0)
@@ -184,6 +201,7 @@ class ProtocolOptimizer:
         return result
 
     def flush_queue(self) -> list[TransmissionResult]:
+        """``flush_queue`` 동작을 수행한다."""
         results = []
         while self._queue:
             r = self.transmit_next()
@@ -192,9 +210,11 @@ class ProtocolOptimizer:
         return results
 
     def get_queue_depth(self) -> int:
+        """`queue depth` 정보를 조회한다."""
         return len(self._queue)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         avg_latency = np.mean([r.latency_ms for r in self._results]) if self._results else 0
         return {
             "total_sent": self._stats["sent"],

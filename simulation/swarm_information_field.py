@@ -11,13 +11,16 @@ import numpy as np
 
 @dataclass
 class InfoAgent:
+    """``InfoAgent`` 역할을 담당한다."""
     agent_id: int
     position: np.ndarray
     measurement: float = 0.0
 
 
 class InformationField:
+    """``InformationField`` 관련 기능을 제공한다."""
     def __init__(self, n_agents=10, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n = n_agents
         self.agents = [
@@ -34,6 +37,7 @@ class InformationField:
         return float(signal + noise)
 
     def compute_fisher_info(self) -> float:
+        """`fisher info` 값을 계산한다."""
         measurements = [self._measure(a) for a in self.agents]
         if len(measurements) < 2:
             return 0.0
@@ -41,6 +45,7 @@ class InformationField:
         return 1.0 / (var + 1e-6)
 
     def step(self, dt=0.5):
+        """`대상` 실행 상태를 제어한다."""
         for a in self.agents:
             a.measurement = self._measure(a)
             grad = np.zeros(2)
@@ -54,18 +59,22 @@ class InformationField:
 
 
 class SwarmInformationField:
+    """``SwarmInformationField`` 관련 기능을 제공한다."""
     def __init__(self, n_agents=15, seed=42):
+        """인스턴스를 초기화한다."""
         self.field = InformationField(n_agents, seed)
         self.steps = 0
         self.fisher_history: list[float] = []
 
     def run(self, steps=50):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             self.field.step()
             self.fisher_history.append(self.field.compute_fisher_info())
             self.steps += 1
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "agents": self.field.n,
             "steps": self.steps,

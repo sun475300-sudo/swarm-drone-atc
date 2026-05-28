@@ -16,6 +16,7 @@ from typing import Any
 
 @dataclass
 class ParsedCommand:
+    """``ParsedCommand`` 관련 기능을 제공한다."""
     intent: str  # MOVE, LAND, RETURN, STATUS, EMERGENCY, UNKNOWN
     target: str
     params: dict[str, Any]
@@ -34,10 +35,13 @@ INTENT_PATTERNS = [
 
 
 class NLPController:
+    """``NLPController`` 역할을 담당한다."""
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._history: list[ParsedCommand] = []
 
     def parse_command(self, text: str) -> ParsedCommand:
+        """`command` 입력을 해석한다."""
         text_lower = text.lower()
 
         # 의도 분류
@@ -71,15 +75,18 @@ class NLPController:
         return cmd
 
     def batch_parse(self, texts: list[str]) -> list[ParsedCommand]:
+        """``batch_parse`` 동작을 수행한다."""
         return [self.parse_command(t) for t in texts]
 
     def intent_stats(self) -> dict[str, int]:
+        """``intent_stats`` 동작을 수행한다."""
         stats: dict[str, int] = {}
         for cmd in self._history:
             stats[cmd.intent] = stats.get(cmd.intent, 0) + 1
         return stats
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "commands_parsed": len(self._history),
             "intent_distribution": self.intent_stats(),

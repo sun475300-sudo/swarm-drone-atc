@@ -11,23 +11,28 @@ import numpy as np
 
 @dataclass
 class SimplexPair:
+    """``SimplexPair`` 관련 기능을 제공한다."""
     birth: float
     death: float
     dimension: int
 
     @property
     def persistence(self) -> float:
+        """``persistence`` 동작을 수행한다."""
         return self.death - self.birth
 
 
 class RipsComplex:
+    """``RipsComplex`` 관련 기능을 제공한다."""
     def __init__(self, points: np.ndarray, max_radius=20.0):
+        """인스턴스를 초기화한다."""
         self.points = points
         self.n = len(points)
         self.max_radius = max_radius
         self.pairs: list[SimplexPair] = []
 
     def compute_persistence(self, n_steps=20):
+        """`persistence` 값을 계산한다."""
         self.pairs = []
         prev_components = 0
         prev_cycles = 0
@@ -82,26 +87,32 @@ class RipsComplex:
         return int(edges - self.n + components)
 
     def betti_numbers(self) -> dict[int, int]:
+        """``betti_numbers`` 동작을 수행한다."""
         b0 = sum(1 for p in self.pairs if p.dimension == 0)
         b1 = sum(1 for p in self.pairs if p.dimension == 1)
         return {0: b0, 1: b1}
 
 
 class TopologicalPathPlanner:
+    """``TopologicalPathPlanner`` 역할을 담당한다."""
     def __init__(self, n_obstacles=15, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.obstacles = self.rng.uniform(10, 90, (n_obstacles, 2))
         self.complex = RipsComplex(self.obstacles, 25.0)
         self.complex.compute_persistence()
 
     def run(self):
+        """메인 실행 루프를 수행한다."""
         pass  # analysis on demand
 
     def find_path_homotopy_class(self, start: np.ndarray, goal: np.ndarray) -> int:
+        """``find_path_homotopy_class`` 동작을 수행한다."""
         betti = self.complex.betti_numbers()
         return betti.get(1, 0) + 1
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         betti = self.complex.betti_numbers()
         persistences = [p.persistence for p in self.complex.pairs]
         return {

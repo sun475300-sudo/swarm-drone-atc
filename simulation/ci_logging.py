@@ -11,6 +11,7 @@ def log_run_info(
     commit_sha: str = "",
     branch: str = "main",
 ) -> dict:
+    """`run info` 정보를 기록한다."""
     return {
         "status": "ok",
         "python_version": python_version,
@@ -21,6 +22,7 @@ def log_run_info(
 
 
 def log_perf_summary(summary: dict) -> dict:
+    """`perf summary` 정보를 기록한다."""
     return {
         "status": "ok",
         **summary,
@@ -29,6 +31,7 @@ def log_perf_summary(summary: dict) -> dict:
 
 
 def emit_smoke_report(report: dict) -> dict:
+    """``emit_smoke_report`` 동작을 수행한다."""
     return {
         "emitted": True,
         "report": report,

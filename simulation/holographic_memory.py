@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class HoloRecord:
+    """``HoloRecord`` 데이터를 표현한다."""
     key: str
     value: str
     vector: np.ndarray
@@ -20,11 +21,13 @@ class HolographicReducedRep:
     """홀로그래픽 축소 표현(HRR)."""
 
     def __init__(self, dim=256, seed=42):
+        """인스턴스를 초기화한다."""
         self.dim = dim
         self.rng = np.random.default_rng(seed)
         self.codebook: dict[str, np.ndarray] = {}
 
     def get_vector(self, symbol: str) -> np.ndarray:
+        """`vector` 정보를 조회한다."""
         if symbol not in self.codebook:
             v = self.rng.normal(0, 1.0 / np.sqrt(self.dim), self.dim)
             self.codebook[symbol] = v
@@ -44,6 +47,7 @@ class HolographicReducedRep:
         return np.sum(vectors, axis=0)
 
     def similarity(self, a: np.ndarray, b: np.ndarray) -> float:
+        """``similarity`` 동작을 수행한다."""
         na = np.linalg.norm(a)
         nb = np.linalg.norm(b)
         if na < 1e-10 or nb < 1e-10:
@@ -55,6 +59,7 @@ class HolographicMemory:
     """홀로그래픽 메모리 시뮬레이션."""
 
     def __init__(self, dim=256, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.hrr = HolographicReducedRep(dim, seed)
         self.memory = np.zeros(dim)
@@ -63,6 +68,7 @@ class HolographicMemory:
         self.correct = 0
 
     def store(self, key: str, value: str):
+        """``store`` 동작을 수행한다."""
         k_vec = self.hrr.get_vector(key)
         v_vec = self.hrr.get_vector(value)
         bound = self.hrr.bind(k_vec, v_vec)
@@ -70,6 +76,7 @@ class HolographicMemory:
         self.records.append(HoloRecord(key, value, bound))
 
     def recall(self, key: str) -> tuple[str, float]:
+        """``recall`` 동작을 수행한다."""
         k_vec = self.hrr.get_vector(key)
         retrieved = self.hrr.unbind(self.memory, k_vec)
         best_match = ""
@@ -88,6 +95,7 @@ class HolographicMemory:
         return best_match, best_sim
 
     def run(self, n_pairs=15):
+        """메인 실행 루프를 수행한다."""
         drone_attrs = [
             ("drone_0", "patrol"), ("drone_1", "deliver"), ("drone_2", "survey"),
             ("drone_3", "escort"), ("drone_4", "relay"), ("drone_5", "rescue"),
@@ -101,6 +109,7 @@ class HolographicMemory:
             self.recall(key)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "dimension": self.hrr.dim,
             "stored": len(self.records),

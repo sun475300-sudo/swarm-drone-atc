@@ -11,6 +11,7 @@ import numpy as np
 
 
 class PerceptionModality(Enum):
+    """``PerceptionModality`` 관련 기능을 제공한다."""
     VISUAL = "visual"
     THERMAL = "thermal"
     LIDAR = "lidar"
@@ -20,6 +21,7 @@ class PerceptionModality(Enum):
 
 @dataclass
 class PerceptionFrame:
+    """``PerceptionFrame`` 관련 기능을 제공한다."""
     frame_id: str
     drone_id: str
     modality: PerceptionModality
@@ -30,6 +32,7 @@ class PerceptionFrame:
 
 @dataclass
 class FusedPerception:
+    """``FusedPerception`` 관련 기능을 제공한다."""
     frame_id: str
     fused_data: np.ndarray
     confidence_map: np.ndarray
@@ -38,7 +41,9 @@ class FusedPerception:
 
 
 class SwarmCollaborativePerception:
+    """``SwarmCollaborativePerception`` 관련 기능을 제공한다."""
     def __init__(self, fusion_range_m: float = 100.0):
+        """인스턴스를 초기화한다."""
         self.fusion_range_m = fusion_range_m
 
         self.perception_frames: dict[
@@ -49,6 +54,7 @@ class SwarmCollaborativePerception:
         self.coverage_map: np.ndarray = np.zeros((1000, 1000))
 
     def add_frame(self, frame: PerceptionFrame):
+        """`frame` 항목을 추가한다."""
         key = (frame.drone_id, frame.modality)
         self.perception_frames[key] = frame
 
@@ -64,6 +70,7 @@ class SwarmCollaborativePerception:
     def fuse_frames(
         self, modality: PerceptionModality, reference_drone: str
     ) -> FusedPerception | None:
+        """``fuse_frames`` 동작을 수행한다."""
         reference_key = (reference_drone, modality)
 
         if reference_key not in self.perception_frames:
@@ -101,6 +108,7 @@ class SwarmCollaborativePerception:
         return fused
 
     def get_coverage_stats(self) -> dict[str, Any]:
+        """`coverage stats` 정보를 조회한다."""
         covered_cells = np.sum(self.coverage_map > 0)
         total_cells = self.coverage_map.size
 
@@ -116,6 +124,7 @@ class SwarmCollaborativePerception:
     def estimate_occlusion(
         self, viewpoint: np.ndarray, target_position: np.ndarray
     ) -> float:
+        """`occlusion` 결과를 계산하거나 판정한다."""
         occlusion_score = np.random.uniform(0.0, 0.3)
 
         return occlusion_score

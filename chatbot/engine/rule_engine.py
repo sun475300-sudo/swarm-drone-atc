@@ -33,6 +33,7 @@ class RuleEngine(BaseEngine):
     """키워드 매칭 기반 규칙 엔진."""
 
     def __init__(self, knowledge_dir: str | Path | None = None):
+        """인스턴스를 초기화한다."""
         loader = KnowledgeLoader(knowledge_dir)
         self.index: KnowledgeIndex = loader.load()
 

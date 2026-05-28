@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class AnomalyModel:
+    """``AnomalyModel`` 관련 기능을 제공한다."""
     model_id: str
     thresholds: dict[str, float]
     accuracy: float
@@ -19,6 +20,7 @@ class AnomalyModel:
 
 @dataclass
 class AnomalyReport:
+    """``AnomalyReport`` 관련 기능을 제공한다."""
     drone_id: str
     anomaly_type: str
     severity: str
@@ -27,7 +29,9 @@ class AnomalyReport:
 
 
 class AnomalyFederatedDetector:
+    """``AnomalyFederatedDetector`` 관련 기능을 제공한다."""
     def __init__(self, detector_id: str):
+        """인스턴스를 초기화한다."""
         self.detector_id = detector_id
 
         self.local_models: dict[str, AnomalyModel] = {}
@@ -46,6 +50,7 @@ class AnomalyFederatedDetector:
         }
 
     def train_local_model(self, drone_id: str, data: np.ndarray, labels: np.ndarray):
+        """``train_local_model`` 동작을 수행한다."""
         model = AnomalyModel(
             model_id=f"model_{drone_id}_{int(time.time())}",
             thresholds=self.global_thresholds.copy(),
@@ -58,6 +63,7 @@ class AnomalyFederatedDetector:
     def detect_anomaly(
         self, drone_id: str, metrics: dict[str, float]
     ) -> AnomalyReport | None:
+        """`anomaly` 결과를 계산하거나 판정한다."""
         thresholds = self.local_models[drone_id].thresholds if drone_id in self.local_models else self.global_thresholds
 
         anomalies = []
@@ -97,6 +103,7 @@ class AnomalyFederatedDetector:
         return report
 
     def federated_update(self, updates: list[dict]) -> dict[str, float]:
+        """``federated_update`` 동작을 수행한다."""
         if not updates:
             return self.global_thresholds
 
@@ -111,6 +118,7 @@ class AnomalyFederatedDetector:
         return aggregated
 
     def get_anomaly_statistics(self) -> dict[str, Any]:
+        """`anomaly statistics` 정보를 조회한다."""
         if not self.anomaly_history:
             return {"total_anomalies": 0}
 

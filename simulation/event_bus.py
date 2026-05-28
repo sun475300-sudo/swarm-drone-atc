@@ -32,6 +32,7 @@ class EventBus:
     """Pub/Sub 이벤트 브로커."""
 
     def __init__(self, max_history: int = 500) -> None:
+        """인스턴스를 초기화한다."""
         self._subscribers: dict[str, list[EventHandler]] = {}
         self._global_subscribers: list[EventHandler] = []
         self._history: list[Event] = []
@@ -40,14 +41,17 @@ class EventBus:
         self._delivered = 0
 
     def subscribe(self, event_type: str, handler: EventHandler) -> None:
+        """`대상` 항목을 추가한다."""
         if event_type not in self._subscribers:
             self._subscribers[event_type] = []
         self._subscribers[event_type].append(handler)
 
     def subscribe_all(self, handler: EventHandler) -> None:
+        """`all` 항목을 추가한다."""
         self._global_subscribers.append(handler)
 
     def unsubscribe(self, event_type: str, handler: EventHandler) -> bool:
+        """`대상` 상태를 정리한다."""
         subs = self._subscribers.get(event_type, [])
         if handler in subs:
             subs.remove(handler)
@@ -114,9 +118,11 @@ class EventBus:
         return list({e.event_type for e in self._history})
 
     def clear_history(self) -> None:
+        """`history` 상태를 정리한다."""
         self._history.clear()
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         type_counts: dict[str, int] = {}
         for e in self._history:
             type_counts[e.event_type] = type_counts.get(e.event_type, 0) + 1

@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class TelemetryFrame:
+    """``TelemetryFrame`` 관련 기능을 제공한다."""
     drone_id: str
     timestamp: float
     position: np.ndarray  # (3,)
@@ -21,6 +22,7 @@ class TelemetryFrame:
 
 @dataclass
 class CompressedStream:
+    """``CompressedStream`` 관련 기능을 제공한다."""
     drone_id: str
     base_frame: TelemetryFrame
     deltas: list[np.ndarray] = field(default_factory=list)
@@ -29,12 +31,15 @@ class CompressedStream:
 
 
 class TelemetryCompressor:
+    """``TelemetryCompressor`` 관련 기능을 제공한다."""
     def __init__(self, seed: int = 42, quantization_mm: float = 10.0):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.quantization = quantization_mm / 1000.0  # mm → m
         self._streams: dict[str, CompressedStream] = {}
 
     def compress(self, frames: list[TelemetryFrame]) -> CompressedStream:
+        """``compress`` 동작을 수행한다."""
         if not frames:
             raise ValueError("Empty frame list")
 
@@ -69,6 +74,7 @@ class TelemetryCompressor:
         return stream
 
     def decompress(self, stream: CompressedStream) -> list[TelemetryFrame]:
+        """``decompress`` 동작을 수행한다."""
         frames = [stream.base_frame]
         pos = stream.base_frame.position.copy()
 
@@ -91,11 +97,13 @@ class TelemetryCompressor:
         return frames
 
     def compression_ratio(self, stream: CompressedStream) -> float:
+        """``compression_ratio`` 동작을 수행한다."""
         raw_size = stream.frame_count * (3 * 8 + 3 * 8 + 8 + 4)  # pos+vel+bat+status
         compressed_size = (3 * 8) + len(stream.deltas) * (3 * 4) + len(stream.rle_status) * 8
         return raw_size / max(compressed_size, 1)
 
     def generate_test_data(self, n_frames: int = 100) -> list[TelemetryFrame]:
+        """`test data` 결과를 생성한다."""
         frames = []
         pos = self.rng.uniform(-1000, 1000, 3)
         vel = self.rng.uniform(-5, 5, 3)

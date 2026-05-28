@@ -62,6 +62,7 @@ class WeatherForecaster:
         warning_speed: float = 15.0,
         danger_speed: float = 20.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.window_size = window_size
         self.max_history = max_history
         self.caution_speed = caution_speed
@@ -195,8 +196,10 @@ class WeatherForecaster:
         }
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._history.clear()
 
     @property
     def history(self) -> list[WeatherRecord]:
+        """``history`` 동작을 수행한다."""
         return list(self._history)

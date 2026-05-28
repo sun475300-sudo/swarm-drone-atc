@@ -666,6 +666,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-28 19:30 | `d5a2ef0` | feat: 상세 패널/툴팁 확장 + Phase 1 잔여(회랑·고도레이어 토글, CPA 라벨, Q2 오버레이) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-28 15:58 | `c3db825` | docs: simulation/simulator.py 주석 샘플 — 핵심 함수/클래스 docstring 보강 | simulation/simulator.py |
 | 2026-05-28 15:55 | `4f0fe99` | feat: 충돌·공역 관제 시각화 + 웨이포인트·이동경로 (Phase 1) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-28 15:40 | `71e34fd` | docs: Codex 핸드오프용 SDACS 전체 상세 실행 계획 추가 | docs/CODEX_PLAN.md |

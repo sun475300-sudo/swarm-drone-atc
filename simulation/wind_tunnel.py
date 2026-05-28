@@ -28,12 +28,14 @@ class WindTunnel:
     """3D 풍동 시뮬레이터."""
 
     def __init__(self, base_wind: tuple[float, float, float] = (5.0, 0.0, 0.0), seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.base_wind = np.array(base_wind, dtype=float)
         self._rng = np.random.default_rng(seed)
         self._buildings: list[Building] = []
         self._queries = 0
 
     def add_building(self, center: tuple[float, float], width: float = 50, height: float = 80) -> None:
+        """`building` 항목을 추가한다."""
         self._buildings.append(Building(center=center, width=width, height=height))
 
     def wind_at(self, position: tuple[float, float, float]) -> tuple[float, float, float]:
@@ -69,10 +71,12 @@ class WindTunnel:
         return (round(float(wind[0]), 2), round(float(wind[1]), 2), round(float(wind[2]), 2))
 
     def wind_speed_at(self, position: tuple[float, float, float]) -> float:
+        """``wind_speed_at`` 동작을 수행한다."""
         w = self.wind_at(position)
         return round(float(np.sqrt(sum(v**2 for v in w))), 2)
 
     def is_sheltered(self, position: tuple[float, float, float], threshold: float = 0.5) -> bool:
+        """`sheltered` 여부를 반환한다."""
         base_speed = float(np.linalg.norm(self.base_wind))
         actual_speed = self.wind_speed_at(position)
         return actual_speed < base_speed * threshold
@@ -89,6 +93,7 @@ class WindTunnel:
         return points
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "buildings": len(self._buildings),
             "base_wind_speed": round(float(np.linalg.norm(self.base_wind)), 1),

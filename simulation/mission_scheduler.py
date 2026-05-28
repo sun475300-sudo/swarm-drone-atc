@@ -12,6 +12,7 @@ import numpy as np
 
 
 class MissionType(IntEnum):
+    """``MissionType`` 관련 기능을 제공한다."""
     EMERGENCY = 1
     SURVEILLANCE = 2
     DELIVERY = 3
@@ -21,6 +22,7 @@ class MissionType(IntEnum):
 
 @dataclass
 class Mission:
+    """``Mission`` 관련 기능을 제공한다."""
     mission_id: str
     mission_type: MissionType
     origin: np.ndarray
@@ -37,6 +39,7 @@ class Mission:
 
 @dataclass
 class DroneCapability:
+    """``DroneCapability`` 관련 기능을 제공한다."""
     drone_id: str
     position: np.ndarray
     battery_pct: float
@@ -46,7 +49,9 @@ class DroneCapability:
 
 
 class MissionScheduler:
+    """``MissionScheduler`` 관련 기능을 제공한다."""
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self._queue: list[Mission] = []
         self._drones: dict[str, DroneCapability] = {}
@@ -55,9 +60,11 @@ class MissionScheduler:
         self._failed: list[Mission] = []
 
     def register_drone(self, cap: DroneCapability) -> None:
+        """`drone` 항목을 추가한다."""
         self._drones[cap.drone_id] = cap
 
     def submit_mission(self, mission: Mission) -> None:
+        """``submit_mission`` 동작을 수행한다."""
         heapq.heappush(self._queue, mission)
 
     def _fitness(self, drone: DroneCapability, mission: Mission) -> float:
@@ -71,6 +78,7 @@ class MissionScheduler:
         return score
 
     def schedule(self) -> list[tuple[str, str]]:
+        """`대상` 작업을 계획한다."""
         assignments = []
 
         while self._queue:
@@ -99,6 +107,7 @@ class MissionScheduler:
         return assignments
 
     def complete_mission(self, mission_id: str) -> None:
+        """``complete_mission`` 동작을 수행한다."""
         if mission_id in self._assigned:
             m = self._assigned.pop(mission_id)
             m.status = "completed"
@@ -107,6 +116,7 @@ class MissionScheduler:
                 self._drones[m.assigned_drone].current_missions -= 1
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "pending": len(self._queue),
             "assigned": len(self._assigned),
@@ -117,6 +127,7 @@ class MissionScheduler:
 
     def run(self, n_missions: int = 20) -> dict:
         # Register drones
+        """메인 실행 루프를 수행한다."""
         for i in range(10):
             self.register_drone(DroneCapability(
                 drone_id=f"D-{i:04d}",

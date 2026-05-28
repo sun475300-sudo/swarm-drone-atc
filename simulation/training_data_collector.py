@@ -31,6 +31,7 @@ class TrainingDataCollector:
     """학습 데이터 수집."""
 
     def __init__(self, max_buffer: int = 10000) -> None:
+        """인스턴스를 초기화한다."""
         self.max_buffer = max_buffer
         self._buffer: list[Experience] = []
         self._episode_boundaries: list[int] = []
@@ -41,6 +42,7 @@ class TrainingDataCollector:
         reward: float = 0.0, next_state: dict[str, Any] | None = None,
         done: bool = False, t: float = 0.0,
     ) -> None:
+        """`state` 정보를 기록한다."""
         exp = Experience(
             state=state, action=action, reward=reward,
             next_state=next_state, done=done, t=t,
@@ -55,11 +57,13 @@ class TrainingDataCollector:
             self._buffer = self._buffer[-self.max_buffer:]
 
     def mark_episode_end(self) -> None:
+        """``mark_episode_end`` 동작을 수행한다."""
         if self._buffer:
             self._buffer[-1].done = True
             self._episode_boundaries.append(len(self._buffer))
 
     def export_dataset(self) -> list[dict[str, Any]]:
+        """`dataset` 결과를 저장한다."""
         return [
             {
                 "state": e.state,
@@ -72,6 +76,7 @@ class TrainingDataCollector:
         ]
 
     def sample_batch(self, batch_size: int = 32) -> list[Experience]:
+        """`batch` 정보를 기록한다."""
         if len(self._buffer) < batch_size:
             return list(self._buffer)
         rng = np.random.default_rng()
@@ -79,12 +84,14 @@ class TrainingDataCollector:
         return [self._buffer[i] for i in indices]
 
     def action_distribution(self) -> dict[str, int]:
+        """``action_distribution`` 동작을 수행한다."""
         dist: dict[str, int] = {}
         for e in self._buffer:
             dist[e.action] = dist.get(e.action, 0) + 1
         return dist
 
     def reward_stats(self) -> dict[str, float]:
+        """``reward_stats`` 동작을 수행한다."""
         if not self._buffer:
             return {"mean": 0, "std": 0, "min": 0, "max": 0}
         rewards = [e.reward for e in self._buffer]
@@ -96,9 +103,11 @@ class TrainingDataCollector:
         }
 
     def episode_count(self) -> int:
+        """``episode_count`` 동작을 수행한다."""
         return len(self._episode_boundaries)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "buffer_size": len(self._buffer),
             "total_collected": self._total_collected,

@@ -15,6 +15,7 @@ from typing import Any
 
 
 def collect(root: str) -> list[dict[str, Any]]:
+    """`대상` 정보를 기록한다."""
     rows: list[dict[str, Any]] = []
     pattern = os.path.join(root, "*", "*", "seed*.json")
     for path in sorted(glob.glob(pattern)):
@@ -51,6 +52,7 @@ def collect(root: str) -> list[dict[str, Any]]:
 
 
 def main() -> int:
+    """``main`` 동작을 수행한다."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default="results", help="directory tree with per-run JSONs")
     parser.add_argument("--out", default="results/summary.parquet")

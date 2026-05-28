@@ -11,6 +11,7 @@ import numpy as np
 
 
 class AttackSurface(Enum):
+    """``AttackSurface`` 관련 기능을 제공한다."""
     FIRMWARE = "firmware"
     SENSOR = "sensor"
     ACTUATOR = "actuator"
@@ -20,6 +21,7 @@ class AttackSurface(Enum):
 
 
 class ThreatLevel(Enum):
+    """``ThreatLevel`` 관련 기능을 제공한다."""
     NONE = 0
     LOW = 1
     MEDIUM = 2
@@ -29,6 +31,7 @@ class ThreatLevel(Enum):
 
 @dataclass
 class IntegrityCheck:
+    """``IntegrityCheck`` 관련 기능을 제공한다."""
     component: str
     expected_hash: str
     actual_hash: str
@@ -38,6 +41,7 @@ class IntegrityCheck:
 
 @dataclass
 class CPSAlert:
+    """``CPSAlert`` 데이터를 표현한다."""
     alert_id: str
     surface: AttackSurface
     level: ThreatLevel
@@ -48,6 +52,7 @@ class CPSAlert:
 
 @dataclass
 class SensorReading:
+    """``SensorReading`` 관련 기능을 제공한다."""
     sensor_id: str
     value: float
     expected_range: tuple
@@ -58,15 +63,18 @@ class FirmwareVerifier:
     """Firmware integrity verification using hash chains."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.firmware_hashes: dict[str, str] = {}
         self.verification_log: list[IntegrityCheck] = []
 
     def register(self, component: str, firmware_data: str):
+        """`대상` 항목을 추가한다."""
         h = hashlib.sha256(firmware_data.encode()).hexdigest()
         self.firmware_hashes[component] = h
 
     def verify(self, component: str, current_data: str, timestamp: float = 0) -> IntegrityCheck:
+        """`대상` 결과를 계산하거나 판정한다."""
         expected = self.firmware_hashes.get(component, "")
         actual = hashlib.sha256(current_data.encode()).hexdigest()
         check = IntegrityCheck(component, expected[:16], actual[:16],
@@ -79,11 +87,13 @@ class SensorAnomalyDetector:
     """Physics-based anomaly detection for CPS sensors."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.history: dict[str, list[float]] = {}
         self.window_size = 20
 
     def check(self, reading: SensorReading) -> float:
+        """`대상` 결과를 계산하거나 판정한다."""
         if reading.sensor_id not in self.history:
             self.history[reading.sensor_id] = []
         hist = self.history[reading.sensor_id]
@@ -114,6 +124,7 @@ class CyberPhysicalSecurity:
     """Integrated CPS security monitoring for drone swarms."""
 
     def __init__(self, n_drones: int = 20, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.firmware = FirmwareVerifier(seed)
@@ -134,6 +145,7 @@ class CyberPhysicalSecurity:
         return alert
 
     def check_firmware(self, drone_id: int, current_data: str = None) -> IntegrityCheck:
+        """`firmware` 결과를 계산하거나 판정한다."""
         comp = f"drone_{drone_id}"
         data = current_data or f"firmware_v1.0_drone_{drone_id}"
         check = self.firmware.verify(comp, data, self.time)
@@ -144,6 +156,7 @@ class CyberPhysicalSecurity:
 
     def check_sensor(self, drone_id: int, sensor_name: str,
                      value: float, expected_range: tuple) -> float:
+        """`sensor` 결과를 계산하거나 판정한다."""
         reading = SensorReading(f"d{drone_id}_{sensor_name}", value, expected_range)
         score = self.anomaly_detector.check(reading)
         if score > 0.5:
@@ -153,6 +166,7 @@ class CyberPhysicalSecurity:
         return score
 
     def run_scan(self) -> dict:
+        """``run_scan`` 동작을 수행한다."""
         self.time += 1.0
         firmware_ok = 0
         sensor_alerts = 0
@@ -172,6 +186,7 @@ class CyberPhysicalSecurity:
                 "total_alerts": len(self.alerts)}
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": self.n_drones,
             "total_alerts": len(self.alerts),

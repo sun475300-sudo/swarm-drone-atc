@@ -27,6 +27,7 @@ class TickCache(dict):
     """
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         super().__init__()
         self._current_tick: int = -1
 
@@ -54,6 +55,7 @@ class ExpiringCache:
     """
 
     def __init__(self, ttl_seconds: float = 5.0):
+        """인스턴스를 초기화한다."""
         self._ttl = ttl_seconds
         self._store: dict[str, tuple[float, Any]] = {}
 
@@ -90,14 +92,17 @@ class ExpiringCache:
             del self._store[k]
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._store.clear()
 
     @property
     def ttl(self) -> float:
+        """``ttl`` 동작을 수행한다."""
         return self._ttl
 
     @ttl.setter
     def ttl(self, value: float) -> None:
+        """``ttl`` 동작을 수행한다."""
         self._ttl = value
 
 

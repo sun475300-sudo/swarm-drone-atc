@@ -14,6 +14,7 @@ import numpy as np
 
 
 class TrackState(Enum):
+    """``TrackState`` 데이터를 표현한다."""
     ENROUTE = "enroute"
     HOLDING = "holding"
     DIVERTED = "diverted"
@@ -23,6 +24,7 @@ class TrackState(Enum):
 
 @dataclass
 class TrackPoint:
+    """``TrackPoint`` 관련 기능을 제공한다."""
     ts: float
     position: tuple[float, float, float]
     velocity: tuple[float, float, float]
@@ -34,6 +36,7 @@ _DEFAULT_TRACK_POINTS = 2_000
 
 @dataclass
 class FlightTrack:
+    """``FlightTrack`` 관련 기능을 제공한다."""
     callsign: str
     plan_id: str
     # maxlen은 FlightFollowingService.register_flight()에서 재설정된다.
@@ -58,6 +61,7 @@ class FlightFollowingService:
         max_points_per_track: int = _DEFAULT_TRACK_POINTS,
         max_tracks: int = _DEFAULT_MAX_TRACKS,
     ) -> None:
+        """인스턴스를 초기화한다."""
         if comms_timeout_s <= 0:
             raise ValueError("comms_timeout_s must be positive")
         if deviation_tolerance_m < 0:
@@ -76,6 +80,7 @@ class FlightFollowingService:
     def register_flight(
         self, callsign: str, plan_id: str, planned_waypoints: list[tuple[float, float, float]]
     ) -> None:
+        """`flight` 항목을 추가한다."""
         existing = self.tracks.get(callsign)
         if existing is not None and existing.state != TrackState.COMPLETED:
             raise ValueError(
@@ -103,6 +108,7 @@ class FlightFollowingService:
         velocity: tuple[float, float, float],
         fuel_pct: float,
     ) -> dict[str, Any]:
+        """``report_position`` 동작을 수행한다."""
         if not (0.0 <= fuel_pct <= 100.0):
             raise ValueError(f"fuel_pct must be in [0.0, 100.0], got {fuel_pct}")
         if len(position) != 3:
@@ -162,6 +168,7 @@ class FlightFollowingService:
         return float(np.linalg.norm(pv - closest))
 
     def sweep_lost_comms(self, current_time: float | None = None) -> list[str]:
+        """``sweep_lost_comms`` 동작을 수행한다."""
         current_time = current_time if current_time is not None else time.time()
         lost: list[str] = []
         for cs, track in self.tracks.items():
@@ -175,6 +182,7 @@ class FlightFollowingService:
         return lost
 
     def declare_diversion(self, callsign: str) -> bool:
+        """``declare_diversion`` 동작을 수행한다."""
         t = self.tracks.get(callsign)
         if t is None or t.state == TrackState.COMPLETED:
             return False
@@ -182,6 +190,7 @@ class FlightFollowingService:
         return True
 
     def declare_hold(self, callsign: str) -> bool:
+        """``declare_hold`` 동작을 수행한다."""
         t = self.tracks.get(callsign)
         if t is None or t.state == TrackState.COMPLETED:
             return False
@@ -189,6 +198,7 @@ class FlightFollowingService:
         return True
 
     def declare_completed(self, callsign: str) -> bool:
+        """``declare_completed`` 동작을 수행한다."""
         t = self.tracks.get(callsign)
         if t is None:
             return False
@@ -220,6 +230,7 @@ class FlightFollowingService:
         return copy.copy(original)
 
     def stats(self) -> dict[str, Any]:
+        """``stats`` 동작을 수행한다."""
         counts: dict[str, int] = {}
         total_points = 0
         for t in self.tracks.values():

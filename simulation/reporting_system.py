@@ -9,6 +9,7 @@ import numpy as np
 
 @dataclass
 class MissionReport:
+    """``MissionReport`` 관련 기능을 제공한다."""
     mission_id: str
     drone_id: str
     duration_sec: float
@@ -17,12 +18,15 @@ class MissionReport:
 
 
 class ReportingSystem:
+    """``ReportingSystem`` 역할을 담당한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.reports: list[MissionReport] = []
 
     def generate_report(
         self, mission_id: str, drone_id: str, stats: dict
     ) -> MissionReport:
+        """`report` 결과를 생성한다."""
         report = MissionReport(
             mission_id=mission_id,
             drone_id=drone_id,
@@ -34,6 +38,7 @@ class ReportingSystem:
         return report
 
     def get_summary(self) -> dict:
+        """`summary` 정보를 조회한다."""
         if not self.reports:
             return {}
 

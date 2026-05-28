@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class Token:
+    """``Token`` 관련 기능을 제공한다."""
     token_id: int
     text: str
     embedding: np.ndarray
@@ -29,6 +30,7 @@ class DroneVocabulary:
     ]
 
     def __init__(self, embed_dim=16, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.embed_dim = embed_dim
         self.tokens: dict[str, Token] = {}
@@ -38,9 +40,11 @@ class DroneVocabulary:
             self.tokens[cmd] = Token(i, cmd, emb)
 
     def encode(self, text: str) -> list[Token]:
+        """``encode`` 동작을 수행한다."""
         return [self.tokens[w] for w in text.upper().split() if w in self.tokens]
 
     def similarity(self, a: str, b: str) -> float:
+        """``similarity`` 동작을 수행한다."""
         if a not in self.tokens or b not in self.tokens:
             return 0.0
         return float(self.tokens[a].embedding @ self.tokens[b].embedding)
@@ -50,12 +54,14 @@ class SequenceGenerator:
     """시퀀스 생성기 (간이 bigram)."""
 
     def __init__(self, vocab: DroneVocabulary, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.vocab = vocab
         n = len(vocab.COMMANDS)
         self.transition = self.rng.dirichlet(np.ones(n), n)
 
     def generate(self, start: str, length=5) -> list[str]:
+        """`대상` 결과를 생성한다."""
         cmds = self.vocab.COMMANDS
         if start.upper() not in cmds:
             start = cmds[0]
@@ -71,6 +77,7 @@ class SwarmLanguageModel:
     """군집 언어 모델 시뮬레이션."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.vocab = DroneVocabulary(16, seed)
         self.generator = SequenceGenerator(self.vocab, seed)
@@ -78,6 +85,7 @@ class SwarmLanguageModel:
         self.encoded_count = 0
 
     def communicate(self, n_messages=20, msg_len=5):
+        """``communicate`` 동작을 수행한다."""
         starts = self.rng.choice(self.vocab.COMMANDS, n_messages)
         for s in starts:
             msg = self.generator.generate(s, msg_len)
@@ -85,9 +93,11 @@ class SwarmLanguageModel:
             self.encoded_count += len(msg)
 
     def run(self, n_messages=20):
+        """메인 실행 루프를 수행한다."""
         self.communicate(n_messages)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "vocabulary_size": len(self.vocab.tokens),
             "embed_dim": self.vocab.embed_dim,

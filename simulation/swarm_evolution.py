@@ -11,6 +11,7 @@ import numpy as np
 
 
 class MutationType(Enum):
+    """``MutationType`` 관련 기능을 제공한다."""
     WEIGHT = "weight"
     ADD_NODE = "add_node"
     ADD_LINK = "add_link"
@@ -20,6 +21,7 @@ class MutationType(Enum):
 
 @dataclass
 class Gene:
+    """``Gene`` 관련 기능을 제공한다."""
     innovation: int
     src: int
     dst: int
@@ -29,6 +31,7 @@ class Gene:
 
 @dataclass
 class Genome:
+    """``Genome`` 관련 기능을 제공한다."""
     genome_id: int
     genes: list[Gene] = field(default_factory=list)
     n_inputs: int = 4
@@ -40,6 +43,7 @@ class Genome:
 
 @dataclass
 class Species:
+    """``Species`` 관련 기능을 제공한다."""
     species_id: int
     representative: Genome
     members: list[int] = field(default_factory=list)
@@ -52,6 +56,7 @@ class SwarmEvolution:
 
     def __init__(self, pop_size: int = 50, n_inputs: int = 4, n_outputs: int = 2,
                  seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.pop_size = pop_size
         self.n_inputs = n_inputs
@@ -166,10 +171,12 @@ class SwarmEvolution:
         self.species_list = [sp for sp in self.species_list if sp.members]
 
     def evaluate(self, fitness_fn: Callable[[Genome, Callable], float]):
+        """`대상` 결과를 계산하거나 판정한다."""
         for genome in self.population:
             genome.fitness = fitness_fn(genome, lambda inp, g=genome: self._activate(g, inp))
 
     def evolve(self) -> dict:
+        """``evolve`` 동작을 수행한다."""
         self.generation += 1
         self._speciate()
         sorted_pop = sorted(self.population, key=lambda g: g.fitness, reverse=True)
@@ -197,6 +204,7 @@ class SwarmEvolution:
         }
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         best = max(self.population, key=lambda g: g.fitness) if self.population else None
         return {
             "generation": self.generation,

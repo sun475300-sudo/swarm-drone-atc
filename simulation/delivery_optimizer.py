@@ -18,6 +18,7 @@ import numpy as np
 
 @dataclass
 class Delivery:
+    """``Delivery`` 관련 기능을 제공한다."""
     delivery_id: str
     destination: tuple[float, float]
     weight_kg: float
@@ -26,10 +27,13 @@ class Delivery:
 
 
 class DeliveryOptimizer:
+    """``DeliveryOptimizer`` 관련 기능을 제공한다."""
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._deliveries: dict[str, Delivery] = {}
 
     def add_delivery(self, delivery_id: str, destination: tuple[float, float], weight_kg: float = 1.0, priority: int = 5, time_window: tuple[int, int] | None = None) -> None:
+        """`delivery` 항목을 추가한다."""
         self._deliveries[delivery_id] = Delivery(delivery_id=delivery_id, destination=destination, weight_kg=weight_kg, priority=priority, time_window=time_window)
 
     def _dist(self, a: tuple[float, float], b: tuple[float, float]) -> float:
@@ -64,6 +68,7 @@ class DeliveryOptimizer:
         return route
 
     def total_distance(self, route: list[str], depot: tuple[float, float] = (0, 0)) -> float:
+        """``total_distance`` 동작을 수행한다."""
         if not route:
             return 0
         total = 0.0
@@ -77,6 +82,7 @@ class DeliveryOptimizer:
         return round(total, 1)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         route = self.optimize_route()
         return {
             "deliveries": len(self._deliveries),

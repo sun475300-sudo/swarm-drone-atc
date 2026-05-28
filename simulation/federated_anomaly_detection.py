@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class LocalModel:
+    """``LocalModel`` 관련 기능을 제공한다."""
     node_id: str
     weights: np.ndarray
     bias: np.ndarray
@@ -20,6 +21,7 @@ class LocalModel:
 
 @dataclass
 class FederatedRound:
+    """``FederatedRound`` 관련 기능을 제공한다."""
     round_id: int
     participants: int
     global_loss: float
@@ -30,6 +32,7 @@ class AnomalyDetector:
     """간이 오토인코더 기반 이상탐지."""
 
     def __init__(self, input_dim=8, hidden=4, seed=42):
+        """인스턴스를 초기화한다."""
         rng = np.random.default_rng(seed)
         self.w_enc = rng.normal(0, 0.3, (input_dim, hidden))
         self.b_enc = np.zeros(hidden)
@@ -38,20 +41,25 @@ class AnomalyDetector:
         self.threshold = 1.0
 
     def encode(self, x: np.ndarray) -> np.ndarray:
+        """``encode`` 동작을 수행한다."""
         return np.maximum(0, x @ self.w_enc + self.b_enc)
 
     def decode(self, h: np.ndarray) -> np.ndarray:
+        """`대상` 입력을 해석한다."""
         return h @ self.w_dec + self.b_dec
 
     def reconstruction_error(self, x: np.ndarray) -> float:
+        """``reconstruction_error`` 동작을 수행한다."""
         h = self.encode(x)
         x_hat = self.decode(h)
         return float(np.mean((x - x_hat) ** 2))
 
     def is_anomaly(self, x: np.ndarray) -> bool:
+        """`anomaly` 여부를 반환한다."""
         return self.reconstruction_error(x) > self.threshold
 
     def train_step(self, x_batch: np.ndarray, lr=0.01):
+        """``train_step`` 동작을 수행한다."""
         for x in x_batch:
             h = self.encode(x)
             x_hat = self.decode(h)
@@ -69,9 +77,11 @@ class AnomalyDetector:
             self.b_enc -= lr * db_enc
 
     def get_params(self):
+        """`params` 정보를 조회한다."""
         return (self.w_enc.copy(), self.b_enc.copy(), self.w_dec.copy(), self.b_dec.copy())
 
     def set_params(self, params):
+        """`params` 상태를 갱신한다."""
         self.w_enc, self.b_enc, self.w_dec, self.b_dec = params
 
 
@@ -79,6 +89,7 @@ class FederatedServer:
     """FedAvg 중앙 서버."""
 
     def __init__(self, input_dim=8, hidden=4, seed=42):
+        """인스턴스를 초기화한다."""
         self.global_model = AnomalyDetector(input_dim, hidden, seed)
         self.rounds: list[FederatedRound] = []
 
@@ -126,6 +137,7 @@ class FederatedAnomalyDetection:
     """연합 이상탐지 시뮬레이션."""
 
     def __init__(self, n_clients=8, n_samples_per_client=30, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_clients = n_clients
         self.input_dim = 8
@@ -141,6 +153,7 @@ class FederatedAnomalyDetection:
             self.client_data.append(data)
 
     def train_round(self) -> FederatedRound:
+        """``train_round`` 동작을 수행한다."""
         local_models = []
         for i in range(self.n_clients):
             # 글로벌 모델 복제 → 로컬 훈련
@@ -165,10 +178,12 @@ class FederatedAnomalyDetection:
         return fr
 
     def train(self, n_rounds=5):
+        """``train`` 동작을 수행한다."""
         for _ in range(n_rounds):
             self.train_round()
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         last = self.rounds[-1] if self.rounds else None
         return {
             "clients": self.n_clients,

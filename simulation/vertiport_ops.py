@@ -11,6 +11,7 @@ from typing import Any
 
 
 class PadStatus(Enum):
+    """``PadStatus`` 관련 기능을 제공한다."""
     AVAILABLE = "available"
     OCCUPIED = "occupied"
     MAINTENANCE = "maintenance"
@@ -19,6 +20,7 @@ class PadStatus(Enum):
 
 @dataclass
 class LandingPad:
+    """``LandingPad`` 관련 기능을 제공한다."""
     pad_id: str
     position: tuple[float, float]
     status: PadStatus = PadStatus.AVAILABLE
@@ -28,6 +30,7 @@ class LandingPad:
 
 @dataclass
 class SlotReservation:
+    """``SlotReservation`` 관련 기능을 제공한다."""
     slot_id: str
     pad_id: str
     callsign: str
@@ -40,6 +43,7 @@ class VertiportOps:
     """버티포트 패드/슬롯 예약, 큐, 운영을 관리."""
 
     def __init__(self, vertiport_id: str = "VP-01", max_queue_size: int = 500) -> None:
+        """인스턴스를 초기화한다."""
         if max_queue_size <= 0:
             raise ValueError("max_queue_size must be positive")
         self.vertiport_id = vertiport_id
@@ -50,6 +54,7 @@ class VertiportOps:
         self._next_slot = 0
 
     def add_pad(self, pad_id: str, position: tuple[float, float], max_weight: float = 3000.0) -> None:
+        """`pad` 항목을 추가한다."""
         if pad_id in self.pads:
             raise ValueError(f"pad_id {pad_id!r} already exists; remove it first or use a unique ID")
         if not math.isfinite(max_weight) or max_weight <= 0:
@@ -72,6 +77,7 @@ class VertiportOps:
         weight_kg: float = 1500.0,
         priority: int = 5,
     ) -> str | None:
+        """``reserve_slot`` 동작을 수행한다."""
         if not math.isfinite(desired_time) or desired_time < 0:
             raise ValueError(
                 f"desired_time must be a finite non-negative number, got {desired_time}"
@@ -142,6 +148,7 @@ class VertiportOps:
         return len(expired_keys)
 
     def cancel_reservation(self, slot_id: str) -> bool:
+        """``cancel_reservation`` 동작을 수행한다."""
         if slot_id not in self.reservations:
             return False
         pad_id = self.reservations[slot_id].pad_id
@@ -155,6 +162,7 @@ class VertiportOps:
         return True
 
     def land(self, slot_id: str) -> bool:
+        """``land`` 동작을 수행한다."""
         res = self.reservations.get(slot_id)
         if res is None:
             return False
@@ -169,6 +177,7 @@ class VertiportOps:
         return True
 
     def depart(self, pad_id: str) -> bool:
+        """``depart`` 동작을 수행한다."""
         pad = self.pads.get(pad_id)
         if pad is None:
             return False
@@ -220,6 +229,7 @@ class VertiportOps:
         return True
 
     def occupancy_rate(self) -> float:
+        """``occupancy_rate`` 동작을 수행한다."""
         if not self.pads:
             return 0.0
         busy = sum(
@@ -229,6 +239,7 @@ class VertiportOps:
         return busy / len(self.pads)
 
     def get_stats(self) -> dict[str, Any]:
+        """`stats` 정보를 조회한다."""
         status_counts: dict[str, int] = {}
         for p in self.pads.values():
             status_counts[p.status.value] = status_counts.get(p.status.value, 0) + 1

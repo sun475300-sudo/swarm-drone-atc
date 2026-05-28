@@ -17,6 +17,7 @@ from typing import Any
 
 
 class RegistrationStatus(Enum):
+    """``RegistrationStatus`` 관련 기능을 제공한다."""
     ACTIVE = "ACTIVE"
     SUSPENDED = "SUSPENDED"
     BLACKLISTED = "BLACKLISTED"
@@ -42,6 +43,7 @@ class DroneRegistry:
     """드론 인증 관리."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._registry: dict[str, DroneRecord] = {}
         self._flight_log: list[dict[str, Any]] = []
 
@@ -53,6 +55,7 @@ class DroneRegistry:
         max_altitude: float = 120.0,
         max_speed: float = 15.0,
     ) -> DroneRecord:
+        """`대상` 항목을 추가한다."""
         record = DroneRecord(
             drone_id=drone_id,
             owner=owner,
@@ -65,6 +68,7 @@ class DroneRegistry:
         return record
 
     def is_registered(self, drone_id: str) -> bool:
+        """`registered` 여부를 반환한다."""
         return drone_id in self._registry
 
     def authorize_flight(self, drone_id: str) -> bool:
@@ -80,6 +84,7 @@ class DroneRegistry:
         return True
 
     def suspend(self, drone_id: str, reason: str = "") -> bool:
+        """``suspend`` 동작을 수행한다."""
         record = self._registry.get(drone_id)
         if record:
             record.status = RegistrationStatus.SUSPENDED
@@ -90,6 +95,7 @@ class DroneRegistry:
         return False
 
     def blacklist(self, drone_id: str, reason: str = "") -> bool:
+        """``blacklist`` 동작을 수행한다."""
         record = self._registry.get(drone_id)
         if record:
             record.status = RegistrationStatus.BLACKLISTED
@@ -100,6 +106,7 @@ class DroneRegistry:
         return False
 
     def reinstate(self, drone_id: str) -> bool:
+        """``reinstate`` 동작을 수행한다."""
         record = self._registry.get(drone_id)
         if record and record.status in (RegistrationStatus.SUSPENDED, RegistrationStatus.EXPIRED):
             record.status = RegistrationStatus.ACTIVE
@@ -108,6 +115,7 @@ class DroneRegistry:
         return False
 
     def add_violation(self, drone_id: str) -> int:
+        """`violation` 항목을 추가한다."""
         record = self._registry.get(drone_id)
         if record:
             record.violations += 1
@@ -115,23 +123,28 @@ class DroneRegistry:
         return 0
 
     def log_flight(self, drone_id: str, duration_s: float) -> None:
+        """`flight` 정보를 기록한다."""
         record = self._registry.get(drone_id)
         if record:
             record.flight_hours += duration_s / 3600
 
     def get_record(self, drone_id: str) -> DroneRecord | None:
+        """`record` 정보를 조회한다."""
         return self._registry.get(drone_id)
 
     def active_drones(self) -> list[str]:
+        """``active_drones`` 동작을 수행한다."""
         return [
             did for did, r in self._registry.items()
             if r.status == RegistrationStatus.ACTIVE
         ]
 
     def by_owner(self, owner: str) -> list[DroneRecord]:
+        """``by_owner`` 동작을 수행한다."""
         return [r for r in self._registry.values() if r.owner == owner]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         by_status: dict[str, int] = {}
         for r in self._registry.values():
             by_status[r.status.value] = by_status.get(r.status.value, 0) + 1

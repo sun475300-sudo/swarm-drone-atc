@@ -13,7 +13,9 @@ from simulation.report_input_normalizer import normalize_report_inputs
 
 
 class E2EReporter:
+    """``E2EReporter`` 관련 기능을 제공한다."""
     def __init__(self, green_threshold: float = 0.85, yellow_threshold: float = 0.65) -> None:
+        """인스턴스를 초기화한다."""
         if not (0.0 <= yellow_threshold < green_threshold <= 1.0):
             raise ValueError("thresholds must satisfy 0.0 <= yellow < green <= 1.0")
         self._reports: list[dict[str, Any]] = []
@@ -21,6 +23,7 @@ class E2EReporter:
         self._yellow_threshold = float(yellow_threshold)
 
     def tune_status_thresholds(self, green_threshold: float, yellow_threshold: float) -> None:
+        """``tune_status_thresholds`` 동작을 수행한다."""
         if not (0.0 <= yellow_threshold < green_threshold <= 1.0):
             raise ValueError("thresholds must satisfy 0.0 <= yellow < green <= 1.0")
         self._green_threshold = float(green_threshold)
@@ -37,6 +40,7 @@ class E2EReporter:
         scenario_summary: Any | None = None,
         perf_window_sec: float | None = None,
     ) -> dict[str, Any]:
+        """`대상` 결과를 생성한다."""
         normalized = normalize_report_inputs(
             delivery_summary=delivery_summary,
             compliance_report=compliance_report,
@@ -106,6 +110,7 @@ class E2EReporter:
         meta: dict[str, Any] | None = None,
         scenario_summary: Any | None = None,
     ) -> dict[str, Any]:
+        """`with observability` 결과를 생성한다."""
         recorder_summary = dict(recorder.summary())
         perf_report = dict(benchmark.report(window_sec=window_sec))
         next_meta = dict(meta or {})
@@ -129,6 +134,7 @@ class E2EReporter:
         return report
 
     def render_markdown(self, report: dict[str, Any]) -> str:
+        """`markdown` 화면을 그린다."""
         meta = dict(report.get("meta", {}))
         kpi = dict(report.get("kpi", {}))
         diagnostics = dict(report.get("diagnostics", {}))
@@ -189,6 +195,7 @@ class E2EReporter:
         output_dir: str | Path = "data/e2e_reports",
         stem: str | None = None,
     ) -> dict[str, str | float]:
+        """`bundle` 결과를 저장한다."""
         out_dir = Path(output_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -345,9 +352,11 @@ class E2EReporter:
         }
 
     def history(self) -> list[dict[str, Any]]:
+        """``history`` 동작을 수행한다."""
         return list(self._reports)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         if not self._reports:
             return {"reports": 0, "avg_health_score": 0.0}
         avg = sum(float(r["kpi"]["health_score"]) for r in self._reports) / len(self._reports)
@@ -371,4 +380,5 @@ class E2EReporter:
         }
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._reports.clear()

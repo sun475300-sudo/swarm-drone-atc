@@ -9,17 +9,21 @@ import numpy as np
 
 @dataclass
 class Obstacle:
+    """``Obstacle`` 관련 기능을 제공한다."""
     position: np.ndarray
     radius: float
 
 
 class ObstacleAvoidanceSystem:
+    """``ObstacleAvoidanceSystem`` 역할을 담당한다."""
     def __init__(self, safety_distance: float = 5.0):
+        """인스턴스를 초기화한다."""
         self.safety_distance = safety_distance
 
     def compute_avoidance_vector(
         self, drone_pos: np.ndarray, obstacles: list[Obstacle]
     ) -> np.ndarray:
+        """`avoidance vector` 값을 계산한다."""
         avoidance = np.zeros(3)
 
         for obs in obstacles:

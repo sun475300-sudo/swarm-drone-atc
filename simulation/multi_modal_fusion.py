@@ -10,6 +10,7 @@ import numpy as np
 
 
 class SensorType(Enum):
+    """``SensorType`` 관련 기능을 제공한다."""
     CAMERA = "camera"
     LIDAR = "lidar"
     RADAR = "radar"
@@ -20,6 +21,7 @@ class SensorType(Enum):
 
 @dataclass
 class SensorReading:
+    """``SensorReading`` 관련 기능을 제공한다."""
     sensor_type: SensorType
     data: np.ndarray
     timestamp: float
@@ -28,6 +30,7 @@ class SensorReading:
 
 @dataclass
 class FusionResult:
+    """``FusionResult`` 데이터를 표현한다."""
     fused_state: np.ndarray
     confidence: float
     sources_used: list[SensorType]
@@ -35,7 +38,9 @@ class FusionResult:
 
 
 class MultiModalFusion:
+    """``MultiModalFusion`` 관련 기능을 제공한다."""
     def __init__(self, fusion_method: str = "kalman"):
+        """인스턴스를 초기화한다."""
         self.fusion_method = fusion_method
         self.sensor_readings: dict[SensorType, list[SensorReading]] = {
             st: [] for st in SensorType
@@ -44,6 +49,7 @@ class MultiModalFusion:
         self.covariance = np.eye(6)
 
     def add_reading(self, reading: SensorReading):
+        """`reading` 항목을 추가한다."""
         self.sensor_readings[reading.sensor_type].append(reading)
 
         max_readings = 100
@@ -51,6 +57,7 @@ class MultiModalFusion:
             self.sensor_readings[reading.sensor_type].pop(0)
 
     def fuse(self) -> FusionResult:
+        """``fuse`` 동작을 수행한다."""
         sources_used = []
         weighted_sum = np.zeros(6)
         total_weight = 0.0
@@ -96,7 +103,9 @@ class MultiModalFusion:
         self.covariance = (np.eye(6) - kalman_gain) @ self.covariance
 
     def get_state_estimate(self) -> np.ndarray:
+        """`state estimate` 정보를 조회한다."""
         return self.state_estimate.copy()
 
     def calibrate_sensor(self, sensor_type: SensorType, calibration_data: np.ndarray):
+        """``calibrate_sensor`` 동작을 수행한다."""
         pass

@@ -37,6 +37,7 @@ class FlightPlanValidator:
     """비행 계획 규정 검증."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._nfz_zones: list[dict[str, Any]] = []
         self._max_altitude = 120.0
         self._min_altitude = 30.0
@@ -44,12 +45,14 @@ class FlightPlanValidator:
         self._max_segment_length = 5000.0
 
     def add_nfz(self, nfz_id: str, center: tuple[float, float], radius: float) -> None:
+        """`nfz` 항목을 추가한다."""
         self._nfz_zones.append({"id": nfz_id, "center": center, "radius": radius})
 
     def set_limits(
         self, max_altitude: float = 120.0, min_altitude: float = 30.0,
         max_speed: float = 20.0,
     ) -> None:
+        """`limits` 상태를 갱신한다."""
         self._max_altitude = max_altitude
         self._min_altitude = min_altitude
         self._max_speed = max_speed
@@ -106,9 +109,11 @@ class FlightPlanValidator:
         )
 
     def quick_check(self, waypoints: list[tuple[float, float, float]]) -> bool:
+        """``quick_check`` 동작을 수행한다."""
         return self.validate(waypoints).valid
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "nfz_count": len(self._nfz_zones),
             "max_altitude": self._max_altitude,

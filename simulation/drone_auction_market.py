@@ -11,23 +11,28 @@ import numpy as np
 
 @dataclass
 class Bid:
+    """``Bid`` 관련 기능을 제공한다."""
     bidder_id: str
     amount: float
 
 
 @dataclass
 class AuctionResult:
+    """``AuctionResult`` 데이터를 표현한다."""
     winner: str
     price: float  # second-highest bid
     highest_bid: float
 
 
 class VickreyAuction:
+    """``VickreyAuction`` 관련 기능을 제공한다."""
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.history: list[AuctionResult] = []
 
     def run_auction(self, bids: list[tuple[str, float]]) -> AuctionResult | None:
+        """``run_auction`` 동작을 수행한다."""
         if len(bids) < 1:
             return None
         sorted_bids = sorted(bids, key=lambda b: b[1], reverse=True)
@@ -39,7 +44,9 @@ class VickreyAuction:
 
 
 class DroneAuctionMarket:
+    """``DroneAuctionMarket`` 관련 기능을 제공한다."""
     def __init__(self, n_drones=10, n_tasks=5, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.n_tasks = n_tasks
@@ -49,6 +56,7 @@ class DroneAuctionMarket:
         self.allocations: list[dict] = []
 
     def run(self, rounds=20):
+        """메인 실행 루프를 수행한다."""
         for r in range(rounds):
             task_value = float(self.rng.uniform(10, 100))
             bids = []
@@ -66,6 +74,7 @@ class DroneAuctionMarket:
             self.rounds += 1
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": self.n_drones,
             "tasks": self.n_tasks,

@@ -13,6 +13,7 @@ from typing import Any
 
 @dataclass
 class CircuitState:
+    """``CircuitState`` 데이터를 표현한다."""
     state: str
     failures: int
     successes: int
@@ -20,12 +21,14 @@ class CircuitState:
 
 
 class CircuitBreaker:
+    """``CircuitBreaker`` 관련 기능을 제공한다."""
     def __init__(
         self,
         failure_threshold: int = 5,
         recovery_timeout: float = 5.0,
         half_open_max_calls: int = 2,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.failure_threshold = max(1, int(failure_threshold))
         self.recovery_timeout = max(0.1, float(recovery_timeout))
         self.half_open_max_calls = max(1, int(half_open_max_calls))
@@ -50,6 +53,7 @@ class CircuitBreaker:
             self._half_open_calls = 0
 
     def allow_request(self) -> bool:
+        """``allow_request`` 동작을 수행한다."""
         self._to_half_open_if_ready()
         if self._state == "OPEN":
             self._blocked += 1
@@ -62,6 +66,7 @@ class CircuitBreaker:
         return True
 
     def record_success(self) -> None:
+        """`success` 정보를 기록한다."""
         self._successes += 1
         if self._state == "HALF_OPEN" and self._half_open_calls >= self.half_open_max_calls:
             self._state = "CLOSED"
@@ -69,6 +74,7 @@ class CircuitBreaker:
             self._half_open_calls = 0
 
     def record_failure(self) -> None:
+        """`failure` 정보를 기록한다."""
         self._failures += 1
         if self._state == "HALF_OPEN":
             self._state = "OPEN"
@@ -80,6 +86,7 @@ class CircuitBreaker:
             self._opened_at = self._now()
 
     def execute(self, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
+        """``execute`` 동작을 수행한다."""
         if not self.allow_request():
             raise RuntimeError("Circuit breaker is OPEN")
         try:
@@ -91,6 +98,7 @@ class CircuitBreaker:
         return result
 
     def state(self) -> CircuitState:
+        """``state`` 동작을 수행한다."""
         self._to_half_open_if_ready()
         return CircuitState(
             state=self._state,
@@ -100,6 +108,7 @@ class CircuitBreaker:
         )
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         st = self.state()
         return {
             "state": st.state,

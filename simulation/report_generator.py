@@ -45,6 +45,7 @@ class ReportGenerator:
     """
 
     def __init__(self, title: str = "SDACS 시뮬레이션 보고서") -> None:
+        """인스턴스를 초기화한다."""
         self.title = title
         self._sections: list[ReportSection] = []
         self._recommendations: list[Recommendation] = []
@@ -309,6 +310,7 @@ class ReportGenerator:
         ))
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._sections.clear()
         self._recommendations.clear()
         self._raw_data.clear()

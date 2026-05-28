@@ -35,6 +35,7 @@ class AirspaceHeatmap:
         resolution: float = 100.0,
         time_window: int = 10,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.bounds = bounds
         self.resolution = resolution
         x_min, y_min, x_max, y_max = bounds
@@ -62,6 +63,7 @@ class AirspaceHeatmap:
             self._snapshots = self._snapshots[-self._time_window * 10:]
 
     def current_heatmap(self) -> np.ndarray:
+        """``current_heatmap`` 동작을 수행한다."""
         if not self._snapshots:
             return np.zeros((self.n_rows, self.n_cols))
         return self._snapshots[-1][1]
@@ -129,10 +131,12 @@ class AirspaceHeatmap:
         return (last - first) / dt
 
     def peak_density(self) -> float:
+        """``peak_density`` 동작을 수행한다."""
         hm = self.current_heatmap()
         return float(np.max(hm))
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         hm = self.current_heatmap()
         return {
             "grid_size": (self.n_rows, self.n_cols),

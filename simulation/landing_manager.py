@@ -53,6 +53,7 @@ class LandingManager:
         pads: list[LandingPad] | None = None,
         default_interval_s: float = 10.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._pads: dict[str, LandingPad] = {}
         self._queue: list[LandingRequest] = []
         self._completed: list[LandingRequest] = []
@@ -68,6 +69,7 @@ class LandingManager:
         position: tuple[float, float],
         capacity: int = 1,
     ) -> LandingPad:
+        """`pad` 항목을 추가한다."""
         pad = LandingPad(
             pad_id=pad_id, position=position,
             capacity=capacity, min_interval_s=self._default_interval,
@@ -135,6 +137,7 @@ class LandingManager:
         return True
 
     def release_pad(self, pad_id: str) -> None:
+        """``release_pad`` 동작을 수행한다."""
         pad = self._pads.get(pad_id)
         if pad:
             pad.occupied_by = None
@@ -148,6 +151,7 @@ class LandingManager:
         ]
 
     def queue_length(self) -> int:
+        """``queue_length`` 동작을 수행한다."""
         return len(self._queue)
 
     def pad_utilization(self) -> float:
@@ -208,6 +212,7 @@ class LandingManager:
         )
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_pads": len(self._pads),
             "available_pads": sum(1 for p in self._pads.values() if p.available),

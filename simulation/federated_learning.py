@@ -17,22 +17,27 @@ import numpy as np
 
 
 class FederatedLearning:
+    """``FederatedLearning`` 관련 기능을 제공한다."""
     def __init__(self, n_params: int = 10) -> None:
+        """인스턴스를 초기화한다."""
         self.n_params = n_params
         self._global_weights = np.zeros(n_params)
         self._clients: dict[str, np.ndarray | None] = {}
         self._rounds = 0
 
     def register_client(self, client_id: str) -> None:
+        """`client` 항목을 추가한다."""
         self._clients[client_id] = None
 
     def submit_update(self, client_id: str, weights: list[float]) -> bool:
+        """``submit_update`` 동작을 수행한다."""
         if client_id not in self._clients:
             return False
         self._clients[client_id] = np.array(weights[:self.n_params])
         return True
 
     def aggregate(self) -> list[float]:
+        """``aggregate`` 동작을 수행한다."""
         updates = [w for w in self._clients.values() if w is not None]
         if not updates:
             return self._global_weights.tolist()
@@ -43,14 +48,17 @@ class FederatedLearning:
         return [round(float(w), 6) for w in self._global_weights]
 
     def global_weights(self) -> list[float]:
+        """``global_weights`` 동작을 수행한다."""
         return [round(float(w), 6) for w in self._global_weights]
 
     def participation_rate(self) -> float:
+        """``participation_rate`` 동작을 수행한다."""
         if not self._clients:
             return 0
         return round(sum(1 for w in self._clients.values() if w is not None) / len(self._clients) * 100, 1)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "clients": len(self._clients),
             "rounds": self._rounds,

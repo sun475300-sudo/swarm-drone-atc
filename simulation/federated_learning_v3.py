@@ -11,6 +11,7 @@ import numpy as np
 
 
 class AggregationMethod(Enum):
+    """``AggregationMethod`` 관련 기능을 제공한다."""
     FEDAVG = "fedavg"
     FEDPROX = "fedprox"
     FEDNOVA = "fednova"
@@ -19,6 +20,7 @@ class AggregationMethod(Enum):
 
 @dataclass
 class ModelUpdate:
+    """``ModelUpdate`` 관련 기능을 제공한다."""
     drone_id: str
     round_number: int
     parameters: dict[str, np.ndarray]
@@ -30,6 +32,7 @@ class ModelUpdate:
 
 @dataclass
 class AggregatedModel:
+    """``AggregatedModel`` 관련 기능을 제공한다."""
     round_number: int
     parameters: dict[str, np.ndarray]
     timestamp: float
@@ -39,6 +42,7 @@ class AggregatedModel:
 
 
 class FederatedLearningV3:
+    """``FederatedLearningV3`` 관련 기능을 제공한다."""
     def __init__(
         self,
         model_shape: dict[str, tuple[int, ...]],
@@ -48,6 +52,7 @@ class FederatedLearningV3:
         max_grad_norm: float = 1.0,
         min_clients_per_round: int = 3,
     ):
+        """인스턴스를 초기화한다."""
         self.model_shape = model_shape
         self.aggregation_method = aggregation_method
         self.differential_privacy = differential_privacy
@@ -75,14 +80,17 @@ class FederatedLearningV3:
         return model
 
     def register_client(self, drone_id: str):
+        """`client` 항목을 추가한다."""
         self.client_models[drone_id] = self._initialize_model()
 
     def get_client_model(self, drone_id: str) -> dict[str, np.ndarray]:
+        """`client model` 정보를 조회한다."""
         if drone_id not in self.client_models:
             self.register_client(drone_id)
         return self.client_models[drone_id]
 
     def submit_update(self, update: ModelUpdate) -> bool:
+        """``submit_update`` 동작을 수행한다."""
         if update.round_number != self.current_round:
             return False
 
@@ -90,14 +98,17 @@ class FederatedLearningV3:
         return True
 
     def get_pending_updates_count(self) -> int:
+        """`pending updates count` 정보를 조회한다."""
         return len(
             [u for u in self.update_history if u.round_number == self.current_round]
         )
 
     def should_aggregate(self) -> bool:
+        """`aggregate` 여부를 반환한다."""
         return self.get_pending_updates_count() >= self.min_clients_per_round
 
     def aggregate(self) -> AggregatedModel | None:
+        """``aggregate`` 동작을 수행한다."""
         if not self.should_aggregate():
             return None
 
@@ -232,6 +243,7 @@ class FederatedLearningV3:
         return params + noise
 
     def get_global_model(self) -> dict[str, np.ndarray]:
+        """`global model` 정보를 조회한다."""
         return self.global_model.copy()
 
     def simulate_local_training(
@@ -239,6 +251,7 @@ class FederatedLearningV3:
         drone_id: str,
         local_epochs: int = 5,
     ) -> ModelUpdate:
+        """``simulate_local_training`` 동작을 수행한다."""
         client_model = self.get_client_model(drone_id)
 
         simulated_loss = np.random.uniform(0.1, 0.5)
@@ -264,6 +277,7 @@ class FederatedLearningV3:
         return update
 
     def get_stats(self) -> dict[str, Any]:
+        """`stats` 정보를 조회한다."""
         return {
             "current_round": self.current_round,
             "total_clients": len(self.client_models),

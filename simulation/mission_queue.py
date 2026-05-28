@@ -31,6 +31,7 @@ class MissionQueue:
     """우선순위 기반 임무 큐."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._queue: list[QueuedMission] = []
         self._all_missions: dict[str, QueuedMission] = {}
         self._completed: list[QueuedMission] = []
@@ -43,6 +44,7 @@ class MissionQueue:
         mission_type: str = "DELIVERY",
         enqueue_time: float = 0.0,
     ) -> QueuedMission:
+        """``enqueue`` 동작을 수행한다."""
         mission = QueuedMission(
             priority=priority,
             enqueue_time=enqueue_time,
@@ -55,6 +57,7 @@ class MissionQueue:
         return mission
 
     def dequeue(self) -> QueuedMission | None:
+        """``dequeue`` 동작을 수행한다."""
         while self._queue:
             mission = heapq.heappop(self._queue)
             if mission.status == "PENDING":
@@ -63,12 +66,14 @@ class MissionQueue:
         return None
 
     def peek(self) -> QueuedMission | None:
+        """``peek`` 동작을 수행한다."""
         for m in self._queue:
             if m.status == "PENDING":
                 return m
         return None
 
     def assign(self, mission_id: str, drone_id: str) -> bool:
+        """`대상` 항목을 추가한다."""
         mission = self._all_missions.get(mission_id)
         if mission:
             mission.drone_id = drone_id
@@ -77,6 +82,7 @@ class MissionQueue:
         return False
 
     def complete(self, mission_id: str) -> bool:
+        """``complete`` 동작을 수행한다."""
         mission = self._all_missions.get(mission_id)
         if mission:
             mission.status = "COMPLETED"
@@ -85,6 +91,7 @@ class MissionQueue:
         return False
 
     def reassign(self, mission_id: str, new_drone_id: str) -> bool:
+        """``reassign`` 동작을 수행한다."""
         mission = self._all_missions.get(mission_id)
         if mission and mission.status == "ASSIGNED":
             mission.drone_id = new_drone_id
@@ -101,12 +108,15 @@ class MissionQueue:
         return expired
 
     def pending_count(self) -> int:
+        """``pending_count`` 동작을 수행한다."""
         return sum(1 for m in self._all_missions.values() if m.status == "PENDING")
 
     def assigned_count(self) -> int:
+        """``assigned_count`` 동작을 수행한다."""
         return sum(1 for m in self._all_missions.values() if m.status == "ASSIGNED")
 
     def by_priority(self, priority: int) -> list[QueuedMission]:
+        """``by_priority`` 동작을 수행한다."""
         return [m for m in self._all_missions.values() if m.priority == priority]
 
     def sla_compliance(self, current_time: float) -> float:
@@ -120,6 +130,7 @@ class MissionQueue:
         return (on_time / len(completed_with_deadline)) * 100
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         status_counts: dict[str, int] = {}
         for m in self._all_missions.values():
             status_counts[m.status] = status_counts.get(m.status, 0) + 1

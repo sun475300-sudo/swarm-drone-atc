@@ -30,6 +30,7 @@ class DroneIdentity:
     """드론 신원 인증."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._certs: dict[str, Certificate] = {}
         self._revoked: set[str] = set()
         self._auth_log: list[dict[str, Any]] = []
@@ -37,6 +38,7 @@ class DroneIdentity:
     def issue_certificate(
         self, drone_id: str, valid_hours: float = 24.0, t: float = 0.0,
     ) -> Certificate:
+        """``issue_certificate`` 동작을 수행한다."""
         cert_hash = hashlib.sha256(
             f"{drone_id}:{t}:{valid_hours}".encode()
         ).hexdigest()[:16]
@@ -49,6 +51,7 @@ class DroneIdentity:
         return cert
 
     def verify(self, drone_id: str, t: float = 0.0) -> bool:
+        """`대상` 결과를 계산하거나 판정한다."""
         cert = self._certs.get(drone_id)
         if not cert:
             self._log(drone_id, False, "인증서 없음", t)
@@ -63,6 +66,7 @@ class DroneIdentity:
         return True
 
     def renew(self, drone_id: str, valid_hours: float = 24.0, t: float = 0.0) -> bool:
+        """``renew`` 동작을 수행한다."""
         cert = self._certs.get(drone_id)
         if not cert or cert.revoked:
             return False
@@ -71,6 +75,7 @@ class DroneIdentity:
         return True
 
     def revoke(self, drone_id: str) -> bool:
+        """`대상` 상태를 정리한다."""
         cert = self._certs.get(drone_id)
         if cert:
             cert.revoked = True
@@ -85,6 +90,7 @@ class DroneIdentity:
         })
 
     def expiring_soon(self, within_hours: float = 1.0, t: float = 0.0) -> list[str]:
+        """``expiring_soon`` 동작을 수행한다."""
         threshold = t + within_hours * 3600
         return [
             did for did, cert in self._certs.items()
@@ -92,12 +98,14 @@ class DroneIdentity:
         ]
 
     def auth_log(self, drone_id: str | None = None, n: int = 20) -> list[dict[str, Any]]:
+        """``auth_log`` 동작을 수행한다."""
         entries = self._auth_log
         if drone_id:
             entries = [e for e in entries if e["drone_id"] == drone_id]
         return entries[-n:]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_certs": len(self._certs),
             "revoked": len(self._revoked),

@@ -10,6 +10,7 @@ from typing import Any
 
 @dataclass(frozen=True)
 class ComplianceRule:
+    """``ComplianceRule`` 관련 기능을 제공한다."""
     name: str
     metric: str
     min_value: float | None = None
@@ -20,6 +21,7 @@ class ComplianceRule:
 
 @dataclass(frozen=True)
 class ComplianceViolation:
+    """``ComplianceViolation`` 관련 기능을 제공한다."""
     rule_name: str
     drone_id: str
     metric: str
@@ -40,16 +42,20 @@ DEFAULT_RULESET: list[ComplianceRule] = [
 
 
 class ComplianceEngine:
+    """``ComplianceEngine`` 역할을 담당한다."""
     def __init__(self, ruleset: list[ComplianceRule] | None = None) -> None:
+        """인스턴스를 초기화한다."""
         self._ruleset = list(ruleset or DEFAULT_RULESET)
         self._violations: list[ComplianceViolation] = []
         self._evaluations = 0
 
     @property
     def ruleset(self) -> list[ComplianceRule]:
+        """``ruleset`` 동작을 수행한다."""
         return list(self._ruleset)
 
     def register_ruleset(self, ruleset: list[ComplianceRule]) -> None:
+        """`ruleset` 항목을 추가한다."""
         self._ruleset = list(ruleset)
 
     def _check_rule(
@@ -88,6 +94,7 @@ class ComplianceEngine:
         )
 
     def evaluate_flight(self, drone_id: str, **metrics: float) -> list[ComplianceViolation]:
+        """`flight` 결과를 계산하거나 판정한다."""
         self._evaluations += 1
         out: list[ComplianceViolation] = []
         for rule in self._ruleset:
@@ -103,6 +110,7 @@ class ComplianceEngine:
         return out
 
     def rule_hotspots(self, top_n: int = 3) -> list[dict[str, Any]]:
+        """``rule_hotspots`` 동작을 수행한다."""
         by_rule: dict[str, int] = {}
         by_severity: dict[str, str] = {}
         for v in self._violations:
@@ -121,6 +129,7 @@ class ComplianceEngine:
         return out
 
     def severity_trend(self, window: int = 5) -> list[dict[str, Any]]:
+        """``severity_trend`` 동작을 수행한다."""
         size = max(1, int(window))
         if self._evaluations == 0:
             return []
@@ -146,6 +155,7 @@ class ComplianceEngine:
         return buckets
 
     def evaluate_batch(self, snapshots: list[dict[str, Any]]) -> dict[str, list[ComplianceViolation]]:
+        """`batch` 결과를 계산하거나 판정한다."""
         by_drone: dict[str, list[ComplianceViolation]] = {}
         for item in snapshots:
             drone_id = str(item.get("drone_id", "UNKNOWN"))
@@ -155,6 +165,7 @@ class ComplianceEngine:
         return by_drone
 
     def violation_report(self) -> dict[str, Any]:
+        """``violation_report`` 동작을 수행한다."""
         by_severity: dict[str, int] = {}
         by_rule: dict[str, int] = {}
         for v in self._violations:
@@ -167,6 +178,7 @@ class ComplianceEngine:
         }
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         report = self.violation_report()
         hotspots = self.rule_hotspots(top_n=3)
         return {
@@ -177,5 +189,6 @@ class ComplianceEngine:
         }
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._violations.clear()
         self._evaluations = 0

@@ -5,10 +5,13 @@ Phase 473: Wireless Communication System
 
 
 class WirelessCommunicationSystem:
+    """``WirelessCommunicationSystem`` 역할을 담당한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.connections: dict[str, dict] = {}
 
     def establish_link(self, drone1: str, drone2: str, distance: float) -> bool:
+        """``establish_link`` 동작을 수행한다."""
         max_range = 500
         if distance > max_range:
             return False
@@ -22,6 +25,7 @@ class WirelessCommunicationSystem:
         return True
 
     def get_link_quality(self, drone1: str, drone2: str) -> float:
+        """`link quality` 정보를 조회한다."""
         key = f"{drone1}_{drone2}"
         if key in self.connections:
             return self.connections[key]["snr"] / 30

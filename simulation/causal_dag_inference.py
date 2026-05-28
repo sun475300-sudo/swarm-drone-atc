@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class CausalNode:
+    """``CausalNode`` 관련 기능을 제공한다."""
     name: str
     parents: list[str] = field(default_factory=list)
     mechanism: str = "linear"  # linear, threshold, noise
@@ -22,11 +23,13 @@ class CausalDAG:
     """인과 방향 비순환 그래프."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.nodes: dict[str, CausalNode] = {}
         self.adjacency: dict[str, list[str]] = {}
 
     def add_node(self, node: CausalNode):
+        """`node` 항목을 추가한다."""
         self.nodes[node.name] = node
         if node.name not in self.adjacency:
             self.adjacency[node.name] = []
@@ -36,6 +39,7 @@ class CausalDAG:
             self.adjacency[p].append(node.name)
 
     def topological_sort(self) -> list[str]:
+        """``topological_sort`` 동작을 수행한다."""
         in_degree = dict.fromkeys(self.nodes, 0)
         for n, node in self.nodes.items():
             for _p in node.parents:
@@ -53,6 +57,7 @@ class CausalDAG:
         return order
 
     def sample(self, n_samples=100, interventions: dict = None) -> dict[str, np.ndarray]:
+        """`대상` 정보를 기록한다."""
         interventions = interventions or {}
         order = self.topological_sort()
         data = {}
@@ -86,6 +91,7 @@ class CausalDAG:
 
 @dataclass
 class InferenceResult:
+    """``InferenceResult`` 데이터를 표현한다."""
     treatment: str
     outcome: str
     ate: float
@@ -97,6 +103,7 @@ class CausalDAGInference:
     """인과 DAG 추론 시뮬레이션."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.dag = CausalDAG(seed)
         self.results: list[InferenceResult] = []
@@ -116,6 +123,7 @@ class CausalDAGInference:
             self.dag.add_node(n)
 
     def estimate_effects(self):
+        """`effects` 결과를 계산하거나 판정한다."""
         pairs = [
             ("wind", "conflict_risk"),
             ("battery", "mission_success"),
@@ -135,9 +143,11 @@ class CausalDAGInference:
             self.results.append(InferenceResult(treatment, outcome, round(ate, 4), round(ci_lo, 4), round(ci_hi, 4)))
 
     def run(self):
+        """메인 실행 루프를 수행한다."""
         self.estimate_effects()
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "dag_nodes": len(self.dag.nodes),
             "dag_edges": sum(len(n.parents) for n in self.dag.nodes.values()),

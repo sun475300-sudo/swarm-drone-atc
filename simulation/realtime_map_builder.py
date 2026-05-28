@@ -13,6 +13,7 @@ import numpy as np
 
 
 class CellState(Enum):
+    """``CellState`` 데이터를 표현한다."""
     UNKNOWN = 0
     FREE = 1
     OCCUPIED = 2
@@ -21,6 +22,7 @@ class CellState(Enum):
 
 @dataclass
 class MapObservation:
+    """``MapObservation`` 관련 기능을 제공한다."""
     observer_id: str
     position: np.ndarray
     scan_points: list[np.ndarray]
@@ -30,6 +32,7 @@ class MapObservation:
 
 @dataclass
 class PointOfInterest:
+    """``PointOfInterest`` 관련 기능을 제공한다."""
     poi_id: str
     position: np.ndarray
     category: str  # "obstacle", "landing_pad", "building", "tree", "antenna"
@@ -43,6 +46,7 @@ class OccupancyGrid:
     """로그 확률 기반 점유 격자."""
 
     def __init__(self, size: int = 200, resolution: float = 5.0):
+        """인스턴스를 초기화한다."""
         self.size = size
         self.resolution = resolution
         self._grid = np.zeros((size, size, 20), dtype=np.float32)  # log-odds
@@ -58,16 +62,19 @@ class OccupancyGrid:
         return gx, gy, gz
 
     def update_free(self, pos: np.ndarray):
+        """`free` 상태를 갱신한다."""
         gx, gy, gz = self._to_grid(pos)
         self._grid[gx, gy, gz] = np.clip(self._grid[gx, gy, gz] + self.LOG_ODD_FREE, -self.CLAMP, self.CLAMP)
         self._update_count[gx, gy, gz] += 1
 
     def update_occupied(self, pos: np.ndarray):
+        """`occupied` 상태를 갱신한다."""
         gx, gy, gz = self._to_grid(pos)
         self._grid[gx, gy, gz] = np.clip(self._grid[gx, gy, gz] + self.LOG_ODD_OCC, -self.CLAMP, self.CLAMP)
         self._update_count[gx, gy, gz] += 1
 
     def get_state(self, pos: np.ndarray) -> CellState:
+        """`state` 정보를 조회한다."""
         gx, gy, gz = self._to_grid(pos)
         val = self._grid[gx, gy, gz]
         if self._update_count[gx, gy, gz] == 0:
@@ -79,10 +86,12 @@ class OccupancyGrid:
         return CellState.UNKNOWN
 
     def get_probability(self, pos: np.ndarray) -> float:
+        """`probability` 정보를 조회한다."""
         gx, gy, gz = self._to_grid(pos)
         return 1.0 / (1.0 + np.exp(-self._grid[gx, gy, gz]))
 
     def get_explored_ratio(self) -> float:
+        """`explored ratio` 정보를 조회한다."""
         total = self._update_count.size
         explored = np.count_nonzero(self._update_count)
         return explored / total
@@ -98,6 +107,7 @@ class RealtimeMapBuilder:
     """
 
     def __init__(self, grid_size: int = 200, resolution: float = 5.0, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._grid = OccupancyGrid(grid_size, resolution)
         self._pois: dict[str, PointOfInterest] = {}
@@ -106,6 +116,7 @@ class RealtimeMapBuilder:
         self._poi_counter = 0
 
     def process_observation(self, obs: MapObservation):
+        """`observation` 처리 로직을 수행한다."""
         self._observations.append(obs)
         self._drone_positions[obs.observer_id] = obs.position.copy()
         # Ray-cast: mark cells between observer and scan points
@@ -155,6 +166,7 @@ class RealtimeMapBuilder:
         return results
 
     def get_pois(self, category: str | None = None, min_confidence: float = 0.0) -> list[PointOfInterest]:
+        """`pois` 정보를 조회한다."""
         pois = list(self._pois.values())
         if category:
             pois = [p for p in pois if p.category == category]
@@ -162,13 +174,16 @@ class RealtimeMapBuilder:
         return pois
 
     def merge_map(self, other_observations: list[MapObservation]):
+        """``merge_map`` 동작을 수행한다."""
         for obs in other_observations:
             self.process_observation(obs)
 
     def get_exploration_progress(self) -> float:
+        """`exploration progress` 정보를 조회한다."""
         return self._grid.get_explored_ratio()
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_observations": len(self._observations),
             "tracked_drones": len(self._drone_positions),

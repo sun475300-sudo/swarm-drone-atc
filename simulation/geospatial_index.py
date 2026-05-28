@@ -13,6 +13,7 @@ import numpy as np
 
 @dataclass
 class SpatialObject:
+    """``SpatialObject`` 관련 기능을 제공한다."""
     obj_id: str
     position: np.ndarray
     radius: float = 0.0
@@ -21,21 +22,26 @@ class SpatialObject:
 
 @dataclass
 class BoundingBox:
+    """``BoundingBox`` 관련 기능을 제공한다."""
     min_corner: np.ndarray
     max_corner: np.ndarray
 
     def contains(self, point: np.ndarray) -> bool:
+        """``contains`` 동작을 수행한다."""
         return all(self.min_corner[:3] <= point[:3]) and all(point[:3] <= self.max_corner[:3])
 
     def intersects(self, other: BoundingBox) -> bool:
+        """``intersects`` 동작을 수행한다."""
         return all(self.min_corner[:3] <= other.max_corner[:3]) and all(other.min_corner[:3] <= self.max_corner[:3])
 
     @property
     def center(self) -> np.ndarray:
+        """``center`` 동작을 수행한다."""
         return (self.min_corner + self.max_corner) / 2
 
     @property
     def size(self) -> np.ndarray:
+        """``size`` 동작을 수행한다."""
         return self.max_corner - self.min_corner
 
 
@@ -46,6 +52,7 @@ class QuadtreeNode:
     MAX_DEPTH = 10
 
     def __init__(self, bbox: BoundingBox, depth: int = 0):
+        """인스턴스를 초기화한다."""
         self.bbox = bbox
         self.depth = depth
         self.objects: list[SpatialObject] = []
@@ -69,6 +76,7 @@ class QuadtreeNode:
             self.children.append(QuadtreeNode(BoundingBox(new_min, new_max), self.depth + 1))
 
     def insert(self, obj: SpatialObject) -> bool:
+        """`대상` 항목을 추가한다."""
         if not self.bbox.contains(obj.position):
             return False
         if len(self.objects) < self.MAX_OBJECTS or self.depth >= self.MAX_DEPTH:
@@ -83,6 +91,7 @@ class QuadtreeNode:
         return True
 
     def query_range(self, bbox: BoundingBox) -> list[SpatialObject]:
+        """``query_range`` 동작을 수행한다."""
         results = []
         if not self.bbox.intersects(bbox):
             return results
@@ -95,6 +104,7 @@ class QuadtreeNode:
         return results
 
     def query_radius(self, center: np.ndarray, radius: float) -> list[SpatialObject]:
+        """``query_radius`` 동작을 수행한다."""
         bbox = BoundingBox(center - radius, center + radius)
         candidates = self.query_range(bbox)
         return [o for o in candidates if np.linalg.norm(o.position[:3] - center[:3]) <= radius]
@@ -107,6 +117,7 @@ class GeohashEncoder:
 
     @staticmethod
     def encode(lat: float, lon: float, alt: float = 0.0, precision: int = 6) -> str:
+        """``encode`` 동작을 수행한다."""
         lat_range = [-90.0, 90.0]
         lon_range = [-180.0, 180.0]
         bits = []
@@ -161,6 +172,7 @@ class GeospatialIndex:
     """
 
     def __init__(self, bounds_min: np.ndarray = None, bounds_max: np.ndarray = None):
+        """인스턴스를 초기화한다."""
         if bounds_min is None:
             bounds_min = np.array([-1000.0, -1000.0, -100.0])
         if bounds_max is None:
@@ -170,13 +182,16 @@ class GeospatialIndex:
         self._geohash = GeohashEncoder()
 
     def insert(self, obj: SpatialObject) -> bool:
+        """`대상` 항목을 추가한다."""
         self._objects[obj.obj_id] = obj
         return self._tree.insert(obj)
 
     def query_range(self, min_corner: np.ndarray, max_corner: np.ndarray) -> list[SpatialObject]:
+        """``query_range`` 동작을 수행한다."""
         return self._tree.query_range(BoundingBox(min_corner, max_corner))
 
     def query_radius(self, center: np.ndarray, radius: float) -> list[SpatialObject]:
+        """``query_radius`` 동작을 수행한다."""
         return self._tree.query_radius(center, radius)
 
     def query_knn(self, center: np.ndarray, k: int) -> list[tuple[SpatialObject, float]]:
@@ -189,18 +204,22 @@ class GeospatialIndex:
         return distances[:k]
 
     def get_geohash(self, obj_id: str, precision: int = 6) -> str | None:
+        """`geohash` 정보를 조회한다."""
         obj = self._objects.get(obj_id)
         if not obj:
             return None
         return self._geohash.encode(obj.position[0], obj.position[1], obj.position[2] if len(obj.position) > 2 else 0, precision)
 
     def get_object(self, obj_id: str) -> SpatialObject | None:
+        """`object` 정보를 조회한다."""
         return self._objects.get(obj_id)
 
     def remove(self, obj_id: str) -> bool:
+        """`대상` 상태를 정리한다."""
         return self._objects.pop(obj_id, None) is not None
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_objects": len(self._objects),
             "tree_depth": self._tree.MAX_DEPTH,

@@ -43,6 +43,7 @@ class GPSSpoofDetector:
         altitude_mismatch_threshold: float = 20.0,
         max_velocity_ms: float = 50.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.position_jump_threshold = position_jump_threshold
         self.altitude_mismatch_threshold = altitude_mismatch_threshold
         self.max_velocity_ms = max_velocity_ms
@@ -55,6 +56,7 @@ class GPSSpoofDetector:
         imu: tuple[float, float, float] | None = None,
         baro_alt: float | None = None, t: float = 0.0,
     ) -> None:
+        """`대상` 상태를 갱신한다."""
         if drone_id not in self._readings:
             self._readings[drone_id] = []
         self._readings[drone_id].append(SensorReading(gps=gps, imu=imu, baro_alt=baro_alt, t=t))
@@ -62,6 +64,7 @@ class GPSSpoofDetector:
             self._readings[drone_id] = self._readings[drone_id][-100:]
 
     def check(self, drone_id: str) -> list[SpoofAlert]:
+        """`대상` 결과를 계산하거나 판정한다."""
         readings = self._readings.get(drone_id, [])
         if len(readings) < 2:
             return []
@@ -119,13 +122,16 @@ class GPSSpoofDetector:
         return alerts
 
     def is_trusted(self, drone_id: str) -> bool:
+        """`trusted` 여부를 반환한다."""
         recent = [a for a in self._alerts[-20:] if a.drone_id == drone_id and a.severity == "HIGH"]
         return len(recent) == 0
 
     def untrusted_drones(self) -> list[str]:
+        """``untrusted_drones`` 동작을 수행한다."""
         return [did for did in self._readings if not self.is_trusted(did)]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones_monitored": len(self._readings),
             "total_alerts": len(self._alerts),

@@ -43,12 +43,14 @@ class ChargeOptimizer:
     """충전 스케줄 최적화."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._stations: dict[str, StationState] = {}
 
     def add_station(
         self, station_id: str, position: tuple[float, float],
         capacity: int = 4, charge_rate: float = 2.0,
     ) -> StationState:
+        """`station` 항목을 추가한다."""
         s = StationState(
             station_id=station_id, position=position,
             capacity=capacity, charge_rate_pct_per_min=charge_rate,
@@ -57,6 +59,7 @@ class ChargeOptimizer:
         return s
 
     def update_station(self, station_id: str, occupied: int, queue_size: int) -> None:
+        """`station` 상태를 갱신한다."""
         s = self._stations.get(station_id)
         if s:
             s.occupied = occupied
@@ -142,6 +145,7 @@ class ChargeOptimizer:
         return plans
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         total_cap = sum(s.capacity for s in self._stations.values())
         total_occ = sum(s.occupied for s in self._stations.values())
         return {

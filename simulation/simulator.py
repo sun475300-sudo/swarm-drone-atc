@@ -105,6 +105,7 @@ class SwarmSimulator:
         scenario_cfg: dict | None = None,
         seed: int = 42,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.seed = seed
         self.rng = np.random.default_rng(seed)
 
@@ -183,6 +184,7 @@ class SwarmSimulator:
     # ── 공개 API ─────────────────────────────────────────────
 
     def run(self, duration_s: float | None = None) -> SimulationResult:
+        """메인 실행 루프를 수행한다."""
         dur = duration_s or float(self.cfg.get("simulation", {}).get("duration_minutes", 10)) * 60.0
 
         self._spawn_drones()

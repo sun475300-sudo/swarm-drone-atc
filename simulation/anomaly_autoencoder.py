@@ -11,6 +11,7 @@ import numpy as np
 
 
 class AnomalyAutoencoder:
+    """``AnomalyAutoencoder`` 관련 기능을 제공한다."""
     def __init__(
         self,
         input_dim: int,
@@ -18,6 +19,7 @@ class AnomalyAutoencoder:
         learning_rate: float = 0.01,
         seed: int = 42,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(seed)
         self.input_dim = input_dim
         self.latent_dim = max(1, latent_dim)
@@ -43,6 +45,7 @@ class AnomalyAutoencoder:
         return z, recon
 
     def fit(self, samples: list[list[float]], epochs: int = 50) -> dict[str, Any]:
+        """``fit`` 동작을 수행한다."""
         x = np.array(samples, dtype=np.float64)
         if x.ndim != 2 or x.shape[1] != self.input_dim:
             raise ValueError("samples shape must be (n, input_dim)")
@@ -81,11 +84,13 @@ class AnomalyAutoencoder:
         }
 
     def reconstruction_error(self, samples: list[list[float]]) -> list[float]:
+        """``reconstruction_error`` 동작을 수행한다."""
         x = np.array(samples, dtype=np.float64)
         _, recon = self._forward(x)
         return [float(v) for v in np.mean((recon - x) ** 2, axis=1)]
 
     def detect(self, sample: list[float]) -> dict[str, Any]:
+        """`대상` 결과를 계산하거나 판정한다."""
         error = self.reconstruction_error([sample])[0]
         is_anomaly = error > self._threshold if self._threshold > 0 else False
         return {
@@ -95,6 +100,7 @@ class AnomalyAutoencoder:
         }
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "input_dim": self.input_dim,
             "latent_dim": self.latent_dim,

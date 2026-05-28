@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class Reputation:
+    """``Reputation`` 관련 기능을 제공한다."""
     drone_id: int
     alpha: float = 1.0  # 성공 (Beta prior)
     beta_param: float = 1.0   # 실패
@@ -18,25 +19,31 @@ class Reputation:
 
     @property
     def trust_score(self) -> float:
+        """``trust_score`` 동작을 수행한다."""
         return self.alpha / (self.alpha + self.beta_param)
 
     @property
     def uncertainty(self) -> float:
+        """``uncertainty`` 동작을 수행한다."""
         total = self.alpha + self.beta_param
         return float(np.sqrt(self.alpha * self.beta_param / (total**2 * (total + 1))))
 
 
 class BayesianReputation:
+    """``BayesianReputation`` 관련 기능을 제공한다."""
     def __init__(self, n_drones: int, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n = n_drones
         self.reputations = {i: Reputation(i) for i in range(n_drones)}
         self.malicious = set()
 
     def set_malicious(self, drone_ids: list[int]):
+        """`malicious` 상태를 갱신한다."""
         self.malicious = set(drone_ids)
 
     def observe(self, drone_id: int, success: bool):
+        """``observe`` 동작을 수행한다."""
         rep = self.reputations[drone_id]
         if success:
             rep.alpha += 1
@@ -45,16 +52,20 @@ class BayesianReputation:
         rep.observations += 1
 
     def simulate_interaction(self, drone_id: int) -> bool:
+        """``simulate_interaction`` 동작을 수행한다."""
         if drone_id in self.malicious:
             return self.rng.random() < 0.3
         return self.rng.random() < 0.9
 
     def detect_malicious(self, threshold=0.5) -> list[int]:
+        """`malicious` 결과를 계산하거나 판정한다."""
         return [d for d, r in self.reputations.items() if r.trust_score < threshold and r.observations > 5]
 
 
 class DroneReputationSystem:
+    """``DroneReputationSystem`` 역할을 담당한다."""
     def __init__(self, n_drones=20, n_malicious=3, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.system = BayesianReputation(n_drones, seed)
         self.n = n_drones
@@ -63,6 +74,7 @@ class DroneReputationSystem:
         self.interactions = 0
 
     def run(self, rounds=50):
+        """메인 실행 루프를 수행한다."""
         for _ in range(rounds):
             for d in range(self.n):
                 success = self.system.simulate_interaction(d)
@@ -70,6 +82,7 @@ class DroneReputationSystem:
                 self.interactions += 1
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         detected = self.system.detect_malicious()
         actual = self.system.malicious
         tp = len(set(detected) & actual)

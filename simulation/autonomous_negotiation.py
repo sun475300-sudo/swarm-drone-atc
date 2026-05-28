@@ -10,6 +10,7 @@ import numpy as np
 
 
 class ConcessionStrategy(Enum):
+    """``ConcessionStrategy`` 관련 기능을 제공한다."""
     LINEAR = "linear"
     BOULWARE = "boulware"
     CONCEDER = "conceder"
@@ -19,6 +20,7 @@ class ConcessionStrategy(Enum):
 
 @dataclass
 class NegotiationIssue:
+    """``NegotiationIssue`` 관련 기능을 제공한다."""
     name: str
     min_value: float
     max_value: float
@@ -27,6 +29,7 @@ class NegotiationIssue:
 
 @dataclass
 class Offer:
+    """``Offer`` 관련 기능을 제공한다."""
     agent_id: str
     values: dict[str, float]
     utility: float
@@ -36,6 +39,7 @@ class Offer:
 
 @dataclass
 class NegotiationAgent:
+    """``NegotiationAgent`` 역할을 담당한다."""
     agent_id: str
     strategy: ConcessionStrategy
     reservation_utility: float = 0.3
@@ -49,6 +53,7 @@ class AutonomousNegotiation:
     """Multi-party negotiation engine for drone swarm resource allocation."""
 
     def __init__(self, seed: int = 42, max_rounds: int = 100, deadline: float = 1.0):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.agents: dict[str, NegotiationAgent] = {}
         self.issues: list[NegotiationIssue] = []
@@ -59,11 +64,13 @@ class AutonomousNegotiation:
         self.history: list[Offer] = []
 
     def add_issue(self, name: str, min_val: float, max_val: float, weight: float = 1.0) -> None:
+        """`issue` 항목을 추가한다."""
         self.issues.append(NegotiationIssue(name, min_val, max_val, weight))
 
     def add_agent(self, agent_id: str, strategy: ConcessionStrategy,
                   preferences: dict[str, tuple[float, float]] | None = None,
                   reservation: float = 0.3) -> NegotiationAgent:
+        """`agent` 항목을 추가한다."""
         prefs = preferences or {}
         weights = {issue.name: issue.weight + self.rng.standard_normal() * 0.1
                    for issue in self.issues}
@@ -121,6 +128,7 @@ class AutonomousNegotiation:
         return utility >= threshold
 
     def negotiate_round(self) -> dict | None:
+        """``negotiate_round`` 동작을 수행한다."""
         self.current_round += 1
         agent_ids = list(self.agents.keys())
         offers = {}
@@ -157,6 +165,7 @@ class AutonomousNegotiation:
         return None
 
     def run(self) -> dict | None:
+        """메인 실행 루프를 수행한다."""
         for _ in range(self.max_rounds):
             result = self.negotiate_round()
             if result:
@@ -164,6 +173,7 @@ class AutonomousNegotiation:
         return None
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "agents": len(self.agents),
             "issues": len(self.issues),

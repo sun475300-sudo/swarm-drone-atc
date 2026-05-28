@@ -14,6 +14,7 @@ from enum import Enum
 
 
 class TestResult(Enum):
+    """``TestResult`` 데이터를 표현한다."""
     __test__ = False  # Prevent pytest collection
     PASS = "pass"
     FAIL = "fail"
@@ -25,6 +26,7 @@ IntegrationTestResult = TestResult
 
 @dataclass
 class IntegrationTest:
+    """``IntegrationTest`` 관련 기능을 제공한다."""
     name: str
     description: str
     test_fn: Callable
@@ -35,6 +37,7 @@ class IntegrationTest:
 
 @dataclass
 class TestOutcome:
+    """``TestOutcome`` 관련 기능을 제공한다."""
     __test__ = False  # Prevent pytest collection
     name: str
     result: TestResult
@@ -47,6 +50,7 @@ IntegrationTestOutcome = TestOutcome
 
 @dataclass
 class TestSuiteReport:
+    """``TestSuiteReport`` 관련 기능을 제공한다."""
     __test__ = False  # Prevent pytest collection
     total: int = 0
     passed: int = 0
@@ -58,6 +62,7 @@ class TestSuiteReport:
 
     @property
     def pass_rate(self) -> float:
+        """``pass_rate`` 동작을 수행한다."""
         return self.passed / max(self.total, 1) * 100
 
 
@@ -71,6 +76,7 @@ class IntegrationTestFramework:
     """
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self._tests: dict[str, IntegrationTest] = {}
         self._results: list[TestOutcome] = []
         self._setup_hooks: list[Callable] = []
@@ -79,6 +85,7 @@ class IntegrationTestFramework:
     def register(self, name: str, test_fn: Callable, description: str = "",
                  tags: list[str] | None = None, timeout_sec: float = 30.0,
                  dependencies: list[str] | None = None):
+        """`대상` 항목을 추가한다."""
         test = IntegrationTest(
             name=name, description=description, test_fn=test_fn,
             tags=tags or [], timeout_sec=timeout_sec,
@@ -87,12 +94,15 @@ class IntegrationTestFramework:
         self._tests[name] = test
 
     def add_setup(self, hook: Callable):
+        """`setup` 항목을 추가한다."""
         self._setup_hooks.append(hook)
 
     def add_teardown(self, hook: Callable):
+        """`teardown` 항목을 추가한다."""
         self._teardown_hooks.append(hook)
 
     def run_test(self, name: str) -> TestOutcome:
+        """``run_test`` 동작을 수행한다."""
         test = self._tests.get(name)
         if not test:
             return TestOutcome(name=name, result=TestResult.ERROR, message="Test not found")
@@ -123,6 +133,7 @@ class IntegrationTestFramework:
 
     def run_all(self, tags: list[str] | None = None) -> TestSuiteReport:
         # Setup
+        """``run_all`` 동작을 수행한다."""
         for hook in self._setup_hooks:
             with contextlib.suppress(Exception):
                 hook()
@@ -168,12 +179,15 @@ class IntegrationTestFramework:
         return order
 
     def get_results(self) -> list[TestOutcome]:
+        """`results` 정보를 조회한다."""
         return self._results.copy()
 
     def clear_results(self):
+        """`results` 상태를 정리한다."""
         self._results.clear()
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         passed = sum(1 for r in self._results if r.result == TestResult.PASS)
         failed = sum(1 for r in self._results if r.result == TestResult.FAIL)
         return {

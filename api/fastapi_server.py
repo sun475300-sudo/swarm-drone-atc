@@ -53,6 +53,7 @@ API_VERSION = "1.1.0"
 
 @dataclass
 class AirspaceSnapshot:
+    """``AirspaceSnapshot`` 관련 기능을 제공한다."""
     timestamp_ns: int
     drones: list[dict] = field(default_factory=list)  # [{id, lat, lon, alt, vx, vy, vz, head}, ...]
     conflicts: list[dict] = field(default_factory=list)
@@ -60,6 +61,7 @@ class AirspaceSnapshot:
 
 @dataclass
 class RunRecord:
+    """``RunRecord`` 데이터를 표현한다."""
     run_id: str
     scenario_id: str
     status: str  # queued | running | completed | failed
@@ -72,6 +74,7 @@ class AppState:
     """Simple in-memory state. Swap with a real store later."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self.snapshot = AirspaceSnapshot(timestamp_ns=time.time_ns())
         self.scenarios = _build_scenario_catalog()
         self.runs: dict[str, RunRecord] = {}
@@ -84,6 +87,7 @@ class AppState:
         self.advisory_generator = None
 
     async def broadcast(self, payload: dict) -> None:
+        """``broadcast`` 동작을 수행한다."""
         dead: list[WebSocket] = []
         for ws in list(self.telemetry_subscribers):
             try:
@@ -95,6 +99,7 @@ class AppState:
             self.telemetry_subscribers.discard(ws)
 
     def ensure_live_components(self):
+        """``ensure_live_components`` 동작을 수행한다."""
         if self.live_grid is None:
             from src.airspace_manager import AirspaceGrid
 
@@ -106,6 +111,7 @@ class AppState:
         return self.live_grid, self.advisory_generator
 
     def numeric_drone_id(self, drone_id: str) -> int:
+        """``numeric_drone_id`` 동작을 수행한다."""
         existing = self.live_id_map.get(drone_id)
         if existing is not None:
             return existing
@@ -426,6 +432,7 @@ STATE = AppState()
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """``lifespan`` 동작을 수행한다."""
     LOGGER.info("SDACS API starting")
     stream_task = asyncio.create_task(_demo_telemetry_stream())
     try:
@@ -474,6 +481,7 @@ async def _demo_telemetry_stream() -> None:
 
 async def require_token(authorization: str = Header(default="")) -> str:
     # P712 will replace with full JWT validation.
+    """``require_token`` 동작을 수행한다."""
     if not authorization.startswith("Bearer "):
         raise HTTPException(401, detail="missing bearer token")
     return authorization[len("Bearer ") :]
@@ -483,24 +491,28 @@ async def require_token(authorization: str = Header(default="")) -> str:
 
 
 class RunScenarioBody(BaseModel):
+    """``RunScenarioBody`` 관련 기능을 제공한다."""
     seed: int = Field(ge=0, le=2**31 - 1, default=0)
     method: str = Field(pattern="^(orca|apf|cbs|hybrid)$", default="hybrid")
     duration_s: int = Field(ge=1, le=3600, default=60)
 
 
 class SimulateRequest(BaseModel):
+    """``SimulateRequest`` 데이터를 표현한다."""
     drones: int = Field(default=50, ge=1, le=2000)
     duration: float = Field(default=60.0, ge=1, le=3600)
     seed: int = Field(default=42)
 
 
 class ScenarioRunRequest(BaseModel):
+    """``ScenarioRunRequest`` 데이터를 표현한다."""
     n_runs: int = Field(default=1, ge=1, le=100)
     seed: int = Field(default=42)
     duration: float | None = Field(default=None, ge=1, le=3600)
 
 
 class EnvelopeError(BaseModel):
+    """``EnvelopeError`` 관련 기능을 제공한다."""
     success: bool = False
     error: str
 
@@ -529,11 +541,13 @@ app.add_middleware(
 
 @app.get("/healthz", tags=["infra"])
 async def healthz() -> dict:
+    """``healthz`` 동작을 수행한다."""
     return {"success": True, "status": "ok", "now_ns": time.time_ns()}
 
 
 @app.get("/health", tags=["infra"])
 async def health() -> dict[str, Any]:
+    """``health`` 동작을 수행한다."""
     return {
         "status": "ok",
         "version": API_VERSION,
@@ -547,6 +561,7 @@ async def health() -> dict[str, Any]:
 
 @app.get("/api/airspace/snapshot", tags=["airspace"])
 async def get_snapshot() -> dict:
+    """`snapshot` 정보를 조회한다."""
     return {
         "success": True,
         "data": {
@@ -562,12 +577,14 @@ async def get_snapshot() -> dict:
 
 @app.get("/api/scenarios", tags=["scenarios"])
 async def list_scenarios() -> dict:
+    """``list_scenarios`` 동작을 수행한다."""
     STATE.scenarios = _build_scenario_catalog()
     return {"success": True, "data": STATE.scenarios}
 
 
 @app.get("/scenarios", tags=["scenarios"])
 async def scenarios() -> dict[str, Any]:
+    """``scenarios`` 동작을 수행한다."""
     STATE.scenarios = _build_scenario_catalog()
     names = list(STATE.scenarios)
     return {"scenarios": names, "count": len(names)}
@@ -575,6 +592,7 @@ async def scenarios() -> dict[str, Any]:
 
 @app.post("/simulate", tags=["legacy"])
 async def simulate(req: SimulateRequest) -> dict[str, Any]:
+    """``simulate`` 동작을 수행한다."""
     try:
         return await asyncio.to_thread(
             _run_simulation_sync,
@@ -589,6 +607,7 @@ async def simulate(req: SimulateRequest) -> dict[str, Any]:
 
 @app.post("/scenarios/{name}/run", tags=["legacy"])
 async def scenario_run(name: str, req: ScenarioRunRequest | None = None) -> dict[str, Any]:
+    """``scenario_run`` 동작을 수행한다."""
     body = req or ScenarioRunRequest()
     STATE.scenarios = _build_scenario_catalog()
     if name not in STATE.scenarios:
@@ -614,6 +633,7 @@ async def run_scenario(
     body: RunScenarioBody,
     _token: str = Depends(require_token),
 ) -> dict:
+    """``run_scenario`` 동작을 수행한다."""
     STATE.scenarios = _build_scenario_catalog()
     scenario_meta = STATE.scenarios.get(scenario_id)
     request_mode = "scenario" if scenario_meta is not None else "live_airspace"
@@ -674,6 +694,7 @@ async def _execute_run(run_id: str, body: RunScenarioBody) -> None:
 
 @app.get("/api/runs/{run_id}", tags=["scenarios"])
 async def get_run(run_id: str) -> dict:
+    """`run` 정보를 조회한다."""
     record = STATE.runs.get(run_id)
     if record is None:
         raise HTTPException(404, detail="run not found")
@@ -695,6 +716,7 @@ async def get_run(run_id: str) -> dict:
 
 @app.websocket("/ws/telemetry")
 async def ws_telemetry(ws: WebSocket) -> None:
+    """``ws_telemetry`` 동작을 수행한다."""
     await ws.accept()
     STATE.telemetry_subscribers.add(ws)
     LOGGER.info("telemetry subscriber connected (total=%d)", len(STATE.telemetry_subscribers))
@@ -735,6 +757,7 @@ async def ws_telemetry(ws: WebSocket) -> None:
 
 
 def run_dev_server(host: str = "0.0.0.0", port: int = 8000, log_level: str = "info") -> None:
+    """``run_dev_server`` 동작을 수행한다."""
     import uvicorn
 
     logging.basicConfig(level=logging.INFO)

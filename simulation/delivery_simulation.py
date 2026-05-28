@@ -11,6 +11,7 @@ from typing import Any
 
 @dataclass
 class DeliveryOrder:
+    """``DeliveryOrder`` 관련 기능을 제공한다."""
     order_id: str
     destination: tuple[float, float]
     weight_kg: float
@@ -20,6 +21,7 @@ class DeliveryOrder:
 
 @dataclass
 class DroneUnit:
+    """``DroneUnit`` 관련 기능을 제공한다."""
     drone_id: str
     position: tuple[float, float]
     max_payload_kg: float
@@ -29,6 +31,7 @@ class DroneUnit:
 
 @dataclass
 class DispatchRecord:
+    """``DispatchRecord`` 데이터를 표현한다."""
     order_id: str
     drone_id: str
     eta_min: float
@@ -39,7 +42,9 @@ class DispatchRecord:
 
 
 class DeliverySimulation:
+    """``DeliverySimulation`` 관련 기능을 제공한다."""
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._orders: list[DeliveryOrder] = []
         self._drones: dict[str, DroneUnit] = {}
         self._dispatches: list[DispatchRecord] = []
@@ -59,6 +64,7 @@ class DeliverySimulation:
         airspace: Any,
         altitude_band: tuple[float, float] = (30.0, 90.0),
     ) -> None:
+        """`airspace reservation` 상태를 갱신한다."""
         self._airspace = airspace
         self._default_altitude_band = (
             float(altitude_band[0]),
@@ -72,6 +78,7 @@ class DeliverySimulation:
         weather_threshold: float = 0.75,
         congestion_threshold: float = 0.7,
     ) -> None:
+        """`slot policy` 상태를 갱신한다."""
         self._slot_policy = {
             "congestion_alt_step": max(0.0, float(congestion_alt_step)),
             "bad_weather_alt_step": max(0.0, float(bad_weather_alt_step)),
@@ -86,6 +93,7 @@ class DeliverySimulation:
         max_payload_kg: float = 3.0,
         speed_mps: float = 12.0,
     ) -> None:
+        """`drone` 항목을 추가한다."""
         self._drones[drone_id] = DroneUnit(
             drone_id=drone_id,
             position=(float(position[0]), float(position[1])),
@@ -101,6 +109,7 @@ class DeliverySimulation:
         priority: int = 5,
         created_min: int = 0,
     ) -> None:
+        """`order` 항목을 추가한다."""
         self._orders.append(
             DeliveryOrder(
                 order_id=order_id,
@@ -129,6 +138,7 @@ class DeliverySimulation:
         congestion: float = 0.2,
         weather_factor: float = 1.0,
     ) -> tuple[float, float]:
+        """`eta min` 결과를 계산하거나 판정한다."""
         distance_m = self._distance(drone.position, order.destination)
         congestion_penalty = 1.0 + max(0.0, min(1.0, float(congestion))) * 0.6
         weather_penalty = 1.0 / max(0.4, min(1.2, float(weather_factor)))
@@ -204,6 +214,7 @@ class DeliverySimulation:
         weather_factor: float = 1.0,
         traffic_demand: int | None = None,
     ) -> DispatchRecord | None:
+        """`next` 처리 로직을 수행한다."""
         if not self._orders:
             return None
 
@@ -252,6 +263,7 @@ class DeliverySimulation:
         traffic_state: Any,
         weather_factor: float = 1.0,
     ) -> DispatchRecord | None:
+        """`with traffic state` 처리 로직을 수행한다."""
         congestion = float(getattr(traffic_state, "congestion", 0.2))
         demand = int(getattr(traffic_state, "demand", 0))
         return self.dispatch_next(
@@ -261,6 +273,7 @@ class DeliverySimulation:
         )
 
     def complete_delivery(self, order_id: str) -> bool:
+        """``complete_delivery`` 동작을 수행한다."""
         for r in self._dispatches:
             if r.order_id == order_id:
                 self._delivered_orders.add(order_id)
@@ -274,9 +287,11 @@ class DeliverySimulation:
         return False
 
     def pending_orders(self) -> int:
+        """``pending_orders`` 동작을 수행한다."""
         return len(self._orders)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         avg_congestion = 0.0
         demand_points = [d.traffic_demand for d in self._dispatches if d.traffic_demand is not None]
         congestion_points = [

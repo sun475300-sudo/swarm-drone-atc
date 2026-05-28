@@ -147,6 +147,7 @@ def _load_manifest(manifest_path: Path) -> dict | None:
 
 
 def main() -> int:
+    """``main`` 동작을 수행한다."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--capture",

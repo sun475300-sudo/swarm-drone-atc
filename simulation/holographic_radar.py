@@ -10,6 +10,7 @@ import numpy as np
 
 
 class RadarMode(Enum):
+    """``RadarMode`` 관련 기능을 제공한다."""
     SEARCH = "search"
     TRACK = "track"
     SAR = "sar"
@@ -18,6 +19,7 @@ class RadarMode(Enum):
 
 @dataclass
 class RadarTarget:
+    """``RadarTarget`` 관련 기능을 제공한다."""
     target_id: str
     x: float
     y: float
@@ -30,6 +32,7 @@ class RadarTarget:
 
 @dataclass
 class RadarDetection:
+    """``RadarDetection`` 관련 기능을 제공한다."""
     target_id: str
     range_m: float
     azimuth_deg: float
@@ -41,6 +44,7 @@ class RadarDetection:
 
 @dataclass
 class AntennaElement:
+    """``AntennaElement`` 관련 기능을 제공한다."""
     x: float
     y: float
     z: float
@@ -52,6 +56,7 @@ class PhasedArray:
 
     def __init__(self, n_elements: int = 16, spacing: float = 0.015,
                  freq_hz: float = 10e9):
+        """인스턴스를 초기화한다."""
         self.freq = freq_hz
         self.wavelength = 3e8 / freq_hz
         self.elements = []
@@ -61,6 +66,7 @@ class PhasedArray:
                 self.elements.append(AntennaElement(i * spacing, j * spacing, 0))
 
     def steer(self, az_deg: float, el_deg: float) -> None:
+        """``steer`` 동작을 수행한다."""
         az, el = np.radians(az_deg), np.radians(el_deg)
         k = 2 * np.pi / self.wavelength
         for elem in self.elements:
@@ -68,6 +74,7 @@ class PhasedArray:
             elem.weight = np.exp(-1j * phase)
 
     def gain(self, az_deg: float, el_deg: float) -> float:
+        """``gain`` 동작을 수행한다."""
         az, el = np.radians(az_deg), np.radians(el_deg)
         k = 2 * np.pi / self.wavelength
         af = 0 + 0j
@@ -82,6 +89,7 @@ class HolographicRadar:
 
     def __init__(self, freq_hz: float = 10e9, power_w: float = 100,
                  n_elements: int = 16, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.freq = freq_hz
         self.power = power_w
         self.wavelength = 3e8 / freq_hz
@@ -94,6 +102,7 @@ class HolographicRadar:
         self.scan_count = 0
 
     def add_target(self, target: RadarTarget) -> None:
+        """`target` 항목을 추가한다."""
         self.targets[target.target_id] = target
 
     def _range_to(self, target: RadarTarget) -> float:
@@ -127,6 +136,7 @@ class HolographicRadar:
         return float(10 * np.log10(max(snr_linear, 1e-10)))
 
     def scan(self, timestamp: float = 0.0) -> list[RadarDetection]:
+        """``scan`` 동작을 수행한다."""
         self.scan_count += 1
         new_detections = []
 
@@ -175,6 +185,7 @@ class HolographicRadar:
         return image
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "mode": self.mode.value,
             "freq_ghz": self.freq / 1e9,

@@ -41,6 +41,7 @@ class AnalyticsAggregator:
     """Aggregates and analyzes performance metrics."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._snapshots: list[MetricSnapshot] = []
         self._metric_names: set[str] = set()
 
@@ -160,6 +161,7 @@ class PerformanceComparator:
     """Compare performance across different runs or configurations."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._reports: dict[str, PerformanceReport] = {}
 
     def add_report(self, name: str, report: PerformanceReport) -> None:
@@ -213,6 +215,7 @@ class TrendAnalyzer:
     """Analyze trends in performance metrics over time."""
 
     def __init__(self, window_size: int = 10) -> None:
+        """인스턴스를 초기화한다."""
         self._window_size = window_size
 
     def compute_moving_average(
@@ -264,6 +267,7 @@ class DashboardExporter:
     """Export dashboard data for various formats."""
 
     def __init__(self, aggregator: AnalyticsAggregator) -> None:
+        """인스턴스를 초기화한다."""
         self._aggregator = aggregator
 
     def export_plotly_config(

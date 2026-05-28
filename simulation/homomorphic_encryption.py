@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class HEParams:
+    """``HEParams`` 관련 기능을 제공한다."""
     n: int = 64          # 다항식 차수
     q: int = 65537       # 모듈러스
     t: int = 257         # 평문 모듈러스
@@ -19,6 +20,7 @@ class HEParams:
 
 @dataclass
 class Ciphertext:
+    """``Ciphertext`` 관련 기능을 제공한다."""
     c0: np.ndarray
     c1: np.ndarray
     noise_level: float
@@ -26,11 +28,13 @@ class Ciphertext:
 
 @dataclass
 class SecretKey:
+    """``SecretKey`` 관련 기능을 제공한다."""
     s: np.ndarray
 
 
 @dataclass
 class PublicKey:
+    """``PublicKey`` 관련 기능을 제공한다."""
     pk0: np.ndarray
     pk1: np.ndarray
 
@@ -39,6 +43,7 @@ class BGVScheme:
     """BGV 동형 암호 (간이)."""
 
     def __init__(self, params: HEParams = None, seed=42):
+        """인스턴스를 초기화한다."""
         self.params = params or HEParams()
         self.rng = np.random.default_rng(seed)
         self.sk, self.pk = self._keygen()
@@ -56,6 +61,7 @@ class BGVScheme:
         return SecretKey(s), PublicKey(pk0, pk1)
 
     def encrypt(self, plaintext: int) -> Ciphertext:
+        """``encrypt`` 동작을 수행한다."""
         n = self.params.n
         m = np.zeros(n, dtype=np.int64)
         m[0] = plaintext % self.params.t
@@ -69,6 +75,7 @@ class BGVScheme:
         return Ciphertext(c0, c1, float(np.max(np.abs(e0))))
 
     def decrypt(self, ct: Ciphertext) -> int:
+        """``decrypt`` 동작을 수행한다."""
         delta = self.params.q // self.params.t
         raw = self._mod(ct.c0 + ct.c1 * self.sk.s)
         # 반올림 디코딩
@@ -76,12 +83,14 @@ class BGVScheme:
         return val
 
     def add(self, ct1: Ciphertext, ct2: Ciphertext) -> Ciphertext:
+        """`대상` 항목을 추가한다."""
         c0 = self._mod(ct1.c0 + ct2.c0)
         c1 = self._mod(ct1.c1 + ct2.c1)
         noise = ct1.noise_level + ct2.noise_level
         return Ciphertext(c0, c1, noise)
 
     def multiply_plain(self, ct: Ciphertext, scalar: int) -> Ciphertext:
+        """``multiply_plain`` 동작을 수행한다."""
         c0 = self._mod(ct.c0 * scalar)
         c1 = self._mod(ct.c1 * scalar)
         return Ciphertext(c0, c1, ct.noise_level * abs(scalar))
@@ -91,6 +100,7 @@ class HomomorphicEncryption:
     """동형 암호 시뮬레이션."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.scheme = BGVScheme(seed=seed)
         self.rng = np.random.default_rng(seed)
         self.operations = 0
@@ -98,6 +108,7 @@ class HomomorphicEncryption:
         self.total = 0
 
     def test_addition(self, a: int, b: int) -> bool:
+        """`addition` 결과를 계산하거나 판정한다."""
         ct_a = self.scheme.encrypt(a)
         ct_b = self.scheme.encrypt(b)
         ct_sum = self.scheme.add(ct_a, ct_b)
@@ -111,6 +122,7 @@ class HomomorphicEncryption:
         return False
 
     def test_scalar_mult(self, a: int, scalar: int) -> bool:
+        """`scalar mult` 결과를 계산하거나 판정한다."""
         ct_a = self.scheme.encrypt(a)
         ct_prod = self.scheme.multiply_plain(ct_a, scalar)
         result = self.scheme.decrypt(ct_prod)
@@ -123,6 +135,7 @@ class HomomorphicEncryption:
         return False
 
     def run_tests(self, n=20):
+        """``run_tests`` 동작을 수행한다."""
         for _ in range(n):
             a = int(self.rng.integers(0, 50))
             b = int(self.rng.integers(0, 50))
@@ -130,6 +143,7 @@ class HomomorphicEncryption:
             self.test_scalar_mult(a, int(self.rng.integers(1, 5)))
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "params_n": self.scheme.params.n,
             "params_q": self.scheme.params.q,

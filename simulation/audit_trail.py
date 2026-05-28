@@ -31,6 +31,7 @@ class AuditTrail:
     """불변 감사 추적."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._entries: list[AuditEntry] = []
         self._seq = 0
 
@@ -39,6 +40,7 @@ class AuditTrail:
         return hashlib.sha256(data.encode()).hexdigest()[:32]
 
     def log_event(self, actor: str, action: str, details: dict[str, Any] | None = None, t: float = 0.0) -> AuditEntry:
+        """`event` 정보를 기록한다."""
         self._seq += 1
         prev_hash = self._entries[-1].entry_hash if self._entries else "0" * 32
 
@@ -75,6 +77,7 @@ class AuditTrail:
         self, actor: str | None = None,
         action: str | None = None, n: int = 50,
     ) -> list[AuditEntry]:
+        """``query`` 동작을 수행한다."""
         entries = self._entries
         if actor:
             entries = [e for e in entries if e.actor == actor]
@@ -83,12 +86,15 @@ class AuditTrail:
         return entries[-n:]
 
     def actions_by_actor(self, actor: str) -> list[str]:
+        """``actions_by_actor`` 동작을 수행한다."""
         return list({e.action for e in self._entries if e.actor == actor})
 
     def entry_count(self) -> int:
+        """``entry_count`` 동작을 수행한다."""
         return len(self._entries)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "entries": len(self._entries),
             "chain_valid": self.verify_chain(),

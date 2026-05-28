@@ -36,6 +36,7 @@ class GridNode:
         return hash((self.x, self.y, self.z))
 
     def to_position(self, res: float = GRID_RESOLUTION) -> np.ndarray:
+        """``to_position`` 동작을 수행한다."""
         return np.array([self.x * res, self.y * res, self.z * res])
 
 

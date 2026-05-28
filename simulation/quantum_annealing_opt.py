@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class QUBOResult:
+    """``QUBOResult`` 데이터를 표현한다."""
     solution: np.ndarray
     energy: float
     iterations: int
@@ -21,6 +22,7 @@ class IsingModel:
     """이징 모델 시뮬레이터."""
 
     def __init__(self, n_spins: int, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n = n_spins
         self.J = self.rng.normal(0, 1, (n_spins, n_spins))
@@ -30,9 +32,11 @@ class IsingModel:
         self.spins = self.rng.choice([-1, 1], n_spins).astype(float)
 
     def energy(self) -> float:
+        """``energy`` 동작을 수행한다."""
         return float(-0.5 * self.spins @ self.J @ self.spins - self.h @ self.spins)
 
     def anneal(self, T_start=5.0, T_end=0.01, steps=1000) -> QUBOResult:
+        """``anneal`` 동작을 수행한다."""
         best_spins = self.spins.copy()
         best_energy = self.energy()
 
@@ -55,18 +59,21 @@ class QuantumAnnealingOpt:
     """양자 어닐링 최적화 시뮬레이션."""
 
     def __init__(self, n_spins=32, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_spins = n_spins
         self.model = IsingModel(n_spins, seed)
         self.results: list[QUBOResult] = []
 
     def run(self, n_runs=5, steps_per_run=500):
+        """메인 실행 루프를 수행한다."""
         for r in range(n_runs):
             model = IsingModel(self.n_spins, seed=42 + r)
             result = model.anneal(5.0, 0.01, steps_per_run)
             self.results.append(result)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         energies = [r.energy for r in self.results]
         return {
             "spins": self.n_spins,

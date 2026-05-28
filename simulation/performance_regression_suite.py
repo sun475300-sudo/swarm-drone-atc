@@ -15,6 +15,7 @@ import numpy as np
 
 @dataclass
 class BenchmarkResult:
+    """``BenchmarkResult`` 데이터를 표현한다."""
     name: str
     metric: str
     value: float
@@ -27,6 +28,7 @@ class BenchmarkResult:
 
 @dataclass
 class BenchmarkConfig:
+    """``BenchmarkConfig`` 데이터를 표현한다."""
     name: str
     func: Callable
     metric: str
@@ -46,6 +48,7 @@ class PerformanceRegressionSuite:
     """
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self._benchmarks: dict[str, BenchmarkConfig] = {}
         self._history: dict[str, list[BenchmarkResult]] = {}
         self._baselines: dict[str, float] = {}
@@ -54,6 +57,7 @@ class PerformanceRegressionSuite:
     def register(self, name: str, func: Callable, metric: str = "time_ms",
                  unit: str = "ms", n_runs: int = 10, baseline: float | None = None,
                  threshold_pct: float = 10.0):
+        """`대상` 항목을 추가한다."""
         config = BenchmarkConfig(
             name=name, func=func, metric=metric, unit=unit,
             n_runs=n_runs, baseline=baseline, threshold_pct=threshold_pct,
@@ -63,6 +67,7 @@ class PerformanceRegressionSuite:
             self._baselines[name] = baseline
 
     def run(self, name: str) -> BenchmarkResult | None:
+        """메인 실행 루프를 수행한다."""
         config = self._benchmarks.get(name)
         if not config:
             return None
@@ -98,9 +103,11 @@ class PerformanceRegressionSuite:
         return result
 
     def run_all(self) -> list[BenchmarkResult]:
+        """``run_all`` 동작을 수행한다."""
         return [r for name in self._benchmarks if (r := self.run(name)) is not None]
 
     def set_baseline(self, name: str, value: float):
+        """`baseline` 상태를 갱신한다."""
         self._baselines[name] = value
 
     def auto_baseline(self, name: str) -> float | None:
@@ -114,6 +121,7 @@ class PerformanceRegressionSuite:
         return baseline
 
     def get_trend(self, name: str) -> dict:
+        """`trend` 정보를 조회한다."""
         history = self._history.get(name, [])
         if len(history) < 3:
             return {"trend": "insufficient_data"}
@@ -128,12 +136,15 @@ class PerformanceRegressionSuite:
         }
 
     def get_alerts(self) -> list[str]:
+        """`alerts` 정보를 조회한다."""
         return self._alerts.copy()
 
     def clear_alerts(self):
+        """`alerts` 상태를 정리한다."""
         self._alerts.clear()
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         regressions = sum(
             1 for history in self._history.values()
             if history and history[-1].regression

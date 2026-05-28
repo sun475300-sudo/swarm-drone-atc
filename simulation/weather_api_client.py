@@ -15,6 +15,7 @@ WeatherProvider = Callable[[str], dict[str, Any]]
 
 @dataclass
 class WeatherSample:
+    """``WeatherSample`` 관련 기능을 제공한다."""
     city: str
     condition: str
     wind_mps: float
@@ -27,6 +28,7 @@ class WeatherApiClient:
     """Simple weather client with provider injection and TTL cache."""
 
     def __init__(self, provider: WeatherProvider | None = None, ttl_seconds: int = 300) -> None:
+        """인스턴스를 초기화한다."""
         self.provider = provider
         self.ttl_seconds = max(1, int(ttl_seconds))
         self._cache: dict[str, WeatherSample] = {}
@@ -63,6 +65,7 @@ class WeatherApiClient:
         )
 
     def fetch(self, city: str, now_ts: float | None = None) -> WeatherSample:
+        """`대상` 정보를 조회한다."""
         now = time.time() if now_ts is None else float(now_ts)
         key = self._normalize_city(city)
         cached = self._cache.get(key)
@@ -96,9 +99,11 @@ class WeatherApiClient:
         return max(0.4, min(1.2, round(factor, 3)))
 
     def cache_size(self) -> int:
+        """``cache_size`` 동작을 수행한다."""
         return len(self._cache)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         total = self._hits + self._misses
         hit_rate = 0.0 if total == 0 else self._hits / total
         return {

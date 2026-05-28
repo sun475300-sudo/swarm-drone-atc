@@ -98,6 +98,7 @@ async def _run_simulation(drones: int, seed: int, port: int):
 
 
 def main():
+    """``main`` 동작을 수행한다."""
     parser = argparse.ArgumentParser(description="WebSocket 시뮬레이션 브릿지")
     parser.add_argument("--drones", type=int, default=50)
     parser.add_argument("--seed", type=int, default=42)

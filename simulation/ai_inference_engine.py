@@ -13,6 +13,7 @@ import numpy as np
 
 
 class InferenceModel(Enum):
+    """``InferenceModel`` 관련 기능을 제공한다."""
     LIGHTGBM = "lightgbm"
     XGBOOST = "xgboost"
     ONNX = "onnx"
@@ -22,6 +23,7 @@ class InferenceModel(Enum):
 
 
 class InferenceTask(Enum):
+    """``InferenceTask`` 관련 기능을 제공한다."""
     COLLISION_PREDICTION = "collision_prediction"
     TRAJECTORY_PREDICTION = "trajectory_prediction"
     ANOMALY_DETECTION = "anomaly_detection"
@@ -32,6 +34,7 @@ class InferenceTask(Enum):
 
 @dataclass
 class InferenceRequest:
+    """``InferenceRequest`` 데이터를 표현한다."""
     task: InferenceTask
     inputs: dict[str, np.ndarray]
     priority: int = 5
@@ -41,6 +44,7 @@ class InferenceRequest:
 
 @dataclass
 class InferenceResult:
+    """``InferenceResult`` 데이터를 표현한다."""
     task: InferenceTask
     outputs: dict[str, np.ndarray]
     latency_ms: float
@@ -50,6 +54,7 @@ class InferenceResult:
 
 @dataclass
 class ModelMetadata:
+    """``ModelMetadata`` 관련 기능을 제공한다."""
     name: str
     model_type: InferenceModel
     input_shapes: dict[str, tuple[int, ...]]
@@ -60,6 +65,7 @@ class ModelMetadata:
 
 
 class AIInferenceEngine:
+    """``AIInferenceEngine`` 역할을 담당한다."""
     def __init__(
         self,
         max_queue_size: int = 1000,
@@ -67,6 +73,7 @@ class AIInferenceEngine:
         enable_batch_inference: bool = True,
         batch_timeout_ms: float = 10.0,
     ):
+        """인스턴스를 초기화한다."""
         self.max_queue_size = max_queue_size
         self.num_workers = num_workers
         self.enable_batch_inference = enable_batch_inference
@@ -96,6 +103,7 @@ class AIInferenceEngine:
         input_shapes: dict[str, tuple[int, ...]],
         output_shapes: dict[str, tuple[int, ...]],
     ):
+        """`model` 정보를 조회한다."""
         metadata = ModelMetadata(
             name=model_name,
             model_type=model_type,
@@ -106,6 +114,7 @@ class AIInferenceEngine:
         self.results[model_name] = deque(maxlen=1000)
 
     def submit_request(self, request: InferenceRequest) -> str:
+        """``submit_request`` 동작을 수행한다."""
         request_id = f"{request.task.value}_{int(request.timestamp * 1000)}"
 
         if len(self.inference_queues[request.task]) >= self.max_queue_size:
@@ -120,6 +129,7 @@ class AIInferenceEngine:
     def get_result(
         self, request_id: str, timeout_ms: float = 1000
     ) -> InferenceResult | None:
+        """`result` 정보를 조회한다."""
         for _model_name, result_queue in self.results.items():
             for result in result_queue:
                 if hasattr(result, "request_id") and result.request_id == request_id:
@@ -134,6 +144,7 @@ class AIInferenceEngine:
         model_name: str | None = None,
         priority: int = 5,
     ) -> InferenceResult:
+        """``infer`` 동작을 수행한다."""
         start_time = time.time()
 
         if model_name is None:
@@ -286,6 +297,7 @@ class AIInferenceEngine:
         return np.mean(confidences) if confidences else 0.5
 
     def get_metrics(self) -> dict[str, Any]:
+        """`metrics` 정보를 조회한다."""
         model_metrics = {}
         for name, metadata in self.models.items():
             model_metrics[name] = {
@@ -306,6 +318,7 @@ class AIInferenceEngine:
         }
 
     def warm_up(self, task: InferenceTask, num_iterations: int = 10):
+        """``warm_up`` 동작을 수행한다."""
         default_inputs = self._generate_dummy_inputs(task)
 
         for _ in range(num_iterations):
@@ -325,9 +338,11 @@ class AIInferenceEngine:
             return {"data": np.random.rand(10, 10)}
 
     def clear_queue(self, task: InferenceTask):
+        """`queue` 상태를 정리한다."""
         self.inference_queues[task].clear()
 
     def reset_metrics(self):
+        """`metrics` 상태를 정리한다."""
         self.metrics = {
             "total_requests": 0,
             "total_results": 0,

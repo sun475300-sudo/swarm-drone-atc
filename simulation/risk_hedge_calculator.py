@@ -11,6 +11,7 @@ import numpy as np
 
 
 class RiskCategory(Enum):
+    """``RiskCategory`` 관련 기능을 제공한다."""
     COLLISION = "collision"
     WEATHER = "weather"
     BATTERY = "battery"
@@ -20,6 +21,7 @@ class RiskCategory(Enum):
 
 
 class HedgeStrategy(Enum):
+    """``HedgeStrategy`` 관련 기능을 제공한다."""
     DIVERSIFICATION = "diversification"
     INSURANCE = "insurance"
     REDUNDANCY = "redundancy"
@@ -28,6 +30,7 @@ class HedgeStrategy(Enum):
 
 @dataclass
 class RiskFactor:
+    """``RiskFactor`` 관련 기능을 제공한다."""
     category: RiskCategory
     probability: float
     impact: float
@@ -36,6 +39,7 @@ class RiskFactor:
 
 @dataclass
 class HedgeAction:
+    """``HedgeAction`` 관련 기능을 제공한다."""
     action_id: str
     strategy: HedgeStrategy
     cost: float
@@ -45,6 +49,7 @@ class HedgeAction:
 
 @dataclass
 class PortfolioMetrics:
+    """``PortfolioMetrics`` 데이터를 표현한다."""
     total_risk: float
     expected_value: float
     variance: float
@@ -53,12 +58,14 @@ class PortfolioMetrics:
 
 
 class RiskHedgeCalculator:
+    """``RiskHedgeCalculator`` 관련 기능을 제공한다."""
     def __init__(
         self,
         risk_free_rate: float = 0.02,
         target_return: float = 0.15,
         max_risk_tolerance: float = 0.3,
     ):
+        """인스턴스를 초기화한다."""
         self.risk_free_rate = risk_free_rate
         self.target_return = target_return
         self.max_risk_tolerance = max_risk_tolerance
@@ -75,6 +82,7 @@ class RiskHedgeCalculator:
     def add_risk_factor(
         self, category: RiskCategory, probability: float, impact: float
     ):
+        """`risk factor` 항목을 추가한다."""
         factor = RiskFactor(
             category=category,
             probability=probability,
@@ -84,6 +92,7 @@ class RiskHedgeCalculator:
         self.risk_factors[category].append(factor)
 
     def calculate_portfolio_risk(self, mission_weights: np.ndarray) -> PortfolioMetrics:
+        """``calculate_portfolio_risk`` 동작을 수행한다."""
         if len(mission_weights) == 0:
             return PortfolioMetrics(0, 0, 0, 0, 0)
 
@@ -122,6 +131,7 @@ class RiskHedgeCalculator:
         )
 
     def optimize_hedge(self, available_budget: float) -> list[HedgeAction]:
+        """``optimize_hedge`` 동작을 수행한다."""
         optimal_actions = []
 
         redundancy_action = HedgeAction(
@@ -177,6 +187,7 @@ class RiskHedgeCalculator:
         return optimal_actions
 
     def calculate_var(self, confidence_level: float = 0.95) -> float:
+        """``calculate_var`` 동작을 수행한다."""
         if not self.mission_returns:
             return 0.0
 
@@ -191,6 +202,7 @@ class RiskHedgeCalculator:
         return var
 
     def calculate_cvar(self, confidence_level: float = 0.95) -> float:
+        """``calculate_cvar`` 동작을 수행한다."""
         var = self.calculate_var(confidence_level)
 
         if not self.mission_returns:
@@ -208,6 +220,7 @@ class RiskHedgeCalculator:
         return cvar
 
     def simulate_monte_carlo(self, num_simulations: int = 10000) -> dict[str, Any]:
+        """``simulate_monte_carlo`` 동작을 수행한다."""
         results = []
 
         base_return = 0.1
@@ -239,6 +252,7 @@ class RiskHedgeCalculator:
         }
 
     def get_risk_report(self) -> dict[str, Any]:
+        """`risk report` 정보를 조회한다."""
         category_risks = {}
 
         for category, factors in self.risk_factors.items():

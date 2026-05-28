@@ -9,6 +9,7 @@ import numpy as np
 
 @dataclass
 class Pose:
+    """``Pose`` 관련 기능을 제공한다."""
     position: np.ndarray
     orientation: np.ndarray
     timestamp: float
@@ -16,6 +17,7 @@ class Pose:
 
 @dataclass
 class Landmark:
+    """``Landmark`` 관련 기능을 제공한다."""
     landmark_id: int
     position: np.ndarray
     descriptor: np.ndarray
@@ -23,7 +25,9 @@ class Landmark:
 
 
 class SLAMSystem:
+    """``SLAMSystem`` 역할을 담당한다."""
     def __init__(self, voc_file: str = None):
+        """인스턴스를 초기화한다."""
         self.voc_file = voc_file
         self.poses: list[Pose] = []
         self.landmarks: dict[int, Landmark] = {}
@@ -31,11 +35,13 @@ class SLAMSystem:
         self.map_initialized = False
 
     def initialize_map(self, initial_pose: Pose):
+        """``initialize_map`` 동작을 수행한다."""
         self.current_pose = initial_pose
         self.poses.append(initial_pose)
         self.map_initialized = True
 
     def process_frame(self, image: np.ndarray, timestamp: float) -> Pose:
+        """`frame` 처리 로직을 수행한다."""
         if not self.map_initialized:
             pose = Pose(
                 position=np.array([0.0, 0.0, 0.0]),
@@ -61,6 +67,7 @@ class SLAMSystem:
     def detect_loop_closure(
         self, image: np.ndarray, threshold: float = 0.6
     ) -> int | None:
+        """`loop closure` 결과를 계산하거나 판정한다."""
         if len(self.poses) < 50:
             return None
 
@@ -70,9 +77,11 @@ class SLAMSystem:
         return None
 
     def optimize_trajectory(self):
+        """``optimize_trajectory`` 동작을 수행한다."""
         pass
 
     def get_map(self) -> dict:
+        """`map` 정보를 조회한다."""
         return {
             "num_poses": len(self.poses),
             "num_landmarks": len(self.landmarks),

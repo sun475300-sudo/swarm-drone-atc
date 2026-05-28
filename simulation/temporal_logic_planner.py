@@ -11,6 +11,7 @@ import numpy as np
 
 
 class LTLOp(Enum):
+    """``LTLOp`` 관련 기능을 제공한다."""
     ALWAYS = "G"       # Globally
     EVENTUALLY = "F"   # Finally
     NEXT = "X"         # Next
@@ -24,6 +25,7 @@ class LTLOp(Enum):
 
 @dataclass
 class LTLFormula:
+    """``LTLFormula`` 관련 기능을 제공한다."""
     op: LTLOp
     atom: str = ""
     left: 'LTLFormula | None' = None
@@ -32,6 +34,7 @@ class LTLFormula:
 
 @dataclass
 class State:
+    """``State`` 데이터를 표현한다."""
     name: str
     props: set = field(default_factory=set)
     transitions: list = field(default_factory=list)
@@ -39,6 +42,7 @@ class State:
 
 @dataclass
 class VerificationResult:
+    """``VerificationResult`` 데이터를 표현한다."""
     formula_str: str
     satisfied: bool
     counterexample: list = field(default_factory=list)
@@ -46,28 +50,36 @@ class VerificationResult:
 
 
 def atom(name: str) -> LTLFormula:
+    """``atom`` 동작을 수행한다."""
     return LTLFormula(LTLOp.ATOM, atom=name)
 
 def always(f: LTLFormula) -> LTLFormula:
+    """``always`` 동작을 수행한다."""
     return LTLFormula(LTLOp.ALWAYS, left=f)
 
 def eventually(f: LTLFormula) -> LTLFormula:
+    """``eventually`` 동작을 수행한다."""
     return LTLFormula(LTLOp.EVENTUALLY, left=f)
 
 def implies(a: LTLFormula, b: LTLFormula) -> LTLFormula:
+    """``implies`` 동작을 수행한다."""
     return LTLFormula(LTLOp.IMPLIES, left=a, right=b)
 
 def land(a: LTLFormula, b: LTLFormula) -> LTLFormula:
+    """``land`` 동작을 수행한다."""
     return LTLFormula(LTLOp.AND, left=a, right=b)
 
 def lor(a: LTLFormula, b: LTLFormula) -> LTLFormula:
+    """``lor`` 동작을 수행한다."""
     return LTLFormula(LTLOp.OR, left=a, right=b)
 
 def lnot(f: LTLFormula) -> LTLFormula:
+    """``lnot`` 동작을 수행한다."""
     return LTLFormula(LTLOp.NOT, left=f)
 
 
 def formula_to_str(f: LTLFormula) -> str:
+    """``formula_to_str`` 동작을 수행한다."""
     if f.op == LTLOp.ATOM:
         return f.atom
     if f.op == LTLOp.NOT:
@@ -81,9 +93,11 @@ class ModelChecker:
     """간이 Bounded LTL 모델 체커."""
 
     def __init__(self, bound=50):
+        """인스턴스를 초기화한다."""
         self.bound = bound
 
     def check(self, states: list[State], initial: str, formula: LTLFormula) -> VerificationResult:
+        """`대상` 결과를 계산하거나 판정한다."""
         state_map = {s.name: s for s in states}
         if initial not in state_map:
             return VerificationResult(formula_to_str(formula), False, [], 0)
@@ -151,6 +165,7 @@ class TemporalLogicPlanner:
     """미션 계획의 시간논리 검증기."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.checker = ModelChecker(bound=30)
         self.states: list[State] = []
@@ -179,6 +194,7 @@ class TemporalLogicPlanner:
             self.states[-1].props.add("landed")
 
     def verify(self, formula: LTLFormula) -> VerificationResult:
+        """`대상` 결과를 계산하거나 판정한다."""
         if not self.states:
             self.build_mission_model()
         result = self.checker.check(self.states, self.states[0].name, formula)
@@ -196,6 +212,7 @@ class TemporalLogicPlanner:
         return [self.verify(f) for f in props]
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         passed = sum(1 for r in self.results if r.satisfied)
         return {
             "states": len(self.states),

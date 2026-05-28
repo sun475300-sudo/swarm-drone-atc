@@ -10,6 +10,7 @@ import numpy as np
 
 
 class EdgeDeviceType(Enum):
+    """``EdgeDeviceType`` 관련 기능을 제공한다."""
     DRONE = "drone"
     EDGE_SERVER = "edge_server"
     GATEWAY = "gateway"
@@ -17,6 +18,7 @@ class EdgeDeviceType(Enum):
 
 @dataclass
 class EdgeDevice:
+    """``EdgeDevice`` 관련 기능을 제공한다."""
     device_id: str
     device_type: EdgeDeviceType
     compute_capacity: float
@@ -27,6 +29,7 @@ class EdgeDevice:
 
 @dataclass
 class InferenceTask:
+    """``InferenceTask`` 관련 기능을 제공한다."""
     task_id: str
     model_name: str
     input_data: np.ndarray
@@ -35,11 +38,13 @@ class InferenceTask:
 
 
 class FederatedEdgeComputer:
+    """``FederatedEdgeComputer`` 관련 기능을 제공한다."""
     def __init__(
         self,
         federation_id: str,
         load_balancing: str = "memory_based",
     ):
+        """인스턴스를 초기화한다."""
         self.federation_id = federation_id
         self.load_balancing = load_balancing
 
@@ -78,6 +83,7 @@ class FederatedEdgeComputer:
         memory_mb: float,
         battery_level: float,
     ):
+        """`device` 항목을 추가한다."""
         device = EdgeDevice(
             device_id=device_id,
             device_type=device_type,
@@ -89,10 +95,12 @@ class FederatedEdgeComputer:
         self.devices[device_id] = device
 
     def submit_task(self, task: InferenceTask):
+        """``submit_task`` 동작을 수행한다."""
         self.task_queue.append(task)
         self.task_queue.sort(key=lambda t: t.priority)
 
     def schedule_task(self, task_id: str) -> str | None:
+        """`task` 작업을 계획한다."""
         for task in self.task_queue:
             if task.task_id == task_id:
                 break
@@ -122,10 +130,12 @@ class FederatedEdgeComputer:
             return candidates[0]
 
     def complete_task(self, task_id: str):
+        """``complete_task`` 동작을 수행한다."""
         if task_id in self.active_tasks:
             del self.active_tasks[task_id]
 
     def get_federation_status(self) -> dict[str, Any]:
+        """`federation status` 정보를 조회한다."""
         return {
             "federation_id": self.federation_id,
             "total_devices": len(self.devices),

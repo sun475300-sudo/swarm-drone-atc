@@ -38,14 +38,17 @@ class EmergencyBroadcast:
     """비상 방송."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._receivers: dict[str, Receiver] = {}
         self._broadcasts: list[Broadcast] = []
         self._broadcast_id = 0
 
     def register_receiver(self, node_id: str, sector: str = "default") -> None:
+        """`receiver` 항목을 추가한다."""
         self._receivers[node_id] = Receiver(node_id=node_id, sector=sector)
 
     def deactivate_receiver(self, node_id: str) -> None:
+        """``deactivate_receiver`` 동작을 수행한다."""
         r = self._receivers.get(node_id)
         if r:
             r.active = False
@@ -54,6 +57,7 @@ class EmergencyBroadcast:
         self, message: str, sectors: list[str] | None = None,
         priority: int = 3, t: float = 0.0,
     ) -> Broadcast:
+        """``broadcast`` 동작을 수행한다."""
         self._broadcast_id += 1
 
         # 대상 수신기 결정
@@ -74,6 +78,7 @@ class EmergencyBroadcast:
         return bc
 
     def acknowledge(self, broadcast_id: int, node_id: str) -> bool:
+        """``acknowledge`` 동작을 수행한다."""
         for bc in reversed(self._broadcasts):
             if bc.broadcast_id == broadcast_id:
                 if node_id in bc.recipients and node_id not in bc.acknowledged:
@@ -83,6 +88,7 @@ class EmergencyBroadcast:
         return False
 
     def ack_rate(self, broadcast_id: int) -> float:
+        """``ack_rate`` 동작을 수행한다."""
         for bc in reversed(self._broadcasts):
             if bc.broadcast_id == broadcast_id:
                 if not bc.recipients:
@@ -91,21 +97,25 @@ class EmergencyBroadcast:
         return 0.0
 
     def unacknowledged(self, broadcast_id: int) -> list[str]:
+        """``unacknowledged`` 동작을 수행한다."""
         for bc in reversed(self._broadcasts):
             if bc.broadcast_id == broadcast_id:
                 return [r for r in bc.recipients if r not in bc.acknowledged]
         return []
 
     def recent_broadcasts(self, n: int = 10) -> list[Broadcast]:
+        """``recent_broadcasts`` 동작을 수행한다."""
         return self._broadcasts[-n:]
 
     def high_priority_pending(self) -> list[Broadcast]:
+        """``high_priority_pending`` 동작을 수행한다."""
         return [
             bc for bc in self._broadcasts
             if bc.priority <= 2 and len(bc.acknowledged) < len(bc.recipients)
         ]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "receivers": len(self._receivers),
             "active_receivers": sum(1 for r in self._receivers.values() if r.active),

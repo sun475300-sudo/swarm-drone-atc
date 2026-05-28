@@ -296,10 +296,12 @@ def collect_pytest_results() -> dict[str, str]:
 
 
 def normalize_test_id(test_file: str, test_name: str) -> str:
+    """``normalize_test_id`` 동작을 수행한다."""
     return f"{test_file}::{test_name}".replace("\\", "/")
 
 
 def generate_rtm() -> None:
+    """`rtm` 결과를 생성한다."""
     reports_dir = ROOT / "reports"
     reports_dir.mkdir(exist_ok=True)
 

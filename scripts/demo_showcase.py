@@ -15,6 +15,7 @@ if _ROOT not in sys.path:
 
 
 def main():
+    """``main`` 동작을 수행한다."""
     from simulation.apf_engine import get_apf_backend_info
     from simulation.simulator import SwarmSimulator
 

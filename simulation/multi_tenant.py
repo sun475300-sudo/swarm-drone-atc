@@ -16,6 +16,7 @@ from typing import Any
 
 @dataclass
 class Tenant:
+    """``Tenant`` 관련 기능을 제공한다."""
     tenant_id: str
     name: str
     max_drones: int = 100
@@ -25,14 +26,18 @@ class Tenant:
 
 
 class MultiTenant:
+    """``MultiTenant`` 관련 기능을 제공한다."""
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._tenants: dict[str, Tenant] = {}
         self._drone_tenant: dict[str, str] = {}
 
     def add_tenant(self, tenant_id: str, name: str = "", max_drones: int = 100, priority: int = 5) -> None:
+        """`tenant` 항목을 추가한다."""
         self._tenants[tenant_id] = Tenant(tenant_id=tenant_id, name=name, max_drones=max_drones, priority=priority)
 
     def assign_drone(self, drone_id: str, tenant_id: str) -> bool:
+        """`drone` 항목을 추가한다."""
         t = self._tenants.get(tenant_id)
         if not t or len(t.drones) >= t.max_drones:
             return False
@@ -41,18 +46,22 @@ class MultiTenant:
         return True
 
     def get_tenant(self, drone_id: str) -> str | None:
+        """`tenant` 정보를 조회한다."""
         return self._drone_tenant.get(drone_id)
 
     def tenant_drones(self, tenant_id: str) -> list[str]:
+        """``tenant_drones`` 동작을 수행한다."""
         t = self._tenants.get(tenant_id)
         return list(t.drones) if t else []
 
     def allocate_quota(self) -> None:
+        """``allocate_quota`` 동작을 수행한다."""
         total = sum(len(t.drones) for t in self._tenants.values())
         for t in self._tenants.values():
             t.airspace_quota_pct = round(len(t.drones) / max(total, 1) * 100, 1)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         self.allocate_quota()
         return {
             "tenants": len(self._tenants),

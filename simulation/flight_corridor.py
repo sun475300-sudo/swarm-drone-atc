@@ -34,6 +34,7 @@ class FlightCorridorManager:
     """비행 복도 관리."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._corridors: dict[str, FlightCorridor] = {}
 
     def add_corridor(
@@ -46,6 +47,7 @@ class FlightCorridorManager:
         max_drones: int = 10,
         altitude_range: tuple[float, float] = (30, 120),
     ) -> FlightCorridor:
+        """`corridor` 항목을 추가한다."""
         corridor = FlightCorridor(
             corridor_id=corridor_id,
             start=start, end=end,
@@ -75,6 +77,7 @@ class FlightCorridorManager:
         return True
 
     def exit_corridor(self, drone_id: str, corridor_id: str) -> bool:
+        """``exit_corridor`` 동작을 수행한다."""
         corridor = self._corridors.get(corridor_id)
         if not corridor:
             return False
@@ -125,12 +128,14 @@ class FlightCorridorManager:
         return None
 
     def corridor_utilization(self, corridor_id: str) -> float:
+        """``corridor_utilization`` 동작을 수행한다."""
         corridor = self._corridors.get(corridor_id)
         if not corridor:
             return 0.0
         return len(corridor.occupants) / max(corridor.max_drones, 1)
 
     def corridor_length(self, corridor_id: str) -> float:
+        """``corridor_length`` 동작을 수행한다."""
         corridor = self._corridors.get(corridor_id)
         if not corridor:
             return 0.0
@@ -139,6 +144,7 @@ class FlightCorridorManager:
         ))
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         active = [c for c in self._corridors.values() if c.active]
         return {
             "total_corridors": len(self._corridors),

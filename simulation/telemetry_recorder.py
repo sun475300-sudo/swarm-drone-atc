@@ -35,6 +35,7 @@ class TelemetryRecorder:
     """
 
     def __init__(self, max_snapshots: int = 10000) -> None:
+        """인스턴스를 초기화한다."""
         self._snapshots: list[TelemetrySnapshot] = []
         self._max = max_snapshots
         self._cursor: int = -1  # 현재 재생 커서
@@ -98,6 +99,7 @@ class TelemetryRecorder:
 
     @property
     def current(self) -> TelemetrySnapshot | None:
+        """``current`` 동작을 수행한다."""
         if 0 <= self._cursor < len(self._snapshots):
             return self._snapshots[self._cursor]
         return None
@@ -149,12 +151,14 @@ class TelemetryRecorder:
 
     @property
     def duration(self) -> float:
+        """``duration`` 동작을 수행한다."""
         if not self._snapshots:
             return 0.0
         return self._snapshots[-1].t - self._snapshots[0].t
 
     @property
     def snapshot_count(self) -> int:
+        """``snapshot_count`` 동작을 수행한다."""
         return len(self._snapshots)
 
     def _bisect(self, t: float) -> int:
@@ -169,6 +173,7 @@ class TelemetryRecorder:
         return lo
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "snapshots": self.snapshot_count,
             "duration_s": self.duration,
@@ -178,5 +183,6 @@ class TelemetryRecorder:
         }
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._snapshots.clear()
         self._cursor = -1

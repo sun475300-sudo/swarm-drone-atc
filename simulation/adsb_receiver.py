@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class ADSBMessage:
+    """``ADSBMessage`` 데이터를 표현한다."""
     icao_address: str
     callsign: str
     latitude: float
@@ -31,6 +32,7 @@ class ADSBReceiver:
     MIN_LATERAL_M = 1852.0  # 1 NM
 
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.listening = False
         self.frequency_mhz = 1090.0
@@ -41,11 +43,13 @@ class ADSBReceiver:
         }
 
     def start_listening(self, frequency_mhz: float = 1090.0) -> bool:
+        """`listening` 실행 상태를 제어한다."""
         self.frequency_mhz = frequency_mhz
         self.listening = True
         return True
 
     def stop_listening(self) -> None:
+        """`listening` 실행 상태를 제어한다."""
         self.listening = False
 
     def inject_traffic(self, messages: list[ADSBMessage]) -> int:
@@ -59,9 +63,11 @@ class ADSBReceiver:
         return count
 
     def get_aircraft_list(self) -> list[ADSBMessage]:
+        """`aircraft list` 정보를 조회한다."""
         return list(self.aircraft.values())
 
     def get_aircraft_by_icao(self, icao: str) -> ADSBMessage | None:
+        """`aircraft by icao` 정보를 조회한다."""
         return self.aircraft.get(icao)
 
     def detect_conflicts(
@@ -108,6 +114,7 @@ class ADSBReceiver:
         return count
 
     def get_receiver_stats(self) -> dict[str, Any]:
+        """`receiver stats` 정보를 조회한다."""
         return {
             "listening": self.listening,
             "frequency_mhz": self.frequency_mhz,

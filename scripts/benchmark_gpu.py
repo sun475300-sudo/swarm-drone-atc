@@ -71,6 +71,7 @@ def _benchmark_fn(fn, states, goals, obstacles, num_runs: int) -> float:
 
 def main() -> None:
     # 1. 백엔드 정보 출력
+    """``main`` 동작을 수행한다."""
     info = get_apf_backend_info()
     print("=" * 60)
     print("APF Backend Info")

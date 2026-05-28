@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class WeatherRiskInput:
+    """``WeatherRiskInput`` 관련 기능을 제공한다."""
     wind_mps: float
     visibility_km: float
     precipitation_level: float
@@ -14,16 +15,20 @@ class WeatherRiskInput:
 
 @dataclass(frozen=True)
 class WeatherRiskOutput:
+    """``WeatherRiskOutput`` 관련 기능을 제공한다."""
     score: float
     category: str
 
 
 class WeatherRiskModel:
+    """``WeatherRiskModel`` 관련 기능을 제공한다."""
+
     @staticmethod
     def _clamp(value: float, lo: float, hi: float) -> float:
         return max(lo, min(hi, float(value)))
 
     def score(self, data: WeatherRiskInput) -> WeatherRiskOutput:
+        """`대상` 결과를 계산하거나 판정한다."""
         wind_norm = self._clamp(data.wind_mps / 20.0, 0.0, 1.0)
         vis_norm = self._clamp(data.visibility_km / 10.0, 0.0, 1.0)
         vis_penalty = 1.0 - vis_norm

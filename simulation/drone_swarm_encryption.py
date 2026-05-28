@@ -13,6 +13,7 @@ import numpy as np
 
 
 class CipherSuite(Enum):
+    """``CipherSuite`` 역할을 담당한다."""
     AES_256_GCM = "aes-256-gcm"
     CHACHA20_POLY1305 = "chacha20-poly1305"
     LATTICE_KYBER = "lattice-kyber"
@@ -20,6 +21,7 @@ class CipherSuite(Enum):
 
 
 class KeyExchangeMethod(Enum):
+    """``KeyExchangeMethod`` 관련 기능을 제공한다."""
     DH = "diffie-hellman"
     ECDH = "ecdh"
     KYBER_KEM = "kyber-kem"
@@ -28,6 +30,7 @@ class KeyExchangeMethod(Enum):
 
 @dataclass
 class KeyPair:
+    """``KeyPair`` 관련 기능을 제공한다."""
     public_key: bytes
     private_key: bytes
     algorithm: str
@@ -35,6 +38,7 @@ class KeyPair:
 
 @dataclass
 class GroupKey:
+    """``GroupKey`` 관련 기능을 제공한다."""
     key_id: str
     key_data: bytes
     epoch: int
@@ -45,6 +49,7 @@ class GroupKey:
 
 @dataclass
 class EncryptedMessage:
+    """``EncryptedMessage`` 데이터를 표현한다."""
     msg_id: str
     sender_id: str
     recipient_ids: list[str]
@@ -57,6 +62,7 @@ class EncryptedMessage:
 
 @dataclass
 class SecurityEvent:
+    """``SecurityEvent`` 데이터를 표현한다."""
     event_type: str  # key_rotation, intrusion, revocation
     drone_id: str
     description: str
@@ -67,11 +73,13 @@ class LatticeKEM:
     """Simplified lattice-based KEM (Kyber-like) simulation."""
 
     def __init__(self, n: int = 256, q: int = 3329, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.n = n
         self.q = q
         self.rng = np.random.default_rng(seed)
 
     def keygen(self) -> tuple[np.ndarray, np.ndarray]:
+        """``keygen`` 동작을 수행한다."""
         s = self.rng.integers(-2, 3, size=self.n)
         a = self.rng.integers(0, self.q, size=self.n)
         e = self.rng.integers(-1, 2, size=self.n)
@@ -79,6 +87,7 @@ class LatticeKEM:
         return b, s  # public, private
 
     def encapsulate(self, public_key: np.ndarray) -> tuple[np.ndarray, bytes]:
+        """``encapsulate`` 동작을 수행한다."""
         r = self.rng.integers(-1, 2, size=self.n)
         a = self.rng.integers(0, self.q, size=self.n)
         e1 = self.rng.integers(-1, 2, size=self.n)
@@ -90,6 +99,7 @@ class LatticeKEM:
 
     def decapsulate(self, ciphertext: np.ndarray,
                     private_key: np.ndarray) -> bytes:
+        """``decapsulate`` 동작을 수행한다."""
         v_approx = (ciphertext * private_key) % self.q
         return hashlib.sha256(v_approx.tobytes()).digest()
 
@@ -98,6 +108,7 @@ class GroupKeyManager:
     """Manages group keys for swarm communication."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.group_keys: dict[str, GroupKey] = {}
         self.epoch = 0
@@ -105,6 +116,7 @@ class GroupKeyManager:
 
     def generate_group_key(self, member_ids: list[str],
                            ttl_seconds: float = 3600.0) -> GroupKey:
+        """`group key` 결과를 생성한다."""
         self._key_counter += 1
         self.epoch += 1
         key_data = secrets.token_bytes(32)
@@ -123,6 +135,7 @@ class GroupKeyManager:
 
     def rotate_key(self, old_key_id: str,
                    exclude_members: list[str] | None = None) -> GroupKey | None:
+        """``rotate_key`` 동작을 수행한다."""
         old = self.group_keys.get(old_key_id)
         if not old:
             return None
@@ -131,6 +144,7 @@ class GroupKeyManager:
         return self.generate_group_key(members)
 
     def revoke_member(self, key_id: str, member_id: str) -> GroupKey | None:
+        """`member` 상태를 정리한다."""
         return self.rotate_key(key_id, exclude_members=[member_id])
 
 
@@ -139,6 +153,7 @@ class DroneSwarmEncryption:
 
     def __init__(self, cipher_suite: CipherSuite = CipherSuite.HYBRID_PQ,
                  seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.cipher_suite = cipher_suite
         self.rng = np.random.default_rng(seed)
         self.lattice_kem = LatticeKEM(seed=seed)
@@ -149,6 +164,7 @@ class DroneSwarmEncryption:
         self._msg_counter = 0
 
     def register_drone(self, drone_id: str) -> KeyPair:
+        """`drone` 항목을 추가한다."""
         pub, priv = self.lattice_kem.keygen()
         kp = KeyPair(
             public_key=pub.tobytes(),
@@ -159,6 +175,7 @@ class DroneSwarmEncryption:
         return kp
 
     def establish_group(self, member_ids: list[str]) -> GroupKey:
+        """``establish_group`` 동작을 수행한다."""
         gk = self.key_manager.generate_group_key(member_ids)
         self.active_group_key = gk
         self._log_event("group_established", "system",
@@ -167,6 +184,7 @@ class DroneSwarmEncryption:
 
     def encrypt_message(self, sender_id: str, plaintext: bytes,
                         recipients: list[str] | None = None) -> EncryptedMessage:
+        """``encrypt_message`` 동작을 수행한다."""
         self._msg_counter += 1
 
         if not self.active_group_key:
@@ -194,6 +212,7 @@ class DroneSwarmEncryption:
 
     def decrypt_message(self, msg: EncryptedMessage,
                         drone_id: str) -> bytes | None:
+        """``decrypt_message`` 동작을 수행한다."""
         if drone_id not in msg.recipient_ids:
             return None
 
@@ -216,6 +235,7 @@ class DroneSwarmEncryption:
         return plaintext
 
     def rotate_group_key(self) -> GroupKey | None:
+        """``rotate_group_key`` 동작을 수행한다."""
         if not self.active_group_key:
             return None
         new_key = self.key_manager.rotate_key(self.active_group_key.key_id)
@@ -226,6 +246,7 @@ class DroneSwarmEncryption:
         return new_key
 
     def revoke_drone(self, drone_id: str) -> GroupKey | None:
+        """`drone` 상태를 정리한다."""
         if not self.active_group_key:
             return None
         self._log_event("revocation", drone_id, f"Drone {drone_id} revoked")
@@ -245,6 +266,7 @@ class DroneSwarmEncryption:
         ))
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "cipher_suite": self.cipher_suite.value,
             "registered_drones": len(self.drone_keys),

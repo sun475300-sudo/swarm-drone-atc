@@ -20,6 +20,7 @@ import numpy as np
 
 
 class MissionType(IntEnum):
+    """``MissionType`` 관련 기능을 제공한다."""
     DELIVERY = 1
     SURVEY = 2
     INSPECTION = 3
@@ -75,6 +76,7 @@ class MissionPlanner:
         battery_drain_per_km: float = 2.0,  # %/km
         safety_margin: float = 1.3,  # 30% 여유
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._missions: dict[str, Mission] = {}
         self._drones: dict[str, DroneAsset] = {}
         self._assignments: list[Assignment] = []
@@ -82,18 +84,22 @@ class MissionPlanner:
         self._safety_margin = safety_margin
 
     def add_mission(self, mission: Mission) -> None:
+        """`mission` 항목을 추가한다."""
         self._missions[mission.mission_id] = mission
 
     def add_drone(self, drone: DroneAsset) -> None:
+        """`drone` 항목을 추가한다."""
         self._drones[drone.drone_id] = drone
 
     def remove_mission(self, mission_id: str) -> bool:
+        """`mission` 상태를 정리한다."""
         if mission_id in self._missions:
             del self._missions[mission_id]
             return True
         return False
 
     def complete_mission(self, mission_id: str) -> None:
+        """``complete_mission`` 동작을 수행한다."""
         if mission_id in self._missions:
             self._missions[mission_id].completed = True
             self._missions[mission_id].assigned_drone = None
@@ -210,6 +216,7 @@ class MissionPlanner:
         return assignments
 
     def unassigned_missions(self) -> list[str]:
+        """``unassigned_missions`` 동작을 수행한다."""
         return [
             m.mission_id for m in self._missions.values()
             if not m.completed and m.assigned_drone is None
@@ -223,6 +230,7 @@ class MissionPlanner:
         return busy / len(self._drones)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         total = len(self._missions)
         completed = sum(1 for m in self._missions.values() if m.completed)
         assigned = sum(1 for m in self._missions.values() if m.assigned_drone)
@@ -237,6 +245,7 @@ class MissionPlanner:
         }
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._missions.clear()
         self._drones.clear()
         self._assignments.clear()

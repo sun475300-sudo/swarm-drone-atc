@@ -17,6 +17,7 @@ style = doc.styles['Normal']
 style.font.size = Pt(10)
 
 def add_h(text, level=1):
+    """`h` 항목을 추가한다."""
     h = doc.add_heading(text, level=level)
     for r in h.runs:
         r.font.color.rgb = RGBColor(0x1E, 0x3A, 0x5F)
@@ -34,6 +35,7 @@ def _set_keep_with_next(cell):
         p.paragraph_format.keep_with_next = True
 
 def add_tbl(headers, rows):
+    """`tbl` 항목을 추가한다."""
     t = doc.add_table(rows=1+len(rows), cols=len(headers))
     t.style = 'Light Grid Accent 1'
     t.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -61,6 +63,7 @@ def add_tbl(headers, rows):
     return t
 
 def add_box(text):
+    """`box` 항목을 추가한다."""
     p = doc.add_paragraph()
     p.paragraph_format.left_indent = Cm(1)
     r = p.add_run(text)
@@ -101,6 +104,7 @@ IMG_WIDTHS = {
 }
 
 def add_img(key, caption, width_cm=None):
+    """`img` 항목을 추가한다."""
     import os
     if width_cm is None:
         width_cm = IMG_WIDTHS.get(key, 14.0)

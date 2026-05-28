@@ -13,6 +13,7 @@ import numpy as np
 
 
 class FormationType(Enum):
+    """``FormationType`` 관련 기능을 제공한다."""
     V_FORMATION = "v_formation"
     LINE = "line"
     GRID = "grid"
@@ -24,6 +25,7 @@ class FormationType(Enum):
 
 
 class DroneRole(Enum):
+    """``DroneRole`` 관련 기능을 제공한다."""
     LEADER = "leader"
     FOLLOWER = "follower"
     SCOUT = "scout"
@@ -32,6 +34,7 @@ class DroneRole(Enum):
 
 @dataclass
 class FormationDrone:
+    """``FormationDrone`` 관련 기능을 제공한다."""
     drone_id: str
     position: np.ndarray = field(default_factory=lambda: np.zeros(3))
     velocity: np.ndarray = field(default_factory=lambda: np.zeros(3))
@@ -42,6 +45,7 @@ class FormationDrone:
 
 @dataclass
 class FormationConfig:
+    """``FormationConfig`` 데이터를 표현한다."""
     formation_type: FormationType
     spacing: float = 20.0
     altitude: float = 50.0
@@ -60,6 +64,7 @@ class SwarmFormationV2:
     """
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._drones: dict[str, FormationDrone] = {}
         self._config = FormationConfig(FormationType.V_FORMATION)
@@ -69,15 +74,18 @@ class SwarmFormationV2:
         self._morph_progress = 1.0  # 1.0 = complete
 
     def add_drone(self, drone_id: str, position: np.ndarray, role: DroneRole = DroneRole.FOLLOWER):
+        """`drone` 항목을 추가한다."""
         drone = FormationDrone(drone_id=drone_id, position=position.copy(), role=role)
         self._drones[drone_id] = drone
         if role == DroneRole.LEADER:
             self._leader_id = drone_id
 
     def add_obstacle(self, center: np.ndarray, radius: float):
+        """`obstacle` 항목을 추가한다."""
         self._obstacles.append((center.copy(), radius))
 
     def set_formation(self, config: FormationConfig):
+        """`formation` 상태를 갱신한다."""
         self._config = config
         self._morph_progress = 0.0
         self._compute_offsets()
@@ -213,11 +221,13 @@ class SwarmFormationV2:
         return float(max(0, 1 - avg_error / (self._config.spacing * 2)))
 
     def get_formation_center(self) -> np.ndarray:
+        """`formation center` 정보를 조회한다."""
         if not self._drones:
             return np.zeros(3)
         return np.mean([d.position for d in self._drones.values()], axis=0)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_drones": len(self._drones),
             "formation": self._config.formation_type.value,

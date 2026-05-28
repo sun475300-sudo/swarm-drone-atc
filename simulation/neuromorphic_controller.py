@@ -11,6 +11,7 @@ import numpy as np
 
 
 class NeuronType(Enum):
+    """``NeuronType`` 관련 기능을 제공한다."""
     LIF = "lif"           # Leaky Integrate-and-Fire
     IZHIKEVICH = "izhikevich"
     ADAPTIVE_LIF = "adaptive_lif"
@@ -18,6 +19,7 @@ class NeuronType(Enum):
 
 @dataclass
 class SpikeTrain:
+    """``SpikeTrain`` 관련 기능을 제공한다."""
     neuron_id: int
     spike_times: list[float] = field(default_factory=list)
     rate: float = 0.0
@@ -25,6 +27,7 @@ class SpikeTrain:
 
 @dataclass
 class Synapse:
+    """``Synapse`` 관련 기능을 제공한다."""
     pre_id: int
     post_id: int
     weight: float
@@ -39,6 +42,7 @@ class LIFNeuron:
     def __init__(self, neuron_id: int, tau_m: float = 20.0,
                  v_rest: float = -65.0, v_thresh: float = -55.0,
                  v_reset: float = -70.0, tau_ref: float = 2.0):
+        """인스턴스를 초기화한다."""
         self.neuron_id = neuron_id
         self.tau_m = tau_m
         self.v_rest = v_rest
@@ -51,6 +55,7 @@ class LIFNeuron:
         self.spike_count = 0
 
     def step(self, dt: float, current_time: float) -> bool:
+        """`대상` 실행 상태를 제어한다."""
         if current_time - self.last_spike < self.tau_ref:
             return False
 
@@ -66,6 +71,7 @@ class LIFNeuron:
         return False
 
     def receive_spike(self, weight: float) -> None:
+        """``receive_spike`` 동작을 수행한다."""
         self.input_current += weight
 
 
@@ -75,6 +81,7 @@ class STDPRule:
     def __init__(self, a_plus: float = 0.01, a_minus: float = 0.012,
                  tau_plus: float = 20.0, tau_minus: float = 20.0,
                  w_max: float = 5.0, w_min: float = 0.0):
+        """인스턴스를 초기화한다."""
         self.a_plus = a_plus
         self.a_minus = a_minus
         self.tau_plus = tau_plus
@@ -84,6 +91,7 @@ class STDPRule:
 
     def update(self, synapse: Synapse, pre_spike_time: float,
                post_spike_time: float) -> float:
+        """`대상` 상태를 갱신한다."""
         dt = post_spike_time - pre_spike_time
         if dt > 0:
             dw = self.a_plus * np.exp(-dt / self.tau_plus)
@@ -101,6 +109,7 @@ class SNNLayer:
 
     def __init__(self, n_neurons: int, neuron_type: NeuronType = NeuronType.LIF,
                  label: str = ""):
+        """인스턴스를 초기화한다."""
         self.label = label
         self.neurons = [LIFNeuron(i) for i in range(n_neurons)]
         self.spike_trains: dict[int, SpikeTrain] = {
@@ -108,6 +117,7 @@ class SNNLayer:
         }
 
     def step(self, dt: float, t: float) -> list[int]:
+        """`대상` 실행 상태를 제어한다."""
         spiked = []
         for neuron in self.neurons:
             if neuron.step(dt, t):
@@ -121,6 +131,7 @@ class NeuromorphicController:
 
     def __init__(self, n_inputs: int = 6, n_hidden: int = 20,
                  n_outputs: int = 4, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_inputs = n_inputs
         self.n_hidden = n_hidden
@@ -150,11 +161,13 @@ class NeuromorphicController:
         self.step_count = 0
 
     def encode_input(self, values: list[float]) -> None:
+        """``encode_input`` 동작을 수행한다."""
         for i, val in enumerate(values[:self.n_inputs]):
             current = val * 15.0 + self.rng.standard_normal() * 0.5
             self.input_layer.neurons[i].input_current = current
 
     def step(self) -> list[float]:
+        """`대상` 실행 상태를 제어한다."""
         self.current_time += self.dt
         self.step_count += 1
 
@@ -190,6 +203,7 @@ class NeuromorphicController:
         return outputs
 
     def control_step(self, sensor_data: dict[str, float]) -> dict[str, float]:
+        """``control_step`` 동작을 수행한다."""
         inputs = [
             sensor_data.get("roll_error", 0),
             sensor_data.get("pitch_error", 0),
@@ -209,6 +223,7 @@ class NeuromorphicController:
         }
 
     def run_for(self, sensor_sequence: list[dict[str, float]]) -> list[dict[str, float]]:
+        """``run_for`` 동작을 수행한다."""
         results = []
         for sensor_data in sensor_sequence:
             cmd = self.control_step(sensor_data)
@@ -216,6 +231,7 @@ class NeuromorphicController:
         return results
 
     def get_weight_stats(self) -> dict[str, float]:
+        """`weight stats` 정보를 조회한다."""
         all_w = [s.weight for s in self.synapses_ih + self.synapses_ho]
         return {
             "mean": float(np.mean(all_w)),
@@ -225,6 +241,7 @@ class NeuromorphicController:
         }
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "layers": f"{self.n_inputs}-{self.n_hidden}-{self.n_outputs}",
             "synapses": len(self.synapses_ih) + len(self.synapses_ho),

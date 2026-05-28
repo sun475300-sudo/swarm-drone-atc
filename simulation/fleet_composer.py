@@ -16,6 +16,7 @@ from typing import Any
 
 @dataclass
 class DroneType:
+    """``DroneType`` 관련 기능을 제공한다."""
     type_name: str
     unit_cost: float
     payload_capacity_kg: float
@@ -25,11 +26,14 @@ class DroneType:
 
 
 class FleetComposer:
+    """``FleetComposer`` 관련 기능을 제공한다."""
     def __init__(self, budget: float = 1000000) -> None:
+        """인스턴스를 초기화한다."""
         self.budget = budget
         self._types: dict[str, DroneType] = {}
 
     def add_type(self, type_name: str, cost: float = 5000, capacity: float = 3, revenue_per_mission: float = 2000, missions_per_day: int = 10, maintenance: float = 500) -> None:
+        """`type` 항목을 추가한다."""
         self._types[type_name] = DroneType(type_name=type_name, unit_cost=cost, payload_capacity_kg=capacity, revenue_per_mission=revenue_per_mission, missions_per_day=missions_per_day, maintenance_monthly=maintenance)
 
     def _roi_score(self, dt: DroneType) -> float:
@@ -52,6 +56,7 @@ class FleetComposer:
         return allocation
 
     def projected_revenue(self, allocation: dict[str, int]) -> float:
+        """``projected_revenue`` 동작을 수행한다."""
         total = 0
         for type_name, count in allocation.items():
             dt = self._types.get(type_name)
@@ -60,6 +65,7 @@ class FleetComposer:
         return round(total)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         plan = self.optimize()
         return {
             "types": len(self._types),

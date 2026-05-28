@@ -40,6 +40,7 @@ class RegulationUpdater:
     """규제 동적 업데이트."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._regulations: dict[str, Regulation] = {}
         self._changes: list[RegulationChange] = []
         self._callbacks: dict[str, list] = {}
@@ -48,12 +49,14 @@ class RegulationUpdater:
         self, name: str, value: Any, unit: str = "",
         description: str = "", mandatory: bool = True,
     ) -> None:
+        """`regulation` 항목을 추가한다."""
         self._regulations[name] = Regulation(
             name=name, value=value, unit=unit,
             description=description, mandatory=mandatory,
         )
 
     def update_regulation(self, name: str, value: Any, reason: str = "") -> bool:
+        """`regulation` 상태를 갱신한다."""
         reg = self._regulations.get(name)
         if not reg:
             return False
@@ -76,14 +79,17 @@ class RegulationUpdater:
         return True
 
     def get_value(self, name: str) -> Any:
+        """`value` 정보를 조회한다."""
         reg = self._regulations.get(name)
         return reg.value if reg else None
 
     def get_version(self, name: str) -> int:
+        """`version` 정보를 조회한다."""
         reg = self._regulations.get(name)
         return reg.version if reg else 0
 
     def on_change(self, name: str, callback) -> None:
+        """``on_change`` 동작을 수행한다."""
         if name not in self._callbacks:
             self._callbacks[name] = []
         self._callbacks[name].append(callback)
@@ -99,15 +105,18 @@ class RegulationUpdater:
             return True
 
     def mandatory_regulations(self) -> list[Regulation]:
+        """``mandatory_regulations`` 동작을 수행한다."""
         return [r for r in self._regulations.values() if r.mandatory]
 
     def change_history(self, name: str | None = None, n: int = 20) -> list[RegulationChange]:
+        """``change_history`` 동작을 수행한다."""
         changes = self._changes
         if name:
             changes = [c for c in changes if c.name == name]
         return changes[-n:]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_regulations": len(self._regulations),
             "mandatory": len(self.mandatory_regulations()),

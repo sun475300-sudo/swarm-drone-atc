@@ -80,6 +80,7 @@ class ComplianceChecker:
     def __init__(
         self, rules: list[ComplianceRule] | None = None
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.rules = rules or list(DEFAULT_RULES)
         self._violations: list[ComplianceViolation] = []
         self._check_count = 0
@@ -187,6 +188,7 @@ class ComplianceChecker:
 
     @property
     def violation_count(self) -> int:
+        """``violation_count`` 동작을 수행한다."""
         return len(self._violations)
 
     def violations_by_severity(self) -> dict[str, int]:
@@ -214,5 +216,6 @@ class ComplianceChecker:
         }
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._violations.clear()
         self._check_count = 0

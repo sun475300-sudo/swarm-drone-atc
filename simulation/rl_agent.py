@@ -38,6 +38,7 @@ class DroneEnv:
     """단일 드론 충돌 회피 환경 (gym-like, gym 의존성 없음)"""
 
     def __init__(self, n_neighbors: int = NUM_NEIGHBORS, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(seed)
         self._n_neighbors = n_neighbors
         self._pos = np.zeros(3)
@@ -114,6 +115,7 @@ class ActorCritic(nn.Module):
     """Actor-Critic MLP 네트워크"""
 
     def __init__(self, obs_dim: int = OBS_DIM, act_dim: int = ACT_DIM) -> None:
+        """인스턴스를 초기화한다."""
         super().__init__()
         # Actor: 정책 네트워크
         self.actor_net = nn.Sequential(
@@ -152,6 +154,7 @@ class RolloutBuffer:
     values: list = field(default_factory=list)
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         for lst in [self.obs, self.actions, self.rewards,
                     self.dones, self.log_probs, self.values]:
             lst.clear()
@@ -169,6 +172,7 @@ class PPOAgent:
         epochs: int = 10,
         seed: int = 42,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._gamma = gamma
         self._lam = lam

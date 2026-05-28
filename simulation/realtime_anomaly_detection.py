@@ -89,6 +89,7 @@ class StatisticalMonitor:
     """Monitor statistical properties for anomaly detection."""
 
     def __init__(self, window_size: int = 100) -> None:
+        """인스턴스를 초기화한다."""
         self._window_size = window_size
         self._buffers: dict[str, list[float]] = {}
         self._means: dict[str, float] = {}
@@ -134,6 +135,7 @@ class AnomalyDetector:
     """Core anomaly detection engine."""
 
     def __init__(self, thresholds: DetectionThresholds | None = None) -> None:
+        """인스턴스를 초기화한다."""
         self._thresholds = thresholds or DetectionThresholds()
         self._stat_monitors: dict[str, StatisticalMonitor] = {}
         self._anomaly_history: list[Anomaly] = []
@@ -388,6 +390,7 @@ class RealTimeAnomalyMonitor:
     """Real-time anomaly monitoring system."""
 
     def __init__(self, thresholds: DetectionThresholds | None = None) -> None:
+        """인스턴스를 초기화한다."""
         self._detector = AnomalyDetector(thresholds)
         self._anomalies: list[Anomaly] = []
         self._alert_callbacks: list[Callable[[Anomaly], None]] = []

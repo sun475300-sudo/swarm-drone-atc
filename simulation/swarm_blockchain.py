@@ -11,6 +11,7 @@ import numpy as np
 
 
 class ConsensusType(Enum):
+    """``ConsensusType`` 관련 기능을 제공한다."""
     PROOF_OF_STAKE = "pos"
     PBFT = "pbft"
     RAFT = "raft"
@@ -18,6 +19,7 @@ class ConsensusType(Enum):
 
 
 class TxType(Enum):
+    """``TxType`` 관련 기능을 제공한다."""
     REGISTRATION = "registration"
     MISSION_ASSIGN = "mission_assign"
     STATUS_UPDATE = "status_update"
@@ -28,6 +30,7 @@ class TxType(Enum):
 
 @dataclass
 class Transaction:
+    """``Transaction`` 관련 기능을 제공한다."""
     tx_id: str
     tx_type: TxType
     sender: str
@@ -39,6 +42,7 @@ class Transaction:
 
 @dataclass
 class Block:
+    """``Block`` 관련 기능을 제공한다."""
     index: int
     timestamp: float
     transactions: list[Transaction]
@@ -47,6 +51,7 @@ class Block:
     block_hash: str = ""
 
     def compute_hash(self) -> str:
+        """`hash` 값을 계산한다."""
         content = f"{self.index}{self.timestamp}{self.prev_hash}{self.nonce}"
         content += "".join(t.tx_id for t in self.transactions)
         return hashlib.sha256(content.encode()).hexdigest()
@@ -54,6 +59,7 @@ class Block:
 
 @dataclass
 class SmartContract:
+    """``SmartContract`` 관련 기능을 제공한다."""
     contract_id: str
     name: str
     conditions: dict
@@ -65,6 +71,7 @@ class SwarmLedger:
     """Distributed ledger for drone swarm operations."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.chain: list[Block] = []
         self.pending: list[Transaction] = []
@@ -78,6 +85,7 @@ class SwarmLedger:
 
     def add_transaction(self, tx_type: TxType, sender: str,
                         receiver: str, data: dict) -> Transaction:
+        """`transaction` 항목을 추가한다."""
         self._tx_counter += 1
         tx = Transaction(
             f"TX-{self._tx_counter:06d}", tx_type, sender, receiver,
@@ -87,6 +95,7 @@ class SwarmLedger:
         return tx
 
     def mine_block(self) -> Block | None:
+        """``mine_block`` 동작을 수행한다."""
         if not self.pending:
             return None
         block = Block(
@@ -99,6 +108,7 @@ class SwarmLedger:
         return block
 
     def verify_chain(self) -> bool:
+        """`chain` 결과를 계산하거나 판정한다."""
         for i in range(1, len(self.chain)):
             if self.chain[i].prev_hash != self.chain[i - 1].block_hash:
                 return False
@@ -108,6 +118,7 @@ class SwarmLedger:
 
     @property
     def height(self) -> int:
+        """``height`` 동작을 수행한다."""
         return len(self.chain)
 
 
@@ -115,12 +126,14 @@ class PBFTConsensus:
     """Practical Byzantine Fault Tolerance for drone swarms."""
 
     def __init__(self, n_nodes: int = 10, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_nodes = n_nodes
         self.f = (n_nodes - 1) // 3  # max faulty
         self.rounds: list[dict] = []
 
     def propose(self, block: Block) -> dict:
+        """``propose`` 동작을 수행한다."""
         votes = []
         for i in range(self.n_nodes):
             honest = self.rng.random() > 0.1
@@ -146,17 +159,20 @@ class SmartContractEngine:
     """Execute smart contracts for swarm management."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.contracts: dict[str, SmartContract] = {}
         self._counter = 0
 
     def deploy(self, name: str, conditions: dict) -> SmartContract:
+        """``deploy`` 동작을 수행한다."""
         self._counter += 1
         sc = SmartContract(f"SC-{self._counter:04d}", name, conditions)
         self.contracts[sc.contract_id] = sc
         return sc
 
     def execute(self, contract_id: str, context: dict) -> dict:
+        """``execute`` 동작을 수행한다."""
         sc = self.contracts.get(contract_id)
         if not sc or not sc.active:
             return {"executed": False, "reason": "contract not found or inactive"}
@@ -177,6 +193,7 @@ class SwarmBlockchain:
     """Blockchain-based swarm drone management system."""
 
     def __init__(self, n_drones: int = 20, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.ledger = SwarmLedger(seed)
@@ -199,6 +216,7 @@ class SwarmBlockchain:
                              {"distance_to_target": 5, "time_remaining": 0})
 
     def assign_mission(self, drone_id: str, mission: dict) -> dict:
+        """`mission` 항목을 추가한다."""
         tx = self.ledger.add_transaction(
             TxType.MISSION_ASSIGN, "controller", drone_id, mission)
         block = self.ledger.mine_block()
@@ -209,11 +227,13 @@ class SwarmBlockchain:
         return {"tx": tx.tx_id, "accepted": False, "block": -1}
 
     def update_status(self, drone_id: str, status: dict) -> str:
+        """`status` 상태를 갱신한다."""
         tx = self.ledger.add_transaction(
             TxType.STATUS_UPDATE, drone_id, "ledger", status)
         return tx.tx_id
 
     def check_clearance(self, drone_id: str, context: dict) -> dict:
+        """`clearance` 결과를 계산하거나 판정한다."""
         sc_ids = [k for k, v in self.contracts.contracts.items()
                   if v.name == "airspace_clearance"]
         if sc_ids:
@@ -221,6 +241,7 @@ class SwarmBlockchain:
         return {"executed": False, "reason": "no clearance contract"}
 
     def apply_penalty(self, drone_id: str, reason: str, amount: float) -> str:
+        """``apply_penalty`` 동작을 수행한다."""
         self.drone_stakes[drone_id] = max(0, self.drone_stakes.get(drone_id, 0) - amount)
         tx = self.ledger.add_transaction(
             TxType.PENALTY, "system", drone_id,
@@ -228,6 +249,7 @@ class SwarmBlockchain:
         return tx.tx_id
 
     def run_epoch(self) -> dict:
+        """``run_epoch`` 동작을 수행한다."""
         for i in range(min(self.n_drones, 10)):
             did = f"drone_{i}"
             self.update_status(did, {
@@ -244,6 +266,7 @@ class SwarmBlockchain:
         }
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": self.n_drones,
             "chain_height": self.ledger.height,

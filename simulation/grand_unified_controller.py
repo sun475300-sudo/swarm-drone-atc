@@ -10,6 +10,7 @@ import numpy as np
 
 
 class SystemModule(Enum):
+    """``SystemModule`` 관련 기능을 제공한다."""
     FLIGHT_CONTROL = "flight_control"
     PATH_PLANNING = "path_planning"
     COLLISION_AVOID = "collision_avoidance"
@@ -25,6 +26,7 @@ class SystemModule(Enum):
 
 
 class SystemState(Enum):
+    """``SystemState`` 데이터를 표현한다."""
     NOMINAL = "nominal"
     DEGRADED = "degraded"
     EMERGENCY = "emergency"
@@ -32,6 +34,7 @@ class SystemState(Enum):
 
 
 class Priority(Enum):
+    """``Priority`` 관련 기능을 제공한다."""
     SAFETY = 0
     MISSION = 1
     EFFICIENCY = 2
@@ -40,6 +43,7 @@ class Priority(Enum):
 
 @dataclass
 class ModuleStatus:
+    """``ModuleStatus`` 관련 기능을 제공한다."""
     module: SystemModule
     health: float  # 0-1
     latency_ms: float
@@ -50,6 +54,7 @@ class ModuleStatus:
 
 @dataclass
 class SystemEvent:
+    """``SystemEvent`` 데이터를 표현한다."""
     event_id: str
     source: SystemModule
     priority: Priority
@@ -60,6 +65,7 @@ class SystemEvent:
 
 @dataclass
 class ControlDecision:
+    """``ControlDecision`` 관련 기능을 제공한다."""
     decision_id: str
     affected_drones: list[str]
     action: str
@@ -73,6 +79,7 @@ class GrandUnifiedController:
     """Master orchestrator integrating all swarm subsystems."""
 
     def __init__(self, n_drones: int = 20, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.state = SystemState.NOMINAL
@@ -117,6 +124,7 @@ class GrandUnifiedController:
         return decision
 
     def update_module(self, module: SystemModule, health: float, latency_ms: float):
+        """`module` 상태를 갱신한다."""
         if module in self.modules:
             ms = self.modules[module]
             ms.health = np.clip(health, 0, 1)
@@ -173,6 +181,7 @@ class GrandUnifiedController:
         return decisions
 
     def tick(self, dt: float = 1.0) -> dict:
+        """``tick`` 동작을 수행한다."""
         self.time += dt
 
         for mod in self.modules.values():
@@ -204,6 +213,7 @@ class GrandUnifiedController:
         }
 
     def run(self, duration: float = 60, dt: float = 1.0) -> dict:
+        """메인 실행 루프를 수행한다."""
         steps = int(duration / dt)
         state_counts = {s.value: 0 for s in SystemState}
         total_decisions = 0
@@ -219,6 +229,7 @@ class GrandUnifiedController:
         }
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "state": self.state.value,
             "drones": self.n_drones,

@@ -10,6 +10,7 @@ import numpy as np
 
 
 class LandingMode(Enum):
+    """``LandingMode`` 관련 기능을 제공한다."""
     PRECISION = "precision"
     EMERGENCY = "emergency"
     AUTOROTATION = "autorotation"
@@ -18,6 +19,7 @@ class LandingMode(Enum):
 
 
 class LandingPhase(Enum):
+    """``LandingPhase`` 관련 기능을 제공한다."""
     APPROACH = "approach"
     FINAL = "final"
     FLARE = "flare"
@@ -28,6 +30,7 @@ class LandingPhase(Enum):
 
 
 class SurfaceType(Enum):
+    """``SurfaceType`` 관련 기능을 제공한다."""
     PAVED = "paved"
     GRASS = "grass"
     WATER = "water"
@@ -38,6 +41,7 @@ class SurfaceType(Enum):
 
 @dataclass
 class LandingZone:
+    """``LandingZone`` 관련 기능을 제공한다."""
     zone_id: str
     center: np.ndarray
     radius_m: float
@@ -50,6 +54,7 @@ class LandingZone:
 
 @dataclass
 class LandingAttempt:
+    """``LandingAttempt`` 관련 기능을 제공한다."""
     drone_id: str
     zone_id: str
     mode: LandingMode
@@ -64,6 +69,7 @@ class GlidepathController:
     """3-degree glidepath tracking with ILS-like guidance."""
 
     def __init__(self, glide_angle_deg: float = 3.0, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.glide_angle = np.radians(glide_angle_deg)
         self.gain_lateral = 0.5
@@ -71,6 +77,7 @@ class GlidepathController:
 
     def compute_guidance(self, position: np.ndarray, target: np.ndarray,
                          velocity: np.ndarray) -> np.ndarray:
+        """`guidance` 값을 계산한다."""
         to_target = target - position
         distance = np.linalg.norm(to_target[:2])
         desired_alt = target[2] + distance * np.tan(self.glide_angle)
@@ -86,6 +93,7 @@ class GlidepathController:
 
     def is_on_glidepath(self, position: np.ndarray, target: np.ndarray,
                         tolerance_m: float = 5.0) -> bool:
+        """`on glidepath` 여부를 반환한다."""
         to_target = target - position
         distance = np.linalg.norm(to_target[:2])
         desired_alt = target[2] + distance * np.tan(self.glide_angle)
@@ -96,9 +104,11 @@ class TerrainAnalyzer:
     """Analyze landing zone suitability."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
 
     def assess_zone(self, zone: LandingZone) -> dict:
+        """``assess_zone`` 동작을 수행한다."""
         slope = self.rng.uniform(0, 15)
         roughness = self.rng.uniform(0, 1)
         surface_score = {
@@ -127,6 +137,7 @@ class AutonomousLanding:
     """Complete autonomous landing management system."""
 
     def __init__(self, n_zones: int = 8, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.glidepath = GlidepathController(seed=seed)
         self.terrain = TerrainAnalyzer(seed)
@@ -145,6 +156,7 @@ class AutonomousLanding:
 
     def select_zone(self, drone_pos: np.ndarray,
                     mode: LandingMode = LandingMode.PRECISION) -> str | None:
+        """`zone` 동작을 수행한다."""
         best_id = None
         best_score = -1
         for zid, zone in self.zones.items():
@@ -165,6 +177,7 @@ class AutonomousLanding:
 
     def execute_landing(self, drone_id: str, zone_id: str,
                         mode: LandingMode = LandingMode.PRECISION) -> LandingAttempt:
+        """``execute_landing`` 동작을 수행한다."""
         zone = self.zones.get(zone_id)
         if not zone:
             return LandingAttempt(drone_id, zone_id, mode, LandingPhase.ABORTED)
@@ -207,12 +220,14 @@ class AutonomousLanding:
         return attempt
 
     def emergency_land(self, drone_id: str, drone_pos: np.ndarray) -> LandingAttempt:
+        """``emergency_land`` 동작을 수행한다."""
         zone_id = self.select_zone(drone_pos, LandingMode.EMERGENCY)
         if not zone_id:
             return LandingAttempt(drone_id, "NONE", LandingMode.EMERGENCY, LandingPhase.ABORTED)
         return self.execute_landing(drone_id, zone_id, LandingMode.EMERGENCY)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "zones": len(self.zones),
             "attempts": len(self.attempts),

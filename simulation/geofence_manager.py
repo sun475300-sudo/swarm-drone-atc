@@ -20,12 +20,14 @@ import numpy as np
 
 
 class GeofenceType(Enum):
+    """``GeofenceType`` 관련 기능을 제공한다."""
     CIRCLE = "circle"
     POLYGON = "polygon"
     CORRIDOR = "corridor"
 
 
 class GeofenceAction(Enum):
+    """``GeofenceAction`` 관련 기능을 제공한다."""
     DENY = "deny"  # 진입 불가 (NFZ)
     WARN = "warn"  # 경고만
     RESTRICT = "restrict"  # 허가 필요
@@ -79,6 +81,7 @@ class GeofenceManager:
     """
 
     def __init__(self, buffer_m: float = 10.0) -> None:
+        """인스턴스를 초기화한다."""
         self._fences: dict[str, Geofence] = {}
         self._violations: list[GeofenceViolation] = []
         self._buffer_m = buffer_m  # 경고 버퍼 거리
@@ -172,10 +175,12 @@ class GeofenceManager:
         return False
 
     def activate(self, fence_id: str) -> None:
+        """``activate`` 동작을 수행한다."""
         if fence_id in self._fences:
             self._fences[fence_id].active = True
 
     def deactivate(self, fence_id: str) -> None:
+        """``deactivate`` 동작을 수행한다."""
         if fence_id in self._fences:
             self._fences[fence_id].active = False
 
@@ -255,9 +260,11 @@ class GeofenceManager:
 
     @property
     def violation_count(self) -> int:
+        """``violation_count`` 동작을 수행한다."""
         return len(self._violations)
 
     def violations_by_fence(self) -> dict[str, int]:
+        """``violations_by_fence`` 동작을 수행한다."""
         counts: dict[str, int] = {}
         for v in self._violations:
             counts[v.fence_id] = counts.get(v.fence_id, 0) + 1
@@ -365,6 +372,7 @@ class GeofenceManager:
         return d - half_w  # 음수면 회랑 내부
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_fences": len(self._fences),
             "active_fences": sum(1 for f in self._fences.values() if f.active),
@@ -374,6 +382,7 @@ class GeofenceManager:
         }
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._fences.clear()
         self._violations.clear()
         self._check_count = 0

@@ -45,29 +45,34 @@ class SimulationMetrics:
 
     @property
     def conflict_resolution_rate(self) -> float:
+        """``conflict_resolution_rate`` 동작을 수행한다."""
         if self.conflict_detected == 0:
             return 1.0
         return self.conflict_resolved / self.conflict_detected
 
     @property
     def route_efficiency(self) -> float:
+        """`efficiency` 작업을 계획한다."""
         if self.total_planned_distance_m < 1.0:
             return 1.0
         return self.total_actual_distance_m / self.total_planned_distance_m
 
     @property
     def emergency_response_p50_s(self) -> float:
+        """``emergency_response_p50_s`` 동작을 수행한다."""
         if not self.emergency_response_times_s:
             return 0.0
         return float(np.percentile(self.emergency_response_times_s, 50))
 
     @property
     def emergency_response_p99_s(self) -> float:
+        """``emergency_response_p99_s`` 동작을 수행한다."""
         if not self.emergency_response_times_s:
             return 0.0
         return float(np.percentile(self.emergency_response_times_s, 99))
 
     def record_event(self, time_s: float, event_type: str, **kwargs):
+        """`event` 정보를 기록한다."""
         self.event_log.append({"t": time_s, "type": event_type, **kwargs})
         if event_type == "collision":
             self.collision_count += 1
@@ -81,6 +86,7 @@ class SimulationMetrics:
     def record_trajectory(self, time_s: float, drone_id: str,
                           position: np.ndarray, velocity: np.ndarray,
                           battery_pct: float, phase: str):
+        """`trajectory` 정보를 기록한다."""
         self.trajectory_log.append({
             "t": time_s,
             "drone_id": drone_id,
@@ -95,6 +101,7 @@ class SimulationMetrics:
         })
 
     def summary_dict(self) -> dict:
+        """``summary_dict`` 동작을 수행한다."""
         return {
             "collision_count": self.collision_count,
             "near_miss_count": self.near_miss_count,
@@ -108,6 +115,7 @@ class SimulationMetrics:
         }
 
     def summary_table(self) -> str:
+        """``summary_table`` 동작을 수행한다."""
         lines = ["┌─────────────────────────────────┬───────────────┐",
                  "│ KPI                             │ Value         │",
                  "├─────────────────────────────────┼───────────────┤"]

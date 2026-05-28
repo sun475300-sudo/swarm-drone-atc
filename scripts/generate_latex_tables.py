@@ -79,6 +79,7 @@ def generate_gpu_table() -> str:
 
 
 def main():
+    """``main`` 동작을 수행한다."""
     print("시나리오 결과 생성 중...")
     scenario_tex = generate_scenario_table()
     gpu_tex = generate_gpu_table()

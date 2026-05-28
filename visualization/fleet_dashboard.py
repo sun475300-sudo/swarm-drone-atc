@@ -13,6 +13,7 @@ import numpy as np
 
 
 class DroneStatus:
+    """``DroneStatus`` 관련 기능을 제공한다."""
     IDLE = "idle"
     CHARGING = "charging"
     IN_MISSION = "in_mission"
@@ -23,6 +24,7 @@ class DroneStatus:
 
 @dataclass
 class FleetDrone:
+    """``FleetDrone`` 관련 기능을 제공한다."""
     drone_id: str
     status: str = DroneStatus.IDLE
     battery_percent: float = 100.0
@@ -37,7 +39,9 @@ class FleetDrone:
 
 
 class FleetMetrics:
+    """``FleetMetrics`` 데이터를 표현한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.total_drones = 0
         self.active_drones = 0
         self.charging_drones = 0
@@ -51,7 +55,9 @@ class FleetMetrics:
 
 
 class FleetManager:
+    """``FleetManager`` 역할을 담당한다."""
     def __init__(self, fleet_size: int = 100):
+        """인스턴스를 초기화한다."""
         self.drones: dict[str, FleetDrone] = {}
         self.mission_history: list[dict] = []
         self.alerts: list[dict] = []
@@ -84,6 +90,7 @@ class FleetManager:
             self.drones[drone_id] = drone
 
     def get_metrics(self) -> FleetMetrics:
+        """`metrics` 정보를 조회한다."""
         metrics = FleetMetrics()
         metrics.total_drones = len(self.drones)
 
@@ -110,6 +117,7 @@ class FleetManager:
         return metrics
 
     def assign_mission(self, drone_id: str, target: tuple) -> bool:
+        """`mission` 항목을 추가한다."""
         if drone_id not in self.drones:
             return False
 
@@ -133,6 +141,7 @@ class FleetManager:
         return True
 
     def update_drone(self, drone_id: str, delta_time: float = 1.0):
+        """`drone` 상태를 갱신한다."""
         if drone_id not in self.drones:
             return
 
@@ -169,6 +178,7 @@ class FleetManager:
             drone.target = None
 
     def check_alerts(self) -> list[dict]:
+        """`alerts` 결과를 계산하거나 판정한다."""
         alerts = []
         for drone in self.drones.values():
             if drone.battery_percent < 20:
@@ -207,6 +217,7 @@ class FleetManager:
         return alerts
 
     def get_fleet_status_json(self) -> str:
+        """`fleet status json` 정보를 조회한다."""
         metrics = self.get_metrics()
         status = {
             "timestamp": datetime.now().isoformat(),
@@ -236,6 +247,7 @@ class FleetManager:
         return json.dumps(status, indent=2)
 
     def optimize_fleet_allocation(self) -> dict:
+        """``optimize_fleet_allocation`` 동작을 수행한다."""
         idle_drones = [d for d in self.drones.values() if d.status == DroneStatus.IDLE]
         low_battery = [d for d in self.drones.values() if d.battery_percent < 30]
 
@@ -258,10 +270,13 @@ class FleetManager:
 
 
 class FleetDashboard:
+    """``FleetDashboard`` 관련 기능을 제공한다."""
     def __init__(self, fleet_manager: FleetManager):
+        """인스턴스를 초기화한다."""
         self.fleet = fleet_manager
 
     def render_dashboard(self) -> str:
+        """`dashboard` 화면을 그린다."""
         metrics = self.fleet.get_metrics()
         alerts = self.fleet.check_alerts()
 
@@ -301,6 +316,7 @@ class FleetDashboard:
 
 
 def create_fleet_dashboard(num_drones: int = 100) -> tuple:
+    """`fleet dashboard` 결과를 생성한다."""
     fleet = FleetManager(num_drones)
     dashboard = FleetDashboard(fleet)
     return fleet, dashboard

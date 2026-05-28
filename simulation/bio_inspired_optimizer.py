@@ -11,6 +11,7 @@ import numpy as np
 
 
 class BioAlgorithm(Enum):
+    """``BioAlgorithm`` 관련 기능을 제공한다."""
     ACO = "ant_colony"
     ABC = "artificial_bee"
     FIREFLY = "firefly"
@@ -20,14 +21,17 @@ class BioAlgorithm(Enum):
 
 @dataclass
 class Solution:
+    """``Solution`` 관련 기능을 제공한다."""
     position: np.ndarray
     fitness: float
     algorithm: str
 
 
 class AntColonyV2:
+    """``AntColonyV2`` 관련 기능을 제공한다."""
     def __init__(self, n_ants: int = 30, n_dim: int = 2, evaporation: float = 0.5,
                  alpha: float = 1.0, beta: float = 2.0, rng: np.random.Generator = None):
+        """인스턴스를 초기화한다."""
         self.n_ants = n_ants
         self.n_dim = n_dim
         self.evaporation = evaporation
@@ -37,6 +41,7 @@ class AntColonyV2:
         self.pheromone = np.ones(n_dim) * 0.1
 
     def optimize(self, func: Callable, bounds: np.ndarray, max_iter: int = 50) -> Solution:
+        """``optimize`` 동작을 수행한다."""
         best_pos = self.rng.uniform(bounds[:, 0], bounds[:, 1])
         best_fit = func(best_pos)
         for _ in range(max_iter):
@@ -54,14 +59,17 @@ class AntColonyV2:
 
 
 class ArtificialBeeColony:
+    """``ArtificialBeeColony`` 관련 기능을 제공한다."""
     def __init__(self, n_bees: int = 30, n_dim: int = 2, limit: int = 10,
                  rng: np.random.Generator = None):
+        """인스턴스를 초기화한다."""
         self.n_bees = n_bees
         self.n_dim = n_dim
         self.limit = limit
         self.rng = rng or np.random.default_rng(42)
 
     def optimize(self, func: Callable, bounds: np.ndarray, max_iter: int = 50) -> Solution:
+        """``optimize`` 동작을 수행한다."""
         pop = self.rng.uniform(bounds[:, 0], bounds[:, 1], (self.n_bees, self.n_dim))
         fitness = np.array([func(p) for p in pop])
         trials = np.zeros(self.n_bees)
@@ -101,9 +109,11 @@ class ArtificialBeeColony:
 
 
 class FireflyAlgorithm:
+    """``FireflyAlgorithm`` 관련 기능을 제공한다."""
     def __init__(self, n_fireflies: int = 30, n_dim: int = 2,
                  alpha: float = 0.5, beta0: float = 1.0, gamma: float = 1.0,
                  rng: np.random.Generator = None):
+        """인스턴스를 초기화한다."""
         self.n = n_fireflies
         self.n_dim = n_dim
         self.alpha = alpha
@@ -112,6 +122,7 @@ class FireflyAlgorithm:
         self.rng = rng or np.random.default_rng(42)
 
     def optimize(self, func: Callable, bounds: np.ndarray, max_iter: int = 50) -> Solution:
+        """``optimize`` 동작을 수행한다."""
         pop = self.rng.uniform(bounds[:, 0], bounds[:, 1], (self.n, self.n_dim))
         fitness = np.array([func(p) for p in pop])
 
@@ -134,6 +145,7 @@ class BioInspiredOptimizer:
 
     def __init__(self, algorithm: BioAlgorithm = BioAlgorithm.FIREFLY,
                  n_dim: int = 2, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.algorithm = algorithm
         self.n_dim = n_dim
         self.rng = np.random.default_rng(seed)
@@ -141,6 +153,7 @@ class BioInspiredOptimizer:
 
     def optimize(self, func: Callable, bounds: np.ndarray,
                  max_iter: int = 50, pop_size: int = 30) -> Solution:
+        """``optimize`` 동작을 수행한다."""
         if self.algorithm == BioAlgorithm.ACO:
             opt = AntColonyV2(pop_size, self.n_dim, rng=self.rng)
         elif self.algorithm == BioAlgorithm.ABC:
@@ -154,6 +167,7 @@ class BioInspiredOptimizer:
 
     def compare_all(self, func: Callable, bounds: np.ndarray,
                     max_iter: int = 50) -> dict[str, Solution]:
+        """``compare_all`` 동작을 수행한다."""
         results = {}
         for algo in [BioAlgorithm.ACO, BioAlgorithm.ABC, BioAlgorithm.FIREFLY]:
             self.algorithm = algo
@@ -161,6 +175,7 @@ class BioInspiredOptimizer:
         return results
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "algorithm": self.algorithm.value,
             "dimensions": self.n_dim,

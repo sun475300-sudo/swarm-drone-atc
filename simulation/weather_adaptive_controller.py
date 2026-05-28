@@ -8,6 +8,7 @@ from dataclasses import dataclass
 
 @dataclass
 class WeatherCondition:
+    """``WeatherCondition`` 관련 기능을 제공한다."""
     temperature_c: float
     wind_speed_ms: float
     wind_direction_deg: float
@@ -18,14 +19,18 @@ class WeatherCondition:
 
 
 class WeatherAdaptiveController:
+    """``WeatherAdaptiveController`` 역할을 담당한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.current_weather: WeatherCondition | None = None
         self.adaptation_history: list[dict] = []
 
     def update_weather(self, weather: WeatherCondition):
+        """`weather` 상태를 갱신한다."""
         self.current_weather = weather
 
     def compute_adapted_parameters(self) -> dict[str, float]:
+        """`adapted parameters` 값을 계산한다."""
         if not self.current_weather:
             return {}
 
@@ -68,6 +73,7 @@ class WeatherAdaptiveController:
         return param
 
     def predict_weather_trend(self, history: list[WeatherCondition]) -> str:
+        """`weather trend` 결과를 계산하거나 판정한다."""
         if len(history) < 3:
             return "stable"
 

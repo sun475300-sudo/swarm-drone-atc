@@ -10,6 +10,7 @@ import numpy as np
 
 
 class FormationType(Enum):
+    """``FormationType`` 관련 기능을 제공한다."""
     LINE = "line"
     V_SHAPE = "v_shape"
     CIRCLE = "circle"
@@ -21,6 +22,7 @@ class FormationType(Enum):
 
 @dataclass
 class Formation:
+    """``Formation`` 관련 기능을 제공한다."""
     formation_id: str
     ftype: FormationType
     positions: np.ndarray  # (n_drones, 3)
@@ -30,6 +32,7 @@ class Formation:
 
 @dataclass
 class GANMetrics:
+    """``GANMetrics`` 데이터를 표현한다."""
     epoch: int
     g_loss: float
     d_loss: float
@@ -41,6 +44,7 @@ class Generator:
     """Neural formation generator (simplified MLP)."""
 
     def __init__(self, latent_dim: int = 16, n_drones: int = 10, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.latent_dim = latent_dim
         self.n_drones = n_drones
@@ -50,15 +54,18 @@ class Generator:
         self.b2 = np.zeros(n_drones * 3)
 
     def forward(self, z: np.ndarray) -> np.ndarray:
+        """``forward`` 동작을 수행한다."""
         h = np.tanh(z @ self.W1 + self.b1)
         out = h @ self.W2 + self.b2
         return out.reshape(-1, self.n_drones, 3) * 50
 
     def generate(self, n_samples: int = 1) -> np.ndarray:
+        """`대상` 결과를 생성한다."""
         z = self.rng.standard_normal((n_samples, self.latent_dim))
         return self.forward(z)
 
     def update(self, grad_scale: float = 0.01):
+        """`대상` 상태를 갱신한다."""
         self.W1 += self.rng.standard_normal(self.W1.shape) * grad_scale
         self.W2 += self.rng.standard_normal(self.W2.shape) * grad_scale
 
@@ -67,6 +74,7 @@ class Discriminator:
     """Formation quality discriminator."""
 
     def __init__(self, n_drones: int = 10, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.W1 = self.rng.standard_normal((n_drones * 3, 32)) * 0.1
@@ -75,12 +83,14 @@ class Discriminator:
         self.b2 = np.zeros(1)
 
     def forward(self, formations: np.ndarray) -> np.ndarray:
+        """``forward`` 동작을 수행한다."""
         x = formations.reshape(-1, self.n_drones * 3)
         h = np.tanh(x @ self.W1 + self.b1)
         out = h @ self.W2 + self.b2
         return 1 / (1 + np.exp(-out))  # sigmoid
 
     def update(self, grad_scale: float = 0.01):
+        """`대상` 상태를 갱신한다."""
         self.W1 += self.rng.standard_normal(self.W1.shape) * grad_scale
         self.W2 += self.rng.standard_normal(self.W2.shape) * grad_scale
 
@@ -89,9 +99,11 @@ class FormationEvaluator:
     """Evaluate formation quality metrics."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         pass
 
     def separation_score(self, positions: np.ndarray) -> float:
+        """``separation_score`` 동작을 수행한다."""
         n = len(positions)
         if n < 2:
             return 1.0
@@ -103,15 +115,18 @@ class FormationEvaluator:
         return min(1.0, min_dist / 5.0)
 
     def coverage_score(self, positions: np.ndarray) -> float:
+        """``coverage_score`` 동작을 수행한다."""
         spread = np.std(positions, axis=0)
         return min(1.0, np.mean(spread) / 30)
 
     def symmetry_score(self, positions: np.ndarray) -> float:
+        """``symmetry_score`` 동작을 수행한다."""
         center = np.mean(positions, axis=0)
         dists = np.linalg.norm(positions - center, axis=1)
         return max(0, 1 - np.std(dists) / (np.mean(dists) + 1e-8))
 
     def evaluate(self, positions: np.ndarray) -> float:
+        """`대상` 결과를 계산하거나 판정한다."""
         s1 = self.separation_score(positions)
         s2 = self.coverage_score(positions)
         s3 = self.symmetry_score(positions)
@@ -122,6 +137,7 @@ class FormationGAN:
     """GAN-based optimal formation generation."""
 
     def __init__(self, n_drones: int = 10, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.generator = Generator(16, n_drones, seed)
@@ -148,6 +164,7 @@ class FormationGAN:
             return self.rng.uniform(-50, 50, (n, 3))
 
     def train_epoch(self, batch_size: int = 16) -> GANMetrics:
+        """``train_epoch`` 동작을 수행한다."""
         real = np.stack([self._make_real(self.rng.choice(
             [FormationType.CIRCLE, FormationType.V_SHAPE, FormationType.GRID]))
             for _ in range(batch_size)])
@@ -171,6 +188,7 @@ class FormationGAN:
         return m
 
     def generate_formation(self, ftype: FormationType = FormationType.RANDOM) -> Formation:
+        """`formation` 결과를 생성한다."""
         self._counter += 1
         positions = self.generator.generate(1)[0]
         fitness = self.evaluator.evaluate(positions)
@@ -179,9 +197,11 @@ class FormationGAN:
         return f
 
     def train(self, epochs: int = 20) -> list[GANMetrics]:
+        """``train`` 동작을 수행한다."""
         return [self.train_epoch() for _ in range(epochs)]
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "n_drones": self.n_drones,
             "epochs_trained": len(self.metrics),

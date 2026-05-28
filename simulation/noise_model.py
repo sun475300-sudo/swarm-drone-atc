@@ -56,6 +56,7 @@ class NoiseModel:
         base_noise_dba: float = 75.0,
         regulations: list[NoiseRegulation] | None = None,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.base_noise_dba = base_noise_dba
         self.regulations = regulations or list(DEFAULT_REGULATIONS)
         self._sources: dict[str, NoiseSource] = {}
@@ -163,6 +164,7 @@ class NoiseModel:
         return float(total)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_sources": len(self._sources),
             "max_ground_noise_dba": round(self.max_ground_noise(), 1),

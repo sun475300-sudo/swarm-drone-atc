@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class EnergyProfile:
+    """``EnergyProfile`` 데이터를 표현한다."""
     mass_kg: float = 2.5
     drag_coeff: float = 0.3
     prop_efficiency: float = 0.7
@@ -20,6 +21,7 @@ class EnergyProfile:
 
 @dataclass
 class PathSegment:
+    """``PathSegment`` 관련 기능을 제공한다."""
     start: np.ndarray
     end: np.ndarray
     energy_wh: float
@@ -29,7 +31,9 @@ class PathSegment:
 
 
 class EnergyOptimizer:
+    """``EnergyOptimizer`` 관련 기능을 제공한다."""
     def __init__(self, seed: int = 42, profile: EnergyProfile | None = None):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.profile = profile or EnergyProfile()
         self._wind_field: np.ndarray | None = None
@@ -70,6 +74,7 @@ class EnergyOptimizer:
 
     def plan_optimal_path(self, origin: np.ndarray, destination: np.ndarray,
                           n_waypoints: int = 5) -> list[PathSegment]:
+        """`optimal path` 작업을 계획한다."""
         if self._wind_field is None:
             self._init_wind_field()
 
@@ -119,9 +124,11 @@ class EnergyOptimizer:
         return segments
 
     def total_energy(self, segments: list[PathSegment]) -> float:
+        """``total_energy`` 동작을 수행한다."""
         return sum(s.energy_wh for s in segments)
 
     def range_estimate(self) -> float:
+        """``range_estimate`` 동작을 수행한다."""
         p = self.profile
         cruise_power = p.hover_power_w * 1.2
         flight_hours = p.battery_wh / cruise_power
@@ -129,6 +136,7 @@ class EnergyOptimizer:
         return flight_hours * cruise_speed * 3600
 
     def run(self, n_paths: int = 10) -> dict:
+        """메인 실행 루프를 수행한다."""
         self._init_wind_field()
         total = 0.0
         paths = []

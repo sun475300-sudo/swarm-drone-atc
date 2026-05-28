@@ -85,6 +85,7 @@ class MeridianCalibrator:
         shift_threshold: float = DEFAULT_SHIFT_THRESHOLD,
         seed: int = 42,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.window_s = window_s
         self.shift_threshold = shift_threshold
         self.rng = np.random.default_rng(seed)
@@ -235,6 +236,7 @@ class MeridianCalibrator:
         )
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "window_s": self.window_s,
             "samples": len(self._samples),

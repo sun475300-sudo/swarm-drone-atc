@@ -46,6 +46,7 @@ class _MessagePassingLayer(nn.Module):
     """단일 Message Passing 레이어 — mean aggregation + 선형 변환."""
 
     def __init__(self, in_dim: int, out_dim: int) -> None:
+        """인스턴스를 초기화한다."""
         super().__init__()
         # 자기 특성 변환
         self.linear_self = nn.Linear(in_dim, out_dim)
@@ -89,6 +90,7 @@ class DroneGraphNetwork(nn.Module):
         node_feat_dim: int = NODE_FEAT_DIM,
         hidden_dim: int = HIDDEN_DIM,
     ) -> None:
+        """인스턴스를 초기화한다."""
         super().__init__()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

@@ -11,6 +11,7 @@ import numpy as np
 
 
 class SignalType(Enum):
+    """``SignalType`` 관련 기능을 제공한다."""
     PROPELLER = "propeller"
     ENGINE = "engine"
     WIND = "wind"
@@ -19,6 +20,7 @@ class SignalType(Enum):
 
 
 class DetectionStatus(Enum):
+    """``DetectionStatus`` 관련 기능을 제공한다."""
     DETECTED = "detected"
     TRACKING = "tracking"
     LOST = "lost"
@@ -26,6 +28,7 @@ class DetectionStatus(Enum):
 
 @dataclass
 class Microphone:
+    """``Microphone`` 관련 기능을 제공한다."""
     mic_id: int
     x: float
     y: float
@@ -34,6 +37,7 @@ class Microphone:
 
 @dataclass
 class AcousticSignal:
+    """``AcousticSignal`` 관련 기능을 제공한다."""
     signal_id: str
     samples: np.ndarray
     sample_rate: int
@@ -43,6 +47,7 @@ class AcousticSignal:
 
 @dataclass
 class SpectralPeak:
+    """``SpectralPeak`` 관련 기능을 제공한다."""
     frequency: float
     magnitude: float
     phase: float
@@ -50,6 +55,7 @@ class SpectralPeak:
 
 @dataclass
 class DoAEstimate:
+    """``DoAEstimate`` 관련 기능을 제공한다."""
     azimuth_deg: float
     elevation_deg: float
     confidence: float
@@ -59,6 +65,7 @@ class DoAEstimate:
 
 @dataclass
 class AcousticDetection:
+    """``AcousticDetection`` 관련 기능을 제공한다."""
     detection_id: str
     doa: DoAEstimate
     status: DetectionStatus
@@ -70,11 +77,13 @@ class FFTAnalyzer:
     """FFT-based spectral analysis engine."""
 
     def __init__(self, sample_rate: int = 44100, fft_size: int = 2048):
+        """인스턴스를 초기화한다."""
         self.sample_rate = sample_rate
         self.fft_size = fft_size
         self.freq_resolution = sample_rate / fft_size
 
     def compute_spectrum(self, signal: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        """`spectrum` 값을 계산한다."""
         n = min(len(signal), self.fft_size)
         windowed = signal[:n] * np.hanning(n)
         spectrum = np.fft.rfft(windowed, n=self.fft_size)
@@ -84,6 +93,7 @@ class FFTAnalyzer:
 
     def find_peaks(self, freqs: np.ndarray, magnitudes: np.ndarray,
                    threshold: float = 0.01, max_peaks: int = 10) -> list[SpectralPeak]:
+        """``find_peaks`` 동작을 수행한다."""
         peaks = []
         for i in range(1, len(magnitudes) - 1):
             if (magnitudes[i] > magnitudes[i-1] and
@@ -98,6 +108,7 @@ class FFTAnalyzer:
         return peaks[:max_peaks]
 
     def classify_signal(self, peaks: list[SpectralPeak]) -> SignalType:
+        """`signal` 결과를 계산하거나 판정한다."""
         if not peaks:
             return SignalType.UNKNOWN
 
@@ -121,12 +132,14 @@ class Beamformer:
     SPEED_OF_SOUND = 343.0  # m/s
 
     def __init__(self, mics: list[Microphone]):
+        """인스턴스를 초기화한다."""
         self.mics = mics
         self.n_mics = len(mics)
         self.positions = np.array([[m.x, m.y, m.z] for m in mics])
 
     def compute_steering_vector(self, azimuth_deg: float,
                                  elevation_deg: float, freq: float) -> np.ndarray:
+        """`steering vector` 값을 계산한다."""
         az = np.radians(azimuth_deg)
         el = np.radians(elevation_deg)
         direction = np.array([
@@ -139,6 +152,7 @@ class Beamformer:
 
     def beamform_power(self, signals: np.ndarray, freq: float,
                        azimuth_deg: float, elevation_deg: float) -> float:
+        """``beamform_power`` 동작을 수행한다."""
         sv = self.compute_steering_vector(azimuth_deg, elevation_deg, freq)
         if signals.ndim == 1:
             signals = signals.reshape(self.n_mics, -1)
@@ -153,6 +167,7 @@ class Beamformer:
                  az_range: tuple[float, float] = (-180, 180),
                  el_range: tuple[float, float] = (-30, 90),
                  step: float = 5.0) -> DoAEstimate:
+        """``scan_doa`` 동작을 수행한다."""
         best_power = 0.0
         best_az = 0.0
         best_el = 0.0
@@ -178,6 +193,7 @@ class AcousticSensingSystem:
 
     def __init__(self, n_mics: int = 4, array_radius: float = 0.5,
                  sample_rate: int = 44100, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.sample_rate = sample_rate
 
@@ -195,6 +211,7 @@ class AcousticSensingSystem:
     def generate_test_signal(self, freq: float, duration: float = 0.1,
                              snr_db: float = 20.0,
                              azimuth_deg: float = 0) -> np.ndarray:
+        """`test signal` 결과를 생성한다."""
         n_samples = int(duration * self.sample_rate)
         t = np.arange(n_samples) / self.sample_rate
         signals = np.zeros((len(self.mics), n_samples))
@@ -208,6 +225,7 @@ class AcousticSensingSystem:
         return signals
 
     def process(self, signals: np.ndarray, timestamp: float = 0.0) -> AcousticDetection | None:
+        """`대상` 처리 로직을 수행한다."""
         if signals.ndim == 1:
             freqs, mags = self.fft.compute_spectrum(signals)
             peaks = self.fft.find_peaks(freqs, mags)
@@ -239,6 +257,7 @@ class AcousticSensingSystem:
         return detection
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         type_counts: dict[str, int] = {}
         for d in self.detections:
             t = d.doa.source_type.value

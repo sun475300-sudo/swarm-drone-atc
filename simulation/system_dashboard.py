@@ -19,6 +19,7 @@ import numpy as np
 
 @dataclass
 class ModuleStatus:
+    """``ModuleStatus`` 관련 기능을 제공한다."""
     name: str
     status: str = "OK"  # OK, WARNING, ERROR, OFFLINE
     last_update: float = 0.0
@@ -26,15 +27,19 @@ class ModuleStatus:
 
 
 class SystemDashboard:
+    """``SystemDashboard`` 관련 기능을 제공한다."""
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._modules: dict[str, ModuleStatus] = {}
         self._kpis: dict[str, list[float]] = {}
         self._alerts: list[dict[str, Any]] = []
 
     def register_module(self, name: str, status: str = "OK") -> None:
+        """`module` 항목을 추가한다."""
         self._modules[name] = ModuleStatus(name=name, status=status)
 
     def update_module_status(self, name: str, status: str, t: float = 0.0) -> None:
+        """`module status` 상태를 갱신한다."""
         m = self._modules.get(name)
         if m:
             m.status = status
@@ -43,6 +48,7 @@ class SystemDashboard:
                 self._alerts.append({"module": name, "status": status, "t": t})
 
     def update_kpi(self, name: str, value: float) -> None:
+        """`kpi` 상태를 갱신한다."""
         if name not in self._kpis:
             self._kpis[name] = []
         self._kpis[name].append(value)
@@ -50,10 +56,12 @@ class SystemDashboard:
             self._kpis[name] = self._kpis[name][-500:]
 
     def get_kpi(self, name: str) -> float:
+        """`kpi` 정보를 조회한다."""
         vals = self._kpis.get(name, [])
         return round(float(np.mean(vals)), 4) if vals else 0
 
     def get_board(self) -> dict[str, Any]:
+        """`board` 정보를 조회한다."""
         return {
             "modules": {
                 name: {"status": m.status, "last_update": m.last_update}
@@ -73,9 +81,11 @@ class SystemDashboard:
         return "OK"
 
     def healthy_modules(self) -> int:
+        """``healthy_modules`` 동작을 수행한다."""
         return sum(1 for m in self._modules.values() if m.status == "OK")
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "modules": len(self._modules),
             "healthy": self.healthy_modules(),

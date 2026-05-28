@@ -28,11 +28,13 @@ class FailurePropagation:
     """고장 파급 그래프 분석."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._deps: dict[str, set[str]] = {}  # node → set of nodes that depend on it
         self._nodes: set[str] = set()
         self._failures: list[dict[str, Any]] = []
 
     def add_node(self, node_id: str) -> None:
+        """`node` 항목을 추가한다."""
         self._nodes.add(node_id)
 
     def add_dependency(self, source: str, target: str) -> None:
@@ -116,6 +118,7 @@ class FailurePropagation:
         return max(0, 1.0 - avg_impact)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         total_edges = sum(len(v) for v in self._deps.values())
         return {
             "nodes": len(self._nodes),

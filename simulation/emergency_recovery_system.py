@@ -17,6 +17,7 @@ _logger = logging.getLogger(__name__)
 
 
 class EmergencyType(Enum):
+    """``EmergencyType`` 관련 기능을 제공한다."""
     MOTOR_FAILURE = "motor_failure"
     BATTERY_CRITICAL = "battery_critical"
     GPS_LOSS = "gps_loss"
@@ -28,6 +29,7 @@ class EmergencyType(Enum):
 
 
 class RecoveryAction(Enum):
+    """``RecoveryAction`` 관련 기능을 제공한다."""
     EMERGENCY_LAND = "emergency_land"
     RETURN_TO_BASE = "return_to_base"
     HOVER_IN_PLACE = "hover_in_place"
@@ -39,6 +41,7 @@ class RecoveryAction(Enum):
 
 
 class RecoveryStatus(Enum):
+    """``RecoveryStatus`` 관련 기능을 제공한다."""
     DETECTED = "detected"
     RESPONDING = "responding"
     EXECUTING = "executing"
@@ -48,6 +51,7 @@ class RecoveryStatus(Enum):
 
 @dataclass
 class EmergencyEvent:
+    """``EmergencyEvent`` 데이터를 표현한다."""
     event_id: str
     drone_id: str
     etype: EmergencyType
@@ -61,6 +65,7 @@ class EmergencyEvent:
 
 @dataclass
 class RecoveryPlan:
+    """``RecoveryPlan`` 관련 기능을 제공한다."""
     event_id: str
     actions: list[RecoveryAction]
     priority: int = 0
@@ -84,6 +89,7 @@ class RecoveryPlanner:
 
     @staticmethod
     def create_plan(event: EmergencyEvent) -> RecoveryPlan:
+        """`plan` 결과를 생성한다."""
         actions = RecoveryPlanner.RECOVERY_MATRIX.get(event.etype, [RecoveryAction.HOVER_IN_PLACE])
         priority = int(event.severity * 10)
         est_time = 30.0 if event.severity < 0.5 else 60.0
@@ -104,6 +110,7 @@ class EmergencyRecoverySystem:
     """
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._events: dict[str, EmergencyEvent] = {}
         self._plans: dict[str, RecoveryPlan] = {}
@@ -113,12 +120,14 @@ class EmergencyRecoverySystem:
         self._event_counter = 0
 
     def register_callback(self, cb: Callable):
+        """`callback` 항목을 추가한다."""
         self._callbacks.append(cb)
 
     def detect_emergency(
         self, drone_id: str, etype: EmergencyType, severity: float,
         position: np.ndarray, timestamp: float = 0.0,
     ) -> EmergencyEvent:
+        """`emergency` 결과를 계산하거나 판정한다."""
         self._event_counter += 1
         eid = f"EMG-{self._event_counter:04d}"
         event = EmergencyEvent(
@@ -141,6 +150,7 @@ class EmergencyRecoverySystem:
         return event
 
     def execute_recovery(self, event_id: str) -> bool:
+        """``execute_recovery`` 동작을 수행한다."""
         event = self._events.get(event_id)
         plan = self._plans.get(event_id)
         if not event or not plan:
@@ -158,6 +168,7 @@ class EmergencyRecoverySystem:
         return success
 
     def resolve_event(self, event_id: str) -> bool:
+        """``resolve_event`` 동작을 수행한다."""
         event = self._events.get(event_id)
         if not event:
             return False
@@ -167,18 +178,23 @@ class EmergencyRecoverySystem:
         return True
 
     def get_active_emergencies(self) -> list[EmergencyEvent]:
+        """`active emergencies` 정보를 조회한다."""
         return [e for e in self._events.values() if not e.resolved]
 
     def get_event(self, event_id: str) -> EmergencyEvent | None:
+        """`event` 정보를 조회한다."""
         return self._events.get(event_id)
 
     def get_plan(self, event_id: str) -> RecoveryPlan | None:
+        """`plan` 정보를 조회한다."""
         return self._plans.get(event_id)
 
     def get_drone_emergencies(self, drone_id: str) -> list[EmergencyEvent]:
+        """`drone emergencies` 정보를 조회한다."""
         return [e for e in self._events.values() if e.drone_id == drone_id]
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         active = sum(1 for e in self._events.values() if not e.resolved)
         by_type = {}
         for e in self._events.values():

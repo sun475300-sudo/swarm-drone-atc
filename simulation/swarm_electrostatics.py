@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class ChargedAgent:
+    """``ChargedAgent`` 역할을 담당한다."""
     agent_id: int
     position: np.ndarray
     charge: float  # positive=repel, negative=attract
@@ -18,7 +19,9 @@ class ChargedAgent:
 
 
 class CoulombSwarm:
+    """``CoulombSwarm`` 관련 기능을 제공한다."""
     def __init__(self, n_agents=20, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n = n_agents
         self.agents = []
@@ -34,6 +37,7 @@ class CoulombSwarm:
         self.damping = 0.9
 
     def compute_forces(self) -> np.ndarray:
+        """`forces` 값을 계산한다."""
         forces = np.zeros((self.n, 2))
         for i in range(self.n):
             for j in range(i + 1, self.n):
@@ -46,12 +50,14 @@ class CoulombSwarm:
         return forces
 
     def step(self, dt=0.05):
+        """`대상` 실행 상태를 제어한다."""
         forces = self.compute_forces()
         for i, a in enumerate(self.agents):
             a.velocity = (a.velocity + forces[i] * dt) * self.damping
             a.position += a.velocity * dt
 
     def total_energy(self) -> float:
+        """``total_energy`` 동작을 수행한다."""
         energy = 0.0
         for i in range(self.n):
             for j in range(i + 1, self.n):
@@ -61,18 +67,22 @@ class CoulombSwarm:
 
 
 class SwarmElectrostatics:
+    """``SwarmElectrostatics`` 관련 기능을 제공한다."""
     def __init__(self, n_agents=20, seed=42):
+        """인스턴스를 초기화한다."""
         self.swarm = CoulombSwarm(n_agents, seed)
         self.energy_history: list[float] = []
         self.steps = 0
 
     def run(self, steps=200):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             self.swarm.step()
             self.energy_history.append(self.swarm.total_energy())
             self.steps += 1
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "agents": self.swarm.n,
             "steps": self.steps,

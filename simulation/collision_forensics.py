@@ -44,6 +44,7 @@ class CollisionForensics:
     """충돌 근본원인 분석."""
 
     def __init__(self, lookback_s: float = 30.0) -> None:
+        """인스턴스를 초기화한다."""
         self._events: dict[str, list[ForensicEvent]] = {}
         self._lookback = lookback_s
         self._reports: list[CollisionReport] = []
@@ -56,6 +57,7 @@ class CollisionForensics:
         t: float = 0.0,
         event_type: str = "POSITION",
     ) -> None:
+        """`event` 정보를 기록한다."""
         if drone_id not in self._events:
             self._events[drone_id] = []
         self._events[drone_id].append(ForensicEvent(
@@ -161,9 +163,11 @@ class CollisionForensics:
         return root_cause, factors
 
     def get_reports(self) -> list[CollisionReport]:
+        """`reports` 정보를 조회한다."""
         return list(self._reports)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         severity_count: dict[str, int] = {}
         for r in self._reports:
             severity_count[r.severity] = severity_count.get(r.severity, 0) + 1

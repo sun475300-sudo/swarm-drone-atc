@@ -35,6 +35,7 @@ class AirspacePredictor:
         congestion_threshold: float = 15.0,
         max_history: int = 200,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._sectors = sectors
         self._threshold = congestion_threshold
         self._history: dict[int, list[tuple[float, float]]] = {
@@ -43,6 +44,7 @@ class AirspacePredictor:
         self._max_history = max_history
 
     def record(self, sector: int, density: float, t: float) -> None:
+        """`대상` 정보를 기록한다."""
         if sector not in self._history:
             self._history[sector] = []
         self._history[sector].append((t, density))
@@ -105,13 +107,16 @@ class AirspacePredictor:
         )
 
     def predict_all(self, horizon_s: float = 60.0) -> list[PredictionResult]:
+        """`all` 결과를 계산하거나 판정한다."""
         return [self.predict(s, horizon_s) for s in range(self._sectors)]
 
     def congested_sectors(self, horizon_s: float = 60.0) -> list[int]:
+        """``congested_sectors`` 동작을 수행한다."""
         preds = self.predict_all(horizon_s)
         return [p.sector for p in preds if p.predicted_density > self._threshold]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         total_records = sum(len(v) for v in self._history.values())
         return {
             "sectors": self._sectors,

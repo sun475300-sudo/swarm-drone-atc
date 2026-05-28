@@ -57,6 +57,7 @@ class CommQualitySimulator:
         config: CommConfig | None = None,
         rng_seed: int = 42,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.config = config or CommConfig()
         self._rng = np.random.default_rng(rng_seed)
 
@@ -303,5 +304,6 @@ class CommQualitySimulator:
         }
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._positions.clear()
         self._history.clear()

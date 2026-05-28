@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class ThermalState:
+    """``ThermalState`` 데이터를 표현한다."""
     position: np.ndarray
     energy: float
     temperature: float
@@ -19,6 +20,7 @@ class ThermalState:
 
 @dataclass
 class AnnealingResult:
+    """``AnnealingResult`` 데이터를 표현한다."""
     initial_energy: float
     final_energy: float
     temperature_final: float
@@ -31,6 +33,7 @@ class BoltzmannDistribution:
     """볼츠만 분포 기반 에너지 모델."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
 
     def energy(self, positions: np.ndarray, target_spacing=20.0) -> float:
@@ -46,6 +49,7 @@ class BoltzmannDistribution:
         return total / (n * (n - 1) / 2)
 
     def boltzmann_prob(self, delta_e: float, temperature: float) -> float:
+        """``boltzmann_prob`` 동작을 수행한다."""
         if delta_e < 0:
             return 1.0
         if temperature < 1e-10:
@@ -60,6 +64,7 @@ class BoltzmannDistribution:
         return float(0.5 * np.log(2 * np.pi * np.e * max(var, 1e-10)))
 
     def free_energy(self, energy: float, entropy: float, temperature: float) -> float:
+        """``free_energy`` 동작을 수행한다."""
         return energy - temperature * entropy
 
 
@@ -67,11 +72,13 @@ class SimulatedAnnealing:
     """시뮬레이티드 어닐링 최적화."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.boltz = BoltzmannDistribution(seed)
 
     def optimize(self, positions: np.ndarray, t_init=100.0, t_min=0.1,
                  cooling=0.95, max_steps=500) -> tuple[np.ndarray, AnnealingResult]:
+        """``optimize`` 동작을 수행한다."""
         current = positions.copy()
         current_e = self.boltz.energy(current)
         initial_e = current_e
@@ -111,6 +118,7 @@ class SwarmThermodynamics:
     """군집 열역학 시뮬레이션."""
 
     def __init__(self, n_drones=20, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.boltz = BoltzmannDistribution(seed)
@@ -120,9 +128,11 @@ class SwarmThermodynamics:
         self.result: AnnealingResult | None = None
 
     def optimize(self, **kwargs):
+        """``optimize`` 동작을 수행한다."""
         self.positions, self.result = self.sa.optimize(self.positions, **kwargs)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         e = self.boltz.energy(self.positions)
         s = self.boltz.entropy(self.positions)
         f = self.boltz.free_energy(e, s, 1.0)

@@ -10,6 +10,7 @@ import numpy as np
 
 
 class FaultType(Enum):
+    """``FaultType`` 관련 기능을 제공한다."""
     NODE_CRASH = "node_crash"
     NETWORK_PARTITION = "network_partition"
     LATENCY_SPIKE = "latency_spike"
@@ -20,6 +21,7 @@ class FaultType(Enum):
 
 
 class HealingAction(Enum):
+    """``HealingAction`` 관련 기능을 제공한다."""
     RESTART = "restart"
     FAILOVER = "failover"
     SCALE_UP = "scale_up"
@@ -29,6 +31,7 @@ class HealingAction(Enum):
 
 
 class SystemHealth(Enum):
+    """``SystemHealth`` 관련 기능을 제공한다."""
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     CRITICAL = "critical"
@@ -37,6 +40,7 @@ class SystemHealth(Enum):
 
 @dataclass
 class FaultInjection:
+    """``FaultInjection`` 관련 기능을 제공한다."""
     fault_id: str
     fault_type: FaultType
     target: str
@@ -48,6 +52,7 @@ class FaultInjection:
 
 @dataclass
 class HealingEvent:
+    """``HealingEvent`` 데이터를 표현한다."""
     fault_id: str
     action: HealingAction
     success: bool
@@ -57,6 +62,7 @@ class HealingEvent:
 
 @dataclass
 class ServiceNode:
+    """``ServiceNode`` 관련 기능을 제공한다."""
     node_id: str
     health: SystemHealth = SystemHealth.HEALTHY
     cpu_usage: float = 0.2
@@ -70,6 +76,7 @@ class ResilienceOrchestrator:
     """Chaos engineering and self-healing orchestrator for drone swarms."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.nodes: dict[str, ServiceNode] = {}
         self.active_faults: dict[str, FaultInjection] = {}
@@ -88,12 +95,14 @@ class ResilienceOrchestrator:
         }
 
     def add_node(self, node_id: str) -> ServiceNode:
+        """`node` 항목을 추가한다."""
         node = ServiceNode(node_id)
         self.nodes[node_id] = node
         return node
 
     def inject_fault(self, target: str, fault_type: FaultType,
                      severity: float = 0.5, duration: float = 10.0) -> FaultInjection | None:
+        """``inject_fault`` 동작을 수행한다."""
         if target not in self.nodes:
             return None
         self._fault_counter += 1
@@ -179,6 +188,7 @@ class ResilienceOrchestrator:
         return events
 
     def tick(self, dt: float = 1.0) -> dict:
+        """``tick`` 동작을 수행한다."""
         self.time += dt
         expired = []
         for fid, fault in self.active_faults.items():
@@ -205,6 +215,7 @@ class ResilienceOrchestrator:
 
     def run_chaos_experiment(self, duration: float = 60, intensity: float = 0.2,
                              heal_interval: float = 5.0) -> dict:
+        """``run_chaos_experiment`` 동작을 수행한다."""
         results = {"faults_injected": 0, "healed": 0, "failed_healing": 0}
         steps = int(duration)
         for step in range(steps):
@@ -222,6 +233,7 @@ class ResilienceOrchestrator:
         return results
 
     def resilience_score(self) -> float:
+        """``resilience_score`` 동작을 수행한다."""
         if not self.fault_history:
             return 1.0
         resolved = sum(1 for f in self.fault_history if f.resolved)
@@ -233,6 +245,7 @@ class ResilienceOrchestrator:
         return round(max(0, score), 4)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "nodes": len(self.nodes),
             "total_faults": len(self.fault_history),

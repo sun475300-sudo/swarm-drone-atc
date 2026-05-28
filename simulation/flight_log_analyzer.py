@@ -46,6 +46,7 @@ class FlightLogAnalyzer:
     """비행 로그 분석."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._entries: list[FlightEntry] = []
         self._by_drone: dict[str, list[FlightEntry]] = {}
 
@@ -54,6 +55,7 @@ class FlightLogAnalyzer:
         energy_wh: float, max_speed: float = 0.0,
         avg_altitude: float = 50.0, incidents: int = 0, t: float = 0.0,
     ) -> FlightEntry:
+        """`entry` 항목을 추가한다."""
         entry = FlightEntry(
             drone_id=drone_id, duration_s=duration_s,
             distance_m=distance_m, energy_wh=energy_wh,
@@ -67,6 +69,7 @@ class FlightLogAnalyzer:
         return entry
 
     def drone_stats(self, drone_id: str) -> DroneStats | None:
+        """``drone_stats`` 동작을 수행한다."""
         entries = self._by_drone.get(drone_id, [])
         if not entries:
             return None
@@ -153,6 +156,7 @@ class FlightLogAnalyzer:
         return sorted(stats.items(), key=lambda x: -x[1])[:n]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_entries": len(self._entries),
             "unique_drones": len(self._by_drone),

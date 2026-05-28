@@ -10,6 +10,7 @@ import numpy as np
 
 
 class VehicleType(Enum):
+    """``VehicleType`` 관련 기능을 제공한다."""
     EVTOL = "evtol"
     DRONE_CARGO = "drone_cargo"
     AIR_TAXI = "air_taxi"
@@ -17,6 +18,7 @@ class VehicleType(Enum):
 
 
 class VertiportStatus(Enum):
+    """``VertiportStatus`` 관련 기능을 제공한다."""
     OPEN = "open"
     BUSY = "busy"
     CLOSED = "closed"
@@ -25,6 +27,7 @@ class VertiportStatus(Enum):
 
 @dataclass
 class Vertiport:
+    """``Vertiport`` 관련 기능을 제공한다."""
     port_id: str
     position: np.ndarray  # (lat, lon, alt)
     capacity: int = 4
@@ -35,15 +38,18 @@ class Vertiport:
 
     @property
     def available_pads(self) -> int:
+        """``available_pads`` 동작을 수행한다."""
         return max(0, self.landing_pads - self.current_load)
 
     @property
     def utilization(self) -> float:
+        """``utilization`` 동작을 수행한다."""
         return self.current_load / max(self.capacity, 1)
 
 
 @dataclass
 class UAMFlight:
+    """``UAMFlight`` 관련 기능을 제공한다."""
     flight_id: str
     vehicle_type: VehicleType
     origin: str
@@ -58,6 +64,7 @@ class UAMFlight:
 
 @dataclass
 class DemandForecast:
+    """``DemandForecast`` 관련 기능을 제공한다."""
     hour: int
     origin: str
     destination: str
@@ -69,15 +76,18 @@ class DemandPredictor:
     """Time-series demand prediction for UAM routes."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.history: dict[str, list[float]] = {}
 
     def add_observation(self, route: str, demand: float):
+        """`observation` 항목을 추가한다."""
         if route not in self.history:
             self.history[route] = []
         self.history[route].append(demand)
 
     def predict(self, route: str, hour: int) -> DemandForecast:
+        """`대상` 결과를 계산하거나 판정한다."""
         base = 10 + 15 * np.sin(np.pi * hour / 12)  # peak at noon
         if 7 <= hour <= 9 or 17 <= hour <= 19:
             base *= 1.5  # rush hour
@@ -100,6 +110,7 @@ class UrbanAirMobilityV2:
     """Urban Air Mobility network management system."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.vertiports: dict[str, Vertiport] = {}
         self.flights: list[UAMFlight] = []
@@ -110,12 +121,14 @@ class UrbanAirMobilityV2:
 
     def add_vertiport(self, port_id: str, lat: float, lon: float, alt: float = 0,
                       capacity: int = 4, pads: int = 2) -> Vertiport:
+        """`vertiport` 항목을 추가한다."""
         vp = Vertiport(port_id, np.array([lat, lon, alt]), capacity, landing_pads=pads)
         self.vertiports[port_id] = vp
         return vp
 
     def create_corridor(self, origin: str, dest: str, altitude_m: float = 300,
                         width_m: float = 100) -> dict:
+        """`corridor` 결과를 생성한다."""
         key = f"{origin}->{dest}"
         p1 = self.vertiports[origin].position
         p2 = self.vertiports[dest].position
@@ -133,6 +146,7 @@ class UrbanAirMobilityV2:
     def schedule_flight(self, origin: str, dest: str,
                         vehicle: VehicleType = VehicleType.AIR_TAXI,
                         passengers: int = 2) -> UAMFlight | None:
+        """`flight` 작업을 계획한다."""
         if origin not in self.vertiports or dest not in self.vertiports:
             return None
         op = self.vertiports[origin]
@@ -155,6 +169,7 @@ class UrbanAirMobilityV2:
         return flight
 
     def tick(self, dt: float = 60) -> dict:
+        """``tick`` 동작을 수행한다."""
         self.time += dt
         departed = 0
         arrived = 0
@@ -173,6 +188,7 @@ class UrbanAirMobilityV2:
         return {"time": self.time, "departed": departed, "arrived": arrived}
 
     def network_status(self) -> dict:
+        """``network_status`` 동작을 수행한다."""
         return {
             "vertiports": len(self.vertiports),
             "corridors": len(self.corridors) // 2,
@@ -185,4 +201,5 @@ class UrbanAirMobilityV2:
         }
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return self.network_status()

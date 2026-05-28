@@ -18,6 +18,7 @@ import numpy as np
 
 @dataclass
 class GraphNode:
+    """``GraphNode`` 관련 기능을 제공한다."""
     drone_id: str
     position: tuple[float, float, float]
     velocity: tuple[float, float, float] = (0, 0, 0)
@@ -25,8 +26,10 @@ class GraphNode:
 
 
 class GNNTraffic:
+    """``GNNTraffic`` 관련 기능을 제공한다."""
     def __init__(self, proximity_threshold: float = 100.0,
                  hidden_dim: int = 16, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(seed)
         self._threshold = proximity_threshold
         self._hidden_dim = hidden_dim
@@ -41,6 +44,7 @@ class GNNTraffic:
 
     def update_graph(self, drones: dict[str, tuple[float, float, float]],
                      velocities: dict[str, tuple[float, float, float]] | None = None) -> None:
+        """`graph` 상태를 갱신한다."""
         velocities = velocities or {}
         self._nodes.clear()
         self._adjacency.clear()
@@ -127,9 +131,11 @@ class GNNTraffic:
                 for did, r in sorted_risks[:top_k] if did in self._nodes]
 
     def edge_count(self) -> int:
+        """``edge_count`` 동작을 수행한다."""
         return sum(len(v) for v in self._adjacency.values()) // 2
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "nodes": len(self._nodes),
             "edges": self.edge_count(),

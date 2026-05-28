@@ -10,21 +10,26 @@ import numpy as np
 
 
 class PheromoneGrid:
+    """``PheromoneGrid`` 관련 기능을 제공한다."""
     def __init__(self, size=50, evaporation=0.05, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.size = size
         self.grid = np.ones((size, size)) * 0.01
         self.evaporation = evaporation
 
     def deposit(self, x: int, y: int, amount=1.0):
+        """``deposit`` 동작을 수행한다."""
         x, y = int(np.clip(x, 0, self.size-1)), int(np.clip(y, 0, self.size-1))
         self.grid[x, y] += amount
 
     def evaporate(self):
+        """``evaporate`` 동작을 수행한다."""
         self.grid *= (1 - self.evaporation)
         self.grid = np.clip(self.grid, 0.001, 100.0)
 
     def sense(self, x: int, y: int, radius=2) -> np.ndarray:
+        """``sense`` 동작을 수행한다."""
         x, y = int(np.clip(x, 0, self.size-1)), int(np.clip(y, 0, self.size-1))
         x0 = max(0, x - radius)
         x1 = min(self.size, x + radius + 1)
@@ -33,11 +38,13 @@ class PheromoneGrid:
         return self.grid[x0:x1, y0:y1].copy()
 
     def total_pheromone(self) -> float:
+        """``total_pheromone`` 동작을 수행한다."""
         return float(self.grid.sum())
 
 
 @dataclass
 class AntAgent:
+    """``AntAgent`` 역할을 담당한다."""
     agent_id: int
     x: int
     y: int
@@ -45,7 +52,9 @@ class AntAgent:
 
 
 class DigitalPheromone:
+    """``DigitalPheromone`` 관련 기능을 제공한다."""
     def __init__(self, n_agents=20, grid_size=50, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.grid = PheromoneGrid(grid_size, 0.05, seed)
         self.n = n_agents
@@ -59,6 +68,7 @@ class DigitalPheromone:
         self.food_collected = 0
 
     def step(self):
+        """`대상` 실행 상태를 제어한다."""
         for a in self.agents:
             neighborhood = self.grid.sense(a.x, a.y, 2)
             if neighborhood.size > 0:
@@ -88,10 +98,12 @@ class DigitalPheromone:
         self.steps += 1
 
     def run(self, steps=200):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             self.step()
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "agents": self.n,
             "steps": self.steps,

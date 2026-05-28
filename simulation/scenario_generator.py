@@ -34,6 +34,7 @@ class ScenarioGenerator:
     """자동 시나리오 생성."""
 
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(seed)
         self._counter = 0
 
@@ -135,6 +136,7 @@ class ScenarioGenerator:
         return "EASY"
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "scenarios_generated": self._counter,
         }

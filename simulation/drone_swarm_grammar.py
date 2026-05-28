@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class GrammarRule:
+    """``GrammarRule`` 관련 기능을 제공한다."""
     symbol: str
     replacement: str
     probability: float = 1.0
@@ -18,6 +19,7 @@ class GrammarRule:
 
 @dataclass
 class Formation:
+    """``Formation`` 관련 기능을 제공한다."""
     formation_id: str
     positions: np.ndarray
     pattern_str: str
@@ -28,14 +30,17 @@ class LSystem:
     """L-시스템 문법 엔진."""
 
     def __init__(self, axiom="F", seed=42):
+        """인스턴스를 초기화한다."""
         self.axiom = axiom
         self.rules: list[GrammarRule] = []
         self.rng = np.random.default_rng(seed)
 
     def add_rule(self, symbol: str, replacement: str, prob=1.0):
+        """`rule` 항목을 추가한다."""
         self.rules.append(GrammarRule(symbol, replacement, prob))
 
     def generate(self, iterations=3) -> str:
+        """`대상` 결과를 생성한다."""
         current = self.axiom
         for _ in range(iterations):
             new = []
@@ -84,9 +89,11 @@ class FormationEvolver:
     """문법 진화: 대형 패턴 유전 알고리즘."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
 
     def evaluate_fitness(self, positions: np.ndarray, target_count=10) -> float:
+        """`fitness` 결과를 계산하거나 판정한다."""
         n = len(positions)
         count_score = 1.0 - abs(n - target_count) / max(target_count, 1)
         if n < 2:
@@ -100,6 +107,7 @@ class FormationEvolver:
         return float(np.clip(0.3 * count_score + 0.4 * uniformity + 0.3 * spread, 0, 1))
 
     def mutate_rules(self, rules: list[GrammarRule]) -> list[GrammarRule]:
+        """``mutate_rules`` 동작을 수행한다."""
         new_rules = []
         symbols = "F+-UD[]"
         for rule in rules:
@@ -117,6 +125,7 @@ class DroneSwarmGrammar:
     """L-시스템 기반 군집 대형 시뮬레이션."""
 
     def __init__(self, n_target=15, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_target = n_target
         self.evolver = FormationEvolver(seed)
@@ -128,6 +137,7 @@ class DroneSwarmGrammar:
         self.lsys.add_rule("F", "F+F-F-F+F")
 
     def generate_formation(self, fid: str, iterations=3) -> Formation:
+        """`formation` 결과를 생성한다."""
         pattern = self.lsys.generate(iterations)
         positions = self.lsys.interpret(pattern)
         fitness = self.evolver.evaluate_fitness(positions, self.n_target)
@@ -138,6 +148,7 @@ class DroneSwarmGrammar:
         return f
 
     def evolve(self, generations=10, pop_size=8):
+        """``evolve`` 동작을 수행한다."""
         for gen in range(generations):
             pop = []
             for i in range(pop_size):
@@ -155,6 +166,7 @@ class DroneSwarmGrammar:
                 self.best = pop[0]
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "target_drones": self.n_target,
             "formations_generated": len(self.formations),

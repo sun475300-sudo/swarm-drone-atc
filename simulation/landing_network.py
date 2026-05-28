@@ -31,15 +31,18 @@ class LandingNetwork:
     """착륙장 네트워크."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._pads: dict[str, LandingPad] = {}
 
     def add_pad(self, pad_id: str, position: tuple[float, float], capacity: int = 5) -> None:
+        """`pad` 항목을 추가한다."""
         self._pads[pad_id] = LandingPad(pad_id=pad_id, position=position, capacity=capacity)
 
     def _distance(self, a: tuple[float, float], b: tuple[float, float]) -> float:
         return float(np.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2))
 
     def recommend_pad(self, drone_pos: tuple[float, float], prefer_capacity: bool = True) -> str | None:
+        """``recommend_pad`` 동작을 수행한다."""
         if not self._pads:
             return None
 
@@ -60,6 +63,7 @@ class LandingNetwork:
         return candidates[0][0] if candidates else None
 
     def land(self, pad_id: str, drone_id: str) -> bool:
+        """``land`` 동작을 수행한다."""
         pad = self._pads.get(pad_id)
         if not pad:
             return False
@@ -71,6 +75,7 @@ class LandingNetwork:
         return True
 
     def depart(self, pad_id: str) -> str | None:
+        """``depart`` 동작을 수행한다."""
         pad = self._pads.get(pad_id)
         if not pad:
             return None
@@ -83,16 +88,19 @@ class LandingNetwork:
         return None
 
     def network_utilization(self) -> float:
+        """``network_utilization`` 동작을 수행한다."""
         total_cap = sum(p.capacity for p in self._pads.values())
         total_occ = sum(p.current_occupancy for p in self._pads.values())
         return round(total_occ / max(total_cap, 1) * 100, 1)
 
     def busiest_pad(self) -> str | None:
+        """``busiest_pad`` 동작을 수행한다."""
         if not self._pads:
             return None
         return max(self._pads, key=lambda pid: self._pads[pid].total_landings)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "pads": len(self._pads),
             "utilization": self.network_utilization(),

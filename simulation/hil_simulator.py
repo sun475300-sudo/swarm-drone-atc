@@ -14,6 +14,7 @@ import numpy as np
 
 
 class HILMode(Enum):
+    """``HILMode`` 관련 기능을 제공한다."""
     SOFTWARE_ONLY = "software_only"
     PROCESSOR_IN_LOOP = "pil"
     HARDWARE_IN_LOOP = "hil"
@@ -21,6 +22,7 @@ class HILMode(Enum):
 
 
 class SensorType(Enum):
+    """``SensorType`` 관련 기능을 제공한다."""
     IMU = "imu"
     GPS = "gps"
     BAROMETER = "barometer"
@@ -32,6 +34,7 @@ class SensorType(Enum):
 
 @dataclass
 class SensorReading:
+    """``SensorReading`` 관련 기능을 제공한다."""
     sensor_type: SensorType
     timestamp: float
     data: np.ndarray
@@ -42,6 +45,7 @@ class SensorReading:
 
 @dataclass
 class ActuatorCommand:
+    """``ActuatorCommand`` 관련 기능을 제공한다."""
     motor_speeds: np.ndarray  # RPM for each motor
     servo_angles: np.ndarray  # degrees
     timestamp: float = 0.0
@@ -49,6 +53,7 @@ class ActuatorCommand:
 
 @dataclass
 class VehicleState:
+    """``VehicleState`` 데이터를 표현한다."""
     position: np.ndarray = field(default_factory=lambda: np.zeros(3))
     velocity: np.ndarray = field(default_factory=lambda: np.zeros(3))
     acceleration: np.ndarray = field(default_factory=lambda: np.zeros(3))
@@ -62,6 +67,7 @@ class SensorEmulator:
     """센서 에뮬레이터 — 실제 센서 출력 시뮬레이션."""
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._sensor_configs: dict[SensorType, dict] = {
             SensorType.IMU: {"noise_std": 0.01, "bias": 0.001, "rate_hz": 400, "latency_ms": 0.5},
@@ -72,6 +78,7 @@ class SensorEmulator:
         }
 
     def read_sensor(self, sensor_type: SensorType, true_state: VehicleState, timestamp: float) -> SensorReading:
+        """`sensor` 정보를 조회한다."""
         config = self._sensor_configs.get(sensor_type, {})
         noise_std = config.get("noise_std", 0.01)
         bias = config.get("bias", 0.0)
@@ -107,10 +114,12 @@ class PhysicsEngine:
     THRUST_COEFF = 1e-5  # N per RPM²
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.drag_coeff = 0.1
 
     def step(self, state: VehicleState, command: ActuatorCommand, dt: float = 0.001) -> VehicleState:
         # Total thrust from motors
+        """`대상` 실행 상태를 제어한다."""
         total_thrust = sum(self.THRUST_COEFF * rpm ** 2 for rpm in command.motor_speeds)
         # Thrust direction based on attitude
         cy, sy = np.cos(state.attitude[2]), np.sin(state.attitude[2])
@@ -156,6 +165,7 @@ class HILSimulator:
     """
 
     def __init__(self, mode: HILMode = HILMode.SOFTWARE_ONLY, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.mode = mode
         self._rng = np.random.default_rng(rng_seed)
         self._vehicles: dict[str, VehicleState] = {}
@@ -168,6 +178,7 @@ class HILSimulator:
         self._step_count = 0
 
     def add_vehicle(self, vehicle_id: str, initial_pos: np.ndarray | None = None) -> VehicleState:
+        """`vehicle` 항목을 추가한다."""
         state = VehicleState()
         if initial_pos is not None:
             state.position = initial_pos.copy()
@@ -175,24 +186,28 @@ class HILSimulator:
         return state
 
     def get_sensor(self, vehicle_id: str, sensor_type: SensorType) -> SensorReading | None:
+        """`sensor` 정보를 조회한다."""
         state = self._vehicles.get(vehicle_id)
         if not state:
             return None
         return self._sensor_emu.read_sensor(sensor_type, state, self._clock)
 
     def send_command(self, vehicle_id: str, command: ActuatorCommand):
+        """``send_command`` 동작을 수행한다."""
         state = self._vehicles.get(vehicle_id)
         if state:
             command.timestamp = self._clock
             self._physics.step(state, command, self._dt)
 
     def step(self, dt: float | None = None):
+        """`대상` 실행 상태를 제어한다."""
         if dt is None:
             dt = self._dt
         self._clock += dt
         self._step_count += 1
 
     def run_for(self, duration_sec: float, command_fn: Callable | None = None):
+        """``run_for`` 동작을 수행한다."""
         steps = int(duration_sec / self._dt)
         for _ in range(steps):
             if command_fn:
@@ -203,18 +218,22 @@ class HILSimulator:
             self.step()
 
     def get_state(self, vehicle_id: str) -> VehicleState | None:
+        """`state` 정보를 조회한다."""
         return self._vehicles.get(vehicle_id)
 
     @property
     def clock(self) -> float:
+        """``clock`` 동작을 수행한다."""
         return self._clock
 
     def reset(self):
+        """`대상` 상태를 정리한다."""
         self._clock = 0.0
         self._step_count = 0
         self._vehicles.clear()
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "mode": self.mode.value,
             "vehicles": len(self._vehicles),

@@ -11,6 +11,7 @@ import numpy as np
 
 
 class WorkerStatus(Enum):
+    """``WorkerStatus`` 관련 기능을 제공한다."""
     IDLE = "idle"
     TRAINING = "training"
     SYNCING = "syncing"
@@ -19,6 +20,7 @@ class WorkerStatus(Enum):
 
 @dataclass
 class TrainingWorker:
+    """``TrainingWorker`` 관련 기능을 제공한다."""
     worker_id: str
     status: WorkerStatus
     current_epoch: int
@@ -29,6 +31,7 @@ class TrainingWorker:
 
 @dataclass
 class SyncRequest:
+    """``SyncRequest`` 데이터를 표현한다."""
     request_id: str
     worker_id: str
     model_gradients: dict[str, np.ndarray]
@@ -36,7 +39,9 @@ class SyncRequest:
 
 
 class DistributedTrainingCoordinator:
+    """``DistributedTrainingCoordinator`` 관련 기능을 제공한다."""
     def __init__(self, coordinator_id: str, sync_interval: float = 10.0):
+        """인스턴스를 초기화한다."""
         self.coordinator_id = coordinator_id
         self.sync_interval = sync_interval
 
@@ -53,6 +58,7 @@ class DistributedTrainingCoordinator:
         }
 
     def register_worker(self, worker_id: str):
+        """`worker` 항목을 추가한다."""
         worker = TrainingWorker(
             worker_id=worker_id,
             status=WorkerStatus.IDLE,
@@ -64,10 +70,12 @@ class DistributedTrainingCoordinator:
         self.workers[worker_id] = worker
 
     def start_training(self, worker_id: str):
+        """`training` 실행 상태를 제어한다."""
         if worker_id in self.workers:
             self.workers[worker_id].status = WorkerStatus.TRAINING
 
     def submit_gradients(self, worker_id: str, gradients: dict[str, np.ndarray]):
+        """``submit_gradients`` 동작을 수행한다."""
         request = SyncRequest(
             request_id=f"sync_{int(time.time())}_{worker_id}",
             worker_id=worker_id,
@@ -80,6 +88,7 @@ class DistributedTrainingCoordinator:
             self.workers[worker_id].status = WorkerStatus.SYNCING
 
     def synchronize_models(self) -> bool:
+        """``synchronize_models`` 동작을 수행한다."""
         if not self.sync_queue:
             return False
 
@@ -111,9 +120,11 @@ class DistributedTrainingCoordinator:
         return True
 
     def get_worker_status(self, worker_id: str) -> TrainingWorker | None:
+        """`worker status` 정보를 조회한다."""
         return self.workers.get(worker_id)
 
     def get_coordinator_status(self) -> dict[str, Any]:
+        """`coordinator status` 정보를 조회한다."""
         status_counts = {}
         for worker in self.workers.values():
             status_counts[worker.status.value] = (

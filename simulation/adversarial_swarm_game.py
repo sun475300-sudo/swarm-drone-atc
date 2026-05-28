@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class GameState:
+    """``GameState`` 데이터를 표현한다."""
     blue_positions: np.ndarray   # (N, 2) 아군
     red_positions: np.ndarray    # (M, 2) 적군
     blue_health: np.ndarray
@@ -18,14 +19,17 @@ class GameState:
     turn: str = "blue"           # blue or red
 
     def is_terminal(self) -> bool:
+        """`terminal` 여부를 반환한다."""
         return np.all(self.blue_health <= 0) or np.all(self.red_health <= 0)
 
     def score(self) -> float:
+        """`대상` 결과를 계산하거나 판정한다."""
         return float(np.sum(self.blue_health) - np.sum(self.red_health))
 
 
 @dataclass
 class Move:
+    """``Move`` 관련 기능을 제공한다."""
     unit_idx: int
     dx: float
     dy: float
@@ -36,11 +40,13 @@ class MinimaxEngine:
     """Minimax + Alpha-Beta 엔진."""
 
     def __init__(self, max_depth=3, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.max_depth = max_depth
         self.nodes_evaluated = 0
 
     def generate_moves(self, state: GameState) -> list[Move]:
+        """`moves` 결과를 생성한다."""
         moves = []
         positions = state.blue_positions if state.turn == "blue" else state.red_positions
         for i in range(len(positions)):
@@ -50,6 +56,7 @@ class MinimaxEngine:
         return moves[:10]  # 제한
 
     def apply_move(self, state: GameState, move: Move) -> GameState:
+        """``apply_move`` 동작을 수행한다."""
         bp = state.blue_positions.copy()
         rp = state.red_positions.copy()
         bh = state.blue_health.copy()
@@ -78,6 +85,7 @@ class MinimaxEngine:
         return GameState(bp, rp, bh, rh, next_turn)
 
     def minimax(self, state: GameState, depth: int, alpha: float, beta: float, maximizing: bool) -> float:
+        """``minimax`` 동작을 수행한다."""
         self.nodes_evaluated += 1
         if depth == 0 or state.is_terminal():
             return state.score()
@@ -103,6 +111,7 @@ class MinimaxEngine:
             return value
 
     def best_move(self, state: GameState) -> Move:
+        """``best_move`` 동작을 수행한다."""
         moves = self.generate_moves(state)
         best = moves[0]
         best_val = -np.inf
@@ -119,6 +128,7 @@ class AdversarialSwarmGame:
     """적대적 군집 게임 시뮬레이션."""
 
     def __init__(self, n_blue=3, n_red=3, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.engine = MinimaxEngine(2, seed)
         self.state = GameState(
@@ -130,6 +140,7 @@ class AdversarialSwarmGame:
         self.turns_played = 0
 
     def play_turn(self):
+        """``play_turn`` 동작을 수행한다."""
         if self.state.is_terminal():
             return
         move = self.engine.best_move(self.state)
@@ -137,12 +148,14 @@ class AdversarialSwarmGame:
         self.turns_played += 1
 
     def run(self, max_turns=20):
+        """메인 실행 루프를 수행한다."""
         for _ in range(max_turns):
             if self.state.is_terminal():
                 break
             self.play_turn()
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "turns": self.turns_played,
             "blue_alive": int(np.sum(self.state.blue_health > 0)),

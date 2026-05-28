@@ -39,6 +39,7 @@ class CommQoS:
     """통신 QoS 관리."""
 
     def __init__(self, total_bandwidth: float = 1000.0) -> None:
+        """인스턴스를 초기화한다."""
         self.total_bandwidth = total_bandwidth
         self._classes: dict[str, QoSClass] = {}
         self._allocations: dict[str, AllocationResult] = {}
@@ -48,12 +49,14 @@ class CommQoS:
         self, name: str, priority: int = 3,
         min_bw: float = 0.0, max_bw: float = 0.0,
     ) -> None:
+        """`class` 항목을 추가한다."""
         self._classes[name] = QoSClass(
             name=name, priority=priority,
             min_bandwidth=min_bw, max_bandwidth=max_bw,
         )
 
     def allocate(self, node_id: str, qos_class: str, requested_bw: float) -> AllocationResult:
+        """``allocate`` 동작을 수행한다."""
         cls = self._classes.get(qos_class)
         if not cls:
             result = AllocationResult(node_id, qos_class, 0, requested_bw, False)
@@ -85,6 +88,7 @@ class CommQoS:
         return result
 
     def release(self, node_id: str) -> None:
+        """``release`` 동작을 수행한다."""
         alloc = self._allocations.pop(node_id, None)
         if alloc:
             cls = self._classes.get(alloc.qos_class)
@@ -94,18 +98,22 @@ class CommQoS:
                     cls.members.remove(node_id)
 
     def utilization(self) -> float:
+        """``utilization`` 동작을 수행한다."""
         used = sum(a.allocated_bw for a in self._allocations.values())
         return round(used / max(self.total_bandwidth, 1) * 100, 1)
 
     def satisfaction_rate(self) -> float:
+        """``satisfaction_rate`` 동작을 수행한다."""
         if not self._history:
             return 100.0
         return round(sum(1 for a in self._history if a.satisfied) / len(self._history) * 100, 1)
 
     def class_usage(self) -> dict[str, float]:
+        """``class_usage`` 동작을 수행한다."""
         return {name: round(cls.current_usage, 1) for name, cls in self._classes.items()}
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "classes": len(self._classes),
             "active_allocations": len(self._allocations),

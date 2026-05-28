@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class OptoAgent:
+    """``OptoAgent`` 역할을 담당한다."""
     agent_id: int
     x: float
     y: float
@@ -20,7 +21,9 @@ class OptoAgent:
 
 
 class OptogeneticController:
+    """``OptogeneticController`` 역할을 담당한다."""
     def __init__(self, n_agents=20, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.agents = [
             OptoAgent(i, float(self.rng.uniform(0, 100)), float(self.rng.uniform(0, 100)))
@@ -30,9 +33,11 @@ class OptogeneticController:
         self.light_sources: list[tuple] = []  # (x, y, intensity, type)
 
     def add_light(self, x: float, y: float, intensity: float, light_type="excite"):
+        """`light` 항목을 추가한다."""
         self.light_sources.append((x, y, intensity, light_type))
 
     def step(self, dt=0.1):
+        """`대상` 실행 상태를 제어한다."""
         for a in self.agents:
             total_excite = 0.0
             total_inhibit = 0.0
@@ -66,18 +71,22 @@ class OptogeneticController:
 
 
 class SwarmOptogenetics:
+    """``SwarmOptogenetics`` 관련 기능을 제공한다."""
     def __init__(self, n_agents=20, seed=42):
+        """인스턴스를 초기화한다."""
         self.controller = OptogeneticController(n_agents, seed)
         self.steps = 0
         self.controller.add_light(50, 50, 1.0, "excite")
         self.controller.add_light(80, 20, 0.5, "inhibit")
 
     def run(self, steps=100):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             self.controller.step()
             self.steps += 1
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         states = [a.channel_state for a in self.controller.agents]
         return {
             "agents": self.controller.n,

@@ -9,6 +9,7 @@ import numpy as np
 
 @dataclass
 class DroneState:
+    """``DroneState`` 데이터를 표현한다."""
     drone_id: str
     position: np.ndarray
     velocity: np.ndarray
@@ -18,6 +19,7 @@ class DroneState:
 
 @dataclass
 class CollisionWarning:
+    """``CollisionWarning`` 관련 기능을 제공한다."""
     drone1_id: str
     drone2_id: str
     time_to_collision: float
@@ -26,7 +28,9 @@ class CollisionWarning:
 
 
 class CollisionPredictionSystem:
+    """``CollisionPredictionSystem`` 역할을 담당한다."""
     def __init__(self, prediction_horizon: float = 5.0):
+        """인스턴스를 초기화한다."""
         self.prediction_horizon = prediction_horizon
 
     def predict_trajectory(
@@ -34,6 +38,7 @@ class CollisionPredictionSystem:
         state: DroneState,
         steps: int = 50,
     ) -> np.ndarray:
+        """`trajectory` 결과를 계산하거나 판정한다."""
         dt = self.prediction_horizon / steps
 
         positions = [state.position.copy()]
@@ -53,6 +58,7 @@ class CollisionPredictionSystem:
         self,
         states: list[DroneState],
     ) -> list[CollisionWarning]:
+        """`collision` 결과를 계산하거나 판정한다."""
         warnings = []
 
         for i in range(len(states)):
@@ -91,6 +97,7 @@ class CollisionPredictionSystem:
         warning: CollisionWarning,
         current_state: DroneState,
     ) -> np.ndarray:
+        """``recommend_maneuver`` 동작을 수행한다."""
         escape_direction = np.random.randn(3)
         escape_direction /= np.linalg.norm(escape_direction)
 

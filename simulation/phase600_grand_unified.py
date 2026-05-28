@@ -13,6 +13,7 @@ import numpy as np
 
 @dataclass
 class SubsystemReport:
+    """``SubsystemReport`` 관련 기능을 제공한다."""
     name: str
     phase: int
     status: str   # ok, warn, error
@@ -24,6 +25,7 @@ class GrandUnifiedOrchestrator:
     """Phase 600: 전 모듈 통합 오케스트레이터."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.reports: list[SubsystemReport] = []
         self.start_time = time.time()
@@ -197,6 +199,7 @@ class GrandUnifiedOrchestrator:
         return d.summary()
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         total_runtime = (time.time() - self.start_time) * 1000
         ok = sum(1 for r in self.reports if r.status == "ok")
         return {

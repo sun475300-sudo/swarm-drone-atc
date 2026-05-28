@@ -102,6 +102,7 @@ def _translate_scenario(raw: dict[str, Any]) -> dict[str, Any]:
 # ── 시나리오 목록 ─────────────────────────────────────────────────────────
 
 def list_scenarios() -> list[str]:
+    """``list_scenarios`` 동작을 수행한다."""
     return sorted(p.stem for p in _SCENARIO_DIR.glob("*.yaml"))
 
 
@@ -217,6 +218,7 @@ def _print_aggregate(results: list[dict]) -> None:
 # ── CLI ──────────────────────────────────────────────────────────────────
 
 def main() -> None:
+    """``main`` 동작을 수행한다."""
     logging.basicConfig(level=logging.WARNING,
                         format="%(levelname)s %(name)s: %(message)s")
     parser = argparse.ArgumentParser(description="SDACS 시나리오 실행기")

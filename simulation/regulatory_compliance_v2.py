@@ -11,6 +11,7 @@ import numpy as np
 
 
 class RegulationType(Enum):
+    """``RegulationType`` 관련 기능을 제공한다."""
     KUTM = "k_utm"             # 한국 무인항공기 교통관리
     FAA_PART107 = "faa_107"    # FAA Small UAS
     EASA_OPEN = "easa_open"    # EU Open Category
@@ -19,6 +20,7 @@ class RegulationType(Enum):
 
 
 class ComplianceStatus(Enum):
+    """``ComplianceStatus`` 관련 기능을 제공한다."""
     COMPLIANT = "compliant"
     VIOLATION = "violation"
     WARNING = "warning"
@@ -27,6 +29,7 @@ class ComplianceStatus(Enum):
 
 
 class AirspaceClass(Enum):
+    """``AirspaceClass`` 관련 기능을 제공한다."""
     G = "class_g"      # Uncontrolled
     E = "class_e"      # Controlled (above 400ft)
     D = "class_d"      # Controlled (tower)
@@ -38,6 +41,7 @@ class AirspaceClass(Enum):
 
 @dataclass
 class DroneRegistration:
+    """``DroneRegistration`` 관련 기능을 제공한다."""
     drone_id: str
     operator_id: str
     registration_number: str
@@ -51,6 +55,7 @@ class DroneRegistration:
 
 @dataclass
 class FlightAuthorization:
+    """``FlightAuthorization`` 관련 기능을 제공한다."""
     auth_id: str
     drone_id: str
     area_center: tuple  # (lat, lon)
@@ -65,6 +70,7 @@ class FlightAuthorization:
 
 @dataclass
 class ComplianceViolation:
+    """``ComplianceViolation`` 관련 기능을 제공한다."""
     violation_id: str
     drone_id: str
     regulation: RegulationType
@@ -77,6 +83,7 @@ class ComplianceViolation:
 
 @dataclass
 class RegulationRule:
+    """``RegulationRule`` 관련 기능을 제공한다."""
     rule_id: str
     regulation: RegulationType
     description: str
@@ -88,6 +95,7 @@ class RegulatoryComplianceV2:
     """K-UTM integrated regulatory compliance engine."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.registrations: dict[str, DroneRegistration] = {}
         self.authorizations: dict[str, FlightAuthorization] = {}
@@ -121,6 +129,7 @@ class RegulatoryComplianceV2:
 
     def register_drone(self, drone_id: str, operator_id: str,
                        max_alt: float = 150.0, weight: float = 10.0) -> DroneRegistration:
+        """`drone` 항목을 추가한다."""
         reg_num = hashlib.sha256(f"{drone_id}:{operator_id}".encode()).hexdigest()[:12].upper()
         reg = DroneRegistration(drone_id, operator_id, reg_num, max_alt, weight)
         self.registrations[drone_id] = reg
@@ -130,6 +139,7 @@ class RegulatoryComplianceV2:
                               radius_m: float, max_alt: float,
                               start_time: float, end_time: float,
                               airspace: AirspaceClass = AirspaceClass.G) -> FlightAuthorization | None:
+        """``request_authorization`` 동작을 수행한다."""
         if drone_id not in self.registrations:
             return None
         reg = self.registrations[drone_id]
@@ -164,6 +174,7 @@ class RegulatoryComplianceV2:
     def check_flight_compliance(self, drone_id: str, altitude_m: float,
                                 speed_mps: float, position: tuple,
                                 timestamp: float) -> list[ComplianceViolation]:
+        """`flight compliance` 결과를 계산하거나 판정한다."""
         new_violations = []
         reg = self.registrations.get(drone_id)
         if not reg:
@@ -225,6 +236,7 @@ class RegulatoryComplianceV2:
         return actions
 
     def compliance_score(self, drone_id: str) -> float:
+        """``compliance_score`` 동작을 수행한다."""
         drone_violations = [v for v in self.violations if v.drone_id == drone_id]
         if not drone_violations:
             return 1.0
@@ -235,6 +247,7 @@ class RegulatoryComplianceV2:
         return round(max(0, 1.0 - penalty + recovery), 4)
 
     def generate_kutm_report(self) -> dict:
+        """`kutm report` 결과를 생성한다."""
         by_regulation = {}
         for v in self.violations:
             key = v.regulation.value
@@ -252,6 +265,7 @@ class RegulatoryComplianceV2:
         }
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "registered_drones": len(self.registrations),
             "authorizations": len(self.authorizations),

@@ -11,6 +11,7 @@ import numpy as np
 
 
 class AuthorizationStatus(Enum):
+    """``AuthorizationStatus`` 관련 기능을 제공한다."""
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -19,6 +20,7 @@ class AuthorizationStatus(Enum):
 
 
 class AirspaceClassFAA(Enum):
+    """``AirspaceClassFAA`` 관련 기능을 제공한다."""
     B = "B"
     C = "C"
     D = "D"
@@ -27,6 +29,7 @@ class AirspaceClassFAA(Enum):
 
 
 class OperationType(Enum):
+    """``OperationType`` 관련 기능을 제공한다."""
     PART_107 = "part_107"
     RECREATIONAL = "recreational"
     PUBLIC_SAFETY = "public_safety"
@@ -35,6 +38,7 @@ class OperationType(Enum):
 
 @dataclass
 class LAANCRequest:
+    """``LAANCRequest`` 데이터를 표현한다."""
     operator_id: str
     drone_registration: str
     operation_area: tuple[float, float, float, float]  # min_lat, min_lon, max_lat, max_lon
@@ -46,6 +50,7 @@ class LAANCRequest:
 
 @dataclass
 class LAANCAuthorization:
+    """``LAANCAuthorization`` 관련 기능을 제공한다."""
     request_id: str
     status: AuthorizationStatus
     authorized_altitude_ft: float
@@ -57,6 +62,7 @@ class LAANCAuthorization:
 
 @dataclass
 class TFR:
+    """``TFR`` 관련 기능을 제공한다."""
     tfr_id: str
     area: tuple[float, float, float, float]
     altitude_min_ft: float
@@ -84,6 +90,7 @@ class FAA_LAANC:
     """Simulated FAA LAANC authorization system."""
 
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self._next_id = 0
         self.authorizations: dict[str, LAANCAuthorization] = {}
@@ -95,6 +102,7 @@ class FAA_LAANC:
         return f"LAANC-{self._next_id:06d}"
 
     def request_authorization(self, request: LAANCRequest) -> LAANCAuthorization:
+        """``request_authorization`` 동작을 수행한다."""
         req_id = self._gen_id()
 
         center_lat = (request.operation_area[0] + request.operation_area[2]) / 2
@@ -130,17 +138,20 @@ class FAA_LAANC:
         return auth
 
     def check_authorization_status(self, request_id: str) -> str:
+        """`authorization status` 결과를 계산하거나 판정한다."""
         if request_id not in self.authorizations:
             return "not_found"
         return self.authorizations[request_id].status.value
 
     def cancel_authorization(self, request_id: str) -> bool:
+        """``cancel_authorization`` 동작을 수행한다."""
         if request_id not in self.authorizations:
             return False
         self.authorizations[request_id].status = AuthorizationStatus.CANCELLED
         return True
 
     def get_facility_map(self, area: tuple[float, float, float, float]) -> dict[str, Any]:
+        """`facility map` 정보를 조회한다."""
         center_lat = (area[0] + area[2]) / 2
         center_lon = (area[1] + area[3]) / 2
         airspace = self.check_airspace_class(center_lat, center_lon)
@@ -152,6 +163,7 @@ class FAA_LAANC:
         }
 
     def check_airspace_class(self, lat: float, lon: float) -> str:
+        """`airspace class` 결과를 계산하거나 판정한다."""
         for ap_lat, ap_lon, ap_class in SAMPLE_AIRPORTS:
             dist = np.sqrt((lat - ap_lat) ** 2 + (lon - ap_lon) ** 2) * 111320
             if dist < 9260:  # ~5 NM
@@ -159,6 +171,7 @@ class FAA_LAANC:
         return "G"
 
     def is_near_airport(self, lat: float, lon: float, radius_nm: float = 5.0) -> bool:
+        """`near airport` 여부를 반환한다."""
         radius_m = radius_nm * 1852.0
         for ap_lat, ap_lon, _ in SAMPLE_AIRPORTS:
             dist = np.sqrt((lat - ap_lat) ** 2 + (lon - ap_lon) ** 2) * 111320
@@ -167,6 +180,7 @@ class FAA_LAANC:
         return False
 
     def get_tfrs(self, area: tuple[float, float, float, float]) -> list[TFR]:
+        """`tfrs` 정보를 조회한다."""
         now = time.time()
         active = []
         for tfr in self.tfrs:
@@ -176,9 +190,11 @@ class FAA_LAANC:
         return active
 
     def add_tfr(self, tfr: TFR) -> None:
+        """`tfr` 항목을 추가한다."""
         self.tfrs.append(tfr)
 
     def validate_part107_compliance(self, operation: dict[str, Any]) -> dict[str, Any]:
+        """`part107 compliance` 결과를 계산하거나 판정한다."""
         violations = []
         if operation.get("altitude_ft", 0) > 400:
             violations.append("Exceeds 400ft AGL")

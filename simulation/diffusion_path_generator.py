@@ -14,12 +14,14 @@ PATH_DIM = 3  # x, y, z
 
 @dataclass
 class DiffusionStats:
+    """``DiffusionStats`` 관련 기능을 제공한다."""
     train_steps: int = 0
     total_loss: float = 0.0
     losses: list[float] = field(default_factory=list)
 
     @property
     def mean_loss(self) -> float:
+        """``mean_loss`` 동작을 수행한다."""
         return self.total_loss / max(self.train_steps, 1)
 
 
@@ -32,6 +34,7 @@ class NoiseScheduler:
         beta_start: float = 1e-4,
         beta_end: float = 0.02,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.num_timesteps = num_timesteps
         self.betas = np.linspace(beta_start, beta_end, num_timesteps, dtype=np.float32)
         self.alphas = 1.0 - self.betas
@@ -69,10 +72,12 @@ class TimeEmbedding(nn.Module):
     """Sinusoidal time step embedding."""
 
     def __init__(self, dim: int) -> None:
+        """인스턴스를 초기화한다."""
         super().__init__()
         self.dim = dim
 
     def forward(self, t: torch.Tensor) -> torch.Tensor:
+        """``forward`` 동작을 수행한다."""
         half = self.dim // 2
         freqs = torch.exp(
             -np.log(10000.0) * torch.arange(half, device=t.device).float() / half
@@ -91,6 +96,7 @@ class DenoisingNetwork(nn.Module):
         hidden_dim: int = 128,
         time_dim: int = 32,
     ) -> None:
+        """인스턴스를 초기화한다."""
         super().__init__()
         self.path_length = path_length
         self.path_dim = path_dim
@@ -137,6 +143,7 @@ class DiffusionPathGenerator:
         lr: float = 1e-3,
         seed: int = 42,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.path_length = path_length
         self.num_timesteps = num_timesteps
@@ -238,6 +245,7 @@ class DiffusionPathGenerator:
         return raw
 
     def get_stats(self) -> dict[str, float]:
+        """`stats` 정보를 조회한다."""
         return {
             "train_steps": self.stats.train_steps,
             "mean_loss": self.stats.mean_loss,

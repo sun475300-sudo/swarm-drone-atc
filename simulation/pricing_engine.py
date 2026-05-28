@@ -15,6 +15,7 @@ from typing import Any
 
 @dataclass
 class PriceQuote:
+    """``PriceQuote`` 관련 기능을 제공한다."""
     base: float
     distance_surcharge: float
     demand_surcharge: float
@@ -24,7 +25,9 @@ class PriceQuote:
 
 
 class PricingEngine:
+    """``PricingEngine`` 역할을 담당한다."""
     def __init__(self, base_price: float = 5000, per_km: float = 1000, demand_multiplier: float = 0.5, weather_multiplier: float = 0.3) -> None:
+        """인스턴스를 초기화한다."""
         self.base_price = base_price
         self.per_km = per_km
         self.demand_multiplier = demand_multiplier
@@ -32,6 +35,7 @@ class PricingEngine:
         self._quotes: list[PriceQuote] = []
 
     def calculate(self, distance_km: float = 1.0, demand_level: float = 0.5, wind_speed: float = 5.0, priority: int = 5) -> PriceQuote:
+        """``calculate`` 동작을 수행한다."""
         dist_surcharge = distance_km * self.per_km
         demand_surcharge = self.base_price * demand_level * self.demand_multiplier
         weather_surcharge = self.base_price * max(0, (wind_speed - 10) / 15) * self.weather_multiplier
@@ -48,11 +52,13 @@ class PricingEngine:
         return quote
 
     def average_price(self) -> float:
+        """``average_price`` 동작을 수행한다."""
         if not self._quotes:
             return 0
         return round(sum(q.total for q in self._quotes) / len(self._quotes))
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "quotes_generated": len(self._quotes),
             "avg_price": self.average_price(),

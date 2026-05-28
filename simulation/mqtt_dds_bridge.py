@@ -12,17 +12,20 @@ import numpy as np
 
 
 class QoSLevel(Enum):
+    """``QoSLevel`` 관련 기능을 제공한다."""
     AT_MOST_ONCE = 0
     AT_LEAST_ONCE = 1
     EXACTLY_ONCE = 2
 
 
 class Reliability(Enum):
+    """``Reliability`` 관련 기능을 제공한다."""
     BEST_EFFORT = "best_effort"
     RELIABLE = "reliable"
 
 
 class Durability(Enum):
+    """``Durability`` 관련 기능을 제공한다."""
     VOLATILE = "volatile"
     TRANSIENT_LOCAL = "transient_local"
     TRANSIENT = "transient"
@@ -31,6 +34,7 @@ class Durability(Enum):
 
 @dataclass
 class MQTTConfig:
+    """``MQTTConfig`` 데이터를 표현한다."""
     broker_host: str = "localhost"
     broker_port: int = 1883
     keepalive: int = 60
@@ -41,6 +45,7 @@ class MQTTConfig:
 
 @dataclass
 class DDSConfig:
+    """``DDSConfig`` 데이터를 표현한다."""
     domain_id: int = 0
     partition: str = "sdacs"
     reliability: Reliability = Reliability.RELIABLE
@@ -51,6 +56,7 @@ class MQTTClient:
     """Simulated MQTT client."""
 
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.connected = False
         self.config: MQTTConfig | None = None
@@ -62,12 +68,14 @@ class MQTTClient:
         }
 
     def connect(self, config: MQTTConfig | None = None) -> bool:
+        """``connect`` 동작을 수행한다."""
         self.config = config or MQTTConfig()
         self.connected = True
         self.stats["connect_time"] = time.time()
         return True
 
     def publish(self, topic: str, payload: Any, qos: int = 1) -> bool:
+        """``publish`` 동작을 수행한다."""
         if not self.connected:
             return False
         latency = self.rng.uniform(1.0, 15.0)
@@ -83,16 +91,19 @@ class MQTTClient:
         return True
 
     def subscribe(self, topic: str, callback: Callable) -> bool:
+        """`대상` 항목을 추가한다."""
         if not self.connected:
             return False
         self.subscriptions[topic] = callback
         return True
 
     def disconnect(self) -> None:
+        """``disconnect`` 동작을 수행한다."""
         self.connected = False
         self.subscriptions.clear()
 
     def get_stats(self) -> dict[str, Any]:
+        """`stats` 정보를 조회한다."""
         sent = max(self.stats["msgs_sent"], 1)
         return {
             "connected": self.connected,
@@ -107,6 +118,7 @@ class DDSParticipant:
     """Simulated DDS Domain Participant."""
 
     def __init__(self, config: DDSConfig | None = None, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.config = config or DDSConfig()
         self._next_id = 0
@@ -121,16 +133,19 @@ class DDSParticipant:
         return self._next_id
 
     def create_writer(self, topic: str, data_type: str = "DroneState") -> int:
+        """`writer` 결과를 생성한다."""
         wid = self._gen_id()
         self.writers[wid] = {"topic": topic, "data_type": data_type, "samples": []}
         return wid
 
     def create_reader(self, topic: str, callback: Callable) -> int:
+        """`reader` 결과를 생성한다."""
         rid = self._gen_id()
         self.readers[rid] = {"topic": topic, "callback": callback}
         return rid
 
     def write(self, writer_id: int, data: Any) -> bool:
+        """`대상` 결과를 저장한다."""
         if writer_id not in self.writers:
             return False
         w = self.writers[writer_id]
@@ -146,6 +161,7 @@ class DDSParticipant:
         return True
 
     def get_stats(self) -> dict[str, Any]:
+        """`stats` 정보를 조회한다."""
         written = max(self.stats["samples_written"], 1)
         return {
             "domain_id": self.config.domain_id,
@@ -161,6 +177,7 @@ class MQTTDDSBridge:
     """Hybrid MQTT + DDS communication bridge."""
 
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.mqtt = MQTTClient(seed=seed)
         self.dds = DDSParticipant(seed=seed)
         self.topic_mapping: dict[str, str] = {}
@@ -168,15 +185,18 @@ class MQTTDDSBridge:
     def setup(
         self, mqtt_config: MQTTConfig | None = None, dds_config: DDSConfig | None = None
     ) -> bool:
+        """``setup`` 동작을 수행한다."""
         mqtt_ok = self.mqtt.connect(mqtt_config)
         if dds_config:
             self.dds = DDSParticipant(config=dds_config)
         return mqtt_ok
 
     def map_topic(self, mqtt_topic: str, dds_topic: str) -> None:
+        """``map_topic`` 동작을 수행한다."""
         self.topic_mapping[mqtt_topic] = dds_topic
 
     def publish_hybrid(self, topic: str, data: Any) -> dict[str, bool]:
+        """``publish_hybrid`` 동작을 수행한다."""
         mqtt_ok = self.mqtt.publish(topic, data)
         dds_topic = self.topic_mapping.get(topic, topic)
         wid = self.dds.create_writer(dds_topic)
@@ -184,6 +204,7 @@ class MQTTDDSBridge:
         return {"mqtt": mqtt_ok, "dds": dds_ok}
 
     def get_combined_stats(self) -> dict[str, Any]:
+        """`combined stats` 정보를 조회한다."""
         return {
             "mqtt": self.mqtt.get_stats(),
             "dds": self.dds.get_stats(),

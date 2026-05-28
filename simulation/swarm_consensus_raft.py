@@ -11,6 +11,7 @@ import numpy as np
 
 
 class NodeRole(Enum):
+    """``NodeRole`` 관련 기능을 제공한다."""
     FOLLOWER = "follower"
     CANDIDATE = "candidate"
     LEADER = "leader"
@@ -18,6 +19,7 @@ class NodeRole(Enum):
 
 @dataclass
 class LogEntry:
+    """``LogEntry`` 데이터를 표현한다."""
     term: int
     command: str
     data: dict = field(default_factory=dict)
@@ -26,6 +28,7 @@ class LogEntry:
 
 @dataclass
 class RaftNode:
+    """``RaftNode`` 관련 기능을 제공한다."""
     node_id: str
     role: NodeRole = NodeRole.FOLLOWER
     current_term: int = 0
@@ -36,7 +39,9 @@ class RaftNode:
 
 
 class SwarmRaftConsensus:
+    """``SwarmRaftConsensus`` 관련 기능을 제공한다."""
     def __init__(self, n_nodes: int = 5, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_nodes = n_nodes
         self.nodes: dict[str, RaftNode] = {}
@@ -51,6 +56,7 @@ class SwarmRaftConsensus:
         return self.n_nodes // 2 + 1
 
     def start_election(self, candidate_id: str) -> bool:
+        """`election` 실행 상태를 제어한다."""
         if candidate_id not in self.nodes:
             return False
 
@@ -87,6 +93,7 @@ class SwarmRaftConsensus:
         return False
 
     def append_entry(self, command: str, data: dict | None = None) -> bool:
+        """`entry` 항목을 추가한다."""
         if self.leader_id is None:
             return False
 
@@ -119,12 +126,14 @@ class SwarmRaftConsensus:
         return False
 
     def propose_route(self, drone_id: str, route: list[np.ndarray]) -> bool:
+        """``propose_route`` 동작을 수행한다."""
         return self.append_entry("ROUTE_PROPOSAL", {
             "drone_id": drone_id,
             "waypoints": len(route),
         })
 
     def propose_avoidance(self, drone_a: str, drone_b: str, action: str) -> bool:
+        """``propose_avoidance`` 동작을 수행한다."""
         return self.append_entry("AVOIDANCE_DECISION", {
             "drone_a": drone_a,
             "drone_b": drone_b,
@@ -132,11 +141,13 @@ class SwarmRaftConsensus:
         })
 
     def get_committed_log(self) -> list[LogEntry]:
+        """`committed log` 정보를 조회한다."""
         if self.leader_id is None:
             return []
         return [e for e in self.nodes[self.leader_id].log if e.committed]
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "n_nodes": self.n_nodes,
             "leader": self.leader_id,
@@ -148,6 +159,7 @@ class SwarmRaftConsensus:
 
     def run(self, n_rounds: int = 20) -> dict:
         # Elect leader
+        """메인 실행 루프를 수행한다."""
         candidates = list(self.nodes.keys())
         elected = False
         for cid in self.rng.permutation(candidates):

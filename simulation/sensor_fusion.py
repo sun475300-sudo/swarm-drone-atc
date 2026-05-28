@@ -42,6 +42,7 @@ class SensorFusion:
     """다중 센서 데이터 융합."""
 
     def __init__(self, max_age_s: float = 5.0) -> None:
+        """인스턴스를 초기화한다."""
         self._measurements: dict[str, dict[str, SensorMeasurement]] = {}
         self._max_age = max_age_s
         self._fused: dict[str, FusedState] = {}
@@ -55,6 +56,7 @@ class SensorFusion:
         t: float = 0.0,
         confidence: float = 1.0,
     ) -> None:
+        """`measurement` 항목을 추가한다."""
         if drone_id not in self._measurements:
             self._measurements[drone_id] = {}
         self._measurements[drone_id][sensor_type] = SensorMeasurement(
@@ -118,6 +120,7 @@ class SensorFusion:
         return result
 
     def get_fused(self, drone_id: str) -> FusedState | None:
+        """`fused` 정보를 조회한다."""
         return self._fused.get(drone_id)
 
     def sensor_health(self, drone_id: str) -> dict[str, float]:
@@ -135,6 +138,7 @@ class SensorFusion:
         return result
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         total_sensors = sum(len(s) for s in self._measurements.values())
         return {
             "tracked_drones": len(self._measurements),

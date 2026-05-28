@@ -11,17 +11,20 @@ import numpy as np
 
 @dataclass
 class Synapse:
+    """``Synapse`` 관련 기능을 제공한다."""
     source: int
     permanence: float = 0.5
     connected_threshold: float = 0.3
 
     @property
     def is_connected(self) -> bool:
+        """`connected` 여부를 반환한다."""
         return self.permanence >= self.connected_threshold
 
 
 @dataclass
 class MiniColumn:
+    """``MiniColumn`` 관련 기능을 제공한다."""
     col_id: int
     cells: int = 4
     active: bool = False
@@ -30,7 +33,9 @@ class MiniColumn:
 
 
 class CorticalColumn:
+    """``CorticalColumn`` 관련 기능을 제공한다."""
     def __init__(self, n_columns=64, n_inputs=32, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_columns = n_columns
         self.n_inputs = n_inputs
@@ -47,6 +52,7 @@ class CorticalColumn:
             col.synapses = [Synapse(int(s), float(self.rng.uniform(0.2, 0.7))) for s in sources]
 
     def compute_overlap(self, input_bits: np.ndarray) -> np.ndarray:
+        """`overlap` 값을 계산한다."""
         overlaps = np.zeros(self.n_columns)
         for i, col in enumerate(self.columns):
             for syn in col.synapses:
@@ -55,11 +61,13 @@ class CorticalColumn:
         return overlaps
 
     def inhibit(self, overlaps: np.ndarray, sparsity=0.1) -> list[int]:
+        """``inhibit`` 동작을 수행한다."""
         k = max(1, int(self.n_columns * sparsity))
         top_k = np.argsort(overlaps)[-k:]
         return [int(i) for i in top_k if overlaps[i] > 0]
 
     def learn(self, active_cols: list[int], input_bits: np.ndarray):
+        """``learn`` 동작을 수행한다."""
         for col_id in active_cols:
             col = self.columns[col_id]
             for syn in col.synapses:
@@ -70,6 +78,7 @@ class CorticalColumn:
         self.learn_count += 1
 
     def process(self, input_bits: np.ndarray) -> list[int]:
+        """`대상` 처리 로직을 수행한다."""
         overlaps = self.compute_overlap(input_bits)
         active = self.inhibit(overlaps)
         self.learn(active, input_bits)
@@ -78,13 +87,16 @@ class CorticalColumn:
 
 
 class CorticalColumnHTM:
+    """``CorticalColumnHTM`` 관련 기능을 제공한다."""
     def __init__(self, n_columns=64, n_inputs=32, seed=42):
+        """인스턴스를 초기화한다."""
         self.htm = CorticalColumn(n_columns, n_inputs, seed)
         self.rng = np.random.default_rng(seed)
         self.steps = 0
         self.accuracy_history: list[float] = []
 
     def run(self, steps=100):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             pattern = (self.rng.random(self.htm.n_inputs) > 0.5).astype(int)
             active = self.htm.process(pattern)
@@ -93,6 +105,7 @@ class CorticalColumnHTM:
             self.steps += 1
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "columns": self.htm.n_columns,
             "inputs": self.htm.n_inputs,

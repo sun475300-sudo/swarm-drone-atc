@@ -12,6 +12,7 @@ import numpy as np
 
 
 class DroneCapability(Enum):
+    """``DroneCapability`` 관련 기능을 제공한다."""
     SURVEILLANCE = "surveillance"
     DELIVERY = "delivery"
     TRANSPORT = "transport"
@@ -21,6 +22,7 @@ class DroneCapability(Enum):
 
 
 class DroneStatus(Enum):
+    """``DroneStatus`` 관련 기능을 제공한다."""
     AVAILABLE = "available"
     IN_MISSION = "in_mission"
     CHARGING = "charging"
@@ -30,6 +32,7 @@ class DroneStatus(Enum):
 
 @dataclass
 class Drone:
+    """``Drone`` 관련 기능을 제공한다."""
     drone_id: str
     capabilities: list[DroneCapability]
     max_payload_kg: float
@@ -42,6 +45,7 @@ class Drone:
 
 @dataclass
 class Mission:
+    """``Mission`` 관련 기능을 제공한다."""
     mission_id: str
     required_capabilities: list[DroneCapability]
     required_payload_kg: float
@@ -53,6 +57,7 @@ class Mission:
 
 @dataclass
 class FleetAssignment:
+    """``FleetAssignment`` 관련 기능을 제공한다."""
     mission_id: str
     assigned_drones: list[str]
     total_payload_capacity: float
@@ -60,6 +65,7 @@ class FleetAssignment:
 
 
 class AutonomousFleetComposer:
+    """``AutonomousFleetComposer`` 관련 기능을 제공한다."""
     def __init__(
         self,
         fleet_id: str,
@@ -68,6 +74,7 @@ class AutonomousFleetComposer:
         battery_threshold: float = 0.2,
         load_balance_enabled: bool = True,
     ):
+        """인스턴스를 초기화한다."""
         self.fleet_id = fleet_id
         self.min_drones_per_mission = min_drones_per_mission
         self.max_drones_per_mission = max_drones_per_mission
@@ -113,6 +120,7 @@ class AutonomousFleetComposer:
         battery_capacity_wh: float,
         position: np.ndarray,
     ):
+        """`drone` 항목을 추가한다."""
         drone = Drone(
             drone_id=drone_id,
             capabilities=capabilities,
@@ -126,10 +134,12 @@ class AutonomousFleetComposer:
         self.drones[drone_id] = drone
 
     def submit_mission(self, mission: Mission) -> bool:
+        """``submit_mission`` 동작을 수행한다."""
         self.missions[mission.mission_id] = mission
         return True
 
     def compose_fleet(self, mission_id: str) -> FleetAssignment | None:
+        """``compose_fleet`` 동작을 수행한다."""
         if mission_id not in self.missions:
             return None
 
@@ -224,6 +234,7 @@ class AutonomousFleetComposer:
         )
 
     def complete_mission(self, mission_id: str):
+        """``complete_mission`` 동작을 수행한다."""
         if mission_id not in self.assignments:
             return
 
@@ -239,6 +250,7 @@ class AutonomousFleetComposer:
         del self.assignments[mission_id]
 
     def rebalance_fleet(self) -> dict[str, Any]:
+        """``rebalance_fleet`` 동작을 수행한다."""
         rebalancing_actions = []
 
         available_drones = [
@@ -266,6 +278,7 @@ class AutonomousFleetComposer:
         }
 
     def get_fleet_status(self) -> dict[str, Any]:
+        """`fleet status` 정보를 조회한다."""
         status_counts = defaultdict(int)
         for drone in self.drones.values():
             status_counts[drone.status.value] += 1
@@ -281,6 +294,7 @@ class AutonomousFleetComposer:
     def predict_fleet_availability(
         self, time_horizon_hours: float = 24
     ) -> dict[str, float]:
+        """`fleet availability` 결과를 계산하거나 판정한다."""
         available_predictions = {}
 
         for status in DroneStatus:

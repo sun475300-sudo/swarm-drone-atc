@@ -11,19 +11,24 @@ import numpy as np
 
 @dataclass
 class PathSegment:
+    """``PathSegment`` 관련 기능을 제공한다."""
     points: np.ndarray  # (N, 3)
     drone_id: int
 
 
 class KnotAnalyzer:
+    """``KnotAnalyzer`` 역할을 담당한다."""
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.paths: list[PathSegment] = []
 
     def add_path(self, drone_id: int, points: np.ndarray):
+        """`path` 항목을 추가한다."""
         self.paths.append(PathSegment(points, drone_id))
 
     def compute_crossing_number(self, path_a: PathSegment, path_b: PathSegment) -> int:
+        """`crossing number` 값을 계산한다."""
         crossings = 0
         for i in range(len(path_a.points) - 1):
             for j in range(len(path_b.points) - 1):
@@ -45,6 +50,7 @@ class KnotAnalyzer:
         return float((b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0]))
 
     def total_entanglement(self) -> int:
+        """``total_entanglement`` 동작을 수행한다."""
         total = 0
         for i in range(len(self.paths)):
             for j in range(i+1, len(self.paths)):
@@ -52,6 +58,7 @@ class KnotAnalyzer:
         return total
 
     def writhe(self, path: PathSegment) -> float:
+        """``writhe`` 동작을 수행한다."""
         w = 0.0
         pts = path.points
         for i in range(len(pts) - 1):
@@ -66,7 +73,9 @@ class KnotAnalyzer:
 
 
 class KnotTheoryPaths:
+    """``KnotTheoryPaths`` 관련 기능을 제공한다."""
     def __init__(self, n_drones=8, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.analyzer = KnotAnalyzer(seed)
         self.n_drones = n_drones
@@ -85,9 +94,11 @@ class KnotTheoryPaths:
             self.analyzer.add_path(d, points)
 
     def run(self):
+        """메인 실행 루프를 수행한다."""
         pass  # analysis is computed on demand
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         entanglement = self.analyzer.total_entanglement()
         writhes = [self.analyzer.writhe(p) for p in self.analyzer.paths]
         return {

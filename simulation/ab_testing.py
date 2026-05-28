@@ -62,6 +62,7 @@ class ABTestRunner:
         confidence_level: float = 0.95,
         seed: int | None = None,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._n_samples = n_samples
         self._confidence = confidence_level
         self._rng = np.random.default_rng(seed) if seed else np.random.default_rng()
@@ -180,6 +181,7 @@ class MultiArmedBandit:
         epsilon: float = 0.1,
         seed: int | None = None,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._arms = arms
         self._epsilon = epsilon
         self._rng = np.random.default_rng(seed) if seed else np.random.default_rng()
@@ -246,6 +248,7 @@ class ScenarioABComparator:
     }
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._comparisons: dict[str, dict[str, float]] = {}
 
     def add_comparison(

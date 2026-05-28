@@ -13,6 +13,7 @@ import numpy as np
 
 @dataclass
 class Landmark:
+    """``Landmark`` 관련 기능을 제공한다."""
     landmark_id: str
     position: np.ndarray
     uncertainty: float = 1.0
@@ -22,6 +23,7 @@ class Landmark:
 
 @dataclass
 class Pose:
+    """``Pose`` 관련 기능을 제공한다."""
     position: np.ndarray
     orientation: float = 0.0  # yaw in radians
     timestamp: float = 0.0
@@ -29,6 +31,7 @@ class Pose:
 
 @dataclass
 class Observation:
+    """``Observation`` 관련 기능을 제공한다."""
     drone_id: str
     landmark_id: str
     bearing: float  # radians
@@ -38,6 +41,7 @@ class Observation:
 
 @dataclass
 class LoopClosure:
+    """``LoopClosure`` 관련 기능을 제공한다."""
     drone_a: str
     drone_b: str
     pose_a: Pose
@@ -50,13 +54,16 @@ class FactorGraph:
     """Simplified factor graph for pose optimization."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self._poses: dict[str, list[Pose]] = {}
         self._factors: list[dict] = []
 
     def add_pose(self, drone_id: str, pose: Pose):
+        """`pose` 항목을 추가한다."""
         self._poses.setdefault(drone_id, []).append(pose)
 
     def add_odometry_factor(self, drone_id: str, delta_pos: np.ndarray, delta_yaw: float):
+        """`odometry factor` 항목을 추가한다."""
         self._factors.append({
             "type": "odometry", "drone_id": drone_id,
             "delta_pos": delta_pos, "delta_yaw": delta_yaw,
@@ -64,12 +71,14 @@ class FactorGraph:
 
     def add_landmark_factor(self, drone_id: str, landmark_id: str,
                             bearing: float, range_m: float):
+        """`landmark factor` 항목을 추가한다."""
         self._factors.append({
             "type": "landmark", "drone_id": drone_id,
             "landmark_id": landmark_id, "bearing": bearing, "range": range_m,
         })
 
     def add_loop_closure_factor(self, closure: LoopClosure):
+        """`loop closure factor` 항목을 추가한다."""
         self._factors.append({
             "type": "loop_closure",
             "drone_a": closure.drone_a, "drone_b": closure.drone_b,
@@ -100,6 +109,7 @@ class MultiDroneSLAM:
     """
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._graph = FactorGraph()
         self._landmarks: dict[str, Landmark] = {}
@@ -109,6 +119,7 @@ class MultiDroneSLAM:
         self._merged_map: dict[str, Landmark] = {}
 
     def add_drone(self, drone_id: str, initial_pose: Pose):
+        """`drone` 항목을 추가한다."""
         self._drone_poses[drone_id] = [initial_pose]
         self._graph.add_pose(drone_id, initial_pose)
 
@@ -215,12 +226,15 @@ class MultiDroneSLAM:
         return self._merged_map
 
     def optimize(self, n_iter: int = 10) -> float:
+        """``optimize`` 동작을 수행한다."""
         return self._graph.optimize(n_iter)
 
     def get_drone_trajectory(self, drone_id: str) -> list[np.ndarray]:
+        """`drone trajectory` 정보를 조회한다."""
         return [p.position for p in self._drone_poses.get(drone_id, [])]
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_drones": len(self._drone_poses),
             "total_landmarks": len(self._landmarks),

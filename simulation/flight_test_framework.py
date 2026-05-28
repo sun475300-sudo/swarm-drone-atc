@@ -11,6 +11,7 @@ import numpy as np
 
 
 class TestStatus(Enum):
+    """``TestStatus`` 관련 기능을 제공한다."""
     PENDING = "pending"
     RUNNING = "running"
     PASSED = "passed"
@@ -20,6 +21,7 @@ class TestStatus(Enum):
 
 @dataclass
 class TestCase:
+    """``TestCase`` 관련 기능을 제공한다."""
     name: str
     description: str
     preconditions: list[str] = field(default_factory=list)
@@ -31,6 +33,7 @@ class TestCase:
 
 @dataclass
 class FlightTestResult:
+    """``FlightTestResult`` 데이터를 표현한다."""
     test_name: str
     passed: bool
     duration_s: float
@@ -43,6 +46,7 @@ class FlightTestRunner:
     """Framework for validating drone behavior in simulated flight tests."""
 
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.tests: dict[str, TestCase] = {}
         self.results: list[FlightTestResult] = []
@@ -96,9 +100,11 @@ class FlightTestRunner:
         ))
 
     def register_test(self, test_case: TestCase) -> None:
+        """`test` 항목을 추가한다."""
         self.tests[test_case.name] = test_case
 
     def run_test(self, test_name: str) -> FlightTestResult:
+        """``run_test`` 동작을 수행한다."""
         if test_name not in self.tests:
             return FlightTestResult(
                 test_name=test_name, passed=False, duration_s=0.0,
@@ -155,12 +161,14 @@ class FlightTestRunner:
         return result
 
     def run_all(self) -> list[FlightTestResult]:
+        """``run_all`` 동작을 수행한다."""
         results = []
         for name in self.tests:
             results.append(self.run_test(name))
         return results
 
     def run_by_tag(self, tag: str) -> list[FlightTestResult]:
+        """``run_by_tag`` 동작을 수행한다."""
         results = []
         for name, tc in self.tests.items():
             if tag in tc.tags:
@@ -168,6 +176,7 @@ class FlightTestRunner:
         return results
 
     def get_summary(self) -> dict[str, Any]:
+        """`summary` 정보를 조회한다."""
         total = len(self.results)
         passed = sum(1 for r in self.results if r.passed)
         failed = total - passed

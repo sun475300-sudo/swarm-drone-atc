@@ -12,6 +12,7 @@ from typing import Any
 
 @dataclass
 class Building:
+    """``Building`` 관련 기능을 제공한다."""
     x: float
     y: float
     width: float
@@ -21,6 +22,7 @@ class Building:
 
 @dataclass
 class Corridor:
+    """``Corridor`` 관련 기능을 제공한다."""
     start: tuple[float, float]
     end: tuple[float, float]
     width: float
@@ -28,6 +30,7 @@ class Corridor:
 
 @dataclass
 class LandingPad:
+    """``LandingPad`` 관련 기능을 제공한다."""
     pad_id: str
     x: float
     y: float
@@ -35,7 +38,9 @@ class LandingPad:
 
 
 class CityMapGenerator:
+    """``CityMapGenerator`` 역할을 담당한다."""
     def __init__(self, width_m: float = 2000.0, height_m: float = 2000.0, seed: int | None = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.width_m = max(100.0, float(width_m))
         self.height_m = max(100.0, float(height_m))
         self.seed = seed
@@ -45,6 +50,7 @@ class CityMapGenerator:
         return self._rng.uniform(lo, hi)
 
     def generate_buildings(self, count: int = 40) -> list[Building]:
+        """`buildings` 결과를 생성한다."""
         out: list[Building] = []
         n = max(0, int(count))
         for _ in range(n):
@@ -57,6 +63,7 @@ class CityMapGenerator:
         return out
 
     def generate_corridors(self, count: int = 6) -> list[Corridor]:
+        """`corridors` 결과를 생성한다."""
         out: list[Corridor] = []
         n = max(1, int(count))
         for idx in range(n):
@@ -70,6 +77,7 @@ class CityMapGenerator:
         return out
 
     def generate_landing_pads(self, count: int = 8) -> list[LandingPad]:
+        """`landing pads` 결과를 생성한다."""
         out: list[LandingPad] = []
         n = max(1, int(count))
         for i in range(n):
@@ -85,6 +93,7 @@ class CityMapGenerator:
         corridors: int = 6,
         pads: int = 8,
     ) -> dict[str, Any]:
+        """`map` 결과를 생성한다."""
         b = self.generate_buildings(buildings)
         c = self.generate_corridors(corridors)
         p = self.generate_landing_pads(pads)
@@ -98,6 +107,7 @@ class CityMapGenerator:
         }
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "width_m": self.width_m,
             "height_m": self.height_m,

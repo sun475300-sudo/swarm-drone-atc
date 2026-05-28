@@ -14,6 +14,7 @@ import numpy as np
 
 
 class ObstacleType(Enum):
+    """``ObstacleType`` 관련 기능을 제공한다."""
     STATIC = "static"
     DYNAMIC = "dynamic"
     NFZ = "nfz"
@@ -23,6 +24,7 @@ class ObstacleType(Enum):
 
 @dataclass
 class Obstacle:
+    """``Obstacle`` 관련 기능을 제공한다."""
     obstacle_id: str
     center: np.ndarray
     radius: float
@@ -33,6 +35,7 @@ class Obstacle:
 
 @dataclass
 class RouteSegment:
+    """``RouteSegment`` 관련 기능을 제공한다."""
     start: np.ndarray
     end: np.ndarray
     cost: float = 0.0
@@ -41,6 +44,7 @@ class RouteSegment:
 
 @dataclass
 class Route:
+    """``Route`` 관련 기능을 제공한다."""
     route_id: str
     drone_id: str
     segments: list[RouteSegment] = field(default_factory=list)
@@ -53,6 +57,7 @@ class AStarPathfinder:
     """3D A* 경로 탐색기 (격자 기반)."""
 
     def __init__(self, grid_size: float = 10.0, bounds: tuple[float, float, float] = (500.0, 500.0, 200.0)):
+        """인스턴스를 초기화한다."""
         self.grid_size = grid_size
         self.bounds = bounds
 
@@ -69,6 +74,7 @@ class AStarPathfinder:
         return any(obs.active and np.linalg.norm(pos[:3] - obs.center[:3]) < obs.radius for obs in obstacles)
 
     def find_path(self, start: np.ndarray, goal: np.ndarray, obstacles: list[Obstacle], max_iterations: int = 2000) -> list[np.ndarray]:
+        """``find_path`` 동작을 수행한다."""
         start_g = self._to_grid(start)
         goal_g = self._to_grid(goal)
         open_set = [(self._heuristic(start_g, goal_g), 0, start_g)]
@@ -119,6 +125,7 @@ class DynamicRerouter:
     """
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._obstacles: dict[str, Obstacle] = {}
         self._routes: dict[str, Route] = {}
@@ -126,15 +133,18 @@ class DynamicRerouter:
         self._reroute_history: list[dict] = []
 
     def add_obstacle(self, obstacle: Obstacle):
+        """`obstacle` 항목을 추가한다."""
         self._obstacles[obstacle.obstacle_id] = obstacle
 
     def remove_obstacle(self, obstacle_id: str) -> bool:
+        """`obstacle` 상태를 정리한다."""
         if obstacle_id in self._obstacles:
             del self._obstacles[obstacle_id]
             return True
         return False
 
     def create_route(self, route_id: str, drone_id: str, waypoints: list[np.ndarray]) -> Route:
+        """`route` 결과를 생성한다."""
         segments = []
         for i in range(len(waypoints) - 1):
             cost = np.linalg.norm(waypoints[i + 1] - waypoints[i])
@@ -145,6 +155,7 @@ class DynamicRerouter:
         return route
 
     def validate_route(self, route_id: str) -> bool:
+        """`route` 결과를 계산하거나 판정한다."""
         route = self._routes.get(route_id)
         if not route:
             return False
@@ -161,6 +172,7 @@ class DynamicRerouter:
         return True
 
     def reroute(self, route_id: str) -> Route | None:
+        """``reroute`` 동작을 수행한다."""
         route = self._routes.get(route_id)
         if not route or not route.segments:
             return None
@@ -182,6 +194,7 @@ class DynamicRerouter:
         return route
 
     def auto_reroute_all(self) -> list[str]:
+        """``auto_reroute_all`` 동작을 수행한다."""
         rerouted = []
         for rid in list(self._routes.keys()):
             if not self.validate_route(rid):
@@ -191,9 +204,11 @@ class DynamicRerouter:
         return rerouted
 
     def get_route(self, route_id: str) -> Route | None:
+        """`route` 정보를 조회한다."""
         return self._routes.get(route_id)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         valid = sum(1 for r in self._routes.values() if r.is_valid)
         return {
             "total_routes": len(self._routes),

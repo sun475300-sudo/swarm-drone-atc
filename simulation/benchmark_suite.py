@@ -37,6 +37,7 @@ class BenchmarkSuite:
     """성능 벤치마크 스위트."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._results: dict[str, BenchmarkResult] = {}
         self._baselines: dict[str, BenchmarkResult] = {}
         self._history: list[tuple[str, BenchmarkResult]] = []
@@ -118,9 +119,11 @@ class BenchmarkSuite:
         return regressions
 
     def get_result(self, name: str) -> BenchmarkResult | None:
+        """`result` 정보를 조회한다."""
         return self._results.get(name)
 
     def all_results(self) -> dict[str, BenchmarkResult]:
+        """``all_results`` 동작을 수행한다."""
         return dict(self._results)
 
     def report(self) -> str:
@@ -142,6 +145,7 @@ class BenchmarkSuite:
         return "\n".join(lines)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_benchmarks": len(self._results),
             "baselines_set": len(self._baselines),

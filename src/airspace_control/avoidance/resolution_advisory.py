@@ -8,6 +8,7 @@ import numpy as np
 
 
 def new_advisory_id() -> str:
+    """``new_advisory_id`` 동작을 수행한다."""
     return f"ADV-{uuid.uuid4().hex[:8].upper()}"
 
 
@@ -44,6 +45,7 @@ class AdvisoryGenerator:
         separation_lateral_m: float = 50.0,
         separation_vertical_m: float = 15.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.sep_lat  = separation_lateral_m
         self.sep_vert = separation_vertical_m
 

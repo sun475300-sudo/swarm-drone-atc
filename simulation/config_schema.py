@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class SimulationSection(BaseModel):
+    """``SimulationSection`` 관련 기능을 제공한다."""
     seed: int = 42
     duration_minutes: float = Field(default=10, gt=0, le=1440)
     time_step_hz: int = Field(default=10, ge=1, le=100)
@@ -23,6 +24,7 @@ class SimulationSection(BaseModel):
 
 
 class BoundsRange(BaseModel):
+    """``BoundsRange`` 관련 기능을 제공한다."""
     x: list[float] = [-5.0, 5.0]
     y: list[float] = [-5.0, 5.0]
     z: list[float] = [0.0, 0.12]
@@ -30,6 +32,7 @@ class BoundsRange(BaseModel):
     @field_validator("x", "y", "z")
     @classmethod
     def validate_range(cls, v: list[float]) -> list[float]:
+        """`range` 결과를 계산하거나 판정한다."""
         if len(v) != 2:
             raise ValueError("범위는 [min, max] 2개 값이어야 합니다")
         if v[0] >= v[1]:
@@ -38,18 +41,21 @@ class BoundsRange(BaseModel):
 
 
 class HomePosition(BaseModel):
+    """``HomePosition`` 관련 기능을 제공한다."""
     lat: float = Field(default=35.1595, ge=-90, le=90)
     lon: float = Field(default=126.8526, ge=-180, le=180)
     alt_m: float = Field(default=30.0, ge=0)
 
 
 class AirspaceSection(BaseModel):
+    """``AirspaceSection`` 관련 기능을 제공한다."""
     bounds_km: BoundsRange = BoundsRange()
     area_km2: float = Field(default=100, gt=0)
     home: HomePosition = HomePosition()
 
 
 class SeparationSection(BaseModel):
+    """``SeparationSection`` 관련 기능을 제공한다."""
     lateral_min_m: float = Field(default=50.0, gt=0, le=1000)
     vertical_min_m: float = Field(default=15.0, gt=0, le=500)
     near_miss_lateral_m: float = Field(default=10.0, gt=0)
@@ -58,6 +64,7 @@ class SeparationSection(BaseModel):
 
     @model_validator(mode="after")
     def near_miss_less_than_separation(self) -> SeparationSection:
+        """``near_miss_less_than_separation`` 동작을 수행한다."""
         if self.near_miss_lateral_m >= self.lateral_min_m:
             raise ValueError(
                 f"near_miss_lateral_m({self.near_miss_lateral_m}) >= "
@@ -67,6 +74,7 @@ class SeparationSection(BaseModel):
 
 
 class DronesSection(BaseModel):
+    """``DronesSection`` 관련 기능을 제공한다."""
     default_count: int = Field(default=100, ge=1, le=2000)
     max_speed_ms: float = Field(default=15.0, gt=0, le=100)
     cruise_speed_ms: float = Field(default=8.0, gt=0)
@@ -77,6 +85,7 @@ class DronesSection(BaseModel):
 
     @model_validator(mode="after")
     def altitude_range_valid(self) -> DronesSection:
+        """``altitude_range_valid`` 동작을 수행한다."""
         if self.min_altitude_m >= self.max_altitude_m:
             raise ValueError(
                 f"min_altitude_m({self.min_altitude_m}) >= "
@@ -86,6 +95,7 @@ class DronesSection(BaseModel):
 
     @model_validator(mode="after")
     def cruise_less_than_max(self) -> DronesSection:
+        """``cruise_less_than_max`` 동작을 수행한다."""
         if self.cruise_speed_ms > self.max_speed_ms:
             raise ValueError(
                 f"cruise_speed_ms({self.cruise_speed_ms}) > "
@@ -95,12 +105,14 @@ class DronesSection(BaseModel):
 
 
 class ControllerSection(BaseModel):
+    """``ControllerSection`` 관련 기능을 제공한다."""
     max_concurrent_clearances: int = Field(default=500, ge=1)
     clearance_timeout_s: float = Field(default=300.0, gt=0)
     advisory_retry_limit: int = Field(default=3, ge=0)
 
 
 class LoggingSection(BaseModel):
+    """``LoggingSection`` 관련 기능을 제공한다."""
     level: str = "INFO"
     save_trajectory: bool = True
     save_events: bool = True
@@ -109,6 +121,7 @@ class LoggingSection(BaseModel):
     @field_validator("level")
     @classmethod
     def validate_log_level(cls, v: str) -> str:
+        """`log level` 결과를 계산하거나 판정한다."""
         valid = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
         if v.upper() not in valid:
             raise ValueError(f"로그 레벨 '{v}'이 유효하지 않습니다. 허용: {valid}")
@@ -116,6 +129,7 @@ class LoggingSection(BaseModel):
 
 
 class FailureInjectionSection(BaseModel):
+    """``FailureInjectionSection`` 관련 기능을 제공한다."""
     drone_failure_rate: float = Field(default=0.0, ge=0, le=1.0)
     comms_loss_rate: float = Field(default=0.0, ge=0, le=1.0)
     failure_types: list[str] = Field(default_factory=lambda: ["MOTOR", "BATTERY", "GPS"])
@@ -143,6 +157,7 @@ class SimulationConfig(BaseModel):
 
 
 class MCSweepSection(BaseModel):
+    """``MCSweepSection`` 관련 기능을 제공한다."""
     drone_density: list[int] = Field(default_factory=lambda: [50, 100])
     area_size_km2: list[float] = Field(default_factory=lambda: [100])
     failure_rate_pct: list[float] = Field(default_factory=lambda: [0])
@@ -154,6 +169,7 @@ class MCSweepSection(BaseModel):
 
 
 class AcceptanceThresholds(BaseModel):
+    """``AcceptanceThresholds`` 관련 기능을 제공한다."""
     collision_rate_per_1000h: float = Field(default=0.0, ge=0)
     conflict_resolution_rate_pct: float = Field(default=99.5, ge=0, le=100)
     route_efficiency_max: float = Field(default=1.15, gt=0)

@@ -48,6 +48,7 @@ class _TensorCache:
     """
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._cache: dict[str, torch.Tensor] = {}
         self._device: torch.device | None = None
 

@@ -36,6 +36,7 @@ class LoadBalancer:
         target_density: int = 10,
         imbalance_threshold: float = 0.5,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.bounds = bounds
         self.n_rows, self.n_cols = sectors
         self.target = target_density
@@ -46,6 +47,7 @@ class LoadBalancer:
     def update(
         self, positions: dict[str, tuple[float, float, float]]
     ) -> None:
+        """`대상` 상태를 갱신한다."""
         self._positions = dict(positions)
         self._sector_counts.clear()
         for r in range(self.n_rows):
@@ -141,6 +143,7 @@ class LoadBalancer:
         return (x_min + (c + 0.5) * dx, y_min + (r + 0.5) * dy)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_drones": len(self._positions),
             "imbalance": round(self.imbalance_score(), 3),

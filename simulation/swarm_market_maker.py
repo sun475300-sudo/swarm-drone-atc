@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class Order:
+    """``Order`` 관련 기능을 제공한다."""
     order_id: int
     drone_id: int
     side: str  # "bid" or "ask"
@@ -20,13 +21,16 @@ class Order:
 
 
 class OrderBook:
+    """``OrderBook`` 관련 기능을 제공한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.bids: list[Order] = []
         self.asks: list[Order] = []
         self.trades: list[dict] = []
         self.next_id = 0
 
     def submit(self, drone_id: int, side: str, price: float, quantity: float, timestamp: int) -> Order:
+        """``submit`` 동작을 수행한다."""
         self.next_id += 1
         order = Order(self.next_id, drone_id, side, price, quantity, timestamp)
         if side == "bid":
@@ -58,18 +62,22 @@ class OrderBook:
                 self.asks.pop(0)
 
     def spread(self) -> float:
+        """``spread`` 동작을 수행한다."""
         if not self.bids or not self.asks:
             return float('inf')
         return self.asks[0].price - self.bids[0].price
 
     def mid_price(self) -> float:
+        """``mid_price`` 동작을 수행한다."""
         if not self.bids or not self.asks:
             return 0.0
         return (self.bids[0].price + self.asks[0].price) / 2
 
 
 class SwarmMarketMaker:
+    """``SwarmMarketMaker`` 관련 기능을 제공한다."""
     def __init__(self, n_drones=20, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.book = OrderBook()
         self.n_drones = n_drones
@@ -77,6 +85,7 @@ class SwarmMarketMaker:
         self.price_history: list[float] = []
 
     def run(self, steps=200):
+        """메인 실행 루프를 수행한다."""
         for t in range(steps):
             for d in range(self.n_drones):
                 side = "bid" if self.rng.random() < 0.5 else "ask"
@@ -90,6 +99,7 @@ class SwarmMarketMaker:
             self.steps += 1
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": self.n_drones,
             "steps": self.steps,

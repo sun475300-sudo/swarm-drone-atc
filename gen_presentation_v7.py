@@ -253,6 +253,7 @@ def add_big_stat_box(slide, left_in: float, top_in: float,
 
 
 def new_slide():
+    """``new_slide`` 동작을 수행한다."""
     return prs.slides.add_slide(BLANK_LAYOUT)
 
 
@@ -260,6 +261,7 @@ def new_slide():
 # ║ Slide 1: 표지                                                 ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_1_title() -> None:
+    """`slide 1 title` 결과를 생성한다."""
     slide = new_slide()
 
     # 전체 배경 블루
@@ -344,6 +346,7 @@ def build_slide_1_title() -> None:
 # ║ Slide 2: 문제 정의                                            ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_2_problem() -> None:
+    """`slide 2 problem` 결과를 생성한다."""
     slide = new_slide()
     add_header_bar(slide, "1. 문제 정의 \u2014 하늘길이 막히고 있다", 2)
 
@@ -363,6 +366,7 @@ def build_slide_2_problem() -> None:
 # ║ Slide 3: 기존 방식 한계                                       ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_3_gap() -> None:
+    """`slide 3 gap` 결과를 생성한다."""
     slide = new_slide()
     add_header_bar(slide, "2. 기존 방식의 한계", 3)
 
@@ -382,6 +386,7 @@ def build_slide_3_gap() -> None:
 # ║ Slide 4: SDACS 해결책 개요                                    ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_4_solution() -> None:
+    """`slide 4 solution` 결과를 생성한다."""
     slide = new_slide()
     add_header_bar(slide, "3. SDACS 해결책 \u2014 4계층 자동화 구조", 4)
 
@@ -401,6 +406,7 @@ def build_slide_4_solution() -> None:
 # ║ Slide 5: Layer 1 드론 에이전트                                ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_5_layer1() -> None:
+    """`slide 5 layer1` 결과를 생성한다."""
     slide = new_slide()
     add_header_bar(slide, "4. Layer 1 \u2014 드론 에이전트 (10 Hz)", 5)
 
@@ -421,6 +427,7 @@ def build_slide_5_layer1() -> None:
 # ║ Slide 6: Layer 2 공역 제어기                                  ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_6_layer2() -> None:
+    """`slide 6 layer2` 결과를 생성한다."""
     slide = new_slide()
     add_header_bar(slide, "5. Layer 2 \u2014 공역 제어기 (1 Hz, APF)", 6)
 
@@ -441,6 +448,7 @@ def build_slide_6_layer2() -> None:
 # ║ Slide 7: Layer 3 시뮬레이터/몬테카를로                         ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_7_layer3() -> None:
+    """`slide 7 layer3` 결과를 생성한다."""
     slide = new_slide()
     add_header_bar(slide, "6. Layer 3 \u2014 시뮬레이터 & Monte Carlo", 7)
 
@@ -461,6 +469,7 @@ def build_slide_7_layer3() -> None:
 # ║ Slide 8: APF 알고리즘                                         ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_8_apf() -> None:
+    """`slide 8 apf` 결과를 생성한다."""
     slide = new_slide()
     add_header_bar(slide, "7. APF (Artificial Potential Field) 알고리즘", 8)
 
@@ -481,6 +490,7 @@ def build_slide_8_apf() -> None:
 # ║ Slide 9: 강풍 모드 자동 전환                                   ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_9_wind() -> None:
+    """`slide 9 wind` 결과를 생성한다."""
     slide = new_slide()
     add_header_bar(slide, "8. 강풍 모드 자동 전환 (풍속 > 10 m/s)", 9)
 
@@ -501,6 +511,7 @@ def build_slide_9_wind() -> None:
 # ║ Slide 10: WebGPU Compute 최적화                                ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_10_gpu() -> None:
+    """`slide 10 gpu` 결과를 생성한다."""
     slide = new_slide()
     add_header_bar(slide, "9. WebGPU Compute Shader 가속", 10)
 
@@ -521,6 +532,7 @@ def build_slide_10_gpu() -> None:
 # ║ Slide 11: 7대 광역시 시나리오                                  ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_11_cities() -> None:
+    """`slide 11 cities` 결과를 생성한다."""
     slide = new_slide()
     add_header_bar(slide, "10. 7대 광역시 실증 시나리오", 11)
 
@@ -541,6 +553,7 @@ def build_slide_11_cities() -> None:
 # ║ Slide 12: 핵심 성과 97.8%                                     ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_12_success() -> None:
+    """`slide 12 success` 결과를 생성한다."""
     slide = new_slide()
     add_header_bar(slide, "11. 핵심 성과 \u2014 충돌 해결률 97.8%", 12)
 
@@ -570,6 +583,7 @@ def build_slide_12_success() -> None:
 # ║ Slide 13: 응답 시간 + 처리량                                   ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_13_latency() -> None:
+    """`slide 13 latency` 결과를 생성한다."""
     slide = new_slide()
     add_header_bar(slide, "12. 응답 시간 ~ 1.2 초 · 처리량 1.05배", 13)
 
@@ -597,6 +611,7 @@ def build_slide_13_latency() -> None:
 # ║ Slide 14: 3D 시각화 스크린샷                                   ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_14_viz() -> None:
+    """`slide 14 viz` 결과를 생성한다."""
     slide = new_slide()
     add_header_bar(slide, "13. 3D 시뮬레이션 시각화", 14)
 
@@ -616,6 +631,7 @@ def build_slide_14_viz() -> None:
 # ║ Slide 15: 향후 계획                                           ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_15_future() -> None:
+    """`slide 15 future` 결과를 생성한다."""
     slide = new_slide()
     add_header_bar(slide, "14. 향후 계획 \u2014 특허 · 실증 · 확장", 15)
 
@@ -636,6 +652,7 @@ def build_slide_15_future() -> None:
 # ║ Slide 16: 결론 + 감사합니다                                   ║
 # ╚═══════════════════════════════════════════════════════════════╝
 def build_slide_16_conclusion() -> None:
+    """`slide 16 conclusion` 결과를 생성한다."""
     slide = new_slide()
 
     # 배경: 좌측 블루 / 우측 화이트
@@ -711,6 +728,7 @@ def build_slide_16_conclusion() -> None:
 
 # ── 빌드 실행 ────────────────────────────────────────
 def build() -> None:
+    """`대상` 결과를 생성한다."""
     build_slide_1_title()
     build_slide_2_problem()
     build_slide_3_gap()

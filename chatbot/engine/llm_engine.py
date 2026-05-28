@@ -26,12 +26,14 @@ class LLMEngine(BaseEngine):
         model: str = "Qwen/Qwen2.5-7B-Instruct",
         timeout_s: float = 10.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.rule_engine = RuleEngine(knowledge_dir)
         self.vllm_url = vllm_url.rstrip("/") + "/"
         self.model = model
         self.timeout_s = timeout_s
 
     def query(self, user_input: str) -> ChatResponse | None:
+        """``query`` 동작을 수행한다."""
         if not user_input or not user_input.strip():
             return None
 
@@ -73,9 +75,11 @@ class LLMEngine(BaseEngine):
         )
 
     def get_categories(self) -> list[dict]:
+        """`categories` 정보를 조회한다."""
         return self.rule_engine.get_categories()
 
     def get_entry_by_id(self, entry_id: str) -> dict | None:
+        """`entry by id` 정보를 조회한다."""
         return self.rule_engine.get_entry_by_id(entry_id)
 
     def _build_messages(

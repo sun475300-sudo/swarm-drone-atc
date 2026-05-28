@@ -27,6 +27,7 @@ class ProfileReport:
     raw_stats: str = ""
 
     def summary(self) -> str:
+        """현재 상태 요약을 반환한다."""
         lines = [
             f"{'='*70}",
             "  SDACS 시뮬레이션 성능 프로파일 보고서",

@@ -65,10 +65,12 @@ class ScenarioScript:
 
     @property
     def event_count(self) -> int:
+        """``event_count`` 동작을 수행한다."""
         return len(self.events)
 
     @property
     def fired_count(self) -> int:
+        """``fired_count`` 동작을 수행한다."""
         return sum(1 for e in self.events if e.fired)
 
 
@@ -95,6 +97,7 @@ class ScenarioScripter:
     """
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._script: ScenarioScript | None = None
         self._time_index: dict[float, list[int]] = {}  # time → event indices
 
@@ -203,6 +206,7 @@ class ScenarioScripter:
 
     @property
     def script(self) -> ScenarioScript | None:
+        """``script`` 동작을 수행한다."""
         return self._script
 
     def summary(self) -> dict[str, Any]:

@@ -10,23 +10,28 @@ import numpy as np
 
 @dataclass
 class TelemetryPacket:
+    """``TelemetryPacket`` 관련 기능을 제공한다."""
     drone_id: str
     data: dict
     timestamp: float
 
 
 class TelemetryAggregationSystem:
+    """``TelemetryAggregationSystem`` 역할을 담당한다."""
     def __init__(self, aggregation_window_sec: float = 60):
+        """인스턴스를 초기화한다."""
         self.window = aggregation_window_sec
         self.telemetry_buffer: dict[str, list[TelemetryPacket]] = {}
         self.aggregated: dict[str, dict] = {}
 
     def ingest(self, packet: TelemetryPacket):
+        """``ingest`` 동작을 수행한다."""
         if packet.drone_id not in self.telemetry_buffer:
             self.telemetry_buffer[packet.drone_id] = []
         self.telemetry_buffer[packet.drone_id].append(packet)
 
     def aggregate(self, drone_id: str) -> dict:
+        """``aggregate`` 동작을 수행한다."""
         if drone_id not in self.telemetry_buffer:
             return {}
 

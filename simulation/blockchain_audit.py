@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Block:
+    """``Block`` 관련 기능을 제공한다."""
     index: int
     timestamp: float
     data: dict
@@ -22,6 +23,7 @@ class Block:
     hash: str = ""
 
     def compute_hash(self) -> str:
+        """`hash` 값을 계산한다."""
         content = json.dumps({
             "index": self.index, "timestamp": self.timestamp,
             "data": self.data, "previous_hash": self.previous_hash,
@@ -32,6 +34,7 @@ class Block:
 
 @dataclass
 class AuditEvent:
+    """``AuditEvent`` 데이터를 표현한다."""
     event_type: str  # "command", "state_change", "alert", "decision", "config_change"
     actor: str
     description: str
@@ -51,6 +54,7 @@ class BlockchainAuditTrail:
     DIFFICULTY = 2  # Number of leading zeros
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self._chain: list[Block] = []
         self._pending: list[AuditEvent] = []
         self._create_genesis()
@@ -61,6 +65,7 @@ class BlockchainAuditTrail:
         self._chain.append(genesis)
 
     def record_event(self, event: AuditEvent) -> str:
+        """`event` 정보를 기록한다."""
         if event.timestamp == 0:
             event.timestamp = time.time()
         self._pending.append(event)
@@ -86,6 +91,7 @@ class BlockchainAuditTrail:
         return block
 
     def verify_chain(self) -> bool:
+        """`chain` 결과를 계산하거나 판정한다."""
         for i in range(1, len(self._chain)):
             current = self._chain[i]
             previous = self._chain[i - 1]
@@ -96,33 +102,41 @@ class BlockchainAuditTrail:
         return True
 
     def query_by_type(self, event_type: str) -> list[Block]:
+        """``query_by_type`` 동작을 수행한다."""
         return [b for b in self._chain[1:] if b.data.get("event") == event_type]
 
     def query_by_actor(self, actor: str) -> list[Block]:
+        """``query_by_actor`` 동작을 수행한다."""
         return [b for b in self._chain[1:] if b.data.get("actor") == actor]
 
     def query_by_time_range(self, start: float, end: float) -> list[Block]:
+        """``query_by_time_range`` 동작을 수행한다."""
         return [b for b in self._chain[1:] if start <= b.timestamp <= end]
 
     def get_block(self, index: int) -> Block | None:
+        """`block` 정보를 조회한다."""
         if 0 <= index < len(self._chain):
             return self._chain[index]
         return None
 
     def get_latest_block(self) -> Block:
+        """`latest block` 정보를 조회한다."""
         return self._chain[-1]
 
     @property
     def chain_length(self) -> int:
+        """``chain_length`` 동작을 수행한다."""
         return len(self._chain)
 
     def export_chain(self) -> list[dict]:
+        """`chain` 결과를 저장한다."""
         return [{
             "index": b.index, "timestamp": b.timestamp, "hash": b.hash,
             "previous_hash": b.previous_hash, "data": b.data, "nonce": b.nonce,
         } for b in self._chain]
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         event_types = {}
         for b in self._chain[1:]:
             et = b.data.get("event", "unknown")

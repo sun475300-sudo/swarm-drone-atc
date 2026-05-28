@@ -18,6 +18,7 @@ from src.airspace_control.planning.waypoint import Route, RouteCost, Waypoint
 
 @dataclass(order=True)
 class _Node:
+    """``_Node`` 관련 기능을 제공한다."""
     f: float
     g: float       = field(compare=False)
     node: GridNode = field(compare=False)
@@ -39,6 +40,7 @@ class FlightPathPlanner:
         grid_resolution_m: float = GRID_RESOLUTION,
         cruise_altitude_m: float = 60.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.bounds   = airspace_bounds
         self.nfz_list = no_fly_zones
         self.grid_res = grid_resolution_m
@@ -57,6 +59,7 @@ class FlightPathPlanner:
         route_id: str | None = None,
         cruise_speed_ms: float = 8.0,
     ) -> Route:
+        """`route` 작업을 계획한다."""
         if route_id is None:
             route_id = f"R-{uuid.uuid4().hex[:6].upper()}"
 
@@ -69,6 +72,7 @@ class FlightPathPlanner:
         )
 
     def estimate_cost(self, route: Route, cruise_speed_ms: float = 8.0) -> RouteCost:
+        """`cost` 결과를 계산하거나 판정한다."""
         dist = route.total_distance_m
         if dist < 1.0:
             return RouteCost(0.0, 0.0, 0.0, 0.0)

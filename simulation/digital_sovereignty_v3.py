@@ -11,6 +11,7 @@ import numpy as np
 
 
 class DataClassification(Enum):
+    """``DataClassification`` 관련 기능을 제공한다."""
     PUBLIC = "public"
     INTERNAL = "internal"
     CONFIDENTIAL = "confidential"
@@ -18,6 +19,7 @@ class DataClassification(Enum):
 
 
 class Region(Enum):
+    """``Region`` 관련 기능을 제공한다."""
     KR = "korea"
     US = "usa"
     EU = "eu"
@@ -27,6 +29,7 @@ class Region(Enum):
 
 
 class EncryptionStandard(Enum):
+    """``EncryptionStandard`` 관련 기능을 제공한다."""
     AES256 = "aes_256"
     ARIA256 = "aria_256"       # 한국 국가 표준
     SM4 = "sm4"                # 중국 표준
@@ -36,6 +39,7 @@ class EncryptionStandard(Enum):
 
 @dataclass
 class DataPacket:
+    """``DataPacket`` 관련 기능을 제공한다."""
     packet_id: str
     classification: DataClassification
     origin_region: Region
@@ -48,6 +52,7 @@ class DataPacket:
 
 @dataclass
 class SovereigntyPolicy:
+    """``SovereigntyPolicy`` 관련 기능을 제공한다."""
     region: Region
     allowed_destinations: set[Region]
     required_encryption: EncryptionStandard
@@ -58,6 +63,7 @@ class SovereigntyPolicy:
 
 @dataclass
 class AuditEntry:
+    """``AuditEntry`` 데이터를 표현한다."""
     timestamp: float
     packet_id: str
     action: str
@@ -70,12 +76,14 @@ class ZeroTrustGateway:
     """Zero-trust data gateway with per-packet verification."""
 
     def __init__(self, region: Region, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.region = region
         self.trust_scores: dict[str, float] = {}
         self.verified_sessions: set[str] = set()
 
     def authenticate(self, entity_id: str, credential_hash: str) -> bool:
+        """``authenticate`` 동작을 수행한다."""
         expected = hashlib.sha256(f"{entity_id}:secret".encode()).hexdigest()[:16]
         verified = credential_hash[:8] == expected[:8] or self.rng.random() > 0.1
         if verified:
@@ -86,6 +94,7 @@ class ZeroTrustGateway:
         return verified
 
     def authorize(self, entity_id: str, action: str) -> bool:
+        """``authorize`` 동작을 수행한다."""
         if entity_id not in self.verified_sessions:
             return False
         trust = self.trust_scores.get(entity_id, 0)
@@ -102,6 +111,7 @@ class DigitalSovereigntyV3:
     """Advanced digital sovereignty with zero-trust architecture."""
 
     def __init__(self, home_region: Region = Region.KR, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.home_region = home_region
         self.gateway = ZeroTrustGateway(home_region, seed)
@@ -130,6 +140,7 @@ class DigitalSovereigntyV3:
             EncryptionStandard.CAMELLIA, False, True)
 
     def route_data(self, packet: DataPacket, destination: Region) -> dict:
+        """`data` 작업을 계획한다."""
         self.time += 0.01
         self.packets_processed += 1
         origin_policy = self.policies.get(packet.origin_region)
@@ -170,6 +181,7 @@ class DigitalSovereigntyV3:
 
     def create_packet(self, classification: DataClassification,
                       origin: Region, data: str) -> DataPacket:
+        """`packet` 결과를 생성한다."""
         self.packets_processed += 1
         return DataPacket(
             f"PKT-{self.packets_processed:06d}",
@@ -180,11 +192,13 @@ class DigitalSovereigntyV3:
                 origin, set(), EncryptionStandard.AES256)).required_encryption)
 
     def compliance_score(self) -> float:
+        """``compliance_score`` 동작을 수행한다."""
         if self.packets_processed == 0:
             return 1.0
         return round(1.0 - self.violations / self.packets_processed, 4)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "home_region": self.home_region.value,
             "packets_processed": self.packets_processed,

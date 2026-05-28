@@ -11,6 +11,7 @@ from typing import Any
 
 
 class StreamType(Enum):
+    """``StreamType`` 관련 기능을 제공한다."""
     TELEMETRY = "telemetry"
     SENSOR = "sensor"
     EVENT = "event"
@@ -19,6 +20,7 @@ class StreamType(Enum):
 
 @dataclass
 class StreamEvent:
+    """``StreamEvent`` 데이터를 표현한다."""
     event_id: str
     stream_type: StreamType
     data: dict[str, Any]
@@ -28,6 +30,7 @@ class StreamEvent:
 
 @dataclass
 class ProcessingResult:
+    """``ProcessingResult`` 데이터를 표현한다."""
     event_id: str
     processed: bool
     output: Any
@@ -35,7 +38,9 @@ class ProcessingResult:
 
 
 class RealTimeStreamProcessor:
+    """``RealTimeStreamProcessor`` 관련 기능을 제공한다."""
     def __init__(self, buffer_size: int = 1000, num_workers: int = 4):
+        """인스턴스를 초기화한다."""
         self.buffer_size = buffer_size
         self.num_workers = num_workers
 
@@ -53,12 +58,15 @@ class RealTimeStreamProcessor:
         }
 
     def register_processor(self, stream_type: StreamType, processor: Callable):
+        """`processor` 항목을 추가한다."""
         self.processors[stream_type] = processor
 
     def ingest(self, event: StreamEvent):
+        """``ingest`` 동작을 수행한다."""
         self.buffers[event.stream_type].append(event)
 
     def process_stream(self, stream_type: StreamType) -> list[ProcessingResult]:
+        """`stream` 처리 로직을 수행한다."""
         results = []
 
         buffer = self.buffers[stream_type]
@@ -95,6 +103,7 @@ class RealTimeStreamProcessor:
         return {"status": "processed", "data": data}
 
     def compute_window_aggregate(self, key: str, window_sec: float = 60.0) -> float:
+        """`window aggregate` 값을 계산한다."""
         now = time.time()
 
         total = 0.0
@@ -109,6 +118,7 @@ class RealTimeStreamProcessor:
         return total / count if count > 0 else 0.0
 
     def get_metrics(self) -> dict[str, Any]:
+        """`metrics` 정보를 조회한다."""
         return {
             "events_processed": self.metrics["events_processed"],
             "events_dropped": self.metrics["events_dropped"],

@@ -38,12 +38,14 @@ class SurveillanceTracker:
     """비협조 표적 감시 추적."""
 
     def __init__(self, max_history: int = 200) -> None:
+        """인스턴스를 초기화한다."""
         self._tracks: dict[str, list[TrackRecord]] = {}
         self._max_history = max_history
 
     def track(
         self, target_id: str, position: tuple[float, float, float], t: float
     ) -> None:
+        """`대상` 정보를 기록한다."""
         if target_id not in self._tracks:
             self._tracks[target_id] = []
         self._tracks[target_id].append(TrackRecord(t=t, position=position))
@@ -53,6 +55,7 @@ class SurveillanceTracker:
     def predict(
         self, target_id: str, horizon_s: float = 30.0, steps: int = 10
     ) -> TrackPrediction | None:
+        """`대상` 결과를 계산하거나 판정한다."""
         records = self._tracks.get(target_id, [])
         if len(records) < 2:
             return None
@@ -117,16 +120,20 @@ class SurveillanceTracker:
         return None
 
     def active_tracks(self) -> list[str]:
+        """``active_tracks`` 동작을 수행한다."""
         return list(self._tracks.keys())
 
     def last_position(self, target_id: str) -> tuple[float, float, float] | None:
+        """``last_position`` 동작을 수행한다."""
         records = self._tracks.get(target_id, [])
         return records[-1].position if records else None
 
     def remove_track(self, target_id: str) -> None:
+        """`track` 상태를 정리한다."""
         self._tracks.pop(target_id, None)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "active_tracks": len(self._tracks),
             "total_records": sum(len(r) for r in self._tracks.values()),

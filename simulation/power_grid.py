@@ -32,6 +32,7 @@ class PowerGrid:
     """충전 인프라 관리."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._stations: dict[str, ChargingStation] = {}
 
     def add_station(
@@ -41,6 +42,7 @@ class PowerGrid:
         capacity: int = 4,
         charge_rate: float = 2.0,
     ) -> ChargingStation:
+        """`station` 항목을 추가한다."""
         cs = ChargingStation(
             station_id=station_id, position=position,
             capacity=capacity, charge_rate_pct_min=charge_rate,
@@ -107,15 +109,18 @@ class PowerGrid:
         return False
 
     def station_utilization(self, station_id: str) -> float:
+        """``station_utilization`` 동작을 수행한다."""
         cs = self._stations.get(station_id)
         if not cs:
             return 0.0
         return len(cs.occupied) / max(cs.capacity, 1)
 
     def total_capacity(self) -> int:
+        """``total_capacity`` 동작을 수행한다."""
         return sum(cs.capacity for cs in self._stations.values())
 
     def total_occupied(self) -> int:
+        """``total_occupied`` 동작을 수행한다."""
         return sum(len(cs.occupied) for cs in self._stations.values())
 
     def charge_time_estimate(
@@ -133,6 +138,7 @@ class PowerGrid:
         return wait + charge
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_stations": len(self._stations),
             "total_capacity": self.total_capacity(),

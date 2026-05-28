@@ -9,6 +9,7 @@ import numpy as np
 
 @dataclass
 class UAVTraffic:
+    """``UAVTraffic`` 관련 기능을 제공한다."""
     uav_id: str
     position: np.ndarray
     velocity: np.ndarray
@@ -16,19 +17,23 @@ class UAVTraffic:
 
 
 class TrafficCoordinator:
+    """``TrafficCoordinator`` 관련 기능을 제공한다."""
     def __init__(
         self, airspace_bounds: tuple[float, float, float, float, float, float]
     ):
+        """인스턴스를 초기화한다."""
         self.bounds = airspace_bounds
         self.uavs: dict[str, UAVTraffic] = {}
         self.conflicts: list[tuple[str, str]] = []
 
     def register_uav(self, uav: UAVTraffic):
+        """`uav` 항목을 추가한다."""
         self.uavs[uav.uav_id] = uav
 
     def detect_conflicts(
         self, separation_distance: float = 50.0
     ) -> list[tuple[str, str]]:
+        """`conflicts` 결과를 계산하거나 판정한다."""
         conflicts = []
 
         uav_list = list(self.uavs.values())
@@ -44,6 +49,7 @@ class TrafficCoordinator:
         return conflicts
 
     def resolve_conflicts(self) -> dict[str, np.ndarray]:
+        """``resolve_conflicts`` 동작을 수행한다."""
         maneuvers = {}
 
         for uav1_id, uav2_id in self.conflicts:
@@ -59,6 +65,7 @@ class TrafficCoordinator:
         return maneuvers
 
     def get_traffic_density(self, region: tuple[float, float, float, float]) -> int:
+        """`traffic density` 정보를 조회한다."""
         count = 0
         for uav in self.uavs.values():
             if (

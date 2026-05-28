@@ -13,6 +13,7 @@ import numpy as np
 
 
 class FormationType(Enum):
+    """``FormationType`` 관련 기능을 제공한다."""
     V_FORMATION = "v_formation"
     GRID = "grid"
     CIRCLE = "circle"
@@ -25,6 +26,7 @@ class FormationType(Enum):
 
 @dataclass
 class FormationSlot:
+    """``FormationSlot`` 관련 기능을 제공한다."""
     slot_id: int
     offset: np.ndarray  # relative to leader
     drone_id: str | None = None
@@ -33,6 +35,7 @@ class FormationSlot:
 
 @dataclass
 class FormationState:
+    """``FormationState`` 데이터를 표현한다."""
     formation_type: FormationType
     leader_id: str
     slots: list[FormationSlot] = field(default_factory=list)
@@ -46,6 +49,7 @@ class FormationGenerator:
 
     @staticmethod
     def v_formation(n: int, spacing: float = 15.0, angle_deg: float = 30.0) -> list[np.ndarray]:
+        """``v_formation`` 동작을 수행한다."""
         offsets = [np.array([0.0, 0.0, 0.0])]
         angle = np.radians(angle_deg)
         for i in range(1, n):
@@ -58,6 +62,7 @@ class FormationGenerator:
 
     @staticmethod
     def grid_formation(n: int, spacing: float = 20.0) -> list[np.ndarray]:
+        """``grid_formation`` 동작을 수행한다."""
         cols = int(np.ceil(np.sqrt(n)))
         offsets = []
         for i in range(n):
@@ -67,6 +72,7 @@ class FormationGenerator:
 
     @staticmethod
     def circle_formation(n: int, radius: float = 50.0) -> list[np.ndarray]:
+        """``circle_formation`` 동작을 수행한다."""
         offsets = []
         for i in range(n):
             theta = 2.0 * np.pi * i / n
@@ -75,10 +81,12 @@ class FormationGenerator:
 
     @staticmethod
     def line_formation(n: int, spacing: float = 15.0) -> list[np.ndarray]:
+        """``line_formation`` 동작을 수행한다."""
         return [np.array([0.0, i * spacing, 0.0]) for i in range(n)]
 
     @staticmethod
     def diamond_formation(n: int, spacing: float = 20.0) -> list[np.ndarray]:
+        """``diamond_formation`` 동작을 수행한다."""
         offsets = [np.array([0.0, 0.0, 0.0])]
         layers = int(np.ceil(np.sqrt(n)))
         idx = 1
@@ -92,6 +100,7 @@ class FormationGenerator:
 
     @staticmethod
     def generate(ftype: FormationType, n: int, **kwargs) -> list[np.ndarray]:
+        """`대상` 결과를 생성한다."""
         generators = {
             FormationType.V_FORMATION: FormationGenerator.v_formation,
             FormationType.GRID: FormationGenerator.grid_formation,
@@ -112,6 +121,7 @@ class SwarmFormationController:
     """
 
     def __init__(self, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._formations: dict[str, FormationState] = {}
         self._drone_positions: dict[str, np.ndarray] = {}
@@ -125,6 +135,7 @@ class SwarmFormationController:
         ftype: FormationType = FormationType.V_FORMATION,
         **kwargs,
     ) -> FormationState:
+        """`formation` 결과를 생성한다."""
         offsets = FormationGenerator.generate(ftype, len(drone_ids), **kwargs)
         slots = []
         for i, (did, offset) in enumerate(zip(drone_ids, offsets, strict=False)):
@@ -135,6 +146,7 @@ class SwarmFormationController:
         return state
 
     def transition_formation(self, formation_id: str, new_type: FormationType, steps: int = 10) -> list[list[np.ndarray]]:
+        """``transition_formation`` 동작을 수행한다."""
         state = self._formations.get(formation_id)
         if not state:
             return []
@@ -155,9 +167,11 @@ class SwarmFormationController:
         return trajectory
 
     def update_positions(self, positions: dict[str, np.ndarray]):
+        """`positions` 상태를 갱신한다."""
         self._drone_positions.update(positions)
 
     def compute_cohesion(self, formation_id: str) -> float:
+        """`cohesion` 값을 계산한다."""
         state = self._formations.get(formation_id)
         if not state or not self._drone_positions:
             return 0.0
@@ -178,6 +192,7 @@ class SwarmFormationController:
         return cohesion
 
     def compute_stability(self, formation_id: str) -> float:
+        """`stability` 값을 계산한다."""
         state = self._formations.get(formation_id)
         if not state:
             return 0.0
@@ -186,6 +201,7 @@ class SwarmFormationController:
         return stability
 
     def reassign_leader(self, formation_id: str, new_leader_id: str) -> bool:
+        """``reassign_leader`` 동작을 수행한다."""
         state = self._formations.get(formation_id)
         if not state:
             return False
@@ -197,6 +213,7 @@ class SwarmFormationController:
         return True
 
     def remove_drone(self, formation_id: str, drone_id: str) -> bool:
+        """`drone` 상태를 정리한다."""
         state = self._formations.get(formation_id)
         if not state:
             return False
@@ -207,12 +224,15 @@ class SwarmFormationController:
         return False
 
     def get_formation(self, formation_id: str) -> FormationState | None:
+        """`formation` 정보를 조회한다."""
         return self._formations.get(formation_id)
 
     def list_formations(self) -> list[str]:
+        """``list_formations`` 동작을 수행한다."""
         return list(self._formations.keys())
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_formations": len(self._formations),
             "history_events": len(self._history),

@@ -10,6 +10,7 @@ import numpy as np
 
 
 class SpectrumBand(Enum):
+    """``SpectrumBand`` 관련 기능을 제공한다."""
     VHF = (30e6, 300e6)
     UHF = (300e6, 3e9)
     L_BAND = (1e9, 2e9)
@@ -20,6 +21,7 @@ class SpectrumBand(Enum):
 
 
 class ThreatType(Enum):
+    """``ThreatType`` 관련 기능을 제공한다."""
     BARRAGE_JAM = "barrage_jammer"
     SPOT_JAM = "spot_jammer"
     SWEEP_JAM = "sweep_jammer"
@@ -28,6 +30,7 @@ class ThreatType(Enum):
 
 
 class CountermeasureType(Enum):
+    """``CountermeasureType`` 관련 기능을 제공한다."""
     FREQ_HOP = "frequency_hopping"
     SPREAD_SPECTRUM = "spread_spectrum"
     POWER_MANAGEMENT = "power_management"
@@ -38,6 +41,7 @@ class CountermeasureType(Enum):
 
 @dataclass
 class SpectrumSample:
+    """``SpectrumSample`` 관련 기능을 제공한다."""
     frequency_hz: float
     power_dbm: float
     timestamp: float
@@ -47,6 +51,7 @@ class SpectrumSample:
 
 @dataclass
 class EWEngagement:
+    """``EWEngagement`` 관련 기능을 제공한다."""
     engagement_id: str
     threat: ThreatType
     countermeasure: CountermeasureType
@@ -60,12 +65,14 @@ class SpectrumAnalyzer:
     """Real-time spectrum monitoring and threat detection."""
 
     def __init__(self, bands: list[SpectrumBand] = None, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.bands = bands or [SpectrumBand.L_BAND, SpectrumBand.S_BAND, SpectrumBand.C_BAND]
         self.noise_floor_dbm = -90.0
         self.history: list[SpectrumSample] = []
 
     def scan(self, n_points: int = 256, time: float = 0.0) -> list[SpectrumSample]:
+        """``scan`` 동작을 수행한다."""
         samples = []
         for band in self.bands:
             freqs = np.linspace(band.value[0], band.value[1], n_points // len(self.bands))
@@ -84,9 +91,11 @@ class SpectrumAnalyzer:
 
     def detect_threats(self, samples: list[SpectrumSample],
                        threshold_dbm: float = -60) -> list[SpectrumSample]:
+        """`threats` 결과를 계산하거나 판정한다."""
         return [s for s in samples if s.power_dbm > threshold_dbm]
 
     def classify_jammer(self, threat_samples: list[SpectrumSample]) -> ThreatType | None:
+        """`jammer` 결과를 계산하거나 판정한다."""
         if not threat_samples:
             return None
         freqs = [s.frequency_hz for s in threat_samples]
@@ -106,6 +115,7 @@ class CognitiveEW:
     """Cognitive electronic warfare engine with adaptive countermeasures."""
 
     def __init__(self, n_drones: int = 10, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.analyzer = SpectrumAnalyzer(seed=seed)
@@ -169,6 +179,7 @@ class CognitiveEW:
         return success, snr_before, snr_after
 
     def engage(self, threat: ThreatType) -> EWEngagement:
+        """``engage`` 동작을 수행한다."""
         self._engagement_counter += 1
         cm = self._select_countermeasure(threat)
         success, snr_before, snr_after = self._apply_countermeasure(threat, cm)
@@ -182,6 +193,7 @@ class CognitiveEW:
         return engagement
 
     def run_cycle(self, n_scans: int = 10) -> dict:
+        """``run_cycle`` 동작을 수행한다."""
         results = {"scans": n_scans, "threats": 0, "engagements": 0, "successful": 0}
         for _ in range(n_scans):
             self.time += 0.1
@@ -198,6 +210,7 @@ class CognitiveEW:
         return results
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": self.n_drones,
             "total_engagements": len(self.engagements),

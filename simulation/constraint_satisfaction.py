@@ -12,12 +12,14 @@ import numpy as np
 
 @dataclass
 class Variable:
+    """``Variable`` 관련 기능을 제공한다."""
     name: str
     domain: list
 
 
 @dataclass
 class Constraint:
+    """``Constraint`` 관련 기능을 제공한다."""
     var1: str
     var2: str
     relation: str  # "neq", "lt", "gt", "diff_ge"
@@ -25,16 +27,20 @@ class Constraint:
 
 
 class CSPSolver:
+    """``CSPSolver`` 관련 기능을 제공한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.variables: dict[str, Variable] = {}
         self.constraints: list[Constraint] = []
         self.solution: dict[str, any] = {}
         self.backtracks = 0
 
     def add_variable(self, name: str, domain: list):
+        """`variable` 항목을 추가한다."""
         self.variables[name] = Variable(name, list(domain))
 
     def add_constraint(self, var1: str, var2: str, relation: str, param=0.0):
+        """`constraint` 항목을 추가한다."""
         self.constraints.append(Constraint(var1, var2, relation, param))
 
     def _satisfies(self, c: Constraint, val1, val2) -> bool:
@@ -49,6 +55,7 @@ class CSPSolver:
         return True
 
     def ac3(self) -> bool:
+        """``ac3`` 동작을 수행한다."""
         queue = deque()
         for c in self.constraints:
             queue.append((c.var1, c.var2, c))
@@ -75,6 +82,7 @@ class CSPSolver:
         return revised
 
     def backtrack(self, assignment: dict) -> dict | None:
+        """``backtrack`` 동작을 수행한다."""
         if len(assignment) == len(self.variables):
             return dict(assignment)
         unassigned = [v for v in self.variables if v not in assignment]
@@ -98,13 +106,16 @@ class CSPSolver:
         return True
 
     def solve(self) -> dict | None:
+        """``solve`` 동작을 수행한다."""
         self.ac3()
         self.solution = self.backtrack({})
         return self.solution
 
 
 class ConstraintSatisfaction:
+    """``ConstraintSatisfaction`` 관련 기능을 제공한다."""
     def __init__(self, n_drones=8, n_timeslots=4, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.solver = CSPSolver()
         self.n_drones = n_drones
@@ -120,9 +131,11 @@ class ConstraintSatisfaction:
                 self.solver.add_constraint(f"drone_{i}", f"drone_{j}", "neq")
 
     def run(self):
+        """메인 실행 루프를 수행한다."""
         self.solver.solve()
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": self.n_drones,
             "timeslots": self.n_timeslots,

@@ -69,6 +69,7 @@ class AdvancedVisualizationManager:
     """Manages advanced visualizations."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.visualizations: dict[str, VisualizationConfig] = {}
         self.dashboards: dict[str, DashboardPanel] = {}
         self.time_series_data: dict[str, list[TimeSeriesPoint]] = {}

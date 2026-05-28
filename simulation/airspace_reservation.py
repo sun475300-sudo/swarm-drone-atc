@@ -35,6 +35,7 @@ class AirspaceReservation:
         grid_size: float = 100.0,
         max_reservations: int = 1000,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._grid_size = grid_size
         self._max_reservations = max_reservations
         self._reservations: dict[str, Reservation] = {}
@@ -106,6 +107,7 @@ class AirspaceReservation:
         return conflicts
 
     def cancel(self, reservation_id: str) -> bool:
+        """``cancel`` 동작을 수행한다."""
         r = self._reservations.get(reservation_id)
         if r:
             r.active = False
@@ -113,27 +115,32 @@ class AirspaceReservation:
         return False
 
     def get_drone_reservations(self, drone_id: str) -> list[Reservation]:
+        """`drone reservations` 정보를 조회한다."""
         return [r for r in self._reservations.values() if r.drone_id == drone_id and r.active]
 
     def active_reservations(self, t: float | None = None) -> list[Reservation]:
+        """``active_reservations`` 동작을 수행한다."""
         result = [r for r in self._reservations.values() if r.active]
         if t is not None:
             result = [r for r in result if r.t_start <= t <= r.t_end]
         return result
 
     def sector_schedule(self, sector: tuple[int, int]) -> list[Reservation]:
+        """``sector_schedule`` 동작을 수행한다."""
         return sorted(
             [r for r in self._reservations.values() if r.sector == sector and r.active],
             key=lambda r: r.t_start,
         )
 
     def cleanup_expired(self, t: float) -> int:
+        """``cleanup_expired`` 동작을 수행한다."""
         expired = [rid for rid, r in self._reservations.items() if r.t_end < t]
         for rid in expired:
             del self._reservations[rid]
         return len(expired)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         active = [r for r in self._reservations.values() if r.active]
         return {
             "total_reservations": len(self._reservations),

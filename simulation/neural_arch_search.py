@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class Architecture:
+    """``Architecture`` 관련 기능을 제공한다."""
     arch_id: str
     layers: list  # [(type, params), ...]
     fitness: float = 0.0
@@ -20,6 +21,7 @@ class Architecture:
 
 @dataclass
 class SearchResult:
+    """``SearchResult`` 데이터를 표현한다."""
     generations: int
     best_fitness: float
     best_arch: Architecture
@@ -35,9 +37,11 @@ class ArchitectureSpace:
     HIDDEN_SIZES = [16, 32, 64, 128, 256]
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
 
     def sample_architecture(self, arch_id: str, min_layers=2, max_layers=6) -> Architecture:
+        """`architecture` 정보를 기록한다."""
         n_layers = int(self.rng.integers(min_layers, max_layers + 1))
         layers = []
         total_params = 0
@@ -65,6 +69,7 @@ class ArchitectureSpace:
         return Architecture(arch_id, layers, 0.0, latency, total_params)
 
     def mutate(self, arch: Architecture, arch_id: str) -> Architecture:
+        """``mutate`` 동작을 수행한다."""
         new_layers = [l.copy() for l in arch.layers]
         if len(new_layers) > 0:
             idx = int(self.rng.integers(0, len(new_layers)))
@@ -85,10 +90,12 @@ class FitnessEvaluator:
     """아키텍처 적합도 평가."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
 
     def evaluate(self, arch: Architecture) -> float:
         # 시뮬레이션된 정확도: 레이어 수/다양성/크기에 따른 근사
+        """`대상` 결과를 계산하거나 판정한다."""
         n_layers = len(arch.layers)
         layer_types = {l["type"] for l in arch.layers}
         diversity_bonus = len(layer_types) * 0.05
@@ -105,6 +112,7 @@ class NeuralArchSearch:
     """진화 알고리즘 기반 NAS."""
 
     def __init__(self, pop_size=20, generations=10, seed=42):
+        """인스턴스를 초기화한다."""
         self.pop_size = pop_size
         self.generations = generations
         self.space = ArchitectureSpace(seed)
@@ -115,6 +123,7 @@ class NeuralArchSearch:
         self.total_evals = 0
 
     def initialize(self):
+        """``initialize`` 동작을 수행한다."""
         self.population = [
             self.space.sample_architecture(f"arch_{i}")
             for i in range(self.pop_size)
@@ -131,6 +140,7 @@ class NeuralArchSearch:
 
     def evolve_one_generation(self):
         # 상위 50% 선택
+        """``evolve_one_generation`` 동작을 수행한다."""
         survivors = self.population[:self.pop_size // 2]
         # 돌연변이로 자식 생성
         children = []
@@ -142,6 +152,7 @@ class NeuralArchSearch:
         self._evaluate_all()
 
     def run(self) -> SearchResult:
+        """메인 실행 루프를 수행한다."""
         self.initialize()
         for _g in range(self.generations):
             self.evolve_one_generation()
@@ -151,6 +162,7 @@ class NeuralArchSearch:
         )
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "population": self.pop_size,
             "generations": self.generations,

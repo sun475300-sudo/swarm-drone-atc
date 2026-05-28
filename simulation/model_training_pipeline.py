@@ -56,6 +56,7 @@ class DataGenerator:
     """Generate training data from simulation scenarios."""
 
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(seed)
         self._data_cache: list[dict[str, np.ndarray]] = []
 
@@ -234,6 +235,7 @@ class ModelTrainer:
     """Train ML models on simulation data."""
 
     def __init__(self, config: TrainingConfig | None = None) -> None:
+        """인스턴스를 초기화한다."""
         self._config = config or TrainingConfig()
         self._rng = np.random.default_rng(self._config.random_seed)
         self._models: dict[str, Any] = {}
@@ -453,6 +455,7 @@ class _CollisionModel:
     """Internal collision prediction model (simplified)."""
 
     def __init__(self, config: TrainingConfig) -> None:
+        """인스턴스를 초기화한다."""
         self._config = config
         self._rng = np.random.default_rng(config.random_seed)
         self._weights = None
@@ -508,6 +511,7 @@ class _RouteModel:
     """Internal route optimization model (simplified linear)."""
 
     def __init__(self, config: TrainingConfig) -> None:
+        """인스턴스를 초기화한다."""
         self._config = config
         self._weights = None
 
@@ -540,6 +544,7 @@ class _DemandModel:
     """Internal demand forecasting model (simplified)."""
 
     def __init__(self, config: TrainingConfig) -> None:
+        """인스턴스를 초기화한다."""
         self._config = config
         self._weights = None
 
@@ -567,6 +572,7 @@ class ModelTrainingPipeline:
     """End-to-end model training pipeline."""
 
     def __init__(self, output_dir: str | Path = "models") -> None:
+        """인스턴스를 초기화한다."""
         self._output_dir = Path(output_dir)
         self._output_dir.mkdir(parents=True, exist_ok=True)
         self._data_generator = DataGenerator()

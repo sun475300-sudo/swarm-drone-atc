@@ -10,6 +10,7 @@ import numpy as np
 
 
 class EmergentBehavior(Enum):
+    """``EmergentBehavior`` 관련 기능을 제공한다."""
     FLOCKING = "flocking"
     FORAGING = "foraging"
     CLUSTERING = "clustering"
@@ -19,6 +20,7 @@ class EmergentBehavior(Enum):
 
 @dataclass
 class ConsciousDrone:
+    """``ConsciousDrone`` 관련 기능을 제공한다."""
     drone_id: int
     position: np.ndarray
     velocity: np.ndarray
@@ -31,6 +33,7 @@ class ConsciousDrone:
 
 @dataclass
 class SwarmMetric:
+    """``SwarmMetric`` 관련 기능을 제공한다."""
     cohesion: float
     alignment: float
     entropy: float
@@ -42,6 +45,7 @@ class SwarmConsciousness:
     """Models emergent collective intelligence in drone swarms."""
 
     def __init__(self, n_drones: int = 50, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.drones: list[ConsciousDrone] = []
@@ -91,6 +95,7 @@ class SwarmConsciousness:
         return 0.9 * drone.awareness + 0.1 * neighbor_awareness
 
     def step(self, dt: float = 0.1) -> SwarmMetric:
+        """`대상` 실행 상태를 제어한다."""
         self.step_count += 1
         self._update_neighbors()
 
@@ -161,9 +166,11 @@ class SwarmConsciousness:
         )
 
     def run_for(self, steps: int, dt: float = 0.1) -> list[SwarmMetric]:
+        """``run_for`` 동작을 수행한다."""
         return [self.step(dt) for _ in range(steps)]
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         active = sum(1 for d in self.drones if d.state == "active")
         last = self.metrics_history[-1] if self.metrics_history else None
         return {

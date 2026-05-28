@@ -23,6 +23,7 @@ class SimState:
     """스레드 공유 시뮬레이션 상태"""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self.lock = threading.Lock()
         self.drones: dict[str, DroneState] = {}
         self.trails: dict[str, list[tuple]] = {}
@@ -69,6 +70,7 @@ class SimState:
         self.max_tick_history = 300
 
     def reset(self, n_drones: int | None = None) -> None:
+        """`대상` 상태를 정리한다."""
         if n_drones is not None:
             self.n_drones = n_drones
 

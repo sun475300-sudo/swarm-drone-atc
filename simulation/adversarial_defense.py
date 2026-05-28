@@ -10,6 +10,7 @@ import numpy as np
 
 
 class AttackType(Enum):
+    """``AttackType`` 관련 기능을 제공한다."""
     GPS_SPOOFING = "gps_spoofing"
     SIGNAL_JAMMING = "signal_jamming"
     REPLAY_ATTACK = "replay_attack"
@@ -19,6 +20,7 @@ class AttackType(Enum):
 
 
 class DefenseAction(Enum):
+    """``DefenseAction`` 관련 기능을 제공한다."""
     SWITCH_IMU = "switch_imu"
     FREQ_HOP = "frequency_hop"
     INCREASE_POWER = "increase_power"
@@ -29,6 +31,7 @@ class DefenseAction(Enum):
 
 @dataclass
 class ThreatSignature:
+    """``ThreatSignature`` 관련 기능을 제공한다."""
     attack_type: AttackType
     confidence: float
     source_bearing: float | None = None
@@ -38,6 +41,7 @@ class ThreatSignature:
 
 @dataclass
 class DefenseEvent:
+    """``DefenseEvent`` 데이터를 표현한다."""
     threat: ThreatSignature
     action: DefenseAction
     success: bool
@@ -48,6 +52,7 @@ class AdversarialDefense:
     """Multi-layered adversarial defense for drone swarms."""
 
     def __init__(self, n_drones: int = 20, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.threats_detected: list[ThreatSignature] = []
@@ -61,6 +66,7 @@ class AdversarialDefense:
 
     def detect_gps_spoofing(self, drone_id: int, reported_pos: np.ndarray,
                             imu_pos: np.ndarray) -> ThreatSignature | None:
+        """`gps spoofing` 결과를 계산하거나 판정한다."""
         diff = np.linalg.norm(reported_pos - imu_pos)
         if diff > 5.0:
             confidence = min(1.0, diff / 20.0)
@@ -74,6 +80,7 @@ class AdversarialDefense:
 
     def detect_jamming(self, drone_id: int, snr_db: float,
                        noise_floor_db: float = -90) -> ThreatSignature | None:
+        """`jamming` 결과를 계산하거나 판정한다."""
         if snr_db < 5.0:
             confidence = min(1.0, (10.0 - snr_db) / 15.0)
             threat = ThreatSignature(
@@ -85,6 +92,7 @@ class AdversarialDefense:
 
     def detect_replay(self, packet_timestamps: list[float],
                       window_s: float = 2.0) -> ThreatSignature | None:
+        """`replay` 결과를 계산하거나 판정한다."""
         if len(packet_timestamps) < 4:
             return None
         diffs = np.diff(sorted(packet_timestamps[-20:]))
@@ -98,6 +106,7 @@ class AdversarialDefense:
         return None
 
     def respond_to_threat(self, threat: ThreatSignature) -> DefenseEvent:
+        """``respond_to_threat`` 동작을 수행한다."""
         action_map = {
             AttackType.GPS_SPOOFING: DefenseAction.SWITCH_IMU,
             AttackType.SIGNAL_JAMMING: DefenseAction.FREQ_HOP,
@@ -137,6 +146,7 @@ class AdversarialDefense:
         return threats
 
     def run_defense_cycle(self, n_cycles: int = 10) -> dict:
+        """``run_defense_cycle`` 동작을 수행한다."""
         total_threats = 0
         total_defended = 0
         for _ in range(n_cycles):
@@ -154,6 +164,7 @@ class AdversarialDefense:
         }
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones_monitored": self.n_drones,
             "total_threats": len(self.threats_detected),

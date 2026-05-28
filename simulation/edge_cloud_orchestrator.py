@@ -9,6 +9,7 @@ from typing import Any
 
 
 class ResourceType(Enum):
+    """``ResourceType`` 관련 기능을 제공한다."""
     COMPUTE = "compute"
     STORAGE = "storage"
     BANDWIDTH = "bandwidth"
@@ -16,6 +17,7 @@ class ResourceType(Enum):
 
 
 class DeploymentTier(Enum):
+    """``DeploymentTier`` 관련 기능을 제공한다."""
     DRONE = "drone"
     EDGE = "edge"
     CLOUD = "cloud"
@@ -23,6 +25,7 @@ class DeploymentTier(Enum):
 
 @dataclass
 class ComputeNode:
+    """``ComputeNode`` 관련 기능을 제공한다."""
     node_id: str
     tier: DeploymentTier
     capacity: dict[ResourceType, float]
@@ -34,6 +37,7 @@ class ComputeNode:
 
 @dataclass
 class Workload:
+    """``Workload`` 관련 기능을 제공한다."""
     workload_id: str
     drone_id: str
     required_resources: dict[ResourceType, float]
@@ -45,6 +49,7 @@ class Workload:
 
 @dataclass
 class Placement:
+    """``Placement`` 관련 기능을 제공한다."""
     workload_id: str
     node_id: str
     allocated_resources: dict[ResourceType, float]
@@ -53,6 +58,7 @@ class Placement:
 
 
 class EdgeCloudOrchestrator:
+    """``EdgeCloudOrchestrator`` 관련 기능을 제공한다."""
     def __init__(
         self,
         latency_threshold_ms: float = 50.0,
@@ -60,6 +66,7 @@ class EdgeCloudOrchestrator:
         latency_weight: float = 0.5,
         availability_weight: float = 0.2,
     ):
+        """인스턴스를 초기화한다."""
         self.latency_threshold_ms = latency_threshold_ms
         self.cost_weight = cost_weight
         self.latency_weight = latency_weight
@@ -119,6 +126,7 @@ class EdgeCloudOrchestrator:
         memory_capacity: float,
         cost_per_unit: float,
     ):
+        """`node` 항목을 추가한다."""
         capacity = {
             ResourceType.COMPUTE: compute_capacity,
             ResourceType.STORAGE: storage_capacity,
@@ -138,14 +146,17 @@ class EdgeCloudOrchestrator:
         self.nodes[node_id] = node
 
     def update_drone_latency(self, node_id: str, drone_id: str, latency_ms: float):
+        """`drone latency` 상태를 갱신한다."""
         if node_id in self.nodes:
             self.nodes[node_id].latency_to_drones[drone_id] = latency_ms
 
     def submit_workload(self, workload: Workload) -> bool:
+        """``submit_workload`` 동작을 수행한다."""
         self.workloads[workload.workload_id] = workload
         return True
 
     def schedule_workload(self, workload_id: str) -> Placement | None:
+        """`workload` 작업을 계획한다."""
         if workload_id not in self.workloads:
             return None
 
@@ -239,6 +250,7 @@ class EdgeCloudOrchestrator:
         )
 
     def complete_workload(self, workload_id: str):
+        """``complete_workload`` 동작을 수행한다."""
         if workload_id not in self.placements:
             return
 
@@ -258,6 +270,7 @@ class EdgeCloudOrchestrator:
         del self.placements[workload_id]
 
     def get_system_status(self) -> dict[str, Any]:
+        """`system status` 정보를 조회한다."""
         status = {
             "total_nodes": len(self.nodes),
             "active_nodes": len([n for n in self.nodes.values() if n.is_active]),
@@ -281,6 +294,7 @@ class EdgeCloudOrchestrator:
         return status
 
     def scale_node(self, node_id: str, scale_factor: float):
+        """``scale_node`` 동작을 수행한다."""
         if node_id not in self.nodes:
             return
 
@@ -291,6 +305,7 @@ class EdgeCloudOrchestrator:
             node.available[resource] *= scale_factor
 
     def failover_node(self, failed_node_id: str) -> list[str]:
+        """``failover_node`` 동작을 수행한다."""
         if failed_node_id not in self.nodes:
             return []
 

@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class WeatherSample:
+    """``WeatherSample`` 관련 기능을 제공한다."""
     wind_speed: float     # m/s
     wind_dir: float       # degrees
     temperature: float    # celsius
@@ -24,6 +25,7 @@ class WeatherGenerator:
     """간이 GAN: Generator + Discriminator."""
 
     def __init__(self, latent_dim=8, feature_dim=7, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.latent_dim = latent_dim
         self.feature_dim = feature_dim
@@ -39,17 +41,20 @@ class WeatherGenerator:
         self.d_b2 = np.zeros(1)
 
     def generate(self, n=1) -> np.ndarray:
+        """`대상` 결과를 생성한다."""
         z = self.rng.normal(0, 1, (n, self.latent_dim))
         h = np.maximum(0, z @ self.g_w1 + self.g_b1)
         out = h @ self.g_w2 + self.g_b2
         return out
 
     def discriminate(self, x: np.ndarray) -> np.ndarray:
+        """``discriminate`` 동작을 수행한다."""
         h = np.maximum(0, x @ self.d_w1 + self.d_b1)
         logit = h @ self.d_w2 + self.d_b2
         return 1.0 / (1.0 + np.exp(-logit))
 
     def train_step(self, real_data: np.ndarray, lr=0.01):
+        """``train_step`` 동작을 수행한다."""
         n = len(real_data)
         fake = self.generate(n)
 
@@ -80,6 +85,7 @@ class AdversarialWeatherGen:
     """적대적 기상 생성 시뮬레이션."""
 
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.gan = WeatherGenerator(seed=seed)
         self.real_data = self._generate_real(200)
@@ -100,11 +106,13 @@ class AdversarialWeatherGen:
         return data
 
     def train(self, epochs=50):
+        """``train`` 동작을 수행한다."""
         for _ in range(epochs):
             self.gan.train_step(self.real_data)
             self.train_epochs += 1
 
     def generate_scenarios(self, n=20) -> list[WeatherSample]:
+        """`scenarios` 결과를 생성한다."""
         raw = self.gan.generate(n)
         samples = []
         for row in raw:
@@ -121,6 +129,7 @@ class AdversarialWeatherGen:
         return samples
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         if not self.generated:
             self.generate_scenarios()
         winds = [s.wind_speed for s in self.generated]

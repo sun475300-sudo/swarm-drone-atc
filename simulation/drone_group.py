@@ -29,6 +29,7 @@ class DroneGroupManager:
     """드론 그룹 관리."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._groups: dict[str, DroneGroup] = {}
         self._drone_to_group: dict[str, str] = {}
 
@@ -39,6 +40,7 @@ class DroneGroupManager:
         leader: str = "",
         mission: str = "",
     ) -> DroneGroup:
+        """`group` 결과를 생성한다."""
         group = DroneGroup(
             group_id=group_id,
             members=list(members),
@@ -51,6 +53,7 @@ class DroneGroupManager:
         return group
 
     def dissolve_group(self, group_id: str) -> bool:
+        """``dissolve_group`` 동작을 수행한다."""
         group = self._groups.get(group_id)
         if not group:
             return False
@@ -60,6 +63,7 @@ class DroneGroupManager:
         return True
 
     def add_member(self, group_id: str, drone_id: str) -> bool:
+        """`member` 항목을 추가한다."""
         group = self._groups.get(group_id)
         if not group or not group.active:
             return False
@@ -69,6 +73,7 @@ class DroneGroupManager:
         return True
 
     def remove_member(self, group_id: str, drone_id: str) -> bool:
+        """`member` 상태를 정리한다."""
         group = self._groups.get(group_id)
         if not group:
             return False
@@ -79,6 +84,7 @@ class DroneGroupManager:
         return False
 
     def set_group_command(self, group_id: str, command: str) -> bool:
+        """`group command` 상태를 갱신한다."""
         group = self._groups.get(group_id)
         if not group or not group.active:
             return False
@@ -86,19 +92,24 @@ class DroneGroupManager:
         return True
 
     def get_drone_group(self, drone_id: str) -> str | None:
+        """`drone group` 정보를 조회한다."""
         return self._drone_to_group.get(drone_id)
 
     def get_group(self, group_id: str) -> DroneGroup | None:
+        """`group` 정보를 조회한다."""
         return self._groups.get(group_id)
 
     def active_groups(self) -> list[DroneGroup]:
+        """``active_groups`` 동작을 수행한다."""
         return [g for g in self._groups.values() if g.active]
 
     def group_size(self, group_id: str) -> int:
+        """``group_size`` 동작을 수행한다."""
         group = self._groups.get(group_id)
         return len(group.members) if group else 0
 
     def merge_groups(self, group_a: str, group_b: str, new_id: str = "") -> DroneGroup | None:
+        """``merge_groups`` 동작을 수행한다."""
         ga = self._groups.get(group_a)
         gb = self._groups.get(group_b)
         if not ga or not gb:
@@ -110,6 +121,7 @@ class DroneGroupManager:
         return self.create_group(merged_id, members, leader=ga.leader)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         active = self.active_groups()
         return {
             "total_groups": len(self._groups),

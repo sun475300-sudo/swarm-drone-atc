@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class AnomalyScore:
+    """``AnomalyScore`` 관련 기능을 제공한다."""
     drone_id: str
     score: float  # 0-1, 높을수록 이상
     features: dict = field(default_factory=dict)
@@ -18,7 +19,9 @@ class AnomalyScore:
 
 
 class IsolationTree:
+    """``IsolationTree`` 관련 기능을 제공한다."""
     def __init__(self, max_depth: int = 8):
+        """인스턴스를 초기화한다."""
         self.max_depth = max_depth
         self.split_feature: int | None = None
         self.split_value: float | None = None
@@ -28,6 +31,7 @@ class IsolationTree:
         self.depth: int = 0
 
     def fit(self, X: np.ndarray, depth: int = 0, rng: np.random.Generator | None = None) -> None:
+        """``fit`` 동작을 수행한다."""
         self.size = len(X)
         self.depth = depth
         if rng is None:
@@ -55,6 +59,7 @@ class IsolationTree:
             self.right.fit(X[right_mask], depth + 1, rng)
 
     def path_length(self, x: np.ndarray) -> float:
+        """``path_length`` 동작을 수행한다."""
         if self.left is None or self.split_feature is None:
             return float(self.depth) + self._c(self.size)
         if x[self.split_feature] < self.split_value:
@@ -69,7 +74,9 @@ class IsolationTree:
 
 
 class IsolationForest:
+    """``IsolationForest`` 관련 기능을 제공한다."""
     def __init__(self, n_trees: int = 50, max_depth: int = 8, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.n_trees = n_trees
         self.max_depth = max_depth
         self.rng = np.random.default_rng(seed)
@@ -77,6 +84,7 @@ class IsolationForest:
         self._n_samples: int = 0
 
     def fit(self, X: np.ndarray) -> None:
+        """``fit`` 동작을 수행한다."""
         self._n_samples = len(X)
         sample_size = min(256, len(X))
         self.trees = []
@@ -87,6 +95,7 @@ class IsolationForest:
             self.trees.append(tree)
 
     def score(self, x: np.ndarray) -> float:
+        """`대상` 결과를 계산하거나 판정한다."""
         if not self.trees:
             return 0.0
         avg_path = np.mean([t.path_length(x) for t in self.trees])
@@ -94,23 +103,28 @@ class IsolationForest:
         return float(2 ** (-avg_path / max(c_n, 1e-9)))
 
     def predict(self, X: np.ndarray, threshold: float = 0.6) -> np.ndarray:
+        """`대상` 결과를 계산하거나 판정한다."""
         scores = np.array([self.score(x) for x in X])
         return scores > threshold
 
 
 class DroneAnomalyDetector:
+    """``DroneAnomalyDetector`` 관련 기능을 제공한다."""
     def __init__(self, seed: int = 42, threshold: float = 0.6):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.threshold = threshold
         self.forest = IsolationForest(seed=seed)
         self._history: dict[str, list[np.ndarray]] = {}
 
     def record(self, drone_id: str, features: np.ndarray) -> None:
+        """`대상` 정보를 기록한다."""
         if drone_id not in self._history:
             self._history[drone_id] = []
         self._history[drone_id].append(features)
 
     def train(self) -> None:
+        """``train`` 동작을 수행한다."""
         all_data = []
         for feats in self._history.values():
             all_data.extend(feats)
@@ -118,6 +132,7 @@ class DroneAnomalyDetector:
             self.forest.fit(np.array(all_data))
 
     def detect(self, drone_id: str) -> AnomalyScore:
+        """`대상` 결과를 계산하거나 판정한다."""
         if drone_id not in self._history or not self._history[drone_id]:
             return AnomalyScore(drone_id, 0.0)
         latest = self._history[drone_id][-1]
@@ -131,6 +146,7 @@ class DroneAnomalyDetector:
 
     def simulate(self, n_drones: int = 30, n_steps: int = 50) -> list[AnomalyScore]:
         # Generate normal data
+        """``simulate`` 동작을 수행한다."""
         for i in range(n_drones):
             did = f"D-{i:04d}"
             for _ in range(n_steps):

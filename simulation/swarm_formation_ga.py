@@ -11,13 +11,16 @@ import numpy as np
 
 @dataclass
 class Individual:
+    """``Individual`` 관련 기능을 제공한다."""
     positions: np.ndarray  # (n_drones, 3)
     fitness: float = 0.0
 
 
 class FormationGA:
+    """``FormationGA`` 관련 기능을 제공한다."""
     def __init__(self, n_drones: int = 10, seed: int = 42,
                  pop_size: int = 30, mutation_rate: float = 0.1):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.pop_size = pop_size
@@ -54,12 +57,14 @@ class FormationGA:
         return 1.0 / (1.0 + avg_dist / 100.0)
 
     def fitness(self, positions: np.ndarray) -> float:
+        """``fitness`` 동작을 수행한다."""
         cov = self._coverage_score(positions)
         conn = self._connectivity_score(positions)
         energy = self._energy_score(positions)
         return 0.3 * cov + 0.5 * conn + 0.2 * energy
 
     def initialize(self) -> None:
+        """``initialize`` 동작을 수행한다."""
         self.population = []
         for _ in range(self.pop_size):
             pos = self._random_formation()
@@ -80,6 +85,7 @@ class FormationGA:
 
     def evolve_step(self) -> float:
         # Tournament selection
+        """``evolve_step`` 동작을 수행한다."""
         new_pop = [self.best]  # elitism
         while len(new_pop) < self.pop_size:
             t1, t2 = self.rng.choice(len(self.population), 2, replace=False)
@@ -98,6 +104,7 @@ class FormationGA:
         return self.best.fitness
 
     def run(self, generations: int = 30) -> dict:
+        """메인 실행 루프를 수행한다."""
         self.initialize()
         for _ in range(generations):
             self.evolve_step()

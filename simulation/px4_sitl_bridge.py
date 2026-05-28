@@ -11,6 +11,7 @@ import numpy as np
 
 
 class FlightMode(Enum):
+    """``FlightMode`` 관련 기능을 제공한다."""
     GUIDED = "GUIDED"
     AUTO = "AUTO"
     LOITER = "LOITER"
@@ -21,6 +22,7 @@ class FlightMode(Enum):
 
 @dataclass
 class MAVLinkMessage:
+    """``MAVLinkMessage`` 데이터를 표현한다."""
     msg_type: str
     seq: int
     system_id: int
@@ -31,6 +33,7 @@ class MAVLinkMessage:
 
 @dataclass
 class VehicleState:
+    """``VehicleState`` 데이터를 표현한다."""
     drone_id: str
     position: np.ndarray  # (3,) lat, lon, alt
     velocity: np.ndarray  # (3,) vn, ve, vd
@@ -45,6 +48,7 @@ class PX4SITLBridge:
     """Simulated PX4/ArduPilot SITL bridge for testing without hardware."""
 
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.connected = False
         self.host: str | None = None
@@ -57,6 +61,7 @@ class PX4SITLBridge:
         }
 
     def connect(self, host: str = "127.0.0.1", port: int = 14540) -> bool:
+        """``connect`` 동작을 수행한다."""
         self.host = host
         self.port = port
         self.connected = True
@@ -64,6 +69,7 @@ class PX4SITLBridge:
         return True
 
     def disconnect(self) -> None:
+        """``disconnect`` 동작을 수행한다."""
         self.connected = False
         self.host = None
         self.port = None
@@ -84,6 +90,7 @@ class PX4SITLBridge:
         return self.vehicles[drone_id]
 
     def send_command(self, command_type: str, params: dict[str, Any]) -> bool:
+        """``send_command`` 동작을 수행한다."""
         if not self._check_connection():
             return False
         self.msg_seq += 1
@@ -91,6 +98,7 @@ class PX4SITLBridge:
         return True
 
     def receive_telemetry(self) -> MAVLinkMessage | None:
+        """``receive_telemetry`` 동작을 수행한다."""
         if not self._check_connection():
             return None
         self.msg_seq += 1
@@ -121,6 +129,7 @@ class PX4SITLBridge:
         )
 
     def arm_drone(self, drone_id: str) -> bool:
+        """``arm_drone`` 동작을 수행한다."""
         if not self._check_connection():
             return False
         vs = self._ensure_vehicle(drone_id)
@@ -129,6 +138,7 @@ class PX4SITLBridge:
         return True
 
     def disarm_drone(self, drone_id: str) -> bool:
+        """``disarm_drone`` 동작을 수행한다."""
         if not self._check_connection():
             return False
         vs = self._ensure_vehicle(drone_id)
@@ -137,6 +147,7 @@ class PX4SITLBridge:
         return True
 
     def set_mode(self, drone_id: str, mode: str) -> bool:
+        """`mode` 상태를 갱신한다."""
         if not self._check_connection():
             return False
         vs = self._ensure_vehicle(drone_id)
@@ -149,6 +160,7 @@ class PX4SITLBridge:
         return True
 
     def send_waypoint(self, drone_id: str, lat: float, lon: float, alt: float) -> bool:
+        """``send_waypoint`` 동작을 수행한다."""
         if not self._check_connection():
             return False
         vs = self._ensure_vehicle(drone_id)
@@ -162,6 +174,7 @@ class PX4SITLBridge:
         return True
 
     def get_vehicle_state(self, drone_id: str) -> dict[str, Any]:
+        """`vehicle state` 정보를 조회한다."""
         vs = self._ensure_vehicle(drone_id)
         return {
             "drone_id": vs.drone_id,
@@ -175,6 +188,7 @@ class PX4SITLBridge:
         }
 
     def get_connection_stats(self) -> dict[str, Any]:
+        """`connection stats` 정보를 조회한다."""
         return {
             **self.stats,
             "connected": self.connected,

@@ -11,11 +11,13 @@ import numpy as np
 
 
 class QKDBasis(Enum):
+    """``QKDBasis`` 관련 기능을 제공한다."""
     RECTILINEAR = "rectilinear"   # +  (0°, 90°)
     DIAGONAL = "diagonal"          # ×  (45°, 135°)
 
 
 class QubitState(Enum):
+    """``QubitState`` 데이터를 표현한다."""
     ZERO = 0       # |0⟩
     ONE = 1        # |1⟩
     PLUS = 2       # |+⟩
@@ -24,6 +26,7 @@ class QubitState(Enum):
 
 @dataclass
 class QKDResult:
+    """``QKDResult`` 데이터를 표현한다."""
     raw_key_length: int
     sifted_key_length: int
     error_rate: float
@@ -33,6 +36,7 @@ class QKDResult:
 
 @dataclass
 class QuantumChannel:
+    """``QuantumChannel`` 관련 기능을 제공한다."""
     channel_id: str
     alice: str
     bob: str
@@ -46,6 +50,7 @@ class BB84Protocol:
     """Bennett-Brassard 1984 QKD protocol simulation."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
 
     def _prepare_qubit(self, bit: int, basis: QKDBasis) -> QubitState:
@@ -63,6 +68,7 @@ class BB84Protocol:
 
     def execute(self, n_bits: int = 256, eve_present: bool = False,
                 channel_error: float = 0.02) -> QKDResult:
+        """``execute`` 동작을 수행한다."""
         alice_bits = self.rng.integers(0, 2, n_bits)
         alice_bases = self.rng.choice(list(QKDBasis), n_bits)
         bob_bases = self.rng.choice(list(QKDBasis), n_bits)
@@ -100,11 +106,13 @@ class QuantumTeleportation:
     """Quantum state teleportation simulation."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.fidelity_log: list[float] = []
 
     def teleport(self, state: tuple[complex, complex],
                  noise: float = 0.01) -> tuple[complex, complex]:
+        """``teleport`` 동작을 수행한다."""
         alpha, beta = state
         norm = np.sqrt(abs(alpha)**2 + abs(beta)**2)
         alpha, beta = alpha / norm, beta / norm
@@ -120,6 +128,7 @@ class QuantumTeleportation:
         return result
 
     def avg_fidelity(self) -> float:
+        """``avg_fidelity`` 동작을 수행한다."""
         return float(np.mean(self.fidelity_log)) if self.fidelity_log else 0.0
 
 
@@ -127,6 +136,7 @@ class QuantumCommunication:
     """Integrated quantum communication system for drone swarms."""
 
     def __init__(self, n_drones: int = 10, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.bb84 = BB84Protocol(seed)
@@ -136,6 +146,7 @@ class QuantumCommunication:
 
     def establish_qkd(self, alice_id: str, bob_id: str,
                       n_bits: int = 256, eve: bool = False) -> QKDResult:
+        """``establish_qkd`` 동작을 수행한다."""
         result = self.bb84.execute(n_bits, eve)
         key = f"{alice_id}-{bob_id}"
         self.channels[key] = QuantumChannel(key, alice_id, bob_id,
@@ -146,6 +157,7 @@ class QuantumCommunication:
         return result
 
     def secure_send(self, sender: str, receiver: str, message: str) -> dict:
+        """``secure_send`` 동작을 수행한다."""
         key = f"{sender}-{receiver}"
         alt_key = f"{receiver}-{sender}"
         shared = self.shared_keys.get(key) or self.shared_keys.get(alt_key)
@@ -160,6 +172,7 @@ class QuantumCommunication:
                 "msg_hash": msg_hash, "key_id": key}
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": self.n_drones,
             "channels": len(self.channels),

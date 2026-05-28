@@ -31,6 +31,7 @@ class _CollisionMLP(nn.Module):
     """간단한 3-layer MLP: 12 → 64 → 32 → 1."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(INPUT_DIM, HIDDEN_DIM),
@@ -42,6 +43,7 @@ class _CollisionMLP(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """``forward`` 동작을 수행한다."""
         return self.net(x).squeeze(-1)
 
 
@@ -52,6 +54,7 @@ class CollisionPredictor:
     """드론 쌍의 충돌 확률을 예측하는 래퍼 클래스."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = _CollisionMLP().to(self.device)
 

@@ -64,17 +64,20 @@ class FleetOptimizer:
         revenue_per_mission: float = 5.0,
         operating_cost_per_hour: float = 2.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._types: dict[str, DroneType] = {}
         self._demand_per_hour: float = 10.0
         self._revenue = revenue_per_mission
         self._op_cost = operating_cost_per_hour
 
     def add_drone_type(self, name: str, **kwargs: Any) -> DroneType:
+        """`drone type` 항목을 추가한다."""
         dt = DroneType(name=name, **kwargs)
         self._types[name] = dt
         return dt
 
     def set_demand(self, missions_per_hour: float) -> None:
+        """`demand` 상태를 갱신한다."""
         self._demand_per_hour = missions_per_hour
 
     def optimize(self) -> FleetComposition:
@@ -172,6 +175,7 @@ class FleetOptimizer:
         }
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         comp = self.optimize()
         return {
             "drone_types": len(self._types),

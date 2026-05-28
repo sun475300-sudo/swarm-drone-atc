@@ -11,6 +11,7 @@ import numpy as np
 
 
 class AdaptationType(Enum):
+    """``AdaptationType`` 관련 기능을 제공한다."""
     FEW_SHOT = "few_shot"
     ZERO_SHOT = "zero_shot"
     CONTINUAL = "continual"
@@ -19,6 +20,7 @@ class AdaptationType(Enum):
 
 @dataclass
 class Task:
+    """``Task`` 관련 기능을 제공한다."""
     task_id: str
     support_set: dict[str, np.ndarray]
     query_set: dict[str, np.ndarray]
@@ -27,6 +29,7 @@ class Task:
 
 @dataclass
 class MetaLearnedModel:
+    """``MetaLearnedModel`` 관련 기능을 제공한다."""
     model_id: str
     parameters: dict[str, np.ndarray]
     adaptation_type: AdaptationType
@@ -35,6 +38,7 @@ class MetaLearnedModel:
 
 
 class MetaLearningController:
+    """``MetaLearningController`` 역할을 담당한다."""
     def __init__(
         self,
         adaptation_type: AdaptationType = AdaptationType.FEW_SHOT,
@@ -42,6 +46,7 @@ class MetaLearningController:
         outer_lr: float = 0.001,
         support_size: int = 5,
     ):
+        """인스턴스를 초기화한다."""
         self.adaptation_type = adaptation_type
         self.inner_lr = inner_lr
         self.outer_lr = outer_lr
@@ -64,6 +69,7 @@ class MetaLearningController:
     def meta_train(
         self, tasks: list[Task], num_iterations: int = 100
     ) -> MetaLearnedModel:
+        """``meta_train`` 동작을 수행한다."""
         for _iteration in range(num_iterations):
             for task in tasks:
                 adapted_params = self._inner_update(task.support_set)
@@ -111,6 +117,7 @@ class MetaLearningController:
     def adapt_to_task(
         self, model: MetaLearnedModel, task: Task
     ) -> dict[str, np.ndarray]:
+        """``adapt_to_task`` 동작을 수행한다."""
         start_time = time.time()
 
         if self.adaptation_type == AdaptationType.FEW_SHOT:
@@ -148,6 +155,7 @@ class MetaLearningController:
     def evaluate_adaptation(
         self, model: MetaLearnedModel, test_task: Task
     ) -> dict[str, float]:
+        """`adaptation` 결과를 계산하거나 판정한다."""
         self.adapt_to_task(model, test_task)
 
         accuracy = np.random.uniform(0.6, 0.9)
@@ -159,6 +167,7 @@ class MetaLearningController:
         }
 
     def get_controller_status(self) -> dict[str, Any]:
+        """`controller status` 정보를 조회한다."""
         return {
             "adaptation_type": self.adaptation_type.value,
             "learned_models": len(self.learned_models),

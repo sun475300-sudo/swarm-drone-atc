@@ -47,10 +47,12 @@ class DroneFactory:
     """드론 팩토리."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._created: list[DroneSpec] = []
         self._custom_presets: dict[str, dict[str, Any]] = {}
 
     def create(self, drone_type: str, drone_id: str = "") -> DroneSpec:
+        """`대상` 결과를 생성한다."""
         preset = self._custom_presets.get(drone_type) or PRESETS.get(drone_type)
         if not preset:
             preset = PRESETS["DELIVERY"]
@@ -70,15 +72,19 @@ class DroneFactory:
         return spec
 
     def create_fleet(self, drone_type: str, count: int, prefix: str = "d") -> list[DroneSpec]:
+        """`fleet` 결과를 생성한다."""
         return [self.create(drone_type, f"{prefix}{i}") for i in range(count)]
 
     def add_preset(self, name: str, spec: dict[str, Any]) -> None:
+        """`preset` 항목을 추가한다."""
         self._custom_presets[name] = spec
 
     def available_types(self) -> list[str]:
+        """``available_types`` 동작을 수행한다."""
         return sorted(set(list(PRESETS.keys()) + list(self._custom_presets.keys())))
 
     def type_comparison(self, type_a: str, type_b: str) -> dict[str, Any]:
+        """``type_comparison`` 동작을 수행한다."""
         a = PRESETS.get(type_a, {})
         b = PRESETS.get(type_b, {})
         if not a or not b:
@@ -90,6 +96,7 @@ class DroneFactory:
         }
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         type_counts: dict[str, int] = {}
         for s in self._created:
             type_counts[s.drone_type] = type_counts.get(s.drone_type, 0) + 1

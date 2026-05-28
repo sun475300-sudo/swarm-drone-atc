@@ -11,6 +11,7 @@ import numpy as np
 
 
 class TaskDomain(Enum):
+    """``TaskDomain`` 관련 기능을 제공한다."""
     DETECTION = "detection"
     TRACKING = "tracking"
     NAVIGATION = "navigation"
@@ -19,6 +20,7 @@ class TaskDomain(Enum):
 
 @dataclass
 class TaskDescriptor:
+    """``TaskDescriptor`` 관련 기능을 제공한다."""
     domain: TaskDomain
     description: str
     required_capabilities: list[str]
@@ -27,6 +29,7 @@ class TaskDescriptor:
 
 @dataclass
 class AdaptationResult:
+    """``AdaptationResult`` 데이터를 표현한다."""
     task_id: str
     success: bool
     confidence: float
@@ -35,12 +38,14 @@ class AdaptationResult:
 
 
 class ZeroShotAdaptor:
+    """``ZeroShotAdaptor`` 관련 기능을 제공한다."""
     def __init__(
         self,
         base_model_path: str | None = None,
         use_llm_descriptor: bool = True,
         confidence_threshold: float = 0.7,
     ):
+        """인스턴스를 초기화한다."""
         self.base_model_path = base_model_path
         self.use_llm_descriptor = use_llm_descriptor
         self.confidence_threshold = confidence_threshold
@@ -77,6 +82,7 @@ class ZeroShotAdaptor:
         }
 
     def describe_task(self, task: TaskDescriptor) -> dict[str, Any]:
+        """``describe_task`` 동작을 수행한다."""
         description_embedding = self._encode_description(task.description)
 
         required_caps = []
@@ -125,6 +131,7 @@ class ZeroShotAdaptor:
             return "low"
 
     def adapt(self, task: TaskDescriptor) -> AdaptationResult:
+        """``adapt`` 동작을 수행한다."""
         start_time = time.time()
 
         task_info = self.describe_task(task)
@@ -227,6 +234,7 @@ class ZeroShotAdaptor:
         return min(base_confidence + cap_bonus, 1.0)
 
     def get_adaptation_stats(self) -> dict[str, Any]:
+        """`adaptation stats` 정보를 조회한다."""
         if not self.task_history:
             return {"total_tasks": 0}
 

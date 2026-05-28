@@ -12,6 +12,7 @@ import numpy as np
 
 @dataclass
 class SystemState:
+    """``SystemState`` 데이터를 표현한다."""
     nodes: int
     state: np.ndarray
     phi: float = 0.0
@@ -22,6 +23,7 @@ class IITCalculator:
     """IIT Phi 계산기 (간이)."""
 
     def __init__(self, n_nodes: int, seed=42):
+        """인스턴스를 초기화한다."""
         self.n = n_nodes
         self.rng = np.random.default_rng(seed)
         # 전이 확률 행렬 (TPM)
@@ -77,6 +79,7 @@ class SwarmConsciousnessMetric:
     """군집 의식 지표 시뮬레이션."""
 
     def __init__(self, n_drones=8, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.iit = IITCalculator(min(n_drones, 8), seed)
@@ -85,6 +88,7 @@ class SwarmConsciousnessMetric:
         self.steps = 0
 
     def measure(self, state: np.ndarray = None):
+        """``measure`` 동작을 수행한다."""
         if state is None:
             state = self.rng.choice([0, 1], self.n_drones).astype(float)
         phi = self.iit.compute_phi(state[:self.iit.n])
@@ -94,6 +98,7 @@ class SwarmConsciousnessMetric:
         return phi
 
     def run(self, n_steps=50):
+        """메인 실행 루프를 수행한다."""
         for _ in range(n_steps):
             self.measure()
 
@@ -104,6 +109,7 @@ class SwarmConsciousnessMetric:
         return float(np.std(self.phi_history) / (np.mean(self.phi_history) + 1e-8))
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": self.n_drones,
             "measurements": self.steps,

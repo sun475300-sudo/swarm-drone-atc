@@ -37,12 +37,14 @@ class MetricsCollector:
     """시계열 메트릭 수집기 — 최대 max_history 개 스냅샷 보관"""
 
     def __init__(self, max_history: int = 600) -> None:
+        """인스턴스를 초기화한다."""
         self.max_history = max_history
         self._history: deque[MetricsSnapshot] = deque(maxlen=max_history)
         self._lock = threading.Lock()
         self._total_energy_wh = 0.0
 
     def reset(self) -> None:
+        """`대상` 상태를 정리한다."""
         with self._lock:
             self._history.clear()
             self._total_energy_wh = 0.0
@@ -106,6 +108,7 @@ class MetricsCollector:
 
     @property
     def latest(self) -> MetricsSnapshot | None:
+        """``latest`` 동작을 수행한다."""
         with self._lock:
             return self._history[-1] if self._history else None
 
@@ -125,5 +128,6 @@ class MetricsCollector:
             return [0] * 10
 
     def history_len(self) -> int:
+        """``history_len`` 동작을 수행한다."""
         with self._lock:
             return len(self._history)

@@ -34,6 +34,7 @@ class BTNode:
     children: list[BTNode] = field(default_factory=list)
 
     def tick(self, context: dict[str, Any]) -> NodeStatus:
+        """``tick`` 동작을 수행한다."""
         return NodeStatus.SUCCESS
 
 
@@ -42,6 +43,7 @@ class SequenceNode(BTNode):
     """Sequence: 모든 자식이 SUCCESS여야 SUCCESS (AND 로직)."""
 
     def tick(self, context: dict[str, Any]) -> NodeStatus:
+        """``tick`` 동작을 수행한다."""
         for child in self.children:
             status = child.tick(context)
             if status == NodeStatus.RUNNING:
@@ -56,6 +58,7 @@ class SelectorNode(BTNode):
     """Selector: 하나라도 SUCCESS면 SUCCESS (OR 로직)."""
 
     def tick(self, context: dict[str, Any]) -> NodeStatus:
+        """``tick`` 동작을 수행한다."""
         for child in self.children:
             status = child.tick(context)
             if status == NodeStatus.RUNNING:
@@ -71,6 +74,7 @@ class ConditionNode(BTNode):
     predicate: Callable[[dict[str, Any]], bool] | None = None
 
     def tick(self, context: dict[str, Any]) -> NodeStatus:
+        """``tick`` 동작을 수행한다."""
         if self.predicate is None:
             return NodeStatus.SUCCESS
         return NodeStatus.SUCCESS if self.predicate(context) else NodeStatus.FAILURE
@@ -82,6 +86,7 @@ class ActionNode(BTNode):
     action: Callable[[dict[str, Any]], NodeStatus] | None = None
 
     def tick(self, context: dict[str, Any]) -> NodeStatus:
+        """``tick`` 동작을 수행한다."""
         if self.action is None:
             return NodeStatus.SUCCESS
         return self.action(context)
@@ -93,6 +98,7 @@ class InverterNode(BTNode):
     child: BTNode | None = None
 
     def tick(self, context: dict[str, Any]) -> NodeStatus:
+        """``tick`` 동작을 수행한다."""
         if self.child is None:
             return NodeStatus.FAILURE
         status = self.child.tick(context)
@@ -110,6 +116,7 @@ class RepeatUntilSuccess(BTNode):
     max_repeats: int = 10
 
     def tick(self, context: dict[str, Any]) -> NodeStatus:
+        """``tick`` 동작을 수행한다."""
         if self.child is None:
             return NodeStatus.FAILURE
         for _ in range(self.max_repeats):

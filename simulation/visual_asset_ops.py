@@ -20,6 +20,7 @@ _EXPECTED_ASSETS = [
 
 
 def load_asset_index() -> dict:
+    """`asset index` 정보를 조회한다."""
     index: dict[str, bool] = {}
     for name in _EXPECTED_ASSETS:
         path = os.path.join(_ASSET_DIR, name)
@@ -28,11 +29,13 @@ def load_asset_index() -> dict:
 
 
 def check_missing_assets() -> list[str]:
+    """`missing assets` 결과를 계산하거나 판정한다."""
     index = load_asset_index()
     return [name for name, exists in index.items() if not exists]
 
 
 def generate_sync_report() -> dict:
+    """`sync report` 결과를 생성한다."""
     index = load_asset_index()
     missing = [k for k, v in index.items() if not v]
     return {

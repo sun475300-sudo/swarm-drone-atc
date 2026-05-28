@@ -381,6 +381,7 @@ class Evaluator:
     """
 
     def __init__(self, config: EvaluatorConfig | None = None) -> None:
+        """인스턴스를 초기화한다."""
         self.config = config or EvaluatorConfig()
 
     def evaluate(self, trace: SimulationTrace) -> dict[str, float]:

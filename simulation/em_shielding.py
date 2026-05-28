@@ -10,6 +10,7 @@ import numpy as np
 
 
 class ShieldMaterial(Enum):
+    """``ShieldMaterial`` 관련 기능을 제공한다."""
     COPPER = "copper"
     ALUMINUM = "aluminum"
     MU_METAL = "mu_metal"
@@ -19,6 +20,7 @@ class ShieldMaterial(Enum):
 
 
 class EMISource(Enum):
+    """``EMISource`` 관련 기능을 제공한다."""
     MOTOR = "motor"
     ESC = "esc"
     RADIO_TX = "radio_tx"
@@ -29,6 +31,7 @@ class EMISource(Enum):
 
 
 class EMCStandard(Enum):
+    """``EMCStandard`` 관련 기능을 제공한다."""
     MIL_STD_461G = "mil_std_461g"
     CISPR_32 = "cispr_32"
     FCC_PART15 = "fcc_part15"
@@ -37,6 +40,7 @@ class EMCStandard(Enum):
 
 @dataclass
 class ShieldConfig:
+    """``ShieldConfig`` 데이터를 표현한다."""
     material: ShieldMaterial
     thickness_mm: float
     coverage_pct: float  # 0-100
@@ -46,6 +50,7 @@ class ShieldConfig:
 
 @dataclass
 class EMIEvent:
+    """``EMIEvent`` 데이터를 표현한다."""
     source: EMISource
     frequency_mhz: float
     power_dbm: float
@@ -56,6 +61,7 @@ class EMIEvent:
 
 @dataclass
 class EMCReport:
+    """``EMCReport`` 관련 기능을 제공한다."""
     standard: EMCStandard
     emissions_pass: bool
     susceptibility_pass: bool
@@ -67,6 +73,7 @@ class ShieldingEffectiveness:
     """Calculate SE based on material and geometry."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.material_conductivity = {
             ShieldMaterial.COPPER: 5.8e7,
             ShieldMaterial.ALUMINUM: 3.5e7,
@@ -85,6 +92,7 @@ class ShieldingEffectiveness:
         }
 
     def compute_se(self, config: ShieldConfig, freq_mhz: float) -> float:
+        """`se` 값을 계산한다."""
         if config.material == ShieldMaterial.NONE:
             return 0.0
         sigma = self.material_conductivity[config.material]
@@ -103,11 +111,13 @@ class EMIAnalyzer:
     """Analyze EMI impact on drone systems."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.events: list[EMIEvent] = []
         self.se_calc = ShieldingEffectiveness()
 
     def generate_threat(self, source: EMISource) -> EMIEvent:
+        """`threat` 결과를 생성한다."""
         profiles = {
             EMISource.MOTOR: (0.1, 50, 30),
             EMISource.ESC: (1, 200, 25),
@@ -124,6 +134,7 @@ class EMIAnalyzer:
         return EMIEvent(source, round(freq, 3), round(power, 1), round(dur, 4))
 
     def assess_shielding(self, event: EMIEvent, shield: ShieldConfig) -> EMIEvent:
+        """``assess_shielding`` 동작을 수행한다."""
         se = self.se_calc.compute_se(shield, event.frequency_mhz)
         event.shielded_power_dbm = round(event.power_dbm - se, 1)
         event.compliant = event.shielded_power_dbm < 30
@@ -135,6 +146,7 @@ class EMShielding:
     """EM shielding design and analysis system."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.analyzer = EMIAnalyzer(seed)
         self.shields: dict[str, ShieldConfig] = {}
@@ -147,6 +159,7 @@ class EMShielding:
 
     def run_emc_test(self, shield_name: str = "primary",
                      standard: EMCStandard = EMCStandard.DO_160G) -> EMCReport:
+        """``run_emc_test`` 동작을 수행한다."""
         shield = self.shields.get(shield_name, ShieldConfig(ShieldMaterial.NONE, 0, 0, 0, 0))
         freqs = np.logspace(-1, 4, 50)  # 0.1 MHz to 10 GHz
         margins = []
@@ -170,6 +183,7 @@ class EMShielding:
 
     def optimize_shield(self, weight_budget_g: float = 100,
                         target_se_db: float = 40) -> ShieldConfig:
+        """``optimize_shield`` 동작을 수행한다."""
         best = None
         best_score = -1
         for mat in ShieldMaterial:
@@ -192,6 +206,7 @@ class EMShielding:
         return best or ShieldConfig(ShieldMaterial.ALUMINUM, 1.0, 90, 270, 50)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "shields": len(self.shields),
             "emi_events": len(self.analyzer.events),

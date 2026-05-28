@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class ODEState:
+    """``ODEState`` 데이터를 표현한다."""
     t: float
     y: np.ndarray
 
@@ -19,6 +20,7 @@ class NeuralODEFunc:
     """신경망 ODE 함수 f(t, y)."""
 
     def __init__(self, input_dim=4, hidden_dim=16, seed=42):
+        """인스턴스를 초기화한다."""
         rng = np.random.default_rng(seed)
         self.w1 = rng.normal(0, 0.3, (input_dim, hidden_dim))
         self.b1 = np.zeros(hidden_dim)
@@ -34,6 +36,7 @@ class RK4Solver:
     """4차 Runge-Kutta 솔버."""
 
     def solve(self, func, y0: np.ndarray, t_span: tuple, dt=0.01) -> list[ODEState]:
+        """``solve`` 동작을 수행한다."""
         t0, t1 = t_span
         t = t0
         y = y0.copy()
@@ -54,6 +57,7 @@ class NeuralODEController:
     """Neural ODE 기반 드론 제어 시뮬레이션."""
 
     def __init__(self, state_dim=4, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.func = NeuralODEFunc(state_dim, 16, seed)
         self.solver = RK4Solver()
@@ -61,6 +65,7 @@ class NeuralODEController:
         self.trajectories: list[list[ODEState]] = []
 
     def simulate_trajectory(self, y0: np.ndarray = None, t_end=5.0, dt=0.05):
+        """``simulate_trajectory`` 동작을 수행한다."""
         if y0 is None:
             y0 = self.rng.normal(0, 1, self.state_dim)
         traj = self.solver.solve(self.func, y0, (0, t_end), dt)
@@ -68,6 +73,7 @@ class NeuralODEController:
         return traj
 
     def run(self, n_trajectories=10, t_end=5.0):
+        """메인 실행 루프를 수행한다."""
         for _ in range(n_trajectories):
             y0 = self.rng.normal(0, 1, self.state_dim)
             self.simulate_trajectory(y0, t_end)
@@ -83,6 +89,7 @@ class NeuralODEController:
         return float(np.mean(norms))
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         total_steps = sum(len(t) for t in self.trajectories)
         return {
             "state_dim": self.state_dim,

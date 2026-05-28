@@ -11,6 +11,7 @@ import numpy as np
 
 
 class SyncStatus(Enum):
+    """``SyncStatus`` 관련 기능을 제공한다."""
     SYNCED = "synced"
     PENDING = "pending"
     CONFLICTED = "conflicted"
@@ -18,6 +19,7 @@ class SyncStatus(Enum):
 
 
 class ConflictResolution(Enum):
+    """``ConflictResolution`` 관련 기능을 제공한다."""
     LAST_WRITE_WINS = "lww"
     MERGE = "merge"
     PRIORITY = "priority"
@@ -25,6 +27,7 @@ class ConflictResolution(Enum):
 
 @dataclass
 class TwinState:
+    """``TwinState`` 데이터를 표현한다."""
     twin_id: str
     version: int
     data: dict
@@ -33,6 +36,7 @@ class TwinState:
     checksum: str = ""
 
     def compute_checksum(self) -> str:
+        """`checksum` 값을 계산한다."""
         content = f"{self.twin_id}:{self.version}:{sorted(self.data.items())}"
         self.checksum = hashlib.sha256(content.encode()).hexdigest()[:16]
         return self.checksum
@@ -40,6 +44,7 @@ class TwinState:
 
 @dataclass
 class FederationNode:
+    """``FederationNode`` 관련 기능을 제공한다."""
     node_id: str
     twins: dict[str, TwinState] = field(default_factory=dict)
     peers: set[str] = field(default_factory=set)
@@ -49,6 +54,7 @@ class FederationNode:
 
 @dataclass
 class SyncEvent:
+    """``SyncEvent`` 데이터를 표현한다."""
     source: str
     target: str
     twin_id: str
@@ -62,6 +68,7 @@ class DigitalTwinFederationV2:
 
     def __init__(self, conflict_resolution: ConflictResolution = ConflictResolution.LAST_WRITE_WINS,
                  seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.cr = conflict_resolution
         self.rng = np.random.default_rng(seed)
         self.nodes: dict[str, FederationNode] = {}
@@ -69,6 +76,7 @@ class DigitalTwinFederationV2:
         self.conflicts_resolved = 0
 
     def add_node(self, node_id: str, is_leader: bool = False) -> FederationNode:
+        """`node` 항목을 추가한다."""
         node = FederationNode(node_id, is_leader=is_leader)
         self.nodes[node_id] = node
         for existing in self.nodes.values():
@@ -78,6 +86,7 @@ class DigitalTwinFederationV2:
         return node
 
     def create_twin(self, node_id: str, twin_id: str, data: dict, timestamp: float = 0) -> TwinState | None:
+        """`twin` 결과를 생성한다."""
         node = self.nodes.get(node_id)
         if not node:
             return None
@@ -87,6 +96,7 @@ class DigitalTwinFederationV2:
         return state
 
     def update_twin(self, node_id: str, twin_id: str, data: dict, timestamp: float = 0) -> TwinState | None:
+        """`twin` 상태를 갱신한다."""
         node = self.nodes.get(node_id)
         if not node or twin_id not in node.twins:
             return None
@@ -97,6 +107,7 @@ class DigitalTwinFederationV2:
         return new_state
 
     def sync_twin(self, source_id: str, target_id: str, twin_id: str) -> SyncStatus:
+        """`twin` 상태를 갱신한다."""
         source = self.nodes.get(source_id)
         target = self.nodes.get(target_id)
         if not source or not target:
@@ -161,6 +172,7 @@ class DigitalTwinFederationV2:
         return SyncStatus.SYNCED
 
     def sync_all(self) -> dict[str, int]:
+        """`all` 상태를 갱신한다."""
         synced = 0
         conflicts = 0
         node_ids = list(self.nodes.keys())
@@ -178,6 +190,7 @@ class DigitalTwinFederationV2:
         return {"synced": synced, "conflicts": conflicts}
 
     def query_federation(self, twin_id: str) -> list[tuple]:
+        """``query_federation`` 동작을 수행한다."""
         results = []
         for node in self.nodes.values():
             twin = node.twins.get(twin_id)
@@ -186,6 +199,7 @@ class DigitalTwinFederationV2:
         return results
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         total_twins = sum(len(n.twins) for n in self.nodes.values())
         return {
             "nodes": len(self.nodes),

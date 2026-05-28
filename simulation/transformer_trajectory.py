@@ -15,6 +15,7 @@ POS_DIM = 3    # x, y, z
 
 @dataclass
 class TrajectoryData:
+    """``TrajectoryData`` 관련 기능을 제공한다."""
     drone_id: str
     positions: list[np.ndarray] = field(default_factory=list)
     timestamps: list[float] = field(default_factory=list)
@@ -24,6 +25,7 @@ class PositionalEncoding(nn.Module):
     """Sinusoidal positional encoding for sequence positions."""
 
     def __init__(self, d_model: int, max_len: int = 500, dropout: float = 0.1) -> None:
+        """인스턴스를 초기화한다."""
         super().__init__()
         self.dropout = nn.Dropout(p=dropout)
         pe = torch.zeros(max_len, d_model)
@@ -37,6 +39,7 @@ class PositionalEncoding(nn.Module):
         self.register_buffer("pe", pe)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """``forward`` 동작을 수행한다."""
         x = x + self.pe[:, : x.size(1)]
         return self.dropout(x)
 
@@ -53,6 +56,7 @@ class TrajectoryTransformer(nn.Module):
         pred_horizon: int = 10,
         dropout: float = 0.1,
     ) -> None:
+        """인스턴스를 초기화한다."""
         super().__init__()
         self.d_model = d_model
         self.pred_horizon = pred_horizon
@@ -96,6 +100,7 @@ class TrajectoryPredictor:
         lr: float = 1e-3,
         seed: int = 42,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.pred_horizon = pred_horizon
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -185,4 +190,5 @@ class TrajectoryPredictor:
         }
 
     def get_trajectory_count(self) -> int:
+        """`trajectory count` 정보를 조회한다."""
         return len(self.trajectories)

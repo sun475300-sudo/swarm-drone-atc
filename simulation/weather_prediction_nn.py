@@ -13,6 +13,7 @@ import numpy as np
 
 
 class WeatherVariable(Enum):
+    """``WeatherVariable`` 관련 기능을 제공한다."""
     TEMPERATURE = "temperature"
     WIND_SPEED = "wind_speed"
     WIND_DIRECTION = "wind_direction"
@@ -24,15 +25,18 @@ class WeatherVariable(Enum):
 
 @dataclass
 class WeatherObservation:
+    """``WeatherObservation`` 관련 기능을 제공한다."""
     timestamp: float
     values: dict[str, float] = field(default_factory=dict)
 
     def get(self, var: WeatherVariable, default: float = 0.0) -> float:
+        """`대상` 정보를 조회한다."""
         return self.values.get(var.value, default)
 
 
 @dataclass
 class WeatherForecast:
+    """``WeatherForecast`` 관련 기능을 제공한다."""
     horizon_sec: float
     predictions: dict[str, float] = field(default_factory=dict)
     confidence: float = 0.0
@@ -43,6 +47,7 @@ class LSTMCell:
     """Simplified LSTM cell for weather forecasting."""
 
     def __init__(self, input_size: int, hidden_size: int, rng: np.random.Generator):
+        """인스턴스를 초기화한다."""
         scale = 1.0 / np.sqrt(hidden_size)
         self.Wf = rng.normal(0, scale, (hidden_size, input_size + hidden_size))
         self.Wi = rng.normal(0, scale, (hidden_size, input_size + hidden_size))
@@ -56,6 +61,7 @@ class LSTMCell:
 
     def forward(self, x: np.ndarray, h_prev: np.ndarray, c_prev: np.ndarray
                 ) -> tuple[np.ndarray, np.ndarray]:
+        """``forward`` 동작을 수행한다."""
         combined = np.concatenate([x, h_prev])
         ft = self._sigmoid(self.Wf @ combined + self.bf)
         it = self._sigmoid(self.Wi @ combined + self.bi)
@@ -82,6 +88,7 @@ class WeatherPredictionNN:
     VARIABLES = list(WeatherVariable)
 
     def __init__(self, hidden_size: int = 32, n_ensemble: int = 3, rng_seed: int = 42):
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(rng_seed)
         self._hidden_size = hidden_size
         self._n_ensemble = n_ensemble
@@ -100,6 +107,7 @@ class WeatherPredictionNN:
         self._c_states = [np.zeros(hidden_size) for _ in range(n_ensemble)]
 
     def observe(self, observation: WeatherObservation):
+        """``observe`` 동작을 수행한다."""
         self._observations.append(observation)
         # Feed through models to update hidden states
         x = np.array([observation.get(v) for v in self.VARIABLES])
@@ -161,6 +169,7 @@ class WeatherPredictionNN:
         }
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "observations": len(self._observations),
             "forecasts": len(self._forecasts),

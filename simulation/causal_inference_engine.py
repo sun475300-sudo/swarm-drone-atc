@@ -9,6 +9,7 @@ import numpy as np
 
 @dataclass
 class CausalGraph:
+    """``CausalGraph`` 관련 기능을 제공한다."""
     nodes: list[str]
     edges: list[tuple[str, str]]
     confounders: list[str]
@@ -16,6 +17,7 @@ class CausalGraph:
 
 @dataclass
 class TreatmentEffect:
+    """``TreatmentEffect`` 관련 기능을 제공한다."""
     treatment: str
     outcome: str
     ate: float
@@ -24,7 +26,9 @@ class TreatmentEffect:
 
 
 class CausalInferenceEngine:
+    """``CausalInferenceEngine`` 역할을 담당한다."""
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.causal_graphs: dict[str, CausalGraph] = {}
         self.observational_data: dict[str, list[dict]] = {}
         self.treatment_effects: list[TreatmentEffect] = []
@@ -32,6 +36,7 @@ class CausalInferenceEngine:
     def build_causal_graph(
         self, graph_id: str, nodes: list[str], edges: list[tuple[str, str]]
     ):
+        """`causal graph` 결과를 생성한다."""
         confounders = [
             n for n in nodes if any(n in e for e in edges) and nodes.count(n) > 1
         ]
@@ -40,11 +45,13 @@ class CausalInferenceEngine:
         self.causal_graphs[graph_id] = graph
 
     def add_observational_data(self, graph_id: str, data: list[dict]):
+        """`observational data` 항목을 추가한다."""
         self.observational_data[graph_id] = data
 
     def estimate_ate(
         self, treatment: str, outcome: str, graph_id: str
     ) -> TreatmentEffect:
+        """`ate` 결과를 계산하거나 판정한다."""
         data = self.observational_data.get(graph_id, [])
 
         treated = [d for d in data if d.get(treatment) == 1]
@@ -66,6 +73,7 @@ class CausalInferenceEngine:
         return effect
 
     def adjust_confounding(self, graph_id: str, treatment: str, outcome: str) -> float:
+        """``adjust_confounding`` 동작을 수행한다."""
         if graph_id not in self.causal_graphs:
             return 0.0
 
@@ -80,6 +88,7 @@ class CausalInferenceEngine:
     def get_causal_paths(
         self, source: str, target: str, graph_id: str
     ) -> list[list[str]]:
+        """`causal paths` 정보를 조회한다."""
         if graph_id not in self.causal_graphs:
             return []
 
@@ -108,6 +117,7 @@ class CausalInferenceEngine:
     def estimate_counterfactual(
         self, treatment: str, outcome: str, individual: dict
     ) -> float:
+        """`counterfactual` 결과를 계산하거나 판정한다."""
         base_outcome = individual.get(outcome, 0.0)
 
         treatment_effect = np.random.uniform(0.1, 0.5)

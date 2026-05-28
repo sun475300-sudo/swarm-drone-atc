@@ -13,12 +13,14 @@ SOUND_SPEED = 343.0  # m/s
 
 @dataclass
 class Microphone:
+    """``Microphone`` 관련 기능을 제공한다."""
     mic_id: str
     position: np.ndarray  # [x, y, z]
 
 
 @dataclass
 class AcousticSource:
+    """``AcousticSource`` 관련 기능을 제공한다."""
     source_id: str
     position: np.ndarray
     frequency_hz: float
@@ -27,6 +29,7 @@ class AcousticSource:
 
 @dataclass
 class TDOAMeasurement:
+    """``TDOAMeasurement`` 관련 기능을 제공한다."""
     mic_pair: tuple  # (mic_i, mic_j)
     tdoa_s: float
     confidence: float
@@ -34,6 +37,7 @@ class TDOAMeasurement:
 
 @dataclass
 class LocalizationResult:
+    """``LocalizationResult`` 데이터를 표현한다."""
     estimated_position: np.ndarray
     true_position: np.ndarray
     error_m: float
@@ -44,10 +48,12 @@ class TDOALocalizer:
     """TDOA 기반 음향 위치추정."""
 
     def __init__(self, mics: list[Microphone], seed=42):
+        """인스턴스를 초기화한다."""
         self.mics = mics
         self.rng = np.random.default_rng(seed)
 
     def compute_tdoa(self, source_pos: np.ndarray, noise_std=1e-5) -> list[TDOAMeasurement]:
+        """`tdoa` 값을 계산한다."""
         measurements = []
         n = len(self.mics)
         for i in range(n):
@@ -86,6 +92,7 @@ class Beamformer:
     """딜레이-앤-섬 빔포밍."""
 
     def __init__(self, mics: list[Microphone]):
+        """인스턴스를 초기화한다."""
         self.mics = mics
 
     def steer(self, direction: np.ndarray, frequency_hz: float) -> np.ndarray:
@@ -115,6 +122,7 @@ class DroneAcousticLocalization:
     """드론 음향 위치추정 시뮬레이션."""
 
     def __init__(self, n_mics=6, n_sources=5, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.mics = [
             Microphone(f"MIC_{i}", self.rng.uniform(-50, 50, 3))
@@ -130,6 +138,7 @@ class DroneAcousticLocalization:
         self.results: list[LocalizationResult] = []
 
     def localize_all(self):
+        """``localize_all`` 동작을 수행한다."""
         for src in self.sources:
             tdoa = self.localizer.compute_tdoa(src.position)
             est = self.localizer.localize(tdoa)
@@ -137,6 +146,7 @@ class DroneAcousticLocalization:
             self.results.append(LocalizationResult(est, src.position, err, "TDOA"))
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         if not self.results:
             self.localize_all()
         avg_err = float(np.mean([r.error_m for r in self.results]))

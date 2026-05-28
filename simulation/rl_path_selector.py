@@ -34,6 +34,7 @@ class RLPathSelector:
         epsilon: float = 0.2, epsilon_decay: float = 0.995,
         min_epsilon: float = 0.01, seed: int = 42,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.n_actions = n_actions
         self.alpha = alpha
         self.gamma = gamma
@@ -72,12 +73,15 @@ class RLPathSelector:
             self._current.total_reward += reward
 
     def decay_epsilon(self) -> None:
+        """``decay_epsilon`` 동작을 수행한다."""
         self.epsilon = max(self.min_epsilon, self.epsilon * self.epsilon_decay)
 
     def start_episode(self) -> None:
+        """`episode` 실행 상태를 제어한다."""
         self._current = Episode()
 
     def end_episode(self) -> None:
+        """``end_episode`` 동작을 수행한다."""
         if self._current:
             self._episodes.append(self._current)
             self._current = None
@@ -88,18 +92,22 @@ class RLPathSelector:
         return int(np.argmax(self._get_q(state)))
 
     def q_value(self, state: str, action: int) -> float:
+        """``q_value`` 동작을 수행한다."""
         return float(self._get_q(state)[action])
 
     def episode_rewards(self) -> list[float]:
+        """``episode_rewards`` 동작을 수행한다."""
         return [e.total_reward for e in self._episodes]
 
     def average_reward(self, last_n: int = 10) -> float:
+        """``average_reward`` 동작을 수행한다."""
         rewards = self.episode_rewards()
         if not rewards:
             return 0.0
         return float(np.mean(rewards[-last_n:]))
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "states": len(self._q),
             "episodes": len(self._episodes),

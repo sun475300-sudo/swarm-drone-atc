@@ -33,6 +33,7 @@ class CostAnalyzer:
         maintenance_per_hour: float = 500.0,
         infrastructure_per_flight: float = 100.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.energy_cost_per_wh = energy_cost_per_wh
         self.maintenance_per_hour = maintenance_per_hour
         self.infrastructure_per_flight = infrastructure_per_flight
@@ -43,6 +44,7 @@ class CostAnalyzer:
         distance_m: float = 0, flight_time_s: float = 0,
         revenue: float = 0, maintenance_cost: float = 0,
     ) -> None:
+        """`mission` 정보를 기록한다."""
         self._missions[mission_id] = MissionCost(
             mission_id=mission_id, energy_wh=energy_wh,
             distance_m=distance_m, flight_time_s=flight_time_s,
@@ -50,6 +52,7 @@ class CostAnalyzer:
         )
 
     def total_cost(self, mission_id: str) -> float:
+        """``total_cost`` 동작을 수행한다."""
         m = self._missions.get(mission_id)
         if not m:
             return 0.0
@@ -59,6 +62,7 @@ class CostAnalyzer:
         return round(energy + maintenance + infra, 1)
 
     def cost_per_km(self, mission_id: str) -> float:
+        """``cost_per_km`` 동작을 수행한다."""
         m = self._missions.get(mission_id)
         if not m or m.distance_m <= 0:
             return 0.0
@@ -75,9 +79,11 @@ class CostAnalyzer:
         return round((m.revenue - cost) / cost * 100, 1)
 
     def profitable_missions(self) -> list[str]:
+        """``profitable_missions`` 동작을 수행한다."""
         return [mid for mid in self._missions if self.mission_roi(mid) > 0]
 
     def fleet_roi(self) -> float:
+        """``fleet_roi`` 동작을 수행한다."""
         total_revenue = sum(m.revenue for m in self._missions.values())
         total_cost = sum(self.total_cost(mid) for mid in self._missions)
         if total_cost <= 0:
@@ -85,6 +91,7 @@ class CostAnalyzer:
         return round((total_revenue - total_cost) / total_cost * 100, 1)
 
     def cost_breakdown(self) -> dict[str, float]:
+        """``cost_breakdown`` 동작을 수행한다."""
         energy = sum(m.energy_wh * self.energy_cost_per_wh for m in self._missions.values())
         maintenance = sum(
             m.maintenance_cost or (m.flight_time_s / 3600 * self.maintenance_per_hour)
@@ -99,6 +106,7 @@ class CostAnalyzer:
         }
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "missions": len(self._missions),
             "fleet_roi": self.fleet_roi(),

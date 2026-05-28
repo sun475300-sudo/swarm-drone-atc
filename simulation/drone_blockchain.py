@@ -13,6 +13,7 @@ import numpy as np
 
 @dataclass
 class Block:
+    """``Block`` 관련 기능을 제공한다."""
     index: int
     timestamp: float
     data: dict
@@ -21,6 +22,7 @@ class Block:
     hash: str = ""
 
     def compute_hash(self) -> str:
+        """`hash` 값을 계산한다."""
         content = f"{self.index}{self.timestamp}{self.data}{self.previous_hash}{self.nonce}"
         return hashlib.sha256(content.encode()).hexdigest()
 
@@ -29,6 +31,7 @@ class DroneBlockchain:
     """드론 비행 기록 블록체인."""
 
     def __init__(self, difficulty=2, seed=42):
+        """인스턴스를 초기화한다."""
         self.chain: list[Block] = []
         self.difficulty = difficulty
         self.rng = np.random.default_rng(seed)
@@ -41,9 +44,11 @@ class DroneBlockchain:
         self.chain.append(genesis)
 
     def add_transaction(self, tx: dict):
+        """`transaction` 항목을 추가한다."""
         self.pending.append(tx)
 
     def mine_block(self) -> Block:
+        """``mine_block`` 동작을 수행한다."""
         last = self.chain[-1]
         block = Block(
             index=len(self.chain),
@@ -60,6 +65,7 @@ class DroneBlockchain:
         return block
 
     def is_valid(self) -> bool:
+        """`valid` 여부를 반환한다."""
         for i in range(1, len(self.chain)):
             current = self.chain[i]
             prev = self.chain[i - 1]
@@ -70,6 +76,7 @@ class DroneBlockchain:
         return True
 
     def record_flight(self, drone_id: str, lat: float, lon: float, alt: float):
+        """`flight` 정보를 기록한다."""
         self.add_transaction({
             "drone": drone_id,
             "position": [lat, lon, alt],
@@ -77,6 +84,7 @@ class DroneBlockchain:
         })
 
     def run(self, n_drones=5, n_blocks=10):
+        """메인 실행 루프를 수행한다."""
         for _b in range(n_blocks):
             for d in range(n_drones):
                 self.record_flight(
@@ -88,6 +96,7 @@ class DroneBlockchain:
             self.mine_block()
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "chain_length": len(self.chain),
             "difficulty": self.difficulty,

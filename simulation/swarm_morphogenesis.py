@@ -10,11 +10,13 @@ import numpy as np
 
 
 class MorphogenType(Enum):
+    """``MorphogenType`` 관련 기능을 제공한다."""
     ACTIVATOR = "activator"
     INHIBITOR = "inhibitor"
 
 
 class FormationType(Enum):
+    """``FormationType`` 관련 기능을 제공한다."""
     CIRCLE = "circle"
     LINE = "line"
     GRID = "grid"
@@ -26,6 +28,7 @@ class FormationType(Enum):
 
 @dataclass
 class Morphogen:
+    """``Morphogen`` 관련 기능을 제공한다."""
     name: str
     mtype: MorphogenType
     diffusion_rate: float
@@ -35,6 +38,7 @@ class Morphogen:
 
 @dataclass
 class CellState:
+    """``CellState`` 데이터를 표현한다."""
     drone_id: int
     position: np.ndarray
     activator: float = 0.0
@@ -46,6 +50,7 @@ class ReactionDiffusion:
     """Turing pattern reaction-diffusion system."""
 
     def __init__(self, n_cells: int = 30, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_cells = n_cells
         self.activator = self.rng.uniform(0, 1, n_cells)
@@ -56,6 +61,7 @@ class ReactionDiffusion:
         self.k = 0.062  # kill rate
 
     def step(self, dt: float = 0.1) -> tuple[np.ndarray, np.ndarray]:
+        """`대상` 실행 상태를 제어한다."""
         a, b = self.activator, self.inhibitor
         lap_a = np.roll(a, 1) + np.roll(a, -1) - 2 * a
         lap_b = np.roll(b, 1) + np.roll(b, -1) - 2 * b
@@ -67,6 +73,7 @@ class ReactionDiffusion:
         return self.activator.copy(), self.inhibitor.copy()
 
     def run(self, steps: int = 100, dt: float = 0.1) -> list[np.ndarray]:
+        """메인 실행 루프를 수행한다."""
         history = []
         for _ in range(steps):
             a, _ = self.step(dt)
@@ -78,6 +85,7 @@ class SwarmMorphogenesis:
     """Formation control via morphogenetic fields."""
 
     def __init__(self, n_drones: int = 20, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.cells: list[CellState] = []
@@ -138,6 +146,7 @@ class SwarmMorphogenesis:
                 cell.fate = "follower"
 
     def step(self, dt: float = 0.1) -> dict:
+        """`대상` 실행 상태를 제어한다."""
         self.time += dt
         self.rd.step(dt)
         self._assign_roles()
@@ -160,6 +169,7 @@ class SwarmMorphogenesis:
         }
 
     def morph_to(self, formation: FormationType, steps: int = 100, dt: float = 0.1) -> list[dict]:
+        """``morph_to`` 동작을 수행한다."""
         self.target_formation = formation
         history = []
         for _ in range(steps):
@@ -168,6 +178,7 @@ class SwarmMorphogenesis:
         return history
 
     def formation_quality(self) -> float:
+        """``formation_quality`` 동작을 수행한다."""
         targets = self._target_positions(self.target_formation)
         errors = []
         for i, cell in enumerate(self.cells):
@@ -179,6 +190,7 @@ class SwarmMorphogenesis:
         return round(float(max(0, 1.0 - avg_error / 50.0)), 4)
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         roles = {}
         for c in self.cells:
             roles[c.fate] = roles.get(c.fate, 0) + 1

@@ -56,6 +56,7 @@ class ParameterSpace:
     """Defines the search space for hyperparameters."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._spaces: dict[str, dict[str, Any]] = {}
 
     def add_uniform(
@@ -138,6 +139,7 @@ class ScenarioTuner:
         self,
         config: TuningConfig | None = None,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._config = config or TuningConfig()
         self._param_space = ParameterSpace()
         self._objective: Callable[[dict[str, Any]], float] | None = None
@@ -327,6 +329,7 @@ class EnsembleTuner:
     """Tunes multiple scenarios and combines results."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._tuners: dict[str, ScenarioTuner] = {}
         self._results: dict[str, TuningResult] = {}
 

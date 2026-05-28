@@ -11,6 +11,7 @@ import numpy as np
 
 
 class CongestionLevel(Enum):
+    """``CongestionLevel`` 관련 기능을 제공한다."""
     FREE = 0
     LIGHT = 1
     MODERATE = 2
@@ -20,6 +21,7 @@ class CongestionLevel(Enum):
 
 @dataclass
 class Waypoint:
+    """``Waypoint`` 관련 기능을 제공한다."""
     wp_id: str
     position: np.ndarray
     congestion: CongestionLevel = CongestionLevel.FREE
@@ -29,6 +31,7 @@ class Waypoint:
 
 @dataclass
 class RouteSegment:
+    """``RouteSegment`` 관련 기능을 제공한다."""
     from_wp: str
     to_wp: str
     distance_m: float
@@ -39,6 +42,7 @@ class RouteSegment:
 
 @dataclass
 class Route:
+    """``Route`` 관련 기능을 제공한다."""
     route_id: str
     waypoints: list[str]
     total_distance_m: float
@@ -51,10 +55,12 @@ class TrafficPredictor:
     """Predict airspace traffic density using temporal patterns."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.history: dict[str, list[float]] = {}
 
     def record(self, wp_id: str, load: float):
+        """`대상` 정보를 기록한다."""
         if wp_id not in self.history:
             self.history[wp_id] = []
         self.history[wp_id].append(load)
@@ -62,6 +68,7 @@ class TrafficPredictor:
             self.history[wp_id].pop(0)
 
     def predict(self, wp_id: str, horizon_s: float = 300) -> float:
+        """`대상` 결과를 계산하거나 판정한다."""
         hist = self.history.get(wp_id, [])
         if len(hist) < 3:
             return self.rng.uniform(0, 0.5)
@@ -75,16 +82,19 @@ class SpatioTemporalGraph:
     """Space-time network for route planning."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.waypoints: dict[str, Waypoint] = {}
         self.edges: dict[str, list[RouteSegment]] = {}
 
     def add_waypoint(self, wp: Waypoint):
+        """`waypoint` 항목을 추가한다."""
         self.waypoints[wp.wp_id] = wp
         if wp.wp_id not in self.edges:
             self.edges[wp.wp_id] = []
 
     def add_edge(self, from_wp: str, to_wp: str):
+        """`edge` 항목을 추가한다."""
         if from_wp not in self.waypoints or to_wp not in self.waypoints:
             return
         p1 = self.waypoints[from_wp].position
@@ -95,6 +105,7 @@ class SpatioTemporalGraph:
         self.edges.setdefault(from_wp, []).append(seg)
 
     def dijkstra(self, start: str, end: str, weight_fn=None) -> Route | None:
+        """``dijkstra`` 동작을 수행한다."""
         if start not in self.waypoints or end not in self.waypoints:
             return None
         if weight_fn is None:
@@ -147,6 +158,7 @@ class PredictiveRouting:
     """Predictive routing system for drone swarms."""
 
     def __init__(self, n_waypoints: int = 30, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.predictor = TrafficPredictor(seed)
         self.graph = SpatioTemporalGraph(seed)
@@ -167,6 +179,7 @@ class PredictiveRouting:
                 self.graph.add_edge(wid, nid)
 
     def update_traffic(self):
+        """`traffic` 상태를 갱신한다."""
         for wid, wp in self.graph.waypoints.items():
             wp.current_load = int(self.rng.integers(0, wp.capacity + 3))
             load_ratio = wp.current_load / max(wp.capacity, 1)
@@ -185,6 +198,7 @@ class PredictiveRouting:
                 seg.risk_score = round(pred * 0.5, 3)
 
     def find_route(self, start: str, end: str) -> Route | None:
+        """``find_route`` 동작을 수행한다."""
         self.update_traffic()
         route = self.graph.dijkstra(start, end)
         if route:
@@ -192,6 +206,7 @@ class PredictiveRouting:
         return route
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "waypoints": len(self.graph.waypoints),
             "edges": sum(len(e) for e in self.graph.edges.values()),

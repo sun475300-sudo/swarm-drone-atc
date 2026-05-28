@@ -18,14 +18,20 @@ import numpy as np
 class ModelAdapter(Protocol):
     """Protocol for model adapters."""
 
-    def predict(self, features: np.ndarray) -> np.ndarray: ...
-    def predict_proba(self, features: np.ndarray) -> np.ndarray: ...
+    def predict(self, features: np.ndarray) -> np.ndarray:
+        """입력 특성에 대한 예측값을 반환한다."""
+        ...
+
+    def predict_proba(self, features: np.ndarray) -> np.ndarray:
+        """입력 특성에 대한 확률 예측값을 반환한다."""
+        ...
 
 
 class BaseModelWrapper(ABC):
     """Abstract base class for model wrappers."""
 
     def __init__(self, model_path: str | Path | None = None) -> None:
+        """인스턴스를 초기화한다."""
         self._model = None
         self._feature_names: list[str] = []
         self._model_version: str = "1.0.0"
@@ -76,6 +82,7 @@ class CollisionPredictor(BaseModelWrapper):
     """ML model for collision probability prediction."""
 
     def __init__(self, model_path: str | Path | None = None) -> None:
+        """인스턴스를 초기화한다."""
         super().__init__(model_path)
         self._feature_names = [
             "distance_to_cpa",
@@ -146,6 +153,7 @@ class RouteOptimizer(BaseModelWrapper):
     """ML model for route optimization decisions."""
 
     def __init__(self, model_path: str | Path | None = None) -> None:
+        """인스턴스를 초기화한다."""
         super().__init__(model_path)
         self._feature_names = [
             "start_x",
@@ -224,6 +232,7 @@ class DemandForecaster(BaseModelWrapper):
     """ML model for delivery demand forecasting."""
 
     def __init__(self, model_path: str | Path | None = None) -> None:
+        """인스턴스를 초기화한다."""
         super().__init__(model_path)
         self._feature_names = [
             "hour_of_day",
@@ -310,6 +319,7 @@ class MLInferencePipeline:
     """Unified pipeline for ML inference in simulation."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._collision_predictor = CollisionPredictor()
         self._route_optimizer = RouteOptimizer()
         self._demand_forecaster = DemandForecaster()

@@ -11,19 +11,23 @@ import numpy as np
 
 @dataclass
 class SpatialQuery:
+    """``SpatialQuery`` 관련 기능을 제공한다."""
     drone_id: str
     position: np.ndarray
     radius: float = 50.0
 
 
 class KDTreeIndex:
+    """``KDTreeIndex`` 관련 기능을 제공한다."""
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self._ids: list[str] = []
         self._positions: np.ndarray = np.empty((0, 3))
         self._tree = None
 
     def build(self, positions: dict[str, np.ndarray]) -> None:
+        """`대상` 결과를 생성한다."""
         from scipy.spatial import KDTree
         self._ids = list(positions.keys())
         self._positions = np.array([positions[did] for did in self._ids])
@@ -33,6 +37,7 @@ class KDTreeIndex:
             self._tree = None
 
     def query_pairs(self, radius: float) -> list[tuple[str, str, float]]:
+        """``query_pairs`` 동작을 수행한다."""
         if self._tree is None or len(self._ids) < 2:
             return []
         pairs = self._tree.query_pairs(radius, output_type="ndarray")
@@ -43,12 +48,14 @@ class KDTreeIndex:
         return results
 
     def query_ball(self, point: np.ndarray, radius: float) -> list[str]:
+        """``query_ball`` 동작을 수행한다."""
         if self._tree is None:
             return []
         indices = self._tree.query_ball_point(point, radius)
         return [self._ids[i] for i in indices]
 
     def nearest_k(self, point: np.ndarray, k: int = 5) -> list[tuple[str, float]]:
+        """``nearest_k`` 동작을 수행한다."""
         if self._tree is None:
             return []
         k = min(k, len(self._ids))
@@ -58,6 +65,7 @@ class KDTreeIndex:
         return [(self._ids[idx], float(d)) for d, idx in zip(dists, indices, strict=False)]
 
     def benchmark(self, n_drones: int, n_queries: int = 100) -> dict:
+        """``benchmark`` 동작을 수행한다."""
         import time
         positions = {
             f"D-{i:04d}": self.rng.uniform(-5000, 5000, 3)

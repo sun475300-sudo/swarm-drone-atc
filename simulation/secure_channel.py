@@ -44,6 +44,7 @@ class SecureChannel:
     """암호화 통신 채널."""
 
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(seed)
         self._nodes: set[str] = set()
         self._sessions: dict[tuple[str, str], Session] = {}
@@ -51,6 +52,7 @@ class SecureChannel:
         self._replay_cache: set[str] = set()
 
     def register_node(self, node_id: str) -> None:
+        """`node` 항목을 추가한다."""
         self._nodes.add(node_id)
 
     def _session_key(self, a: str, b: str) -> tuple[str, str]:
@@ -59,6 +61,7 @@ class SecureChannel:
         return pair, hashlib.sha256(key_material.encode()).hexdigest()[:16]
 
     def establish_session(self, node_a: str, node_b: str, t: float = 0.0) -> bool:
+        """``establish_session`` 동작을 수행한다."""
         if node_a not in self._nodes or node_b not in self._nodes:
             return False
         pair, key = self._session_key(node_a, node_b)
@@ -73,6 +76,7 @@ class SecureChannel:
         return self._sessions.get(pair)
 
     def send_secure(self, sender: str, receiver: str, payload: str = "") -> bool:
+        """``send_secure`` 동작을 수행한다."""
         session = self._get_session(sender, receiver)
         if not session or not session.valid:
             return False
@@ -104,6 +108,7 @@ class SecureChannel:
         return True
 
     def revoke_session(self, node_a: str, node_b: str) -> bool:
+        """`session` 상태를 정리한다."""
         session = self._get_session(node_a, node_b)
         if session:
             session.valid = False
@@ -111,12 +116,15 @@ class SecureChannel:
         return False
 
     def active_sessions(self) -> int:
+        """``active_sessions`` 동작을 수행한다."""
         return sum(1 for s in self._sessions.values() if s.valid)
 
     def replay_attempts(self) -> int:
+        """``replay_attempts`` 동작을 수행한다."""
         return sum(1 for m in self._messages if not m.verified)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "nodes": len(self._nodes),
             "active_sessions": self.active_sessions(),

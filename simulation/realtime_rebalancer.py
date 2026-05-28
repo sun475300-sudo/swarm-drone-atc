@@ -29,6 +29,7 @@ class RealtimeRebalancer:
     """실시간 공역 리밸런싱."""
 
     def __init__(self, grid_size: int = 5, area_size: float = 1000.0, imbalance_threshold: float = 2.0) -> None:
+        """인스턴스를 초기화한다."""
         self.grid_size = grid_size
         self.area_size = area_size
         self.imbalance_threshold = imbalance_threshold
@@ -36,6 +37,7 @@ class RealtimeRebalancer:
         self._actions: list[RebalanceAction] = []
 
     def update_positions(self, positions: dict[str, tuple[float, float, float]]) -> None:
+        """`positions` 상태를 갱신한다."""
         self._positions.update(positions)
 
     def _sector_of(self, pos: tuple[float, float, float]) -> tuple[int, int]:
@@ -43,6 +45,7 @@ class RealtimeRebalancer:
         return (int(pos[0] / max(cell, 1)), int(pos[1] / max(cell, 1)))
 
     def density_map(self) -> dict[tuple[int, int], int]:
+        """``density_map`` 동작을 수행한다."""
         dm: dict[tuple[int, int], int] = {}
         for pos in self._positions.values():
             s = self._sector_of(pos)
@@ -50,6 +53,7 @@ class RealtimeRebalancer:
         return dm
 
     def rebalance(self) -> list[RebalanceAction]:
+        """``rebalance`` 동작을 수행한다."""
         dm = self.density_map()
         if not dm:
             return []
@@ -83,6 +87,7 @@ class RealtimeRebalancer:
         return actions
 
     def imbalance_score(self) -> float:
+        """``imbalance_score`` 동작을 수행한다."""
         dm = self.density_map()
         if not dm:
             return 0.0
@@ -90,6 +95,7 @@ class RealtimeRebalancer:
         return round(float(np.std(counts) / max(np.mean(counts), 1)), 3)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": len(self._positions),
             "sectors_occupied": len(self.density_map()),

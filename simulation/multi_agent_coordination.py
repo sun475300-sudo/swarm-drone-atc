@@ -171,6 +171,7 @@ class MultiAgentCoordinator:
         num_controllers: int = 3,
         protocol: CommunicationProtocol = CommunicationProtocol.DIRECT,
     ):
+        """인스턴스를 초기화한다."""
         self.agents: dict[str, Agent] = {}
         self.pending_tasks: list[Task] = []
         self.completed_tasks: list[Task] = []

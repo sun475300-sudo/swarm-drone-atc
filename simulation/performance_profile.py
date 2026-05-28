@@ -41,6 +41,7 @@ class PerformanceProfile:
     """드론 성능 프로필 관리."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._profiles: dict[str, DroneProfile] = {}
         self._records: dict[str, list[PerformanceRecord]] = {}
 
@@ -49,6 +50,7 @@ class PerformanceProfile:
         max_speed: float = 15.0, max_altitude: float = 120.0,
         battery: float = 80.0, weight: float = 2.0,
     ) -> DroneProfile:
+        """`profile` 항목을 추가한다."""
         p = DroneProfile(
             drone_id=drone_id, drone_type=drone_type,
             max_speed_ms=max_speed, max_altitude_m=max_altitude,
@@ -62,6 +64,7 @@ class PerformanceProfile:
         self, drone_id: str, speed: float = 0.0,
         energy_rate: float = 0.0, vibration: float = 0.0, t: float = 0.0,
     ) -> None:
+        """`performance` 정보를 기록한다."""
         if drone_id not in self._records:
             self._records[drone_id] = []
         self._records[drone_id].append(PerformanceRecord(
@@ -107,12 +110,15 @@ class PerformanceProfile:
         }
 
     def needs_maintenance(self, threshold: float = 0.5) -> list[str]:
+        """`maintenance` 여부를 반환한다."""
         return [did for did in self._profiles if self.degradation(did) >= threshold]
 
     def by_type(self, drone_type: str) -> list[DroneProfile]:
+        """``by_type`` 동작을 수행한다."""
         return [p for p in self._profiles.values() if p.drone_type == drone_type]
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "total_profiles": len(self._profiles),
             "total_records": sum(len(v) for v in self._records.values()),

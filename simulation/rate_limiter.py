@@ -12,12 +12,15 @@ from typing import Any
 
 @dataclass
 class Bucket:
+    """``Bucket`` 관련 기능을 제공한다."""
     tokens: float
     last_refill: float
 
 
 class RateLimiter:
+    """``RateLimiter`` 관련 기능을 제공한다."""
     def __init__(self, rate_per_sec: float = 10.0, burst: int = 20) -> None:
+        """인스턴스를 초기화한다."""
         self.rate_per_sec = max(0.1, float(rate_per_sec))
         self.burst = max(1, int(burst))
         self._buckets: dict[str, Bucket] = {}
@@ -39,6 +42,7 @@ class RateLimiter:
         return b
 
     def allow(self, key: str = "global", cost: float = 1.0) -> bool:
+        """``allow`` 동작을 수행한다."""
         cost = max(0.0, float(cost))
         b = self._bucket(key)
         if b.tokens >= cost:
@@ -49,9 +53,11 @@ class RateLimiter:
         return False
 
     def remaining(self, key: str = "global") -> float:
+        """``remaining`` 동작을 수행한다."""
         return self._bucket(key).tokens
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "keys": len(self._buckets),
             "allowed": self._allowed,

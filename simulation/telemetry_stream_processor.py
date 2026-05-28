@@ -16,6 +16,7 @@ import numpy as np
 
 
 class TelemetryField(Enum):
+    """``TelemetryField`` 관련 기능을 제공한다."""
     ALTITUDE = "altitude"
     SPEED = "speed"
     BATTERY = "battery"
@@ -28,6 +29,7 @@ class TelemetryField(Enum):
 
 @dataclass
 class TelemetryPoint:
+    """``TelemetryPoint`` 관련 기능을 제공한다."""
     drone_id: str
     timestamp: float
     field: TelemetryField
@@ -37,29 +39,35 @@ class TelemetryPoint:
 
 @dataclass
 class StreamWindow:
+    """``StreamWindow`` 관련 기능을 제공한다."""
     field: TelemetryField
     values: deque[float] = field(default_factory=lambda: deque(maxlen=100))
     timestamps: deque[float] = field(default_factory=lambda: deque(maxlen=100))
 
     @property
     def mean(self) -> float:
+        """``mean`` 동작을 수행한다."""
         return float(np.mean(self.values)) if self.values else 0.0
 
     @property
     def std(self) -> float:
+        """``std`` 동작을 수행한다."""
         return float(np.std(self.values)) if len(self.values) > 1 else 0.0
 
     @property
     def min_val(self) -> float:
+        """``min_val`` 동작을 수행한다."""
         return float(min(self.values)) if self.values else 0.0
 
     @property
     def max_val(self) -> float:
+        """``max_val`` 동작을 수행한다."""
         return float(max(self.values)) if self.values else 0.0
 
 
 @dataclass
 class AnomalyAlert:
+    """``AnomalyAlert`` 데이터를 표현한다."""
     drone_id: str
     field: TelemetryField
     value: float
@@ -89,6 +97,7 @@ class TelemetryStreamProcessor:
     }
 
     def __init__(self, window_size: int = 100, z_threshold: float = 3.0):
+        """인스턴스를 초기화한다."""
         self._window_size = window_size
         self._z_threshold = z_threshold
         self._windows: dict[str, dict[TelemetryField, StreamWindow]] = {}
@@ -98,9 +107,11 @@ class TelemetryStreamProcessor:
         self._total_anomalies = 0
 
     def register_callback(self, cb: Callable):
+        """`callback` 항목을 추가한다."""
         self._callbacks.append(cb)
 
     def ingest(self, point: TelemetryPoint) -> AnomalyAlert | None:
+        """``ingest`` 동작을 수행한다."""
         self._total_points += 1
         if point.drone_id not in self._windows:
             self._windows[point.drone_id] = {}
@@ -140,9 +151,11 @@ class TelemetryStreamProcessor:
         return alert
 
     def ingest_batch(self, points: list[TelemetryPoint]) -> list[AnomalyAlert]:
+        """``ingest_batch`` 동작을 수행한다."""
         return [a for p in points if (a := self.ingest(p)) is not None]
 
     def get_window_stats(self, drone_id: str, field: TelemetryField) -> dict | None:
+        """`window stats` 정보를 조회한다."""
         windows = self._windows.get(drone_id, {})
         w = windows.get(field)
         if not w or not w.values:
@@ -158,6 +171,7 @@ class TelemetryStreamProcessor:
         }
 
     def get_drone_dashboard(self, drone_id: str) -> dict[str, dict]:
+        """`drone dashboard` 정보를 조회한다."""
         result = {}
         for tfield in TelemetryField:
             stats = self.get_window_stats(drone_id, tfield)
@@ -166,6 +180,7 @@ class TelemetryStreamProcessor:
         return result
 
     def get_alerts(self, drone_id: str | None = None, severity: str | None = None) -> list[AnomalyAlert]:
+        """`alerts` 정보를 조회한다."""
         alerts = self._alerts
         if drone_id:
             alerts = [a for a in alerts if a.drone_id == drone_id]
@@ -174,9 +189,11 @@ class TelemetryStreamProcessor:
         return alerts
 
     def clear_alerts(self):
+        """`alerts` 상태를 정리한다."""
         self._alerts.clear()
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         severity_counts = {}
         for a in self._alerts:
             severity_counts[a.severity] = severity_counts.get(a.severity, 0) + 1

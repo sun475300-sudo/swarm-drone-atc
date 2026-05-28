@@ -30,6 +30,7 @@ class NetworkTopology:
     """통신 네트워크 토폴로지 분석."""
 
     def __init__(self, comm_range: float = 300.0) -> None:
+        """인스턴스를 초기화한다."""
         self._comm_range = comm_range
         self._nodes: set[str] = set()
         self._edges: dict[str, set[str]] = {}
@@ -55,9 +56,11 @@ class NetworkTopology:
                     self._edges[ids[j]].add(ids[i])
 
     def degree(self, node_id: str) -> int:
+        """``degree`` 동작을 수행한다."""
         return len(self._edges.get(node_id, set()))
 
     def neighbors(self, node_id: str) -> set[str]:
+        """``neighbors`` 동작을 수행한다."""
         return self._edges.get(node_id, set())
 
     def is_connected(self) -> bool:
@@ -152,6 +155,7 @@ class NetworkTopology:
         return actual / max_edges
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         components = self.connected_components()
         return {
             "nodes": len(self._nodes),

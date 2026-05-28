@@ -13,6 +13,7 @@ import numpy as np
 
 
 class TransactionType(Enum):
+    """``TransactionType`` 관련 기능을 제공한다."""
     MISSION_START = "mission_start"
     MISSION_COMPLETE = "mission_complete"
     COLLISION_EVENT = "collision_event"
@@ -24,6 +25,7 @@ class TransactionType(Enum):
 
 @dataclass
 class Transaction:
+    """``Transaction`` 관련 기능을 제공한다."""
     tx_id: str
     timestamp: float
     drone_id: str
@@ -35,6 +37,7 @@ class Transaction:
 
 @dataclass
 class Block:
+    """``Block`` 관련 기능을 제공한다."""
     index: int
     timestamp: float
     transactions: list[Transaction]
@@ -45,7 +48,9 @@ class Block:
 
 
 class BlockchainLedger:
+    """``BlockchainLedger`` 관련 기능을 제공한다."""
     def __init__(self, difficulty: int = 4):
+        """인스턴스를 초기화한다."""
         self.difficulty = difficulty
         self.chain: list[Block] = []
         self.pending_transactions: list[Transaction] = []
@@ -55,6 +60,7 @@ class BlockchainLedger:
         self.create_genesis_block()
 
     def create_genesis_block(self):
+        """`genesis block` 결과를 생성한다."""
         genesis_block = Block(
             index=0,
             timestamp=time.time(),
@@ -74,6 +80,7 @@ class BlockchainLedger:
         previous_hash: str,
         nonce: int = 0,
     ) -> str:
+        """``calculate_hash`` 동작을 수행한다."""
         data = f"{index}{timestamp}{[self._tx_to_dict(t) for t in transactions]}{previous_hash}{nonce}"
         return hashlib.sha256(data.encode()).hexdigest()
 
@@ -87,9 +94,11 @@ class BlockchainLedger:
         }
 
     def add_validator(self, validator_id: str):
+        """`validator` 항목을 추가한다."""
         self.validators.add(validator_id)
 
     def register_drone(self, drone_id: str, metadata: dict[str, Any]):
+        """`drone` 항목을 추가한다."""
         self.drone_registry[drone_id] = {
             "registered_at": time.time(),
             "metadata": metadata,
@@ -102,6 +111,7 @@ class BlockchainLedger:
         tx_type: TransactionType,
         data: dict[str, Any],
     ) -> Transaction:
+        """`transaction` 결과를 생성한다."""
         if drone_id not in self.drone_registry:
             self.register_drone(drone_id, {})
 
@@ -125,9 +135,11 @@ class BlockchainLedger:
         return hashlib.sha256(unique_data.encode()).hexdigest()
 
     def add_transaction(self, transaction: Transaction):
+        """`transaction` 항목을 추가한다."""
         self.pending_transactions.append(transaction)
 
     def mine_block(self, validator: str = "validator_1") -> Block:
+        """``mine_block`` 동작을 수행한다."""
         if not self.pending_transactions:
             raise ValueError("No pending transactions to mine")
 
@@ -177,6 +189,7 @@ class BlockchainLedger:
                 raise RuntimeError("Mining failed - too many iterations")
 
     def verify_chain(self) -> bool:
+        """`chain` 결과를 계산하거나 판정한다."""
         for i in range(1, len(self.chain)):
             current_block = self.chain[i]
             previous_block = self.chain[i - 1]
@@ -198,6 +211,7 @@ class BlockchainLedger:
         return True
 
     def get_drone_history(self, drone_id: str) -> list[dict]:
+        """`drone history` 정보를 조회한다."""
         history = []
 
         for block in self.chain:
@@ -215,6 +229,7 @@ class BlockchainLedger:
         return sorted(history, key=lambda x: x["timestamp"], reverse=True)
 
     def get_chain_stats(self) -> dict[str, Any]:
+        """`chain stats` 정보를 조회한다."""
         tx_counts = {}
         for block in self.chain:
             for tx in block.transactions:
@@ -230,6 +245,7 @@ class BlockchainLedger:
         }
 
     def export_chain(self) -> str:
+        """`chain` 결과를 저장한다."""
         chain_data = []
         for block in self.chain:
             chain_data.append(

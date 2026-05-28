@@ -38,6 +38,7 @@ class IntegrationVerifier:
     """시스템 통합 검증."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._modules: dict[str, ModuleSpec] = {}
         self._test_results: dict[str, bool] = {}
 
@@ -47,6 +48,7 @@ class IntegrationVerifier:
         requires: list[str] | None = None,
         version: str = "1.0",
     ) -> None:
+        """`module` 항목을 추가한다."""
         self._modules[name] = ModuleSpec(
             name=name, provides=provides or [],
             requires=requires or [], version=version,
@@ -121,6 +123,7 @@ class IntegrationVerifier:
         return unused
 
     def verify(self) -> VerificationResult:
+        """`대상` 결과를 계산하거나 판정한다."""
         missing = self._find_missing_deps()
         circular = self._find_circular_deps()
         unused = self._find_unused()
@@ -140,6 +143,7 @@ class IntegrationVerifier:
         )
 
     def record_test(self, module: str, passed: bool) -> None:
+        """`test` 정보를 기록한다."""
         self._test_results[module] = passed
 
     def regression_check(self) -> list[str]:
@@ -147,6 +151,7 @@ class IntegrationVerifier:
         return [m for m, p in self._test_results.items() if not p]
 
     def dependency_graph(self) -> dict[str, list[str]]:
+        """``dependency_graph`` 동작을 수행한다."""
         provides_map = self._all_provides()
         graph: dict[str, list[str]] = {}
         for mod in self._modules.values():
@@ -159,6 +164,7 @@ class IntegrationVerifier:
         return graph
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         result = self.verify()
         return {
             "modules": len(self._modules),

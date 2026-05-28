@@ -10,6 +10,7 @@ import numpy as np
 
 
 class ModelFormat(Enum):
+    """``ModelFormat`` 관련 기능을 제공한다."""
     FLOAT32 = "float32"
     FLOAT16 = "float16"
     INT8 = "int8"
@@ -18,6 +19,7 @@ class ModelFormat(Enum):
 
 
 class InferenceMode(Enum):
+    """``InferenceMode`` 관련 기능을 제공한다."""
     BATCH = "batch"
     STREAMING = "streaming"
     ON_DEMAND = "on_demand"
@@ -25,6 +27,7 @@ class InferenceMode(Enum):
 
 @dataclass
 class EdgeModel:
+    """``EdgeModel`` 관련 기능을 제공한다."""
     model_id: str
     name: str
     input_dim: int
@@ -38,6 +41,7 @@ class EdgeModel:
 
 @dataclass
 class InferenceResult:
+    """``InferenceResult`` 데이터를 표현한다."""
     model_id: str
     input_hash: str
     output: np.ndarray
@@ -49,9 +53,11 @@ class ModelQuantizer:
     """Model quantization for edge deployment."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
 
     def quantize(self, model: EdgeModel, target: ModelFormat) -> EdgeModel:
+        """``quantize`` 동작을 수행한다."""
         scale_map = {
             ModelFormat.FLOAT16: 0.99,
             ModelFormat.INT8: 0.95,
@@ -87,14 +93,17 @@ class EdgeInferenceEngine:
     """Lightweight inference engine for drone edge computing."""
 
     def __init__(self, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.models: dict[str, EdgeModel] = {}
         self.results: list[InferenceResult] = []
 
     def load_model(self, model: EdgeModel):
+        """`model` 정보를 조회한다."""
         self.models[model.model_id] = model
 
     def infer(self, model_id: str, input_data: np.ndarray) -> InferenceResult | None:
+        """``infer`` 동작을 수행한다."""
         model = self.models.get(model_id)
         if model is None:
             return None
@@ -116,16 +125,19 @@ class OnDeviceLearner:
     """Federated on-device learning with gradient compression."""
 
     def __init__(self, n_devices: int = 10, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_devices = n_devices
         self.global_weights: np.ndarray | None = None
         self.rounds: list[dict] = []
 
     def init_global(self, dim: tuple[int, int]):
+        """``init_global`` 동작을 수행한다."""
         self.global_weights = self.rng.standard_normal(dim) * 0.1
 
     def local_update(self, device_id: int, data: np.ndarray, labels: np.ndarray,
                      lr: float = 0.01, steps: int = 5) -> np.ndarray:
+        """``local_update`` 동작을 수행한다."""
         if self.global_weights is None:
             return np.array([])
         w = self.global_weights.copy()
@@ -137,6 +149,7 @@ class OnDeviceLearner:
         return w - self.global_weights
 
     def aggregate(self, gradients: list[np.ndarray]) -> np.ndarray:
+        """``aggregate`` 동작을 수행한다."""
         if not gradients or self.global_weights is None:
             return np.array([])
         avg_grad = np.mean(gradients, axis=0)
@@ -144,6 +157,7 @@ class OnDeviceLearner:
         return self.global_weights
 
     def federated_round(self) -> dict:
+        """``federated_round`` 동작을 수행한다."""
         if self.global_weights is None:
             self.init_global((10, 3))
         grads = []
@@ -163,6 +177,7 @@ class EdgeMLPipeline:
     """End-to-end edge ML pipeline for drone swarms."""
 
     def __init__(self, n_drones: int = 10, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
         self.quantizer = ModelQuantizer(seed)
@@ -181,6 +196,7 @@ class EdgeMLPipeline:
             self.engine.load_model(q_model)
 
     def run_inference_batch(self, n_samples: int = 50) -> dict:
+        """``run_inference_batch`` 동작을 수행한다."""
         results = []
         for mid, model in self.engine.models.items():
             data = self.rng.standard_normal((n_samples, model.input_dim))
@@ -192,6 +208,7 @@ class EdgeMLPipeline:
         return {"inferences": len(results), "avg_latency_ms": round(avg_lat, 2)}
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "drones": self.n_drones,
             "models_loaded": len(self.engine.models),

@@ -14,11 +14,13 @@ import numpy as np
 
 @dataclass
 class TuningObservation:
+    """``TuningObservation`` 관련 기능을 제공한다."""
     params: dict[str, float]
     score: float
 
 
 class BayesianTuner:
+    """``BayesianTuner`` 관련 기능을 제공한다."""
     def __init__(
         self,
         bounds: dict[str, tuple[float, float]],
@@ -26,6 +28,7 @@ class BayesianTuner:
         kernel_sigma: float = 0.2,
         seed: int = 42,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self._rng = np.random.default_rng(seed)
         self._bounds = bounds
         self._keys = list(bounds.keys())
@@ -61,6 +64,7 @@ class BayesianTuner:
         return mean, float(np.sqrt(max(var, 1e-12)))
 
     def suggest(self, n_candidates: int = 1) -> list[dict[str, float]]:
+        """``suggest`` 동작을 수행한다."""
         suggestions: list[dict[str, float]] = []
         for _ in range(max(1, n_candidates)):
             if len(self._observations) < 5 or self._rng.random() < self._exploration:
@@ -76,6 +80,7 @@ class BayesianTuner:
         return suggestions
 
     def report(self, params: dict[str, float], score: float) -> None:
+        """``report`` 동작을 수행한다."""
         self._observations.append(TuningObservation(params=dict(params), score=float(score)))
 
     def optimize(
@@ -83,6 +88,7 @@ class BayesianTuner:
         objective: Callable[[dict[str, float]], float],
         n_iter: int = 20,
     ) -> dict[str, Any]:
+        """``optimize`` 동작을 수행한다."""
         for _ in range(max(1, n_iter)):
             proposal = self.suggest(1)[0]
             score = float(objective(proposal))
@@ -90,12 +96,14 @@ class BayesianTuner:
         return self.best()
 
     def best(self) -> dict[str, Any]:
+        """``best`` 동작을 수행한다."""
         if not self._observations:
             return {"params": {}, "score": 0.0}
         best = max(self._observations, key=lambda o: o.score)
         return {"params": dict(best.params), "score": round(float(best.score), 6)}
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         best_score = self.best()["score"] if self._observations else 0.0
         return {
             "parameters": len(self._keys),

@@ -52,6 +52,7 @@ class PathDeconflict:
         separation_v: float = 10.0,
         time_step: float = 1.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.separation_h = separation_h
         self.separation_v = separation_v
         self.time_step = time_step
@@ -61,10 +62,12 @@ class PathDeconflict:
     def add_path(
         self, drone_id: str, waypoints: list[Waypoint4D]
     ) -> None:
+        """`path` 항목을 추가한다."""
         self._paths[drone_id] = sorted(waypoints, key=lambda w: w.t)
         self._time_offsets[drone_id] = 0.0
 
     def remove_path(self, drone_id: str) -> None:
+        """`path` 상태를 정리한다."""
         self._paths.pop(drone_id, None)
         self._time_offsets.pop(drone_id, None)
 
@@ -179,9 +182,11 @@ class PathDeconflict:
 
     @property
     def path_count(self) -> int:
+        """``path_count`` 동작을 수행한다."""
         return len(self._paths)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         conflicts = self.find_conflicts()
         return {
             "total_paths": self.path_count,

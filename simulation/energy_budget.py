@@ -26,14 +26,17 @@ class EnergyAccount:
 
     @property
     def remaining_wh(self) -> float:
+        """``remaining_wh`` 동작을 수행한다."""
         return max(0, self.total_wh - self.consumed_wh)
 
     @property
     def usage_pct(self) -> float:
+        """``usage_pct`` 동작을 수행한다."""
         return (self.consumed_wh / max(self.total_wh, 0.01)) * 100
 
     @property
     def reserve_wh(self) -> float:
+        """``reserve_wh`` 동작을 수행한다."""
         return self.total_wh * self.reserve_pct / 100
 
     @property
@@ -43,6 +46,7 @@ class EnergyAccount:
 
     @property
     def is_critical(self) -> bool:
+        """`critical` 여부를 반환한다."""
         return self.remaining_wh <= self.reserve_wh
 
 
@@ -50,6 +54,7 @@ class EnergyBudget:
     """에너지 예산 관리."""
 
     def __init__(self) -> None:
+        """인스턴스를 초기화한다."""
         self._accounts: dict[str, EnergyAccount] = {}
         self._warnings: list[dict[str, Any]] = []
 
@@ -60,6 +65,7 @@ class EnergyBudget:
         reserve_pct: float = 20.0,
         mission_id: str = "",
     ) -> EnergyAccount:
+        """``allocate`` 동작을 수행한다."""
         account = EnergyAccount(
             drone_id=drone_id,
             total_wh=total_wh,
@@ -70,6 +76,7 @@ class EnergyBudget:
         return account
 
     def consume(self, drone_id: str, wh: float) -> bool:
+        """``consume`` 동작을 수행한다."""
         account = self._accounts.get(drone_id)
         if not account:
             return False
@@ -102,6 +109,7 @@ class EnergyBudget:
         return account.available_wh >= estimated_wh
 
     def get_account(self, drone_id: str) -> EnergyAccount | None:
+        """`account` 정보를 조회한다."""
         return self._accounts.get(drone_id)
 
     def fleet_efficiency(self) -> float:
@@ -112,9 +120,11 @@ class EnergyBudget:
         return sum(usages) / len(usages)
 
     def critical_drones(self) -> list[str]:
+        """``critical_drones`` 동작을 수행한다."""
         return [did for did, a in self._accounts.items() if a.is_critical]
 
     def recharge(self, drone_id: str, wh: float) -> bool:
+        """``recharge`` 동작을 수행한다."""
         account = self._accounts.get(drone_id)
         if not account:
             return False
@@ -122,9 +132,11 @@ class EnergyBudget:
         return True
 
     def warnings(self) -> list[dict[str, Any]]:
+        """``warnings`` 동작을 수행한다."""
         return list(self._warnings)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         total_alloc = sum(a.total_wh for a in self._accounts.values())
         total_consumed = sum(a.consumed_wh for a in self._accounts.values())
         return {

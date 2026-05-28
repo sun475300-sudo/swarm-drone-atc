@@ -29,6 +29,7 @@ class PathCache:
     """경로 LRU 캐시."""
 
     def __init__(self, max_size: int = 200) -> None:
+        """인스턴스를 초기화한다."""
         self._max_size = max_size
         self._cache: OrderedDict[str, list[tuple[float, float, float]]] = OrderedDict()
         self._hits = 0
@@ -49,6 +50,7 @@ class PathCache:
         return f"{s}->{e}"
 
     def get(self, key: str) -> list[tuple[float, float, float]] | None:
+        """`대상` 정보를 조회한다."""
         if key in self._cache:
             self._cache.move_to_end(key)
             self._hits += 1
@@ -61,10 +63,12 @@ class PathCache:
         start: tuple[float, float, float],
         end: tuple[float, float, float],
     ) -> list[tuple[float, float, float]] | None:
+        """`by positions` 정보를 조회한다."""
         key = self._make_key(start, end)
         return self.get(key)
 
     def put(self, key: str, path: list[tuple[float, float, float]]) -> None:
+        """``put`` 동작을 수행한다."""
         if key in self._cache:
             self._cache.move_to_end(key)
             self._cache[key] = path
@@ -82,11 +86,13 @@ class PathCache:
         end: tuple[float, float, float],
         path: list[tuple[float, float, float]],
     ) -> str:
+        """``put_by_positions`` 동작을 수행한다."""
         key = self._make_key(start, end)
         self.put(key, path)
         return key
 
     def invalidate(self, key: str) -> bool:
+        """``invalidate`` 동작을 수행한다."""
         if key in self._cache:
             del self._cache[key]
             return True
@@ -115,13 +121,16 @@ class PathCache:
         return len(to_remove)
 
     def clear(self) -> None:
+        """`대상` 상태를 정리한다."""
         self._cache.clear()
 
     def hit_rate(self) -> float:
+        """``hit_rate`` 동작을 수행한다."""
         total = self._hits + self._misses
         return self._hits / max(total, 1)
 
     def stats(self) -> CacheStats:
+        """``stats`` 동작을 수행한다."""
         return CacheStats(
             hits=self._hits,
             misses=self._misses,
@@ -131,6 +140,7 @@ class PathCache:
         )
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         s = self.stats()
         return {
             "size": s.size,

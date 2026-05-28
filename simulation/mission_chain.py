@@ -29,6 +29,7 @@ class MissionChain:
     """다단계 임무 체인."""
 
     def __init__(self, chain_id: str = "chain_1") -> None:
+        """인스턴스를 초기화한다."""
         self.chain_id = chain_id
         self._tasks: dict[str, ChainTask] = {}
         self._execution_order: list[str] = []
@@ -37,6 +38,7 @@ class MissionChain:
         self, task_id: str, drone: str = "",
         depends_on: list[str] | None = None,
     ) -> ChainTask:
+        """`task` 항목을 추가한다."""
         task = ChainTask(
             task_id=task_id, drone_id=drone,
             depends_on=depends_on or [],
@@ -45,6 +47,7 @@ class MissionChain:
         return task
 
     def start(self, task_id: str) -> bool:
+        """`대상` 실행 상태를 제어한다."""
         task = self._tasks.get(task_id)
         if not task:
             return False
@@ -58,6 +61,7 @@ class MissionChain:
         return True
 
     def complete(self, task_id: str, result: dict[str, Any] | None = None) -> bool:
+        """``complete`` 동작을 수행한다."""
         task = self._tasks.get(task_id)
         if not task or task.status != "RUNNING":
             return False
@@ -68,6 +72,7 @@ class MissionChain:
         return True
 
     def fail(self, task_id: str, reason: str = "") -> bool:
+        """``fail`` 동작을 수행한다."""
         task = self._tasks.get(task_id)
         if not task:
             return False
@@ -87,16 +92,20 @@ class MissionChain:
                 task.status = "READY"
 
     def ready_tasks(self) -> list[str]:
+        """``ready_tasks`` 동작을 수행한다."""
         self._update_ready()
         return [tid for tid, t in self._tasks.items() if t.status == "READY"]
 
     def is_complete(self) -> bool:
+        """`complete` 여부를 반환한다."""
         return all(t.status == "COMPLETED" for t in self._tasks.values())
 
     def is_failed(self) -> bool:
+        """`failed` 여부를 반환한다."""
         return any(t.status == "FAILED" for t in self._tasks.values())
 
     def progress_pct(self) -> float:
+        """``progress_pct`` 동작을 수행한다."""
         if not self._tasks:
             return 100.0
         done = sum(1 for t in self._tasks.values() if t.status == "COMPLETED")
@@ -144,6 +153,7 @@ class MissionChain:
         return max((longest(tid) for tid in self._tasks), key=len, default=[])
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         status_counts: dict[str, int] = {}
         for t in self._tasks.values():
             status_counts[t.status] = status_counts.get(t.status, 0) + 1

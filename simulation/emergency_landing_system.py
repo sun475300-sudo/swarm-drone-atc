@@ -10,17 +10,21 @@ import numpy as np
 
 @dataclass
 class LandingSite:
+    """``LandingSite`` 관련 기능을 제공한다."""
     position: np.ndarray
     suitability: float
     distance: float
 
 
 class EmergencyLandingSystem:
+    """``EmergencyLandingSystem`` 역할을 담당한다."""
     def __init__(self, max_altitude_m: float = 120):
+        """인스턴스를 초기화한다."""
         self.max_altitude = max_altitude_m
         self.emergency_history: list[dict] = []
 
     def detect_emergency(self, battery_percent: float, sensor_status: dict) -> bool:
+        """`emergency` 결과를 계산하거나 판정한다."""
         if battery_percent < 5:
             return True
         if sensor_status.get("gps_lost", False):
@@ -30,6 +34,7 @@ class EmergencyLandingSystem:
     def find_safe_landing_site(
         self, position: np.ndarray, terrain: np.ndarray
     ) -> LandingSite | None:
+        """``find_safe_landing_site`` 동작을 수행한다."""
         candidates = []
 
         for _i in range(10):
@@ -52,6 +57,7 @@ class EmergencyLandingSystem:
         goal: np.ndarray,
         obstacles: list[np.ndarray],
     ) -> list[np.ndarray]:
+        """`descent trajectory` 값을 계산한다."""
         points = []
 
         for t in np.linspace(0, 1, 20):
@@ -67,6 +73,7 @@ class EmergencyLandingSystem:
         return points
 
     def execute_emergency(self, drone_id: str, reason: str, position: np.ndarray):
+        """``execute_emergency`` 동작을 수행한다."""
         self.emergency_history.append(
             {
                 "drone_id": drone_id,

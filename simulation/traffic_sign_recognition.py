@@ -9,6 +9,7 @@ import numpy as np
 
 @dataclass
 class SignClass:
+    """``SignClass`` 관련 기능을 제공한다."""
     STOP = 1
     YIELD = 2
     SPEED_LIMIT = 3
@@ -18,6 +19,7 @@ class SignClass:
 
 @dataclass
 class SignDetection:
+    """``SignDetection`` 관련 기능을 제공한다."""
     sign_type: int
     bounding_box: tuple[float, float, float, float]
     confidence: float
@@ -25,7 +27,9 @@ class SignDetection:
 
 
 class TrafficSignRecognition:
+    """``TrafficSignRecognition`` 관련 기능을 제공한다."""
     def __init__(self, model_path: str = None):
+        """인스턴스를 초기화한다."""
         self.model_loaded = True
         self.sign_classes = {
             1: "STOP",
@@ -36,6 +40,7 @@ class TrafficSignRecognition:
         }
 
     def detect(self, image: np.ndarray) -> list[SignDetection]:
+        """`대상` 결과를 계산하거나 판정한다."""
         numSigns = np.random.randint(0, 3)
         detections = []
 
@@ -58,4 +63,5 @@ class TrafficSignRecognition:
         return detections
 
     def classify_sign(self, roi: np.ndarray) -> int:
+        """`sign` 결과를 계산하거나 판정한다."""
         return np.random.randint(1, 6)

@@ -43,6 +43,7 @@ class RiskAssessor:
         drone_mass_kg: float = 5.0,
         base_failure_rate: float = 1e-5,  # 고장률 (per second)
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.bounds = bounds
         self.resolution = grid_resolution
         self.drone_mass = drone_mass_kg
@@ -199,6 +200,7 @@ class RiskAssessor:
                 self._pop_grid[i, j] = max(0, 5000 * np.exp(-dist / 5))
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "grid_resolution": self.resolution,
             "max_population": float(np.max(self._pop_grid)),

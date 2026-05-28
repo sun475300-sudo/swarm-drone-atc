@@ -11,6 +11,7 @@ import numpy as np
 
 
 class LandmarkType(Enum):
+    """``LandmarkType`` 관련 기능을 제공한다."""
     BUILDING = "building"
     ROAD = "road"
     TREE = "tree"
@@ -21,6 +22,7 @@ class LandmarkType(Enum):
 
 @dataclass
 class Landmark:
+    """``Landmark`` 관련 기능을 제공한다."""
     landmark_id: str
     ltype: LandmarkType
     position: np.ndarray  # [x, y, z]
@@ -30,6 +32,7 @@ class Landmark:
 
 @dataclass
 class Pose:
+    """``Pose`` 관련 기능을 제공한다."""
     pose_id: int
     position: np.ndarray  # [x, y, z]
     heading: float  # rad
@@ -38,6 +41,7 @@ class Pose:
 
 @dataclass
 class Observation:
+    """``Observation`` 관련 기능을 제공한다."""
     pose_id: int
     landmark_id: str
     bearing: float
@@ -49,10 +53,12 @@ class PoseGraph:
     """포즈 그래프: 간이 최적화."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.poses: list[Pose] = []
         self.edges: list[tuple[int, int, np.ndarray]] = []  # (from, to, delta)
 
     def add_pose(self, pose: Pose):
+        """`pose` 항목을 추가한다."""
         if self.poses:
             delta = pose.position - self.poses[-1].position
             self.edges.append((len(self.poses) - 1, len(self.poses), delta))
@@ -72,9 +78,11 @@ class LandmarkMap:
     """의미론적 랜드마크 지도."""
 
     def __init__(self):
+        """인스턴스를 초기화한다."""
         self.landmarks: dict[str, Landmark] = {}
 
     def update(self, obs: Observation, observer_pos: np.ndarray):
+        """`대상` 상태를 갱신한다."""
         bearing_rad = obs.bearing
         dx = obs.distance * np.cos(bearing_rad)
         dy = obs.distance * np.sin(bearing_rad)
@@ -93,6 +101,7 @@ class LandmarkMap:
             )
 
     def query_nearby(self, pos: np.ndarray, radius=50.0) -> list[Landmark]:
+        """``query_nearby`` 동작을 수행한다."""
         result = []
         for lm in self.landmarks.values():
             if np.linalg.norm(lm.position - pos) <= radius:
@@ -104,6 +113,7 @@ class SemanticSLAM:
     """의미론적 SLAM 시뮬레이션."""
 
     def __init__(self, n_landmarks=40, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.graph = PoseGraph()
         self.lmap = LandmarkMap()
@@ -142,9 +152,11 @@ class SemanticSLAM:
                     self.lmap.update(obs, pos)
 
     def optimize(self):
+        """``optimize`` 동작을 수행한다."""
         self.graph.optimize(iterations=5)
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         return {
             "poses": len(self.graph.poses),
             "landmarks_mapped": len(self.lmap.landmarks),

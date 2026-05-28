@@ -11,6 +11,7 @@ import numpy as np
 
 @dataclass
 class FidelityLevel:
+    """``FidelityLevel`` 관련 기능을 제공한다."""
     name: str
     cost: float  # relative compute cost
     accuracy: float  # 0-1
@@ -18,7 +19,9 @@ class FidelityLevel:
 
 
 class AdaptiveSimulator:
+    """``AdaptiveSimulator`` 관련 기능을 제공한다."""
     def __init__(self, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.levels = {
             "low": FidelityLevel("low", 1.0, 0.6, 1.0),
@@ -30,10 +33,12 @@ class AdaptiveSimulator:
         self.total_cost = 0.0
 
     def set_fidelity(self, level: str):
+        """`fidelity` 상태를 갱신한다."""
         if level in self.levels:
             self.current_level = level
 
     def step(self) -> np.ndarray:
+        """`대상` 실행 상태를 제어한다."""
         fl = self.levels[self.current_level]
         noise = self.rng.normal(0, 1 - fl.accuracy, len(self.state))
         dynamics = -0.1 * self.state + noise
@@ -42,12 +47,15 @@ class AdaptiveSimulator:
         return self.state.copy()
 
     def evaluate_error(self) -> float:
+        """`error` 결과를 계산하거나 판정한다."""
         fl = self.levels[self.current_level]
         return float((1 - fl.accuracy) * np.linalg.norm(self.state))
 
 
 class MultiFidelitySim:
+    """``MultiFidelitySim`` 관련 기능을 제공한다."""
     def __init__(self, n_drones=10, seed=42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.sim = AdaptiveSimulator(seed)
         self.n_drones = n_drones
@@ -67,6 +75,7 @@ class MultiFidelitySim:
             self.fidelity_switches += 1
 
     def run(self, steps=200):
+        """메인 실행 루프를 수행한다."""
         for _ in range(steps):
             self.sim.step()
             error = self.sim.evaluate_error()
@@ -80,6 +89,7 @@ class MultiFidelitySim:
             self.steps += 1
 
     def summary(self):
+        """현재 상태 요약을 반환한다."""
         fidelities = [h["fidelity"] for h in self.history]
         return {
             "drones": self.n_drones,

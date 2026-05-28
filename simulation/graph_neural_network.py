@@ -9,6 +9,7 @@ import numpy as np
 
 @dataclass
 class GraphNode:
+    """``GraphNode`` 관련 기능을 제공한다."""
     node_id: str
     position: np.ndarray
     velocity: np.ndarray
@@ -17,6 +18,7 @@ class GraphNode:
 
 @dataclass
 class GraphEdge:
+    """``GraphEdge`` 관련 기능을 제공한다."""
     source: str
     target: str
     edge_type: str = "communication"
@@ -24,6 +26,7 @@ class GraphEdge:
 
 
 class GraphNeuralNetwork:
+    """``GraphNeuralNetwork`` 관련 기능을 제공한다."""
     def __init__(
         self,
         node_feature_dim: int = 32,
@@ -31,6 +34,7 @@ class GraphNeuralNetwork:
         num_layers: int = 3,
         message_passing_steps: int = 3,
     ):
+        """인스턴스를 초기화한다."""
         self.node_feature_dim = node_feature_dim
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
@@ -50,6 +54,7 @@ class GraphNeuralNetwork:
         self.W_readout = np.random.randn(1, self.hidden_dim) * 0.1
 
     def add_node(self, node_id: str, position: np.ndarray, velocity: np.ndarray):
+        """`node` 항목을 추가한다."""
         features = np.concatenate([position, velocity])
         if len(features) < self.node_feature_dim:
             features = np.pad(features, (0, self.node_feature_dim - len(features)))
@@ -59,6 +64,7 @@ class GraphNeuralNetwork:
         self.node_embeddings[node_id] = features
 
     def add_edge(self, source: str, target: str, edge_type: str = "communication"):
+        """`edge` 항목을 추가한다."""
         if source not in self.node_embeddings or target not in self.node_embeddings:
             return
 
@@ -67,6 +73,7 @@ class GraphNeuralNetwork:
     def build_graph_from_drones(
         self, drones: list[dict], communication_range: float = 100.0
     ):
+        """`graph from drones` 결과를 생성한다."""
         self.node_embeddings.clear()
         self.edge_features.clear()
 
@@ -88,6 +95,7 @@ class GraphNeuralNetwork:
                     self.add_edge(drone1["id"], drone2["id"])
 
     def message_passing(self) -> dict[str, np.ndarray]:
+        """``message_passing`` 동작을 수행한다."""
         node_states = {}
 
         for node_id, embedding in self.node_embeddings.items():
@@ -122,6 +130,7 @@ class GraphNeuralNetwork:
     def predict_collision_risk(
         self, drones: list[dict]
     ) -> dict[tuple[str, str], float]:
+        """`collision risk` 결과를 계산하거나 판정한다."""
         self.build_graph_from_drones(drones)
 
         node_states = self.message_passing()
@@ -163,6 +172,7 @@ class GraphNeuralNetwork:
         drone_id: str,
         future_steps: int = 10,
     ) -> list[np.ndarray]:
+        """`trajectory` 결과를 계산하거나 판정한다."""
         node_states = self.message_passing()
 
         current_state = node_states.get(drone_id, np.zeros(self.hidden_dim))
@@ -182,6 +192,7 @@ class GraphNeuralNetwork:
         return trajectory
 
     def get_swarm_embedding(self) -> np.ndarray:
+        """`swarm embedding` 정보를 조회한다."""
         node_states = self.message_passing()
 
         if not node_states:

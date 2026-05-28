@@ -11,6 +11,7 @@ import numpy as np
 
 
 class Strategy(Enum):
+    """``Strategy`` 관련 기능을 제공한다."""
     COOPERATE = "cooperate"
     DEFECT = "defect"
     TIT_FOR_TAT = "tit_for_tat"
@@ -21,6 +22,7 @@ class Strategy(Enum):
 
 
 class GameType(Enum):
+    """``GameType`` 관련 기능을 제공한다."""
     PRISONERS_DILEMMA = "prisoners_dilemma"
     STAG_HUNT = "stag_hunt"
     CHICKEN = "chicken"
@@ -30,6 +32,7 @@ class GameType(Enum):
 
 @dataclass
 class Player:
+    """``Player`` 관련 기능을 제공한다."""
     player_id: str
     strategy: Strategy
     total_payoff: float = 0.0
@@ -41,6 +44,7 @@ class Player:
 
 @dataclass
 class GameResult:
+    """``GameResult`` 데이터를 표현한다."""
     player_a: str
     player_b: str
     action_a: str
@@ -52,6 +56,7 @@ class GameResult:
 
 @dataclass
 class NashEquilibrium:
+    """``NashEquilibrium`` 관련 기능을 제공한다."""
     strategies: dict[str, str]
     payoffs: dict[str, float]
     is_pure: bool
@@ -84,6 +89,7 @@ class PayoffMatrix:
 
     @classmethod
     def get_matrix(cls, game_type: GameType) -> dict[tuple[str, str], tuple[float, float]]:
+        """`matrix` 정보를 조회한다."""
         return {
             GameType.PRISONERS_DILEMMA: cls.PRISONERS_DILEMMA,
             GameType.STAG_HUNT: cls.STAG_HUNT,
@@ -97,6 +103,7 @@ class SwarmGameTheory:
 
     def __init__(self, game_type: GameType = GameType.PRISONERS_DILEMMA,
                  seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.game_type = game_type
         self.payoff_matrix = PayoffMatrix.get_matrix(game_type)
@@ -105,6 +112,7 @@ class SwarmGameTheory:
         self.round_num = 0
 
     def add_player(self, player_id: str, strategy: Strategy) -> Player:
+        """`player` 항목을 추가한다."""
         player = Player(player_id, strategy)
         self.players[player_id] = player
         return player
@@ -134,6 +142,7 @@ class SwarmGameTheory:
         return "cooperate"
 
     def play_round(self, player_a_id: str, player_b_id: str) -> GameResult:
+        """``play_round`` 동작을 수행한다."""
         a = self.players[player_a_id]
         b = self.players[player_b_id]
         self.round_num += 1
@@ -164,6 +173,7 @@ class SwarmGameTheory:
         return result
 
     def play_tournament(self, n_rounds: int = 50) -> dict[str, float]:
+        """``play_tournament`` 동작을 수행한다."""
         ids = list(self.players.keys())
         for _ in range(n_rounds):
             for i in range(len(ids)):
@@ -173,6 +183,7 @@ class SwarmGameTheory:
         return {pid: p.total_payoff for pid, p in self.players.items()}
 
     def find_nash_equilibria(self) -> list[NashEquilibrium]:
+        """``find_nash_equilibria`` 동작을 수행한다."""
         equilibria = []
         actions = ["cooperate", "defect"]
 
@@ -211,6 +222,7 @@ class SwarmGameTheory:
         return True
 
     def find_pareto_frontier(self) -> list[tuple[str, str, float, float]]:
+        """``find_pareto_frontier`` 동작을 수행한다."""
         outcomes = []
         for (a1, a2), (pa, pb) in self.payoff_matrix.items():
             if self._is_pareto_optimal(pa, pb):
@@ -218,12 +230,15 @@ class SwarmGameTheory:
         return outcomes
 
     def get_social_welfare(self) -> float:
+        """`social welfare` 정보를 조회한다."""
         return sum(p.total_payoff for p in self.players.values())
 
     def get_cooperation_stats(self) -> dict[str, float]:
+        """`cooperation stats` 정보를 조회한다."""
         return {pid: p.cooperation_rate for pid, p in self.players.items()}
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         scores = {pid: p.total_payoff for pid, p in self.players.items()}
         best = max(scores, key=scores.get) if scores else ""
         return {

@@ -9,12 +9,14 @@ import numpy as np
 
 
 class OperationCategory:
+    """``OperationCategory`` 관련 기능을 제공한다."""
     OPEN = "Open"
     SPECIFIC = "Specific"
     CERTIFIED = "Certified"
 
 
 class C2LinkType:
+    """``C2LinkType`` 관련 기능을 제공한다."""
     DIRECT_RF = "direct_rf"
     SATELLITE = "satellite"
     CELLULAR = "cellular"
@@ -23,6 +25,7 @@ class C2LinkType:
 
 @dataclass
 class RPASOperator:
+    """``RPASOperator`` 관련 기능을 제공한다."""
     operator_id: str
     name: str
     certificate_number: str
@@ -33,6 +36,7 @@ class RPASOperator:
 
 @dataclass
 class RPASAircraft:
+    """``RPASAircraft`` 관련 기능을 제공한다."""
     registration: str
     type_certificate: str
     serial_number: str
@@ -45,6 +49,7 @@ class RPASAircraft:
 
 @dataclass
 class ComplianceResult:
+    """``ComplianceResult`` 데이터를 표현한다."""
     compliant: bool
     violations: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
@@ -95,9 +100,11 @@ class ICAODoc10019:
     """ICAO Manual on RPAS (Doc 10019) compliance checker."""
 
     def __init__(self, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
 
     def validate_operator(self, operator: RPASOperator) -> ComplianceResult:
+        """`operator` 결과를 계산하거나 판정한다."""
         violations = []
         warnings = []
 
@@ -117,6 +124,7 @@ class ICAODoc10019:
         )
 
     def validate_aircraft(self, aircraft: RPASAircraft) -> ComplianceResult:
+        """`aircraft` 결과를 계산하거나 판정한다."""
         violations = []
         warnings = []
 
@@ -142,6 +150,7 @@ class ICAODoc10019:
     def check_c2_link_requirements(
         self, link_type: str, operation_category: str
     ) -> dict[str, Any]:
+        """`c2 link requirements` 결과를 계산하거나 판정한다."""
         reqs = C2_REQUIREMENTS.get(operation_category, C2_REQUIREMENTS[OperationCategory.OPEN])
 
         if not reqs.get("required", False):
@@ -164,6 +173,7 @@ class ICAODoc10019:
     def classify_operation(
         self, altitude_m: float, vlos: bool, over_people: bool, mtow_kg: float = 2.0
     ) -> str:
+        """`operation` 결과를 계산하거나 판정한다."""
         if mtow_kg > WEIGHT_THRESHOLDS[OperationCategory.SPECIFIC]:
             return OperationCategory.CERTIFIED
         if not vlos or over_people or altitude_m > 120:
@@ -175,6 +185,7 @@ class ICAODoc10019:
         return OperationCategory.SPECIFIC
 
     def get_required_certifications(self, operation_class: str) -> list[str]:
+        """`required certifications` 정보를 조회한다."""
         base = ["Remote pilot certificate"]
         if operation_class == OperationCategory.SPECIFIC:
             base.extend(["Operational authorization", "Risk assessment (SORA)"])
@@ -207,6 +218,7 @@ class ICAODoc10019:
         self, operator: RPASOperator, aircraft: RPASAircraft,
         operation: dict[str, Any],
     ) -> dict[str, Any]:
+        """`compliance report` 결과를 생성한다."""
         op_result = self.validate_operator(operator)
         ac_result = self.validate_aircraft(aircraft)
         category = self.classify_operation(
@@ -234,4 +246,5 @@ class ICAODoc10019:
         }
 
     def get_annex_requirements(self, annex_number: int) -> list[str]:
+        """`annex requirements` 정보를 조회한다."""
         return ANNEX_REQUIREMENTS.get(annex_number, [f"No specific requirements for Annex {annex_number}"])

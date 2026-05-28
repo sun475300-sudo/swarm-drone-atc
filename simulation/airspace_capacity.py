@@ -61,6 +61,7 @@ class AirspaceCapacity:
         overload_threshold: float = 0.9,
         restrict_threshold: float = 1.0,
     ) -> None:
+        """인스턴스를 초기화한다."""
         self.x_min, self.y_min, self.x_max, self.y_max = bounds
         self.n_rows, self.n_cols = sectors
         self.base_capacity = base_capacity_per_sector
@@ -161,6 +162,7 @@ class AirspaceCapacity:
         return total_count / max(total_cap, 1)
 
     def sector_saturation(self, sector_id: str) -> float:
+        """``sector_saturation`` 동작을 수행한다."""
         s = self._sectors.get(sector_id)
         return s.saturation if s else 0.0
 
@@ -183,6 +185,7 @@ class AirspaceCapacity:
         return not s.restricted and s.saturation < self.restrict_threshold
 
     def set_capacity(self, sector_id: str, capacity: int) -> None:
+        """`capacity` 상태를 갱신한다."""
         if sector_id in self._sectors:
             self._sectors[sector_id].capacity = capacity
 
@@ -195,6 +198,7 @@ class AirspaceCapacity:
     def get_sector_for_position(
         self, x: float, y: float
     ) -> SectorInfo | None:
+        """`sector for position` 정보를 조회한다."""
         sid = self._get_sector_id(x, y)
         return self._sectors.get(sid) if sid else None
 
@@ -228,6 +232,7 @@ class AirspaceCapacity:
         return float(max(0.0, min(2.0, predicted)))
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         report = self.analyze()
         return {
             "total_drones": report.total_drones,

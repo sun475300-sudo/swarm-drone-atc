@@ -38,12 +38,14 @@ class GPSMultipath:
     """GPS 다중경로 모델."""
 
     def __init__(self, base_accuracy: float = 2.0, seed: int = 42) -> None:
+        """인스턴스를 초기화한다."""
         self.base_accuracy = base_accuracy
         self._rng = np.random.default_rng(seed)
         self._reflectors: list[Reflector] = []
         self._measurements: list[GPSMeasurement] = []
 
     def add_reflector(self, position: tuple[float, float], height: float = 80, coeff: float = 0.5) -> None:
+        """`reflector` 항목을 추가한다."""
         self._reflectors.append(Reflector(position=position, height=height, reflection_coeff=coeff))
 
     def _multipath_error(self, pos: tuple[float, float, float]) -> tuple[float, float, bool]:
@@ -68,6 +70,7 @@ class GPSMultipath:
         return extra_error, round(hdop, 2), affected
 
     def measure(self, true_pos: tuple[float, float, float]) -> GPSMeasurement:
+        """``measure`` 동작을 수행한다."""
         extra_err, hdop, affected = self._multipath_error(true_pos)
         total_accuracy = self.base_accuracy + extra_err
 
@@ -90,16 +93,19 @@ class GPSMultipath:
         return m
 
     def average_error(self) -> float:
+        """``average_error`` 동작을 수행한다."""
         if not self._measurements:
             return 0.0
         return round(float(np.mean([m.error_m for m in self._measurements])), 2)
 
     def multipath_rate(self) -> float:
+        """``multipath_rate`` 동작을 수행한다."""
         if not self._measurements:
             return 0.0
         return round(sum(1 for m in self._measurements if m.multipath_affected) / len(self._measurements) * 100, 1)
 
     def summary(self) -> dict[str, Any]:
+        """현재 상태 요약을 반환한다."""
         return {
             "reflectors": len(self._reflectors),
             "measurements": len(self._measurements),

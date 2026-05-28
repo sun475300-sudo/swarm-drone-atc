@@ -10,6 +10,7 @@ import numpy as np
 
 
 class SpectralBand(Enum):
+    """``SpectralBand`` 관련 기능을 제공한다."""
     VISIBLE = (400, 700)      # nm
     NIR = (700, 1000)         # Near-IR
     SWIR = (1000, 2500)       # Short-Wave IR
@@ -18,6 +19,7 @@ class SpectralBand(Enum):
 
 
 class TerrainType(Enum):
+    """``TerrainType`` 관련 기능을 제공한다."""
     VEGETATION = "vegetation"
     WATER = "water"
     URBAN = "urban"
@@ -29,6 +31,7 @@ class TerrainType(Enum):
 
 @dataclass
 class SpectralSignature:
+    """``SpectralSignature`` 관련 기능을 제공한다."""
     terrain: TerrainType
     bands: np.ndarray  # reflectance per band
     wavelengths: np.ndarray
@@ -36,6 +39,7 @@ class SpectralSignature:
 
 @dataclass
 class HyperspectralPixel:
+    """``HyperspectralPixel`` 관련 기능을 제공한다."""
     x: int
     y: int
     spectrum: np.ndarray
@@ -47,6 +51,7 @@ class SpectralLibrary:
     """Reference spectral signatures for classification."""
 
     def __init__(self, n_bands: int = 64, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_bands = n_bands
         self.wavelengths = np.linspace(400, 2500, n_bands)
@@ -73,9 +78,11 @@ class SpectralClassifier:
     """Spectral Angle Mapper (SAM) classifier."""
 
     def __init__(self, library: SpectralLibrary):
+        """인스턴스를 초기화한다."""
         self.library = library
 
     def classify(self, spectrum: np.ndarray) -> tuple[TerrainType, float]:
+        """`대상` 결과를 계산하거나 판정한다."""
         best_type = TerrainType.UNKNOWN
         best_angle = np.pi
         for terrain, ref in self.library.signatures.items():
@@ -92,6 +99,7 @@ class HyperspectralSensor:
     """Airborne hyperspectral imaging sensor."""
 
     def __init__(self, n_bands: int = 64, resolution: int = 32, seed: int = 42):
+        """인스턴스를 초기화한다."""
         self.rng = np.random.default_rng(seed)
         self.n_bands = n_bands
         self.resolution = resolution
@@ -100,6 +108,7 @@ class HyperspectralSensor:
         self.scans: list[np.ndarray] = []
 
     def capture(self, altitude_m: float = 100) -> list[HyperspectralPixel]:
+        """``capture`` 동작을 수행한다."""
         snr_factor = max(0.5, 1.0 - altitude_m / 500)
         pixels = []
         terrain_map = self.rng.choice(list(TerrainType)[:-1], (self.resolution, self.resolution))
@@ -117,6 +126,7 @@ class HyperspectralSensor:
         return pixels
 
     def generate_map(self, pixels: list[HyperspectralPixel]) -> dict[str, int]:
+        """`map` 결과를 생성한다."""
         counts = {}
         for p in pixels:
             key = p.classified.value
@@ -136,6 +146,7 @@ class HyperspectralSensor:
         return ndvi_values
 
     def summary(self) -> dict:
+        """현재 상태 요약을 반환한다."""
         return {
             "bands": self.n_bands,
             "resolution": self.resolution,

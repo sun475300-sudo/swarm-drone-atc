@@ -910,6 +910,9 @@
                         <option value="high_density">고밀도 (150대)</option>
                         <option value="mass_takeoff">대규모 이륙 (100대)</option>
                         <option value="ultra_swarm">초대형 군집 (250대)</option>
+                        <option value="mega_swarm_1k">메가 군집 1K (InstancedMesh)</option>
+                        <option value="mega_swarm_5k">메가 군집 5K (InstancedMesh)</option>
+                        <option value="mega_swarm_10k">메가 군집 10K (InstancedMesh)</option>
                     </optgroup>
                     <optgroup label="장애/위기">
                         <option value="emergency_failure">비상 장애 (80대)</option>
@@ -1273,6 +1276,9 @@
             high_density: { count: 150, label: '고밀도', wind: false, failRate: 0, rogueRate: 0 },
             mass_takeoff: { count: 100, label: '대규모 이륙', wind: false, failRate: 0, rogueRate: 0 },
             ultra_swarm: { count: 250, label: '초대형 군집', wind: false, failRate: 0, rogueRate: 0 },
+            mega_swarm_1k: { count: 1000, label: '메가 군집 1K', wind: false, failRate: 0, rogueRate: 0 },
+            mega_swarm_5k: { count: 5000, label: '메가 군집 5K', wind: false, failRate: 0, rogueRate: 0 },
+            mega_swarm_10k: { count: 10000, label: '메가 군집 10K', wind: false, failRate: 0.02, rogueRate: 0.02 },
             // ── 장애/위기
             emergency_failure: { count: 80, label: '비상 장애', wind: false, failRate: 0.20, rogueRate: 0 },
             battery_critical: { count: 100, label: '배터리 위기', wind: false, failRate: 0, rogueRate: 0 },
@@ -2443,60 +2449,95 @@
 
         let _lightweight = false; // 100대 초과 시 경량 모드
 
+        // ===== 대규모 InstancedMesh 렌더 (Phase 2) — 드론 수 ≥ MEGA_THRESHOLD 시 활성 =====
+        // 일반 규모는 기존 per-group 메시(글로우/로터/블링크) 유지, 대규모만 단일 드로우콜 인스턴싱.
+        const MEGA_THRESHOLD = 500, MAX_INST = 10000;
+        let megaMode = false;
+        const bodyInst = new THREE.InstancedMesh(
+            new THREE.OctahedronGeometry(0.22, 0),
+            new THREE.MeshBasicMaterial(),
+            MAX_INST
+        );
+        bodyInst.count = 0;
+        bodyInst.visible = false;
+        bodyInst.frustumCulled = false;
+        scene.add(bodyInst);
+        const _iM = new THREE.Matrix4(), _iPos = new THREE.Vector3(), _iScl = new THREE.Vector3(1, 1, 1);
+        const _iQ = new THREE.Quaternion(), _iCol = new THREE.Color();
+
+        function syncInstances() {
+            if (!megaMode) return;
+            const n = Math.min(drones.length, MAX_INST);
+            for (let i = 0; i < n; i++) {
+                const d = drones[i];
+                const s = d._uam ? 1.6 : 1.0;
+                _iScl.set(s, s, s);
+                _iM.compose(_iPos.copy(d.group.position), _iQ, _iScl);
+                bodyInst.setMatrixAt(i, _iM);
+                _iCol.setHex((PHASES[d.phase] || PHASES.GROUNDED).color);
+                bodyInst.setColorAt(i, _iCol);
+            }
+            bodyInst.count = n;
+            bodyInst.instanceMatrix.needsUpdate = true;
+            if (bodyInst.instanceColor) bodyInst.instanceColor.needsUpdate = true;
+        }
+
+        function _droneFromInstance(instanceId) {
+            return (instanceId != null && instanceId >= 0 && instanceId < drones.length) ? drones[instanceId] : null;
+        }
+
         function createDrone(id, startPad) {
             const group = new THREE.Group();
             const color = new THREE.Color(PHASES.GROUNDED.color);
-
-            // Body — 경량모드: 낮은 디테일
-            const body = new THREE.Mesh(
-                _lightweight ? new THREE.TetrahedronGeometry(0.2, 0) : new THREE.OctahedronGeometry(0.2, 0),
-                new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: 0.6 })
-            );
-            group.add(body);
-
-            // Rotor ring — 경량모드: 세그먼트 줄임
-            const rotor = new THREE.Mesh(
-                new THREE.TorusGeometry(0.35, 0.015, _lightweight ? 4 : 8, _lightweight ? 12 : 24),
-                new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.4 })
-            );
-            rotor.rotation.x = Math.PI / 2;
-            group.add(rotor);
-
-            // Glow — 경량모드: 비활성
-            let glow;
-            if (!_lightweight) {
-                glow = new THREE.Sprite(
-                    new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending })
-                );
-                glow.scale.set(1.5, 1.5, 1);
-                group.add(glow);
-            }
-
-            const px = startPad.x * SCALE, pz = startPad.z * SCALE;
-            group.position.set(px, 0.1, pz);
-
             const destPad = randomPad();
             const role = DRONE_ROLES[id % DRONE_ROLES.length];
             const isUAM = role.id === 'uam_taxi' || role.id === 'uam_shuttle';
             // 고도 레이어 할당: ID 기반 분산 (충돌 방지)
             const layerIdx = id % ALTITUDE_LAYERS.length;
             const baseLayerAlt = ALTITUDE_LAYERS[layerIdx];
-            const cruiseAlt = isUAM ? (100 + Math.random() * 60) : (baseLayerAlt + (Math.random() - 0.5) * 10); // UAM: 100-160m, 일반: 40-110m
+            const cruiseAlt = isUAM ? (100 + Math.random() * 60) : (baseLayerAlt + (Math.random() - 0.5) * 10);
 
-            // UAM은 크기 1.6배
-            if (isUAM) {
-                body.geometry.dispose();
-                body.geometry = _lightweight ? new THREE.TetrahedronGeometry(0.32, 0) : new THREE.OctahedronGeometry(0.32, 0);
-                rotor.geometry.dispose();
-                rotor.geometry = new THREE.TorusGeometry(0.56, 0.02, _lightweight ? 4 : 8, _lightweight ? 12 : 24);
-                if (glow) glow.scale.set(2.2, 2.2, 1);
+            let body = null, rotor = null, glow = null;
+            if (!megaMode) {
+                // Body — 경량모드: 낮은 디테일
+                body = new THREE.Mesh(
+                    _lightweight ? new THREE.TetrahedronGeometry(0.2, 0) : new THREE.OctahedronGeometry(0.2, 0),
+                    new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: 0.6 })
+                );
+                group.add(body);
+                // Rotor ring
+                rotor = new THREE.Mesh(
+                    new THREE.TorusGeometry(0.35, 0.015, _lightweight ? 4 : 8, _lightweight ? 12 : 24),
+                    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.4 })
+                );
+                rotor.rotation.x = Math.PI / 2;
+                group.add(rotor);
+                // Glow — 경량모드: 비활성
+                if (!_lightweight) {
+                    glow = new THREE.Sprite(
+                        new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending })
+                    );
+                    glow.scale.set(1.5, 1.5, 1);
+                    group.add(glow);
+                }
+                // UAM은 크기 1.6배
+                if (isUAM) {
+                    body.geometry.dispose();
+                    body.geometry = _lightweight ? new THREE.TetrahedronGeometry(0.32, 0) : new THREE.OctahedronGeometry(0.32, 0);
+                    rotor.geometry.dispose();
+                    rotor.geometry = new THREE.TorusGeometry(0.56, 0.02, _lightweight ? 4 : 8, _lightweight ? 12 : 24);
+                    if (glow) glow.scale.set(2.2, 2.2, 1);
+                }
             }
+
+            const px = startPad.x * SCALE, pz = startPad.z * SCALE;
+            group.position.set(px, 0.1, pz);
 
             const maxSpd = isUAM ? (15 + Math.random() * 10) : (8 + Math.random() * 7);
             const drone = {
                 id: `DR-${String(id).padStart(3, '0')}`,
                 role,
-                group, body, rotor, glow: glow || null,
+                group, body, rotor, glow, _uam: isUAM,
                 phase: 'GROUNDED',
                 battery: 85 + Math.random() * 15,
                 // World coordinates in meters
@@ -2578,6 +2619,10 @@
             windEnabled = cfg.wind;
             const count = cfg.count;
             _lightweight = count > 100;
+            // 대규모(≥500): InstancedMesh 경로 활성 (per-group 메시 생략)
+            megaMode = count >= MEGA_THRESHOLD;
+            bodyInst.visible = megaMode;
+            bodyInst.count = 0;
 
             // 기상 시스템 초기화 (전체 리셋)
             // 건물 표시 (도시 시나리오)
@@ -3701,16 +3746,17 @@
             const phaseC = d._phaseColor, roleC = d._roleColor;
             // 비행 중: body=직군색, rotor=phase색 / 지상/장애: 전부 phase색
             const bodyC = isFlying ? roleC : phaseC;
-            d.body.material.color.copy(bodyC);
-            d.body.material.emissive.copy(bodyC);
-            d.body.material.emissiveIntensity = isFlying ? 0.8 : 0.4;
-            d.rotor.material.color.copy(phaseC);
-            if (d.glow) d.glow.material.color.copy(isFlying ? roleC : phaseC);
-
-            // ROGUE 드론 특수 시각효과 — 더 크고 빨간 글로우
-            if (d.isRogue && d.phase !== 'GROUNDED' && d.glow) {
-                d.glow.material.color.set(0xff0000);
-                d.glow.scale.set(2.5, 2.5, 1);
+            if (d.body) {  // 대규모(InstancedMesh) 모드에서는 per-mesh 없음 → 색상은 syncInstances가 처리
+                d.body.material.color.copy(bodyC);
+                d.body.material.emissive.copy(bodyC);
+                d.body.material.emissiveIntensity = isFlying ? 0.8 : 0.4;
+                d.rotor.material.color.copy(phaseC);
+                if (d.glow) d.glow.material.color.copy(isFlying ? roleC : phaseC);
+                // ROGUE 드론 특수 시각효과 — 더 크고 빨간 글로우
+                if (d.isRogue && d.phase !== 'GROUNDED' && d.glow) {
+                    d.glow.material.color.set(0xff0000);
+                    d.glow.scale.set(2.5, 2.5, 1);
+                }
             }
         }
 
@@ -4209,6 +4255,12 @@
             _ptr.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
             _ptr.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
             _ray.setFromCamera(_ptr, camera);
+            if (megaMode) { // 대규모: InstancedMesh instanceId → 드론
+                const ih = _ray.intersectObject(bodyInst, false);
+                const d = ih.length ? _droneFromInstance(ih[0].instanceId) : null;
+                if (d) { selectDrone(d); return; }
+                deselectDrone(); return;
+            }
             const hits = _ray.intersectObjects(droneGroup.children, true);
             for (const h of hits) {
                 let obj = h.object;
@@ -4285,6 +4337,12 @@
             _ptr.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
             _ptr.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
             _ray.setFromCamera(_ptr, camera);
+            if (megaMode) { // 대규모: InstancedMesh instanceId → 드론
+                const ih = _ray.intersectObject(bodyInst, false);
+                const d = ih.length ? _droneFromInstance(ih[0].instanceId) : null;
+                setHover(d || null);
+                return;
+            }
             const hits = _ray.intersectObjects(droneGroup.children, true);
             for (const h of hits) {
                 let obj = h.object;
@@ -4803,9 +4861,11 @@
                 dr.wx = s[0]; dr.wy = s[1]; dr.wz = s[2]; dr.phase = s[3]; dr.battery = s[4];
                 dr.group.position.set(dr.wx * SCALE, dr.wy * SCALE * 3, dr.wz * SCALE);
                 const col = (PHASES[dr.phase] || PHASES.GROUNDED).color;
-                dr.body.material.color.setHex(col);
-                if (dr.body.material.emissive) dr.body.material.emissive.setHex(col);
-                if (dr.rotor) dr.rotor.material.color.setHex(col);
+                if (dr.body) {  // 대규모 모드: 색상은 syncInstances가 phase로 적용
+                    dr.body.material.color.setHex(col);
+                    if (dr.body.material.emissive) dr.body.material.emissive.setHex(col);
+                    if (dr.rotor) dr.rotor.material.color.setHex(col);
+                }
             }
             const mm = String(Math.floor(f.t / 60)).padStart(2, '0');
             const ss = String(Math.floor(f.t % 60)).padStart(2, '0');
@@ -5754,20 +5814,25 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             }
             perfMetrics.cpuMs = performance.now() - cpuStart;
 
-            // Rotor spin
-            drones.forEach(d => {
-                if (d.phase !== 'GROUNDED') {
-                    d.rotor.rotation.z = t * 10;
-                    if (d.glow) d.glow.material.opacity = 0.25 + Math.sin(t * 3 + d.wx * 0.01) * 0.1;
-                } else {
-                    if (d.glow) d.glow.material.opacity = 0.1;
-                }
-                // Failed blink
-                if (d.phase === 'FAILED') {
-                    d.body.material.opacity = Math.sin(t * 8) > 0 ? 1 : 0.2;
-                    if (d.glow) d.glow.material.opacity = Math.sin(t * 8) > 0 ? 0.4 : 0.05;
-                }
-            });
+            // Rotor spin (대규모 InstancedMesh 모드에서는 per-mesh 없음 → 건너뜀)
+            if (!megaMode) {
+                drones.forEach(d => {
+                    if (!d.rotor) return;
+                    if (d.phase !== 'GROUNDED') {
+                        d.rotor.rotation.z = t * 10;
+                        if (d.glow) d.glow.material.opacity = 0.25 + Math.sin(t * 3 + d.wx * 0.01) * 0.1;
+                    } else {
+                        if (d.glow) d.glow.material.opacity = 0.1;
+                    }
+                    // Failed blink
+                    if (d.phase === 'FAILED' && d.body) {
+                        d.body.material.opacity = Math.sin(t * 8) > 0 ? 1 : 0.2;
+                        if (d.glow) d.glow.material.opacity = Math.sin(t * 8) > 0 ? 0.4 : 0.05;
+                    }
+                });
+            } else {
+                syncInstances(); // 대규모: 인스턴스 행렬·색상 갱신 (단일 드로우콜)
+            }
 
             // Scan rings (경량모드 시 비활성)
             if (!_lightweight) {
@@ -5928,6 +5993,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get analysisMode() { return analysisMode; },
             async reportDataURL() { return (await buildReportCanvas()).toDataURL('image/png'); },
             exportPNG, exportCSV,
+            get megaMode() { return megaMode; },
+            get instanceCount() { return bodyInst.count; },
             get replayFrames() { return recorder.frames.length; },
             replaySeek(idx) { enterReplay(); replayIdx = Math.max(0, Math.min(idx, recorder.frames.length - 1)); applyFrame(replayIdx); return replayIdx; },
             goLive,

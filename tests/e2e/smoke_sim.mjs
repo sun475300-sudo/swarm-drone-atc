@@ -66,7 +66,14 @@ try {
   const durl = await page.evaluate(async () => await window._sdacs.reportDataURL());
   ok(typeof durl === 'string' && durl.startsWith('data:image/png') && durl.length > 5000, '리포트 PNG 생성');
 
-  // 8. 페이지 런타임 에러 없음
+  // 8. 대규모 InstancedMesh 모드 (1000대)
+  await page.evaluate(() => window._sdacs.selectScenario('mega_swarm_1k'));
+  await page.evaluate(() => window._sdacs.startSim());
+  await page.waitForTimeout(2500);
+  const mega = await page.evaluate(() => ({ n: window._sdacs.droneCount, mode: window._sdacs.megaMode, inst: window._sdacs.instanceCount }));
+  ok(mega.n === 1000 && mega.mode === true && mega.inst > 0, `대규모 InstancedMesh (${mega.n}대, inst=${mega.inst})`);
+
+  // 9. 페이지 런타임 에러 없음
   ok(pageErrors.length === 0, `런타임 에러 0건${pageErrors.length ? ' → ' + pageErrors.join(' | ') : ''}`);
 } catch (e) {
   ok(false, '예외: ' + e.message);

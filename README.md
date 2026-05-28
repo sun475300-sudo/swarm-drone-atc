@@ -671,6 +671,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-29 07:58 | `2e50ab6` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | api/fastapi_server.py, benchmarks/baselines/cbs/adapter.py, benchmarks/baselines/orca/adapter.py, benchmarks/baselines/sdacs/adapter.py, benchmarks/baselines/vo/adapter.py, chatbot/engine/llm_engine.py … |
 | 2026-05-29 07:54 | `afa66c2` | fix: code-reviewer 지적 반영 (HIGH 4 + MEDIUM/LOW) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-29 07:42 | `a0eefaf` | fix: 미정의 resetConflictViz 로드 크래시 수정 + 충돌위험 히트맵 (Bundle 9) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-29 07:36 | `44de98a` | fix: docs/index.html 데모 CTA를 v2 → 메인 시뮬레이터(simulator.html)로 교체 | docs/index.html |

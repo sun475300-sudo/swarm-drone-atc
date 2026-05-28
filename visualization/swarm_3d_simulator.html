@@ -2635,8 +2635,8 @@
             if (!megaMode) return;
             const n = Math.min(drones.length, MAX_INST);
             const flt = (typeof filterActive === 'function') && filterActive();
-            // 프러스텀 컬링용 절두체 갱신
-            if (megaCull) _frustum.setFromProjectionMatrix(_frMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+            // 프러스텀 컬링용 절두체 갱신 (matrixWorldInverse 최신화 후)
+            if (megaCull) { camera.updateMatrixWorld(); _frustum.setFromProjectionMatrix(_frMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)); }
             _visibleInst = 0;
             for (let i = 0; i < n; i++) {
                 const d = drones[i];
@@ -3951,7 +3951,7 @@
                 d.body.material.color.copy(bodyC);
                 d.body.material.emissive.copy(bodyC);
                 d.body.material.emissiveIntensity = isFlying ? 0.8 : 0.4;
-                d.rotor.material.color.copy(phaseC);
+                if (d.rotor) d.rotor.material.color.copy(phaseC);
                 if (d.glow) d.glow.material.color.copy(isFlying ? roleC : phaseC);
                 // ROGUE 드론 특수 시각효과 — 더 크고 빨간 글로우
                 if (d.isRogue && d.phase !== 'GROUNDED' && d.glow) {
@@ -5077,8 +5077,8 @@
         document.getElementById('tg-atc').addEventListener('change', e => {
             const v = e.target.checked;
             layerVisibility.atc = !!v;
-            atcCoverageGroup.visible = v;
-            atcLinkGroup.visible = v;
+            if (atcCoverageGroup) atcCoverageGroup.visible = v;
+            if (atcLinkGroup) atcLinkGroup.visible = v;
             scanRings.forEach(r => r.visible = v);
             atcDrones.forEach(a => { if (a.grp) a.grp.visible = v; });
         });
@@ -5458,8 +5458,13 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
             dniGroup.add(g);
             externalObjs.push({ type: t.type, label: t.label, color: t.color, g, wx, wy, wz, vx, vz, wob: Math.random() * 6.28, detected: false, identified: false, detTime: 0, label3d: null });
         }
+        function _disposeExt(o) {
+            dniGroup.remove(o.g);
+            o.g.traverse(c => { if (c.geometry) c.geometry.dispose(); if (c.material) c.material.dispose(); });
+            if (o.label3d) { dniGroup.remove(o.label3d); if (o.label3d.material.map) o.label3d.material.map.dispose(); o.label3d.material.dispose(); }
+        }
         function resetDnI() {
-            for (const o of externalObjs) { dniGroup.remove(o.g); if (o.label3d) dniGroup.remove(o.label3d); }
+            for (const o of externalObjs) _disposeExt(o);
             externalObjs.length = 0;
             dniStats.detected = dniStats.identified = dniStats.birds = dniStats.detSum = dniStats.detN = 0;
         }
@@ -5469,15 +5474,18 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
             while (externalObjs.length < DNI_TARGET) spawnExternal();
             const moving = simRunning && !replayMode;
             const r = DETECT_RANGE_M * SCALE;
-            // 센서망 = ATC 관제 드론 + (비대규모 시) 비행 중 군집 드론
+            // 탐지(센서망 거리검사)는 6프레임마다만 수행 — 100~499대 구간 per-frame O(N·M) 비용 절감
+            const doDetect = moving && (frameCount % 6 === 0);
             const sensors = [];
-            for (const a of atcDrones) sensors.push(a.grp.position);
-            if (!megaMode) for (const d of drones) { if (d.phase !== 'GROUNDED' && d.phase !== 'FAILED') sensors.push(d.group.position); }
+            if (doDetect) {
+                for (const a of atcDrones) sensors.push(a.grp.position);
+                if (!megaMode) for (const d of drones) { if (d.phase !== 'GROUNDED' && d.phase !== 'FAILED') sensors.push(d.group.position); }
+            }
             for (let i = externalObjs.length - 1; i >= 0; i--) {
                 const o = externalObjs[i];
                 if (moving) { const sdt = dt * simSpeed; o.wx += o.vx * sdt; o.wz += o.vz * sdt; }
                 if (Math.abs(o.wx) > WORLD || Math.abs(o.wz) > WORLD) {
-                    dniGroup.remove(o.g); if (o.label3d) dniGroup.remove(o.label3d);
+                    _disposeExt(o);
                     externalObjs.splice(i, 1); continue;
                 }
                 const px = o.wx * SCALE, py = o.wy * SCALE * 3, pz = o.wz * SCALE;
@@ -5487,7 +5495,7 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                     if (o.g.userData.wings) { o.g.userData.wings[0].rotation.x = flap; o.g.userData.wings[1].rotation.x = -flap; }
                     o.g.rotation.y = Math.atan2(o.vx, o.vz);
                 } else { o.g.children[0].rotation.y = t * 4; }
-                if (moving && !o.detected) {
+                if (doDetect && !o.detected) {
                     let near = false;
                     for (const s of sensors) { if (o.g.position.distanceTo(s) < r) { near = true; break; } }
                     if (near) { o.detected = true; o.detTime = t; dniStats.detected++; if (o.type === 'bird') dniStats.birds++; }
@@ -6484,8 +6492,6 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                     apfCollisionAvoidance(); // CPU 폴백
                 }
             }
-            if (simRunning && frameCount % 6 === 0) updateConflictViz();
-            updateAdvisoryOverlay(t);
             perfMetrics.cpuMs = performance.now() - cpuStart;
 
             // Rotor spin (대규모 InstancedMesh 모드에서는 per-mesh 없음 → 건너뜀)

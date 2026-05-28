@@ -63,11 +63,13 @@ from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
 
 
 def _load_yaml(path: str) -> dict:
+    """YAML 파일을 로드해 dict로 반환한다 (빈 파일/None이면 빈 dict)."""
     with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 
 def _drone_to_apf(d: DroneState) -> APFState:
+    """DroneState를 APF 연산용 경량 상태(APFState)로 변환한다 (위치/속도는 복사본)."""
     return APFState(
         position=d.position.copy(),
         velocity=d.velocity.copy(),
@@ -116,8 +118,15 @@ def _estimate_power_w(
 
 
 class _DroneAgent:
-    """드론 1기를 담당하는 SimPy 프로세스 래퍼"""
+    """드론 1기를 담당하는 SimPy 프로세스 래퍼.
 
+    매 틱(dt초)마다 :meth:`run` 코루틴이 배터리 소모 → 통신 → 고장 → 바람 →
+    APF 회피 → 비행단계 상태머신 → 위치 적분 → 텔레메트리 송신을 순서대로 수행한다.
+    컨트롤러(:class:`AirspaceController`)와는 :class:`CommunicationBus`를 통한
+    Advisory/Clearance 메시지로만 상호작용한다(직접 호출 없음).
+    """
+
+    # ── 비행 동역학 파라미터 (클래스 공통) ──
     CRUISE_ALT = 60.0           # 기본 순항 고도 (m)
     TAKEOFF_RATE = 3.5          # 상승 속도 (m/s)
     LAND_RATE    = 2.5          # 하강 속도 (m/s)
@@ -134,6 +143,7 @@ class _DroneAgent:
         sim: SwarmSimulator,
         dt: float,
     ) -> None:
+        """에이전트를 초기화하고 CommunicationBus 메시지 수신을 구독한다."""
         self.env = env
         self.drone = drone
         self.sim = sim
@@ -167,6 +177,11 @@ class _DroneAgent:
                 drone.current_waypoint_idx = 0
 
     def run(self):
+        """드론 1기의 메인 SimPy 코루틴 (매 dt초 1틱 무한 루프).
+
+        틱 처리 순서: ①배터리 소모(2Hz) ②통신 상태 ③고장 ④바람 캐시 ⑤APF 힘 조회
+        ⑥비행단계 상태머신 ⑦위치 적분·지오펜스·RTL ⑧텔레메트리 송신 ⑨분석 스냅샷.
+        """
         drone = self.drone
         sim = self.sim
         dt = self.dt
@@ -293,6 +308,11 @@ class _DroneAgent:
     # ── 상태 머신 ──────────────────────────────────────────────
 
     def _state_machine(self, drone, dt, profile, force, wind, t, sim):
+        """비행 단계(FlightPhase) 상태 머신.
+
+        GROUNDED→TAKEOFF→ENROUTE↔(EVADING/HOLDING)→LANDING→GROUNDED 순환과
+        RTL(귀환)·FAILED(추락) 분기를 처리하며, 단계별 속도/고도/전이 조건을 갱신한다.
+        """
         phase = drone.flight_phase
 
         if phase == FlightPhase.GROUNDED:
@@ -407,6 +427,7 @@ class _DroneAgent:
                     drone.velocity = diff / norm * spd
 
     def _handle_comms(self, drone, t, profile):
+        """통신 두절(Lost-link) 대응: 비행 중이면 HOLDING으로 전환해 복구를 대기한다."""
         if drone.comms_status == CommsStatus.LOST:
             if drone.flight_phase not in (
                 FlightPhase.RTL,
@@ -420,6 +441,7 @@ class _DroneAgent:
                 drone.hold_start_s = None  # 타이머 시작
 
     def _handle_failure(self, drone, t):
+        """고장 유형별 처리: 모터 고장→FAILED(추락), GPS 상실→속도 0(정지 표류)."""
         if drone.failure_type == FailureType.MOTOR_FAILURE:
             drone.flight_phase = FlightPhase.FAILED
         elif drone.failure_type == FailureType.GPS_LOSS:
@@ -560,6 +582,15 @@ class SwarmSimulator:
     # ── 공개 API ─────────────────────────────────────────────
 
     def run(self, duration_s: float | None = None) -> SimulationResult:
+        """시뮬레이션을 실행하고 분석 결과를 반환한다.
+
+        드론을 스폰한 뒤 컨트롤러·APF 배치·분석·(옵션)고장주입 프로세스를 기동하고
+        `env.run(until=dur)`로 이산 이벤트 루프를 돌린다. 종료 시 컨트롤러/통신 통계를
+        분석기에 기록하고 :class:`SimulationResult`로 최종 집계한다.
+
+        Args:
+            duration_s: 시뮬레이션 시간(초). None이면 config의 duration_minutes 사용.
+        """
         dur = duration_s or float(self.cfg.get("simulation", {}).get("duration_minutes", 10)) * 60.0
 
         self._spawn_drones()
@@ -594,6 +625,11 @@ class SwarmSimulator:
     # ── 드론 스폰 ────────────────────────────────────────────
 
     def _spawn_drones(self) -> None:
+        """설정 대수만큼 드론을 생성한다.
+
+        패드별 분산 배치(지터) + 프로파일 가중 샘플링 + 선행 n_rogue대 ROGUE 주입,
+        각 드론에 목표를 할당하고 :class:`_DroneAgent` SimPy 프로세스를 등록한다.
+        """
         dt = 1.0 / float(self.cfg.get("simulation", {}).get("time_step_hz", 10))
         profiles = ["COMMERCIAL_DELIVERY", "SURVEILLANCE", "EMERGENCY", "RECREATIONAL"]
         weights = [0.55, 0.25, 0.10, 0.10]
@@ -666,6 +702,11 @@ class SwarmSimulator:
         return True
 
     def _assign_goal(self, drone: DroneState) -> None:
+        """드론에 새 목표 패드를 할당한다.
+
+        현재 위치에서 1.5km 이상 떨어진 패드를 선호(최대 10회 재추첨)하고,
+        NFZ 침범 시 회피 오프셋·공역 경계 클램핑을 적용한 뒤 계획 거리를 기록한다.
+        """
         pad_list = list(self.LANDING_PADS.values())
         goal = pad_list[self.rng.integers(len(pad_list))].copy()
         for _ in range(10):
@@ -686,6 +727,7 @@ class SwarmSimulator:
         self.analytics.record_planned_distance(drone.drone_id, drone.planned_distance_m)
 
     def _request_clearance(self, drone: DroneState, t: float) -> None:
+        """컨트롤러에 이륙 통제 허가(ClearanceRequest)를 전송한다 (goal 없으면 무시)."""
         if drone.goal is None:
             return
         self.comm_bus.send(

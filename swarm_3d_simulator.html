@@ -1128,6 +1128,7 @@
             <label class="av-toggle"><input type="checkbox" id="tg-prox" checked> 근접/충돌선</label>
             <label class="av-toggle"><input type="checkbox" id="tg-trail" checked> 침입 드론 트레일</label>
             <label class="av-toggle"><input type="checkbox" id="tg-cull" checked> 대규모 컬링·LOD</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-heatmap"> 충돌위험 히트맵 (분석뷰)</label>
         </div>
 
         <!-- Legend -->
@@ -2801,12 +2802,7 @@
             for (let li = 0; li < _linePoolIdx; li++) _linePool[li].visible = false;
             _linePoolIdx = 0;
             resetConflictViz();
-            while (advisoryGroup.children.length) {
-                const s = advisoryGroup.children[0];
-                advisoryGroup.remove(s);
-                if (s.material && s.material.map) s.material.map.dispose();
-                if (s.material) s.material.dispose();
-            }
+            resetAdvisory();
 
             const cfg = SCENARIOS[scenario] || SCENARIOS.default;
             windEnabled = cfg.wind;
@@ -4604,6 +4600,23 @@
             return 'rgb(240,60,40)';
         }
 
+        // ===== 충돌위험(혼잡도) 히트맵 — 대규모서 CPA선 대체 (Q2 평면도) =====
+        const HEAT_N = 44;
+        const heatGrid = new Float32Array(HEAT_N * HEAT_N);
+        let heatMax = 1, showHeatmap = false;
+        function updateHeatGrid() {
+            for (let i = 0; i < heatGrid.length; i++) heatGrid[i] *= 0.78; // 시간 감쇠
+            let mx = 0.001;
+            for (const d of drones) {
+                if (d.phase === 'GROUNDED' || d.phase === 'FAILED') continue;
+                const cx = Math.floor((d.wx + WORLD) / (2 * WORLD) * HEAT_N);
+                const cz = Math.floor((d.wz + WORLD) / (2 * WORLD) * HEAT_N);
+                if (cx < 0 || cx >= HEAT_N || cz < 0 || cz >= HEAT_N) continue;
+                const c = cz * HEAT_N + cx; heatGrid[c] += 1; if (heatGrid[c] > mx) mx = heatGrid[c];
+            }
+            heatMax = Math.max(heatMax * 0.95, mx);
+        }
+
         function drawTopDown(ctx, w, h) {
             const pad = 10, legendW = 16;
             const mw = w - pad * 2 - legendW - 8, mh = h - pad * 2;
@@ -4618,6 +4631,19 @@
             }
             const toX = (wx) => ox + ((wx + WORLD) / (2 * WORLD)) * mw;
             const toY = (wz) => oy + ((wz + WORLD) / (2 * WORLD)) * mh;
+            // 충돌위험(혼잡도) 히트맵 — 대규모서 CPA선 대체
+            if (showHeatmap) {
+                const cw = mw / HEAT_N, ch = mh / HEAT_N, hm = Math.max(2, heatMax);
+                for (let cz = 0; cz < HEAT_N; cz++) for (let cx = 0; cx < HEAT_N; cx++) {
+                    const v = heatGrid[cz * HEAT_N + cx]; if (v < 0.4) continue;
+                    const f = Math.min(1, v / hm);
+                    const r = Math.round(255 * Math.min(1, f * 1.7));
+                    const g = Math.round(200 * Math.max(0, 1 - Math.abs(f - 0.5) * 2));
+                    const b = Math.round(255 * Math.max(0, 1 - f * 1.9));
+                    ctx.fillStyle = `rgba(${r},${g},${b},${0.1 + f * 0.5})`;
+                    ctx.fillRect(ox + cx * cw, oy + cz * ch, cw + 0.6, ch + 0.6);
+                }
+            }
             ctx.strokeStyle = 'rgba(239,68,68,0.6)';
             ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
             ctx.strokeRect(
@@ -4906,6 +4932,23 @@
             }
         }
 
+        // 시나리오 리셋 시 충돌 예측선/마커/라벨 풀 초기화
+        function resetConflictViz() {
+            for (let i = 0; i < _cvLineIdx; i++) _cvLines[i].visible = false;
+            for (let i = 0; i < _cvMarkIdx; i++) _cvMarks[i].visible = false;
+            _cvLineIdx = 0; _cvMarkIdx = 0;
+            for (const s of _cvLabels) { conflictVizGroup.remove(s); if (s.material.map) s.material.map.dispose(); s.material.dispose(); }
+            _cvLabels.length = 0; _cvLabelData = [];
+        }
+        // 시나리오 리셋 시 어드바이저리 빌보드 풀 초기화(풀 일관성 유지)
+        function resetAdvisory() {
+            for (const k in _advPools) {
+                const p = _advPools[k];
+                for (const s of p.pool) { advisoryGroup.remove(s); if (s.material.map) s.material.map.dispose(); s.material.dispose(); }
+                p.pool.length = 0; p.idx = 0;
+            }
+        }
+
         // --- 분리간격 위반 경보 (충돌/근접 발생 시 화면 플래시 + 배너) ---
         let _prevColl = 0, _prevNear = 0, _alertTimer = null;
         function triggerAlert(color, text) {
@@ -5042,6 +5085,7 @@
         document.getElementById('tg-prox').addEventListener('change', e => { proximityLines.visible = e.target.checked; });
         document.getElementById('tg-trail').addEventListener('change', e => { trailGroup.visible = e.target.checked; });
         document.getElementById('tg-cull').addEventListener('change', e => { megaCull = e.target.checked; });
+        document.getElementById('tg-heatmap').addEventListener('change', e => { showHeatmap = e.target.checked; });
 
         // ===== 리포트·내보내기 (Phase 4) =====
         function _download(filename, url) {
@@ -6597,6 +6641,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             checkSeparationAlerts();
             // 외부 탐지·식별 카운터 갱신
             renderDnIStats();
+            // 충돌위험 히트맵 누적(켜졌을 때)
+            if (showHeatmap) updateHeatGrid();
         }, 500);
 
         animate();

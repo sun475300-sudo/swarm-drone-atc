@@ -1014,6 +1014,11 @@
             <div style="display:flex;gap:6px;margin-top:6px;">
                 <button class="ctrl-btn" id="btn-analysis" style="flex:1;">📊 분석 뷰 (4분할)</button>
             </div>
+            <div style="display:flex;gap:6px;margin-top:6px;">
+                <button class="ctrl-btn" id="btn-export-png" style="flex:1;" title="4분할 리포트 PNG">📷 PNG</button>
+                <button class="ctrl-btn" id="btn-export-csv" style="flex:1;" title="시계열·텔레메트리 CSV">📑 CSV</button>
+                <button class="ctrl-btn" id="btn-copy-kpi" style="flex:1;" title="KPI 클립보드 복사">📋 KPI</button>
+            </div>
             <div class="ctrl-row" style="margin-top:8px;">
                 <span class="ctrl-label">경과 시간</span>
                 <span class="ctrl-value" id="sim-time">00:00</span>
@@ -4399,7 +4404,7 @@
             ctx.fillText('100%', 2, toY(100) + 8); ctx.fillText('0%', 2, toY(0) - 1);
         }
 
-        function renderKPI() {
+        function kpiList() {
             const n = drones.length || 1;
             const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED').length;
             const avgBat = drones.reduce((s, d) => s + d.battery, 0) / n;
@@ -4410,7 +4415,7 @@
             const batColor = avgBat < 20 ? '#ef4444' : avgBat < 50 ? '#f59e0b' : '#22c55e';
             const mm = String(Math.floor(simTime / 60)).padStart(2, '0');
             const ss = String(Math.floor(simTime % 60)).padStart(2, '0');
-            const cards = [
+            return [
                 ['충돌 해결률', cr.toFixed(1) + '%', crColor],
                 ['충돌 수', stats.collisions, '#ef4444'],
                 ['근접 경고', stats.nearMisses, '#f59e0b'],
@@ -4422,7 +4427,10 @@
                 ['시뮬 시간', mm + ':' + ss, '#00e5ff'],
                 ['총 드론', drones.length + ' 대', '#00e5ff'],
             ];
-            document.getElementById('av-kpi').innerHTML = cards.map(([k, v, c]) =>
+        }
+
+        function renderKPI() {
+            document.getElementById('av-kpi').innerHTML = kpiList().map(([k, v, c]) =>
                 `<div class="kpi-card"><div class="kpi-label">${k}</div><div class="kpi-value" style="color:${c};">${v}</div></div>`
             ).join('');
         }
@@ -4648,6 +4656,106 @@
         document.getElementById('tg-atc').addEventListener('change', e => { const v = e.target.checked; atcLinkGroup.visible = v; scanRings.forEach(r => r.visible = v); atcDrones.forEach(a => { if (a.grp) a.grp.visible = v; }); });
         document.getElementById('tg-prox').addEventListener('change', e => { proximityLines.visible = e.target.checked; });
         document.getElementById('tg-trail').addEventListener('change', e => { trailGroup.visible = e.target.checked; });
+
+        // ===== 리포트·내보내기 (Phase 4) =====
+        function _download(filename, url) {
+            const a = document.createElement('a');
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click(); a.remove();
+        }
+
+        function exportCSV() {
+            const h = chartHistory;
+            const num = (v, p = 1) => (typeof v === 'number' && isFinite(v)) ? v.toFixed(p) : '';
+            const lines = [];
+            lines.push('# SDACS Simulation Report');
+            lines.push('# scenario,' + (document.getElementById('scenario-select')?.value || 'default'));
+            lines.push('# simTime_s,' + simTime.toFixed(1));
+            lines.push('');
+            lines.push('## KPI');
+            for (const [k, v] of kpiList()) lines.push(`${k},${String(v).replace(/,/g, '')}`);
+            lines.push('');
+            lines.push('## TimeSeries');
+            lines.push('t_s,avg_battery,energy,collisionRate,conflicts,collisions,airspace,tickMs');
+            for (let i = 0; i < h.time.length; i++) {
+                lines.push([num(h.time[i]), num(h.battery[i], 2), num(h.energy[i], 2), num(h.collisionRate[i]),
+                h.conflicts[i] ?? '', h.collisions[i] ?? '', h.airspace[i] ?? '', num(h.tickTime[i])].join(','));
+            }
+            lines.push('');
+            lines.push('## Drones');
+            lines.push('id,role,phase,battery,wx,wy,wz,speed,heading,distance_m,flight_s,evasions');
+            for (const d of drones) {
+                lines.push([d.id, d.role.label, d.phase, d.battery.toFixed(1), d.wx.toFixed(0), d.wy.toFixed(0),
+                d.wz.toFixed(0), d.speed.toFixed(1), Math.round(d.heading), d.distanceTraveled.toFixed(0),
+                d.flightTime.toFixed(0), d.evasionCount].join(','));
+            }
+            const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+            _download(`sdacs_report_${Date.now()}.csv`, URL.createObjectURL(blob));
+            logEvent('info', '📑 CSV 리포트 저장됨');
+        }
+
+        function copyKPI() {
+            const txt = 'SDACS KPI @ ' + simTime.toFixed(0) + 's\n' + kpiList().map(([k, v]) => `${k}: ${v}`).join('\n');
+            navigator.clipboard?.writeText(txt).then(
+                () => logEvent('info', '📋 KPI 클립보드 복사됨'),
+                () => logEvent('info', 'KPI 복사 실패(권한)')
+            );
+        }
+
+        async function buildReportCanvas() {
+            const W0 = 1600, H0 = 900, pad = 10, titleH = 28;
+            const cw = (W0 - pad * 3) / 2, chh = (H0 - titleH - pad * 3) / 2;
+            const cvs = document.createElement('canvas');
+            cvs.width = W0; cvs.height = H0;
+            const g = cvs.getContext('2d');
+            g.fillStyle = '#03050a'; g.fillRect(0, 0, W0, H0);
+            g.fillStyle = '#00e5ff'; g.font = 'bold 16px JetBrains Mono, monospace';
+            const scen = document.getElementById('scenario-select')?.value || 'default';
+            g.fillText(`SDACS — 군집드론 공역통제 리포트 · ${scen} · t=${simTime.toFixed(0)}s · ${drones.length}대`, pad, 20);
+            const y0 = titleH + pad, y1 = y0 + chh + pad, x0 = pad, x1 = pad * 2 + cw;
+            const cells = [[x0, y0, '① 3D 비행 궤적'], [x1, y0, '② XY 평면도 (고도 컬러맵)'], [x0, y1, '③ 배터리 소모 추이'], [x1, y1, '④ KPI 대시보드']];
+            g.strokeStyle = 'rgba(0,229,255,0.25)';
+            for (const [x, y, label] of cells) {
+                g.strokeRect(x, y, cw, chh);
+                g.fillStyle = '#00e5ff'; g.font = 'bold 11px JetBrains Mono, monospace';
+                g.fillText(label, x + 6, y + 14);
+            }
+            // ① 3D 캡처 (preserveDrawingBuffer=true)
+            try {
+                renderer.render(scene, camera);
+                const dataURL = renderer.domElement.toDataURL('image/png');
+                const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = dataURL; });
+                g.drawImage(img, x0 + 2, y0 + 18, cw - 4, chh - 22);
+            } catch (e) { /* WebGL 캡처 불가 시 생략 */ }
+            // ②③ 2D 차트 직접 렌더
+            const tmp = document.createElement('canvas');
+            const blit = (drawFn, x, y) => {
+                tmp.width = cw - 4; tmp.height = chh - 22;
+                drawFn(tmp.getContext('2d'), tmp.width, tmp.height);
+                g.drawImage(tmp, x + 2, y + 18);
+            };
+            blit(drawTopDown, x1, y0);
+            blit(drawBatteryLines, x0, y1);
+            // ④ KPI 텍스트
+            g.font = '13px JetBrains Mono, monospace';
+            let ky = y1 + 42;
+            for (const [k, v, c] of kpiList()) {
+                g.fillStyle = '#4a6785'; g.fillText(k, x1 + 14, ky);
+                g.fillStyle = c || '#cdd9e8'; g.fillText(String(v), x1 + cw - 120, ky);
+                ky += 24;
+            }
+            return cvs;
+        }
+
+        async function exportPNG() {
+            const cvs = await buildReportCanvas();
+            _download(`sdacs_report_${Date.now()}.png`, cvs.toDataURL('image/png'));
+            logEvent('info', '📷 PNG 리포트 저장됨');
+        }
+
+        document.getElementById('btn-export-png').addEventListener('click', exportPNG);
+        document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
+        document.getElementById('btn-copy-kpi').addEventListener('click', copyKPI);
 
         // ===== Controls =====
         document.getElementById('btn-clear-log').addEventListener('click', () => { eventLog.length = 0; });
@@ -5698,6 +5806,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             clearHover() { setHover(null); },
             setAnalysisView(on) { toggleAnalysis(!!on); return analysisMode; },
             get analysisMode() { return analysisMode; },
+            async reportDataURL() { return (await buildReportCanvas()).toDataURL('image/png'); },
+            exportPNG, exportCSV,
             selectScenario(name) { document.getElementById('scenario-select').value = name; document.getElementById('scenario-select').dispatchEvent(new Event('change')); },
             camera, renderer, scene, controls,
             captureScreenshot() { renderer.render(scene, camera); return renderer.domElement.toDataURL('image/png'); },

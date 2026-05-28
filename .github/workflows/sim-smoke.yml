@@ -1,0 +1,47 @@
+name: Simulator Smoke Test
+
+# swarm_3d_simulator.html(메인 시뮬레이터)의 _sdacs API를 헤드리스 브라우저로 검증.
+on:
+  push:
+    paths:
+      - 'swarm_3d_simulator.html'
+      - 'tests/e2e/**'
+      - '.github/workflows/sim-smoke.yml'
+  pull_request:
+    paths:
+      - 'swarm_3d_simulator.html'
+      - 'tests/e2e/**'
+      - '.github/workflows/sim-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Playwright + Chromium
+        run: |
+          npm init -y >/dev/null 2>&1 || true
+          npm install -D playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Serve simulator
+        run: |
+          python3 -m http.server 8123 >/tmp/httpd.log 2>&1 &
+          for i in $(seq 1 20); do
+            if curl -sf -o /dev/null http://localhost:8123/swarm_3d_simulator.html; then echo "server up"; break; fi
+            sleep 1
+          done
+
+      - name: Run smoke test
+        env:
+          SIM_URL: http://localhost:8123/swarm_3d_simulator.html
+        run: node tests/e2e/smoke_sim.mjs

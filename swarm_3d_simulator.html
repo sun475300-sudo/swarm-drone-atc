@@ -1055,6 +1055,9 @@
                 <div class="kpi-card" style="padding:4px 8px;"><div class="kpi-label">식별 완료</div><div class="kpi-value" id="dni-identified" style="font-size:14px;color:#00e5ff;">0</div></div>
                 <div class="kpi-card" style="padding:4px 8px;"><div class="kpi-label">평균 탐지</div><div class="kpi-value" id="dni-avg" style="font-size:14px;color:#f59e0b;">0.00s</div></div>
             </div>
+            <div class="kpi-card" style="padding:5px 9px;margin-top:5px;display:flex;align-items:baseline;justify-content:space-between;">
+                <div class="kpi-label">식별 정확도</div><div class="kpi-value" id="dni-accuracy" style="font-size:16px;color:#22c55e;">100.0%</div>
+            </div>
             <div style="font-size:8px;color:#4a6785;margin-top:5px;font-family:'JetBrains Mono',monospace;line-height:1.5;">
                 <span style="color:#3a8f5c;">●</span>정상 <span style="color:#c07a2a;">●</span>미등록 <span style="color:#c44d4d;">●</span>위험 <span style="color:#3a6b8c;">●</span>조류
             </div>
@@ -5423,7 +5426,7 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
         let showDnI = true;
         const dniGroup = new THREE.Group(); scene.add(dniGroup);
         const externalObjs = [];
-        const dniStats = { detected: 0, identified: 0, birds: 0, detSum: 0, detN: 0 };
+        const dniStats = { detected: 0, identified: 0, correct: 0, birds: 0, detSum: 0, detN: 0 };
         const DETECT_RANGE_M = 2500;   // 센서(ATC·군집) 탐지 반경
         const DNI_TARGET = 12;         // 동시 외부 객체 수
         const EXT_TYPES = [
@@ -5432,6 +5435,15 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
             { type: 'danger', label: '위험', color: 0xc44d4d, w: 0.2 },
         ];
         function _pickExtType() { const r = Math.random(); let a = 0; for (const t of EXT_TYPES) { a += t.w; if (r <= a) return t; } return EXT_TYPES[0]; }
+        // 식별 정확도 모델 — 클래스별 정확도 + 오분류(혼동)
+        const EXT_BY_TYPE = Object.fromEntries(EXT_TYPES.map(t => [t.type, t]));
+        const ID_ACCURACY = { bird: 0.93, unknown: 0.88, danger: 0.90 };
+        const ID_CONFUSE = { bird: ['unknown'], unknown: ['bird', 'danger'], danger: ['unknown'] };
+        function classifyExternal(trueType) {
+            if (Math.random() < (ID_ACCURACY[trueType] ?? 0.9)) return { t: trueType, ok: true };
+            const opts = ID_CONFUSE[trueType] || ['unknown'];
+            return { t: opts[Math.floor(Math.random() * opts.length)], ok: false };
+        }
         function _makeExtMesh(type, color) {
             const g = new THREE.Group();
             if (type === 'bird') {
@@ -5466,7 +5478,7 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
         function resetDnI() {
             for (const o of externalObjs) _disposeExt(o);
             externalObjs.length = 0;
-            dniStats.detected = dniStats.identified = dniStats.birds = dniStats.detSum = dniStats.detN = 0;
+            dniStats.detected = dniStats.identified = dniStats.correct = dniStats.birds = dniStats.detSum = dniStats.detN = 0;
         }
         function updateExternals(dt, t) {
             dniGroup.visible = showDnI;
@@ -5501,10 +5513,15 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                     if (near) { o.detected = true; o.detTime = t; dniStats.detected++; if (o.type === 'bird') dniStats.birds++; }
                 } else if (moving && o.detected && !o.identified && (t - o.detTime) >= 0.7) {
                     o.identified = true; dniStats.identified++;
+                    // 식별: 클래스별 정확도로 분류(오분류 시 라벨/색이 실제와 달라짐)
+                    const cls = classifyExternal(o.type);
+                    if (cls.ok) dniStats.correct++;
+                    const ct = EXT_BY_TYPE[cls.t] || EXT_BY_TYPE[o.type];
+                    o.classified = cls.t; o.label = ct.label; o.color = ct.color;
                     dniStats.detSum += 0.05 + Math.random() * 0.05; dniStats.detN++;
-                    const lbl = makeTextSprite(o.label, '#' + o.color.toString(16).padStart(6, '0'), 8);
+                    const lbl = makeTextSprite(o.label + (cls.ok ? '' : ' ?'), '#' + o.color.toString(16).padStart(6, '0'), 8);
                     lbl.scale.set(3, 0.9, 1); o.label3d = lbl; dniGroup.add(lbl);
-                    logEvent(o.type === 'danger' ? 'rogue' : o.type === 'bird' ? 'info' : 'advisory', `🔍 외부 ${o.label} 식별`);
+                    logEvent(o.type === 'danger' ? 'rogue' : o.type === 'bird' ? 'info' : 'advisory', `🔍 외부 ${o.label} 식별${cls.ok ? '' : ' (오분류)'}`);
                     if (o.type === 'bird' && Math.hypot(o.wx, o.wz) < 1500) triggerAlert('rgba(58,107,140,0.45)', '🐦 버드스트라이크 경보 — 경로 우회');
                 }
                 if (o.label3d) o.label3d.position.set(px, py + 1.2, pz);
@@ -5515,6 +5532,12 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
             document.getElementById('dni-birds').textContent = dniStats.birds;
             document.getElementById('dni-identified').textContent = dniStats.identified;
             document.getElementById('dni-avg').textContent = (dniStats.detN ? (dniStats.detSum / dniStats.detN) : 0).toFixed(2) + 's';
+            const accEl = document.getElementById('dni-accuracy');
+            if (accEl) {
+                const acc = dniStats.identified ? (dniStats.correct / dniStats.identified) * 100 : 100;
+                accEl.textContent = acc.toFixed(1) + '%';
+                accEl.style.color = acc >= 90 ? '#22c55e' : acc >= 80 ? '#f59e0b' : '#ef4444';
+            }
         }
         document.getElementById('tg-dni').addEventListener('change', e => { showDnI = e.target.checked; if (!showDnI) dniGroup.visible = false; });
 

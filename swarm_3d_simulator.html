@@ -1165,6 +1165,10 @@
     <!-- HUD: Drone Live Tooltip -->
     <div class="drone-tooltip" id="drone-tooltip" style="display:none;"></div>
 
+    <!-- 분리간격 위반 경보 (플래시 + 배너) -->
+    <div id="alert-flash" style="position:fixed;inset:0;z-index:8;pointer-events:none;opacity:0;transition:opacity 0.45s ease;"></div>
+    <div id="alert-banner" style="position:fixed;top:84px;left:50%;transform:translateX(-50%);z-index:31;pointer-events:none;opacity:0;transition:opacity 0.45s ease;background:rgba(6,10,19,0.9);border:1px solid rgba(239,68,68,0.6);color:#fff;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;padding:6px 16px;border-radius:8px;box-shadow:0 0 24px rgba(239,68,68,0.4);"></div>
+
     <!-- Analysis View: 2x2 dashboard -->
     <div id="analysis-view">
         <div class="av-cell" id="av-q1">
@@ -2645,6 +2649,7 @@
             if (typeof resetBatteryTracked === 'function') resetBatteryTracked();
             if (typeof resetReplay === 'function') resetReplay();
             if (typeof resetViewFilter === 'function') resetViewFilter();
+            _prevColl = 0; _prevNear = 0;
             // Clear (geometry/material 해제 — GPU 메모리 누수 방지)
             while (droneGroup.children.length) {
                 const grp = droneGroup.children[0];
@@ -4715,26 +4720,47 @@
             }
         }
 
-        // --- 회피 어드바이저리 빌보드 (EVADING 드론 위 점멸) ---
+        // --- 조치(어드바이저리) 빌보드 — 단계별 아이콘 점멸 (EVADE/HOLD/RTL) ---
         const advisoryGroup = new THREE.Group(); scene.add(advisoryGroup);
-        const _advPool = []; let _advIdx = 0;
-        function _adv() {
-            let s = _advPool[_advIdx];
-            if (!s) { s = makeTextSprite('⚠ 회피', '#ff3d00', 9); s.scale.set(3, 0.9, 1); advisoryGroup.add(s); _advPool.push(s); }
-            _advIdx++; return s;
+        const ADV_ICON = { EVADING: '⚠ 회피', HOLDING: '⏸ 체공', RTL: '↩ 귀환' };
+        const ADV_COLOR = { EVADING: '#ff3d00', HOLDING: '#3b82f6', RTL: '#ec407a' };
+        const _advPools = {}; // phase → {pool:[], idx:0} (텍스트가 텍스처에 구워지므로 단계별 풀 분리)
+        function _adv(phase) {
+            const p = _advPools[phase] || (_advPools[phase] = { pool: [], idx: 0 });
+            let s = p.pool[p.idx];
+            if (!s) { s = makeTextSprite(ADV_ICON[phase], ADV_COLOR[phase], 9); s.scale.set(3, 0.9, 1); advisoryGroup.add(s); p.pool.push(s); }
+            p.idx++; return s;
         }
         function updateAdvisoryOverlay(t) {
-            for (let i = 0; i < _advIdx; i++) _advPool[i].visible = false;
-            _advIdx = 0;
-            if (!showAdvisory) return;
+            for (const k in _advPools) { const p = _advPools[k]; for (let i = 0; i < p.idx; i++) p.pool[i].visible = false; p.idx = 0; }
+            if (!showAdvisory || megaMode) return; // 대규모는 빌보드 생략(성능)
+            const pulse = 0.55 + Math.sin(t * 8) * 0.4;
             let c = 0;
             for (const d of drones) {
-                if (d.phase !== 'EVADING' || c >= 30) continue;
-                const s = _adv();
+                if (c >= 40 || !ADV_ICON[d.phase]) continue;
+                const s = _adv(d.phase);
                 s.position.set(d.group.position.x, d.group.position.y + 1.3, d.group.position.z);
-                s.material.opacity = 0.55 + Math.sin(t * 8) * 0.4;
+                s.material.opacity = pulse;
                 s.visible = true; c++;
             }
+        }
+
+        // --- 분리간격 위반 경보 (충돌/근접 발생 시 화면 플래시 + 배너) ---
+        let _prevColl = 0, _prevNear = 0, _alertTimer = null;
+        function triggerAlert(color, text) {
+            const el = document.getElementById('alert-flash');
+            const bn = document.getElementById('alert-banner');
+            if (!el) return;
+            el.style.background = `radial-gradient(ellipse at center, transparent 35%, ${color} 100%)`;
+            el.style.opacity = '0.8';
+            if (bn) { bn.textContent = text; bn.style.opacity = '1'; }
+            clearTimeout(_alertTimer);
+            _alertTimer = setTimeout(() => { el.style.opacity = '0'; if (bn) bn.style.opacity = '0'; }, 450);
+        }
+        function checkSeparationAlerts() {
+            if (stats.collisions > _prevColl) triggerAlert('rgba(239,68,68,0.55)', '⛔ 충돌 발생 — 분리간격 위반');
+            else if (stats.nearMisses > _prevNear) triggerAlert('rgba(245,158,11,0.4)', '⚠ 근접 경고 — 분리간격 접근');
+            _prevColl = stats.collisions; _prevNear = stats.nearMisses;
         }
 
         // --- 웨이포인트·이동경로 (드론 → 목표 패드) ---
@@ -6159,6 +6185,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             recordSnapshot();
             // 필터 활성 시 가시성 갱신(단계 변화 반영)
             if (filterActive()) applyFilterVisibility();
+            // 분리간격 위반 경보 감지
+            checkSeparationAlerts();
         }, 500);
 
         animate();

@@ -1,0 +1,4 @@
+scenario,method,seed,NMR,PE,AU,RID_CR,LAANC_latency_ms,geofence_violations,tick_p99_ms
+01_corridor_crossing,orca,42,0.005555555555555556,1.0,0.4,0.0,nan,0.0,0.04843327000230607
+02_dense_intersection,orca,42,0.0,1.0,0.29375,0.0,nan,0.0,0.09235529998250054
+08_stress_high_density,orca,42,5.1926298157453935e-06,1.0,0.17650000000000002,0.0,nan,0.0,1.6436797700117716

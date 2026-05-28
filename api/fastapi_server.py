@@ -556,6 +556,77 @@ async def health() -> dict[str, Any]:
     }
 
 
+# --- P718: Prometheus metrics endpoint ---
+# Exposes Prometheus text-format metrics at GET /metrics for scraping by
+# a Prometheus server (see deployment/prometheus.yml).
+# Requires: pip install prometheus-client
+
+
+@app.get("/metrics", tags=["infra"], response_class=None)
+async def prometheus_metrics():
+    """Expose Prometheus-format metrics for scraping (P718)."""
+    from fastapi.responses import PlainTextResponse
+
+    try:
+        from prometheus_client import (  # type: ignore[import]
+            CONTENT_TYPE_LATEST,
+            Counter,
+            Gauge,
+            generate_latest,
+        )
+    except ImportError:
+        return PlainTextResponse(
+            "# prometheus_client not installed. pip install prometheus-client\n",
+            media_type="text/plain",
+            status_code=200,
+        )
+
+    # Lazily register metrics on first call (idempotent via try/except).
+    try:
+        from prometheus_client import REGISTRY  # type: ignore[import]
+
+        _sdacs_active_drones = Gauge(
+            "sdacs_active_drones_total",
+            "Number of drones in the current airspace snapshot",
+        )
+        _sdacs_active_conflicts = Gauge(
+            "sdacs_active_conflicts_total",
+            "Number of active conflict alerts in the current snapshot",
+        )
+        _sdacs_ws_subscribers = Gauge(
+            "sdacs_ws_subscribers_total",
+            "Number of active WebSocket telemetry subscribers",
+        )
+        _sdacs_runs_total = Counter(
+            "sdacs_simulation_runs_total",
+            "Total simulation runs requested since startup",
+        )
+    except ValueError:
+        # Metrics already registered — retrieve existing ones
+        from prometheus_client import REGISTRY  # type: ignore[import]
+
+        _sdacs_active_drones = REGISTRY._names_to_collectors.get(
+            "sdacs_active_drones_total"
+        )
+        _sdacs_active_conflicts = REGISTRY._names_to_collectors.get(
+            "sdacs_active_conflicts_total"
+        )
+        _sdacs_ws_subscribers = REGISTRY._names_to_collectors.get(
+            "sdacs_ws_subscribers_total"
+        )
+        _sdacs_runs_total = None  # Counter; don't double-increment
+
+    # Update gauges from live state
+    if _sdacs_active_drones is not None:
+        _sdacs_active_drones.set(len(STATE.snapshot.drones))
+    if _sdacs_active_conflicts is not None:
+        _sdacs_active_conflicts.set(len(STATE.snapshot.conflicts))
+    if _sdacs_ws_subscribers is not None:
+        _sdacs_ws_subscribers.set(len(STATE.telemetry_subscribers))
+
+    return PlainTextResponse(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
 # --- Airspace snapshot ---
 
 

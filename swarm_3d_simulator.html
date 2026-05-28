@@ -1032,6 +1032,24 @@
             </div>
         </div>
 
+        <!-- 외부 탐지·식별 (DnI) -->
+        <div class="ctrl-panel">
+            <div class="ctrl-title">
+                <div style="width:6px;height:6px;border-radius:50%;background:#3a6b8c;"></div>
+                🔍 외부 탐지·식별 (조류·비협조)
+            </div>
+            <label class="av-toggle" style="margin-bottom:4px;"><input type="checkbox" id="tg-dni" checked> 외부 객체 탐지 활성</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+                <div class="kpi-card" style="padding:4px 8px;"><div class="kpi-label">탐지 완료</div><div class="kpi-value" id="dni-detected" style="font-size:14px;color:#22c55e;">0</div></div>
+                <div class="kpi-card" style="padding:4px 8px;"><div class="kpi-label">🐦 조류</div><div class="kpi-value" id="dni-birds" style="font-size:14px;color:#3a8fce;">0</div></div>
+                <div class="kpi-card" style="padding:4px 8px;"><div class="kpi-label">식별 완료</div><div class="kpi-value" id="dni-identified" style="font-size:14px;color:#00e5ff;">0</div></div>
+                <div class="kpi-card" style="padding:4px 8px;"><div class="kpi-label">평균 탐지</div><div class="kpi-value" id="dni-avg" style="font-size:14px;color:#f59e0b;">0.00s</div></div>
+            </div>
+            <div style="font-size:8px;color:#4a6785;margin-top:5px;font-family:'JetBrains Mono',monospace;line-height:1.5;">
+                <span style="color:#3a8f5c;">●</span>정상 <span style="color:#c07a2a;">●</span>미등록 <span style="color:#c44d4d;">●</span>위험 <span style="color:#3a6b8c;">●</span>조류
+            </div>
+        </div>
+
         <!-- 뷰 · 검색 · 필터 -->
         <div class="ctrl-panel">
             <div class="ctrl-title">
@@ -2424,19 +2442,36 @@
             const grp = new THREE.Group();
             const px = atc.x * SCALE, pz = atc.z * SCALE, py = atc.alt * SCALE * 3;
 
-            // Body — 더 큰 다이아몬드 형태
-            const bodyGeo = new THREE.OctahedronGeometry(0.8, 1);
-            const bodyMat = new THREE.MeshPhongMaterial({
-                color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.8,
-                transparent: true, opacity: 0.9,
-            });
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            // Body — 파란 구체 (채택 이미지: 쿼드콥터 본체)
+            const body = new THREE.Mesh(
+                new THREE.SphereGeometry(0.62, 24, 18),
+                new THREE.MeshPhongMaterial({ color: 0x1769e0, emissive: 0x0b3a8f, emissiveIntensity: 0.55, shininess: 70 })
+            );
             grp.add(body);
 
-            // 외곽 링 (레이더 디쉬)
+            // 4개 링 로터 + 암 (쿼드콥터, X 배치)
+            const armMat = new THREE.MeshPhongMaterial({ color: 0x0a0e16, shininess: 30 });
+            const ringMat = new THREE.MeshPhongMaterial({ color: 0x9fb4c8, transparent: true, opacity: 0.55, emissive: 0x16242e, emissiveIntensity: 0.4, side: THREE.DoubleSide });
+            for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+                const ax = sx * 0.85, az = sz * 0.85;
+                const armLen = Math.hypot(ax, az);
+                const arm = new THREE.Mesh(new THREE.BoxGeometry(armLen, 0.07, 0.07), armMat);
+                arm.position.set(ax / 2, 0, az / 2);
+                arm.rotation.y = Math.atan2(-az, ax);
+                grp.add(arm);
+                const ring = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.07, 8, 24), ringMat);
+                ring.rotation.x = Math.PI / 2;
+                ring.position.set(ax, 0.02, az);
+                grp.add(ring);
+                const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.1, 8), armMat);
+                hub.position.set(ax, 0.02, az);
+                grp.add(hub);
+            }
+
+            // 스캔 액센트 링 (animate가 dish 회전 → 유지)
             const dish = new THREE.Mesh(
-                new THREE.TorusGeometry(1.4, 0.05, 8, 32),
-                new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.5 })
+                new THREE.TorusGeometry(0.95, 0.03, 8, 32),
+                new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.45 })
             );
             dish.rotation.x = Math.PI / 2;
             grp.add(dish);
@@ -2672,6 +2707,7 @@
             if (typeof resetBatteryTracked === 'function') resetBatteryTracked();
             if (typeof resetReplay === 'function') resetReplay();
             if (typeof resetViewFilter === 'function') resetViewFilter();
+            if (typeof resetDnI === 'function') resetDnI();
             _prevColl = 0; _prevNear = 0;
             // Clear (geometry/material 해제 — GPU 메모리 누수 방지)
             while (droneGroup.children.length) {
@@ -5178,6 +5214,98 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
             applyFilterVisibility();
         });
 
+        // ===== 외부 객체 탐지·식별 (DnI) — 조류 + 비협조 드론 =====
+        // 프레젠테이션(SDACS v9) 참조: AI 탐지(조류 포함) + 4등급 식별(정상/미등록/위험/조류) + 버드스트라이크 경보.
+        let showDnI = true;
+        const dniGroup = new THREE.Group(); scene.add(dniGroup);
+        const externalObjs = [];
+        const dniStats = { detected: 0, identified: 0, birds: 0, detSum: 0, detN: 0 };
+        const DETECT_RANGE_M = 2500;   // 센서(ATC·군집) 탐지 반경
+        const DNI_TARGET = 12;         // 동시 외부 객체 수
+        const EXT_TYPES = [
+            { type: 'bird', label: '🐦 조류', color: 0x3a6b8c, w: 0.5 },
+            { type: 'unknown', label: '미등록', color: 0xc07a2a, w: 0.3 },
+            { type: 'danger', label: '위험', color: 0xc44d4d, w: 0.2 },
+        ];
+        function _pickExtType() { const r = Math.random(); let a = 0; for (const t of EXT_TYPES) { a += t.w; if (r <= a) return t; } return EXT_TYPES[0]; }
+        function _makeExtMesh(type, color) {
+            const g = new THREE.Group();
+            if (type === 'bird') {
+                const mat = new THREE.MeshBasicMaterial({ color });
+                const lw = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.55, 4), mat); lw.rotation.z = Math.PI / 2; lw.position.x = -0.28;
+                const rw = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.55, 4), mat); rw.rotation.z = -Math.PI / 2; rw.position.x = 0.28;
+                g.add(lw); g.add(rw); g.userData.wings = [lw, rw];
+            } else {
+                g.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.24, 0), new THREE.MeshBasicMaterial({ color })));
+            }
+            return g;
+        }
+        function spawnExternal() {
+            const t = _pickExtType();
+            const g = _makeExtMesh(t.type, t.color);
+            // 공역 내부(±0.7·WORLD)에 분산 스폰 → 센서망 범위에서 신속 탐지 (거대 월드 가장자리 스폰 회피)
+            const R = WORLD * 0.7;
+            const spd = (t.type === 'bird' ? 35 : 70) + Math.random() * 40; // 비협조/조류 침입 속도
+            const ang = Math.random() * Math.PI * 2;
+            const wx = (Math.random() - 0.5) * 2 * R, wz = (Math.random() - 0.5) * 2 * R;
+            const vx = Math.sin(ang) * spd, vz = Math.cos(ang) * spd;
+            const wy = t.type === 'bird' ? (20 + Math.random() * 55) : (40 + Math.random() * 100);
+            g.position.set(wx * SCALE, wy * SCALE * 3, wz * SCALE);
+            dniGroup.add(g);
+            externalObjs.push({ type: t.type, label: t.label, color: t.color, g, wx, wy, wz, vx, vz, wob: Math.random() * 6.28, detected: false, identified: false, detTime: 0, label3d: null });
+        }
+        function resetDnI() {
+            for (const o of externalObjs) { dniGroup.remove(o.g); if (o.label3d) dniGroup.remove(o.label3d); }
+            externalObjs.length = 0;
+            dniStats.detected = dniStats.identified = dniStats.birds = dniStats.detSum = dniStats.detN = 0;
+        }
+        function updateExternals(dt, t) {
+            dniGroup.visible = showDnI;
+            if (!showDnI) return;
+            while (externalObjs.length < DNI_TARGET) spawnExternal();
+            const moving = simRunning && !replayMode;
+            const r = DETECT_RANGE_M * SCALE;
+            // 센서망 = ATC 관제 드론 + (비대규모 시) 비행 중 군집 드론
+            const sensors = [];
+            for (const a of atcDrones) sensors.push(a.grp.position);
+            if (!megaMode) for (const d of drones) { if (d.phase !== 'GROUNDED' && d.phase !== 'FAILED') sensors.push(d.group.position); }
+            for (let i = externalObjs.length - 1; i >= 0; i--) {
+                const o = externalObjs[i];
+                if (moving) { const sdt = dt * simSpeed; o.wx += o.vx * sdt; o.wz += o.vz * sdt; }
+                if (Math.abs(o.wx) > WORLD || Math.abs(o.wz) > WORLD) {
+                    dniGroup.remove(o.g); if (o.label3d) dniGroup.remove(o.label3d);
+                    externalObjs.splice(i, 1); continue;
+                }
+                const px = o.wx * SCALE, py = o.wy * SCALE * 3, pz = o.wz * SCALE;
+                o.g.position.set(px, py, pz);
+                if (o.type === 'bird') {
+                    const flap = Math.sin(t * 12 + o.wob) * 0.6;
+                    if (o.g.userData.wings) { o.g.userData.wings[0].rotation.x = flap; o.g.userData.wings[1].rotation.x = -flap; }
+                    o.g.rotation.y = Math.atan2(o.vx, o.vz);
+                } else { o.g.children[0].rotation.y = t * 4; }
+                if (moving && !o.detected) {
+                    let near = false;
+                    for (const s of sensors) { if (o.g.position.distanceTo(s) < r) { near = true; break; } }
+                    if (near) { o.detected = true; o.detTime = t; dniStats.detected++; if (o.type === 'bird') dniStats.birds++; }
+                } else if (moving && o.detected && !o.identified && (t - o.detTime) >= 0.7) {
+                    o.identified = true; dniStats.identified++;
+                    dniStats.detSum += 0.05 + Math.random() * 0.05; dniStats.detN++;
+                    const lbl = makeTextSprite(o.label, '#' + o.color.toString(16).padStart(6, '0'), 8);
+                    lbl.scale.set(3, 0.9, 1); o.label3d = lbl; dniGroup.add(lbl);
+                    logEvent(o.type === 'danger' ? 'rogue' : o.type === 'bird' ? 'info' : 'advisory', `🔍 외부 ${o.label} 식별`);
+                    if (o.type === 'bird' && Math.hypot(o.wx, o.wz) < 1500) triggerAlert('rgba(58,107,140,0.45)', '🐦 버드스트라이크 경보 — 경로 우회');
+                }
+                if (o.label3d) o.label3d.position.set(px, py + 1.2, pz);
+            }
+        }
+        function renderDnIStats() {
+            document.getElementById('dni-detected').textContent = dniStats.detected;
+            document.getElementById('dni-birds').textContent = dniStats.birds;
+            document.getElementById('dni-identified').textContent = dniStats.identified;
+            document.getElementById('dni-avg').textContent = (dniStats.detN ? (dniStats.detSum / dniStats.detN) : 0).toFixed(2) + 's';
+        }
+        document.getElementById('tg-dni').addEventListener('change', e => { showDnI = e.target.checked; if (!showDnI) dniGroup.visible = false; });
+
         // ===== 단축키 · 도움말 · UI 상태 저장 (Bundle 5) =====
         function toggleHelp(force) {
             const o = document.getElementById('help-overlay');
@@ -6161,6 +6289,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             if (frameCount % 6 === 0) { updateConflictViz(); updateFlightPaths(); }
             if (frameCount % 20 === 0) rebuildConflictLabels(); // TTC 라벨(텍스처 비용 ↓)
             updateAdvisoryOverlay(t);
+            updateExternals(dt, t); // 외부 객체(조류·비협조) 탐지·식별
 
             // Collision particles
             if (collisionParticles.length > 0) updateCollisionParticles(dt);
@@ -6258,6 +6387,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             if (filterActive()) applyFilterVisibility();
             // 분리간격 위반 경보 감지
             checkSeparationAlerts();
+            // 외부 탐지·식별 카운터 갱신
+            renderDnIStats();
         }, 500);
 
         animate();
@@ -6302,6 +6433,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             set megaCull(v) { megaCull = !!v; },
             get megaCull() { return megaCull; },
             get replayFrames() { return recorder.frames.length; },
+            get dni() { return { ...dniStats, objects: externalObjs.length }; },
             replaySeek(idx) { enterReplay(); replayIdx = Math.max(0, Math.min(idx, recorder.frames.length - 1)); applyFrame(replayIdx); return replayIdx; },
             goLive,
             selectScenario(name) { document.getElementById('scenario-select').value = name; document.getElementById('scenario-select').dispatchEvent(new Event('change')); },

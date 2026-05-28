@@ -499,6 +499,22 @@
             display: none !important;
         }
 
+        .av-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            color: #cdd9e8;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 2px 0;
+            cursor: pointer;
+        }
+
+        .av-toggle input {
+            accent-color: #00e5ff;
+            cursor: pointer;
+        }
+
         .hud-bottom {
             bottom: 0;
             left: 0;
@@ -1002,6 +1018,21 @@
                 <span class="ctrl-label">경과 시간</span>
                 <span class="ctrl-value" id="sim-time">00:00</span>
             </div>
+        </div>
+
+        <!-- 공역·관제 레이어 토글 -->
+        <div class="ctrl-panel">
+            <div class="ctrl-title">
+                <div style="width:6px;height:6px;border-radius:50%;background:#ff6600;"></div>
+                공역·관제 레이어
+            </div>
+            <label class="av-toggle"><input type="checkbox" id="tg-conflict" checked> 충돌 예측선 (CPA)</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-advisory" checked> 회피 어드바이저리</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-path" checked> 웨이포인트·이동경로</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-nfz" checked> NFZ 비행금지구역</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-atc" checked> ATC 관제망</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-prox" checked> 근접/충돌선</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-trail" checked> 침입 드론 트레일</label>
         </div>
 
         <!-- Legend -->
@@ -4356,6 +4387,161 @@
         document.getElementById('btn-analysis').addEventListener('click', () => toggleAnalysis(!analysisMode));
         document.getElementById('av-close').addEventListener('click', () => toggleAnalysis(false));
 
+        // ===== 충돌·공역 관제 시각화 (Phase 1) =====
+        // 백엔드(GPU/Worker/CPU) 독립적인 별도 시각화 패스 — APF 로직 비침습.
+        let showConflictViz = true, showAdvisory = true, showFlightPath = true;
+
+        // --- CPA 충돌 예측선 (수렴 쌍 + 위험도 색상) ---
+        const conflictVizGroup = new THREE.Group(); scene.add(conflictVizGroup);
+        const _cvLines = [], _cvMarks = []; let _cvLineIdx = 0, _cvMarkIdx = 0;
+        function _cvLine() {
+            let l = _cvLines[_cvLineIdx];
+            if (!l) {
+                const g = new THREE.BufferGeometry();
+                g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+                l = new THREE.Line(g, new THREE.LineBasicMaterial({ transparent: true }));
+                conflictVizGroup.add(l); _cvLines.push(l);
+            }
+            _cvLineIdx++; return l;
+        }
+        function _cvMark() {
+            let m = _cvMarks[_cvMarkIdx];
+            if (!m) {
+                m = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6),
+                    new THREE.MeshBasicMaterial({ transparent: true, depthTest: false }));
+                m.renderOrder = 997; conflictVizGroup.add(m); _cvMarks.push(m);
+            }
+            _cvMarkIdx++; return m;
+        }
+        function ttcColor(ttc) {
+            // 임박(0s)=적색 → 여유(CPA_LOOKAHEAD)=황색
+            const f = Math.max(0, Math.min(1, ttc / CPA_LOOKAHEAD));
+            return (255 << 16) | (Math.round(40 + 170 * f) << 8) | 40;
+        }
+        function updateConflictViz() {
+            for (let i = 0; i < _cvLineIdx; i++) _cvLines[i].visible = false;
+            for (let i = 0; i < _cvMarkIdx; i++) _cvMarks[i].visible = false;
+            _cvLineIdx = 0; _cvMarkIdx = 0;
+            if (!showConflictViz) return;
+            const air = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+            if (air.length > 400) return; // 초대규모는 생략(성능)
+            const THRESH = NEAR_MISS_DIST * 1.5;
+            let pairs = 0; const MAX_PAIRS = 60;
+            for (let i = 0; i < air.length && pairs < MAX_PAIRS; i++) {
+                const a = air[i];
+                const ra = a.heading * Math.PI / 180;
+                const avx = Math.sin(ra) * a.speed, avz = Math.cos(ra) * a.speed, avy = a.vy || 0;
+                for (let j = i + 1; j < air.length && pairs < MAX_PAIRS; j++) {
+                    const b = air[j];
+                    const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
+                    if (Math.abs(dx) > EVADE_DIST || Math.abs(dz) > EVADE_DIST) continue;
+                    const rb = b.heading * Math.PI / 180;
+                    const dvx = avx - Math.sin(rb) * b.speed, dvz = avz - Math.cos(rb) * b.speed, dvy = avy - (b.vy || 0);
+                    const relV2 = dvx * dvx + dvz * dvz + dvy * dvy;
+                    if (relV2 < 0.1) continue;
+                    const tCPA = -(dx * dvx + dz * dvz + dy * dvy) / relV2;
+                    if (tCPA <= 0 || tCPA > CPA_LOOKAHEAD) continue; // 수렴 + 예측 지평 내
+                    const fpx = dx + dvx * tCPA, fpz = dz + dvz * tCPA, fpy = dy + dvy * tCPA;
+                    const cpaDist = Math.sqrt(fpx * fpx + fpz * fpz + fpy * fpy);
+                    if (cpaDist > THRESH) continue;
+                    const col = ttcColor(tCPA);
+                    const ln = _cvLine(), p = ln.geometry.attributes.position.array;
+                    p[0] = a.group.position.x; p[1] = a.group.position.y; p[2] = a.group.position.z;
+                    p[3] = b.group.position.x; p[4] = b.group.position.y; p[5] = b.group.position.z;
+                    ln.geometry.attributes.position.needsUpdate = true;
+                    ln.material.color.set(col); ln.material.opacity = cpaDist < NEAR_MISS_DIST ? 0.75 : 0.4;
+                    ln.visible = true;
+                    const mk = _cvMark();
+                    mk.position.set((a.group.position.x + b.group.position.x) / 2,
+                        (a.group.position.y + b.group.position.y) / 2,
+                        (a.group.position.z + b.group.position.z) / 2);
+                    const s = cpaDist < NEAR_MISS_DIST ? 1.5 : 1.0;
+                    mk.scale.set(s, s, s); mk.material.color.set(col); mk.material.opacity = 0.9; mk.visible = true;
+                    pairs++;
+                }
+            }
+        }
+
+        // --- 회피 어드바이저리 빌보드 (EVADING 드론 위 점멸) ---
+        const advisoryGroup = new THREE.Group(); scene.add(advisoryGroup);
+        const _advPool = []; let _advIdx = 0;
+        function _adv() {
+            let s = _advPool[_advIdx];
+            if (!s) { s = makeTextSprite('⚠ 회피', '#ff3d00', 9); s.scale.set(3, 0.9, 1); advisoryGroup.add(s); _advPool.push(s); }
+            _advIdx++; return s;
+        }
+        function updateAdvisoryOverlay(t) {
+            for (let i = 0; i < _advIdx; i++) _advPool[i].visible = false;
+            _advIdx = 0;
+            if (!showAdvisory) return;
+            let c = 0;
+            for (const d of drones) {
+                if (d.phase !== 'EVADING' || c >= 30) continue;
+                const s = _adv();
+                s.position.set(d.group.position.x, d.group.position.y + 1.3, d.group.position.z);
+                s.material.opacity = 0.55 + Math.sin(t * 8) * 0.4;
+                s.visible = true; c++;
+            }
+        }
+
+        // --- 웨이포인트·이동경로 (드론 → 목표 패드) ---
+        const flightPathGroup = new THREE.Group(); scene.add(flightPathGroup);
+        const _fpLines = [], _fpMarks = []; let _fpLineIdx = 0, _fpMarkIdx = 0;
+        function _fpLine() {
+            let l = _fpLines[_fpLineIdx];
+            if (!l) {
+                const g = new THREE.BufferGeometry();
+                g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+                l = new THREE.Line(g, new THREE.LineBasicMaterial({ transparent: true }));
+                flightPathGroup.add(l); _fpLines.push(l);
+            }
+            _fpLineIdx++; return l;
+        }
+        function _fpMark() {
+            let m = _fpMarks[_fpMarkIdx];
+            if (!m) {
+                m = new THREE.Mesh(new THREE.OctahedronGeometry(0.25, 0),
+                    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.85, wireframe: true }));
+                flightPathGroup.add(m); _fpMarks.push(m);
+            }
+            _fpMarkIdx++; return m;
+        }
+        function updateFlightPaths() {
+            for (let i = 0; i < _fpLineIdx; i++) _fpLines[i].visible = false;
+            for (let i = 0; i < _fpMarkIdx; i++) _fpMarks[i].visible = false;
+            _fpLineIdx = 0; _fpMarkIdx = 0;
+            if (!showFlightPath) return;
+            const air = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+            const cap = drones.length > 120 ? 60 : air.length;
+            let c = 0;
+            for (const d of air) {
+                if (c >= cap || !d.goalPad) continue;
+                const gx = d.goalX * SCALE, gz = d.goalZ * SCALE;
+                const col = '#' + d.role.color.toString(16).padStart(6, '0');
+                const sel = selectedDrone && selectedDrone.id === d.id;
+                const ln = _fpLine(), p = ln.geometry.attributes.position.array;
+                p[0] = d.group.position.x; p[1] = d.group.position.y; p[2] = d.group.position.z;
+                p[3] = gx; p[4] = 0.15; p[5] = gz;
+                ln.geometry.attributes.position.needsUpdate = true;
+                ln.material.color.set(col); ln.material.opacity = sel ? 0.9 : 0.32;
+                ln.visible = true;
+                const mk = _fpMark();
+                mk.position.set(gx, 0.4, gz); mk.material.color.set(col);
+                mk.material.opacity = sel ? 0.95 : 0.6;
+                mk.rotation.y += 0.0; mk.visible = true;
+                c++;
+            }
+        }
+
+        // --- 레이어 토글 와이어링 ---
+        document.getElementById('tg-conflict').addEventListener('change', e => { showConflictViz = e.target.checked; if (!showConflictViz) conflictVizGroup.children.forEach(o => o.visible = false); });
+        document.getElementById('tg-advisory').addEventListener('change', e => { showAdvisory = e.target.checked; if (!showAdvisory) advisoryGroup.children.forEach(o => o.visible = false); });
+        document.getElementById('tg-path').addEventListener('change', e => { showFlightPath = e.target.checked; if (!showFlightPath) flightPathGroup.children.forEach(o => o.visible = false); });
+        document.getElementById('tg-nfz').addEventListener('change', e => { const v = e.target.checked; nfz.visible = v; nfzEdge.visible = v; if (typeof nfzLabel !== 'undefined') nfzLabel.visible = v; });
+        document.getElementById('tg-atc').addEventListener('change', e => { const v = e.target.checked; atcLinkGroup.visible = v; scanRings.forEach(r => r.visible = v); atcDrones.forEach(a => { if (a.grp) a.grp.visible = v; }); });
+        document.getElementById('tg-prox').addEventListener('change', e => { proximityLines.visible = e.target.checked; });
+        document.getElementById('tg-trail').addEventListener('change', e => { trailGroup.visible = e.target.checked; });
+
         // ===== Controls =====
         document.getElementById('btn-clear-log').addEventListener('click', () => { eventLog.length = 0; });
         document.getElementById('btn-start').addEventListener('click', () => {
@@ -5278,6 +5464,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
             // Trails (매 5프레임, ROGUE만)
             if (simRunning && frameCount % 5 === 0) updateTrails();
+
+            // 충돌·공역 관제 시각화 (Phase 1) — CPA 예측선/이동경로(저빈도) + 회피 빌보드(매 프레임 점멸)
+            if (frameCount % 6 === 0) { updateConflictViz(); updateFlightPaths(); }
+            updateAdvisoryOverlay(t);
 
             // Collision particles
             if (collisionParticles.length > 0) updateCollisionParticles(dt);

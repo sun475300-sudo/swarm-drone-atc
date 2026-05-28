@@ -121,7 +121,7 @@ class DroneSocialNetwork:
 
     def summary(self):
         edges = int(self.graph.adjacency.sum() / 2)
-        communities = len(set(a.community for a in self.agents))
+        communities = len({a.community for a in self.agents})
         return {
             "drones": self.n,
             "edges": edges,

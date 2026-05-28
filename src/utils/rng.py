@@ -36,12 +36,11 @@ from __future__ import annotations
 
 import os
 import random
-from typing import Optional
 
 import numpy as np
 
-_GLOBAL_RNG: Optional[np.random.Generator] = None
-_GLOBAL_SEED: Optional[int] = None
+_GLOBAL_RNG: np.random.Generator | None = None
+_GLOBAL_SEED: int | None = None
 
 
 def set_global_seed(seed: int = 42) -> None:

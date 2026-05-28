@@ -3,7 +3,6 @@ Phase 438: Collision Prediction System with Trajectory Forecasting
 """
 
 from dataclasses import dataclass
-from typing import List
 
 import numpy as np
 
@@ -52,8 +51,8 @@ class CollisionPredictionSystem:
 
     def detect_collision(
         self,
-        states: List[DroneState],
-    ) -> List[CollisionWarning]:
+        states: list[DroneState],
+    ) -> list[CollisionWarning]:
         warnings = []
 
         for i in range(len(states)):

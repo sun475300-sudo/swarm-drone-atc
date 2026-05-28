@@ -10,7 +10,6 @@ Voronoi Tessellation 기반 동적 공역 분할
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 from scipy.spatial import ConvexHull, Voronoi
@@ -29,7 +28,7 @@ class AirspaceCell:
 def compute_voronoi_partition(
     drone_positions: dict[str, np.ndarray],
     bounds_m: dict,             # {"x": [-5000, 5000], "y": [-5000, 5000]}
-    altitude_bands: Optional[dict[str, tuple[float, float]]] = None,
+    altitude_bands: dict[str, tuple[float, float]] | None = None,
 ) -> dict[str, AirspaceCell]:
     """
     2D Voronoi 분할 계산 (고도는 별도 레이어로 처리)
@@ -88,7 +87,7 @@ def compute_voronoi_partition(
         altitude_bands = _compute_altitude_bands(drone_ids)
 
     cells = {}
-    n = len(drone_ids)
+    len(drone_ids)
 
     for i, did in enumerate(drone_ids):
         region_idx = vor.point_region[i]
@@ -164,13 +163,17 @@ def _clip_polygon_to_bounds(
             prev = input_list[i - 1]
 
             if edge_type == "x_min":
-                inside = lambda p, v=edge_val: p[0] >= v
+                def inside(p, v=edge_val):
+                    return p[0] >= v
             elif edge_type == "x_max":
-                inside = lambda p, v=edge_val: p[0] <= v
+                def inside(p, v=edge_val):
+                    return p[0] <= v
             elif edge_type == "y_min":
-                inside = lambda p, v=edge_val: p[1] >= v
+                def inside(p, v=edge_val):
+                    return p[1] >= v
             else:
-                inside = lambda p, v=edge_val: p[1] <= v
+                def inside(p, v=edge_val):
+                    return p[1] <= v
 
             if inside(cur):
                 if not inside(prev):

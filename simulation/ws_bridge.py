@@ -44,7 +44,7 @@ async def _run_simulation(drones: int, seed: int, port: int):
         finally:
             clients.discard(websocket)
 
-    server = await websockets.serve(handler, "0.0.0.0", port)
+    await websockets.serve(handler, "0.0.0.0", port)
     print(f"📡 ws://localhost:{port} 대기 중...")
 
     cfg = {"drones": {"default_count": drones}}

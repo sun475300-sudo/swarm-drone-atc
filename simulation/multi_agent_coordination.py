@@ -10,7 +10,6 @@ import threading
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 
 class AgentType(Enum):
@@ -51,14 +50,14 @@ class Task:
     task_id: str
     task_type: str
     priority: TaskPriority
-    assigned_agent: Optional[str] = None
+    assigned_agent: str | None = None
     status: str = "pending"
     created_at: float = field(default_factory=time.time)
-    started_at: Optional[float] = None
-    completed_at: Optional[float] = None
+    started_at: float | None = None
+    completed_at: float | None = None
     payload: dict = field(default_factory=dict)
-    result: Optional[dict] = None
-    error: Optional[str] = None
+    result: dict | None = None
+    error: str | None = None
 
 
 @dataclass
@@ -83,7 +82,7 @@ class Agent:
     capabilities: list[str] = field(default_factory=list)
     load: float = 0.0
     max_load: float = 100.0
-    region: Optional[str] = None
+    region: str | None = None
     metrics: AgentMetrics = field(default_factory=AgentMetrics)
     assigned_drones: list[str] = field(default_factory=list)
     tasks: list[Task] = field(default_factory=list)
@@ -92,9 +91,7 @@ class Agent:
         """Check if agent can accept a new task."""
         if self.state in (AgentState.OFFLINE, AgentState.EMERGENCY):
             return False
-        if self.load >= self.max_load:
-            return False
-        return True
+        return not self.load >= self.max_load
 
     def assign_task(self, task: Task) -> bool:
         """Assign a task to this agent."""
@@ -154,7 +151,7 @@ class AgentMessage:
     message_type: MessageType
     timestamp: float = field(default_factory=time.time)
     payload: dict = field(default_factory=dict)
-    correlation_id: Optional[str] = None
+    correlation_id: str | None = None
 
 
 class CommunicationProtocol(Enum):
@@ -271,13 +268,12 @@ class MultiAgentCoordinator:
         with self.coordination_lock:
             for task in list(self.pending_tasks):
                 best_agent = self._select_best_agent(task)
-                if best_agent:
-                    if best_agent.assign_task(task):
-                        self.pending_tasks.remove(task)
-                        assigned_count += 1
+                if best_agent and best_agent.assign_task(task):
+                    self.pending_tasks.remove(task)
+                    assigned_count += 1
         return assigned_count
 
-    def _select_best_agent(self, task: Task) -> Optional[Agent]:
+    def _select_best_agent(self, task: Task) -> Agent | None:
         """Select the best available agent for a task."""
         available = [
             a
@@ -298,7 +294,7 @@ class MultiAgentCoordinator:
         receiver_id: str,
         message_type: MessageType,
         payload: dict,
-        correlation_id: Optional[str] = None,
+        correlation_id: str | None = None,
     ) -> AgentMessage:
         """Send a message between agents."""
         with self.coordination_lock:
@@ -360,7 +356,7 @@ class MultiAgentCoordinator:
 
             return False
 
-    def get_agent_status(self, agent_id: str) -> Optional[dict]:
+    def get_agent_status(self, agent_id: str) -> dict | None:
         """Get current status of an agent."""
         agent = self.agents.get(agent_id)
         if not agent:
@@ -466,12 +462,11 @@ class MultiAgentCoordinator:
                 for task in list(overload.tasks):
                     if task.priority in (TaskPriority.LOW, TaskPriority.NORMAL):
                         for under in underutilized:
-                            if under.can_accept_task(task):
-                                if self.handover_task(
-                                    task.task_id, overload.agent_id, under.agent_id
-                                ):
-                                    handoffs += 1
-                                    break
+                            if under.can_accept_task(task) and self.handover_task(
+                                task.task_id, overload.agent_id, under.agent_id
+                            ):
+                                handoffs += 1
+                                break
 
             return {
                 "overloaded_agents": len(overloaded),

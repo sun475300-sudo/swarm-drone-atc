@@ -10,7 +10,6 @@ import tempfile
 from pathlib import Path
 
 import numpy as np
-import pytest
 
 
 # ─── Phase 28: FlightDataRecorder ────────────────────────────

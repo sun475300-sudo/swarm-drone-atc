@@ -23,8 +23,8 @@ CLI::
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Dict, List, Sequence, Tuple
 
 import numpy as np
 
@@ -116,7 +116,7 @@ def minimum_separation_distance(trace: SimulationTrace) -> float:
 
 def time_to_conflict_distribution(
     trace: SimulationTrace,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """Time-to-Conflict (TTC) distribution from CPA-predicted events.
 
     Walks ``trace.predicted_conflicts`` (CPA lookahead output stored at
@@ -155,7 +155,7 @@ def path_efficiency(trace: SimulationTrace) -> float:
 
     Spec: ``EVALUATION_METRICS.md §2.1``.
     """
-    pes: List[float] = []
+    pes: list[float] = []
     for agent in trace.agents:
         if len(agent.positions) < 2:
             continue
@@ -182,7 +182,7 @@ def makespan(trace: SimulationTrace) -> float:
     Spec: ``EVALUATION_METRICS.md §2.2``.
     """
     horizon = trace.horizon_seconds
-    times: List[float] = []
+    times: list[float] = []
     for agent in trace.agents:
         if agent.goal_reached_at_s is None:
             times.append(horizon)
@@ -240,7 +240,7 @@ def airspace_utilization(
     return float(np.clip(active_per_step / cap, 0.0, 1.0).mean())
 
 
-def voronoi_cell_metrics(trace: SimulationTrace) -> Dict[str, float]:
+def voronoi_cell_metrics(trace: SimulationTrace) -> dict[str, float]:
     """Voronoi cell occupancy and handoff statistics.
 
     Returns ``mean_occupancy`` (drones per cell) and ``handoff_rate``
@@ -252,7 +252,7 @@ def voronoi_cell_metrics(trace: SimulationTrace) -> Dict[str, float]:
     if not trace.voronoi_assignments:
         return {"mean_occupancy": math.nan, "handoff_rate": math.nan}
     by_step = trace.voronoi_assignments  # List[Dict[agent_id, cell_id]]
-    occupancies: List[float] = []
+    occupancies: list[float] = []
     handoffs = 0
     for step_assignment in by_step:
         if not step_assignment:
@@ -261,7 +261,7 @@ def voronoi_cell_metrics(trace: SimulationTrace) -> Dict[str, float]:
         unique_cells = set(cells)
         if unique_cells:
             occupancies.append(len(cells) / len(unique_cells))
-    for prev, cur in zip(by_step, by_step[1:]):
+    for prev, cur in zip(by_step, by_step[1:], strict=False):
         for agent_id, cell in cur.items():
             if prev.get(agent_id) is not None and prev[agent_id] != cell:
                 handoffs += 1
@@ -331,7 +331,7 @@ def real_time_factor(trace: SimulationTrace) -> float:
     return float(trace.horizon_seconds) / float(trace.wall_clock_seconds)
 
 
-def per_tick_latency_percentiles(trace: SimulationTrace) -> Dict[str, float]:
+def per_tick_latency_percentiles(trace: SimulationTrace) -> dict[str, float]:
     """p50 / p95 / p99 of per-tick wall clock (ms).
 
     Spec: ``EVALUATION_METRICS.md §5.2``.
@@ -383,12 +383,12 @@ class Evaluator:
     def __init__(self, config: EvaluatorConfig | None = None) -> None:
         self.config = config or EvaluatorConfig()
 
-    def evaluate(self, trace: SimulationTrace) -> Dict[str, float]:
+    def evaluate(self, trace: SimulationTrace) -> dict[str, float]:
         """Compute all metrics. Returns a flat dict."""
         ttc = time_to_conflict_distribution(trace)
         voronoi = voronoi_cell_metrics(trace)
         latency = per_tick_latency_percentiles(trace)
-        result: Dict[str, float] = {
+        result: dict[str, float] = {
             # 1. Safety
             "NMR": near_miss_rate(trace, d_safe=self.config.d_safe_m),
             "MSD": minimum_separation_distance(trace),
@@ -425,7 +425,7 @@ class Evaluator:
 
 def _stack_positions(
     trace: SimulationTrace,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Return (positions, valid_mask) shaped (T, N, 3) and (T, N).
 
     Aligns all agents to a common time grid based on ``trace.dt_s`` and

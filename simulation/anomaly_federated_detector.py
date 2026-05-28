@@ -4,7 +4,7 @@ Phase 429: Anomaly Federated Detector for Cross-Fleet Learning
 
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -12,7 +12,7 @@ import numpy as np
 @dataclass
 class AnomalyModel:
     model_id: str
-    thresholds: Dict[str, float]
+    thresholds: dict[str, float]
     accuracy: float
     trained_at: float
 
@@ -30,10 +30,10 @@ class AnomalyFederatedDetector:
     def __init__(self, detector_id: str):
         self.detector_id = detector_id
 
-        self.local_models: Dict[str, AnomalyModel] = {}
-        self.global_thresholds: Dict[str, float] = {}
+        self.local_models: dict[str, AnomalyModel] = {}
+        self.global_thresholds: dict[str, float] = {}
 
-        self.anomaly_history: List[AnomalyReport] = []
+        self.anomaly_history: list[AnomalyReport] = []
 
         self._initialize_baseline()
 
@@ -56,12 +56,9 @@ class AnomalyFederatedDetector:
         self.local_models[drone_id] = model
 
     def detect_anomaly(
-        self, drone_id: str, metrics: Dict[str, float]
-    ) -> Optional[AnomalyReport]:
-        if drone_id in self.local_models:
-            thresholds = self.local_models[drone_id].thresholds
-        else:
-            thresholds = self.global_thresholds
+        self, drone_id: str, metrics: dict[str, float]
+    ) -> AnomalyReport | None:
+        thresholds = self.local_models[drone_id].thresholds if drone_id in self.local_models else self.global_thresholds
 
         anomalies = []
 
@@ -99,13 +96,13 @@ class AnomalyFederatedDetector:
 
         return report
 
-    def federated_update(self, updates: List[Dict]) -> Dict[str, float]:
+    def federated_update(self, updates: list[dict]) -> dict[str, float]:
         if not updates:
             return self.global_thresholds
 
         aggregated = {}
 
-        for key in self.global_thresholds.keys():
+        for key in self.global_thresholds:
             values = [u.get(key, self.global_thresholds[key]) for u in updates]
             aggregated[key] = np.mean(values)
 
@@ -113,7 +110,7 @@ class AnomalyFederatedDetector:
 
         return aggregated
 
-    def get_anomaly_statistics(self) -> Dict[str, Any]:
+    def get_anomaly_statistics(self) -> dict[str, Any]:
         if not self.anomaly_history:
             return {"total_anomalies": 0}
 

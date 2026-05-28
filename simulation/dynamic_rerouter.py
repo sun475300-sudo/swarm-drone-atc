@@ -9,7 +9,6 @@ from __future__ import annotations
 import heapq
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
 
 import numpy as np
 
@@ -29,7 +28,7 @@ class Obstacle:
     radius: float
     otype: ObstacleType = ObstacleType.STATIC
     active: bool = True
-    expiry_sec: Optional[float] = None
+    expiry_sec: float | None = None
 
 
 @dataclass
@@ -44,7 +43,7 @@ class RouteSegment:
 class Route:
     route_id: str
     drone_id: str
-    segments: List[RouteSegment] = field(default_factory=list)
+    segments: list[RouteSegment] = field(default_factory=list)
     total_cost: float = 0.0
     reroute_count: int = 0
     is_valid: bool = True
@@ -53,32 +52,29 @@ class Route:
 class AStarPathfinder:
     """3D A* 경로 탐색기 (격자 기반)."""
 
-    def __init__(self, grid_size: float = 10.0, bounds: Tuple[float, float, float] = (500.0, 500.0, 200.0)):
+    def __init__(self, grid_size: float = 10.0, bounds: tuple[float, float, float] = (500.0, 500.0, 200.0)):
         self.grid_size = grid_size
         self.bounds = bounds
 
-    def _to_grid(self, pos: np.ndarray) -> Tuple[int, int, int]:
+    def _to_grid(self, pos: np.ndarray) -> tuple[int, int, int]:
         return tuple(int(p / self.grid_size) for p in pos[:3])
 
-    def _to_world(self, grid: Tuple[int, int, int]) -> np.ndarray:
+    def _to_world(self, grid: tuple[int, int, int]) -> np.ndarray:
         return np.array([g * self.grid_size + self.grid_size / 2 for g in grid])
 
-    def _heuristic(self, a: Tuple[int, int, int], b: Tuple[int, int, int]) -> float:
-        return sum((ai - bi) ** 2 for ai, bi in zip(a, b)) ** 0.5 * self.grid_size
+    def _heuristic(self, a: tuple[int, int, int], b: tuple[int, int, int]) -> float:
+        return sum((ai - bi) ** 2 for ai, bi in zip(a, b, strict=False)) ** 0.5 * self.grid_size
 
-    def _is_blocked(self, pos: np.ndarray, obstacles: List[Obstacle]) -> bool:
-        for obs in obstacles:
-            if obs.active and np.linalg.norm(pos[:3] - obs.center[:3]) < obs.radius:
-                return True
-        return False
+    def _is_blocked(self, pos: np.ndarray, obstacles: list[Obstacle]) -> bool:
+        return any(obs.active and np.linalg.norm(pos[:3] - obs.center[:3]) < obs.radius for obs in obstacles)
 
-    def find_path(self, start: np.ndarray, goal: np.ndarray, obstacles: List[Obstacle], max_iterations: int = 2000) -> List[np.ndarray]:
+    def find_path(self, start: np.ndarray, goal: np.ndarray, obstacles: list[Obstacle], max_iterations: int = 2000) -> list[np.ndarray]:
         start_g = self._to_grid(start)
         goal_g = self._to_grid(goal)
         open_set = [(self._heuristic(start_g, goal_g), 0, start_g)]
-        came_from: Dict[Tuple, Tuple] = {}
-        g_score: Dict[Tuple, float] = {start_g: 0}
-        closed: Set[Tuple] = set()
+        came_from: dict[tuple, tuple] = {}
+        g_score: dict[tuple, float] = {start_g: 0}
+        closed: set[tuple] = set()
         iterations = 0
         neighbors_3d = [(dx, dy, dz) for dx in [-1, 0, 1] for dy in [-1, 0, 1] for dz in [-1, 0, 1] if (dx, dy, dz) != (0, 0, 0)]
 
@@ -124,10 +120,10 @@ class DynamicRerouter:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._obstacles: Dict[str, Obstacle] = {}
-        self._routes: Dict[str, Route] = {}
+        self._obstacles: dict[str, Obstacle] = {}
+        self._routes: dict[str, Route] = {}
         self._pathfinder = AStarPathfinder()
-        self._reroute_history: List[dict] = []
+        self._reroute_history: list[dict] = []
 
     def add_obstacle(self, obstacle: Obstacle):
         self._obstacles[obstacle.obstacle_id] = obstacle
@@ -138,7 +134,7 @@ class DynamicRerouter:
             return True
         return False
 
-    def create_route(self, route_id: str, drone_id: str, waypoints: List[np.ndarray]) -> Route:
+    def create_route(self, route_id: str, drone_id: str, waypoints: list[np.ndarray]) -> Route:
         segments = []
         for i in range(len(waypoints) - 1):
             cost = np.linalg.norm(waypoints[i + 1] - waypoints[i])
@@ -164,7 +160,7 @@ class DynamicRerouter:
         route.is_valid = True
         return True
 
-    def reroute(self, route_id: str) -> Optional[Route]:
+    def reroute(self, route_id: str) -> Route | None:
         route = self._routes.get(route_id)
         if not route or not route.segments:
             return None
@@ -185,7 +181,7 @@ class DynamicRerouter:
         self._reroute_history.append({"route": route_id, "drone": route.drone_id, "reroute_count": route.reroute_count})
         return route
 
-    def auto_reroute_all(self) -> List[str]:
+    def auto_reroute_all(self) -> list[str]:
         rerouted = []
         for rid in list(self._routes.keys()):
             if not self.validate_route(rid):
@@ -194,7 +190,7 @@ class DynamicRerouter:
                     rerouted.append(rid)
         return rerouted
 
-    def get_route(self, route_id: str) -> Optional[Route]:
+    def get_route(self, route_id: str) -> Route | None:
         return self._routes.get(route_id)
 
     def summary(self) -> dict:

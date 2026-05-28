@@ -18,7 +18,7 @@ class VisualizationType(Enum):
     """Types of visualization."""
 
     HEATMAP = "heatmap"
-    3D_SCENE = "3d_scene"
+    SCENE_3D = "3d_scene"
     NETWORK_GRAPH = "network_graph"
     TIME_SERIES = "time_series"
     GEO_SPATIAL = "geo_spatial"

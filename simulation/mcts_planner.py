@@ -43,7 +43,7 @@ class MCTSPlanner:
                 (0, 0, 20), (0, 0, -20)]
 
     def _dist(self, a: tuple[float, float, float], b: tuple[float, float, float]) -> float:
-        return float(np.sqrt(sum((ai-bi)**2 for ai, bi in zip(a, b))))
+        return float(np.sqrt(sum((ai-bi)**2 for ai, bi in zip(a, b, strict=False))))
 
     def plan(self, start: tuple[float, float, float], goal: tuple[float, float, float], n_iterations: int = 100) -> list[tuple[float, float, float]]:
         self._nodes = [MCTSNode(position=start)]
@@ -61,7 +61,7 @@ class MCTSPlanner:
             # Expand
             if len(node.children) < len(actions):
                 for a in actions:
-                    new_pos = tuple(p + d for p, d in zip(node.position, a))
+                    new_pos = tuple(p + d for p, d in zip(node.position, a, strict=False))
                     new_pos = (new_pos[0], new_pos[1], max(30, new_pos[2]))
                     child_idx = len(self._nodes)
                     self._nodes.append(MCTSNode(position=new_pos, parent=idx))
@@ -71,7 +71,7 @@ class MCTSPlanner:
             sim_pos = node.position
             for _ in range(10):
                 action = actions[self._rng.integers(len(actions))]
-                sim_pos = tuple(p + d for p, d in zip(sim_pos, action))
+                sim_pos = tuple(p + d for p, d in zip(sim_pos, action, strict=False))
             reward = -self._dist(sim_pos, goal) / 1000
 
             # Backpropagate

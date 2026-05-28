@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 import numpy as np
 
@@ -38,14 +37,14 @@ class Route:
         )
 
     @property
-    def origin(self) -> Optional[np.ndarray]:
+    def origin(self) -> np.ndarray | None:
         return self.waypoints[0].position if self.waypoints else None
 
     @property
-    def destination(self) -> Optional[np.ndarray]:
+    def destination(self) -> np.ndarray | None:
         return self.waypoints[-1].position if self.waypoints else None
 
-    def get_current_waypoint(self, idx: int) -> Optional[Waypoint]:
+    def get_current_waypoint(self, idx: int) -> Waypoint | None:
         if 0 <= idx < len(self.waypoints):
             return self.waypoints[idx]
         return None

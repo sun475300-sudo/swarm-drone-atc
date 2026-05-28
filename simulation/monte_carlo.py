@@ -112,8 +112,8 @@ def run_monte_carlo(mode: str = "quick") -> list[dict]:
     tasks = []
     rng = np.random.default_rng(master_seed)
     for combo in combos:
-        combo_dict = dict(zip(param_names, combo))
-        for run_i in range(n_per_config):
+        combo_dict = dict(zip(param_names, combo, strict=False))
+        for _run_i in range(n_per_config):
             seed = int(rng.integers(0, 2**31))
             tasks.append((combo_dict, seed))
 

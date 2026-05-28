@@ -6,9 +6,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable, Dict, List, Optional
 
 import numpy as np
 
@@ -63,7 +63,7 @@ class SensorEmulator:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._sensor_configs: Dict[SensorType, dict] = {
+        self._sensor_configs: dict[SensorType, dict] = {
             SensorType.IMU: {"noise_std": 0.01, "bias": 0.001, "rate_hz": 400, "latency_ms": 0.5},
             SensorType.GPS: {"noise_std": 1.5, "bias": 0.0, "rate_hz": 10, "latency_ms": 100},
             SensorType.BAROMETER: {"noise_std": 0.5, "bias": 0.1, "rate_hz": 50, "latency_ms": 5},
@@ -158,23 +158,23 @@ class HILSimulator:
     def __init__(self, mode: HILMode = HILMode.SOFTWARE_ONLY, rng_seed: int = 42):
         self.mode = mode
         self._rng = np.random.default_rng(rng_seed)
-        self._vehicles: Dict[str, VehicleState] = {}
+        self._vehicles: dict[str, VehicleState] = {}
         self._sensor_emu = SensorEmulator(rng_seed)
         self._physics = PhysicsEngine()
         self._clock = 0.0
         self._dt = 0.001  # 1kHz physics
-        self._callbacks: Dict[str, List[Callable]] = {}
-        self._history: List[dict] = []
+        self._callbacks: dict[str, list[Callable]] = {}
+        self._history: list[dict] = []
         self._step_count = 0
 
-    def add_vehicle(self, vehicle_id: str, initial_pos: Optional[np.ndarray] = None) -> VehicleState:
+    def add_vehicle(self, vehicle_id: str, initial_pos: np.ndarray | None = None) -> VehicleState:
         state = VehicleState()
         if initial_pos is not None:
             state.position = initial_pos.copy()
         self._vehicles[vehicle_id] = state
         return state
 
-    def get_sensor(self, vehicle_id: str, sensor_type: SensorType) -> Optional[SensorReading]:
+    def get_sensor(self, vehicle_id: str, sensor_type: SensorType) -> SensorReading | None:
         state = self._vehicles.get(vehicle_id)
         if not state:
             return None
@@ -186,13 +186,13 @@ class HILSimulator:
             command.timestamp = self._clock
             self._physics.step(state, command, self._dt)
 
-    def step(self, dt: Optional[float] = None):
+    def step(self, dt: float | None = None):
         if dt is None:
             dt = self._dt
         self._clock += dt
         self._step_count += 1
 
-    def run_for(self, duration_sec: float, command_fn: Optional[Callable] = None):
+    def run_for(self, duration_sec: float, command_fn: Callable | None = None):
         steps = int(duration_sec / self._dt)
         for _ in range(steps):
             if command_fn:
@@ -202,7 +202,7 @@ class HILSimulator:
                         self.send_command(vid, cmd)
             self.step()
 
-    def get_state(self, vehicle_id: str) -> Optional[VehicleState]:
+    def get_state(self, vehicle_id: str) -> VehicleState | None:
         return self._vehicles.get(vehicle_id)
 
     @property

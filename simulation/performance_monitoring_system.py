@@ -4,7 +4,6 @@ Phase 448: Performance Monitoring System for Swarm Operations
 
 import time
 from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 
@@ -20,8 +19,8 @@ class PerformanceMetric:
 
 class PerformanceMonitoringSystem:
     def __init__(self):
-        self.metrics_history: Dict[str, List[PerformanceMetric]] = {}
-        self.alerts: List[Dict] = []
+        self.metrics_history: dict[str, list[PerformanceMetric]] = {}
+        self.alerts: list[dict] = []
 
     def record_metric(self, metric: PerformanceMetric):
         if metric.drone_id not in self.metrics_history:

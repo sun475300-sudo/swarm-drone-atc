@@ -2,9 +2,7 @@
 
 from pathlib import Path
 
-import pytest
-
-from chatbot.knowledge.loader import KnowledgeLoader, KnowledgeIndex, KnowledgeEntry
+from chatbot.knowledge.loader import KnowledgeEntry, KnowledgeIndex, KnowledgeLoader
 
 _KNOWLEDGE_DIR = Path(__file__).parent.parent / "chatbot" / "knowledge"
 

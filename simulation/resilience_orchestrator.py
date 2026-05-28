@@ -5,7 +5,6 @@ Phase 479: Resilience Orchestrator
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -72,13 +71,13 @@ class ResilienceOrchestrator:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.nodes: Dict[str, ServiceNode] = {}
-        self.active_faults: Dict[str, FaultInjection] = {}
-        self.fault_history: List[FaultInjection] = []
-        self.healing_log: List[HealingEvent] = []
+        self.nodes: dict[str, ServiceNode] = {}
+        self.active_faults: dict[str, FaultInjection] = {}
+        self.fault_history: list[FaultInjection] = []
+        self.healing_log: list[HealingEvent] = []
         self.time = 0.0
         self._fault_counter = 0
-        self._healing_rules: Dict[FaultType, HealingAction] = {
+        self._healing_rules: dict[FaultType, HealingAction] = {
             FaultType.NODE_CRASH: HealingAction.RESTART,
             FaultType.NETWORK_PARTITION: HealingAction.REROUTE,
             FaultType.LATENCY_SPIKE: HealingAction.SCALE_UP,
@@ -94,7 +93,7 @@ class ResilienceOrchestrator:
         return node
 
     def inject_fault(self, target: str, fault_type: FaultType,
-                     severity: float = 0.5, duration: float = 10.0) -> Optional[FaultInjection]:
+                     severity: float = 0.5, duration: float = 10.0) -> FaultInjection | None:
         if target not in self.nodes:
             return None
         self._fault_counter += 1
@@ -124,7 +123,7 @@ class ResilienceOrchestrator:
 
         return fault
 
-    def chaos_monkey(self, intensity: float = 0.3) -> List[FaultInjection]:
+    def chaos_monkey(self, intensity: float = 0.3) -> list[FaultInjection]:
         """Random fault injection across the swarm."""
         injected = []
         for nid in list(self.nodes.keys()):
@@ -166,7 +165,7 @@ class ResilienceOrchestrator:
         self.healing_log.append(event)
         return event
 
-    def self_heal(self) -> List[HealingEvent]:
+    def self_heal(self) -> list[HealingEvent]:
         """Attempt to heal all active faults."""
         events = []
         for fid in list(self.active_faults.keys()):
@@ -179,7 +178,7 @@ class ResilienceOrchestrator:
                 del self.active_faults[fid]
         return events
 
-    def tick(self, dt: float = 1.0) -> Dict:
+    def tick(self, dt: float = 1.0) -> dict:
         self.time += dt
         expired = []
         for fid, fault in self.active_faults.items():
@@ -205,7 +204,7 @@ class ResilienceOrchestrator:
         }
 
     def run_chaos_experiment(self, duration: float = 60, intensity: float = 0.2,
-                             heal_interval: float = 5.0) -> Dict:
+                             heal_interval: float = 5.0) -> dict:
         results = {"faults_injected": 0, "healed": 0, "failed_healing": 0}
         steps = int(duration)
         for step in range(steps):
@@ -233,7 +232,7 @@ class ResilienceOrchestrator:
             score -= latency_penalty
         return round(max(0, score), 4)
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "nodes": len(self.nodes),
             "total_faults": len(self.fault_history),

@@ -3,7 +3,6 @@ Phase 437: Path Planning Optimizer with Dynamic Obstacles
 """
 
 from dataclasses import dataclass
-from typing import List
 
 import numpy as np
 
@@ -31,8 +30,8 @@ class PathPlanningOptimizer:
         self,
         start: Waypoint,
         goal: Waypoint,
-        obstacles: List[Obstacle],
-    ) -> List[Waypoint]:
+        obstacles: list[Obstacle],
+    ) -> list[Waypoint]:
         num_points = 20
 
         points = []
@@ -54,7 +53,7 @@ class PathPlanningOptimizer:
 
         return self._smooth_path(points)
 
-    def _smooth_path(self, points: List[Waypoint]) -> List[Waypoint]:
+    def _smooth_path(self, points: list[Waypoint]) -> list[Waypoint]:
         if len(points) < 3:
             return points
 
@@ -72,8 +71,8 @@ class PathPlanningOptimizer:
 
     def replan_on_obstacle(
         self,
-        current_path: List[Waypoint],
+        current_path: list[Waypoint],
         new_obstacle: Obstacle,
         current_index: int,
-    ) -> List[Waypoint]:
+    ) -> list[Waypoint]:
         return current_path[current_index:]

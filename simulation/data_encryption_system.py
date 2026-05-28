@@ -5,7 +5,6 @@ Phase 449: Data Encryption System for Secure Storage
 import hashlib
 import time
 from dataclasses import dataclass
-from typing import Dict
 
 
 @dataclass
@@ -18,8 +17,8 @@ class EncryptedData:
 
 class DataEncryptionSystem:
     def __init__(self):
-        self.keys: Dict[str, bytes] = {}
-        self.encrypted_data: Dict[str, EncryptedData] = {}
+        self.keys: dict[str, bytes] = {}
+        self.encrypted_data: dict[str, EncryptedData] = {}
 
     def generate_key(self, key_id: str) -> bytes:
         key = hashlib.sha256(f"{key_id}{time.time()}".encode()).digest()
@@ -32,7 +31,7 @@ class DataEncryptionSystem:
 
         key = self.keys[key_id]
         encrypted = bytes(
-            a ^ b for a, b in zip(content, key * (len(content) // len(key) + 1))
+            a ^ b for a, b in zip(content, key * (len(content) // len(key) + 1), strict=False)
         )
 
         enc_data = EncryptedData(data_id, encrypted, key_id, time.time())
@@ -51,7 +50,7 @@ class DataEncryptionSystem:
             a ^ b
             for a, b in zip(
                 enc.encrypted_content,
-                key * (len(enc.encrypted_content) // len(key) + 1),
+                key * (len(enc.encrypted_content) // len(key) + 1), strict=False,
             )
         )
 
@@ -61,7 +60,7 @@ class DataEncryptionSystem:
         if old_key_id not in self.keys:
             return False
 
-        old_key = self.keys[old_key_id]
+        self.keys[old_key_id]
 
         for data_id, enc in self.encrypted_data.items():
             if enc.key_id == old_key_id:

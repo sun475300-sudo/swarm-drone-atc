@@ -13,7 +13,7 @@ import dash
 from dash import dcc, html
 
 from src.airspace_control.agents.drone_state import FlightPhase
-from visualization._scene_traces import PHASE_COLORS, PHASE_KO, build_figure
+from visualization._scene_traces import CAMERA_PRESETS, PHASE_COLORS, PHASE_KO, build_figure
 
 if TYPE_CHECKING:
     from visualization._domain import SimState
@@ -67,6 +67,37 @@ def _stat(label: str, value: str, warn: bool = False) -> html.Div:
     ], style={"marginBottom": "6px", "overflow": "hidden"})
 
 
+def _gpu_progress_bar(label: str, value: float, max_val: float,
+                      color: str = "#00ff88") -> html.Div:
+    """GPU 사용률 프로그레스 바 렌더링."""
+    pct = min(value / max(max_val, 1) * 100, 100)
+    bar_color = "#F44336" if pct > 90 else "#FF9800" if pct > 70 else color
+    return html.Div([
+        html.Div([
+            html.Span(label, style={"color": "#8b949e", "fontSize": "10px"}),
+            html.Span(f"{value:.1f}/{max_val:.1f}",
+                      style={"color": "#e6edf3", "fontSize": "10px",
+                             "float": "right"}),
+        ], style={"marginBottom": "3px", "overflow": "hidden"}),
+        html.Div(
+            html.Div(style={
+                "width": f"{pct:.1f}%",
+                "height": "100%",
+                "backgroundColor": bar_color,
+                "borderRadius": "3px",
+                "transition": "width 0.3s ease",
+            }),
+            style={
+                "width": "100%",
+                "height": "8px",
+                "backgroundColor": "#21262d",
+                "borderRadius": "3px",
+                "overflow": "hidden",
+            },
+        ),
+    ], style={"marginBottom": "6px"})
+
+
 # ─────────────────────────────────────────────────────────────
 # 레이아웃 빌더
 # ─────────────────────────────────────────────────────────────
@@ -103,9 +134,16 @@ def make_layout(sim: SimState) -> html.Div:
                         html.Span(" — 3D 실시간 시뮬레이터",
                                   style={"color": "#6e7681", "fontSize": "14px"}),
                     ]),
-                    html.Div(id="hdr-time",
-                             style={"color": "#8b949e", "fontSize": "13px",
-                                    "fontFamily": "monospace"}),
+                    html.Div([
+                        html.Span(id="hdr-time",
+                                  style={"color": "#8b949e", "fontSize": "13px",
+                                         "fontFamily": "monospace"}),
+                        html.Span("  |  ", style={"color": "#30363d",
+                                                   "fontSize": "13px"}),
+                        html.Span(id="hdr-fps",
+                                  style={"color": "#8b949e", "fontSize": "13px",
+                                         "fontFamily": "monospace"}),
+                    ]),
                 ],
             ),
 
@@ -117,7 +155,7 @@ def make_layout(sim: SimState) -> html.Div:
                     # ── 사이드 패널
                     html.Div(
                         style={
-                            "width": "240px",
+                            "width": "280px",
                             "backgroundColor": "#0d1117",
                             "padding": "14px",
                             "borderRight": "1px solid #21262d",
@@ -166,12 +204,31 @@ def make_layout(sim: SimState) -> html.Div:
                                     {"label": "통신 두절",            "value": "comms_loss"},
                                     {"label": "기상 교란",            "value": "weather_disturbance"},
                                     {"label": "침입 드론",            "value": "adversarial_intrusion"},
+                                    {"label": "자율 군집 (비계획)",    "value": "swarm_autonomous_no_preplan"},
+                                    {"label": "다중 도시",            "value": "multi_city"},
                                 ],
                                 value="default",
                                 clearable=False,
                                 style={"backgroundColor": "#161b22", "color": "#c9d1d9",
                                        "fontSize": "11px", "border": "1px solid #30363d"},
                             ),
+
+                            # 카메라 프리셋
+                            html.Div([
+                                html.Label("📷 카메라",
+                                           style={"color": "#8b949e", "fontSize": "11px",
+                                                  "display": "block", "marginTop": "12px",
+                                                  "marginBottom": "4px"}),
+                                dcc.Dropdown(
+                                    id="dropdown-camera",
+                                    options=[{"label": k, "value": k}
+                                             for k in CAMERA_PRESETS],
+                                    value="기본 3D",
+                                    clearable=False,
+                                    style={"backgroundColor": "#161b22", "color": "#c9d1d9",
+                                           "fontSize": "11px", "border": "1px solid #30363d"},
+                                ),
+                            ]),
 
                             # 바람 토글
                             html.Div([
@@ -216,6 +273,18 @@ def make_layout(sim: SimState) -> html.Div:
                                             "fontWeight": "600", "marginBottom": "8px"}),
                             html.Div(id="gpu-stats"),
 
+                            # GPU 사용률 상세
+                            html.Div(id="gpu-utilization",
+                                     style={"marginTop": "6px"}),
+
+                            html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
+
+                            # 드론 현황
+                            html.Div("🚁 드론 현황",
+                                     style={"color": "#58a6ff", "fontSize": "12px",
+                                            "fontWeight": "600", "marginBottom": "8px"}),
+                            html.Div(id="drone-count-panel"),
+
                             html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
 
                             # 통계
@@ -232,6 +301,30 @@ def make_layout(sim: SimState) -> html.Div:
                                             "fontWeight": "600", "marginBottom": "8px"}),
                             dcc.Graph(
                                 id="chart-battery-dist",
+                                style={"height": "120px"},
+                                config={"displayModeBar": False},
+                            ),
+
+                            html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
+
+                            # 고도 분포 차트
+                            html.Div("📐 고도 분포",
+                                     style={"color": "#58a6ff", "fontSize": "12px",
+                                            "fontWeight": "600", "marginBottom": "8px"}),
+                            dcc.Graph(
+                                id="chart-alt-dist",
+                                style={"height": "120px"},
+                                config={"displayModeBar": False},
+                            ),
+
+                            html.Hr(style={"borderColor": "#21262d", "margin": "14px 0"}),
+
+                            # 속도 분포 차트
+                            html.Div("💨 속도 분포",
+                                     style={"color": "#58a6ff", "fontSize": "12px",
+                                            "fontWeight": "600", "marginBottom": "8px"}),
+                            dcc.Graph(
+                                id="chart-speed-dist",
                                 style={"height": "120px"},
                                 config={"displayModeBar": False},
                             ),
@@ -326,7 +419,7 @@ def make_layout(sim: SimState) -> html.Div:
                     "backgroundColor": "#0d1117",
                     "borderTop": "1px solid #21262d",
                     "flexShrink": "0",
-                    "height": "90px",
+                    "height": "110px",
                     "display": "flex",
                 },
                 children=[
@@ -378,8 +471,10 @@ def make_layout(sim: SimState) -> html.Div:
             dcc.Interval(id="interval", interval=200, n_intervals=0),
             dcc.Store(id="store-run", data=False),
             dcc.Store(id="store-alerts", data=[]),
+            dcc.Store(id="store-prev-stats", data={}),
             html.Div(id="_dummy-wind", style={"display": "none"}),
             html.Div(id="_dummy-apf", style={"display": "none"}),
             html.Div(id="_dummy-scenario", style={"display": "none"}),
+            dcc.Store(id="store-camera", data="기본 3D"),
         ],
     )

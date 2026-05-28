@@ -3,7 +3,6 @@ Phase 433: Traffic Sign Recognition for Autonomous Navigation
 """
 
 from dataclasses import dataclass
-from typing import List, Tuple
 
 import numpy as np
 
@@ -20,7 +19,7 @@ class SignClass:
 @dataclass
 class SignDetection:
     sign_type: int
-    bounding_box: Tuple[float, float, float, float]
+    bounding_box: tuple[float, float, float, float]
     confidence: float
     value: str
 
@@ -36,7 +35,7 @@ class TrafficSignRecognition:
             5: "WARNING",
         }
 
-    def detect(self, image: np.ndarray) -> List[SignDetection]:
+    def detect(self, image: np.ndarray) -> list[SignDetection]:
         numSigns = np.random.randint(0, 3)
         detections = []
 

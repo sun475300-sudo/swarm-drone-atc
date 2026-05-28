@@ -7,8 +7,8 @@ import numpy as np
 import pytest
 
 from simulation.cbs_planner.cbs import (
-    GridNode,
     GRID_RESOLUTION,
+    GridNode,
     position_to_grid,
 )
 

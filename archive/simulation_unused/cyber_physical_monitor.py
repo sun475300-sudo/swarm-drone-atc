@@ -363,7 +363,7 @@ def simulate_cps_monitoring(duration: float = 10.0):
         t += time_step
 
     final_health = monitor.get_health_status()
-    print(f"\n=== Final Status ===")
+    print("\n=== Final Status ===")
     print(f"Health Score: {final_health['health_score']:.2f}")
     print(f"Total Alerts: {final_health['alert_count']}")
     print(f"Recommendation: {final_health['recommendation']}")

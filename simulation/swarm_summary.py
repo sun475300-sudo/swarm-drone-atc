@@ -3,7 +3,6 @@ Phase 480: Swarm Summary - Central Aggregation Module
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 
 @dataclass
@@ -16,8 +15,8 @@ class SwarmStatus:
 
 class SwarmSummary:
     def __init__(self):
-        self.drones: Dict[str, Dict] = {}
-        self.missions: List[Dict] = []
+        self.drones: dict[str, dict] = {}
+        self.missions: list[dict] = []
 
     def add_drone(self, drone_id: str):
         self.drones[drone_id] = {

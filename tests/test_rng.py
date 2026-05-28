@@ -1,8 +1,8 @@
 """src.utils.rng 전역 RNG 모듈 테스트"""
-import pytest
 import numpy as np
-import src.utils.rng as rng_mod
-from src.utils.rng import set_global_seed, get_rng, get_current_seed, reset_for_test
+import pytest
+
+from src.utils.rng import get_current_seed, get_rng, reset_for_test, set_global_seed
 
 pytestmark = pytest.mark.unit
 

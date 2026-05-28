@@ -5,7 +5,6 @@ EMI 차폐 설계, 전자기 호환성(EMC), 간섭 분석.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List
 
 import numpy as np
 
@@ -105,7 +104,7 @@ class EMIAnalyzer:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.events: List[EMIEvent] = []
+        self.events: list[EMIEvent] = []
         self.se_calc = ShieldingEffectiveness()
 
     def generate_threat(self, source: EMISource) -> EMIEvent:
@@ -138,8 +137,8 @@ class EMShielding:
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
         self.analyzer = EMIAnalyzer(seed)
-        self.shields: Dict[str, ShieldConfig] = {}
-        self.reports: List[EMCReport] = []
+        self.shields: dict[str, ShieldConfig] = {}
+        self.reports: list[EMCReport] = []
 
         self.shields["primary"] = ShieldConfig(
             ShieldMaterial.ALUMINUM, 0.5, 85, 50, 15)
@@ -192,7 +191,7 @@ class EMShielding:
                         best = cfg
         return best or ShieldConfig(ShieldMaterial.ALUMINUM, 1.0, 90, 270, 50)
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "shields": len(self.shields),
             "emi_events": len(self.analyzer.events),

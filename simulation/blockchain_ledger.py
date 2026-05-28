@@ -7,7 +7,7 @@ import json
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -28,7 +28,7 @@ class Transaction:
     timestamp: float
     drone_id: str
     tx_type: TransactionType
-    data: Dict[str, Any]
+    data: dict[str, Any]
     signature: str = ""
     previous_hash: str = ""
 
@@ -37,7 +37,7 @@ class Transaction:
 class Block:
     index: int
     timestamp: float
-    transactions: List[Transaction]
+    transactions: list[Transaction]
     hash: str
     previous_hash: str
     nonce: int = 0
@@ -47,10 +47,10 @@ class Block:
 class BlockchainLedger:
     def __init__(self, difficulty: int = 4):
         self.difficulty = difficulty
-        self.chain: List[Block] = []
-        self.pending_transactions: List[Transaction] = []
+        self.chain: list[Block] = []
+        self.pending_transactions: list[Transaction] = []
         self.validators: set = set()
-        self.drone_registry: Dict[str, Dict] = {}
+        self.drone_registry: dict[str, dict] = {}
 
         self.create_genesis_block()
 
@@ -70,14 +70,14 @@ class BlockchainLedger:
         self,
         index: int,
         timestamp: float,
-        transactions: List[Transaction],
+        transactions: list[Transaction],
         previous_hash: str,
         nonce: int = 0,
     ) -> str:
         data = f"{index}{timestamp}{[self._tx_to_dict(t) for t in transactions]}{previous_hash}{nonce}"
         return hashlib.sha256(data.encode()).hexdigest()
 
-    def _tx_to_dict(self, tx: Transaction) -> Dict:
+    def _tx_to_dict(self, tx: Transaction) -> dict:
         return {
             "tx_id": tx.tx_id,
             "timestamp": tx.timestamp,
@@ -89,7 +89,7 @@ class BlockchainLedger:
     def add_validator(self, validator_id: str):
         self.validators.add(validator_id)
 
-    def register_drone(self, drone_id: str, metadata: Dict[str, Any]):
+    def register_drone(self, drone_id: str, metadata: dict[str, Any]):
         self.drone_registry[drone_id] = {
             "registered_at": time.time(),
             "metadata": metadata,
@@ -100,7 +100,7 @@ class BlockchainLedger:
         self,
         drone_id: str,
         tx_type: TransactionType,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> Transaction:
         if drone_id not in self.drone_registry:
             self.register_drone(drone_id, {})
@@ -197,7 +197,7 @@ class BlockchainLedger:
 
         return True
 
-    def get_drone_history(self, drone_id: str) -> List[Dict]:
+    def get_drone_history(self, drone_id: str) -> list[dict]:
         history = []
 
         for block in self.chain:
@@ -214,7 +214,7 @@ class BlockchainLedger:
 
         return sorted(history, key=lambda x: x["timestamp"], reverse=True)
 
-    def get_chain_stats(self) -> Dict[str, Any]:
+    def get_chain_stats(self) -> dict[str, Any]:
         tx_counts = {}
         for block in self.chain:
             for tx in block.transactions:

@@ -5,7 +5,7 @@ Phase 413: Risk Hedge Calculator for Mission Portfolio Optimization
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -40,7 +40,7 @@ class HedgeAction:
     strategy: HedgeStrategy
     cost: float
     risk_reduction: float
-    drones_affected: List[str]
+    drones_affected: list[str]
 
 
 @dataclass
@@ -63,13 +63,13 @@ class RiskHedgeCalculator:
         self.target_return = target_return
         self.max_risk_tolerance = max_risk_tolerance
 
-        self.risk_factors: Dict[RiskCategory, List[RiskFactor]] = {
+        self.risk_factors: dict[RiskCategory, list[RiskFactor]] = {
             rc: [] for rc in RiskCategory
         }
 
-        self.hedge_actions: List[HedgeAction] = []
+        self.hedge_actions: list[HedgeAction] = []
 
-        self.mission_returns: List[float] = []
+        self.mission_returns: list[float] = []
         self.mission_variance = 0.0
 
     def add_risk_factor(
@@ -94,7 +94,7 @@ class RiskHedgeCalculator:
         )
 
         risk_contributions = []
-        for category, factors in self.risk_factors.items():
+        for _category, factors in self.risk_factors.items():
             if not factors:
                 continue
             for factor in factors:
@@ -121,7 +121,7 @@ class RiskHedgeCalculator:
             max_drawdown=max_drawdown,
         )
 
-    def optimize_hedge(self, available_budget: float) -> List[HedgeAction]:
+    def optimize_hedge(self, available_budget: float) -> list[HedgeAction]:
         optimal_actions = []
 
         redundancy_action = HedgeAction(
@@ -207,7 +207,7 @@ class RiskHedgeCalculator:
 
         return cvar
 
-    def simulate_monte_carlo(self, num_simulations: int = 10000) -> Dict[str, Any]:
+    def simulate_monte_carlo(self, num_simulations: int = 10000) -> dict[str, Any]:
         results = []
 
         base_return = 0.1
@@ -238,7 +238,7 @@ class RiskHedgeCalculator:
             "probability_loss": np.sum(results < 0) / len(results),
         }
 
-    def get_risk_report(self) -> Dict[str, Any]:
+    def get_risk_report(self) -> dict[str, Any]:
         category_risks = {}
 
         for category, factors in self.risk_factors.items():

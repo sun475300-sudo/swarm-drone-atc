@@ -11,11 +11,8 @@ real_time_stream_processor, multi_modal_fusion.
 import time
 
 import numpy as np
-import pytest
-import torch
 
 # ── predictive_analytics_engine ───────────────────────────────────────────
-
 from simulation.predictive_analytics_engine import (
     ForecastType,
     PredictiveAnalyticsEngine,
@@ -466,8 +463,8 @@ class TestAdaptiveCommProtocol:
 
 # ── collision_predictor ───────────────────────────────────────────────────
 
-from simulation.collision_predictor import CollisionPredictor, generate_training_data
 from simulation.apf_engine.apf import APFState
+from simulation.collision_predictor import CollisionPredictor, generate_training_data
 
 
 class TestCollisionPredictor:
@@ -598,6 +595,8 @@ class TestContinuousLearningEngine:
 from simulation.federated_edge_computer import (
     EdgeDeviceType,
     FederatedEdgeComputer,
+)
+from simulation.federated_edge_computer import (
     InferenceTask as EdgeInferenceTask,
 )
 

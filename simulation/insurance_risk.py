@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -57,7 +57,7 @@ class InsuranceRiskCalculator:
             raise ValueError(f"base_premium_krw must be positive, got {base_premium_krw}")
         self.base_premium_krw = base_premium_krw
         self.max_history = max_history
-        self.history: List[Dict[str, Any]] = []
+        self.history: list[dict[str, Any]] = []
 
     def compute_risk_score(self, f: RiskFactors) -> float:
         if not math.isfinite(f.drone_mtow_kg) or f.drone_mtow_kg <= 0:
@@ -128,7 +128,7 @@ class InsuranceRiskCalculator:
         self._record_quote(score, tier, premium)
         return premium
 
-    def quote(self, f: RiskFactors) -> Dict[str, Any]:
+    def quote(self, f: RiskFactors) -> dict[str, Any]:
         # compute_risk_score 를 1회만 호출 (DRY)
         score = self.compute_risk_score(f)
         tier = self.recommend_tier(score)
@@ -142,7 +142,7 @@ class InsuranceRiskCalculator:
             "coverage_limit_krw": TIER_LIMIT_KRW[tier],
         }
 
-    def stats(self) -> Dict[str, Any]:
+    def stats(self) -> dict[str, Any]:
         if not self.history:
             return {"quotes": 0}
         avg_score = float(np.mean([h["score"] for h in self.history]))

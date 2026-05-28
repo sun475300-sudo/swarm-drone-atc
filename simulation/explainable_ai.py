@@ -3,9 +3,9 @@ Phase 484: Explainable AI (XAI) for Drone Decisions
 SHAP-like 특성 중요도, LIME 로컬 설명, 의사결정 투명성.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Dict, List, Optional
 
 import numpy as np
 
@@ -30,8 +30,8 @@ class Explanation:
     explanation_type: ExplanationType
     decision: str
     confidence: float
-    attributions: List[FeatureAttribution]
-    counterfactual: Optional[Dict] = None
+    attributions: list[FeatureAttribution]
+    counterfactual: dict | None = None
     human_readable: str = ""
 
 
@@ -40,28 +40,28 @@ class DecisionRecord:
     drone_id: str
     timestamp: float
     decision: str
-    inputs: Dict[str, float]
+    inputs: dict[str, float]
     output: float
-    explanation: Optional[Explanation] = None
+    explanation: Explanation | None = None
 
 
 class SHAPExplainer:
     """Simplified SHAP-like feature attribution."""
 
-    def __init__(self, model_fn: Callable, feature_names: List[str], seed: int = 42):
+    def __init__(self, model_fn: Callable, feature_names: list[str], seed: int = 42):
         self.model_fn = model_fn
         self.feature_names = feature_names
         self.rng = np.random.default_rng(seed)
         self.n_samples = 100
 
-    def explain(self, instance: np.ndarray) -> List[FeatureAttribution]:
+    def explain(self, instance: np.ndarray) -> list[FeatureAttribution]:
         baseline = np.zeros_like(instance)
         base_pred = self.model_fn(baseline)
         attributions = []
         for i, name in enumerate(self.feature_names):
             perturbed_with = baseline.copy()
             perturbed_with[i] = instance[i]
-            contribution = self.model_fn(perturbed_with) - base_pred
+            self.model_fn(perturbed_with) - base_pred
 
             samples = []
             for _ in range(self.n_samples):
@@ -90,13 +90,13 @@ class SHAPExplainer:
 class LIMEExplainer:
     """Local Interpretable Model-agnostic Explanations."""
 
-    def __init__(self, model_fn: Callable, feature_names: List[str], seed: int = 42):
+    def __init__(self, model_fn: Callable, feature_names: list[str], seed: int = 42):
         self.model_fn = model_fn
         self.feature_names = feature_names
         self.rng = np.random.default_rng(seed)
         self.n_neighbors = 200
 
-    def explain(self, instance: np.ndarray, sigma: float = 0.5) -> List[FeatureAttribution]:
+    def explain(self, instance: np.ndarray, sigma: float = 0.5) -> list[FeatureAttribution]:
         neighbors = instance + self.rng.standard_normal((self.n_neighbors, len(instance))) * sigma
         predictions = np.array([self.model_fn(n) for n in neighbors])
         distances = np.linalg.norm(neighbors - instance, axis=1)
@@ -118,14 +118,14 @@ class LIMEExplainer:
 class CounterfactualExplainer:
     """Find minimal changes to flip a decision."""
 
-    def __init__(self, model_fn: Callable, feature_names: List[str], seed: int = 42):
+    def __init__(self, model_fn: Callable, feature_names: list[str], seed: int = 42):
         self.model_fn = model_fn
         self.feature_names = feature_names
         self.rng = np.random.default_rng(seed)
 
     def explain(self, instance: np.ndarray, target_class: float,
-                threshold: float = 0.5, max_iter: int = 500) -> Optional[Dict]:
-        original_pred = self.model_fn(instance)
+                threshold: float = 0.5, max_iter: int = 500) -> dict | None:
+        self.model_fn(instance)
         best = None
         best_dist = float('inf')
         for _ in range(max_iter):
@@ -151,10 +151,10 @@ class ExplainableAI:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.decision_log: List[DecisionRecord] = []
-        self.explanations: List[Explanation] = []
+        self.decision_log: list[DecisionRecord] = []
+        self.explanations: list[Explanation] = []
 
-    def explain_decision(self, model_fn: Callable, feature_names: List[str],
+    def explain_decision(self, model_fn: Callable, feature_names: list[str],
                          instance: np.ndarray, drone_id: str = "drone_0",
                          decision_name: str = "action") -> Explanation:
         shap = SHAPExplainer(model_fn, feature_names, self.rng.integers(0, 10000))
@@ -170,14 +170,14 @@ class ExplainableAI:
         self.explanations.append(explanation)
 
         record = DecisionRecord(drone_id, len(self.decision_log),
-                               decision_name, dict(zip(feature_names, instance.tolist())),
+                               decision_name, dict(zip(feature_names, instance.tolist(), strict=False)),
                                float(prediction), explanation)
         self.decision_log.append(record)
         return explanation
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "decisions_explained": len(self.decision_log),
-            "explanation_types": list(set(e.explanation_type.value for e in self.explanations)),
+            "explanation_types": list({e.explanation_type.value for e in self.explanations}),
             "avg_confidence": round(float(np.mean([e.confidence for e in self.explanations])), 4) if self.explanations else 0,
         }

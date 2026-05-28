@@ -10,15 +10,12 @@
 from __future__ import annotations
 
 import json
-import os
 import subprocess
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable, Optional
-
-import numpy as np
+from typing import Any, Callable
 
 
 @dataclass
@@ -29,7 +26,7 @@ class SuiteTestResult:
     status: str  # PASSED, FAILED, SKIPPED, ERROR
     duration_ms: float
     timestamp: str
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 @dataclass
@@ -278,7 +275,7 @@ class DashboardRunner:
 """
         return html
 
-    def save_dashboard(self, filepath: Optional[str] = None) -> str:
+    def save_dashboard(self, filepath: str | None = None) -> str:
         """대시보드 HTML 파일 저장"""
         if filepath is None:
             filepath = self.output_dir / "dashboard.html"
@@ -294,7 +291,7 @@ class DashboardRunner:
 class SchedulerRunner:
     """테스트 스케줄러 (정기 실행)"""
 
-    def __init__(self, callback: Optional[Callable] = None):
+    def __init__(self, callback: Callable | None = None):
         self.callback = callback
         self.scheduled_jobs: list[dict] = []
         self.running = False
@@ -372,7 +369,7 @@ class ResultComparator:
     """테스트 비교 분석"""
 
     def __init__(self):
-        self.baseline: Optional[SuiteResult] = None
+        self.baseline: SuiteResult | None = None
         self.comparisons: list[dict] = []
 
     def set_baseline(self, result: SuiteResult) -> None:
@@ -455,9 +452,9 @@ class CustomTestScenario:
     def add_test(
         self,
         test_file: str,
-        markers: Optional[list[str]] = None,
-        kwargs: Optional[dict] = None,
-    ) -> "CustomTestScenario":
+        markers: list[str] | None = None,
+        kwargs: dict | None = None,
+    ) -> CustomTestScenario:
         """테스트 추가"""
         self.tests.append(
             {
@@ -473,8 +470,8 @@ class CustomTestScenario:
         timeout: int = 300,
         parallel: bool = False,
         n_workers: int = 4,
-        random_seed: Optional[int] = None,
-    ) -> "CustomTestScenario":
+        random_seed: int | None = None,
+    ) -> CustomTestScenario:
         """설정"""
         self.config = {
             "timeout": timeout,
@@ -505,9 +502,9 @@ class CustomTestScenario:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
     @staticmethod
-    def load(filepath: str) -> "CustomTestScenario":
+    def load(filepath: str) -> CustomTestScenario:
         """시나리오 JSON 로드"""
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
 
         scenario = CustomTestScenario(data["name"])

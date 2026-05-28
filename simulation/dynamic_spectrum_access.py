@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -73,10 +72,10 @@ class DynamicSpectrumAccess:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._channels: Dict[str, Channel] = {}
-        self._allocations: Dict[str, SpectrumAllocation] = {}
-        self._spectrum_holes: List[SpectrumHole] = []
-        self._sensing_history: Dict[str, List[float]] = {}
+        self._channels: dict[str, Channel] = {}
+        self._allocations: dict[str, SpectrumAllocation] = {}
+        self._spectrum_holes: list[SpectrumHole] = []
+        self._sensing_history: dict[str, list[float]] = {}
         self._step_count = 0
 
     def add_channel(self, channel: Channel):
@@ -125,12 +124,12 @@ class DynamicSpectrumAccess:
 
         return float(energy)
 
-    def sense_all(self, timestamp: float) -> Dict[str, float]:
+    def sense_all(self, timestamp: float) -> dict[str, float]:
         """Sense all channels."""
         return {ch_id: self.sense_channel(ch_id, timestamp)
                 for ch_id in self._channels}
 
-    def detect_spectrum_holes(self, timestamp: float) -> List[SpectrumHole]:
+    def detect_spectrum_holes(self, timestamp: float) -> list[SpectrumHole]:
         """Find available spectrum holes."""
         holes = []
         for ch in self._channels.values():
@@ -154,7 +153,7 @@ class DynamicSpectrumAccess:
         return holes
 
     def allocate_channel(self, drone_id: str, timestamp: float,
-                         preferred_band: Optional[SpectrumBand] = None) -> Optional[SpectrumAllocation]:
+                         preferred_band: SpectrumBand | None = None) -> SpectrumAllocation | None:
         """Allocate best available channel to drone."""
         holes = self.detect_spectrum_holes(timestamp)
         if preferred_band:
@@ -195,7 +194,7 @@ class DynamicSpectrumAccess:
                     if alloc.channel_id == channel_id:
                         self.release_channel(drone_id)
 
-    def get_allocation(self, drone_id: str) -> Optional[SpectrumAllocation]:
+    def get_allocation(self, drone_id: str) -> SpectrumAllocation | None:
         return self._allocations.get(drone_id)
 
     def summary(self) -> dict:

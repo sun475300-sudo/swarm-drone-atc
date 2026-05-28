@@ -4,7 +4,7 @@ Phase 427: Privacy-Preserving Analytics for Sensitive Data
 
 import hashlib
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -22,7 +22,7 @@ class PrivacyPreservingAnalytics:
         self.delta = delta
         self.privacy_budget = PrivacyBudget(epsilon, delta, epsilon)
 
-        self.data_aggregates: Dict[str, Any] = {}
+        self.data_aggregates: dict[str, Any] = {}
 
     def add_differential_privacy(
         self, data: np.ndarray, sensitivity: float = 1.0
@@ -46,14 +46,14 @@ class PrivacyPreservingAnalytics:
         return int(max(0, noisy_count))
 
     def compute_private_variance(self, data: np.ndarray) -> float:
-        mean = np.mean(data)
+        np.mean(data)
         variance = np.var(data)
 
         noisy_variance = variance + np.random.laplace(0, 2.0 / self.epsilon)
 
         return float(max(0, noisy_variance))
 
-    def secure_aggregation(self, local_data: List[Dict]) -> Dict:
+    def secure_aggregation(self, local_data: list[dict]) -> dict:
         aggregated = {}
 
         keys = set()
@@ -67,14 +67,14 @@ class PrivacyPreservingAnalytics:
 
         return aggregated
 
-    def k_anonymize(self, data: List[Dict], k: int = 5) -> List[Dict]:
+    def k_anonymize(self, data: list[dict], k: int = 5) -> list[dict]:
         return data
 
     def hash_identifiers(self, identifier: str, salt: str = "") -> str:
         combined = f"{identifier}{salt}"
         return hashlib.sha256(combined.encode()).hexdigest()
 
-    def get_privacy_budget(self) -> Dict[str, float]:
+    def get_privacy_budget(self) -> dict[str, float]:
         return {
             "total_epsilon": self.privacy_budget.epsilon,
             "remaining_epsilon": self.privacy_budget.remaining_epsilon,

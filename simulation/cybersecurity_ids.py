@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -60,8 +59,8 @@ class IsolationTree:
     """Single isolation tree node."""
     split_feature: int = 0
     split_value: float = 0.0
-    left: Optional[IsolationTree] = None
-    right: Optional[IsolationTree] = None
+    left: IsolationTree | None = None
+    right: IsolationTree | None = None
     size: int = 0
     is_leaf: bool = False
 
@@ -73,7 +72,7 @@ class IsolationForest:
         self._rng = np.random.default_rng(rng_seed)
         self.n_trees = n_trees
         self.max_samples = max_samples
-        self._trees: List[IsolationTree] = []
+        self._trees: list[IsolationTree] = []
         self._fitted = False
 
     def fit(self, data: np.ndarray):
@@ -142,10 +141,10 @@ class CybersecurityIDS:
         self._rng = np.random.default_rng(rng_seed)
         self._forest = IsolationForest(n_trees=50, rng_seed=rng_seed)
         self._threshold = anomaly_threshold
-        self._packet_log: List[NetworkPacket] = []
-        self._alerts: List[ThreatAlert] = []
-        self._packet_rates: Dict[str, List[float]] = {}  # source_id -> timestamps
-        self._sequence_numbers: Dict[str, int] = {}
+        self._packet_log: list[NetworkPacket] = []
+        self._alerts: list[ThreatAlert] = []
+        self._packet_rates: dict[str, list[float]] = {}  # source_id -> timestamps
+        self._sequence_numbers: dict[str, int] = {}
         self._alert_counter = 0
         self._trained = False
 
@@ -165,7 +164,7 @@ class CybersecurityIDS:
             packet.timestamp % 3600 / 3600.0,
         ])
 
-    def analyze_packet(self, packet: NetworkPacket) -> Optional[ThreatAlert]:
+    def analyze_packet(self, packet: NetworkPacket) -> ThreatAlert | None:
         """Analyze incoming packet for anomalies."""
         self._packet_log.append(packet)
         self._packet_rates.setdefault(packet.source_id, []).append(packet.timestamp)
@@ -221,7 +220,7 @@ class CybersecurityIDS:
         self._alerts.append(alert)
         return alert
 
-    def get_alerts(self, level: Optional[ThreatLevel] = None, limit: int = 50) -> List[ThreatAlert]:
+    def get_alerts(self, level: ThreatLevel | None = None, limit: int = 50) -> list[ThreatAlert]:
         alerts = self._alerts
         if level:
             alerts = [a for a in alerts if a.threat_level == level]

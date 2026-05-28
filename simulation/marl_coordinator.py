@@ -92,7 +92,7 @@ class MARLCoordinator:
         out: dict[str, dict[str, float]] = {}
         for aid, agent in self._agents.items():
             out[aid] = {
-                "states": float(len({s for s, _ in agent.q_table.keys()})),
+                "states": float(len({s for s, _ in agent.q_table})),
                 "epsilon": round(agent.epsilon, 6),
             }
         return out

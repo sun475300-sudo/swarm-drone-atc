@@ -4,8 +4,8 @@ Phase 641-650: Python Production Hardening (50 tests)
 Phase 651-660: Multi-language file existence (10 tests)
 """
 
-import pytest
 import os
+
 import numpy as np
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -250,7 +250,7 @@ class TestPhase647Scheduler:
         assert summary["drones"] == 10
 
     def test_priority_order(self):
-        from simulation.mission_scheduler import MissionScheduler, Mission, MissionType, DroneCapability
+        from simulation.mission_scheduler import DroneCapability, Mission, MissionScheduler, MissionType
         s = MissionScheduler(42)
         s.register_drone(DroneCapability("D-0", np.zeros(3), 90, 10, 15))
         s.submit_mission(Mission("M-LOW", MissionType.INSPECTION, np.zeros(3), np.ones(3) * 100, 5, 300))

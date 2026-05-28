@@ -1,7 +1,8 @@
 """Waypoint / Route / RouteCost 데이터클래스 엣지 케이스 테스트"""
 import numpy as np
 import pytest
-from src.airspace_control.planning.waypoint import Waypoint, Route, RouteCost
+
+from src.airspace_control.planning.waypoint import Route, RouteCost, Waypoint
 
 pytestmark = pytest.mark.unit
 

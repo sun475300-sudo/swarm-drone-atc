@@ -22,11 +22,10 @@ from src.airspace_control.agents.drone_state import (
     FailureType,
     FlightPhase,
 )
-from src.airspace_control.comms.communication_bus import CommMessage, CommunicationBus
+from src.airspace_control.comms.communication_bus import CommMessage
 from src.airspace_control.comms.message_types import (
     ClearanceResponse,
     ResolutionAdvisory,
-    TelemetryMessage,
 )
 
 if TYPE_CHECKING:
@@ -41,6 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 def _drone_to_apf(d: DroneState) -> APFState:
+    """DroneState를 APF 연산용 경량 상태(APFState)로 변환한다 (위치/속도는 복사본)."""
     return APFState(
         position=d.position.copy(),
         velocity=d.velocity.copy(),
@@ -71,10 +71,7 @@ def _estimate_power_w(
 
     alt_factor = 1.0 + altitude_m * 0.00012
 
-    if climb_rate_ms > 0:
-        p_climb = climb_rate_ms * 25.0
-    else:
-        p_climb = climb_rate_ms * 5.0
+    p_climb = climb_rate_ms * 25.0 if climb_rate_ms > 0 else climb_rate_ms * 5.0
 
     return max(0.0, (p_hover + p_drag) * alt_factor + p_climb)
 
@@ -116,9 +113,10 @@ class DroneAgent:
         self,
         env: simpy.Environment,
         drone: DroneState,
-        sim: "SwarmSimulator",
+        sim: SwarmSimulator,
         dt: float,
     ) -> None:
+        """에이전트를 초기화하고 CommunicationBus 메시지 수신을 구독한다."""
         self.env = env
         self.drone = drone
         self.sim = sim
@@ -143,12 +141,16 @@ class DroneAgent:
                     drone.hold_start_s = None
                     drone.evade_end_s = None
 
-        elif isinstance(payload, ClearanceResponse):
-            if payload.approved and payload.assigned_waypoints:
-                drone.waypoints = [np.array(wp) for wp in payload.assigned_waypoints]
-                drone.current_waypoint_idx = 0
+        elif isinstance(payload, ClearanceResponse) and payload.approved and payload.assigned_waypoints:
+            drone.waypoints = [np.array(wp) for wp in payload.assigned_waypoints]
+            drone.current_waypoint_idx = 0
 
     def run(self):
+        """드론 1기의 메인 SimPy 코루틴 (매 dt초 1틱 무한 루프).
+
+        틱 처리 순서: ①배터리 소모(2Hz) ②통신 상태 ③고장 ④바람 캐시 ⑤APF 힘 조회
+        ⑥비행단계 상태머신 ⑦위치 적분·지오펜스·RTL ⑧텔레메트리 송신 ⑨분석 스냅샷.
+        """
         drone = self.drone
         sim = self.sim
         dt = self.dt
@@ -269,6 +271,11 @@ class DroneAgent:
     # ── 상태 머신 ──────────────────────────────────────────────
 
     def _state_machine(self, drone, dt, profile, force, wind, t, sim):
+        """비행 단계(FlightPhase) 상태 머신.
+
+        GROUNDED→TAKEOFF→ENROUTE↔(EVADING/HOLDING)→LANDING→GROUNDED 순환과
+        RTL(귀환)·FAILED(추락) 분기를 처리하며 단계별 속도/고도/전이 조건을 갱신한다.
+        """
         phase = drone.flight_phase
 
         if phase == FlightPhase.GROUNDED:
@@ -372,18 +379,19 @@ class DroneAgent:
                     drone.velocity = diff / norm * spd
 
     def _handle_comms(self, drone, t, profile):
-        if drone.comms_status == CommsStatus.LOST:
-            if drone.flight_phase not in (
-                FlightPhase.RTL,
-                FlightPhase.LANDING,
-                FlightPhase.FAILED,
-                FlightPhase.GROUNDED,
-                FlightPhase.HOLDING,
-            ):
-                drone.flight_phase = FlightPhase.HOLDING
-                drone.hold_start_s = None
+        """통신 두절(Lost-link) 대응: 비행 중이면 HOLDING으로 전환해 복구를 대기한다."""
+        if drone.comms_status == CommsStatus.LOST and drone.flight_phase not in (
+            FlightPhase.RTL,
+            FlightPhase.LANDING,
+            FlightPhase.FAILED,
+            FlightPhase.GROUNDED,
+            FlightPhase.HOLDING,
+        ):
+            drone.flight_phase = FlightPhase.HOLDING
+            drone.hold_start_s = None
 
     def _handle_failure(self, drone, t):
+        """고장 유형별 처리: 모터 고장→FAILED(추락), GPS 상실→속도 0(정지 표류)."""
         if drone.failure_type == FailureType.MOTOR_FAILURE:
             drone.flight_phase = FlightPhase.FAILED
         elif drone.failure_type == FailureType.GPS_LOSS:

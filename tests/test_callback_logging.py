@@ -57,9 +57,8 @@ def test_emergency_recovery_callback_failure_logs_warning(caplog):
             try:
                 sys_obj.raise_event(
                     drone_id="d1",
-                    etype=getattr(__import__("simulation.emergency_recovery_system",
-                                             fromlist=["EmergencyEventType"]),
-                                  "EmergencyEventType").BATTERY_CRITICAL
+                    etype=(__import__("simulation.emergency_recovery_system",
+                                             fromlist=["EmergencyEventType"])).EmergencyEventType.BATTERY_CRITICAL
                     if hasattr(__import__("simulation.emergency_recovery_system",
                                           fromlist=["EmergencyEventType"]),
                                "EmergencyEventType")

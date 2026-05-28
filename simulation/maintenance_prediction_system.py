@@ -3,7 +3,6 @@ Phase 459: Maintenance Prediction System
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 
 @dataclass
@@ -16,7 +15,7 @@ class MaintenanceRecord:
 
 class MaintenancePredictionSystem:
     def __init__(self):
-        self.records: Dict[str, List[MaintenanceRecord]] = {}
+        self.records: dict[str, list[MaintenanceRecord]] = {}
         self.thresholds = {"motor": 500, "battery": 300, "propeller": 200}
 
     def add_record(self, record: MaintenanceRecord):
@@ -24,7 +23,7 @@ class MaintenancePredictionSystem:
             self.records[record.drone_id] = []
         self.records[record.drone_id].append(record)
 
-    def predict_maintenance(self, drone_id: str) -> Dict[str, str]:
+    def predict_maintenance(self, drone_id: str) -> dict[str, str]:
         if drone_id not in self.records:
             return {"status": "unknown"}
 

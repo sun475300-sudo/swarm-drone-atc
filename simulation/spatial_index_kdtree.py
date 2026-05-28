@@ -55,7 +55,7 @@ class KDTreeIndex:
         dists, indices = self._tree.query(point, k=k)
         if k == 1:
             return [(self._ids[indices], float(dists))]
-        return [(self._ids[idx], float(d)) for d, idx in zip(dists, indices)]
+        return [(self._ids[idx], float(d)) for d, idx in zip(dists, indices, strict=False)]
 
     def benchmark(self, n_drones: int, n_queries: int = 100) -> dict:
         import time

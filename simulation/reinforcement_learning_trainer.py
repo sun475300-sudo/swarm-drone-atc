@@ -4,7 +4,7 @@ Phase 421: Reinforcement Learning Trainer for Drone Control
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -46,11 +46,11 @@ class ReinforcementLearningTrainer:
         self.policy_net = self._init_network([state_dim, 256, 128, action_dim])
         self.value_net = self._init_network([state_dim, 256, 128, 1])
 
-        self.replay_buffer: List[Experience] = []
+        self.replay_buffer: list[Experience] = []
 
         self.training_stats = {"episodes": 0, "avg_reward": 0.0}
 
-    def _init_network(self, layers: List[int]) -> Dict[str, np.ndarray]:
+    def _init_network(self, layers: list[int]) -> dict[str, np.ndarray]:
         weights = {}
         for i in range(len(layers) - 1):
             weights[f"w{i}"] = np.random.randn(layers[i], layers[i + 1]) * 0.1
@@ -72,7 +72,7 @@ class ReinforcementLearningTrainer:
         if len(self.replay_buffer) < self.config.batch_size:
             return 0.0
 
-        batch = np.random.choice(
+        np.random.choice(
             len(self.replay_buffer), self.config.batch_size, replace=False
         )
 
@@ -85,5 +85,5 @@ class ReinforcementLearningTrainer:
 
         return loss
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         return self.training_stats.copy()

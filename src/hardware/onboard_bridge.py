@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 import importlib
 import json
 import logging
@@ -39,8 +40,8 @@ import os
 import signal
 import sys
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Optional
 
 LOGGER = logging.getLogger("sdacs.onboard_bridge")
 
@@ -134,11 +135,11 @@ class MavlinkAdapter:
 
         LOGGER.info("connecting to MAVLink at %s", self.uri)
         self._connection = mavutil.mavlink_connection(self.uri)
-        self._connection.wait_heartbeat(timeout=10)
+        self._connection.wait_heartbeat(timeout=10)  # type: ignore[attr-defined]
         LOGGER.info(
             "heartbeat received from system %d component %d",
-            self._connection.target_system,
-            self._connection.target_component,
+            self._connection.target_system,  # type: ignore[attr-defined]
+            self._connection.target_component,  # type: ignore[attr-defined]
         )
 
     _MAV_MODE_FLAGS = {
@@ -159,7 +160,7 @@ class MavlinkAdapter:
             flags.append(f"custom={custom_mode}")
         return "|".join(flags) if flags else "UNKNOWN"
 
-    async def poll_telemetry(self, drone_id: int) -> Optional[TelemetrySnapshot]:
+    async def poll_telemetry(self, drone_id: int) -> TelemetrySnapshot | None:
         if self._connection is None:
             raise RuntimeError("not connected")
 
@@ -335,15 +336,15 @@ class GroundLink:
             ) from exc
 
         LOGGER.info("connecting to ground at %s", self.uri)
-        self._ws = await websockets.connect(self.uri, max_size=2**20)
-        await self._ws.send(json.dumps({"type": "hello", "drone_id": self.drone_id}))
+        self._ws = await websockets.connect(self.uri, max_size=2**20)  # type: ignore[assignment]
+        await self._ws.send(json.dumps({"type": "hello", "drone_id": self.drone_id}))  # type: ignore[attr-defined]
 
     async def publish(self, snapshot: TelemetrySnapshot) -> None:
         if self._ws is None:
             raise RuntimeError("ground link not connected")
         await self._ws.send(snapshot.to_json())
 
-    async def next_command(self) -> Optional[dict]:
+    async def next_command(self) -> dict | None:
         """Non-blocking poll for commands from the ground."""
         if self._ws is None:
             return None
@@ -694,15 +695,13 @@ async def _async_main(config: BridgeConfig) -> int:
         loop.create_task(bridge.stop())
 
     for sig_name in ("SIGINT", "SIGTERM"):
-        try:
+        with contextlib.suppress(NotImplementedError):
             loop.add_signal_handler(getattr(signal, sig_name), _on_signal, sig_name)
-        except NotImplementedError:
-            pass
 
     return await bridge.run()
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     config = parse_args(argv if argv is not None else sys.argv[1:])
     return asyncio.run(_async_main(config))
 

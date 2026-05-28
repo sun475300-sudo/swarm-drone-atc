@@ -6,8 +6,9 @@ Failure-rate based breaker with CLOSED, OPEN, HALF_OPEN state transitions.
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 
 @dataclass
@@ -62,11 +63,10 @@ class CircuitBreaker:
 
     def record_success(self) -> None:
         self._successes += 1
-        if self._state == "HALF_OPEN":
-            if self._half_open_calls >= self.half_open_max_calls:
-                self._state = "CLOSED"
-                self._failures = 0
-                self._half_open_calls = 0
+        if self._state == "HALF_OPEN" and self._half_open_calls >= self.half_open_max_calls:
+            self._state = "CLOSED"
+            self._failures = 0
+            self._half_open_calls = 0
 
     def record_failure(self) -> None:
         self._failures += 1

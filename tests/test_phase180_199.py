@@ -18,6 +18,7 @@ class TestReportInputNormalizer:
 
     def test_normalize_delivery_with_dataclass(self):
         from dataclasses import dataclass
+
         from simulation.report_input_normalizer import normalize_delivery
 
         @dataclass
@@ -153,8 +154,9 @@ class TestE2EReporter:
         assert "status" in out
 
     def test_build_health_score_in_export(self):
-        from simulation.e2e_reporter import E2EReporter
         import tempfile
+
+        from simulation.e2e_reporter import E2EReporter
 
         r = E2EReporter()
         out = r.build(
@@ -283,7 +285,8 @@ class TestE2EReporterExport:
         )
         bundle_dir = tmp_path / "bundle"
         result = r.export_bundle(report, output_dir=str(bundle_dir))
-        import json, pathlib
+        import json
+        import pathlib
 
         manifest = json.loads(pathlib.Path(result["manifest_path"]).read_text())
         assert "input_contract_version" in manifest
@@ -427,7 +430,8 @@ class TestIntegrationBundle:
         assert "json_path" in result
         assert "manifest_path" in result
 
-        import json, pathlib
+        import json
+        import pathlib
 
         manifest = json.loads(pathlib.Path(result["manifest_path"]).read_text())
         assert manifest["input_contract_version"] == INPUT_CONTRACT_VERSION

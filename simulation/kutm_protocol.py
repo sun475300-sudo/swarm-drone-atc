@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -32,7 +32,7 @@ class FlightPlan:
     drone_id: str
     departure_time: float
     arrival_time: float
-    waypoints: List[Tuple[float, float, float]]  # (lat, lon, alt)
+    waypoints: list[tuple[float, float, float]]  # (lat, lon, alt)
     altitude_min: float
     altitude_max: float
     purpose: str = "survey"
@@ -42,7 +42,7 @@ class FlightPlan:
 @dataclass
 class NOTAM:
     notam_id: str
-    area_center: Tuple[float, float]
+    area_center: tuple[float, float]
     radius_m: float
     altitude_min: float
     altitude_max: float
@@ -67,19 +67,19 @@ class KUTMProtocol:
     def __init__(self, seed: int = 42) -> None:
         self.rng = np.random.default_rng(seed)
         self._next_id = 0
-        self.flight_plans: Dict[str, FlightPlan] = {}
-        self.notams: List[NOTAM] = []
-        self.registered_drones: Dict[str, DroneRegistration] = {}
-        self.operators: Dict[str, Dict[str, Any]] = {}
-        self.telemetry_log: List[Dict[str, Any]] = []
+        self.flight_plans: dict[str, FlightPlan] = {}
+        self.notams: list[NOTAM] = []
+        self.registered_drones: dict[str, DroneRegistration] = {}
+        self.operators: dict[str, dict[str, Any]] = {}
+        self.telemetry_log: list[dict[str, Any]] = []
 
-        self.airspace_grid: Dict[Tuple[int, int], AirspaceClass] = {}
+        self.airspace_grid: dict[tuple[int, int], AirspaceClass] = {}
 
     def _gen_id(self, prefix: str = "KU") -> str:
         self._next_id += 1
         return f"{prefix}-{self._next_id:06d}"
 
-    def register_drone(self, drone_spec: Dict[str, Any]) -> str:
+    def register_drone(self, drone_spec: dict[str, Any]) -> str:
         reg_id = self._gen_id("REG")
         self.registered_drones[reg_id] = DroneRegistration(
             registration_id=reg_id,
@@ -99,7 +99,7 @@ class KUTMProtocol:
             }
         return self.operators[operator_id].get("certified", False)
 
-    def submit_flight_plan(self, plan: FlightPlan) -> Dict[str, Any]:
+    def submit_flight_plan(self, plan: FlightPlan) -> dict[str, Any]:
         conflicts = self.check_airspace_availability(
             plan.waypoints, (plan.departure_time, plan.arrival_time)
         )
@@ -124,7 +124,7 @@ class KUTMProtocol:
         self.flight_plans[plan_id].status = PlanStatus.CANCELLED
         return True
 
-    def update_flight_plan(self, plan_id: str, updates: Dict[str, Any]) -> bool:
+    def update_flight_plan(self, plan_id: str, updates: dict[str, Any]) -> bool:
         if plan_id not in self.flight_plans:
             return False
         plan = self.flight_plans[plan_id]
@@ -139,8 +139,8 @@ class KUTMProtocol:
         return self.flight_plans[plan_id].status.value
 
     def report_telemetry(
-        self, drone_id: str, position: Tuple[float, float, float],
-        velocity: Tuple[float, float, float], battery: float,
+        self, drone_id: str, position: tuple[float, float, float],
+        velocity: tuple[float, float, float], battery: float,
     ) -> bool:
         self.telemetry_log.append({
             "drone_id": drone_id,
@@ -152,9 +152,9 @@ class KUTMProtocol:
         return True
 
     def check_airspace_availability(
-        self, waypoints: List[Tuple[float, float, float]],
-        time_window: Tuple[float, float],
-    ) -> List[Dict[str, Any]]:
+        self, waypoints: list[tuple[float, float, float]],
+        time_window: tuple[float, float],
+    ) -> list[dict[str, Any]]:
         conflicts = []
         for wp in waypoints:
             for notam in self.notams:
@@ -169,7 +169,7 @@ class KUTMProtocol:
                     })
         return conflicts
 
-    def get_notams(self, area_center: Tuple[float, float], radius_m: float = 5000.0) -> List[NOTAM]:
+    def get_notams(self, area_center: tuple[float, float], radius_m: float = 5000.0) -> list[NOTAM]:
         result = []
         now = time.time()
         for notam in self.notams:
@@ -182,7 +182,7 @@ class KUTMProtocol:
     def add_notam(self, notam: NOTAM) -> None:
         self.notams.append(notam)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         statuses = {}
         for plan in self.flight_plans.values():
             s = plan.status.value

@@ -2,14 +2,13 @@
 
 import time
 
-import numpy as np
 import pytest
 
 
 # ── NOTAM Manager ────────────────────────────────────────────────────
 class TestNotamManager:
     def test_create_and_query_active(self):
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         nid = mgr.create_notam(
             NotamCategory.HAZARD, (37.5, 127.0), 1000.0, 0.0, 120.0, 2.0, "test"
@@ -19,14 +18,14 @@ class TestNotamManager:
         assert len(active) == 1
 
     def test_cancel_notam(self):
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         nid = mgr.create_notam(NotamCategory.OBSTACLE, (0, 0), 100.0, 0.0, 100.0, 1.0, "x")
         assert mgr.cancel_notam(nid)
         assert mgr.get(nid).status.value == "cancelled"
 
     def test_expire_old(self):
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         nid = mgr.create_notam(NotamCategory.SERVICE, (0, 0), 100.0, 0.0, 100.0, 1.0, "x")
         mgr.get(nid).valid_until = time.time() - 10.0
@@ -34,7 +33,7 @@ class TestNotamManager:
         assert expired == 1
 
     def test_extend_notam(self):
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         nid = mgr.create_notam(NotamCategory.AIRSPACE, (0, 0), 100.0, 0.0, 100.0, 1.0, "x")
         original = mgr.get(nid).valid_until
@@ -42,13 +41,13 @@ class TestNotamManager:
         assert mgr.get(nid).valid_until > original
 
     def test_invalid_params_raise(self):
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         with pytest.raises(ValueError):
             mgr.create_notam(NotamCategory.HAZARD, (0, 0), -1.0, 0.0, 100.0, 1.0, "x")
 
     def test_stats(self):
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.0, 1.0, "x")
         stats = mgr.get_stats()
@@ -132,7 +131,7 @@ class TestVertiportOps:
         assert v.cancel_reservation(slot)
 
     def test_land_and_depart(self):
-        from simulation.vertiport_ops import VertiportOps, PadStatus
+        from simulation.vertiport_ops import PadStatus, VertiportOps
         v = VertiportOps()
         v.add_pad("P1", (0.0, 0.0))
         slot = v.reserve_slot("AIR1", 1000.0)
@@ -142,7 +141,7 @@ class TestVertiportOps:
         assert v.pads["P1"].status == PadStatus.AVAILABLE
 
     def test_maintenance(self):
-        from simulation.vertiport_ops import VertiportOps, PadStatus
+        from simulation.vertiport_ops import PadStatus, VertiportOps
         v = VertiportOps()
         v.add_pad("P1", (0.0, 0.0))
         v.set_maintenance("P1", True)
@@ -210,7 +209,7 @@ class TestMetarParser:
 # ── Cross-border Coordinator ─────────────────────────────────────────
 class TestCrossBorderCoordinator:
     def _fixture(self):
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         c = CrossBorderCoordinator()
         c.register_authority(AirspaceAuthority("KR", "Korea", required_docs=["manifest", "insurance"]))
         c.register_authority(AirspaceAuthority("JP", "Japan", required_docs=["manifest"]))
@@ -274,7 +273,7 @@ class TestInsuranceRisk:
         assert 0.0 <= score <= 2.0
 
     def test_recommend_tier(self):
-        from simulation.insurance_risk import InsuranceRiskCalculator, CoverageTier
+        from simulation.insurance_risk import CoverageTier, InsuranceRiskCalculator
         calc = InsuranceRiskCalculator()
         low = calc.recommend_tier(0.2)
         high = calc.recommend_tier(1.5)
@@ -403,11 +402,11 @@ class TestFlightFollowing:
 # ── AIM Briefing Service ────────────────────────────────────────────
 class TestAimBriefing:
     def _build(self):
-        from simulation.aim_briefing import AimBriefingService
-        from simulation.notam_manager import NotamManager, NotamCategory
-        from simulation.tfr_handler import TfrHandler
         from simulation.aero_charts import AeroCharts, ChartFeature, ChartFeatureType
+        from simulation.aim_briefing import AimBriefingService
         from simulation.metar_parser import MetarParser
+        from simulation.notam_manager import NotamCategory, NotamManager
+        from simulation.tfr_handler import TfrHandler
 
         notam = NotamManager()
         notam.create_notam(NotamCategory.OBSTACLE, (500.0, 0.0), 50.0, 0.0, 120.0, 2.0, "tower")
@@ -434,11 +433,11 @@ class TestAimBriefing:
         assert len(result.notam_conflicts) >= 1
 
     def test_generate_clear(self):
+        from simulation.aero_charts import AeroCharts
         from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        from simulation.metar_parser import MetarParser
         from simulation.notam_manager import NotamManager
         from simulation.tfr_handler import TfrHandler
-        from simulation.aero_charts import AeroCharts
-        from simulation.metar_parser import MetarParser
         svc = AimBriefingService(NotamManager(), TfrHandler(), AeroCharts(), MetarParser())
         req = BriefingRequest(
             "AIR2", (0.0, 0.0), (1000.0, 0.0), [(500.0, 0.0)], 50.0, time.time()
@@ -447,11 +446,11 @@ class TestAimBriefing:
         assert result.go_nogo == "GO"
 
     def test_weather_bad_forces_nogo(self):
+        from simulation.aero_charts import AeroCharts
         from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        from simulation.metar_parser import MetarParser
         from simulation.notam_manager import NotamManager
         from simulation.tfr_handler import TfrHandler
-        from simulation.aero_charts import AeroCharts
-        from simulation.metar_parser import MetarParser
         svc = AimBriefingService(NotamManager(), TfrHandler(), AeroCharts(), MetarParser())
         req = BriefingRequest(
             "AIR3", (0.0, 0.0), (1000.0, 0.0), [], 50.0, time.time()
@@ -539,8 +538,8 @@ class TestMemoryLeakDefence:
     # ── MetarParser: VIS_M_RE TAF 오탐 수정 ──────────────────────────
     def test_metar_vis_not_match_taf_period(self):
         """TAF 유효기간 토큰(0912/1018)이 가시거리로 오탐되면 안 된다."""
+
         from simulation.metar_parser import MetarParser
-        import re
         m = MetarParser.VIS_M_RE.search("0912/1018")
         assert m is None, "TAF 유효기간이 VIS_M_RE에 매칭되면 안 된다"
 
@@ -553,8 +552,8 @@ class TestMemoryLeakDefence:
 
     def test_metar_vis_matches_standalone_4digits(self):
         """공백으로 분리된 4자리 숫자는 정상 매칭된다."""
+
         from simulation.metar_parser import MetarParser
-        import re
         m = MetarParser.VIS_M_RE.search("27010KT 6000 FEW040")
         assert m is not None
         assert m.group(1) == "6000"
@@ -701,11 +700,11 @@ class TestPrecisionRound2:
     # ── aim_briefing: chart hazard NO-GO ─────────────────────────────
     def test_chart_hazard_triggers_nogo(self):
         """차트 장애물이 있는 경로는 NO-GO 가 되어야 한다."""
+        from simulation.aero_charts import AeroCharts, ChartFeature, ChartFeatureType
         from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        from simulation.metar_parser import MetarParser
         from simulation.notam_manager import NotamManager
         from simulation.tfr_handler import TfrHandler
-        from simulation.aero_charts import AeroCharts, ChartFeature, ChartFeatureType
-        from simulation.metar_parser import MetarParser
         charts = AeroCharts()
         charts.add_feature(ChartFeature("OBS1", ChartFeatureType.OBSTACLE, (500.0, 0.0), 120.0, "Tower"))
         svc = AimBriefingService(
@@ -728,11 +727,11 @@ class TestPrecisionRound2:
 
     def test_clear_route_still_go(self):
         """장애물/NOTAM/TFR 없는 맑은 경로는 GO 여야 한다."""
+        from simulation.aero_charts import AeroCharts
         from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        from simulation.metar_parser import MetarParser
         from simulation.notam_manager import NotamManager
         from simulation.tfr_handler import TfrHandler
-        from simulation.aero_charts import AeroCharts
-        from simulation.metar_parser import MetarParser
         svc = AimBriefingService(NotamManager(), TfrHandler(), AeroCharts(), MetarParser())
         req = BriefingRequest(
             callsign="AIR2",
@@ -748,7 +747,7 @@ class TestPrecisionRound2:
     # ── notam_manager: purge_terminal ────────────────────────────────
     def test_notam_purge_terminal_removes_expired(self):
         """purge_terminal()은 EXPIRED/CANCELLED NOTAM을 제거한다."""
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         nid = mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.0, 1.0, "x")
         mgr.get(nid).valid_until = time.time() - 10.0
@@ -759,7 +758,7 @@ class TestPrecisionRound2:
 
     def test_notam_expire_records_history(self):
         """expire_old() 가 히스토리 이벤트를 기록해야 한다."""
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         nid = mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.0, 1.0, "x")
         mgr.get(nid).valid_until = time.time() - 10.0
@@ -782,7 +781,7 @@ class TestPrecisionRound2:
     # ── cross_border_coord: rejection_reason 저장 + purge_terminal ──
     def test_reject_handoff_stores_reason(self):
         """reject_handoff()가 reason을 BorderCrossing에 저장해야 한다."""
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         c = CrossBorderCoordinator()
         c.register_authority(AirspaceAuthority("KR", "Korea"))
         c.register_authority(AirspaceAuthority("JP", "Japan"))
@@ -792,7 +791,7 @@ class TestPrecisionRound2:
 
     def test_cross_border_purge_terminal(self):
         """purge_terminal()은 COMPLETED/REJECTED 크로싱을 제거한다."""
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         c = CrossBorderCoordinator()
         c.register_authority(AirspaceAuthority("KR", "Korea", required_docs=[]))
         c.register_authority(AirspaceAuthority("JP", "Japan", required_docs=[]))
@@ -881,11 +880,11 @@ class TestPrecisionRound3:
     # ── CRITICAL: TFR 감사로그 오염 방지 ─────────────────────────────
     def test_briefing_does_not_pollute_tfr_violation_log(self):
         """브리핑 생성이 TFR violation_log에 항목을 추가하면 안 된다."""
+        from simulation.aero_charts import AeroCharts
         from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        from simulation.metar_parser import MetarParser
         from simulation.notam_manager import NotamManager
         from simulation.tfr_handler import TfrHandler, TfrReason
-        from simulation.aero_charts import AeroCharts
-        from simulation.metar_parser import MetarParser
         tfr_handler = TfrHandler()
         tfr_handler.declare_tfr(TfrReason.VIP, (500.0, 0.0), 1000.0, 0.0, 500.0, 1.0)
         svc = AimBriefingService(
@@ -910,7 +909,7 @@ class TestPrecisionRound3:
     # ── HIGH: purge_completed 패드 상태 복원 ─────────────────────────
     def test_purge_completed_restores_pad_status(self):
         """purge_completed() 후 패드 상태가 AVAILABLE로 복원되어야 한다."""
-        from simulation.vertiport_ops import VertiportOps, PadStatus
+        from simulation.vertiport_ops import PadStatus, VertiportOps
         ops = VertiportOps()
         ops.add_pad("P1", (0.0, 0.0))
         slot_id = ops.reserve_slot("CS1", desired_time=0.0, duration_s=600.0)
@@ -949,8 +948,9 @@ class TestPrecisionRound3:
     # ── HIGH: FlightTrack 직접 생성 시 deque maxlen 보장 ─────────────
     def test_flight_track_default_maxlen(self):
         """FlightTrack 직접 생성 시 points 에 maxlen 이 설정되어야 한다."""
-        from simulation.flight_following import FlightTrack, _DEFAULT_TRACK_POINTS
         import collections
+
+        from simulation.flight_following import _DEFAULT_TRACK_POINTS, FlightTrack
         track = FlightTrack(callsign="FF1", plan_id="FP-1")
         assert isinstance(track.points, collections.deque)
         assert track.points.maxlen == _DEFAULT_TRACK_POINTS
@@ -995,7 +995,7 @@ class TestPrecisionRound4:
     # ── HIGH: cancel_reservation OCCUPIED 보호 ───────────────────────
     def test_cancel_reservation_does_not_overwrite_occupied(self):
         """착륙 후 예약 취소해도 패드가 AVAILABLE이 되면 안 된다."""
-        from simulation.vertiport_ops import VertiportOps, PadStatus
+        from simulation.vertiport_ops import PadStatus, VertiportOps
         ops = VertiportOps()
         ops.add_pad("P1", (0.0, 0.0))
         slot_id = ops.reserve_slot("CS1", desired_time=time.time() + 3600)
@@ -1008,7 +1008,7 @@ class TestPrecisionRound4:
     # ── HIGH: set_maintenance OCCUPIED 보호 ──────────────────────────
     def test_set_maintenance_off_does_not_overwrite_occupied(self):
         """OCCUPIED 패드에 maintenance on→off 해도 AVAILABLE이 되면 안 된다."""
-        from simulation.vertiport_ops import VertiportOps, PadStatus
+        from simulation.vertiport_ops import PadStatus, VertiportOps
         ops = VertiportOps()
         ops.add_pad("P1", (0.0, 0.0))
         slot_id = ops.reserve_slot("CS1", desired_time=time.time() + 3600)
@@ -1068,7 +1068,7 @@ class TestPrecisionRound4:
     # ── MEDIUM: cross_border reject_handoff 상태 검증 ─────────────────
     def test_reject_accepted_handoff_fails(self):
         """ACCEPTED 크로싱은 reject_handoff 할 수 없어야 한다."""
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         c = CrossBorderCoordinator()
         c.register_authority(AirspaceAuthority("KR", "Korea", required_docs=[]))
         c.register_authority(AirspaceAuthority("JP", "Japan", required_docs=[]))
@@ -1104,25 +1104,25 @@ class TestPrecisionRound4:
 class TestPrecisionRound5:
     # ── NaN guard: notam_manager ────────────────────────────────────
     def test_notam_nan_radius_rejected(self):
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         with pytest.raises(ValueError, match="finite positive"):
             mgr.create_notam(NotamCategory.HAZARD, (0, 0), float("nan"), 0.0, 100.0, 1.0, "x")
 
     def test_notam_inf_duration_rejected(self):
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         with pytest.raises(ValueError, match="finite positive"):
             mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.0, float("inf"), "x")
 
     def test_notam_3element_center_rejected(self):
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         with pytest.raises(ValueError, match="2-element"):
             mgr.create_notam(NotamCategory.HAZARD, (0, 0, 100), 100.0, 0.0, 100.0, 1.0, "x")
 
     def test_notam_extend_recorded_in_history(self):
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         nid = mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.0, 1.0, "x")
         before = len(mgr.history)
@@ -1205,7 +1205,7 @@ class TestPrecisionRound5:
 
     # ── vertiport: enable/disable maintenance ───────────────────────
     def test_enable_disable_maintenance_methods(self):
-        from simulation.vertiport_ops import VertiportOps, PadStatus
+        from simulation.vertiport_ops import PadStatus, VertiportOps
         vp = VertiportOps()
         vp.add_pad("P1", (0.0, 0.0))
         assert vp.enable_maintenance("P1")
@@ -1214,7 +1214,7 @@ class TestPrecisionRound5:
         assert vp.pads["P1"].status == PadStatus.AVAILABLE
 
     def test_disable_maintenance_noop_on_available(self):
-        from simulation.vertiport_ops import VertiportOps, PadStatus
+        from simulation.vertiport_ops import PadStatus, VertiportOps
         vp = VertiportOps()
         vp.add_pad("P1", (0.0, 0.0))
         assert not vp.disable_maintenance("P1")
@@ -1244,7 +1244,7 @@ class TestPrecisionRound5:
 
     # ── cross_border: max_crossings cap ─────────────────────────────
     def test_cross_border_max_crossings_cap(self):
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         coord = CrossBorderCoordinator(max_crossings=2)
         coord.register_authority(AirspaceAuthority("A", "Alpha"))
         coord.register_authority(AirspaceAuthority("B", "Beta"))
@@ -1294,7 +1294,7 @@ class TestPrecisionRound6:
 
     # ── enable_maintenance: OCCUPIED/RESERVED protection ──────────
     def test_enable_maintenance_blocked_on_occupied(self):
-        from simulation.vertiport_ops import VertiportOps, PadStatus
+        from simulation.vertiport_ops import PadStatus, VertiportOps
         vp = VertiportOps()
         vp.add_pad("P1", (0.0, 0.0))
         sid = vp.reserve_slot("DR1", 1000.0, 600.0)
@@ -1304,7 +1304,7 @@ class TestPrecisionRound6:
         assert vp.pads["P1"].status == PadStatus.OCCUPIED
 
     def test_enable_maintenance_blocked_on_reserved(self):
-        from simulation.vertiport_ops import VertiportOps, PadStatus
+        from simulation.vertiport_ops import PadStatus, VertiportOps
         vp = VertiportOps()
         vp.add_pad("P1", (0.0, 0.0))
         vp.reserve_slot("DR1", 1000.0, 600.0)
@@ -1314,8 +1314,9 @@ class TestPrecisionRound6:
 
     # ── depart: future reservations preserved ─────────────────────
     def test_depart_preserves_future_reservations(self):
-        from simulation.vertiport_ops import VertiportOps
         import time as _t
+
+        from simulation.vertiport_ops import VertiportOps
         vp = VertiportOps()
         vp.add_pad("P1", (0.0, 0.0))
         # Past slot: depart will remove it
@@ -1490,7 +1491,7 @@ class TestPrecisionRound7:
 
     # ── zero-height NOTAM/TFR bands rejected ─────────────────────
     def test_notam_equal_altitude_rejected(self):
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         with pytest.raises(ValueError, match="strictly less"):
             mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 100.0, 100.0, 1.0, "x")
@@ -1503,7 +1504,7 @@ class TestPrecisionRound7:
 
     # ── cross_border: altitude + crossing_point validation ───────
     def test_crossing_negative_altitude_rejected(self):
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         coord = CrossBorderCoordinator()
         coord.register_authority(AirspaceAuthority("A", "Alpha"))
         coord.register_authority(AirspaceAuthority("B", "Beta"))
@@ -1511,7 +1512,7 @@ class TestPrecisionRound7:
             coord.propose_crossing("DR1", "A", "B", (0, 0), 1000.0, -100.0)
 
     def test_crossing_3element_point_rejected(self):
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         coord = CrossBorderCoordinator()
         coord.register_authority(AirspaceAuthority("A", "Alpha"))
         coord.register_authority(AirspaceAuthority("B", "Beta"))
@@ -1575,7 +1576,7 @@ class TestPrecisionRound8:
 
     # ── hard cap: notam_manager always enforced ───────────────────
     def test_notam_hard_cap_all_active(self):
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager(max_notams=2)
         for _ in range(5):
             mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.1, 999.0, "x")
@@ -1623,7 +1624,7 @@ class TestPrecisionRound8:
 class TestPrecisionRound9:
     # ── land() RESERVED guard ────────────────────────────────────
     def test_land_blocked_when_pad_not_reserved(self):
-        from simulation.vertiport_ops import VertiportOps, PadStatus
+        from simulation.vertiport_ops import VertiportOps
         vp = VertiportOps()
         vp.add_pad("P1", (0.0, 0.0))
         sid = vp.reserve_slot("DR1", 1000.0, 600.0)
@@ -1711,7 +1712,7 @@ class TestPrecisionRound9:
 
     # ── cross_border: NaN altitude rejected ──────────────────────
     def test_crossing_nan_altitude_rejected(self):
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         coord = CrossBorderCoordinator()
         coord.register_authority(AirspaceAuthority("A", "Alpha"))
         coord.register_authority(AirspaceAuthority("B", "Beta"))
@@ -1740,7 +1741,7 @@ class TestPrecisionRound9:
 class TestPrecisionRound10:
     # ── extend_notam NaN guard ────────────────────────────────────
     def test_extend_notam_nan_returns_false(self):
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         nid = mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.1, 1.0, "x")
         original_until = mgr.notams[nid].valid_until
@@ -1749,14 +1750,14 @@ class TestPrecisionRound10:
         assert mgr.notams[nid].valid_until == original_until  # unchanged
 
     def test_extend_notam_inf_returns_false(self):
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         nid = mgr.create_notam(NotamCategory.HAZARD, (0, 0), 100.0, 0.0, 100.1, 1.0, "x")
         assert not mgr.extend_notam(nid, float("inf"))
 
     # ── CrossBorder hard-cap fallback ────────────────────────────
     def test_cross_border_hard_cap_all_active(self):
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         coord = CrossBorderCoordinator(max_crossings=2)
         coord.register_authority(AirspaceAuthority("A", "Alpha"))
         coord.register_authority(AirspaceAuthority("B", "Beta"))
@@ -1843,7 +1844,7 @@ class TestPrecisionRound11:
     # ── CRITICAL: NaN area_center in create_notam ─────────────────
     def test_create_notam_nan_lat_raises(self):
         """area_center 좌표에 NaN이 있으면 ValueError가 발생해야 한다."""
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         with pytest.raises(ValueError, match="finite"):
             mgr.create_notam(NotamCategory.HAZARD, (float("nan"), 0.0),
@@ -1851,7 +1852,7 @@ class TestPrecisionRound11:
 
     def test_create_notam_inf_lon_raises(self):
         """area_center 좌표에 Inf가 있으면 ValueError가 발생해야 한다."""
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         with pytest.raises(ValueError, match="finite"):
             mgr.create_notam(NotamCategory.HAZARD, (0.0, float("inf")),
@@ -1861,7 +1862,7 @@ class TestPrecisionRound11:
         """유효한 NOTAM은 NaN center로 저장되지 않아 phantom match가 발생하지 않아야 한다.
         좌표 시스템은 유클리드 거리(미터)를 사용하므로 거리 단위를 맞춰 테스트한다.
         """
-        from simulation.notam_manager import NotamManager, NotamCategory
+        from simulation.notam_manager import NotamCategory, NotamManager
         mgr = NotamManager()
         # NOTAM을 (10000, 0)에 반경 100m으로 생성
         mgr.create_notam(NotamCategory.HAZARD, (10000.0, 0.0),
@@ -1958,7 +1959,7 @@ class TestPrecisionRound11:
     # ── HIGH: depart() does not clear MAINTENANCE status ─────────
     def test_depart_does_not_clear_maintenance(self):
         """MAINTENANCE 상태의 패드에서 depart()가 호출되어도 AVAILABLE로 변경되면 안 된다."""
-        from simulation.vertiport_ops import VertiportOps, PadStatus
+        from simulation.vertiport_ops import PadStatus, VertiportOps
         ops = VertiportOps()
         ops.add_pad("P1", (0.0, 0.0))
         # 패드를 MAINTENANCE로 전환
@@ -1972,7 +1973,7 @@ class TestPrecisionRound11:
     # ── HIGH: scheduled_time validation in propose_crossing ───────
     def test_propose_crossing_nan_scheduled_time_raises(self):
         """scheduled_time=nan이면 ValueError가 발생해야 한다."""
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         coord = CrossBorderCoordinator()
         coord.register_authority(AirspaceAuthority("A", "Alpha"))
         coord.register_authority(AirspaceAuthority("B", "Beta"))
@@ -1982,7 +1983,7 @@ class TestPrecisionRound11:
 
     def test_propose_crossing_negative_scheduled_time_raises(self):
         """scheduled_time < 0이면 ValueError가 발생해야 한다."""
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         coord = CrossBorderCoordinator()
         coord.register_authority(AirspaceAuthority("A", "Alpha"))
         coord.register_authority(AirspaceAuthority("B", "Beta"))
@@ -1992,7 +1993,7 @@ class TestPrecisionRound11:
 
     def test_propose_crossing_nan_crossing_point_raises(self):
         """crossing_point에 NaN 좌표가 있으면 ValueError가 발생해야 한다."""
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         coord = CrossBorderCoordinator()
         coord.register_authority(AirspaceAuthority("A", "Alpha"))
         coord.register_authority(AirspaceAuthority("B", "Beta"))
@@ -2019,7 +2020,7 @@ class TestPrecisionRound11:
 
     def test_cross_border_coordinator_get_returns_record(self):
         """CrossBorderCoordinator.get()이 올바른 BorderCrossing 레코드를 반환해야 한다."""
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         coord = CrossBorderCoordinator()
         coord.register_authority(AirspaceAuthority("A", "Alpha"))
         coord.register_authority(AirspaceAuthority("B", "Beta"))
@@ -2145,8 +2146,8 @@ class TestPrecisionRound12:
 
     def test_cavok_no_go_regression(self):
         """CAVOK METAR로 브리핑 생성 시 weather_ok=True이어야 한다 (이전 False 회귀 방지)."""
-        from simulation.metar_parser import MetarParser
         from simulation.aim_briefing import AimBriefingService, BriefingRequest
+        from simulation.metar_parser import MetarParser
         parser = MetarParser()
         svc = AimBriefingService(metar_parser=parser)
         req = BriefingRequest(
@@ -2270,7 +2271,7 @@ class TestPrecisionRound12:
     # ── HIGH: register_authority duplicate check ───────────────────
     def test_register_authority_duplicate_raises(self):
         """동일한 authority code 재등록은 ValueError가 발생해야 한다."""
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         coord = CrossBorderCoordinator()
         coord.register_authority(AirspaceAuthority("KR", "Korea", required_docs=["manifest"]))
         with pytest.raises(ValueError, match="already registered"):
@@ -2278,7 +2279,7 @@ class TestPrecisionRound12:
 
     def test_update_authority_replaces_existing(self):
         """update_authority()는 기존 authority를 교체할 수 있어야 한다."""
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         coord = CrossBorderCoordinator()
         coord.register_authority(AirspaceAuthority("KR", "Korea", required_docs=["manifest"]))
         coord.update_authority(AirspaceAuthority("KR", "Korea-Updated", required_docs=[]))
@@ -2288,7 +2289,7 @@ class TestPrecisionRound12:
     # ── HIGH: required_docs defensive copy ────────────────────────
     def test_register_authority_required_docs_isolated(self):
         """register_authority() 후 외부 목록을 변경해도 내부 docs가 변경되면 안 된다."""
-        from simulation.cross_border_coord import CrossBorderCoordinator, AirspaceAuthority
+        from simulation.cross_border_coord import AirspaceAuthority, CrossBorderCoordinator
         coord = CrossBorderCoordinator()
         docs = ["manifest", "insurance"]
         coord.register_authority(AirspaceAuthority("KR", "Korea", required_docs=docs))

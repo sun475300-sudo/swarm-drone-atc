@@ -53,14 +53,14 @@ class MultimodalSensor:
         detections = []
         for obj in objects:
             obj_pos = obj.get("pos", (0, 0, 0))
-            dist = float(np.sqrt(sum((a-b)**2 for a, b in zip(drone_pos, obj_pos))))
+            dist = float(np.sqrt(sum((a-b)**2 for a, b in zip(drone_pos, obj_pos, strict=False))))
 
             for sensor in sensors:
                 if not sensor.active or dist > sensor.range_m:
                     continue
                 if self._rng.random() < sensor.accuracy:
                     noise = self._rng.normal(0, dist * 0.02, size=3)
-                    measured_pos = tuple(round(p + n, 1) for p, n in zip(obj_pos, noise))
+                    measured_pos = tuple(round(p + n, 1) for p, n in zip(obj_pos, noise, strict=False))
                     confidence = sensor.accuracy * (1 - dist / sensor.range_m)
                     det = Detection(
                         object_id=obj["id"], sensor_type=sensor.sensor_type,

@@ -5,7 +5,6 @@ Phase 519: Quantum Sensing
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -56,7 +55,7 @@ class QuantumStateEvolver:
         return QuantumState(amps, n_qubits)
 
     def evolve(self, state: QuantumState, dt: float,
-               hamiltonian: Optional[np.ndarray] = None) -> QuantumState:
+               hamiltonian: np.ndarray | None = None) -> QuantumState:
         dim = len(state.amplitudes)
         if hamiltonian is None:
             hamiltonian = self.rng.standard_normal((dim, dim))
@@ -134,10 +133,10 @@ class QuantumSensing:
         self.evolver = QuantumStateEvolver(seed)
         self.interferometer = AtomInterferometer(seed)
         self.gravimeter = QuantumGravimeter(seed)
-        self.measurements: List[SensorMeasurement] = []
+        self.measurements: list[SensorMeasurement] = []
         self.n_sensors = n_sensors
 
-    def sense_acceleration(self, accel: np.ndarray) -> List[SensorMeasurement]:
+    def sense_acceleration(self, accel: np.ndarray) -> list[SensorMeasurement]:
         results = []
         for i, a in enumerate(accel):
             m = self.interferometer.measure_acceleration(float(a))
@@ -153,7 +152,7 @@ class QuantumSensing:
         return m
 
     def quantum_enhanced_nav(self, true_pos: np.ndarray,
-                             n_steps: int = 10) -> List[np.ndarray]:
+                             n_steps: int = 10) -> list[np.ndarray]:
         positions = [true_pos.copy()]
         state = self.evolver.create_state(2)
         for _ in range(n_steps):
@@ -165,7 +164,7 @@ class QuantumSensing:
             positions.append(new_pos)
         return positions
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "sensors": self.n_sensors,
             "measurements": len(self.measurements),

@@ -5,7 +5,6 @@ Phase 481: Adversarial Defense System
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -32,7 +31,7 @@ class DefenseAction(Enum):
 class ThreatSignature:
     attack_type: AttackType
     confidence: float
-    source_bearing: Optional[float] = None
+    source_bearing: float | None = None
     signal_strength: float = 0.0
     timestamp: float = 0.0
 
@@ -51,17 +50,17 @@ class AdversarialDefense:
     def __init__(self, n_drones: int = 20, seed: int = 42):
         self.rng = np.random.default_rng(seed)
         self.n_drones = n_drones
-        self.threats_detected: List[ThreatSignature] = []
-        self.defense_log: List[DefenseEvent] = []
-        self.drone_trust: Dict[int, float] = dict.fromkeys(range(n_drones), 1.0)
-        self.gps_baseline: Dict[int, np.ndarray] = {}
+        self.threats_detected: list[ThreatSignature] = []
+        self.defense_log: list[DefenseEvent] = []
+        self.drone_trust: dict[int, float] = dict.fromkeys(range(n_drones), 1.0)
+        self.gps_baseline: dict[int, np.ndarray] = {}
         self.time = 0.0
 
         for i in range(n_drones):
             self.gps_baseline[i] = self.rng.uniform(-100, 100, 3)
 
     def detect_gps_spoofing(self, drone_id: int, reported_pos: np.ndarray,
-                            imu_pos: np.ndarray) -> Optional[ThreatSignature]:
+                            imu_pos: np.ndarray) -> ThreatSignature | None:
         diff = np.linalg.norm(reported_pos - imu_pos)
         if diff > 5.0:
             confidence = min(1.0, diff / 20.0)
@@ -74,7 +73,7 @@ class AdversarialDefense:
         return None
 
     def detect_jamming(self, drone_id: int, snr_db: float,
-                       noise_floor_db: float = -90) -> Optional[ThreatSignature]:
+                       noise_floor_db: float = -90) -> ThreatSignature | None:
         if snr_db < 5.0:
             confidence = min(1.0, (10.0 - snr_db) / 15.0)
             threat = ThreatSignature(
@@ -84,8 +83,8 @@ class AdversarialDefense:
             return threat
         return None
 
-    def detect_replay(self, packet_timestamps: List[float],
-                      window_s: float = 2.0) -> Optional[ThreatSignature]:
+    def detect_replay(self, packet_timestamps: list[float],
+                      window_s: float = 2.0) -> ThreatSignature | None:
         if len(packet_timestamps) < 4:
             return None
         diffs = np.diff(sorted(packet_timestamps[-20:]))
@@ -116,7 +115,7 @@ class AdversarialDefense:
         self.defense_log.append(event)
         return event
 
-    def run_scan(self) -> List[ThreatSignature]:
+    def run_scan(self) -> list[ThreatSignature]:
         """Scan all drones for potential threats."""
         self.time += 1.0
         threats = []
@@ -137,7 +136,7 @@ class AdversarialDefense:
                 threats.append(t)
         return threats
 
-    def run_defense_cycle(self, n_cycles: int = 10) -> Dict:
+    def run_defense_cycle(self, n_cycles: int = 10) -> dict:
         total_threats = 0
         total_defended = 0
         for _ in range(n_cycles):
@@ -154,7 +153,7 @@ class AdversarialDefense:
             "defense_rate": round(total_defended / max(total_threats, 1), 4),
         }
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "drones_monitored": self.n_drones,
             "total_threats": len(self.threats_detected),

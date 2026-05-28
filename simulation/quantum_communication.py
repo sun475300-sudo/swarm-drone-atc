@@ -6,7 +6,6 @@ Phase 503: Quantum Communication
 import hashlib
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -68,7 +67,7 @@ class BB84Protocol:
         alice_bases = self.rng.choice(list(QKDBasis), n_bits)
         bob_bases = self.rng.choice(list(QKDBasis), n_bits)
 
-        qubits = [self._prepare_qubit(int(b), basis) for b, basis in zip(alice_bits, alice_bases)]
+        qubits = [self._prepare_qubit(int(b), basis) for b, basis in zip(alice_bits, alice_bases, strict=False)]
 
         if eve_present:
             eve_bases = self.rng.choice(list(QKDBasis), n_bits)
@@ -87,7 +86,7 @@ class BB84Protocol:
         sifted_alice = [int(alice_bits[i]) for i in matching]
         sifted_bob = [bob_results[i] for i in matching]
 
-        errors = sum(a != b for a, b in zip(sifted_alice, sifted_bob))
+        errors = sum(a != b for a, b in zip(sifted_alice, sifted_bob, strict=False))
         error_rate = errors / max(len(matching), 1)
         secure = error_rate < 0.11
 
@@ -102,15 +101,15 @@ class QuantumTeleportation:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.fidelity_log: List[float] = []
+        self.fidelity_log: list[float] = []
 
-    def teleport(self, state: Tuple[complex, complex],
-                 noise: float = 0.01) -> Tuple[complex, complex]:
+    def teleport(self, state: tuple[complex, complex],
+                 noise: float = 0.01) -> tuple[complex, complex]:
         alpha, beta = state
         norm = np.sqrt(abs(alpha)**2 + abs(beta)**2)
         alpha, beta = alpha / norm, beta / norm
 
-        bell_measurement = self.rng.integers(0, 4)
+        self.rng.integers(0, 4)
         noise_alpha = alpha + self.rng.standard_normal() * noise
         noise_beta = beta + self.rng.standard_normal() * noise
         norm2 = np.sqrt(abs(noise_alpha)**2 + abs(noise_beta)**2)
@@ -132,8 +131,8 @@ class QuantumCommunication:
         self.n_drones = n_drones
         self.bb84 = BB84Protocol(seed)
         self.teleport = QuantumTeleportation(seed)
-        self.channels: Dict[str, QuantumChannel] = {}
-        self.shared_keys: Dict[str, str] = {}
+        self.channels: dict[str, QuantumChannel] = {}
+        self.shared_keys: dict[str, str] = {}
 
     def establish_qkd(self, alice_id: str, bob_id: str,
                       n_bits: int = 256, eve: bool = False) -> QKDResult:
@@ -146,7 +145,7 @@ class QuantumCommunication:
             self.shared_keys[key] = result.final_key
         return result
 
-    def secure_send(self, sender: str, receiver: str, message: str) -> Dict:
+    def secure_send(self, sender: str, receiver: str, message: str) -> dict:
         key = f"{sender}-{receiver}"
         alt_key = f"{receiver}-{sender}"
         shared = self.shared_keys.get(key) or self.shared_keys.get(alt_key)
@@ -160,7 +159,7 @@ class QuantumCommunication:
         return {"sent": True, "sender": sender, "receiver": receiver,
                 "msg_hash": msg_hash, "key_id": key}
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "drones": self.n_drones,
             "channels": len(self.channels),

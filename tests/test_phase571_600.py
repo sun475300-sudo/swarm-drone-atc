@@ -1,5 +1,4 @@
 """Phase 571-600 테스트 (100개): 다국어 + Python + Phase 600 통합."""
-import pytest
 import os
 import sys
 
@@ -225,7 +224,7 @@ class TestPhase580PowerShell:
 
 class TestPhase581SwarmOrigami:
     def test_import(self):
-        from simulation.swarm_origami import SwarmOrigami
+        pass
     def test_run(self):
         from simulation.swarm_origami import SwarmOrigami
         s = SwarmOrigami(10, 42); s.run(3)
@@ -237,7 +236,7 @@ class TestPhase581SwarmOrigami:
 
 class TestPhase582Blockchain:
     def test_import(self):
-        from simulation.drone_blockchain import DroneBlockchain
+        pass
     def test_run(self):
         from simulation.drone_blockchain import DroneBlockchain
         b = DroneBlockchain(2, 42); b.run(3, 3)
@@ -249,7 +248,7 @@ class TestPhase582Blockchain:
 
 class TestPhase583Annealing:
     def test_import(self):
-        from simulation.quantum_annealing_opt import QuantumAnnealingOpt
+        pass
     def test_run(self):
         from simulation.quantum_annealing_opt import QuantumAnnealingOpt
         q = QuantumAnnealingOpt(16, 42); q.run(3, 200)
@@ -261,7 +260,7 @@ class TestPhase583Annealing:
 
 class TestPhase584Language:
     def test_import(self):
-        from simulation.swarm_language_model import SwarmLanguageModel
+        pass
     def test_run(self):
         from simulation.swarm_language_model import SwarmLanguageModel
         s = SwarmLanguageModel(42); s.run(10)
@@ -273,7 +272,7 @@ class TestPhase584Language:
 
 class TestPhase585Holographic:
     def test_import(self):
-        from simulation.holographic_memory import HolographicMemory
+        pass
     def test_run(self):
         from simulation.holographic_memory import HolographicMemory
         h = HolographicMemory(128, 42); h.run(10)
@@ -285,7 +284,7 @@ class TestPhase585Holographic:
 
 class TestPhase586Ecosystem:
     def test_import(self):
-        from simulation.drone_ecosystem import DroneEcosystem
+        pass
     def test_run(self):
         from simulation.drone_ecosystem import DroneEcosystem
         e = DroneEcosystem(42); e.run(50)
@@ -297,7 +296,7 @@ class TestPhase586Ecosystem:
 
 class TestPhase587Game:
     def test_import(self):
-        from simulation.adversarial_swarm_game import AdversarialSwarmGame
+        pass
     def test_run(self):
         from simulation.adversarial_swarm_game import AdversarialSwarmGame
         g = AdversarialSwarmGame(3, 3, 42); g.run(5)
@@ -309,7 +308,7 @@ class TestPhase587Game:
 
 class TestPhase588Calculus:
     def test_import(self):
-        from simulation.swarm_calculus import SwarmCalculus
+        pass
     def test_run(self):
         from simulation.swarm_calculus import SwarmCalculus
         s = SwarmCalculus(16, 16, 42); s.run(20)
@@ -321,7 +320,7 @@ class TestPhase588Calculus:
 
 class TestPhase589NeuralODE:
     def test_import(self):
-        from simulation.neural_ode_controller import NeuralODEController
+        pass
     def test_run(self):
         from simulation.neural_ode_controller import NeuralODEController
         n = NeuralODEController(4, 42); n.run(3, 2.0)
@@ -333,7 +332,7 @@ class TestPhase589NeuralODE:
 
 class TestPhase590Social:
     def test_import(self):
-        from simulation.drone_social_network import DroneSocialNetwork
+        pass
     def test_run(self):
         from simulation.drone_social_network import DroneSocialNetwork
         d = DroneSocialNetwork(10, 42); d.run()
@@ -463,7 +462,7 @@ class TestPhase599Lisp:
 
 class TestPhase600GrandUnified:
     def test_import(self):
-        from simulation.phase600_grand_unified import GrandUnifiedOrchestrator
+        pass
 
     def test_run(self):
         from simulation.phase600_grand_unified import GrandUnifiedOrchestrator

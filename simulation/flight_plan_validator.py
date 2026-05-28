@@ -60,7 +60,6 @@ class FlightPlanValidator:
     ) -> ValidationResult:
         """비행 계획 검증"""
         issues = []
-        max_spd = speed_limit or self._max_speed
 
         for i, wp in enumerate(waypoints):
             # 고도 검증

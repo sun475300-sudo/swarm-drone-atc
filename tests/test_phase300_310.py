@@ -3,16 +3,20 @@ Swarm Intelligence v2, Performance Regression, Integration Test Framework,
 Blockchain Audit, AR/VR Bridge.
 """
 
-import numpy as np
-import pytest
 import json
-import time
 
+import numpy as np
 
 # ── Phase 300: HIL Simulator ─────────────────────────────────────────
 from simulation.hil_simulator import (
-    HILSimulator, HILMode, SensorType, SensorEmulator,
-    PhysicsEngine, VehicleState, ActuatorCommand, SensorReading,
+    ActuatorCommand,
+    HILMode,
+    HILSimulator,
+    PhysicsEngine,
+    SensorEmulator,
+    SensorReading,
+    SensorType,
+    VehicleState,
 )
 
 
@@ -117,7 +121,11 @@ class TestPhysicsEngine:
 
 # ── Phase 301: Digital Twin Sync ─────────────────────────────────────
 from simulation.digital_twin_sync import (
-    DigitalTwinSyncEngine, TwinState, TwinStatus, SyncMode, SyncEvent,
+    DigitalTwinSyncEngine,
+    SyncEvent,
+    SyncMode,
+    TwinState,
+    TwinStatus,
 )
 
 
@@ -183,8 +191,12 @@ class TestDigitalTwinSync:
 
 # ── Phase 302: Autonomous Mission Planner v2 ─────────────────────────
 from simulation.autonomous_mission_planner_v2 import (
-    AutonomousMissionPlannerV2, MissionObjective, MissionConstraint,
-    MissionPlan, Waypoint, CoverageOptimizer, TSPSolver,
+    AutonomousMissionPlannerV2,
+    CoverageOptimizer,
+    MissionConstraint,
+    MissionPlan,
+    TSPSolver,
+    Waypoint,
 )
 
 
@@ -252,8 +264,10 @@ class TestAutonomousMissionPlannerV2:
 
 # ── Phase 303: Swarm Intelligence v2 (PSO/ACO) ──────────────────────
 from simulation.swarm_intelligence_v2 import (
-    SwarmIntelligenceV2, PSOEngine, ACOEngine, OptimizerType,
-    OptimizationResult,
+    ACOEngine,
+    OptimizerType,
+    PSOEngine,
+    SwarmIntelligenceV2,
 )
 
 
@@ -317,7 +331,8 @@ class TestSwarmIntelligenceV2:
 
 # ── Phase 304: Performance Regression Suite ──────────────────────────
 from simulation.performance_regression_suite import (
-    PerformanceRegressionSuite, BenchmarkResult,
+    BenchmarkResult,
+    PerformanceRegressionSuite,
 )
 
 
@@ -366,7 +381,8 @@ class TestPerformanceRegressionSuite:
 
 # ── Phase 305: Integration Test Framework ────────────────────────────
 from simulation.integration_test_framework import (
-    IntegrationTestFramework, IntegrationTestResult, IntegrationTestOutcome,
+    IntegrationTestFramework,
+    IntegrationTestResult,
 )
 
 
@@ -426,7 +442,8 @@ class TestIntegrationTestFramework:
 
 # ── Phase 306: Blockchain Audit Trail ────────────────────────────────
 from simulation.blockchain_audit import (
-    BlockchainAuditTrail, AuditEvent, Block,
+    AuditEvent,
+    BlockchainAuditTrail,
 )
 
 
@@ -489,8 +506,12 @@ class TestBlockchainAuditTrail:
 
 # ── Phase 307: AR/VR Bridge ──────────────────────────────────────────
 from simulation.ar_vr_bridge import (
-    ARVRBridge, SceneObject, RenderPrimitive, InteractionType,
-    InteractionEvent, SceneFrame,
+    ARVRBridge,
+    InteractionEvent,
+    InteractionType,
+    RenderPrimitive,
+    SceneFrame,
+    SceneObject,
 )
 
 

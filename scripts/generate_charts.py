@@ -21,8 +21,9 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-import numpy as np
 import matplotlib
+import numpy as np
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
@@ -248,7 +249,7 @@ def chart_latency_live(out: str, live_data: dict[str, dict]) -> None:
         p99_vals.append(p99)
 
     if not scenario_names:
-        print(f"  [SKIP] latency chart — no data")
+        print("  [SKIP] latency chart — no data")
         return
 
     x = np.arange(len(scenario_names))
@@ -288,7 +289,7 @@ def chart_scenario_comparison_live(out: str, live_data: dict[str, dict]) -> None
                                   data.get("conflict_resolution_rate", 100)))
 
     if not names:
-        print(f"  [SKIP] comparison chart — no data")
+        print("  [SKIP] comparison chart — no data")
         return
 
     fig, axes = plt.subplots(1, 3, figsize=(16, 5))
@@ -345,7 +346,7 @@ def main() -> None:
         else:
             print("  [WARN] 실측 데이터 없음 — live 차트 생략")
 
-    print(f"\n[OK] 차트 생성 완료\n")
+    print("\n[OK] 차트 생성 완료\n")
 
 
 if __name__ == "__main__":

@@ -11,12 +11,11 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-import simpy
 
 from src.airspace_control.agents.drone_state import (
-    DroneState, FlightPhase, CommsStatus, FailureType,
+    DroneState,
+    FlightPhase,
 )
-
 
 # ── 헬퍼 ─────────────────────────────────────────────────────────────
 
@@ -436,7 +435,7 @@ class TestAPFWindyModeTransition:
 
     def test_calm_uses_normal_params(self):
         """풍속 0 → 기본 APF_PARAMS 사용"""
-        from simulation.apf_engine.apf import compute_total_force, APFState, APF_PARAMS
+        from simulation.apf_engine.apf import APFState, compute_total_force
         own = APFState(np.array([0.0, 0.0, 60.0]), np.zeros(3), "D0")
         goal = np.array([1000.0, 0.0, 60.0])
         f = compute_total_force(own, goal, [], [], wind_speed=0.0)
@@ -444,7 +443,7 @@ class TestAPFWindyModeTransition:
 
     def test_strong_wind_uses_windy_params(self):
         """풍속 15 → APF_PARAMS_WINDY 사용"""
-        from simulation.apf_engine.apf import compute_total_force, APFState, APF_PARAMS_WINDY
+        from simulation.apf_engine.apf import APFState, compute_total_force
         own = APFState(np.array([0.0, 0.0, 60.0]), np.zeros(3), "D0")
         neighbor = APFState(np.array([30.0, 0.0, 60.0]), np.zeros(3), "D1")
         goal = np.array([1000.0, 0.0, 60.0])
@@ -453,7 +452,7 @@ class TestAPFWindyModeTransition:
 
     def test_mid_wind_blends_params(self):
         """풍속 9 (6~12 구간) → 보간된 파라미터"""
-        from simulation.apf_engine.apf import compute_total_force, APFState
+        from simulation.apf_engine.apf import APFState, compute_total_force
         own = APFState(np.array([0.0, 0.0, 60.0]), np.zeros(3), "D0")
         neighbor = APFState(np.array([30.0, 0.0, 60.0]), np.zeros(3), "D1")
         goal = np.array([1000.0, 0.0, 60.0])
@@ -522,19 +521,19 @@ class TestBoundaryConditions:
         assert d.speed == pytest.approx(5.0)
 
     def test_clamp_speed_at_max(self):
-        from simulation.simulator import _clamp_speed
+        from simulation.drone_agent import _clamp_speed
         vel = np.array([20.0, 0.0, 0.0])
         clamped = _clamp_speed(vel, max_spd=15.0)
         assert np.linalg.norm(clamped) <= 15.0 + 1e-6
 
     def test_clamp_speed_below_max(self):
-        from simulation.simulator import _clamp_speed
+        from simulation.drone_agent import _clamp_speed
         vel = np.array([5.0, 0.0, 0.0])
         clamped = _clamp_speed(vel, max_spd=15.0)
         assert np.allclose(clamped, vel)
 
     def test_clamp_speed_windy_mode(self):
-        from simulation.simulator import _clamp_speed
+        from simulation.drone_agent import _clamp_speed
         vel = np.array([20.0, 0.0, 0.0])
         clamped = _clamp_speed(vel, max_spd=15.0, wind_speed=12.0)
         # 강풍 모드: effective_max = max(15, 12+5) = 17

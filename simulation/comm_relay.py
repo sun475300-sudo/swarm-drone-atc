@@ -99,7 +99,7 @@ class CommRelayPlanner:
     def compute_relay_plan(self, max_relays: int = 5) -> RelayPlan:
         """중계 드론 최적 배치 계획 (그리디)"""
         coverage_before = self.get_coverage()
-        disconnected = self.get_disconnected()
+        self.get_disconnected()
 
         if coverage_before >= self.min_coverage:
             return RelayPlan(

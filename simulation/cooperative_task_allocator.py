@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -36,7 +35,7 @@ class Task:
     required_payload: float = 0.0
     deadline_sec: float = 300.0
     status: TaskStatus = TaskStatus.PENDING
-    assigned_drone: Optional[str] = None
+    assigned_drone: str | None = None
     reward: float = 1.0
 
 
@@ -54,7 +53,7 @@ class HungarianSolver:
     """간이 Hungarian 알고리즘 (비용 행렬 기반)."""
 
     @staticmethod
-    def solve(cost_matrix: np.ndarray) -> List[Tuple[int, int]]:
+    def solve(cost_matrix: np.ndarray) -> list[tuple[int, int]]:
         n, m = cost_matrix.shape
         assignments = []
         used_cols = set()
@@ -82,10 +81,10 @@ class AuctionAllocator:
     def __init__(self, epsilon: float = 0.1):
         self.epsilon = epsilon
 
-    def allocate(self, bids: Dict[str, Dict[str, float]]) -> Dict[str, str]:
+    def allocate(self, bids: dict[str, dict[str, float]]) -> dict[str, str]:
         """bids: {drone_id: {task_id: bid_value}}. Returns {task_id: drone_id}."""
-        allocation: Dict[str, str] = {}
-        task_prices: Dict[str, float] = {}
+        allocation: dict[str, str] = {}
+        task_prices: dict[str, float] = {}
         for drone_id, task_bids in bids.items():
             for task_id, bid in task_bids.items():
                 current_price = task_prices.get(task_id, 0.0)
@@ -109,10 +108,10 @@ class CooperativeTaskAllocator:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._tasks: Dict[str, Task] = {}
-        self._drones: Dict[str, DroneCapability] = {}
-        self._allocations: Dict[str, str] = {}  # task_id -> drone_id
-        self._history: List[dict] = []
+        self._tasks: dict[str, Task] = {}
+        self._drones: dict[str, DroneCapability] = {}
+        self._allocations: dict[str, str] = {}  # task_id -> drone_id
+        self._history: list[dict] = []
         self._auction = AuctionAllocator()
 
     def add_task(self, task: Task):
@@ -129,7 +128,7 @@ class CooperativeTaskAllocator:
         priority_bonus = -task.priority.value * 10.0
         return time_cost + battery_cost + payload_penalty + priority_bonus
 
-    def allocate_hungarian(self) -> Dict[str, str]:
+    def allocate_hungarian(self) -> dict[str, str]:
         available_drones = [d for d in self._drones.values() if d.available]
         pending_tasks = [t for t in self._tasks.values() if t.status == TaskStatus.PENDING]
         if not available_drones or not pending_tasks:
@@ -152,12 +151,12 @@ class CooperativeTaskAllocator:
                 self._history.append({"event": "assign", "task": task.task_id, "drone": drone.drone_id, "method": "hungarian"})
         return result
 
-    def allocate_auction(self) -> Dict[str, str]:
+    def allocate_auction(self) -> dict[str, str]:
         available_drones = [d for d in self._drones.values() if d.available]
         pending_tasks = [t for t in self._tasks.values() if t.status == TaskStatus.PENDING]
         if not available_drones or not pending_tasks:
             return {}
-        bids: Dict[str, Dict[str, float]] = {}
+        bids: dict[str, dict[str, float]] = {}
         for drone in available_drones:
             bids[drone.drone_id] = {}
             for task in pending_tasks:
@@ -191,14 +190,14 @@ class CooperativeTaskAllocator:
         self._history.append({"event": "fail", "task": task_id})
         return True
 
-    def reallocate(self) -> Dict[str, str]:
+    def reallocate(self) -> dict[str, str]:
         """실패한 작업을 재할당."""
         failed = [t for t in self._tasks.values() if t.status == TaskStatus.FAILED]
         for t in failed:
             t.status = TaskStatus.PENDING
         return self.allocate_hungarian()
 
-    def get_allocation(self, task_id: str) -> Optional[str]:
+    def get_allocation(self, task_id: str) -> str | None:
         return self._allocations.get(task_id)
 
     def summary(self) -> dict:

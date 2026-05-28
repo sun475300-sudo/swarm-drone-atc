@@ -1,8 +1,12 @@
 """WindModel 3종 테스트"""
 import numpy as np
 import pytest
+
 from simulation.weather import (
-    WindModel, ConstantWind, VariableWind, ShearWind, build_wind_models,
+    ConstantWind,
+    ShearWind,
+    VariableWind,
+    build_wind_models,
 )
 
 pytestmark = pytest.mark.unit

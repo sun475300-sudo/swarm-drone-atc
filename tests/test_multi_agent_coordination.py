@@ -4,21 +4,17 @@ Tests cover agent registration, task assignment, message passing,
 load balancing, emergency handling, and coordination protocols.
 """
 
-import pytest
-import time
 from simulation.multi_agent_coordination import (
     Agent,
-    AgentType,
     AgentState,
-    AgentMetrics,
+    AgentType,
+    CommunicationProtocol,
+    MessageType,
+    MultiAgentCoordinator,
     Task,
     TaskPriority,
-    MessageType,
-    AgentMessage,
-    CommunicationProtocol,
-    MultiAgentCoordinator,
-    create_coordinator,
     build_with_extended_agents,
+    create_coordinator,
 )
 
 

@@ -3,10 +3,10 @@
 Phase 521-530: 다국어 모듈 (파일 존재 확인)
 Phase 531-540: Python 고급 모듈 (기능 테스트)
 """
-import pytest
 import os
+
 import numpy as np
-from functools import partial
+
 
 def open_utf8(path, *args, **kwargs):
     return open(path, *args, encoding="utf-8", **kwargs)
@@ -306,7 +306,7 @@ class TestPhase532TemporalLogic:
         assert len(planner.states) == 8
 
     def test_verify_single(self):
-        from simulation.temporal_logic_planner import TemporalLogicPlanner, atom, always
+        from simulation.temporal_logic_planner import TemporalLogicPlanner, always, atom
         planner = TemporalLogicPlanner(42)
         planner.build_mission_model(8)
         r = planner.verify(always(atom("safe")))
@@ -320,7 +320,7 @@ class TestPhase532TemporalLogic:
         assert len(results) == 4
 
     def test_formula_str(self):
-        from simulation.temporal_logic_planner import atom, always, formula_to_str
+        from simulation.temporal_logic_planner import always, atom, formula_to_str
         f = always(atom("safe"))
         assert "safe" in formula_to_str(f)
 
@@ -544,7 +544,7 @@ class TestPhase539CognitiveRadio:
         assert crn.time_step == 20
 
     def test_spectrum_sensor(self):
-        from simulation.cognitive_radio_network import SpectrumSensor, Channel
+        from simulation.cognitive_radio_network import Channel, SpectrumSensor
         sensor = SpectrumSensor(42)
         ch = Channel(0, 900.0, 5.0)
         result = sensor.energy_detect(ch)

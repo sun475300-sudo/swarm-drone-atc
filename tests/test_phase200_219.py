@@ -9,8 +9,9 @@ class TestMLPipelineIntegration:
         assert p.version == "1.0.0"
 
     def test_collision_predictor_predict(self):
-        from simulation.ml_pipeline_integration import CollisionPredictor
         import numpy as np
+
+        from simulation.ml_pipeline_integration import CollisionPredictor
 
         p = CollisionPredictor()
         features = np.array([[50.0, 10.0, 5.0], [100.0, 20.0, 3.0]])
@@ -18,8 +19,9 @@ class TestMLPipelineIntegration:
         assert len(result) == 2
 
     def test_collision_predictor_proba(self):
-        from simulation.ml_pipeline_integration import CollisionPredictor
         import numpy as np
+
+        from simulation.ml_pipeline_integration import CollisionPredictor
 
         p = CollisionPredictor()
         features = np.array([[30.0, 5.0, 8.0]])
@@ -27,8 +29,9 @@ class TestMLPipelineIntegration:
         assert result.shape[1] == 2
 
     def test_collision_risk_prediction(self):
-        from simulation.ml_pipeline_integration import CollisionPredictor
         import numpy as np
+
+        from simulation.ml_pipeline_integration import CollisionPredictor
 
         p = CollisionPredictor()
         positions = np.array([[0.0, 0.0, 50.0], [40.0, 0.0, 50.0]])
@@ -43,8 +46,9 @@ class TestMLPipelineIntegration:
         assert r.version == "1.0.0"
 
     def test_route_optimizer_predict(self):
-        from simulation.ml_pipeline_integration import RouteOptimizer
         import numpy as np
+
+        from simulation.ml_pipeline_integration import RouteOptimizer
 
         r = RouteOptimizer()
         features = np.array([[0.0, 0.0, 100.0, 100.0, 2.0, 1.0]])
@@ -52,8 +56,9 @@ class TestMLPipelineIntegration:
         assert result.shape[0] == 1
 
     def test_route_optimization(self):
-        from simulation.ml_pipeline_integration import RouteOptimizer
         import numpy as np
+
+        from simulation.ml_pipeline_integration import RouteOptimizer
 
         r = RouteOptimizer()
         start = np.array([0.0, 0.0, 50.0])
@@ -64,8 +69,9 @@ class TestMLPipelineIntegration:
         assert result["estimated_time"] > 0
 
     def test_route_with_obstacles(self):
-        from simulation.ml_pipeline_integration import RouteOptimizer
         import numpy as np
+
+        from simulation.ml_pipeline_integration import RouteOptimizer
 
         r = RouteOptimizer()
         start = np.array([0.0, 0.0, 50.0])
@@ -81,8 +87,9 @@ class TestMLPipelineIntegration:
         assert d.version == "1.0.0"
 
     def test_demand_forecaster_predict(self):
-        from simulation.ml_pipeline_integration import DemandForecaster
         import numpy as np
+
+        from simulation.ml_pipeline_integration import DemandForecaster
 
         d = DemandForecaster()
         features = np.array([[8.0, 1.0, 1.0, 100.0], [22.0, 1.0, 0.8, 50.0]])
@@ -122,8 +129,9 @@ class TestMLPipelineIntegration:
         assert p._use_gpu is True
 
     def test_full_inference_pipeline(self):
-        from simulation.ml_pipeline_integration import MLInferencePipeline
         import numpy as np
+
+        from simulation.ml_pipeline_integration import MLInferencePipeline
 
         p = MLInferencePipeline()
         positions = np.random.rand(5, 3) * 100
@@ -145,7 +153,7 @@ class TestAdvancedAnalytics:
         assert s.value == 45.5
 
     def test_performance_report_creation(self):
-        from simulation.advanced_analytics import PerformanceReport, MetricSnapshot
+        from simulation.advanced_analytics import MetricSnapshot, PerformanceReport
 
         snapshots = [
             MetricSnapshot(timestamp=1000.0, name="cpu", value=50.0),
@@ -293,9 +301,10 @@ class TestAdvancedAnalytics:
 
 class TestIntegration:
     def test_ml_pipeline_to_analytics(self):
-        from simulation.ml_pipeline_integration import MLInferencePipeline
-        from simulation.advanced_analytics import AnalyticsAggregator, MetricSnapshot
         import numpy as np
+
+        from simulation.advanced_analytics import AnalyticsAggregator, MetricSnapshot
+        from simulation.ml_pipeline_integration import MLInferencePipeline
 
         pipeline = MLInferencePipeline()
         aggregator = AnalyticsAggregator()
@@ -317,9 +326,10 @@ class TestIntegration:
         assert stats["count"] == 3
 
     def test_full_pipeline_with_export(self, tmp_path):
-        from simulation.ml_pipeline_integration import MLInferencePipeline
-        from simulation.advanced_analytics import AnalyticsAggregator
         import numpy as np
+
+        from simulation.advanced_analytics import AnalyticsAggregator
+        from simulation.ml_pipeline_integration import MLInferencePipeline
 
         pipeline = MLInferencePipeline()
         aggregator = AnalyticsAggregator()
@@ -365,8 +375,9 @@ class TestEdgeCases:
         assert trend == "stable"
 
     def test_route_optimizer_no_obstacles(self):
-        from simulation.ml_pipeline_integration import RouteOptimizer
         import numpy as np
+
+        from simulation.ml_pipeline_integration import RouteOptimizer
 
         r = RouteOptimizer()
         result = r.optimize_route(np.zeros(3), np.ones(3) * 50)

@@ -137,7 +137,7 @@ class MeshNetwork:
         self.total_hops += hops
 
         # 대역폭 체크: 전송 시간 = payload / bandwidth
-        tx_time_s = (payload_bytes * 8) / self.bandwidth_bps
+        (payload_bytes * 8) / self.bandwidth_bps
 
         # 각 홉에서 큐 체크
         for node in route[1:-1]:  # 중간 릴레이 노드

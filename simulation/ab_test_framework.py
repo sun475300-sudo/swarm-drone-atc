@@ -73,10 +73,7 @@ class ABTestFramework:
         c_mean = float(np.mean(control))
         t_mean = float(np.mean(treatment))
 
-        if c_mean != 0:
-            improvement = (c_mean - t_mean) / abs(c_mean) * 100
-        else:
-            improvement = 0.0
+        improvement = (c_mean - t_mean) / abs(c_mean) * 100 if c_mean != 0 else 0.0
 
         p_value = self._welch_t_test(control, treatment)
         significant = p_value < self.significance_level

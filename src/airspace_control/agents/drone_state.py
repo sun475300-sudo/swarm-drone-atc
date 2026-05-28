@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Optional
 
 import numpy as np
 
@@ -50,7 +49,7 @@ class DroneState:
     failure_type: FailureType = FailureType.NONE
 
     # 비행 계획
-    goal: Optional[np.ndarray] = None            # 현재 목표 위치
+    goal: np.ndarray | None = None            # 현재 목표 위치
     waypoints: list[np.ndarray] = field(default_factory=list)
     current_waypoint_idx: int = 0
 
@@ -66,8 +65,11 @@ class DroneState:
     last_update_s: float = 0.0
 
     # 회피/대기 단계 타이밍 (시뮬레이터 관리)
-    evade_end_s: Optional[float] = None    # EVADING 단계 종료 시각
-    hold_start_s: Optional[float] = None   # HOLDING 단계 시작 시각
+    evade_end_s: float | None = None    # EVADING 단계 종료 시각
+    hold_start_s: float | None = None   # HOLDING 단계 시작 시각
+
+    # Voronoi 밀도 관리 (AirspaceController 관리)
+    _voronoi_alt_band: str = ""
 
     def __post_init__(self):
         if not isinstance(self.position, np.ndarray):

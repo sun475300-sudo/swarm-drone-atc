@@ -5,7 +5,6 @@ Phase 502: Collective Intelligence Engine
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Set, Tuple
 
 import numpy as np
 
@@ -38,7 +37,7 @@ class KnowledgeItem:
 
 @dataclass
 class SwarmBelief:
-    items: Dict[str, KnowledgeItem] = field(default_factory=dict)
+    items: dict[str, KnowledgeItem] = field(default_factory=dict)
     consensus_count: int = 0
     conflict_count: int = 0
 
@@ -50,7 +49,7 @@ class InformationNetwork:
         self.comm_range = comm_range
         self.positions = self.rng.uniform(-200, 200, (n_drones, 3))
         self.positions[:, 2] = self.rng.uniform(20, 80, n_drones)
-        self.adjacency: Dict[int, Set[int]] = {i: set() for i in range(n_drones)}
+        self.adjacency: dict[int, set[int]] = {i: set() for i in range(n_drones)}
         self._update_topology()
 
     def _update_topology(self):
@@ -62,7 +61,7 @@ class InformationNetwork:
                     self.adjacency[i].add(j)
                     self.adjacency[j].add(i)
 
-    def propagate(self, source: int, item: KnowledgeItem, max_hops: int = 3) -> List[int]:
+    def propagate(self, source: int, item: KnowledgeItem, max_hops: int = 3) -> list[int]:
         reached = {source}
         frontier = {source}
         for _ in range(max_hops):
@@ -102,7 +101,7 @@ class ConsensusEngine:
         self.trust_weights = np.ones(n_drones) / n_drones
         self.rounds = 0
 
-    def vote(self, proposals: Dict[int, float]) -> Tuple[float, float]:
+    def vote(self, proposals: dict[int, float]) -> tuple[float, float]:
         self.rounds += 1
         if not proposals:
             return 0.0, 0.0
@@ -142,7 +141,7 @@ class CollectiveIntelligence:
         self.network.propagate(drone_id, item)
         return item
 
-    def reach_consensus(self, topic: str) -> Dict:
+    def reach_consensus(self, topic: str) -> dict:
         proposals = {i: self.rng.standard_normal() + hash(topic) % 10
                     for i in range(self.n_drones) if self.rng.random() > 0.2}
         result, agreement = self.consensus.vote(proposals)
@@ -152,7 +151,7 @@ class CollectiveIntelligence:
             self.belief.conflict_count += 1
         return {"topic": topic, "result": result, "agreement": agreement, "voters": len(proposals)}
 
-    def step(self, dt: float = 0.1) -> Dict:
+    def step(self, dt: float = 0.1) -> dict:
         self.time += dt
         self.network.positions += self.rng.standard_normal((self.n_drones, 3)) * 2
         self.network._update_topology()
@@ -164,10 +163,10 @@ class CollectiveIntelligence:
         return {"time": round(self.time, 2), "knowledge_items": len(self.belief.items),
                 "connectivity": round(self.network.connectivity(), 4)}
 
-    def run(self, duration: float = 10, dt: float = 0.1) -> List[Dict]:
+    def run(self, duration: float = 10, dt: float = 0.1) -> list[dict]:
         return [self.step(dt) for _ in range(int(duration / dt))]
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {"drones": self.n_drones, "knowledge_items": len(self.belief.items),
                 "consensus_count": self.belief.consensus_count,
                 "conflict_count": self.belief.conflict_count,

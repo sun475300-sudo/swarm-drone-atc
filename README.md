@@ -10,7 +10,7 @@
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
 [![Phase](https://img.shields.io/badge/Phase-660-gold?style=for-the-badge&logo=rocket)](simulation/)
-[![Tests](https://img.shields.io/badge/Tests-3%2C481%2B%20Collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-3%2C973%2B%20Collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Algorithms](https://img.shields.io/badge/Algorithms-600+-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#core-algorithms)
 [![Modules](https://img.shields.io/badge/Modules-590+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Languages](https://img.shields.io/badge/Languages-50+-FF5722?style=for-the-badge&logo=github&logoColor=white)](#multi-language-architecture)
@@ -210,9 +210,14 @@ SimPy 기반 이산 이벤트 시뮬레이션 엔진으로, 다양한 환경 조
   - 22개 드론 직군, 21-zone ATC 네트워크
   - 극한 기상: 마이크로버스트, 태풍, 결빙, 다중셀 폭풍, 풍속 전단
   - CPU/GPU/Worker 성능 모니터링 HUD
-  - **드론 라이브 상태 조회** — 드론 호버 시 실시간 툴팁(직군/고도/속도/기수/배터리), 클릭 시 상세 패널(상태/수직속도/좌표/출발·목표/텔레메트리) + 선택 하이라이트
-  - `window._sdacs` API — 자동화 테스트 및 외부 연동 (`selectDrone`/`hoverDrone`/`getSelected` 포함)
-- **파일**: `main.py`, `visualization/simulator_3d.py`, `swarm_3d_simulator.html`
+  - **드론 라이브 상태 조회** — 드론 호버 시 실시간 툴팁(직군/고도/속도/기수/배터리/ETA), 클릭 시 상세 패널(상태/수직속도/좌표/출발·목표/텔레메트리/경로효율/최근접 이웃) + 선택 하이라이트
+  - **충돌·공역 관제 시각화** — CPA 충돌 예측선(TTC·이격거리 라벨), 회피 어드바이저리 빌보드, 웨이포인트·이동경로, 레이어 토글(NFZ/회랑/고도레이어 9단/ATC)
+  - **분석 뷰(2×2)** — 3D 궤적 + XY 평면도(고도 컬러맵) + 배터리 추이 + KPI 대시보드
+  - **리플레이·타임라인** — 0.5s 스냅샷 레코더 + 스크러버(재생/속도/LIVE)
+  - **리포트 내보내기** — 4분할 PNG / CSV(시계열·텔레메트리) / KPI 클립보드 복사
+  - `window._sdacs` API — 자동화 테스트 및 외부 연동 (`selectDrone`/`hoverDrone`/`setAnalysisView`/`replaySeek`/`reportDataURL` 등)
+  - 헤드리스 스모크 테스트: `tests/e2e/smoke_sim.mjs` (CI: `.github/workflows/sim-smoke.yml`)
+- **파일**: `main.py`, `visualization/simulator_3d.py`, `swarm_3d_simulator.html` · _구버전 `swarm_3d_simulator_v2.html`·`*.v1.backup.html`은 디프리케이트(참고용)_
 ```mermaid
 sequenceDiagram
     participant D as Drone (10Hz)
@@ -666,6 +671,21 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-28 21:03 | `5af1f16` | feat: 외부 탐지·식별(조류·비협조 드론) + ATC 통제드론 쿼드콥터 비주얼 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/smoke_sim.mjs, visualization/swarm_3d_simulator.html |
+| 2026-05-28 20:54 | `df7cce2` | docs: simulation/drone_agent.py 핵심 함수 docstring 보강 (Bundle 6 / 부채) | simulation/drone_agent.py |
+| 2026-05-28 20:52 | `83ff46e` | feat: 단축키 + 도움말 오버레이 + 패널상태 저장 (Bundle 5 / F) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
+| 2026-05-28 20:50 | `b774a77` | feat: 분리간격 위반 경보 + 단계별 조치 아이콘 (Bundle 4 / A) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
+| 2026-05-28 20:47 | `38014bc` | feat: 대규모 프러스텀 컬링·LOD + 성능 HUD (Bundle 3) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
+| 2026-05-28 20:45 | `fb75f43` | feat: 세션 리포트 HTML/MD 내보내기 (Bundle 2) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
+| 2026-05-28 20:42 | `160f9fb` | feat: 뷰 프리셋·추적캠 + 드론 검색/필터 (Bundle 1) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
+| 2026-05-28 20:15 | `312bcb7` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | .claude/update-changelog.py, CLAUDE.md, README.md, api/fastapi_server.py, archive/polyglot/ada/safety_critical.adb, archive/polyglot/ada/tmr_voter_v2.adb … |
+| 2026-05-28 20:06 | `558145b` | feat: 대규모 GPU 군집 InstancedMesh (Phase 2) — 1k~10k 단일 드로우콜 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/smoke_sim.mjs, visualization/swarm_3d_simulator.html |
+| 2026-05-28 19:40 | `0523742` | test: 시뮬레이터 헤드리스 스모크 + CI (Phase 5) + README 기능 반영 | .github/workflows/sim-smoke.yml, README.md, tests/e2e/smoke_sim.mjs |
+| 2026-05-28 19:37 | `c58711d` | feat: 리플레이·타임라인 (Phase 3) — 상태 레코더 + 스크러버 재생 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
+| 2026-05-28 19:34 | `412ab36` | feat: 리포트·내보내기 (Phase 4) — 4분할 PNG / CSV / KPI 복사 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
+| 2026-05-28 19:30 | `d5a2ef0` | feat: 상세 패널/툴팁 확장 + Phase 1 잔여(회랑·고도레이어 토글, CPA 라벨, Q2 오버레이) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
+| 2026-05-28 15:58 | `c3db825` | docs: simulation/simulator.py 주석 샘플 — 핵심 함수/클래스 docstring 보강 | simulation/simulator.py |
+| 2026-05-28 15:55 | `4f0fe99` | feat: 충돌·공역 관제 시각화 + 웨이포인트·이동경로 (Phase 1) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-28 15:40 | `71e34fd` | docs: Codex 핸드오프용 SDACS 전체 상세 실행 계획 추가 | docs/CODEX_PLAN.md |
 | 2026-05-28 15:36 | `7d7b1a4` | feat: 시뮬레이터 4분할 분석 뷰(2x2 대시보드) 추가 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-28 14:56 | `0611b62` | feat: 드론 라이브 상태 툴팁 + 클릭 상세 패널 추가 및 메인 시뮬레이터 진입점 일원화 | .github/workflows/deploy-pages.yml, README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |

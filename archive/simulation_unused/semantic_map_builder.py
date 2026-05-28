@@ -40,7 +40,7 @@ class OctreeNode:
     def __init__(self, center: Tuple[float, float, float], size: float):
         self.center = center
         self.size = size
-        self.children: Optional[List["OctreeNode"]] = None
+        self.children: Optional[List[OctreeNode]] = None
         self.voxel: Optional[Voxel] = None
         self.point_count: int = 0
 
@@ -413,7 +413,7 @@ def simulate_semantic_mapping():
             )
 
     final_summary = map_builder.get_map_summary()
-    print(f"\n=== Final Map Summary ===")
+    print("\n=== Final Map Summary ===")
     print(f"Total Voxels: {final_summary['total_voxels']}")
     print(f"Occupied: {final_summary['occupied_voxels']}")
     print(f"Semantic Objects: {final_summary['semantic_objects']}")

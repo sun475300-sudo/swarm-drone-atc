@@ -499,6 +499,22 @@
             display: none !important;
         }
 
+        .av-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            color: #cdd9e8;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 2px 0;
+            cursor: pointer;
+        }
+
+        .av-toggle input {
+            accent-color: #00e5ff;
+            cursor: pointer;
+        }
+
         .hud-bottom {
             bottom: 0;
             left: 0;
@@ -894,6 +910,9 @@
                         <option value="high_density">고밀도 (150대)</option>
                         <option value="mass_takeoff">대규모 이륙 (100대)</option>
                         <option value="ultra_swarm">초대형 군집 (250대)</option>
+                        <option value="mega_swarm_1k">메가 군집 1K (InstancedMesh)</option>
+                        <option value="mega_swarm_5k">메가 군집 5K (InstancedMesh)</option>
+                        <option value="mega_swarm_10k">메가 군집 10K (InstancedMesh)</option>
                     </optgroup>
                     <optgroup label="장애/위기">
                         <option value="emergency_failure">비상 장애 (80대)</option>
@@ -998,6 +1017,15 @@
             <div style="display:flex;gap:6px;margin-top:6px;">
                 <button class="ctrl-btn" id="btn-analysis" style="flex:1;">📊 분석 뷰 (4분할)</button>
             </div>
+            <div style="display:flex;gap:6px;margin-top:6px;">
+                <button class="ctrl-btn" id="btn-export-png" style="flex:1;" title="4분할 리포트 PNG">📷 PNG</button>
+                <button class="ctrl-btn" id="btn-export-csv" style="flex:1;" title="시계열·텔레메트리 CSV">📑 CSV</button>
+                <button class="ctrl-btn" id="btn-copy-kpi" style="flex:1;" title="KPI 클립보드 복사">📋 KPI</button>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:4px;">
+                <button class="ctrl-btn" id="btn-export-html" style="flex:1;" title="세션 리포트 HTML">📄 HTML</button>
+                <button class="ctrl-btn" id="btn-export-md" style="flex:1;" title="세션 리포트 Markdown">📝 MD</button>
+            </div>
             <div class="ctrl-row" style="margin-top:8px;">
                 <span class="ctrl-label">경과 시간</span>
                 <span class="ctrl-value" id="sim-time">00:00</span>
@@ -1012,6 +1040,94 @@
                     <label><input type="checkbox" id="layer-cpa" checked> CPA</label>
                 </div>
             </div>
+        </div>
+
+        <!-- 외부 탐지·식별 (DnI) -->
+        <div class="ctrl-panel">
+            <div class="ctrl-title">
+                <div style="width:6px;height:6px;border-radius:50%;background:#3a6b8c;"></div>
+                🔍 외부 탐지·식별 (조류·비협조)
+            </div>
+            <label class="av-toggle" style="margin-bottom:4px;"><input type="checkbox" id="tg-dni" checked> 외부 객체 탐지 활성</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+                <div class="kpi-card" style="padding:4px 8px;"><div class="kpi-label">탐지 완료</div><div class="kpi-value" id="dni-detected" style="font-size:14px;color:#22c55e;">0</div></div>
+                <div class="kpi-card" style="padding:4px 8px;"><div class="kpi-label">🐦 조류</div><div class="kpi-value" id="dni-birds" style="font-size:14px;color:#3a8fce;">0</div></div>
+                <div class="kpi-card" style="padding:4px 8px;"><div class="kpi-label">식별 완료</div><div class="kpi-value" id="dni-identified" style="font-size:14px;color:#00e5ff;">0</div></div>
+                <div class="kpi-card" style="padding:4px 8px;"><div class="kpi-label">평균 탐지</div><div class="kpi-value" id="dni-avg" style="font-size:14px;color:#f59e0b;">0.00s</div></div>
+            </div>
+            <div style="font-size:8px;color:#4a6785;margin-top:5px;font-family:'JetBrains Mono',monospace;line-height:1.5;">
+                <span style="color:#3a8f5c;">●</span>정상 <span style="color:#c07a2a;">●</span>미등록 <span style="color:#c44d4d;">●</span>위험 <span style="color:#3a6b8c;">●</span>조류
+            </div>
+        </div>
+
+        <!-- 뷰 · 검색 · 필터 -->
+        <div class="ctrl-panel">
+            <div class="ctrl-title">
+                <div style="width:6px;height:6px;border-radius:50%;background:#22d3ee;"></div>
+                🎥 뷰 · 검색
+            </div>
+            <input id="drone-search" type="text" placeholder="드론 검색 (ID/직군) → Enter"
+                style="width:100%;box-sizing:border-box;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.25);color:#cdd9e8;font-size:10px;padding:4px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;">
+            <div style="display:flex;gap:4px;margin-top:5px;">
+                <button class="ctrl-btn cam-preset active" data-cam="reset" style="flex:1;">기본</button>
+                <button class="ctrl-btn cam-preset" data-cam="top" style="flex:1;">탑다운</button>
+                <button class="ctrl-btn cam-preset" data-cam="follow" style="flex:1;">추적</button>
+                <button class="ctrl-btn cam-preset" data-cam="orbit" style="flex:1;">오빗</button>
+            </div>
+            <div style="display:flex;gap:4px;margin-top:5px;align-items:center;">
+                <select id="filter-phase" class="ctrl-select" style="flex:1;font-size:9px;">
+                    <option value="">전체 단계</option>
+                    <option value="GROUNDED">지상</option>
+                    <option value="TAKEOFF">이륙</option>
+                    <option value="ENROUTE">비행</option>
+                    <option value="HOLDING">체공</option>
+                    <option value="LANDING">착륙</option>
+                    <option value="EVADING">회피</option>
+                    <option value="RTL">귀환</option>
+                    <option value="FAILED">장애</option>
+                </select>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:5px;align-items:center;font-size:9px;color:#4a6785;font-family:'JetBrains Mono',monospace;">
+                배터리≤<input type="range" id="filter-batt" min="0" max="100" value="100" step="5" style="flex:1;accent-color:#22d3ee;">
+                <span id="filter-batt-val" style="min-width:30px;text-align:right;color:#cdd9e8;">100%</span>
+            </div>
+        </div>
+
+        <!-- 리플레이 타임라인 -->
+        <div class="ctrl-panel">
+            <div class="ctrl-title">
+                <div style="width:6px;height:6px;border-radius:50%;background:#a855f7;"></div>
+                ⏱ 리플레이 타임라인
+            </div>
+            <input type="range" id="replay-slider" min="0" max="0" value="0" step="1" style="width:100%;accent-color:#a855f7;cursor:pointer;">
+            <div style="display:flex;gap:4px;align-items:center;margin-top:5px;">
+                <button class="ctrl-btn" id="replay-play" style="flex:0 0 34px;">▶</button>
+                <button class="ctrl-btn active" id="replay-live" style="flex:1;">● LIVE</button>
+                <span class="ctrl-value" id="replay-time" style="font-size:9px;min-width:42px;text-align:right;">LIVE</span>
+            </div>
+            <div style="display:flex;gap:4px;margin-top:4px;">
+                <button class="ctrl-btn replay-spd active" data-spd="1" style="flex:1;">1×</button>
+                <button class="ctrl-btn replay-spd" data-spd="2" style="flex:1;">2×</button>
+                <button class="ctrl-btn replay-spd" data-spd="4" style="flex:1;">4×</button>
+            </div>
+        </div>
+
+        <!-- 공역·관제 레이어 토글 -->
+        <div class="ctrl-panel">
+            <div class="ctrl-title">
+                <div style="width:6px;height:6px;border-radius:50%;background:#ff6600;"></div>
+                공역·관제 레이어
+            </div>
+            <label class="av-toggle"><input type="checkbox" id="tg-conflict" checked> 충돌 예측선 (CPA)</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-advisory" checked> 회피 어드바이저리</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-path" checked> 웨이포인트·이동경로</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-nfz" checked> NFZ 비행금지구역</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-corridor" checked> 복도/회랑</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-altlayer"> 고도 레이어 (9단)</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-atc" checked> ATC 관제망</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-prox" checked> 근접/충돌선</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-trail" checked> 침입 드론 트레일</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-cull" checked> 대규모 컬링·LOD</label>
         </div>
 
         <!-- Legend -->
@@ -1076,6 +1192,33 @@
 
     <!-- HUD: Drone Live Tooltip -->
     <div class="drone-tooltip" id="drone-tooltip" style="display:none;"></div>
+
+    <!-- 도움말 오버레이 -->
+    <button id="btn-help" title="도움말 (H)"
+        style="position:fixed;right:14px;bottom:14px;z-index:32;width:32px;height:32px;border-radius:50%;background:rgba(6,10,19,0.92);border:1px solid rgba(0,229,255,0.4);color:#00e5ff;font-size:15px;font-weight:700;cursor:pointer;font-family:'JetBrains Mono',monospace;">?</button>
+    <div id="help-overlay" style="display:none;position:fixed;inset:0;z-index:40;background:rgba(3,5,8,0.82);backdrop-filter:blur(2px);">
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(560px,92vw);max-height:84vh;overflow:auto;background:rgba(6,10,19,0.97);border:1px solid rgba(0,229,255,0.35);border-radius:12px;padding:20px 24px;font-family:'JetBrains Mono',monospace;color:#cdd9e8;box-shadow:0 0 40px rgba(0,229,255,0.2);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                <div style="font-size:16px;font-weight:700;color:#00e5ff;">SDACS 시뮬레이터 — 도움말</div>
+                <div style="flex:1;"></div>
+                <button id="help-close" style="background:none;border:1px solid rgba(255,255,255,0.15);color:#4a6785;border-radius:4px;cursor:pointer;font-size:12px;padding:2px 8px;">✕</button>
+            </div>
+            <div style="font-size:11px;color:#22d3ee;letter-spacing:1px;margin:10px 0 4px;">마우스</div>
+            <div style="font-size:12px;line-height:1.8;">드래그=회전 · 스크롤=줌 · <b>드론 클릭=선택</b> · 드론 호버=라이브 툴팁</div>
+            <div style="font-size:11px;color:#22d3ee;letter-spacing:1px;margin:12px 0 4px;">단축키</div>
+            <div style="font-size:12px;line-height:1.9;">
+                <b>Space</b> 재생/정지 · <b>A</b> 분석 뷰 · <b>F</b> 선택 드론 추적 · <b>1~4</b> 카메라(기본/탑다운/추적/오빗)<br>
+                <b>/</b> 검색창 · <b>H</b> 또는 <b>?</b> 도움말 · <b>Esc</b> 닫기/선택 해제
+            </div>
+            <div style="font-size:11px;color:#22d3ee;letter-spacing:1px;margin:12px 0 4px;">패널</div>
+            <div style="font-size:12px;line-height:1.8;">좌측: 시나리오·뷰/검색·리플레이·공역 레이어 · 우측: 편대 추적기 · 하단: 이벤트 로그·분석 차트<br>📊 분석 뷰=2×2 대시보드 · 📷/📑/📄/📝=리포트 내보내기(PNG/CSV/HTML/MD)</div>
+            <div style="font-size:10px;color:#4a6785;margin-top:14px;">메가 군집(≥500대)은 InstancedMesh + 프러스텀 컬링으로 렌더됩니다.</div>
+        </div>
+    </div>
+
+    <!-- 분리간격 위반 경보 (플래시 + 배너) -->
+    <div id="alert-flash" style="position:fixed;inset:0;z-index:8;pointer-events:none;opacity:0;transition:opacity 0.45s ease;"></div>
+    <div id="alert-banner" style="position:fixed;top:84px;left:50%;transform:translateX(-50%);z-index:31;pointer-events:none;opacity:0;transition:opacity 0.45s ease;background:rgba(6,10,19,0.9);border:1px solid rgba(239,68,68,0.6);color:#fff;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;padding:6px 16px;border-radius:8px;box-shadow:0 0 24px rgba(239,68,68,0.4);"></div>
 
     <!-- Analysis View: 2x2 dashboard -->
     <div id="analysis-view">
@@ -1151,6 +1294,7 @@
             <span style="color:#06b6d4;">GPU</span>:<span id="perf-gpu">0</span>ms
             <span style="color:#a855f7;">APF</span>:<span id="perf-apf">-</span>ms
             <span style="color:#f59e0b;" id="perf-apf-label">WRK</span> |
+            <span style="color:#22d3ee;">DRN</span>:<span id="perf-drn">0</span><span id="perf-render"></span> |
             드래그: 회전 | 스크롤: 줌
         </div>
     </div>
@@ -1226,6 +1370,9 @@
             high_density: { count: 150, label: '고밀도', wind: false, failRate: 0, rogueRate: 0 },
             mass_takeoff: { count: 100, label: '대규모 이륙', wind: false, failRate: 0, rogueRate: 0 },
             ultra_swarm: { count: 250, label: '초대형 군집', wind: false, failRate: 0, rogueRate: 0 },
+            mega_swarm_1k: { count: 1000, label: '메가 군집 1K', wind: false, failRate: 0, rogueRate: 0 },
+            mega_swarm_5k: { count: 5000, label: '메가 군집 5K', wind: false, failRate: 0, rogueRate: 0 },
+            mega_swarm_10k: { count: 10000, label: '메가 군집 10K', wind: false, failRate: 0.02, rogueRate: 0.02 },
             // ── 장애/위기
             emergency_failure: { count: 80, label: '비상 장애', wind: false, failRate: 0.20, rogueRate: 0 },
             battery_critical: { count: 100, label: '배터리 위기', wind: false, failRate: 0, rogueRate: 0 },
@@ -1718,10 +1865,6 @@
         scene.add(corridorGroup);
         const atcCoverageGroup = new THREE.Group();
         scene.add(atcCoverageGroup);
-        const advisoryGroup = new THREE.Group();
-        scene.add(advisoryGroup);
-        const cpaVizGroup = new THREE.Group();
-        scene.add(cpaVizGroup);
 
         // ===== 다중 도시 환경 시스템 =====
         // 건물: {x,z}=월드좌표(m), w/d=폭/깊이(m), h=높이(m), name=랜드마크명
@@ -2189,7 +2332,6 @@
         nfzGroup.add(nfzLabel);
 
         // ===== Corridors =====
-        const corridorOverlays = [];
         function makeCorridor(altitude, axis, color, labelText) {
             const h = altitude * SCALE * 3;
             const thickness = 0.15;
@@ -2218,9 +2360,29 @@
             lbl.position.set(axis === 'EW' ? -W + 3 : 0, h + 0.8, axis === 'NS' ? -W + 3 : 0);
             lbl.scale.set(5, 1.2, 1);
             corridorGroup.add(lbl);
-            corridorOverlays.push({ altitude, axis, color });
         }
         CORRIDOR_CONFIGS.forEach(c => makeCorridor(c.altitude, c.axis, c.color, c.label));
+
+        // ===== 고도 레이어 시각화 (9단, 기본 숨김) =====
+        const altLayerGroup = new THREE.Group();
+        altLayerGroup.visible = false;
+        scene.add(altLayerGroup);
+        ALTITUDE_LAYERS.forEach((altM, i) => {
+            const y = altM * SCALE * 3;
+            const hue = i / (ALTITUDE_LAYERS.length - 1);
+            const col = new THREE.Color().setHSL(0.6 - hue * 0.6, 0.7, 0.5);
+            const plane = new THREE.Mesh(
+                new THREE.PlaneGeometry(W * 2, W * 2),
+                new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.04, side: THREE.DoubleSide })
+            );
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.y = y;
+            altLayerGroup.add(plane);
+            const lbl = makeTextSprite(`L${i} ${altM}m`, '#' + col.getHexString(), 7);
+            lbl.position.set(W - 4, y + 0.4, -W + 4);
+            lbl.scale.set(4, 1, 1);
+            altLayerGroup.add(lbl);
+        });
 
         // ===== Landing Pads =====
         LANDING_PADS.forEach(pad => {
@@ -2299,33 +2461,6 @@
             return new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
         }
 
-        function makeDynamicTextSprite(fontSize = 10) {
-            const c = document.createElement('canvas');
-            c.width = 256; c.height = 64;
-            const ctx = c.getContext('2d');
-            const tex = new THREE.CanvasTexture(c);
-            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
-            sprite.userData.textCanvas = c;
-            sprite.userData.textCtx = ctx;
-            sprite.userData.textTex = tex;
-            sprite.userData.fontSize = fontSize;
-            return sprite;
-        }
-
-        function setDynamicSpriteText(sprite, text, color = '#ffffff') {
-            const ctx = sprite.userData.textCtx;
-            const c = sprite.userData.textCanvas;
-            const tex = sprite.userData.textTex;
-            const fs = sprite.userData.fontSize || 10;
-            if (!ctx || !c || !tex) return;
-            ctx.clearRect(0, 0, c.width, c.height);
-            ctx.font = `bold ${fs}px JetBrains Mono, monospace`;
-            ctx.fillStyle = color;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(text, c.width / 2, c.height / 2);
-            tex.needsUpdate = true;
-        }
 
         // ===== ATC Control Drones (관제 드론) =====
         const ATC_POSITIONS = [
@@ -2365,19 +2500,36 @@
             const grp = new THREE.Group();
             const px = atc.x * SCALE, pz = atc.z * SCALE, py = atc.alt * SCALE * 3;
 
-            // Body — 더 큰 다이아몬드 형태
-            const bodyGeo = new THREE.OctahedronGeometry(0.8, 1);
-            const bodyMat = new THREE.MeshPhongMaterial({
-                color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.8,
-                transparent: true, opacity: 0.9,
-            });
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            // Body — 파란 구체 (채택 이미지: 쿼드콥터 본체)
+            const body = new THREE.Mesh(
+                new THREE.SphereGeometry(0.62, 24, 18),
+                new THREE.MeshPhongMaterial({ color: 0x1769e0, emissive: 0x0b3a8f, emissiveIntensity: 0.55, shininess: 70 })
+            );
             grp.add(body);
 
-            // 외곽 링 (레이더 디쉬)
+            // 4개 링 로터 + 암 (쿼드콥터, X 배치)
+            const armMat = new THREE.MeshPhongMaterial({ color: 0x0a0e16, shininess: 30 });
+            const ringMat = new THREE.MeshPhongMaterial({ color: 0x9fb4c8, transparent: true, opacity: 0.55, emissive: 0x16242e, emissiveIntensity: 0.4, side: THREE.DoubleSide });
+            for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+                const ax = sx * 0.85, az = sz * 0.85;
+                const armLen = Math.hypot(ax, az);
+                const arm = new THREE.Mesh(new THREE.BoxGeometry(armLen, 0.07, 0.07), armMat);
+                arm.position.set(ax / 2, 0, az / 2);
+                arm.rotation.y = Math.atan2(-az, ax);
+                grp.add(arm);
+                const ring = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.07, 8, 24), ringMat);
+                ring.rotation.x = Math.PI / 2;
+                ring.position.set(ax, 0.02, az);
+                grp.add(ring);
+                const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.1, 8), armMat);
+                hub.position.set(ax, 0.02, az);
+                grp.add(hub);
+            }
+
+            // 스캔 액센트 링 (animate가 dish 회전 → 유지)
             const dish = new THREE.Mesh(
-                new THREE.TorusGeometry(1.4, 0.05, 8, 32),
-                new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.5 })
+                new THREE.TorusGeometry(0.95, 0.03, 8, 32),
+                new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.45 })
             );
             dish.rotation.x = Math.PI / 2;
             grp.add(dish);
@@ -2453,298 +2605,121 @@
         // 근접선 오브젝트 풀 (GC 압력 방지)
         const _linePool = [];
         let _linePoolIdx = 0;
-        const _cpaLinePool = [];
-        const _cpaMarkerPool = [];
-        const _cpaLabelPool = [];
-        let _cpaLinePoolIdx = 0;
-        let _cpaMarkerPoolIdx = 0;
-        let _cpaLabelPoolIdx = 0;
-        const cpaTopDownPairs = [];
         let atcLinkGroup = null;
 
         let _lightweight = false; // 100대 초과 시 경량 모드
 
-        function applyLayerVisibility() {
-            nfzGroup.visible = layerVisibility.nfz;
-            altitudeLayerGroup.visible = layerVisibility.altitude;
-            corridorGroup.visible = layerVisibility.corridor;
-            atcDroneGroup.visible = layerVisibility.atc;
-            atcCoverageGroup.visible = layerVisibility.atc;
-            if (atcLinkGroup) atcLinkGroup.visible = layerVisibility.atc;
-            cpaVizGroup.visible = layerVisibility.cpa;
-            advisoryGroup.visible = layerVisibility.cpa;
-        }
+        // ===== 대규모 InstancedMesh 렌더 (Phase 2) — 드론 수 ≥ MEGA_THRESHOLD 시 활성 =====
+        // 일반 규모는 기존 per-group 메시(글로우/로터/블링크) 유지, 대규모만 단일 드로우콜 인스턴싱.
+        const MEGA_THRESHOLD = 500, MAX_INST = 10000;
+        let megaMode = false;
+        const bodyInst = new THREE.InstancedMesh(
+            new THREE.OctahedronGeometry(0.22, 0),
+            new THREE.MeshBasicMaterial(),
+            MAX_INST
+        );
+        bodyInst.count = 0;
+        bodyInst.visible = false;
+        bodyInst.frustumCulled = false;
+        scene.add(bodyInst);
+        const _iM = new THREE.Matrix4(), _iPos = new THREE.Vector3(), _iScl = new THREE.Vector3(1, 1, 1);
+        const _iQ = new THREE.Quaternion(), _iCol = new THREE.Color();
+        // 대규모 프러스텀 컬링 + LOD
+        let megaCull = true;
+        let _visibleInst = 0;
+        const _frustum = new THREE.Frustum(), _frMat = new THREE.Matrix4();
+        const LOD_FAR = 90; // 이 거리(world units) 이상은 축소
 
-        function resetConflictViz() {
-            for (let i = 0; i < _cpaLinePoolIdx; i++) _cpaLinePool[i].visible = false;
-            for (let i = 0; i < _cpaMarkerPoolIdx; i++) _cpaMarkerPool[i].visible = false;
-            for (let i = 0; i < _cpaLabelPoolIdx; i++) _cpaLabelPool[i].visible = false;
-            _cpaLinePoolIdx = 0;
-            _cpaMarkerPoolIdx = 0;
-            _cpaLabelPoolIdx = 0;
-            cpaTopDownPairs.length = 0;
-        }
-
-        function acquireConflictLine(color) {
-            let line;
-            if (_cpaLinePoolIdx < _cpaLinePool.length) {
-                line = _cpaLinePool[_cpaLinePoolIdx];
-            } else {
-                const geo = new THREE.BufferGeometry();
-                geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
-                line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.6 }));
-                cpaVizGroup.add(line);
-                _cpaLinePool.push(line);
-            }
-            line.material.color.set(color);
-            line.visible = true;
-            _cpaLinePoolIdx++;
-            return line;
-        }
-
-        function acquireConflictMarker(color) {
-            let marker;
-            if (_cpaMarkerPoolIdx < _cpaMarkerPool.length) {
-                marker = _cpaMarkerPool[_cpaMarkerPoolIdx];
-            } else {
-                marker = new THREE.Mesh(
-                    new THREE.SphereGeometry(0.05, 10, 10),
-                    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85 })
-                );
-                cpaVizGroup.add(marker);
-                _cpaMarkerPool.push(marker);
-            }
-            marker.material.color.set(color);
-            marker.visible = true;
-            _cpaMarkerPoolIdx++;
-            return marker;
-        }
-
-        function acquireConflictLabel(text, color) {
-            let label;
-            if (_cpaLabelPoolIdx < _cpaLabelPool.length) {
-                label = _cpaLabelPool[_cpaLabelPoolIdx];
-            } else {
-                label = makeDynamicTextSprite(10);
-                label.scale.set(3.4, 0.8, 1);
-                cpaVizGroup.add(label);
-                _cpaLabelPool.push(label);
-            }
-            setDynamicSpriteText(label, text, color);
-            label.visible = true;
-            _cpaLabelPoolIdx++;
-            return label;
-        }
-
-        function advisoryTextForDrone(d) {
-            if (d.phase === 'RTL') return 'RTL';
-            if (d.phase === 'HOLDING') return 'HOLD';
-            if (d.phase !== 'EVADING') return '';
-            if ((d.apfVy || 0) > 0.6) return 'CLIMB';
-            if ((d.apfVy || 0) < -0.6) return 'DESCEND';
-            const turnDiff = ((d.targetHeading - d.heading + 540) % 360) - 180;
-            if (turnDiff > 20) return 'TURN R';
-            if (turnDiff < -20) return 'TURN L';
-            return 'EVADE';
-        }
-
-        function updateAdvisoryOverlay(t) {
-            if (!layerVisibility.cpa) {
-                for (const d of drones) {
-                    if (d._advisorySprite) d._advisorySprite.visible = false;
-                }
-                return;
-            }
-            const blinkOn = Math.sin(t * 8) > 0;
-            for (const d of drones) {
-                const txt = advisoryTextForDrone(d);
-                if (!txt || !d.group || !d.group.parent) {
-                    if (d._advisorySprite) d._advisorySprite.visible = false;
-                    continue;
-                }
-                if (!d._advisorySprite) {
-                    const s = makeDynamicTextSprite(11);
-                    s.scale.set(2.8, 0.72, 1);
-                    s.visible = false;
-                    advisoryGroup.add(s);
-                    d._advisorySprite = s;
-                    d._advisoryText = '';
-                }
-                if (d._advisoryText !== txt) {
-                    const color = txt === 'EVADE' ? '#ff6b00' : (txt === 'HOLD' ? '#3b82f6' : '#ffb300');
-                    setDynamicSpriteText(d._advisorySprite, txt, color);
-                    d._advisoryText = txt;
-                }
-                d._advisorySprite.position.set(
-                    d.group.position.x,
-                    d.group.position.y + 1.6,
-                    d.group.position.z
-                );
-                d._advisorySprite.visible = blinkOn;
-            }
-        }
-
-        function updateConflictViz() {
-            resetConflictViz();
-            if (!layerVisibility.cpa) return;
-            const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
-            if (airborne.length < 2) return;
-
-            const cellSize = EVADE_DIST;
-            const grid = new Map();
-            const processed = new Set();
-            const maxPairs = _lightweight ? 18 : 50;
-            let pairCount = 0;
-
-            airborne.forEach(d => {
-                const cx = Math.floor(d.wx / cellSize);
-                const cz = Math.floor(d.wz / cellSize);
-                const key = `${cx},${cz}`;
-                if (!grid.has(key)) grid.set(key, []);
-                grid.get(key).push(d);
-            });
-
-            for (const a of airborne) {
-                if (pairCount >= maxPairs) break;
-                const cx = Math.floor(a.wx / cellSize);
-                const cz = Math.floor(a.wz / cellSize);
-                for (let di = -1; di <= 1; di++) {
-                    for (let dj = -1; dj <= 1; dj++) {
-                        const neighbors = grid.get(`${cx + di},${cz + dj}`);
-                        if (!neighbors) continue;
-                        for (const b of neighbors) {
-                            if (a === b || pairCount >= maxPairs) continue;
-                            const pairKey = a.id < b.id ? `${a.id}-${b.id}` : `${b.id}-${a.id}`;
-                            if (processed.has(pairKey)) continue;
-                            processed.add(pairKey);
-
-                            const dx = a.wx - b.wx;
-                            const dz = a.wz - b.wz;
-                            const dy = a.wy - b.wy;
-                            const dist3d = Math.sqrt(dx * dx + dz * dz + dy * dy);
-                            if (dist3d > EVADE_DIST * 1.8) continue;
-
-                            const radA = a.heading * Math.PI / 180;
-                            const radB = b.heading * Math.PI / 180;
-                            const avx = Math.sin(radA) * a.speed;
-                            const avz = Math.cos(radA) * a.speed;
-                            const avy = a.vy || 0;
-                            const bvx = Math.sin(radB) * b.speed;
-                            const bvz = Math.cos(radB) * b.speed;
-                            const bvy = b.vy || 0;
-                            const dvx = avx - bvx;
-                            const dvz = avz - bvz;
-                            const dvy = avy - bvy;
-                            const relV2 = dvx * dvx + dvz * dvz + dvy * dvy;
-                            if (relV2 < 0.1) continue;
-
-                            const tCPA = Math.max(0, Math.min(CPA_LOOKAHEAD, -(dx * dvx + dz * dvz + dy * dvy) / relV2));
-                            if (tCPA <= 0.01 || tCPA >= CPA_LOOKAHEAD) continue;
-
-                            const cpaDx = dx + dvx * tCPA;
-                            const cpaDz = dz + dvz * tCPA;
-                            const cpaDy = dy + dvy * tCPA;
-                            const cpaDist = Math.sqrt(cpaDx * cpaDx + cpaDz * cpaDz + cpaDy * cpaDy);
-                            const isConverging = (dx * dvx + dz * dvz + dy * dvy) < 0;
-                            if (!isConverging || cpaDist >= NEAR_MISS_DIST) continue;
-
-                            const aCpa = { x: a.wx + avx * tCPA, y: a.wy + avy * tCPA, z: a.wz + avz * tCPA };
-                            const bCpa = { x: b.wx + bvx * tCPA, y: b.wy + bvy * tCPA, z: b.wz + bvz * tCPA };
-                            const mid = {
-                                x: (aCpa.x + bCpa.x) * 0.5,
-                                y: (aCpa.y + bCpa.y) * 0.5,
-                                z: (aCpa.z + bCpa.z) * 0.5,
-                            };
-
-                            let color = 0xfacc15;
-                            let labelColor = '#facc15';
-                            let level = 'WARN';
-                            if (cpaDist < COLLISION_DIST) {
-                                color = 0xef4444;
-                                labelColor = '#ef4444';
-                                level = 'CRIT';
-                            } else if (cpaDist < NEAR_MISS_DIST * 0.5) {
-                                color = 0xf97316;
-                                labelColor = '#f97316';
-                                level = 'HIGH';
-                            }
-
-                            const line = acquireConflictLine(color);
-                            const p = line.geometry.attributes.position.array;
-                            p[0] = aCpa.x * SCALE; p[1] = aCpa.y * SCALE * 3; p[2] = aCpa.z * SCALE;
-                            p[3] = bCpa.x * SCALE; p[4] = bCpa.y * SCALE * 3; p[5] = bCpa.z * SCALE;
-                            line.geometry.attributes.position.needsUpdate = true;
-
-                            const mA = acquireConflictMarker(color);
-                            mA.position.set(aCpa.x * SCALE, aCpa.y * SCALE * 3, aCpa.z * SCALE);
-                            const mB = acquireConflictMarker(color);
-                            mB.position.set(bCpa.x * SCALE, bCpa.y * SCALE * 3, bCpa.z * SCALE);
-
-                            const lbl = acquireConflictLabel(`${level} TTC ${tCPA.toFixed(1)}s D ${Math.round(cpaDist)}m`, labelColor);
-                            lbl.position.set(mid.x * SCALE, mid.y * SCALE * 3 + 0.45, mid.z * SCALE);
-
-                            cpaTopDownPairs.push({ a: aCpa, b: bCpa, color });
-                            pairCount++;
-                        }
+        function syncInstances() {
+            if (!megaMode) return;
+            const n = Math.min(drones.length, MAX_INST);
+            const flt = (typeof filterActive === 'function') && filterActive();
+            // 프러스텀 컬링용 절두체 갱신
+            if (megaCull) _frustum.setFromProjectionMatrix(_frMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+            _visibleInst = 0;
+            for (let i = 0; i < n; i++) {
+                const d = drones[i];
+                const pos = d.group.position;
+                // 필터 활성 + 비매칭 → 숨김 / 화면 밖(프러스텀 컬링) → 숨김
+                let hidden = flt && !droneMatches(d);
+                if (!hidden && megaCull && !_frustum.containsPoint(pos)) hidden = true;
+                let s = 0;
+                if (!hidden) {
+                    s = d._uam ? 1.6 : 1.0;
+                    // LOD: 원거리 드론 축소(픽셀 점유 ↓ → 래스터 비용 절감)
+                    if (megaCull) {
+                        const dist = camera.position.distanceTo(pos);
+                        if (dist > LOD_FAR) s *= Math.max(0.45, LOD_FAR / dist);
                     }
+                    _visibleInst++;
                 }
+                _iScl.set(s, s, s);
+                _iM.compose(_iPos.copy(pos), _iQ, _iScl);
+                bodyInst.setMatrixAt(i, _iM);
+                _iCol.setHex((PHASES[d.phase] || PHASES.GROUNDED).color);
+                bodyInst.setColorAt(i, _iCol);
             }
+            bodyInst.count = n;
+            bodyInst.instanceMatrix.needsUpdate = true;
+            if (bodyInst.instanceColor) bodyInst.instanceColor.needsUpdate = true;
+        }
+
+        function _droneFromInstance(instanceId) {
+            return (instanceId != null && instanceId >= 0 && instanceId < drones.length) ? drones[instanceId] : null;
         }
 
         function createDrone(id, startPad) {
             const group = new THREE.Group();
             const color = new THREE.Color(PHASES.GROUNDED.color);
-
-            // Body — 경량모드: 낮은 디테일
-            const body = new THREE.Mesh(
-                _lightweight ? new THREE.TetrahedronGeometry(0.2, 0) : new THREE.OctahedronGeometry(0.2, 0),
-                new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: 0.6 })
-            );
-            group.add(body);
-
-            // Rotor ring — 경량모드: 세그먼트 줄임
-            const rotor = new THREE.Mesh(
-                new THREE.TorusGeometry(0.35, 0.015, _lightweight ? 4 : 8, _lightweight ? 12 : 24),
-                new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.4 })
-            );
-            rotor.rotation.x = Math.PI / 2;
-            group.add(rotor);
-
-            // Glow — 경량모드: 비활성
-            let glow;
-            if (!_lightweight) {
-                glow = new THREE.Sprite(
-                    new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending })
-                );
-                glow.scale.set(1.5, 1.5, 1);
-                group.add(glow);
-            }
-
-            const px = startPad.x * SCALE, pz = startPad.z * SCALE;
-            group.position.set(px, 0.1, pz);
-
             const destPad = randomPad();
             const role = DRONE_ROLES[id % DRONE_ROLES.length];
             const isUAM = role.id === 'uam_taxi' || role.id === 'uam_shuttle';
             // 고도 레이어 할당: ID 기반 분산 (충돌 방지)
             const layerIdx = id % ALTITUDE_LAYERS.length;
             const baseLayerAlt = ALTITUDE_LAYERS[layerIdx];
-            const cruiseAlt = isUAM ? (100 + Math.random() * 60) : (baseLayerAlt + (Math.random() - 0.5) * 10); // UAM: 100-160m, 일반: 40-110m
+            const cruiseAlt = isUAM ? (100 + Math.random() * 60) : (baseLayerAlt + (Math.random() - 0.5) * 10);
 
-            // UAM은 크기 1.6배
-            if (isUAM) {
-                body.geometry.dispose();
-                body.geometry = _lightweight ? new THREE.TetrahedronGeometry(0.32, 0) : new THREE.OctahedronGeometry(0.32, 0);
-                rotor.geometry.dispose();
-                rotor.geometry = new THREE.TorusGeometry(0.56, 0.02, _lightweight ? 4 : 8, _lightweight ? 12 : 24);
-                if (glow) glow.scale.set(2.2, 2.2, 1);
+            let body = null, rotor = null, glow = null;
+            if (!megaMode) {
+                // Body — 경량모드: 낮은 디테일
+                body = new THREE.Mesh(
+                    _lightweight ? new THREE.TetrahedronGeometry(0.2, 0) : new THREE.OctahedronGeometry(0.2, 0),
+                    new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: 0.6 })
+                );
+                group.add(body);
+                // Rotor ring
+                rotor = new THREE.Mesh(
+                    new THREE.TorusGeometry(0.35, 0.015, _lightweight ? 4 : 8, _lightweight ? 12 : 24),
+                    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.4 })
+                );
+                rotor.rotation.x = Math.PI / 2;
+                group.add(rotor);
+                // Glow — 경량모드: 비활성
+                if (!_lightweight) {
+                    glow = new THREE.Sprite(
+                        new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending })
+                    );
+                    glow.scale.set(1.5, 1.5, 1);
+                    group.add(glow);
+                }
+                // UAM은 크기 1.6배
+                if (isUAM) {
+                    body.geometry.dispose();
+                    body.geometry = _lightweight ? new THREE.TetrahedronGeometry(0.32, 0) : new THREE.OctahedronGeometry(0.32, 0);
+                    rotor.geometry.dispose();
+                    rotor.geometry = new THREE.TorusGeometry(0.56, 0.02, _lightweight ? 4 : 8, _lightweight ? 12 : 24);
+                    if (glow) glow.scale.set(2.2, 2.2, 1);
+                }
             }
+
+            const px = startPad.x * SCALE, pz = startPad.z * SCALE;
+            group.position.set(px, 0.1, pz);
 
             const maxSpd = isUAM ? (15 + Math.random() * 10) : (8 + Math.random() * 7);
             const drone = {
                 id: `DR-${String(id).padStart(3, '0')}`,
                 role,
-                group, body, rotor, glow: glow || null,
+                group, body, rotor, glow, _uam: isUAM,
                 phase: 'GROUNDED',
                 battery: 85 + Math.random() * 15,
                 // World coordinates in meters
@@ -2789,6 +2764,10 @@
             if (typeof deselectDrone === 'function') deselectDrone();
             if (typeof setHover === 'function') setHover(null);
             if (typeof resetBatteryTracked === 'function') resetBatteryTracked();
+            if (typeof resetReplay === 'function') resetReplay();
+            if (typeof resetViewFilter === 'function') resetViewFilter();
+            if (typeof resetDnI === 'function') resetDnI();
+            _prevColl = 0; _prevNear = 0;
             // Clear (geometry/material 해제 — GPU 메모리 누수 방지)
             while (droneGroup.children.length) {
                 const grp = droneGroup.children[0];
@@ -2832,6 +2811,10 @@
             windEnabled = cfg.wind;
             const count = cfg.count;
             _lightweight = count > 100;
+            // 대규모(≥500): InstancedMesh 경로 활성 (per-group 메시 생략)
+            megaMode = count >= MEGA_THRESHOLD;
+            bodyInst.visible = megaMode;
+            bodyInst.count = 0;
 
             // 기상 시스템 초기화 (전체 리셋)
             // 건물 표시 (도시 시나리오)
@@ -3967,16 +3950,17 @@
             const phaseC = d._phaseColor, roleC = d._roleColor;
             // 비행 중: body=직군색, rotor=phase색 / 지상/장애: 전부 phase색
             const bodyC = isFlying ? roleC : phaseC;
-            d.body.material.color.copy(bodyC);
-            d.body.material.emissive.copy(bodyC);
-            d.body.material.emissiveIntensity = isFlying ? 0.8 : 0.4;
-            d.rotor.material.color.copy(phaseC);
-            if (d.glow) d.glow.material.color.copy(isFlying ? roleC : phaseC);
-
-            // ROGUE 드론 특수 시각효과 — 더 크고 빨간 글로우
-            if (d.isRogue && d.phase !== 'GROUNDED' && d.glow) {
-                d.glow.material.color.set(0xff0000);
-                d.glow.scale.set(2.5, 2.5, 1);
+            if (d.body) {  // 대규모(InstancedMesh) 모드에서는 per-mesh 없음 → 색상은 syncInstances가 처리
+                d.body.material.color.copy(bodyC);
+                d.body.material.emissive.copy(bodyC);
+                d.body.material.emissiveIntensity = isFlying ? 0.8 : 0.4;
+                d.rotor.material.color.copy(phaseC);
+                if (d.glow) d.glow.material.color.copy(isFlying ? roleC : phaseC);
+                // ROGUE 드론 특수 시각효과 — 더 크고 빨간 글로우
+                if (d.isRogue && d.phase !== 'GROUNDED' && d.glow) {
+                    d.glow.material.color.set(0xff0000);
+                    d.glow.scale.set(2.5, 2.5, 1);
+                }
             }
         }
 
@@ -4373,6 +4357,33 @@
             const phColor = '#' + ph.color.toString(16).padStart(6, '0');
             const batColor = d.battery < 20 ? '#ef4444' : d.battery < 50 ? '#f59e0b' : '#10b981';
             const vspd = d.vy || 0;
+            // ── 파생 지표 ──
+            const gDx = d.goalX - d.wx, gDz = d.goalZ - d.wz, gDy = d.targetAlt - d.wy;
+            const goalDist = Math.sqrt(gDx * gDx + gDz * gDz + gDy * gDy);
+            const fmtT = (s) => isFinite(s) ? `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}` : '—';
+            const etaStr = d.speed > 0.3 ? fmtT(goalDist / d.speed) : '—';
+            // 경로효율 = 실제 비행거리 / (출발→목표 직선거리), 1에 가까울수록 효율적
+            let routeEff = '—';
+            if (d.startPad && d.goalPad) {
+                const sg = Math.hypot(d.goalPad.x - d.startPad.x, d.goalPad.z - d.startPad.z);
+                if (sg > 1 && d.distanceTraveled > 1) routeEff = '×' + (d.distanceTraveled / sg).toFixed(2);
+            }
+            // 잔여 비행시간 추정 (현재 평균 소모율 기준)
+            let endurStr = '—';
+            const used = 100 - d.battery;
+            if (used > 1 && d.flightTime > 5) endurStr = fmtT(d.battery / (used / d.flightTime));
+            // 고도 레이어 (가장 가까운 9단)
+            let layerIdx = 0, layerBest = 1e9;
+            ALTITUDE_LAYERS.forEach((a, i) => { const dd = Math.abs(a - d.wy); if (dd < layerBest) { layerBest = dd; layerIdx = i; } });
+            // 최근접 이웃 (3D 거리)
+            let nnId = '—', nnDist = Infinity;
+            for (const o of drones) {
+                if (o === d || o.phase === 'GROUNDED' || o.phase === 'FAILED') continue;
+                const dd = Math.sqrt((o.wx - d.wx) ** 2 + (o.wz - d.wz) ** 2 + (o.wy - d.wy) ** 2);
+                if (dd < nnDist) { nnDist = dd; nnId = o.id; }
+            }
+            const nnColor = nnDist < 50 ? '#ef4444' : nnDist < 100 ? '#f59e0b' : '#cdd9e8';
+            const nnStr = isFinite(nnDist) ? `${nnId} · ${nnDist.toFixed(0)}m` : '—';
             const row = (k, v) => `<div class="detail-row"><span class="k">${k}</span><span class="v">${v}</span></div>`;
             let html = `
       <div class="detail-title">${d.role.icon} ${d.id}
@@ -4397,7 +4408,15 @@
       ${row('비행시간', d.flightTime.toFixed(0) + ' s')}
       ${row('최대고도', Math.round(d.maxAltReached) + ' m')}
       ${row('경유점', d.waypointHits)}
-      ${row('회피', d.evasionCount + ' 회')}`;
+      ${row('회피', d.evasionCount + ' 회')}
+      <div class="detail-section">임무 · 안전</div>
+      ${row('목표까지', goalDist.toFixed(0) + ' m')}
+      ${row('도착예상(ETA)', etaStr)}
+      ${row('경로효율', routeEff)}
+      ${row('잔여비행(추정)', endurStr)}
+      ${row('고도레이어', 'L' + layerIdx + ' (' + ALTITUDE_LAYERS[layerIdx] + 'm)')}
+      ${row('스로틀', Math.round((d.throttle || 0) * 100) + '%')}
+      <div class="detail-row"><span class="k">최근접</span><span class="v" style="color:${nnColor};">${nnStr}</span></div>`;
             if (d.isRogue) {
                 html += `<div class="detail-rogue" style="color:#ff3d00;background:rgba(255,61,0,0.12);border:1px solid rgba(255,61,0,0.4);">⚠ 침입(ROGUE) 드론</div>`;
             } else if (d.phase === 'FAILED') {
@@ -4440,6 +4459,12 @@
             _ptr.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
             _ptr.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
             _ray.setFromCamera(_ptr, camera);
+            if (megaMode) { // 대규모: InstancedMesh instanceId → 드론
+                const ih = _ray.intersectObject(bodyInst, false);
+                const d = ih.length ? _droneFromInstance(ih[0].instanceId) : null;
+                if (d) { selectDrone(d); return; }
+                deselectDrone(); return;
+            }
             const hits = _ray.intersectObjects(droneGroup.children, true);
             for (const h of hits) {
                 let obj = h.object;
@@ -4468,15 +4493,20 @@
             const ph = PHASES[d.phase] || PHASES.GROUNDED;
             const phColor = '#' + ph.color.toString(16).padStart(6, '0');
             const batColor = d.battery < 20 ? '#ef4444' : d.battery < 50 ? '#f59e0b' : '#10b981';
+            const gDist = Math.sqrt((d.goalX - d.wx) ** 2 + (d.goalZ - d.wz) ** 2 + (d.targetAlt - d.wy) ** 2);
+            const etaS = d.speed > 0.3 ? gDist / d.speed : Infinity;
+            const eta = isFinite(etaS) ? `${String(Math.floor(etaS / 60)).padStart(2, '0')}:${String(Math.floor(etaS % 60)).padStart(2, '0')}` : '—';
             _tt.innerHTML = `
       <div class="tt-title">${d.role.icon} ${d.id}
         <span class="drone-status-dot" style="background:${phColor};box-shadow:0 0 6px ${phColor};"></span>
         <span style="margin-left:auto;font-size:8px;color:${phColor};">${ph.label}</span>
       </div>
-      <div class="tt-row"><span class="k">직군</span><span class="v">${d.role.label}</span></div>
+      <div class="tt-row"><span class="k">직군</span><span class="v">${d.role.label} · P${d.priority}</span></div>
       <div class="tt-row"><span class="k">고도</span><span class="v">${Math.round(d.wy)} m</span></div>
-      <div class="tt-row"><span class="k">속도</span><span class="v">${d.speed.toFixed(1)} m/s</span></div>
+      <div class="tt-row"><span class="k">속도</span><span class="v">${d.speed.toFixed(1)} m/s (${(vspd => (vspd >= 0 ? '+' : '') + vspd.toFixed(1))(d.vy || 0)}↕)</span></div>
       <div class="tt-row"><span class="k">기수</span><span class="v">${Math.round(d.heading)}°</span></div>
+      <div class="tt-row"><span class="k">목표</span><span class="v">${d.goalPad ? d.goalPad.name : '-'} · ${gDist.toFixed(0)}m</span></div>
+      <div class="tt-row"><span class="k">ETA</span><span class="v">${eta}</span></div>
       <div class="tt-row"><span class="k">배터리</span><span class="v" style="color:${batColor};">${d.battery.toFixed(1)}%</span></div>
       ${d.isRogue ? '<div class="tt-row"><span class="v" style="color:#ff3d00;font-weight:700;">⚠ 침입(ROGUE)</span></div>' : ''}`;
         }
@@ -4511,6 +4541,12 @@
             _ptr.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
             _ptr.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
             _ray.setFromCamera(_ptr, camera);
+            if (megaMode) { // 대규모: InstancedMesh instanceId → 드론
+                const ih = _ray.intersectObject(bodyInst, false);
+                const d = ih.length ? _droneFromInstance(ih[0].instanceId) : null;
+                setHover(d || null);
+                return;
+            }
             const hits = _ray.intersectObjects(droneGroup.children, true);
             for (const h of hits) {
                 let obj = h.object;
@@ -4581,51 +4617,21 @@
             }
             const toX = (wx) => ox + ((wx + WORLD) / (2 * WORLD)) * mw;
             const toY = (wz) => oy + ((wz + WORLD) / (2 * WORLD)) * mh;
-            const colorToRgba = (hex, alpha) => {
-                const r = (hex >> 16) & 255;
-                const g = (hex >> 8) & 255;
-                const b = hex & 255;
-                return `rgba(${r},${g},${b},${alpha})`;
-            };
-            if (layerVisibility.corridor) {
-                const corridorHalfWidth = 200;
-                corridorOverlays.forEach(c => {
-                    ctx.fillStyle = colorToRgba(c.color, 0.12);
-                    ctx.strokeStyle = colorToRgba(c.color, 0.35);
-                    ctx.lineWidth = 1;
-                    if (c.axis === 'EW') {
-                        const y0 = toY(-corridorHalfWidth);
-                        const y1 = toY(corridorHalfWidth);
-                        ctx.fillRect(ox, Math.min(y0, y1), mw, Math.abs(y1 - y0));
-                        ctx.strokeRect(ox, Math.min(y0, y1), mw, Math.abs(y1 - y0));
-                    } else {
-                        const x0 = toX(-corridorHalfWidth);
-                        const x1 = toX(corridorHalfWidth);
-                        ctx.fillRect(Math.min(x0, x1), oy, Math.abs(x1 - x0), mh);
-                        ctx.strokeRect(Math.min(x0, x1), oy, Math.abs(x1 - x0), mh);
-                    }
-                });
-            }
-            if (layerVisibility.nfz) {
-                ctx.strokeStyle = 'rgba(239,68,68,0.6)';
-                ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
-                ctx.strokeRect(
-                    toX(-NFZ_HALF_EXTENT),
-                    toY(-NFZ_HALF_EXTENT),
-                    toX(NFZ_HALF_EXTENT) - toX(-NFZ_HALF_EXTENT),
-                    toY(NFZ_HALF_EXTENT) - toY(-NFZ_HALF_EXTENT),
-                );
-                ctx.setLineDash([]);
-            }
-            if (layerVisibility.cpa && cpaTopDownPairs.length > 0) {
-                cpaTopDownPairs.forEach(p => {
-                    ctx.strokeStyle = colorToRgba(p.color, 0.75);
-                    ctx.lineWidth = 1.2;
-                    ctx.beginPath();
-                    ctx.moveTo(toX(p.a.x), toY(p.a.z));
-                    ctx.lineTo(toX(p.b.x), toY(p.b.z));
-                    ctx.stroke();
-                });
+            ctx.strokeStyle = 'rgba(239,68,68,0.6)';
+            ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
+            ctx.strokeRect(
+                toX(-NFZ_HALF_EXTENT),
+                toY(-NFZ_HALF_EXTENT),
+                toX(NFZ_HALF_EXTENT) - toX(-NFZ_HALF_EXTENT),
+                toY(NFZ_HALF_EXTENT) - toY(-NFZ_HALF_EXTENT)
+            );
+            ctx.setLineDash([]);
+            // 회랑 밴드 (EW/NS 400m)
+            if (corridorGroup.visible) {
+                ctx.fillStyle = 'rgba(59,130,246,0.10)';
+                ctx.fillRect(ox, toY(-200), mw, toY(200) - toY(-200));
+                ctx.fillStyle = 'rgba(16,185,129,0.10)';
+                ctx.fillRect(toX(-200), oy, toX(200) - toX(-200), mh);
             }
             // 드론
             for (const d of drones) {
@@ -4637,6 +4643,15 @@
                 if (selectedDrone && selectedDrone.id === d.id) {
                     ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 1.5;
                     ctx.beginPath(); ctx.arc(x, y, r + 3, 0, Math.PI * 2); ctx.stroke();
+                }
+            }
+            // CPA 충돌쌍 마커 (예측 최근접점)
+            if (showConflictViz) {
+                for (const c of _cvLabelData) {
+                    const cx = toX(c.x / SCALE), cy = toY(c.z / SCALE);
+                    ctx.strokeStyle = c.cpa < NEAR_MISS_DIST ? '#ff4040' : '#ffaa40';
+                    ctx.lineWidth = 1.2;
+                    ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.stroke();
                 }
             }
             // 고도 컬러맵 레전드
@@ -4694,7 +4709,7 @@
             }
         }
 
-        function renderKPI() {
+        function kpiList() {
             const n = drones.length || 1;
             const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED').length;
             const avgBat = drones.reduce((s, d) => s + d.battery, 0) / n;
@@ -4705,7 +4720,7 @@
             const batColor = avgBat < 20 ? '#ef4444' : avgBat < 50 ? '#f59e0b' : '#22c55e';
             const mm = String(Math.floor(simTime / 60)).padStart(2, '0');
             const ss = String(Math.floor(simTime % 60)).padStart(2, '0');
-            const cards = [
+            return [
                 ['충돌 해결률', cr.toFixed(1) + '%', crColor],
                 ['충돌 수', stats.collisions, '#ef4444'],
                 ['근접 경고', stats.nearMisses, '#f59e0b'],
@@ -4717,7 +4732,10 @@
                 ['시뮬 시간', mm + ':' + ss, '#00e5ff'],
                 ['총 드론', drones.length + ' 대', '#00e5ff'],
             ];
-            document.getElementById('av-kpi').innerHTML = cards.map(([k, v, c]) =>
+        }
+
+        function renderKPI() {
+            document.getElementById('av-kpi').innerHTML = kpiList().map(([k, v, c]) =>
                 `<div class="kpi-card"><div class="kpi-label">${k}</div><div class="kpi-value" style="color:${c};">${v}</div></div>`
             ).join('');
         }
@@ -4761,6 +4779,739 @@
 
         document.getElementById('btn-analysis').addEventListener('click', () => toggleAnalysis(!analysisMode));
         document.getElementById('av-close').addEventListener('click', () => toggleAnalysis(false));
+
+        // ===== 충돌·공역 관제 시각화 (Phase 1) =====
+        // 백엔드(GPU/Worker/CPU) 독립적인 별도 시각화 패스 — APF 로직 비침습.
+        let showConflictViz = true, showAdvisory = true, showFlightPath = true;
+
+        // --- CPA 충돌 예측선 (수렴 쌍 + 위험도 색상) ---
+        const conflictVizGroup = new THREE.Group(); scene.add(conflictVizGroup);
+        const _cvLines = [], _cvMarks = []; let _cvLineIdx = 0, _cvMarkIdx = 0;
+        const _cvLabels = []; let _cvLabelData = []; // {x,y,z,ttc,cpa} — 저빈도 재생성
+        function _cvLine() {
+            let l = _cvLines[_cvLineIdx];
+            if (!l) {
+                const g = new THREE.BufferGeometry();
+                g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+                l = new THREE.Line(g, new THREE.LineBasicMaterial({ transparent: true }));
+                conflictVizGroup.add(l); _cvLines.push(l);
+            }
+            _cvLineIdx++; return l;
+        }
+        function _cvMark() {
+            let m = _cvMarks[_cvMarkIdx];
+            if (!m) {
+                m = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6),
+                    new THREE.MeshBasicMaterial({ transparent: true, depthTest: false }));
+                m.renderOrder = 997; conflictVizGroup.add(m); _cvMarks.push(m);
+            }
+            _cvMarkIdx++; return m;
+        }
+        function ttcColor(ttc) {
+            // 임박(0s)=적색 → 여유(CPA_LOOKAHEAD)=황색
+            const f = Math.max(0, Math.min(1, ttc / CPA_LOOKAHEAD));
+            return (255 << 16) | (Math.round(40 + 170 * f) << 8) | 40;
+        }
+        function updateConflictViz() {
+            for (let i = 0; i < _cvLineIdx; i++) _cvLines[i].visible = false;
+            for (let i = 0; i < _cvMarkIdx; i++) _cvMarks[i].visible = false;
+            _cvLineIdx = 0; _cvMarkIdx = 0;
+            if (!showConflictViz) { _cvLabelData = []; return; }
+            const air = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+            if (air.length > 400) { _cvLabelData = []; return; } // 초대규모는 생략(성능)
+            const THRESH = NEAR_MISS_DIST * 1.5;
+            const labelCand = [];
+            let pairs = 0; const MAX_PAIRS = 60;
+            for (let i = 0; i < air.length && pairs < MAX_PAIRS; i++) {
+                const a = air[i];
+                const ra = a.heading * Math.PI / 180;
+                const avx = Math.sin(ra) * a.speed, avz = Math.cos(ra) * a.speed, avy = a.vy || 0;
+                for (let j = i + 1; j < air.length && pairs < MAX_PAIRS; j++) {
+                    const b = air[j];
+                    const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
+                    if (Math.abs(dx) > EVADE_DIST || Math.abs(dz) > EVADE_DIST) continue;
+                    const rb = b.heading * Math.PI / 180;
+                    const dvx = avx - Math.sin(rb) * b.speed, dvz = avz - Math.cos(rb) * b.speed, dvy = avy - (b.vy || 0);
+                    const relV2 = dvx * dvx + dvz * dvz + dvy * dvy;
+                    if (relV2 < 0.1) continue;
+                    const tCPA = -(dx * dvx + dz * dvz + dy * dvy) / relV2;
+                    if (tCPA <= 0 || tCPA > CPA_LOOKAHEAD) continue; // 수렴 + 예측 지평 내
+                    const fpx = dx + dvx * tCPA, fpz = dz + dvz * tCPA, fpy = dy + dvy * tCPA;
+                    const cpaDist = Math.sqrt(fpx * fpx + fpz * fpz + fpy * fpy);
+                    if (cpaDist > THRESH) continue;
+                    const col = ttcColor(tCPA);
+                    const ln = _cvLine(), p = ln.geometry.attributes.position.array;
+                    p[0] = a.group.position.x; p[1] = a.group.position.y; p[2] = a.group.position.z;
+                    p[3] = b.group.position.x; p[4] = b.group.position.y; p[5] = b.group.position.z;
+                    ln.geometry.attributes.position.needsUpdate = true;
+                    ln.material.color.set(col); ln.material.opacity = cpaDist < NEAR_MISS_DIST ? 0.75 : 0.4;
+                    ln.visible = true;
+                    const mk = _cvMark();
+                    mk.position.set((a.group.position.x + b.group.position.x) / 2,
+                        (a.group.position.y + b.group.position.y) / 2,
+                        (a.group.position.z + b.group.position.z) / 2);
+                    const s = cpaDist < NEAR_MISS_DIST ? 1.5 : 1.0;
+                    mk.scale.set(s, s, s); mk.material.color.set(col); mk.material.opacity = 0.9; mk.visible = true;
+                    labelCand.push({ x: mk.position.x, y: mk.position.y + 0.6, z: mk.position.z, ttc: tCPA, cpa: cpaDist });
+                    pairs++;
+                }
+            }
+            // 가장 임박한 6쌍만 라벨 후보로 저장 (저빈도로 재생성)
+            labelCand.sort((p, q) => p.ttc - q.ttc);
+            _cvLabelData = labelCand.slice(0, 6);
+        }
+
+        // CPA 라벨(TTC·이격거리): 텍스처 비용 때문에 저빈도로만 재생성
+        function rebuildConflictLabels() {
+            for (const s of _cvLabels) {
+                conflictVizGroup.remove(s);
+                if (s.material.map) s.material.map.dispose();
+                s.material.dispose();
+            }
+            _cvLabels.length = 0;
+            if (!showConflictViz) return;
+            for (const c of _cvLabelData) {
+                const danger = c.cpa < NEAR_MISS_DIST;
+                const sp = makeTextSprite(`${c.ttc.toFixed(1)}s · ${c.cpa.toFixed(0)}m`, danger ? '#ff4040' : '#ffcc40', 7);
+                sp.position.set(c.x, c.y, c.z);
+                sp.scale.set(3, 0.8, 1);
+                conflictVizGroup.add(sp);
+                _cvLabels.push(sp);
+            }
+        }
+
+        // --- 조치(어드바이저리) 빌보드 — 단계별 아이콘 점멸 (EVADE/HOLD/RTL) ---
+        const advisoryGroup = new THREE.Group(); scene.add(advisoryGroup);
+        const ADV_ICON = { EVADING: '⚠ 회피', HOLDING: '⏸ 체공', RTL: '↩ 귀환' };
+        const ADV_COLOR = { EVADING: '#ff3d00', HOLDING: '#3b82f6', RTL: '#ec407a' };
+        const _advPools = {}; // phase → {pool:[], idx:0} (텍스트가 텍스처에 구워지므로 단계별 풀 분리)
+        function _adv(phase) {
+            const p = _advPools[phase] || (_advPools[phase] = { pool: [], idx: 0 });
+            let s = p.pool[p.idx];
+            if (!s) { s = makeTextSprite(ADV_ICON[phase], ADV_COLOR[phase], 9); s.scale.set(3, 0.9, 1); advisoryGroup.add(s); p.pool.push(s); }
+            p.idx++; return s;
+        }
+        function updateAdvisoryOverlay(t) {
+            for (const k in _advPools) { const p = _advPools[k]; for (let i = 0; i < p.idx; i++) p.pool[i].visible = false; p.idx = 0; }
+            if (!showAdvisory || megaMode) return; // 대규모는 빌보드 생략(성능)
+            const pulse = 0.55 + Math.sin(t * 8) * 0.4;
+            let c = 0;
+            for (const d of drones) {
+                if (c >= 40 || !ADV_ICON[d.phase]) continue;
+                const s = _adv(d.phase);
+                s.position.set(d.group.position.x, d.group.position.y + 1.3, d.group.position.z);
+                s.material.opacity = pulse;
+                s.visible = true; c++;
+            }
+        }
+
+        // --- 분리간격 위반 경보 (충돌/근접 발생 시 화면 플래시 + 배너) ---
+        let _prevColl = 0, _prevNear = 0, _alertTimer = null;
+        function triggerAlert(color, text) {
+            const el = document.getElementById('alert-flash');
+            const bn = document.getElementById('alert-banner');
+            if (!el) return;
+            el.style.background = `radial-gradient(ellipse at center, transparent 35%, ${color} 100%)`;
+            el.style.opacity = '0.8';
+            if (bn) { bn.textContent = text; bn.style.opacity = '1'; }
+            clearTimeout(_alertTimer);
+            _alertTimer = setTimeout(() => { el.style.opacity = '0'; if (bn) bn.style.opacity = '0'; }, 450);
+        }
+        function checkSeparationAlerts() {
+            if (stats.collisions > _prevColl) triggerAlert('rgba(239,68,68,0.55)', '⛔ 충돌 발생 — 분리간격 위반');
+            else if (stats.nearMisses > _prevNear) triggerAlert('rgba(245,158,11,0.4)', '⚠ 근접 경고 — 분리간격 접근');
+            _prevColl = stats.collisions; _prevNear = stats.nearMisses;
+        }
+
+        // --- 웨이포인트·이동경로 (드론 → 목표 패드) ---
+        const flightPathGroup = new THREE.Group(); scene.add(flightPathGroup);
+        const _fpLines = [], _fpMarks = []; let _fpLineIdx = 0, _fpMarkIdx = 0;
+        function _fpLine() {
+            let l = _fpLines[_fpLineIdx];
+            if (!l) {
+                const g = new THREE.BufferGeometry();
+                g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+                l = new THREE.Line(g, new THREE.LineBasicMaterial({ transparent: true }));
+                flightPathGroup.add(l); _fpLines.push(l);
+            }
+            _fpLineIdx++; return l;
+        }
+        function _fpMark() {
+            let m = _fpMarks[_fpMarkIdx];
+            if (!m) {
+                m = new THREE.Mesh(new THREE.OctahedronGeometry(0.25, 0),
+                    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.85, wireframe: true }));
+                flightPathGroup.add(m); _fpMarks.push(m);
+            }
+            _fpMarkIdx++; return m;
+        }
+        function updateFlightPaths() {
+            for (let i = 0; i < _fpLineIdx; i++) _fpLines[i].visible = false;
+            for (let i = 0; i < _fpMarkIdx; i++) _fpMarks[i].visible = false;
+            _fpLineIdx = 0; _fpMarkIdx = 0;
+            if (!showFlightPath) return;
+            const air = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+            const cap = drones.length > 120 ? 60 : air.length;
+            let c = 0;
+            for (const d of air) {
+                if (c >= cap || !d.goalPad) continue;
+                const gx = d.goalX * SCALE, gz = d.goalZ * SCALE;
+                const col = '#' + d.role.color.toString(16).padStart(6, '0');
+                const sel = selectedDrone && selectedDrone.id === d.id;
+                const ln = _fpLine(), p = ln.geometry.attributes.position.array;
+                p[0] = d.group.position.x; p[1] = d.group.position.y; p[2] = d.group.position.z;
+                p[3] = gx; p[4] = 0.15; p[5] = gz;
+                ln.geometry.attributes.position.needsUpdate = true;
+                ln.material.color.set(col); ln.material.opacity = sel ? 0.9 : 0.32;
+                ln.visible = true;
+                const mk = _fpMark();
+                mk.position.set(gx, 0.4, gz); mk.material.color.set(col);
+                mk.material.opacity = sel ? 0.95 : 0.6;
+                mk.rotation.y += 0.0; mk.visible = true;
+                c++;
+            }
+        }
+
+        // --- 레이어 토글 와이어링 ---
+        function applyLayerVisibility() {
+            const syncChecked = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.checked = value;
+            };
+            const nfzOn = !!layerVisibility.nfz;
+            nfz.visible = nfzOn;
+            nfzEdge.visible = nfzOn;
+            if (typeof nfzLabel !== 'undefined') nfzLabel.visible = nfzOn;
+            syncChecked('tg-nfz', nfzOn);
+
+            const corridorOn = !!layerVisibility.corridor;
+            corridorGroup.visible = corridorOn;
+            syncChecked('tg-corridor', corridorOn);
+
+            const altitudeOn = !!layerVisibility.altitude;
+            altitudeLayerGroup.visible = altitudeOn;
+            if (typeof altLayerGroup !== 'undefined') altLayerGroup.visible = altitudeOn;
+            syncChecked('tg-altlayer', altitudeOn);
+
+            const atcOn = !!layerVisibility.atc;
+            atcCoverageGroup.visible = atcOn;
+            if (atcLinkGroup) atcLinkGroup.visible = atcOn;
+            scanRings.forEach(r => r.visible = atcOn);
+            atcDrones.forEach(a => { if (a.grp) a.grp.visible = atcOn; });
+            syncChecked('tg-atc', atcOn);
+
+            const cpaOn = !!layerVisibility.cpa;
+            showConflictViz = cpaOn;
+            conflictVizGroup.visible = cpaOn;
+            if (!cpaOn) conflictVizGroup.children.forEach(o => o.visible = false);
+            syncChecked('tg-conflict', cpaOn);
+        }
+
+        document.getElementById('tg-conflict').addEventListener('change', e => {
+            showConflictViz = e.target.checked;
+            layerVisibility.cpa = !!e.target.checked;
+            if (!showConflictViz) conflictVizGroup.children.forEach(o => o.visible = false);
+        });
+        document.getElementById('tg-advisory').addEventListener('change', e => { showAdvisory = e.target.checked; if (!showAdvisory) advisoryGroup.children.forEach(o => o.visible = false); });
+        document.getElementById('tg-path').addEventListener('change', e => { showFlightPath = e.target.checked; if (!showFlightPath) flightPathGroup.children.forEach(o => o.visible = false); });
+        document.getElementById('tg-nfz').addEventListener('change', e => {
+            const v = e.target.checked;
+            layerVisibility.nfz = !!v;
+            nfz.visible = v;
+            nfzEdge.visible = v;
+            if (typeof nfzLabel !== 'undefined') nfzLabel.visible = v;
+        });
+        document.getElementById('tg-corridor').addEventListener('change', e => {
+            layerVisibility.corridor = !!e.target.checked;
+            corridorGroup.visible = e.target.checked;
+        });
+        document.getElementById('tg-altlayer').addEventListener('change', e => {
+            layerVisibility.altitude = !!e.target.checked;
+            altLayerGroup.visible = e.target.checked;
+            altitudeLayerGroup.visible = e.target.checked;
+        });
+        document.getElementById('tg-atc').addEventListener('change', e => {
+            const v = e.target.checked;
+            layerVisibility.atc = !!v;
+            atcCoverageGroup.visible = v;
+            atcLinkGroup.visible = v;
+            scanRings.forEach(r => r.visible = v);
+            atcDrones.forEach(a => { if (a.grp) a.grp.visible = v; });
+        });
+        document.getElementById('tg-prox').addEventListener('change', e => { proximityLines.visible = e.target.checked; });
+        document.getElementById('tg-trail').addEventListener('change', e => { trailGroup.visible = e.target.checked; });
+        document.getElementById('tg-cull').addEventListener('change', e => { megaCull = e.target.checked; });
+
+        // ===== 리포트·내보내기 (Phase 4) =====
+        function _download(filename, url) {
+            const a = document.createElement('a');
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click(); a.remove();
+        }
+
+        function exportCSV() {
+            const h = chartHistory;
+            const num = (v, p = 1) => (typeof v === 'number' && isFinite(v)) ? v.toFixed(p) : '';
+            const lines = [];
+            lines.push('# SDACS Simulation Report');
+            lines.push('# scenario,' + (document.getElementById('scenario-select')?.value || 'default'));
+            lines.push('# simTime_s,' + simTime.toFixed(1));
+            lines.push('');
+            lines.push('## KPI');
+            for (const [k, v] of kpiList()) lines.push(`${k},${String(v).replace(/,/g, '')}`);
+            lines.push('');
+            lines.push('## TimeSeries');
+            lines.push('t_s,avg_battery,energy,collisionRate,conflicts,collisions,airspace,tickMs');
+            for (let i = 0; i < h.time.length; i++) {
+                lines.push([num(h.time[i]), num(h.battery[i], 2), num(h.energy[i], 2), num(h.collisionRate[i]),
+                h.conflicts[i] ?? '', h.collisions[i] ?? '', h.airspace[i] ?? '', num(h.tickTime[i])].join(','));
+            }
+            lines.push('');
+            lines.push('## Drones');
+            lines.push('id,role,phase,battery,wx,wy,wz,speed,heading,distance_m,flight_s,evasions');
+            for (const d of drones) {
+                lines.push([d.id, d.role.label, d.phase, d.battery.toFixed(1), d.wx.toFixed(0), d.wy.toFixed(0),
+                d.wz.toFixed(0), d.speed.toFixed(1), Math.round(d.heading), d.distanceTraveled.toFixed(0),
+                d.flightTime.toFixed(0), d.evasionCount].join(','));
+            }
+            const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+            _download(`sdacs_report_${Date.now()}.csv`, URL.createObjectURL(blob));
+            logEvent('info', '📑 CSV 리포트 저장됨');
+        }
+
+        function copyKPI() {
+            const txt = 'SDACS KPI @ ' + simTime.toFixed(0) + 's\n' + kpiList().map(([k, v]) => `${k}: ${v}`).join('\n');
+            navigator.clipboard?.writeText(txt).then(
+                () => logEvent('info', '📋 KPI 클립보드 복사됨'),
+                () => logEvent('info', 'KPI 복사 실패(권한)')
+            );
+        }
+
+        async function buildReportCanvas() {
+            const W0 = 1600, H0 = 900, pad = 10, titleH = 28;
+            const cw = (W0 - pad * 3) / 2, chh = (H0 - titleH - pad * 3) / 2;
+            const cvs = document.createElement('canvas');
+            cvs.width = W0; cvs.height = H0;
+            const g = cvs.getContext('2d');
+            g.fillStyle = '#03050a'; g.fillRect(0, 0, W0, H0);
+            g.fillStyle = '#00e5ff'; g.font = 'bold 16px JetBrains Mono, monospace';
+            const scen = document.getElementById('scenario-select')?.value || 'default';
+            g.fillText(`SDACS — 군집드론 공역통제 리포트 · ${scen} · t=${simTime.toFixed(0)}s · ${drones.length}대`, pad, 20);
+            const y0 = titleH + pad, y1 = y0 + chh + pad, x0 = pad, x1 = pad * 2 + cw;
+            const cells = [[x0, y0, '① 3D 비행 궤적'], [x1, y0, '② XY 평면도 (고도 컬러맵)'], [x0, y1, '③ 배터리 소모 추이'], [x1, y1, '④ KPI 대시보드']];
+            g.strokeStyle = 'rgba(0,229,255,0.25)';
+            for (const [x, y, label] of cells) {
+                g.strokeRect(x, y, cw, chh);
+                g.fillStyle = '#00e5ff'; g.font = 'bold 11px JetBrains Mono, monospace';
+                g.fillText(label, x + 6, y + 14);
+            }
+            // ① 3D 캡처 (preserveDrawingBuffer=true)
+            try {
+                renderer.render(scene, camera);
+                const dataURL = renderer.domElement.toDataURL('image/png');
+                const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = dataURL; });
+                g.drawImage(img, x0 + 2, y0 + 18, cw - 4, chh - 22);
+            } catch (e) { /* WebGL 캡처 불가 시 생략 */ }
+            // ②③ 2D 차트 직접 렌더
+            const tmp = document.createElement('canvas');
+            const blit = (drawFn, x, y) => {
+                tmp.width = cw - 4; tmp.height = chh - 22;
+                drawFn(tmp.getContext('2d'), tmp.width, tmp.height);
+                g.drawImage(tmp, x + 2, y + 18);
+            };
+            blit(drawTopDown, x1, y0);
+            blit(drawBatteryLines, x0, y1);
+            // ④ KPI 텍스트
+            g.font = '13px JetBrains Mono, monospace';
+            let ky = y1 + 42;
+            for (const [k, v, c] of kpiList()) {
+                g.fillStyle = '#4a6785'; g.fillText(k, x1 + 14, ky);
+                g.fillStyle = c || '#cdd9e8'; g.fillText(String(v), x1 + cw - 120, ky);
+                ky += 24;
+            }
+            return cvs;
+        }
+
+        async function exportPNG() {
+            const cvs = await buildReportCanvas();
+            _download(`sdacs_report_${Date.now()}.png`, cvs.toDataURL('image/png'));
+            logEvent('info', '📷 PNG 리포트 저장됨');
+        }
+
+        function _reportMeta() {
+            const scen = document.getElementById('scenario-select')?.value || 'default';
+            const mm = String(Math.floor(simTime / 60)).padStart(2, '0');
+            const ss = String(Math.floor(simTime % 60)).padStart(2, '0');
+            return { scen, simStr: `${mm}:${ss}`, ts: new Date().toISOString(), n: drones.length };
+        }
+
+        async function exportHTML() {
+            const png = (await buildReportCanvas()).toDataURL('image/png');
+            const m = _reportMeta();
+            const kpiRows = kpiList().map(([k, v, c]) => `<tr><td>${k}</td><td style="color:${c || '#0bf'};text-align:right;font-weight:600">${v}</td></tr>`).join('');
+            const evRows = eventLog.slice(0, 50).map(e => `<li><span class="t">[${e.ts}]</span> ${e.msg}</li>`).join('');
+            const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<title>SDACS 리포트 · ${m.scen}</title>
+<style>body{margin:0;background:#03050a;color:#cdd9e8;font-family:'JetBrains Mono',ui-monospace,monospace;padding:24px}
+h1{color:#00e5ff;font-size:20px}h2{color:#22d3ee;font-size:14px;border-bottom:1px solid #123;padding-bottom:4px;margin-top:24px}
+.meta{color:#4a6785;font-size:12px}img{max-width:100%;border:1px solid #123;border-radius:8px;margin-top:12px}
+table{border-collapse:collapse;width:320px}td{border-bottom:1px solid #0d1622;padding:4px 8px;font-size:13px}td:first-child{color:#4a6785}
+ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{padding:2px 0;border-bottom:1px solid #0a121c}.t{color:#4a6785}
+.note{color:#4a6785;font-size:11px;margin-top:8px}</style></head><body>
+<h1>SDACS 군집드론 공역통제 시뮬레이션 리포트</h1>
+<div class="meta">시나리오 <b>${m.scen}</b> · 경과 ${m.simStr} · 드론 ${m.n}대 · 생성 ${m.ts}</div>
+<h2>4분할 스냅샷</h2><img src="${png}" alt="report">
+<h2>KPI</h2><table>${kpiRows}</table>
+<div class="note">※ 경로효율·에너지효율(Wh/km)·CBS 성공률·통신손실률 등 엔진 전용 지표는 Python <code>gen_report_v6/v7.py</code> 파이프라인 산출물을 참조하세요.</div>
+<h2>이벤트 로그 (최근 50)</h2><ul>${evRows}</ul>
+</body></html>`;
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            _download(`sdacs_report_${Date.now()}.html`, URL.createObjectURL(blob));
+            logEvent('info', '📄 HTML 리포트 저장됨');
+        }
+
+        async function exportMD() {
+            const png = (await buildReportCanvas()).toDataURL('image/png');
+            const m = _reportMeta();
+            const lines = [];
+            lines.push(`# SDACS 군집드론 공역통제 시뮬레이션 리포트`);
+            lines.push('');
+            lines.push(`- **시나리오**: ${m.scen}`);
+            lines.push(`- **경과 시간**: ${m.simStr}`);
+            lines.push(`- **드론 수**: ${m.n}대`);
+            lines.push(`- **생성**: ${m.ts}`);
+            lines.push('');
+            lines.push(`## KPI`);
+            lines.push('');
+            lines.push('| 지표 | 값 |');
+            lines.push('|---|---|');
+            for (const [k, v] of kpiList()) lines.push(`| ${k} | ${v} |`);
+            lines.push('');
+            lines.push('> 경로효율·에너지효율(Wh/km)·CBS 성공률·통신손실률 등 엔진 전용 지표는 Python `gen_report_v6/v7.py` 산출물을 참조.');
+            lines.push('');
+            lines.push(`## 4분할 스냅샷`);
+            lines.push('');
+            lines.push(`![SDACS report](${png})`);
+            lines.push('');
+            lines.push(`## 이벤트 로그 (최근 30)`);
+            lines.push('');
+            for (const e of eventLog.slice(0, 30)) lines.push(`- \`[${e.ts}]\` ${e.msg}`);
+            const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
+            _download(`sdacs_report_${Date.now()}.md`, URL.createObjectURL(blob));
+            logEvent('info', '📝 Markdown 리포트 저장됨');
+        }
+
+        document.getElementById('btn-export-png').addEventListener('click', exportPNG);
+        document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
+        document.getElementById('btn-copy-kpi').addEventListener('click', copyKPI);
+        document.getElementById('btn-export-html').addEventListener('click', exportHTML);
+        document.getElementById('btn-export-md').addEventListener('click', exportMD);
+
+        // ===== 리플레이·타임라인 (Phase 3) =====
+        const recorder = { frames: [], max: 1200 }; // 0.5s 간격, 최대 ~10분
+        let replayMode = false, replayPlaying = false, replaySpeed = 1, replayIdx = 0, _replayAccum = 0;
+
+        function recordSnapshot() {
+            if (!simRunning || replayMode || drones.length === 0) return;
+            const snap = new Array(drones.length);
+            for (let i = 0; i < drones.length; i++) {
+                const dr = drones[i];
+                snap[i] = [Math.round(dr.wx), Math.round(dr.wy), Math.round(dr.wz), dr.phase, Math.round(dr.battery)];
+            }
+            recorder.frames.push({ t: simTime, d: snap });
+            if (recorder.frames.length > recorder.max) recorder.frames.shift();
+            const sl = document.getElementById('replay-slider');
+            sl.max = recorder.frames.length - 1;
+            if (!replayPlaying) sl.value = sl.max; // 라이브: 최신 프레임에 고정
+        }
+
+        function applyFrame(idx) {
+            const f = recorder.frames[idx];
+            if (!f) return;
+            for (let i = 0; i < drones.length && i < f.d.length; i++) {
+                const dr = drones[i], s = f.d[i];
+                dr.wx = s[0]; dr.wy = s[1]; dr.wz = s[2]; dr.phase = s[3]; dr.battery = s[4];
+                dr.group.position.set(dr.wx * SCALE, dr.wy * SCALE * 3, dr.wz * SCALE);
+                const col = (PHASES[dr.phase] || PHASES.GROUNDED).color;
+                if (dr.body) {  // 대규모 모드: 색상은 syncInstances가 phase로 적용
+                    dr.body.material.color.setHex(col);
+                    if (dr.body.material.emissive) dr.body.material.emissive.setHex(col);
+                    if (dr.rotor) dr.rotor.material.color.setHex(col);
+                }
+            }
+            const mm = String(Math.floor(f.t / 60)).padStart(2, '0');
+            const ss = String(Math.floor(f.t % 60)).padStart(2, '0');
+            document.getElementById('replay-time').textContent = mm + ':' + ss;
+        }
+
+        function enterReplay() {
+            if (recorder.frames.length === 0) return;
+            replayMode = true; simRunning = false;
+            document.getElementById('replay-live').classList.remove('active');
+        }
+
+        function goLive() {
+            replayMode = false; replayPlaying = false;
+            document.getElementById('replay-play').textContent = '▶';
+            document.getElementById('replay-live').classList.add('active');
+            document.getElementById('replay-time').textContent = 'LIVE';
+            simRunning = true;
+        }
+
+        function resetReplay() {
+            recorder.frames.length = 0;
+            replayMode = false; replayPlaying = false; replayIdx = 0; _replayAccum = 0;
+            const sl = document.getElementById('replay-slider'); if (sl) { sl.max = 0; sl.value = 0; }
+            const pl = document.getElementById('replay-play'); if (pl) pl.textContent = '▶';
+            const lv = document.getElementById('replay-live'); if (lv) lv.classList.add('active');
+            const tm = document.getElementById('replay-time'); if (tm) tm.textContent = 'LIVE';
+        }
+
+        function advanceReplay(dt) {
+            if (!replayMode || !replayPlaying) return;
+            _replayAccum += dt * replaySpeed;
+            while (_replayAccum >= 0.5) {
+                _replayAccum -= 0.5;
+                replayIdx++;
+                if (replayIdx >= recorder.frames.length - 1) {
+                    replayIdx = recorder.frames.length - 1;
+                    replayPlaying = false;
+                    document.getElementById('replay-play').textContent = '▶';
+                    break;
+                }
+            }
+            document.getElementById('replay-slider').value = replayIdx;
+            applyFrame(replayIdx);
+        }
+
+        document.getElementById('replay-slider').addEventListener('input', e => {
+            enterReplay();
+            replayPlaying = false;
+            document.getElementById('replay-play').textContent = '▶';
+            replayIdx = parseInt(e.target.value, 10) || 0;
+            applyFrame(replayIdx);
+        });
+        document.getElementById('replay-play').addEventListener('click', () => {
+            if (recorder.frames.length === 0) return;
+            if (!replayMode) enterReplay();
+            replayPlaying = !replayPlaying;
+            document.getElementById('replay-play').textContent = replayPlaying ? '⏸' : '▶';
+            if (replayPlaying && replayIdx >= recorder.frames.length - 1) replayIdx = 0;
+        });
+        document.getElementById('replay-live').addEventListener('click', goLive);
+        document.querySelectorAll('.replay-spd').forEach(b => b.addEventListener('click', () => {
+            replaySpeed = parseInt(b.dataset.spd, 10) || 1;
+            document.querySelectorAll('.replay-spd').forEach(x => x.classList.toggle('active', x === b));
+        }));
+
+        // ===== 뷰 프리셋 · 추적캠 · 검색 · 필터 (Bundle 1) =====
+        let camMode = 'reset';
+        const _followOffset = new THREE.Vector3(20, 16, 20);
+
+        function setCamMode(mode) {
+            camMode = mode;
+            controls.autoRotate = (mode === 'orbit');
+            if (mode === 'orbit') controls.autoRotateSpeed = 0.6;
+            document.querySelectorAll('.cam-preset').forEach(b => b.classList.toggle('active', b.dataset.cam === mode));
+            if (mode === 'reset') { camera.position.set(70, 50, 70); controls.target.set(0, 2, 0); }
+            else if (mode === 'top') { camera.position.set(0, 130, 0.1); controls.target.set(0, 0, 0); }
+            else if (mode === 'follow') {
+                _followOffset.copy(camera.position).sub(controls.target);
+                if (_followOffset.lengthSq() < 1) _followOffset.set(20, 16, 20);
+            }
+            controls.update();
+        }
+        document.querySelectorAll('.cam-preset').forEach(b => b.addEventListener('click', () => setCamMode(b.dataset.cam)));
+
+        function updateFollowCam() {
+            if (camMode !== 'follow') return;
+            const d = selectedDrone;
+            if (d && d.group && d.group.parent) {
+                controls.target.lerp(d.group.position, 0.15);
+                camera.position.lerp(d.group.position.clone().add(_followOffset), 0.1);
+            }
+        }
+
+        function focusDrone(d) {
+            if (!d) return;
+            selectDrone(d);
+            controls.target.copy(d.group.position);
+            const off = camMode === 'follow' ? _followOffset : new THREE.Vector3(18, 14, 18);
+            camera.position.copy(d.group.position).add(off);
+            controls.update();
+        }
+        document.getElementById('drone-search').addEventListener('keydown', e => {
+            if (e.key !== 'Enter') return;
+            const q = e.target.value.trim().toUpperCase();
+            if (!q) return;
+            const d = drones.find(x => x.id.toUpperCase() === q)
+                || drones.find(x => x.id.toUpperCase().includes(q))
+                || drones.find(x => (x.role.label || '').toUpperCase().includes(q) || (x.role.id || '').toUpperCase().includes(q));
+            if (d) { focusDrone(d); logEvent('info', `🔍 ${d.id} 포커스`); }
+            else logEvent('info', `🔍 '${e.target.value}' 검색 결과 없음`);
+        });
+
+        // 필터 (단계 + 배터리 상한) — 활성 시 매칭 드론만 표시
+        let filterPhase = '', filterBattMax = 100;
+        function filterActive() { return filterPhase !== '' || filterBattMax < 100; }
+        function droneMatches(d) { return (filterPhase === '' || d.phase === filterPhase) && (d.battery <= filterBattMax); }
+        function applyFilterVisibility() {
+            if (megaMode) return; // 대규모는 syncInstances가 처리
+            const active = filterActive();
+            for (const d of drones) if (d.group) d.group.visible = !active || droneMatches(d);
+        }
+        function resetViewFilter() {
+            filterPhase = ''; filterBattMax = 100;
+            const fp = document.getElementById('filter-phase'); if (fp) fp.value = '';
+            const fb = document.getElementById('filter-batt'); if (fb) fb.value = 100;
+            const fv = document.getElementById('filter-batt-val'); if (fv) fv.textContent = '100%';
+        }
+        document.getElementById('filter-phase').addEventListener('change', e => { filterPhase = e.target.value; applyFilterVisibility(); });
+        document.getElementById('filter-batt').addEventListener('input', e => {
+            filterBattMax = parseInt(e.target.value, 10);
+            document.getElementById('filter-batt-val').textContent = filterBattMax + '%';
+            applyFilterVisibility();
+        });
+
+        // ===== 외부 객체 탐지·식별 (DnI) — 조류 + 비협조 드론 =====
+        // 프레젠테이션(SDACS v9) 참조: AI 탐지(조류 포함) + 4등급 식별(정상/미등록/위험/조류) + 버드스트라이크 경보.
+        let showDnI = true;
+        const dniGroup = new THREE.Group(); scene.add(dniGroup);
+        const externalObjs = [];
+        const dniStats = { detected: 0, identified: 0, birds: 0, detSum: 0, detN: 0 };
+        const DETECT_RANGE_M = 2500;   // 센서(ATC·군집) 탐지 반경
+        const DNI_TARGET = 12;         // 동시 외부 객체 수
+        const EXT_TYPES = [
+            { type: 'bird', label: '🐦 조류', color: 0x3a6b8c, w: 0.5 },
+            { type: 'unknown', label: '미등록', color: 0xc07a2a, w: 0.3 },
+            { type: 'danger', label: '위험', color: 0xc44d4d, w: 0.2 },
+        ];
+        function _pickExtType() { const r = Math.random(); let a = 0; for (const t of EXT_TYPES) { a += t.w; if (r <= a) return t; } return EXT_TYPES[0]; }
+        function _makeExtMesh(type, color) {
+            const g = new THREE.Group();
+            if (type === 'bird') {
+                const mat = new THREE.MeshBasicMaterial({ color });
+                const lw = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.55, 4), mat); lw.rotation.z = Math.PI / 2; lw.position.x = -0.28;
+                const rw = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.55, 4), mat); rw.rotation.z = -Math.PI / 2; rw.position.x = 0.28;
+                g.add(lw); g.add(rw); g.userData.wings = [lw, rw];
+            } else {
+                g.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.24, 0), new THREE.MeshBasicMaterial({ color })));
+            }
+            return g;
+        }
+        function spawnExternal() {
+            const t = _pickExtType();
+            const g = _makeExtMesh(t.type, t.color);
+            // 공역 내부(±0.7·WORLD)에 분산 스폰 → 센서망 범위에서 신속 탐지 (거대 월드 가장자리 스폰 회피)
+            const R = WORLD * 0.7;
+            const spd = (t.type === 'bird' ? 35 : 70) + Math.random() * 40; // 비협조/조류 침입 속도
+            const ang = Math.random() * Math.PI * 2;
+            const wx = (Math.random() - 0.5) * 2 * R, wz = (Math.random() - 0.5) * 2 * R;
+            const vx = Math.sin(ang) * spd, vz = Math.cos(ang) * spd;
+            const wy = t.type === 'bird' ? (20 + Math.random() * 55) : (40 + Math.random() * 100);
+            g.position.set(wx * SCALE, wy * SCALE * 3, wz * SCALE);
+            dniGroup.add(g);
+            externalObjs.push({ type: t.type, label: t.label, color: t.color, g, wx, wy, wz, vx, vz, wob: Math.random() * 6.28, detected: false, identified: false, detTime: 0, label3d: null });
+        }
+        function resetDnI() {
+            for (const o of externalObjs) { dniGroup.remove(o.g); if (o.label3d) dniGroup.remove(o.label3d); }
+            externalObjs.length = 0;
+            dniStats.detected = dniStats.identified = dniStats.birds = dniStats.detSum = dniStats.detN = 0;
+        }
+        function updateExternals(dt, t) {
+            dniGroup.visible = showDnI;
+            if (!showDnI) return;
+            while (externalObjs.length < DNI_TARGET) spawnExternal();
+            const moving = simRunning && !replayMode;
+            const r = DETECT_RANGE_M * SCALE;
+            // 센서망 = ATC 관제 드론 + (비대규모 시) 비행 중 군집 드론
+            const sensors = [];
+            for (const a of atcDrones) sensors.push(a.grp.position);
+            if (!megaMode) for (const d of drones) { if (d.phase !== 'GROUNDED' && d.phase !== 'FAILED') sensors.push(d.group.position); }
+            for (let i = externalObjs.length - 1; i >= 0; i--) {
+                const o = externalObjs[i];
+                if (moving) { const sdt = dt * simSpeed; o.wx += o.vx * sdt; o.wz += o.vz * sdt; }
+                if (Math.abs(o.wx) > WORLD || Math.abs(o.wz) > WORLD) {
+                    dniGroup.remove(o.g); if (o.label3d) dniGroup.remove(o.label3d);
+                    externalObjs.splice(i, 1); continue;
+                }
+                const px = o.wx * SCALE, py = o.wy * SCALE * 3, pz = o.wz * SCALE;
+                o.g.position.set(px, py, pz);
+                if (o.type === 'bird') {
+                    const flap = Math.sin(t * 12 + o.wob) * 0.6;
+                    if (o.g.userData.wings) { o.g.userData.wings[0].rotation.x = flap; o.g.userData.wings[1].rotation.x = -flap; }
+                    o.g.rotation.y = Math.atan2(o.vx, o.vz);
+                } else { o.g.children[0].rotation.y = t * 4; }
+                if (moving && !o.detected) {
+                    let near = false;
+                    for (const s of sensors) { if (o.g.position.distanceTo(s) < r) { near = true; break; } }
+                    if (near) { o.detected = true; o.detTime = t; dniStats.detected++; if (o.type === 'bird') dniStats.birds++; }
+                } else if (moving && o.detected && !o.identified && (t - o.detTime) >= 0.7) {
+                    o.identified = true; dniStats.identified++;
+                    dniStats.detSum += 0.05 + Math.random() * 0.05; dniStats.detN++;
+                    const lbl = makeTextSprite(o.label, '#' + o.color.toString(16).padStart(6, '0'), 8);
+                    lbl.scale.set(3, 0.9, 1); o.label3d = lbl; dniGroup.add(lbl);
+                    logEvent(o.type === 'danger' ? 'rogue' : o.type === 'bird' ? 'info' : 'advisory', `🔍 외부 ${o.label} 식별`);
+                    if (o.type === 'bird' && Math.hypot(o.wx, o.wz) < 1500) triggerAlert('rgba(58,107,140,0.45)', '🐦 버드스트라이크 경보 — 경로 우회');
+                }
+                if (o.label3d) o.label3d.position.set(px, py + 1.2, pz);
+            }
+        }
+        function renderDnIStats() {
+            document.getElementById('dni-detected').textContent = dniStats.detected;
+            document.getElementById('dni-birds').textContent = dniStats.birds;
+            document.getElementById('dni-identified').textContent = dniStats.identified;
+            document.getElementById('dni-avg').textContent = (dniStats.detN ? (dniStats.detSum / dniStats.detN) : 0).toFixed(2) + 's';
+        }
+        document.getElementById('tg-dni').addEventListener('change', e => { showDnI = e.target.checked; if (!showDnI) dniGroup.visible = false; });
+
+        // ===== 단축키 · 도움말 · UI 상태 저장 (Bundle 5) =====
+        function toggleHelp(force) {
+            const o = document.getElementById('help-overlay');
+            const show = force !== undefined ? force : o.style.display === 'none';
+            o.style.display = show ? 'block' : 'none';
+        }
+        document.getElementById('btn-help').addEventListener('click', () => toggleHelp());
+        document.getElementById('help-close').addEventListener('click', () => toggleHelp(false));
+        document.getElementById('help-overlay').addEventListener('click', e => { if (e.target.id === 'help-overlay') toggleHelp(false); });
+
+        document.addEventListener('keydown', (e) => {
+            const tag = (e.target && e.target.tagName) || '';
+            if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') {
+                if (e.key === 'Escape') e.target.blur();
+                return;
+            }
+            switch (e.key) {
+                case ' ': e.preventDefault();
+                    (simRunning ? document.getElementById('btn-pause') : document.getElementById('btn-start')).click(); break;
+                case 'a': case 'A': toggleAnalysis(!analysisMode); break;
+                case 'f': case 'F': if (selectedDrone) { setCamMode('follow'); focusDrone(selectedDrone); } break;
+                case '1': setCamMode('reset'); break;
+                case '2': setCamMode('top'); break;
+                case '3': setCamMode('follow'); break;
+                case '4': setCamMode('orbit'); break;
+                case '/': e.preventDefault(); document.getElementById('drone-search').focus(); break;
+                case 'h': case 'H': case '?': toggleHelp(); break;
+                case 'Escape':
+                    if (document.getElementById('help-overlay').style.display !== 'none') toggleHelp(false);
+                    else if (analysisMode) toggleAnalysis(false);
+                    else deselectDrone();
+                    break;
+            }
+        });
+
+        // 패널 접힘 상태 localStorage 저장/복원
+        (function persistPanels() {
+            const map = [['#panel-left', 'toggle-left'], ['#panel-right', 'toggle-right'], ['.hud-bottom-log', 'btn-toggle-log'], ['#analytics-panel', 'btn-toggle-analytics']];
+            for (const [sel] of map) {
+                try { if (localStorage.getItem('sdacs_collapse_' + sel) === '1') document.querySelector(sel)?.classList.add('collapsed'); } catch (_) { }
+            }
+            for (const [sel, btnId] of map) {
+                document.getElementById(btnId)?.addEventListener('click', () => {
+                    setTimeout(() => { try { localStorage.setItem('sdacs_collapse_' + sel, document.querySelector(sel)?.classList.contains('collapsed') ? '1' : '0'); } catch (_) { } }, 0);
+                });
+            }
+        })();
 
         // ===== Controls =====
         document.getElementById('btn-clear-log').addEventListener('click', () => { eventLog.length = 0; });
@@ -5638,6 +6389,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             }
             frameCount++;
 
+            // 리플레이 재생 (라이브 정지 상태에서 기록 프레임 적용)
+            advanceReplay(dt);
+
             // Update weather & drones (CPU Main)
             if (simRunning) {
                 simTime += dt * simSpeed;
@@ -5661,20 +6415,25 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             updateAdvisoryOverlay(t);
             perfMetrics.cpuMs = performance.now() - cpuStart;
 
-            // Rotor spin
-            drones.forEach(d => {
-                if (d.phase !== 'GROUNDED') {
-                    d.rotor.rotation.z = t * 10;
-                    if (d.glow) d.glow.material.opacity = 0.25 + Math.sin(t * 3 + d.wx * 0.01) * 0.1;
-                } else {
-                    if (d.glow) d.glow.material.opacity = 0.1;
-                }
-                // Failed blink
-                if (d.phase === 'FAILED') {
-                    d.body.material.opacity = Math.sin(t * 8) > 0 ? 1 : 0.2;
-                    if (d.glow) d.glow.material.opacity = Math.sin(t * 8) > 0 ? 0.4 : 0.05;
-                }
-            });
+            // Rotor spin (대규모 InstancedMesh 모드에서는 per-mesh 없음 → 건너뜀)
+            if (!megaMode) {
+                drones.forEach(d => {
+                    if (!d.rotor) return;
+                    if (d.phase !== 'GROUNDED') {
+                        d.rotor.rotation.z = t * 10;
+                        if (d.glow) d.glow.material.opacity = 0.25 + Math.sin(t * 3 + d.wx * 0.01) * 0.1;
+                    } else {
+                        if (d.glow) d.glow.material.opacity = 0.1;
+                    }
+                    // Failed blink
+                    if (d.phase === 'FAILED' && d.body) {
+                        d.body.material.opacity = Math.sin(t * 8) > 0 ? 1 : 0.2;
+                        if (d.glow) d.glow.material.opacity = Math.sin(t * 8) > 0 ? 0.4 : 0.05;
+                    }
+                });
+            } else {
+                syncInstances(); // 대규모: 인스턴스 행렬·색상 갱신 (단일 드로우콜)
+            }
 
             // Scan rings (경량모드 시 비활성)
             if (!_lightweight) {
@@ -5704,6 +6463,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
             // Trails (매 5프레임, ROGUE만)
             if (simRunning && frameCount % 5 === 0) updateTrails();
+
+            // 충돌·공역 관제 시각화 (Phase 1) — CPA 예측선/이동경로(저빈도) + 회피 빌보드(매 프레임 점멸)
+            if (frameCount % 6 === 0) { updateConflictViz(); updateFlightPaths(); }
+            if (frameCount % 20 === 0) rebuildConflictLabels(); // TTC 라벨(텍스처 비용 ↓)
+            updateAdvisoryOverlay(t);
+            updateExternals(dt, t); // 외부 객체(조류·비협조) 탐지·식별
 
             // Collision particles
             if (collisionParticles.length > 0) updateCollisionParticles(dt);
@@ -5753,6 +6518,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 drawChart('av-canvas-batt', drawBatteryLines);
             }
 
+            updateFollowCam();
             controls.update();
             const gpuStart = performance.now();
             renderer.render(scene, camera);
@@ -5769,6 +6535,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // 성능 모니터 업데이트
             document.getElementById('perf-cpu').textContent = perfMetrics.cpuMs.toFixed(1);
             document.getElementById('perf-gpu').textContent = perfMetrics.gpuMs.toFixed(1);
+            document.getElementById('perf-drn').textContent = drones.length;
+            document.getElementById('perf-render').textContent = megaMode
+                ? ` ⚡INST ${_visibleInst}/${drones.length}${megaCull ? ' cull' : ''}`
+                : '';
             if (perfMetrics.useGpuCompute) {
                 document.getElementById('perf-apf').textContent = perfMetrics.gpuComputeMs.toFixed(1);
                 document.getElementById('perf-apf-label').textContent = 'GPU⚡';
@@ -5790,6 +6560,14 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // 분석 뷰 데이터 샘플링 + KPI 갱신
             sampleBatteryTracked();
             if (analysisMode) renderKPI();
+            // 리플레이 레코더 (0.5s 스냅샷)
+            recordSnapshot();
+            // 필터 활성 시 가시성 갱신(단계 변화 반영)
+            if (filterActive()) applyFilterVisibility();
+            // 분리간격 위반 경보 감지
+            checkSeparationAlerts();
+            // 외부 탐지·식별 카운터 갱신
+            renderDnIStats();
         }, 500);
 
         animate();
@@ -5826,6 +6604,17 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             clearHover() { setHover(null); },
             setAnalysisView(on) { toggleAnalysis(!!on); return analysisMode; },
             get analysisMode() { return analysisMode; },
+            async reportDataURL() { return (await buildReportCanvas()).toDataURL('image/png'); },
+            exportPNG, exportCSV, exportHTML, exportMD,
+            get megaMode() { return megaMode; },
+            get instanceCount() { return bodyInst.count; },
+            get visibleInstances() { return _visibleInst; },
+            set megaCull(v) { megaCull = !!v; },
+            get megaCull() { return megaCull; },
+            get replayFrames() { return recorder.frames.length; },
+            get dni() { return { ...dniStats, objects: externalObjs.length }; },
+            replaySeek(idx) { enterReplay(); replayIdx = Math.max(0, Math.min(idx, recorder.frames.length - 1)); applyFrame(replayIdx); return replayIdx; },
+            goLive,
             selectScenario(name) { document.getElementById('scenario-select').value = name; document.getElementById('scenario-select').dispatchEvent(new Event('change')); },
             setLayer(name, on) {
                 if (!(name in layerVisibility)) return null;

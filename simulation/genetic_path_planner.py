@@ -44,9 +44,9 @@ class GeneticPathPlanner:
         path = [start]
         for i in range(self.n_waypoints):
             t = (i + 1) / (self.n_waypoints + 1)
-            base = tuple(s + (g - s) * t for s, g in zip(start, goal))
+            base = tuple(s + (g - s) * t for s, g in zip(start, goal, strict=False))
             noise = tuple(self._rng.normal(0, 50) for _ in range(3))
-            wp = tuple(round(b + n, 1) for b, n in zip(base, noise))
+            wp = tuple(round(b + n, 1) for b, n in zip(base, noise, strict=False))
             path.append(wp)
         path.append(goal)
         return path
@@ -54,14 +54,14 @@ class GeneticPathPlanner:
     def _path_length(self, path: list) -> float:
         total = 0.0
         for i in range(1, len(path)):
-            total += np.sqrt(sum((a - b) ** 2 for a, b in zip(path[i-1], path[i])))
+            total += np.sqrt(sum((a - b) ** 2 for a, b in zip(path[i-1], path[i], strict=False)))
         return total
 
     def _obstacle_penalty(self, path: list) -> float:
         penalty = 0.0
         for wp in path:
             for obs in self._obstacles:
-                dist = np.sqrt(sum((a - b) ** 2 for a, b in zip(wp, obs[:3])))
+                dist = np.sqrt(sum((a - b) ** 2 for a, b in zip(wp, obs[:3], strict=False)))
                 if dist < 30:
                     penalty += (30 - dist) * 10
             for nfz in self._nfz:
@@ -78,7 +78,7 @@ class GeneticPathPlanner:
         for i in range(1, len(path) - 1):
             v1 = tuple(path[i][j] - path[i-1][j] for j in range(3))
             v2 = tuple(path[i+1][j] - path[i][j] for j in range(3))
-            dot = sum(a * b for a, b in zip(v1, v2))
+            dot = sum(a * b for a, b in zip(v1, v2, strict=False))
             m1 = max(np.sqrt(sum(a**2 for a in v1)), 1e-6)
             m2 = max(np.sqrt(sum(a**2 for a in v2)), 1e-6)
             cos_angle = np.clip(dot / (m1 * m2), -1, 1)
@@ -123,7 +123,7 @@ class GeneticPathPlanner:
 
         best_ever = max(population, key=lambda x: x.fitness)
 
-        for gen in range(generations):
+        for _gen in range(generations):
             new_pop = []
             for _ in range(self.pop_size):
                 p1 = self._tournament_select(population)

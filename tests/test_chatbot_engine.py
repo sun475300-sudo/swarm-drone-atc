@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from chatbot.engine.base import ChatResponse, ESCALATION_KEYWORDS
+from chatbot.engine.base import ESCALATION_KEYWORDS, ChatResponse
 from chatbot.engine.rule_engine import RuleEngine
 
 _KNOWLEDGE_DIR = Path(__file__).parent.parent / "chatbot" / "knowledge"

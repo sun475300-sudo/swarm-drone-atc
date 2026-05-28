@@ -3,7 +3,6 @@ Phase 461: Video Streaming System for Real-Time Surveillance
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 
 @dataclass
@@ -18,8 +17,8 @@ class VideoFrame:
 class VideoStreamingSystem:
     def __init__(self, max_bitrate_mbps: int = 10):
         self.max_bitrate = max_bitrate_mbps
-        self.active_streams: Dict[str, List[VideoFrame]] = {}
-        self.stream_quality: Dict[str, int] = {}
+        self.active_streams: dict[str, list[VideoFrame]] = {}
+        self.stream_quality: dict[str, int] = {}
 
     def start_stream(self, drone_id: str, resolution: tuple = (1920, 1080)):
         self.active_streams[drone_id] = []
@@ -33,7 +32,7 @@ class VideoStreamingSystem:
         if drone_id in self.stream_quality:
             self.stream_quality[drone_id] = int(bandwidth_percent * 100)
 
-    def get_stream_stats(self, drone_id: str) -> Dict:
+    def get_stream_stats(self, drone_id: str) -> dict:
         return {
             "active": drone_id in self.active_streams,
             "quality": self.stream_quality.get(drone_id, 0),

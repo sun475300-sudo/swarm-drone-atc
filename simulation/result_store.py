@@ -17,7 +17,6 @@ import csv
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from simulation.analytics import SimulationResult
 
@@ -91,7 +90,7 @@ class ResultStore:
     def compare(
         self,
         tags: list[str],
-        metrics: Optional[list[str]] = None,
+        metrics: list[str] | None = None,
     ) -> str:
         """
         태그별 결과를 비교 테이블로 출력.
@@ -197,7 +196,7 @@ class ResultStore:
             axes[i].set_title(metric.replace("_", " ").title(), fontsize=9)
             axes[i].tick_params(axis="x", rotation=30, labelsize=7)
             axes[i].tick_params(axis="y", labelsize=8)
-            for bar, v in zip(bars, vals):
+            for bar, v in zip(bars, vals, strict=False):
                 axes[i].text(
                     bar.get_x() + bar.get_width() / 2, bar.get_height(),
                     f"{v:.2f}" if isinstance(v, float) else str(v),

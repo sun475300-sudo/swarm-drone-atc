@@ -2,14 +2,14 @@
 Formation v2, Weather NN, IDS, SLAM, DSA, FL v2.
 """
 
+
 import numpy as np
 import pytest
-import time
-
 
 # ── Phase 311: Distributed Consensus v2 (PBFT) ──────────────────
 from simulation.distributed_consensus_v2 import (
-    DistributedConsensusV2, ConsensusRequest, NodeRole,
+    ConsensusRequest,
+    DistributedConsensusV2,
 )
 
 
@@ -52,7 +52,8 @@ class TestDistributedConsensusV2:
 
 # ── Phase 312: Real-time Physics v2 ─────────────────────────────
 from simulation.realtime_physics_v2 import (
-    RealtimePhysicsV2, RigidBody, ForceField, CollisionInfo,
+    RealtimePhysicsV2,
+    RigidBody,
 )
 
 
@@ -97,7 +98,8 @@ class TestRealtimePhysicsV2:
 
 # ── Phase 313: Satellite Communication Layer ─────────────────────
 from simulation.satellite_comm_layer import (
-    SatelliteCommLayer, Satellite, OrbitType, LinkStatus,
+    Satellite,
+    SatelliteCommLayer,
 )
 
 
@@ -138,7 +140,10 @@ class TestSatelliteCommLayer:
 
 # ── Phase 314: Edge AI Inference Engine ──────────────────────────
 from simulation.edge_ai_inference import (
-    EdgeAIInferenceEngine, EdgeModel, ModelFormat, InferenceResult,
+    EdgeAIInferenceEngine,
+    EdgeModel,
+    InferenceResult,
+    ModelFormat,
 )
 
 
@@ -186,7 +191,10 @@ class TestEdgeAIInference:
 
 # ── Phase 315: Swarm Formation v2 ───────────────────────────────
 from simulation.swarm_formation_v2 import (
-    SwarmFormationV2, FormationType, FormationConfig, DroneRole,
+    DroneRole,
+    FormationConfig,
+    FormationType,
+    SwarmFormationV2,
 )
 
 
@@ -227,7 +235,10 @@ class TestSwarmFormationV2:
 
 # ── Phase 316: Weather Prediction NN ─────────────────────────────
 from simulation.weather_prediction_nn import (
-    WeatherPredictionNN, WeatherObservation, WeatherVariable, WeatherForecast,
+    WeatherForecast,
+    WeatherObservation,
+    WeatherPredictionNN,
+    WeatherVariable,
 )
 
 
@@ -272,7 +283,9 @@ class TestWeatherPredictionNN:
 
 # ── Phase 317: Cybersecurity IDS ─────────────────────────────────
 from simulation.cybersecurity_ids import (
-    CybersecurityIDS, NetworkPacket, ThreatLevel, AttackType,
+    AttackType,
+    CybersecurityIDS,
+    NetworkPacket,
 )
 
 
@@ -309,7 +322,8 @@ class TestCybersecurityIDS:
 
 # ── Phase 318: Multi-Drone SLAM ──────────────────────────────────
 from simulation.multi_drone_slam import (
-    MultiDroneSLAM, Pose, Landmark,
+    MultiDroneSLAM,
+    Pose,
 )
 
 
@@ -347,7 +361,7 @@ class TestMultiDroneSLAM:
 
 # ── Phase 319: Dynamic Spectrum Access ───────────────────────────
 from simulation.dynamic_spectrum_access import (
-    DynamicSpectrumAccess, Channel, SpectrumBand, ChannelStatus,
+    DynamicSpectrumAccess,
 )
 
 
@@ -396,7 +410,9 @@ class TestDynamicSpectrumAccess:
 
 # ── Phase 320: Federated Learning v2 ────────────────────────────
 from simulation.federated_learning_v2 import (
-    FederatedLearningV2, AggregationMethod, FLRound,
+    AggregationMethod,
+    FederatedLearningV2,
+    FLRound,
 )
 
 

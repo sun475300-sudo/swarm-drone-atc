@@ -18,7 +18,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from simulation.apf_engine import get_apf_backend_info
-from simulation.apf_engine.apf import APFState, batch_compute_forces as cpu_batch_compute_forces
+from simulation.apf_engine.apf import APFState
+from simulation.apf_engine.apf import batch_compute_forces as cpu_batch_compute_forces
 
 # GPU 함수 임포트 시도
 _GPU_AVAILABLE = False

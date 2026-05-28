@@ -269,7 +269,7 @@ class EnergyManagementSystem:
                     f"Battery SoC={self.battery.get_soc_percent():.1f}%"
                 )
 
-        print(f"\n=== Summary ===")
+        print("\n=== Summary ===")
         print(f"Total Harvested: {self.total_harvested_wh:.2f} Wh")
         print(f"Final Battery SoC: {self.battery.get_soc_percent():.1f}%")
 

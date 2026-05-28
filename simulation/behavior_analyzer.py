@@ -200,7 +200,7 @@ class BehaviorAnalyzer:
                 break
             centroids = new_centroids
 
-        self._centroids = [c for c in centroids]
+        self._centroids = list(centroids)
 
         clusters: dict[int, list[str]] = {i: [] for i in range(k)}
         for i, feat in enumerate(self._features):

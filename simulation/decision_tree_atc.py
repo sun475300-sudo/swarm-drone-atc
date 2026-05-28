@@ -10,8 +10,9 @@ IF-THEN 규칙 기반 빠른 관제 결정 + 규칙 학습.
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 
 @dataclass
@@ -107,5 +108,5 @@ class DecisionTreeATC:
         return {
             "rules": len(self._rules),
             "decisions": len(self._decisions),
-            "actions_used": len(set(d.action for d in self._decisions)),
+            "actions_used": len({d.action for d in self._decisions}),
         }

@@ -3,9 +3,9 @@ Phase 475: Bio-Inspired Optimizer
 개미군집(ACO v2), 벌집(ABC), 반딧불이(FA) 최적화.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Dict, List
 
 import numpy as np
 
@@ -72,7 +72,8 @@ class ArtificialBeeColony:
         for _ in range(max_iter):
             for i in range(self.n_bees):
                 k = self.rng.integers(0, self.n_bees)
-                while k == i: k = self.rng.integers(0, self.n_bees)
+                while k == i:
+                    k = self.rng.integers(0, self.n_bees)
                 j = self.rng.integers(0, self.n_dim)
                 new = pop[i].copy()
                 new[j] += self.rng.uniform(-1, 1) * (pop[i, j] - pop[k, j])
@@ -136,7 +137,7 @@ class BioInspiredOptimizer:
         self.algorithm = algorithm
         self.n_dim = n_dim
         self.rng = np.random.default_rng(seed)
-        self.results: List[Solution] = []
+        self.results: list[Solution] = []
 
     def optimize(self, func: Callable, bounds: np.ndarray,
                  max_iter: int = 50, pop_size: int = 30) -> Solution:
@@ -152,14 +153,14 @@ class BioInspiredOptimizer:
         return result
 
     def compare_all(self, func: Callable, bounds: np.ndarray,
-                    max_iter: int = 50) -> Dict[str, Solution]:
+                    max_iter: int = 50) -> dict[str, Solution]:
         results = {}
         for algo in [BioAlgorithm.ACO, BioAlgorithm.ABC, BioAlgorithm.FIREFLY]:
             self.algorithm = algo
             results[algo.value] = self.optimize(func, bounds, max_iter)
         return results
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "algorithm": self.algorithm.value,
             "dimensions": self.n_dim,

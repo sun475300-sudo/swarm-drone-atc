@@ -5,7 +5,6 @@ Phase 424: Multi-Modal Fusion for Sensor Integration
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List
 
 import numpy as np
 
@@ -31,14 +30,14 @@ class SensorReading:
 class FusionResult:
     fused_state: np.ndarray
     confidence: float
-    sources_used: List[SensorType]
+    sources_used: list[SensorType]
     timestamp: float
 
 
 class MultiModalFusion:
     def __init__(self, fusion_method: str = "kalman"):
         self.fusion_method = fusion_method
-        self.sensor_readings: Dict[SensorType, List[SensorReading]] = {
+        self.sensor_readings: dict[SensorType, list[SensorReading]] = {
             st: [] for st in SensorType
         }
         self.state_estimate = np.zeros(6)
@@ -67,10 +66,7 @@ class MultiModalFusion:
             total_weight += weight
             sources_used.append(sensor_type)
 
-        if total_weight > 0:
-            fused_state = weighted_sum / total_weight
-        else:
-            fused_state = self.state_estimate
+        fused_state = weighted_sum / total_weight if total_weight > 0 else self.state_estimate
 
         confidence = min(total_weight / len(SensorType), 1.0)
 

@@ -7,7 +7,7 @@ import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -48,8 +48,8 @@ class PostFlightReport:
     plan_id: str
     outcome: ReportOutcome
     metrics: FlightMetrics
-    events: List[str] = field(default_factory=list)
-    issues: List[str] = field(default_factory=list)
+    events: list[str] = field(default_factory=list)
+    issues: list[str] = field(default_factory=list)
     generated_at: float = field(default_factory=time.time)
 
 
@@ -59,7 +59,7 @@ class PostFlightReporter:
     def __init__(self, max_reports: int = 10_000) -> None:
         if max_reports <= 0:
             raise ValueError("max_reports must be positive")
-        self.reports: Dict[str, PostFlightReport] = {}
+        self.reports: dict[str, PostFlightReport] = {}
         self.max_reports = max_reports
         self._next_id = 0
 
@@ -71,8 +71,8 @@ class PostFlightReporter:
         self,
         callsign: str,
         plan_id: str,
-        track_points: List[Tuple[float, Tuple[float, float, float], float]],
-        events: Optional[List[str]] = None,
+        track_points: list[tuple[float, tuple[float, float, float], float]],
+        events: list[str] | None = None,
         conflicts_detected: int = 0,
         collisions: int = 0,
         deviation_alerts: int = 0,
@@ -90,7 +90,7 @@ class PostFlightReporter:
                     f"track_points[{i}] position components must be finite, got {pt[1]!r}"
                 )
         ts_seq = [p[0] for p in track_points]
-        if any(t2 < t1 for t1, t2 in zip(ts_seq, ts_seq[1:])):
+        if any(t2 < t1 for t1, t2 in zip(ts_seq, ts_seq[1:], strict=False)):
             raise ValueError("track_points timestamps must not decrease (no backward steps)")
         if collisions < 0 or conflicts_detected < 0 or deviation_alerts < 0:
             raise ValueError("collision/conflict/deviation counts must be non-negative")
@@ -118,7 +118,7 @@ class PostFlightReporter:
 
     @staticmethod
     def _compute_metrics(
-        track_points: List[Tuple[float, Tuple[float, float, float], float]],
+        track_points: list[tuple[float, tuple[float, float, float], float]],
         conflicts: int,
         collisions: int,
         deviations: int,
@@ -155,9 +155,9 @@ class PostFlightReporter:
 
     @staticmethod
     def _classify_outcome(
-        metrics: FlightMetrics, events: List[str]
-    ) -> Tuple[ReportOutcome, List[str]]:
-        issues: List[str] = []
+        metrics: FlightMetrics, events: list[str]
+    ) -> tuple[ReportOutcome, list[str]]:
+        issues: list[str] = []
         if metrics.collisions > 0:
             issues.append(f"{metrics.collisions} collision(s)")
             return ReportOutcome.INCIDENT, issues
@@ -173,7 +173,7 @@ class PostFlightReporter:
             return ReportOutcome.DEGRADED, issues
         return ReportOutcome.SUCCESS, issues
 
-    def export_summary(self, report_id: str) -> Optional[Dict[str, Any]]:
+    def export_summary(self, report_id: str) -> dict[str, Any] | None:
         r = self.reports.get(report_id)
         if r is None:
             return None
@@ -196,13 +196,13 @@ class PostFlightReporter:
             "issues": list(r.issues),
         }
 
-    def outcome_distribution(self) -> Dict[str, int]:
-        dist: Dict[str, int] = {}
+    def outcome_distribution(self) -> dict[str, int]:
+        dist: dict[str, int] = {}
         for r in self.reports.values():
             dist[r.outcome.value] = dist.get(r.outcome.value, 0) + 1
         return dist
 
-    def stats(self) -> Dict[str, Any]:
+    def stats(self) -> dict[str, Any]:
         return {
             "total_reports": len(self.reports),
             "outcomes": self.outcome_distribution(),

@@ -4,7 +4,6 @@ Phase 432: Object Detection Engine for Real-Time Tracking
 
 import time
 from dataclasses import dataclass
-from typing import List
 
 import numpy as np
 
@@ -22,7 +21,7 @@ class BoundingBox:
 
 @dataclass
 class DetectionResult:
-    boxes: List[BoundingBox]
+    boxes: list[BoundingBox]
     image_id: str
     timestamp: float
 
@@ -36,7 +35,7 @@ class ObjectDetectionEngine:
         num_detections = np.random.randint(1, 10)
 
         boxes = []
-        for i in range(num_detections):
+        for _i in range(num_detections):
             x1 = np.random.uniform(0, image.shape[1] - 100)
             y1 = np.random.uniform(0, image.shape[0] - 100)
             x2 = x1 + np.random.uniform(50, 150)

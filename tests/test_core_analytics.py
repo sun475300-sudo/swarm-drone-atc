@@ -18,9 +18,9 @@ import numpy as np
 import pytest
 
 from src.analytics.core_analytics import (
+    MonteCarloAnalyzer,
     PerformanceAnalyzer,
     SwarmMetricsCollector,
-    MonteCarloAnalyzer,
 )
 
 pytestmark = pytest.mark.integration

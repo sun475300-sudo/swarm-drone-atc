@@ -9,7 +9,6 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass
 from enum import Enum
-from typing import Deque, List, Optional
 
 import numpy as np
 
@@ -70,7 +69,7 @@ class AdaptiveRateController:
         self.max_rate_bps = 10e6
         self.min_rate_bps = 100e3
         self._window_size = 10
-        self._loss_history: Deque[bool] = deque(maxlen=self._window_size)
+        self._loss_history: deque[bool] = deque(maxlen=self._window_size)
 
     def on_ack(self):
         self._loss_history.append(False)
@@ -119,8 +118,8 @@ class ProtocolOptimizer:
         self._channel = ChannelState()
         self._rate_ctrl = AdaptiveRateController()
         self._compressor = PacketCompressor()
-        self._queue: List[Packet] = []
-        self._results: List[TransmissionResult] = []
+        self._queue: list[Packet] = []
+        self._results: list[TransmissionResult] = []
         self._stats = {"sent": 0, "delivered": 0, "lost": 0, "compressed": 0}
 
     def set_channel(self, channel: ChannelState):
@@ -143,7 +142,7 @@ class ProtocolOptimizer:
         # Sort by QoS priority (highest first)
         self._queue.sort(key=lambda p: p.qos.value, reverse=True)
 
-    def transmit_next(self) -> Optional[TransmissionResult]:
+    def transmit_next(self) -> TransmissionResult | None:
         if not self._queue:
             return None
         packet = self._queue.pop(0)
@@ -184,7 +183,7 @@ class ProtocolOptimizer:
         self._results.append(result)
         return result
 
-    def flush_queue(self) -> List[TransmissionResult]:
+    def flush_queue(self) -> list[TransmissionResult]:
         results = []
         while self._queue:
             r = self.transmit_next()

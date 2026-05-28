@@ -5,7 +5,6 @@ Phase 511: Edge ML Pipeline
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -89,13 +88,13 @@ class EdgeInferenceEngine:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.models: Dict[str, EdgeModel] = {}
-        self.results: List[InferenceResult] = []
+        self.models: dict[str, EdgeModel] = {}
+        self.results: list[InferenceResult] = []
 
     def load_model(self, model: EdgeModel):
         self.models[model.model_id] = model
 
-    def infer(self, model_id: str, input_data: np.ndarray) -> Optional[InferenceResult]:
+    def infer(self, model_id: str, input_data: np.ndarray) -> InferenceResult | None:
         model = self.models.get(model_id)
         if model is None:
             return None
@@ -119,10 +118,10 @@ class OnDeviceLearner:
     def __init__(self, n_devices: int = 10, seed: int = 42):
         self.rng = np.random.default_rng(seed)
         self.n_devices = n_devices
-        self.global_weights: Optional[np.ndarray] = None
-        self.rounds: List[Dict] = []
+        self.global_weights: np.ndarray | None = None
+        self.rounds: list[dict] = []
 
-    def init_global(self, dim: Tuple[int, int]):
+    def init_global(self, dim: tuple[int, int]):
         self.global_weights = self.rng.standard_normal(dim) * 0.1
 
     def local_update(self, device_id: int, data: np.ndarray, labels: np.ndarray,
@@ -137,14 +136,14 @@ class OnDeviceLearner:
             w -= lr * grad
         return w - self.global_weights
 
-    def aggregate(self, gradients: List[np.ndarray]) -> np.ndarray:
+    def aggregate(self, gradients: list[np.ndarray]) -> np.ndarray:
         if not gradients or self.global_weights is None:
             return np.array([])
         avg_grad = np.mean(gradients, axis=0)
         self.global_weights += avg_grad
         return self.global_weights
 
-    def federated_round(self) -> Dict:
+    def federated_round(self) -> dict:
         if self.global_weights is None:
             self.init_global((10, 3))
         grads = []
@@ -181,7 +180,7 @@ class EdgeMLPipeline:
             q_model = self.quantizer.quantize(model, ModelFormat.INT8)
             self.engine.load_model(q_model)
 
-    def run_inference_batch(self, n_samples: int = 50) -> Dict:
+    def run_inference_batch(self, n_samples: int = 50) -> dict:
         results = []
         for mid, model in self.engine.models.items():
             data = self.rng.standard_normal((n_samples, model.input_dim))
@@ -192,7 +191,7 @@ class EdgeMLPipeline:
         avg_lat = np.mean([r.latency_ms for r in results]) if results else 0
         return {"inferences": len(results), "avg_latency_ms": round(avg_lat, 2)}
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "drones": self.n_drones,
             "models_loaded": len(self.engine.models),

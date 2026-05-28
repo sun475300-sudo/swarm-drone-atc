@@ -89,9 +89,9 @@ class FederatedServer:
             return
 
         new_w_enc = np.zeros_like(self.global_model.w_enc)
-        new_b_enc = np.zeros_like(self.global_model.b_enc)
-        new_w_dec = np.zeros_like(self.global_model.w_dec)
-        new_b_dec = np.zeros_like(self.global_model.b_dec)
+        np.zeros_like(self.global_model.b_enc)
+        np.zeros_like(self.global_model.w_dec)
+        np.zeros_like(self.global_model.b_dec)
 
         for m in local_models:
             w = m.n_samples / total_samples
@@ -136,7 +136,7 @@ class FederatedAnomalyDetection:
         self.rounds: list[FederatedRound] = []
 
         # 클라이언트별 정상 데이터 생성
-        for i in range(n_clients):
+        for _i in range(n_clients):
             data = self.rng.normal(0, 1, (n_samples_per_client, self.input_dim))
             self.client_data.append(data)
 

@@ -69,7 +69,7 @@ class SwarmConsciousnessV2:
             self.collective_memory[key] = value
 
     def get_collective_decision(self, options: List[Dict[str, Any]]) -> Dict[str, Any]:
-        votes = {i: 0 for i in range(len(options))}
+        votes = dict.fromkeys(range(len(options)), 0)
         for state in self.states.values():
             vote = self.rng.integers(len(options))
             votes[vote] += 1

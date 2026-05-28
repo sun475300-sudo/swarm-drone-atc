@@ -4,7 +4,6 @@ Phase 469: Emergency Protocol System for Critical Situations
 
 import time
 from dataclasses import dataclass
-from typing import List
 
 
 @dataclass
@@ -18,7 +17,7 @@ class EmergencyEvent:
 
 class EmergencyProtocolSystem:
     def __init__(self):
-        self.emergency_queue: List[EmergencyEvent] = []
+        self.emergency_queue: list[EmergencyEvent] = []
         self.protocols = {
             "battery_low": self._battery_protocol,
             "gps_loss": self._gps_protocol,

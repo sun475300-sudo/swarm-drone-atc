@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 import math
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # 브리핑 파라미터 기본값 상수 — 하드코딩 방지
 _NOTAM_QUERY_RADIUS_M: float = 500.0
@@ -16,9 +16,9 @@ _HIGH_WIND_THRESHOLD_KT: int = 25
 @dataclass
 class BriefingRequest:
     callsign: str
-    departure: Tuple[float, float]
-    destination: Tuple[float, float]
-    route_waypoints: List[Tuple[float, float]]
+    departure: tuple[float, float]
+    destination: tuple[float, float]
+    route_waypoints: list[tuple[float, float]]
     planned_altitude_m: float
     departure_time: float
 
@@ -28,10 +28,10 @@ class BriefingResult:
     callsign: str
     go_nogo: str
     weather_ok: bool
-    notam_conflicts: List[str] = field(default_factory=list)
-    tfr_conflicts: List[str] = field(default_factory=list)
-    chart_hazards: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    notam_conflicts: list[str] = field(default_factory=list)
+    tfr_conflicts: list[str] = field(default_factory=list)
+    chart_hazards: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
     summary: str = ""
 
 
@@ -43,10 +43,10 @@ class AimBriefingService:
 
     def __init__(
         self,
-        notam_manager: Optional[Any] = None,
-        tfr_handler: Optional[Any] = None,
-        aero_charts: Optional[Any] = None,
-        metar_parser: Optional[Any] = None,
+        notam_manager: Any | None = None,
+        tfr_handler: Any | None = None,
+        aero_charts: Any | None = None,
+        metar_parser: Any | None = None,
         max_history: int = _DEFAULT_BRIEFING_HISTORY,
     ) -> None:
         if max_history <= 0:
@@ -56,10 +56,10 @@ class AimBriefingService:
         self.aero_charts = aero_charts
         self.metar_parser = metar_parser
         self.max_history = max_history
-        self.history: List[BriefingResult] = []
+        self.history: list[BriefingResult] = []
 
     def generate(
-        self, request: BriefingRequest, metar_text: Optional[str] = None
+        self, request: BriefingRequest, metar_text: str | None = None
     ) -> BriefingResult:
         """Generate a GO/NO-GO briefing.
 
@@ -82,7 +82,7 @@ class AimBriefingService:
                 raise ValueError(
                     f"{label} must be a 2-element tuple of finite floats, got {coord!r}"
                 )
-        warnings: List[str] = []
+        warnings: list[str] = []
         # route 목록을 1회만 생성해 각 수집 메서드에 전달 (DRY + 성능)
         route = [request.departure, *request.route_waypoints, request.destination]
         notam_ids = self._collect_notam_conflicts(request, route)
@@ -117,12 +117,12 @@ class AimBriefingService:
             del self.history[:overflow]
         return result
 
-    def _collect_notam_conflicts(self, request: BriefingRequest, route: List[Tuple[float, float]]) -> List[str]:
+    def _collect_notam_conflicts(self, request: BriefingRequest, route: list[tuple[float, float]]) -> list[str]:
         if self.notam_manager is None:
             return []
         import logging
         seen: set[str] = set()
-        ids: List[str] = []
+        ids: list[str] = []
         for wp in route:
             try:
                 active = self.notam_manager.query_active(
@@ -139,13 +139,13 @@ class AimBriefingService:
                     ids.append(n.notam_id)
         return ids
 
-    def _collect_tfr_conflicts(self, request: BriefingRequest, route: List[Tuple[float, float]]) -> List[str]:
+    def _collect_tfr_conflicts(self, request: BriefingRequest, route: list[tuple[float, float]]) -> list[str]:
         if self.tfr_handler is None:
             return []
         import logging
         # check_conflict_readonly() 사용 — 감사 로그 오염 방지
         seen: set[str] = set()
-        ids: List[str] = []
+        ids: list[str] = []
         for wp in route:
             pos3 = (wp[0], wp[1], request.planned_altitude_m)
             try:
@@ -161,7 +161,7 @@ class AimBriefingService:
                     ids.append(v)
         return ids
 
-    def _collect_chart_hazards(self, request: BriefingRequest, route: List[Tuple[float, float]]) -> List[str]:
+    def _collect_chart_hazards(self, request: BriefingRequest, route: list[tuple[float, float]]) -> list[str]:
         if self.aero_charts is None:
             return []
         hazards = self.aero_charts.path_obstacles(
@@ -169,7 +169,7 @@ class AimBriefingService:
         )
         return [h.feature_id for h in hazards]
 
-    def _assess_weather(self, metar_text: Optional[str], warnings: List[str]) -> bool:
+    def _assess_weather(self, metar_text: str | None, warnings: list[str]) -> bool:
         """Assess weather from METAR text.
 
         Returns True (weather assumed OK / fail-open) when metar_text is None or
@@ -195,9 +195,9 @@ class AimBriefingService:
     @staticmethod
     def _summarize(
         is_go: bool,
-        notams: List[str],
-        tfrs: List[str],
-        hazards: List[str],
+        notams: list[str],
+        tfrs: list[str],
+        hazards: list[str],
         weather_ok: bool,
     ) -> str:
         verdict = "GO" if is_go else "NO-GO"
@@ -206,7 +206,7 @@ class AimBriefingService:
             f"{len(hazards)} hazard; weather={'ok' if weather_ok else 'bad'}"
         )
 
-    def stats(self) -> Dict[str, Any]:
+    def stats(self) -> dict[str, Any]:
         go = sum(1 for r in self.history if r.go_nogo == "GO")
         nogo = len(self.history) - go
         return {"briefings": len(self.history), "go": go, "nogo": nogo}

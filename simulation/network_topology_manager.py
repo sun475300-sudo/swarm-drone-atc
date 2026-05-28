@@ -4,7 +4,6 @@ Phase 450: Network Topology Manager for Mesh Networks
 
 import time
 from dataclasses import dataclass
-from typing import Dict, List, Set
 
 import numpy as np
 
@@ -13,16 +12,16 @@ import numpy as np
 class NetworkNode:
     node_id: str
     position: np.ndarray
-    neighbors: Set[str]
+    neighbors: set[str]
     bandwidth_mbps: float
     latency_ms: float
 
 
 class NetworkTopologyManager:
     def __init__(self, max_neighbors: int = 10):
-        self.nodes: Dict[str, NetworkNode] = {}
+        self.nodes: dict[str, NetworkNode] = {}
         self.max_neighbors = max_neighbors
-        self.topology_history: List[Dict] = []
+        self.topology_history: list[dict] = []
 
     def add_node(self, node_id: str, position: np.ndarray, bandwidth: float = 100):
         node = NetworkNode(
@@ -54,7 +53,7 @@ class NetworkTopologyManager:
             }
         )
 
-    def find_path(self, source: str, destination: str) -> List[str]:
+    def find_path(self, source: str, destination: str) -> list[str]:
         if source not in self.nodes or destination not in self.nodes:
             return []
 

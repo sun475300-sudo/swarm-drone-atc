@@ -16,15 +16,13 @@
 from __future__ import annotations
 
 import argparse
-import json
 import logging
-import os
 import sys
 import time
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import yaml
 
@@ -38,7 +36,7 @@ _CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "pipeline_con
 _LOG_DIR = Path(__file__).resolve().parent.parent / "data" / "pipeline" / "logs"
 
 
-def _load_config(config_path: Optional[str] = None) -> dict:
+def _load_config(config_path: str | None = None) -> dict:
     """파이프라인 설정을 로드."""
     path = Path(config_path) if config_path else _CONFIG_PATH
     if path.exists():
@@ -82,7 +80,7 @@ def _setup_logging(config: dict):
 # ── 메인 파이프라인 ───────────────────────────────────────────
 
 def run_pipeline(
-    config_path: Optional[str] = None,
+    config_path: str | None = None,
     mc_mode: str = "quick",
     skip_sim: bool = False,
     skip_external: bool = False,

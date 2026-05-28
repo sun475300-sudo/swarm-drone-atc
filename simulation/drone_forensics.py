@@ -6,7 +6,6 @@ Phase 506: Drone Forensics
 import hashlib
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List
 
 import numpy as np
 
@@ -36,7 +35,7 @@ class FlightRecord:
     velocity: np.ndarray
     battery: float
     status: str
-    sensors: Dict[str, float] = field(default_factory=dict)
+    sensors: dict[str, float] = field(default_factory=dict)
 
 
 @dataclass
@@ -55,8 +54,8 @@ class ForensicReport:
     incident_id: str
     incident_type: IncidentType
     drone_id: str
-    timeline: List[FlightRecord]
-    evidence_chain: List[Evidence]
+    timeline: list[FlightRecord]
+    evidence_chain: list[Evidence]
     root_cause: str
     confidence: float
 
@@ -65,7 +64,7 @@ class EvidenceChain:
     """Tamper-proof evidence chain using hash linking."""
 
     def __init__(self):
-        self.chain: List[Evidence] = []
+        self.chain: list[Evidence] = []
         self._counter = 0
 
     def add(self, etype: EvidenceType, drone_id: str,
@@ -94,9 +93,9 @@ class DroneForensics:
 
     def __init__(self, seed: int = 42):
         self.rng = np.random.default_rng(seed)
-        self.flight_logs: Dict[str, List[FlightRecord]] = {}
-        self.evidence_chains: Dict[str, EvidenceChain] = {}
-        self.reports: List[ForensicReport] = []
+        self.flight_logs: dict[str, list[FlightRecord]] = {}
+        self.evidence_chains: dict[str, EvidenceChain] = {}
+        self.reports: list[ForensicReport] = []
         self._incident_counter = 0
 
     def record_flight(self, drone_id: str, record: FlightRecord):
@@ -105,7 +104,7 @@ class DroneForensics:
         self.flight_logs[drone_id].append(record)
 
     def simulate_flight(self, drone_id: str, duration: float = 60,
-                        dt: float = 1.0) -> List[FlightRecord]:
+                        dt: float = 1.0) -> list[FlightRecord]:
         records = []
         pos = self.rng.uniform(-100, 100, 3)
         pos[2] = 50
@@ -145,7 +144,7 @@ class DroneForensics:
         self.reports.append(report)
         return report
 
-    def _determine_root_cause(self, logs: List[FlightRecord],
+    def _determine_root_cause(self, logs: list[FlightRecord],
                               incident_type: IncidentType) -> str:
         causes = {
             IncidentType.CRASH: ["Motor failure", "Battery depletion", "Control system error",
@@ -162,7 +161,7 @@ class DroneForensics:
         options = causes.get(incident_type, ["Unknown cause"])
         return self.rng.choice(options)
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "drones_recorded": len(self.flight_logs),
             "total_records": sum(len(v) for v in self.flight_logs.values()),

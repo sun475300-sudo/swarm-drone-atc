@@ -71,7 +71,7 @@ class GPSSpoofDetector:
         prev = readings[-2]
 
         # 1. 위치 점프 검사
-        dist = np.sqrt(sum((a - b) ** 2 for a, b in zip(curr.gps, prev.gps)))
+        dist = np.sqrt(sum((a - b) ** 2 for a, b in zip(curr.gps, prev.gps, strict=False)))
         dt = max(curr.t - prev.t, 0.1)
         velocity = dist / dt
 
@@ -106,7 +106,7 @@ class GPSSpoofDetector:
 
         # 4. IMU 교차 검증
         if curr.imu:
-            imu_dist = np.sqrt(sum((a - b) ** 2 for a, b in zip(curr.gps, curr.imu)))
+            imu_dist = np.sqrt(sum((a - b) ** 2 for a, b in zip(curr.gps, curr.imu, strict=False)))
             if imu_dist > self.position_jump_threshold * 0.5:
                 alert = SpoofAlert(
                     drone_id=drone_id, alert_type="MULTI_SENSOR_CONFLICT",

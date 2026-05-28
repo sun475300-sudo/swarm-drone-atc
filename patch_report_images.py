@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*-
 """Inject v5 images back into gen_report_v6.py at proper section anchors."""
-import sys, io
+import io
+import sys
+
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 path = 'gen_report_v6.py'
-with open(path, 'r', encoding='utf-8') as f:
+with open(path, encoding='utf-8') as f:
     src = f.read()
 
 # Abort if already patched (idempotent)

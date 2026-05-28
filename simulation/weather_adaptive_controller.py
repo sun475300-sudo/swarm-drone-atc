@@ -4,7 +4,6 @@ Phase 441: Weather Adaptive Controller for Dynamic Conditions
 
 import time
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 
 @dataclass
@@ -20,13 +19,13 @@ class WeatherCondition:
 
 class WeatherAdaptiveController:
     def __init__(self):
-        self.current_weather: Optional[WeatherCondition] = None
-        self.adaptation_history: List[Dict] = []
+        self.current_weather: WeatherCondition | None = None
+        self.adaptation_history: list[dict] = []
 
     def update_weather(self, weather: WeatherCondition):
         self.current_weather = weather
 
-    def compute_adapted_parameters(self) -> Dict[str, float]:
+    def compute_adapted_parameters(self) -> dict[str, float]:
         if not self.current_weather:
             return {}
 
@@ -68,7 +67,7 @@ class WeatherAdaptiveController:
 
         return param
 
-    def predict_weather_trend(self, history: List[WeatherCondition]) -> str:
+    def predict_weather_trend(self, history: list[WeatherCondition]) -> str:
         if len(history) < 3:
             return "stable"
 

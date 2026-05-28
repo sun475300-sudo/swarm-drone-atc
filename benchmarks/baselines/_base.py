@@ -12,7 +12,7 @@ Design rules:
 """
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from src.analytics.types import SimulationTrace
 
@@ -27,7 +27,7 @@ class BaselineAdapter(Protocol):
 
     name: str  # e.g. "orca", "vo", "cbs", "sdacs_hybrid"
 
-    def __init__(self, manifest: Dict[str, Any], seed: int) -> None:
+    def __init__(self, manifest: dict[str, Any], seed: int) -> None:
         """Save the manifest and seed; do NOT start work yet."""
         ...
 
@@ -53,7 +53,7 @@ class BaselineAdapter(Protocol):
         ...
 
 
-def make_adapter(method: str, manifest: Dict[str, Any], seed: int) -> BaselineAdapter:
+def make_adapter(method: str, manifest: dict[str, Any], seed: int) -> BaselineAdapter:
     """Factory: import the adapter module by name and construct it."""
     import importlib
 

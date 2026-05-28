@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -80,8 +79,8 @@ class SatelliteCommLayer:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._satellites: Dict[str, Satellite] = {}
-        self._links: Dict[str, SatLink] = {}
+        self._satellites: dict[str, Satellite] = {}
+        self._links: dict[str, SatLink] = {}
         self._handover_count = 0
         self._total_data_kb = 0.0
 
@@ -144,7 +143,7 @@ class SatelliteCommLayer:
         dist_km = np.linalg.norm(sat.position_ecef - drone_pos_km)
         return (dist_km / self.SPEED_OF_LIGHT_KMS) * 1000.0  # ms
 
-    def find_best_satellite(self, drone_pos_km: np.ndarray) -> Optional[str]:
+    def find_best_satellite(self, drone_pos_km: np.ndarray) -> str | None:
         """Find satellite with highest elevation above minimum threshold."""
         best_sat = None
         best_elev = self.MIN_ELEVATION_DEG
@@ -157,7 +156,7 @@ class SatelliteCommLayer:
                 best_sat = sat.sat_id
         return best_sat
 
-    def update_links(self, drone_positions: Dict[str, np.ndarray]):
+    def update_links(self, drone_positions: dict[str, np.ndarray]):
         """Update all drone-satellite links."""
         for drone_id, pos in drone_positions.items():
             best_sat = self.find_best_satellite(pos)
@@ -187,10 +186,10 @@ class SatelliteCommLayer:
                 data_rate_kbps=round(data_rate, 1),
             )
 
-    def get_link(self, drone_id: str) -> Optional[SatLink]:
+    def get_link(self, drone_id: str) -> SatLink | None:
         return self._links.get(drone_id)
 
-    def get_visible_satellites(self, drone_pos_km: np.ndarray) -> List[str]:
+    def get_visible_satellites(self, drone_pos_km: np.ndarray) -> list[str]:
         return [
             sat.sat_id for sat in self._satellites.values()
             if sat.is_active and self.compute_elevation(sat, drone_pos_km) > self.MIN_ELEVATION_DEG

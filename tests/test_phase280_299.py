@@ -1,14 +1,12 @@
 """Phase 280-299 통합 테스트: Advanced Autonomous Systems + Real-time Protocols."""
 
-import pytest
 import numpy as np
-
 
 # ── Phase 280: Swarm Formation Control ──
 
 class TestSwarmFormationControl:
     def test_create_formation(self):
-        from simulation.swarm_formation_control import SwarmFormationController, FormationType
+        from simulation.swarm_formation_control import FormationType, SwarmFormationController
         ctrl = SwarmFormationController()
         state = ctrl.create_formation("f1", "d1", ["d1", "d2", "d3"], FormationType.V_FORMATION)
         assert state.leader_id == "d1"
@@ -33,7 +31,7 @@ class TestSwarmFormationControl:
             assert abs(np.linalg.norm(o[:2]) - 50.0) < 1e-6
 
     def test_transition_formation(self):
-        from simulation.swarm_formation_control import SwarmFormationController, FormationType
+        from simulation.swarm_formation_control import FormationType, SwarmFormationController
         ctrl = SwarmFormationController()
         ctrl.create_formation("f1", "d1", ["d1", "d2", "d3", "d4"], FormationType.V_FORMATION)
         trajectory = ctrl.transition_formation("f1", FormationType.GRID, steps=5)
@@ -42,7 +40,7 @@ class TestSwarmFormationControl:
         assert state.formation_type == FormationType.GRID
 
     def test_compute_cohesion(self):
-        from simulation.swarm_formation_control import SwarmFormationController, FormationType
+        from simulation.swarm_formation_control import FormationType, SwarmFormationController
         ctrl = SwarmFormationController()
         ctrl.create_formation("f1", "d1", ["d1", "d2"], FormationType.LINE)
         ctrl.update_positions({"d1": np.array([0, 0, 0]), "d2": np.array([0, 15, 0])})
@@ -50,14 +48,14 @@ class TestSwarmFormationControl:
         assert 0 <= c <= 1
 
     def test_reassign_leader(self):
-        from simulation.swarm_formation_control import SwarmFormationController, FormationType
+        from simulation.swarm_formation_control import SwarmFormationController
         ctrl = SwarmFormationController()
         ctrl.create_formation("f1", "d1", ["d1", "d2"])
         assert ctrl.reassign_leader("f1", "d2")
         assert ctrl.get_formation("f1").leader_id == "d2"
 
     def test_summary(self):
-        from simulation.swarm_formation_control import SwarmFormationController, FormationType
+        from simulation.swarm_formation_control import SwarmFormationController
         ctrl = SwarmFormationController()
         ctrl.create_formation("f1", "d1", ["d1", "d2"])
         s = ctrl.summary()
@@ -68,7 +66,7 @@ class TestSwarmFormationControl:
 
 class TestCooperativeTaskAllocator:
     def test_add_task_and_drone(self):
-        from simulation.cooperative_task_allocator import CooperativeTaskAllocator, Task, DroneCapability, TaskPriority
+        from simulation.cooperative_task_allocator import CooperativeTaskAllocator, DroneCapability, Task, TaskPriority
         alloc = CooperativeTaskAllocator()
         alloc.add_task(Task("t1", np.array([100, 200, 50]), TaskPriority.HIGH))
         alloc.register_drone(DroneCapability("d1", np.array([0, 0, 50])))
@@ -77,7 +75,7 @@ class TestCooperativeTaskAllocator:
         assert s["total_drones"] == 1
 
     def test_hungarian_allocation(self):
-        from simulation.cooperative_task_allocator import CooperativeTaskAllocator, Task, DroneCapability, TaskPriority
+        from simulation.cooperative_task_allocator import CooperativeTaskAllocator, DroneCapability, Task
         alloc = CooperativeTaskAllocator()
         alloc.add_task(Task("t1", np.array([100, 0, 50])))
         alloc.add_task(Task("t2", np.array([0, 100, 50])))
@@ -87,7 +85,7 @@ class TestCooperativeTaskAllocator:
         assert len(result) == 2
 
     def test_auction_allocation(self):
-        from simulation.cooperative_task_allocator import CooperativeTaskAllocator, Task, DroneCapability
+        from simulation.cooperative_task_allocator import CooperativeTaskAllocator, DroneCapability, Task
         alloc = CooperativeTaskAllocator()
         alloc.add_task(Task("t1", np.array([50, 50, 50])))
         alloc.register_drone(DroneCapability("d1", np.array([40, 40, 50])))
@@ -95,7 +93,7 @@ class TestCooperativeTaskAllocator:
         assert len(result) >= 1
 
     def test_complete_task(self):
-        from simulation.cooperative_task_allocator import CooperativeTaskAllocator, Task, DroneCapability
+        from simulation.cooperative_task_allocator import CooperativeTaskAllocator, DroneCapability, Task
         alloc = CooperativeTaskAllocator()
         alloc.add_task(Task("t1", np.array([50, 50, 50])))
         alloc.register_drone(DroneCapability("d1", np.array([40, 40, 50])))
@@ -103,7 +101,7 @@ class TestCooperativeTaskAllocator:
         assert alloc.complete_task("t1")
 
     def test_fail_and_reallocate(self):
-        from simulation.cooperative_task_allocator import CooperativeTaskAllocator, Task, DroneCapability
+        from simulation.cooperative_task_allocator import CooperativeTaskAllocator, DroneCapability, Task
         alloc = CooperativeTaskAllocator()
         alloc.add_task(Task("t1", np.array([50, 50, 50])))
         alloc.register_drone(DroneCapability("d1", np.array([40, 40, 50])))
@@ -241,20 +239,20 @@ class TestEmergencyRecoverySystem:
 
 class TestFleetCoordinationEngine:
     def test_register_fleet(self):
-        from simulation.fleet_coordination_engine import FleetCoordinationEngine, Fleet
+        from simulation.fleet_coordination_engine import Fleet, FleetCoordinationEngine
         fce = FleetCoordinationEngine()
         fce.register_fleet(Fleet("fleet1", drone_ids=["d1", "d2", "d3"]))
         assert fce.get_fleet("fleet1") is not None
 
     def test_assign_zone(self):
-        from simulation.fleet_coordination_engine import FleetCoordinationEngine, Fleet, AirspaceZone
+        from simulation.fleet_coordination_engine import AirspaceZone, Fleet, FleetCoordinationEngine
         fce = FleetCoordinationEngine()
         fce.register_fleet(Fleet("fleet1", drone_ids=["d1"]))
         fce.register_zone(AirspaceZone("z1", np.array([0, 0, 100]), 200.0))
         assert fce.assign_zone("fleet1", "z1")
 
     def test_handoff_drone(self):
-        from simulation.fleet_coordination_engine import FleetCoordinationEngine, Fleet
+        from simulation.fleet_coordination_engine import Fleet, FleetCoordinationEngine
         fce = FleetCoordinationEngine()
         fce.register_fleet(Fleet("f1", drone_ids=["d1", "d2"]))
         fce.register_fleet(Fleet("f2", drone_ids=["d3"]))
@@ -262,7 +260,7 @@ class TestFleetCoordinationEngine:
         assert fce.get_drone_fleet("d1") == "f2"
 
     def test_request_support(self):
-        from simulation.fleet_coordination_engine import FleetCoordinationEngine, Fleet, FleetStatus
+        from simulation.fleet_coordination_engine import Fleet, FleetCoordinationEngine, FleetStatus
         fce = FleetCoordinationEngine()
         fce.register_fleet(Fleet("f1", drone_ids=[f"d{i}" for i in range(10)], status=FleetStatus.ACTIVE))
         fce.register_fleet(Fleet("f2", drone_ids=["x1"], status=FleetStatus.ACTIVE))
@@ -270,7 +268,7 @@ class TestFleetCoordinationEngine:
         assert len(transferred) <= 3
 
     def test_summary(self):
-        from simulation.fleet_coordination_engine import FleetCoordinationEngine, Fleet
+        from simulation.fleet_coordination_engine import Fleet, FleetCoordinationEngine
         fce = FleetCoordinationEngine()
         fce.register_fleet(Fleet("f1", drone_ids=["d1", "d2"]))
         s = fce.summary()
@@ -319,14 +317,14 @@ class TestPredictiveCollisionAvoidance:
 
 class TestEnergyHarvestOptimizer:
     def test_solar_harvest(self):
-        from simulation.energy_harvest_optimizer import EnergyHarvestOptimizer, DroneEnergy
+        from simulation.energy_harvest_optimizer import DroneEnergy, EnergyHarvestOptimizer
         eho = EnergyHarvestOptimizer()
         eho.register_drone(DroneEnergy("d1"))
         rate = eho.compute_harvest_rate("d1", np.array([0, 0, 50]), hour=12.0)
         assert rate > 0
 
     def test_zone_harvest(self):
-        from simulation.energy_harvest_optimizer import EnergyHarvestOptimizer, DroneEnergy, HarvestZone, EnergySource
+        from simulation.energy_harvest_optimizer import DroneEnergy, EnergyHarvestOptimizer, EnergySource, HarvestZone
         eho = EnergyHarvestOptimizer()
         eho.register_drone(DroneEnergy("d1"))
         eho.add_zone(HarvestZone("z1", np.array([0, 0, 50]), 100.0, EnergySource.CHARGING_STATION, 500.0))
@@ -334,7 +332,7 @@ class TestEnergyHarvestOptimizer:
         assert rate >= 500.0
 
     def test_energy_share(self):
-        from simulation.energy_harvest_optimizer import EnergyHarvestOptimizer, DroneEnergy
+        from simulation.energy_harvest_optimizer import DroneEnergy, EnergyHarvestOptimizer
         eho = EnergyHarvestOptimizer()
         eho.register_drone(DroneEnergy("d1", battery_wh=80))
         eho.register_drone(DroneEnergy("d2", battery_wh=20))
@@ -342,13 +340,13 @@ class TestEnergyHarvestOptimizer:
         assert shared > 0
 
     def test_critical_drones(self):
-        from simulation.energy_harvest_optimizer import EnergyHarvestOptimizer, DroneEnergy
+        from simulation.energy_harvest_optimizer import DroneEnergy, EnergyHarvestOptimizer
         eho = EnergyHarvestOptimizer()
         eho.register_drone(DroneEnergy("d1", battery_wh=10))
         assert "d1" in eho.get_critical_drones(threshold_pct=20.0)
 
     def test_summary(self):
-        from simulation.energy_harvest_optimizer import EnergyHarvestOptimizer, DroneEnergy
+        from simulation.energy_harvest_optimizer import DroneEnergy, EnergyHarvestOptimizer
         eho = EnergyHarvestOptimizer()
         eho.register_drone(DroneEnergy("d1"))
         s = eho.summary()
@@ -365,7 +363,7 @@ class TestTerrainAwarenessSystem:
         assert isinstance(elev, float)
 
     def test_check_clearance(self):
-        from simulation.terrain_awareness_system import TerrainAwarenessSystem, AlertLevel
+        from simulation.terrain_awareness_system import AlertLevel, TerrainAwarenessSystem
         taws = TerrainAwarenessSystem()
         alert = taws.check_clearance("d1", np.array([50, 50, 200]))
         assert alert.level in AlertLevel
@@ -467,14 +465,14 @@ class TestV2XCommunication:
 
 class TestProtocolOptimizer:
     def test_enqueue_and_transmit(self):
-        from simulation.protocol_optimizer import ProtocolOptimizer, Packet, QoSLevel
+        from simulation.protocol_optimizer import Packet, ProtocolOptimizer, QoSLevel
         po = ProtocolOptimizer()
         po.enqueue(Packet("p1", "d1", "d2", 256, QoSLevel.HIGH))
         result = po.transmit_next()
         assert result is not None
 
     def test_qos_ordering(self):
-        from simulation.protocol_optimizer import ProtocolOptimizer, Packet, QoSLevel
+        from simulation.protocol_optimizer import Packet, ProtocolOptimizer, QoSLevel
         po = ProtocolOptimizer()
         po.enqueue(Packet("p1", "d1", "d2", 128, QoSLevel.BEST_EFFORT))
         po.enqueue(Packet("p2", "d1", "d3", 128, QoSLevel.CRITICAL))
@@ -482,14 +480,14 @@ class TestProtocolOptimizer:
         assert result.packet_id == "p2"
 
     def test_compression(self):
-        from simulation.protocol_optimizer import ProtocolOptimizer, Packet, QoSLevel
+        from simulation.protocol_optimizer import Packet, ProtocolOptimizer, QoSLevel
         po = ProtocolOptimizer()
         po.enqueue(Packet("p1", "d1", "d2", 1024, QoSLevel.NORMAL))
         result = po.transmit_next()
         assert result.actual_bytes < 1024
 
     def test_flush_queue(self):
-        from simulation.protocol_optimizer import ProtocolOptimizer, Packet, QoSLevel
+        from simulation.protocol_optimizer import Packet, ProtocolOptimizer, QoSLevel
         po = ProtocolOptimizer()
         for i in range(5):
             po.enqueue(Packet(f"p{i}", "d1", "d2", 64, QoSLevel.NORMAL))
@@ -497,7 +495,7 @@ class TestProtocolOptimizer:
         assert len(results) == 5
 
     def test_summary(self):
-        from simulation.protocol_optimizer import ProtocolOptimizer, Packet, QoSLevel
+        from simulation.protocol_optimizer import Packet, ProtocolOptimizer
         po = ProtocolOptimizer()
         po.enqueue(Packet("p1", "d1", "d2", 128))
         po.transmit_next()
@@ -509,20 +507,20 @@ class TestProtocolOptimizer:
 
 class TestTelemetryStreamProcessor:
     def test_ingest(self):
-        from simulation.telemetry_stream_processor import TelemetryStreamProcessor, TelemetryPoint, TelemetryField
+        from simulation.telemetry_stream_processor import TelemetryField, TelemetryPoint, TelemetryStreamProcessor
         tsp = TelemetryStreamProcessor()
         alert = tsp.ingest(TelemetryPoint("d1", 1.0, TelemetryField.ALTITUDE, 100.0))
         assert alert is None  # normal value
 
     def test_threshold_alert(self):
-        from simulation.telemetry_stream_processor import TelemetryStreamProcessor, TelemetryPoint, TelemetryField
+        from simulation.telemetry_stream_processor import TelemetryField, TelemetryPoint, TelemetryStreamProcessor
         tsp = TelemetryStreamProcessor()
         alert = tsp.ingest(TelemetryPoint("d1", 1.0, TelemetryField.BATTERY, 5.0))
         assert alert is not None
         assert alert.severity in ("warning", "critical")
 
     def test_z_score_alert(self):
-        from simulation.telemetry_stream_processor import TelemetryStreamProcessor, TelemetryPoint, TelemetryField
+        from simulation.telemetry_stream_processor import TelemetryField, TelemetryPoint, TelemetryStreamProcessor
         tsp = TelemetryStreamProcessor(z_threshold=2.0)
         for i in range(20):
             tsp.ingest(TelemetryPoint("d1", float(i), TelemetryField.SPEED, 10.0 + np.random.default_rng(42).normal(0, 0.1)))
@@ -531,7 +529,7 @@ class TestTelemetryStreamProcessor:
         assert isinstance(alert, type(None)) or hasattr(alert, 'severity')
 
     def test_window_stats(self):
-        from simulation.telemetry_stream_processor import TelemetryStreamProcessor, TelemetryPoint, TelemetryField
+        from simulation.telemetry_stream_processor import TelemetryField, TelemetryPoint, TelemetryStreamProcessor
         tsp = TelemetryStreamProcessor()
         for i in range(10):
             tsp.ingest(TelemetryPoint("d1", float(i), TelemetryField.ALTITUDE, 50.0 + i))
@@ -540,7 +538,7 @@ class TestTelemetryStreamProcessor:
         assert stats["count"] == 10
 
     def test_summary(self):
-        from simulation.telemetry_stream_processor import TelemetryStreamProcessor, TelemetryPoint, TelemetryField
+        from simulation.telemetry_stream_processor import TelemetryField, TelemetryPoint, TelemetryStreamProcessor
         tsp = TelemetryStreamProcessor()
         tsp.ingest(TelemetryPoint("d1", 1.0, TelemetryField.SPEED, 10.0))
         s = tsp.summary()
@@ -591,14 +589,14 @@ class TestConsensusProtocol:
 
 class TestSwarmBehaviorEngine:
     def test_add_agents(self):
-        from simulation.swarm_behavior_engine import SwarmBehaviorEngine, BoidState
+        from simulation.swarm_behavior_engine import BoidState, SwarmBehaviorEngine
         sbe = SwarmBehaviorEngine()
         sbe.add_agent(BoidState("a1", np.array([0, 0, 50]), np.array([1, 0, 0])))
         sbe.add_agent(BoidState("a2", np.array([10, 0, 50]), np.array([1, 0, 0])))
         assert sbe.summary()["total_agents"] == 2
 
     def test_step(self):
-        from simulation.swarm_behavior_engine import SwarmBehaviorEngine, BoidState
+        from simulation.swarm_behavior_engine import BoidState, SwarmBehaviorEngine
         sbe = SwarmBehaviorEngine()
         for i in range(5):
             sbe.add_agent(BoidState(f"a{i}", np.array([i * 10.0, 0.0, 50.0]), np.array([1.0, 0.0, 0.0])))
@@ -606,14 +604,14 @@ class TestSwarmBehaviorEngine:
         assert len(positions) == 5
 
     def test_behavior_modes(self):
-        from simulation.swarm_behavior_engine import SwarmBehaviorEngine, BoidState, BehaviorMode
+        from simulation.swarm_behavior_engine import BehaviorMode, BoidState, SwarmBehaviorEngine
         sbe = SwarmBehaviorEngine()
         sbe.add_agent(BoidState("a1", np.array([0, 0, 50]), np.array([1, 0, 0])))
         sbe.set_behavior("a1", BehaviorMode.SCATTER)
         assert sbe.summary()["behaviors"]["scatter"] == 1
 
     def test_swarm_metrics(self):
-        from simulation.swarm_behavior_engine import SwarmBehaviorEngine, BoidState
+        from simulation.swarm_behavior_engine import BoidState, SwarmBehaviorEngine
         sbe = SwarmBehaviorEngine()
         for i in range(3):
             sbe.add_agent(BoidState(f"a{i}", np.array([i * 5.0, 0, 50]), np.array([0, 0, 0])))
@@ -662,7 +660,7 @@ class TestMissionOrchestrator:
         assert m.mission_id == "m1"
 
     def test_add_tasks_and_start(self):
-        from simulation.mission_orchestrator import MissionOrchestrator, MissionType, MissionTask
+        from simulation.mission_orchestrator import MissionOrchestrator, MissionTask, MissionType
         mo = MissionOrchestrator()
         mo.create_mission("m1", MissionType.SURVEILLANCE)
         mo.add_task("m1", MissionTask("t1", "m1", "scan"))
@@ -672,7 +670,7 @@ class TestMissionOrchestrator:
         assert ready[0].task_id == "t1"
 
     def test_complete_task_unlocks_next(self):
-        from simulation.mission_orchestrator import MissionOrchestrator, MissionType, MissionTask
+        from simulation.mission_orchestrator import MissionOrchestrator, MissionTask, MissionType
         mo = MissionOrchestrator()
         mo.create_mission("m1", MissionType.DELIVERY)
         mo.add_task("m1", MissionTask("t1", "m1", "pickup"))
@@ -683,7 +681,7 @@ class TestMissionOrchestrator:
         assert any(t.task_id == "t2" for t in newly_ready)
 
     def test_mission_progress(self):
-        from simulation.mission_orchestrator import MissionOrchestrator, MissionType, MissionTask
+        from simulation.mission_orchestrator import MissionOrchestrator, MissionTask, MissionType
         mo = MissionOrchestrator()
         mo.create_mission("m1", MissionType.PATROL)
         mo.add_task("m1", MissionTask("t1", "m1", "patrol"))
@@ -698,14 +696,14 @@ class TestMissionOrchestrator:
 
 class TestRealtimeMapBuilder:
     def test_process_observation(self):
-        from simulation.realtime_map_builder import RealtimeMapBuilder, MapObservation
+        from simulation.realtime_map_builder import MapObservation, RealtimeMapBuilder
         rmb = RealtimeMapBuilder()
         obs = MapObservation("d1", np.array([0, 0, 50]), [np.array([30, 0, 50]), np.array([0, 30, 50])])
         rmb.process_observation(obs)
         assert rmb.summary()["total_observations"] == 1
 
     def test_exploration_progress(self):
-        from simulation.realtime_map_builder import RealtimeMapBuilder, MapObservation
+        from simulation.realtime_map_builder import MapObservation, RealtimeMapBuilder
         rmb = RealtimeMapBuilder()
         for i in range(10):
             obs = MapObservation(f"d{i}", np.array([i * 50, 0, 50]), [np.array([i * 50 + 20, 0, 50])])
@@ -714,7 +712,7 @@ class TestRealtimeMapBuilder:
         assert progress > 0
 
     def test_pois(self):
-        from simulation.realtime_map_builder import RealtimeMapBuilder, MapObservation
+        from simulation.realtime_map_builder import MapObservation, RealtimeMapBuilder
         rmb = RealtimeMapBuilder()
         # Multiple observations at same spot to build confidence
         for _ in range(5):
@@ -762,7 +760,7 @@ class TestAdaptiveControlSystem:
 
 class TestSimulationAnalyticsEngine:
     def test_record_and_kpi(self):
-        from simulation.simulation_analytics_engine import SimulationAnalyticsEngine, SimulationRun, KPICategory
+        from simulation.simulation_analytics_engine import KPICategory, SimulationAnalyticsEngine, SimulationRun
         sae = SimulationAnalyticsEngine()
         for i in range(10):
             sae.record_run(SimulationRun(f"r{i}", metrics={"collision_rate": 0.01 + i * 0.001}, timestamp=float(i)))

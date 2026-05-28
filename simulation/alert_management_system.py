@@ -4,7 +4,6 @@ Phase 454: Alert Management System for Real-Time Notifications
 
 import time
 from dataclasses import dataclass
-from typing import Dict, List
 
 
 @dataclass
@@ -19,8 +18,8 @@ class Alert:
 
 class AlertManagementSystem:
     def __init__(self):
-        self.alerts: List[Alert] = []
-        self.handlers: Dict[str, callable] = {}
+        self.alerts: list[Alert] = []
+        self.handlers: dict[str, callable] = {}
 
     def create_alert(self, severity: str, message: str, drone_id: str = "") -> Alert:
         alert = Alert(
@@ -40,7 +39,7 @@ class AlertManagementSystem:
                 return True
         return False
 
-    def get_active_alerts(self, severity: str = None) -> List[Alert]:
+    def get_active_alerts(self, severity: str = None) -> list[Alert]:
         active = [a for a in self.alerts if not a.acknowledged]
         if severity:
             active = [a for a in active if a.severity == severity]

@@ -85,22 +85,22 @@ def generate() -> None:
     # 사람이 읽을 수 있는 환경 스냅샷
     snapshot_path = REPORTS / "environment_snapshot.txt"
     with open(snapshot_path, "w", encoding="utf-8") as f:
-        f.write(f"SDACS 시험 환경 명세서\n")
+        f.write("SDACS 시험 환경 명세서\n")
         f.write(f"생성일시: {manifest['generated_at']}\n")
         f.write("=" * 60 + "\n\n")
-        f.write(f"[프로젝트]\n")
+        f.write("[프로젝트]\n")
         f.write(f"  이름   : {manifest['project']}\n")
         f.write(f"  버전   : {manifest['version']}\n")
         f.write(f"  Git SHA: {git_sha}\n")
         f.write(f"  브랜치 : {git_branch}\n\n")
-        f.write(f"[Python 환경]\n")
+        f.write("[Python 환경]\n")
         f.write(f"  버전   : {sys.version}\n")
         f.write(f"  플랫폼 : {sys.platform}\n\n")
-        f.write(f"[운영체제]\n")
+        f.write("[운영체제]\n")
         f.write(f"  시스템 : {platform.system()} {platform.release()}\n")
         f.write(f"  머신   : {platform.machine()}\n")
         f.write(f"  프로세서: {platform.processor()}\n\n")
-        f.write(f"[환경변수]\n")
+        f.write("[환경변수]\n")
         for k, v in manifest["environment"].items():
             f.write(f"  {k}: {v}\n")
         f.write(f"\n[설치 패키지 ({len(packages)}개)]\n")

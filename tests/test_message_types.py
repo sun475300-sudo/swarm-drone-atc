@@ -1,9 +1,13 @@
 """message_types 데이터클래스 테스트"""
 import numpy as np
 import pytest
+
 from src.airspace_control.comms.message_types import (
-    TelemetryMessage, ClearanceRequest, ClearanceResponse,
-    ResolutionAdvisory, IntrusionAlert,
+    ClearanceRequest,
+    ClearanceResponse,
+    IntrusionAlert,
+    ResolutionAdvisory,
+    TelemetryMessage,
 )
 
 pytestmark = pytest.mark.unit

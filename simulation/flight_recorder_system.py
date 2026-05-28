@@ -4,7 +4,6 @@ Phase 477: Flight Recorder System for Data Logging
 
 import time
 from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 
@@ -20,7 +19,7 @@ class FlightRecord:
 class FlightRecorderSystem:
     def __init__(self, max_records: int = 10000):
         self.max_records = max_records
-        self.records: List[FlightRecord] = []
+        self.records: list[FlightRecord] = []
 
     def record(self, position: np.ndarray, velocity: np.ndarray, battery: float):
         record = FlightRecord(time.time(), position.copy(), velocity.copy(), battery)
@@ -29,7 +28,7 @@ class FlightRecorderSystem:
         if len(self.records) > self.max_records:
             self.records.pop(0)
 
-    def get_flight_data(self) -> List[Dict]:
+    def get_flight_data(self) -> list[dict]:
         return [
             {"time": r.timestamp, "position": r.position.tolist(), "battery": r.battery}
             for r in self.records

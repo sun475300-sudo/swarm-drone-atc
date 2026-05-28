@@ -79,10 +79,6 @@ exclude = ["tests/", "archive/", "visualization/"]
 module = ["simulation.*"]
 ignore_errors = true
 
-# 실기 통합(Phase 691-700) 완료 후 ignore 제거 예정
-[[tool.mypy.overrides]]
-module = ["src.hardware.*"]
-ignore_errors = true
 
 [tool.ruff]
 line-length = 120
@@ -94,3 +90,10 @@ ignore = ["E501", "B008"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+"archive/**" = ["F401", "F811", "F841", "F821", "E402", "E701", "E702", "B007", "N806", "UP006", "UP035", "UP045", "I001", "E999"]
+"visualization/**" = ["E402", "F401"]
+"tests/**" = ["N806", "B007", "F841"]
+"simulation/**" = ["N806", "N803", "E741", "E402"]
+"simulation/autoML_pipeline.py" = ["N999"]
+"simulation/faa_laanc.py" = ["N801"]
+"src/sensor_fusion.py" = ["N806", "E741"]

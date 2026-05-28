@@ -1,3 +1,5 @@
+"""Module: tests/test_chatbot_engine_http.py."""
+
 from __future__ import annotations
 
 import json
@@ -6,7 +8,6 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from chatbot.engine.llm_engine import LLMEngine
-
 
 _KNOWLEDGE_DIR = Path(__file__).parent.parent / "chatbot" / "knowledge"
 

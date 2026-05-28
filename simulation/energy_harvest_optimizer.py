@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -81,11 +80,11 @@ class EnergyHarvestOptimizer:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._zones: Dict[str, HarvestZone] = {}
-        self._drones: Dict[str, DroneEnergy] = {}
+        self._zones: dict[str, HarvestZone] = {}
+        self._drones: dict[str, DroneEnergy] = {}
         self._solar = SolarModel()
         self._wind = WindHarvestModel()
-        self._history: List[dict] = []
+        self._history: list[dict] = []
         self._total_harvested_wh: float = 0.0
 
     def add_zone(self, zone: HarvestZone):
@@ -117,7 +116,7 @@ class EnergyHarvestOptimizer:
         drone.harvest_rate_w = total_power
         return total_power
 
-    def simulate_step(self, dt_sec: float = 1.0, hour: float = 12.0, positions: Optional[Dict[str, np.ndarray]] = None):
+    def simulate_step(self, dt_sec: float = 1.0, hour: float = 12.0, positions: dict[str, np.ndarray] | None = None):
         if positions is None:
             positions = {}
         for did, drone in self._drones.items():
@@ -129,7 +128,7 @@ class EnergyHarvestOptimizer:
             if energy_delta > 0:
                 self._total_harvested_wh += energy_delta
 
-    def find_best_harvest_zone(self, position: np.ndarray) -> Optional[str]:
+    def find_best_harvest_zone(self, position: np.ndarray) -> str | None:
         best_id, best_score = None, -1
         for zone in self._zones.values():
             dist = np.linalg.norm(position[:3] - zone.center[:3])
@@ -139,7 +138,7 @@ class EnergyHarvestOptimizer:
                 best_id = zone.zone_id
         return best_id
 
-    def plan_harvest_route(self, drone_id: str, current_pos: np.ndarray, n_zones: int = 3) -> List[str]:
+    def plan_harvest_route(self, drone_id: str, current_pos: np.ndarray, n_zones: int = 3) -> list[str]:
         """방문할 수확 존 순서 계획 (그리디 TSP)."""
         visited = []
         pos = current_pos.copy()
@@ -170,7 +169,7 @@ class EnergyHarvestOptimizer:
         self._history.append({"event": "share", "donor": donor_id, "receiver": receiver_id, "wh": actual})
         return actual * transfer_efficiency
 
-    def get_critical_drones(self, threshold_pct: float = 20.0) -> List[str]:
+    def get_critical_drones(self, threshold_pct: float = 20.0) -> list[str]:
         return [did for did, d in self._drones.items() if (d.battery_wh / d.max_battery_wh) * 100 < threshold_pct]
 
     def summary(self) -> dict:

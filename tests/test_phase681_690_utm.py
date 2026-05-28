@@ -2,9 +2,6 @@
 
 import time
 
-import numpy as np
-import pytest
-
 
 # ── K-UTM Protocol ──────────────────────────────────────────────────────
 class TestKUTMProtocol:
@@ -15,7 +12,7 @@ class TestKUTMProtocol:
         assert reg_id.startswith("REG-")
 
     def test_submit_flight_plan_approved(self):
-        from simulation.kutm_protocol import KUTMProtocol, FlightPlan
+        from simulation.kutm_protocol import FlightPlan, KUTMProtocol
         kutm = KUTMProtocol()
         plan = FlightPlan(
             plan_id="FP-001", operator_id="OP1", drone_id="d1",
@@ -26,7 +23,7 @@ class TestKUTMProtocol:
         assert result["approved"] is True
 
     def test_submit_flight_plan_rejected_altitude(self):
-        from simulation.kutm_protocol import KUTMProtocol, FlightPlan
+        from simulation.kutm_protocol import FlightPlan, KUTMProtocol
         kutm = KUTMProtocol()
         plan = FlightPlan(
             plan_id="FP-002", operator_id="OP1", drone_id="d1",
@@ -37,7 +34,7 @@ class TestKUTMProtocol:
         assert result["approved"] is False
 
     def test_cancel_flight_plan(self):
-        from simulation.kutm_protocol import KUTMProtocol, FlightPlan
+        from simulation.kutm_protocol import FlightPlan, KUTMProtocol
         kutm = KUTMProtocol()
         plan = FlightPlan(
             plan_id="FP-003", operator_id="OP1", drone_id="d1",
@@ -55,7 +52,7 @@ class TestKUTMProtocol:
         assert len(kutm.telemetry_log) == 1
 
     def test_get_notams(self):
-        from simulation.kutm_protocol import KUTMProtocol, NOTAM
+        from simulation.kutm_protocol import NOTAM, KUTMProtocol
         kutm = KUTMProtocol()
         kutm.add_notam(NOTAM(
             notam_id="N001", area_center=(37.5, 127.0), radius_m=1000,
@@ -97,7 +94,7 @@ class TestADSBReceiver:
         assert len(rx.get_aircraft_list()) == 3
 
     def test_get_aircraft_by_icao(self):
-        from simulation.adsb_receiver import ADSBReceiver, ADSBMessage
+        from simulation.adsb_receiver import ADSBMessage, ADSBReceiver
         rx = ADSBReceiver()
         msg = ADSBMessage(
             icao_address="ABC123", callsign="KAL001",
@@ -110,7 +107,7 @@ class TestADSBReceiver:
         assert found.callsign == "KAL001"
 
     def test_detect_conflicts(self):
-        from simulation.adsb_receiver import ADSBReceiver, ADSBMessage
+        from simulation.adsb_receiver import ADSBMessage, ADSBReceiver
         rx = ADSBReceiver()
         msg = ADSBMessage(
             icao_address="AC001", callsign="KAL100",
@@ -123,7 +120,7 @@ class TestADSBReceiver:
         assert conflicts[0]["severity"] == "HIGH"
 
     def test_no_conflict_when_separated(self):
-        from simulation.adsb_receiver import ADSBReceiver, ADSBMessage
+        from simulation.adsb_receiver import ADSBMessage, ADSBReceiver
         rx = ADSBReceiver()
         msg = ADSBMessage(
             icao_address="AC002", callsign="AAR200",
@@ -153,20 +150,20 @@ class TestADSBReceiver:
 # ── Remote ID ───────────────────────────────────────────────────────────
 class TestRemoteIDTransmitter:
     def test_broadcast(self):
-        from simulation.remote_id import RemoteIDTransmitter, RemoteIDMessage
+        from simulation.remote_id import RemoteIDMessage, RemoteIDTransmitter
         tx = RemoteIDTransmitter()
         msg = RemoteIDMessage(uas_id="UAS-001", latitude=37.5, longitude=127.0)
         assert tx.broadcast(msg)
         assert tx.broadcast_count == 1
 
     def test_broadcast_no_id(self):
-        from simulation.remote_id import RemoteIDTransmitter, RemoteIDMessage
+        from simulation.remote_id import RemoteIDMessage, RemoteIDTransmitter
         tx = RemoteIDTransmitter()
         msg = RemoteIDMessage()  # empty uas_id
         assert not tx.broadcast(msg)
 
     def test_network_publish(self):
-        from simulation.remote_id import RemoteIDTransmitter, RemoteIDMessage
+        from simulation.remote_id import RemoteIDMessage, RemoteIDTransmitter
         tx = RemoteIDTransmitter()
         msg = RemoteIDMessage(uas_id="UAS-002")
         assert tx.network_publish(msg)
@@ -181,7 +178,7 @@ class TestRemoteIDTransmitter:
         assert tx.broadcast_interval_s == 0.1  # clamped
 
     def test_compliance_status(self):
-        from simulation.remote_id import RemoteIDTransmitter, RemoteIDMessage
+        from simulation.remote_id import RemoteIDMessage, RemoteIDTransmitter
         tx = RemoteIDTransmitter()
         tx.broadcast(RemoteIDMessage(uas_id="UAS-003"))
         status = tx.get_compliance_status()
@@ -195,14 +192,14 @@ class TestRemoteIDReceiver:
         assert rx.scan() == []
 
     def test_receive_and_scan(self):
-        from simulation.remote_id import RemoteIDReceiver, RemoteIDMessage
+        from simulation.remote_id import RemoteIDMessage, RemoteIDReceiver
         rx = RemoteIDReceiver()
         rx.receive(RemoteIDMessage(uas_id="UAS-001", latitude=37.5, longitude=127.0))
         results = rx.scan()
         assert len(results) == 1
 
     def test_get_nearby_uas(self):
-        from simulation.remote_id import RemoteIDReceiver, RemoteIDMessage
+        from simulation.remote_id import RemoteIDMessage, RemoteIDReceiver
         rx = RemoteIDReceiver()
         rx.receive(RemoteIDMessage(uas_id="UAS-N", latitude=37.5, longitude=127.0))
         rx.receive(RemoteIDMessage(uas_id="UAS-F", latitude=38.5, longitude=128.0))
@@ -210,7 +207,7 @@ class TestRemoteIDReceiver:
         assert len(nearby) == 1
 
     def test_verify_valid_message(self):
-        from simulation.remote_id import RemoteIDReceiver, RemoteIDMessage, OperationalStatus
+        from simulation.remote_id import OperationalStatus, RemoteIDMessage, RemoteIDReceiver
         rx = RemoteIDReceiver()
         msg = RemoteIDMessage(
             uas_id="UAS-V", latitude=37.5, longitude=127.0,
@@ -220,7 +217,7 @@ class TestRemoteIDReceiver:
         assert result["valid"] is True
 
     def test_verify_invalid_message(self):
-        from simulation.remote_id import RemoteIDReceiver, RemoteIDMessage
+        from simulation.remote_id import RemoteIDMessage, RemoteIDReceiver
         rx = RemoteIDReceiver()
         msg = RemoteIDMessage()  # missing fields
         result = rx.verify_message(msg)
@@ -389,7 +386,7 @@ class TestICAODoc10019:
         assert result["nearby_traffic_count"] == 1
 
     def test_compliance_report(self):
-        from simulation.icao_doc10019 import ICAODoc10019, RPASOperator, RPASAircraft
+        from simulation.icao_doc10019 import ICAODoc10019, RPASAircraft, RPASOperator
         icao = ICAODoc10019()
         op = RPASOperator("OP1", "Test", "CERT-1", "remote_pilot", time.time() + 86400)
         ac = RPASAircraft("KR-001", "TC-001", "SN-001", 2.5, 100, 15, 30)

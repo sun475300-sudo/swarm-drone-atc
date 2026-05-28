@@ -6,7 +6,7 @@ import hashlib
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -39,7 +39,7 @@ class SecureChannel:
     channel_id: str
     drone_id: str
     current_key: QuantumKey
-    previous_keys: List[QuantumKey]
+    previous_keys: list[QuantumKey]
     key_rotation_interval: float = 3600.0
 
 
@@ -56,8 +56,8 @@ class QuantumResilienceManager:
         self.key_rotation_interval = key_rotation_interval
         self.hybrid_mode = hybrid_mode
 
-        self.secure_channels: Dict[str, SecureChannel] = {}
-        self.key_store: Dict[str, QuantumKey] = {}
+        self.secure_channels: dict[str, SecureChannel] = {}
+        self.key_store: dict[str, QuantumKey] = {}
 
         self.post_quantum_ready = True
 
@@ -176,8 +176,8 @@ class QuantumResilienceManager:
         if len(ciphertext) < 48:
             raise ValueError("Invalid ciphertext")
 
-        iv = ciphertext[:16]
-        signature = ciphertext[-32:]
+        ciphertext[:16]
+        ciphertext[-32:]
         encrypted = ciphertext[16:-32]
 
         classical_key = key[:32]
@@ -204,7 +204,7 @@ class QuantumResilienceManager:
 
         return session_key_id
 
-    def verify_quantum_readiness(self) -> Dict[str, Any]:
+    def verify_quantum_readiness(self) -> dict[str, Any]:
         return {
             "post_quantum_ready": self.post_quantum_ready,
             "encryption_scheme": self.default_encryption.value,
@@ -214,7 +214,7 @@ class QuantumResilienceManager:
             "total_keys": len(self.key_store),
         }
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         return self.metrics.copy()
 
     def revoke_key(self, key_id: str) -> bool:

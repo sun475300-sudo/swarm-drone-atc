@@ -10,9 +10,8 @@ re-evaluated offline by the CLI.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Dict, List, Optional, Tuple
 
-Position = Tuple[float, float, float]
+Position = tuple[float, float, float]
 
 
 @dataclass(frozen=True)
@@ -30,8 +29,8 @@ class AgentTrajectory:
     """
 
     agent_id: str
-    positions: List[Position] = field(default_factory=list)
-    goal_reached_at_s: Optional[float] = None
+    positions: list[Position] = field(default_factory=list)
+    goal_reached_at_s: float | None = None
     spawn_time_s: float = 0.0
 
 
@@ -55,7 +54,7 @@ class AirspaceCapacity:
     """Operational capacity ceiling — used to normalize utilization."""
 
     max_agents: int
-    volume_m3: Optional[float] = None
+    volume_m3: float | None = None
 
 
 @dataclass(frozen=True)
@@ -73,26 +72,26 @@ class SimulationTrace:
     dt_s: float = 1.0
     wall_clock_seconds: float = 0.0
 
-    agents: List[AgentTrajectory] = field(default_factory=list)
-    predicted_conflicts: List[NearMissEvent] = field(default_factory=list)
+    agents: list[AgentTrajectory] = field(default_factory=list)
+    predicted_conflicts: list[NearMissEvent] = field(default_factory=list)
 
     # Voronoi assignment per step: list of {agent_id -> cell_id}
-    voronoi_assignments: List[Dict[str, int]] = field(default_factory=list)
+    voronoi_assignments: list[dict[str, int]] = field(default_factory=list)
 
     # Regulatory (per-agent valid Remote ID seconds)
-    remote_id_valid_seconds_per_agent: Dict[str, int] = field(default_factory=dict)
+    remote_id_valid_seconds_per_agent: dict[str, int] = field(default_factory=dict)
 
     # LAANC mock latencies (ms)
-    laanc_request_latencies_ms: List[float] = field(default_factory=list)
+    laanc_request_latencies_ms: list[float] = field(default_factory=list)
 
     # Sim-time seconds where any drone was outside its authorized volume
-    geofence_violation_timestamps: List[float] = field(default_factory=list)
+    geofence_violation_timestamps: list[float] = field(default_factory=list)
 
     # Per-tick wall clock (ms)
-    tick_latencies_ms: List[float] = field(default_factory=list)
+    tick_latencies_ms: list[float] = field(default_factory=list)
 
     # Peak resident memory (MB)
-    peak_memory_mb: Optional[float] = None
+    peak_memory_mb: float | None = None
 
     # ---- Serialization ------------------------------------------------------
 

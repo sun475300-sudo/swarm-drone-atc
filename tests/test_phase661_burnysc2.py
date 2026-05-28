@@ -11,7 +11,6 @@ import time
 import numpy as np
 import pytest
 
-
 # ── Behavior Tree Tests ──────────────────────────────────────────────
 
 class TestBehaviorTree:
@@ -22,7 +21,7 @@ class TestBehaviorTree:
         assert NodeStatus.RUNNING.value == 3
 
     def test_sequence_all_success(self):
-        from simulation.behavior_tree import SequenceNode, ActionNode, NodeStatus
+        from simulation.behavior_tree import ActionNode, NodeStatus, SequenceNode
         seq = SequenceNode(name="test", children=[
             ActionNode(name="a1", action=lambda ctx: NodeStatus.SUCCESS),
             ActionNode(name="a2", action=lambda ctx: NodeStatus.SUCCESS),
@@ -30,7 +29,7 @@ class TestBehaviorTree:
         assert seq.tick({}) == NodeStatus.SUCCESS
 
     def test_sequence_one_failure(self):
-        from simulation.behavior_tree import SequenceNode, ActionNode, NodeStatus
+        from simulation.behavior_tree import ActionNode, NodeStatus, SequenceNode
         seq = SequenceNode(name="test", children=[
             ActionNode(name="a1", action=lambda ctx: NodeStatus.SUCCESS),
             ActionNode(name="a2", action=lambda ctx: NodeStatus.FAILURE),
@@ -38,14 +37,14 @@ class TestBehaviorTree:
         assert seq.tick({}) == NodeStatus.FAILURE
 
     def test_sequence_running(self):
-        from simulation.behavior_tree import SequenceNode, ActionNode, NodeStatus
+        from simulation.behavior_tree import ActionNode, NodeStatus, SequenceNode
         seq = SequenceNode(name="test", children=[
             ActionNode(name="a1", action=lambda ctx: NodeStatus.RUNNING),
         ])
         assert seq.tick({}) == NodeStatus.RUNNING
 
     def test_selector_first_success(self):
-        from simulation.behavior_tree import SelectorNode, ActionNode, NodeStatus
+        from simulation.behavior_tree import ActionNode, NodeStatus, SelectorNode
         sel = SelectorNode(name="test", children=[
             ActionNode(name="a1", action=lambda ctx: NodeStatus.FAILURE),
             ActionNode(name="a2", action=lambda ctx: NodeStatus.SUCCESS),
@@ -53,7 +52,7 @@ class TestBehaviorTree:
         assert sel.tick({}) == NodeStatus.SUCCESS
 
     def test_selector_all_failure(self):
-        from simulation.behavior_tree import SelectorNode, ActionNode, NodeStatus
+        from simulation.behavior_tree import ActionNode, NodeStatus, SelectorNode
         sel = SelectorNode(name="test", children=[
             ActionNode(name="a1", action=lambda ctx: NodeStatus.FAILURE),
             ActionNode(name="a2", action=lambda ctx: NodeStatus.FAILURE),
@@ -71,14 +70,14 @@ class TestBehaviorTree:
         assert cond.tick({"x": 3}) == NodeStatus.FAILURE
 
     def test_inverter_node(self):
-        from simulation.behavior_tree import InverterNode, ActionNode, NodeStatus
+        from simulation.behavior_tree import ActionNode, InverterNode, NodeStatus
         inv = InverterNode(name="test", child=ActionNode(name="a", action=lambda ctx: NodeStatus.SUCCESS))
         assert inv.tick({}) == NodeStatus.FAILURE
         inv2 = InverterNode(name="test2", child=ActionNode(name="b", action=lambda ctx: NodeStatus.FAILURE))
         assert inv2.tick({}) == NodeStatus.SUCCESS
 
     def test_repeat_until_success(self):
-        from simulation.behavior_tree import RepeatUntilSuccess, ActionNode, NodeStatus
+        from simulation.behavior_tree import ActionNode, NodeStatus, RepeatUntilSuccess
         counter = {"n": 0}
         def counting_action(ctx):
             counter["n"] += 1
@@ -88,7 +87,7 @@ class TestBehaviorTree:
         assert counter["n"] == 3
 
     def test_drone_flight_bt_emergency(self):
-        from simulation.behavior_tree import build_drone_flight_bt, NodeStatus
+        from simulation.behavior_tree import build_drone_flight_bt
         bt = build_drone_flight_bt()
         ctx = {"battery_pct": 3.0, "battery_critical": 5.0}
         bt.tick(ctx)
@@ -124,8 +123,12 @@ class TestBehaviorTree:
 
     def test_drone_conditions(self):
         from simulation.behavior_tree import (
-            is_battery_low, is_battery_warning, has_conflict,
-            is_comms_lost, is_wind_strong, is_at_waypoint,
+            has_conflict,
+            is_at_waypoint,
+            is_battery_low,
+            is_battery_warning,
+            is_comms_lost,
+            is_wind_strong,
         )
         assert is_battery_low({"battery_pct": 3.0}) is True
         assert is_battery_low({"battery_pct": 50.0}) is False

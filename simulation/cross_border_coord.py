@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 class HandoffStatus(Enum):
@@ -20,7 +20,7 @@ class AirspaceAuthority:
     code: str
     name: str
     contact_endpoint: str = ""
-    required_docs: List[str] = field(default_factory=list)
+    required_docs: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -29,11 +29,11 @@ class BorderCrossing:
     callsign: str
     from_authority: str
     to_authority: str
-    crossing_point: Tuple[float, float]
+    crossing_point: tuple[float, float]
     scheduled_time: float
     altitude: float
     status: HandoffStatus = HandoffStatus.PROPOSED
-    documents: Dict[str, bool] = field(default_factory=dict)
+    documents: dict[str, bool] = field(default_factory=dict)
     rejection_reason: str = ""
 
 
@@ -46,8 +46,8 @@ class CrossBorderCoordinator:
     def __init__(self, max_crossings: int = _DEFAULT_CROSSING_CAP) -> None:
         if max_crossings <= 0:
             raise ValueError("max_crossings must be positive")
-        self.authorities: Dict[str, AirspaceAuthority] = {}
-        self.crossings: Dict[str, BorderCrossing] = {}
+        self.authorities: dict[str, AirspaceAuthority] = {}
+        self.crossings: dict[str, BorderCrossing] = {}
         self.max_crossings = max_crossings
         self._next_id = 0
 
@@ -74,10 +74,10 @@ class CrossBorderCoordinator:
         callsign: str,
         from_code: str,
         to_code: str,
-        crossing_point: Tuple[float, float],
+        crossing_point: tuple[float, float],
         scheduled_time: float,
         altitude: float,
-    ) -> Optional[str]:
+    ) -> str | None:
         if from_code not in self.authorities or to_code not in self.authorities:
             return None
         if from_code == to_code:
@@ -173,15 +173,15 @@ class CrossBorderCoordinator:
         bc.status = HandoffStatus.COMPLETED
         return True
 
-    def get(self, crossing_id: str) -> Optional[BorderCrossing]:
+    def get(self, crossing_id: str) -> BorderCrossing | None:
         """Return the BorderCrossing record for the given ID, or None if not found."""
         return self.crossings.get(crossing_id)
 
-    def pending_crossings(self) -> List[BorderCrossing]:
+    def pending_crossings(self) -> list[BorderCrossing]:
         return [c for c in self.crossings.values() if c.status == HandoffStatus.PROPOSED]
 
-    def get_stats(self) -> Dict[str, Any]:
-        counts: Dict[str, int] = {}
+    def get_stats(self) -> dict[str, Any]:
+        counts: dict[str, int] = {}
         for c in self.crossings.values():
             counts[c.status.value] = counts.get(c.status.value, 0) + 1
         return {

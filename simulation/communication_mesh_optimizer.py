@@ -9,7 +9,6 @@ from __future__ import annotations
 import heapq
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
 
 import numpy as np
 
@@ -29,7 +28,7 @@ class MeshNode:
     is_relay: bool = False
     tx_power_dbm: float = 20.0
     bandwidth_mbps: float = 10.0
-    neighbors: Set[str] = field(default_factory=set)
+    neighbors: set[str] = field(default_factory=set)
     load: float = 0.0  # 0-1
 
 
@@ -95,11 +94,11 @@ class CommunicationMeshOptimizer:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._nodes: Dict[str, MeshNode] = {}
-        self._links: Dict[Tuple[str, str], MeshLink] = {}
+        self._nodes: dict[str, MeshNode] = {}
+        self._links: dict[tuple[str, str], MeshLink] = {}
         self._path_loss = PathLossModel()
-        self._routing_table: Dict[Tuple[str, str], List[str]] = {}
-        self._history: List[dict] = []
+        self._routing_table: dict[tuple[str, str], list[str]] = {}
+        self._history: list[dict] = []
 
     def add_node(self, node: MeshNode):
         self._nodes[node.node_id] = node
@@ -143,12 +142,12 @@ class CommunicationMeshOptimizer:
                 na.neighbors.add(node_ids[j])
                 nb.neighbors.add(node_ids[i])
 
-    def find_route(self, src: str, dst: str) -> List[str]:
+    def find_route(self, src: str, dst: str) -> list[str]:
         """Dijkstra 기반 최소 지연 경로."""
         if src not in self._nodes or dst not in self._nodes:
             return []
         dist = {src: 0.0}
-        prev: Dict[str, Optional[str]] = {src: None}
+        prev: dict[str, str | None] = {src: None}
         pq = [(0.0, src)]
         while pq:
             d, u = heapq.heappop(pq)
@@ -173,7 +172,7 @@ class CommunicationMeshOptimizer:
                     heapq.heappush(pq, (nd, nb))
         return []
 
-    def find_relay_positions(self, disconnected_nodes: List[str]) -> List[np.ndarray]:
+    def find_relay_positions(self, disconnected_nodes: list[str]) -> list[np.ndarray]:
         """단절 노드 연결을 위한 중계 위치 계산."""
         relay_positions = []
         connected = set(self._nodes.keys()) - set(disconnected_nodes)
@@ -210,7 +209,7 @@ class CommunicationMeshOptimizer:
                     queue.append(nb)
         return len(visited) / len(self._nodes)
 
-    def get_link(self, a: str, b: str) -> Optional[MeshLink]:
+    def get_link(self, a: str, b: str) -> MeshLink | None:
         key = tuple(sorted([a, b]))
         return self._links.get(key)
 

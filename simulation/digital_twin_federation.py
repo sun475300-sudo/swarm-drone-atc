@@ -6,7 +6,7 @@ import json
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -26,13 +26,13 @@ class TwinState:
     battery_level: float
     mission_progress: float
     timestamp: float
-    sensors: Dict[str, Any] = field(default_factory=dict)
+    sensors: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class FederationMember:
     member_id: str
-    twin_states: Dict[str, TwinState]
+    twin_states: dict[str, TwinState]
     last_sync: float
     sync_status: SyncStatus
     priority: int
@@ -51,10 +51,10 @@ class DigitalTwinFederation:
         self.max_latency_ms = max_latency_ms
         self.consensus_threshold = consensus_threshold
 
-        self.members: Dict[str, FederationMember] = {}
-        self.global_state: Dict[str, TwinState] = {}
+        self.members: dict[str, FederationMember] = {}
+        self.global_state: dict[str, TwinState] = {}
 
-        self.sync_history: List[Dict] = []
+        self.sync_history: list[dict] = []
 
         self._start_sync_loop()
 
@@ -78,7 +78,7 @@ class DigitalTwinFederation:
 
         self.global_state[state.drone_id] = state
 
-    def synchronize(self) -> Dict[str, Any]:
+    def synchronize(self) -> dict[str, Any]:
         sync_result = {
             "timestamp": time.time(),
             "members_synced": 0,
@@ -111,7 +111,7 @@ class DigitalTwinFederation:
 
         return sync_result
 
-    def _resolve_consensus(self, states: List[TwinState]) -> Optional[TwinState]:
+    def _resolve_consensus(self, states: list[TwinState]) -> TwinState | None:
         if not states:
             return None
 
@@ -130,8 +130,8 @@ class DigitalTwinFederation:
         velocities = np.array([s.velocity for s in states])
         avg_velocity = np.average(velocities, axis=0, weights=weights)
 
-        avg_battery = sum(s.battery_level * w for s, w in zip(states, weights))
-        avg_progress = sum(s.mission_progress * w for s, w in zip(states, weights))
+        avg_battery = sum(s.battery_level * w for s, w in zip(states, weights, strict=False))
+        avg_progress = sum(s.mission_progress * w for s, w in zip(states, weights, strict=False))
 
         latest_state = max(states, key=lambda s: s.timestamp)
 
@@ -148,7 +148,7 @@ class DigitalTwinFederation:
     def _start_sync_loop(self):
         pass
 
-    def get_federation_status(self) -> Dict[str, Any]:
+    def get_federation_status(self) -> dict[str, Any]:
         return {
             "federation_id": self.federation_id,
             "total_members": len(self.members),
@@ -165,10 +165,10 @@ class DigitalTwinFederation:
             },
         }
 
-    def query_twin(self, drone_id: str) -> Optional[TwinState]:
+    def query_twin(self, drone_id: str) -> TwinState | None:
         return self.global_state.get(drone_id)
 
-    def get_all_twins(self) -> Dict[str, TwinState]:
+    def get_all_twins(self) -> dict[str, TwinState]:
         return self.global_state.copy()
 
     def export_state(self) -> str:
@@ -192,7 +192,7 @@ class DigitalTwinFederation:
         }
         return json.dumps(data, indent=2)
 
-    def detect_anomalies(self) -> List[Dict]:
+    def detect_anomalies(self) -> list[dict]:
         anomalies = []
 
         for drone_id, state in self.global_state.items():

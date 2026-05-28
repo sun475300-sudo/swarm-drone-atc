@@ -1,3 +1,5 @@
+/** Module: scripts/save_screenshot_server.js. */
+
 const http = require('http');
 const fs = require('fs');
 const path = require('path');

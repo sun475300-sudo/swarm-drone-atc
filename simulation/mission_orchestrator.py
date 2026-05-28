@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -38,11 +37,11 @@ class MissionTask:
     task_id: str
     mission_id: str
     task_type: str
-    position: Optional[np.ndarray] = None
+    position: np.ndarray | None = None
     duration_sec: float = 60.0
     state: TaskState = TaskState.WAITING
-    assigned_drone: Optional[str] = None
-    dependencies: List[str] = field(default_factory=list)
+    assigned_drone: str | None = None
+    dependencies: list[str] = field(default_factory=list)
     progress: float = 0.0
     priority: int = 5
 
@@ -51,9 +50,9 @@ class MissionTask:
 class Mission:
     mission_id: str
     mission_type: MissionType
-    tasks: List[MissionTask] = field(default_factory=list)
+    tasks: list[MissionTask] = field(default_factory=list)
     created_at: float = 0.0
-    deadline: Optional[float] = None
+    deadline: float | None = None
     status: str = "pending"
     priority: int = 5
 
@@ -62,7 +61,7 @@ class DAGScheduler:
     """DAG 기반 작업 스케줄러."""
 
     @staticmethod
-    def topological_sort(tasks: List[MissionTask]) -> List[str]:
+    def topological_sort(tasks: list[MissionTask]) -> list[str]:
         task_map = {t.task_id: t for t in tasks}
         in_degree = {t.task_id: 0 for t in tasks}
         for t in tasks:
@@ -83,7 +82,7 @@ class DAGScheduler:
         return result
 
     @staticmethod
-    def get_ready_tasks(tasks: List[MissionTask]) -> List[MissionTask]:
+    def get_ready_tasks(tasks: list[MissionTask]) -> list[MissionTask]:
         completed = {t.task_id for t in tasks if t.state == TaskState.COMPLETED}
         ready = []
         for t in tasks:
@@ -106,10 +105,10 @@ class MissionOrchestrator:
 
     def __init__(self, rng_seed: int = 42):
         self._rng = np.random.default_rng(rng_seed)
-        self._missions: Dict[str, Mission] = {}
+        self._missions: dict[str, Mission] = {}
         self._scheduler = DAGScheduler()
-        self._drone_assignments: Dict[str, str] = {}  # drone -> task
-        self._history: List[dict] = []
+        self._drone_assignments: dict[str, str] = {}  # drone -> task
+        self._history: list[dict] = []
 
     def create_mission(self, mission_id: str, mission_type: MissionType, priority: int = 5) -> Mission:
         mission = Mission(mission_id=mission_id, mission_type=mission_type, priority=priority)
@@ -124,7 +123,7 @@ class MissionOrchestrator:
         mission.tasks.append(task)
         return True
 
-    def start_mission(self, mission_id: str) -> List[MissionTask]:
+    def start_mission(self, mission_id: str) -> list[MissionTask]:
         mission = self._missions.get(mission_id)
         if not mission:
             return []
@@ -151,7 +150,7 @@ class MissionOrchestrator:
                     return True
         return False
 
-    def complete_task(self, task_id: str) -> List[MissionTask]:
+    def complete_task(self, task_id: str) -> list[MissionTask]:
         """작업 완료 처리 후 새로 준비된 작업 반환."""
         newly_ready = []
         for mission in self._missions.values():
@@ -186,10 +185,10 @@ class MissionOrchestrator:
         completed = sum(1 for t in mission.tasks if t.state == TaskState.COMPLETED)
         return completed / len(mission.tasks)
 
-    def get_active_missions(self) -> List[Mission]:
+    def get_active_missions(self) -> list[Mission]:
         return [m for m in self._missions.values() if m.status == "active"]
 
-    def get_mission(self, mission_id: str) -> Optional[Mission]:
+    def get_mission(self, mission_id: str) -> Mission | None:
         return self._missions.get(mission_id)
 
     def summary(self) -> dict:

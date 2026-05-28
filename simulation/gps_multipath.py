@@ -56,7 +56,7 @@ class GPSMultipath:
             dx = pos[0] - ref.position[0]
             dy = pos[1] - ref.position[1]
             dist = np.sqrt(dx**2 + dy**2)
-            half_h = ref.height / 2
+            ref.height / 2
 
             if dist < ref.height * 2 and pos[2] < ref.height:
                 # 다중경로 영향
@@ -79,7 +79,7 @@ class GPSMultipath:
             round(true_pos[1] + noise[1], 2),
             round(true_pos[2] + noise[2], 2),
         )
-        error = float(np.sqrt(sum((m - t)**2 for m, t in zip(measured, true_pos))))
+        error = float(np.sqrt(sum((m - t)**2 for m, t in zip(measured, true_pos, strict=False))))
 
         m = GPSMeasurement(
             measured_pos=measured, true_pos=true_pos,

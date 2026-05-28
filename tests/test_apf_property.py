@@ -13,11 +13,9 @@ random 입력에 대해 다음 불변성을 검증:
 """
 from __future__ import annotations
 
-import math
-
 import numpy as np
-import pytest
-from hypothesis import HealthCheck, given, settings, strategies as st
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
 
 from simulation.apf_engine.apf import (
     APF_PARAMS,
@@ -27,7 +25,6 @@ from simulation.apf_engine.apf import (
     repulsive_force_drone,
     repulsive_force_obstacle,
 )
-
 
 # 시뮬 공역 ±5km, 고도 0~150m 범위
 _coord = st.floats(min_value=-5000.0, max_value=5000.0, allow_nan=False, allow_infinity=False)

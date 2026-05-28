@@ -4,9 +4,10 @@ Phase 428: Real-Time Stream Processor for Telemetry Data
 
 import time
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List
+from typing import Any
 
 
 class StreamType(Enum):
@@ -20,7 +21,7 @@ class StreamType(Enum):
 class StreamEvent:
     event_id: str
     stream_type: StreamType
-    data: Dict[str, Any]
+    data: dict[str, Any]
     timestamp: float
     drone_id: str
 
@@ -38,12 +39,12 @@ class RealTimeStreamProcessor:
         self.buffer_size = buffer_size
         self.num_workers = num_workers
 
-        self.buffers: Dict[StreamType, deque] = {
+        self.buffers: dict[StreamType, deque] = {
             st: deque(maxlen=buffer_size) for st in StreamType
         }
 
-        self.processors: Dict[StreamType, Callable] = {}
-        self.windowed_aggregates: Dict[str, float] = {}
+        self.processors: dict[StreamType, Callable] = {}
+        self.windowed_aggregates: dict[str, float] = {}
 
         self.metrics = {
             "events_processed": 0,
@@ -57,7 +58,7 @@ class RealTimeStreamProcessor:
     def ingest(self, event: StreamEvent):
         self.buffers[event.stream_type].append(event)
 
-    def process_stream(self, stream_type: StreamType) -> List[ProcessingResult]:
+    def process_stream(self, stream_type: StreamType) -> list[ProcessingResult]:
         results = []
 
         buffer = self.buffers[stream_type]
@@ -90,7 +91,7 @@ class RealTimeStreamProcessor:
 
         return results
 
-    def _default_process(self, data: Dict) -> Dict:
+    def _default_process(self, data: dict) -> dict:
         return {"status": "processed", "data": data}
 
     def compute_window_aggregate(self, key: str, window_sec: float = 60.0) -> float:
@@ -107,7 +108,7 @@ class RealTimeStreamProcessor:
 
         return total / count if count > 0 else 0.0
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         return {
             "events_processed": self.metrics["events_processed"],
             "events_dropped": self.metrics["events_dropped"],

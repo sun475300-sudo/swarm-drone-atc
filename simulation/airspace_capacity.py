@@ -102,7 +102,7 @@ class AirspaceCapacity:
             s.current_count = 0
 
         # 각 드론의 섹터 할당
-        for did, pos in positions.items():
+        for _did, pos in positions.items():
             sid = self._get_sector_id(pos[0], pos[1])
             if sid and sid in self._sectors:
                 self._sectors[sid].current_count += 1

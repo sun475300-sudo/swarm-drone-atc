@@ -8,7 +8,7 @@ from urllib.error import URLError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
-from chatbot.engine.base import BaseEngine, ChatResponse, SYSTEM_PROMPT
+from chatbot.engine.base import SYSTEM_PROMPT, BaseEngine, ChatResponse
 from chatbot.engine.rule_engine import RuleEngine
 
 

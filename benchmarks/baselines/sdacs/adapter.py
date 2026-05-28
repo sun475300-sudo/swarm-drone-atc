@@ -7,12 +7,10 @@ src/airspace_control/controller/ happens in W2 once the runner is verified.
 """
 from __future__ import annotations
 
-import math
 import time
-from typing import Any, Dict, List, Tuple
 
-from src.analytics.types import AgentTrajectory, NearMissEvent, SimulationTrace
 from benchmarks.baselines.orca.adapter import Adapter as OrcaAdapter
+from src.analytics.types import SimulationTrace
 
 
 class Adapter(OrcaAdapter):
@@ -21,7 +19,7 @@ class Adapter(OrcaAdapter):
     name = "sdacs_hybrid"
 
     def run(self, hard_wall_time_s: float = 300.0) -> SimulationTrace:
-        from src.utils.rng import set_global_seed, get_rng
+        from src.utils.rng import get_rng, set_global_seed
 
         set_global_seed(self.seed)
         rng = get_rng()

@@ -5,7 +5,7 @@ Phase 430: Swarm Collaborative Perception for Extended Sensing
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -33,7 +33,7 @@ class FusedPerception:
     frame_id: str
     fused_data: np.ndarray
     confidence_map: np.ndarray
-    contributing_drones: List[str]
+    contributing_drones: list[str]
     timestamp: float
 
 
@@ -41,10 +41,10 @@ class SwarmCollaborativePerception:
     def __init__(self, fusion_range_m: float = 100.0):
         self.fusion_range_m = fusion_range_m
 
-        self.perception_frames: Dict[
-            Tuple[str, PerceptionModality], PerceptionFrame
+        self.perception_frames: dict[
+            tuple[str, PerceptionModality], PerceptionFrame
         ] = {}
-        self.fusion_cache: List[FusedPerception] = []
+        self.fusion_cache: list[FusedPerception] = []
 
         self.coverage_map: np.ndarray = np.zeros((1000, 1000))
 
@@ -63,7 +63,7 @@ class SwarmCollaborativePerception:
 
     def fuse_frames(
         self, modality: PerceptionModality, reference_drone: str
-    ) -> Optional[FusedPerception]:
+    ) -> FusedPerception | None:
         reference_key = (reference_drone, modality)
 
         if reference_key not in self.perception_frames:
@@ -100,7 +100,7 @@ class SwarmCollaborativePerception:
 
         return fused
 
-    def get_coverage_stats(self) -> Dict[str, Any]:
+    def get_coverage_stats(self) -> dict[str, Any]:
         covered_cells = np.sum(self.coverage_map > 0)
         total_cells = self.coverage_map.size
 
@@ -109,7 +109,7 @@ class SwarmCollaborativePerception:
             "covered_cells": int(covered_cells),
             "total_cells": total_cells,
             "active_modalities": len(
-                set(f.modality for f in self.perception_frames.values())
+                {f.modality for f in self.perception_frames.values()}
             ),
         }
 

@@ -5,7 +5,6 @@ Phase 474: Autonomous Negotiation Engine
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -29,7 +28,7 @@ class NegotiationIssue:
 @dataclass
 class Offer:
     agent_id: str
-    values: Dict[str, float]
+    values: dict[str, float]
     utility: float
     round_num: int
     timestamp: float = 0.0
@@ -40,10 +39,10 @@ class NegotiationAgent:
     agent_id: str
     strategy: ConcessionStrategy
     reservation_utility: float = 0.3
-    issues: Dict[str, Tuple[float, float]] = field(default_factory=dict)  # preferred range
-    weights: Dict[str, float] = field(default_factory=dict)
-    offers_made: List[Offer] = field(default_factory=list)
-    offers_received: List[Offer] = field(default_factory=list)
+    issues: dict[str, tuple[float, float]] = field(default_factory=dict)  # preferred range
+    weights: dict[str, float] = field(default_factory=dict)
+    offers_made: list[Offer] = field(default_factory=list)
+    offers_received: list[Offer] = field(default_factory=list)
 
 
 class AutonomousNegotiation:
@@ -51,19 +50,19 @@ class AutonomousNegotiation:
 
     def __init__(self, seed: int = 42, max_rounds: int = 100, deadline: float = 1.0):
         self.rng = np.random.default_rng(seed)
-        self.agents: Dict[str, NegotiationAgent] = {}
-        self.issues: List[NegotiationIssue] = []
+        self.agents: dict[str, NegotiationAgent] = {}
+        self.issues: list[NegotiationIssue] = []
         self.max_rounds = max_rounds
         self.deadline = deadline
         self.current_round = 0
-        self.agreements: List[Dict] = []
-        self.history: List[Offer] = []
+        self.agreements: list[dict] = []
+        self.history: list[Offer] = []
 
     def add_issue(self, name: str, min_val: float, max_val: float, weight: float = 1.0) -> None:
         self.issues.append(NegotiationIssue(name, min_val, max_val, weight))
 
     def add_agent(self, agent_id: str, strategy: ConcessionStrategy,
-                  preferences: Optional[Dict[str, Tuple[float, float]]] = None,
+                  preferences: dict[str, tuple[float, float]] | None = None,
                   reservation: float = 0.3) -> NegotiationAgent:
         prefs = preferences or {}
         weights = {issue.name: issue.weight + self.rng.standard_normal() * 0.1
@@ -72,7 +71,7 @@ class AutonomousNegotiation:
         self.agents[agent_id] = agent
         return agent
 
-    def _compute_utility(self, agent: NegotiationAgent, values: Dict[str, float]) -> float:
+    def _compute_utility(self, agent: NegotiationAgent, values: dict[str, float]) -> float:
         utility = 0.0
         total_weight = sum(agent.weights.values()) or 1.0
         for issue in self.issues:
@@ -105,10 +104,7 @@ class AutonomousNegotiation:
         values = {}
         for issue in self.issues:
             pref = agent.issues.get(issue.name)
-            if pref:
-                ideal = (pref[0] + pref[1]) / 2
-            else:
-                ideal = (issue.max_value + issue.min_value) / 2
+            ideal = (pref[0] + pref[1]) / 2 if pref else (issue.max_value + issue.min_value) / 2
             midpoint = (issue.max_value + issue.min_value) / 2
             value = ideal + cf * (midpoint - ideal)
             value += self.rng.standard_normal() * (issue.max_value - issue.min_value) * 0.02
@@ -124,7 +120,7 @@ class AutonomousNegotiation:
         threshold = agent.reservation_utility + (1 - agent.reservation_utility) * (1 - t)
         return utility >= threshold
 
-    def negotiate_round(self) -> Optional[Dict]:
+    def negotiate_round(self) -> dict | None:
         self.current_round += 1
         agent_ids = list(self.agents.keys())
         offers = {}
@@ -160,14 +156,14 @@ class AutonomousNegotiation:
                     return agreement
         return None
 
-    def run(self) -> Optional[Dict]:
+    def run(self) -> dict | None:
         for _ in range(self.max_rounds):
             result = self.negotiate_round()
             if result:
                 return result
         return None
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             "agents": len(self.agents),
             "issues": len(self.issues),

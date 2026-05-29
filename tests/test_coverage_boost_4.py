@@ -11,6 +11,10 @@ real_time_stream_processor, multi_modal_fusion.
 import time
 
 import numpy as np
+import pytest
+
+# collision_predictor (and related modules) require torch
+pytest.importorskip("torch", reason="torch not installed — skipping coverage_boost_4")
 
 # ── predictive_analytics_engine ───────────────────────────────────────────
 from simulation.predictive_analytics_engine import (

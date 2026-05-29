@@ -51,7 +51,6 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-asyncio_mode = "auto"
 addopts = "-v --tb=short -n auto --dist loadfile --cov=src --cov=simulation --cov-report=term-missing --cov-fail-under=80"
 markers = [
     "unit: 단위 테스트 (개별 함수/클래스)",
@@ -59,6 +58,20 @@ markers = [
     "e2e: End-to-End 테스트 (전체 시뮬레이션 파이프라인)",
     "slow: 느린 테스트 (>10초)",
     "gpu: GPU 가속 테스트",
+]
+
+[tool.coverage.run]
+source = ["src", "simulation"]
+parallel = true
+concurrency = ["multiprocessing", "thread"]
+
+[tool.coverage.report]
+fail_under = 80
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+    "@overload",
 ]
 
 [tool.setuptools.packages.find]

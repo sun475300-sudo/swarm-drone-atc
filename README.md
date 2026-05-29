@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 01:46 | `4a41858` | fix: 다국어 경로 + np.bool_ 캐스팅 수정 — CI 통과 보강 | simulation/battery_predictor.py, tests/test_phase521_540.py, tests/test_phase541_560.py, tests/test_phase611_630.py, tests/test_phase631_640.py, tests/test_phase641_660.py |
 | 2026-05-30 01:38 | `99a957e` | fix: CI 테스트 오류 3종 수정 — torch skip 가드 + 다국어 경로 교정 | tests/test_coverage_boost_2.py, tests/test_coverage_boost_4.py, tests/test_coverage_boost_5.py, tests/test_phase571_600.py, tests/test_phase661_670_ai.py |
 | 2026-05-30 01:19 | `ae3359e` | feat: P711 React 대시보드 + ROADMAP Track C 상태 갱신 | ROADMAP.md, docs/dashboard.html, docs/index.html |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |

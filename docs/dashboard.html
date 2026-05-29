@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SDACS — 공역관제 대시보드 · ATC Dashboard</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+<meta name="description" content="SDACS FastAPI + React 공역관제 실시간 대시보드. P711 Track C."/>
+<style>
+:root {
+  --p:#0055AA; --p-light:#1a6fcc; --a:#FF6F00; --a-light:#ff8c2a;
+  --bg:#0b0f17; --bg2:#131929; --bg3:#1e2a3a; --bg4:#263345;
+  --text:#e8edf5; --text2:#9aabb8; --border:#2e3f52;
+  --green:#22c55e; --yellow:#eab308; --red:#ef4444; --blue:#3b82f6;
+  --radius:12px; --shadow:0 4px 24px rgba(0,0,0,.45);
+  --font:'Inter','Pretendard','Malgun Gothic',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+a{color:var(--p-light);text-decoration:none}
+/* Layout */
+.layout{display:grid;grid-template-rows:56px 1fr;min-height:100vh}
+nav{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 20px;position:sticky;top:0;z-index:100}
+nav .logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:17px;letter-spacing:.5px}
+nav .logo svg{width:32px;height:32px}
+nav .spacer{flex:1}
+.badge{padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.badge-green{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.badge-red{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.badge-yellow{background:rgba(234,179,8,.15);color:var(--yellow);border:1px solid rgba(234,179,8,.3)}
+.badge-blue{background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
+main{padding:20px;overflow-y:auto}
+/* Grid */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.panel-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:900px){.panel-row{grid-template-columns:1fr}}
+/* KPI card */
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+.kpi-label{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.kpi-val{font-size:34px;font-weight:900;line-height:1}
+.kpi-val.green{color:var(--green)}
+.kpi-val.red{color:var(--red)}
+.kpi-val.yellow{color:var(--yellow)}
+.kpi-val.blue{color:var(--blue)}
+.kpi-sub{font-size:12px;color:var(--text2);margin-top:5px}
+/* Panel */
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.panel-title{font-weight:700;font-size:15px}
+/* Table */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;color:var(--text2);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:0 8px 8px;border-bottom:1px solid var(--border)}
+.tbl td{padding:8px;border-bottom:1px solid rgba(46,63,82,.5);white-space:nowrap}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--bg3)}
+/* Scenario list */
+.scenario-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;transition:background .15s;cursor:default}
+.scenario-item:hover{background:var(--bg3)}
+.scenario-name{flex:1;font-size:13px;font-weight:500}
+.scenario-difficulty{font-size:11px;color:var(--text2)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:background .15s}
+.btn-primary{background:var(--p);color:#fff}
+.btn-primary:hover{background:var(--p-light)}
+.btn-primary:disabled{background:var(--bg4);color:var(--text2);cursor:not-allowed}
+.btn-sm{padding:4px 10px;font-size:12px}
+/* Live feed */
+.feed{height:200px;overflow-y:auto;background:var(--bg);border-radius:8px;padding:10px 12px;font-family:'Fira Mono','Consolas',monospace;font-size:12px}
+.feed-line{padding:1px 0;border-bottom:1px solid rgba(46,63,82,.3)}
+.feed-line .ts{color:var(--text2);margin-right:8px;user-select:none}
+.feed-line .msg{color:var(--text)}
+.feed-line.warn .msg{color:var(--yellow)}
+.feed-line.err .msg{color:var(--red)}
+.feed-line.ok .msg{color:var(--green)}
+/* Spinner */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin 1s linear infinite;display:inline-block}
+/* Connection indicator */
+.conn-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.conn-dot.connected{background:var(--green);box-shadow:0 0 6px var(--green)}
+.conn-dot.disconnected{background:var(--red)}
+.conn-dot.connecting{background:var(--yellow);animation:spin 1s linear infinite}
+/* Error box */
+.error-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:12px;color:var(--red);font-size:13px;margin-bottom:14px}
+/* Empty state */
+.empty{color:var(--text2);font-size:13px;padding:24px 0;text-align:center}
+/* Conflict item */
+.conflict-row{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:8px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.18);margin-bottom:8px}
+.conflict-sev{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(239,68,68,.18);color:var(--red);white-space:nowrap}
+.conflict-info{flex:1;font-size:12px}
+</style>
+</head>
+<body>
+<div class="layout" id="root"></div>
+
+<!-- React + ReactDOM via CDN (18.x) -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+<script>
+"use strict";
+const {useState, useEffect, useRef, useCallback, createElement: h} = React;
+
+// ── Config ────────────────────────────────────────────────────────────────────
+const API_BASE = (() => {
+  const proto = location.protocol === "https:" ? "https:" : "http:";
+  const host = location.hostname === "sun475300-sudo.github.io"
+    ? "localhost:8080"
+    : `${location.hostname}:8080`;
+  return `${proto}//${host}`;
+})();
+const WS_BASE = API_BASE.replace(/^http/, "ws");
+const POLL_MS = 2000;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function ts() {
+  return new Date().toLocaleTimeString("ko-KR", {hour12:false});
+}
+
+function timeoutSignal(ms) {
+  if (typeof AbortSignal.timeout === "function") return AbortSignal.timeout(ms);
+  const ctrl = new AbortController();
+  setTimeout(() => ctrl.abort(), ms);
+  return ctrl.signal;
+}
+
+async function apiFetch(path) {
+  const r = await fetch(`${API_BASE}${path}`, {signal: timeoutSignal(4000)});
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  return r.json();
+}
+
+function diff(a) {
+  if (a === undefined || a === null) return "—";
+  if (typeof a === "number") return a.toFixed(1);
+  return String(a);
+}
+
+// ── Logo SVG ──────────────────────────────────────────────────────────────────
+function LogoIcon() {
+  return h("svg", {viewBox:"0 0 64 64",xmlns:"http://www.w3.org/2000/svg"},
+    h("defs", null,
+      h("linearGradient", {id:"g",x1:"0",y1:"0",x2:"1",y2:"1"},
+        h("stop", {offset:"0%",stopColor:"#0055AA"}),
+        h("stop", {offset:"100%",stopColor:"#002952"})
+      )
+    ),
+    h("rect", {width:"64",height:"64",rx:"14",fill:"url(#g)"}),
+    h("g", {fill:"#fff",opacity:".95"},
+      h("circle", {cx:"32",cy:"18",r:"3.2"}),
+      h("circle", {cx:"18",cy:"40",r:"3.2"}),
+      h("circle", {cx:"46",cy:"40",r:"3.2"}),
+      h("circle", {cx:"32",cy:"44",r:"2.2"})
+    ),
+    h("g", {stroke:"#FFD28A",strokeWidth:"1.6",fill:"none",opacity:".9"},
+      h("path", {d:"M32 18 L18 40"}),
+      h("path", {d:"M32 18 L46 40"}),
+      h("path", {d:"M18 40 L46 40"}),
+      h("path", {d:"M32 18 L32 44"}),
+      h("path", {d:"M18 40 L32 44"}),
+      h("path", {d:"M46 40 L32 44"})
+    )
+  );
+}
+
+// ── KPI Card ──────────────────────────────────────────────────────────────────
+function KpiCard({label, value, color="", sub=""}) {
+  return h("div", {className:"kpi"},
+    h("div", {className:"kpi-label"}, label),
+    h("div", {className:`kpi-val ${color}`}, value),
+    sub && h("div", {className:"kpi-sub"}, sub)
+  );
+}
+
+// ── Live Feed ─────────────────────────────────────────────────────────────────
+function LiveFeed({lines}) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) ref.current.scrollTop = ref.current.scrollHeight;
+  }, [lines]);
+  return h("div", {className:"feed", ref},
+    lines.length === 0
+      ? h("span", {style:{color:"var(--text2)"}}, "대기 중... / Waiting for telemetry…")
+      : lines.map((l, i) =>
+          h("div", {className:`feed-line ${l.level||""}`, key:i},
+            h("span", {className:"ts"}, l.ts),
+            h("span", {className:"msg"}, l.msg)
+          )
+        )
+  );
+}
+
+// ── Conflict List ──────────────────────────────────────────────────────────────
+function ConflictList({conflicts}) {
+  if (!conflicts || conflicts.length === 0) {
+    return h("div", {className:"empty"}, "✅ 충돌 없음 · No active conflicts");
+  }
+  return h("div", null,
+    conflicts.map((c, i) =>
+      h("div", {className:"conflict-row", key:i},
+        h("span", {className:"conflict-sev"}, c.severity || "WARN"),
+        h("div", {className:"conflict-info"},
+          h("b", null, `${c.drone_a_id} ↔ ${c.drone_b_id}`),
+          h("br"),
+          `CPA ${(c.cpa_distance_m ?? 0).toFixed(1)}m | TTC ${(c.time_to_cpa_s ?? 0).toFixed(0)}s | ${c.resolution_type ?? "—"}`
+        )
+      )
+    )
+  );
+}
+
+// ── Drone Table ───────────────────────────────────────────────────────────────
+function DroneTable({drones}) {
+  if (!drones || drones.length === 0) {
+    return h("div", {className:"empty"}, "시뮬레이션을 실행하면 드론 데이터가 표시됩니다.");
+  }
+  const visible = drones.slice(0, 50);
+  return h("div", null,
+    h("table", {className:"tbl"},
+      h("thead", null,
+        h("tr", null,
+          h("th", null, "ID"),
+          h("th", null, "X"),
+          h("th", null, "Y"),
+          h("th", null, "Z (m)"),
+          h("th", null, "Vx"),
+          h("th", null, "Vy"),
+          h("th", null, "Phase"),
+          h("th", null, "Battery")
+        )
+      ),
+      h("tbody", null,
+        visible.map((d, i) =>
+          h("tr", {key: d.id ?? i},
+            h("td", null, d.id),
+            h("td", null, diff(d.x)),
+            h("td", null, diff(d.y)),
+            h("td", null, diff(d.z)),
+            h("td", null, diff(d.vx)),
+            h("td", null, diff(d.vy)),
+            h("td", null, h("span", {className:"badge badge-blue", style:{fontSize:"11px"}}, d.phase ?? "—")),
+            h("td", null,
+              d.battery_pct !== undefined
+                ? h("span", {
+                    style:{color: d.battery_pct < 20 ? "var(--red)" : d.battery_pct < 50 ? "var(--yellow)" : "var(--green)"}
+                  }, `${d.battery_pct.toFixed(0)}%`)
+                : "—"
+            )
+          )
+        )
+      )
+    ),
+    drones.length > 50 && h("div", {className:"empty", style:{paddingTop:"8px"}}, `… 외 ${drones.length - 50}대 더`)
+  );
+}
+
+// ── Scenario Panel ─────────────────────────────────────────────────────────────
+function ScenarioPanel({scenarios, onRun, runningId}) {
+  const items = Object.entries(scenarios ?? {});
+  if (items.length === 0) {
+    return h("div", {className:"empty"}, "시나리오를 불러오는 중...");
+  }
+  const diffColor = d => ({trivial:"green",easy:"green",medium:"yellow",hard:"red",unknown:""})[d] || "";
+  return h("div", null,
+    items.map(([id, sc]) =>
+      h("div", {className:"scenario-item", key:id},
+        h("div", null,
+          h("div", {className:"scenario-name"}, sc.name ?? id),
+          sc.n_drones !== undefined &&
+            h("div", {className:"scenario-difficulty"}, `${sc.n_drones}대 · ${sc.difficulty ?? ""}`)
+        ),
+        h("span", {className:`badge badge-${diffColor(sc.difficulty)}`, style:{fontSize:"11px"}}, sc.difficulty ?? sc.source ?? "config"),
+        h("button", {
+          className:"btn btn-primary btn-sm",
+          disabled: !!runningId,
+          onClick: () => onRun(id)
+        }, runningId === id ? h("span", {className:"spin"}, "⏳") : "▶ 실행")
+      )
+    )
+  );
+}
+
+// ── Runs Table ──────────────────────────────────────────────────────────────────
+function RunsTable({runs}) {
+  if (!runs || runs.length === 0) {
+    return h("div", {className:"empty"}, "실행 기록이 없습니다.");
+  }
+  const statusColor = s => ({queued:"yellow",running:"blue",completed:"green",failed:"red"})[s] || "";
+  return h("table", {className:"tbl"},
+    h("thead", null,
+      h("tr", null,
+        h("th", null, "Run ID"),
+        h("th", null, "Scenario"),
+        h("th", null, "Status"),
+        h("th", null, "Conflict Res."),
+        h("th", null, "Duration")
+      )
+    ),
+    h("tbody", null,
+      runs.slice(0,20).map(r =>
+        h("tr", {key:r.run_id},
+          h("td", null, h("code", null, r.run_id.slice(0,8)+"…")),
+          h("td", null, r.scenario_id),
+          h("td", null, h("span", {className:`badge badge-${statusColor(r.status)}`,style:{fontSize:"11px"}}, r.status)),
+          h("td", null,
+            r.metrics?.conflict_resolution_rate !== undefined
+              ? `${(r.metrics.conflict_resolution_rate*100).toFixed(1)}%`
+              : "—"
+          ),
+          h("td", null,
+            r.finished_at_ns && r.started_at_ns
+              ? `${((r.finished_at_ns - r.started_at_ns)/1e9).toFixed(1)}s`
+              : "—"
+          )
+        )
+      )
+    )
+  );
+}
+
+// ── Main App ──────────────────────────────────────────────────────────────────
+function App() {
+  const [health, setHealth]       = useState(null);
+  const [snapshot, setSnapshot]   = useState(null);
+  const [scenarios, setScenarios] = useState({});
+  const [runs, setRuns]           = useState([]);
+  const [wsState, setWsState]     = useState("disconnected");
+  const [feedLines, setFeedLines] = useState([]);
+  const [runningId, setRunningId] = useState(null);
+  const [error, setError]         = useState(null);
+  const wsRef     = useRef(null);
+  const destroyedRef = useRef(false);
+  const reconnTimerRef = useRef(null);
+
+  // ── Feed helper ─────────────────────────────────────────────────────────────
+  const addFeed = useCallback((msg, level="") => {
+    setFeedLines(prev => {
+      const next = [...prev, {ts: ts(), msg, level}];
+      return next.slice(-200);
+    });
+  }, []);
+
+  // fetchRuns is referenced inside connectWs onmessage — declare before connectWs
+  const fetchRuns = useCallback(async () => {
+    try {
+      const d = await apiFetch("/api/runs");
+      setRuns(Array.isArray(d) ? d : d.runs ?? []);
+    } catch (e) {
+      addFeed(`runs fetch 실패: ${e.message}`, "err");
+    }
+  }, [addFeed]);
+
+  // ── WebSocket ────────────────────────────────────────────────────────────────
+  const connectWs = useCallback(() => {
+    if (destroyedRef.current) return;
+    if (wsRef.current) wsRef.current.close();
+    setWsState("connecting");
+    addFeed("WebSocket 연결 중...", "warn");
+    let ws;
+    try { ws = new WebSocket(`${WS_BASE}/ws/telemetry`); }
+    catch { setWsState("disconnected"); addFeed("WebSocket 지원 불가", "err"); return; }
+    wsRef.current = ws;
+    ws.onopen  = () => { setWsState("connected"); addFeed("WebSocket 연결됨", "ok"); };
+    ws.onclose = () => {
+      setWsState("disconnected");
+      addFeed("연결 끊김 — 3s 후 재시도", "warn");
+      if (!destroyedRef.current) {
+        reconnTimerRef.current = setTimeout(connectWs, 3000);
+      }
+    };
+    ws.onerror = () => { addFeed("WebSocket 오류", "err"); };
+    ws.onmessage = e => {
+      try {
+        const d = JSON.parse(e.data);
+        if (d.type === "telemetry") {
+          setSnapshot(prev => ({
+            ...prev,
+            drones: prev?.drones?.map(dr => dr.id === d.drone_id
+              ? {...dr, x:d.x, y:d.y, z:d.z, vx:d.vx, vy:d.vy, vz:d.vz, battery_pct:d.battery_pct, phase:d.phase}
+              : dr
+            ) ?? []
+          }));
+        } else if (d.type === "conflict") {
+          addFeed(`⚠️ 충돌 감지: ${d.drone_a_id} ↔ ${d.drone_b_id} CPA=${d.cpa_distance_m?.toFixed(1)}m`, "warn");
+        } else if (d.type === "run_complete") {
+          addFeed(`✅ Run 완료: ${d.run_id?.slice(0,8)} | 해결률 ${(d.conflict_resolution_rate*100)?.toFixed(1)}%`, "ok");
+          setRunningId(null);
+          fetchRuns();
+        }
+      } catch {}
+    };
+  }, [addFeed, fetchRuns]);
+
+  // ── Polling ──────────────────────────────────────────────────────────────────
+  const fetchHealth = useCallback(async () => {
+    try {
+      const d = await apiFetch("/healthz");
+      setHealth(d);
+      setError(null);
+    } catch (e) {
+      setHealth(null);
+      setError(`백엔드에 연결할 수 없습니다: ${e.message} (${API_BASE})`);
+    }
+  }, []);
+
+  const fetchSnapshot = useCallback(async () => {
+    try { setSnapshot(await apiFetch("/api/airspace/snapshot")); }
+    catch (e) { addFeed(`snapshot fetch 실패: ${e.message}`, "err"); }
+  }, [addFeed]);
+
+  const fetchScenarios = useCallback(async () => {
+    try { setScenarios(await apiFetch("/api/scenarios")); }
+    catch (e) { addFeed(`scenarios fetch 실패: ${e.message}`, "err"); }
+  }, [addFeed]);
+
+  // ── Bootstrap ────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    destroyedRef.current = false;
+    fetchHealth();
+    fetchSnapshot();
+    fetchScenarios();
+    fetchRuns();
+    connectWs();
+    const poll = setInterval(() => {
+      fetchHealth();
+      fetchSnapshot();
+      fetchRuns();
+    }, POLL_MS);
+    return () => {
+      destroyedRef.current = true;
+      clearInterval(poll);
+      clearTimeout(reconnTimerRef.current);
+      wsRef.current?.close();
+    };
+  }, [fetchHealth, fetchSnapshot, fetchScenarios, fetchRuns, connectWs]);
+
+  // ── Run scenario ─────────────────────────────────────────────────────────────
+  const handleRun = useCallback(async id => {
+    setRunningId(id);
+    addFeed(`▶ 시나리오 실행: ${id}`, "ok");
+    try {
+      const r = await fetch(`${API_BASE}/api/scenarios/${id}/run`, {
+        method: "POST",
+        signal: timeoutSignal(10000)
+      });
+      const d = await r.json();
+      addFeed(`Run 시작: ${d.run_id?.slice(0,8)}…`, "ok");
+    } catch (e) {
+      addFeed(`실행 실패: ${e.message}`, "err");
+      setRunningId(null);
+    }
+  }, [addFeed]);
+
+  // ── Derived stats ─────────────────────────────────────────────────────────────
+  const activeDrones    = snapshot?.drones?.length ?? 0;
+  const activeConflicts = snapshot?.conflicts?.length ?? 0;
+  const conflictRes     = snapshot?.conflict_resolution_rate;
+  const snapshotAge     = snapshot?.timestamp_ns
+    ? ((Date.now() - snapshot.timestamp_ns / 1e6) / 1000).toFixed(0)
+    : null;
+
+  const connLabel = {connected:"연결됨",disconnected:"끊김",connecting:"연결 중"}[wsState];
+  const connClass = {connected:"badge-green",disconnected:"badge-red",connecting:"badge-yellow"}[wsState];
+
+  // ── Render ────────────────────────────────────────────────────────────────────
+  return h("div", {className:"layout"},
+    // ── Nav ────────────────────────────────────────────────────────────────────
+    h("nav", null,
+      h("div", {className:"logo"},
+        h(LogoIcon),
+        "SDACS",
+        h("span", {style:{fontWeight:400,fontSize:13,color:"var(--text2)"}}, " / ATC Dashboard")
+      ),
+      h("div", {className:"spacer"}),
+      h("span", {className:`badge ${health ? "badge-green" : "badge-red"}`},
+        health ? `✓ API v${health.api_version}` : "⚠ API 오프라인"
+      ),
+      h("span", {style:{width:8}}),
+      h("span", {className:`badge ${connClass}`},
+        h("span", {className:`conn-dot ${wsState}`}),
+        `WS ${connLabel}`
+      ),
+      h("span", {style:{width:8}}),
+      h("a", {
+        href:"simulator.html",
+        className:"btn btn-primary btn-sm",
+        style:{textDecoration:"none"}
+      }, "🛸 3D Sim")
+    ),
+
+    // ── Main ───────────────────────────────────────────────────────────────────
+    h("main", null,
+      error && h("div", {className:"error-box"},
+        `⚠ ${error}`,
+        h("br"),
+        h("small", null, `백엔드 기동: uvicorn api.fastapi_server:app --port 8080`)
+      ),
+
+      // KPI row
+      h("div", {className:"kpi-row"},
+        h(KpiCard, {
+          label:"활성 드론 Active Drones",
+          value: activeDrones,
+          color: activeDrones > 0 ? "blue" : "",
+          sub: snapshotAge ? `${snapshotAge}s ago` : "실시간"
+        }),
+        h(KpiCard, {
+          label:"활성 충돌 Active Conflicts",
+          value: activeConflicts,
+          color: activeConflicts > 0 ? "red" : "green",
+          sub: activeConflicts === 0 ? "공역 안전" : "즉시 대응 필요"
+        }),
+        h(KpiCard, {
+          label:"충돌 해결률 Resolution Rate",
+          value: conflictRes !== undefined ? `${(conflictRes*100).toFixed(1)}%` : "—",
+          color: conflictRes >= 0.97 ? "green" : conflictRes >= 0.9 ? "yellow" : "",
+          sub: "목표 ≥ 97.5%"
+        }),
+        h(KpiCard, {
+          label:"등록 시나리오 Scenarios",
+          value: Object.keys(scenarios).length,
+          color:"blue",
+          sub:`${runs.filter(r=>r.status==="completed").length}회 완료`
+        }),
+        health && h(KpiCard, {
+          label:"시스템 상태 System",
+          value: health.active_drones !== undefined ? health.active_drones : "OK",
+          color:"green",
+          sub:`API v${health.api_version} · GPU ${health.gpu_backend ? "ON" : "OFF"}`
+        })
+      ),
+
+      // Row 1: conflicts + feed
+      h("div", {className:"panel-row"},
+        h("div", {className:"panel"},
+          h("div", {className:"panel-header"},
+            h("span", {className:"panel-title"}, "⚠ 충돌 현황 · Active Conflicts"),
+            h("span", {className:`badge ${activeConflicts>0?"badge-red":"badge-green"}`},
+              activeConflicts > 0 ? `${activeConflicts}건` : "안전"
+            )
+          ),
+          h(ConflictList, {conflicts: snapshot?.conflicts ?? []})
+        ),
+        h("div", {className:"panel"},
+          h("div", {className:"panel-header"},
+            h("span", {className:"panel-title"}, "📡 실시간 텔레메트리 · Live Feed"),
+            h("span", {className:`badge ${connClass}`}, connLabel)
+          ),
+          h(LiveFeed, {lines: feedLines})
+        )
+      ),
+
+      // Row 2: scenarios + runs
+      h("div", {className:"panel-row"},
+        h("div", {className:"panel"},
+          h("div", {className:"panel-header"},
+            h("span", {className:"panel-title"}, "🎯 시나리오 · Scenarios"),
+            runningId && h("span", {className:"badge badge-yellow"}, `▶ 실행 중: ${runningId}`)
+          ),
+          h(ScenarioPanel, {scenarios, onRun: handleRun, runningId})
+        ),
+        h("div", {className:"panel"},
+          h("div", {className:"panel-header"},
+            h("span", {className:"panel-title"}, "📋 실행 기록 · Run History")
+          ),
+          h(RunsTable, {runs})
+        )
+      ),
+
+      // Row 3: drone table
+      h("div", {className:"panel"},
+        h("div", {className:"panel-header"},
+          h("span", {className:"panel-title"}, "🛸 드론 목록 · Drone List"),
+          h("span", {className:"badge badge-blue"}, `${activeDrones}대`)
+        ),
+        h(DroneTable, {drones: snapshot?.drones ?? []})
+      ),
+
+      // Footer
+      h("div", {style:{textAlign:"center",padding:"24px 0 8px",color:"var(--text2)",fontSize:"12px"}},
+        "SDACS — 군집드론 공역통제 자동화 시스템 · 목포대학교 캡스톤 2026 · ",
+        h("a", {href:"https://github.com/sun475300-sudo/swarm-drone-atc",target:"_blank",rel:"noopener"}, "GitHub")
+      )
+    )
+  );
+}
+
+// ── Mount ──────────────────────────────────────────────────────────────────────
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>
+</body>
+</html>

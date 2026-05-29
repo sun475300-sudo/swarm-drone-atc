@@ -4,13 +4,10 @@ Targets 0% coverage modules: advanced_path_planner, rl_agent, autoML_pipeline,
 ai_inference_engine, edge_cloud_orchestrator, federated_learning_v3.
 """
 import pytest
-pytest.importorskip("torch")
 
 import time
 
 import numpy as np
-import pytest
-import torch
 
 # ── advanced_path_planner ─────────────────────────────────────────────────
 from simulation.advanced_path_planner import (
@@ -166,23 +163,31 @@ class TestAdvancedPathPlanner:
 
 # ── rl_agent ──────────────────────────────────────────────────────────────
 
-from simulation.rl_agent import (
-    ACT_DIM,
-    ARENA_SIZE,
-    COLLISION_DIST,
-    GOAL_DIST,
-    MAX_STEPS,
-    NUM_NEIGHBORS,
-    OBS_DIM,
-    WARNING_DIST,
-    ActorCritic,
-    DroneEnv,
-    PPOAgent,
-    RolloutBuffer,
-    StepResult,
-)
+try:
+    import torch as _torch
+    from simulation.rl_agent import (
+        ACT_DIM,
+        ARENA_SIZE,
+        COLLISION_DIST,
+        GOAL_DIST,
+        MAX_STEPS,
+        NUM_NEIGHBORS,
+        OBS_DIM,
+        WARNING_DIST,
+        ActorCritic,
+        DroneEnv,
+        PPOAgent,
+        RolloutBuffer,
+        StepResult,
+    )
+    _HAS_RL_AGENT = True
+except ImportError:
+    _HAS_RL_AGENT = False
+
+_skip_no_torch = pytest.mark.skipif(not _HAS_RL_AGENT, reason="requires torch")
 
 
+@_skip_no_torch
 class TestStepResult:
     def test_fields(self):
         sr = StepResult(obs=np.zeros(3), reward=1.0, done=False)
@@ -190,6 +195,7 @@ class TestStepResult:
         assert not sr.done
 
 
+@_skip_no_torch
 class TestDroneEnv:
     def setup_method(self):
         self.env = DroneEnv(seed=42)
@@ -221,10 +227,11 @@ class TestDroneEnv:
         assert done
 
 
+@_skip_no_torch
 class TestActorCritic:
     def test_forward(self):
         net = ActorCritic()
-        obs = torch.randn(1, OBS_DIM)
+        obs = _torch.randn(1, OBS_DIM)
         dist, value = net(obs)
         assert value.shape == (1, 1)
         action = dist.sample()
@@ -232,11 +239,12 @@ class TestActorCritic:
 
     def test_batch_forward(self):
         net = ActorCritic()
-        obs = torch.randn(8, OBS_DIM)
+        obs = _torch.randn(8, OBS_DIM)
         dist, value = net(obs)
         assert value.shape == (8, 1)
 
 
+@_skip_no_torch
 class TestRolloutBuffer:
     def test_clear(self):
         buf = RolloutBuffer()
@@ -247,6 +255,7 @@ class TestRolloutBuffer:
         assert len(buf.rewards) == 0
 
 
+@_skip_no_torch
 class TestPPOAgent:
     def test_select_action(self):
         agent = PPOAgent(seed=42)
@@ -281,6 +290,7 @@ class TestPPOAgent:
         assert len(rewards) == 3
 
 
+@_skip_no_torch
 class TestRLConstants:
     def test_constants(self):
         assert OBS_DIM == 18

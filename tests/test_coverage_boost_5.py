@@ -9,12 +9,10 @@ sensor_fusion_system, resource_allocation_system, path_smoothing_system,
 lane_detection_system, secure_messaging_protocol, plus remaining small modules.
 """
 import pytest
-pytest.importorskip("torch")
 
 import time
 
 import numpy as np
-import torch
 
 # ── anomaly_federated_detector ────────────────────────────────────────────
 from simulation.anomaly_federated_detector import AnomalyFederatedDetector
@@ -315,23 +313,29 @@ class TestPrivacyPreservingAnalytics:
 
 # ── gnn_communication ─────────────────────────────────────────────────────
 
-from simulation.gnn_communication import DroneGraphNetwork
+try:
+    import torch as _torch
+    from simulation.gnn_communication import DroneGraphNetwork
+    _HAS_GNN = True
+except ImportError:
+    _HAS_GNN = False
 
 
+@pytest.mark.skipif(not _HAS_GNN, reason="requires torch")
 class TestDroneGraphNetwork:
     def setup_method(self):
-        torch.manual_seed(42)
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        _torch.manual_seed(42)
+        self.device = _torch.device("cuda" if _torch.cuda.is_available() else "cpu")
         self.gnn = DroneGraphNetwork()
 
     def test_forward(self):
-        features = torch.randn(5, 6).to(self.device)
-        adj = torch.ones(5, 5).to(self.device)
+        features = _torch.randn(5, 6).to(self.device)
+        adj = _torch.ones(5, 5).to(self.device)
         output = self.gnn.forward(features, adj)
         assert output.shape[0] == 5
 
     def test_predict_risk(self):
-        embeddings = torch.randn(5, 32).to(self.device)
+        embeddings = _torch.randn(5, 32).to(self.device)
         risks = self.gnn.predict_risk(embeddings)
         assert risks.shape[0] == 5
 

@@ -8,7 +8,6 @@ distributed_training_coordinator, swarm_collaborative_perception,
 real_time_stream_processor, multi_modal_fusion.
 """
 import pytest
-pytest.importorskip("torch")
 
 import time
 
@@ -466,9 +465,14 @@ class TestAdaptiveCommProtocol:
 # ── collision_predictor ───────────────────────────────────────────────────
 
 from simulation.apf_engine.apf import APFState
-from simulation.collision_predictor import CollisionPredictor, generate_training_data
+try:
+    from simulation.collision_predictor import CollisionPredictor, generate_training_data
+    _HAS_COLLISION_PREDICTOR = True
+except ImportError:
+    _HAS_COLLISION_PREDICTOR = False
 
 
+@pytest.mark.skipif(not _HAS_COLLISION_PREDICTOR, reason="requires torch")
 class TestCollisionPredictor:
     def setup_method(self):
         self.cp = CollisionPredictor()

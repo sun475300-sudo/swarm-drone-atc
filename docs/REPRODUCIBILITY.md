@@ -27,7 +27,7 @@ Two stronger-than-usual guarantees:
 1. **Bit-level determinism for each run.** The same seed produces identical JSON to the last decimal, because:
    - `PYTHONHASHSEED=0`
    - `OMP_NUM_THREADS=1`, `MKL_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1` (no parallel float reductions)
-   - All RNGs routed through a single `numpy.random.default_rng(seed)` instance (see `src/utils/rng.py` — **TODO** if not yet centralized)
+   - All RNGs routed through a single `numpy.random.default_rng(seed)` instance (see `src/utils/rng.py` — centralized via `set_global_seed()` / `get_rng()`)
    - No wall-clock time used as a randomness source (search `time.time()` usages)
 2. **Build reproducibility.** Pinned base image digest + `requirements.lock.txt` + `setuptools`/`pip` pinned.
 
@@ -53,11 +53,12 @@ If you run on 8-core / 16 GB, set `--parallel 4` (halve the concurrent runs).
 |------|------|
 | `Dockerfile.reproducible` | Pinned image. Sets `PYTHONHASHSEED=0`, thread limits, non-root user. |
 | `requirements.txt` | Loose top-level deps. |
-| `requirements.lock.txt` | (**TODO**) Fully pinned transitive deps via `pip-compile`. |
+| `requirements.lock.txt` | Fully pinned transitive deps (22 packages). Regenerate via `bash scripts/reproduce/make_lock.sh`. |
 | `scripts/reproduce/run_one.sh` | Single cell: one (scenario, method, seed) |
-| `scripts/reproduce/run_all.sh` | Full sweep: 7 × 2 × 30 = 420 runs |
+| `scripts/reproduce/run_all.sh` | Full sweep: 7 scenarios × 2 methods × 30 seeds = 420 runs |
 | `scripts/reproduce/aggregate.py` | Rolls per-run JSONs up into a parquet table |
-| `config/seeds.yaml` | (**TODO**) The 30 seeds of record (0..29 by default) |
+| `scripts/run_benchmark.py` | P706 cross-method comparison runner (SDACS vs ORCA vs VO vs CBS) |
+| `config/seeds.yaml` | 30 canonical seeds (0–29) |
 
 ---
 
@@ -93,12 +94,12 @@ Any deviation means non-determinism leaked in. Known causes to check:
 
 ## What's still TODO for full reproducibility
 
-- [ ] `src/utils/rng.py` — single RNG factory used by every module
-- [ ] `config/seeds.yaml` — committed canonical seeds
-- [ ] `main.py benchmark` subcommand — adapter between `run_one.sh` and existing simulator code
-- [ ] `requirements.lock.txt` — generated via pip-compile
-- [ ] Expected SHA256 table for reference runs (commit after first canonical pass)
-- [ ] CI job that re-runs 3 canonical cells on every PR and fails if hashes change
+- [x] `src/utils/rng.py` — single RNG factory used by every module ✅
+- [x] `config/seeds.yaml` — committed canonical seeds (0–29) ✅
+- [x] `main.py benchmark` subcommand — adapter between `run_one.sh` and existing simulator code ✅
+- [x] `requirements.lock.txt` — generated via pip-compile ✅
+- [x] CI job (`canonical_hash.yml`) re-runs canonical cells on every PR ✅
+- [ ] Expected SHA256 table for reference runs (commit after first canonical pass on reference hardware)
 - [ ] Archive the Docker image on Zenodo with a DOI for the paper camera-ready
 
 ---

@@ -12,7 +12,6 @@ from typing import Any
 
 import numpy as np
 
-
 SYNC_JITTER_TARGET_MS = 10.0   # 목표 jitter 상한 (ms)
 DEFAULT_ALPHA = 0.125           # NTP 가중 평균 계수 (1/8)
 DEFAULT_BETA = 0.25             # NTP 분산 업데이트 계수

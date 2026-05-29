@@ -13,9 +13,9 @@ from typing import Any
 
 # 기존 Remote ID 데이터 모델 재사용
 from simulation.remote_id import (
-    RemoteIDMessage,
-    OperationalStatus,
     IDType,
+    OperationalStatus,
+    RemoteIDMessage,
     UAType,
 )
 

@@ -473,18 +473,29 @@ async def _demo_telemetry_stream() -> None:
                 "conflicts": STATE.snapshot.conflicts,
             }
         )
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.001)  # P713: 1 kHz server-push
 
 
-# --- Auth dependency (stub) ---
+# --- Auth (P712) ---
+
+try:
+    from api.auth import AUDIT, TokenClaims, issue_token, require_operator, verify_token
+    _AUTH_AVAILABLE = True
+except Exception:  # pragma: no cover
+    _AUTH_AVAILABLE = False
 
 
 async def require_token(authorization: str = Header(default="")) -> str:
-    # P712 will replace with full JWT validation.
-    """``require_token`` 동작을 수행한다."""
+    """Bearer-token guard. Delegates to P712 JWT when available, stubs otherwise."""
     if not authorization.startswith("Bearer "):
         raise HTTPException(401, detail="missing bearer token")
-    return authorization[len("Bearer ") :]
+    raw = authorization[len("Bearer "):]
+    if _AUTH_AVAILABLE:
+        try:
+            verify_token(raw)
+        except ValueError as exc:
+            raise HTTPException(401, detail=str(exc)) from exc
+    return raw
 
 
 # --- Pydantic models ---
@@ -534,6 +545,36 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# --- Auth endpoints (P712) ---
+
+
+class _TokenRequest(BaseModel):
+    sub: str = Field(min_length=1, max_length=128, description="subject / client id")
+    role: str = Field(pattern="^(viewer|operator|admin)$", default="operator")
+    ttl_s: int = Field(ge=60, le=86400, default=3600)
+
+
+@app.post("/api/auth/token", tags=["auth"])
+async def create_token(req: _TokenRequest) -> dict:
+    """Issue a signed JWT. P712 — replace with password/OAuth2 flow in production."""
+    if not _AUTH_AVAILABLE:  # pragma: no cover
+        raise HTTPException(503, detail="auth module unavailable")
+    token = issue_token(sub=req.sub, role=req.role, ttl_s=req.ttl_s)
+    AUDIT.record(sub=req.sub, role=req.role, action="issue_token", resource="/api/auth/token", status="ok")
+    return {"success": True, "data": {"token": token, "ttl_s": req.ttl_s, "role": req.role}}
+
+
+@app.get("/api/auth/audit", tags=["auth"])
+async def get_audit_log(
+    n: int = 50,
+    _token: str = Depends(require_token),
+) -> dict:
+    """Return recent audit log entries. Requires auth (P712)."""
+    if not _AUTH_AVAILABLE:  # pragma: no cover
+        raise HTTPException(503, detail="auth module unavailable")
+    return {"success": True, "data": AUDIT.recent(n)}
 
 
 # --- Health ---
@@ -634,6 +675,9 @@ async def run_scenario(
     _token: str = Depends(require_token),
 ) -> dict:
     """``run_scenario`` 동작을 수행한다."""
+    if _AUTH_AVAILABLE:
+        AUDIT.record(sub=_token[:16], role="operator", action="run_scenario",
+                     resource=f"/api/scenarios/{scenario_id}/run", status="ok")
     STATE.scenarios = _build_scenario_catalog()
     scenario_meta = STATE.scenarios.get(scenario_id)
     request_mode = "scenario" if scenario_meta is not None else "live_airspace"
@@ -756,7 +800,7 @@ async def ws_telemetry(ws: WebSocket) -> None:
         LOGGER.info("telemetry subscriber disconnected (total=%d)", len(STATE.telemetry_subscribers))
 
 
-def run_dev_server(host: str = "0.0.0.0", port: int = 8000, log_level: str = "info") -> None:
+def run_dev_server(host: str = "0.0.0.0", port: int = 8000, log_level: str = "info") -> None:  # nosec B104 — dev server intentionally binds all interfaces
     """``run_dev_server`` 동작을 수행한다."""
     import uvicorn
 

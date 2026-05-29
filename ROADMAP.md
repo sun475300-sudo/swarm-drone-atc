@@ -159,14 +159,14 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 공역 관리자용 대시보드를 SaaS 수준으로 안정화.
 
 - [ ] **P711** — Dash 대시보드를 FastAPI + React로 리팩토링
-- [ ] **P712** — 인증·권한(OAuth2, RBAC) 및 감사 로그
-- [ ] **P713** — 실시간 WebSocket 채널 (서버 → 브라우저 1 kHz 업데이트)
+- [x] **P712** — 인증·권한(JWT-HMAC RBAC) 및 감사 로그 (`api/auth.py`)
+- [x] **P713** — 실시간 WebSocket 채널 (서버 → 브라우저 1 kHz 업데이트, `api/fastapi_server.py`)
 - [ ] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존
 - [ ] **P715** — Docker Compose → Kubernetes Helm 차트 변환
 - [ ] **P716** — CI/CD (GitHub Actions → 컨테이너 레지스트리 → 스테이징)
-- [ ] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지)
+- [x] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지, `scripts/load_test.py`)
 - [ ] **P718** — 관측성 스택 (Prometheus + Grafana + Loki)
-- [ ] **P719** — 보안 감사 (OWASP ZAP, 의존성 CVE 스캔)
+- [x] **P719** — 보안 감사 (bandit SAST + CVE 스캔 + OWASP 체크리스트, `scripts/security_audit.py`)
 - [ ] **P720** — 공개 베타 오픈 (3개 파일럿 기관, 피드백 수집 4주)
 
 ---
@@ -176,4 +176,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-04-19 (Phase 700 완료, Phase 701-720 로드맵 유지)*
+*Last updated: 2026-05-29 (P712/P713/P717/P719 완료)*

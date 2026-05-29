@@ -1,15 +1,18 @@
 name: Simulator Smoke Test
 
-# swarm_3d_simulator.html(메인 시뮬레이터)의 _sdacs API를 헤드리스 브라우저로 검증.
+# swarm_3d_simulator.html(메인 시뮬레이터)와 maritime_detection_simulator.html(해양)
+# 의 _sdacs/_mds API를 헤드리스 브라우저로 검증.
 on:
   push:
     paths:
       - 'swarm_3d_simulator.html'
+      - 'maritime_detection_simulator.html'
       - 'tests/e2e/**'
       - '.github/workflows/sim-smoke.yml'
   pull_request:
     paths:
       - 'swarm_3d_simulator.html'
+      - 'maritime_detection_simulator.html'
       - 'tests/e2e/**'
       - '.github/workflows/sim-smoke.yml'
   workflow_dispatch:
@@ -41,7 +44,12 @@ jobs:
             sleep 1
           done
 
-      - name: Run smoke test
+      - name: Run swarm smoke test
         env:
           SIM_URL: http://localhost:8123/swarm_3d_simulator.html
         run: node tests/e2e/smoke_sim.mjs
+
+      - name: Run maritime smoke test
+        env:
+          SIM_URL: http://localhost:8123/maritime_detection_simulator.html
+        run: node tests/e2e/smoke_maritime.mjs

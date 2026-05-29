@@ -85,8 +85,10 @@ try {
 
   // 내보내기 테스트 전: 시뮬 정지 + 소규모 시나리오 복귀
   // (1000대 InstancedMesh 렌더 중 buildReportCanvas 호출 시 pageError 방지)
-  await page.evaluate(() => { window._sdacs.stopSim(); window._sdacs.selectScenario('route_conflict'); });
-  await page.waitForTimeout(400);
+  await page.evaluate(() => { window._sdacs.stopSim(); });
+  await page.waitForTimeout(300);
+  await page.evaluate(() => { window._sdacs.selectScenario('route_conflict'); });
+  await page.waitForTimeout(1200);
 
   // 10. CSV 내보내기 (예외 없음)
   let csvOk = true;

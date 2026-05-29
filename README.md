@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-29 20:24 | `f06b2ef` | fix: pytest asyncio_mode=auto 설정 추가 (pytest-asyncio 버전 호환성) | pyproject.toml |
 | 2026-05-29 20:22 | `b1b0562` | fix: Python 3.10 CI — torch 설치 조건부 처리 (3.11+ 전용) | .github/workflows/ci.yml |
 | 2026-05-29 20:08 | `7807104` | fix: torch 없는 환경(Python 3.10)에서 CI test(3.10) 실패 수정 | .github/workflows/ci.yml, tests/test_coverage_boost_2.py, tests/test_coverage_boost_4.py, tests/test_coverage_boost_5.py, tests/test_phase661_670_ai.py |
 | 2026-05-29 19:53 | `c29d2e0` | docs: PAPER_DRAFT §5 TBD 항목 P706 실험 데이터로 채움 | docs/paper/PAPER_DRAFT.md, results/summary.csv |

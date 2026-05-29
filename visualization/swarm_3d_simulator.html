@@ -5424,6 +5424,7 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
         // ===== 외부 객체 탐지·식별 (DnI) — 조류 + 비협조 드론 =====
         // 프레젠테이션(SDACS v9) 참조: AI 탐지(조류 포함) + 4등급 식별(정상/미등록/위험/조류) + 버드스트라이크 경보.
         let showDnI = true;
+        let _dniDetTimer = 0; // 탐지 스로틀(시간 기반 — 저FPS에서도 안정)
         const dniGroup = new THREE.Group(); scene.add(dniGroup);
         const externalObjs = [];
         const dniStats = { detected: 0, identified: 0, correct: 0, birds: 0, detSum: 0, detN: 0 };
@@ -5474,6 +5475,7 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
             dniGroup.remove(o.g);
             o.g.traverse(c => { if (c.geometry) c.geometry.dispose(); if (c.material) c.material.dispose(); });
             if (o.label3d) { dniGroup.remove(o.label3d); if (o.label3d.material.map) o.label3d.material.map.dispose(); o.label3d.material.dispose(); }
+            if (o.ring3d) { dniGroup.remove(o.ring3d); o.ring3d.geometry.dispose(); o.ring3d.material.dispose(); }
         }
         function resetDnI() {
             for (const o of externalObjs) _disposeExt(o);
@@ -5486,8 +5488,10 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
             while (externalObjs.length < DNI_TARGET) spawnExternal();
             const moving = simRunning && !replayMode;
             const r = DETECT_RANGE_M * SCALE;
-            // 탐지(센서망 거리검사)는 6프레임마다만 수행 — 100~499대 구간 per-frame O(N·M) 비용 절감
-            const doDetect = moving && (frameCount % 6 === 0);
+            // 탐지(센서망 거리검사)는 시간 기반 스로틀(0.3s) — 저FPS에서도 안정적으로 동작
+            _dniDetTimer += dt;
+            const doDetect = moving && _dniDetTimer >= 0.3;
+            if (doDetect) _dniDetTimer = 0;
             const sensors = [];
             if (doDetect) {
                 for (const a of atcDrones) sensors.push(a.grp.position);
@@ -5510,7 +5514,14 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                 if (doDetect && !o.detected) {
                     let near = false;
                     for (const s of sensors) { if (o.g.position.distanceTo(s) < r) { near = true; break; } }
-                    if (near) { o.detected = true; o.detTime = t; dniStats.detected++; if (o.type === 'bird') dniStats.birds++; }
+                    if (near) {
+                        o.detected = true; o.detTime = t; dniStats.detected++; if (o.type === 'bird') dniStats.birds++;
+                        // 감지 즉시: 시안 스캔 인식 링(식별 전)
+                        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.04, 6, 20),
+                            new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.85, depthTest: false }));
+                        ring.rotation.x = Math.PI / 2; ring.renderOrder = 996; o.ring3d = ring; dniGroup.add(ring);
+                        logEvent('advisory', `📡 외부 객체 감지 — 식별 중…`);
+                    }
                 } else if (moving && o.detected && !o.identified && (t - o.detTime) >= 0.7) {
                     o.identified = true; dniStats.identified++;
                     // 식별: 클래스별 정확도로 분류(오분류 시 라벨/색이 실제와 달라짐)
@@ -5519,12 +5530,21 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                     const ct = EXT_BY_TYPE[cls.t] || EXT_BY_TYPE[o.type];
                     o.classified = cls.t; o.label = ct.label; o.color = ct.color;
                     dniStats.detSum += 0.05 + Math.random() * 0.05; dniStats.detN++;
-                    const lbl = makeTextSprite(o.label + (cls.ok ? '' : ' ?'), '#' + o.color.toString(16).padStart(6, '0'), 8);
-                    lbl.scale.set(3, 0.9, 1); o.label3d = lbl; dniGroup.add(lbl);
-                    logEvent(o.type === 'danger' ? 'rogue' : o.type === 'bird' ? 'info' : 'advisory', `🔍 외부 ${o.label} 식별${cls.ok ? '' : ' (오분류)'}`);
+                    const conf = Math.round((ID_ACCURACY[cls.t] ?? 0.9) * 100);
+                    const lbl = makeTextSprite(`${o.label} ${conf}%` + (cls.ok ? '' : ' ⚠'), '#' + o.color.toString(16).padStart(6, '0'), 8);
+                    lbl.scale.set(3.4, 0.9, 1); o.label3d = lbl; dniGroup.add(lbl);
+                    // 식별 완료 → 인식 링을 클래스 색으로 전환
+                    if (o.ring3d) o.ring3d.material.color.setHex(o.color);
+                    logEvent(o.type === 'danger' ? 'rogue' : o.type === 'bird' ? 'info' : 'advisory', `🔍 식별: ${o.label} (신뢰도 ${conf}%)${cls.ok ? '' : ' ⚠오분류'}`);
                     if (o.type === 'bird' && Math.hypot(o.wx, o.wz) < 1500) triggerAlert('rgba(58,107,140,0.45)', '🐦 버드스트라이크 경보 — 경로 우회');
                 }
                 if (o.label3d) o.label3d.position.set(px, py + 1.2, pz);
+                if (o.ring3d) {
+                    o.ring3d.position.set(px, py, pz);
+                    o.ring3d.rotation.z = t * 2;
+                    const rs = (o.identified ? 1 : 1.4 + Math.sin(t * 6) * 0.35); // 식별 전: 스캔 펄스
+                    o.ring3d.scale.set(rs, rs, rs);
+                }
             }
         }
         function renderDnIStats() {

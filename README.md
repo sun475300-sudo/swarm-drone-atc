@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 06:16 | `394ce26` | fix: torch 의존 테스트 파일 importorskip 처리 + TestPhase 이름 충돌 수정 | simulation/outdoor_flight_test.py, tests/test_coverage_boost_2.py, tests/test_coverage_boost_4.py, tests/test_coverage_boost_5.py, tests/test_p691_p700_track_a.py, tests/test_phase661_670_ai.py |
 | 2026-05-30 04:43 | `18e0f98` | fix: ws_bridge 테스트 asyncio 이벤트 루프 오염 수정 | tests/test_ws_bridge.py |
 | 2026-05-30 04:29 | `1fc3e44` | chore: .coverage.* 파일 gitignore 추가 | .gitignore |
 | 2026-05-30 04:21 | `2286fde` | fix: polyglot 파일 경로 src/ → archive/polyglot/ (test_phase571_600.py) | tests/test_phase571_600.py |

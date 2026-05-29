@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 06:53 | `ca37641` | fix: asyncio_mode=auto 제거 + coverage 설정 추가 + CI 3.10 진단 | .github/workflows/ci.yml, pyproject.toml |
 | 2026-05-30 06:23 | `05bb5ca` | fix: pytest asyncio_mode=auto 설정 추가 (Python 3.10 CI 호환성) | pyproject.toml |
 | 2026-05-30 06:16 | `394ce26` | fix: torch 의존 테스트 파일 importorskip 처리 + TestPhase 이름 충돌 수정 | simulation/outdoor_flight_test.py, tests/test_coverage_boost_2.py, tests/test_coverage_boost_4.py, tests/test_coverage_boost_5.py, tests/test_p691_p700_track_a.py, tests/test_phase661_670_ai.py |
 | 2026-05-30 04:43 | `18e0f98` | fix: ws_bridge 테스트 asyncio 이벤트 루프 오염 수정 | tests/test_ws_bridge.py |

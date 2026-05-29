@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 01:53 | `bf091ba` | fix: test_ws_bridge asyncio.get_event_loop → new_event_loop (xdist 격리) | tests/test_ws_bridge.py |
 | 2026-05-30 01:50 | `b5da73c` | fix: CI Python 3.10 제거 — scipy 1.17/pandas 3.0 Python≥3.11 필수 | .github/workflows/ci.yml, pyproject.toml |
 | 2026-05-30 01:46 | `4a41858` | fix: 다국어 경로 + np.bool_ 캐스팅 수정 — CI 통과 보강 | simulation/battery_predictor.py, tests/test_phase521_540.py, tests/test_phase541_560.py, tests/test_phase611_630.py, tests/test_phase631_640.py, tests/test_phase641_660.py |
 | 2026-05-30 01:38 | `99a957e` | fix: CI 테스트 오류 3종 수정 — torch skip 가드 + 다국어 경로 교정 | tests/test_coverage_boost_2.py, tests/test_coverage_boost_4.py, tests/test_coverage_boost_5.py, tests/test_phase571_600.py, tests/test_phase661_670_ai.py |

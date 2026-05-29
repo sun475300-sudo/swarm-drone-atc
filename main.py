@@ -233,6 +233,9 @@ def cmd_benchmark(args: argparse.Namespace) -> None:
         "wall_time_s": wall_time_s,
         "agent_count": len(trace.agents),
         "tick_count": len(trace.tick_latencies_ms),
+        # canonical keys (matches Evaluator.evaluate() output and run_comparison_sweep.py)
+        **metrics,
+        # legacy aliases for backward compatibility
         "near_miss_rate": metrics["NMR"],
         "min_separation_m": metrics["MSD"],
         "path_efficiency": metrics["PE"],
@@ -241,7 +244,6 @@ def cmd_benchmark(args: argparse.Namespace) -> None:
         "airspace_utilization": metrics["AU"],
         "rid_compliance_rate": metrics["RID_CR"],
         "rtf": metrics["RTF"],
-        "metrics": metrics,
     }
 
     output_arg = getattr(args, "output", None)

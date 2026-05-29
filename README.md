@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 05:50 | `af1807d` | fix: ruff I001 import 정렬 수정 (failsafe_manager, remote_id_broadcast, swarm_time_sync) | simulation/failsafe_manager.py, simulation/remote_id_broadcast.py, simulation/swarm_time_sync.py |
 | 2026-05-30 05:28 | `9f2f0bd` | feat: Track A P691-P700 SW 컴포넌트 + Track C P712/P714/P715 + ROADMAP 갱신 | ROADMAP.md, api/auth.py, helm/sdacs/Chart.yaml, helm/sdacs/templates/_helpers.tpl, helm/sdacs/templates/deployment.yaml, helm/sdacs/templates/ingress.yaml … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
 | 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |

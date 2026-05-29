@@ -45,9 +45,14 @@ jobs:
         if: matrix.python-version == '3.10'
         run: |
           python --version
-          pip show pytest pytest-asyncio pytest-xdist pytest-cov | grep -E "Name:|Version:"
+          pip show pytest pytest-asyncio pytest-xdist pytest-cov mypy ruff | grep -E "Name:|Version:"
           python -c "import torch; print('torch:', torch.__version__)" 2>/dev/null || echo "torch: not installed"
           pytest tests/ --collect-only -q 2>&1 | tail -5 || true
+
+      - name: Run tests only (Python 3.10 debug)
+        if: matrix.python-version == '3.10'
+        run: |
+          pytest tests/ --no-cov --tb=short -q 2>&1 | tail -30 || true
 
       - name: Run tests with coverage
         run: |

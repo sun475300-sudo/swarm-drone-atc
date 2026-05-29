@@ -699,6 +699,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-29 10:20 | `8ed7fc3` | feat: 해양 소형선 감지·식별 전용 시뮬레이터 (maritime_detection_simulator.html) | .github/workflows/deploy-pages.yml, README.md, docs/maritime_detection_simulator.html, maritime_detection_simulator.html |
 | 2026-05-29 10:14 | `208974a` | docs: 스모크 테스트 로그 + 버그 리스트(TEST_LOG.md) + 미해결 항목 코드 주석 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/TEST_LOG.md, visualization/swarm_3d_simulator.html |
 | 2026-05-29 09:27 | `e57192d` | feat: 각 드론 세부 쿼드콥터 모델링 (본체 허브+4암+4링+회전 프롭) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-29 09:23 | `3a59a91` | chore: package.json 추적(강제) — 로컬 npm 실행 스크립트 활성화 | package.json |

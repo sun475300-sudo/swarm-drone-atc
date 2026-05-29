@@ -32,10 +32,10 @@ class TestPhase631639Files:
         assert os.path.exists(os.path.join(BASE, "src/clojure/event_sourcing_v2.clj"))
 
     def test_638_erlang(self):
-        assert os.path.exists(os.path.join(BASE, "src/erlang/distributed_consensus.erl"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/erlang/distributed_consensus.erl"))
 
     def test_639_fortran(self):
-        assert os.path.exists(os.path.join(BASE, "src/fortran/cfd_wind_tunnel.f90"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/fortran/cfd_wind_tunnel.f90"))
 
 
 class TestPhase640Benchmark:

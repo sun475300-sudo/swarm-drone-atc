@@ -9,7 +9,7 @@ description = "군집드론 공역통제 자동화 시스템 (SDACS)"
 authors = [
     {name = "jangsunwoo", email = "sun475300@gmail.com"}
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 readme = "README.md"
 license = {text = "MIT"}
 dependencies = [

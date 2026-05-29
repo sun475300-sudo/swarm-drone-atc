@@ -2453,6 +2453,7 @@
         // 일반 규모는 기존 per-group 메시(글로우/로터/블링크) 유지, 대규모만 단일 드로우콜 인스턴싱.
         const MEGA_THRESHOLD = 500, MAX_INST = 10000;
         let megaMode = false;
+        let instancesDirty = false;
         const bodyInst = new THREE.InstancedMesh(
             new THREE.OctahedronGeometry(0.22, 0),
             new THREE.MeshBasicMaterial(),
@@ -2466,7 +2467,7 @@
         const _iQ = new THREE.Quaternion(), _iCol = new THREE.Color();
 
         function syncInstances() {
-            if (!megaMode) return;
+            if (!megaMode || !instancesDirty) return;
             const n = Math.min(drones.length, MAX_INST);
             for (let i = 0; i < n; i++) {
                 const d = drones[i];
@@ -2480,6 +2481,7 @@
             bodyInst.count = n;
             bodyInst.instanceMatrix.needsUpdate = true;
             if (bodyInst.instanceColor) bodyInst.instanceColor.needsUpdate = true;
+            instancesDirty = false;
         }
 
         function _droneFromInstance(instanceId) {
@@ -2623,6 +2625,7 @@
             megaMode = count >= MEGA_THRESHOLD;
             bodyInst.visible = megaMode;
             bodyInst.count = 0;
+            instancesDirty = megaMode;
 
             // 기상 시스템 초기화 (전체 리셋)
             // 건물 표시 (도시 시나리오)
@@ -4867,6 +4870,7 @@
                     if (dr.rotor) dr.rotor.material.color.setHex(col);
                 }
             }
+            instancesDirty = megaMode;
             const mm = String(Math.floor(f.t / 60)).padStart(2, '0');
             const ss = String(Math.floor(f.t % 60)).padStart(2, '0');
             document.getElementById('replay-time').textContent = mm + ':' + ss;
@@ -5014,18 +5018,34 @@
 
         function sampleChartData() {
             if (!simRunning || drones.length === 0) return;
-            const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
-            const batteries = drones.map(d => d.battery);
             const now = performance.now();
             const tickMs = now - lastTickTime;
             lastTickTime = now;
 
-            chartHistory.time.push(simTime);
-            chartHistory.battery.push(batteries.reduce((a, b) => a + b, 0) / batteries.length);
-            chartHistory.batteryMin.push(Math.min(...batteries));
-            chartHistory.batteryMax.push(Math.max(...batteries));
+            let airborneCount = 0;
+            let batterySum = 0;
+            let batteryMin = Infinity;
+            let batteryMax = -Infinity;
+            let totalEnergy = 0;
+            let rogueCount = 0;
+            let failedCount = 0;
+            const phases = {};
+            ['GROUNDED', 'TAKEOFF', 'ENROUTE', 'HOLDING', 'LANDING', 'EVADING', 'FAILED', 'RTL'].forEach(p => phases[p] = 0);
+            drones.forEach(d => {
+                batterySum += d.battery;
+                batteryMin = Math.min(batteryMin, d.battery);
+                batteryMax = Math.max(batteryMax, d.battery);
+                totalEnergy += 100 - d.battery;
+                if (d.phase !== 'GROUNDED' && d.phase !== 'FAILED') airborneCount++;
+                if (d.isRogue) rogueCount++;
+                if (d.phase === 'FAILED') failedCount++;
+                phases[d.phase] = (phases[d.phase] || 0) + 1;
+            });
 
-            const totalEnergy = drones.reduce((s, d) => s + (100 - d.battery), 0);
+            chartHistory.time.push(simTime);
+            chartHistory.battery.push(batterySum / drones.length);
+            chartHistory.batteryMin.push(batteryMin);
+            chartHistory.batteryMax.push(batteryMax);
             chartHistory.energy.push(totalEnergy / drones.length);
 
             const cr = (stats.conflicts + stats.collisions) > 0
@@ -5034,16 +5054,10 @@
             chartHistory.conflicts.push(stats.conflicts);
             chartHistory.collisions.push(stats.collisions);
 
-            const rogueCount = drones.filter(d => d.isRogue).length;
-            const failedCount = drones.filter(d => d.phase === 'FAILED').length;
             chartHistory.threat.push(Math.min(1, (rogueCount * 3 + failedCount * 2 + stats.collisions) / Math.max(1, drones.length)));
 
-            chartHistory.airspace.push(airborne.length);
+            chartHistory.airspace.push(airborneCount);
             chartHistory.tickTime.push(Math.min(tickMs, 100));
-
-            const phases = {};
-            ['GROUNDED', 'TAKEOFF', 'ENROUTE', 'HOLDING', 'LANDING', 'EVADING', 'FAILED', 'RTL'].forEach(p => phases[p] = 0);
-            drones.forEach(d => { phases[d.phase] = (phases[d.phase] || 0) + 1; });
             chartHistory.phases.push(phases);
 
             // 히스토리 제한
@@ -5797,8 +5811,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             if (simRunning) {
                 simTime += dt * simSpeed;
                 updateWeather(dt);
+                drones.forEach(d => updateDrone(d, dt));
+                if (megaMode) instancesDirty = true;
             }
-            drones.forEach(d => updateDrone(d, dt));
 
             // APF: GPU Compute → Worker → CPU 폴백 (우선순위)
             if (simRunning) {

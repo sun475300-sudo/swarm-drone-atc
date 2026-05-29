@@ -9,12 +9,12 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Phase](https://img.shields.io/badge/Phase-660-gold?style=for-the-badge&logo=rocket)](simulation/)
-[![Tests](https://img.shields.io/badge/Tests-3%2C973%2B%20Collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Phase](https://img.shields.io/badge/Phase-700-gold?style=for-the-badge&logo=rocket)](simulation/)
+[![Tests](https://img.shields.io/badge/Tests-5%2C342%2B%20Collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Algorithms](https://img.shields.io/badge/Algorithms-600+-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#core-algorithms)
-[![Modules](https://img.shields.io/badge/Modules-590+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
+[![Modules](https://img.shields.io/badge/Modules-760+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Languages](https://img.shields.io/badge/Languages-50+-FF5722?style=for-the-badge&logo=github&logoColor=white)](#multi-language-architecture)
-[![LOC](https://img.shields.io/badge/Total-120K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
+[![LOC](https://img.shields.io/badge/Total-148K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 **Mokpo National University, Dept. of Drone Mechanical Engineering — Capstone Design (2026)**
@@ -145,7 +145,7 @@ SDACS는 이 단순한 발상에서 출발했습니다. 20대의 관제 드론�
 | **Scenario Coverage** | **63 scenarios** | 7대 광역시 도시환경 + 극한 기상 + 침입 + GPS 재밍 + 대규모 배송 |
 | **Concurrent Drones** | **100+** | 20대: 충돌 0, 50대: avg 15, 100대: avg 29 |
 | **Deployment Time** | **30 min** | No fixed infrastructure required |
-| **Test Coverage** | **3,481+ tests** | Automated pytest suite across 590+ modules |
+| **Test Collection** | **5,342+ tests** | Automated pytest collection across 761 Python files and 105 test files |
 <div align="center">
 <img src="docs/images/imgur/wHuMIfM.png" alt="기존 방식 대비 SDACS 성능 비교" width="750"/>
 <br/><sub>기존 Rule-based Static ATC vs SDACS Swarm Autonomous — 주요 KPI 비교</sub>
@@ -170,13 +170,13 @@ SDACS는 4개의 독립적 계층으로 구성됩니다. 각 계층은 명확한
 │     AirspaceController (1Hz) + Priority Queue + Advisory Gen    │
 ├─────────────────────────────────────────────────────────────────┤
 │                     Layer 1: Drone Agents                       │
-│            _DroneAgent (10Hz SimPy process per drone)            │
+│             DroneAgent (10Hz SimPy process per drone)            │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ### Layer 1 — Drone Agent (드론 에이전트)
 각 드론은 SimPy 이산 이벤트 프로세스로 모델링됩니다. 10Hz 주기로 위치/속도/배터리 상태를 갱신하며, 비행 상태 머신(FSM)에 따라 `Idle → Takeoff → Cruise → Avoid → Landing` 전이를 수행합니다.
-- **파일**: `simulation/simulator.py` — `_DroneAgent` 클래스
+- **파일**: `simulation/drone_agent.py` — `DroneAgent` 클래스 (`simulation/simulator.py`에서 각 드론 프로세스를 기동)
 <div align="center">
 <img src="docs/images/imgur/bBRoCn6.png" alt="센서 퓨전 프로세스" width="700"/>
 <br/><sub>센서 퓨전 — Camera(YOLO) + LiDAR + RF Scanner → Kalman Filter → 위치/식별/위협 판정</sub>
@@ -199,25 +199,22 @@ SimPy 기반 이산 이벤트 시뮬레이션 엔진으로, 다양한 환경 조
 - **파일**: `simulation/simulator.py`, `simulation/wind_model.py`, `simulation/monte_carlo.py`
 
 ### Layer 4 — User Interface (사용자 인터페이스)
-- **CLI**: `main.py` — simulate, scenario, monte-carlo, visualize, ops-report 명령
+- **CLI**: `main.py` — `simulate`, `scenario`, `monte-carlo`, `benchmark`, `visualize`, `visualize-3d`, `api`, `ops-report`, `chatbot`
 - **3D Dashboard**: Dash + Plotly 실시간 3D 시각화, 드론 궤적/충돌 경고/편대 표시
-- **[3D Web Simulator (메인 데모)](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html)**: Three.js 브라우저 기반 인터랙티브 시뮬레이터 (프로젝트 대표 시뮬레이터)
-  - **63개 시나리오** — 7대 광역시(서울/부산/인천/대구/광주/대전/울산) 도시환경 + 극한 기상 + 메가 스케일 500대
-  - **WebGPU Compute Shader** — APF 힘 계산 GPU 가속 (WGSL 컴퓨트 파이프라인, WebGPU 미지원 시 Web Worker 자동 폴백)
-  - **실시간 분석 대시보드** — 배터리/에너지/충돌해결률/위협레벨/관제구역/틱처리시간/비행단계 7종 차트
-  - **도시별 랜드마크 환경** — 각 도시의 실제 빌딩, 강, 산, 공원을 3D로 재현 (롯데월드타워, 해운대, 무등산 등)
-  - APF 충돌 회피 + CPA 12초 예측 + Spatial Hash 최적화
-  - 22개 드론 직군, 21-zone ATC 네트워크
-  - 극한 기상: 마이크로버스트, 태풍, 결빙, 다중셀 폭풍, 풍속 전단
-  - CPU/GPU/Worker 성능 모니터링 HUD
-  - **드론 라이브 상태 조회** — 드론 호버 시 실시간 툴팁(직군/고도/속도/기수/배터리/ETA), 클릭 시 상세 패널(상태/수직속도/좌표/출발·목표/텔레메트리/경로효율/최근접 이웃) + 선택 하이라이트
-  - **충돌·공역 관제 시각화** — CPA 충돌 예측선(TTC·이격거리 라벨), 회피 어드바이저리 빌보드, 웨이포인트·이동경로, 레이어 토글(NFZ/회랑/고도레이어 9단/ATC)
-  - **분석 뷰(2×2)** — 3D 궤적 + XY 평면도(고도 컬러맵) + 배터리 추이 + KPI 대시보드
-  - **리플레이·타임라인** — 0.5s 스냅샷 레코더 + 스크러버(재생/속도/LIVE)
+- **[3D Web Simulator (메인 데모)](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html)**: Three.js 브라우저 기반 인터랙티브 시뮬레이터 (현재 프로젝트 대표 시뮬레이터)
+  - **63개 시나리오** — 7대 광역시 도시환경, 극한 기상, 침입 드론, GPS 스푸핑, `mega_swarm`, `mega_swarm_1k/5k/10k`
+  - **WebGPU Compute Shader** — APF 힘 계산 GPU 가속, 미지원 브라우저는 Web Worker로 자동 폴백
+  - **InstancedMesh 대규모 렌더링** — 500대 이상부터 대규모 렌더링 경로 활성화, 1K/5K/10K 시나리오 지원
+  - **충돌·공역 관제 시각화** — APF 충돌 회피, CPA 12초 예측, Spatial Hash 최적화, NFZ/고도 레이어/ATC 링크/CPA 라벨
+  - **도시별 랜드마크 환경** — 서울/부산/인천/대구/광주/대전/울산별 3D 배경과 회랑 시나리오
+  - **실시간 분석 대시보드** — 배터리/에너지/충돌해결률/위협레벨/관제구역/틱처리시간/비행단계 차트
+  - **드론 라이브 상태 조회** — 호버 툴팁 + 클릭 상세 패널 + 선택 하이라이트
+  - **분석 뷰(2×2)** — 3D 궤적 + XY 평면도 + 배터리 추이 + KPI 대시보드
+  - **리플레이·타임라인** — 0.5초 상태 레코더, 스크러버, LIVE/재생/배속 전환
   - **리포트 내보내기** — 4분할 PNG / CSV(시계열·텔레메트리) / KPI 클립보드 복사
-  - `window._sdacs` API — 자동화 테스트 및 외부 연동 (`selectDrone`/`hoverDrone`/`setAnalysisView`/`replaySeek`/`reportDataURL` 등)
-  - 헤드리스 스모크 테스트: `tests/e2e/smoke_sim.mjs` (CI: `.github/workflows/sim-smoke.yml`)
-- **파일**: `main.py`, `visualization/simulator_3d.py`, `swarm_3d_simulator.html` · _구버전 `swarm_3d_simulator_v2.html`·`*.v1.backup.html`은 디프리케이트(참고용)_
+  - **성능/자동화** — CPU/GPU/Worker HUD, `captureScreenshot()`, `window._sdacs` 테스트 API, `tests/e2e/smoke_sim.mjs`
+  - **실시간 연동 훅** — `simulation/ws_bridge.py` 실행 시 `ws://localhost:8765`로 자동 연결 시도
+- **파일**: `main.py`, `visualization/simulator_3d.py`, `swarm_3d_simulator.html`, `simulation/ws_bridge.py`, `docs/simulator.html` · `docs/swarm_3d_simulator_v2.html`은 legacy lightweight variant
 ```mermaid
 sequenceDiagram
     participant D as Drone (10Hz)
@@ -313,7 +310,7 @@ SDACS의 충돌 회피 파이프라인은 **탐지 → 판단 → 실행** 3단�
 | **ORCA (Optimal Reciprocal Collision Avoidance)** | 속도 공간 최적화 | 반속도 장애물 기반 안전 속도 선택 |
 
 ### 4. Advanced Modules (Phase 1-610)
-560+개의 알고리즘 모듈이 6개 계층에 걸쳐 구현되어 있습니다:
+600+개의 알고리즘 모듈이 6개 계층에 걸쳐 구현되어 있습니다:
 | Category | Examples | Count |
 |----------|----------|-------|
 | **Physics & Dynamics** | Wind model, battery model, energy optimization | 40+ |
@@ -349,7 +346,7 @@ swarm-drone-atc/
 │   ├── simulator_3d.py              # Dash 3D real-time dashboard
 │   └── advanced_dashboard.py        # Supplementary charts
 │
-├── tests/                           # 3,481+ automated tests
+├── tests/                           # 3,993+ automated tests
 │   ├── test_simulator_scenarios.py
 │   ├── test_phase*.py
 │   └── ...
@@ -456,7 +453,7 @@ SDACS는 핵심 시뮬레이션(Python) 외에 50개 이상의 프로그래밍 �
 ### Language Portfolio / 언어별 역할
 | Language | Modules | Use Case | Integration |
 |----------|---------|----------|-------------|
-| **Python** | 580+ | Core simulation, ML/AI, analytics, production hardening | Main engine |
+| **Python** | 680+ | Core simulation, ML/AI, analytics, production hardening | Main engine |
 | **Rust** | 15 | Safety-critical: satellite comm, NEAT evolution, safety verifier | FFI / subprocess |
 | **Go** | 14 | Concurrent: edge AI, mission validation, realtime monitor | subprocess / gRPC |
 | **C++** | 14 | Performance: SLAM, morphogenesis, physics, particle filter | ctypes / FFI |
@@ -475,8 +472,8 @@ SDACS는 핵심 시뮬레이션(Python) 외에 50개 이상의 프로그래밍 �
 | **Elixir/Erlang** | 3 | OTP fault supervision, distributed consensus | message passing |
 | **Others** | 30+ | PHP, COBOL, R, Perl, Scheme, Octave, Lua, Ruby, Dart, Scala, etc. | Various |
 ```mermaid
-pie title Module Distribution by Language (Phase 660)
-    "Python" : 580
+pie title Module Distribution by Language (Phase 700)
+    "Python" : 680
     "Zig" : 15
     "Rust" : 15
     "Go" : 14
@@ -491,7 +488,7 @@ pie title Module Distribution by Language (Phase 660)
 
 ---
 ## Development Phases / 개발 단계
-SDACS는 660개 Phase를 거치며 점진적으로 확장되었습니다.
+SDACS는 700개 Phase를 거치며 점진적으로 확장되었습니다.
 | Phase Range | Focus | Highlights |
 |-------------|-------|------------|
 | **1-50** | Core ATC | SimPy engine, CPA, APF, Voronoi, wind model |
@@ -513,6 +510,10 @@ SDACS는 660개 Phase를 거치며 점진적으로 확장되었습니다.
 | **631-640** | Multi-Lang VI + Benchmark | Julia, Scala, Elixir, Dart, Lua, Ruby, Clojure v2, Erlang Raft, Fortran CFD, System Benchmark |
 | **641-650** | Production Hardening | KDTree spatial index, telemetry compression, health predictor, adaptive sampling, Raft consensus, anomaly detection, mission scheduler, energy optimizer, formation GA, integration runner |
 | **651-660** | Multi-Lang VII | Go realtime monitor, Rust safety verifier, C++ particle filter, Zig ring buffer v2, Ada TMR v2, VHDL FIR filter, Prolog rules v2, Assembly Kalman filter, Nim async dispatcher, OCaml type checker |
+| **661-670** | Advanced AI | Transformer trajectory prediction, federated learning, GNN communication, diffusion path generator, BurnySc2 behavior tree |
+| **671-680** | Hardware Integration | PX4/ArduPilot SITL bridge, ROS2 bridge, MQTT/DDS bridge, flight test framework, Jetson edge deployer |
+| **681-690** | UTM Standards | K-UTM protocol, ADS-B receiver, ASTM F3411 Remote ID, FAA LAANC, ICAO Doc 10019 |
+| **691-700** | Aeronautical Info | NOTAM manager, TFR handler, vertiport ops, METAR parser, cross-border coord, insurance risk, aero charts, flight following, AIM briefing, post-flight report |
 
 ---
 ## Testing / 테스트
@@ -586,12 +587,12 @@ pip install torch --index-url https://download.pytorch.org/whl/cu128
 
 | 드론 수 | GPU 가속 배율 | 비고 |
 |--------|-------------|------|
-| 50대 | 0.8x | 소규모에서는 오버헤드로 CPU와 유사 |
-| 100대 | 2.2x | GPU 가속 효과 시작 |
-| 200대 | 4.8x | 병렬 연산 이점 본격화 |
-| 500대 | 11.3x | 대규모 군집에서 압도적 성능 |
+| 50대 | 0.87x | 소규모에서는 오버헤드로 CPU와 유사 |
+| 100대 | 2.63x | GPU 가속 효과 시작 |
+| 200대 | 4.21x | 병렬 연산 이점 본격화 |
+| 500대 | 12.31x | 대규모 군집에서 압도적 성능 |
 
-> 드론 수가 100대 이상일 때 GPU 가속의 실질적 효과가 나타나며, 500대 규모에서는 CPU 대비 11.3배 빠른 처리가 가능합니다.
+> 드론 수가 100대 이상일 때 GPU 가속의 실질적 효과가 나타나며, 500대 규모에서는 CPU 대비 12.3배 빠른 처리가 가능합니다.
 
 ---
 ## Team / 팀
@@ -655,7 +656,7 @@ SC2 봇 프로젝트 규모: **645단계 개발, 404개 품질 테스트, 797개
 
 ---
 ## Roadmap / 향후 계획
-Phase 660까지 완료되었습니다. 향후 확장 계획은 [ROADMAP.md](ROADMAP.md)에서 확인할 수 있습니다.
+Phase 700까지 완료되었습니다. 향후 확장 계획은 [ROADMAP.md](ROADMAP.md)에서 확인할 수 있습니다.
 
 ---
 ## License
@@ -665,7 +666,7 @@ MIT License — Developed for academic and educational purposes.
 <div align="center">
 **Made with dedication by Sunwoo Jang**
 **장선우 · 국립 목포대학교 드론기계공학과**
-**Phase 660 · 590+ Modules · 3,481+ Tests Collected · 50+ Languages · 120K+ LOC**
+**Phase 700 · 761 Python files · 5,342+ Tests Collected · 50+ Languages · 148K+ LOC**
 </div>
 
 ## 변경 이력 (Changelog)

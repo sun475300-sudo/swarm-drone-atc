@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SDACS-Marine — 소형선 감지·식별 시뮬레이터</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --font: 'JetBrains Mono', ui-monospace, monospace; --accent: #29c5ff; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background: #02060d; color: #cfe0ee; font-family: var(--font); }
+        #cv { position: fixed; inset: 0; z-index: 1; }
+        .hud { position: fixed; z-index: 10; }
+        .panel { background: rgba(6, 14, 24, 0.92); border: 1px solid rgba(41, 197, 255, 0.2); border-radius: 8px; padding: 10px 12px; }
+        .top { top: 10px; left: 12px; right: 12px; display: flex; align-items: center; gap: 14px; justify-content: space-between;
+               background: linear-gradient(to bottom, rgba(2,6,13,0.95), transparent); padding: 10px 16px; }
+        .title { font-size: 14px; font-weight: 700; color: var(--accent); letter-spacing: 2px; text-shadow: 0 0 16px rgba(41,197,255,0.4); }
+        .sub { font-size: 9px; color: #5a7a96; letter-spacing: 1px; }
+        .stats { display: flex; gap: 8px; flex-wrap: wrap; }
+        .stat { padding: 3px 9px; border: 1px solid rgba(41,197,255,0.2); border-radius: 6px; background: rgba(41,197,255,0.05); text-align: center; }
+        .stat .l { font-size: 8px; color: #5a7a96; letter-spacing: 1px; }
+        .stat .v { font-size: 15px; font-weight: 700; color: var(--accent); }
+        .left { top: 76px; left: 12px; width: 232px; }
+        .right { top: 76px; right: 12px; width: 250px; bottom: 150px; overflow-y: auto; }
+        .ctitle { font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 1px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .ctitle::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+        .btn { background: rgba(41,197,255,0.08); border: 1px solid rgba(41,197,255,0.3); color: #cfe0ee; font-family: var(--font);
+               font-size: 11px; padding: 6px 8px; border-radius: 5px; cursor: pointer; transition: .15s; }
+        .btn:hover { background: rgba(41,197,255,0.2); }
+        .btn.active { background: var(--accent); color: #02060d; font-weight: 700; }
+        .row { display: flex; gap: 6px; margin-bottom: 6px; }
+        select, input[type=range] { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(41,197,255,0.25); color: #cfe0ee;
+                 font-family: var(--font); font-size: 11px; padding: 4px; border-radius: 4px; accent-color: var(--accent); }
+        .kpi { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+        .kc { border: 1px solid rgba(41,197,255,0.15); border-radius: 6px; background: rgba(41,197,255,0.04); padding: 5px 8px; }
+        .kc .l { font-size: 8px; color: #5a7a96; letter-spacing: 1px; }
+        .kc .v { font-size: 16px; font-weight: 700; }
+        .vrow { padding: 6px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 4px; background: rgba(255,255,255,0.02); font-size: 10px; }
+        .vrow .h { display: flex; justify-content: space-between; align-items: center; }
+        .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .badge { font-size: 8px; padding: 1px 6px; border-radius: 9px; font-weight: 600; }
+        .log { bottom: 12px; left: 12px; width: 360px; height: 128px; }
+        .loglist { height: 92px; overflow-y: auto; font-size: 9px; line-height: 1.6; }
+        .legend { font-size: 8px; color: #5a7a96; margin-top: 6px; line-height: 1.6; }
+        .bottombar { bottom: 0; left: 0; right: 0; padding: 8px 16px; display: flex; justify-content: space-between;
+                     background: linear-gradient(to top, rgba(2,6,13,0.95), transparent); font-size: 9px; color: #44607c; }
+        #alert { position: fixed; inset: 0; z-index: 8; pointer-events: none; opacity: 0; transition: opacity .4s; }
+        #alertbn { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 20; pointer-events: none; opacity: 0;
+                   transition: opacity .4s; background: rgba(6,14,24,0.92); border: 1px solid rgba(239,68,68,0.6); color: #fff;
+                   font-size: 13px; font-weight: 700; padding: 6px 16px; border-radius: 8px; box-shadow: 0 0 24px rgba(239,68,68,0.4); }
+    </style>
+</head>
+
+<body>
+    <div id="cv"></div>
+
+    <div class="hud top">
+        <div>
+            <div class="title">SDACS-MARINE — 소형선 감지·식별</div>
+            <div class="sub">Small-Vessel Detection &amp; Identification · Mother-ship Sensor Network</div>
+        </div>
+        <div class="stats">
+            <div class="stat"><div class="l">선박</div><div class="v" id="s-total">0</div></div>
+            <div class="stat"><div class="l">탐지</div><div class="v" id="s-det" style="color:#22c55e;">0</div></div>
+            <div class="stat"><div class="l">식별</div><div class="v" id="s-id" style="color:#29c5ff;">0</div></div>
+            <div class="stat"><div class="l">비협조</div><div class="v" id="s-noncoop" style="color:#f59e0b;">0</div></div>
+            <div class="stat"><div class="l">CPA 경고</div><div class="v" id="s-cpa" style="color:#ef4444;">0</div></div>
+        </div>
+    </div>
+
+    <div class="hud panel left">
+        <div class="ctitle">🛰 관제 · 시나리오</div>
+        <div class="row">
+            <button class="btn active" id="btn-start" style="flex:1;">시작</button>
+            <button class="btn" id="btn-pause" style="flex:1;">일시정지</button>
+            <button class="btn" id="btn-reset" style="flex:1;">초기화</button>
+        </div>
+        <select id="scenario" style="margin-bottom:6px;">
+            <option value="normal">평시 (소형선 12척)</option>
+            <option value="busy">혼잡 항만 (24척)</option>
+            <option value="fog">안개·저시정 (탐지 저하)</option>
+            <option value="night">야간 (EO 저하)</option>
+            <option value="intrusion">비협조 침입 (고속정)</option>
+        </select>
+        <div class="row" style="align-items:center;font-size:9px;color:#5a7a96;">
+            속도<input type="range" id="speed" min="0.5" max="6" step="0.5" value="1.5" style="flex:1;"><span id="speed-v" style="min-width:26px;text-align:right;color:#cfe0ee;">1.5×</span>
+        </div>
+        <div class="row" style="margin-top:6px;">
+            <button class="btn" id="cam-orbit" style="flex:1;">오빗</button>
+            <button class="btn active" id="cam-top" style="flex:1;">탑다운</button>
+        </div>
+        <div class="ctitle" style="margin-top:12px;">🎚 센서 레이어</div>
+        <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-radar" checked> 레이더 스윕·링</label>
+        <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-cpa" checked> CPA 충돌 예측선</label>
+        <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-label" checked> 식별 라벨·인식 링</label>
+        <div class="kpi">
+            <div class="kc"><div class="l">AIS 협조</div><div class="v" id="k-ais" style="color:#22c55e;">0</div></div>
+            <div class="kc"><div class="l">식별 정확도</div><div class="v" id="k-acc" style="color:#22c55e;">100%</div></div>
+            <div class="kc"><div class="l">평균 탐지</div><div class="v" id="k-dt" style="color:#f59e0b;">0.0s</div></div>
+            <div class="kc"><div class="l">레이더 거리</div><div class="v" id="k-range" style="color:#29c5ff;">4.0NM</div></div>
+        </div>
+        <div class="legend">
+            <span class="dot" style="background:#22c55e;"></span>AIS 협조 &nbsp;<span class="dot" style="background:#f59e0b;"></span>비협조 미식별<br>
+            <span class="dot" style="background:#ef4444;"></span>고속·위협 &nbsp;<span class="dot" style="background:#8b9bb0;"></span>부표(고정)
+        </div>
+    </div>
+
+    <div class="hud panel right">
+        <div class="ctitle">📋 표적 트랙</div>
+        <div id="tracklist"></div>
+    </div>
+
+    <div class="hud panel log">
+        <div class="ctitle" style="margin-bottom:4px;">📡 이벤트 로그</div>
+        <div class="loglist" id="loglist"></div>
+    </div>
+
+    <div id="alert"></div>
+    <div id="alertbn"></div>
+
+    <div class="hud bottombar">
+        <div>SDACS-Marine v1.0 — 모선 레이더/EO·AIS 융합 · 7~15m 소형선 탐지·식별·CPA</div>
+        <div><span id="fps">60</span> FPS | 드래그: 회전 · 스크롤: 줌</div>
+    </div>
+
+    <script type="importmap">
+    { "imports": {
+        "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
+    } }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // ===== 상수 =====
+        const NM = 1852;                 // 1 해리(m)
+        const WORLD = 6 * NM;            // ±6 NM 해역
+        const SCALE = 50 / WORLD;        // 월드 → 씬 단위(±50)
+        const W = WORLD * SCALE;
+        let RADAR_NM = 4.0;              // 레이더 유효 거리(NM) — 시나리오/기상 따라 변동
+        const CPA_LOOKAHEAD = 120;       // CPA 예측 지평(초)
+        const CPA_WARN_M = 300;          // CPA 경고 이격(m)
+
+        // 선종: AIS 탑재확률, 식별 정확도, 색상
+        const VTYPES = [
+            { id: 'fishing', label: '어선', color: 0x3f9e6a, ais: 0.45, acc: 0.9, spd: [3, 8], len: [9, 15] },
+            { id: 'leisure', label: '레저보트', color: 0x29c5ff, ais: 0.25, acc: 0.85, spd: [5, 14], len: [7, 12] },
+            { id: 'fast', label: '고속정', color: 0xef4444, ais: 0.1, acc: 0.82, spd: [18, 32], len: [10, 15] },
+            { id: 'buoy', label: '부표', color: 0x8b9bb0, ais: 0.0, acc: 0.95, spd: [0, 0], len: [2, 3] },
+        ];
+        const SCEN = {
+            normal: { n: 12, radar: 4.0, accMul: 1.0, fast: 0.05 },
+            busy: { n: 24, radar: 4.0, accMul: 1.0, fast: 0.05 },
+            fog: { n: 14, radar: 2.4, accMul: 0.8, fast: 0.05 },     // 안개: 거리·정확도 저하
+            night: { n: 14, radar: 3.4, accMul: 0.85, fast: 0.08 },  // 야간: EO 저하
+            intrusion: { n: 16, radar: 4.0, accMul: 1.0, fast: 0.4 },// 고속 침입 다수
+        };
+
+        // ===== Three.js =====
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x030912);
+        scene.fog = new THREE.FogExp2(0x05101c, 0.004);
+        const camera = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 0.1, 2000);
+        camera.position.set(0, 95, 0.1); camera.lookAt(0, 0, 0);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+        renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        document.getElementById('cv').appendChild(renderer.domElement);
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; controls.dampingFactor = 0.06; controls.maxPolarAngle = Math.PI / 2.05;
+        controls.minDistance = 10; controls.maxDistance = 160;
+
+        scene.add(new THREE.AmbientLight(0x335577, 0.7));
+        const moon = new THREE.DirectionalLight(0x88aacc, 0.7); moon.position.set(30, 50, 20); scene.add(moon);
+
+        // 바다 (그리드 + 잔물결 plane)
+        const seaGeo = new THREE.PlaneGeometry(W * 2.2, W * 2.2, 48, 48);
+        const seaMat = new THREE.MeshPhongMaterial({ color: 0x06243d, emissive: 0x041726, shininess: 80, transparent: true, opacity: 0.96 });
+        const sea = new THREE.Mesh(seaGeo, seaMat); sea.rotation.x = -Math.PI / 2; scene.add(sea);
+        const seaBase = seaGeo.attributes.position.array.slice();
+        scene.add(new THREE.GridHelper(W * 2, 24, 0x0c3a5c, 0x07283f));
+
+        // 거리 링 (NM)
+        const ringGroup = new THREE.Group(); scene.add(ringGroup);
+        function rebuildRings() {
+            while (ringGroup.children.length) { const c = ringGroup.children.pop(); c.geometry.dispose(); c.material.dispose(); }
+            for (let nm = 2; nm <= Math.ceil(RADAR_NM); nm += 2) {
+                const rr = nm * NM * SCALE;
+                const ring = new THREE.Mesh(new THREE.RingGeometry(rr - 0.06, rr, 96),
+                    new THREE.MeshBasicMaterial({ color: 0x1d6e9e, transparent: true, opacity: 0.3, side: THREE.DoubleSide }));
+                ring.rotation.x = -Math.PI / 2; ring.position.y = 0.05; ringGroup.add(ring);
+            }
+        }
+        rebuildRings();
+
+        // 레이더 스윕 섹터
+        const sweepGeo = new THREE.CircleGeometry(RADAR_NM * NM * SCALE, 48, 0, Math.PI / 9);
+        const sweep = new THREE.Mesh(sweepGeo, new THREE.MeshBasicMaterial({ color: 0x29c5ff, transparent: true, opacity: 0.12, side: THREE.DoubleSide }));
+        sweep.rotation.x = -Math.PI / 2; sweep.position.y = 0.06; scene.add(sweep);
+        let sweepAngle = 0;
+
+        // 모선 (대형 선박)
+        const motherShip = new THREE.Group();
+        (function buildMother() {
+            const hull = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.8, 7),
+                new THREE.MeshPhongMaterial({ color: 0x2b3a4a, emissive: 0x10202c, shininess: 30 }));
+            hull.position.y = 0.5; motherShip.add(hull);
+            const deck = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.6, 2.4),
+                new THREE.MeshPhongMaterial({ color: 0x40566b }));
+            deck.position.set(0, 1.1, -1); motherShip.add(deck);
+            const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.6, 6), new THREE.MeshBasicMaterial({ color: 0xcfe0ee }));
+            mast.position.set(0, 2.1, -1); motherShip.add(mast);
+            const radar = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.05, 6, 18), new THREE.MeshBasicMaterial({ color: 0x29c5ff }));
+            radar.position.set(0, 2.9, -1); radar.rotation.x = Math.PI / 2; motherShip.add(radar);
+            motherShip.userData.radar = radar;
+        })();
+        scene.add(motherShip);
+
+        // ===== 텍스트 스프라이트 =====
+        function makeLabel(text, color) {
+            const c = document.createElement('canvas'); const ctx = c.getContext('2d');
+            ctx.font = 'bold 24px JetBrains Mono, monospace';
+            c.width = ctx.measureText(text).width + 24; c.height = 34;
+            ctx.font = 'bold 24px JetBrains Mono, monospace'; ctx.fillStyle = 'rgba(3,9,18,0.78)';
+            ctx.fillRect(0, 0, c.width, c.height);
+            ctx.fillStyle = color; ctx.textBaseline = 'middle'; ctx.fillText(text, 12, c.height / 2 + 1);
+            const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+            const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+            sp.scale.set(c.width / 34 * 1.5, 1.5, 1); sp.renderOrder = 999; return sp;
+        }
+
+        // ===== 상태 =====
+        const vessels = [];
+        const vesselGroup = new THREE.Group(); scene.add(vesselGroup);
+        const cpaGroup = new THREE.Group(); scene.add(cpaGroup);
+        let running = false, simSpeed = 1.5, simTime = 0, camMode = 'top';
+        const stats = { detected: 0, identified: 0, correct: 0, ais: 0, noncoop: 0, cpaWarn: 0, detSum: 0, detN: 0 };
+        const layer = { radar: true, cpa: true, label: true };
+        const events = [];
+        const clock = new THREE.Clock();
+        let _detTimer = 0, _cpaPrev = 0;
+
+        function logEvent(msg, color = '#9db7d1') { events.unshift({ t: simTime, msg, color }); if (events.length > 60) events.pop(); }
+
+        function pickType(fastRate) {
+            if (Math.random() < fastRate) return VTYPES[2]; // 고속정
+            const r = Math.random();
+            if (r < 0.45) return VTYPES[0];      // 어선
+            if (r < 0.78) return VTYPES[1];      // 레저
+            if (r < 0.9) return VTYPES[2];       // 고속정
+            return VTYPES[3];                    // 부표
+        }
+
+        function makeVesselMesh(t, lenM) {
+            const g = new THREE.Group();
+            const s = Math.max(0.5, lenM * SCALE * 8); // 7~15m → 가시 크기 보정
+            if (t.id === 'buoy') {
+                g.add(new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.5, 8), new THREE.MeshPhongMaterial({ color: t.color })));
+            } else {
+                const hull = new THREE.Mesh(new THREE.BoxGeometry(0.32 * s, 0.16 * s, 0.9 * s),
+                    new THREE.MeshPhongMaterial({ color: t.color, emissive: t.color, emissiveIntensity: 0.25 }));
+                hull.position.y = 0.12; g.add(hull);
+                const wake = new THREE.Mesh(new THREE.ConeGeometry(0.18 * s, 0.6 * s, 3),
+                    new THREE.MeshBasicMaterial({ color: 0xbfe6ff, transparent: true, opacity: 0.18 }));
+                wake.rotation.x = -Math.PI / 2; wake.position.set(0, 0.06, 0.7 * s); g.add(wake);
+            }
+            return g;
+        }
+
+        let _vid = 0;
+        function spawnVessel(scen) {
+            const t = pickType(scen.fast);
+            const lenM = t.len[0] + Math.random() * (t.len[1] - t.len[0]);
+            const hasAIS = Math.random() < t.ais;
+            const g = makeVesselMesh(t, lenM);
+            // 가장자리 스폰(부표는 내부 고정)
+            let wx, wz, vx, vz;
+            if (t.id === 'buoy') {
+                wx = (Math.random() - 0.5) * 1.6 * WORLD; wz = (Math.random() - 0.5) * 1.6 * WORLD; vx = vz = 0;
+            } else {
+                const ang = Math.random() * Math.PI * 2, edge = WORLD * 0.95;
+                wx = Math.cos(ang) * edge; wz = Math.sin(ang) * edge;
+                const spd = (t.spd[0] + Math.random() * (t.spd[1] - t.spd[0])) * 0.514; // knots→m/s
+                // 모선(원점) 부근을 향하도록 약간 편향
+                const toC = Math.atan2(-wz, -wx) + (Math.random() - 0.5) * 1.2;
+                vx = Math.cos(toC) * spd; vz = Math.sin(toC) * spd;
+            }
+            g.position.set(wx * SCALE, 0, wz * SCALE);
+            vesselGroup.add(g);
+            vessels.push({
+                id: `V-${String(++_vid).padStart(3, '0')}`, type: t, lenM, hasAIS, g,
+                wx, wz, vx, vz, detected: false, identified: false, classified: null, label3d: null, ring3d: null,
+                detTime: 0, cpaWarn: false,
+            });
+        }
+
+        function disposeVessel(o) {
+            vesselGroup.remove(o.g); o.g.traverse(c => { if (c.geometry) c.geometry.dispose(); if (c.material) c.material.dispose(); });
+            if (o.label3d) { vesselGroup.remove(o.label3d); o.label3d.material.map?.dispose(); o.label3d.material.dispose(); }
+            if (o.ring3d) { vesselGroup.remove(o.ring3d); o.ring3d.geometry.dispose(); o.ring3d.material.dispose(); }
+        }
+
+        let curScen = SCEN.normal;
+        function initScenario(name) {
+            curScen = SCEN[name] || SCEN.normal;
+            RADAR_NM = curScen.radar; rebuildRings();
+            sweep.geometry.dispose(); sweep.geometry = new THREE.CircleGeometry(RADAR_NM * NM * SCALE, 48, 0, Math.PI / 9);
+            for (const o of vessels) disposeVessel(o);
+            vessels.length = 0;
+            Object.keys(stats).forEach(k => stats[k] = 0);
+            simTime = 0; _detTimer = 0; _cpaPrev = 0; events.length = 0;
+            scene.fog.density = name === 'fog' ? 0.011 : (name === 'night' ? 0.006 : 0.004);
+            scene.background.setHex(name === 'night' ? 0x01040a : 0x030912);
+            for (let i = 0; i < curScen.n; i++) spawnVessel(curScen);
+            logEvent(`시나리오: ${name} — 소형선 ${curScen.n}척, 레이더 ${RADAR_NM}NM`, '#29c5ff');
+        }
+
+        function classify(t) {
+            const acc = Math.min(0.99, t.acc * curScen.accMul);
+            if (Math.random() < acc) return { t, ok: true };
+            const others = VTYPES.filter(x => x.id !== t.id);
+            return { t: others[Math.floor(Math.random() * others.length)], ok: false };
+        }
+
+        function alertFlash(color, text) {
+            const el = document.getElementById('alert'), bn = document.getElementById('alertbn');
+            el.style.background = `radial-gradient(ellipse at center, transparent 38%, ${color} 100%)`; el.style.opacity = '0.7';
+            bn.textContent = text; bn.style.opacity = '1';
+            clearTimeout(alertFlash._t); alertFlash._t = setTimeout(() => { el.style.opacity = '0'; bn.style.opacity = '0'; }, 500);
+        }
+
+        // ===== 업데이트 =====
+        const radarR = () => RADAR_NM * NM * SCALE;
+        function update(dt) {
+            const sdt = dt * simSpeed;
+            if (running) simTime += sdt;
+            // 바다 잔물결
+            const pos = seaGeo.attributes.position.array;
+            for (let i = 0; i < pos.length; i += 3) {
+                pos[i + 2] = seaBase[i + 2] + Math.sin((seaBase[i] + clock.elapsedTime * 8) * 0.05) * 0.6 + Math.cos((seaBase[i + 1] + clock.elapsedTime * 6) * 0.06) * 0.5;
+            }
+            seaGeo.attributes.position.needsUpdate = true;
+
+            // 레이더 스윕 회전
+            sweep.visible = layer.radar; ringGroup.visible = layer.radar;
+            if (running) sweepAngle = (sweepAngle + sdt * 1.1) % (Math.PI * 2);
+            sweep.rotation.z = -sweepAngle;
+            if (motherShip.userData.radar) motherShip.userData.radar.rotation.z = -sweepAngle * 3;
+
+            const detect = running && (_detTimer += dt, _detTimer >= 0.25);
+            if (detect) _detTimer = 0;
+            const rr = radarR();
+
+            for (let i = vessels.length - 1; i >= 0; i--) {
+                const o = vessels[i];
+                if (running && (o.vx || o.vz)) { o.wx += o.vx * sdt; o.wz += o.vz * sdt; }
+                if (Math.abs(o.wx) > WORLD * 1.05 || Math.abs(o.wz) > WORLD * 1.05) { disposeVessel(o); vessels.splice(i, 1); continue; }
+                const px = o.wx * SCALE, pz = o.wz * SCALE;
+                o.g.position.set(px, 0, pz);
+                if (o.vx || o.vz) o.g.rotation.y = Math.atan2(o.vx, o.vz);
+
+                const distM = Math.hypot(o.wx, o.wz);
+                // 탐지: 레이더 거리 내 (AIS는 거리무관 수신, 부표는 레이더만)
+                if (detect && !o.detected && (distM <= RADAR_NM * NM || o.hasAIS)) {
+                    o.detected = true; o.detTime = simTime; stats.detected++;
+                    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.05, 6, 22),
+                        new THREE.MeshBasicMaterial({ color: 0x29c5ff, transparent: true, opacity: 0.85, depthTest: false }));
+                    ring.rotation.x = -Math.PI / 2; ring.renderOrder = 996; o.ring3d = ring; vesselGroup.add(ring);
+                    logEvent(`📡 표적 감지 ${o.id} (${(distM / NM).toFixed(1)}NM)`, '#29c5ff');
+                } else if (o.detected && !o.identified && (simTime - o.detTime) >= (o.hasAIS ? 0.2 : 0.7)) {
+                    // 식별: AIS 협조 → 즉시 정확, 비협조 → EO/레이더 분류(정확도)
+                    o.identified = true; stats.identified++;
+                    let cls, conf;
+                    if (o.hasAIS) { cls = { t: o.type, ok: true }; conf = 99; stats.ais++; stats.correct++; }
+                    else { cls = classify(o.type); conf = Math.round(Math.min(0.99, o.type.acc * curScen.accMul) * 100); stats.noncoop++; if (cls.ok) stats.correct++; }
+                    o.classified = cls.t;
+                    stats.detSum += 0.04 + Math.random() * 0.06; stats.detN++;
+                    const col = '#' + cls.t.color.toString(16).padStart(6, '0');
+                    const tag = o.hasAIS ? 'AIS' : `${conf}%`;
+                    const lbl = makeLabel(`${cls.t.label} ${tag}${cls.ok ? '' : ' ⚠'}`, col);
+                    o.label3d = lbl; vesselGroup.add(lbl);
+                    if (o.ring3d) o.ring3d.material.color.setHex(cls.t.color);
+                    logEvent(`🔍 식별 ${o.id}: ${cls.t.label} ${o.hasAIS ? '(AIS 협조)' : `(비협조 ${conf}%)`}${cls.ok ? '' : ' ⚠오분류'}`,
+                        o.type.id === 'fast' ? '#ef4444' : (o.hasAIS ? '#22c55e' : '#f59e0b'));
+                }
+
+                // 라벨·링 추종
+                if (o.label3d) { o.label3d.visible = layer.label; o.label3d.position.set(px, 2.0, pz); }
+                if (o.ring3d) {
+                    o.ring3d.visible = layer.label; o.ring3d.position.set(px, 0.1, pz);
+                    const s = o.identified ? 1 : 1.3 + Math.sin(clock.elapsedTime * 6) * 0.3; o.ring3d.scale.set(s, s, s);
+                }
+
+                // CPA/TCPA (모선=원점, 정지)
+                o.cpaWarn = false;
+                if (o.identified && (o.vx || o.vz) && layer.cpa) {
+                    const relV2 = o.vx * o.vx + o.vz * o.vz;
+                    const tcpa = -(o.wx * o.vx + o.wz * o.vz) / relV2;
+                    if (tcpa > 0 && tcpa < CPA_LOOKAHEAD) {
+                        const cx = o.wx + o.vx * tcpa, cz = o.wz + o.vz * tcpa;
+                        const cpa = Math.hypot(cx, cz);
+                        if (cpa < CPA_WARN_M) o.cpaWarn = true;
+                    }
+                }
+            }
+
+            // CPA 예측선 렌더(경고 표적)
+            while (cpaGroup.children.length) { const c = cpaGroup.children.pop(); c.geometry.dispose(); c.material.dispose(); }
+            let warn = 0;
+            if (layer.cpa) for (const o of vessels) {
+                if (!o.cpaWarn) continue; warn++;
+                const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0.4, 0), new THREE.Vector3(o.wx * SCALE, 0.4, o.wz * SCALE)]);
+                cpaGroup.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.7 })));
+            }
+            stats.cpaWarn = warn;
+            if (warn > _cpaPrev) alertFlash('rgba(239,68,68,0.5)', '⚠ CPA 경고 — 소형선 충돌 위험 접근');
+            _cpaPrev = warn;
+
+            // 부족분 보충(부표 제외 흐름 유지)
+            if (running && vessels.length < curScen.n) spawnVessel(curScen);
+        }
+
+        let frames = 0, lastFps = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = Math.min(clock.getDelta(), 0.1), t = clock.elapsedTime;
+            frames++;
+            if (t - lastFps >= 1) { document.getElementById('fps').textContent = frames; frames = 0; lastFps = t; }
+            update(dt);
+            // 카메라 모드
+            if (camMode === 'orbit') { controls.autoRotate = true; controls.autoRotateSpeed = 0.5; }
+            else controls.autoRotate = false;
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // ===== UI =====
+        function renderUI() {
+            document.getElementById('s-total').textContent = vessels.length;
+            document.getElementById('s-det').textContent = stats.detected;
+            document.getElementById('s-id').textContent = stats.identified;
+            document.getElementById('s-noncoop').textContent = stats.noncoop;
+            document.getElementById('s-cpa').textContent = stats.cpaWarn;
+            document.getElementById('k-ais').textContent = stats.ais;
+            const acc = stats.identified ? (stats.correct / stats.identified * 100) : 100;
+            const ke = document.getElementById('k-acc'); ke.textContent = acc.toFixed(0) + '%';
+            ke.style.color = acc >= 90 ? '#22c55e' : acc >= 80 ? '#f59e0b' : '#ef4444';
+            document.getElementById('k-dt').textContent = (stats.detN ? stats.detSum / stats.detN : 0).toFixed(2) + 's';
+            document.getElementById('k-range').textContent = RADAR_NM.toFixed(1) + 'NM';
+            // 트랙 리스트(상위 14)
+            const shown = vessels.filter(v => v.detected).slice(0, 14);
+            document.getElementById('tracklist').innerHTML = shown.map(v => {
+                const ct = v.classified || v.type, col = '#' + ct.color.toString(16).padStart(6, '0');
+                const st = !v.identified ? '감지' : (v.hasAIS ? 'AIS' : '식별');
+                const cpa = v.cpaWarn ? ' 🚨' : '';
+                return `<div class="vrow"><div class="h"><span><span class="dot" style="background:${col};"></span>${v.id}${cpa}</span>
+                    <span class="badge" style="color:${col};background:${col}18;border:1px solid ${col}40;">${v.identified ? ct.label : '미식별'} · ${st}</span></div>
+                    <div style="font-size:9px;color:#5a7a96;margin-top:2px;">${v.lenM.toFixed(0)}m · ${(Math.hypot(v.wx, v.wz) / NM).toFixed(1)}NM · ${(Math.hypot(v.vx, v.vz) / 0.514).toFixed(0)}kn</div></div>`;
+            }).join('') || '<div style="font-size:9px;color:#5a7a96;">표적 없음</div>';
+            // 로그
+            document.getElementById('loglist').innerHTML = events.slice(0, 30).map(e =>
+                `<div><span style="color:#44607c;">[${Math.floor(e.t / 60)}:${String(Math.floor(e.t % 60)).padStart(2, '0')}]</span> <span style="color:${e.color};">${e.msg}</span></div>`).join('');
+        }
+        setInterval(renderUI, 400);
+
+        // ===== 컨트롤 =====
+        document.getElementById('btn-start').addEventListener('click', () => { running = true; document.getElementById('btn-start').classList.add('active'); document.getElementById('btn-pause').classList.remove('active'); });
+        document.getElementById('btn-pause').addEventListener('click', () => { running = false; document.getElementById('btn-pause').classList.add('active'); document.getElementById('btn-start').classList.remove('active'); });
+        document.getElementById('btn-reset').addEventListener('click', () => { initScenario(document.getElementById('scenario').value); });
+        document.getElementById('scenario').addEventListener('change', e => initScenario(e.target.value));
+        document.getElementById('speed').addEventListener('input', e => { simSpeed = parseFloat(e.target.value); document.getElementById('speed-v').textContent = simSpeed + '×'; });
+        document.getElementById('cam-top').addEventListener('click', () => { camMode = 'top'; camera.position.set(0, 95, 0.1); controls.target.set(0, 0, 0); document.getElementById('cam-top').classList.add('active'); document.getElementById('cam-orbit').classList.remove('active'); });
+        document.getElementById('cam-orbit').addEventListener('click', () => { camMode = 'orbit'; camera.position.set(60, 45, 60); controls.target.set(0, 2, 0); document.getElementById('cam-orbit').classList.add('active'); document.getElementById('cam-top').classList.remove('active'); });
+        document.getElementById('lyr-radar').addEventListener('change', e => layer.radar = e.target.checked);
+        document.getElementById('lyr-cpa').addEventListener('change', e => layer.cpa = e.target.checked);
+        document.getElementById('lyr-label').addEventListener('change', e => layer.label = e.target.checked);
+        addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+
+        // ===== 테스트/외부 API =====
+        window._mds = {
+            get total() { return vessels.length; },
+            get detected() { return stats.detected; },
+            get identified() { return stats.identified; },
+            get accuracy() { return stats.identified ? stats.correct / stats.identified * 100 : 100; },
+            get cpaWarn() { return stats.cpaWarn; },
+            start() { running = true; }, stop() { running = false; },
+            scenario(n) { document.getElementById('scenario').value = n; initScenario(n); },
+            camera, scene, renderer,
+        };
+
+        initScenario('normal');
+        running = true;
+        animate();
+    </script>
+</body>
+
+</html>

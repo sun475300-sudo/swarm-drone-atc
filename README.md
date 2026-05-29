@@ -98,12 +98,27 @@ docker compose run --rm sdacs python main.py monte-carlo --mode quick
 ---
 ## 🖥 로컬에서 3D 시뮬레이터 실행 / Run the Simulator Locally
 
-빌드 도구 없이 정적 파일만으로 실행됩니다. 저장소 루트를 정적 서빙하면 됩니다.
+빌드 도구 없이 정적 파일만으로 실행됩니다. **Python만 있으면 더블클릭 한 번으로 실행됩니다.**
+
+### 🖱 원클릭 실행 (더블클릭)
+
+| OS | 더블클릭할 파일 |
+|----|----------------|
+| **Windows** | `run_simulator.bat` |
+| **macOS** | `run_simulator.command` (최초 1회: 우클릭 → 열기) |
+| **Linux** | `run_simulator.sh` |
+
+더블클릭하면 로컬 서버가 뜨고 브라우저가 자동으로 열립니다. 포트(8123)가 사용 중이면 다음 빈 포트를 자동으로 찾습니다. 종료는 뜬 콘솔 창에서 `Ctrl+C` (Windows는 `Terminate batch job (Y/N)?`가 나오면 `Y`).
+
+> Python이 없으면 [python.org](https://www.python.org/downloads/)에서 설치하세요(Windows는 설치 시 "Add Python to PATH" 체크).
+
+### ⌨ 명령줄 실행
 
 ```bash
-# 방법 1) 포함된 런처 (브라우저 자동 오픈, 포트 8123)
-python3 scripts/serve.py
-#   → http://localhost:8123/swarm_3d_simulator.html
+# 방법 1) 포함된 런처 (브라우저 자동 오픈, 포트 8123→사용 중이면 자동 증가)
+python3 scripts/serve.py                 # → 3D 군집 시뮬레이터
+python3 scripts/serve.py --page maritime # → 해양 소형선 감지 시뮬레이터
+python3 scripts/serve.py --page landing  # → 랜딩 페이지(모든 데모 링크)
 
 # 방법 2) npm 스크립트
 npm start            # = python3 scripts/serve.py

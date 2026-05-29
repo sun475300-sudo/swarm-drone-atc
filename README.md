@@ -671,6 +671,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-29 09:00 | `1975868` | chore: P706 quick-mode trace JSON 캐시 추가 (3 sc × 4 methods × seed=42) | results/comparison/01_corridor_crossing__cbs__42.json, results/comparison/01_corridor_crossing__orca__42.json, results/comparison/01_corridor_crossing__sdacs_hybrid__42.json, results/comparison/01_corridor_crossing__vo__42.json, results/comparison/02_dense_intersection__cbs__42.json, results/comparison/02_dense_intersection__orca__42.json … |
 | 2026-05-29 08:59 | `7503a97` | feat: P706 baseline comparison sweep + P716 CI + P718 Prometheus | .github/workflows/ci.yml, api/fastapi_server.py, results/comparison_table.csv, results/comparison_table.md, scripts/aggregate_results.py, scripts/compare_baselines.py … |
 | 2026-05-29 07:58 | `2e50ab6` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | api/fastapi_server.py, benchmarks/baselines/cbs/adapter.py, benchmarks/baselines/orca/adapter.py, benchmarks/baselines/sdacs/adapter.py, benchmarks/baselines/vo/adapter.py, chatbot/engine/llm_engine.py … |
 | 2026-05-29 07:54 | `afa66c2` | fix: code-reviewer 지적 반영 (HIGH 4 + MEDIUM/LOW) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |

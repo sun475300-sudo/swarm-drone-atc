@@ -11,6 +11,7 @@ real_time_stream_processor, multi_modal_fusion.
 import time
 
 import numpy as np
+import pytest
 
 # ── predictive_analytics_engine ───────────────────────────────────────────
 from simulation.predictive_analytics_engine import (
@@ -462,6 +463,7 @@ class TestAdaptiveCommProtocol:
 
 
 # ── collision_predictor ───────────────────────────────────────────────────
+pytest.importorskip("torch")
 
 from simulation.apf_engine.apf import APFState
 from simulation.collision_predictor import CollisionPredictor, generate_training_data

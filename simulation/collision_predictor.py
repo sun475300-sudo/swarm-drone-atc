@@ -5,9 +5,14 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
-import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader, TensorDataset
+
+try:
+    import torch
+    import torch.nn as nn
+    from torch.utils.data import DataLoader, TensorDataset
+    _TORCH_AVAILABLE = True
+except (ImportError, OSError):
+    _TORCH_AVAILABLE = False
 
 from simulation.apf_engine.apf import APFState
 
@@ -27,24 +32,25 @@ DEFAULT_BATCH = 256
 # ---------------------------------------------------------------------------
 # 모델
 # ---------------------------------------------------------------------------
-class _CollisionMLP(nn.Module):
-    """간단한 3-layer MLP: 12 → 64 → 32 → 1."""
+if _TORCH_AVAILABLE:
+    class _CollisionMLP(torch.nn.Module):
+        """간단한 3-layer MLP: 12 → 64 → 32 → 1."""
 
-    def __init__(self) -> None:
-        """인스턴스를 초기화한다."""
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(INPUT_DIM, HIDDEN_DIM),
-            nn.ReLU(),
-            nn.Linear(HIDDEN_DIM, HIDDEN_DIM // 2),
-            nn.ReLU(),
-            nn.Linear(HIDDEN_DIM // 2, 1),
-            nn.Sigmoid(),
-        )
+        def __init__(self) -> None:
+            """인스턴스를 초기화한다."""
+            super().__init__()
+            self.net = nn.Sequential(
+                nn.Linear(INPUT_DIM, HIDDEN_DIM),
+                nn.ReLU(),
+                nn.Linear(HIDDEN_DIM, HIDDEN_DIM // 2),
+                nn.ReLU(),
+                nn.Linear(HIDDEN_DIM // 2, 1),
+                nn.Sigmoid(),
+            )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """``forward`` 동작을 수행한다."""
-        return self.net(x).squeeze(-1)
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            """``forward`` 동작을 수행한다."""
+            return self.net(x).squeeze(-1)
 
 
 # ---------------------------------------------------------------------------
@@ -55,7 +61,9 @@ class CollisionPredictor:
 
     def __init__(self) -> None:
         """인스턴스를 초기화한다."""
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if not _TORCH_AVAILABLE:
+            raise RuntimeError("CollisionPredictor requires torch; install with: pip install torch")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # type: ignore[union-attr]
         self.model = _CollisionMLP().to(self.device)
 
     # -- 추론 ----------------------------------------------------------

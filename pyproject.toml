@@ -9,7 +9,7 @@ description = "군집드론 공역통제 자동화 시스템 (SDACS)"
 authors = [
     {name = "jangsunwoo", email = "sun475300@gmail.com"}
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 readme = "README.md"
 license = {text = "MIT"}
 dependencies = [
@@ -52,6 +52,7 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short -n auto --dist loadfile --cov=src --cov=simulation --cov-report=term-missing --cov-fail-under=80"
+asyncio_mode = "auto"
 markers = [
     "unit: 단위 테스트 (개별 함수/클래스)",
     "integration: 통합 테스트 (다중 모듈 상호작용)",

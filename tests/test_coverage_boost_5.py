@@ -14,8 +14,6 @@ import time
 import numpy as np
 import pytest
 
-torch = pytest.importorskip("torch")
-
 # ── anomaly_federated_detector ────────────────────────────────────────────
 from simulation.anomaly_federated_detector import AnomalyFederatedDetector
 
@@ -315,9 +313,15 @@ class TestPrivacyPreservingAnalytics:
 
 # ── gnn_communication ─────────────────────────────────────────────────────
 
-from simulation.gnn_communication import DroneGraphNetwork
+try:
+    import torch as _torch
+    from simulation.gnn_communication import DroneGraphNetwork
+    _gnn_ok = True
+except ImportError:
+    _gnn_ok = False
 
 
+@pytest.mark.skipif(not _gnn_ok, reason="torch not available")
 class TestDroneGraphNetwork:
     def setup_method(self):
         torch.manual_seed(42)

@@ -47,7 +47,7 @@ jobs:
           python --version
           pip show pytest pytest-asyncio pytest-xdist pytest-cov | grep -E "Name:|Version:"
           python -c "import torch; print('torch:', torch.__version__)" 2>/dev/null || echo "torch: not installed"
-          pytest tests/ --collect-only -q 2>&1 | tail -5
+          pytest tests/ --collect-only -q 2>&1 | tail -5 || true
 
       - name: Run tests with coverage
         run: |

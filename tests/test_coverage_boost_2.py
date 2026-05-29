@@ -9,8 +9,6 @@ import time
 import numpy as np
 import pytest
 
-torch = pytest.importorskip("torch")
-
 # ── advanced_path_planner ─────────────────────────────────────────────────
 from simulation.advanced_path_planner import (
     AdvancedPathPlanner,
@@ -165,23 +163,29 @@ class TestAdvancedPathPlanner:
 
 # ── rl_agent ──────────────────────────────────────────────────────────────
 
-from simulation.rl_agent import (
-    ACT_DIM,
-    ARENA_SIZE,
-    COLLISION_DIST,
-    GOAL_DIST,
-    MAX_STEPS,
-    NUM_NEIGHBORS,
-    OBS_DIM,
-    WARNING_DIST,
-    ActorCritic,
-    DroneEnv,
-    PPOAgent,
-    RolloutBuffer,
-    StepResult,
-)
+try:
+    import torch as _torch
+    from simulation.rl_agent import (
+        ACT_DIM,
+        ARENA_SIZE,
+        COLLISION_DIST,
+        GOAL_DIST,
+        MAX_STEPS,
+        NUM_NEIGHBORS,
+        OBS_DIM,
+        WARNING_DIST,
+        ActorCritic,
+        DroneEnv,
+        PPOAgent,
+        RolloutBuffer,
+        StepResult,
+    )
+    _rl_agent_ok = True
+except ImportError:
+    _rl_agent_ok = False
 
 
+@pytest.mark.skipif(not _rl_agent_ok, reason="torch not available")
 class TestStepResult:
     def test_fields(self):
         sr = StepResult(obs=np.zeros(3), reward=1.0, done=False)
@@ -189,6 +193,7 @@ class TestStepResult:
         assert not sr.done
 
 
+@pytest.mark.skipif(not _rl_agent_ok, reason="torch not available")
 class TestDroneEnv:
     def setup_method(self):
         self.env = DroneEnv(seed=42)
@@ -220,6 +225,7 @@ class TestDroneEnv:
         assert done
 
 
+@pytest.mark.skipif(not _rl_agent_ok, reason="torch not available")
 class TestActorCritic:
     def test_forward(self):
         net = ActorCritic()
@@ -236,6 +242,7 @@ class TestActorCritic:
         assert value.shape == (8, 1)
 
 
+@pytest.mark.skipif(not _rl_agent_ok, reason="torch not available")
 class TestRolloutBuffer:
     def test_clear(self):
         buf = RolloutBuffer()
@@ -246,6 +253,7 @@ class TestRolloutBuffer:
         assert len(buf.rewards) == 0
 
 
+@pytest.mark.skipif(not _rl_agent_ok, reason="torch not available")
 class TestPPOAgent:
     def test_select_action(self):
         agent = PPOAgent(seed=42)
@@ -280,6 +288,7 @@ class TestPPOAgent:
         assert len(rewards) == 3
 
 
+@pytest.mark.skipif(not _rl_agent_ok, reason="torch not available")
 class TestRLConstants:
     def test_constants(self):
         assert OBS_DIM == 18

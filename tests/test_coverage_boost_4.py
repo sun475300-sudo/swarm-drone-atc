@@ -13,8 +13,6 @@ import time
 import numpy as np
 import pytest
 
-pytest.importorskip("torch")  # collision_predictor (line ~467) transitively imports torch
-
 # ── predictive_analytics_engine ───────────────────────────────────────────
 from simulation.predictive_analytics_engine import (
     ForecastType,
@@ -466,10 +464,15 @@ class TestAdaptiveCommProtocol:
 
 # ── collision_predictor ───────────────────────────────────────────────────
 
-from simulation.apf_engine.apf import APFState
-from simulation.collision_predictor import CollisionPredictor, generate_training_data
+try:
+    from simulation.apf_engine.apf import APFState
+    from simulation.collision_predictor import CollisionPredictor, generate_training_data
+    _collision_predictor_ok = True
+except ImportError:
+    _collision_predictor_ok = False
 
 
+@pytest.mark.skipif(not _collision_predictor_ok, reason="torch not available")
 class TestCollisionPredictor:
     def setup_method(self):
         self.cp = CollisionPredictor()

@@ -1,0 +1,74 @@
+{{- if .Values.timescaledb.enabled }}
+---
+# TimescaleDB StatefulSet (P714)
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "sdacs.fullname" . }}-tsdb
+  labels:
+    {{- include "sdacs.labels" . | nindent 4 }}
+    component: timescaledb
+spec:
+  serviceName: {{ include "sdacs.fullname" . }}-tsdb
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "sdacs.selectorLabels" . | nindent 6 }}
+      component: timescaledb
+  template:
+    metadata:
+      labels:
+        {{- include "sdacs.selectorLabels" . | nindent 8 }}
+        component: timescaledb
+    spec:
+      containers:
+        - name: timescaledb
+          image: {{ .Values.timescaledb.image }}
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: sdacs
+            - name: POSTGRES_USER
+              value: sdacs
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secret.name }}
+                  key: POSTGRES_PASSWORD
+                  optional: false
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          livenessProbe:
+            exec:
+              command: [pg_isready, -U, sdacs]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: {{ .Values.timescaledb.storageSize }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sdacs.fullname" . }}-tsdb
+  labels:
+    {{- include "sdacs.labels" . | nindent 4 }}
+    component: timescaledb
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "sdacs.selectorLabels" . | nindent 4 }}
+    component: timescaledb
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+{{- end }}

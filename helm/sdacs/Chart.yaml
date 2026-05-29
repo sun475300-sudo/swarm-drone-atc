@@ -1,0 +1,14 @@
+apiVersion: v2
+name: sdacs
+description: Swarm Drone Airspace Control System — 군집드론 공역통제 자동화 시스템
+type: application
+version: 0.1.0
+appVersion: "1.1.0"
+keywords:
+  - drone
+  - atc
+  - swarm
+  - airspace
+home: https://github.com/sun475300-sudo/swarm-drone-atc
+maintainers:
+  - name: sun475300-sudo

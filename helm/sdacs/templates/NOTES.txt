@@ -1,0 +1,25 @@
+SDACS가 배포되었습니다.
+
+1. 서비스 접근:
+{{- if .Values.ingress.enabled }}
+   URL: http://{{ .Values.ingress.host }}/
+   API: http://{{ .Values.ingress.host }}/api
+   WS:  ws://{{ .Values.ingress.host }}/ws/telemetry
+{{- else }}
+   kubectl port-forward svc/{{ include "sdacs.fullname" . }} 8050:8050 8000:8000
+{{- end }}
+
+2. 헬스 체크:
+   curl http://{{ .Values.ingress.host }}/healthz
+
+3. Prometheus 메트릭:
+   curl http://{{ .Values.ingress.host }}/metrics
+
+4. TimescaleDB:
+{{- if .Values.timescaledb.enabled }}
+   psql -h {{ include "sdacs.fullname" . }}-tsdb -U sdacs sdacs
+   # 초기화: kubectl exec ... -- psql -U sdacs sdacs -f /init/001_init_schema.sql
+{{- else }}
+   timescaledb.enabled=false — 외부 DB 연결 필요
+   kubectl create secret generic sdacs-secret --from-literal=DB_URL=postgresql://...
+{{- end }}

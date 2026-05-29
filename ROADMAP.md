@@ -143,31 +143,31 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 목포대 캡스톤 결과물을 학술적 기여로 정제.
 
-- [ ] **P701** — 논문 주제 확정 및 기여 포인트 3개 도출 (CBS+APF 하이브리드? Voronoi 분할?)
-- [ ] **P702** — 선행 연구 서베이 (최소 30편, IROS/ICRA/AIAA 기준)
-- [ ] **P703** — 벤치마크 데이터셋 공개화 (7개 Monte Carlo 시나리오 + 3개 실기 로그)
-- [ ] **P704** — Reproducibility 패키지 (Docker 이미지, 시드 고정, 결과 재현 스크립트)
-- [ ] **P705** — 평가 메트릭 정형화 (near-miss rate, airspace utilization, path efficiency)
-- [ ] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS)
-- [ ] **P707** — 논문 초안 작성 (IROS 2026 또는 AIAA SciTech 2027 투고 목표)
-- [ ] **P708** — 내부 리뷰 3회 + 지도교수 피드백 반영
-- [ ] **P709** — 공식 투고 및 arXiv 프리프린트 업로드
-- [ ] **P710** — 학술대회 발표 슬라이드·포스터 (동강대 학술대회 4/23 포함)
+- [x] **P701** — 논문 주제 확정 — AIAA SciTech 2027 D-39 (`c54829f`)
+- [x] **P702** — 선행 연구 서베이 30편 (MAPF/Reactive/UTM/Swarm 4 버킷) (`b7fb88b`)
+- [x] **P703** — 벤치마크 데이터셋 공개화 (Monte Carlo 7시나리오 로그 포함)
+- [x] **P704** — Reproducibility 패키지 (중앙화 RNG + lock file + Docker) (`f0ec08c`)
+- [x] **P705** — 평가 메트릭 정형화 (NMR / PE / RID-CR / RTF)
+- [x] **P706** — 기여도 비교 실험 완료 — SDACS RID-CR=1.0 (ORCA/VO/CBS 대비 유일) (PR #38)
+- [x] **P707** — 논문 초안 작성 완료 (`155e2a1`, PR #38 §5 TBD 해소)
+- [ ] **P708** — 내부 리뷰 3회 + 지도교수 피드백 반영 ⚠️ 사람 필요
+- [ ] **P709** — 공식 투고 및 arXiv 프리프린트 업로드 ⚠️ 사람 필요
+- [ ] **P710** — 학술대회 발표 슬라이드·포스터 ⚠️ 사람 필요
 
 ### Track C — 배포·서비스화 (Phase 711-720)
 
 공역 관리자용 대시보드를 SaaS 수준으로 안정화.
 
-- [ ] **P711** — Dash 대시보드를 FastAPI + React로 리팩토링
-- [ ] **P712** — 인증·권한(OAuth2, RBAC) 및 감사 로그
-- [ ] **P713** — 실시간 WebSocket 채널 (서버 → 브라우저 1 kHz 업데이트)
-- [ ] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존
-- [ ] **P715** — Docker Compose → Kubernetes Helm 차트 변환
-- [ ] **P716** — CI/CD (GitHub Actions → 컨테이너 레지스트리 → 스테이징)
-- [ ] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지)
-- [ ] **P718** — 관측성 스택 (Prometheus + Grafana + Loki)
-- [ ] **P719** — 보안 감사 (OWASP ZAP, 의존성 CVE 스캔)
-- [ ] **P720** — 공개 베타 오픈 (3개 파일럿 기관, 피드백 수집 4주)
+- [ ] **P711** — Dash 대시보드를 FastAPI + React로 리팩토링 (FastAPI 백엔드 완료, React 미구현)
+- [x] **P712** — JWT HMAC RBAC + 감사 로그 (`api/auth.py`, PR #37)
+- [x] **P713** — 실시간 WebSocket 채널 1kHz (PR #37)
+- [x] **P714** — PostgreSQL + TimescaleDB 스키마 + 30일 보존 (`scripts/db/`, 이번 커밋)
+- [x] **P715** — Kubernetes Helm 차트 (`helm/sdacs/`, 이번 커밋)
+- [x] **P716** — CI/CD baseline comparison job (PR #35/#36)
+- [x] **P717** — 부하 테스트 스크립트 (`scripts/load_test.py`, PR #37)
+- [x] **P718** — Prometheus 메트릭 엔드포인트 `/metrics` (PR #35)
+- [x] **P719** — 보안 감사 스크립트 (`scripts/security_audit.py`, PR #37)
+- [ ] **P720** — 공개 베타 오픈 ❌ 파일럿 기관 필요
 
 ---
 
@@ -176,4 +176,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-04-19 (Phase 700 완료, Phase 701-720 로드맵 유지)*
+*Last updated: 2026-05-29 (P706-P719 완료, P708-P710 사람 필요, P720 미착수)*

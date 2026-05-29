@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 04:15 | `b3e36be` | feat: smoke_sim 테스트 확장 (16건) + ROADMAP Track A/B/C 현황 갱신 | CHANGELOG.md, ROADMAP.md, tests/e2e/smoke_sim.mjs |
 | 2026-05-30 04:14 | `501fb87` | Merge PR #34: DnI 식별 정확도 모델 + README 라이브 사이트 링크 | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
 | 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |

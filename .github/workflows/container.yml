@@ -20,6 +20,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      actions: write  # GHA cache 쓰기 (cache-to: type=gha)
 
     steps:
       - name: Checkout
@@ -57,7 +58,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: ${{ github.event_name != 'pull_request' && 'type=gha,mode=max' || '' }}
 
       - name: Run Trivy vulnerability scan
         uses: aquasecurity/trivy-action@master

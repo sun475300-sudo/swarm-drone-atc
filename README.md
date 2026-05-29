@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-29 19:44 | `04ad64a` | fix: cmd_benchmark JSON 출력에 표준 메트릭 키 추가 (NMR/MSD/PE 등 — aggregate.py 호환) | main.py |
 | 2026-05-29 19:41 | `b0e1a1c` | docs: benchmarks/scenarios/_template/ 추가 (신규 시나리오 생성 가이드) | benchmarks/scenarios/_template/description.md, benchmarks/scenarios/_template/manifest.yaml |
 | 2026-05-29 19:40 | `b777f55` | fix: Dockerfile.reproducible 구식 시나리오명/방법명 교정 (light_traffic_10→01_corridor_crossing) | Dockerfile.reproducible |
 | 2026-05-29 19:39 | `fa6f3af` | fix: aggregate.py 메트릭 키 교정 (near_miss_rate→NMR 등) + parquet 엔진 없을 때 CSV 폴백 | scripts/reproduce/aggregate.py |

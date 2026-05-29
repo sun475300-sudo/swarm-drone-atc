@@ -96,6 +96,28 @@ docker compose run --rm sdacs python main.py monte-carlo --mode quick
 > `docker compose down` 후에도 `./results/` 디렉터리의 산출물은 호스트에 그대로 남습니다. 설정은 읽기 전용으로 마운트되므로 컨테이너가 호스트 파일을 덮어쓰지 않습니다.
 
 ---
+## 🖥 로컬에서 3D 시뮬레이터 실행 / Run the Simulator Locally
+
+빌드 도구 없이 정적 파일만으로 실행됩니다. 저장소 루트를 정적 서빙하면 됩니다.
+
+```bash
+# 방법 1) 포함된 런처 (브라우저 자동 오픈, 포트 8123)
+python3 scripts/serve.py
+#   → http://localhost:8123/swarm_3d_simulator.html
+
+# 방법 2) npm 스크립트
+npm start            # = python3 scripts/serve.py
+npm run smoke        # 헤드리스 스모크 테스트(먼저 npm run pw:install 후, 서버 실행 중)
+
+# 방법 3) 한 줄 (파이썬 표준 서버)
+python3 -m http.server 8123   # → http://localhost:8123/swarm_3d_simulator.html
+```
+
+> **오프라인 실행**: 시뮬레이터는 기본적으로 three.js를 unpkg CDN에서 로드합니다(인터넷 필요). 인터넷 없이 쓰려면 `bash scripts/vendor_three.sh`로 three.js를 `vendor/`에 받은 뒤, 안내된 대로 `swarm_3d_simulator.html`의 importmap을 로컬 경로로 교체하세요.
+>
+> ⚠️ `file://`로 직접 열면 ES module importmap이 동작하지 않으니 반드시 HTTP 서버로 여세요.
+
+---
 ## What is SDACS? / SDACS란?
 
 > **"레이더를 땅에 설치하는 대신, 드론 자체가 레이더가 되면 어떨까?"**

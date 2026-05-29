@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 02:45 | `38a6e05` | fix: polyglot path fix (5 more test files) + battery_predictor bool return | simulation/battery_predictor.py, tests/test_phase521_540.py, tests/test_phase541_560.py, tests/test_phase611_630.py, tests/test_phase631_640.py, tests/test_phase641_660.py |
 | 2026-05-30 02:43 | `e63915e` | fix: CI green — torch importorskip, polyglot paths, asyncio, Python 3.11+ matrix | .github/workflows/ci.yml, pyproject.toml, simulation/collision_predictor.py, tests/test_coverage_boost_2.py, tests/test_coverage_boost_4.py, tests/test_coverage_boost_5.py … |
 | 2026-05-30 02:24 | `915973b` | feat: P706 비교 실험 결과 + P710 IROS2026 포스터 + 논문 §5 결과 채움 | CHANGELOG.md, ROADMAP.md, docs/IROS2026_poster.html, docs/paper/PAPER_DRAFT.md, results/p706_comparison_3sc_5seed.csv, results/p706_summary.json |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |

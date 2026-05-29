@@ -7,6 +7,8 @@ causal_inference_engine, continuous_learning_engine, federated_edge_computer,
 distributed_training_coordinator, swarm_collaborative_perception,
 real_time_stream_processor, multi_modal_fusion.
 """
+import pytest
+pytest.importorskip("torch")
 
 import time
 

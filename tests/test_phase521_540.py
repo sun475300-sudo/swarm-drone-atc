@@ -16,250 +16,250 @@ def open_utf8(path, *args, **kwargs):
 
 class TestPhase521ZigQuantumComm:
     def test_file_exists(self):
-        assert os.path.exists("src/zig/quantum_comm.zig")
+        assert os.path.exists("archive/polyglot/zig/quantum_comm.zig")
 
     def test_has_content(self):
-        with open_utf8("src/zig/quantum_comm.zig") as f:
+        with open_utf8("archive/polyglot/zig/quantum_comm.zig") as f:
             content = f.read()
         assert "BB84" in content or "qubit" in content.lower()
 
     def test_has_prng(self):
-        with open_utf8("src/zig/quantum_comm.zig") as f:
+        with open_utf8("archive/polyglot/zig/quantum_comm.zig") as f:
             content = f.read()
         assert "PRNG" in content or "prng" in content
 
     def test_line_count(self):
-        with open_utf8("src/zig/quantum_comm.zig") as f:
+        with open_utf8("archive/polyglot/zig/quantum_comm.zig") as f:
             lines = f.readlines()
         assert len(lines) > 50
 
     def test_phase_marker(self):
-        with open_utf8("src/zig/quantum_comm.zig") as f:
+        with open_utf8("archive/polyglot/zig/quantum_comm.zig") as f:
             content = f.read()
         assert "521" in content
 
 
 class TestPhase522RustEdgeML:
     def test_file_exists(self):
-        assert os.path.exists("src/rust/edge_ml_engine.rs")
+        assert os.path.exists("archive/polyglot/rust/edge_ml_engine.rs")
 
     def test_has_quantize(self):
-        with open_utf8("src/rust/edge_ml_engine.rs") as f:
+        with open_utf8("archive/polyglot/rust/edge_ml_engine.rs") as f:
             content = f.read()
         assert "quantize" in content.lower() or "int8" in content.lower()
 
     def test_has_inference(self):
-        with open_utf8("src/rust/edge_ml_engine.rs") as f:
+        with open_utf8("archive/polyglot/rust/edge_ml_engine.rs") as f:
             content = f.read()
         assert "infer" in content.lower()
 
     def test_line_count(self):
-        with open_utf8("src/rust/edge_ml_engine.rs") as f:
+        with open_utf8("archive/polyglot/rust/edge_ml_engine.rs") as f:
             lines = f.readlines()
         assert len(lines) > 50
 
     def test_phase_marker(self):
-        with open_utf8("src/rust/edge_ml_engine.rs") as f:
+        with open_utf8("archive/polyglot/rust/edge_ml_engine.rs") as f:
             content = f.read()
         assert "522" in content
 
 
 class TestPhase523GoBlockchain:
     def test_file_exists(self):
-        assert os.path.exists("src/go/swarm_blockchain.go")
+        assert os.path.exists("archive/polyglot/go/swarm_blockchain.go")
 
     def test_has_pbft(self):
-        with open_utf8("src/go/swarm_blockchain.go") as f:
+        with open_utf8("archive/polyglot/go/swarm_blockchain.go") as f:
             content = f.read()
         assert "PBFT" in content or "consensus" in content.lower()
 
     def test_has_hash(self):
-        with open_utf8("src/go/swarm_blockchain.go") as f:
+        with open_utf8("archive/polyglot/go/swarm_blockchain.go") as f:
             content = f.read()
         assert "sha256" in content.lower() or "hash" in content.lower()
 
     def test_line_count(self):
-        with open_utf8("src/go/swarm_blockchain.go") as f:
+        with open_utf8("archive/polyglot/go/swarm_blockchain.go") as f:
             lines = f.readlines()
         assert len(lines) > 50
 
     def test_phase_marker(self):
-        with open_utf8("src/go/swarm_blockchain.go") as f:
+        with open_utf8("archive/polyglot/go/swarm_blockchain.go") as f:
             content = f.read()
         assert "523" in content
 
 
 class TestPhase524CppFormationGAN:
     def test_file_exists(self):
-        assert os.path.exists("src/cpp/formation_gan_engine.cpp")
+        assert os.path.exists("archive/polyglot/cpp/formation_gan_engine.cpp")
 
     def test_has_generator(self):
-        with open_utf8("src/cpp/formation_gan_engine.cpp") as f:
+        with open_utf8("archive/polyglot/cpp/formation_gan_engine.cpp") as f:
             content = f.read()
         assert "Generator" in content or "generator" in content
 
     def test_has_discriminator(self):
-        with open_utf8("src/cpp/formation_gan_engine.cpp") as f:
+        with open_utf8("archive/polyglot/cpp/formation_gan_engine.cpp") as f:
             content = f.read()
         assert "Discriminator" in content or "discriminator" in content
 
     def test_line_count(self):
-        with open_utf8("src/cpp/formation_gan_engine.cpp") as f:
+        with open_utf8("archive/polyglot/cpp/formation_gan_engine.cpp") as f:
             lines = f.readlines()
         assert len(lines) > 50
 
     def test_phase_marker(self):
-        with open_utf8("src/cpp/formation_gan_engine.cpp") as f:
+        with open_utf8("archive/polyglot/cpp/formation_gan_engine.cpp") as f:
             content = f.read()
         assert "524" in content
 
 
 class TestPhase525KotlinRouting:
     def test_file_exists(self):
-        assert os.path.exists("src/kotlin/PredictiveRouting.kt")
+        assert os.path.exists("archive/polyglot/kotlin/PredictiveRouting.kt")
 
     def test_has_dijkstra(self):
-        with open_utf8("src/kotlin/PredictiveRouting.kt") as f:
+        with open_utf8("archive/polyglot/kotlin/PredictiveRouting.kt") as f:
             content = f.read()
         assert "dijkstra" in content.lower() or "Dijkstra" in content
 
     def test_has_traffic(self):
-        with open_utf8("src/kotlin/PredictiveRouting.kt") as f:
+        with open_utf8("archive/polyglot/kotlin/PredictiveRouting.kt") as f:
             content = f.read()
         assert "traffic" in content.lower() or "Traffic" in content
 
     def test_line_count(self):
-        with open_utf8("src/kotlin/PredictiveRouting.kt") as f:
+        with open_utf8("archive/polyglot/kotlin/PredictiveRouting.kt") as f:
             lines = f.readlines()
         assert len(lines) > 50
 
     def test_phase_marker(self):
-        with open_utf8("src/kotlin/PredictiveRouting.kt") as f:
+        with open_utf8("archive/polyglot/kotlin/PredictiveRouting.kt") as f:
             content = f.read()
         assert "525" in content
 
 
 class TestPhase526NimNav:
     def test_file_exists(self):
-        assert os.path.exists("src/nim/fault_tolerant_nav.nim")
+        assert os.path.exists("archive/polyglot/nim/fault_tolerant_nav.nim")
 
     def test_has_ekf(self):
-        with open_utf8("src/nim/fault_tolerant_nav.nim") as f:
+        with open_utf8("archive/polyglot/nim/fault_tolerant_nav.nim") as f:
             content = f.read()
         assert "EKF" in content or "kalman" in content.lower()
 
     def test_has_sensor(self):
-        with open_utf8("src/nim/fault_tolerant_nav.nim") as f:
+        with open_utf8("archive/polyglot/nim/fault_tolerant_nav.nim") as f:
             content = f.read()
         assert "Sensor" in content or "sensor" in content
 
     def test_line_count(self):
-        with open_utf8("src/nim/fault_tolerant_nav.nim") as f:
+        with open_utf8("archive/polyglot/nim/fault_tolerant_nav.nim") as f:
             lines = f.readlines()
         assert len(lines) > 50
 
     def test_phase_marker(self):
-        with open_utf8("src/nim/fault_tolerant_nav.nim") as f:
+        with open_utf8("archive/polyglot/nim/fault_tolerant_nav.nim") as f:
             content = f.read()
         assert "526" in content
 
 
 class TestPhase527OcamlDiplomacy:
     def test_file_exists(self):
-        assert os.path.exists("src/ocaml/swarm_diplomacy.ml")
+        assert os.path.exists("archive/polyglot/ocaml/swarm_diplomacy.ml")
 
     def test_has_nash(self):
-        with open_utf8("src/ocaml/swarm_diplomacy.ml") as f:
+        with open_utf8("archive/polyglot/ocaml/swarm_diplomacy.ml") as f:
             content = f.read()
         assert "nash" in content.lower() or "Nash" in content
 
     def test_has_faction(self):
-        with open_utf8("src/ocaml/swarm_diplomacy.ml") as f:
+        with open_utf8("archive/polyglot/ocaml/swarm_diplomacy.ml") as f:
             content = f.read()
         assert "faction" in content
 
     def test_line_count(self):
-        with open_utf8("src/ocaml/swarm_diplomacy.ml") as f:
+        with open_utf8("archive/polyglot/ocaml/swarm_diplomacy.ml") as f:
             lines = f.readlines()
         assert len(lines) > 50
 
     def test_phase_marker(self):
-        with open_utf8("src/ocaml/swarm_diplomacy.ml") as f:
+        with open_utf8("archive/polyglot/ocaml/swarm_diplomacy.ml") as f:
             content = f.read()
         assert "527" in content
 
 
 class TestPhase528FsharpPerception:
     def test_file_exists(self):
-        assert os.path.exists("src/fsharp/CooperativePerception.fs")
+        assert os.path.exists("archive/polyglot/fsharp/CooperativePerception.fs")
 
     def test_has_fusion(self):
-        with open_utf8("src/fsharp/CooperativePerception.fs") as f:
+        with open_utf8("archive/polyglot/fsharp/CooperativePerception.fs") as f:
             content = f.read()
         assert "fusion" in content.lower() or "Fuse" in content
 
     def test_has_detection(self):
-        with open_utf8("src/fsharp/CooperativePerception.fs") as f:
+        with open_utf8("archive/polyglot/fsharp/CooperativePerception.fs") as f:
             content = f.read()
         assert "Detection" in content
 
     def test_line_count(self):
-        with open_utf8("src/fsharp/CooperativePerception.fs") as f:
+        with open_utf8("archive/polyglot/fsharp/CooperativePerception.fs") as f:
             lines = f.readlines()
         assert len(lines) > 50
 
     def test_phase_marker(self):
-        with open_utf8("src/fsharp/CooperativePerception.fs") as f:
+        with open_utf8("archive/polyglot/fsharp/CooperativePerception.fs") as f:
             content = f.read()
         assert "528" in content
 
 
 class TestPhase529SwiftSatellite:
     def test_file_exists(self):
-        assert os.path.exists("src/swift/SatelliteRelay.swift")
+        assert os.path.exists("archive/polyglot/swift/SatelliteRelay.swift")
 
     def test_has_orbital(self):
-        with open_utf8("src/swift/SatelliteRelay.swift") as f:
+        with open_utf8("archive/polyglot/swift/SatelliteRelay.swift") as f:
             content = f.read()
         assert "orbital" in content.lower() or "Satellite" in content
 
     def test_has_handover(self):
-        with open_utf8("src/swift/SatelliteRelay.swift") as f:
+        with open_utf8("archive/polyglot/swift/SatelliteRelay.swift") as f:
             content = f.read()
         assert "handover" in content.lower()
 
     def test_line_count(self):
-        with open_utf8("src/swift/SatelliteRelay.swift") as f:
+        with open_utf8("archive/polyglot/swift/SatelliteRelay.swift") as f:
             lines = f.readlines()
         assert len(lines) > 50
 
     def test_phase_marker(self):
-        with open_utf8("src/swift/SatelliteRelay.swift") as f:
+        with open_utf8("archive/polyglot/swift/SatelliteRelay.swift") as f:
             content = f.read()
         assert "529" in content
 
 
 class TestPhase530TsPassport:
     def test_file_exists(self):
-        assert os.path.exists("src/ts/drone_digital_passport.ts")
+        assert os.path.exists("archive/polyglot/ts/drone_digital_passport.ts")
 
     def test_has_certificate(self):
-        with open_utf8("src/ts/drone_digital_passport.ts") as f:
+        with open_utf8("archive/polyglot/ts/drone_digital_passport.ts") as f:
             content = f.read()
         assert "Certificate" in content
 
     def test_has_passport(self):
-        with open_utf8("src/ts/drone_digital_passport.ts") as f:
+        with open_utf8("archive/polyglot/ts/drone_digital_passport.ts") as f:
             content = f.read()
         assert "Passport" in content
 
     def test_line_count(self):
-        with open_utf8("src/ts/drone_digital_passport.ts") as f:
+        with open_utf8("archive/polyglot/ts/drone_digital_passport.ts") as f:
             lines = f.readlines()
         assert len(lines) > 50
 
     def test_phase_marker(self):
-        with open_utf8("src/ts/drone_digital_passport.ts") as f:
+        with open_utf8("archive/polyglot/ts/drone_digital_passport.ts") as f:
             content = f.read()
         assert "530" in content
 

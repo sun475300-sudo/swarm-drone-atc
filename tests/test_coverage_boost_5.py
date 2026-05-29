@@ -8,6 +8,8 @@ emergency_landing_system, data_encryption_system, fault_diagnosis_system,
 sensor_fusion_system, resource_allocation_system, path_smoothing_system,
 lane_detection_system, secure_messaging_protocol, plus remaining small modules.
 """
+import pytest
+pytest.importorskip("torch")
 
 import time
 

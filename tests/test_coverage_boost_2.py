@@ -3,6 +3,8 @@ Coverage boost tests - Phase 2.
 Targets 0% coverage modules: advanced_path_planner, rl_agent, autoML_pipeline,
 ai_inference_engine, edge_cloud_orchestrator, federated_learning_v3.
 """
+import pytest
+pytest.importorskip("torch")
 
 import time
 

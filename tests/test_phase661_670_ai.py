@@ -1,4 +1,6 @@
 """Phase 661-670: Advanced AI 모듈 테스트."""
+import pytest
+pytest.importorskip("torch")
 
 import numpy as np
 import torch

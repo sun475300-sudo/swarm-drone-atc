@@ -400,8 +400,8 @@ class AirspaceController:
             paths = cbs_plan(starts, goals, grid_bounds,
                              max_ct_nodes=ct_budget,
                              max_astars=self._cbs_max_astars)
-        except Exception:
-            logger.warning("CBS planning failed for batch of %d drones", len(batch))
+        except Exception as exc:
+            logger.warning("CBS planning failed for batch of %d drones: %s", len(batch), exc)
             return {}
 
         result: dict[str, list] = {}
@@ -711,8 +711,8 @@ class AirspaceController:
             try:
                 self._voronoi_cells = compute_voronoi_partition(positions, bounds_dict)
                 self._apply_density_based_separation()
-            except Exception:
-                logger.warning("Voronoi partition failed with %d drones", len(positions))
+            except Exception as exc:
+                logger.warning("Voronoi partition failed with %d drones: %s", len(positions), exc)
 
     def _apply_density_based_separation(self) -> None:
         """

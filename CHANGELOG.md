@@ -3,6 +3,29 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased] - 2026-05-29
+
+### 추가 (feat)
+
+- DnI(Drone & Identification) 식별 정확도 모델 — 클래스별 정확도 + 오분류 행렬 (`a5277c3`, PR #34)
+- 분석 차트에 충돌·근접 이벤트 마커 표시 (Bundle 8 / C) (`baf0b84`, PR #33)
+- 공역 레이어 제어 패널 + CPA/Advisory 오버레이 (Phase 1) (`f9f843c`, PR #33)
+- 외부 탐지·식별(조류·비협조 드론) + ATC 통제드론 쿼드콥터 비주얼 (`5af1f16`, PR #33)
+- 충돌위험 히트맵 + `resetConflictViz` 로드 크래시 수정 (Bundle 9) (`a0eefaf`, PR #33)
+- `docs/REGRESSION_NOTES_2026-04-26.md` 신규 (PR #19 내용 반영)
+
+### 수정 (fix)
+
+- code-reviewer HIGH 4건 + MEDIUM/LOW 지적 반영 (`afa66c2`, PR #33)
+- `docs/index.html` 데모 CTA 링크 v2 → 메인 시뮬레이터(simulator.html)로 교체 (`a315bdc`, PR #33)
+
+### 문서 (docs)
+
+- README 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 목록 갱신 (`e86c4ae`, PR #34)
+- README 테스트 수 동기화 (3,481+ → 3,973+)
+
+---
+
 ## [Unreleased] - 2026-05-03
 
 ### 추가 (feat)

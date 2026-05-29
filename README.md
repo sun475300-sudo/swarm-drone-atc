@@ -147,7 +147,7 @@ SDACS는 이 단순한 발상에서 출발했습니다. 20대의 관제 드론�
 | **Scenario Coverage** | **63 scenarios** | 7대 광역시 도시환경 + 극한 기상 + 침입 + GPS 재밍 + 대규모 배송 |
 | **Concurrent Drones** | **100+** | 20대: 충돌 0, 50대: avg 15, 100대: avg 29 |
 | **Deployment Time** | **30 min** | No fixed infrastructure required |
-| **Test Coverage** | **3,481+ tests** | Automated pytest suite across 590+ modules |
+| **Test Coverage** | **3,973+ tests** | Automated pytest suite across 590+ modules |
 <div align="center">
 <img src="docs/images/imgur/wHuMIfM.png" alt="기존 방식 대비 SDACS 성능 비교" width="750"/>
 <br/><sub>기존 Rule-based Static ATC vs SDACS Swarm Autonomous — 주요 KPI 비교</sub>
@@ -355,7 +355,7 @@ swarm-drone-atc/
 │   ├── simulator_3d.py              # Dash 3D real-time dashboard
 │   └── advanced_dashboard.py        # Supplementary charts
 │
-├── tests/                           # 3,481+ automated tests
+├── tests/                           # 3,973+ automated tests
 │   ├── test_simulator_scenarios.py
 │   ├── test_phase*.py
 │   └── ...
@@ -671,7 +671,7 @@ MIT License — Developed for academic and educational purposes.
 <div align="center">
 **Made with dedication by Sunwoo Jang**
 **장선우 · 국립 목포대학교 드론기계공학과**
-**Phase 660 · 590+ Modules · 3,481+ Tests Collected · 50+ Languages · 120K+ LOC**
+**Phase 660 · 590+ Modules · 3,973+ Tests Collected · 50+ Languages · 120K+ LOC**
 </div>
 
 ## 변경 이력 (Changelog)

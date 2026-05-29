@@ -11,7 +11,7 @@
 1. **One metric, one formula.** Ambiguity kills reproducibility.
 2. **All metrics are sign-consistent:** higher = better, unless marked `(lower better)`.
 3. **All metrics have units.** Dimensionless ratios use `[1]`.
-4. **All metrics come with a computation function** (src/analytics/metrics.py — TODO).
+4. **All metrics come with a computation function** (`src/analytics/metrics.py` — implemented as `Evaluator.evaluate()`).
 5. **Report mean ± 95% CI over ≥ 30 Monte Carlo seeds.**
 
 ---

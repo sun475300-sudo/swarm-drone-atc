@@ -11,6 +11,15 @@ import pytest
 import simulation.ws_bridge as ws_bridge
 from simulation.ws_bridge import _run_simulation, main
 
+
+def _run_in_new_loop(coro):
+    """Run coro in a fresh event loop and close it afterwards (avoids ResourceWarning)."""
+    loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(coro)
+    finally:
+        loop.close()
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -84,7 +93,7 @@ def test_main_parses_default_args(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(ws_bridge, "_run_simulation", fake_run)
     monkeypatch.setattr(sys, "argv", ["ws_bridge"])
 
-    with patch("asyncio.run", lambda coro: asyncio.new_event_loop().run_until_complete(coro)):
+    with patch("asyncio.run", _run_in_new_loop):
         main()
 
     assert captured == [(50, 42, 8765)]
@@ -100,7 +109,7 @@ def test_main_parses_custom_args(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(ws_bridge, "_run_simulation", fake_run)
     monkeypatch.setattr(sys, "argv", ["ws_bridge", "--drones", "100", "--seed", "7", "--port", "9000"])
 
-    with patch("asyncio.run", lambda coro: asyncio.new_event_loop().run_until_complete(coro)):
+    with patch("asyncio.run", _run_in_new_loop):
         main()
 
     assert captured == [(100, 7, 9000)]

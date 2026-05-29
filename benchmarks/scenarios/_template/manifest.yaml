@@ -1,0 +1,25 @@
+# Scenario template — copy this directory and edit fields below.
+id: "NN_scenario_name"
+name: "Human-Readable Scenario Name"
+version: "1.0.0"
+category: "standard"       # standard | stress | adversarial
+difficulty: "medium"       # easy | medium | hard
+
+duration_seconds: 180
+dt_seconds: 1.0
+
+airspace:
+  bounds_m:
+    x: [0, 1000]
+    y: [0, 1000]
+    z: [50, 200]
+  volume_m3: 150_000_000
+  capacity_max_agents: 10
+
+agents:
+  count: 5
+  kinematics:
+    max_speed_mps: 15.0
+    max_accel_mps2: 3.0
+
+seed_default: 42

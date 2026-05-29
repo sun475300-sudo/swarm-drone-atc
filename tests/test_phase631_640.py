@@ -11,31 +11,31 @@ BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class TestPhase631639Files:
     def test_631_julia(self):
-        assert os.path.exists(os.path.join(BASE, "src/julia/swarm_ode_solver.jl"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/julia/swarm_ode_solver.jl"))
 
     def test_632_scala(self):
-        assert os.path.exists(os.path.join(BASE, "src/scala/stream_processor.scala"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/scala/stream_processor.scala"))
 
     def test_633_elixir(self):
-        assert os.path.exists(os.path.join(BASE, "src/elixir/fault_supervisor.ex"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/elixir/fault_supervisor.ex"))
 
     def test_634_dart(self):
-        assert os.path.exists(os.path.join(BASE, "src/dart/flutter_dashboard.dart"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/dart/flutter_dashboard.dart"))
 
     def test_635_lua(self):
-        assert os.path.exists(os.path.join(BASE, "src/lua/config_scripting.lua"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/lua/config_scripting.lua"))
 
     def test_636_ruby(self):
-        assert os.path.exists(os.path.join(BASE, "src/ruby/devops_pipeline.rb"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/ruby/devops_pipeline.rb"))
 
     def test_637_clojure(self):
-        assert os.path.exists(os.path.join(BASE, "src/clojure/event_sourcing_v2.clj"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/clojure/event_sourcing_v2.clj"))
 
     def test_638_erlang(self):
-        assert os.path.exists(os.path.join(BASE, "src/erlang/distributed_consensus.erl"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/erlang/distributed_consensus.erl"))
 
     def test_639_fortran(self):
-        assert os.path.exists(os.path.join(BASE, "src/fortran/cfd_wind_tunnel.f90"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/fortran/cfd_wind_tunnel.f90"))
 
 
 class TestPhase640Benchmark:

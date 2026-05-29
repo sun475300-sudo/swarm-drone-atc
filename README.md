@@ -714,6 +714,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-29 20:09 | `e4172d3` | fix: test_ws_bridge가 Python 3.10에서 깨지던 asyncio 루프 패턴 교체 | tests/test_ws_bridge.py |
 | 2026-05-29 19:38 | `01495f7` | fix: BatteryPredictor.should_rtl가 numpy bool 대신 파이썬 bool 반환 | simulation/battery_predictor.py |
 | 2026-05-29 19:29 | `3c63e82` | fix: 누락 폴리글랏 레퍼런스 파일 전체 복원 (118개 추가, 총 147) | src/ada/safety_critical.adb, src/asm/crc32_checksum.asm, src/clojure/event_stream.clj, src/cpp/apf_simd.cpp, src/cpp/formation_gan_engine.cpp, src/cpp/hil_physics.cpp … |
 | 2026-05-29 19:08 | `fafe3cb` | fix: 누락된 폴리글랏 참조 파일 29개 복원 (CI test 잡 그린화) | src/ada/tmr_voter_v2.adb, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj, src/cobol/legacy_atc_bridge.cob, src/cpp/particle_filter.cpp, src/dart/flutter_dashboard.dart … |

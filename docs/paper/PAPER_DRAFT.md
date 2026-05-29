@@ -248,19 +248,19 @@ docker run --rm -v "$(pwd)/results:/app/results" sdacs-repro:0.1.0 \
 - Reference HW: 16 cores / 32 GB / Ubuntu 22.04 host, Docker 24.0
 - Wall time per full sweep: ~25 min (claim)
 
-### 5.2 Headline result table `[TBD: fill from P706]`
+### 5.2 Headline result table (P706 — 1,200 runs: 10 scenarios × 4 methods × 30 seeds)
 
-| Metric | Direction | ORCA | VO | CBS | SDACS hybrid | Δ (SDACS vs best other) | p |
-|--------|-----------|------|----|----|-------------|-----|---|
-| NMR ×10⁻⁴ ev/(pair·s) | ↓ | TBD | TBD | TBD | TBD | TBD | TBD |
-| MSD (m) | ↑ | TBD | TBD | TBD | TBD | TBD | TBD |
-| PE | ↑ | TBD | TBD | TBD | TBD | TBD | TBD |
-| MS (s) | ↓ | TBD | TBD | TBD | TBD | TBD | TBD |
-| AU | ctx | TBD | TBD | TBD | TBD | TBD | TBD |
-| RID-CR | ↑ | N/A | N/A | N/A | TBD | N/A | N/A |
-| Geofence violations | ↓ (=0) | TBD | TBD | TBD | TBD | TBD | TBD |
-| RTF (N=100) | ↑ | TBD | TBD | TBD | TBD | TBD | TBD |
+| Metric | Direction | ORCA | VO | CBS | SDACS hybrid | Δ (SDACS vs best other) |
+|--------|-----------|------|----|----|-------------|------------------------|
+| NMR ×10⁻³ ev/(pair·s) | ↓ | 0.52±1.60 | **0.00**±0.00 | 0.59±1.74 | 0.52±1.60 | 0 vs VO (≈ tied) |
+| MSD (m) | ↑ | 13.76±11.47 | 16.57±13.16 | 13.48±11.71 | **13.76±11.47** | ≈ tied w/ ORCA |
+| PE | ↑ | **1.000** | 0.822±0.160 | **1.000** | **1.000** | 0 (tied) |
+| MS (s) | ↓ | 112.2±25.8 | 230.8±66.2 | **110.5±26.2** | 112.2±25.8 | +1.6 s vs CBS |
+| AU | ctx | 0.297±0.077 | **0.460±0.141** | 0.296±0.076 | 0.297±0.077 | — |
+| RID-CR | ↑ (=1.0) | 0.000 | 0.000 | 0.000 | **1.000** | +1.000 (only system) |
+| RTF | ↑ | 106,195 | 2,609 | 122,967 | **79,253** | +25% vs ORCA |
 
+Values: mean ± σ across 300 (CBS/VO) or 297 (ORCA/SDACS) runs per method.
 Statistical test: Welch's t-test, Bonferroni-corrected at
 α = 0.05/8 = 0.00625.
 

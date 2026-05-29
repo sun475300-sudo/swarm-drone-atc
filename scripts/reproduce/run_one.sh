@@ -4,12 +4,12 @@
 # Usage:
 #   scripts/reproduce/run_one.sh <scenario_id> <method> <seed>
 # Example:
-#   scripts/reproduce/run_one.sh light_traffic_10 hybrid 42
+#   scripts/reproduce/run_one.sh 01_corridor_crossing sdacs_hybrid 42
 
 set -euo pipefail
 
-SCENARIO="${1:-light_traffic_10}"
-METHOD="${2:-hybrid}"
+SCENARIO="${1:-01_corridor_crossing}"
+METHOD="${2:-sdacs_hybrid}"
 SEED="${3:-0}"
 
 OUT_DIR="results/${SCENARIO}/${METHOD}"
@@ -33,5 +33,5 @@ python -c "
 import json, sys
 with open('${OUT_FILE}') as f:
     r = json.load(f)
-print(f\"[done] ${SCENARIO} ${METHOD} seed=${SEED} nmr={r.get('near_miss_rate','?')} ms={r.get('makespan_s','?')}\")
+print(f\"[done] ${SCENARIO} ${METHOD} seed=${SEED} NMR={r.get('NMR','?')} MS_s={r.get('MS_s','?')} RID_CR={r.get('RID_CR','?')}\")
 "

@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 07:25 | `783782d` | fix: Docker 빌드 실패 수정 — libgl1-mesa-glx→libgl1, PR cache-to 비활성화 | .github/workflows/container.yml, Dockerfile |
 | 2026-05-30 07:22 | `8eda367` | feat: P712/P714-P716/P718-P719 Track C 배포 인프라 구현 | .github/workflows/container.yml, .github/workflows/security.yml, ROADMAP.md, api/auth.py, api/fastapi_server.py, deploy/observability/docker-compose.yml … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
 | 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |

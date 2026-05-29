@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 04:50 | `3cdf27c` | fix: 나머지 4개 폴리글랏 테스트 경로 수정 — src/ → archive/polyglot/ | tests/test_phase541_560.py, tests/test_phase571_600.py, tests/test_phase631_640.py, tests/test_phase641_660.py |
 | 2026-05-30 04:39 | `9ce3d64` | fix: 다국어(폴리글랏) 테스트 경로 수정 — src/ → archive/polyglot/ | tests/test_phase521_540.py, tests/test_phase611_630.py |
 | 2026-05-30 04:28 | `d6df283` | fix: CI 회귀 수정 — asyncio.get_event_loop + torch importorskip + asyncio_mode | pyproject.toml, tests/test_coverage_boost_2.py, tests/test_coverage_boost_5.py, tests/test_phase661_670_ai.py, tests/test_ws_bridge.py |
 | 2026-05-30 04:15 | `b3e36be` | feat: smoke_sim 테스트 확장 (16건) + ROADMAP Track A/B/C 현황 갱신 | CHANGELOG.md, ROADMAP.md, tests/e2e/smoke_sim.mjs |

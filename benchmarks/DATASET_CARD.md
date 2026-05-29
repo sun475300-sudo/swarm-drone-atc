@@ -131,7 +131,7 @@ expected_baseline_performance:        # SDACS hybrid current numbers
 ```
 
 Field validation lives in `benchmarks/_schema/manifest.schema.json`
-(TODO: generate from this spec).
+(JSON Schema draft/2020-12; covers all required fields and enum constraints).
 
 ---
 

@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "benchmarks/_schema/manifest.schema.json",
+  "title": "SDACS Benchmark Scenario Manifest",
+  "description": "Validates benchmarks/scenarios/<id>/manifest.yaml files.",
+  "type": "object",
+  "required": [
+    "id", "name", "version", "category", "difficulty",
+    "duration_seconds", "dt_seconds",
+    "airspace", "agents", "obstacles", "weather",
+    "communications", "regulatory",
+    "success_criteria", "expected_baseline_performance"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9]{2}_[a-z0-9_]+$",
+      "description": "Scenario identifier, e.g. '01_corridor_crossing'."
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Semantic version string."
+    },
+    "category": { "type": "string", "enum": ["standard", "stress"] },
+    "difficulty": { "type": "string", "enum": ["easy", "medium", "hard"] },
+    "duration_seconds": { "type": "number", "exclusiveMinimum": 0 },
+    "dt_seconds": { "type": "number", "exclusiveMinimum": 0 },
+
+    "airspace": {
+      "type": "object",
+      "required": ["bounds_m", "volume_m3", "capacity_max_agents"],
+      "additionalProperties": false,
+      "properties": {
+        "bounds_m": {
+          "type": "object",
+          "required": ["x", "y", "z"],
+          "additionalProperties": false,
+          "properties": {
+            "x": { "$ref": "#/$defs/bounds_axis" },
+            "y": { "$ref": "#/$defs/bounds_axis" },
+            "z": { "$ref": "#/$defs/bounds_axis" }
+          }
+        },
+        "volume_m3": { "type": "number", "exclusiveMinimum": 0 },
+        "capacity_max_agents": { "type": "integer", "minimum": 1 }
+      }
+    },
+
+    "agents": {
+      "type": "object",
+      "required": ["count", "kinematics", "spawn_pattern", "goal_pattern"],
+      "additionalProperties": false,
+      "properties": {
+        "count": { "type": "integer", "minimum": 1 },
+        "kinematics": {
+          "type": "object",
+          "required": ["max_speed_m_s", "max_accel_m_s2", "turn_rate_deg_s"],
+          "additionalProperties": false,
+          "properties": {
+            "max_speed_m_s":    { "type": "number", "exclusiveMinimum": 0 },
+            "max_accel_m_s2":   { "type": "number", "exclusiveMinimum": 0 },
+            "turn_rate_deg_s":  { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "spawn_pattern": { "type": "string", "minLength": 1 },
+        "goal_pattern":  { "type": "string", "minLength": 1 }
+      }
+    },
+
+    "obstacles": {
+      "type": "object",
+      "required": ["static", "dynamic"],
+      "additionalProperties": false,
+      "properties": {
+        "static":  { "type": "array" },
+        "dynamic": { "type": "array" }
+      }
+    },
+
+    "weather": {
+      "type": "object",
+      "required": ["wind", "visibility_m", "precipitation_mm_per_h"],
+      "additionalProperties": false,
+      "properties": {
+        "wind": {
+          "type": "object",
+          "required": ["mean_m_s", "gust_m_s", "direction_deg"],
+          "additionalProperties": false,
+          "properties": {
+            "mean_m_s":      { "type": "number", "minimum": 0 },
+            "gust_m_s":      { "type": "number", "minimum": 0 },
+            "direction_deg": { "type": "number", "minimum": 0, "maximum": 360 }
+          }
+        },
+        "visibility_m":          { "type": "number", "exclusiveMinimum": 0 },
+        "precipitation_mm_per_h": { "type": "number", "minimum": 0 }
+      }
+    },
+
+    "communications": {
+      "type": "object",
+      "required": ["quality", "packet_loss", "blackout_windows_s"],
+      "additionalProperties": false,
+      "properties": {
+        "quality": {
+          "type": "string",
+          "enum": ["perfect", "noisy", "degraded"]
+        },
+        "packet_loss": { "type": "number", "minimum": 0, "maximum": 1 },
+        "blackout_windows_s": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      }
+    },
+
+    "regulatory": {
+      "type": "object",
+      "required": ["remote_id_required", "laanc_volume_class", "geofences"],
+      "additionalProperties": false,
+      "properties": {
+        "remote_id_required": { "type": "boolean" },
+        "laanc_volume_class": {
+          "type": "string",
+          "enum": ["B", "C", "D", "E", "G"]
+        },
+        "geofences": { "type": "array" }
+      }
+    },
+
+    "success_criteria": {
+      "type": "object",
+      "required": ["NMR_max", "MSD_min_m", "geofence_violations_max", "RID_CR_min"],
+      "properties": {
+        "NMR_max":                   { "type": "number", "minimum": 0 },
+        "MSD_min_m":                 { "type": "number", "minimum": 0 },
+        "geofence_violations_max":   { "type": "integer", "minimum": 0 },
+        "RID_CR_min":                { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+
+    "expected_baseline_performance": {
+      "type": "object",
+      "required": ["NMR", "MSD_m", "PE", "MS_s", "RTF"],
+      "additionalProperties": false,
+      "properties": {
+        "NMR":   { "type": "number", "minimum": 0 },
+        "MSD_m": { "type": "number", "minimum": 0 },
+        "PE":    { "type": "number", "minimum": 0, "maximum": 1 },
+        "MS_s":  { "type": "number", "exclusiveMinimum": 0 },
+        "RTF":   { "type": "number", "exclusiveMinimum": 0 }
+      }
+    }
+  },
+
+  "$defs": {
+    "bounds_axis": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "[min, max] along one axis in metres."
+    }
+  }
+}

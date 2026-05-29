@@ -1,0 +1,58 @@
+# SDACS 기본 Helm 값
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/sun475300-sudo/swarm-drone-atc
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  dashPort: 8050
+  apiPort: 8080
+
+ingress:
+  enabled: false
+  className: nginx
+  host: sdacs.example.com
+  tls: false
+  tlsSecretName: sdacs-tls
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+
+# GPU 가속 (Jetson/A100 환경)
+gpu:
+  enabled: false
+  resourceKey: nvidia.com/gpu
+  count: 1
+
+# JWT 시크릿 (환경변수 또는 k8s Secret)
+auth:
+  existingSecret: ""          # k8s Secret 이름 (비어 있으면 생성)
+  secretKey: ""               # auth.existingSecret 미사용 시 직접 지정 (보안 주의)
+  tokenTTLSec: 3600
+
+# TimescaleDB 사이드카 (선택 사항)
+timescaledb:
+  enabled: false
+  postgresUser: sdacs
+  postgresPassword: ""
+  postgresDB: sdacs
+  storageSize: 10Gi
+
+# Prometheus 메트릭 스크레이핑
+prometheus:
+  scrape: true
+  path: /metrics
+  port: 8080
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

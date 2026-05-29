@@ -1,0 +1,14 @@
+apiVersion: v2
+name: sdacs
+description: Swarm Drone Airspace Control System — Kubernetes Helm 차트
+type: application
+version: 0.1.0
+appVersion: "1.1.0"
+keywords:
+  - drone
+  - airspace
+  - simulation
+  - utc
+home: https://github.com/sun475300-sudo/swarm-drone-atc
+maintainers:
+  - name: SDACS Capstone Team

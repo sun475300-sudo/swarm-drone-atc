@@ -77,7 +77,30 @@ try {
   const mega = await page.evaluate(() => ({ n: window._sdacs.droneCount, mode: window._sdacs.megaMode, inst: window._sdacs.instanceCount }));
   ok(mega.n === 1000 && mega.mode === true && mega.inst > 0, `대규모 InstancedMesh (${mega.n}대, inst=${mega.inst})`);
 
-  // 9. 페이지 런타임 에러 없음
+  // 9. 레이어 토글 (NFZ)
+  const nfzOff = await page.evaluate(() => window._sdacs.setLayer('nfz', false));
+  ok(nfzOff === false, '레이어 NFZ OFF');
+  const nfzOn = await page.evaluate(() => window._sdacs.setLayer('nfz', true));
+  ok(nfzOn === true, '레이어 NFZ ON');
+
+  // 10. CSV 내보내기 (예외 없음)
+  let csvOk = true;
+  try { await page.evaluate(() => window._sdacs.exportCSV()); } catch { csvOk = false; }
+  ok(csvOk, 'CSV 내보내기 (예외 없음)');
+
+  // 11. HTML 리포트 내보내기 (예외 없음)
+  let htmlOk = true;
+  try { await page.evaluate(async () => { await window._sdacs.exportHTML(); }); } catch { htmlOk = false; }
+  ok(htmlOk, 'HTML 리포트 내보내기 (예외 없음)');
+
+  // 12. DnI 식별 정확도 범위 (0~100%)
+  const dniAcc = await page.evaluate(() => {
+    const d = window._sdacs.dni;
+    return d.identified > 0 ? d.correct / d.identified * 100 : 100;
+  });
+  ok(dniAcc >= 0 && dniAcc <= 100, `DnI 식별 정확도 (${dniAcc.toFixed(1)}%)`);
+
+  // 13. 페이지 런타임 에러 없음
   ok(pageErrors.length === 0, `런타임 에러 0건${pageErrors.length ? ' → ' + pageErrors.join(' | ') : ''}`);
 } catch (e) {
   ok(false, '예외: ' + e.message);

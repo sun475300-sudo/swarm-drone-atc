@@ -3,6 +3,18 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased] - 2026-05-29
+
+### 추가 (feat)
+
+- `tests/e2e/smoke_sim.mjs` — 스모크 테스트 11건 → 16건 확장: 레이어 NFZ 토글, CSV/HTML 리포트 내보내기, DnI 식별 정확도 범위 검증
+
+### CI/배포
+
+- 현황 점검 2026-05-29: 오픈 드래프트 PR 11건(#35~#45), main은 PR #34(DnI 모델) 기준
+
+---
+
 ## [Unreleased] - 2026-05-03
 
 ### 추가 (feat)

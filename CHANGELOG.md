@@ -9,6 +9,12 @@
 
 - `tests/e2e/smoke_sim.mjs` — 스모크 테스트 11건 → 16건 확장: 레이어 NFZ 토글, CSV/HTML 리포트 내보내기, DnI 식별 정확도 범위 검증
 
+### 수정 (fix)
+
+- `tests/e2e/smoke_sim.mjs` — stopSim/selectScenario 분리 + 시나리오 초기화 대기 1200ms로 증가 (CI 슬로우 머신 flakiness 방지)
+- `tests/test_ws_bridge.py` — asyncio.get_event_loop() → asyncio.new_event_loop() (Python 3.12 + pytest-xdist 호환)
+- `tests/test_phase611_630.py`, `test_phase631_640.py`, `test_phase641_660.py` — 다국어 파일 24건 경로 수정 (src/ → archive/polyglot/)
+
 ### CI/배포
 
 - 현황 점검 2026-05-29: 오픈 드래프트 PR 11건(#35~#45), main은 PR #34(DnI 모델) 기준

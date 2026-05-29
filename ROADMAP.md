@@ -143,31 +143,33 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 목포대 캡스톤 결과물을 학술적 기여로 정제.
 
-- [ ] **P701** — 논문 주제 확정 및 기여 포인트 3개 도출 (CBS+APF 하이브리드? Voronoi 분할?)
-- [ ] **P702** — 선행 연구 서베이 (최소 30편, IROS/ICRA/AIAA 기준)
-- [ ] **P703** — 벤치마크 데이터셋 공개화 (7개 Monte Carlo 시나리오 + 3개 실기 로그)
-- [ ] **P704** — Reproducibility 패키지 (Docker 이미지, 시드 고정, 결과 재현 스크립트)
-- [ ] **P705** — 평가 메트릭 정형화 (near-miss rate, airspace utilization, path efficiency)
-- [ ] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS)
-- [ ] **P707** — 논문 초안 작성 (IROS 2026 또는 AIAA SciTech 2027 투고 목표)
-- [ ] **P708** — 내부 리뷰 3회 + 지도교수 피드백 반영
-- [ ] **P709** — 공식 투고 및 arXiv 프리프린트 업로드
-- [ ] **P710** — 학술대회 발표 슬라이드·포스터 (동강대 학술대회 4/23 포함)
+- [x] **P701** — 논문 주제 확정 및 기여 포인트 3개 도출 (`docs/paper/PAPER_TOPIC.md`)
+- [x] **P702** — 선행 연구 서베이 30편 (`docs/paper/PRIOR_WORK_SURVEY.md`)
+- [x] **P703** — 벤치마크 데이터셋 공개화 (`benchmarks/`, `DATASET_CARD.md`)
+- [x] **P704** — Reproducibility 패키지 (Docker, 시드 고정, `scripts/reproduce/`)
+- [x] **P705** — 평가 메트릭 정형화 (`docs/paper/EVALUATION_METRICS.md`, 14개 메트릭)
+- [x] **P706** — 기여도 비교 실험 (3 sc × 4 methods × 5 seeds → `results/p706_comparison_3sc_5seed.csv`)
+- [x] **P707** — 논문 초안 작성 (`docs/paper/PAPER_DRAFT.md`, §5 결과 채움)
+- [ ] **P708** — 내부 리뷰 3회 + 지도교수 피드백 반영 ⚠️ 사람 필요
+- [ ] **P709** — 공식 투고 및 arXiv 프리프린트 업로드 ⚠️ 사람 필요
+- [x] **P710** — 학술대회 발표 포스터 (`docs/IROS2026_poster.html`) + 슬라이드 (`docs/slides_deck.md`)
 
 ### Track C — 배포·서비스화 (Phase 711-720)
 
 공역 관리자용 대시보드를 SaaS 수준으로 안정화.
 
-- [ ] **P711** — Dash 대시보드를 FastAPI + React로 리팩토링
-- [ ] **P712** — 인증·권한(OAuth2, RBAC) 및 감사 로그
-- [ ] **P713** — 실시간 WebSocket 채널 (서버 → 브라우저 1 kHz 업데이트)
-- [ ] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존
-- [ ] **P715** — Docker Compose → Kubernetes Helm 차트 변환
-- [ ] **P716** — CI/CD (GitHub Actions → 컨테이너 레지스트리 → 스테이징)
-- [ ] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지)
-- [ ] **P718** — 관측성 스택 (Prometheus + Grafana + Loki)
-- [ ] **P719** — 보안 감사 (OWASP ZAP, 의존성 CVE 스캔)
-- [ ] **P720** — 공개 베타 오픈 (3개 파일럿 기관, 피드백 수집 4주)
+- [x] **P711** — FastAPI + React ATC 대시보드 (`docs/dashboard.html`, `api/fastapi_server.py`) *(PR #41)*
+- [x] **P712** — JWT-HMAC RBAC + 감사 로그 (`api/auth.py`) *(PR #37)*
+- [x] **P713** — WebSocket 1 kHz 서버 push *(PR #37)*
+- [x] **P714** — PostgreSQL + TimescaleDB 스키마 (`scripts/db/`) *(PR #40)*
+- [x] **P715** — Kubernetes Helm 차트 (`helm/sdacs/`) *(PR #40)*
+- [x] **P716** — CI/CD GitHub Actions 비교 job (`.github/workflows/`) *(PR #36)*
+- [x] **P717** — 부하 테스트 스크립트 (`scripts/load_test.py`) *(PR #37)*
+- [x] **P718** — Prometheus `/metrics` 엔드포인트 *(PR #35)*
+- [x] **P719** — 보안 감사 스크립트 (`scripts/security_audit.py`) *(PR #37)*
+- [ ] **P720** — 공개 베타 오픈 ❌ 파일럿 기관 필요
+
+> **⚠️ 주의:** Track C P711–P719 구현은 draft PR(#35–#41)에 존재하며 main 머지 대기 중.
 
 ---
 
@@ -176,4 +178,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-04-19 (Phase 700 완료, Phase 701-720 로드맵 유지)*
+*Last updated: 2026-05-29 (P706-P710 완료, P711-P719 draft PR 대기, P720·Track A 외부 의존)*

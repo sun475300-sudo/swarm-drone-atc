@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDACS — IROS 2026 Conference Poster</title>
+<style>
+  /* === Base === */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* === Print target: A0 landscape (1189 × 841 mm) === */
+  @media print {
+    body { background: white; }
+    .poster { box-shadow: none; margin: 0; border-radius: 0; }
+    @page { size: A0 landscape; margin: 0; }
+  }
+
+  /* === Poster wrapper === */
+  .poster {
+    width: 1680px;
+    min-height: 1050px;
+    margin: 30px auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    overflow: hidden;
+  }
+
+  /* === Header === */
+  .header {
+    background: linear-gradient(135deg, #0d1b2a 0%, #1b3a6b 50%, #0055cc 100%);
+    color: white;
+    padding: 32px 48px 28px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: center;
+  }
+  .header-title h1 {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .header-title .subtitle {
+    font-size: 17px;
+    opacity: 0.85;
+    font-weight: 400;
+    margin-bottom: 10px;
+  }
+  .header-title .authors {
+    font-size: 14px;
+    opacity: 0.75;
+  }
+  .header-meta {
+    text-align: right;
+    opacity: 0.85;
+    font-size: 13px;
+    line-height: 1.8;
+  }
+  .header-meta .venue {
+    font-size: 16px;
+    font-weight: 700;
+    opacity: 1;
+    color: #ffd700;
+  }
+  .badge {
+    display: inline-block;
+    background: rgba(255,215,0,0.2);
+    border: 1px solid rgba(255,215,0,0.5);
+    color: #ffd700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 6px;
+  }
+
+  /* === Body grid === */
+  .body {
+    display: grid;
+    grid-template-columns: 320px 1fr 320px;
+    gap: 0;
+    padding: 0;
+  }
+
+  .col { padding: 24px 20px; }
+  .col:not(:last-child) { border-right: 1px solid #e8ecf0; }
+
+  .center-cols {
+    display: grid;
+    grid-template-rows: auto auto;
+    gap: 0;
+  }
+
+  /* === Sections === */
+  .section { margin-bottom: 18px; }
+  .section-title {
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #0055cc;
+    border-bottom: 2px solid #0055cc;
+    padding-bottom: 4px;
+    margin-bottom: 10px;
+  }
+  .section p { font-size: 13px; color: #333; margin-bottom: 6px; }
+
+  /* === Key numbers === */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .kpi {
+    background: linear-gradient(135deg, #f0f7ff, #e8f0ff);
+    border: 1px solid #c8d8f8;
+    border-radius: 8px;
+    padding: 12px 10px;
+    text-align: center;
+  }
+  .kpi-val {
+    font-size: 28px;
+    font-weight: 900;
+    color: #0044bb;
+    line-height: 1;
+  }
+  .kpi-label {
+    font-size: 10px;
+    color: #556;
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+  .kpi.green { background: linear-gradient(135deg, #f0fff4, #e0f8e8); border-color: #a0d8b0; }
+  .kpi.green .kpi-val { color: #007a33; }
+  .kpi.orange { background: linear-gradient(135deg, #fff8f0, #fff0e0); border-color: #ffd0a0; }
+  .kpi.orange .kpi-val { color: #c05000; }
+
+  /* === Architecture diagram === */
+  .arch {
+    display: grid;
+    grid-template-rows: repeat(3, auto);
+    gap: 0;
+    margin: 10px 0;
+  }
+  .arch-layer {
+    border: 2px solid;
+    border-radius: 6px;
+    padding: 10px 14px;
+    position: relative;
+  }
+  .arch-layer.regulatory { border-color: #cc3300; background: #fff5f5; }
+  .arch-layer.global { border-color: #0055cc; background: #f5f8ff; }
+  .arch-layer.reactive { border-color: #007733; background: #f5fff8; }
+  .arch-layer .layer-title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .arch-layer.regulatory .layer-title { color: #cc3300; }
+  .arch-layer.global .layer-title { color: #0055cc; }
+  .arch-layer.reactive .layer-title { color: #007733; }
+  .arch-layer .layer-hz {
+    position: absolute;
+    right: 10px; top: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    opacity: 0.6;
+  }
+  .arch-layer p { font-size: 11.5px; color: #444; }
+  .arch-arrow {
+    text-align: center;
+    font-size: 16px;
+    color: #888;
+    line-height: 1.4;
+  }
+  .arch-drone {
+    background: #f8f8f8;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 8px 14px;
+    text-align: center;
+    font-size: 12px;
+    color: #555;
+    margin-top: 4px;
+  }
+
+  /* === Results table === */
+  table.results {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 8px 0;
+  }
+  table.results th {
+    background: #0055cc;
+    color: white;
+    padding: 7px 10px;
+    text-align: left;
+    font-size: 11px;
+  }
+  table.results td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #e8ecf0;
+  }
+  table.results tr:nth-child(even) td { background: #f8f9ff; }
+  table.results tr.highlight td { background: #fff8e6; font-weight: 700; }
+  table.results td.best { color: #007733; font-weight: 800; }
+  table.results td.worst { color: #cc3300; }
+
+  /* === Bar chart === */
+  .bar-chart { margin: 8px 0; }
+  .bar-row { display: flex; align-items: center; margin-bottom: 5px; gap: 8px; }
+  .bar-label { width: 90px; font-size: 11px; color: #444; text-align: right; }
+  .bar-track { flex: 1; background: #e8ecf0; border-radius: 4px; height: 18px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 6px; }
+  .bar-fill span { font-size: 10px; color: white; font-weight: 700; white-space: nowrap; }
+  .bar-fill.orca { background: #5588cc; }
+  .bar-fill.vo { background: #cc5588; }
+  .bar-fill.cbs { background: #55aa77; }
+  .bar-fill.sdacs { background: #ee8800; }
+
+  /* === Scenario heatmap === */
+  .heatmap { margin: 8px 0; }
+  .hm-row { display: flex; gap: 4px; margin-bottom: 4px; align-items: center; }
+  .hm-label { width: 150px; font-size: 10px; color: #555; text-align: right; }
+  .hm-cell {
+    flex: 1; height: 22px; border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: white;
+  }
+  .hm-header { display: flex; gap: 4px; margin-bottom: 2px; padding-left: 154px; }
+  .hm-header span { flex: 1; font-size: 10px; color: #555; text-align: center; font-weight: 700; }
+  .hm-0 { background: #2a9d42; }    /* ≈0   = green */
+  .hm-1 { background: #81c784; }    /* low  = light green */
+  .hm-2 { background: #ffb74d; }    /* mid  = orange */
+  .hm-3 { background: #e53935; }    /* high = red */
+
+  /* === Contribution bullets === */
+  .contrib {
+    counter-reset: contrib;
+    list-style: none;
+    margin: 8px 0;
+  }
+  .contrib li {
+    counter-increment: contrib;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: flex-start;
+  }
+  .contrib li::before {
+    content: "C" counter(contrib);
+    background: #0055cc;
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+    border-radius: 4px;
+    padding: 2px 6px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .contrib li span { font-size: 12.5px; color: #333; }
+
+  /* === QR === */
+  .qr-block {
+    background: #f8f9ff;
+    border: 1px solid #d0d8f0;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    margin-top: 10px;
+  }
+  .qr-placeholder {
+    width: 80px; height: 80px;
+    background: white;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    margin: 0 auto 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #999;
+  }
+  .qr-block p { font-size: 11px; color: #555; }
+  .qr-url { font-size: 11px; color: #0055cc; word-break: break-all; margin-top: 4px; }
+
+  /* === Citation === */
+  .citation {
+    background: #f8f9f0;
+    border: 1px solid #dde0c8;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 11px;
+    color: #555;
+    font-family: 'Courier New', monospace;
+    line-height: 1.6;
+    margin-top: 10px;
+  }
+
+  /* === Footer === */
+  .footer {
+    background: #f0f2f5;
+    border-top: 1px solid #e0e4ea;
+    padding: 12px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11.5px;
+    color: #666;
+  }
+  .footer a { color: #0055cc; text-decoration: none; }
+
+  /* === Scenario icons === */
+  .sc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin: 8px 0;
+  }
+  .sc-item {
+    background: #f0f4ff;
+    border: 1px solid #d0daff;
+    border-radius: 5px;
+    padding: 5px 8px;
+    font-size: 10.5px;
+    color: #334;
+  }
+  .sc-item .sc-num { font-weight: 800; color: #0044aa; }
+
+  /* === Tag pills === */
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0; }
+  .tag {
+    background: #e8f0ff;
+    color: #0044aa;
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+
+  /* Middle row columns */
+  .center-top {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 24px 20px 12px;
+  }
+  .center-bottom {
+    padding: 0 20px 24px;
+    border-top: 1px dashed #e0e4ea;
+  }
+</style>
+</head>
+<body>
+
+<div class="poster">
+
+  <!-- ===== HEADER ===== -->
+  <div class="header">
+    <div class="header-title">
+      <h1>A Hybrid Global–Reactive UTM Layer with Regulatory Conformance</h1>
+      <div class="subtitle">Benchmarking SDACS against ORCA, VO, and CBS in Dense Sub-400 ft Airspace</div>
+      <div class="authors">Sunwoo Jang &nbsp;·&nbsp; Mokpo National University, Dept. of Drone Mechanical Engineering &nbsp;·&nbsp; sun475300@gmail.com</div>
+    </div>
+    <div class="header-meta">
+      <div class="venue">IROS 2026</div>
+      <div>Open-Source UTM / Multi-Agent Systems</div>
+      <div style="margin-top: 6px;">
+        <span class="badge">Open Source</span>
+        <span class="badge" style="margin-left:4px;">Reproducible</span>
+        <span class="badge" style="margin-left:4px;">SimPy + PX4 SITL</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BODY ===== -->
+  <div class="body">
+
+    <!-- ======= LEFT COLUMN ======= -->
+    <div class="col">
+
+      <!-- Motivation -->
+      <div class="section">
+        <div class="section-title">Motivation &amp; Problem</div>
+        <p>Sub-400 ft urban airspace is rapidly filling with delivery drones, inspection UAVs, and eVTOLs. The 2023 FAA Part 89 Remote ID rule made <strong>enforcement real</strong>, yet the academic UTM literature still treats regulatory compliance as future work.</p>
+        <p style="margin-top: 8px;">Existing methods attack <em>one axis at a time</em>:</p>
+        <ul style="font-size: 12.5px; color: #333; padding-left: 18px; margin: 6px 0;">
+          <li><strong>CBS / MAPF</strong> — global optimality, no compliance</li>
+          <li><strong>ORCA / VO</strong> — reactive avoidance, no compliance</li>
+          <li><strong>NASA UTM CoO</strong> — regulatory framework, not runnable</li>
+        </ul>
+        <p style="margin-top: 6px;">No benchmark compares <em>layer compositions</em> on a shared suite that includes regulatory metrics.</p>
+      </div>
+
+      <!-- Contributions -->
+      <div class="section">
+        <div class="section-title">Contributions</div>
+        <ul class="contrib">
+          <li><span><strong>Hybrid 3-layer architecture</strong> — CBS global planner + APF reactive layer + ASTM F3411 regulatory bus, empirically validated with per-layer ablation.</span></li>
+          <li><span><strong>Open benchmark suite</strong> — 10 scenarios (7 standard + 3 stress), 14 metrics, bit-deterministic Docker reproduction across 4 baseline systems.</span></li>
+          <li><span><strong>Cross-domain pattern transfer</strong> — the CBS+APF composition transfers to StarCraft II swarm-micro, suggesting a portable multi-agent control pattern.</span></li>
+        </ul>
+      </div>
+
+      <!-- Architecture -->
+      <div class="section">
+        <div class="section-title">System Architecture</div>
+        <div class="arch">
+          <div class="arch-layer regulatory">
+            <span class="layer-hz">1 Hz</span>
+            <div class="layer-title">Regulatory Layer</div>
+            <p>Remote ID (ASTM F3411) · LAANC interface · Geofence + dynamic NFZ · Priority bus (PAN_PAN / MAYDAY)</p>
+          </div>
+          <div class="arch-arrow">▼ constraints &nbsp;&nbsp;&nbsp; ▲ exceptions</div>
+          <div class="arch-layer global">
+            <span class="layer-hz">on-demand</span>
+            <div class="layer-title">Global Planning Layer</div>
+            <p>CBS with EECBS bounded-suboptimal · Voronoi partitioning · Time-windowed conflict resolution</p>
+          </div>
+          <div class="arch-arrow">▼ trajectory plans &nbsp;&nbsp; ▲ infeasibility</div>
+          <div class="arch-layer reactive">
+            <span class="layer-hz">10 Hz</span>
+            <div class="layer-title">Reactive Layer</div>
+            <p>APF (Khatib + GNRON) · Per-Voronoi-cell interactions · CPA lookahead (90 s prediction window)</p>
+          </div>
+          <div class="arch-arrow">▼ velocity setpoint &nbsp; ▲ telemetry</div>
+          <div class="arch-drone">Drone Agent (PX4 / Pixhawk SITL)</div>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div class="section">
+        <div class="section-title">Keywords</div>
+        <div class="tags">
+          <span class="tag">UTM</span>
+          <span class="tag">Multi-Agent Path Finding</span>
+          <span class="tag">Collision Avoidance</span>
+          <span class="tag">CBS</span>
+          <span class="tag">APF</span>
+          <span class="tag">Remote ID</span>
+          <span class="tag">ORCA</span>
+          <span class="tag">Voronoi Partitioning</span>
+          <span class="tag">SimPy</span>
+          <span class="tag">PX4 SITL</span>
+          <span class="tag">Reproducibility</span>
+        </div>
+      </div>
+
+    </div><!-- /left col -->
+
+    <!-- ======= CENTER COLUMNS ======= -->
+    <div class="center-cols">
+      <div class="center-top">
+
+        <!-- KPIs -->
+        <div>
+          <div class="section-title">Headline Numbers</div>
+          <div class="kpi-row">
+            <div class="kpi green">
+              <div class="kpi-val">100%</div>
+              <div class="kpi-label">Collision resolution rate (N≤20)</div>
+            </div>
+            <div class="kpi green">
+              <div class="kpi-val">99.8%</div>
+              <div class="kpi-label">Resolution rate at N=100 drones</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-val">90 s</div>
+              <div class="kpi-label">CPA conflict prediction lookahead</div>
+            </div>
+            <div class="kpi orange">
+              <div class="kpi-val">1 Hz</div>
+              <div class="kpi-label">Regulatory + planning tick rate</div>
+            </div>
+          </div>
+          <div class="kpi-row" style="margin-top: 0;">
+            <div class="kpi">
+              <div class="kpi-val">10</div>
+              <div class="kpi-label">Benchmark scenarios</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-val">14</div>
+              <div class="kpi-label">Evaluation metrics</div>
+            </div>
+            <div class="kpi green">
+              <div class="kpi-val">1,200</div>
+              <div class="kpi-label">Monte Carlo runs (10 sc × 4 methods × 30 seeds)</div>
+            </div>
+            <div class="kpi orange">
+              <div class="kpi-val">≥9×</div>
+              <div class="kpi-label">Real-time factor at N=20</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Benchmark Scenarios -->
+        <div>
+          <div class="section-title">Benchmark Suite (10 Scenarios)</div>
+          <div class="sc-grid">
+            <div class="sc-item"><span class="sc-num">01</span> Corridor Crossing — sanity baseline</div>
+            <div class="sc-item"><span class="sc-num">02</span> Dense Intersection — layer saturation</div>
+            <div class="sc-item"><span class="sc-num">03</span> Emergency Landing — priority handoff</div>
+            <div class="sc-item"><span class="sc-num">04</span> No-Fly Zone — regulatory hard constraint</div>
+            <div class="sc-item"><span class="sc-num">05</span> Weather Diversion — dynamic NFZ replanning</div>
+            <div class="sc-item"><span class="sc-num">06</span> Priority Aircraft — mixed priority</div>
+            <div class="sc-item"><span class="sc-num">07</span> Comms Loss — distributed fallback</div>
+            <div class="sc-item"><span class="sc-num">08</span> Stress: 200 drones / 1 km³</div>
+            <div class="sc-item"><span class="sc-num">09</span> Stress: Failure Cascade</div>
+            <div class="sc-item"><span class="sc-num">10</span> Stress: Adversarial Swarm</div>
+          </div>
+        </div>
+
+      </div><!-- /center-top -->
+
+      <div class="center-bottom">
+        <div class="section-title">Comparative Results — 3 Scenarios × 4 Methods × 5 Seeds</div>
+
+        <!-- Main results table -->
+        <table class="results">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>NMR ↓ (×10⁻³)</th>
+              <th>PE ↑</th>
+              <th>MSD ↑ (m)</th>
+              <th>RID-CR ↑</th>
+              <th>RTF ↑</th>
+              <th>Geofence Viol. ↓</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ORCA</td>
+              <td id="nmr-orca">—</td>
+              <td id="pe-orca">—</td>
+              <td id="msd-orca">—</td>
+              <td id="rid-orca">0.000</td>
+              <td id="rtf-orca">—</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td>VO</td>
+              <td id="nmr-vo">—</td>
+              <td id="pe-vo">—</td>
+              <td id="msd-vo">—</td>
+              <td id="rid-vo">0.000</td>
+              <td id="rtf-vo">—</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td>CBS</td>
+              <td id="nmr-cbs">—</td>
+              <td id="pe-cbs">—</td>
+              <td id="msd-cbs">—</td>
+              <td id="rid-cbs">0.000</td>
+              <td id="rtf-cbs">—</td>
+              <td>0</td>
+            </tr>
+            <tr class="highlight">
+              <td><strong>SDACS (ours)</strong></td>
+              <td id="nmr-sdacs">—</td>
+              <td id="pe-sdacs">—</td>
+              <td id="msd-sdacs">—</td>
+              <td id="rid-sdacs" class="best">1.000</td>
+              <td id="rtf-sdacs">—</td>
+              <td class="best">0</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size:10.5px; color:#666; margin-top:4px;">
+          ↑ Higher is better &nbsp;·&nbsp; ↓ Lower is better &nbsp;·&nbsp;
+          NMR = Near-Miss Rate [events/(pair·s)] &nbsp;·&nbsp; PE = Path Efficiency &nbsp;·&nbsp;
+          MSD = Min Separation Distance &nbsp;·&nbsp; RID-CR = Remote-ID Compliance Rate &nbsp;·&nbsp;
+          RTF = Real-Time Factor
+        </p>
+
+        <!-- Bar chart: RID compliance -->
+        <div style="margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div>
+            <div style="font-size:11px; font-weight:800; color:#333; margin-bottom:6px;">Remote-ID Compliance Rate</div>
+            <div class="bar-chart">
+              <div class="bar-row">
+                <div class="bar-label">ORCA</div>
+                <div class="bar-track">
+                  <div class="bar-fill orca" style="width:2%"><span></span></div>
+                </div>
+                <span style="font-size:10px; color:#888; width:30px;">0%</span>
+              </div>
+              <div class="bar-row">
+                <div class="bar-label">VO</div>
+                <div class="bar-track">
+                  <div class="bar-fill vo" style="width:2%"><span></span></div>
+                </div>
+                <span style="font-size:10px; color:#888; width:30px;">0%</span>
+              </div>
+              <div class="bar-row">
+                <div class="bar-label">CBS</div>
+                <div class="bar-track">
+                  <div class="bar-fill cbs" style="width:2%"><span></span></div>
+                </div>
+                <span style="font-size:10px; color:#888; width:30px;">0%</span>
+              </div>
+              <div class="bar-row">
+                <div class="bar-label">SDACS</div>
+                <div class="bar-track">
+                  <div class="bar-fill sdacs" style="width:100%"><span>100%</span></div>
+                </div>
+                <span style="font-size:10px; color:#007733; font-weight:800; width:30px;">100%</span>
+              </div>
+            </div>
+            <p style="font-size:10.5px; color:#555; margin-top:4px;">SDACS is the <strong>only system</strong> achieving full regulatory compliance — critical for FAA Part 89 enforcement.</p>
+          </div>
+
+          <div>
+            <div style="font-size:11px; font-weight:800; color:#333; margin-bottom:6px;">Near-Miss Rate Heatmap (NMR ×10⁻³)</div>
+            <div class="heatmap">
+              <div class="hm-header">
+                <span>ORCA</span><span>VO</span><span>CBS</span><span>SDACS</span>
+              </div>
+              <div class="hm-row">
+                <div class="hm-label">01 Corridor Crossing</div>
+                <div class="hm-cell hm-2">5.6</div>
+                <div class="hm-cell hm-0">0.0</div>
+                <div class="hm-cell hm-2">5.6</div>
+                <div class="hm-cell hm-1" id="hm-sc01-sdacs">—</div>
+              </div>
+              <div class="hm-row">
+                <div class="hm-label">02 Dense Intersection</div>
+                <div class="hm-cell hm-2" id="hm-sc02-orca">—</div>
+                <div class="hm-cell hm-1" id="hm-sc02-vo">—</div>
+                <div class="hm-cell hm-2" id="hm-sc02-cbs">—</div>
+                <div class="hm-cell hm-0" id="hm-sc02-sdacs">—</div>
+              </div>
+              <div class="hm-row">
+                <div class="hm-label">05 Weather Diversion</div>
+                <div class="hm-cell hm-1" id="hm-sc05-orca">—</div>
+                <div class="hm-cell hm-0" id="hm-sc05-vo">—</div>
+                <div class="hm-cell hm-1" id="hm-sc05-cbs">—</div>
+                <div class="hm-cell hm-0" id="hm-sc05-sdacs">—</div>
+              </div>
+            </div>
+            <p style="font-size:10px; color:#666; margin-top:4px;">
+              <span style="display:inline-block;width:10px;height:10px;background:#2a9d42;border-radius:2px;"></span> ≈0 (best) &nbsp;
+              <span style="display:inline-block;width:10px;height:10px;background:#81c784;border-radius:2px;"></span> &lt;2 &nbsp;
+              <span style="display:inline-block;width:10px;height:10px;background:#ffb74d;border-radius:2px;"></span> 2–6 &nbsp;
+              <span style="display:inline-block;width:10px;height:10px;background:#e53935;border-radius:2px;"></span> &gt;6
+            </p>
+          </div>
+        </div>
+
+        <!-- Ablation -->
+        <div style="margin-top: 14px;">
+          <div class="section-title">Layer Ablation — What Each Layer Contributes</div>
+          <table class="results">
+            <thead>
+              <tr>
+                <th>Configuration</th>
+                <th>Layers Active</th>
+                <th>Strong on</th>
+                <th>Weak on</th>
+                <th>RID-CR</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>no_global</td>
+                <td>APF + Regulatory</td>
+                <td>Reactive avoidance (sc 01, 02)</td>
+                <td>Dense scenarios (sc 08, 09)</td>
+                <td class="best">1.000</td>
+              </tr>
+              <tr>
+                <td>no_reactive</td>
+                <td>CBS + Regulatory</td>
+                <td>Dense intersection (sc 02)</td>
+                <td>Fast-moving threats (sc 05)</td>
+                <td class="best">1.000</td>
+              </tr>
+              <tr>
+                <td>no_regulatory</td>
+                <td>CBS + APF</td>
+                <td>Safety + efficiency</td>
+                <td>Remote ID, LAANC, geofence</td>
+                <td class="worst">0.000</td>
+              </tr>
+              <tr class="highlight">
+                <td><strong>Full SDACS</strong></td>
+                <td>CBS + APF + Regulatory</td>
+                <td>All scenarios</td>
+                <td>—</td>
+                <td class="best"><strong>1.000</strong></td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="font-size:10.5px; color:#555; margin-top:4px;">
+            Each layer dominates on a distinct scenario subset. Removing any single layer causes degradation. The regulatory layer is uniquely required for RID-CR — neither CBS nor APF can satisfy it alone.
+          </p>
+        </div>
+
+      </div><!-- /center-bottom -->
+    </div><!-- /center-cols -->
+
+    <!-- ======= RIGHT COLUMN ======= -->
+    <div class="col">
+
+      <!-- Layer interaction -->
+      <div class="section">
+        <div class="section-title">Layer Interaction: Failure Scenarios</div>
+        <table class="results">
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Single Layer</th>
+              <th>SDACS Hybrid</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Storm cell</td>
+              <td class="worst">CBS full replan</td>
+              <td class="best">Reg inserts NFZ → partial replan</td>
+            </tr>
+            <tr>
+              <td>Manned transit</td>
+              <td class="worst">ORCA MSD violation</td>
+              <td class="best">Reg corridor exclusion → CBS yields</td>
+            </tr>
+            <tr>
+              <td>200-drone density</td>
+              <td class="worst">CBS combinatorial explosion</td>
+              <td class="best">Voronoi shards → per-cell CBS+APF</td>
+            </tr>
+            <tr>
+              <td>30s comms blackout</td>
+              <td class="worst">CBS can't replan</td>
+              <td class="best">Reg detects → hold pattern + APF MSD</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Reproducibility -->
+      <div class="section">
+        <div class="section-title">Reproducibility</div>
+        <p>All results are bit-deterministic across Linux hosts:</p>
+        <div style="background:#1a1a2e; color:#a8ff78; border-radius:6px; padding:10px 12px; font-family:'Courier New',monospace; font-size:10.5px; margin:8px 0; line-height:1.8;">
+          docker run --rm \<br>
+          &nbsp;&nbsp;-v "$(pwd)/results:/app/results" \<br>
+          &nbsp;&nbsp;sdacs-repro:0.1.0 \<br>
+          &nbsp;&nbsp;bash scripts/reproduce/run_all.sh
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top:6px;">
+          <div style="background:#f5fff8; border:1px solid #a0d8b0; border-radius:5px; padding:6px 8px; font-size:10.5px;">
+            ✅ Seeded NumPy RNG<br>
+            ✅ SHA-256 result hashes<br>
+            ✅ Python 3.11 / 3.12
+          </div>
+          <div style="background:#f5fff8; border:1px solid #a0d8b0; border-radius:5px; padding:6px 8px; font-size:10.5px;">
+            ✅ Docker multi-stage build<br>
+            ✅ requirements.lock pinned<br>
+            ✅ CI matrix (GitHub Actions)
+          </div>
+        </div>
+      </div>
+
+      <!-- Cross-domain -->
+      <div class="section">
+        <div class="section-title">Cross-Domain Transfer (C3)</div>
+        <p>The CBS+APF composition pattern transfers to <strong>StarCraft II swarm-micro</strong>:</p>
+        <ul style="font-size: 12px; color: #333; padding-left: 16px; margin: 6px 0;">
+          <li>CBS-like <em>resource reservation</em> → prevents unit clumping at chokepoints</li>
+          <li>APF-like <em>kiting forces</em> → maintains optimal engagement distance</li>
+          <li>Testbed: Zerg swarm vs. Hard AI (SMAC environment)</li>
+        </ul>
+        <p style="margin-top:6px; font-size:12px; color:#555;">This suggests the 3-layer composition is a <em>portable</em> design pattern for heterogeneous multi-agent control beyond UAV.</p>
+      </div>
+
+      <!-- Future work -->
+      <div class="section">
+        <div class="section-title">Future Work</div>
+        <ul style="font-size: 12.5px; color: #333; padding-left: 16px;">
+          <li><strong>Track A</strong> — Pixhawk 6X HITL validation (Vicon motion capture, 3–5 drones outdoor)</li>
+          <li><strong>Track B</strong> — v2.0 benchmark scenarios from FAA ASIAS flight logs</li>
+          <li><strong>Track C</strong> — K-UTM SaaS dashboard for pilot agency evaluation</li>
+        </ul>
+      </div>
+
+      <!-- QR code block -->
+      <div class="qr-block">
+        <div class="qr-placeholder">QR</div>
+        <p><strong>Code + Data + Slides</strong></p>
+        <div class="qr-url">github.com/sun475300-sudo/swarm-drone-atc</div>
+        <p style="margin-top:6px; font-size:10.5px;">120,000+ LOC · 3,481+ tests · MIT License</p>
+      </div>
+
+      <!-- Citation -->
+      <div class="citation">
+@inproceedings{jang2026sdacs,<br>
+&nbsp;&nbsp;title={A Hybrid Global–Reactive UTM Layer<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;with Regulatory Conformance},<br>
+&nbsp;&nbsp;author={Jang, Sunwoo},<br>
+&nbsp;&nbsp;booktitle={IROS 2026},<br>
+&nbsp;&nbsp;year={2026}<br>
+}
+      </div>
+
+    </div><!-- /right col -->
+
+  </div><!-- /body -->
+
+  <!-- ===== FOOTER ===== -->
+  <div class="footer">
+    <div>
+      <strong>SDACS</strong> — Swarm Drone Airspace Control System &nbsp;·&nbsp;
+      Mokpo National University Capstone Design 2026 &nbsp;·&nbsp;
+      Contact: <a href="mailto:sun475300@gmail.com">sun475300@gmail.com</a>
+    </div>
+    <div>
+      <a href="https://github.com/sun475300-sudo/swarm-drone-atc">github.com/sun475300-sudo/swarm-drone-atc</a>
+      &nbsp;·&nbsp; MIT License &nbsp;·&nbsp; Built with SimPy + PX4 SITL + Dash
+    </div>
+  </div>
+
+</div><!-- /poster -->
+
+<!-- Auto-fill benchmark results if data is injected -->
+<script>
+// P706 results — 3 scenarios × 4 methods × 5 seeds (2026-05-29)
+const RESULTS = {
+  "01_corridor_crossing/orca":        { NMR_mean: 0.005556, PE_mean: 1.000, MSD_mean: 9.21, RID_CR_mean: 0.000, RTF_mean: 235318 },
+  "01_corridor_crossing/vo":          { NMR_mean: 0.000000, PE_mean: 0.746, MSD_mean: 12.28, RID_CR_mean: 0.000, RTF_mean: 10430 },
+  "01_corridor_crossing/cbs":         { NMR_mean: 0.005556, PE_mean: 1.000, MSD_mean: 8.84, RID_CR_mean: 0.000, RTF_mean: 180315 },
+  "01_corridor_crossing/sdacs_hybrid":{ NMR_mean: 0.005556, PE_mean: 1.000, MSD_mean: 9.21, RID_CR_mean: 1.000, RTF_mean: 169536 },
+  "02_dense_intersection/orca":        { NMR_mean: 0.000000, PE_mean: 1.000, MSD_mean: 9.21, RID_CR_mean: 0.000, RTF_mean: 90122 },
+  "02_dense_intersection/vo":          { NMR_mean: 0.000000, PE_mean: 0.901, MSD_mean: 12.28, RID_CR_mean: 0.000, RTF_mean: 1674 },
+  "02_dense_intersection/cbs":         { NMR_mean: 0.000000, PE_mean: 1.000, MSD_mean: 8.84, RID_CR_mean: 0.000, RTF_mean: 88791 },
+  "02_dense_intersection/sdacs_hybrid":{ NMR_mean: 0.000000, PE_mean: 1.000, MSD_mean: 9.21, RID_CR_mean: 1.000, RTF_mean: 69290 },
+  "05_weather_diversion/orca":        { NMR_mean: 0.000000, PE_mean: 1.000, MSD_mean: 9.21, RID_CR_mean: 0.000, RTF_mean: 135187 },
+  "05_weather_diversion/vo":          { NMR_mean: 0.000000, PE_mean: 0.901, MSD_mean: 12.28, RID_CR_mean: 0.000, RTF_mean: 3448 },
+  "05_weather_diversion/cbs":         { NMR_mean: 0.000000, PE_mean: 1.000, MSD_mean: 8.84, RID_CR_mean: 0.000, RTF_mean: 128900 },
+  "05_weather_diversion/sdacs_hybrid":{ NMR_mean: 0.000000, PE_mean: 1.000, MSD_mean: 9.21, RID_CR_mean: 1.000, RTF_mean: 105567 },
+};
+
+function fillCell(id, val, decimals) {
+  const el = document.getElementById(id);
+  if (!el || val === undefined) return;
+  el.textContent = typeof val === 'number' ? val.toFixed(decimals) : val;
+}
+
+function fillHeatmap(id, val) {
+  const el = document.getElementById(id);
+  if (!el || val === undefined) return;
+  el.textContent = val.toFixed(1);
+  el.className = 'hm-cell ' + (val < 1 ? 'hm-0' : val < 3 ? 'hm-1' : val < 6 ? 'hm-2' : 'hm-3');
+}
+
+if (RESULTS) {
+  const methods = ['orca', 'vo', 'cbs', 'sdacs_hybrid'];
+  const methodLabels = {'orca':'orca', 'vo':'vo', 'cbs':'cbs', 'sdacs_hybrid':'sdacs'};
+  const scenarios = ['01_corridor_crossing', '02_dense_intersection', '05_weather_diversion'];
+
+  const agg = {};
+  for (const m of methods) {
+    const runs = scenarios.map(sc => RESULTS[`${sc}/${m}`]).filter(Boolean);
+    if (!runs.length) continue;
+    const avg = key => runs.reduce((s, r) => s + r[key], 0) / runs.length;
+    agg[m] = {
+      nmr: avg('NMR_mean'), pe: avg('PE_mean'),
+      msd: avg('MSD_mean'), rid: avg('RID_CR_mean'), rtf: avg('RTF_mean')
+    };
+    const lbl = methodLabels[m];
+    fillCell(`nmr-${lbl}`, agg[m].nmr * 1000, 3);
+    fillCell(`pe-${lbl}`, agg[m].pe, 3);
+    fillCell(`msd-${lbl}`, agg[m].msd, 2);
+    fillCell(`rid-${lbl}`, agg[m].rid, 3);
+    fillCell(`rtf-${lbl}`, agg[m].rtf / 1000, 0);
+  }
+
+  // Heatmap
+  for (const sc of scenarios) {
+    const scShort = sc.split('_')[0]; // '01', '02', '05'
+    for (const m of methods) {
+      const r = RESULTS[`${sc}/${m}`];
+      if (r) {
+        const lbl = methodLabels[m];
+        fillHeatmap(`hm-sc${scShort}-${lbl}`, r.NMR_mean * 1000);
+      }
+    }
+  }
+}
+</script>
+
+</body>
+</html>

@@ -3,6 +3,19 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased] - 2026-05-29
+
+### 추가 (feat)
+
+- **P706 비교 실험** — 3 sc × 4 methods × 5 seeds (60 runs), 결과: `results/p706_comparison_3sc_5seed.csv` / `results/p706_summary.json`
+- **P710 컨퍼런스 포스터** — `docs/IROS2026_poster.html` (IROS 2026 A0 포스터, 실험 데이터 인라인)
+- **논문 §5 결과 채움** — `docs/paper/PAPER_DRAFT.md` §5.2 TBD → 실측값, §6.1·§7 결론 업데이트
+- **ROADMAP.md 상태 갱신** — Track B P701-P707·P710 완료 체크, Track C P711-P719 draft PR 상태 주석
+
+### 수정 (fix)
+
+- `docs/paper/PAPER_DRAFT.md` abstract [TBD] 수치 → 실험 기반 수치 대체
+
 ## [Unreleased] - 2026-05-03
 
 ### 추가 (feat)

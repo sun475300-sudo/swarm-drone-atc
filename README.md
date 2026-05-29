@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 04:21 | `2286fde` | fix: polyglot 파일 경로 src/ → archive/polyglot/ (test_phase571_600.py) | tests/test_phase571_600.py |
 | 2026-05-30 04:12 | `acd5be3` | fix: polyglot 파일 경로 src/ → archive/polyglot/ 전체 수정 (CI 실패 수정) | tests/test_phase521_540.py, tests/test_phase541_560.py, tests/test_phase611_630.py, tests/test_phase631_640.py |
 | 2026-05-30 03:57 | `0f68843` | fix: polyglot 파일 경로 src/ → archive/polyglot/ (CI 실패 수정) | tests/test_phase631_640.py, tests/test_phase641_660.py |
 | 2026-05-30 03:52 | `2681aa5` | fix: battery_predictor should_rtl np.bool_ → bool 캐스팅 (CI 실패 수정) | simulation/battery_predictor.py |

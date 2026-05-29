@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 03:57 | `0f68843` | fix: polyglot 파일 경로 src/ → archive/polyglot/ (CI 실패 수정) | tests/test_phase631_640.py, tests/test_phase641_660.py |
 | 2026-05-30 03:52 | `2681aa5` | fix: battery_predictor should_rtl np.bool_ → bool 캐스팅 (CI 실패 수정) | simulation/battery_predictor.py |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
 | 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |

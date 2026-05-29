@@ -16,6 +16,19 @@ from simulation.ws_bridge import _run_simulation, main
 # ---------------------------------------------------------------------------
 
 
+def _run_coro_in_new_loop(coro):
+    """asyncio.run 대체용: 새 이벤트 루프에서 코루틴 실행.
+
+    Python 3.10에선 현재 이벤트 루프가 없을 때 asyncio.get_event_loop()가
+    RuntimeError를 던지므로(3.12에서 폐기) 명시적으로 새 루프를 만들어 호환.
+    """
+    loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(coro)
+    finally:
+        loop.close()
+
+
 def _make_fake_sim_modules():
     """Return fake simulation.apf_engine and simulation.simulator modules."""
 
@@ -84,7 +97,7 @@ def test_main_parses_default_args(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(ws_bridge, "_run_simulation", fake_run)
     monkeypatch.setattr(sys, "argv", ["ws_bridge"])
 
-    with patch("asyncio.run", lambda coro: asyncio.get_event_loop().run_until_complete(coro)):
+    with patch("asyncio.run", _run_coro_in_new_loop):
         main()
 
     assert captured == [(50, 42, 8765)]
@@ -100,7 +113,7 @@ def test_main_parses_custom_args(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(ws_bridge, "_run_simulation", fake_run)
     monkeypatch.setattr(sys, "argv", ["ws_bridge", "--drones", "100", "--seed", "7", "--port", "9000"])
 
-    with patch("asyncio.run", lambda coro: asyncio.get_event_loop().run_until_complete(coro)):
+    with patch("asyncio.run", _run_coro_in_new_loop):
         main()
 
     assert captured == [(100, 7, 9000)]

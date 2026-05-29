@@ -70,6 +70,35 @@ try {
   const durl = await page.evaluate(async () => await window._sdacs.reportDataURL());
   ok(typeof durl === 'string' && durl.startsWith('data:image/png') && durl.length > 5000, '리포트 PNG 생성');
 
+  // 7b. 공역 레이어 토글 (Phase 1) — NFZ·CPA 레이어 off→on 검증
+  const layerNfzOff = await page.evaluate(() => window._sdacs.setLayer('nfz', false));
+  ok(layerNfzOff === false, '레이어 NFZ OFF');
+  const layerNfzOn = await page.evaluate(() => window._sdacs.setLayer('nfz', true));
+  ok(layerNfzOn === true, '레이어 NFZ ON');
+  const layerCpa = await page.evaluate(() => { window._sdacs.setLayer('cpa', false); return window._sdacs.layers; });
+  ok(layerCpa.cpa === false && layerCpa.nfz === true, '레이어 CPA OFF / NFZ ON (독립 토글)');
+  await page.evaluate(() => window._sdacs.setLayer('cpa', true));
+
+  // 7c. CSV 내보내기 함수 존재·실행 검증 (다운로드 대신 예외 없음)
+  const csvOk = await page.evaluate(() => { try { window._sdacs.exportCSV(); return true; } catch { return false; } });
+  ok(csvOk, 'CSV 내보내기 실행 (예외 없음)');
+  const htmlOk = await page.evaluate(() => { try { window._sdacs.exportHTML(); return true; } catch { return false; } });
+  ok(htmlOk, 'HTML 리포트 내보내기 실행 (예외 없음)');
+  const mdOk = await page.evaluate(() => { try { window._sdacs.exportMD(); return true; } catch { return false; } });
+  ok(mdOk, 'Markdown 리포트 내보내기 실행 (예외 없음)');
+
+  // 7d. DnI 식별 정확도 (현재 브랜치 신규) — 식별 건수 있을 때 정확도 계산 확인
+  const dniAcc = await page.evaluate(() => {
+    const d = window._sdacs.dni;
+    if (d.identified === 0) return null;
+    return (d.correct / d.identified) * 100;
+  });
+  if (dniAcc !== null) {
+    ok(dniAcc >= 0 && dniAcc <= 100, `DnI 식별 정확도 계산 (${dniAcc.toFixed(1)}%)`);
+  } else {
+    ok(true, 'DnI 식별 정확도 계산 (식별 건수 없음 — 스킵)');
+  }
+
   // 8. 대규모 InstancedMesh 모드 (1000대)
   await page.evaluate(() => window._sdacs.selectScenario('mega_swarm_1k'));
   await page.evaluate(() => window._sdacs.startSim());

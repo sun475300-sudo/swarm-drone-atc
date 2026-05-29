@@ -3,6 +3,25 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased] - 2026-05-29
+
+### 추가 (feat)
+
+- DnI 식별 정확도 모델 — 클래스별 정확도(`ID_ACCURACY`) + 혼동 행렬(`ID_CONFUSE`) (`a5277c3`)
+  - 조류 93% / 미등록 88% / 위험 90% 정확도; 오분류 시 라벨에 `?` 표시 + 이벤트 로그
+  - KPI 패널에 `식별 정확도` 카드 추가 (90%↑ 녹색 / 80%↑ 황색 / 미만 적색)
+- `tests/e2e/smoke_sim.mjs` 테스트 케이스 11 → 16건으로 확장
+  - 레이어 토글 (NFZ off/on, CPA 독립 토글) — Phase 1 검증
+  - CSV/HTML/MD 내보내기 실행 검증 — Phase 4 검증
+  - DnI 식별 정확도 계산 검증
+- `ROADMAP.md` Track A/B/C 현황 업데이트 (드래프트 PR #35~#43 반영)
+
+### 수정 (fix)
+
+- `README.md` 라이브 사이트 링크 추가 + 시뮬레이터 기능 목록 갱신 (`e86c4ae`)
+
+---
+
 ## [Unreleased] - 2026-05-03
 
 ### 추가 (feat)

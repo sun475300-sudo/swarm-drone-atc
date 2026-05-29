@@ -161,7 +161,7 @@ def test_has_role_multi_roles():
 # require_* FastAPI 의존성 (정상/비정상 케이스)
 # ---------------------------------------------------------------------------
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_require_viewer_accepts_valid_token():
     from api.auth import create_token, require_viewer
 
@@ -170,7 +170,7 @@ async def test_require_viewer_accepts_valid_token():
     assert claims.sub == "alice"
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_require_operator_rejects_viewer():
     from fastapi import HTTPException
     from api.auth import create_token, require_operator
@@ -181,7 +181,7 @@ async def test_require_operator_rejects_viewer():
     assert exc_info.value.status_code == 403
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_require_admin_rejects_operator():
     from fastapi import HTTPException
     from api.auth import create_token, require_admin
@@ -192,7 +192,7 @@ async def test_require_admin_rejects_operator():
     assert exc_info.value.status_code == 403
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_require_viewer_missing_bearer_raises_401():
     from fastapi import HTTPException
     from api.auth import require_viewer
@@ -202,7 +202,7 @@ async def test_require_viewer_missing_bearer_raises_401():
     assert exc_info.value.status_code == 401
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_require_token_returns_sub():
     from api.auth import create_token, require_token
 
@@ -215,7 +215,7 @@ async def test_require_token_returns_sub():
 # dev token (SDACS_DEV_TOKEN 설정 시)
 # ---------------------------------------------------------------------------
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_dev_token_accepted_as_admin(monkeypatch):
     from api.auth import require_admin
     import api.auth as auth_mod

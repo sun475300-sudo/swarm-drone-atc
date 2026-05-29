@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 06:22 | `74ec34c` | fix: smoke_sim 내보내기 테스트 — mega 모드 후 시뮬 정지 및 소규모 시나리오 복귀 | tests/e2e/smoke_sim.mjs |
 | 2026-05-30 06:16 | `6addc3a` | test: smoke_sim 11→16건 확장 + CHANGELOG 갱신 (2026-05-29) | CHANGELOG.md, tests/e2e/smoke_sim.mjs |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
 | 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |

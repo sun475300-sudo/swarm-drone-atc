@@ -164,7 +164,7 @@ class TestAdvancedPathPlanner:
 # ── rl_agent ──────────────────────────────────────────────────────────────
 
 try:
-    import torch as _torch
+    import torch
     from simulation.rl_agent import (
         ACT_DIM,
         ARENA_SIZE,

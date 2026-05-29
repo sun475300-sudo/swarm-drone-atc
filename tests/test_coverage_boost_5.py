@@ -314,7 +314,7 @@ class TestPrivacyPreservingAnalytics:
 # ── gnn_communication ─────────────────────────────────────────────────────
 
 try:
-    import torch as _torch
+    import torch
     from simulation.gnn_communication import DroneGraphNetwork
     _gnn_ok = True
 except ImportError:

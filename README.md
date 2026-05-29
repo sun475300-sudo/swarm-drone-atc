@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 08:01 | `48a49e9` | fix: guard api.auth import against missing FastAPI in CI | api/fastapi_server.py, tests/test_auth.py |
 | 2026-05-30 07:45 | `9ba720f` | fix: asyncio_mode=auto 제거 — 기존 테스트 스위트 영향 방지 | pyproject.toml |
 | 2026-05-30 07:32 | `0e1f9ee` | fix: 비동기 테스트 마커 anyio→asyncio + asyncio_mode=auto 설정 | pyproject.toml, tests/test_auth.py |
 | 2026-05-30 07:25 | `783782d` | fix: Docker 빌드 실패 수정 — libgl1-mesa-glx→libgl1, PR cache-to 비활성화 | .github/workflows/container.yml, Dockerfile |

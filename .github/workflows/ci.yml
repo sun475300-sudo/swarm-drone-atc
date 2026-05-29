@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v4
@@ -35,13 +35,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # torch CPU wheels are published for Python 3.11+ in 2026; skip for 3.10.
-          # pytest.importorskip("torch") in the affected test files ensures graceful skip.
-          if python -c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)"; then
-            pip install torch --index-url https://download.pytorch.org/whl/cpu || echo "torch install failed — torch tests will be skipped"
-          else
-            echo "Python ${{ matrix.python-version }}: skipping torch install (torch tests will be skipped via pytest.importorskip)"
-          fi
+          pip install torch --index-url https://download.pytorch.org/whl/cpu || echo "torch install failed — torch tests will be skipped"
           pip install ".[dev]"
 
       - name: Lint (ruff)

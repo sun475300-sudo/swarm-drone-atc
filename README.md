@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 00:53 | `126ddc2` | fix: CI 매트릭스 Python 3.10 제거 — numpy 2.x/scipy 1.17/pandas 3.0 호환성 | .github/workflows/ci.yml, pyproject.toml |
 | 2026-05-30 00:42 | `dfcc3de` | fix: CI 전체 통과 — 폴리글랏 경로·torch skip·asyncio·np.bool_ 수정 | pyproject.toml, simulation/battery_predictor.py, tests/test_coverage_boost_2.py, tests/test_coverage_boost_4.py, tests/test_coverage_boost_5.py, tests/test_phase521_540.py … |
 | 2026-05-30 00:14 | `ec7ad24` | feat: P714 TimescaleDB 스키마 + P715 Kubernetes Helm 차트 + ROADMAP 갱신 | ROADMAP.md, helm/sdacs/Chart.yaml, helm/sdacs/templates/NOTES.txt, helm/sdacs/templates/_helpers.tpl, helm/sdacs/templates/deployment.yaml, helm/sdacs/templates/ingress.yaml … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |

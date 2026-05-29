@@ -3,19 +3,21 @@
 #
 # Stores per-run JSONs under results/<scenario>/<method>/seed<N>.json
 # Then aggregates into results/summary.parquet for the paper's Table 6.
+#
+# Scenario IDs match benchmarks/scenarios/ directory names.
 
 set -euo pipefail
 
 SCENARIOS=(
-  empty_sky
-  light_traffic_10
-  dense_traffic_50
-  stress_200
-  crosswind_corridor
-  geofence_breach
-  remote_id_loss
+  01_corridor_crossing
+  02_dense_intersection
+  03_emergency_landing
+  04_no_fly_zone
+  05_weather_diversion
+  06_priority_aircraft
+  07_communication_loss
 )
-METHODS=(orca hybrid)
+METHODS=(sdacs_hybrid orca)
 SEEDS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29)
 
 TOTAL=$(( ${#SCENARIOS[@]} * ${#METHODS[@]} * ${#SEEDS[@]} ))

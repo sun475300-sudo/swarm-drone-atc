@@ -3,6 +3,20 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased] - 2026-05-29
+
+### 추가 (feat)
+
+- `scripts/run_benchmark.py` — P706 교차-방법 벤치마크 러너 (SDACS vs ORCA vs VO vs CBS, ablation 지원)
+- `tests/test_run_benchmark.py` — P706 벤치마크 러너 테스트 23건
+
+### 수정 (fix)
+
+- `scripts/reproduce/run_all.sh` 시나리오명 실제 디렉토리명으로 정정 (`empty_sky` → `01_corridor_crossing` 등)
+- README 테스트 수 동기화 (3,481+ / 3,973+ → 3,567+)
+
+---
+
 ## [Unreleased] - 2026-05-03
 
 ### 추가 (feat)

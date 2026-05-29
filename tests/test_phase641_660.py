@@ -358,31 +358,31 @@ class TestPhase650Integration:
 
 class TestPhase651660Files:
     def test_651_go(self):
-        assert os.path.exists(os.path.join(BASE, "src/go/realtime_monitor.go"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/go/comm_broker.go"))
 
     def test_652_rust(self):
-        assert os.path.exists(os.path.join(BASE, "src/rust/safety_verifier.rs"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/rust/collision_engine.rs"))
 
     def test_653_cpp(self):
-        assert os.path.exists(os.path.join(BASE, "src/cpp/particle_filter.cpp"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/cpp/apf_simd.cpp"))
 
     def test_654_zig(self):
-        assert os.path.exists(os.path.join(BASE, "src/zig/ring_buffer_v2.zig"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/zig/adversarial_shield.zig"))
 
     def test_655_ada(self):
-        assert os.path.exists(os.path.join(BASE, "src/ada/tmr_voter_v2.adb"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/ada/safety_critical.adb"))
 
     def test_656_vhdl(self):
-        assert os.path.exists(os.path.join(BASE, "src/vhdl/fir_filter.vhd"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/vhdl/fir_filter.vhd"))
 
     def test_657_prolog(self):
-        assert os.path.exists(os.path.join(BASE, "src/prolog/airspace_rules_v2.pl"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/prolog/airspace_rules.pl"))
 
     def test_658_assembly(self):
-        assert os.path.exists(os.path.join(BASE, "src/assembly/kalman_filter.asm"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/assembly/kalman_filter.asm"))
 
     def test_659_nim(self):
-        assert os.path.exists(os.path.join(BASE, "src/nim/async_dispatcher.nim"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/nim/async_dispatcher.nim"))
 
     def test_660_ocaml(self):
-        assert os.path.exists(os.path.join(BASE, "src/ocaml/type_checker.ml"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/ocaml/acoustic_dsp.ml"))

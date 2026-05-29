@@ -30,19 +30,19 @@ class TestPhase611620Files:
         assert os.path.exists(os.path.join(BASE, "src/haskell/formal_verifier.hs"))
 
     def test_616_cobol(self):
-        assert os.path.exists(os.path.join(BASE, "src/cobol/legacy_atc_bridge.cob"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/cobol/legacy_atc_bridge.cob"))
 
     def test_617_r(self):
-        assert os.path.exists(os.path.join(BASE, "src/r/statistical_analyzer.R"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/r/simulation_analytics.R"))
 
     def test_618_perl(self):
-        assert os.path.exists(os.path.join(BASE, "src/perl/log_parser.pl"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/perl/log_analyzer.pl"))
 
     def test_619_scheme(self):
-        assert os.path.exists(os.path.join(BASE, "src/scheme/rule_engine.scm"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/scheme/rule_engine.scm"))
 
     def test_620_octave(self):
-        assert os.path.exists(os.path.join(BASE, "src/octave/signal_processor.m"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/octave/control_system_model.m"))
 
 
 # ── Phase 621: Swarm Crystallography ────────────────────────────

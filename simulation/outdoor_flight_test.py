@@ -10,7 +10,7 @@ from typing import Any
 import numpy as np
 
 
-class TestPhase(Enum):
+class FlightTestPhase(Enum):
     """비행 시험 단계."""
     PREFLIGHT = "preflight"
     TAKEOFF = "takeoff"
@@ -50,7 +50,7 @@ class FlightTestResult:
     scenario_name: str
     drone_count: int
     passed: bool
-    phase_reached: TestPhase
+    phase_reached: FlightTestPhase
     max_formation_error_m: float
     collision_count: int
     duration_s: float
@@ -153,7 +153,7 @@ class OutdoorFlightTestRunner:
             scenario_name="hover_stability",
             drone_count=self.drone_count,
             passed=passed,
-            phase_reached=TestPhase.HOVER if passed else TestPhase.ABORT,
+            phase_reached=FlightTestPhase.HOVER if passed else FlightTestPhase.ABORT,
             max_formation_error_m=max_err,
             collision_count=0,
             duration_s=time.time() - t_start,
@@ -205,7 +205,7 @@ class OutdoorFlightTestRunner:
             scenario_name=f"formation_{formation.value}",
             drone_count=self.drone_count,
             passed=passed,
-            phase_reached=TestPhase.FORMATION if passed else TestPhase.ABORT,
+            phase_reached=FlightTestPhase.FORMATION if passed else FlightTestPhase.ABORT,
             max_formation_error_m=max_err,
             collision_count=collisions,
             duration_s=time.time() - t_start,
@@ -238,7 +238,7 @@ class OutdoorFlightTestRunner:
             scenario_name="gps_trace_replay",
             drone_count=self.drone_count,
             passed=passed,
-            phase_reached=TestPhase.COMPLETE if passed else TestPhase.ABORT,
+            phase_reached=FlightTestPhase.COMPLETE if passed else FlightTestPhase.ABORT,
             max_formation_error_m=max_err,
             collision_count=0,
             duration_s=time.time() - t_start,

@@ -30,9 +30,9 @@ from simulation.failsafe_manager import (
 from simulation.swarm_time_sync import ClockState, SyncProtocol, SwarmTimeSync
 from simulation.mocap_hitl_bridge import MocapHITLBridge, MocapSystem, HITLState
 from simulation.outdoor_flight_test import (
+    FlightTestPhase,
     FormationType,
     OutdoorFlightTestRunner,
-    TestPhase,
     _compute_formation_positions,
 )
 from simulation.environmental_scenario import (

@@ -11,6 +11,9 @@ real_time_stream_processor, multi_modal_fusion.
 import time
 
 import numpy as np
+import pytest
+
+pytest.importorskip("torch")  # collision_predictor (line ~467) transitively imports torch
 
 # ── predictive_analytics_engine ───────────────────────────────────────────
 from simulation.predictive_analytics_engine import (

@@ -51,15 +51,16 @@ QUICK_METHODS = ["orca", "sdacs_hybrid"]
 QUICK_SEEDS = [0, 1, 2]
 ALL_SEEDS = list(range(30))
 
+# Keys as returned by src.analytics.metrics.Evaluator.evaluate()
 METRIC_KEYS = [
-    "near_miss_rate",
-    "min_separation_m",
-    "path_efficiency",
-    "makespan_s",
-    "flowtime_s",
-    "airspace_utilization",
-    "rid_compliance_rate",
-    "rtf",
+    "NMR",
+    "MSD",
+    "PE",
+    "MS_s",
+    "FT_drone_s",
+    "AU",
+    "RID_CR",
+    "RTF",
 ]
 
 
@@ -218,8 +219,8 @@ def main(argv: list[str] | None = None) -> int:
             results.append(result)
             done += 1
             if result.success:
-                nmr = result.metrics.get("near_miss_rate", "?")
-                rtf = result.metrics.get("rtf", "?")
+                nmr = result.metrics.get("NMR", "?")
+                rtf = result.metrics.get("RTF", "?")
                 print(
                     f"  [{done:4d}/{total}] {result.spec.scenario}/{result.spec.method}/seed{result.spec.seed}"
                     f"  nmr={nmr}  rtf={rtf}  ({result.wall_s:.1f}s)"

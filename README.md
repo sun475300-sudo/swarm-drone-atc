@@ -699,6 +699,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-29 09:27 | `e57192d` | feat: 각 드론 세부 쿼드콥터 모델링 (본체 허브+4암+4링+회전 프롭) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-05-29 09:23 | `3a59a91` | chore: package.json 추적(강제) — 로컬 npm 실행 스크립트 활성화 | package.json |
 | 2026-05-29 09:23 | `a831ba3` | feat: 로컬 실행/빌드 지원 — serve.py 런처 + npm 스크립트 + 오프라인 벤더링 | README.md, scripts/serve.py, scripts/vendor_three.sh |
 | 2026-05-29 09:21 | `bb9c50f` | feat: 외부 드론·조류 인식 가시화 + 탐지 스로틀 시간기반 안정화 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |

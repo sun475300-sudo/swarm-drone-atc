@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 08:27 | `6ab5ac4` | fix: Python 3.10 CI — torch install 실패 허용 + 커버리지 복구 | .github/workflows/ci.yml, tests/test_coverage_boost_2.py, tests/test_coverage_boost_4.py, tests/test_coverage_boost_5.py |
 | 2026-05-30 07:40 | `29cd148` | fix: asyncio 이벤트 루프 명시적 close (Python 3.10 ResourceWarning 방지) | tests/test_ws_bridge.py |
 | 2026-05-30 07:17 | `7070b7d` | fix: 다국어 파일 경로 수정 (Phase 521-580/591-599/611-615) + torch importorskip + np.False_ 비교 수정 | tests/test_coverage_boost_2.py, tests/test_coverage_boost_4.py, tests/test_coverage_boost_5.py, tests/test_phase44_51.py, tests/test_phase521_540.py, tests/test_phase541_560.py … |
 | 2026-05-30 06:46 | `ed77af1` | docs: 변경 이력 업데이트 — smoke/Python CI 수정 내역 반영 | CHANGELOG.md |

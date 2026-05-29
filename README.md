@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-29 19:38 | `866db89` | fix: run_one.sh 기본값/메트릭 키 교정 (light_traffic_10→01_corridor_crossing, near_miss_rate→NMR) | scripts/reproduce/run_one.sh |
 | 2026-05-29 19:37 | `983628a` | docs: P706 실험 결과로 논문 초안 §5.2 테이블 업데이트 (TBD → 실제 수치) | docs/paper/PAPER_DRAFT.md |
 | 2026-05-29 19:36 | `9a8848e` | chore: P706 전체 비교 실험 결과 추가 (1200 runs: 10 scenarios × 4 methods × 30 seeds) | results/01_corridor_crossing/cbs/seed0.json, results/01_corridor_crossing/cbs/seed1.json, results/01_corridor_crossing/cbs/seed10.json, results/01_corridor_crossing/cbs/seed11.json, results/01_corridor_crossing/cbs/seed12.json, results/01_corridor_crossing/cbs/seed13.json … |
 | 2026-05-29 19:34 | `b2f3bbb` | fix: test_ws_bridge asyncio.get_event_loop() → new_event_loop() (Python 3.10+ 호환) | tests/test_ws_bridge.py |

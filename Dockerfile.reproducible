@@ -12,9 +12,9 @@
 #
 # Run (a single scenario with deterministic seed):
 #   docker run --rm -v "$(pwd)/results:/app/results" sdacs-repro:0.1.0 \
-#       bash scripts/reproduce/run_one.sh light_traffic_10 hybrid 42
+#       bash scripts/reproduce/run_one.sh 01_corridor_crossing sdacs_hybrid 42
 #
-# Run (full benchmark suite — 420 runs):
+# Run (full benchmark suite — 600 runs (10 scenarios × 2 methods × 30 seeds)):
 #   docker run --rm -v "$(pwd)/results:/app/results" sdacs-repro:0.1.0 \
 #       bash scripts/reproduce/run_all.sh
 

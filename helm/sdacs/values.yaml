@@ -1,0 +1,81 @@
+# SDACS Helm values (P715)
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/sun475300-sudo/swarm-drone-atc
+  pullPolicy: IfNotPresent
+  tag: ""  # defaults to .Chart.AppVersion
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: sdacs.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+env:
+  SDACS_JWT_ALG: "HS256"
+  SDACS_JWT_TTL_S: "3600"
+
+# JWT secret — 운영 환경에서는 외부 Secret Manager 또는 Sealed Secrets 사용
+secretEnv:
+  SDACS_JWT_SECRET: ""  # base64-encoded value for k8s Secret
+
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    # 운영 환경에서는 Sealed Secrets 또는 외부 Secret Manager로 관리할 것.
+    # 개발 환경용 기본값: 배포 전 반드시 변경.
+    password: ""  # 비어 있으면 랜덤 생성 (Bitnami Redis 차트 기본 동작)
+  master:
+    persistence:
+      enabled: false
+
+prometheus:
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+
+podAnnotations: {}
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

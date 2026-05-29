@@ -1,0 +1,87 @@
+{
+  "title": "SDACS Overview",
+  "uid": "sdacs-overview",
+  "version": 1,
+  "schemaVersion": 38,
+  "refresh": "10s",
+  "time": {"from": "now-1h", "to": "now"},
+  "panels": [
+    {
+      "id": 1,
+      "title": "API 요청률 (req/s)",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "rate(http_requests_total{job=\"sdacs_api\"}[1m])",
+          "legendFormat": "{{method}} {{path}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "API 응답 지연 P99 (ms)",
+      "type": "timeseries",
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job=\"sdacs_api\"}[5m])) * 1000",
+          "legendFormat": "P99"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "활성 WebSocket 연결 수",
+      "type": "stat",
+      "gridPos": {"x": 0, "y": 8, "w": 6, "h": 4},
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "sdacs_ws_connections_active{job=\"sdacs_api\"}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "시뮬레이션 실행 수 (총계)",
+      "type": "stat",
+      "gridPos": {"x": 6, "y": 8, "w": 6, "h": 4},
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "sdacs_simulation_runs_total{job=\"sdacs_api\"}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "충돌 해결률 (%)",
+      "type": "gauge",
+      "gridPos": {"x": 12, "y": 8, "w": 6, "h": 4},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}},
+      "fieldConfig": {"defaults": {"min": 0, "max": 100, "unit": "percent"}},
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "sdacs_conflict_resolution_rate{job=\"sdacs_api\"} * 100"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "에러 로그 (Loki)",
+      "type": "logs",
+      "gridPos": {"x": 0, "y": 12, "w": 24, "h": 8},
+      "targets": [
+        {
+          "datasource": "Loki",
+          "expr": "{container_name=~\"sdacs.*\"} |= \"ERROR\"",
+          "legendFormat": ""
+        }
+      ]
+    }
+  ]
+}

@@ -44,6 +44,8 @@ except ImportError as exc:  # pragma: no cover
         "pip install 'fastapi>=0.110' 'uvicorn[standard]>=0.29' 'pydantic>=2.5'"
     ) from exc
 
+from api.auth import Claims, create_token, require_admin, require_operator, require_token, require_viewer  # noqa: E402
+
 LOGGER = logging.getLogger("sdacs.fastapi")
 API_VERSION = "1.1.0"
 
@@ -476,15 +478,14 @@ async def _demo_telemetry_stream() -> None:
         await asyncio.sleep(0.1)
 
 
-# --- Auth dependency (stub) ---
+# --- Auth dependency (P712 완료: api/auth.py 참조) ---
+# require_token / require_viewer / require_operator / require_admin 은 api.auth 에서 import 됨.
 
 
-async def require_token(authorization: str = Header(default="")) -> str:
-    # P712 will replace with full JWT validation.
-    """``require_token`` 동작을 수행한다."""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(401, detail="missing bearer token")
-    return authorization[len("Bearer ") :]
+async def _issue_token_endpoint_handler(sub: str, roles: list[str]) -> dict:
+    """토큰 발급 헬퍼 (POST /api/token 에서 사용)."""
+    token = create_token(sub=sub, roles=roles)
+    return {"access_token": token, "token_type": "bearer"}
 
 
 # --- Pydantic models ---
@@ -543,6 +544,72 @@ app.add_middleware(
 async def healthz() -> dict:
     """``healthz`` 동작을 수행한다."""
     return {"success": True, "status": "ok", "now_ns": time.time_ns()}
+
+
+@app.get("/metrics", tags=["infra"])
+async def prometheus_metrics() -> Any:
+    """P718 — Prometheus 텍스트 포맷 메트릭 엔드포인트.
+
+    prometheus-client 설치 시 실제 계측값, 미설치 시 정적 샘플을 반환한다.
+    """
+    from fastapi.responses import PlainTextResponse
+
+    try:
+        from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # type: ignore[import-untyped]
+        return PlainTextResponse(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+    except ImportError:
+        # prometheus-client 미설치 시 샘플 메트릭 반환 (scrape 오류 방지)
+        active_runs = sum(1 for r in STATE.runs.values() if r.status == "running")
+        snapshot_age = (time.time_ns() - STATE.snapshot.timestamp_ns) / 1e9
+        lines = [
+            "# HELP sdacs_api_info SDACS API 버전 정보",
+            "# TYPE sdacs_api_info gauge",
+            f'sdacs_api_info{{version="{API_VERSION}"}} 1',
+            "# HELP sdacs_simulation_runs_active 현재 실행 중인 시뮬레이션 수",
+            "# TYPE sdacs_simulation_runs_active gauge",
+            f"sdacs_simulation_runs_active {active_runs}",
+            "# HELP sdacs_snapshot_age_seconds 마지막 스냅샷 나이(초)",
+            "# TYPE sdacs_snapshot_age_seconds gauge",
+            f"sdacs_snapshot_age_seconds {snapshot_age:.3f}",
+            "# HELP sdacs_drones_tracked 현재 추적 중인 드론 수",
+            "# TYPE sdacs_drones_tracked gauge",
+            f"sdacs_drones_tracked {len(STATE.snapshot.drones)}",
+            "# HELP sdacs_conflicts_active 현재 감지된 충돌 수",
+            "# TYPE sdacs_conflicts_active gauge",
+            f"sdacs_conflicts_active {len(STATE.snapshot.conflicts)}",
+        ]
+        return PlainTextResponse("\n".join(lines) + "\n", media_type="text/plain; version=0.0.4")
+
+
+# --- Auth (P712) ---
+
+
+class TokenRequest(BaseModel):
+    """토큰 발급 요청 모델."""
+    sub: str = Field(min_length=1, max_length=64, description="사용자 식별자")
+    roles: list[str] = Field(
+        default=["viewer"],
+        description="부여할 역할 목록 (viewer / operator / admin)",
+    )
+    admin_secret: str = Field(description="토큰 발급 권한 확인용 관리자 시크릿 (SDACS_JWT_SECRET)")
+
+
+@app.post("/api/token", tags=["auth"])
+async def issue_token(body: TokenRequest) -> dict:
+    """JWT 발급 엔드포인트 (운영 환경에서는 IdP로 교체).
+
+    admin_secret 이 SDACS_JWT_SECRET 과 일치해야 발급된다.
+    """
+    import os as _os
+    import hmac as _hmac
+    secret = _os.environ.get("SDACS_JWT_SECRET", "")
+    if not secret or not _hmac.compare_digest(secret.encode(), body.admin_secret.encode()):
+        raise HTTPException(status_code=403, detail="admin_secret 불일치")
+    unknown = set(body.roles) - {"viewer", "operator", "admin"}
+    if unknown:
+        raise HTTPException(status_code=422, detail=f"알 수 없는 역할: {unknown}")
+    result = await _issue_token_endpoint_handler(sub=body.sub, roles=body.roles)
+    return {"success": True, **result}
 
 
 @app.get("/health", tags=["infra"])

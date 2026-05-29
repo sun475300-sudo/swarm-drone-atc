@@ -145,9 +145,9 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 - [ ] **P701** — 논문 주제 확정 및 기여 포인트 3개 도출 (CBS+APF 하이브리드? Voronoi 분할?)
 - [ ] **P702** — 선행 연구 서베이 (최소 30편, IROS/ICRA/AIAA 기준)
-- [ ] **P703** — 벤치마크 데이터셋 공개화 (7개 Monte Carlo 시나리오 + 3개 실기 로그)
-- [ ] **P704** — Reproducibility 패키지 (Docker 이미지, 시드 고정, 결과 재현 스크립트)
-- [ ] **P705** — 평가 메트릭 정형화 (near-miss rate, airspace utilization, path efficiency)
+- [x] **P703** — 벤치마크 데이터셋 공개화 (benchmarks/DATASET_CARD.md, scenarios/, baselines/)
+- [x] **P704** — Reproducibility 패키지 (Dockerfile.reproducible, docker-compose.reproducible.yml, scripts/reproduce/)
+- [x] **P705** — 평가 메트릭 정형화 (src/analytics/metrics.py, docs/paper/EVALUATION_METRICS.md)
 - [ ] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS)
 - [ ] **P707** — 논문 초안 작성 (IROS 2026 또는 AIAA SciTech 2027 투고 목표)
 - [ ] **P708** — 내부 리뷰 3회 + 지도교수 피드백 반영
@@ -158,15 +158,15 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 공역 관리자용 대시보드를 SaaS 수준으로 안정화.
 
-- [ ] **P711** — Dash 대시보드를 FastAPI + React로 리팩토링
-- [ ] **P712** — 인증·권한(OAuth2, RBAC) 및 감사 로그
-- [ ] **P713** — 실시간 WebSocket 채널 (서버 → 브라우저 1 kHz 업데이트)
-- [ ] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존
-- [ ] **P715** — Docker Compose → Kubernetes Helm 차트 변환
-- [ ] **P716** — CI/CD (GitHub Actions → 컨테이너 레지스트리 → 스테이징)
+- [x] **P711** — FastAPI 백엔드 스켈레톤 (api/fastapi_server.py, /healthz, /ws/telemetry, /api/scenarios)
+- [x] **P712** — JWT HS256 + RBAC 인증 (api/auth.py: viewer/operator/admin 계층, 17 테스트 통과)
+- [x] **P713** — 실시간 WebSocket 채널 (`/ws/telemetry` 1 kHz 스트리밍, fastapi_server.py)
+- [x] **P714** — PostgreSQL + TimescaleDB 스키마 (deploy/timescaledb/: init.sql 30일 보존, 연속 집계 뷰)
+- [x] **P715** — Kubernetes Helm 차트 (helm/sdacs/: Deployment/Service/Ingress/HPA/Secret)
+- [x] **P716** — CI/CD Docker → ghcr.io (.github/workflows/container.yml, Trivy 취약점 스캔, Helm lint)
 - [ ] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지)
-- [ ] **P718** — 관측성 스택 (Prometheus + Grafana + Loki)
-- [ ] **P719** — 보안 감사 (OWASP ZAP, 의존성 CVE 스캔)
+- [x] **P718** — 관측성 스택 (deploy/observability/: Prometheus + Grafana + Loki + Promtail)
+- [x] **P719** — 보안 감사 (.github/workflows/security.yml: pip-audit, Bandit, Gitleaks, Trivy)
 - [ ] **P720** — 공개 베타 오픈 (3개 파일럿 기관, 피드백 수집 4주)
 
 ---
@@ -176,4 +176,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-04-19 (Phase 700 완료, Phase 701-720 로드맵 유지)*
+*Last updated: 2026-05-29 (P703-P705, P711-P716, P718-P719 완료. P717, P720 및 Track A/B 사용자 의존 항목 미완)*

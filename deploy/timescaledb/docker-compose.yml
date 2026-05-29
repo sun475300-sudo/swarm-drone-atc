@@ -1,0 +1,51 @@
+version: "3.9"
+# P714 — PostgreSQL + TimescaleDB 이력 저장 (30일 보존)
+# 사용법:
+#   docker compose -f deploy/timescaledb/docker-compose.yml up -d
+# 접속:
+#   psql -h localhost -U sdacs -d sdacs_telemetry
+#   (비밀번호: SDACS_DB_PASSWORD 환경 변수 또는 기본값 'changeme')
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:2.15.0-pg16
+    container_name: sdacs-timescaledb
+    environment:
+      POSTGRES_USER: sdacs
+      POSTGRES_PASSWORD: ${SDACS_DB_PASSWORD:-changeme}
+      POSTGRES_DB: sdacs_telemetry
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sdacs -d sdacs_telemetry"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 스키마 마이그레이션 (초기화 후 1회 실행)
+  migrate:
+    image: timescale/timescaledb:2.15.0-pg16
+    container_name: sdacs-migrate
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${SDACS_DB_PASSWORD:-changeme}
+    volumes:
+      - ./migrations:/migrations:ro
+    command: >
+      sh -c "
+        for f in /migrations/*.sql; do
+          echo \"Applying $$f ...\";
+          psql -h timescaledb -U sdacs -d sdacs_telemetry -f $$f;
+        done;
+        echo 'Migrations complete.';
+      "
+    restart: "no"
+
+volumes:
+  timescale_data:

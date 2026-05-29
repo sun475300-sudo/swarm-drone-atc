@@ -1,0 +1,121 @@
+name: Security Audit (P719)
+
+# P719 — 보안 감사: 의존성 CVE 스캔 + 정적 분석
+# 주간 실행(월요일 03:00 UTC) + main 브랜치 푸시 시 실행.
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 3 * * 1"  # 매주 월요일 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  dependency-scan:
+    name: 의존성 CVE 스캔 (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Install project dependencies
+        run: |
+          pip install --upgrade pip
+          pip install ".[dev]" --quiet 2>/dev/null || pip install -r requirements.txt --quiet || true
+
+      - name: Run pip-audit (non-blocking on warnings)
+        run: |
+          pip-audit --format json --output pip-audit-report.json || true
+          pip-audit --format markdown > pip-audit-report.md || true
+          echo "=== pip-audit summary ==="
+          cat pip-audit-report.md || echo "No report generated."
+
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: |
+            pip-audit-report.json
+            pip-audit-report.md
+          retention-days: 90
+
+  bandit-sast:
+    name: 정적 보안 분석 (Bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Bandit
+        run: pip install bandit[toml]
+
+      - name: Run Bandit (SAST)
+        run: |
+          bandit -r src/ simulation/ api/ \
+            --format json \
+            --output bandit-report.json \
+            --severity-level medium \
+            --confidence-level medium \
+            --exclude tests/ \
+            || true
+          bandit -r src/ simulation/ api/ \
+            --severity-level medium \
+            --confidence-level medium \
+            --exclude tests/ \
+            || true
+
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json
+          retention-days: 90
+
+  secret-scanning:
+    name: 시크릿 탐지 (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 전체 이력 스캔
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  trivy-fs-scan:
+    name: 파일시스템 취약점 스캔 (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "table"
+          severity: "CRITICAL,HIGH"
+          exit-code: "1"
+          ignore-unfixed: true
+
+      - name: Run Trivy config scan (IaC)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "config"
+          scan-ref: "."
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true

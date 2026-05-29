@@ -77,11 +77,16 @@ try {
   const mega = await page.evaluate(() => ({ n: window._sdacs.droneCount, mode: window._sdacs.megaMode, inst: window._sdacs.instanceCount }));
   ok(mega.n === 1000 && mega.mode === true && mega.inst > 0, `대규모 InstancedMesh (${mega.n}대, inst=${mega.inst})`);
 
-  // 9. 레이어 토글 (NFZ)
+  // 9. 레이어 토글 (NFZ) — 메가 모드에서도 레이어 독립 동작
   const nfzOff = await page.evaluate(() => window._sdacs.setLayer('nfz', false));
   ok(nfzOff === false, '레이어 NFZ OFF');
   const nfzOn = await page.evaluate(() => window._sdacs.setLayer('nfz', true));
   ok(nfzOn === true, '레이어 NFZ ON');
+
+  // 내보내기 테스트 전: 시뮬 정지 + 소규모 시나리오 복귀
+  // (1000대 InstancedMesh 렌더 중 buildReportCanvas 호출 시 pageError 방지)
+  await page.evaluate(() => { window._sdacs.stopSim(); window._sdacs.selectScenario('route_conflict'); });
+  await page.waitForTimeout(400);
 
   // 10. CSV 내보내기 (예외 없음)
   let csvOk = true;

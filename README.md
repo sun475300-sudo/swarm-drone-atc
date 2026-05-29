@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 06:46 | `ed77af1` | docs: 변경 이력 업데이트 — smoke/Python CI 수정 내역 반영 | CHANGELOG.md |
 | 2026-05-30 06:46 | `a584aa2` | fix: smoke — stopSim/selectScenario 사이 300ms 분리 + 시나리오 초기화 대기 1200ms로 증가 | tests/e2e/smoke_sim.mjs |
 | 2026-05-30 06:40 | `5ce7b0e` | fix: 다국어 파일 테스트 경로 수정 + asyncio.get_event_loop() 호환성 수정 | tests/test_phase611_630.py, tests/test_phase631_640.py, tests/test_phase641_660.py, tests/test_ws_bridge.py |
 | 2026-05-30 06:22 | `74ec34c` | fix: smoke_sim 내보내기 테스트 — mega 모드 후 시뮬 정지 및 소규모 시나리오 복귀 | tests/e2e/smoke_sim.mjs |

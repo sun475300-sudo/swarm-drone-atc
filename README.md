@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-30 06:02 | `6b7b9e9` | fix: mypy ndarray 타입 불일치 수정 — numpy 2.2.x (Python 3.10) 스텁 호환 | src/boids_swarm.py, src/sensor_fusion.py |
 | 2026-05-30 05:22 | `8f4c3cc` | fix: np.bool_ 반환값 및 torch 임포트 가드 수정 | simulation/battery_predictor.py, tests/test_coverage_boost_4.py |
 | 2026-05-30 04:50 | `3cdf27c` | fix: 나머지 4개 폴리글랏 테스트 경로 수정 — src/ → archive/polyglot/ | tests/test_phase541_560.py, tests/test_phase571_600.py, tests/test_phase631_640.py, tests/test_phase641_660.py |
 | 2026-05-30 04:39 | `9ce3d64` | fix: 다국어(폴리글랏) 테스트 경로 수정 — src/ → archive/polyglot/ | tests/test_phase521_540.py, tests/test_phase611_630.py |

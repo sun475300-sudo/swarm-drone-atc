@@ -15,6 +15,8 @@ import time
 
 import pytest
 
+pytest.importorskip("fastapi")
+
 
 @pytest.fixture(autouse=True)
 def set_jwt_secret(monkeypatch):

@@ -38,13 +38,12 @@ try:
     from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
     from fastapi.middleware.cors import CORSMiddleware
     from pydantic import BaseModel, Field
+    from api.auth import Claims, create_token, require_admin, require_operator, require_token, require_viewer
 except ImportError as exc:  # pragma: no cover
     raise RuntimeError(
         "FastAPI and pydantic are required. "
         "pip install 'fastapi>=0.110' 'uvicorn[standard]>=0.29' 'pydantic>=2.5'"
     ) from exc
-
-from api.auth import Claims, create_token, require_admin, require_operator, require_token, require_viewer  # noqa: E402
 
 LOGGER = logging.getLogger("sdacs.fastapi")
 API_VERSION = "1.1.0"

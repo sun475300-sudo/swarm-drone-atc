@@ -756,6 +756,94 @@ async def ws_telemetry(ws: WebSocket) -> None:
         LOGGER.info("telemetry subscriber disconnected (total=%d)", len(STATE.telemetry_subscribers))
 
 
+# --- P718 Prometheus metrics ---
+
+try:
+    from prometheus_client import (
+        CONTENT_TYPE_LATEST,
+        Counter,
+        Gauge,
+        Histogram,
+        generate_latest,
+    )
+    _PROM_AVAILABLE = True
+except ImportError:
+    _PROM_AVAILABLE = False
+
+if _PROM_AVAILABLE:
+    _prom_active_drones = Gauge(
+        "sdacs_active_drones",
+        "Current number of active drones in the airspace snapshot",
+    )
+    _prom_ws_connections = Gauge(
+        "sdacs_websocket_connections",
+        "Current number of live WebSocket telemetry subscribers",
+    )
+    _prom_simulation_runs = Counter(
+        "sdacs_simulation_runs_total",
+        "Total number of simulation runs initiated",
+        ["scenario", "method"],
+    )
+    _prom_tick_latency = Histogram(
+        "sdacs_tick_latency_seconds",
+        "ATC controller tick latency",
+        buckets=(0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0),
+    )
+    _prom_near_misses = Counter(
+        "sdacs_near_miss_events_total",
+        "Total near-miss events detected",
+    )
+
+
+def record_simulation_start(scenario: str, method: str) -> None:
+    """시뮬레이션 시작 이벤트를 메트릭에 기록한다."""
+    if _PROM_AVAILABLE:
+        _prom_simulation_runs.labels(scenario=scenario, method=method).inc()
+
+
+def record_tick_latency(latency_ms: float) -> None:
+    """컨트롤러 틱 레이턴시를 히스토그램에 기록한다."""
+    if _PROM_AVAILABLE:
+        _prom_tick_latency.observe(latency_ms / 1000.0)
+
+
+def record_near_miss() -> None:
+    """근접 충돌 이벤트 발생 시 카운터를 증가시킨다."""
+    if _PROM_AVAILABLE:
+        _prom_near_misses.inc()
+
+
+def _refresh_prom_gauges() -> None:
+    """스냅샷 기반 게이지 값을 갱신한다 (snapshot/ws 상태 기반)."""
+    if not _PROM_AVAILABLE:
+        return
+    _prom_active_drones.set(len(STATE.snapshot.drones) if STATE.snapshot else 0)
+    _prom_ws_connections.set(len(STATE.telemetry_subscribers))
+
+
+try:
+    from fastapi.responses import Response as FastAPIResponse
+
+    @app.get("/metrics", tags=["infra"], include_in_schema=False)
+    async def prometheus_metrics() -> FastAPIResponse:
+        """Prometheus 스크랩 엔드포인트 — ``/metrics``."""
+        if not _PROM_AVAILABLE:
+            return FastAPIResponse(
+                content="# prometheus_client not installed\n",
+                media_type="text/plain",
+                status_code=200,
+            )
+        _refresh_prom_gauges()
+        return FastAPIResponse(
+            content=generate_latest(),
+            media_type=CONTENT_TYPE_LATEST,
+        )
+except Exception:  # pragma: no cover
+    pass
+
+
+# --- Dev server ---
+
 def run_dev_server(host: str = "0.0.0.0", port: int = 8000, log_level: str = "info") -> None:
     """``run_dev_server`` 동작을 수행한다."""
     import uvicorn

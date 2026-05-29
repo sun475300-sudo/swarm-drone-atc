@@ -35,6 +35,9 @@ dev = [
     "ruff>=0.4",
     "hypothesis>=6.100",
 ]
+monitoring = [
+    "prometheus-client>=0.20",
+]
 gpu = [
     "torch>=2.0",
 ]

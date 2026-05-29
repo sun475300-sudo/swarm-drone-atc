@@ -9,11 +9,20 @@
 
 - `scripts/run_benchmark.py` — P706 교차-방법 벤치마크 러너 (SDACS vs ORCA vs VO vs CBS, ablation 지원)
 - `tests/test_run_benchmark.py` — P706 벤치마크 러너 테스트 23건
+- `.github/workflows/ci.yml` — `comparison-benchmark` job 추가 (P716 CI/CD)
+- P718 관측성 스택: `docker-compose.monitoring.yml`, Prometheus/Grafana/Loki 완전 설정
+  - `deployment/monitoring/prometheus.yml` — sdacs_api + prometheus + loki scrape 설정
+  - `deployment/monitoring/grafana-dashboard.json` — 9-panel 드론 메트릭 대시보드
+  - `deployment/monitoring/grafana-provisioning/` — 자동 프로비저닝 설정
+  - `deployment/monitoring/promtail.yml` — 로그 수집 설정
+- `api/fastapi_server.py` — P718 `/metrics` Prometheus 스크랩 엔드포인트 추가
+- `tests/test_p718_metrics.py` — P718 모니터링 스택 테스트 15건
 
 ### 수정 (fix)
 
 - `scripts/reproduce/run_all.sh` 시나리오명 실제 디렉토리명으로 정정 (`empty_sky` → `01_corridor_crossing` 등)
 - README 테스트 수 동기화 (3,481+ / 3,973+ → 3,567+)
+- `docs/REPRODUCIBILITY.md` P704 완료 체크리스트 갱신 (5개 항목 완료 표시)
 
 ---
 

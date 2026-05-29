@@ -1,11 +1,33 @@
-# SDACS Prometheus 스크랩 설정
+# P718 SDACS Prometheus 스크랩 설정
+# Targets: SDACS FastAPI, simulator process, node exporter (optional)
+
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
+  external_labels:
+    project: "sdacs"
+    env: "production"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []  # add alertmanager if needed
 
 scrape_configs:
-  - job_name: sdacs
+  # SDACS FastAPI backend (/metrics endpoint)
+  - job_name: "sdacs_api"
     static_configs:
-      - targets:
-          - localhost:8000
+      - targets: ["host.docker.internal:8080"]
+    metrics_path: /metrics
+    scrape_interval: 10s
+
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Loki log aggregation
+  - job_name: "loki"
+    static_configs:
+      - targets: ["loki:3100"]
     metrics_path: /metrics

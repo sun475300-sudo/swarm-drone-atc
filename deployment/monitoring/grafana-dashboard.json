@@ -1,65 +1,178 @@
 {
-  "dashboard": {
-    "title": "SDACS 모니터링",
-    "timezone": "browser",
-    "panels": [
-      {
-        "id": 1,
-        "title": "활성 드론 수",
-        "type": "stat",
-        "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
-        "targets": [
-          {
-            "expr": "sdacs_active_drones",
-            "legendFormat": "드론 수"
-          }
-        ]
-      },
-      {
-        "id": 2,
-        "title": "충돌률",
-        "type": "gauge",
-        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
-        "targets": [
-          {
-            "expr": "sdacs_collision_rate",
-            "legendFormat": "충돌률"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "max": 1,
-            "min": 0,
-            "thresholds": {
-              "steps": [
-                { "color": "green", "value": 0 },
-                { "color": "yellow", "value": 0.05 },
-                { "color": "red", "value": 0.1 }
-              ]
-            }
-          }
+  "__inputs": [],
+  "__requires": [
+    {"type": "grafana", "id": "grafana", "name": "Grafana", "version": "10.0.0"},
+    {"type": "datasource", "id": "prometheus", "name": "Prometheus", "version": "1.0.0"}
+  ],
+  "annotations": {"list": []},
+  "description": "SDACS Swarm Drone Airspace Control System — P718 Observability Dashboard",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Active Drones",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "sdacs_active_drones", "legendFormat": "drones"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"steps": [
+            {"color": "green", "value": 0},
+            {"color": "yellow", "value": 100},
+            {"color": "red", "value": 200}
+          ]},
+          "unit": "short"
         }
       },
-      {
-        "id": 3,
-        "title": "GPU 사용률",
-        "type": "timeseries",
-        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
-        "targets": [
-          {
-            "expr": "nvidia_gpu_utilization",
-            "legendFormat": "GPU %"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "percent",
-            "max": 100
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "background"
+      }
+    },
+    {
+      "id": 2,
+      "title": "WebSocket Connections",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "sdacs_websocket_connections", "legendFormat": "connections"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"steps": [{"color": "blue", "value": 0}]},
+          "unit": "short"
+        }
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background"}
+    },
+    {
+      "id": 3,
+      "title": "Near-Miss Events (rate/min)",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "rate(sdacs_near_miss_events_total[1m]) * 60", "legendFormat": "near-misses/min"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"steps": [
+            {"color": "green", "value": 0},
+            {"color": "red", "value": 0.1}
+          ]},
+          "unit": "short"
+        }
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background"}
+    },
+    {
+      "id": 4,
+      "title": "Simulation Runs (total)",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "sum(sdacs_simulation_runs_total)", "legendFormat": "total runs"}],
+      "fieldConfig": {"defaults": {"unit": "short"}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "value"}
+    },
+    {
+      "id": 5,
+      "title": "Collision Rate",
+      "type": "gauge",
+      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "sdacs_collision_rate", "legendFormat": "충돌률"}],
+      "fieldConfig": {
+        "defaults": {
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "yellow", "value": 0.05},
+              {"color": "red", "value": 0.1}
+            ]
           }
         }
       }
-    ],
-    "schemaVersion": 39,
-    "version": 1
-  }
+    },
+    {
+      "id": 6,
+      "title": "Tick Latency (p50 / p95 / p99)",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "histogram_quantile(0.50, rate(sdacs_tick_latency_seconds_bucket[2m]))", "legendFormat": "p50"},
+        {"expr": "histogram_quantile(0.95, rate(sdacs_tick_latency_seconds_bucket[2m]))", "legendFormat": "p95"},
+        {"expr": "histogram_quantile(0.99, rate(sdacs_tick_latency_seconds_bucket[2m]))", "legendFormat": "p99"}
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "s", "custom": {"lineInterpolation": "smooth"}},
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "p99"}, "properties": [{"id": "color", "value": {"fixedColor": "red", "mode": "fixed"}}]}
+        ]
+      },
+      "options": {
+        "tooltip": {"mode": "multi"},
+        "legend": {"displayMode": "list", "placement": "bottom"}
+      }
+    },
+    {
+      "id": 7,
+      "title": "Simulation Runs by Method",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum by (method) (rate(sdacs_simulation_runs_total[5m]))", "legendFormat": "{{method}}"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops"}},
+      "options": {
+        "tooltip": {"mode": "multi"},
+        "legend": {"displayMode": "list", "placement": "bottom"}
+      }
+    },
+    {
+      "id": 8,
+      "title": "Active Drones Over Time",
+      "type": "timeseries",
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 12},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "sdacs_active_drones", "legendFormat": "active drones"}],
+      "fieldConfig": {"defaults": {"unit": "short", "custom": {"fillOpacity": 15}}},
+      "options": {"tooltip": {"mode": "single"}}
+    },
+    {
+      "id": 9,
+      "title": "Near-Miss Rate Over Time",
+      "type": "timeseries",
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 12},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "rate(sdacs_near_miss_events_total[2m])", "legendFormat": "near-miss/sec"}],
+      "fieldConfig": {
+        "defaults": {"unit": "short", "custom": {"fillOpacity": 20}},
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "near-miss/sec"}, "properties": [{"id": "color", "value": {"fixedColor": "orange", "mode": "fixed"}}]}
+        ]
+      }
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "tags": ["sdacs", "drones", "atc"],
+  "templating": {"list": []},
+  "time": {"from": "now-30m", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "SDACS Airspace Control",
+  "uid": "sdacs-atc-v1",
+  "version": 2
 }

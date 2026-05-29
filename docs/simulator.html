@@ -1032,6 +1032,7 @@
             </div>
             <div style="margin-top:8px;border-top:1px solid rgba(0,229,255,0.12);padding-top:6px;">
                 <label class="ctrl-label" style="display:block;margin-bottom:4px;">Airspace Layers</label>
+                <!-- KNOWN ISSUE(O1): 좌측 '공역·관제 레이어'(tg-*) 패널과 기능 중복. tg-* 단일 소스로 통합 예정. -->
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;font-size:10px;color:#9db7d1;">
                     <label><input type="checkbox" id="layer-nfz" checked> NFZ</label>
                     <label><input type="checkbox" id="layer-altitude" checked> ALT</label>
@@ -4374,6 +4375,7 @@
             const fmtT = (s) => isFinite(s) ? `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}` : '—';
             const etaStr = d.speed > 0.3 ? fmtT(goalDist / d.speed) : '—';
             // 경로효율 = 실제 비행거리 / (출발→목표 직선거리), 1에 가까울수록 효율적
+            // KNOWN ISSUE(O3): distanceTraveled가 다중 트립 누적이라 단일 leg 기준이 아님(값이 1 초과). per-leg 추적 예정.
             let routeEff = '—';
             if (d.startPad && d.goalPad) {
                 const sg = Math.hypot(d.goalPad.x - d.startPad.x, d.goalPad.z - d.startPad.z);
@@ -4903,6 +4905,7 @@
         }
 
         // CPA 라벨(TTC·이격거리): 텍스처 비용 때문에 저빈도로만 재생성
+        // KNOWN ISSUE(O2): ~3Hz로 makeTextSprite(canvas+texture) 반복 생성(disposed되나 GC 압력). 6개 텍스처 사전생성·재사용 예정.
         function rebuildConflictLabels() {
             for (const s of _cvLabels) {
                 conflictVizGroup.remove(s);

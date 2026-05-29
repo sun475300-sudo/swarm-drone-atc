@@ -714,6 +714,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-29 20:34 | `a2bbc54` | fix: numpy 배열 선언에 shape-무관 타입주석 (Python 3.10 mypy 그린화) | src/boids_swarm.py, src/sensor_fusion.py |
 | 2026-05-29 20:09 | `e4172d3` | fix: test_ws_bridge가 Python 3.10에서 깨지던 asyncio 루프 패턴 교체 | tests/test_ws_bridge.py |
 | 2026-05-29 19:38 | `01495f7` | fix: BatteryPredictor.should_rtl가 numpy bool 대신 파이썬 bool 반환 | simulation/battery_predictor.py |
 | 2026-05-29 19:29 | `3c63e82` | fix: 누락 폴리글랏 레퍼런스 파일 전체 복원 (118개 추가, 총 147) | src/ada/safety_critical.adb, src/asm/crc32_checksum.asm, src/clojure/event_stream.clj, src/cpp/apf_simd.cpp, src/cpp/formation_gan_engine.cpp, src/cpp/hil_physics.cpp … |

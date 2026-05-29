@@ -231,9 +231,11 @@ class HITLReportGenerator:
             "|---------|---------|------|------|-----|---------|---------|",
         ]
         for e in report.fmea_entries:
+            effect = e.failure_effect[:30] + ("..." if len(e.failure_effect) > 30 else "")
+            action = e.recommended_action[:40] + ("..." if len(e.recommended_action) > 40 else "")
             lines.append(
-                f"| {e.component} | {e.failure_mode} | {e.failure_effect[:30]}... "
-                f"| {e.severity.name} | {e.rpn} | {e.risk_level} | {e.recommended_action[:40]}... |"
+                f"| {e.component} | {e.failure_mode} | {effect} "
+                f"| {e.severity.name} | {e.rpn} | {e.risk_level} | {action} |"
             )
         lines += [
             "",

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -82,7 +83,7 @@ class OnboardBridge:
         self.rng = np.random.default_rng(seed)
         self.state = BridgeState.DISCONNECTED
         self.stats = BridgeStats()
-        self._message_queue: list[dict[str, Any]] = []
+        self._message_queue: deque[dict[str, Any]] = deque(maxlen=1000)
         self._telemetry: dict[str, TelemetryFrame] = {}
 
     def connect(self) -> bool:
@@ -163,10 +164,9 @@ class OnboardBridge:
         self._telemetry[drone_id] = frame
 
     def _enqueue(self, msg: dict[str, Any]) -> None:
-        self._message_queue.append(msg)
-        if len(self._message_queue) > 1000:
-            self._message_queue.pop(0)
+        if len(self._message_queue) == self._message_queue.maxlen:
             self.stats.msgs_dropped += 1
+        self._message_queue.append(msg)
 
     def flush(self) -> list[dict[str, Any]]:
         """큐에 쌓인 메시지를 모두 꺼내 반환."""

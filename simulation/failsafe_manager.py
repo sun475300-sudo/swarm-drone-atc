@@ -108,15 +108,19 @@ class FailsafeManager:
         return state
 
     def heartbeat(self, drone_id: str) -> None:
-        """통신 수신 확인 — 마지막 통신 시각 갱신."""
+        """통신 수신 확인 — 마지막 통신 시각 갱신.
+
+        통신 단절로 인한 RTL/DISARM도 링크 복구 시 NORMAL로 복귀한다.
+        """
         if drone_id not in self._states:
             self.register(drone_id)
         state = self._states[drone_id]
         state.last_comm = time.time()
         state.comm_loss_since = None
-        if state.level == FailsafeLevel.WARN and state.trigger == FailsafeTrigger.COMM_LOSS:
+        if state.trigger == FailsafeTrigger.COMM_LOSS:
             state.level = FailsafeLevel.NORMAL
             state.trigger = FailsafeTrigger.NONE
+            state.rtl_initiated = False
 
     def update(
         self,

@@ -127,19 +127,18 @@ class RTKGPSHandler:
         lat, lon, alt = self._positions[drone_id]
 
         noise_scale = acc_h * 1e-5
-        lat += float(self.rng.normal(0, noise_scale))
-        lon += float(self.rng.normal(0, noise_scale))
-        alt += float(self.rng.normal(0, acc_v))
-        self._positions[drone_id] = (lat, lon, alt)
+        meas_lat = lat + float(self.rng.normal(0, noise_scale))
+        meas_lon = lon + float(self.rng.normal(0, noise_scale))
+        meas_alt = alt + float(self.rng.normal(0, acc_v))
 
         dist_to_base = np.sqrt(
-            (lat - self.rtcm.base_lat) ** 2 + (lon - self.rtcm.base_lon) ** 2
+            (meas_lat - self.rtcm.base_lat) ** 2 + (meas_lon - self.rtcm.base_lon) ** 2
         ) * 111_000
         self.rtcm.baseline_m = float(dist_to_base)
 
         return RTKPosition(
             drone_id=drone_id,
-            lat=lat, lon=lon, alt_m=alt,
+            lat=meas_lat, lon=meas_lon, alt_m=meas_alt,
             fix_type=fix,
             hdop=float(self.rng.uniform(0.8, 1.5)),
             vdop=float(self.rng.uniform(1.0, 2.0)),

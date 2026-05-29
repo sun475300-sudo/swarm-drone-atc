@@ -140,7 +140,7 @@ class RemoteIDBroadcaster:
                 self._packet_log.append(pkt)
                 if mode == BroadcastMode.BLUETOOTH:
                     self.stats.bluetooth_count += 1
-                else:
+                elif mode == BroadcastMode.NETWORK:
                     self.stats.network_count += 1
 
         self.stats.total_broadcasts += 1

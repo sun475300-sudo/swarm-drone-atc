@@ -177,20 +177,24 @@ class OutdoorFlightTestRunner:
             d.lat = tlat + float(self.rng.normal(0, 1e-5))
             d.lon = tlon + float(self.rng.normal(0, 1e-5))
             d.alt_m = talt + float(self.rng.normal(0, 0.1))
-            d.position_error_m = float(
-                np.sqrt((d.lat - tlat) ** 2 + (d.lon - tlon) ** 2) * 111_000
-            )
+            d.position_error_m = float(np.sqrt(
+                ((d.lat - tlat) * 111_000) ** 2
+                + ((d.lon - tlon) * 111_000) ** 2
+                + (d.alt_m - talt) ** 2
+            ))
 
         max_err = max(d.position_error_m for d in self._drones.values())
 
         collisions = 0
-        positions = [(d.lat, d.lon) for d in self._drones.values()]
-        for i in range(len(positions)):
-            for j in range(i + 1, len(positions)):
+        drone_list = list(self._drones.values())
+        for i in range(len(drone_list)):
+            for j in range(i + 1, len(drone_list)):
+                di, dj = drone_list[i], drone_list[j]
                 dist = np.sqrt(
-                    (positions[i][0] - positions[j][0]) ** 2
-                    + (positions[i][1] - positions[j][1]) ** 2
-                ) * 111_000
+                    ((di.lat - dj.lat) * 111_000) ** 2
+                    + ((di.lon - dj.lon) * 111_000) ** 2
+                    + (di.alt_m - dj.alt_m) ** 2
+                )
                 if dist < MIN_SEPARATION_M:
                     collisions += 1
 

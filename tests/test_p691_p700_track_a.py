@@ -273,8 +273,20 @@ class TestFailsafeManager:
         state = fm._states["D01"]
         state.last_comm = time.time() - 3.0
         fm.update("D01", battery_pct=80.0, lat=35.1, lon=126.9, alt_m=50.0)
+        assert state.level == FailsafeLevel.WARN
         fm.heartbeat("D01")
         assert state.level == FailsafeLevel.NORMAL
+
+    def test_heartbeat_clears_rtl_from_comm_loss(self):
+        fm = FailsafeManager()
+        fm.register("D01")
+        state = fm._states["D01"]
+        state.last_comm = time.time() - 10.0
+        fm.update("D01", battery_pct=80.0, lat=35.1, lon=126.9, alt_m=50.0)
+        assert state.level == FailsafeLevel.RTL
+        fm.heartbeat("D01")
+        assert state.level == FailsafeLevel.NORMAL
+        assert not state.rtl_initiated
 
     def test_get_action_returns_string(self):
         fm = FailsafeManager()

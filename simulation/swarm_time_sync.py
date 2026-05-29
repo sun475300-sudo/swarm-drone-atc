@@ -129,8 +129,9 @@ class SwarmTimeSync:
         self._sync_log.append(msg)
 
         alpha = 0.125
+        prev_ewma = slave.offset_us
         slave.offset_us = (1 - alpha) * slave.offset_us + alpha * msg.offset_us
-        slave.jitter_us = abs(msg.offset_us)
+        slave.jitter_us = abs(msg.offset_us - prev_ewma)
         slave.sync_count += 1
         slave.last_sync = now
 

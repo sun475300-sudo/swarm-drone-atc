@@ -36,16 +36,7 @@ def collect(root: str) -> list[dict[str, Any]]:
             "method": method,
             "seed": int(seed_str),
         }
-        for metric in (
-            "near_miss_rate",
-            "min_separation_m",
-            "path_efficiency",
-            "makespan_s",
-            "flowtime_s",
-            "airspace_utilization",
-            "rid_compliance_rate",
-            "rtf",
-        ):
+        for metric in ("NMR", "MSD", "PE", "MS_s", "FT_drone_s", "AU", "RID_CR", "RTF"):
             row[metric] = data.get(metric)
         rows.append(row)
     return rows
@@ -78,15 +69,16 @@ def main() -> int:
         return 0
 
     df = pd.DataFrame(rows)
-    df.to_parquet(args.out, index=False)
-    print(f"[aggregate] wrote {len(df)} rows -> {args.out}")
+    try:
+        df.to_parquet(args.out, index=False)
+        print(f"[aggregate] wrote {len(df)} rows -> {args.out}")
+    except ImportError:
+        fallback = args.out.replace(".parquet", ".csv")
+        df.to_csv(fallback, index=False)
+        print(f"[aggregate] pyarrow missing; wrote CSV -> {fallback}")
 
     summary = df.groupby(["scenario", "method"]).agg(
-        {
-            "near_miss_rate": ["mean", "std"],
-            "makespan_s": ["mean", "std"],
-            "path_efficiency": ["mean", "std"],
-        }
+        {"NMR": ["mean", "std"], "MS_s": ["mean", "std"], "PE": ["mean", "std"]}
     )
     print(summary.to_string())
     return 0

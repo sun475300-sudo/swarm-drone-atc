@@ -325,28 +325,41 @@ SDACS의 충돌 회피 파이프라인은 **탐지 → 판단 → 실행** 3단�
 ### Project Structure / 프로젝트 구조
 ```
 swarm-drone-atc/
-├── simulation/                      # Layer 1 & 3: Drone Agents + Sim Engine
-│   ├── simulator.py                 # SwarmSimulator + _DroneAgent
+├── simulation/                      # Layer 1 & 3: core runtime + experiments
+│   ├── simulator.py                 # SwarmSimulator orchestrator
+│   ├── drone_agent.py               # DroneAgent 10Hz SimPy process
+│   ├── analytics.py                 # runtime KPI / event collection
 │   ├── apf_engine/                  # Artificial Potential Field
 │   ├── cbs_planner/                 # Conflict-Based Search
-│   ├── voronoi_airspace/            # Voronoi tessellation
-│   ├── monte_carlo.py               # Monte Carlo engine
-│   ├── weather.py                   # WindModel
-│   └── ... (240+ modules)
+│   ├── ws_bridge.py                 # Python -> browser WebSocket bridge
+│   └── ... (450+ Python modules)
 │
 ├── src/airspace_control/            # Layer 2: Control System
-│   ├── controller/                  # AirspaceController, PriorityQueue
+│   ├── controller/                  # AirspaceController
 │   ├── avoidance/                   # Resolution Advisory
 │   ├── agents/                      # DroneState, DroneProfiles
-│   ├── comms/                       # CommunicationBus
+│   ├── comms/                       # CommunicationBus, message types
 │   ├── planning/                    # FlightPathPlanner
 │   └── utils/                       # GeoMath, CoordinateSystems
 │
-├── visualization/                   # Layer 4: UI
-│   ├── simulator_3d.py              # Dash 3D real-time dashboard
-│   └── advanced_dashboard.py        # Supplementary charts
+├── visualization/                   # Dash / Plotly visualizer
+│   ├── simulator_3d.py              # Dash 3D app entry
+│   ├── _domain.py                   # domain state and data model
+│   ├── _embedded_sim.py             # embedded simulation bridge
+│   ├── _scene_traces.py             # Plotly scene trace builders
+│   ├── _callbacks.py, _layout.py    # Dash callbacks and layout
+│   └── swarm_3d_simulator.html      # served copy of web simulator
 │
-├── tests/                           # 3,993+ automated tests
+├── docs/                            # GitHub Pages + docs assets
+│   ├── simulator.html               # main web entry point
+│   ├── swarm_3d_simulator.html      # Pages copy of main simulator
+│   ├── swarm_3d_simulator_v2.html   # legacy lightweight variant
+│   └── images/, report/, patent/
+│
+├── api/                             # FastAPI server skeleton / API glue
+├── chatbot/                         # chatbot and simulation adapters
+├── benchmarks/                      # reproducible benchmark scenarios
+├── tests/                           # 105 test files + e2e smoke
 │   ├── test_simulator_scenarios.py
 │   ├── test_phase*.py
 │   └── ...
@@ -354,11 +367,7 @@ swarm-drone-atc/
 ├── config/                          # Configuration
 │   ├── default_simulation.yaml
 │   ├── monte_carlo.yaml
-│   └── scenario_params/             # 7 scenario definitions
-│
-├── docs/                            # Documentation & assets
-│   ├── images/                      # SVG diagrams, charts
-│   └── report/                      # Technical report (DOCX)
+│   └── scenario_params/             # 9 scenario definitions
 │
 ├── main.py                          # CLI entry point
 └── scripts/                         # Utility scripts
@@ -656,7 +665,26 @@ SC2 봇 프로젝트 규모: **645단계 개발, 404개 품질 테스트, 797개
 
 ---
 ## Roadmap / 향후 계획
-Phase 700까지 완료되었습니다. 향후 확장 계획은 [ROADMAP.md](ROADMAP.md)에서 확인할 수 있습니다.
+`main` 브랜치 기준 현재 상태는 아래와 같습니다.
+
+### 현재 main 브랜치에서 완료된 항목
+- SimPy 기반 `SwarmSimulator` + `DroneAgent` + `AirspaceController` + `CommunicationBus`
+- Dash / Plotly 3D dashboard (`visualization/simulator_3d.py`)
+- Three.js 메인 시뮬레이터 (`swarm_3d_simulator.html`)
+- 63개 시나리오, 7대 광역시 도시환경, 극한 기상, 침입 드론, GPS 스푸핑
+- WebGPU / Web Worker APF 가속, 2×2 분석 뷰, 리플레이·타임라인, PNG/CSV/KPI 내보내기
+- InstancedMesh 기반 1K / 5K / 10K 대규모 군집 시나리오
+- `ws_bridge.py`와 브라우저 `connectWebSocket()` 훅, `_sdacs` 자동화 API, e2e smoke CI
+
+### 아직 완료되지 않은 항목 / known gaps
+- HTML / Markdown 세션 리포트 내보내기
+- 초고밀도 군집용 충돌 히트맵 또는 dense CPA 대체 시각화
+- `ws_bridge.py`를 UI에서 데모/실데이터로 전환하는 명시적 제어 패널
+- 메인 시뮬레이터 UX 강화: 검색/필터, 카메라 프리셋, 멀티 선택, 그룹 통계
+- 리플레이의 GIF / 연속 PNG / 비디오 export, 이벤트 마커 오버레이
+- 모바일/터치 대응, 시뮬레이터 i18n, Dash/Three.js 문서 통합 정리
+
+세부 확장 계획은 [ROADMAP.md](ROADMAP.md)에서 관리합니다.
 
 ---
 ## License

@@ -40,6 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 def _drone_to_apf(d: DroneState) -> APFState:
+    """DroneState를 APF 계산용 APFState로 변환 (position·velocity 복사)"""
     return APFState(
         position=d.position.copy(),
         velocity=d.velocity.copy(),
@@ -124,6 +125,7 @@ class DroneAgent:
         sim.comm_bus.subscribe(drone.drone_id, self._on_message)
 
     def _on_message(self, msg: CommMessage) -> None:
+        """CommBus 구독 콜백 — ResolutionAdvisory·ClearanceGrant·IntrusionAlert 처리"""
         payload = msg.payload
         drone = self.drone
 
@@ -266,6 +268,7 @@ class DroneAgent:
     # ── 상태 머신 ──────────────────────────────────────────────
 
     def _state_machine(self, drone, dt, profile, force, wind, t, sim):
+        """비행 FSM 전이 처리 — GROUNDED/TAKEOFF/ENROUTE/EVADING/HOLDING/LANDING/RTL/FAILED 상태 갱신"""
         phase = drone.flight_phase
 
         if phase == FlightPhase.GROUNDED:
@@ -369,6 +372,7 @@ class DroneAgent:
                     drone.velocity = diff / norm * spd
 
     def _handle_comms(self, drone, t, profile):
+        """통신 단절(LOST) 드론을 HOLDING 상태로 전환 (RTL/LANDING/FAILED/GROUNDED 상태는 유지)"""
         if drone.comms_status == CommsStatus.LOST and drone.flight_phase not in (
             FlightPhase.RTL,
             FlightPhase.LANDING,
@@ -380,6 +384,7 @@ class DroneAgent:
             drone.hold_start_s = None
 
     def _handle_failure(self, drone, t):
+        """장애 유형별 처리 — MOTOR_FAILURE: FAILED 전환, GPS_LOSS: 속도 영벡터"""
         if drone.failure_type == FailureType.MOTOR_FAILURE:
             drone.flight_phase = FlightPhase.FAILED
         elif drone.failure_type == FailureType.GPS_LOSS:

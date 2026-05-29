@@ -251,6 +251,7 @@ class AirspaceController:
     # ── 메시지 수신 ──────────────────────────────────────────
 
     def _on_message(self, msg: CommMessage) -> None:
+        """CommBus 구독 콜백 — TelemetryMessage는 드론 상태 갱신, ClearanceRequest는 대기열에 추가"""
         payload = msg.payload
         if isinstance(payload, TelemetryMessage):
             self._update_drone_state(payload)
@@ -258,6 +259,7 @@ class AirspaceController:
             self._pending.append(payload)
 
     def _update_drone_state(self, tm: TelemetryMessage) -> None:
+        """텔레메트리 메시지로 드론 상태 갱신 — 신규 드론은 자동 등록, 오래된 타임스탬프는 무시"""
         drone = self._active_drones.get(tm.drone_id)
         if drone is None:
             drone = DroneState(
@@ -282,6 +284,7 @@ class AirspaceController:
     # ── 허가 처리 ────────────────────────────────────────────
 
     def _process_clearances(self, t: float) -> None:
+        """대기 중 허가 요청을 처리 — 우선순위 큐에서 배치 추출 후 CBS 경로 계획 및 어드바이저리 발령"""
         # 대기 중 요청을 우선순위 큐에 삽입
         for req in self._pending:
             self.pq.push(req, req.timestamp_s)
@@ -442,6 +445,7 @@ class AirspaceController:
     _KDTREE_THRESHOLD = 1000
 
     def _scan_conflicts(self, t: float) -> None:
+        """CPA 기반 충돌 쌍 탐지 — 드론 수에 따라 SpatialHash / KDTree를 적응적으로 선택"""
         active = {did: d for did, d in self._active_drones.items() if d.is_active}
         if len(active) < 2:
             return
@@ -644,6 +648,7 @@ class AirspaceController:
     # ── 침입 탐지 ────────────────────────────────────────────
 
     def _detect_intruders(self, t: float) -> None:
+        """ROGUE 프로파일 드론 탐지 후 IntrusionAlert 브로드캐스트 (중복 발령 방지)"""
         for did, drone in self._active_drones.items():
             if did in self._intruders:
                 continue
@@ -670,6 +675,7 @@ class AirspaceController:
                     self.analytics.record_event("INTRUSION_DETECTED", t, intruder_id=did, threat_level=threat)
 
     def _threat_level(self, intruder: DroneState) -> str:
+        """침입자와 가장 가까운 등록 드론까지의 거리로 위협 레벨 분류 (CRITICAL/HIGH/MEDIUM/LOW)"""
         min_dist = min(
             (
                 distance_3d(intruder.position, d.position)
@@ -689,6 +695,7 @@ class AirspaceController:
     # ── 어드바이저리 만료 ─────────────────────────────────────
 
     def _expire_advisories(self, t: float) -> None:
+        """duration_s를 초과한 어드바이저리를 만료 처리하여 _advisories 딕셔너리에서 제거"""
         expired = [aid for aid, adv in self._advisories.items() if t > adv.timestamp_s + adv.duration_s]
         for aid in expired:
             del self._advisories[aid]
@@ -696,6 +703,7 @@ class AirspaceController:
     # ── Voronoi 갱신 & 밀도 기반 제어 ────────────────────────
 
     def _refresh_voronoi(self) -> None:
+        """활성 드론 위치 기반 Voronoi 공역 분할 갱신 — 드론 3대 이상일 때만 실행"""
         if not self._active_drones:
             return
         positions = {did: d.position.copy() for did, d in self._active_drones.items() if d.is_active}

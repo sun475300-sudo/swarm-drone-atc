@@ -1,7 +1,8 @@
 """Phase 661-670: Advanced AI 모듈 테스트."""
 
 import numpy as np
-import torch
+import pytest
+torch = pytest.importorskip("torch", reason="torch not installed")
 
 
 # ── Transformer Trajectory ──────────────────────────────────────────────

@@ -12,7 +12,8 @@ lane_detection_system, secure_messaging_protocol, plus remaining small modules.
 import time
 
 import numpy as np
-import torch
+import pytest
+torch = pytest.importorskip("torch", reason="torch not installed")
 
 # ── anomaly_federated_detector ────────────────────────────────────────────
 from simulation.anomaly_federated_detector import AnomalyFederatedDetector

@@ -5,9 +5,18 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
-import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader, TensorDataset
+
+try:
+    import torch
+    import torch.nn as nn
+    from torch.utils.data import DataLoader, TensorDataset
+    _TORCH_AVAILABLE = True
+except ImportError:
+    torch = None  # type: ignore[assignment]
+    nn = None  # type: ignore[assignment]
+    DataLoader = None  # type: ignore[assignment]
+    TensorDataset = None  # type: ignore[assignment]
+    _TORCH_AVAILABLE = False
 
 from simulation.apf_engine.apf import APFState
 
@@ -27,11 +36,19 @@ DEFAULT_BATCH = 256
 # ---------------------------------------------------------------------------
 # 모델
 # ---------------------------------------------------------------------------
-class _CollisionMLP(nn.Module):
+if _TORCH_AVAILABLE:
+    _MLP_BASE = nn.Module  # type: ignore[misc]
+else:
+    _MLP_BASE = object  # type: ignore[misc]
+
+
+class _CollisionMLP(_MLP_BASE):  # type: ignore[misc]
     """간단한 3-layer MLP: 12 → 64 → 32 → 1."""
 
     def __init__(self) -> None:
         """인스턴스를 초기화한다."""
+        if not _TORCH_AVAILABLE:
+            raise ImportError("_CollisionMLP requires torch.")
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(INPUT_DIM, HIDDEN_DIM),
@@ -55,6 +72,8 @@ class CollisionPredictor:
 
     def __init__(self) -> None:
         """인스턴스를 초기화한다."""
+        if not _TORCH_AVAILABLE:
+            raise ImportError("CollisionPredictor requires torch.")
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = _CollisionMLP().to(self.device)
 

@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 06:20 | `9e4422f` | fix: cast np.bool_ to bool in BatteryPredictor.should_rtl | simulation/battery_predictor.py |
 | 2026-05-31 06:13 | `7daf4ad` | chore: .gitignore에 .coverage.* 패턴 추가 (pytest-xdist 임시 파일) | .gitignore |
 | 2026-05-31 06:10 | `b184f04` | fix: test_phase611_630/631_640/641_660 다국어 파일 경로 src/ → archive/polyglot/ 수정 (29건) | tests/test_phase611_630.py, tests/test_phase631_640.py, tests/test_phase641_660.py |
 | 2026-05-31 05:42 | `78523ea` | fix: test_phase521_540/541_560 다국어 파일 경로 src/ → archive/polyglot/ 수정 (100건) | tests/test_phase521_540.py, tests/test_phase541_560.py |

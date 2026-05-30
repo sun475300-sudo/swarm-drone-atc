@@ -238,8 +238,8 @@ Cross-domain claim table:
 
 ## 9. Open Items
 
-- [ ] Implement `src/analytics/metrics.py` with one function per metric.
-- [ ] Add unit tests in `tests/analytics/test_metrics.py` — fixed input, known output.
-- [ ] Add `scripts/run_benchmark.py` that sweeps (seed × scenario × method) and writes `results/*.parquet`.
-- [ ] Decide `d_safe` value (currently 5 m placeholder).
-- [ ] Confirm whether the paper targets IROS 2026 (deadline Feb?) or AIAA SciTech 2027.
+- [x] Implement `src/analytics/metrics.py` with one function per metric. ✅ 2026-04-19
+- [x] Add unit tests in `tests/analytics/test_metrics.py` — fixed input, known output. ✅ 2026-04-19
+- [ ] Add `scripts/run_benchmark.py` that sweeps (seed × scenario × method) and writes `results/*.parquet`. — Draft PR #36 진행 중
+- [x] Decide `d_safe` value: **5 m** (confirmed, configurable via `EvaluatorConfig.d_safe_m`).
+- [x] Paper target: **AIAA SciTech 2027** (confirmed in PAPER_TOPIC.md, P701).

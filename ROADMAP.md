@@ -127,47 +127,49 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 ### Track A — 실기 드론 통합 (Phase 691-700)
 
 SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
+SW 컴포넌트: Draft PR #43/#45 진행 중 (실기 하드웨어 통합은 하드웨어 필요)
 
-- [ ] **P691** — Pixhawk 6X / Cube Orange 보드 펌웨어 플래싱 및 PX4 v1.15+ 연동
-- [ ] **P692** — Jetson Orin Nano 컴패니언 컴퓨터 MAVLink 브릿지 (`onboard_bridge.py`)
-- [ ] **P693** — 실기 Remote ID 방송 (ASTM F3411 v2.0 Broadcast/Network 모드)
-- [ ] **P694** — RTK-GPS 센티미터 정밀도 측위 및 AirspaceController 피드백
-- [ ] **P695** — 전파 간섭·통신 단절 대비 Failsafe 로직 (Return-to-Launch / Geofence)
-- [ ] **P696** — 다중 기체 스웜 프레임 동기화 (PTP / NTP, <10ms jitter)
-- [ ] **P697** — 실내 Motion Capture (Vicon/Optitrack) HITL 셋업
-- [ ] **P698** — 실외 소규모 스웜 비행 시험 (3-5기 정지비행·포메이션)
-- [ ] **P699** — 풍동·강우·저조도 환경 시나리오 실측
-- [ ] **P700** — HITL 통합 보고서 + 안전 분석 (FMEA)
+- [ ] **P691** — Pixhawk 6X / Cube Orange 보드 펌웨어 플래싱 및 PX4 v1.15+ 연동 ❌ 하드웨어 필요
+- [ ] **P692** — Jetson Orin Nano 컴패니언 컴퓨터 MAVLink 브릿지 (`onboard_bridge.py`) ❌ 하드웨어 필요
+- [ ] **P693** — 실기 Remote ID 방송 (ASTM F3411 v2.0 Broadcast/Network 모드) ❌ 하드웨어 필요
+- [ ] **P694** — RTK-GPS 센티미터 정밀도 측위 및 AirspaceController 피드백 ❌ 하드웨어 필요
+- [ ] **P695** — 전파 간섭·통신 단절 대비 Failsafe 로직 (Return-to-Launch / Geofence) ❌ 하드웨어 필요
+- [ ] **P696** — 다중 기체 스웜 프레임 동기화 (PTP / NTP, <10ms jitter) ❌ 하드웨어 필요
+- [ ] **P697** — 실내 Motion Capture (Vicon/Optitrack) HITL 셋업 ❌ 하드웨어 필요
+- [ ] **P698** — 실외 소규모 스웜 비행 시험 (3-5기 정지비행·포메이션) ❌ 하드웨어 필요
+- [ ] **P699** — 풍동·강우·저조도 환경 시나리오 실측 ❌ 하드웨어 필요
+- [ ] **P700** — HITL 통합 보고서 + 안전 분석 (FMEA) ❌ 하드웨어 필요
 
 ### Track B — 연구·논문화 (Phase 701-710)
 
 목포대 캡스톤 결과물을 학술적 기여로 정제.
 
-- [ ] **P701** — 논문 주제 확정 및 기여 포인트 3개 도출 (CBS+APF 하이브리드? Voronoi 분할?)
-- [ ] **P702** — 선행 연구 서베이 (최소 30편, IROS/ICRA/AIAA 기준)
-- [ ] **P703** — 벤치마크 데이터셋 공개화 (7개 Monte Carlo 시나리오 + 3개 실기 로그)
-- [ ] **P704** — Reproducibility 패키지 (Docker 이미지, 시드 고정, 결과 재현 스크립트)
-- [ ] **P705** — 평가 메트릭 정형화 (near-miss rate, airspace utilization, path efficiency)
-- [ ] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS)
-- [ ] **P707** — 논문 초안 작성 (IROS 2026 또는 AIAA SciTech 2027 투고 목표)
-- [ ] **P708** — 내부 리뷰 3회 + 지도교수 피드백 반영
-- [ ] **P709** — 공식 투고 및 arXiv 프리프린트 업로드
-- [ ] **P710** — 학술대회 발표 슬라이드·포스터 (동강대 학술대회 4/23 포함)
+- [x] **P701** — 논문 주제 확정 및 기여 포인트 3개 도출 (`docs/paper/PAPER_TOPIC.md`)
+- [x] **P702** — 선행 연구 서베이 (최소 30편, IROS/ICRA/AIAA 기준, `docs/paper/PRIOR_WORK_SURVEY.md`)
+- [x] **P703** — 벤치마크 데이터셋 공개화 (`benchmarks/_schema/`, `scripts/validate_dataset.py`)
+- [x] **P704** — Reproducibility 패키지 (중앙화 RNG, lock file, `docs/REPRODUCIBILITY.md`)
+- [x] **P705** — 평가 메트릭 정형화 (`src/analytics/metrics.py`, `tests/analytics/test_metrics.py`)
+- [ ] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS) — Draft PR #42 진행 중
+- [x] **P707** — 논문 초안 작성 (AIAA SciTech 2027 투고 목표, `docs/paper/PAPER_DRAFT.md`)
+- [ ] **P708** — 내부 리뷰 3회 + 지도교수 피드백 반영 ⚠️ 사람 필요
+- [ ] **P709** — 공식 투고 및 arXiv 프리프린트 업로드 ⚠️ 사람 필요
+- [ ] **P710** — 학술대회 발표 슬라이드·포스터 — Draft PR #42 진행 중
 
 ### Track C — 배포·서비스화 (Phase 711-720)
 
 공역 관리자용 대시보드를 SaaS 수준으로 안정화.
+Draft PR #35~#47에 구현 진행 중 (인프라 배포는 사용자 환경 필요)
 
-- [ ] **P711** — Dash 대시보드를 FastAPI + React로 리팩토링
-- [ ] **P712** — 인증·권한(OAuth2, RBAC) 및 감사 로그
-- [ ] **P713** — 실시간 WebSocket 채널 (서버 → 브라우저 1 kHz 업데이트)
-- [ ] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존
-- [ ] **P715** — Docker Compose → Kubernetes Helm 차트 변환
-- [ ] **P716** — CI/CD (GitHub Actions → 컨테이너 레지스트리 → 스테이징)
-- [ ] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지)
-- [ ] **P718** — 관측성 스택 (Prometheus + Grafana + Loki)
-- [ ] **P719** — 보안 감사 (OWASP ZAP, 의존성 CVE 스캔)
-- [ ] **P720** — 공개 베타 오픈 (3개 파일럿 기관, 피드백 수집 4주)
+- [ ] **P711** — Dash 대시보드를 FastAPI + React로 리팩토링 — Draft PR #41 진행 중
+- [ ] **P712** — 인증·권한(OAuth2, RBAC) 및 감사 로그 — Draft PR #37/#47 진행 중
+- [ ] **P713** — 실시간 WebSocket 채널 (서버 → 브라우저 1 kHz 업데이트) — Draft PR #37 진행 중
+- [ ] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존 — Draft PR #40/#47 진행 중
+- [ ] **P715** — Docker Compose → Kubernetes Helm 차트 변환 — Draft PR #40/#47 진행 중
+- [ ] **P716** — CI/CD (GitHub Actions → 컨테이너 레지스트리 → 스테이징) — Draft PR #35/#36/#47 진행 중
+- [ ] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지) — Draft PR #37 진행 중
+- [ ] **P718** — 관측성 스택 (Prometheus + Grafana + Loki) — Draft PR #35/#47 진행 중
+- [ ] **P719** — 보안 감사 (OWASP ZAP, 의존성 CVE 스캔) — Draft PR #37/#47 진행 중
+- [ ] **P720** — 공개 베타 오픈 (3개 파일럿 기관, 피드백 수집 4주) ❌ 파일럿 기관 필요
 
 ---
 
@@ -176,4 +178,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-04-19 (Phase 700 완료, Phase 701-720 로드맵 유지)*
+*Last updated: 2026-05-30 (Track B P701-P705·P707 main 병합 확인, Track A/C Draft PR #35-#48 진행 중)*

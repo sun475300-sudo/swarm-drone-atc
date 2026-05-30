@@ -59,6 +59,7 @@ markers = [
     "slow: 느린 테스트 (>10초)",
     "gpu: GPU 가속 테스트",
 ]
+asyncio_mode = "auto"
 
 [tool.setuptools.packages.find]
 where = ["src"]

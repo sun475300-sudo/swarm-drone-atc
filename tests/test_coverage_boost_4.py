@@ -467,9 +467,10 @@ class TestAdaptiveCommProtocol:
 from simulation.apf_engine.apf import APFState
 
 try:
+    import torch as _torch  # noqa: F401
     from simulation.collision_predictor import CollisionPredictor, generate_training_data
     _CP_AVAILABLE = True
-except (ImportError, Exception):
+except ImportError:
     _CP_AVAILABLE = False
 
 

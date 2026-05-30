@@ -638,6 +638,8 @@ def test_main_function_calls_asyncio_run(monkeypatch: pytest.MonkeyPatch) -> Non
 
     bridge_main()
     assert len(run_calls) == 1
+    # Close the captured coroutine to prevent RuntimeWarning on Python 3.10
+    run_calls[0].close()
 
 
 # --- Runtime reconnect exhaustion — stop the bridge loop (lines 544-556, 572) ---

@@ -80,10 +80,12 @@ def test_remote_id_broadcast_packet_format():
 
 
 def test_remote_id_receiver_collect():
+    import time
     from simulation.remote_id_broadcast import NetworkRemoteIDReceiver, RemoteIDBroadcaster
     broadcaster = RemoteIDBroadcaster()
     receiver = NetworkRemoteIDReceiver()
-    pkt = broadcaster.broadcast("D1", 37.5, 127.0, 10.0, 1.0)
+    now = time.time()
+    pkt = broadcaster.broadcast("D1", 37.5, 127.0, 10.0, now)
     receiver.receive(pkt)
     assert "D1" in receiver.get_seen_ids()
 
@@ -168,7 +170,7 @@ def test_failsafe_get_action():
 
 def test_time_sync_corrects_offset():
     from simulation.swarm_time_sync import TimeSyncNode
-    node = TimeSyncNode()
+    node = TimeSyncNode("node-0")
     corrected = node.sync(reference_time=1000.0, local_time=1000.5)
     assert abs(corrected - 1000.0) < 1.0  # within 1s
 
@@ -188,11 +190,13 @@ def test_swarm_time_sync_max_jitter():
 def test_vrpn_to_mocap_pose():
     from simulation.mocap_hitl_bridge import VRPNMocapBridge
     bridge = VRPNMocapBridge()
+    # Z-up → NED: ned_x=raw["y"], ned_y=raw["x"], ned_z=-raw["z"]
     vrpn_data = {"x": 1.0, "y": 2.0, "z": 3.0,
                  "qw": 1.0, "qx": 0.0, "qy": 0.0, "qz": 0.0,
-                 "timestamp": 1234.5}
+                 "time": 1234.5}
     pose = bridge.parse_vrpn(vrpn_data)
-    assert pose.x == pytest.approx(1.0, abs=1e-3)
+    assert pose.x == pytest.approx(2.0, abs=1e-3)  # ned_x = raw["y"]
+    assert pose.timestamp == pytest.approx(1234.5, abs=1e-3)
 
 
 def test_mocap_to_mavlink_138():
@@ -200,10 +204,10 @@ def test_mocap_to_mavlink_138():
     bridge = VRPNMocapBridge()
     vrpn_data = {"x": 0.0, "y": 0.0, "z": 1.0,
                  "qw": 1.0, "qx": 0.0, "qy": 0.0, "qz": 0.0,
-                 "timestamp": 0.0}
+                 "time": 0.0}
     pose = bridge.parse_vrpn(vrpn_data)
     msg = bridge.to_mavlink_138(pose)
-    assert msg["msgid"] == 138
+    assert msg["mavlink_msg_id"] == 138
     assert "q" in msg
 
 

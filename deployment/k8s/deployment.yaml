@@ -15,9 +15,20 @@ spec:
       labels:
         app: sdacs
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      automountServiceAccountToken: false
       containers:
         - name: sdacs
           image: sdacs:gpu
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 8050
               name: dash
@@ -26,8 +37,12 @@ spec:
           resources:
             limits:
               nvidia.com/gpu: 1
+              cpu: "4"
+              memory: "8Gi"
             requests:
               nvidia.com/gpu: 1
+              cpu: "1"
+              memory: "2Gi"
           env:
             - name: PYTHONUNBUFFERED
               value: "1"

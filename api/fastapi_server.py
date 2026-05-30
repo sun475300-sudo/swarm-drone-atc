@@ -44,6 +44,8 @@ except ImportError as exc:  # pragma: no cover
         "pip install 'fastapi>=0.110' 'uvicorn[standard]>=0.29' 'pydantic>=2.5'"
     ) from exc
 
+from api.auth import Role, TokenUser, audit_log, get_audit_log, issue_token, require_role
+
 LOGGER = logging.getLogger("sdacs.fastapi")
 API_VERSION = "1.1.0"
 
@@ -476,15 +478,8 @@ async def _demo_telemetry_stream() -> None:
         await asyncio.sleep(0.1)
 
 
-# --- Auth dependency (stub) ---
-
-
-async def require_token(authorization: str = Header(default="")) -> str:
-    # P712 will replace with full JWT validation.
-    """``require_token`` 동작을 수행한다."""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(401, detail="missing bearer token")
-    return authorization[len("Bearer ") :]
+# --- Auth helpers (P712) ---
+# require_role / Role / TokenUser imported from api.auth
 
 
 # --- Pydantic models ---
@@ -631,7 +626,7 @@ async def scenario_run(name: str, req: ScenarioRunRequest | None = None) -> dict
 async def run_scenario(
     scenario_id: str,
     body: RunScenarioBody,
-    _token: str = Depends(require_token),
+    _user: TokenUser = Depends(require_role(Role.OPERATOR)),
 ) -> dict:
     """``run_scenario`` 동작을 수행한다."""
     STATE.scenarios = _build_scenario_catalog()
@@ -754,6 +749,36 @@ async def ws_telemetry(ws: WebSocket) -> None:
     finally:
         STATE.telemetry_subscribers.discard(ws)
         LOGGER.info("telemetry subscriber disconnected (total=%d)", len(STATE.telemetry_subscribers))
+
+
+# --- Auth endpoints (P712) ---
+
+
+class IssueTokenRequest(BaseModel):
+    """토큰 발급 요청 (개발/테스트용 — 프로덕션은 OAuth2 흐름으로 교체)."""
+    sub: str = Field(min_length=1, max_length=256)
+    role: str = Field(pattern="^(viewer|operator|admin)$", default="viewer")
+    expiry_s: int = Field(ge=60, le=86400, default=3600)
+
+
+@app.post("/api/auth/token", tags=["auth"])
+async def create_token(body: IssueTokenRequest) -> dict:
+    """개발용 JWT 토큰 발급. 프로덕션에서는 OAuth2 Authorization Code Flow 사용."""
+    token = issue_token(sub=body.sub, role=Role(body.role), expiry_s=body.expiry_s)
+    return {"success": True, "data": {"token": token, "role": body.role, "expiry_s": body.expiry_s}}
+
+
+@app.get("/api/admin/audit-log", tags=["admin"])
+async def get_audit(
+    limit: int = 100,
+    user: TokenUser = Depends(require_role(Role.ADMIN)),
+) -> dict:
+    """감사 로그 조회 (admin 전용)."""
+    audit_log(user, "audit_log.read", f"limit={limit}")
+    return {"success": True, "data": get_audit_log(limit=limit)}
+
+
+# --- Dev server ---
 
 
 def run_dev_server(host: str = "0.0.0.0", port: int = 8000, log_level: str = "info") -> None:

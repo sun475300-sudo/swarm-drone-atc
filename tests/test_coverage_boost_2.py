@@ -8,7 +8,8 @@ import time
 
 import numpy as np
 import pytest
-import torch
+
+torch = pytest.importorskip("torch", reason="torch not installed")
 
 # ── advanced_path_planner ─────────────────────────────────────────────────
 from simulation.advanced_path_planner import (

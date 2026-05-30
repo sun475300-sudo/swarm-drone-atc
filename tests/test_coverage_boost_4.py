@@ -11,6 +11,7 @@ real_time_stream_processor, multi_modal_fusion.
 import time
 
 import numpy as np
+import pytest
 
 # ── predictive_analytics_engine ───────────────────────────────────────────
 from simulation.predictive_analytics_engine import (
@@ -464,9 +465,15 @@ class TestAdaptiveCommProtocol:
 # ── collision_predictor ───────────────────────────────────────────────────
 
 from simulation.apf_engine.apf import APFState
-from simulation.collision_predictor import CollisionPredictor, generate_training_data
+
+_torch_available = True
+try:
+    from simulation.collision_predictor import CollisionPredictor, generate_training_data
+except ModuleNotFoundError:
+    _torch_available = False
 
 
+@pytest.mark.skipif(not _torch_available, reason="torch not installed")
 class TestCollisionPredictor:
     def setup_method(self):
         self.cp = CollisionPredictor()

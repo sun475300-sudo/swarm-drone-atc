@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 08:58 | `22df069` | feat: add Lua swarm scripting engine (Phase 553) | src/lua/swarm_scripting_engine.lua |
 | 2026-05-31 08:58 | `2e5dda4` | fix: use new_event_loop() in ws_bridge tests to avoid RuntimeError | tests/test_ws_bridge.py |
 | 2026-05-31 08:36 | `0684758` | feat: add 40 more multi-language source files and P715 Helm charts | ROADMAP.md, helm/sdacs/Chart.yaml, helm/sdacs/templates/_helpers.tpl, helm/sdacs/templates/deployment.yaml, helm/sdacs/templates/hpa.yaml, helm/sdacs/templates/ingress.yaml … |
 | 2026-05-31 08:06 | `bf3471d` | feat: add 38 multi-language source files fixing pre-existing test failures | src/ada/safety_critical.adb, src/ada/tmr_voter_v2.adb, src/asm/crc32_checksum.asm, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj, src/clojure/event_stream.clj … |

@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 08:20 | `4e4ad90` | fix: CI Python 3.10 mypy 실패 수정 — mypy를 3.11 전용으로 | .github/workflows/ci.yml, pyproject.toml, src/utils/rng.py |
 | 2026-05-31 08:08 | `1e08961` | docs: 일일 상태 보고서 업데이트 — P703-P706·P711-P719 완료 | reports/status_2026-05-30.md |
 | 2026-05-31 08:07 | `e2abd02` | test: P714 InMemoryStore severity 필터 테스트 추가 | tests/test_phase711_720_deploy.py |
 | 2026-05-31 07:58 | `2505bf8` | fix: ruff I001 import sort in db_schema.py | simulation/db_schema.py |

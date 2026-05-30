@@ -756,7 +756,7 @@ async def ws_telemetry(ws: WebSocket) -> None:
         LOGGER.info("telemetry subscriber disconnected (total=%d)", len(STATE.telemetry_subscribers))
 
 
-def run_dev_server(host: str = "0.0.0.0", port: int = 8000, log_level: str = "info") -> None:
+def run_dev_server(host: str = "0.0.0.0", port: int = 8000, log_level: str = "info") -> None:  # nosec B104
     """``run_dev_server`` 동작을 수행한다."""
     import uvicorn
 

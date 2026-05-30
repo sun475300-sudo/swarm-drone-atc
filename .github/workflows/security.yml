@@ -27,17 +27,10 @@ jobs:
       - name: Install pip-audit
         run: pip install pip-audit
 
-      - name: Run pip-audit on requirements files
-        run: |
-          shopt -s nullglob
-          REQ_FILES=(requirements*.txt)
-          if [ ${#REQ_FILES[@]} -gt 0 ]; then
-            pip-audit --requirement "${REQ_FILES[@]}"
-          elif [ -f pyproject.toml ]; then
-            pip-audit --project-path .
-          else
-            echo "No requirements files or pyproject.toml found; skipping."
-          fi
+      - name: Install project dependencies
+        run: pip install ".[dev]" --quiet
+      - name: Run pip-audit
+        run: pip-audit
 
   sast:
     name: SAST — Bandit Static Analysis

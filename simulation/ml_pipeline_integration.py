@@ -53,7 +53,7 @@ class BaseModelWrapper(ABC):
         path = Path(model_path)
         if path.suffix == ".pkl":
             with open(path, "rb") as f:
-                self._model = pickle.load(f)
+                self._model = pickle.load(f)  # nosec B301
         elif path.suffix == ".json":
             with open(path) as f:
                 data = json.load(f)

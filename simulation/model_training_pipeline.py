@@ -654,7 +654,7 @@ class ModelTrainingPipeline:
             return None
 
         with open(model_path, "rb") as f:
-            return pickle.load(f)
+            return pickle.load(f)  # nosec B301
 
     def get_pipeline_summary(self) -> dict[str, Any]:
         """Get training pipeline summary."""

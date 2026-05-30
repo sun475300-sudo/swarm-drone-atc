@@ -45,7 +45,7 @@ class SwarmMessage:
 
     def __post_init__(self):
         if not self.checksum:
-            self.checksum = hashlib.md5(self.payload).hexdigest()[:8]
+            self.checksum = hashlib.md5(self.payload, usedforsecurity=False).hexdigest()[:8]
 
 
 @dataclass

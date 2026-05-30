@@ -125,11 +125,7 @@ class HITLReportGenerator:
     """HITL 통합 테스트 보고서를 생성하고 Markdown/JSON으로 내보낸다."""
 
     def generate_fmea(self) -> list[FMEAItem]:
-        """표준 8개 FMEA 항목을 생성하여 반환한다.
-
-        Returns:
-            FMEAItem 리스트 (8개).
-        """
+        """표준 8개 FMEA 항목을 반환한다."""
         items = []
         for d in _STANDARD_FMEA:
             rpn = d["severity"] * d["occurrence"] * d["detection"]
@@ -146,29 +142,16 @@ class HITLReportGenerator:
         return items
 
     def generate_report(
-        self,
-        drone_count: int,
-        test_duration_s: float,
-        pass_rate: float,
+        self, drone_count: int, test_duration_s: float, pass_rate: float
     ) -> HITLReport:
-        """HITL 보고서를 생성한다.
-
-        Args:
-            drone_count: 테스트에 참여한 드론 수.
-            test_duration_s: 테스트 지속 시간 (초).
-            pass_rate: 통과율 (0.0 ~ 1.0).
-
-        Returns:
-            HITLReport 인스턴스.
-        """
+        """HITL 보고서를 생성한다. pass_rate: 0.0~1.0."""
         if not (0.0 <= pass_rate <= 1.0):
             raise ValueError(f"pass_rate는 0~1 범위여야 합니다, 입력: {pass_rate}")
-        fmea = self.generate_fmea()
         return HITLReport(
             drone_count=drone_count,
             test_duration_s=test_duration_s,
             pass_rate=pass_rate,
-            fmea_items=fmea,
+            fmea_items=self.generate_fmea(),
         )
 
     def to_markdown(self, report: HITLReport) -> str:

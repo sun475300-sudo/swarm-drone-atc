@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 07:49 | `dfa9226` | feat: P711-P720 배포 인프라 테스트 — FastAPI·K8s·CI·보안 | tests/test_phase711_720_deploy.py |
 | 2026-05-31 07:42 | `84b90b2` | fix: mypy torch follow_imports=skip — CI Python 3.10 타입 체크 실패 수정 | pyproject.toml |
 | 2026-05-31 07:03 | `88386d2` | fix: should_rtl numpy bool → python bool (is False 비교 실패 수정) | simulation/battery_predictor.py |
 | 2026-05-31 06:58 | `119db7e` | fix: test_phase571_600 polyglot 경로 src/ → archive/polyglot/ (19건) | tests/test_phase571_600.py |

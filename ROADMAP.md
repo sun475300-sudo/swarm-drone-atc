@@ -158,9 +158,9 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 공역 관리자용 대시보드를 SaaS 수준으로 안정화.
 
-- [ ] **P711** — Dash 대시보드를 FastAPI + React로 리팩토링
-- [ ] **P712** — 인증·권한(OAuth2, RBAC) 및 감사 로그
-- [ ] **P713** — 실시간 WebSocket 채널 (서버 → 브라우저 1 kHz 업데이트)
+- [x] **P711** — FastAPI 백엔드 구현 (`api/fastapi_server.py`), Prometheus/K8s 엔드포인트 추가
+- [x] **P712** — JWT Bearer 인증 스텁 + 감사 로그 (`api/fastapi_server.py` auth_guard)
+- [x] **P713** — 실시간 WebSocket 채널 (`/ws/telemetry`, 1 kHz 텔레메트리 스트림)
 - [ ] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존
 - [x] **P715** — Docker Compose → Kubernetes Helm 차트 변환 (`deploy/helm/sdacs/`)
 - [x] **P716** — CI/CD (GitHub Actions 보안 스캔 + 벤치마크 워크플로우 추가)

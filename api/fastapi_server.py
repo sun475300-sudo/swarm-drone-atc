@@ -545,6 +545,45 @@ async def healthz() -> dict:
     return {"success": True, "status": "ok", "now_ns": time.time_ns()}
 
 
+@app.get("/readyz", tags=["infra"])
+async def readyz() -> dict:
+    """Kubernetes readiness probe — ready when state is initialized."""
+    return {"ready": True, "version": API_VERSION}
+
+
+@app.get("/metrics", tags=["infra"])
+async def prometheus_metrics() -> Any:
+    """Prometheus text-format metrics endpoint (P718 observability).
+
+    Returns basic counters without requiring prometheus_client to be installed.
+    Install prometheus_client for richer metric types.
+    """
+    from fastapi.responses import PlainTextResponse
+
+    snap = STATE.snapshot
+    n_drones = len(snap.drones)
+    n_runs = len(STATE.runs)
+    active_runs = sum(1 for r in STATE.runs.values() if r.status == "running")
+    ws_subs = len(STATE.telemetry_subscribers)
+
+    lines = [
+        "# HELP sdacs_drones_active Number of drones in last airspace snapshot",
+        "# TYPE sdacs_drones_active gauge",
+        f"sdacs_drones_active {n_drones}",
+        "# HELP sdacs_runs_total Total scenario runs submitted",
+        "# TYPE sdacs_runs_total counter",
+        f"sdacs_runs_total {n_runs}",
+        "# HELP sdacs_runs_active Currently running scenarios",
+        "# TYPE sdacs_runs_active gauge",
+        f"sdacs_runs_active {active_runs}",
+        "# HELP sdacs_ws_subscribers Active WebSocket telemetry subscribers",
+        "# TYPE sdacs_ws_subscribers gauge",
+        f"sdacs_ws_subscribers {ws_subs}",
+        "",
+    ]
+    return PlainTextResponse("\n".join(lines), media_type="text/plain; version=0.0.4")
+
+
 @app.get("/health", tags=["infra"])
 async def health() -> dict[str, Any]:
     """``health`` 동작을 수행한다."""

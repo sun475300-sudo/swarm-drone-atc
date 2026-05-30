@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 03:19 | `4ab138e` | feat: Track C P712/P714/P715/P717/P718 서비스화 구현 | ROADMAP.md, api/auth.py, api/db.py, api/fastapi_server.py, api/metrics.py, deployment/helm/sdacs/Chart.yaml … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
 | 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |
 | 2026-05-29 08:44 | `a5277c3` | feat: DnI 식별 정확도 모델 — 클래스별 정확도 + 오분류 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |

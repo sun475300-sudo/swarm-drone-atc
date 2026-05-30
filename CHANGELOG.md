@@ -3,6 +3,23 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased] - 2026-05-30
+
+### 수정 (fix)
+
+- 테스트 수집 오류 6건 → 0건: `import torch` / `import hypothesis` / `import plotly` 미설치 환경 graceful skip 처리
+  - `tests/test_coverage_boost_2.py`, `test_coverage_boost_4.py`, `test_coverage_boost_5.py`, `test_phase661_670_ai.py`: `pytest.importorskip("torch")`
+  - `tests/test_apf_property.py`: `pytest.importorskip("hypothesis")`
+  - `simulation/collision_predictor.py`: try/except torch 패키지 + `_TORCH_AVAILABLE` 플래그 + 인스턴스화 시점 ImportError
+  - `visualization/_scene_traces.py`: try/except plotly + `_PLOTLY_AVAILABLE` 플래그
+
+### 문서 (docs)
+
+- README 테스트 수 동기화: 3,973+ → 3,717+ (실제 수집 기준)
+- `reports/status_2026-05-30.md` — 일일 상태 보고서 생성
+
+---
+
 ## [Unreleased] - 2026-05-03
 
 ### 추가 (feat)

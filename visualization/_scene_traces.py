@@ -14,7 +14,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
-import plotly.graph_objects as go
+
+try:
+    import plotly.graph_objects as go
+    _PLOTLY_AVAILABLE = True
+except ImportError:
+    go = None  # type: ignore[assignment]
+    _PLOTLY_AVAILABLE = False
 
 from simulation.apf_engine.apf import (
     APFState,

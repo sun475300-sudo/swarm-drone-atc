@@ -14,6 +14,9 @@ random 입력에 대해 다음 불변성을 검증:
 from __future__ import annotations
 
 import numpy as np
+import pytest
+
+pytest.importorskip("hypothesis")
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 

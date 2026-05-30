@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 07:42 | `84b90b2` | fix: mypy torch follow_imports=skip — CI Python 3.10 타입 체크 실패 수정 | pyproject.toml |
 | 2026-05-31 07:03 | `88386d2` | fix: should_rtl numpy bool → python bool (is False 비교 실패 수정) | simulation/battery_predictor.py |
 | 2026-05-31 06:58 | `119db7e` | fix: test_phase571_600 polyglot 경로 src/ → archive/polyglot/ (19건) | tests/test_phase571_600.py |
 | 2026-05-31 06:53 | `a88d578` | fix: CI 실패 수정 — asyncio + polyglot 경로 + asyncio_mode=auto | pyproject.toml, tests/test_coverage_boost_4.py, tests/test_phase521_540.py, tests/test_phase541_560.py, tests/test_phase611_630.py, tests/test_phase631_640.py … |

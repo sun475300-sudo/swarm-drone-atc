@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sdacs.fullname" . }}
+  labels:
+    {{- include "sdacs.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "sdacs.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sdacs.selectorLabels" . | nindent 8 }}
+      {{- if .Values.prometheus.enabled }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: {{ .Values.prometheus.path | quote }}
+        prometheus.io/port: {{ .Values.service.apiPort | quote }}
+      {{- end }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: api
+              containerPort: {{ .Values.service.apiPort }}
+              protocol: TCP
+            - name: dash
+              containerPort: {{ .Values.service.dashPort }}
+              protocol: TCP
+          env:
+            - name: PYTHONUNBUFFERED
+              value: {{ .Values.env.PYTHONUNBUFFERED | quote }}
+            - name: SDACS_JWT_SECRET
+              value: {{ .Values.env.SDACS_JWT_SECRET | quote }}
+            {{- if .Values.timescaledb.enabled }}
+            - name: DB_HOST
+              value: {{ .Values.timescaledb.host | quote }}
+            - name: DB_PORT
+              value: {{ .Values.timescaledb.port | quote }}
+            - name: DB_NAME
+              value: {{ .Values.timescaledb.database | quote }}
+            - name: DB_USER
+              value: {{ .Values.timescaledb.user | quote }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.timescaledb.passwordSecret }}
+                  key: {{ .Values.timescaledb.passwordKey }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: api
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: api
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.gpu.enabled }}
+          resources:
+            limits:
+              nvidia.com/gpu: {{ .Values.gpu.count }}
+            requests:
+              nvidia.com/gpu: {{ .Values.gpu.count }}
+          {{- end }}
+          {{- if .Values.persistence.enabled }}
+          volumeMounts:
+            - name: data
+              mountPath: /app/results
+          {{- end }}
+      {{- if .Values.persistence.enabled }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "sdacs.fullname" . }}-data
+      {{- end }}

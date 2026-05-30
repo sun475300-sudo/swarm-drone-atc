@@ -1,0 +1,70 @@
+# SDACS Helm 기본값
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/sun475300-sudo/swarm-drone-atc
+  pullPolicy: IfNotPresent
+  tag: ""  # Overridden by appVersion in Chart.yaml
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  name: ""
+
+service:
+  type: ClusterIP
+  apiPort: 8000
+  dashPort: 8050
+
+ingress:
+  enabled: true
+  className: nginx
+  host: sdacs.local
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  tls: []
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+  limits:
+    cpu: "2"
+    memory: "2Gi"
+
+gpu:
+  enabled: false
+  count: 1
+
+env:
+  PYTHONUNBUFFERED: "1"
+  SDACS_JWT_SECRET: ""     # Must be set via --set or secret
+
+persistence:
+  enabled: false
+  storageClass: ""
+  size: 10Gi
+  accessMode: ReadWriteOnce
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+prometheus:
+  enabled: false
+  scrapeInterval: 15s
+  path: /metrics
+
+timescaledb:
+  enabled: false
+  host: ""
+  port: 5432
+  database: sdacs
+  user: sdacs
+  passwordSecret: ""
+  passwordKey: password

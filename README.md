@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 07:17 | `e38d255` | fix: suppress numpy ndarray shape type errors for Python 3.10 mypy | src/boids_swarm.py, src/sensor_fusion.py |
 | 2026-05-31 06:43 | `b96269b` | fix: use asyncio.new_event_loop() in ws_bridge tests for parallel safety | tests/test_ws_bridge.py |
 | 2026-05-31 06:20 | `9e4422f` | fix: cast np.bool_ to bool in BatteryPredictor.should_rtl | simulation/battery_predictor.py |
 | 2026-05-31 06:13 | `7daf4ad` | chore: .gitignore에 .coverage.* 패턴 추가 (pytest-xdist 임시 파일) | .gitignore |

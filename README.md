@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 02:11 | `38c6c87` | feat: P700 FMEA 보고서 생성기 + P716/P719 보안 스캔 CI 추가 | .github/workflows/ci.yml, ROADMAP.md, scripts/generate_fmea.py, tests/test_p700_fmea.py |
 | 2026-05-31 02:08 | `1a56366` | feat: P706 비교 실험 러너 + 테스트, ROADMAP P692/703-706 완료 표시 | ROADMAP.md, scripts/compare_baselines.py, tests/test_p706_comparison.py |
 | 2026-05-31 02:03 | `82d765f` | fix: battery_predictor should_rtl np.bool_ → bool 캐스팅 | simulation/battery_predictor.py |
 | 2026-05-31 01:42 | `2bc82e1` | fix: polyglot 경로 src/ → archive/polyglot/ (6개 테스트 파일) + lint 수정 | scripts/sdacs_daily_status.py, tests/test_p703_dataset.py, tests/test_phase521_540.py, tests/test_phase541_560.py, tests/test_phase571_600.py, tests/test_phase611_630.py … |

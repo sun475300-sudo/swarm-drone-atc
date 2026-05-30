@@ -1,0 +1,91 @@
+name: Security Audit
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: "0 4 * * 1"  # 매주 월요일 04:00 UTC
+
+jobs:
+  dependency-scan:
+    name: Dependency Vulnerability Scan (pip-audit)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Run pip-audit on requirements files
+        run: |
+          shopt -s nullglob
+          REQ_FILES=(requirements*.txt)
+          if [ ${#REQ_FILES[@]} -gt 0 ]; then
+            pip-audit --requirement "${REQ_FILES[@]}"
+          elif [ -f pyproject.toml ]; then
+            pip-audit --project-path .
+          else
+            echo "No requirements files or pyproject.toml found; skipping."
+          fi
+
+  sast:
+    name: SAST — Bandit Static Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      - name: Run Bandit (medium+ severity)
+        run: bandit -r src/ api/ simulation/ -ll
+
+  secret-scan:
+    name: Secret Scanning (Gitleaks)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  iac-scan:
+    name: IaC Security Scan (Trivy)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy on deployment config
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+          scan-ref: deployment/
+          format: table
+          exit-code: "1"
+          severity: CRITICAL,HIGH

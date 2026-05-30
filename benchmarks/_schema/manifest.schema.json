@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdacs.example.com/schemas/manifest.schema.json",
+  "title": "SDACS Scenario Manifest",
+  "type": "object",
+  "required": ["id", "category", "difficulty", "description", "drones", "duration_s"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[0-9]{2}_[a-z_]+$"},
+    "category": {"type": "string", "enum": ["corridor", "urban", "emergency", "weather", "density", "delivery"]},
+    "difficulty": {"type": "string", "enum": ["easy", "medium", "hard", "extreme"]},
+    "description": {"type": "string"},
+    "drones": {"type": "integer", "minimum": 2, "maximum": 200},
+    "duration_s": {"type": "number", "minimum": 10, "maximum": 3600},
+    "seed": {"type": "integer"},
+    "tags": {"type": "array", "items": {"type": "string"}}
+  }
+}

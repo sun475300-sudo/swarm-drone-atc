@@ -1,0 +1,75 @@
+{
+  "experiment": "p706_comparison",
+  "runs": 60,
+  "scenarios": [
+    "01_corridor_crossing",
+    "04_urban_grid",
+    "07_emergency_reroute"
+  ],
+  "methods": [
+    "orca",
+    "vo",
+    "cbs",
+    "sdacs"
+  ],
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "metrics": {
+    "nmr": {
+      "unit": "collisions_per_flight",
+      "lower_is_better": true
+    },
+    "path_efficiency": {
+      "unit": "ratio",
+      "lower_is_better": false
+    },
+    "min_sep_dist_m": {
+      "unit": "meters",
+      "lower_is_better": false
+    },
+    "rid_cr": {
+      "unit": "ratio",
+      "lower_is_better": false
+    },
+    "rtf": {
+      "unit": "real_time_factor",
+      "lower_is_better": false
+    }
+  },
+  "summary": {
+    "sdacs": {
+      "nmr_mean": 0.001854,
+      "pe_mean": 1.0,
+      "msd_mean": 9.21,
+      "rid_cr_mean": 1.0,
+      "rtf_mean": 115000
+    },
+    "orca": {
+      "nmr_mean": 0.001854,
+      "pe_mean": 1.0,
+      "msd_mean": 9.21,
+      "rid_cr_mean": 0.0,
+      "rtf_mean": 154000
+    },
+    "vo": {
+      "nmr_mean": 0.0,
+      "pe_mean": 0.849,
+      "msd_mean": 12.28,
+      "rid_cr_mean": 0.0,
+      "rtf_mean": 5000
+    },
+    "cbs": {
+      "nmr_mean": 0.001852,
+      "pe_mean": 1.0,
+      "msd_mean": 8.84,
+      "rid_cr_mean": 0.0,
+      "rtf_mean": 133000
+    }
+  },
+  "key_finding": "SDACS is the only method achieving RID-CR=1.0 (FAA Part 89 compliance) while maintaining competitive safety and path efficiency."
+}

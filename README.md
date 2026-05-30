@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 06:10 | `b184f04` | fix: test_phase611_630/631_640/641_660 다국어 파일 경로 src/ → archive/polyglot/ 수정 (29건) | tests/test_phase611_630.py, tests/test_phase631_640.py, tests/test_phase641_660.py |
 | 2026-05-31 05:42 | `78523ea` | fix: test_phase521_540/541_560 다국어 파일 경로 src/ → archive/polyglot/ 수정 (100건) | tests/test_phase521_540.py, tests/test_phase541_560.py |
 | 2026-05-31 05:25 | `3a7cd01` | fix: ruff I001 isort 오류 5건 수정 (pytest.importorskip 순서 정렬) | tests/test_coverage_boost_2.py, tests/test_coverage_boost_4.py, tests/test_coverage_boost_5.py, tests/test_phase661_670_ai.py |
 | 2026-05-31 05:15 | `5ca5c52` | fix: torch 미설치 환경 테스트 수집 오류 4건 해결 + ROADMAP Track A/B/C 현황 반영 | ROADMAP.md, reports/status_2026-05-30.md, simulation/collision_predictor.py, tests/test_coverage_boost_2.py, tests/test_coverage_boost_4.py, tests/test_coverage_boost_5.py … |

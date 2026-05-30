@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 07:58 | `2505bf8` | fix: ruff I001 import sort in db_schema.py | simulation/db_schema.py |
 | 2026-05-31 07:51 | `ff4ad82` | docs: ROADMAP P714 완료 표시 | ROADMAP.md |
 | 2026-05-31 07:51 | `8ea9d16` | feat: P714 TimescaleDB 스키마 + InMemoryStore 구현 및 테스트 | simulation/db_schema.py, tests/test_phase711_720_deploy.py |
 | 2026-05-31 07:49 | `dfa9226` | feat: P711-P720 배포 인프라 테스트 — FastAPI·K8s·CI·보안 | tests/test_phase711_720_deploy.py |

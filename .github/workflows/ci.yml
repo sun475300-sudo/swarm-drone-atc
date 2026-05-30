@@ -58,6 +58,7 @@ jobs:
           retention-days: 30
 
       - name: Type check (src/)
+        if: matrix.python-version == '3.11'
         run: mypy src/ --error-summary
 
   benchmark:

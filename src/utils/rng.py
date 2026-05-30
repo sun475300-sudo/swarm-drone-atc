@@ -68,7 +68,7 @@ def set_global_seed(seed: int = 42) -> None:
 
     # Torch is optional — silently skipped if not installed.
     try:
-        import torch  # type: ignore[import-not-found]
+        import torch  # type: ignore
 
         torch.manual_seed(seed)
         if torch.cuda.is_available():

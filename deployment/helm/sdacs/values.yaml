@@ -1,0 +1,117 @@
+# SDACS Helm 기본 값 — 환경별로 오버라이드 (values-prod.yaml, values-staging.yaml)
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/sun475300-sudo/swarm-drone-atc
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  apiPort: 8080
+  dashPort: 8050
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"  # WebSocket 유지
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+  hosts:
+    - host: sdacs.example.com
+      paths:
+        - path: /api
+          pathType: Prefix
+          port: 8080
+        - path: /ws
+          pathType: Prefix
+          port: 8080
+        - path: /
+          pathType: Prefix
+          port: 8050
+  tls:
+    - secretName: sdacs-tls
+      hosts:
+        - sdacs.example.com
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+  limits:
+    cpu: "2"
+    memory: "2Gi"
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+# GPU 지원 (nvidia.com/gpu 리소스)
+gpu:
+  enabled: false
+  count: 1
+
+# 환경변수 (민감 값은 secrets로 교체)
+env:
+  SDACS_JWT_SECRET: "change-me-in-prod"
+  SDACS_DATABASE_URL: "sqlite+aiosqlite:///./sdacs.db"
+  PYTHONUNBUFFERED: "1"
+
+# 시크릿 (existingSecret 또는 values 에 직접 기재)
+secrets:
+  existingSecret: ""
+  jwtSecretKey: SDACS_JWT_SECRET
+
+# PostgreSQL (Bitnami 서브차트)
+postgresql:
+  enabled: false  # true 로 설정하면 Bitnami PostgreSQL 배포
+  auth:
+    username: sdacs
+    password: sdacs-db-pass
+    database: sdacs
+
+# Prometheus 스크레이프
+serviceMonitor:
+  enabled: false
+  namespace: monitoring
+  interval: 15s
+
+# Pod 설정
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  prometheus.io/path: "/metrics"
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 5
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

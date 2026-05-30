@@ -1,0 +1,15 @@
+apiVersion: v2
+name: sdacs
+description: SDACS — Swarm Drone Airspace Control System
+type: application
+version: 1.0.0
+appVersion: "1.1.0"
+keywords:
+  - drone
+  - atc
+  - simulation
+  - airspace
+home: https://github.com/sun475300-sudo/swarm-drone-atc
+maintainers:
+  - name: Sunwoo Jang
+    email: sun475300@gmail.com

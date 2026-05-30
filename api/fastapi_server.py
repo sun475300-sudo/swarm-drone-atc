@@ -1,20 +1,23 @@
 """FastAPI backend skeleton for the SDACS web dashboard (replacement for Dash).
 
-Phase: P711
+Phase: P711 / P712 / P713 / P718
 Goal: progressive migration path from Dash to React + FastAPI + WebSocket.
 This file ONLY provides the backend. The existing Dash app can keep running
 during migration.
 
-Endpoints (v0):
+Endpoints:
+    POST /auth/token               — JWT 토큰 발급 (P712)
     GET  /healthz                  — liveness probe
+    GET  /metrics                  — Prometheus 스크레이프 (P718)
     GET  /api/airspace/snapshot    — last known state (polling fallback)
     GET  /api/scenarios            — list of Monte Carlo scenarios
     POST /api/scenarios/{id}/run   — kick off a run (returns run_id)
     GET  /api/runs/{run_id}        — run status / metrics
     WS   /ws/telemetry             — 1 kHz server → client stream
 
-Auth (v1 — stub here):
-    JWT Bearer via Authorization header. See P712 for full RBAC.
+Auth (P712):
+    JWT Bearer via Authorization header.
+    Role hierarchy: VIEWER < OPERATOR < ADMIN
 
 Quickstart:
     pip install fastapi uvicorn[standard]
@@ -476,15 +479,21 @@ async def _demo_telemetry_stream() -> None:
         await asyncio.sleep(0.1)
 
 
-# --- Auth dependency (stub) ---
+# --- Auth (P712) ---
 
+from api.auth import (  # noqa: E402
+    Role,
+    TokenPayload,
+    TokenRequest,
+    TokenResponse,
+    get_current_user,
+    issue_token,
+    log_audit,
+    require_role,
+)
 
-async def require_token(authorization: str = Header(default="")) -> str:
-    # P712 will replace with full JWT validation.
-    """``require_token`` 동작을 수행한다."""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(401, detail="missing bearer token")
-    return authorization[len("Bearer ") :]
+# 하위 호환: 기존 코드가 require_token 을 import할 경우를 위한 alias
+require_token = get_current_user
 
 
 # --- Pydantic models ---
@@ -534,6 +543,31 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# --- Auth endpoints (P712) ---
+
+
+@app.post("/auth/token", tags=["auth"], response_model=TokenResponse)
+async def auth_token(body: TokenRequest) -> TokenResponse:
+    """사용자명/비밀번호로 JWT 액세스 토큰을 발급한다."""
+    return issue_token(body.username, body.password)
+
+
+# --- Prometheus metrics (P718) ---
+
+from api.metrics import metrics_endpoint as _metrics_endpoint  # noqa: E402
+from api.metrics import (  # noqa: E402
+    record_advisory,
+    set_ws_subscribers,
+    update_from_snapshot,
+)
+
+
+@app.get("/metrics", tags=["infra"], include_in_schema=False)
+async def prometheus_metrics():
+    """Prometheus 스크레이프 엔드포인트."""
+    return await _metrics_endpoint()
 
 
 # --- Health ---
@@ -631,10 +665,12 @@ async def scenario_run(name: str, req: ScenarioRunRequest | None = None) -> dict
 async def run_scenario(
     scenario_id: str,
     body: RunScenarioBody,
-    _token: str = Depends(require_token),
+    request: Request,
+    user: TokenPayload = Depends(require_role(Role.OPERATOR)),
 ) -> dict:
     """``run_scenario`` 동작을 수행한다."""
     STATE.scenarios = _build_scenario_catalog()
+    log_audit(request, user, "run_scenario", detail=scenario_id)
     scenario_meta = STATE.scenarios.get(scenario_id)
     request_mode = "scenario" if scenario_meta is not None else "live_airspace"
 
@@ -719,6 +755,7 @@ async def ws_telemetry(ws: WebSocket) -> None:
     """``ws_telemetry`` 동작을 수행한다."""
     await ws.accept()
     STATE.telemetry_subscribers.add(ws)
+    set_ws_subscribers(len(STATE.telemetry_subscribers))
     LOGGER.info("telemetry subscriber connected (total=%d)", len(STATE.telemetry_subscribers))
     try:
         while True:
@@ -753,6 +790,7 @@ async def ws_telemetry(ws: WebSocket) -> None:
         pass
     finally:
         STATE.telemetry_subscribers.discard(ws)
+        set_ws_subscribers(len(STATE.telemetry_subscribers))
         LOGGER.info("telemetry subscriber disconnected (total=%d)", len(STATE.telemetry_subscribers))
 
 

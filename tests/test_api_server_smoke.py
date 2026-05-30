@@ -74,8 +74,15 @@ async def test_api_run_scenario_accepts_unknown_ids_as_live_airspace(monkeypatch
 
     monkeypatch.setattr(backend.asyncio, "create_task", fake_create_task)
 
+    from api.auth import Role, TokenPayload
+    from unittest.mock import MagicMock
+
+    fake_request = MagicMock()
+    fake_request.client.host = "127.0.0.1"
+    operator_user = TokenPayload(sub="test-op", role=Role.OPERATOR, exp=9999999999, iat=0)
+
     body = backend.RunScenarioBody(seed=11, method="hybrid", duration_s=45)
-    result = await backend.run_scenario("corridor-alpha", body, _token="test-token")
+    result = await backend.run_scenario("corridor-alpha", body, request=fake_request, user=operator_user)
 
     assert result["success"] is True
     assert result["data"]["status"] == "queued"

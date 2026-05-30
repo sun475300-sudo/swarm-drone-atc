@@ -1,0 +1,60 @@
+# Default values for sdacs Helm chart.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/sun475300-sudo/swarm-drone-atc
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: sdacs.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+  limits:
+    cpu: "2"
+    memory: "2Gi"
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+redis:
+  enabled: true
+  image: redis:7.2-alpine
+  port: 6379
+
+simulator:
+  enabled: true
+  drones: 50
+  duration: 3600
+  metricsPort: 8081
+
+observability:
+  prometheus:
+    enabled: true
+    port: 9090
+  grafana:
+    enabled: true
+    port: 3000
+
+env:
+  REDIS_URL: "redis://redis:6379"
+  LOG_LEVEL: "INFO"

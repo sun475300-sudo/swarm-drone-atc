@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-sdacs-config
+  labels:
+    app: sdacs
+    release: {{ .Release.Name }}
+data:
+  LOG_LEVEL: {{ .Values.env.LOG_LEVEL | quote }}
+  REDIS_URL: {{ .Values.env.REDIS_URL | quote }}
+  DRONES_COUNT: {{ .Values.simulator.drones | quote }}
+  SIM_DURATION: {{ .Values.simulator.duration | quote }}

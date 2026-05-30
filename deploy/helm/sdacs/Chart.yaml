@@ -1,0 +1,16 @@
+apiVersion: v2
+name: sdacs
+description: Swarm Drone Airspace Control System — Kubernetes deployment chart
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - drone
+  - airspace
+  - simulation
+  - utm
+maintainers:
+  - name: SDACS Team
+    email: sun475300@gmail.com
+sources:
+  - https://github.com/sun475300-sudo/swarm-drone-atc

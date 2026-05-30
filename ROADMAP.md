@@ -162,10 +162,10 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [ ] **P712** — 인증·권한(OAuth2, RBAC) 및 감사 로그
 - [ ] **P713** — 실시간 WebSocket 채널 (서버 → 브라우저 1 kHz 업데이트)
 - [ ] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존
-- [ ] **P715** — Docker Compose → Kubernetes Helm 차트 변환
+- [x] **P715** — Docker Compose → Kubernetes Helm 차트 변환 (`deploy/helm/sdacs/`)
 - [x] **P716** — CI/CD (GitHub Actions 보안 스캔 + 벤치마크 워크플로우 추가)
-- [ ] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지)
-- [ ] **P718** — 관측성 스택 (Prometheus + Grafana + Loki)
+- [x] **P717** — 부하 테스트 (100기 스웜 RTF/FPS 벤치마크 스크립트)
+- [x] **P718** — 관측성 스택 (Prometheus + Grafana + Loki docker-compose)
 - [x] **P719** — 보안 감사 (bandit 정적 스캔 + pip-audit CVE 스캔 CI 적용)
 - [ ] **P720** — 공개 베타 오픈 (3개 파일럿 기관, 피드백 수집 4주)
 

@@ -52,6 +52,7 @@ node_modules/
 package.json
 package-lock.json
 .coverage
+.coverage.*
 
 # Standardized common patterns (added 2026-04-27)
 *.bak

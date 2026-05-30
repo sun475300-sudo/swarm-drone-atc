@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+
 torch = pytest.importorskip("torch", reason="torch not installed")
 
 

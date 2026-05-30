@@ -13,6 +13,7 @@ import time
 
 import numpy as np
 import pytest
+
 torch = pytest.importorskip("torch", reason="torch not installed")
 
 # ── anomaly_federated_detector ────────────────────────────────────────────

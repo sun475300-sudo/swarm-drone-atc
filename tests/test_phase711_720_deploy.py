@@ -205,6 +205,16 @@ class TestP714DBSchema:
         store = InMemoryStore()
         assert store.retention_days == 30
 
+    def test_in_memory_store_query_events_by_severity(self):
+        from simulation.db_schema import EventRecord, InMemoryStore
+        store = InMemoryStore()
+        store.insert_event(EventRecord("t1", "near_miss", "d1", "warning"))
+        store.insert_event(EventRecord("t2", "collision", "d2", "critical"))
+        store.insert_event(EventRecord("t3", "near_miss", "d3", "info"))
+        rows = store.query_events(severity="critical")
+        assert len(rows) == 1
+        assert rows[0]["severity"] == "critical"
+
 
 # ---------------------------------------------------------------------------
 # P715 — K8s manifest validation

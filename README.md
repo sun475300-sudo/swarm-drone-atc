@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 01:42 | `2bc82e1` | fix: polyglot 경로 src/ → archive/polyglot/ (6개 테스트 파일) + lint 수정 | scripts/sdacs_daily_status.py, tests/test_p703_dataset.py, tests/test_phase521_540.py, tests/test_phase541_560.py, tests/test_phase571_600.py, tests/test_phase611_630.py … |
 | 2026-05-31 01:18 | `22e495c` | feat: P703 데이터셋 검증·내보내기 + 일일 상태 보고 자동화 | benchmarks/_schema/manifest.schema.json, reports/status_2026-05-30.md, scripts/sdacs_daily_status.py, scripts/validate_dataset.py, tests/test_p703_dataset.py |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
 | 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |

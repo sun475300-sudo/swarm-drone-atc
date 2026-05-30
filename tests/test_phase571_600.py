@@ -5,6 +5,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 BASE = os.path.join(os.path.dirname(__file__), "..")
+POLYGLOT = os.path.join(BASE, "archive", "polyglot")
 
 
 def open_utf8(path):
@@ -16,7 +17,7 @@ def open_utf8(path):
 # ═══════════════════════════════════════
 
 class TestPhase571Assembly:
-    FILE = os.path.join(BASE, "src", "asm", "crc32_checksum.asm")
+    FILE = os.path.join(POLYGLOT,"asm", "crc32_checksum.asm")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_content(self):
@@ -36,7 +37,7 @@ class TestPhase571Assembly:
             assert len(f.readlines()) > 30
 
 class TestPhase572VHDL:
-    FILE = os.path.join(BASE, "src", "vhdl", "pwm_motor_driver.vhd")
+    FILE = os.path.join(POLYGLOT,"vhdl", "pwm_motor_driver.vhd")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_content(self):
@@ -56,7 +57,7 @@ class TestPhase572VHDL:
             assert len(f.readlines()) > 50
 
 class TestPhase573Prolog:
-    FILE = os.path.join(BASE, "src", "prolog", "airspace_rules.pl")
+    FILE = os.path.join(POLYGLOT,"prolog", "airspace_rules.pl")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_rules(self):
@@ -77,7 +78,7 @@ class TestPhase573Prolog:
         assert "geofence" in c
 
 class TestPhase574Clojure:
-    FILE = os.path.join(BASE, "src", "clojure", "event_stream.clj")
+    FILE = os.path.join(POLYGLOT,"clojure", "event_stream.clj")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_namespace(self):
@@ -97,7 +98,7 @@ class TestPhase574Clojure:
             assert len(f.readlines()) > 50
 
 class TestPhase575Erlang:
-    FILE = os.path.join(BASE, "src", "erlang", "fault_supervisor.erl")
+    FILE = os.path.join(POLYGLOT,"erlang", "fault_supervisor.erl")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_module(self):
@@ -118,7 +119,7 @@ class TestPhase575Erlang:
         assert "drone" in c.lower()
 
 class TestPhase576Crystal:
-    FILE = os.path.join(BASE, "src", "crystal", "telemetry_parser.cr")
+    FILE = os.path.join(POLYGLOT,"crystal", "telemetry_parser.cr")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_struct(self):
@@ -138,7 +139,7 @@ class TestPhase576Crystal:
             assert len(f.readlines()) > 50
 
 class TestPhase577Fortran:
-    FILE = os.path.join(BASE, "src", "fortran", "wind_field_solver.f90")
+    FILE = os.path.join(POLYGLOT,"fortran", "wind_field_solver.f90")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_module(self):
@@ -158,7 +159,7 @@ class TestPhase577Fortran:
             assert len(f.readlines()) > 80
 
 class TestPhase578Groovy:
-    FILE = os.path.join(BASE, "src", "groovy", "build_pipeline.groovy")
+    FILE = os.path.join(POLYGLOT,"groovy", "build_pipeline.groovy")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_class(self):
@@ -178,7 +179,7 @@ class TestPhase578Groovy:
             assert len(f.readlines()) > 60
 
 class TestPhase579Pascal:
-    FILE = os.path.join(BASE, "src", "pascal", "waypoint_navigator.pas")
+    FILE = os.path.join(POLYGLOT,"pascal", "waypoint_navigator.pas")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_program(self):
@@ -198,7 +199,7 @@ class TestPhase579Pascal:
             assert len(f.readlines()) > 50
 
 class TestPhase580PowerShell:
-    FILE = os.path.join(BASE, "src", "powershell", "deployment_manager.ps1")
+    FILE = os.path.join(POLYGLOT,"powershell", "deployment_manager.ps1")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_class(self):
@@ -348,7 +349,7 @@ class TestPhase590Social:
 # ═══════════════════════════════════════
 
 class TestPhase591OCaml:
-    FILE = os.path.join(BASE, "src", "ocaml", "type_safe_protocol.ml")
+    FILE = os.path.join(POLYGLOT,"ocaml", "type_safe_protocol.ml")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_content(self):
@@ -360,7 +361,7 @@ class TestPhase591OCaml:
             assert len(f.readlines()) > 50
 
 class TestPhase592FSharp:
-    FILE = os.path.join(BASE, "src", "fsharp", "reactive_pipeline.fsx")
+    FILE = os.path.join(POLYGLOT,"fsharp", "reactive_pipeline.fsx")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_content(self):
@@ -372,7 +373,7 @@ class TestPhase592FSharp:
             assert len(f.readlines()) > 50
 
 class TestPhase593Nim:
-    FILE = os.path.join(BASE, "src", "nim", "realtime_scheduler.nim")
+    FILE = os.path.join(POLYGLOT,"nim", "realtime_scheduler.nim")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_content(self):
@@ -384,7 +385,7 @@ class TestPhase593Nim:
             assert len(f.readlines()) > 50
 
 class TestPhase594Zig:
-    FILE = os.path.join(BASE, "src", "zig", "zero_copy_buffer.zig")
+    FILE = os.path.join(POLYGLOT,"zig", "zero_copy_buffer.zig")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_content(self):
@@ -396,7 +397,7 @@ class TestPhase594Zig:
             assert len(f.readlines()) > 50
 
 class TestPhase595Ada:
-    FILE = os.path.join(BASE, "src", "ada", "safety_critical.adb")
+    FILE = os.path.join(POLYGLOT,"ada", "safety_critical.adb")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_content(self):
@@ -408,7 +409,7 @@ class TestPhase595Ada:
             assert len(f.readlines()) > 50
 
 class TestPhase596Smalltalk:
-    FILE = os.path.join(BASE, "src", "smalltalk", "message_broker.st")
+    FILE = os.path.join(POLYGLOT,"smalltalk", "message_broker.st")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_content(self):
@@ -420,7 +421,7 @@ class TestPhase596Smalltalk:
             assert len(f.readlines()) > 30
 
 class TestPhase597Tcl:
-    FILE = os.path.join(BASE, "src", "tcl", "config_manager.tcl")
+    FILE = os.path.join(POLYGLOT,"tcl", "config_manager.tcl")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_content(self):
@@ -432,7 +433,7 @@ class TestPhase597Tcl:
             assert len(f.readlines()) > 50
 
 class TestPhase598DLang:
-    FILE = os.path.join(BASE, "src", "dlang", "parallel_compute.d")
+    FILE = os.path.join(POLYGLOT,"dlang", "parallel_compute.d")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_content(self):
@@ -444,7 +445,7 @@ class TestPhase598DLang:
             assert len(f.readlines()) > 50
 
 class TestPhase599Lisp:
-    FILE = os.path.join(BASE, "src", "lisp", "symbolic_planner.lisp")
+    FILE = os.path.join(POLYGLOT,"lisp", "symbolic_planner.lisp")
     def test_exists(self):
         assert os.path.isfile(self.FILE)
     def test_content(self):

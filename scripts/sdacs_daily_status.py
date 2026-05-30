@@ -141,7 +141,7 @@ def build_report(no_git: bool = False) -> str:
         "## 벤치마크 데이터셋",
         "",
         f"- 시나리오: **{valid}/{total}** 매니페스트 유효",
-        f"- 스키마: `benchmarks/_schema/manifest.schema.json`",
+        "- 스키마: `benchmarks/_schema/manifest.schema.json`",
         "",
     ]
 

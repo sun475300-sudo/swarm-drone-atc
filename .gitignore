@@ -64,3 +64,5 @@ _*.ps1
 htmlcov/
 .pytest_cache/
 pytest-cache-files-*/
+coverage.xml
+.coverage

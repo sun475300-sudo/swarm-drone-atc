@@ -80,6 +80,10 @@ exclude = ["tests/", "archive/", "visualization/"]
 module = ["simulation.*"]
 ignore_errors = true
 
+[[tool.mypy.overrides]]
+module = ["torch", "torch.*"]
+follow_imports = "skip"
+
 
 [tool.ruff]
 line-length = 120

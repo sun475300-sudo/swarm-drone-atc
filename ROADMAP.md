@@ -161,7 +161,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P711** — FastAPI 백엔드 (`api/fastapi_server.py`, health·snapshot·scenarios·runs 엔드포인트)
 - [x] **P712** — 인증 스텁 (`require_token` Bearer JWT, P712 RBAC 확장 예정)
 - [x] **P713** — 실시간 WebSocket 채널 (`/ws/telemetry` 1 kHz 스트림, `api/fastapi_server.py`)
-- [ ] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존
+- [x] **P714** — PostgreSQL + TimescaleDB 스키마 (`simulation/db_schema.py`, DDL·보존정책·InMemoryStore)
 - [x] **P715** — Kubernetes 매니페스트 (`deployment/k8s/` — deployment·service·ingress YAML)
 - [x] **P716** — CI/CD (`/.github/workflows/ci.yml` — Python 3.10/3.11/3.12 매트릭스, 커버리지 80%+)
 - [x] **P717** — 부하 분산 (`simulation/load_balancer.py`, 섹터 기반 드론 재배치 + 회귀 탐지)

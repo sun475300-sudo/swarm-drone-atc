@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 04:31 | `256f597` | fix: ruff I001 import 정렬 수정 (rtk_gps_handler, swarm_time_sync) | simulation/rtk_gps_handler.py, simulation/swarm_time_sync.py |
 | 2026-05-31 04:26 | `6725edc` | fix: CI 2차 수정 — Trivy IaC + pip-audit + 테스트 버그 3건 | .github/workflows/security.yml, deployment/helm/sdacs/templates/deployment.yaml, deployment/k8s/deployment.yaml, tests/test_track_a_simulation_modules.py |
 | 2026-05-31 04:22 | `7de97dd` | fix: CI 실패 수정 — Bandit/Trivy/pip-audit + Track A 단위 테스트 추가 | .github/workflows/security.yml, api/fastapi_server.py, deployment/helm/sdacs/templates/deployment.yaml, simulation/drone_swarm_protocol.py, simulation/hitl_report_generator.py, simulation/ml_pipeline_integration.py … |
 | 2026-05-31 04:17 | `9d55fcc` | feat: ROADMAP P691-P719 SW 구현 완료 + 일일 상태 보고 자동화 | .github/workflows/container.yml, .github/workflows/security.yml, ROADMAP.md, api/auth.py, api/metrics.py, benchmarks/_schema/manifest.schema.json … |

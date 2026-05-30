@@ -3,6 +3,7 @@
 P711 - FastAPI server
 P712 - Auth/RBAC stub
 P713 - WebSocket route
+P714 - PostgreSQL + TimescaleDB schema
 P715 - K8s manifests validation
 P716 - CI/CD workflow validation
 P717 - Load balancing
@@ -120,6 +121,89 @@ class TestP713WebSocket:
         pytest.importorskip("fastapi")
         from api.fastapi_server import ws_telemetry
         assert callable(ws_telemetry)
+
+
+# ---------------------------------------------------------------------------
+# P714 — PostgreSQL + TimescaleDB schema
+# ---------------------------------------------------------------------------
+
+class TestP714DBSchema:
+    """Phase 714: TimescaleDB schema and in-memory store."""
+
+    def test_get_schema_ddl_contains_hypertable(self):
+        from simulation.db_schema import get_schema_ddl
+        ddl = get_schema_ddl()
+        assert "create_hypertable" in ddl
+
+    def test_get_schema_ddl_contains_both_tables(self):
+        from simulation.db_schema import get_schema_ddl
+        ddl = get_schema_ddl()
+        assert "drone_telemetry" in ddl
+        assert "airspace_events" in ddl
+
+    def test_get_schema_ddl_has_retention_policy(self):
+        from simulation.db_schema import get_schema_ddl
+        ddl = get_schema_ddl()
+        assert "retention_policy" in ddl or "30 days" in ddl
+
+    def test_get_table_names(self):
+        from simulation.db_schema import get_table_names
+        tables = get_table_names()
+        assert "drone_telemetry" in tables
+        assert "airspace_events" in tables
+
+    def test_in_memory_store_insert_telemetry(self):
+        from simulation.db_schema import InMemoryStore, TelemetryRecord
+        store = InMemoryStore()
+        rec = TelemetryRecord(time="2026-05-30T00:00:00Z", drone_id="d1",
+                              x=100.0, y=200.0, z=50.0)
+        store.insert_telemetry(rec)
+        assert store.count_telemetry() == 1
+
+    def test_in_memory_store_query_by_drone(self):
+        from simulation.db_schema import InMemoryStore, TelemetryRecord
+        store = InMemoryStore()
+        store.insert_telemetry(TelemetryRecord("2026-05-30T00:00:00Z", "d1", 0.0, 0.0, 0.0))
+        store.insert_telemetry(TelemetryRecord("2026-05-30T00:00:01Z", "d2", 1.0, 1.0, 1.0))
+        rows = store.query_telemetry(drone_id="d1")
+        assert len(rows) == 1
+        assert rows[0]["drone_id"] == "d1"
+
+    def test_in_memory_store_insert_event(self):
+        from simulation.db_schema import EventRecord, InMemoryStore
+        store = InMemoryStore()
+        ev = EventRecord(time="2026-05-30T00:00:00Z", event_type="near_miss",
+                         drone_id="d3", severity="warning")
+        store.insert_event(ev)
+        assert store.count_events() == 1
+
+    def test_in_memory_store_query_events_by_type(self):
+        from simulation.db_schema import EventRecord, InMemoryStore
+        store = InMemoryStore()
+        store.insert_event(EventRecord("t1", "near_miss", "d1", "warning"))
+        store.insert_event(EventRecord("t2", "collision", "d2", "critical"))
+        rows = store.query_events(event_type="near_miss")
+        assert len(rows) == 1
+        assert rows[0]["event_type"] == "near_miss"
+
+    def test_in_memory_store_clear(self):
+        from simulation.db_schema import InMemoryStore, TelemetryRecord
+        store = InMemoryStore()
+        store.insert_telemetry(TelemetryRecord("t", "d1", 0.0, 0.0, 0.0))
+        store.clear()
+        assert store.count_telemetry() == 0
+
+    def test_telemetry_record_to_dict(self):
+        from simulation.db_schema import TelemetryRecord
+        rec = TelemetryRecord(time="t", drone_id="d1", x=1.0, y=2.0, z=3.0)
+        d = rec.to_dict()
+        assert d["drone_id"] == "d1"
+        assert d["x"] == 1.0
+
+    def test_retention_days_default(self):
+        from simulation.db_schema import InMemoryStore
+        store = InMemoryStore()
+        assert store.retention_days == 30
 
 
 # ---------------------------------------------------------------------------

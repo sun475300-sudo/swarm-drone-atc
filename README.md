@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 04:22 | `7de97dd` | fix: CI 실패 수정 — Bandit/Trivy/pip-audit + Track A 단위 테스트 추가 | .github/workflows/security.yml, api/fastapi_server.py, deployment/helm/sdacs/templates/deployment.yaml, simulation/drone_swarm_protocol.py, simulation/hitl_report_generator.py, simulation/ml_pipeline_integration.py … |
 | 2026-05-31 04:17 | `9d55fcc` | feat: ROADMAP P691-P719 SW 구현 완료 + 일일 상태 보고 자동화 | .github/workflows/container.yml, .github/workflows/security.yml, ROADMAP.md, api/auth.py, api/metrics.py, benchmarks/_schema/manifest.schema.json … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
 | 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |

@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 07:24 | `cd95f6b` | feat: P716 CI 개선 + P703 벤치마크 expected_results + advisory latency 연동 | .github/workflows/ci.yml, benchmarks/scenarios/01_corridor_crossing/expected_results.yaml, benchmarks/scenarios/02_dense_intersection/expected_results.yaml, benchmarks/scenarios/03_emergency_landing/expected_results.yaml, benchmarks/scenarios/04_no_fly_zone/expected_results.yaml, benchmarks/scenarios/05_weather_diversion/expected_results.yaml … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
 | 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |
 | 2026-05-29 08:44 | `a5277c3` | feat: DnI 식별 정확도 모델 — 클래스별 정확도 + 오분류 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |

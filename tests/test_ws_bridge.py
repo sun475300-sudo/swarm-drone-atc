@@ -159,6 +159,7 @@ async def test_run_simulation_broadcasts_to_connected_client(
     fake_sim_mod, fake_apf_mod = _make_fake_sim_modules()
 
     messages: list[str] = []
+    bg_tasks: list[asyncio.Task] = []
 
     class FakeClient:
         async def send(self, msg: str) -> None:
@@ -170,7 +171,8 @@ async def test_run_simulation_broadcasts_to_connected_client(
     client = FakeClient()
 
     async def fake_serve(handler, host, port):
-        asyncio.create_task(handler(client))
+        bg_task = asyncio.create_task(handler(client))
+        bg_tasks.append(bg_task)
         return types.SimpleNamespace()
 
     fake_ws = types.SimpleNamespace(serve=fake_serve)
@@ -186,5 +188,12 @@ async def test_run_simulation_broadcasts_to_connected_client(
         await task
     except asyncio.CancelledError:
         pass
+
+    for t in bg_tasks:
+        t.cancel()
+        try:
+            await t
+        except asyncio.CancelledError:
+            pass
 
     assert messages, "at least one snapshot should have been sent to the client"

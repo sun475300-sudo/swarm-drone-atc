@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-
 # RTCM3 프리앰블 바이트
 _RTCM3_PREAMBLE = 0xD3
 

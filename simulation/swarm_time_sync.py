@@ -5,7 +5,6 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 
-
 # 지터 허용 기준 (ms)
 JITTER_TARGET_MS = 10.0
 

@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 07:38 | `e223863` | fix: numpy 2.x mypy ndarray shape 타입 호환성 오류 수정 (Python 3.10 CI) | src/boids_swarm.py, src/sensor_fusion.py |
 | 2026-05-31 06:45 | `bebcbd5` | fix: onboard_bridge 테스트 미완료 코루틴 경고 수정 (Python 3.10) | tests/test_onboard_bridge.py |
 | 2026-05-31 06:31 | `7e6bb5c` | fix: Python 3.10 asyncio 백포트 이벤트 루프 정리 문제 수정 | pyproject.toml, tests/test_ws_bridge.py |
 | 2026-05-31 06:07 | `ad47ca3` | fix: ws_bridge 테스트 asyncio 이벤트 루프 경쟁 조건 수정 | tests/test_ws_bridge.py |

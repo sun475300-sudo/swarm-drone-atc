@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 06:53 | `a88d578` | fix: CI 실패 수정 — asyncio + polyglot 경로 + asyncio_mode=auto | pyproject.toml, tests/test_coverage_boost_4.py, tests/test_phase521_540.py, tests/test_phase541_560.py, tests/test_phase611_630.py, tests/test_phase631_640.py … |
 | 2026-05-31 06:15 | `4cc0037` | fix: 테스트 수집 오류 6건 해결 + README 테스트 수 동기화 | CHANGELOG.md, README.md, reports/status_2026-05-30.md, simulation/collision_predictor.py, tests/test_apf_property.py, tests/test_coverage_boost_2.py … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
 | 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |

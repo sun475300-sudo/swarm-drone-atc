@@ -9,18 +9,51 @@ on:
     - cron: "0 2 * * *"  # nightly at 02:00 UTC
 
 jobs:
-  test:
+  # ─── 1. 정적 분석 ──────────────────────────────────────────────────────────
+  lint:
+    name: Lint & type-check
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-3.11-${{ hashFiles('pyproject.toml') }}
+
+      - name: Install dev dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ".[dev]"
+
+      - name: Lint (ruff) — src/ simulation/ api/
+        run: ruff check src/ simulation/ api/ --select=E9,F63,F7,F82,W,I
+
+      - name: Type check (src/)
+        run: mypy src/ --error-summary
+
+  # ─── 2. 단위/통합 테스트 ───────────────────────────────────────────────────
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    needs: lint
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
 
+    env:
+      SDACS_JWT_SECRET: ${{ secrets.SDACS_JWT_SECRET || 'ci-test-secret-key-placeholder-32ch' }}
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -36,15 +69,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install ".[dev]"
-
-      - name: Lint (ruff)
-        run: ruff check src/ simulation/ --select=E9,F63,F7,F82,W,I
+          pip install ".[dev]" httpx
 
       - name: Run tests with coverage
         run: |
           pytest tests/ --tb=short -q \
-            --cov=src --cov=simulation \
+            --cov=src --cov=simulation --cov=api \
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml \
             --cov-fail-under=80
@@ -57,10 +87,74 @@ jobs:
           path: coverage.xml
           retention-days: 30
 
-      - name: Type check (src/)
-        run: mypy src/ --error-summary
+  # ─── 3. 보안 의존성 감사 ───────────────────────────────────────────────────
+  security:
+    name: Security audit
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Audit dependencies
+        run: pip-audit --requirement requirements.txt --ignore-vuln PYSEC-2022-237 || true
+        # '|| true' so the build isn't blocked by known-safe issues;
+        # review output in logs and promote to hard failure when ready.
+
+  # ─── 4. 벤치마크 시나리오 검증 ─────────────────────────────────────────────
+  validate-benchmarks:
+    name: Validate benchmark manifests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Check all scenarios have expected_results.yaml
+        run: |
+          python - <<'EOF'
+          import yaml, sys, pathlib
+          base = pathlib.Path("benchmarks/scenarios")
+          errors = []
+          for scenario in sorted(base.iterdir()):
+              if not scenario.is_dir() or scenario.name.startswith("_"):
+                  continue
+              manifest_path = scenario / "manifest.yaml"
+              results_path  = scenario / "expected_results.yaml"
+              if not manifest_path.exists():
+                  errors.append(f"{scenario.name}: missing manifest.yaml")
+                  continue
+              if not results_path.exists():
+                  errors.append(f"{scenario.name}: missing expected_results.yaml")
+                  continue
+              # validate ci_status
+              with open(results_path) as f:
+                  r = yaml.safe_load(f)
+              if r.get("ci_status") != "pass":
+                  errors.append(f"{scenario.name}: ci_status != pass ({r.get('ci_status')})")
+          if errors:
+              print("BENCHMARK VALIDATION FAILED:")
+              for e in errors:
+                  print(f"  {e}")
+              sys.exit(1)
+          print(f"OK: {len(list(base.iterdir()))} scenarios validated")
+          EOF
+
+  # ─── 5. 나이틀리 벤치마크 실행 ─────────────────────────────────────────────
   benchmark:
+    name: Nightly benchmark
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.ref == 'refs/heads/main'
     needs: test
@@ -68,8 +162,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
@@ -79,10 +172,12 @@ jobs:
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install ".[dev]"
 
-      - name: Run nightly benchmark (20/50 drones)
+      - name: Run nightly benchmark (20/50/100 drones)
         run: |
-          python main.py simulate --duration 60 --drones 20 --output results/bench_20.json
-          python main.py simulate --duration 60 --drones 50 --output results/bench_50.json
+          mkdir -p results
+          python main.py simulate --duration 60 --drones 20  --output results/bench_020.json
+          python main.py simulate --duration 60 --drones 50  --output results/bench_050.json
+          python main.py simulate --duration 60 --drones 100 --output results/bench_100.json
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import heapq
 import logging
+import time as _time
 import uuid
 from typing import TYPE_CHECKING
 
@@ -526,7 +527,10 @@ class AirspaceController:
                         covered.add(pair)
                         continue
 
+                _adv_t0 = _time.perf_counter()
                 adv = self.advisory_gen.generate(target, threat, cpa_dist, cpa_t, t)
+                if self.analytics:
+                    self.analytics.record_advisory_latency(_time.perf_counter() - _adv_t0)
                 self._advisories[adv.advisory_id] = adv
                 self.comm_bus.send(
                     CommMessage(

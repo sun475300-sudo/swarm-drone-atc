@@ -15,34 +15,34 @@ BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class TestPhase611620Files:
     def test_611_typescript(self):
-        assert os.path.exists(os.path.join(BASE, "src/typescript/swarm_dashboard_api.ts"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/typescript/swarm_dashboard_api.ts"))
 
     def test_612_swift(self):
-        assert os.path.exists(os.path.join(BASE, "src/swift/ios_drone_monitor.swift"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/swift/ios_drone_monitor.swift"))
 
     def test_613_kotlin(self):
-        assert os.path.exists(os.path.join(BASE, "src/kotlin/android_telemetry.kt"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/kotlin/android_telemetry.kt"))
 
     def test_614_php(self):
-        assert os.path.exists(os.path.join(BASE, "src/php/fleet_web_portal.php"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/php/fleet_web_portal.php"))
 
     def test_615_haskell(self):
-        assert os.path.exists(os.path.join(BASE, "src/haskell/formal_verifier.hs"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/haskell/formal_verifier.hs"))
 
     def test_616_cobol(self):
-        assert os.path.exists(os.path.join(BASE, "src/cobol/legacy_atc_bridge.cob"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/cobol/legacy_atc_bridge.cob"))
 
     def test_617_r(self):
-        assert os.path.exists(os.path.join(BASE, "src/r/statistical_analyzer.R"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/r/statistical_analyzer.R"))
 
     def test_618_perl(self):
-        assert os.path.exists(os.path.join(BASE, "src/perl/log_parser.pl"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/perl/log_parser.pl"))
 
     def test_619_scheme(self):
-        assert os.path.exists(os.path.join(BASE, "src/scheme/rule_engine.scm"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/scheme/rule_engine.scm"))
 
     def test_620_octave(self):
-        assert os.path.exists(os.path.join(BASE, "src/octave/signal_processor.m"))
+        assert os.path.exists(os.path.join(BASE, "archive/polyglot/octave/signal_processor.m"))
 
 
 # ── Phase 621: Swarm Crystallography ────────────────────────────

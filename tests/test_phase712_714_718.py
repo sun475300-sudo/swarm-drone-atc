@@ -12,6 +12,8 @@ import time
 
 import pytest
 
+pytest.importorskip("fastapi")
+
 # ── P712: JWT 인증 + RBAC ────────────────────────────────────────────
 
 

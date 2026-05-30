@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-05-31 06:31 | `7e6bb5c` | fix: Python 3.10 asyncio 백포트 이벤트 루프 정리 문제 수정 | pyproject.toml, tests/test_ws_bridge.py |
 | 2026-05-31 06:07 | `ad47ca3` | fix: ws_bridge 테스트 asyncio 이벤트 루프 경쟁 조건 수정 | tests/test_ws_bridge.py |
 | 2026-05-31 05:32 | `9bd762f` | feat: add multi-language stub files for phases 521-530, 571-598 | simulation/battery_predictor.py, src/ada/safety_critical.adb, src/asm/crc32_checksum.asm, src/clojure/event_stream.clj, src/cobol/legacy_atc_bridge.cob, src/cpp/formation_gan_engine.cpp … |
 | 2026-05-31 04:45 | `acf9597` | fix: Phase 631-640/651-660 다중 언어 스텁 파일 추가 (테스트 19건 수정) | src/ada/tmr_voter_v2.adb, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj, src/cpp/particle_filter.cpp, src/dart/flutter_dashboard.dart, src/elixir/fault_supervisor.ex … |

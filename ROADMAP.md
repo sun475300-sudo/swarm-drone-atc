@@ -129,7 +129,7 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 - [ ] **P691** — Pixhawk 6X / Cube Orange 보드 펌웨어 플래싱 및 PX4 v1.15+ 연동
-- [ ] **P692** — Jetson Orin Nano 컴패니언 컴퓨터 MAVLink 브릿지 (`onboard_bridge.py`)
+- [x] **P692** — Jetson Orin Nano 컴패니언 컴퓨터 MAVLink 브릿지 (`onboard_bridge.py`)
 - [ ] **P693** — 실기 Remote ID 방송 (ASTM F3411 v2.0 Broadcast/Network 모드)
 - [ ] **P694** — RTK-GPS 센티미터 정밀도 측위 및 AirspaceController 피드백
 - [ ] **P695** — 전파 간섭·통신 단절 대비 Failsafe 로직 (Return-to-Launch / Geofence)
@@ -145,10 +145,10 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 - [ ] **P701** — 논문 주제 확정 및 기여 포인트 3개 도출 (CBS+APF 하이브리드? Voronoi 분할?)
 - [ ] **P702** — 선행 연구 서베이 (최소 30편, IROS/ICRA/AIAA 기준)
-- [ ] **P703** — 벤치마크 데이터셋 공개화 (7개 Monte Carlo 시나리오 + 3개 실기 로그)
-- [ ] **P704** — Reproducibility 패키지 (Docker 이미지, 시드 고정, 결과 재현 스크립트)
-- [ ] **P705** — 평가 메트릭 정형화 (near-miss rate, airspace utilization, path efficiency)
-- [ ] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS)
+- [x] **P703** — 벤치마크 데이터셋 공개화 (10개 시나리오, JSON Schema 검증, Zenodo 호환 내보내기)
+- [x] **P704** — Reproducibility 패키지 (Docker 이미지, 시드 고정, 결과 재현 스크립트)
+- [x] **P705** — 평가 메트릭 정형화 (near-miss rate, airspace utilization, path efficiency)
+- [x] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS)
 - [ ] **P707** — 논문 초안 작성 (IROS 2026 또는 AIAA SciTech 2027 투고 목표)
 - [ ] **P708** — 내부 리뷰 3회 + 지도교수 피드백 반영
 - [ ] **P709** — 공식 투고 및 arXiv 프리프린트 업로드

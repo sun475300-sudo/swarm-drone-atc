@@ -8,6 +8,8 @@ import time
 
 import numpy as np
 import pytest
+
+pytest.importorskip("torch")
 import torch
 
 # ── advanced_path_planner ─────────────────────────────────────────────────

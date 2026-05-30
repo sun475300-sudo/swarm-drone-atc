@@ -12,6 +12,9 @@ lane_detection_system, secure_messaging_protocol, plus remaining small modules.
 import time
 
 import numpy as np
+import pytest
+
+pytest.importorskip("torch")
 import torch
 
 # ── anomaly_federated_detector ────────────────────────────────────────────

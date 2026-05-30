@@ -11,6 +11,7 @@ real_time_stream_processor, multi_modal_fusion.
 import time
 
 import numpy as np
+import pytest
 
 # ── predictive_analytics_engine ───────────────────────────────────────────
 from simulation.predictive_analytics_engine import (
@@ -463,26 +464,30 @@ class TestAdaptiveCommProtocol:
 
 # ── collision_predictor ───────────────────────────────────────────────────
 
-from simulation.apf_engine.apf import APFState
-from simulation.collision_predictor import CollisionPredictor, generate_training_data
+torch = pytest.importorskip("torch")  # noqa: F841
 
 
 class TestCollisionPredictor:
     def setup_method(self):
+        from simulation.apf_engine.apf import APFState  # noqa: F401
+        from simulation.collision_predictor import CollisionPredictor
+        self._APFState = APFState
         self.cp = CollisionPredictor()
 
     def test_predict(self):
-        a = APFState(position=np.array([0, 0, 50.0]), velocity=np.array([1, 0, 0.0]), drone_id="a")
-        b = APFState(position=np.array([10, 0, 50.0]), velocity=np.array([-1, 0, 0.0]), drone_id="b")
+        a = self._APFState(position=np.array([0, 0, 50.0]), velocity=np.array([1, 0, 0.0]), drone_id="a")
+        b = self._APFState(position=np.array([10, 0, 50.0]), velocity=np.array([-1, 0, 0.0]), drone_id="b")
         prob = self.cp.predict(a, b)
         assert 0 <= prob <= 1
 
     def test_train(self):
+        from simulation.collision_predictor import generate_training_data
         X, y = generate_training_data(n_samples=100, seed=42)
         losses = self.cp.train((X, y), epochs=2, batch_size=32)
         assert len(losses) == 2
 
     def test_generate_training_data(self):
+        from simulation.collision_predictor import generate_training_data
         X, y = generate_training_data(n_samples=200, seed=123)
         assert X.shape == (200, 12)
         assert y.shape == (200,)

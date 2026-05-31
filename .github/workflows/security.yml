@@ -1,0 +1,89 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * 1'  # 매주 월요일 02:00 UTC
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  cve-scan:
+    name: CVE 의존성 스캔
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: pip-audit 설치
+        run: pip install pip-audit
+
+      - name: 의존성 설치
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: CVE 스캔 실행
+        run: python scripts/security_audit.py --out-dir reports/security --format both
+        continue-on-error: true
+
+      - name: 리포트 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: reports/security/
+          retention-days: 90
+
+  bandit-scan:
+    name: Bandit 정적 보안 분석
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bandit 설치
+        run: pip install bandit[toml]
+
+      - name: 소스 코드 보안 분석
+        run: |
+          bandit -r src/ simulation/ api/ scripts/ \
+            --severity-level medium \
+            --confidence-level medium \
+            --format json \
+            --output reports/security/bandit_report.json \
+            || true
+
+      - name: Bandit 결과 요약
+        run: |
+          python -c "
+          import json, pathlib
+          p = pathlib.Path('reports/security/bandit_report.json')
+          if p.exists():
+              data = json.loads(p.read_text())
+              results = data.get('results', [])
+              high = [r for r in results if r['issue_severity'] == 'HIGH']
+              medium = [r for r in results if r['issue_severity'] == 'MEDIUM']
+              print(f'Bandit: HIGH={len(high)} MEDIUM={len(medium)} TOTAL={len(results)}')
+              for r in high[:5]:
+                  print(f'  HIGH: {r[\"filename\"]}:{r[\"line_number\"]} — {r[\"issue_text\"]}')
+          "
+
+      - name: Bandit 리포트 업로드
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-report
+          path: reports/security/bandit_report.json
+          retention-days: 90

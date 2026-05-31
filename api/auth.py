@@ -37,7 +37,12 @@ try:
 except ImportError as exc:  # pragma: no cover
     raise RuntimeError("PyJWT required: pip install 'PyJWT>=2.8'") from exc
 
-from fastapi import Depends, Header, HTTPException
+try:
+    from fastapi import Depends, Header, HTTPException
+except ImportError as exc:  # pragma: no cover
+    raise RuntimeError(
+        "FastAPI required: pip install 'fastapi>=0.110'"
+    ) from exc
 
 LOGGER = logging.getLogger("sdacs.auth")
 

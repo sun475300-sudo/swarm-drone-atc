@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-01 06:29 | `723480c` | fix: fastapi/prometheus-client을 dev 의존성에 추가 (CI 컬렉션 오류 수정) | pyproject.toml |
 | 2026-06-01 06:18 | `0a35ae5` | feat: P712 JWT/RBAC/감사로그 + P718 Prometheus 관측성 + P706 비교실험 결과 | ROADMAP.md, api/auth.py, api/fastapi_server.py, api/metrics.py, requirements.txt, results/comparison/COMPARISON_REPORT.md … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
 | 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |

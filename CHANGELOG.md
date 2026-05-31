@@ -3,6 +3,20 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased] - 2026-05-31
+
+### 추가 (feat)
+
+- **P706** 비교 실험 — SDACS vs ORCA/VO/CBS 전 시나리오 16-run 결과 `results/comparison/` 저장
+- **P712** JWT/RBAC — `api/auth.py` HS256 토큰 + Role 계층(ADMIN>OPERATOR>VIEWER) + `/auth/token` 엔드포인트
+- **P714** TimescaleDB 스키마 — `deployment/db/001_init.sql` (hypertable + 30일 retention policy)
+- **P715** Kubernetes Helm 차트 — `deployment/helm/sdacs/` (Chart.yaml, values.yaml, templates 5종)
+- **P717** Locust 부하 테스트 — `tests/load/locustfile.py` (ViewerUser·OperatorUser + smoke runner)
+- **P718** Prometheus `/metrics` 엔드포인트 — `sdacs_http_requests_total`, `sdacs_active_drones`, `sdacs_active_conflicts`, `sdacs_ws_subscribers`, `sdacs_simulation_duration_seconds`
+- **P719** 보안 감사 스크립트 — `scripts/security_audit.sh` (pip-audit + bandit), `results/security_audit_latest.txt`
+
+---
+
 ## [Unreleased] - 2026-05-03
 
 ### 추가 (feat)

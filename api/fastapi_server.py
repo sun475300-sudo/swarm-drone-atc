@@ -35,17 +35,56 @@ from typing import Any, AsyncIterator
 import numpy as np
 
 try:
-    from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
+    from fastapi import Depends, FastAPI, Form, Header, HTTPException, Response, WebSocket, WebSocketDisconnect
     from fastapi.middleware.cors import CORSMiddleware
     from pydantic import BaseModel, Field
+    from api.auth import TokenData, authenticate_user, create_access_token, decode_token, require_role, Role
 except ImportError as exc:  # pragma: no cover
     raise RuntimeError(
         "FastAPI and pydantic are required. "
         "pip install 'fastapi>=0.110' 'uvicorn[standard]>=0.29' 'pydantic>=2.5'"
     ) from exc
 
+# P718 — Prometheus metrics (optional dependency)
+try:
+    from prometheus_client import (  # type: ignore
+        CONTENT_TYPE_LATEST,
+        Counter,
+        Gauge,
+        Histogram,
+        generate_latest,
+    )
+    _PROMETHEUS_AVAILABLE = True
+except ImportError:
+    _PROMETHEUS_AVAILABLE = False
+
 LOGGER = logging.getLogger("sdacs.fastapi")
 API_VERSION = "1.1.0"
+
+# --- Prometheus metric definitions (created lazily to avoid issues when prometheus_client absent) ---
+if _PROMETHEUS_AVAILABLE:
+    _METRIC_HTTP_REQUESTS = Counter(
+        "sdacs_http_requests_total",
+        "Total HTTP requests",
+        ["method", "endpoint", "status"],
+    )
+    _METRIC_ACTIVE_DRONES = Gauge(
+        "sdacs_active_drones",
+        "Number of active drones in current snapshot",
+    )
+    _METRIC_CONFLICTS = Gauge(
+        "sdacs_active_conflicts",
+        "Number of active conflicts",
+    )
+    _METRIC_WS_SUBSCRIBERS = Gauge(
+        "sdacs_ws_subscribers",
+        "Number of active WebSocket telemetry subscribers",
+    )
+    _METRIC_SIM_DURATION = Histogram(
+        "sdacs_simulation_duration_seconds",
+        "Simulation run wall time",
+        buckets=[0.1, 0.5, 1, 5, 10, 30, 60, 120, 300],
+    )
 
 
 # --- In-memory state (replace with Redis/Postgres in P714) ---
@@ -476,15 +515,14 @@ async def _demo_telemetry_stream() -> None:
         await asyncio.sleep(0.1)
 
 
-# --- Auth dependency (stub) ---
+# --- Auth dependency ---
 
 
-async def require_token(authorization: str = Header(default="")) -> str:
-    # P712 will replace with full JWT validation.
-    """``require_token`` 동작을 수행한다."""
+async def require_token(authorization: str = Header(default="")) -> TokenData:
+    """JWT Bearer token validation (P712)."""
     if not authorization.startswith("Bearer "):
         raise HTTPException(401, detail="missing bearer token")
-    return authorization[len("Bearer ") :]
+    return decode_token(authorization[len("Bearer "):])
 
 
 # --- Pydantic models ---
@@ -554,6 +592,22 @@ async def health() -> dict[str, Any]:
         "timestamp": time.time(),
         "gpu": _load_backend_info(),
     }
+
+
+# --- Auth ---
+
+
+@app.post("/auth/token", tags=["auth"])
+async def login(
+    username: str = Form(),
+    password: str = Form(),
+) -> dict:
+    """Issue a JWT access token for valid credentials."""
+    user_data = authenticate_user(username, password)
+    if user_data is None:
+        raise HTTPException(status_code=401, detail="invalid username or password")
+    token = create_access_token(sub=user_data.sub, role=user_data.role)
+    return {"access_token": token, "token_type": "bearer"}
 
 
 # --- Airspace snapshot ---
@@ -754,6 +808,17 @@ async def ws_telemetry(ws: WebSocket) -> None:
     finally:
         STATE.telemetry_subscribers.discard(ws)
         LOGGER.info("telemetry subscriber disconnected (total=%d)", len(STATE.telemetry_subscribers))
+
+
+@app.get("/metrics", tags=["infra"], include_in_schema=False)
+async def prometheus_metrics() -> Response:
+    """Prometheus 스크랩 엔드포인트 (P718)."""
+    if not _PROMETHEUS_AVAILABLE:
+        return Response("# prometheus_client not installed\n", media_type="text/plain")
+    _METRIC_ACTIVE_DRONES.set(len(STATE.snapshot.drones))
+    _METRIC_CONFLICTS.set(len(STATE.snapshot.conflicts))
+    _METRIC_WS_SUBSCRIBERS.set(len(STATE.telemetry_subscribers))
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 def run_dev_server(host: str = "0.0.0.0", port: int = 8000, log_level: str = "info") -> None:

@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+      {{- if .Values.prometheus.enabled }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "{{ .Values.service.apiPort }}"
+      {{- end }}
+    spec:
+      containers:
+        - name: sdacs
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: api
+              containerPort: {{ .Values.service.apiPort }}
+            - name: dash
+              containerPort: {{ .Values.service.dashPort }}
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "{{ .Values.env.PYTHONUNBUFFERED }}"
+            {{- if .Values.env.SDACS_SECRET_KEY }}
+            - name: SDACS_SECRET_KEY
+              value: "{{ .Values.env.SDACS_SECRET_KEY }}"
+            {{- end }}
+            {{- if .Values.postgresql.enabled }}
+            - name: POSTGRES_HOST
+              value: "{{ .Values.postgresql.host }}"
+            - name: POSTGRES_DB
+              value: "{{ .Values.postgresql.database }}"
+            - name: POSTGRES_USER
+              value: "{{ .Values.postgresql.user }}"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgresql.passwordSecret }}
+                  key: {{ .Values.postgresql.passwordKey }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: api
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: api
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

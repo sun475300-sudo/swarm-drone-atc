@@ -1,0 +1,113 @@
+=== SDACS Security Audit ===
+Date: 2026-05-31T19:12:44Z
+Repo: /home/user/swarm-drone-atc
+
+=== pip-audit (dependency CVE scan) ===
+Found 21 known vulnerabilities in 8 packages
+Name         Version ID                  Fix Versions
+------------ ------- ------------------- ------------
+cryptography 41.0.7  PYSEC-2024-225      42.0.4
+cryptography 41.0.7  PYSEC-2024-225      42.0.4
+cryptography 41.0.7  PYSEC-2026-35       46.0.6
+cryptography 41.0.7  CVE-2023-50782      42.0.0
+cryptography 41.0.7  CVE-2024-0727       42.0.2
+cryptography 41.0.7  GHSA-h4gh-qq45-vh27 43.0.1
+cryptography 41.0.7  CVE-2026-26007      46.0.5
+idna         3.11    CVE-2026-45409      3.15
+pip          24.0    CVE-2025-8869       25.3
+pip          24.0    CVE-2026-1703       26.0
+pip          24.0    CVE-2026-3219       26.1
+pip          24.0    CVE-2026-6357       26.1
+pyjwt        2.7.0   PYSEC-2026-120      2.12.0
+pyjwt        2.7.0   PYSEC-2025-183
+pytest       8.4.2   CVE-2025-71176      9.0.3
+setuptools   68.1.2  PYSEC-2025-49       78.1.1
+setuptools   68.1.2  PYSEC-2025-49       78.1.1
+setuptools   68.1.2  CVE-2024-6345       70.0.0
+urllib3      2.6.3   PYSEC-2026-142      2.7.0
+urllib3      2.6.3   PYSEC-2026-141      2.7.0
+wheel        0.42.0  CVE-2026-24049      0.46.2
+Name       Skip Reason
+---------- -----------------------------------------------------------------------------------
+python-apt Dependency not found on PyPI and could not be audited: python-apt (2.7.7+ubuntu5.2)
+
+=== bandit (static analysis, severity>=MEDIUM, confidence>=MEDIUM) ===
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.11.15
+Working... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:06
+Run started:2026-05-31 19:12:55.023578+00:00
+
+Test results:
+>> Issue: [B104:hardcoded_bind_all_interfaces] Possible binding to all interfaces.
+   Severity: Medium   Confidence: Medium
+   CWE: CWE-605 (https://cwe.mitre.org/data/definitions/605.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b104_hardcoded_bind_all_interfaces.html
+   Location: /home/user/swarm-drone-atc/api/fastapi_server.py:759:31
+758	
+759	def run_dev_server(host: str = "0.0.0.0", port: int = 8000, log_level: str = "info") -> None:
+760	    """``run_dev_server`` 동작을 수행한다."""
+
+--------------------------------------------------
+>> Issue: [B324:hashlib] Use of weak MD5 hash for security. Consider usedforsecurity=False
+   Severity: High   Confidence: High
+   CWE: CWE-327 (https://cwe.mitre.org/data/definitions/327.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b324_hashlib.html
+   Location: /home/user/swarm-drone-atc/simulation/drone_swarm_protocol.py:48:28
+47	        if not self.checksum:
+48	            self.checksum = hashlib.md5(self.payload).hexdigest()[:8]
+49	
+
+--------------------------------------------------
+>> Issue: [B301:blacklist] Pickle and modules that wrap it can be unsafe when used to deserialize untrusted data, possible security issue.
+   Severity: Medium   Confidence: High
+   CWE: CWE-502 (https://cwe.mitre.org/data/definitions/502.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b301-pickle
+   Location: /home/user/swarm-drone-atc/simulation/ml_pipeline_integration.py:56:30
+55	            with open(path, "rb") as f:
+56	                self._model = pickle.load(f)
+57	        elif path.suffix == ".json":
+
+--------------------------------------------------
+>> Issue: [B301:blacklist] Pickle and modules that wrap it can be unsafe when used to deserialize untrusted data, possible security issue.
+   Severity: Medium   Confidence: High
+   CWE: CWE-502 (https://cwe.mitre.org/data/definitions/502.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b301-pickle
+   Location: /home/user/swarm-drone-atc/simulation/model_training_pipeline.py:657:19
+656	        with open(model_path, "rb") as f:
+657	            return pickle.load(f)
+658	
+
+--------------------------------------------------
+>> Issue: [B104:hardcoded_bind_all_interfaces] Possible binding to all interfaces.
+   Severity: Medium   Confidence: Medium
+   CWE: CWE-605 (https://cwe.mitre.org/data/definitions/605.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b104_hardcoded_bind_all_interfaces.html
+   Location: /home/user/swarm-drone-atc/simulation/ws_bridge.py:47:36
+46	
+47	    await websockets.serve(handler, "0.0.0.0", port)
+48	    print(f"📡 ws://localhost:{port} 대기 중...")
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 68817
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 7
+		Medium: 4
+		High: 1
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 5
+		High: 7
+Files skipped (0):
+
+=== Audit complete ===

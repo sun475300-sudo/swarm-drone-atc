@@ -1,0 +1,49 @@
+replicaCount: 1
+
+image:
+  repository: sdacs
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  apiPort: 8000
+  dashPort: 8050
+
+ingress:
+  enabled: true
+  className: nginx
+  host: sdacs.local
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+
+env:
+  PYTHONUNBUFFERED: "1"
+  SDACS_SECRET_KEY: ""  # set via --set or secret
+
+prometheus:
+  enabled: true
+  scrapeInterval: 15s
+
+postgresql:
+  enabled: false
+  host: ""
+  port: 5432
+  database: sdacs
+  user: sdacs
+  passwordSecret: sdacs-pg-secret
+  passwordKey: password

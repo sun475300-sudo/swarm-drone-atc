@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-01 08:52 | `195baab` | fix: make security workflow advisory-only (continue-on-error + || true) | .github/workflows/security.yml |
 | 2026-06-01 08:51 | `a2a7782` | feat: implement P719 security audit (pip-audit CVE scan + bandit SAST) | .github/workflows/security.yml, ROADMAP.md, scripts/security_audit.py, tests/test_security_audit_p719.py |
 | 2026-06-01 08:45 | `b6ea996` | feat: implement roadmap items P714, P715, P717 + update P706 status | ROADMAP.md, helm/sdacs/Chart.yaml, helm/sdacs/templates/NOTES.txt, helm/sdacs/templates/_helpers.tpl, helm/sdacs/templates/backend.yaml, helm/sdacs/templates/dashboard.yaml … |
 | 2026-06-01 08:38 | `84513bb` | fix: use asyncio marker to detect async tests in conftest | tests/conftest.py |

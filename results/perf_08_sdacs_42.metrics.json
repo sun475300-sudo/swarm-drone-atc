@@ -1,0 +1,22 @@
+{
+  "AU": 0.17650000000000002,
+  "FT_drone_s": 10390.0,
+  "LAANC_latency_ms": 100.0,
+  "MSD": 1.5571749707997946,
+  "MS_s": 89.0,
+  "NMR": 5.1926298157453935e-06,
+  "PE": 1.0,
+  "RID_CR": 1.0,
+  "RTF": 17373.3770370723,
+  "TTC_mean_s": NaN,
+  "TTC_median_s": NaN,
+  "TTC_p5_s": NaN,
+  "TTC_p95_s": NaN,
+  "VCU_handoff_rate": 0.0,
+  "VCU_mean_occupancy": 50.0,
+  "geofence_violations": 0.0,
+  "peak_memory_mb": NaN,
+  "tick_p50_ms": 0.00310000001491062,
+  "tick_p95_ms": 0.16341499999725786,
+  "tick_p99_ms": 0.18975599996508657
+}

@@ -25,7 +25,10 @@ if ROOT not in sys.path:
 @pytest.fixture(autouse=True)
 def _ensure_open_event_loop(request):
     """sync 테스트에서 닫힌 event loop를 새로운 루프로 교체한다."""
-    if asyncio.iscoroutinefunction(request.function):
+    # pytest-asyncio wraps async functions before collection, so
+    # iscoroutinefunction returns False even for async tests.
+    # Use the asyncio marker to correctly detect async tests.
+    if request.node.get_closest_marker("asyncio") is not None:
         yield
         return
 

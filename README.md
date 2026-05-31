@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-01 08:29 | `fe32192` | docs: P701 논문주제 확정 + P702 선행연구 서베이 31편 | ROADMAP.md, docs/P701_PAPER_TOPIC.md, docs/P702_LITERATURE_SURVEY.md |
 | 2026-06-01 08:18 | `3395277` | feat: P719 의존성 CVE 스캔 + Bandit 보안 감사 | .github/workflows/security.yml, ROADMAP.md, reports/security/cve_scan_2026-05-31.md, scripts/security_audit.py, tests/test_security_audit.py |
 | 2026-06-01 08:15 | `e418bcf` | feat: P714 TimescaleDB 이력저장 + P715 K8s Helm 차트 | ROADMAP.md, api/db.py, api/telemetry_store.py, db/migrations/001_init.sql, docker-compose.yml, helm/sdacs/Chart.yaml … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |

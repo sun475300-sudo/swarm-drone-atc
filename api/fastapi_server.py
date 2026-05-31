@@ -708,7 +708,7 @@ async def scenario_run(name: str, req: ScenarioRunRequest | None = None) -> dict
 async def run_scenario(
     scenario_id: str,
     body: RunScenarioBody,
-    _payload: TokenPayload = Depends(require_run),
+    _token: TokenPayload = Depends(require_run),
 ) -> dict:
     """``run_scenario`` 동작을 수행한다."""
     STATE.scenarios = _build_scenario_catalog()

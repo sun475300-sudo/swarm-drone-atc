@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-01 03:34 | `d0596f5` | test: audit_log 테스트 4개 추가 (TestAuditLog) — 커버리지 보완 | tests/test_auth.py |
 | 2026-06-01 03:20 | `4ee26a4` | fix: ruff I001 import-sort 수정 (src/auth/__init__.py, src/metrics_exporter.py) | src/auth/__init__.py, src/metrics_exporter.py |
 | 2026-06-01 03:16 | `87a81c2` | feat: P712·P714·P715·P718·P719 — Track C 배포 인프라 + ROADMAP 동기화 | ROADMAP.md, docker-compose.db.yml, helm/sdacs/Chart.yaml, helm/sdacs/templates/_helpers.tpl, helm/sdacs/templates/deployment.yaml, helm/sdacs/templates/service.yaml … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |

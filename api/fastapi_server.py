@@ -35,7 +35,7 @@ from typing import Any, AsyncIterator
 import numpy as np
 
 try:
-    from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
+    from fastapi import Depends, FastAPI, Header, HTTPException, Response, WebSocket, WebSocketDisconnect
     from fastapi.middleware.cors import CORSMiddleware
     from pydantic import BaseModel, Field
 except ImportError as exc:  # pragma: no cover
@@ -43,6 +43,31 @@ except ImportError as exc:  # pragma: no cover
         "FastAPI and pydantic are required. "
         "pip install 'fastapi>=0.110' 'uvicorn[standard]>=0.29' 'pydantic>=2.5'"
     ) from exc
+
+# P718 — Prometheus metrics (optional dependency)
+try:
+    from prometheus_client import (  # type: ignore
+        CONTENT_TYPE_LATEST,
+        Counter,
+        Gauge,
+        Histogram,
+        generate_latest,
+    )
+    _PROM_ACTIVE_DRONES = Gauge("sdacs_active_drones", "Number of active drones in simulation")
+    _PROM_CONFLICTS_TOTAL = Counter("sdacs_conflicts_total", "Total conflict events detected")
+    _PROM_COLLISION_RATE = Gauge("sdacs_collision_rate", "Current collision rate (0-1)")
+    _PROM_REQUEST_LATENCY = Histogram(
+        "sdacs_http_request_latency_seconds",
+        "HTTP request latency",
+        ["method", "endpoint"],
+    )
+    _PROM_WS_CONNECTIONS = Gauge("sdacs_ws_connections", "Active WebSocket connections")
+    _PROMETHEUS_AVAILABLE = True
+except ImportError:
+    _PROMETHEUS_AVAILABLE = False
+
+# P712 — Full JWT auth
+from api.auth import AuthContext, Role, create_token, require_auth, require_permission  # noqa: E402
 
 LOGGER = logging.getLogger("sdacs.fastapi")
 API_VERSION = "1.1.0"
@@ -476,15 +501,14 @@ async def _demo_telemetry_stream() -> None:
         await asyncio.sleep(0.1)
 
 
-# --- Auth dependency (stub) ---
+# --- Auth token issue endpoint (P712) ---
 
 
-async def require_token(authorization: str = Header(default="")) -> str:
-    # P712 will replace with full JWT validation.
-    """``require_token`` 동작을 수행한다."""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(401, detail="missing bearer token")
-    return authorization[len("Bearer ") :]
+class TokenRequest(BaseModel):
+    """``TokenRequest`` 데이터를 표현한다."""
+    subject: str
+    role: str = "viewer"
+    secret: str = ""  # must match SDACS_ADMIN_SECRET to issue admin/operator tokens
 
 
 # --- Pydantic models ---
@@ -534,6 +558,46 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# --- Auth token endpoint (P712) ---
+
+import os as _os  # noqa: E402
+
+_ADMIN_SECRET = _os.environ.get("SDACS_ADMIN_SECRET", "")
+
+
+@app.post("/token", tags=["auth"])
+async def issue_token(body: TokenRequest) -> dict:
+    """Issue a JWT for the given subject and role.
+
+    For admin/operator roles the request must include the correct SDACS_ADMIN_SECRET.
+    Viewer tokens are issued freely (useful for read-only dashboard access).
+    """
+    try:
+        role = Role(body.role)
+    except ValueError:
+        raise HTTPException(400, detail=f"unknown role: {body.role!r}")
+    if role in (Role.admin, Role.operator):
+        if not _ADMIN_SECRET or body.secret != _ADMIN_SECRET:
+            raise HTTPException(403, detail="admin secret required for elevated roles")
+    token = create_token(body.subject, role)
+    return {"access_token": token, "token_type": "bearer", "role": role.value}
+
+
+# --- Prometheus metrics endpoint (P718) ---
+
+
+@app.get("/metrics", tags=["infra"], include_in_schema=False)
+async def metrics() -> Response:
+    """Prometheus scrape endpoint."""
+    if not _PROMETHEUS_AVAILABLE:
+        return Response(content="# prometheus_client not installed\n", media_type="text/plain")
+    if _PROMETHEUS_AVAILABLE:
+        _PROM_ACTIVE_DRONES.set(len(STATE.snapshot.drones))
+        _PROM_CONFLICTS_TOTAL._value  # side-effect: ensure initialised
+        _PROM_WS_CONNECTIONS.set(len(STATE.telemetry_subscribers))
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 # --- Health ---
@@ -631,7 +695,7 @@ async def scenario_run(name: str, req: ScenarioRunRequest | None = None) -> dict
 async def run_scenario(
     scenario_id: str,
     body: RunScenarioBody,
-    _token: str = Depends(require_token),
+    ctx: AuthContext = Depends(require_permission("run")),
 ) -> dict:
     """``run_scenario`` 동작을 수행한다."""
     STATE.scenarios = _build_scenario_catalog()

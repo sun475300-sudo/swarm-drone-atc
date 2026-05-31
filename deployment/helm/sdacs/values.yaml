@@ -1,0 +1,79 @@
+# Default values for sdacs Helm chart (P715)
+
+replicaCount: 1
+
+image:
+  repository: sdacs
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  apiPort: 8080
+  dashPort: 8050
+
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: sdacs.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: "2000m"
+    memory: "2Gi"
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+
+gpu:
+  enabled: false
+  count: 1
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+env:
+  PYTHONUNBUFFERED: "1"
+  SDACS_JWT_SECRET: "change-me"    # override via secret in production
+  SDACS_DB_DSN: ""                 # set to postgresql DSN to enable persistence
+
+postgres:
+  enabled: false
+  host: "postgres"
+  port: 5432
+  database: "sdacs"
+  user: "sdacs"
+  existingSecret: ""
+  secretKey: "postgres-password"
+
+prometheus:
+  enabled: true
+  scrapeInterval: "15s"
+  port: 8080
+  path: "/metrics"
+
+serviceAccount:
+  create: false
+  name: ""
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  prometheus.io/path: "/metrics"
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

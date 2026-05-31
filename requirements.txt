@@ -13,6 +13,12 @@ plotly>=5.22
 seaborn>=0.13
 dash>=2.17
 
+# API (P711-P718)
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.5
+prometheus-client>=0.20
+
 # Dev
 # pytest 8.x line — pytest 9.0 메이저는 deprecated API 제거 + pytest-asyncio /
 # pytest-cov 호환 매트릭스 미검증이라 별도 사이클로 미룸 (PR #20 참고).

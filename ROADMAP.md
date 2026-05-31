@@ -159,13 +159,13 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 공역 관리자용 대시보드를 SaaS 수준으로 안정화.
 
 - [~] **P711** — FastAPI 백엔드 완성 (`api/fastapi_server.py` 769줄, 전체 엔드포인트 구현) — React 프론트엔드 미구현
-- [ ] **P712** — 인증·권한(OAuth2, RBAC) 및 감사 로그 — JWT Bearer 스텁 존재, 전체 구현 미완
+- [x] **P712** — 인증·권한(RBAC) 및 감사 로그 — `api/auth.py` 순수 Python HS256 JWT + viewer/operator/admin 역할 + NDJSON 감사로그 + 12개 테스트 완비 (2026-05-31)
 - [x] **P713** — 실시간 WebSocket 채널 — `simulation/ws_bridge.py` 2Hz 스트리밍 + FastAPI `/ws/telemetry` 완비 (2026-05-29)
 - [ ] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존
 - [ ] **P715** — Docker Compose → Kubernetes Helm 차트 변환
 - [x] **P716** — CI/CD 완비 — GitHub Actions 6개 워크플로우 (테스트 3-버전 매트릭스, lint, mypy, 재현성 검증, E2E smoke, Pages 배포) (2026-05-29)
 - [ ] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지)
-- [ ] **P718** — 관측성 스택 (Prometheus + Grafana + Loki)
+- [x] **P718** — Prometheus 관측성 — `api/metrics.py` HTTP 요청 카운터·지연시간 히스토그램·WS 게이지·드론 수 + /metrics 엔드포인트 + 6개 테스트 완비 (2026-05-31)
 - [ ] **P719** — 보안 감사 (OWASP ZAP, 의존성 CVE 스캔)
 - [ ] **P720** — 공개 베타 오픈 (3개 파일럿 기관, 피드백 수집 4주)
 
@@ -176,4 +176,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-05-29 (P703·P704·P705·P713·P716 완료 확인, Track C P711 FastAPI 부분 완료, 관측성·부하테스트 진행 예정)*
+*Last updated: 2026-05-31 (P706 비교실험 러너·테스트, P712 JWT/RBAC/감사로그, P718 Prometheus 메트릭 완료)*

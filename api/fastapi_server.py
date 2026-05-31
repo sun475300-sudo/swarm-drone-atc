@@ -1,23 +1,20 @@
-"""FastAPI backend skeleton for the SDACS web dashboard (replacement for Dash).
+"""FastAPI backend for the SDACS web dashboard.
 
-Phase: P711
-Goal: progressive migration path from Dash to React + FastAPI + WebSocket.
-This file ONLY provides the backend. The existing Dash app can keep running
-during migration.
+Phase: P711 (skeleton) + P712 (JWT/RBAC/감사로그) + P718 (Prometheus)
 
-Endpoints (v0):
+Endpoints:
     GET  /healthz                  — liveness probe
     GET  /api/airspace/snapshot    — last known state (polling fallback)
     GET  /api/scenarios            — list of Monte Carlo scenarios
     POST /api/scenarios/{id}/run   — kick off a run (returns run_id)
     GET  /api/runs/{run_id}        — run status / metrics
     WS   /ws/telemetry             — 1 kHz server → client stream
-
-Auth (v1 — stub here):
-    JWT Bearer via Authorization header. See P712 for full RBAC.
+    POST /api/auth/token           — JWT 토큰 발급 (dev용)
+    GET  /api/audit-log            — 감사 로그 조회 (admin)
+    GET  /metrics                  — Prometheus scrape
 
 Quickstart:
-    pip install fastapi uvicorn[standard]
+    pip install fastapi uvicorn[standard] python-jose[cryptography] prometheus-client
     uvicorn api.fastapi_server:app --reload --host 0.0.0.0 --port 8080
 """
 
@@ -45,7 +42,20 @@ except ImportError as exc:  # pragma: no cover
     ) from exc
 
 LOGGER = logging.getLogger("sdacs.fastapi")
-API_VERSION = "1.1.0"
+API_VERSION = "1.2.0"
+
+try:
+    from api.auth import (
+        create_access_token,
+        read_audit_log,
+        require_role,
+        write_audit_log,
+    )
+    from api.metrics import CONFLICT_TOTAL, DRONE_COUNT, RUN_TOTAL, WS_CONNECTIONS, instrument_app
+    _AUTH_AVAILABLE = True
+except ImportError:
+    _AUTH_AVAILABLE = False
+    LOGGER.warning("api.auth / api.metrics unavailable — running without JWT and Prometheus")
 
 
 # --- In-memory state (replace with Redis/Postgres in P714) ---
@@ -480,11 +490,15 @@ async def _demo_telemetry_stream() -> None:
 
 
 async def require_token(authorization: str = Header(default="")) -> str:
-    # P712 will replace with full JWT validation.
-    """``require_token`` 동작을 수행한다."""
+    """Bearer 토큰을 검증하고 subject를 반환한다 (P712 JWT 연동)."""
     if not authorization.startswith("Bearer "):
         raise HTTPException(401, detail="missing bearer token")
-    return authorization[len("Bearer ") :]
+    token = authorization[len("Bearer "):]
+    if _AUTH_AVAILABLE:
+        from api.auth import validate_token
+        claims = validate_token(token)
+        return claims.get("sub", token)
+    return token
 
 
 # --- Pydantic models ---
@@ -523,7 +537,7 @@ class EnvelopeError(BaseModel):
 app = FastAPI(
     title="SDACS API",
     version=API_VERSION,
-    description="Swarm-Drone Airspace Control System — FastAPI backend (Phase 711).",
+    description="Swarm-Drone Airspace Control System — FastAPI backend (P711+P712+P718).",
     lifespan=lifespan,
 )
 
@@ -534,6 +548,39 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+if _AUTH_AVAILABLE:
+    instrument_app(app)
+
+
+# --- Auth endpoints (P712) ---
+
+
+class TokenRequest(BaseModel):
+    """개발용 토큰 발급 요청."""
+    sub: str = Field(default="dev-user")
+    role: str = Field(pattern="^(viewer|operator|admin)$", default="viewer")
+
+
+@app.post("/api/auth/token", tags=["auth"])
+async def issue_token(body: TokenRequest) -> dict:
+    """개발용 JWT 토큰 발급. 프로덕션에서는 IdP로 교체한다."""
+    if not _AUTH_AVAILABLE:
+        raise HTTPException(503, detail="auth module unavailable")
+    token = create_access_token(sub=body.sub, role=body.role)
+    write_audit_log("token_issued", subject=body.sub, details={"role": body.role})
+    return {"success": True, "access_token": token, "token_type": "bearer"}
+
+
+@app.get("/api/audit-log", tags=["auth"])
+async def get_audit_log(
+    limit: int = 100,
+    claims: dict = Depends(require_role("admin")) if _AUTH_AVAILABLE else Depends(require_token),
+) -> dict:
+    """감사 로그 조회 (admin 전용)."""
+    if not _AUTH_AVAILABLE:
+        raise HTTPException(503, detail="auth module unavailable")
+    return {"success": True, "data": read_audit_log(limit=limit)}
 
 
 # --- Health ---
@@ -719,6 +766,8 @@ async def ws_telemetry(ws: WebSocket) -> None:
     """``ws_telemetry`` 동작을 수행한다."""
     await ws.accept()
     STATE.telemetry_subscribers.add(ws)
+    if _AUTH_AVAILABLE:
+        WS_CONNECTIONS.set(len(STATE.telemetry_subscribers))
     LOGGER.info("telemetry subscriber connected (total=%d)", len(STATE.telemetry_subscribers))
     try:
         while True:
@@ -753,6 +802,8 @@ async def ws_telemetry(ws: WebSocket) -> None:
         pass
     finally:
         STATE.telemetry_subscribers.discard(ws)
+        if _AUTH_AVAILABLE:
+            WS_CONNECTIONS.set(len(STATE.telemetry_subscribers))
         LOGGER.info("telemetry subscriber disconnected (total=%d)", len(STATE.telemetry_subscribers))
 
 

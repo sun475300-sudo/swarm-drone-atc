@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-01 07:30 | `5e0a605` | fix: run_scenario 파라미터명 _token 복원 — 기존 스모크테스트 호환성 유지 | api/fastapi_server.py |
 | 2026-06-01 07:16 | `8664c8a` | feat: P712 JWT/RBAC·감사로그 + P717 부하테스트 + P718 Prometheus/Grafana 관측성 | ROADMAP.md, api/auth.py, api/fastapi_server.py, monitoring/__init__.py, monitoring/docker-compose.monitoring.yml, monitoring/grafana/provisioning/dashboards/dashboards.yml … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
 | 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |

@@ -143,16 +143,16 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 목포대 캡스톤 결과물을 학술적 기여로 정제.
 
-- [ ] **P701** — 논문 주제 확정 및 기여 포인트 3개 도출 (CBS+APF 하이브리드? Voronoi 분할?)
-- [ ] **P702** — 선행 연구 서베이 (최소 30편, IROS/ICRA/AIAA 기준)
-- [ ] **P703** — 벤치마크 데이터셋 공개화 (7개 Monte Carlo 시나리오 + 3개 실기 로그)
-- [ ] **P704** — Reproducibility 패키지 (Docker 이미지, 시드 고정, 결과 재현 스크립트)
-- [ ] **P705** — 평가 메트릭 정형화 (near-miss rate, airspace utilization, path efficiency)
-- [ ] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS)
-- [ ] **P707** — 논문 초안 작성 (IROS 2026 또는 AIAA SciTech 2027 투고 목표)
+- [x] **P701** — 논문 주제 확정 및 기여 포인트 3개 도출 (CBS+APF 하이브리드)
+- [x] **P702** — 선행 연구 서베이 (30편, IROS/ICRA/AIAA 기준)
+- [x] **P703** — 벤치마크 데이터셋 공개화 (10개 시나리오, benchmarks/ 디렉토리)
+- [x] **P704** — Reproducibility 패키지 (Docker 이미지, 시드 고정, 결과 재현 스크립트)
+- [x] **P705** — 평가 메트릭 정형화 (NMR, MSD, PE, AU, RID-CR, RTF — src/analytics/metrics.py)
+- [x] **P706** — 기여도 비교 실험 (200 runs: 10 sc × 4 methods × 5 seeds — scripts/p706_sweep.py)
+- [x] **P707** — 논문 초안 작성 (AIAA SciTech 2027 — docs/paper/PAPER_DRAFT.md, §5 채움)
 - [ ] **P708** — 내부 리뷰 3회 + 지도교수 피드백 반영
 - [ ] **P709** — 공식 투고 및 arXiv 프리프린트 업로드
-- [ ] **P710** — 학술대회 발표 슬라이드·포스터 (동강대 학술대회 4/23 포함)
+- [ ] **P710** — 학술대회 발표 슬라이드·포스터
 
 ### Track C — 배포·서비스화 (Phase 711-720)
 

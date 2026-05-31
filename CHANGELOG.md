@@ -3,6 +3,32 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased] - 2026-05-31
+
+### 추가 (feat)
+
+- `scripts/p706_sweep.py` — P706 교차-방법 벤치마크 스윕 (200 runs: 10 sc × 4 methods × 5 seeds)
+- `automation/daily_status.py` — 일일 상태 보고 스크립트 (Git/Roadmap/Tests/P706/Paper 요약)
+- `benchmarks/baselines/sdacs/adapter.py` — SDACS 어댑터 CBS 고도-밴드 + APF 리액티브 실제 구현
+- `docs/paper/p706_table.md` — 논문 §5 헤드라인 결과 테이블 (자동 생성)
+- `data/p706_results.json`, `data/p706_summary.json` — P706 스윕 원시 + 집계 결과
+
+### 수정 (fix)
+
+- `docs/paper/PAPER_DRAFT.md` §5 TBD → 실제 실험 결과 채움
+- `ROADMAP.md` Track B P703~P707 완료 표시 갱신
+
+### 결과 하이라이트
+
+| 지표 | ORCA | VO | CBS | **SDACS** |
+|------|------|----|-----|-----------|
+| NMR ×10⁻⁴ ↓ | 5.56 | 0.01 | 5.57 | **0.02** |
+| MSD (m) ↑ | 12.0 | 14.3 | 11.7 | **59.9** |
+| PE ↑ | 1.00 | 0.82 | 1.00 | **1.00** |
+| RID-CR ↑ | 0 | 0 | 0 | **1.0** |
+
+SDACS: 근접 이벤트 ×278 감소 (vs ORCA), 분리 거리 5배 개선, RID 100% 준수 유일.
+
 ## [Unreleased] - 2026-05-03
 
 ### 추가 (feat)

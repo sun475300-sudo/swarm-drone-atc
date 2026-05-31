@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-01 08:05 | `467f327` | fix: Phase 631-660 다언어 스텁 파일 19개 생성 — CI test_phase63x/64x 70개 수정 | src/ada/tmr_voter_v2.adb, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj, src/cpp/particle_filter.cpp, src/dart/flutter_dashboard.dart, src/elixir/fault_supervisor.ex … |
 | 2026-06-01 07:30 | `5e0a605` | fix: run_scenario 파라미터명 _token 복원 — 기존 스모크테스트 호환성 유지 | api/fastapi_server.py |
 | 2026-06-01 07:16 | `8664c8a` | feat: P712 JWT/RBAC·감사로그 + P717 부하테스트 + P718 Prometheus/Grafana 관측성 | ROADMAP.md, api/auth.py, api/fastapi_server.py, monitoring/__init__.py, monitoring/docker-compose.monitoring.yml, monitoring/grafana/provisioning/dashboards/dashboards.yml … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |

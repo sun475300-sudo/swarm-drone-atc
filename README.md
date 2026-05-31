@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-01 02:08 | `da49428` | fix: add multilanguage stub sources and fix ws_bridge xdist test | src/ada/tmr_voter_v2.adb, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj, src/cpp/particle_filter.cpp, src/dart/flutter_dashboard.dart, src/elixir/fault_supervisor.ex … |
 | 2026-06-01 01:28 | `1659850` | fix: CI — fastapi/PyJWT/prometheus_client dev 의존성 추가 + auth.py 방어적 import | api/auth.py, pyproject.toml |
 | 2026-06-01 01:18 | `e3cc208` | feat: P706·P712·P714·P715·P717·P718·P719 — Track B/C 주요 Phase 구현 | ROADMAP.md, api/auth.py, api/fastapi_server.py, deployment/helm/sdacs/Chart.yaml, deployment/helm/sdacs/templates/_helpers.tpl, deployment/helm/sdacs/templates/deployment.yaml … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |

@@ -476,15 +476,25 @@ async def _demo_telemetry_stream() -> None:
         await asyncio.sleep(0.1)
 
 
-# --- Auth dependency (stub) ---
+# --- Auth (P712) ---
+
+from api.auth import (  # noqa: E402
+    Role,
+    TokenPayload,
+    create_token,
+    get_audit_log,
+    get_token_payload,
+    record_audit_event,
+    require_admin,
+    require_read,
+    require_run,
+    AuditEvent,
+)
 
 
-async def require_token(authorization: str = Header(default="")) -> str:
-    # P712 will replace with full JWT validation.
-    """``require_token`` 동작을 수행한다."""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(401, detail="missing bearer token")
-    return authorization[len("Bearer ") :]
+async def require_token(authorization: str = Header(default="")) -> TokenPayload:
+    """P712 JWT 검증 — get_token_payload 위임."""
+    return await get_token_payload(authorization)
 
 
 # --- Pydantic models ---
@@ -534,6 +544,73 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# --- Auth 엔드포인트 (P712) ---
+
+
+class TokenRequest(BaseModel):
+    """토큰 발급 요청 모델."""
+
+    sub: str = Field(min_length=1, max_length=64, description="사용자 식별자")
+    role: str = Field(pattern="^(admin|operator|viewer)$", default="viewer")
+    secret: str = Field(default="")
+
+
+@app.post("/api/auth/token", tags=["auth"])
+async def issue_token(req: TokenRequest) -> dict:
+    """개발용 토큰 발급 — 프로덕션에서는 IdP 연동으로 교체."""
+    import os
+
+    jwt_secret = os.getenv("SDACS_JWT_SECRET", "sdacs-dev-secret-change-in-production")
+    if req.secret and req.secret != jwt_secret:
+        raise HTTPException(status_code=401, detail="wrong secret")
+    token = create_token(req.sub, Role(req.role))
+    LOGGER.info("issued token sub=%s role=%s", req.sub, req.role)
+    return {"success": True, "data": {"token": token, "role": req.role, "sub": req.sub}}
+
+
+@app.get("/api/audit", tags=["auth"])
+async def list_audit_log(
+    limit: int = 100,
+    _payload: TokenPayload = Depends(require_admin),
+) -> dict:
+    """감사 로그 조회 — admin 전용."""
+    return {"success": True, "data": get_audit_log(limit=limit)}
+
+
+# --- Prometheus 메트릭 (P718) ---
+
+
+@app.get("/metrics", tags=["infra"], response_class=None)
+async def prometheus_metrics():
+    """Prometheus 스크레이프 엔드포인트."""
+    from fastapi.responses import PlainTextResponse
+
+    try:
+        from monitoring.prometheus_metrics import generate_metrics_text
+
+        return PlainTextResponse(generate_metrics_text(), media_type="text/plain; version=0.0.4")
+    except ImportError:
+        n_drones = len(STATE.snapshot.drones)
+        n_conflicts = len(STATE.snapshot.conflicts)
+        n_ws = len(STATE.telemetry_subscribers)
+        n_runs = len(STATE.runs)
+        lines = [
+            "# HELP sdacs_drones_active Active drone count",
+            "# TYPE sdacs_drones_active gauge",
+            f"sdacs_drones_active {n_drones}",
+            "# HELP sdacs_conflicts_active Active conflict count",
+            "# TYPE sdacs_conflicts_active gauge",
+            f"sdacs_conflicts_active {n_conflicts}",
+            "# HELP sdacs_ws_subscribers WebSocket subscriber count",
+            "# TYPE sdacs_ws_subscribers gauge",
+            f"sdacs_ws_subscribers {n_ws}",
+            "# HELP sdacs_runs_total Total simulation runs",
+            "# TYPE sdacs_runs_total counter",
+            f"sdacs_runs_total {n_runs}",
+        ]
+        return PlainTextResponse("\n".join(lines) + "\n", media_type="text/plain; version=0.0.4")
 
 
 # --- Health ---
@@ -631,7 +708,7 @@ async def scenario_run(name: str, req: ScenarioRunRequest | None = None) -> dict
 async def run_scenario(
     scenario_id: str,
     body: RunScenarioBody,
-    _token: str = Depends(require_token),
+    _payload: TokenPayload = Depends(require_run),
 ) -> dict:
     """``run_scenario`` 동작을 수행한다."""
     STATE.scenarios = _build_scenario_catalog()

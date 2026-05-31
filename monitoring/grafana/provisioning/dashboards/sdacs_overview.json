@@ -1,0 +1,122 @@
+{
+  "title": "SDACS Overview",
+  "uid": "sdacs-overview",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Active Drones",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "targets": [
+        { "expr": "sdacs_drones_active", "legendFormat": "drones" }
+      ],
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 80 },
+            { "color": "red", "value": 200 }
+          ]
+        }}
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Active Conflicts",
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+      "targets": [
+        { "expr": "sdacs_conflicts_active", "legendFormat": "conflicts" }
+      ],
+      "options": { "colorMode": "value" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 1 },
+            { "color": "red", "value": 5 }
+          ]
+        }}
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "WebSocket Subscribers",
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
+      "targets": [
+        { "expr": "sdacs_ws_subscribers", "legendFormat": "subscribers" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Collision Resolution Rate",
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
+      "targets": [
+        { "expr": "sdacs_collision_resolution_rate", "legendFormat": "rate" }
+      ],
+      "options": { "colorMode": "value" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.9 },
+              { "color": "green", "value": 0.99 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Drone & Conflict Count (time series)",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "sdacs_drones_active", "legendFormat": "drones" },
+        { "expr": "sdacs_conflicts_active", "legendFormat": "conflicts" }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Scenario Runs",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "increase(sdacs_scenario_runs_total[5m])", "legendFormat": "runs/5m" },
+        { "expr": "increase(sdacs_scenario_runs_failed[5m])", "legendFormat": "failed/5m" }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Server Uptime",
+      "gridPos": { "x": 0, "y": 12, "w": 8, "h": 6 },
+      "targets": [
+        { "expr": "sdacs_server_uptime_seconds", "legendFormat": "uptime (s)" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Auth Failures",
+      "gridPos": { "x": 8, "y": 12, "w": 8, "h": 6 },
+      "targets": [
+        { "expr": "increase(sdacs_auth_failures_total[1m])", "legendFormat": "auth failures/min" }
+      ]
+    }
+  ]
+}

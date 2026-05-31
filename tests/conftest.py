@@ -3,6 +3,7 @@ pytest 공통 픽스처
 """
 from __future__ import annotations
 
+import asyncio
 import os
 import sys
 
@@ -13,6 +14,30 @@ import pytest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
+
+
+# ── 이벤트 루프 복구 픽스처 ───────────────────────────────────────────────
+# pytest-xdist parallel mode에서 같은 worker가 여러 파일을 처리할 때,
+# 이전 async 테스트가 event loop를 닫아두면 다음 sync 테스트의
+# asyncio.get_event_loop().run_until_complete()가 RuntimeError를 일으킨다.
+# async 테스트는 pytest-asyncio가 루프를 직접 관리하므로 건드리지 않는다.
+
+@pytest.fixture(autouse=True)
+def _ensure_open_event_loop(request):
+    """sync 테스트에서 닫힌 event loop를 새로운 루프로 교체한다."""
+    if asyncio.iscoroutinefunction(request.function):
+        yield
+        return
+
+    try:
+        loop = asyncio.get_event_loop_policy().get_event_loop()
+        if loop is None or loop.is_closed():
+            raise RuntimeError("closed")
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+    yield
 
 
 # ── 공통 픽스처 ──────────────────────────────────────────────────────────

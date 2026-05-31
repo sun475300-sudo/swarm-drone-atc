@@ -21,6 +21,7 @@ import json
 import math
 import sys
 import time
+from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -32,8 +33,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 from benchmarks.baselines._base import make_adapter
-from src.analytics.metrics import Evaluator, EvaluatorConfig
-from src.analytics.types import SimulationTrace
+from src.analytics.metrics import Evaluator
 
 ALL_METHODS = ("orca", "vo", "cbs", "sdacs_hybrid")
 
@@ -90,19 +90,24 @@ def run_single(
     """Run one (scenario, method, seed) and return metrics."""
     try:
         adapter = make_adapter(method, manifest, seed)
-    except (ValueError, RuntimeError) as exc:
-        print(f"  [SKIP] {scenario_id}/{method}/seed{seed}: adapter error: {exc}")
+    except (ValueError, RuntimeError, KeyError) as exc:
+        print(f"  [SKIP] {scenario_id}/{method}/seed{seed}: adapter error: {exc}", file=sys.stderr)
         return None
 
     t0 = time.perf_counter()
     try:
         trace = adapter.run(hard_wall_time_s=hard_wall_s)
+    except (KeyboardInterrupt, SystemExit):
+        raise
     except Exception as exc:
-        print(f"  [FAIL] {scenario_id}/{method}/seed{seed}: {exc}")
+        print(f"  [FAIL] {scenario_id}/{method}/seed{seed}: {type(exc).__name__}: {exc}", file=sys.stderr)
         return None
     wall = time.perf_counter() - t0
 
     metrics = evaluator.evaluate(trace)
+    missing = [m for m in HEADLINE_METRICS if m not in metrics]
+    if missing:
+        print(f"  [WARN] {scenario_id}/{method}/seed{seed}: missing metrics {missing}", file=sys.stderr)
 
     trace_path: str | None = None
     if out_dir is not None:
@@ -126,8 +131,6 @@ def aggregate_results(
     runs: list[RunResult],
 ) -> dict[str, Any]:
     """Group by (scenario, method) and compute mean +/- std for headline metrics."""
-    from collections import defaultdict
-
     grouped: dict[tuple[str, str], list[dict[str, float]]] = defaultdict(list)
     for r in runs:
         grouped[(r.scenario, r.method)].append(r.metrics)
@@ -158,8 +161,6 @@ def significance_tests(
     reference: str = "sdacs_hybrid",
 ) -> list[dict[str, Any]]:
     """Mann-Whitney U test: SDACS vs each baseline, per scenario per metric."""
-    from collections import defaultdict
-
     grouped: dict[tuple[str, str], list[dict[str, float]]] = defaultdict(list)
     for r in runs:
         grouped[(r.scenario, r.method)].append(r.metrics)
@@ -208,7 +209,7 @@ def significance_tests(
 
 
 def _mann_whitney_u(x: np.ndarray, y: np.ndarray) -> tuple[float, float]:
-    """Pure-NumPy Mann-Whitney U test (two-sided, normal approximation)."""
+    """Pure-NumPy Mann-Whitney U test (two-sided, normal approximation with tie + continuity correction)."""
     nx, ny = len(x), len(y)
     combined = np.concatenate([x, y])
     ranks = _rank_data(combined)
@@ -218,23 +219,27 @@ def _mann_whitney_u(x: np.ndarray, y: np.ndarray) -> tuple[float, float]:
     u_stat = min(u1, u2)
     mu = nx * ny / 2
     n_total = nx + ny
-    sigma = np.sqrt(nx * ny * (n_total + 1) / 12)
-    if sigma == 0:
+    _, counts = np.unique(combined, return_counts=True)
+    tie_correction = float(np.sum(counts ** 3 - counts))
+    variance = (nx * ny / (n_total * (n_total - 1))) * ((n_total ** 3 - n_total - tie_correction) / 12)
+    sigma = math.sqrt(max(variance, 0.0))
+    if sigma < 1e-10:
         return float(u_stat), 1.0
-    z = (u_stat - mu) / sigma
+    u_cc = u_stat + 0.5 if u_stat < mu else u_stat - 0.5
+    z = (u_cc - mu) / sigma
     p_value = 2 * _normal_cdf(-abs(z))
     return float(u_stat), float(p_value)
 
 
 def _rank_data(data: np.ndarray) -> np.ndarray:
-    """Average-rank method."""
+    """Average-rank method with tolerance for floating-point ties."""
     n = len(data)
     idx = np.argsort(data)
     ranks = np.empty(n, dtype=float)
     i = 0
     while i < n:
         j = i + 1
-        while j < n and data[idx[j]] == data[idx[i]]:
+        while j < n and math.isclose(float(data[idx[j]]), float(data[idx[i]]), rel_tol=1e-9):
             j += 1
         avg_rank = (i + j + 1) / 2
         for k in range(i, j):

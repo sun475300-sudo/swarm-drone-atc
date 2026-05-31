@@ -39,12 +39,13 @@ except ImportError as exc:  # pragma: no cover
     raise RuntimeError("fastapi + pydantic required: pip install 'fastapi>=0.110'") from exc
 
 _HAS_JWT = False
+_jwt: Any = None
 try:
     import jwt as _jwt  # PyJWT
     # 호환성 확인: PyJWT는 jwt.encode가 str을 반환함
     _HAS_JWT = hasattr(_jwt, "encode") and callable(getattr(_jwt, "decode", None))
-except Exception:  # pragma: no cover — 환경 의존성 오류 무시
-    pass
+except BaseException:  # pragma: no cover — pyo3/cffi PanicException 포함
+    _jwt = None
 
 LOGGER = logging.getLogger("sdacs.auth")
 

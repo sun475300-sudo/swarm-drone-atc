@@ -70,7 +70,7 @@ try:
         get_audit_log, require_role,
     )
     _AUTH_ENABLED = True
-except ImportError:
+except BaseException:  # pragma: no cover — pyo3/cffi PanicException 포함
     _AUTH_ENABLED = False
 
 LOGGER = logging.getLogger("sdacs.fastapi")
@@ -702,7 +702,7 @@ async def scenario_run(name: str, req: ScenarioRunRequest | None = None) -> dict
 async def run_scenario(
     scenario_id: str,
     body: RunScenarioBody,
-    _token: str = Depends(require_token),
+    _token: str = _require_operator,
 ) -> dict:
     """``run_scenario`` 동작을 수행한다."""
     STATE.scenarios = _build_scenario_catalog()

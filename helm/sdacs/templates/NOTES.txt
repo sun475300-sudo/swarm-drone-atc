@@ -1,0 +1,18 @@
+SDACS (군집드론 공역통제 자동화 시스템) 배포 완료!
+
+서비스 접근 방법:
+
+1. 백엔드 API:
+   kubectl port-forward svc/{{ include "sdacs.fullname" . }}-backend 8080:8080
+
+2. 대시보드:
+   kubectl port-forward svc/{{ include "sdacs.fullname" . }}-dashboard 3000:3000
+
+3. Redis:
+   kubectl port-forward svc/{{ include "sdacs.fullname" . }}-redis 6379:6379
+
+{{- if .Values.ingress.enabled }}
+Ingress 설정됨: {{ range .Values.ingress.hosts }}http://{{ .host }}{{ end }}
+{{- end }}
+
+자세한 정보: https://github.com/sun475300-sudo/swarm-drone-atc

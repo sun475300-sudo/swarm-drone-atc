@@ -148,7 +148,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P703** — 벤치마크 데이터셋 공개화 — `benchmarks/` 10개 시나리오 + 3개 기준선(ORCA/VO/CBS) + CC-BY-4.0 + DATASET_CARD.md + CITATION.bib 완비 (2026-05-29)
 - [x] **P704** — Reproducibility 패키지 — Dockerfile·Dockerfile.gpu·Dockerfile.reproducible + docker-compose.reproducible.yml (PYTHONHASHSEED=0, seed 고정) 완비 (2026-05-29)
 - [x] **P705** — 평가 메트릭 정형화 — `src/analytics/metrics.py` NMR·MSD·PE·MS·FT·AU·RID_CR·RTF 8종 공식 정의 및 Evaluator 클래스 구현 (2026-05-29)
-- [ ] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS)
+- [x] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS) — `scripts/comparison_experiment.py` Mann-Whitney U 통계 검정 포함 (2026-05-31)
 - [ ] **P707** — 논문 초안 작성 (IROS 2026 또는 AIAA SciTech 2027 투고 목표)
 - [ ] **P708** — 내부 리뷰 3회 + 지도교수 피드백 반영
 - [ ] **P709** — 공식 투고 및 arXiv 프리프린트 업로드
@@ -161,10 +161,10 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [~] **P711** — FastAPI 백엔드 완성 (`api/fastapi_server.py` 769줄, 전체 엔드포인트 구현) — React 프론트엔드 미구현
 - [x] **P712** — 인증·권한(RBAC) 및 감사 로그 — `api/auth.py` 순수 Python HS256 JWT + viewer/operator/admin 역할 + NDJSON 감사로그 + 12개 테스트 완비 (2026-05-31)
 - [x] **P713** — 실시간 WebSocket 채널 — `simulation/ws_bridge.py` 2Hz 스트리밍 + FastAPI `/ws/telemetry` 완비 (2026-05-29)
-- [ ] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존
-- [ ] **P715** — Docker Compose → Kubernetes Helm 차트 변환
+- [x] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존 — `simulation/history_store.py` SQLite 폴백 포함, TimescaleDB 30일 보존 정책 자동 적용 (2026-05-31)
+- [x] **P715** — Docker Compose → Kubernetes Helm 차트 변환 — `helm/sdacs/` Chart.yaml+values.yaml+templates(redis/backend/dashboard) 완비 (2026-05-31)
 - [x] **P716** — CI/CD 완비 — GitHub Actions 6개 워크플로우 (테스트 3-버전 매트릭스, lint, mypy, 재현성 검증, E2E smoke, Pages 배포) (2026-05-29)
-- [ ] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지)
+- [x] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지) — `scripts/load_test_100_drones.py` 처리량 측정 + 60 steps/s 기준 검증 (2026-05-31)
 - [x] **P718** — Prometheus 관측성 — `api/metrics.py` HTTP 요청 카운터·지연시간 히스토그램·WS 게이지·드론 수 + /metrics 엔드포인트 + 6개 테스트 완비 (2026-05-31)
 - [ ] **P719** — 보안 감사 (OWASP ZAP, 의존성 CVE 스캔)
 - [ ] **P720** — 공개 베타 오픈 (3개 파일럿 기관, 피드백 수집 4주)

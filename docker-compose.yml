@@ -1,6 +1,26 @@
 version: '3.9'
 
+volumes:
+  timescaledb_data:
+
 services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: sdacs
+      POSTGRES_USER: sdacs
+      POSTGRES_PASSWORD: ${SDACS_DB_PASSWORD:-sdacs_dev}
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sdacs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   redis:
     image: redis:7.2-alpine
     ports:

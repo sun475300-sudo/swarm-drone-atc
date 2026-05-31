@@ -1,0 +1,19 @@
+{{- if .Values.timescaledb.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sdacs.fullname" . }}-timescaledb
+  labels:
+    {{- include "sdacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: timescaledb
+spec:
+  type: ClusterIP
+  clusterIP: None  # headless for StatefulSet DNS
+  ports:
+    - port: {{ .Values.timescaledb.port }}
+      targetPort: postgres
+      name: postgres
+  selector:
+    {{- include "sdacs.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: timescaledb
+{{- end }}

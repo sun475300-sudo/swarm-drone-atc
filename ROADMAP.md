@@ -161,8 +161,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [~] **P711** — FastAPI 백엔드 완성 (`api/fastapi_server.py` 769줄, 전체 엔드포인트 구현) — React 프론트엔드 미구현
 - [ ] **P712** — 인증·권한(OAuth2, RBAC) 및 감사 로그 — JWT Bearer 스텁 존재, 전체 구현 미완
 - [x] **P713** — 실시간 WebSocket 채널 — `simulation/ws_bridge.py` 2Hz 스트리밍 + FastAPI `/ws/telemetry` 완비 (2026-05-29)
-- [ ] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존
-- [ ] **P715** — Docker Compose → Kubernetes Helm 차트 변환
+- [x] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존 — `db/migrations/001_init.sql` hypertable + 30일 보존정책, `api/db.py` asyncpg 풀, `api/telemetry_store.py` TelemetryStore, `docker-compose.yml` timescaledb 서비스, 테스트 11개 완비 (2026-05-31)
+- [x] **P715** — Docker Compose → Kubernetes Helm 차트 변환 — `helm/sdacs/` Chart.yaml·values.yaml·8개 템플릿(StatefulSet/Deployment/Service/Ingress/HPA/Secret/ConfigMap) (2026-05-31)
 - [x] **P716** — CI/CD 완비 — GitHub Actions 6개 워크플로우 (테스트 3-버전 매트릭스, lint, mypy, 재현성 검증, E2E smoke, Pages 배포) (2026-05-29)
 - [ ] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지)
 - [ ] **P718** — 관측성 스택 (Prometheus + Grafana + Loki)
@@ -176,4 +176,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-05-29 (P703·P704·P705·P713·P716 완료 확인, Track C P711 FastAPI 부분 완료, 관측성·부하테스트 진행 예정)*
+*Last updated: 2026-05-31 (P714·P715 완료 — TimescaleDB + K8s Helm 차트. PR #62 P706·P712·P717·P718 검토 중)*

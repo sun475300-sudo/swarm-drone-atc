@@ -1,0 +1,12 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. LEGACY-ATC-BRIDGE.
+       AUTHOR. SDACS-TEAM.
+      * Legacy ATC Bridge — SDACS Phase 616
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 DRONE-ID        PIC X(20).
+       01 DRONE-LAT       PIC 9(3)V9(6).
+       01 DRONE-LON       PIC 9(3)V9(6).
+       PROCEDURE DIVISION.
+           MOVE "SDACS-001" TO DRONE-ID
+           STOP RUN.

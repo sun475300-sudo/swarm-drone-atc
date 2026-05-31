@@ -47,9 +47,7 @@ except ImportError as exc:  # pragma: no cover
 
 # P718 — Prometheus 메트릭 (선택적)
 try:
-    from prometheus_client import (
-        Counter, Gauge, Histogram, generate_latest, CONTENT_TYPE_LATEST
-    )
+    from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
     _PROMETHEUS = True
     _REQUESTS = Counter("http_requests_total", "총 HTTP 요청", ["method", "endpoint", "status"])
     _REQUEST_LATENCY = Histogram(
@@ -65,9 +63,13 @@ except ImportError:
 # P712 — JWT/RBAC 인증 모듈
 try:
     from api.auth import (
-        LoginRequest, Role, TokenResponse,
-        authenticate_user, create_access_token,
-        get_audit_log, require_role,
+        LoginRequest,
+        Role,
+        TokenResponse,
+        authenticate_user,
+        create_access_token,
+        get_audit_log,
+        require_role,
     )
     _AUTH_ENABLED = True
 except BaseException:  # pragma: no cover — pyo3/cffi PanicException 포함

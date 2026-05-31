@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-01 08:13 | `e1e5954` | fix: reset event loop in conftest for parallel test workers | tests/conftest.py |
 | 2026-06-01 07:55 | `1ec6a09` | fix: create multilanguage stub files for Phase 521-599 + battery predictor | simulation/battery_predictor.py, src/ada/safety_critical.adb, src/asm/crc32_checksum.asm, src/clojure/event_stream.clj, src/cpp/formation_gan_engine.cpp, src/crystal/telemetry_parser.cr … |
 | 2026-06-01 07:37 | `f39a138` | feat: add multilanguage stub files for Phase 611-660 | src/ada/tmr_voter_v2.adb, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj, src/cobol/legacy_atc_bridge.cob, src/cpp/particle_filter.cpp, src/dart/flutter_dashboard.dart … |
 | 2026-06-01 06:29 | `723480c` | fix: fastapi/prometheus-client을 dev 의존성에 추가 (CI 컬렉션 오류 수정) | pyproject.toml |

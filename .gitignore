@@ -51,6 +51,8 @@ PX4-Autopilot/build/
 node_modules/
 package.json
 package-lock.json
+!frontend/package.json
+!frontend/package-lock.json
 .coverage
 
 # Standardized common patterns (added 2026-04-27)
@@ -64,3 +66,4 @@ _*.ps1
 htmlcov/
 .pytest_cache/
 pytest-cache-files-*/
+.coverage*

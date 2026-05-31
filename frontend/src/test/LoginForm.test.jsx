@@ -6,7 +6,7 @@ describe("LoginForm", () => {
   it("renders login form elements", () => {
     render(<LoginForm onLogin={() => {}} error={null} loading={false} />);
     expect(screen.getByText("SDACS")).toBeInTheDocument();
-    expect(screen.getByLabelText("사용자명") ?? screen.getAllByRole("textbox")[0]).toBeTruthy();
+    expect(screen.getAllByRole("textbox")[0]).toBeInTheDocument();
     expect(screen.getByText("로그인")).toBeInTheDocument();
   });
 

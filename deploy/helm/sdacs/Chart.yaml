@@ -1,0 +1,14 @@
+apiVersion: v2
+name: sdacs
+description: Swarm Drone Airspace Control System — SDACS
+type: application
+version: 0.1.0
+appVersion: "1.1.0"
+keywords:
+  - drone
+  - atc
+  - airspace
+  - simpy
+maintainers:
+  - name: SDACS Team
+    email: sun475300@gmail.com

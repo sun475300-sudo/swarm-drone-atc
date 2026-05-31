@@ -1,0 +1,84 @@
+# SDACS Helm values — override per environment
+replicaCount: 2
+
+image:
+  repository: ghcr.io/sun475300-sudo/swarm-drone-atc
+  pullPolicy: IfNotPresent
+  tag: ""  # defaults to Chart.appVersion
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: sdacs.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: "2"
+    memory: "2Gi"
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "changeme"
+    database: sdacs
+  primary:
+    persistence:
+      size: 20Gi
+
+timescaledb:
+  enabled: true  # requires TimescaleDB Docker image
+
+prometheus:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 15s
+
+env:
+  JWT_SECRET: ""           # set via --set or secret
+  ADMIN_PASSWORD: ""       # set via --set or secret
+  OPERATOR_PASSWORD: ""
+  VIEWER_PASSWORD: ""
+  DATABASE_URL: ""         # postgresql://user:pass@host/db
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/path: "/metrics"
+  prometheus.io/port: "8080"
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]

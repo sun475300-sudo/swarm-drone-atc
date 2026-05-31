@@ -1,0 +1,36 @@
+groups:
+  - name: sdacs
+    rules:
+      - alert: HighConflictRate
+        expr: rate(sdacs_conflicts_total[5m]) > 1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "높은 충돌 발생률"
+          description: "{{ $value | printf \"%.2f\" }} 충돌/초 (5분 평균)"
+
+      - alert: APIHighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API 응답 지연 (p95 > 500ms)"
+          description: "endpoint={{ $labels.handler }}"
+
+      - alert: DroneCountDrop
+        expr: sdacs_active_drones < 1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "활성 드론 없음 — 시뮬레이터 중단 가능성"
+
+      - alert: WebSocketClientsDrop
+        expr: sdacs_ws_clients < 1
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "WebSocket 구독자 없음"

@@ -35,8 +35,9 @@ from typing import Any, AsyncIterator
 import numpy as np
 
 try:
-    from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
+    from fastapi import Depends, FastAPI, Header, HTTPException, Request, WebSocket, WebSocketDisconnect
     from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.responses import PlainTextResponse
     from pydantic import BaseModel, Field
 except ImportError as exc:  # pragma: no cover
     raise RuntimeError(
@@ -44,8 +45,36 @@ except ImportError as exc:  # pragma: no cover
         "pip install 'fastapi>=0.110' 'uvicorn[standard]>=0.29' 'pydantic>=2.5'"
     ) from exc
 
+# P718 — Prometheus 메트릭 (선택적)
+try:
+    from prometheus_client import (
+        Counter, Gauge, Histogram, generate_latest, CONTENT_TYPE_LATEST
+    )
+    _PROMETHEUS = True
+    _REQUESTS = Counter("http_requests_total", "총 HTTP 요청", ["method", "endpoint", "status"])
+    _REQUEST_LATENCY = Histogram(
+        "http_request_duration_seconds", "HTTP 응답 시간",
+        ["method", "endpoint"], buckets=[.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5]
+    )
+    _ACTIVE_DRONES = Gauge("sdacs_active_drones", "현재 활성 드론 수")
+    _CONFLICTS_TOTAL = Counter("sdacs_conflicts_total", "누적 충돌 이벤트 수")
+    _WS_CLIENTS = Gauge("sdacs_ws_clients", "WebSocket 구독자 수")
+except ImportError:
+    _PROMETHEUS = False
+
+# P712 — JWT/RBAC 인증 모듈
+try:
+    from api.auth import (
+        LoginRequest, Role, TokenResponse,
+        authenticate_user, create_access_token,
+        get_audit_log, require_role,
+    )
+    _AUTH_ENABLED = True
+except ImportError:
+    _AUTH_ENABLED = False
+
 LOGGER = logging.getLogger("sdacs.fastapi")
-API_VERSION = "1.1.0"
+API_VERSION = "1.2.0"
 
 
 # --- In-memory state (replace with Redis/Postgres in P714) ---
@@ -466,6 +495,9 @@ async def _demo_telemetry_stream() -> None:
             ],
             conflicts=[],
         )
+        if _PROMETHEUS:
+            _ACTIVE_DRONES.set(len(STATE.snapshot.drones))
+            _WS_CLIENTS.set(len(STATE.telemetry_subscribers))
         await STATE.broadcast(
             {
                 "t": STATE.snapshot.timestamp_ns,
@@ -476,15 +508,19 @@ async def _demo_telemetry_stream() -> None:
         await asyncio.sleep(0.1)
 
 
-# --- Auth dependency (stub) ---
+# --- Auth dependency (P712 — full JWT/RBAC) ---
 
-
-async def require_token(authorization: str = Header(default="")) -> str:
-    # P712 will replace with full JWT validation.
-    """``require_token`` 동작을 수행한다."""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(401, detail="missing bearer token")
-    return authorization[len("Bearer ") :]
+if _AUTH_ENABLED:
+    _require_operator = Depends(require_role(Role.operator))
+    _require_admin = Depends(require_role(Role.admin))
+else:
+    # graceful degradation: accept any bearer token
+    async def _noop_auth(authorization: str = Header(default="")) -> str:
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(401, detail="missing bearer token")
+        return authorization[len("Bearer "):]
+    _require_operator = Depends(_noop_auth)
+    _require_admin = Depends(_noop_auth)
 
 
 # --- Pydantic models ---
@@ -523,7 +559,7 @@ class EnvelopeError(BaseModel):
 app = FastAPI(
     title="SDACS API",
     version=API_VERSION,
-    description="Swarm-Drone Airspace Control System — FastAPI backend (Phase 711).",
+    description="Swarm-Drone Airspace Control System — FastAPI backend (P711+P712+P718).",
     lifespan=lifespan,
 )
 
@@ -534,6 +570,41 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# --- P718: Prometheus 미들웨어 ---
+
+if _PROMETHEUS:
+    @app.middleware("http")
+    async def _prometheus_middleware(request: Request, call_next):
+        start = time.perf_counter()
+        response = await call_next(request)
+        elapsed = time.perf_counter() - start
+        endpoint = request.url.path
+        _REQUESTS.labels(request.method, endpoint, response.status_code).inc()
+        _REQUEST_LATENCY.labels(request.method, endpoint).observe(elapsed)
+        return response
+
+    @app.get("/metrics", tags=["infra"], response_class=PlainTextResponse)
+    async def metrics_endpoint() -> str:
+        """Prometheus 스크래핑 엔드포인트 (P718)."""
+        return PlainTextResponse(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+# --- P712: 인증 엔드포인트 ---
+
+if _AUTH_ENABLED:
+    @app.post("/auth/token", response_model=TokenResponse, tags=["auth"])
+    async def login(body: LoginRequest) -> TokenResponse:
+        """JWT 액세스 토큰 발급."""
+        user = authenticate_user(body.username, body.password)
+        token = create_access_token(user.username, user.role)
+        return TokenResponse(access_token=token, role=user.role.value)
+
+    @app.get("/auth/audit-log", tags=["auth"])
+    async def audit_log(_user=_require_admin) -> dict:
+        """감사 로그 조회 (admin 전용)."""
+        return {"success": True, "data": get_audit_log()}
 
 
 # --- Health ---

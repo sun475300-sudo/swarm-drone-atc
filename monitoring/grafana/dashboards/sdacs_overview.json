@@ -1,0 +1,49 @@
+{
+  "title": "SDACS 공역 관제 대시보드",
+  "uid": "sdacs-overview",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "time": {"from": "now-30m", "to": "now"},
+  "panels": [
+    {
+      "id": 1,
+      "title": "활성 드론 수",
+      "type": "stat",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sdacs_active_drones", "legendFormat": "드론"}],
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"},
+        "thresholds": {"steps": [{"value": 0, "color": "green"}, {"value": 80, "color": "yellow"}, {"value": 150, "color": "red"}]}}}
+    },
+    {
+      "id": 2,
+      "title": "충돌 이벤트 (분당)",
+      "type": "stat",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "rate(sdacs_conflicts_total[1m])", "legendFormat": "충돌/분"}],
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"},
+        "thresholds": {"steps": [{"value": 0, "color": "green"}, {"value": 0.5, "color": "yellow"}, {"value": 2, "color": "red"}]}}}
+    },
+    {
+      "id": 3,
+      "title": "API 응답 시간 p95 (ms)",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 6},
+      "targets": [{"expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) * 1000", "legendFormat": "p95 ms"}]
+    },
+    {
+      "id": 4,
+      "title": "WebSocket 구독자",
+      "type": "stat",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sdacs_ws_clients", "legendFormat": "클라이언트"}]
+    },
+    {
+      "id": 5,
+      "title": "HTTP 요청률",
+      "type": "timeseries",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 6},
+      "targets": [{"expr": "rate(http_requests_total[1m])", "legendFormat": "{{method}} {{endpoint}}"}]
+    }
+  ]
+}

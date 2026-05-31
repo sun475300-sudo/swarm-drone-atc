@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-01 03:44 | `01d90aa` | fix: pre-existing CI 실패 수정 — 다국어 스텁 파일 48개 + asyncio_mode 설정 | pyproject.toml, src/ada/safety_critical.adb, src/ada/tmr_voter_v2.adb, src/asm/crc32_checksum.asm, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj … |
 | 2026-06-01 03:34 | `f4941fa` | chore: .coverage.* 임시 파일 gitignore 추가 | .gitignore |
 | 2026-06-01 03:34 | `d0596f5` | test: audit_log 테스트 4개 추가 (TestAuditLog) — 커버리지 보완 | tests/test_auth.py |
 | 2026-06-01 03:20 | `4ee26a4` | fix: ruff I001 import-sort 수정 (src/auth/__init__.py, src/metrics_exporter.py) | src/auth/__init__.py, src/metrics_exporter.py |

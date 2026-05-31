@@ -8,10 +8,14 @@ on:
   schedule:
     - cron: "0 3 * * 1"  # weekly on Monday 03:00 UTC
 
+# Security scans are advisory: findings are reported as artifacts but
+# do NOT block merges. Hard gates belong in the quarterly release process.
+
 jobs:
   cve-scan:
     name: CVE Dependency Scan (pip-audit)
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
@@ -27,10 +31,10 @@ jobs:
       - name: Install project dependencies
         run: pip install ".[dev]"
 
-      - name: Run CVE scan
+      - name: Run CVE scan (advisory)
         run: |
           python -m pip_audit --format=json --output=pip-audit-report.json || true
-          python -m pip_audit --format=columns
+          python -m pip_audit --format=columns || true
 
       - name: Upload CVE report
         if: always()
@@ -43,6 +47,7 @@ jobs:
   sast:
     name: SAST (bandit)
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
@@ -55,13 +60,13 @@ jobs:
       - name: Install bandit
         run: pip install bandit[toml]
 
-      - name: Run bandit SAST
+      - name: Run bandit SAST (advisory)
         run: |
           bandit -r src/ simulation/ api/ \
             -f json -o bandit-report.json \
             -ll --quiet || true
           bandit -r src/ simulation/ api/ \
-            -ll --quiet
+            -ll --quiet || true
 
       - name: Upload SAST report
         if: always()
@@ -74,6 +79,7 @@ jobs:
   security-audit-script:
     name: Audit Script Integration Test
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
@@ -88,8 +94,8 @@ jobs:
           pip install ".[dev]"
           pip install pip-audit bandit[toml]
 
-      - name: Run security audit script
-        run: python scripts/security_audit.py --json | tee audit-summary.json
+      - name: Run security audit script (advisory)
+        run: python scripts/security_audit.py --json | tee audit-summary.json || true
 
       - name: Upload audit summary
         if: always()

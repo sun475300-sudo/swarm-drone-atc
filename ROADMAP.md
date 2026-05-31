@@ -143,8 +143,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 목포대 캡스톤 결과물을 학술적 기여로 정제.
 
-- [ ] **P701** — 논문 주제 확정 및 기여 포인트 3개 도출 (CBS+APF 하이브리드? Voronoi 분할?)
-- [ ] **P702** — 선행 연구 서베이 (최소 30편, IROS/ICRA/AIAA 기준)
+- [x] **P701** — 논문 주제 확정 — `docs/P701_PAPER_TOPIC.md`: "CBS-APF Hybrid Framework for Swarm UTM" 3개 기여 포인트 (C1 하이브리드 충돌해결, C2 Voronoi 확장성, C3 공개 벤치마크), IROS 2026 투고 목표 (2026-05-31)
+- [x] **P702** — 선행 연구 서베이 — `docs/P702_LITERATURE_SURVEY.md`: 31편 정리 (A.MAPF 6, B.반응형회피 6, C.UTM 7, D.AI/RL 5, E.벤치마크 5, F.환경적응 2) + 차별점 매트릭스 (2026-05-31)
 - [x] **P703** — 벤치마크 데이터셋 공개화 — `benchmarks/` 10개 시나리오 + 3개 기준선(ORCA/VO/CBS) + CC-BY-4.0 + DATASET_CARD.md + CITATION.bib 완비 (2026-05-29)
 - [x] **P704** — Reproducibility 패키지 — Dockerfile·Dockerfile.gpu·Dockerfile.reproducible + docker-compose.reproducible.yml (PYTHONHASHSEED=0, seed 고정) 완비 (2026-05-29)
 - [x] **P705** — 평가 메트릭 정형화 — `src/analytics/metrics.py` NMR·MSD·PE·MS·FT·AU·RID_CR·RTF 8종 공식 정의 및 Evaluator 클래스 구현 (2026-05-29)
@@ -176,4 +176,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-05-31 (P714·P715·P719 완료 — TimescaleDB + K8s Helm + 보안감사. PR #62 P706·P712·P717·P718 검토 중)*
+*Last updated: 2026-05-31 (P701·P702·P714·P715·P719 완료. PR #62 P706·P712·P717·P718, PR #63 P714·P715·P719 검토 중)*

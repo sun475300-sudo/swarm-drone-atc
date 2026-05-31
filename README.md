@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-01 08:58 | `e4b1925` | fix: add frontend package files + fix LoginForm test label query | .gitignore, frontend/package-lock.json, frontend/package.json, frontend/src/test/LoginForm.test.jsx |
 | 2026-06-01 08:56 | `c6ee64a` | feat: implement P711 React frontend (Vite + React + Vitest) | .github/workflows/frontend-ci.yml, ROADMAP.md, frontend/.gitignore, frontend/index.html, frontend/src/App.jsx, frontend/src/api/client.js … |
 | 2026-06-01 08:52 | `195baab` | fix: make security workflow advisory-only (continue-on-error + || true) | .github/workflows/security.yml |
 | 2026-06-01 08:51 | `a2a7782` | feat: implement P719 security audit (pip-audit CVE scan + bandit SAST) | .github/workflows/security.yml, ROADMAP.md, scripts/security_audit.py, tests/test_security_audit_p719.py |

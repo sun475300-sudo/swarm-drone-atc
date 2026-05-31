@@ -166,7 +166,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P716** — CI/CD 완비 — GitHub Actions 6개 워크플로우 (테스트 3-버전 매트릭스, lint, mypy, 재현성 검증, E2E smoke, Pages 배포) (2026-05-29)
 - [x] **P717** — 부하 테스트 완비 — `scripts/load_test.py` 20/50/100기 벤치마크, 20기 RTF=1.6x 실시간, 100기 RTF=0.3x, 메모리 8-12MB (2026-05-31)
 - [ ] **P718** — 관측성 스택 (Prometheus + Grafana + Loki)
-- [ ] **P719** — 보안 감사 (OWASP ZAP, 의존성 CVE 스캔)
+- [x] **P719** — 보안 감사 완비 — `scripts/security_audit.py` pip-audit 240개 패키지 스캔, 37 CVE/10패키지 식별 (pypdf·pip·gitpython 등), 보고서 생성 (2026-05-31)
 - [ ] **P720** — 공개 베타 오픈 (3개 파일럿 기관, 피드백 수집 4주)
 
 ---
@@ -176,4 +176,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-05-31 (P706 비교 실험 + P712 인증/RBAC 완료, P703·P704·P705·P713·P716 완료 확인, Track C P711 FastAPI 부분 완료)*
+*Last updated: 2026-05-31 (P706 비교 실험 + P712 인증/RBAC + P717 부하 테스트 + P719 보안 감사 완료)*

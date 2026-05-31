@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-01 04:33 | `425a37d` | fix: use asyncio.new_event_loop() in ws_bridge tests to fix cross-test isolation | tests/test_ws_bridge.py |
 | 2026-06-01 03:53 | `507c429` | fix: add 69 multi-language stub files to fix CI test failures (Phase 521-660) | simulation/battery_predictor.py, src/ada/safety_critical.adb, src/ada/tmr_voter_v2.adb, src/asm/crc32_checksum.asm, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj … |
 | 2026-06-01 02:40 | `49cb893` | fix: ruff I001 import 정렬 오류 수정 (CI lint 통과) | api/fastapi_server.py |
 | 2026-06-01 02:31 | `d2d23f3` | fix: api.auth pyo3 PanicException → except BaseException + require_token 삭제 대응 | api/auth.py, api/fastapi_server.py |

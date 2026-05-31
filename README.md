@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-01 02:40 | `49cb893` | fix: ruff I001 import 정렬 오류 수정 (CI lint 통과) | api/fastapi_server.py |
 | 2026-06-01 02:31 | `d2d23f3` | fix: api.auth pyo3 PanicException → except BaseException + require_token 삭제 대응 | api/auth.py, api/fastapi_server.py |
 | 2026-06-01 02:17 | `101c473` | feat: P712·P714·P715·P717·P718·P719 — Track C 배포 인프라 완성 | ROADMAP.md, api/auth.py, api/fastapi_server.py, db/migrations/001_init_timescale.sql, deploy/helm/sdacs/Chart.yaml, deploy/helm/sdacs/templates/_helpers.tpl … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |

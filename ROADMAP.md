@@ -149,7 +149,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P704** — Reproducibility 패키지 — Dockerfile·Dockerfile.gpu·Dockerfile.reproducible + docker-compose.reproducible.yml (PYTHONHASHSEED=0, seed 고정) 완비 (2026-05-29)
 - [x] **P705** — 평가 메트릭 정형화 — `src/analytics/metrics.py` NMR·MSD·PE·MS·FT·AU·RID_CR·RTF 8종 공식 정의 및 Evaluator 클래스 구현 (2026-05-29)
 - [ ] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS)
-- [ ] **P707** — 논문 초안 작성 (IROS 2026 또는 AIAA SciTech 2027 투고 목표)
+- [~] **P707** — 논문 초안 — `docs/paper/PAPER_DRAFT.md` SDACS 실측 데이터(NMR 5.19e-6, PE 1.0, RTF 17,373×) §5.2 반영, abstract·conclusion 수치 업데이트 (2026-05-31). 기준선 비교 열([P706])은 PR #62 머지 후 채울 것.
 - [ ] **P708** — 내부 리뷰 3회 + 지도교수 피드백 반영
 - [ ] **P709** — 공식 투고 및 arXiv 프리프린트 업로드
 - [ ] **P710** — 학술대회 발표 슬라이드·포스터 (동강대 학술대회 4/23 포함)

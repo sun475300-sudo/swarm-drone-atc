@@ -44,6 +44,9 @@ except ImportError as exc:  # pragma: no cover
         "pip install 'fastapi>=0.110' 'uvicorn[standard]>=0.29' 'pydantic>=2.5'"
     ) from exc
 
+# P712 — Full JWT auth
+from api.auth import AuthContext, Role, create_token, require_auth, require_permission  # noqa: E402
+
 # P718 — Prometheus metrics (optional dependency)
 try:
     from prometheus_client import (  # type: ignore
@@ -51,23 +54,29 @@ try:
         Counter,
         Gauge,
         Histogram,
+        REGISTRY,
         generate_latest,
     )
-    _PROM_ACTIVE_DRONES = Gauge("sdacs_active_drones", "Number of active drones in simulation")
-    _PROM_CONFLICTS_TOTAL = Counter("sdacs_conflicts_total", "Total conflict events detected")
-    _PROM_COLLISION_RATE = Gauge("sdacs_collision_rate", "Current collision rate (0-1)")
-    _PROM_REQUEST_LATENCY = Histogram(
+
+    def _prom_metric(ctor, name: str, doc: str, **kwargs):
+        try:
+            return ctor(name, doc, **kwargs)
+        except ValueError:
+            return REGISTRY._names_to_collectors.get(name)  # type: ignore[return-value]
+
+    _PROM_ACTIVE_DRONES = _prom_metric(Gauge, "sdacs_active_drones", "Number of active drones in simulation")
+    _PROM_CONFLICTS_TOTAL = _prom_metric(Counter, "sdacs_conflicts_total", "Total conflict events detected")
+    _PROM_COLLISION_RATE = _prom_metric(Gauge, "sdacs_collision_rate", "Current collision rate (0-1)")
+    _PROM_REQUEST_LATENCY = _prom_metric(
+        Histogram,
         "sdacs_http_request_latency_seconds",
         "HTTP request latency",
-        ["method", "endpoint"],
+        labelnames=["method", "endpoint"],
     )
-    _PROM_WS_CONNECTIONS = Gauge("sdacs_ws_connections", "Active WebSocket connections")
+    _PROM_WS_CONNECTIONS = _prom_metric(Gauge, "sdacs_ws_connections", "Active WebSocket connections")
     _PROMETHEUS_AVAILABLE = True
 except ImportError:
     _PROMETHEUS_AVAILABLE = False
-
-# P712 — Full JWT auth
-from api.auth import AuthContext, Role, create_token, require_auth, require_permission  # noqa: E402
 
 LOGGER = logging.getLogger("sdacs.fastapi")
 API_VERSION = "1.1.0"

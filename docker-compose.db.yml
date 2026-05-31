@@ -1,0 +1,51 @@
+version: "3.9"
+
+# P714 — PostgreSQL + TimescaleDB 이력 저장 (30일 보존)
+# 사용: docker compose -f docker-compose.db.yml up -d
+
+volumes:
+  timescale_data:
+
+networks:
+  sdacs_db:
+    driver: bridge
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:2.14.2-pg16
+    container_name: sdacs_timescaledb
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sdacs
+      POSTGRES_USER: sdacs
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      TIMESCALEDB_TELEMETRY: "off"
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+      - ./src/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sdacs -d sdacs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sdacs_db
+
+  pgadmin:
+    image: dpage/pgadmin4:8.5
+    container_name: sdacs_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@sdacs.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-changeme}
+    ports:
+      - "5050:80"
+    networks:
+      - sdacs_db
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    profiles:
+      - dev

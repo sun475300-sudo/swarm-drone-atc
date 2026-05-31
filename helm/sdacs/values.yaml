@@ -1,0 +1,64 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/sun475300-sudo/swarm-drone-atc
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: sdacs.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: "1"
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+env:
+  SDACS_JWT_SECRET: ""          # 반드시 Secret으로 주입
+  SDACS_JWT_EXPIRE_MINUTES: "60"
+  SDACS_LOG_LEVEL: "INFO"
+
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: false
+
+postgresql:
+  enabled: true
+  auth:
+    database: sdacs
+    username: sdacs
+    password: ""  # 반드시 Secret으로 주입
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: false

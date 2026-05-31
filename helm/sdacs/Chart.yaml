@@ -1,0 +1,14 @@
+apiVersion: v2
+name: sdacs
+description: Swarm Drone Airspace Control System — Helm Chart (P715)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - drone
+  - atc
+  - swarm
+  - simulation
+maintainers:
+  - name: SDACS Team
+    email: sun475300@gmail.com

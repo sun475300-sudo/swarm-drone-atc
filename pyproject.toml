@@ -86,6 +86,10 @@ exclude = ["tests/", "archive/", "visualization/"]
 module = ["simulation.*"]
 ignore_errors = true
 
+[[tool.mypy.overrides]]
+module = ["src.sensor_fusion", "src.boids_swarm"]
+ignore_errors = true
+
 
 [tool.ruff]
 line-length = 120

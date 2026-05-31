@@ -1,0 +1,100 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 3 * * 1"  # weekly on Monday 03:00 UTC
+
+jobs:
+  cve-scan:
+    name: CVE Dependency Scan (pip-audit)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Install project dependencies
+        run: pip install ".[dev]"
+
+      - name: Run CVE scan
+        run: |
+          python -m pip_audit --format=json --output=pip-audit-report.json || true
+          python -m pip_audit --format=columns
+
+      - name: Upload CVE report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: pip-audit-report.json
+          retention-days: 30
+
+  sast:
+    name: SAST (bandit)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install bandit
+        run: pip install bandit[toml]
+
+      - name: Run bandit SAST
+        run: |
+          bandit -r src/ simulation/ api/ \
+            -f json -o bandit-report.json \
+            -ll --quiet || true
+          bandit -r src/ simulation/ api/ \
+            -ll --quiet
+
+      - name: Upload SAST report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json
+          retention-days: 30
+
+  security-audit-script:
+    name: Audit Script Integration Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install ".[dev]"
+          pip install pip-audit bandit[toml]
+
+      - name: Run security audit script
+        run: python scripts/security_audit.py --json | tee audit-summary.json
+
+      - name: Upload audit summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-summary
+          path: audit-summary.json
+          retention-days: 30

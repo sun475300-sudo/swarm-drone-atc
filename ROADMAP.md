@@ -166,7 +166,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P716** — CI/CD 완비 — GitHub Actions 6개 워크플로우 (테스트 3-버전 매트릭스, lint, mypy, 재현성 검증, E2E smoke, Pages 배포) (2026-05-29)
 - [x] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지) — `scripts/load_test_100_drones.py` 처리량 측정 + 60 steps/s 기준 검증 (2026-05-31)
 - [x] **P718** — Prometheus 관측성 — `api/metrics.py` HTTP 요청 카운터·지연시간 히스토그램·WS 게이지·드론 수 + /metrics 엔드포인트 + 6개 테스트 완비 (2026-05-31)
-- [ ] **P719** — 보안 감사 (OWASP ZAP, 의존성 CVE 스캔)
+- [x] **P719** — 보안 감사 — `scripts/security_audit.py` pip-audit CVE 스캔 + bandit SAST + `.github/workflows/security.yml` 자동화 워크플로우 + 16개 테스트 완비 (2026-05-31)
 - [ ] **P720** — 공개 베타 오픈 (3개 파일럿 기관, 피드백 수집 4주)
 
 ---
@@ -176,4 +176,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-05-31 (P706 비교실험 러너·테스트, P712 JWT/RBAC/감사로그, P718 Prometheus 메트릭 완료)*
+*Last updated: 2026-05-31 (P706 비교실험 러너·테스트, P712 JWT/RBAC/감사로그, P718 Prometheus 메트릭, P719 보안 감사 완료)*

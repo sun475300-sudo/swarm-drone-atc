@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-02 03:58 | `9694a06` | fix: np.False_ is False → assert not (numpy 2.x bool identity compat) | tests/test_phase44_51.py |
 | 2026-06-02 03:39 | `45bc2e9` | fix: torch importorskip in 4 test files — prevent collection failure when torch unavailable | tests/test_coverage_boost_2.py, tests/test_coverage_boost_4.py, tests/test_coverage_boost_5.py, tests/test_phase661_670_ai.py |
 | 2026-06-02 03:28 | `e93c55e` | fix: test_api_server_smoke — _token → _user(TokenData) after P712 auth refactor | tests/test_api_server_smoke.py |
 | 2026-06-02 03:18 | `95e7da6` | feat: P712/P717/P718 — JWT auth, load test, Prometheus metrics | ROADMAP.md, api/auth.py, api/fastapi_server.py, scripts/load_test.py, tests/test_auth.py |

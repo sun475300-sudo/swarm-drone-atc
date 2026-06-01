@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-02 04:36 | `e416818` | fix: python-multipart 의존성 추가 — OAuth2PasswordRequestForm form data 파싱 필수 | pyproject.toml, requirements.txt |
 | 2026-06-02 04:33 | `7954fa9` | fix: CI 의존성 누락 수정 — passlib/fastapi/locust를 pyproject.toml/requirements.txt에 추가 | pyproject.toml, requirements.txt, tests/test_load_p717.py |
 | 2026-06-02 04:22 | `2e29e6f` | feat: P706/P712/P717/P718 구현 — 비교실험·인증·부하테스트·관측성 완료 | ROADMAP.md, api/audit_log.py, api/auth.py, api/fastapi_server.py, api/metrics.py, deployment/monitoring/alert.rules.yml … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |

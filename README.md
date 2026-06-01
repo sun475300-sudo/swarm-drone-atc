@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-02 06:28 | `6db9f48` | fix: Phase 521-660 언어 스텁 파일 생성 + battery_predictor bool 반환 수정 | simulation/battery_predictor.py, src/ada/tmr_voter_v2.adb, src/cobol/legacy_atc_bridge.cob, src/cpp/particle_filter.cpp, src/go/realtime_monitor.go, src/go/swarm_blockchain.go … |
 | 2026-06-02 06:12 | `cbcc00f` | fix: Phase 631-639 언어별 스텁 파일 생성 — test_phase631_639 9개 실패 수정 | src/clojure/event_sourcing_v2.clj, src/dart/flutter_dashboard.dart, src/elixir/fault_supervisor.ex, src/erlang/distributed_consensus.erl, src/fortran/cfd_wind_tunnel.f90, src/julia/swarm_ode_solver.jl … |
 | 2026-06-02 05:47 | `1cde3cb` | fix: pytest-asyncio 설정 + run_scenario _token 파라미터 이름 복원 | api/fastapi_server.py, pyproject.toml |
 | 2026-06-02 05:27 | `c5ee29a` | fix: pyproject.toml dev 의존성에 fastapi·httpx·pydantic·websockets 추가 (CI 수정) | pyproject.toml, scripts/load_test.py |

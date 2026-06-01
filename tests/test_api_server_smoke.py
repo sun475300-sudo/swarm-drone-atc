@@ -9,6 +9,8 @@ import pytest
 
 pytest.importorskip("fastapi")
 
+from api.auth import TokenData  # noqa: E402
+
 
 @pytest.mark.asyncio
 async def test_legacy_api_simulate_uses_constructor_override(monkeypatch: pytest.MonkeyPatch):
@@ -75,7 +77,7 @@ async def test_api_run_scenario_accepts_unknown_ids_as_live_airspace(monkeypatch
     monkeypatch.setattr(backend.asyncio, "create_task", fake_create_task)
 
     body = backend.RunScenarioBody(seed=11, method="hybrid", duration_s=45)
-    result = await backend.run_scenario("corridor-alpha", body, _token="test-token")
+    result = await backend.run_scenario("corridor-alpha", body, _user=TokenData("test", "operator"))
 
     assert result["success"] is True
     assert result["data"]["status"] == "queued"

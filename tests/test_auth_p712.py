@@ -5,7 +5,9 @@ import time
 
 import pytest
 
-from api.auth import (
+pytest.importorskip("fastapi", reason="fastapi required for P712 auth tests")
+
+from api.auth import (  # noqa: E402
     AuditEntry,
     AuthContext,
     Role,
@@ -18,7 +20,7 @@ from api.auth import (
     verify_token,
     _audit,
 )
-from fastapi import HTTPException
+from fastapi import HTTPException  # noqa: E402
 
 
 # ---------------------------------------------------------------------------

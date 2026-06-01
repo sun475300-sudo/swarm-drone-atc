@@ -17,7 +17,6 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-
 _JITTER_TARGET_MS = 10.0  # P696 requirement: <10ms jitter
 
 

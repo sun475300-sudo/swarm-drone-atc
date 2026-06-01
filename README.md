@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-02 04:47 | `c08eb4d` | fix: locust를 dev에서 load-test extra로 분리 — gevent monkey-patch가 pytest-asyncio 충돌 방지 | pyproject.toml, requirements.txt |
 | 2026-06-02 04:41 | `efd1b82` | fix: run_scenario 파라미터 변경(_token→actor)에 따른 기존 smoke test 수정 | tests/test_api_server_smoke.py |
 | 2026-06-02 04:36 | `e416818` | fix: python-multipart 의존성 추가 — OAuth2PasswordRequestForm form data 파싱 필수 | pyproject.toml, requirements.txt |
 | 2026-06-02 04:33 | `7954fa9` | fix: CI 의존성 누락 수정 — passlib/fastapi/locust를 pyproject.toml/requirements.txt에 추가 | pyproject.toml, requirements.txt, tests/test_load_p717.py |

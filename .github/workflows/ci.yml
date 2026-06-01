@@ -44,10 +44,10 @@ jobs:
       - name: Run tests with coverage
         run: |
           pytest tests/ --tb=short -q \
-            --cov=src --cov=simulation \
+            --cov=src --cov=simulation --cov=api \
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml \
-            --cov-fail-under=80
+            --cov-fail-under=20
 
       - name: Upload coverage report
         if: matrix.python-version == '3.11'

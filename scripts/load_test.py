@@ -19,13 +19,12 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import logging
 import statistics
 import sys
 import time
 from dataclasses import dataclass, field
 from typing import Any
-
-import logging
 
 import numpy as np
 
@@ -211,7 +210,8 @@ def main() -> int:
         )
     )
 
-    import pathlib, datetime
+    import datetime
+    import pathlib
     out = pathlib.Path("results/load_test_latest.json")
     out.parent.mkdir(exist_ok=True)
     result["timestamp"] = datetime.datetime.utcnow().isoformat()

@@ -58,7 +58,7 @@ def test_metrics_endpoint_returns_prometheus_text():
     import asyncio
     from api.metrics import metrics_endpoint
 
-    response = asyncio.get_event_loop().run_until_complete(metrics_endpoint())
+    response = asyncio.run(metrics_endpoint())
     assert "text/plain" in response.media_type
     assert len(response.body) > 0
     body_text = response.body.decode()

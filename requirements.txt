@@ -17,6 +17,7 @@ dash>=2.17
 fastapi>=0.110
 uvicorn[standard]>=0.29
 passlib>=1.7
+python-multipart>=0.0.9
 
 # Dev
 # pytest 8.x line — pytest 9.0 메이저는 deprecated API 제거 + pytest-asyncio /

@@ -1,104 +1,220 @@
-;;; Rule Engine — Scheme for SDACS declarative conflict resolution
-;;; Phase 619
+;; Rule Engine — Scheme module for Phase 619
+;; Functional rule-based inference engine for drone swarm behavior control.
 
-(define-module (sdacs rule-engine)
-  :export (make-rule apply-rule apply-rules match-pattern
-           make-fact-base assert-fact retract-fact query-facts))
+;; ===== Rule Representation =====
 
-;;; ── Fact Base ────────────────────────────────────────────────────
+;; A rule is a list: (rule-id condition-thunk action-thunk priority description)
+;; Using association lists for the rule database
 
-(define (make-fact-base)
-  (list))
+(define (make-rule id condition action priority description)
+  (list id condition action priority description))
 
-(define (assert-fact db fact)
-  (if (member fact db)
-      db
-      (cons fact db)))
+(define (rule-id r) (car r))
+(define (rule-condition r) (cadr r))
+(define (rule-action r) (caddr r))
+(define (rule-priority r) (cadddr r))
+(define (rule-description r) (car (cddddr r)))
 
-(define (retract-fact db fact)
-  (filter (lambda (f) (not (equal? f fact))) db))
+;; ===== Fact Base =====
 
-(define (query-facts db pattern)
-  (filter (lambda (f) (match-pattern pattern f)) db))
+;; The fact base is a simple association list: ((key . value) ...)
+(define (make-fact-base) '())
 
-;;; ── Pattern Matching ─────────────────────────────────────────────
+(define (assert-fact fb key value)
+  (cons (cons key value) (remove-fact fb key)))
 
-(define (match-pattern pattern fact)
-  (cond
-    ((eq? pattern '?) #t)                        ; wildcard
-    ((pair? pattern)
-     (and (pair? fact)
-          (match-pattern (car pattern) (car fact))
-          (match-pattern (cdr pattern) (cdr fact))))
-    (else (equal? pattern fact))))
+(define (retract-fact fb key)
+  (remove-fact fb key))
 
-;;; ── Rules ────────────────────────────────────────────────────────
+(define (remove-fact fb key)
+  (filter (lambda (pair) (not (equal? (car pair) key))) fb))
 
-(define (make-rule name condition action)
-  (list 'rule name condition action))
+(define (get-fact fb key . default)
+  (let ((found (assoc key fb)))
+    (if found
+        (cdr found)
+        (if (null? default) #f (car default)))))
 
-(define (rule-name r)      (cadr r))
-(define (rule-condition r) (caddr r))
-(define (rule-action r)    (cadddr r))
+(define (fact-true? fb key)
+  (let ((val (get-fact fb key)))
+    (and val (not (equal? val #f)) (not (equal? val 0)))))
 
-(define (apply-rule rule db)
-  (let ((matches (query-facts db (rule-condition rule))))
-    (if (null? matches)
-        db
-        ((rule-action rule) db matches))))
+;; ===== Rule Engine Core =====
 
-(define (apply-rules rules db)
-  (fold-left apply-rule db rules))
+(define (make-engine)
+  (list '() (make-fact-base) '()))  ; (rules, facts, fired-log)
 
-;;; ── SDACS Domain Rules ───────────────────────────────────────────
+(define (engine-rules eng) (car eng))
+(define (engine-facts eng) (cadr eng))
+(define (engine-log eng) (caddr eng))
 
-;;; Separation violation rule: if two drones are within 50m, issue advisory
-(define separation-rule
+(define (add-rule eng rule)
+  (list (append (engine-rules eng) (list rule))
+        (engine-facts eng)
+        (engine-log eng)))
+
+(define (update-facts eng new-facts)
+  (list (engine-rules eng) new-facts (engine-log eng)))
+
+(define (log-fired eng rule-id)
+  (list (engine-rules eng)
+        (engine-facts eng)
+        (append (engine-log eng) (list rule-id))))
+
+;; Sort rules by priority (descending)
+(define (sort-by-priority rules)
+  (sort rules (lambda (a b) (> (rule-priority a) (rule-priority b)))))
+
+;; Run one inference cycle: evaluate all rules against current facts
+(define (inference-cycle eng)
+  (let* ((rules (sort-by-priority (engine-rules eng)))
+         (facts (engine-facts eng))
+         (result
+           (fold-left
+             (lambda (acc-eng rule)
+               (let ((cond-fn (rule-condition rule)))
+                 (if (cond-fn (engine-facts acc-eng))
+                     (let* ((action-fn (rule-action rule))
+                            (new-facts (action-fn (engine-facts acc-eng))))
+                       (log-fired (update-facts acc-eng new-facts) (rule-id rule)))
+                     acc-eng)))
+             eng
+             rules)))
+    result))
+
+;; Run N inference cycles
+(define (run-engine eng n-cycles)
+  (let loop ((e eng) (i 0))
+    (if (>= i n-cycles)
+        e
+        (loop (inference-cycle e) (+ i 1)))))
+
+;; ===== Drone Safety Rules =====
+
+;; Rule: Low battery → request return to launch
+(define rule-low-battery
   (make-rule
-    'separation-violation
-    '(conflict ? ? separation_violation)
-    (lambda (db conflicts)
-      (fold-left
-        (lambda (db+ conflict)
-          (let ((d1 (cadr conflict))
-                (d2 (caddr conflict)))
-            (assert-fact db+ (list 'advisory d1 'ascend 50))))
-        db conflicts))))
+    'LOW-BATTERY-RTL
+    (lambda (facts)
+      (let ((bat (get-fact facts 'battery 100)))
+        (< bat 20)))
+    (lambda (facts)
+      (display "  [RULE] Low battery: RTL commanded\n")
+      (assert-fact facts 'command 'RTL))
+    10
+    "Return to launch when battery < 20%"))
 
-;;; NFZ violation rule
-(define nfz-rule
+;; Rule: Geofence violation → hold position
+(define rule-geofence
   (make-rule
-    'nfz-violation
-    '(conflict ? ? nfz_violation)
-    (lambda (db violations)
-      (fold-left
-        (lambda (db+ violation)
-          (let ((drone (cadr violation)))
-            (assert-fact db+ (list 'advisory drone 'return-to-launch 0))))
-        db violations))))
+    'GEOFENCE-HOLD
+    (lambda (facts)
+      (let ((alt (get-fact facts 'altitude 0)))
+        (> alt 120)))
+    (lambda (facts)
+      (display "  [RULE] Altitude exceeded: HOLD commanded\n")
+      (assert-fact (assert-fact facts 'command 'HOLD) 'violation 'geofence))
+    9
+    "Hold when altitude > 120m"))
 
-;;; Low battery rule
-(define low-battery-rule
+;; Rule: Collision risk → reduce speed
+(define rule-collision-risk
   (make-rule
-    'low-battery
-    '(drone-state ? battery-critical)
-    (lambda (db states)
-      (fold-left
-        (lambda (db+ state)
-          (assert-fact db+ (list 'advisory (cadr state) 'land-immediately 0)))
-        db states))))
+    'COLLISION-DECELERATE
+    (lambda (facts)
+      (fact-true? facts 'collision-risk))
+    (lambda (facts)
+      (display "  [RULE] Collision risk: reducing speed\n")
+      (assert-fact facts 'target-speed 2.0))
+    8
+    "Reduce speed on collision risk"))
 
-(define sdacs-rules
-  (list separation-rule nfz-rule low-battery-rule))
+;; Rule: Signal loss → switch to autonomous mode
+(define rule-signal-loss
+  (make-rule
+    'SIGNAL-LOSS-AUTONOMOUS
+    (lambda (facts)
+      (let ((rssi (get-fact facts 'rssi -40)))
+        (< rssi -90)))
+    (lambda (facts)
+      (display "  [RULE] Signal lost: autonomous mode\n")
+      (assert-fact facts 'mode 'autonomous))
+    7
+    "Autonomous mode on signal loss"))
 
-;;; ── Inference Engine ─────────────────────────────────────────────
+;; Rule: All safe → normal operation
+(define rule-nominal
+  (make-rule
+    'NOMINAL-OPERATION
+    (lambda (facts)
+      (and (> (get-fact facts 'battery 100) 30)
+           (< (get-fact facts 'altitude 0) 100)
+           (not (fact-true? facts 'collision-risk))
+           (> (get-fact facts 'rssi -40) -80)))
+    (lambda (facts)
+      (assert-fact facts 'mode 'nominal))
+    1
+    "Nominal operation when all conditions safe"))
 
-(define (run-inference db . max-cycles)
-  (let ((limit (if (null? max-cycles) 10 (car max-cycles))))
-    (let loop ((db db) (cycle 0))
-      (if (>= cycle limit)
-          db
-          (let ((db* (apply-rules sdacs-rules db)))
-            (if (equal? db db*)
-                db              ; fixed point reached
-                (loop db* (+ cycle 1))))))))
+;; ===== fold-left (R7RS compatible) =====
+(define (fold-left f init lst)
+  (if (null? lst)
+      init
+      (fold-left f (f init (car lst)) (cdr lst))))
+
+;; ===== Main =====
+
+(display "Phase 619: Rule Engine — Drone Safety Inference\n")
+
+;; Build engine with all rules
+(define engine
+  (fold-left add-rule (make-engine)
+    (list rule-low-battery rule-geofence rule-collision-risk
+          rule-signal-loss rule-nominal)))
+
+;; Test Scenario 1: Low battery drone
+(display "\n[Scenario 1: Low battery (15%)]\n")
+(define facts-1
+  (assert-fact
+    (assert-fact
+      (assert-fact (make-fact-base) 'battery 15)
+      'altitude 60)
+    'rssi -70))
+
+(define eng-1 (run-engine (update-facts engine facts-1) 3))
+(display "  Command: ")
+(display (get-fact (engine-facts eng-1) 'command "NONE"))
+(newline)
+
+;; Test Scenario 2: Geofence breach
+(display "\n[Scenario 2: High altitude (135m)]\n")
+(define facts-2
+  (assert-fact
+    (assert-fact
+      (assert-fact (make-fact-base) 'battery 80)
+      'altitude 135)
+    'rssi -65))
+
+(define eng-2 (run-engine (update-facts engine facts-2) 3))
+(display "  Command: ")
+(display (get-fact (engine-facts eng-2) 'command "NONE"))
+(newline)
+
+;; Test Scenario 3: Normal operation
+(display "\n[Scenario 3: Normal conditions]\n")
+(define facts-3
+  (assert-fact
+    (assert-fact
+      (assert-fact (make-fact-base) 'battery 85)
+      'altitude 70)
+    'rssi -60))
+
+(define eng-3 (run-engine (update-facts engine facts-3) 3))
+(display "  Mode: ")
+(display (get-fact (engine-facts eng-3) 'mode "UNKNOWN"))
+(newline)
+
+(display "\nRules fired (scenario 1): ")
+(display (engine-log eng-1))
+(newline)
+(display "Rule engine complete.\n")

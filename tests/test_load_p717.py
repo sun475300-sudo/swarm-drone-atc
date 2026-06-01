@@ -13,6 +13,9 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# locust가 없는 환경(CI에서 dev extras 미포함 등)에서는 전체 파일을 스킵
+locust = pytest.importorskip("locust", reason="locust not installed; run 'pip install locust'")
+
 from tests.load.locustfile import _drone_telemetry
 
 

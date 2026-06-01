@@ -1,0 +1,55 @@
+{{- if .Values.timescaledb.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-timescaledb
+  labels:
+    app: {{ .Release.Name }}-timescaledb
+spec:
+  serviceName: {{ .Release.Name }}-timescaledb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-timescaledb
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-timescaledb
+    spec:
+      containers:
+        - name: timescaledb
+          image: {{ .Values.timescaledb.image }}
+          env:
+            - name: POSTGRES_DB
+              value: sdacs
+            - name: POSTGRES_USER
+              value: sdacs
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.timescaledb.password | quote }}
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.timescaledb.storage }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-timescaledb
+  labels:
+    app: {{ .Release.Name }}-timescaledb
+spec:
+  ports:
+    - port: 5432
+  selector:
+    app: {{ .Release.Name }}-timescaledb
+  clusterIP: None
+{{- end }}

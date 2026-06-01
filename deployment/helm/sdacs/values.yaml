@@ -1,0 +1,50 @@
+replicaCount: 1
+
+image:
+  repository: sdacs
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  dashPort: 8050
+  apiPort: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  host: sdacs.local
+  tls: []
+
+resources:
+  limits:
+    cpu: "2"
+    memory: "4Gi"
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+
+gpu:
+  enabled: false
+  count: 1
+
+env:
+  SDACS_JWT_SECRET: "change-me-in-production"
+  SDACS_DB_DSN: "postgresql://sdacs:sdacs@timescaledb:5432/sdacs"
+  PYTHONUNBUFFERED: "1"
+
+timescaledb:
+  enabled: true
+  image: timescale/timescaledb:latest-pg16
+  storage: 10Gi
+  password: sdacs
+
+prometheus:
+  enabled: true
+  scrapeInterval: 15s
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70

@@ -1,20 +1,21 @@
-"""FastAPI backend skeleton for the SDACS web dashboard (replacement for Dash).
+"""FastAPI backend for the SDACS web dashboard.
 
-Phase: P711
+Phase: P711 (backbone) + P712 (JWT/RBAC) + P718 (Prometheus metrics)
 Goal: progressive migration path from Dash to React + FastAPI + WebSocket.
-This file ONLY provides the backend. The existing Dash app can keep running
-during migration.
 
-Endpoints (v0):
+Endpoints:
     GET  /healthz                  — liveness probe
+    GET  /metrics                  — Prometheus metrics (P718)
     GET  /api/airspace/snapshot    — last known state (polling fallback)
     GET  /api/scenarios            — list of Monte Carlo scenarios
     POST /api/scenarios/{id}/run   — kick off a run (returns run_id)
     GET  /api/runs/{run_id}        — run status / metrics
+    POST /api/auth/token           — issue dev JWT (P712)
+    GET  /api/auth/audit           — audit log tail (admin only)
     WS   /ws/telemetry             — 1 kHz server → client stream
 
-Auth (v1 — stub here):
-    JWT Bearer via Authorization header. See P712 for full RBAC.
+Auth (P712):
+    JWT Bearer via Authorization header, RBAC with admin/operator/viewer roles.
 
 Quickstart:
     pip install fastapi uvicorn[standard]
@@ -44,8 +45,11 @@ except ImportError as exc:  # pragma: no cover
         "pip install 'fastapi>=0.110' 'uvicorn[standard]>=0.29' 'pydantic>=2.5'"
     ) from exc
 
+from api.auth import Role, TokenPayload, audit, create_token, get_audit_log, require_auth, require_role
+from api.metrics import api_requests_total, metrics_endpoint, ws_connections
+
 LOGGER = logging.getLogger("sdacs.fastapi")
-API_VERSION = "1.1.0"
+API_VERSION = "1.2.0"
 
 
 # --- In-memory state (replace with Redis/Postgres in P714) ---
@@ -476,15 +480,8 @@ async def _demo_telemetry_stream() -> None:
         await asyncio.sleep(0.1)
 
 
-# --- Auth dependency (stub) ---
-
-
-async def require_token(authorization: str = Header(default="")) -> str:
-    # P712 will replace with full JWT validation.
-    """``require_token`` 동작을 수행한다."""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(401, detail="missing bearer token")
-    return authorization[len("Bearer ") :]
+# --- Auth dependency (P712) ---
+# require_auth / require_role imported from api.auth
 
 
 # --- Pydantic models ---
@@ -543,6 +540,37 @@ app.add_middleware(
 async def healthz() -> dict:
     """``healthz`` 동작을 수행한다."""
     return {"success": True, "status": "ok", "now_ns": time.time_ns()}
+
+
+@app.get("/metrics", tags=["infra"], include_in_schema=False)
+async def prometheus_metrics():
+    """P718 — Prometheus 스크랩 엔드포인트."""
+    return metrics_endpoint()
+
+
+# ─── P712 — 인증 엔드포인트 ──────────────────────────────────────────────────
+
+class TokenRequest(BaseModel):
+    """토큰 발급 요청."""
+    subject: str = Field(min_length=1, max_length=64, default="dev")
+    role: Role = Field(default=Role.viewer)
+
+
+@app.post("/api/auth/token", tags=["auth"])
+async def issue_token(body: TokenRequest) -> dict:
+    """개발용 JWT 발급. 프로덕션에서는 IdP(OAuth2/OIDC)로 교체할 것."""
+    token = create_token(body.subject, body.role)
+    audit("token_issued", body.subject, f"role={body.role}")
+    return {"access_token": token, "token_type": "bearer"}
+
+
+@app.get("/api/auth/audit", tags=["auth"])
+async def get_audit(
+    limit: int = 100,
+    payload: TokenPayload = Depends(require_role(Role.admin)),
+) -> dict:
+    """감사 로그 조회 (admin only)."""
+    return {"success": True, "data": get_audit_log(limit)}
 
 
 @app.get("/health", tags=["infra"])
@@ -631,7 +659,7 @@ async def scenario_run(name: str, req: ScenarioRunRequest | None = None) -> dict
 async def run_scenario(
     scenario_id: str,
     body: RunScenarioBody,
-    _token: str = Depends(require_token),
+    payload: TokenPayload = Depends(require_role(Role.operator)),
 ) -> dict:
     """``run_scenario`` 동작을 수행한다."""
     STATE.scenarios = _build_scenario_catalog()
@@ -719,6 +747,7 @@ async def ws_telemetry(ws: WebSocket) -> None:
     """``ws_telemetry`` 동작을 수행한다."""
     await ws.accept()
     STATE.telemetry_subscribers.add(ws)
+    ws_connections.set(len(STATE.telemetry_subscribers))
     LOGGER.info("telemetry subscriber connected (total=%d)", len(STATE.telemetry_subscribers))
     try:
         while True:
@@ -753,6 +782,7 @@ async def ws_telemetry(ws: WebSocket) -> None:
         pass
     finally:
         STATE.telemetry_subscribers.discard(ws)
+        ws_connections.set(len(STATE.telemetry_subscribers))
         LOGGER.info("telemetry subscriber disconnected (total=%d)", len(STATE.telemetry_subscribers))
 
 

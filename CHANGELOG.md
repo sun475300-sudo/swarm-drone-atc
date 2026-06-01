@@ -3,6 +3,34 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased] - 2026-06-01
+
+### 추가 (feat) — Track C 배포 서비스화 완성
+
+- **P712** `api/auth.py` — JWT Bearer + admin/operator/viewer RBAC + 감사 로그 + `/api/auth/token` · `/api/auth/audit` 엔드포인트
+- **P714** `db/schema.sql` — PostgreSQL + TimescaleDB 하이퍼테이블 (telemetry·conflict_events·audit_log) + 30일 보존 정책
+- **P714** `db/timescale_client.py` — asyncpg 기반 비동기 DB 클라이언트
+- **P715** `deployment/helm/sdacs/` — Kubernetes Helm 차트 (Chart.yaml, values.yaml, deployment/service/ingress/timescaledb templates)
+- **P717** `scripts/load_test.py` — locust 기반 부하 테스트 (100 동시 사용자, Dashboard+Ops 유저 타입)
+- **P718** `api/metrics.py` — Prometheus prometheus_client 메트릭 수집 + `/metrics` 엔드포인트
+- **P718** `docker-compose.monitoring.yml` — Prometheus + Grafana + Loki + Promtail 관측성 스택
+- **P718** `deployment/monitoring/grafana-provisioning/` — Grafana 자동 프로비저닝 (Prometheus·Loki datasources)
+- **P719** `scripts/security_audit.py` — bandit 정적 분석 + pip-audit CVE 스캔 자동화 리포트
+- **P706** ROADMAP 완료 표시 (`scripts/comparison_experiment.py` 기존 구현 확인)
+
+### 수정 (fix)
+
+- `api/fastapi_server.py` — require_token 스텁 → P712 JWT RBAC 연결, `/metrics` 엔드포인트 추가, API 버전 1.2.0
+
+### 테스트 (test)
+
+- `tests/test_p712_auth.py` — JWT 생성·검증·만료·RBAC + 감사 로그 9개 케이스
+- `tests/test_p718_metrics.py` — Prometheus 메트릭 모듈 3개 케이스
+- `tests/test_p714_db_schema.py` — TimescaleDB 스키마·클라이언트 8개 케이스
+- `tests/test_p715_helm.py` — Helm 차트 구조 7개 케이스 (총 +27 테스트)
+
+---
+
 ## [Unreleased] - 2026-05-03
 
 ### 추가 (feat)

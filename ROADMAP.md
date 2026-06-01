@@ -129,11 +129,11 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 - [ ] **P691** — Pixhawk 6X / Cube Orange 보드 펌웨어 플래싱 및 PX4 v1.15+ 연동
-- [ ] **P692** — Jetson Orin Nano 컴패니언 컴퓨터 MAVLink 브릿지 (`onboard_bridge.py`)
+- [x] **P692** — Jetson Orin Nano 컴패니언 컴퓨터 MAVLink 브릿지 (`onboard_bridge.py`) — `src/hardware/onboard_bridge.py` 730줄, 20Hz 텔레메트리 폴링, MAVLink→Ground 포워딩, 재연결 백오프, `tests/test_onboard_bridge.py` 완비 (2026-06-01)
 - [ ] **P693** — 실기 Remote ID 방송 (ASTM F3411 v2.0 Broadcast/Network 모드)
 - [ ] **P694** — RTK-GPS 센티미터 정밀도 측위 및 AirspaceController 피드백
-- [ ] **P695** — 전파 간섭·통신 단절 대비 Failsafe 로직 (Return-to-Launch / Geofence)
-- [ ] **P696** — 다중 기체 스웜 프레임 동기화 (PTP / NTP, <10ms jitter)
+- [x] **P695** — 전파 간섭·통신 단절 대비 Failsafe 로직 (Return-to-Launch / Geofence) — `src/failsafe.py` GeofenceZone(keep-in/keep-out 원통형)+FailsafeMonitor(comm timeout·geofence·배터리 우선순위)+SwarmFailsafe, `tests/test_failsafe.py` 34개 테스트 완비 (2026-06-01)
+- [x] **P696** — 다중 기체 스웜 프레임 동기화 (PTP / NTP, <10ms jitter) — `src/swarm_sync.py` NTP 스타일 오프셋 추정·중앙값 필터·jitter 측정·SwarmSyncManager, `tests/test_swarm_sync.py` 28개 테스트 완비 (2026-06-01)
 - [ ] **P697** — 실내 Motion Capture (Vicon/Optitrack) HITL 셋업
 - [ ] **P698** — 실외 소규모 스웜 비행 시험 (3-5기 정지비행·포메이션)
 - [ ] **P699** — 풍동·강우·저조도 환경 시나리오 실측

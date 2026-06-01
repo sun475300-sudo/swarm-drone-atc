@@ -3,6 +3,30 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased] - 2026-06-01
+
+### 추가 (feat)
+
+- **P706** `scripts/comparison_experiment.py` — SDACS vs ORCA/VO/CBS 기여도 비교 실험 러너 (시나리오별 메트릭 비교 + t-검정)
+- **P712** `api/auth.py` — HS256 JWT 인증·RBAC 모듈 (admin/operator/viewer 3단계 역할, 감사 로그 링버퍼 10,000건)
+- **P712** `api/fastapi_server.py` — `/auth/token` (토큰 발급), `/admin/audit-log` (admin 전용 감사 로그 조회) 엔드포인트 추가; `require_token` 스텁 → `require_role("operator")` 교체
+- **P718** `api/fastapi_server.py` — `/metrics` Prometheus 스크랩 엔드포인트 추가 (`prometheus_client` 선택 의존성)
+- **P718** `deployment/monitoring/docker-compose.monitoring.yml` — Prometheus 2.51 + Grafana 10.4 + Loki 2.9 + Promtail 컴포즈
+- **P718** `deployment/monitoring/loki-config.yml` — Loki 로그 집계 설정
+- **P718** `deployment/monitoring/promtail-config.yml` — SDACS 앱 로그 수집 파이프라인
+- **P718** `deployment/monitoring/grafana-provisioning/` — 데이터소스(Prometheus+Loki) 자동 프로비저닝
+- **P717** `scripts/load_test.py` — asyncio+httpx 기반 100 WebSocket 동시 클라이언트 부하 테스트, FPS/지연 측정 및 JSON 결과 저장
+- **P719** `scripts/security_audit.py` — bandit 정적 분석 + pip-audit + safety CVE 스캔, JSON 리포트 생성
+
+### 테스트 (test)
+
+- `tests/test_comparison_experiment.py` — P706 비교 실험 21개 단위 테스트
+- `tests/test_auth_p712.py` — P712 JWT/RBAC 23개 테스트 (토큰 생성·검증·역할·FastAPI 통합)
+- `tests/test_load_test_p717.py` — P717 부하 테스트 로직 12개 단위 테스트
+- `tests/test_security_audit_p719.py` — P719 보안 감사 스크립트 10개 단위 테스트
+
+---
+
 ## [Unreleased] - 2026-05-03
 
 ### 추가 (feat)

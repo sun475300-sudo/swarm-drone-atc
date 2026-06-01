@@ -26,6 +26,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import time
 import uuid
 from contextlib import asynccontextmanager
@@ -43,6 +44,20 @@ except ImportError as exc:  # pragma: no cover
         "FastAPI and pydantic are required. "
         "pip install 'fastapi>=0.110' 'uvicorn[standard]>=0.29' 'pydantic>=2.5'"
     ) from exc
+
+try:
+    from prometheus_client import (
+        CONTENT_TYPE_LATEST,
+        Counter,
+        Gauge,
+        Histogram,
+        generate_latest,
+    )
+    _PROMETHEUS_AVAILABLE = True
+except ImportError:  # pragma: no cover
+    _PROMETHEUS_AVAILABLE = False
+
+from api.auth import TokenPayload, create_access_token, get_audit_log, require_role
 
 LOGGER = logging.getLogger("sdacs.fastapi")
 API_VERSION = "1.1.0"
@@ -476,15 +491,16 @@ async def _demo_telemetry_stream() -> None:
         await asyncio.sleep(0.1)
 
 
-# --- Auth dependency (stub) ---
+# --- P712: Prometheus 메트릭 (prometheus_client 선택 의존성) ---
 
-
-async def require_token(authorization: str = Header(default="")) -> str:
-    # P712 will replace with full JWT validation.
-    """``require_token`` 동작을 수행한다."""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(401, detail="missing bearer token")
-    return authorization[len("Bearer ") :]
+if _PROMETHEUS_AVAILABLE:
+    _http_requests_total = Counter(
+        "sdacs_http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"]
+    )
+    _active_ws_connections = Gauge("sdacs_ws_connections_active", "Active WebSocket connections")
+    _run_duration_seconds = Histogram("sdacs_run_duration_seconds", "Scenario run duration")
+else:  # pragma: no cover
+    _http_requests_total = _active_ws_connections = _run_duration_seconds = None  # type: ignore[assignment]
 
 
 # --- Pydantic models ---
@@ -631,7 +647,7 @@ async def scenario_run(name: str, req: ScenarioRunRequest | None = None) -> dict
 async def run_scenario(
     scenario_id: str,
     body: RunScenarioBody,
-    _token: str = Depends(require_token),
+    _user: TokenPayload = require_role("operator"),
 ) -> dict:
     """``run_scenario`` 동작을 수행한다."""
     STATE.scenarios = _build_scenario_catalog()
@@ -754,6 +770,50 @@ async def ws_telemetry(ws: WebSocket) -> None:
     finally:
         STATE.telemetry_subscribers.discard(ws)
         LOGGER.info("telemetry subscriber disconnected (total=%d)", len(STATE.telemetry_subscribers))
+
+
+# --- P712: Auth 엔드포인트 ---
+
+
+class TokenRequest(BaseModel):
+    """토큰 발급 요청."""
+    sub: str = Field(min_length=1, max_length=64)
+    role: str = Field(pattern="^(admin|operator|viewer)$")
+    secret: str = Field(min_length=1)
+
+
+@app.post("/auth/token", tags=["auth"])
+async def issue_token(body: TokenRequest) -> dict:
+    """개발/테스트용 토큰 발급.
+
+    프로덕션에서는 OAuth2 Authorization Code 플로우로 교체하세요.
+    """
+    expected = os.environ.get("SDACS_ADMIN_SECRET", "sdacs-admin-dev")
+    if body.secret != expected:
+        raise HTTPException(status_code=401, detail="invalid admin secret")
+    token = create_access_token(sub=body.sub, role=body.role)
+    return {"access_token": token, "token_type": "bearer"}
+
+
+@app.get("/admin/audit-log", tags=["admin"])
+async def get_audit_log_endpoint(
+    limit: int = 100,
+    _user: TokenPayload = require_role("admin"),
+) -> dict:
+    """최근 감사 로그 조회 (admin 전용)."""
+    return {"entries": get_audit_log(limit=limit)}
+
+
+# --- P718: Prometheus /metrics 엔드포인트 ---
+
+
+@app.get("/metrics", tags=["observability"], include_in_schema=False)
+async def metrics_endpoint() -> Any:
+    """Prometheus 스크랩 타겟."""
+    if not _PROMETHEUS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="prometheus_client not installed")
+    from fastapi.responses import Response
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 def run_dev_server(host: str = "0.0.0.0", port: int = 8000, log_level: str = "info") -> None:

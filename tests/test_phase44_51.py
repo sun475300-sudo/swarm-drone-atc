@@ -380,7 +380,7 @@ class TestBatteryPredictor:
         bp = BatteryPredictor(rtl_pct=20.0)
         bp.record("D1", t=0, battery_pct=80.0)
         bp.record("D1", t=1, battery_pct=79.0)
-        assert bp.should_rtl("D1") is False
+        assert not bp.should_rtl("D1")
 
     def test_can_reach(self):
         bp = BatteryPredictor()

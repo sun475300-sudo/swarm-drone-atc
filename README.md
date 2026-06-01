@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-02 05:43 | `a31264d` | feat: Phase 611-620 스텁 파일 내용 보강 — signal_processor, log_parser, statistical_analyzer, rule_engine | src/octave/signal_processor.m, src/perl/log_parser.pl, src/r/statistical_analyzer.R, src/scheme/rule_engine.scm |
 | 2026-06-02 05:22 | `9c1fc45` | feat: 다국어 스텁 파일 19개 추가 — Phase 631-660 파일 존재 테스트 통과 | src/ada/tmr_voter_v2.adb, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj, src/cpp/particle_filter.cpp, src/dart/flutter_dashboard.dart, src/elixir/fault_supervisor.ex … |
 | 2026-06-02 04:47 | `c08eb4d` | fix: locust를 dev에서 load-test extra로 분리 — gevent monkey-patch가 pytest-asyncio 충돌 방지 | pyproject.toml, requirements.txt |
 | 2026-06-02 04:41 | `efd1b82` | fix: run_scenario 파라미터 변경(_token→actor)에 따른 기존 smoke test 수정 | tests/test_api_server_smoke.py |

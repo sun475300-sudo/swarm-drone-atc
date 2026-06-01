@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-01 10:05 | `d12717e` | feat: implement P695 Failsafe logic + P696 Swarm frame sync | ROADMAP.md, src/failsafe.py, src/swarm_sync.py, tests/test_failsafe.py, tests/test_swarm_sync.py |
 | 2026-06-01 09:59 | `44fe764` | fix: suppress mypy ndarray shape errors on Python 3.10 / numpy 2.2.6 | src/boids_swarm.py |
 | 2026-06-01 09:02 | `8bf84f8` | fix: replace get_event_loop().run_until_complete() with asyncio.run() / fresh loop | tests/test_api_metrics.py, tests/test_ws_bridge.py |
 | 2026-06-01 09:00 | `0b5320d` | chore: gitignore data/*.db (SQLite runtime files) | .gitignore |

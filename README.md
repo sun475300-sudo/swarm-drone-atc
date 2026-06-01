@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-02 06:43 | `6c886d4` | feat: add 35 multi-language stub files for phases 521-599, fix asyncio test | src/ada/safety_critical.adb, src/asm/crc32_checksum.asm, src/clojure/event_stream.clj, src/cpp/formation_gan_engine.cpp, src/crystal/telemetry_parser.cr, src/dart/gcs_protocol.dart … |
 | 2026-06-02 06:29 | `3232cb8` | fix: Phase 641-660 나머지 스텁 파일 추가 (ASM, Nim, OCaml, Prolog) | src/assembly/kalman_filter.asm, src/nim/async_dispatcher.nim, src/ocaml/type_checker.ml, src/prolog/airspace_rules_v2.pl |
 | 2026-06-02 06:28 | `6db9f48` | fix: Phase 521-660 언어 스텁 파일 생성 + battery_predictor bool 반환 수정 | simulation/battery_predictor.py, src/ada/tmr_voter_v2.adb, src/cobol/legacy_atc_bridge.cob, src/cpp/particle_filter.cpp, src/go/realtime_monitor.go, src/go/swarm_blockchain.go … |
 | 2026-06-02 06:12 | `cbcc00f` | fix: Phase 631-639 언어별 스텁 파일 생성 — test_phase631_639 9개 실패 수정 | src/clojure/event_sourcing_v2.clj, src/dart/flutter_dashboard.dart, src/elixir/fault_supervisor.ex, src/erlang/distributed_consensus.erl, src/fortran/cfd_wind_tunnel.f90, src/julia/swarm_ode_solver.jl … |

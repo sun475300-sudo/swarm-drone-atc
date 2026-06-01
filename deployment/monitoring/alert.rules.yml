@@ -1,0 +1,48 @@
+groups:
+  - name: sdacs_alerts
+    interval: 30s
+    rules:
+      # 드론 수가 0이 되면 경보 (비정상 중단)
+      - alert: NoDronesActive
+        expr: sdacs_active_drones == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "활성 드론 없음"
+          description: "2분 이상 추적 드론이 0입니다."
+
+      # WebSocket 연결이 없으면 경보
+      - alert: NoWebSocketSubscribers
+        expr: sdacs_ws_subscribers == 0
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "WebSocket 구독자 없음"
+          description: "5분 이상 대시보드 연결이 없습니다."
+
+      # API 에러율 > 5%
+      - alert: HighApiErrorRate
+        expr: |
+          rate(sdacs_api_requests_total{status=~"5.."}[5m])
+          /
+          rate(sdacs_api_requests_total[5m])
+          > 0.05
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API 에러율 높음"
+          description: "5xx 에러율이 5%를 초과합니다."
+
+      # p95 응답 시간 > 500ms
+      - alert: HighApiLatency
+        expr: |
+          sdacs_api_latency_ms_sum / sdacs_api_latency_ms_count > 500
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API 응답 지연"
+          description: "평균 응답 시간이 500ms를 초과합니다."

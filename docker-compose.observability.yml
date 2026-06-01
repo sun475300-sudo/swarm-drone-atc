@@ -1,0 +1,102 @@
+# P718 — 관측성 스택 (Prometheus + Grafana + Loki + Promtail)
+#
+# 실행:
+#   docker compose -f docker-compose.yml -f docker-compose.observability.yml up
+#
+# 접근:
+#   Grafana:    http://localhost:3001  (admin / sdacs-obs)
+#   Prometheus: http://localhost:9090
+#   Loki:       http://localhost:3100
+
+version: "3.9"
+
+networks:
+  sdacs-obs:
+    driver: bridge
+
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+  loki_data: {}
+
+services:
+  # --------------------------------------------------------------------------
+  # Prometheus — 메트릭 수집
+  # --------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: sdacs-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./deployment/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deployment/monitoring/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-lifecycle
+    ports:
+      - "9090:9090"
+    networks:
+      - sdacs-obs
+
+  # --------------------------------------------------------------------------
+  # Grafana — 시각화 대시보드
+  # --------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: sdacs-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: sdacs-obs
+      GF_SECURITY_ADMIN_USER: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_FEATURE_TOGGLES_ENABLE: traceqlEditor
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./deployment/monitoring/grafana-provisioning:/etc/grafana/provisioning:ro
+      - ./deployment/monitoring/grafana-dashboard.json:/var/lib/grafana/dashboards/sdacs.json:ro
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - sdacs-obs
+
+  # --------------------------------------------------------------------------
+  # Loki — 로그 집계
+  # --------------------------------------------------------------------------
+  loki:
+    image: grafana/loki:2.9.7
+    container_name: sdacs-loki
+    restart: unless-stopped
+    volumes:
+      - ./deployment/monitoring/loki-config.yml:/etc/loki/config.yml:ro
+      - loki_data:/loki
+    command: -config.file=/etc/loki/config.yml
+    ports:
+      - "3100:3100"
+    networks:
+      - sdacs-obs
+
+  # --------------------------------------------------------------------------
+  # Promtail — 로그 수집기 (컨테이너 로그 → Loki)
+  # --------------------------------------------------------------------------
+  promtail:
+    image: grafana/promtail:2.9.7
+    container_name: sdacs-promtail
+    restart: unless-stopped
+    volumes:
+      - ./deployment/monitoring/promtail-config.yml:/etc/promtail/config.yml:ro
+      - ./logs:/logs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - sdacs-obs

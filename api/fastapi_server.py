@@ -35,8 +35,10 @@ from typing import Any, AsyncIterator
 import numpy as np
 
 try:
-    from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
+    from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response, WebSocket, WebSocketDisconnect
     from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.responses import PlainTextResponse
+    from fastapi.security import OAuth2PasswordRequestForm
     from pydantic import BaseModel, Field
 except ImportError as exc:  # pragma: no cover
     raise RuntimeError(
@@ -44,8 +46,21 @@ except ImportError as exc:  # pragma: no cover
         "pip install 'fastapi>=0.110' 'uvicorn[standard]>=0.29' 'pydantic>=2.5'"
     ) from exc
 
+from api.auth import (
+    UserRecord,
+    authenticate_user,
+    create_access_token,
+    create_user,
+    get_current_user,
+    list_users,
+    require_permission,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+)
+from api.audit_log import audit, read_audit_log
+from api.metrics import generate_text, inc, observe_latency
+
 LOGGER = logging.getLogger("sdacs.fastapi")
-API_VERSION = "1.1.0"
+API_VERSION = "1.2.0"  # P712 auth 추가
 
 
 # --- In-memory state (replace with Redis/Postgres in P714) ---
@@ -476,15 +491,12 @@ async def _demo_telemetry_stream() -> None:
         await asyncio.sleep(0.1)
 
 
-# --- Auth dependency (stub) ---
+# --- Auth dependency (P712 구현 완료) ---
 
 
-async def require_token(authorization: str = Header(default="")) -> str:
-    # P712 will replace with full JWT validation.
-    """``require_token`` 동작을 수행한다."""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(401, detail="missing bearer token")
-    return authorization[len("Bearer ") :]
+async def require_token(user: UserRecord = Depends(get_current_user)) -> str:
+    """하위 호환성 유지용 — 토큰 문자열 대신 username을 반환한다."""
+    return user.username
 
 
 # --- Pydantic models ---
@@ -536,7 +548,120 @@ app.add_middleware(
 )
 
 
+# --- Prometheus 메트릭 미들웨어 (P718) ---
+
+@app.middleware("http")
+async def _metrics_middleware(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request)
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    endpoint = request.url.path
+    method = request.method
+    status = str(response.status_code)
+    inc("sdacs_api_requests_total", {"endpoint": endpoint, "method": method, "status": status})
+    observe_latency(endpoint, method, elapsed_ms)
+    return response
+
+
 # --- Health ---
+
+
+# --- Auth endpoints (P712) ---
+
+
+class TokenResponse(BaseModel):
+    """``TokenResponse`` 데이터를 표현한다."""
+
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int = ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    role: str
+
+
+class CreateUserBody(BaseModel):
+    """``CreateUserBody`` 데이터를 표현한다."""
+
+    username: str = Field(min_length=2, max_length=64, pattern=r"^[a-zA-Z0-9_\-]+$")
+    password: str = Field(min_length=8)
+    role: str = Field(pattern=r"^(admin|atc_operator|pilot|observer)$")
+
+
+@app.post("/auth/token", tags=["auth"], response_model=TokenResponse)
+async def login(form: OAuth2PasswordRequestForm = Depends()) -> TokenResponse:
+    """사용자명/비밀번호로 JWT 액세스 토큰을 발급한다."""
+    user = authenticate_user(form.username, form.password)
+    if user is None:
+        await audit(form.username, "auth.login", {"reason": "bad credentials"}, success=False)
+        raise HTTPException(
+            status_code=401,
+            detail="incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    token = create_access_token({"sub": user.username, "role": user.role})
+    await audit(user.username, "auth.login", {}, success=True)
+    return TokenResponse(access_token=token, role=user.role)
+
+
+@app.get("/auth/me", tags=["auth"])
+async def me(user: UserRecord = Depends(get_current_user)) -> dict:
+    """현재 로그인된 사용자 정보를 반환한다."""
+    return {
+        "success": True,
+        "data": {
+            "username": user.username,
+            "role": user.role,
+            "disabled": user.disabled,
+        },
+    }
+
+
+# --- Admin endpoints (P712) ---
+
+
+@app.get("/api/admin/users", tags=["admin"])
+async def admin_list_users(
+    _user: UserRecord = Depends(require_permission("admin:users")),
+) -> dict:
+    """관리자용 사용자 목록 조회."""
+    return {"success": True, "data": list_users()}
+
+
+@app.post("/api/admin/users", tags=["admin"])
+async def admin_create_user(
+    body: CreateUserBody,
+    actor: UserRecord = Depends(require_permission("admin:users")),
+) -> dict:
+    """관리자용 사용자 생성."""
+    try:
+        new_user = create_user(body.username, body.password, body.role)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    await audit(
+        actor.username,
+        "admin.user.create",
+        {"new_user": new_user.username, "role": new_user.role},
+    )
+    return {"success": True, "data": {"username": new_user.username, "role": new_user.role}}
+
+
+@app.get("/api/admin/audit", tags=["admin"])
+async def admin_audit_log(
+    limit: int = 100,
+    offset: int = 0,
+    _user: UserRecord = Depends(require_permission("audit:read")),
+) -> dict:
+    """감사 로그 조회 (최근 순)."""
+    entries = await asyncio.to_thread(read_audit_log, limit, offset)
+    return {"success": True, "total": len(entries), "data": entries}
+
+
+# --- Health ---
+
+
+@app.get("/metrics", tags=["infra"], response_class=PlainTextResponse)
+async def prometheus_metrics() -> str:
+    """Prometheus 스크랩 엔드포인트 (P718)."""
+    return generate_text(STATE)
 
 
 @app.get("/healthz", tags=["infra"])
@@ -631,7 +756,7 @@ async def scenario_run(name: str, req: ScenarioRunRequest | None = None) -> dict
 async def run_scenario(
     scenario_id: str,
     body: RunScenarioBody,
-    _token: str = Depends(require_token),
+    actor: UserRecord = Depends(require_permission("scenario:run")),
 ) -> dict:
     """``run_scenario`` 동작을 수행한다."""
     STATE.scenarios = _build_scenario_catalog()
@@ -646,6 +771,11 @@ async def run_scenario(
         started_at_ns=time.time_ns(),
     )
     STATE.runs[run_id] = record
+    await audit(
+        actor.username,
+        "scenario.run",
+        {"scenario_id": scenario_id, "run_id": run_id, "mode": request_mode},
+    )
 
     # Fire and forget — in production, submit to a worker queue (RQ, Celery, Dramatiq).
     asyncio.create_task(_execute_run(run_id, body))

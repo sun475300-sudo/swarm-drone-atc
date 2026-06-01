@@ -11,6 +11,9 @@ real_time_stream_processor, multi_modal_fusion.
 import time
 
 import numpy as np
+import pytest
+
+pytest.importorskip("torch")  # skip entire file when torch is unavailable
 
 # ── predictive_analytics_engine ───────────────────────────────────────────
 from simulation.predictive_analytics_engine import (

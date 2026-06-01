@@ -39,7 +39,10 @@ dev = [
     "mypy>=1.10",
     "ruff>=0.4",
     "hypothesis>=6.100",
-    # P717 부하 테스트
+]
+# P717 부하 테스트 — gevent monkey-patch가 pytest-asyncio와 충돌하므로 별도 extra
+# 사용법: pip install ".[load-test]" && locust -f tests/load/locustfile.py
+load-test = [
     "locust>=2.20",
 ]
 gpu = [

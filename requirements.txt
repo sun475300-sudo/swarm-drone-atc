@@ -27,5 +27,6 @@ pytest-cov>=5.0
 pytest-asyncio>=0.23
 # Property-based testing (A1-05). APF 단조성 / cutoff / clamp 불변성 검증.
 hypothesis>=6.100
-# P717 부하 테스트
-locust>=2.20
+# P717 부하 테스트 — gevent monkey-patch 충돌로 CI에서 별도 설치 필요
+# pip install ".[load-test]" 또는 pip install locust
+# locust>=2.20  ← CI dev deps에서 제외; load-test extra에만 포함

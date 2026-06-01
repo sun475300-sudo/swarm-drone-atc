@@ -9,7 +9,9 @@ from typing import Optional
 
 try:
     import jwt as pyjwt
-except ImportError:
+    # Verify the jwt package is actually functional (cryptography binding may be broken)
+    pyjwt.encode({"test": 1}, "key", algorithm="HS256")
+except Exception:  # ImportError or pyo3_runtime.PanicException or others
     pyjwt = None  # type: ignore
 
 from fastapi import Depends, Header, HTTPException, status

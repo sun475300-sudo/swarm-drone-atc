@@ -7,8 +7,9 @@ import pytest
 
 try:
     import jwt as pyjwt
+    pyjwt.encode({"t": 1}, "k", algorithm="HS256")  # probe: catches broken Rust bindings
     _HAS_JWT = True
-except ImportError:
+except Exception:
     _HAS_JWT = False
 
 from api.auth import Role, TokenPayload, _decode_token, create_token, get_audit_log, audit

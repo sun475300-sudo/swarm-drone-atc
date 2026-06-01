@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-02 06:30 | `67ac632` | fix: CI 의존성 추가 + jwt 임포트 안전 처리 | api/auth.py, pyproject.toml, tests/test_p712_auth.py |
 | 2026-06-02 06:19 | `a8e454d` | feat: Track C 완성 — P712·P714·P715·P717·P718·P719 구현 + P706 완료 확인 | CHANGELOG.md, ROADMAP.md, api/auth.py, api/fastapi_server.py, api/metrics.py, db/schema.sql … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
 | 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |

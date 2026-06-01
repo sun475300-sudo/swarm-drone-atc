@@ -35,8 +35,10 @@ from typing import Any, AsyncIterator
 import numpy as np
 
 try:
-    from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
+    from fastapi import Depends, FastAPI, Header, HTTPException, Request, WebSocket, WebSocketDisconnect
     from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.responses import PlainTextResponse
+    from fastapi.security import OAuth2PasswordRequestForm
     from pydantic import BaseModel, Field
 except ImportError as exc:  # pragma: no cover
     raise RuntimeError(
@@ -44,8 +46,36 @@ except ImportError as exc:  # pragma: no cover
         "pip install 'fastapi>=0.110' 'uvicorn[standard]>=0.29' 'pydantic>=2.5'"
     ) from exc
 
+from api.auth import (
+    TokenData,
+    get_current_user,
+    login as _auth_login,
+    require_operator,
+)
+
 LOGGER = logging.getLogger("sdacs.fastapi")
-API_VERSION = "1.1.0"
+API_VERSION = "1.2.0"
+
+# ---------------------------------------------------------------------------
+# Simple Prometheus-compatible metrics (P718)
+# ---------------------------------------------------------------------------
+
+_metrics: dict[str, float] = {
+    "http_requests_total": 0.0,
+    "http_errors_total": 0.0,
+    "ws_connections_active": 0.0,
+    "runs_total": 0.0,
+    "runs_completed": 0.0,
+    "runs_failed": 0.0,
+}
+
+
+def _inc(key: str, amount: float = 1.0) -> None:
+    _metrics[key] = _metrics.get(key, 0.0) + amount
+
+
+def _set(key: str, value: float) -> None:
+    _metrics[key] = value
 
 
 # --- In-memory state (replace with Redis/Postgres in P714) ---
@@ -476,15 +506,8 @@ async def _demo_telemetry_stream() -> None:
         await asyncio.sleep(0.1)
 
 
-# --- Auth dependency (stub) ---
-
-
-async def require_token(authorization: str = Header(default="")) -> str:
-    # P712 will replace with full JWT validation.
-    """``require_token`` 동작을 수행한다."""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(401, detail="missing bearer token")
-    return authorization[len("Bearer ") :]
+# --- Auth dependency (P712 — full JWT validation via api.auth) ---
+# require_operator / get_current_user are imported from api.auth
 
 
 # --- Pydantic models ---
@@ -536,6 +559,16 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    """Count requests and errors for Prometheus endpoint."""
+    _inc("http_requests_total")
+    response = await call_next(request)
+    if response.status_code >= 400:
+        _inc("http_errors_total")
+    return response
+
+
 # --- Health ---
 
 
@@ -554,6 +587,56 @@ async def health() -> dict[str, Any]:
         "timestamp": time.time(),
         "gpu": _load_backend_info(),
     }
+
+
+# --- Auth (P712) ---
+
+
+@app.post("/auth/token", tags=["auth"])
+async def auth_token(form_data: OAuth2PasswordRequestForm = Depends()) -> dict[str, Any]:
+    """Issue a JWT access token. Credentials: username/password form fields."""
+    return _auth_login(form_data.username, form_data.password)
+
+
+@app.get("/auth/me", tags=["auth"])
+async def auth_me(user: TokenData = Depends(get_current_user)) -> dict[str, Any]:
+    """Return current user info from JWT."""
+    return {"username": user.username, "role": user.role}
+
+
+# --- Observability / Prometheus metrics (P718) ---
+
+
+@app.get("/metrics", tags=["infra"], response_class=PlainTextResponse)
+async def prometheus_metrics() -> str:
+    """Expose metrics in Prometheus text exposition format."""
+    _set("ws_connections_active", float(len(STATE.telemetry_subscribers)))
+    _set("runs_total", float(len(STATE.runs)))
+    _set("runs_completed", float(sum(1 for r in STATE.runs.values() if r.status == "completed")))
+    _set("runs_failed", float(sum(1 for r in STATE.runs.values() if r.status == "failed")))
+
+    lines = [
+        "# HELP sdacs_http_requests_total Total HTTP requests processed",
+        "# TYPE sdacs_http_requests_total counter",
+        f'sdacs_http_requests_total {_metrics["http_requests_total"]:.0f}',
+        "# HELP sdacs_http_errors_total Total HTTP 4xx/5xx responses",
+        "# TYPE sdacs_http_errors_total counter",
+        f'sdacs_http_errors_total {_metrics["http_errors_total"]:.0f}',
+        "# HELP sdacs_ws_connections_active Active WebSocket telemetry connections",
+        "# TYPE sdacs_ws_connections_active gauge",
+        f'sdacs_ws_connections_active {_metrics["ws_connections_active"]:.0f}',
+        "# HELP sdacs_runs_total Total scenario runs submitted",
+        "# TYPE sdacs_runs_total counter",
+        f'sdacs_runs_total {_metrics["runs_total"]:.0f}',
+        "# HELP sdacs_runs_completed_total Completed scenario runs",
+        "# TYPE sdacs_runs_completed_total counter",
+        f'sdacs_runs_completed_total {_metrics["runs_completed"]:.0f}',
+        "# HELP sdacs_runs_failed_total Failed scenario runs",
+        "# TYPE sdacs_runs_failed_total counter",
+        f'sdacs_runs_failed_total {_metrics["runs_failed"]:.0f}',
+        "",
+    ]
+    return "\n".join(lines)
 
 
 # --- Airspace snapshot ---
@@ -631,7 +714,7 @@ async def scenario_run(name: str, req: ScenarioRunRequest | None = None) -> dict
 async def run_scenario(
     scenario_id: str,
     body: RunScenarioBody,
-    _token: str = Depends(require_token),
+    _user: TokenData = Depends(require_operator),
 ) -> dict:
     """``run_scenario`` 동작을 수행한다."""
     STATE.scenarios = _build_scenario_catalog()
@@ -649,6 +732,7 @@ async def run_scenario(
 
     # Fire and forget — in production, submit to a worker queue (RQ, Celery, Dramatiq).
     asyncio.create_task(_execute_run(run_id, body))
+    _inc("runs_total")
 
     return {
         "success": True,

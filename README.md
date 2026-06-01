@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-01 10:08 | `0256ad2` | fix: sort imports in swarm_sync.py to satisfy ruff I001 | src/swarm_sync.py |
 | 2026-06-01 10:06 | `61818be` | fix: suppress mypy ndarray shape errors in sensor_fusion.py for Python 3.10 | src/sensor_fusion.py |
 | 2026-06-01 10:05 | `d12717e` | feat: implement P695 Failsafe logic + P696 Swarm frame sync | ROADMAP.md, src/failsafe.py, src/swarm_sync.py, tests/test_failsafe.py, tests/test_swarm_sync.py |
 | 2026-06-01 09:59 | `44fe764` | fix: suppress mypy ndarray shape errors on Python 3.10 / numpy 2.2.6 | src/boids_swarm.py |

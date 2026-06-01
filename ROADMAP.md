@@ -148,7 +148,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P703** — 벤치마크 데이터셋 공개화 — `benchmarks/` 10개 시나리오 + 3개 기준선(ORCA/VO/CBS) + CC-BY-4.0 + DATASET_CARD.md + CITATION.bib 완비 (2026-05-29)
 - [x] **P704** — Reproducibility 패키지 — Dockerfile·Dockerfile.gpu·Dockerfile.reproducible + docker-compose.reproducible.yml (PYTHONHASHSEED=0, seed 고정) 완비 (2026-05-29)
 - [x] **P705** — 평가 메트릭 정형화 — `src/analytics/metrics.py` NMR·MSD·PE·MS·FT·AU·RID_CR·RTF 8종 공식 정의 및 Evaluator 클래스 구현 (2026-05-29)
-- [ ] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS)
+- [x] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS) — SDACS W2 APF+CBS 하이브리드 어댑터 완성, NMR·MSD·AU 유의미 개선 확인 (2026-06-01)
 - [ ] **P707** — 논문 초안 작성 (IROS 2026 또는 AIAA SciTech 2027 투고 목표)
 - [ ] **P708** — 내부 리뷰 3회 + 지도교수 피드백 반영
 - [ ] **P709** — 공식 투고 및 arXiv 프리프린트 업로드
@@ -159,12 +159,12 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 공역 관리자용 대시보드를 SaaS 수준으로 안정화.
 
 - [~] **P711** — FastAPI 백엔드 완성 (`api/fastapi_server.py` 769줄, 전체 엔드포인트 구현) — React 프론트엔드 미구현
-- [ ] **P712** — 인증·권한(OAuth2, RBAC) 및 감사 로그 — JWT Bearer 스텁 존재, 전체 구현 미완
+- [x] **P712** — 인증·권한(OAuth2, RBAC) 및 감사 로그 — HS256 JWT + 3계층 RBAC(admin/operator/viewer) + 감사로그 완전 구현, 29개 테스트 통과 (2026-06-01)
 - [x] **P713** — 실시간 WebSocket 채널 — `simulation/ws_bridge.py` 2Hz 스트리밍 + FastAPI `/ws/telemetry` 완비 (2026-05-29)
 - [ ] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존
 - [ ] **P715** — Docker Compose → Kubernetes Helm 차트 변환
 - [x] **P716** — CI/CD 완비 — GitHub Actions 6개 워크플로우 (테스트 3-버전 매트릭스, lint, mypy, 재현성 검증, E2E smoke, Pages 배포) (2026-05-29)
-- [ ] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지)
+- [x] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지) — 100드론 60s PASS (p99=10.74ms, RTF=140x), `scripts/load_test.py` (2026-06-01)
 - [ ] **P718** — 관측성 스택 (Prometheus + Grafana + Loki)
 - [ ] **P719** — 보안 감사 (OWASP ZAP, 의존성 CVE 스캔)
 - [ ] **P720** — 공개 베타 오픈 (3개 파일럿 기관, 피드백 수집 4주)
@@ -176,4 +176,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-05-29 (P703·P704·P705·P713·P716 완료 확인, Track C P711 FastAPI 부분 완료, 관측성·부하테스트 진행 예정)*
+*Last updated: 2026-06-01 (P706·P712·P717 완료. P706: SDACS W2 APF+CBS 어댑터, P712: OAuth2/RBAC 29테스트, P717: 100드론 부하테스트 PASS. Track C P718·P719·P720 진행 예정)*

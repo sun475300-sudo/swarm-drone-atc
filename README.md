@@ -705,6 +705,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-02 03:28 | `e93c55e` | fix: test_api_server_smoke — _token → _user(TokenData) after P712 auth refactor | tests/test_api_server_smoke.py |
 | 2026-06-02 03:18 | `95e7da6` | feat: P712/P717/P718 — JWT auth, load test, Prometheus metrics | ROADMAP.md, api/auth.py, api/fastapi_server.py, scripts/load_test.py, tests/test_auth.py |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
 | 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |

@@ -354,7 +354,7 @@ class TestPhase591OCaml:
     def test_content(self):
         with open_utf8(self.FILE) as f:
             c = f.read()
-        assert "type message" in c
+        assert "type _ message" in c
     def test_line_count(self):
         with open_utf8(self.FILE) as f:
             assert len(f.readlines()) > 50

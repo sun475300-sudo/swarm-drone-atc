@@ -6,6 +6,17 @@ type request
 type response
 type notification
 
+(** Concrete message envelope shared by all directions *)
+type message = {
+  msg_id    : int;
+  msg_drone : string;
+  msg_ts    : float;
+  msg_body  : string;
+}
+
+(** Phantom-typed wrapper — direction encoded at the type level *)
+type 'dir tagged = { payload : message }
+
 (** Protocol version *)
 type version = V1 | V2 | V3
 

@@ -21,12 +21,16 @@
 
 **국립 목포대학교 드론기계공학과 캡스톤 디자인**
 
-[**3D Simulator Demo (메인 시뮬레이터)**](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [**최종 보고서 v6 (기술)**](docs/report/SDACS_Final_Report_v6.docx) | [**최종 보고서 v7 (일반인용)**](docs/report/SDACS_Final_Report_v7_Easy.docx) | [Performance Charts](docs/images/)
+[**🌐 메인 페이지 (Live Site)**](https://sun475300-sudo.github.io/swarm-drone-atc/) | [**🛰 3D 시뮬레이터**](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [**🚢 해양 소형선 감지**](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html) | [**최종 보고서 v6**](docs/report/SDACS_Final_Report_v6.docx) | [**v7**](docs/report/SDACS_Final_Report_v7_Easy.docx)
+
+> 🔗 **GitHub Pages 라이브 사이트**: <https://sun475300-sudo.github.io/swarm-drone-atc/> — 랜딩 페이지(소개·성과·아키텍처)에서 3D 시뮬레이터·해양 소형선 감지·시나리오 비교·테스트 리포트로 이동할 수 있습니다.
 
 </div>
 <div align="center">
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
 </div>
+
+> **🆕 최신 업데이트 (2026-06)** — **원클릭 로컬 실행**(Win/Mac/Linux 더블클릭) · **해양 소형선 감지 시뮬레이터**(레이더 물리·AIS 융합·EO/IR·COLREG·CPA, 8개 시나리오) · 메인 3D 시뮬레이터 **다중 선택·대규모 성능 측정·경로효율·라벨 풀 최적화**가 추가되었습니다. 두 시뮬레이터 모두 헤드리스 스모크(군집 14/14·해양 17/17)와 CI로 검증됩니다.
 
 ---
 
@@ -92,6 +96,77 @@ docker compose run --rm sdacs python main.py monte-carlo --mode quick
 | `./results` | `/app/results` | 읽기/쓰기 | 시뮬레이션 CSV·로그·플롯 영속화 |
 
 > `docker compose down` 후에도 `./results/` 디렉터리의 산출물은 호스트에 그대로 남습니다. 설정은 읽기 전용으로 마운트되므로 컨테이너가 호스트 파일을 덮어쓰지 않습니다.
+
+---
+## 🖥 로컬에서 3D 시뮬레이터 실행 / Run the Simulator Locally
+
+빌드 도구 없이 정적 파일만으로 실행됩니다. **Python만 있으면 더블클릭 한 번으로 실행됩니다.**
+
+### 🖱 원클릭 실행 (더블클릭)
+
+| OS | 더블클릭할 파일 |
+|----|----------------|
+| **Windows** | `run_simulator.bat` |
+| **macOS** | `run_simulator.command` (최초 1회: 우클릭 → 열기) |
+| **Linux** | `run_simulator.sh` |
+
+더블클릭하면 로컬 서버가 뜨고 브라우저가 자동으로 열립니다. 포트(8123)가 사용 중이면 다음 빈 포트를 자동으로 찾습니다. 종료는 뜬 콘솔 창에서 `Ctrl+C` (Windows는 `Terminate batch job (Y/N)?`가 나오면 `Y`).
+
+> Python이 없으면 [python.org](https://www.python.org/downloads/)에서 설치하세요(Windows는 설치 시 "Add Python to PATH" 체크).
+
+### ⌨ 명령줄 실행
+
+```bash
+# 방법 1) 포함된 런처 (브라우저 자동 오픈, 포트 8123→사용 중이면 자동 증가)
+python3 scripts/serve.py                 # → 3D 군집 시뮬레이터
+python3 scripts/serve.py --page maritime # → 해양 소형선 감지 시뮬레이터
+python3 scripts/serve.py --page landing  # → 랜딩 페이지(모든 데모 링크)
+
+# 방법 2) npm 스크립트
+npm start            # = python3 scripts/serve.py
+npm run smoke        # 헤드리스 스모크 테스트(먼저 npm run pw:install 후, 서버 실행 중)
+
+# 방법 3) 한 줄 (파이썬 표준 서버)
+python3 -m http.server 8123   # → http://localhost:8123/swarm_3d_simulator.html
+```
+
+> **오프라인 실행**: 시뮬레이터는 기본적으로 three.js를 unpkg CDN에서 로드합니다(인터넷 필요). 인터넷 없이 쓰려면 `bash scripts/vendor_three.sh`로 three.js를 `vendor/`에 받은 뒤, 안내된 대로 `swarm_3d_simulator.html`의 importmap을 로컬 경로로 교체하세요.
+>
+> ⚠️ `file://`로 직접 열면 ES module importmap이 동작하지 않으니 반드시 HTTP 서버로 여세요.
+
+---
+## 🚢 해양 소형선 감지 시뮬레이터 / Maritime Small-Vessel Detection
+
+**`maritime_detection_simulator.html`** — 대형 모선에서 **7~15m 소형선**(어선·레저보트·고속정·부표)을 레이더·AIS로 탐지·식별·추적하는 전용 시뮬레이터. SDACS의 비협조 표적 탐지·인식 기술을 해양 도메인에 이식한 사례입니다.
+
+### 핵심 기능
+
+| 영역 | 내용 |
+|---|---|
+| **C1 레이더 물리** | 표적별 RCS(어선 12 / 레저 5 / 고속정 3 / 부표 1 m²) + 안테나 높이 기반 **레이더 수평선** 자동 차폐(1.23×(√h_r+√h_t) NM) + **시클러터 블라인드** + RCS·거리·기상 4승 거리법 확률 탐지 |
+| **C2 AIS·레이더 융합** | `radarDet`/`aisDet` 별도 추적 → 첫 감지에 트랙 생성, 둘 다 잡힐 때 "RADAR+AIS 융합" 표기·카운트 |
+| **C4 COLREG 조우** | 표적 침로와 모선 방위 각도 차로 **HEAD-ON / CROSSING / PASSING / AWAY** 분류 + 라벨·트랙리스트·상세 패널 배지 |
+| **C5 트랙 상세** | 클릭(드래그 구분) 또는 트랙리스트 행 클릭 → 상세 패널(ID/소스/신뢰도/거리·방위/속력·침로/RCS/CPA·TCPA/조우) + 0.7s 8샘플 **트레일** + 노란 깜빡 선택 링 |
+| **C6 리포트** | **📷 PNG 리포트**(헤더+3D 캡처+KPI+COLREG 요약+최근 이벤트) · **💾 CSV** 표적 텔레메트리 (`id,type,...,cpa_m,tcpa_s,rcs_m2`) |
+| **C8 시나리오** | 평시(12) · 혼잡 항만(24) · 안개·저시정(2.4NM·acc 0.8) · 야간(EO 저하) · 비협조 침입(고속정) · **폭풍·악천후(2NM)** · **항만 출입(20척)** · **비협조 고속정 다수(18척)** |
+
+### 빠른 사용법
+
+```bash
+# 더블클릭 런처(Win/Mac/Linux) → 메인 시뮬레이터가 열림
+# 해양으로 직접 열려면:
+python3 scripts/serve.py --page maritime
+#   → http://localhost:8123/maritime_detection_simulator.html
+```
+
+상단 시나리오 셀렉터에서 8개 중 선택 → 좌측 패널에서 센서 레이어(레이더 스윕·CPA 예측선·식별 라벨·트랙 트레일) 토글 → 트랙 클릭으로 상세 확인 → 📷/💾 버튼으로 리포트 저장.
+
+### 검증
+
+- 헤드리스 스모크 `tests/e2e/smoke_maritime.mjs` **17/17 통과**(스폰·탐지·식별·정확도·CPA·C1 수평선·C2 융합·C4 조우·C5 선택·시나리오·C3 EO/IR·C6 PNG/CSV·C8 신규 3종·C9 검증기록·무에러)
+- CI(`.github/workflows/sim-smoke.yml`)에서 push·PR마다 자동 실행
+
+📄 **기술 상세**: 레이더 물리·AIS 융합·COLREG·CPA 공식은 [`docs/maritime_detection_technical.md`](docs/maritime_detection_technical.md) 참조
 
 ---
 ## What is SDACS? / SDACS란?
@@ -706,6 +781,29 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-03 11:51 | `b113fbe` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | README.md, ROADMAP.md, api/auth.py, api/fastapi_server.py, benchmarks/baselines/sdacs/adapter.py, main.py … |
+| 2026-06-03 11:44 | `4173b45` | docs: D2 해양 시뮬레이터 기술 문서 + README 링크 | README.md, docs/maritime_detection_technical.md |
+| 2026-06-03 11:42 | `4a7ec26` | feat: B4 드론 다중 선택(Shift+클릭) + 집계 패널 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/smoke_sim.mjs, visualization/swarm_3d_simulator.html |
+| 2026-06-03 11:36 | `c9493a2` | feat: 두 시뮬레이터 상호 네비게이션 링크(군집↔해양) | docs/maritime_detection_simulator.html, docs/simulator.html, docs/swarm_3d_simulator.html, maritime_detection_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
+| 2026-06-03 11:34 | `74d002a` | feat: C9 해양 시나리오별 검증 기록 + CSV 내보내기 | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
+| 2026-06-03 11:30 | `abc3915` | perf: O2→B10 CPA 라벨 스프라이트 풀 재사용 (GC 압력 해소) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/TEST_LOG.md, visualization/swarm_3d_simulator.html |
+| 2026-06-03 11:28 | `00a94ca` | feat: B6 대규모 성능 측정 — draw call·FPS·삼각형 HUD + _sdacs.perf API | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/smoke_sim.mjs, visualization/swarm_3d_simulator.html |
+| 2026-06-03 11:24 | `a638221` | feat: 해양 EO/IR 카메라 뷰(C3) + 해안선·항로·선박 3D 디테일(C7) | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
+| 2026-06-03 11:02 | `93cafb2` | feat: 해양 시뮬레이터 PNG/CSV 리포트(C6) + README 해양 섹션(D2) | README.md, docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
+| 2026-06-03 10:59 | `9540f48` | feat: 해양 시나리오 3종(C8) + 스왐 경로효율 per-leg 수정(O3→B9) | docs/simulator.html, docs/swarm_3d_simulator.html, maritime_detection_simulator.html, swarm_3d_simulator.html, tests/e2e/TEST_LOG.md, visualization/swarm_3d_simulator.html |
+| 2026-06-03 10:56 | `88e76b4` | feat: 해양 시뮬레이터 실용성 강화 — C1 레이더 물리 + C2 AIS·레이더 융합 + C4 COLREG + C5 트랙 상세 | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
+| 2026-05-29 20:34 | `a2bbc54` | fix: numpy 배열 선언에 shape-무관 타입주석 (Python 3.10 mypy 그린화) | src/boids_swarm.py, src/sensor_fusion.py |
+| 2026-05-29 20:09 | `e4172d3` | fix: test_ws_bridge가 Python 3.10에서 깨지던 asyncio 루프 패턴 교체 | tests/test_ws_bridge.py |
+| 2026-05-29 19:38 | `01495f7` | fix: BatteryPredictor.should_rtl가 numpy bool 대신 파이썬 bool 반환 | simulation/battery_predictor.py |
+| 2026-05-29 19:29 | `3c63e82` | fix: 누락 폴리글랏 레퍼런스 파일 전체 복원 (118개 추가, 총 147) | src/ada/safety_critical.adb, src/asm/crc32_checksum.asm, src/clojure/event_stream.clj, src/cpp/apf_simd.cpp, src/cpp/formation_gan_engine.cpp, src/cpp/hil_physics.cpp … |
+| 2026-05-29 19:08 | `fafe3cb` | fix: 누락된 폴리글랏 참조 파일 29개 복원 (CI test 잡 그린화) | src/ada/tmr_voter_v2.adb, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj, src/cobol/legacy_atc_bridge.cob, src/cpp/particle_filter.cpp, src/dart/flutter_dashboard.dart … |
+| 2026-05-29 18:35 | `e6e75ca` | test: 해양 시뮬레이터 헤드리스 스모크 + CI 등록 + 랜딩 카드 | .github/workflows/sim-smoke.yml, docs/index.html, tests/e2e/smoke_maritime.mjs |
+| 2026-05-29 10:20 | `8ed7fc3` | feat: 해양 소형선 감지·식별 전용 시뮬레이터 (maritime_detection_simulator.html) | .github/workflows/deploy-pages.yml, README.md, docs/maritime_detection_simulator.html, maritime_detection_simulator.html |
+| 2026-05-29 10:14 | `208974a` | docs: 스모크 테스트 로그 + 버그 리스트(TEST_LOG.md) + 미해결 항목 코드 주석 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/TEST_LOG.md, visualization/swarm_3d_simulator.html |
+| 2026-05-29 09:27 | `e57192d` | feat: 각 드론 세부 쿼드콥터 모델링 (본체 허브+4암+4링+회전 프롭) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
+| 2026-05-29 09:23 | `3a59a91` | chore: package.json 추적(강제) — 로컬 npm 실행 스크립트 활성화 | package.json |
+| 2026-05-29 09:23 | `a831ba3` | feat: 로컬 실행/빌드 지원 — serve.py 런처 + npm 스크립트 + 오프라인 벤더링 | README.md, scripts/serve.py, scripts/vendor_three.sh |
+| 2026-05-29 09:21 | `bb9c50f` | feat: 외부 드론·조류 인식 가시화 + 탐지 스로틀 시간기반 안정화 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-06-02 09:18 | `d84bb85` | docs: update README with Phase 521-660 multi-language coverage and latest stats | README.md |
 | 2026-06-02 10:20 | `main` | docs: README 최신 내용으로 업데이트 (Phase 521-660 다중 언어 반영, 배지/통계 갱신) | README.md |
 | 2026-06-02 09:17 | `c5b2111` | feat: add 68 multi-language stub files and fix BatteryPredictor numpy bool | simulation/battery_predictor.py, src/ada/safety_critical.adb, src/ada/tmr_voter_v2.adb, src/asm/crc32_checksum.asm, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj … |

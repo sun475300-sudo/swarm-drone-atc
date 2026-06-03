@@ -1,0 +1,19 @@
+{
+  "name": "sdacs-simulator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SDACS 3D 웹 시뮬레이터 — 로컬 실행/테스트 스크립트",
+  "scripts": {
+    "start": "python3 scripts/serve.py",
+    "start:maritime": "python3 scripts/serve.py --page maritime",
+    "start:landing": "python3 scripts/serve.py --page landing",
+    "serve": "python3 scripts/serve.py --no-open",
+    "smoke": "SIM_URL=http://localhost:8123/swarm_3d_simulator.html node tests/e2e/smoke_sim.mjs",
+    "smoke:maritime": "SIM_URL=http://localhost:8123/maritime_detection_simulator.html node tests/e2e/smoke_maritime.mjs",
+    "pw:install": "playwright install chromium",
+    "vendor:three": "bash scripts/vendor_three.sh"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}

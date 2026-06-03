@@ -145,6 +145,7 @@ class BatteryPredictor:
 
         # 예측 기반: 60초 후 critical 이하로 떨어지면 RTL
         remaining = self.predict_remaining_time(drone_id)
+        # predict_remaining_time이 numpy 스칼라를 돌려줄 수 있어 -> bool 보장 위해 bool()
         return bool(0 < remaining < 60)
 
     def drain_rate(self, drone_id: str) -> float:

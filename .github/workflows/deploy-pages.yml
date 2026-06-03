@@ -9,6 +9,7 @@ on:
       - 'docs/**'
       - 'swarm_3d_simulator.html'
       - 'swarm_3d_simulator_v2.html'
+      - 'maritime_detection_simulator.html'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
@@ -42,6 +43,10 @@ jobs:
           if [ -f "swarm_3d_simulator_v2.html" ]; then
             cp -f "swarm_3d_simulator_v2.html" "docs/swarm_3d_simulator_v2.html"
             echo "Synced swarm_3d_simulator_v2.html"
+          fi
+          if [ -f "maritime_detection_simulator.html" ]; then
+            cp -f "maritime_detection_simulator.html" "docs/maritime_detection_simulator.html"
+            echo "Synced maritime_detection_simulator.html"
           fi
 
       - name: Setup Pages

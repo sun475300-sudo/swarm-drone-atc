@@ -180,7 +180,7 @@ class SwarmSimulator:
 
         Returns force vector pointing away from neighbors.
         """
-        force = np.zeros(3, dtype=np.float64)
+        force: np.ndarray = np.zeros(3, dtype=np.float64)
         if not neighbors:
             return force
 
@@ -213,12 +213,12 @@ class SwarmSimulator:
 
         Returns force vector to align velocity with neighbors.
         """
-        force = np.zeros(3, dtype=np.float64)
+        force: np.ndarray = np.zeros(3, dtype=np.float64)
         if not neighbors:
             return force
 
         # Average velocity of neighbors
-        avg_velocity = np.zeros(3, dtype=np.float64)
+        avg_velocity: np.ndarray = np.zeros(3, dtype=np.float64)
         for neighbor in neighbors:
             avg_velocity += neighbor.velocity
         avg_velocity = avg_velocity / len(neighbors)
@@ -239,12 +239,12 @@ class SwarmSimulator:
 
         Returns force vector toward center of neighbors.
         """
-        force = np.zeros(3, dtype=np.float64)
+        force: np.ndarray = np.zeros(3, dtype=np.float64)
         if not neighbors:
             return force
 
         # Average position of neighbors
-        center = np.zeros(3, dtype=np.float64)
+        center: np.ndarray = np.zeros(3, dtype=np.float64)
         for neighbor in neighbors:
             center += neighbor.position
         center = center / len(neighbors)
@@ -265,7 +265,7 @@ class SwarmSimulator:
 
         Returns force vector away from nearby obstacles.
         """
-        force = np.zeros(3, dtype=np.float64)
+        force: np.ndarray = np.zeros(3, dtype=np.float64)
         avoidance_distance = 50.0
 
         for obstacle_pos in self.obstacles:

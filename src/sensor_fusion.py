@@ -119,7 +119,7 @@ class KalmanFilter:
         self.dt = dt
 
         # State vector: [x, y, z, vx, vy, vz]
-        self.state = np.zeros(6, dtype=np.float64)
+        self.state: np.ndarray = np.zeros(6, dtype=np.float64)
         self.state[:3] = np.asarray(initial_position, dtype=np.float64)
         self.state[3:] = np.asarray(initial_velocity, dtype=np.float64)
 

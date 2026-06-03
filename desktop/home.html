@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>SDACS Simulator</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --accent: #29c5ff; --font: 'JetBrains Mono', ui-monospace, Consolas, monospace; }
+  html, body { width: 100%; height: 100vh; background: #02060d; color: #cfe0ee; font-family: var(--font); overflow: hidden; }
+  body { background: radial-gradient(ellipse at top, #0b2540 0%, #02060d 60%); display: flex; flex-direction: column; }
+  header { padding: 36px 48px 0; }
+  .brand { font-size: 12px; letter-spacing: 3px; color: var(--accent); }
+  h1 { font-size: 36px; font-weight: 800; margin: 8px 0 4px; letter-spacing: -.5px; }
+  .sub { font-size: 13px; color: #5a7a96; letter-spacing: 1px; }
+  main { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 36px 48px; }
+  .card { position: relative; background: rgba(6,14,24,.85); border: 1px solid rgba(41,197,255,.25); border-radius: 14px;
+    padding: 28px; cursor: pointer; transition: .2s; overflow: hidden; display: flex; flex-direction: column; }
+  .card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 0 32px rgba(41,197,255,.18); }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); opacity: .6; }
+  .card.maritime::before { background: #22c55e; }
+  .card .icon { font-size: 42px; margin-bottom: 12px; }
+  .card h2 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .card .en { font-size: 11px; color: #5a7a96; letter-spacing: 1px; margin-bottom: 14px; }
+  .card .desc { font-size: 13px; line-height: 1.7; color: #97b3cf; flex: 1; }
+  .card ul { list-style: none; margin-top: 14px; }
+  .card li { font-size: 11px; padding: 3px 0; color: #cfe0ee; }
+  .card li::before { content: '› '; color: var(--accent); }
+  .card.maritime li::before { color: #22c55e; }
+  .card .launch { margin-top: 16px; text-align: right; font-size: 12px; color: var(--accent); font-weight: 700; letter-spacing: 1px; }
+  .card.maritime .launch { color: #22c55e; }
+  footer { padding: 16px 48px; font-size: 10px; color: #44607c; display: flex; justify-content: space-between; border-top: 1px solid rgba(41,197,255,.08); }
+  kbd { padding: 1px 5px; border: 1px solid #335a78; border-radius: 3px; font-size: 9px; background: rgba(0,0,0,.3); }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">SDACS · CAPSTONE 2026</div>
+    <h1>SDACS Simulator</h1>
+    <div class="sub">Swarm Drone Airspace Control · Mokpo National University</div>
+  </header>
+  <main>
+    <a class="card swarm" href="../swarm_3d_simulator.html">
+      <div class="icon">🛰</div>
+      <h2>군집 드론 시뮬레이터</h2>
+      <div class="en">3D Swarm Drone Airspace Control</div>
+      <div class="desc">APF 충돌 회피·CPA 90초 예측·외부 드론/조류 탐지·식별(DnI)·관제 드론 13기 + 최대 10,000대 InstancedMesh.</div>
+      <ul>
+        <li>5계층 안전망·NFZ·63개 시나리오</li>
+        <li>다중 선택 · 성능 측정 · 리플레이</li>
+        <li>분석 뷰 · PNG/CSV/HTML 리포트</li>
+      </ul>
+      <div class="launch">실행 →  <kbd>Ctrl+1</kbd></div>
+    </a>
+    <a class="card maritime" href="../maritime_detection_simulator.html">
+      <div class="icon">🚢</div>
+      <h2>해양 소형선 감지</h2>
+      <div class="en">Maritime Small-Vessel Detection</div>
+      <div class="desc">대형 모선 레이더·AIS 융합으로 7~15m 어선·레저·고속정·부표 탐지·식별. COLREG 조우 분류와 EO/IR 합성 카메라.</div>
+      <ul>
+        <li>레이더 물리(RCS·수평선·시클러터)</li>
+        <li>AIS·레이더 융합 · CPA/TCPA · 트레일</li>
+        <li>시나리오 8종 · KO/EN 토글 · 검증 CSV</li>
+      </ul>
+      <div class="launch">실행 →  <kbd>Ctrl+2</kbd></div>
+    </a>
+  </main>
+  <footer>
+    <span>SDACS Desktop v1.0.0 · Electron · WebGL</span>
+    <span>SDACS 메뉴에서 시뮬레이터 전환 · F11 전체화면 · F12 개발자 도구</span>
+  </footer>
+</body>
+</html>

@@ -64,7 +64,17 @@ try {
   ok(frames > 5, `리플레이 레코더 (${frames} 프레임)`);
   const seekIdx = await page.evaluate(() => window._sdacs.replaySeek(0));
   ok(seekIdx === 0, '리플레이 시크(0)');
-  await page.evaluate(() => window._sdacs.goLive());
+  // P734: 드론 선택 + 분석뷰 ON 상태로 스크럽 → 상세/평면도가 리플레이 프레임에 즉시 동기화(에러 없이)
+  const sync = await page.evaluate(() => {
+    window._sdacs.selectDrone(0);
+    window._sdacs.setAnalysisView(true);
+    const idx = window._sdacs.replaySeek(0);
+    const sel = window._sdacs.getSelected();
+    return { idx, ri: window._sdacs.replayIndex, wx: sel ? sel.wx : null };
+  });
+  ok(sync.idx === 0 && sync.ri === 0 && Number.isFinite(sync.wx),
+    `P734 멀티뷰 동기화 스크럽 (idx=${sync.idx}, ri=${sync.ri}, wx=${Math.round(sync.wx)})`);
+  await page.evaluate(() => { window._sdacs.setAnalysisView(false); window._sdacs.goLive(); });
 
   // 7. 리포트 PNG 생성
   const durl = await page.evaluate(async () => await window._sdacs.reportDataURL());

@@ -5433,6 +5433,14 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
             const mm = String(Math.floor(f.t / 60)).padStart(2, '0');
             const ss = String(Math.floor(f.t % 60)).padStart(2, '0');
             document.getElementById('replay-time').textContent = mm + ':' + ss;
+            syncReplayViews(); // P734: 스크럽 즉시 멀티뷰 동기화(타이머 대기 없이 3D↔2D↔상세 일치)
+        }
+
+        // P734: 리플레이 프레임을 분석 멀티뷰·상세 패널에 즉시 반영
+        // (applyFrame이 drones[] 위치/배터리를 갱신하므로, 같은 데이터를 읽는 뷰를 바로 다시 그린다)
+        function syncReplayViews() {
+            if (analysisMode) drawChart('av-canvas-xy', drawTopDown); // Q2 평면도: 리플레이 위치 반영
+            if (selectedDrone) renderDroneDetail();                   // 선택 드론 상세: 리플레이 위치·배터리 반영
         }
 
         function enterReplay() {
@@ -6902,6 +6910,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             set megaCull(v) { megaCull = !!v; },
             get megaCull() { return megaCull; },
             get replayFrames() { return recorder.frames.length; },
+            get replayIndex() { return replayMode ? replayIdx : -1; }, // P734: 현재 리플레이 프레임(라이브 시 -1)
             get dni() { return { ...dniStats, objects: externalObjs.length }; },
             replaySeek(idx) { enterReplay(); replayIdx = Math.max(0, Math.min(idx, recorder.frames.length - 1)); applyFrame(replayIdx); return replayIdx; },
             goLive,

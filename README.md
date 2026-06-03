@@ -787,6 +787,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-03 22:07 | `34ab0c3` | test: ws_bridge fake mock을 새 SwarmSimulator 인터페이스에 맞춤 | tests/test_ws_bridge.py |
 | 2026-06-03 21:57 | `c072d6c` | feat: P733 ws_bridge LIVE 모드 + ws_bridge 인터페이스 정합성 수정 | simulation/ws_bridge.py, swarm_3d_simulator.html |
 | 2026-06-03 21:50 | `1e80c65` | feat: ROADMAP 진행 현황 표 + Track E/F 신설 + P730 UI i18n(KO/EN) | ROADMAP.md, swarm_3d_simulator.html |
 | 2026-06-03 19:39 | `426b9e7` | ci: desktop-build setup-node 캐시 비활성화 (lock 파일 부재로 실패) | .github/workflows/desktop-build.yml |

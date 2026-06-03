@@ -4979,9 +4979,7 @@
             const grid = new Map();
             for (let i = 0; i < air.length; i++) {
                 const d = air[i];
-                const ix = Math.floor(d.wx / CELL), iz = Math.floor(d.wz / CELL);
-                d._cellIx = ix; d._cellIz = iz;
-                const k = cellKey(ix, iz);
+                const k = cellKey(Math.floor(d.wx / CELL), Math.floor(d.wz / CELL));
                 let bucket = grid.get(k);
                 if (!bucket) { bucket = []; grid.set(k, bucket); }
                 bucket.push(i);
@@ -4992,8 +4990,9 @@
                 const a = air[i];
                 const ra = a.heading * Math.PI / 180;
                 const avx = Math.sin(ra) * a.speed, avz = Math.cos(ra) * a.speed, avy = a.vy || 0;
-                for (let gx = a._cellIx - 1; gx <= a._cellIx + 1 && cand.length < CAND_CAP; gx++) {
-                    for (let gz = a._cellIz - 1; gz <= a._cellIz + 1 && cand.length < CAND_CAP; gz++) {
+                const aix = Math.floor(a.wx / CELL), aiz = Math.floor(a.wz / CELL); // 셀 인덱스 지역 계산(드론 객체 무변이)
+                for (let gx = aix - 1; gx <= aix + 1 && cand.length < CAND_CAP; gx++) {
+                    for (let gz = aiz - 1; gz <= aiz + 1 && cand.length < CAND_CAP; gz++) {
                         const bucket = grid.get(cellKey(gx, gz));
                         if (!bucket) continue;
                         for (let bi = 0; bi < bucket.length && cand.length < CAND_CAP; bi++) {
@@ -6933,7 +6932,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get instanceCount() { return bodyInst.count; },
             get visibleInstances() { return _visibleInst; },
             get perf() { return { fps: perfMetrics.fps, cpuMs: +perfMetrics.cpuMs.toFixed(2), gpuMs: +perfMetrics.gpuMs.toFixed(2), drawCalls: perfMetrics.drawCalls, triangles: perfMetrics.triangles, drones: drones.length, megaMode, visibleInstances: _visibleInst }; }, // B6
-            get cpaPairs() { return _cpaPairCount; }, // B2(P732): 공간 해시 충돌쌍 감지 수
+            get cpaPairs() { return _cpaPairCount; }, // B2(P732): 공간 해시 충돌쌍 감지 수(CAND_CAP=400에서 포화)
             set megaCull(v) { megaCull = !!v; },
             get megaCull() { return megaCull; },
             get replayFrames() { return recorder.frames.length; },

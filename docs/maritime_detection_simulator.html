@@ -40,6 +40,9 @@
         .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .badge { font-size: 8px; padding: 1px 6px; border-radius: 9px; font-weight: 600; }
         .log { bottom: 12px; left: 12px; width: 360px; height: 128px; }
+        .eoir { bottom: 12px; right: 12px; width: 264px; display: none; }
+        .eoir canvas { width: 240px; height: 150px; border: 1px solid rgba(41,197,255,0.25); border-radius: 4px; background: #000; display: block; }
+        .eoir .eobtn { font-size: 9px; padding: 2px 7px; }
         .detail { bottom: 12px; left: 388px; width: 320px; max-height: 180px; overflow-y: auto; display: none; }
         .detail .dl { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 12px; font-size: 10px; }
         .detail .dl .k { color: #5a7a96; }
@@ -108,6 +111,7 @@
         <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-cpa" checked> CPA 충돌 예측선</label>
         <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-label" checked> 식별 라벨·인식 링</label>
         <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-trail" checked> 트랙 트레일</label>
+        <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-env" checked> 해안선·항로</label>
         <div class="kpi">
             <div class="kc"><div class="l">AIS 협조</div><div class="v" id="k-ais" style="color:#22c55e;">0</div></div>
             <div class="kc"><div class="l">융합(R+A)</div><div class="v" id="k-fused" style="color:#a78bfa;">0</div></div>
@@ -130,6 +134,18 @@
     <div class="hud panel log">
         <div class="ctitle" style="margin-bottom:4px;">📡 이벤트 로그</div>
         <div class="loglist" id="loglist"></div>
+    </div>
+
+    <div class="hud panel eoir" id="eoir-panel">
+        <div class="ctitle" style="margin-bottom:4px;">
+            <span id="eoir-title">📹 EO/IR 카메라</span>
+            <span style="margin-left:auto;display:flex;gap:4px;">
+                <button class="btn eobtn active" id="eo-eo">EO</button>
+                <button class="btn eobtn" id="eo-ir">IR</button>
+            </span>
+        </div>
+        <canvas id="eoir-cv" width="240" height="150"></canvas>
+        <div id="eoir-cap" style="font-size:9px;color:#5a7a96;margin-top:3px;">표적 미선택</div>
     </div>
 
     <div class="hud panel detail" id="detail-panel">
@@ -249,6 +265,45 @@
         })();
         scene.add(motherShip);
 
+        // ===== C7 해안선 + 항로(traffic lane) =====
+        const envGroup = new THREE.Group(); scene.add(envGroup);
+        // 해안선: 북동쪽 가장자리에 굴곡진 육지 띠
+        (function buildCoast() {
+            const shape = new THREE.Shape();
+            const edge = W * 1.05, pts = 14;
+            shape.moveTo(edge, edge);
+            shape.lineTo(-edge, edge);
+            for (let i = 0; i <= pts; i++) {
+                const tt = i / pts;
+                const cx = -edge + tt * 2 * edge;
+                const cz = edge * 0.62 + Math.sin(tt * Math.PI * 3) * W * 0.06 + Math.cos(tt * 7) * W * 0.03;
+                shape.lineTo(cx, cz);
+            }
+            shape.lineTo(edge, edge);
+            const geo = new THREE.ShapeGeometry(shape);
+            const land = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ color: 0x10243a, emissive: 0x0a1828, side: THREE.DoubleSide }));
+            land.rotation.x = -Math.PI / 2; land.position.y = 0.05; envGroup.add(land);
+            // 해안선 윤곽선
+            const edgePts = [];
+            for (let i = 0; i <= pts; i++) {
+                const tt = i / pts, cx = -edge + tt * 2 * edge;
+                const cz = edge * 0.62 + Math.sin(tt * Math.PI * 3) * W * 0.06 + Math.cos(tt * 7) * W * 0.03;
+                edgePts.push(new THREE.Vector3(cx, 0.12, cz));
+            }
+            envGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(edgePts),
+                new THREE.LineBasicMaterial({ color: 0x2e6b9e, transparent: true, opacity: 0.6 })));
+        })();
+        // 항로(권장 통항로): 남서↔북동 점선 띠 2개
+        (function buildLanes() {
+            const laneMat = new THREE.LineDashedMaterial({ color: 0x1f7a52, dashSize: 1.4, gapSize: 1.0, transparent: true, opacity: 0.5 });
+            [[-W * 0.55, W * 0.5], [W * 0.5, -W * 0.55]].forEach(([off, off2]) => {
+                const a = new THREE.Vector3(-W, 0.15, off), b = new THREE.Vector3(W, 0.15, off2);
+                const ln = new THREE.Line(new THREE.BufferGeometry().setFromPoints([a, b]), laneMat.clone());
+                ln.computeLineDistances(); envGroup.add(ln);
+            });
+        })();
+        let showEnv = true;
+
         // ===== 텍스트 스프라이트 =====
         function makeLabel(text, color) {
             const c = document.createElement('canvas'); const ctx = c.getContext('2d');
@@ -279,10 +334,15 @@
         selRing.rotation.x = -Math.PI / 2; selRing.renderOrder = 998; selRing.visible = false; scene.add(selRing);
         const raycaster = new THREE.Raycaster();
         const mouseVec = new THREE.Vector2();
-        function deselectVessel() { selected = null; selRing.visible = false; const p = document.getElementById('detail-panel'); if (p) p.style.display = 'none'; }
+        function deselectVessel() {
+            selected = null; selRing.visible = false;
+            const p = document.getElementById('detail-panel'); if (p) p.style.display = 'none';
+            const e = document.getElementById('eoir-panel'); if (e) e.style.display = 'none';
+        }
         function selectVessel(v) {
             selected = v; selRing.visible = true;
             const p = document.getElementById('detail-panel'); if (p) p.style.display = 'block';
+            if (typeof updateEOIRPanel === 'function') updateEOIRPanel();
         }
 
         function logEvent(msg, color = '#9db7d1') { events.unshift({ t: simTime, msg, color }); if (events.length > 60) events.pop(); }
@@ -305,6 +365,24 @@
                 const hull = new THREE.Mesh(new THREE.BoxGeometry(0.32 * s, 0.16 * s, 0.9 * s),
                     new THREE.MeshPhongMaterial({ color: t.color, emissive: t.color, emissiveIntensity: 0.25 }));
                 hull.position.y = 0.12; g.add(hull);
+                // C7 선실/상부구조 — 선종별 실루엣 차별화
+                if (t.id === 'fast') {
+                    // 고속정: 낮고 뾰족한 선수
+                    const bow = new THREE.Mesh(new THREE.ConeGeometry(0.16 * s, 0.4 * s, 4),
+                        new THREE.MeshPhongMaterial({ color: t.color, emissive: t.color, emissiveIntensity: 0.3 }));
+                    bow.rotation.x = Math.PI / 2; bow.position.set(0, 0.14, -0.55 * s); g.add(bow);
+                } else {
+                    // 어선·레저: 선실 박스
+                    const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.22 * s, 0.16 * s, 0.32 * s),
+                        new THREE.MeshPhongMaterial({ color: 0xcfe0ee, emissive: 0x223344, emissiveIntensity: 0.2 }));
+                    cabin.position.set(0, 0.26, t.id === 'fishing' ? 0.12 * s : -0.05 * s); g.add(cabin);
+                    if (t.id === 'fishing') {
+                        // 어선 마스트
+                        const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.012 * s, 0.012 * s, 0.5 * s, 4),
+                            new THREE.MeshBasicMaterial({ color: 0x9db7d1 }));
+                        mast.position.set(0, 0.5, -0.1 * s); g.add(mast);
+                    }
+                }
                 const wake = new THREE.Mesh(new THREE.ConeGeometry(0.18 * s, 0.6 * s, 3),
                     new THREE.MeshBasicMaterial({ color: 0xbfe6ff, transparent: true, opacity: 0.18 }));
                 wake.rotation.x = -Math.PI / 2; wake.position.set(0, 0.06, 0.7 * s); g.add(wake);
@@ -544,11 +622,13 @@
             frames++;
             if (t - lastFps >= 1) { document.getElementById('fps').textContent = frames; frames = 0; lastFps = t; }
             update(dt);
-            // C5 선택 링 추종 + 깜빡임
+            // C5 선택 링 추종 + 깜빡임 + C3 EO/IR 라이브 갱신
             if (selected && selected.g) {
                 selRing.position.set(selected.g.position.x, 0.25, selected.g.position.z);
                 selRing.material.opacity = 0.6 + Math.sin(t * 6) * 0.3;
+                if (frames % 3 === 0) drawEOIR();      // ~20Hz EO/IR 프레임 갱신
             }
+            envGroup.visible = showEnv;                  // C7 해안선·항로 토글
             // 카메라 모드
             if (camMode === 'orbit') { controls.autoRotate = true; controls.autoRotateSpeed = 0.5; }
             else controls.autoRotate = false;
@@ -658,13 +738,80 @@
             layer.trail = e.target.checked;
             for (const v of vessels) if (v.trailLine) v.trailLine.visible = layer.trail;
         });
+        document.getElementById('lyr-env').addEventListener('change', e => showEnv = e.target.checked);
         document.getElementById('btn-png').addEventListener('click', exportPNG);
         document.getElementById('btn-csv').addEventListener('click', exportCSV);
+        document.getElementById('eo-eo').addEventListener('click', () => { eoMode = 'EO'; document.getElementById('eo-eo').classList.add('active'); document.getElementById('eo-ir').classList.remove('active'); updateEOIRPanel(); });
+        document.getElementById('eo-ir').addEventListener('click', () => { eoMode = 'IR'; document.getElementById('eo-ir').classList.add('active'); document.getElementById('eo-eo').classList.remove('active'); updateEOIRPanel(); });
         document.getElementById('detail-x').addEventListener('click', deselectVessel);
         addEventListener('keydown', e => { if (e.key === 'Escape') deselectVessel(); });
         addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 
         // ===== 테스트/외부 API =====
+        // ===== C3 EO/IR 합성 카메라 뷰 =====
+        let eoMode = 'EO';                       // 'EO' | 'IR'
+        function drawEOIR() {
+            const cv = document.getElementById('eoir-cv'); if (!cv) return;
+            const x = cv.getContext('2d'), W2 = cv.width, H2 = cv.height;
+            const v = selected;
+            if (!v) { x.fillStyle = '#000'; x.fillRect(0, 0, W2, H2); return; }
+            const ct = v.classified || v.type;
+            const speedKn = Math.hypot(v.vx, v.vz) / 0.514;
+            const horizon = H2 * 0.52;
+            if (eoMode === 'EO') {
+                // 주간 광학: 하늘/바다/표적 실루엣
+                const sky = x.createLinearGradient(0, 0, 0, horizon);
+                sky.addColorStop(0, '#7fa8c9'); sky.addColorStop(1, '#bcd4e6'); x.fillStyle = sky;
+                x.fillRect(0, 0, W2, horizon);
+                const seaG = x.createLinearGradient(0, horizon, 0, H2);
+                seaG.addColorStop(0, '#274b66'); seaG.addColorStop(1, '#16384f'); x.fillStyle = seaG;
+                x.fillRect(0, horizon, W2, H2 - horizon);
+            } else {
+                // IR 열영상: 차가운 바다(보라/검정) + 뜨거운 표적
+                const bg = x.createLinearGradient(0, 0, 0, H2);
+                bg.addColorStop(0, '#0a0118'); bg.addColorStop(0.52, '#1a0b35'); bg.addColorStop(1, '#06030f'); x.fillStyle = bg;
+                x.fillRect(0, 0, W2, H2);
+            }
+            // 표적 실루엣(거리에 따라 크기) — 중앙 배치
+            const distNM = Math.hypot(v.wx, v.wz) / NM;
+            const scale = Math.max(0.4, Math.min(1.6, 2.2 / (distNM + 0.5)));
+            const bw = 64 * scale, bh = 20 * scale, cx = W2 / 2, cy = horizon - bh * 0.3;
+            if (eoMode === 'EO') {
+                x.fillStyle = '#' + ct.color.toString(16).padStart(6, '0');
+                x.fillRect(cx - bw / 2, cy - bh, bw, bh);
+                x.fillStyle = '#dfeaf2'; x.fillRect(cx - bw * 0.18, cy - bh * 1.7, bw * 0.36, bh * 0.7); // 선실
+            } else {
+                // 열 신호: 엔진(선미)이 가장 뜨겁고, 고속정일수록 강함
+                const heat = v.type.id === 'fast' ? 1.0 : v.type.id === 'fishing' ? 0.75 : 0.55;
+                const grad = x.createRadialGradient(cx + bw * 0.28, cy - bh * 0.5, 1, cx + bw * 0.28, cy - bh * 0.5, bw * 0.7);
+                grad.addColorStop(0, `rgba(255,255,${Math.round(180 * heat)},${0.95})`);
+                grad.addColorStop(0.4, `rgba(255,${Math.round(140 * heat)},40,0.85)`);
+                grad.addColorStop(1, 'rgba(90,20,80,0)');
+                x.fillStyle = grad; x.fillRect(cx - bw, cy - bh * 2.2, bw * 2.4, bh * 2.6);
+                // 선체 윤곽(미온)
+                x.fillStyle = `rgba(${Math.round(120 + 80 * heat)},80,140,0.6)`;
+                x.fillRect(cx - bw / 2, cy - bh, bw, bh);
+            }
+            // 조준 십자선 + 정보 오버레이
+            x.strokeStyle = eoMode === 'EO' ? 'rgba(255,255,255,0.5)' : 'rgba(0,255,170,0.6)'; x.lineWidth = 1;
+            x.beginPath(); x.moveTo(cx, cy - 40); x.lineTo(cx, cy + 14); x.moveTo(cx - 28, cy - bh * 0.5); x.lineTo(cx + 28, cy - bh * 0.5); x.stroke();
+            x.strokeRect(cx - bw / 2 - 4, cy - bh - 4, bw + 8, bh + 8);
+            x.font = '9px JetBrains Mono'; x.fillStyle = eoMode === 'EO' ? '#fff' : '#0fb';
+            x.fillText(`${eoMode}  ${ct.label}`, 6, 13);
+            x.fillText(`${distNM.toFixed(1)}NM  ${speedKn.toFixed(0)}kn`, 6, H2 - 6);
+            x.fillText(v.id, W2 - 44, 13);
+            if (v.cpaWarn) { x.fillStyle = '#ef4444'; x.fillText('⚠ CPA', W2 - 52, H2 - 6); }
+        }
+        function updateEOIRPanel() {
+            const p = document.getElementById('eoir-panel'); if (!p) return;
+            if (selected) {
+                p.style.display = 'block';
+                const ct = selected.classified || selected.type;
+                document.getElementById('eoir-cap').textContent = `${selected.id} · ${ct.label} · ${eoMode} 센서`;
+                drawEOIR();
+            } else { p.style.display = 'none'; }
+        }
+
         // ===== C6 리포트·내보내기 =====
         function buildReportCanvas() {
             // 헤더 + 3D 캡처 + 통계 패널 합성
@@ -760,9 +907,12 @@
             get cpaWarn() { return stats.cpaWarn; },
             get fused() { return stats.fused; },                                                     // C2 융합 트랙
             get encounters() { return vessels.filter(v => v.encounter).map(v => ({ id: v.id, type: v.encounter })); }, // C4
+            get tracks() { return vessels.filter(v => v.detected).map(v => v.id); },                                  // 탐지 트랙 id
             get horizonNM() { return radarHorizonM(2.4) / NM; },                                      // C1 평균 수평선(NM)
             select(id) { const v = vessels.find(x => x.id === id || x.id === `V-${String(id).padStart(3,'0')}`); if (v) selectVessel(v); return v ? v.id : null; }, // C5
             deselect: deselectVessel,
+            eoirMode(m) { if (m === 'EO' || m === 'IR') { eoMode = m; updateEOIRPanel(); } return eoMode; }, // C3
+            eoirDataURL() { drawEOIR(); const cv = document.getElementById('eoir-cv'); return cv ? cv.toDataURL('image/png') : null; }, // C3
             reportDataURL() { return buildReportCanvas().toDataURL('image/png'); }, // C6 PNG
             csvText() {                                                              // C6 CSV (테스트용)
                 const head = 'id,type,len_m,radar_det,ais_det,identified';

@@ -86,6 +86,14 @@ try {
   const busyTotal = await page.evaluate(() => window._mds.total);
   ok(busyTotal > 0, `혼잡 항만 시나리오 (${busyTotal}척)`);
 
+  // 7a2. C3 EO/IR 카메라 뷰 — 탐지 트랙 선택 후 EO/IR 프레임 생성
+  await page.waitForFunction(() => window._mds.tracks.length > 0, { timeout: 15000 }).catch(() => {});
+  const selOk = await page.evaluate(() => { const t = window._mds.tracks; return t.length ? window._mds.select(t[0]) : null; });
+  const eoEO = await page.evaluate(() => { window._mds.eoirMode('EO'); return window._mds.eoirDataURL(); });
+  const eoIR = await page.evaluate(() => { window._mds.eoirMode('IR'); return window._mds.eoirDataURL(); });
+  ok(!!selOk && typeof eoEO === 'string' && eoEO.startsWith('data:image/png') && typeof eoIR === 'string' && eoIR !== eoEO, `C3 EO/IR 카메라 뷰(EO≠IR, sel=${selOk})`);
+  await page.evaluate(() => window._mds.deselect());
+
   // 7b. C6 PNG 리포트
   const durl = await page.evaluate(() => window._mds.reportDataURL());
   ok(typeof durl === 'string' && durl.startsWith('data:image/png') && durl.length > 4000, 'C6 PNG 리포트 생성');

@@ -161,8 +161,10 @@ python3 scripts/serve.py --page maritime
 
 ### 검증
 
-- 헤드리스 스모크 `tests/e2e/smoke_maritime.mjs` 15/15 통과(스폰·탐지·식별·정확도·CPA·C1 수평선·C2 융합·C4 조우·C5 선택·시나리오·C6 PNG/CSV·C8 신규 3종·무에러)
+- 헤드리스 스모크 `tests/e2e/smoke_maritime.mjs` **17/17 통과**(스폰·탐지·식별·정확도·CPA·C1 수평선·C2 융합·C4 조우·C5 선택·시나리오·C3 EO/IR·C6 PNG/CSV·C8 신규 3종·C9 검증기록·무에러)
 - CI(`.github/workflows/sim-smoke.yml`)에서 push·PR마다 자동 실행
+
+📄 **기술 상세**: 레이더 물리·AIS 융합·COLREG·CPA 공식은 [`docs/maritime_detection_technical.md`](docs/maritime_detection_technical.md) 참조
 
 ---
 ## What is SDACS? / SDACS란?

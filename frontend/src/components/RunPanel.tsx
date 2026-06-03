@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ApiError, fetchRun, startRun } from "../api/client";
 import type { RunRecordData, RunScenarioBody } from "../api/types";
 
@@ -19,9 +19,20 @@ export function RunPanel({ scenarioId, token }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [run, setRun] = useState<RunRecordData | null>(null);
 
+  // 언마운트 후 setState/추가 폴링을 막는 가드(120초 유령 요청 방지).
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   async function pollUntilDone(runId: string): Promise<void> {
     for (let i = 0; i < MAX_POLLS; i += 1) {
+      if (!mountedRef.current) return;
       const record = await fetchRun(runId);
+      if (!mountedRef.current) return;
       setRun(record);
       if (record.status === "completed" || record.status === "failed") return;
       await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
@@ -78,8 +89,9 @@ export function RunPanel({ scenarioId, token }: Props) {
           <input
             type="number"
             min={0}
+            step={1}
             value={seed}
-            onChange={(e) => setSeed(Number(e.target.value))}
+            onChange={(e) => setSeed(parseInt(e.target.value, 10) || 0)}
           />
         </label>
         <label>
@@ -88,8 +100,11 @@ export function RunPanel({ scenarioId, token }: Props) {
             type="number"
             min={1}
             max={3600}
+            step={1}
             value={durationS}
-            onChange={(e) => setDurationS(Number(e.target.value))}
+            onChange={(e) =>
+              setDurationS(Math.max(1, parseInt(e.target.value, 10) || 60))
+            }
           />
         </label>
       </div>

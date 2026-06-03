@@ -27,18 +27,26 @@ export class ApiError extends Error {
 
 /** {success,data} 봉투를 해제한다. 실패하면 ApiError 를 던진다. */
 export function unwrap<T>(body: Envelope<T>, status: number): T {
-  if (!body.success || body.data === undefined) {
+  if (!body.success || body.data === undefined || body.data === null) {
     throw new ApiError(body.error ?? `request failed (HTTP ${status})`, status);
   }
   return body.data;
+}
+
+/** res.json() 을 안전하게 파싱한다. 비-JSON(uvicorn 500 등)은 ApiError 로 변환. */
+async function parseEnvelope<T>(res: Response): Promise<Envelope<T>> {
+  try {
+    return (await res.json()) as Envelope<T>;
+  } catch {
+    throw new ApiError(`HTTP ${res.status} (non-JSON response)`, res.status);
+  }
 }
 
 async function getJson<T>(path: string, token?: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
-  const body = (await res.json()) as Envelope<T>;
-  return unwrap(body, res.status);
+  return unwrap(await parseEnvelope<T>(res), res.status);
 }
 
 export function fetchScenarios(): Promise<ScenarioCatalog> {
@@ -70,8 +78,7 @@ export async function startRun(
       body: JSON.stringify(body),
     },
   );
-  const json = (await res.json()) as Envelope<RunStartData>;
-  return unwrap(json, res.status);
+  return unwrap(await parseEnvelope<RunStartData>(res), res.status);
 }
 
 /** WebSocket 텔레메트리 엔드포인트의 절대 URL(http→ws 변환). */

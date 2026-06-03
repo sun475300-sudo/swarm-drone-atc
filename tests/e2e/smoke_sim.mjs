@@ -83,6 +83,11 @@ try {
   ok(perf && perf.drones === 1000 && perf.megaMode === true && perf.drawCalls > 0 && perf.drawCalls < perf.drones && Number.isFinite(perf.fps) && perf.visibleInstances > 0,
     `B6 성능 측정 (DC=${perf.drawCalls} < 1000대, fps=${perf.fps}, vis=${perf.visibleInstances})`);
 
+  // 8d. B2 대규모 CPA 충돌예측 복원 — 1k megaMode에서 공간해시로 충돌쌍 탐지(프리즈/에러 없이)
+  const conflict = await page.evaluate(() => ({ pairs: window._sdacs.conflictPairs, mega: window._sdacs.megaMode, n: window._sdacs.droneCount }));
+  ok(conflict.mega === true && conflict.n === 1000 && Number.isFinite(conflict.pairs) && conflict.pairs >= 0,
+    `B2 대규모 CPA 충돌쌍 (${conflict.pairs}쌍 @1000대 megaMode)`);
+
   // 8c. B4 다중 선택 — 여러 드론 선택 후 집계 패널 동작
   await page.evaluate(() => window._sdacs.selectScenario('route_conflict'));
   await page.waitForTimeout(400);

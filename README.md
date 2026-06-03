@@ -133,6 +133,38 @@ python3 -m http.server 8123   # → http://localhost:8123/swarm_3d_simulator.htm
 > ⚠️ `file://`로 직접 열면 ES module importmap이 동작하지 않으니 반드시 HTTP 서버로 여세요.
 
 ---
+## 🚢 해양 소형선 감지 시뮬레이터 / Maritime Small-Vessel Detection
+
+**`maritime_detection_simulator.html`** — 대형 모선에서 **7~15m 소형선**(어선·레저보트·고속정·부표)을 레이더·AIS로 탐지·식별·추적하는 전용 시뮬레이터. SDACS의 비협조 표적 탐지·인식 기술을 해양 도메인에 이식한 사례입니다.
+
+### 핵심 기능
+
+| 영역 | 내용 |
+|---|---|
+| **C1 레이더 물리** | 표적별 RCS(어선 12 / 레저 5 / 고속정 3 / 부표 1 m²) + 안테나 높이 기반 **레이더 수평선** 자동 차폐(1.23×(√h_r+√h_t) NM) + **시클러터 블라인드** + RCS·거리·기상 4승 거리법 확률 탐지 |
+| **C2 AIS·레이더 융합** | `radarDet`/`aisDet` 별도 추적 → 첫 감지에 트랙 생성, 둘 다 잡힐 때 "RADAR+AIS 융합" 표기·카운트 |
+| **C4 COLREG 조우** | 표적 침로와 모선 방위 각도 차로 **HEAD-ON / CROSSING / PASSING / AWAY** 분류 + 라벨·트랙리스트·상세 패널 배지 |
+| **C5 트랙 상세** | 클릭(드래그 구분) 또는 트랙리스트 행 클릭 → 상세 패널(ID/소스/신뢰도/거리·방위/속력·침로/RCS/CPA·TCPA/조우) + 0.7s 8샘플 **트레일** + 노란 깜빡 선택 링 |
+| **C6 리포트** | **📷 PNG 리포트**(헤더+3D 캡처+KPI+COLREG 요약+최근 이벤트) · **💾 CSV** 표적 텔레메트리 (`id,type,...,cpa_m,tcpa_s,rcs_m2`) |
+| **C8 시나리오** | 평시(12) · 혼잡 항만(24) · 안개·저시정(2.4NM·acc 0.8) · 야간(EO 저하) · 비협조 침입(고속정) · **폭풍·악천후(2NM)** · **항만 출입(20척)** · **비협조 고속정 다수(18척)** |
+
+### 빠른 사용법
+
+```bash
+# 더블클릭 런처(Win/Mac/Linux) → 메인 시뮬레이터가 열림
+# 해양으로 직접 열려면:
+python3 scripts/serve.py --page maritime
+#   → http://localhost:8123/maritime_detection_simulator.html
+```
+
+상단 시나리오 셀렉터에서 8개 중 선택 → 좌측 패널에서 센서 레이어(레이더 스윕·CPA 예측선·식별 라벨·트랙 트레일) 토글 → 트랙 클릭으로 상세 확인 → 📷/💾 버튼으로 리포트 저장.
+
+### 검증
+
+- 헤드리스 스모크 `tests/e2e/smoke_maritime.mjs` 15/15 통과(스폰·탐지·식별·정확도·CPA·C1 수평선·C2 융합·C4 조우·C5 선택·시나리오·C6 PNG/CSV·C8 신규 3종·무에러)
+- CI(`.github/workflows/sim-smoke.yml`)에서 push·PR마다 자동 실행
+
+---
 ## What is SDACS? / SDACS란?
 
 > **"레이더를 땅에 설치하는 대신, 드론 자체가 레이더가 되면 어떨까?"**

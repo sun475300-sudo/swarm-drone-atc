@@ -86,6 +86,24 @@ try {
   const busyTotal = await page.evaluate(() => window._mds.total);
   ok(busyTotal > 0, `혼잡 항만 시나리오 (${busyTotal}척)`);
 
+  // 7b. C6 PNG 리포트
+  const durl = await page.evaluate(() => window._mds.reportDataURL());
+  ok(typeof durl === 'string' && durl.startsWith('data:image/png') && durl.length > 4000, 'C6 PNG 리포트 생성');
+
+  // 7c. C6 CSV 출력
+  const csv = await page.evaluate(() => window._mds.csvText());
+  ok(typeof csv === 'string' && csv.split('\n').length > 1 && csv.includes('id,type'), `C6 CSV (${csv.split('\n').length - 1}행)`);
+
+  // 7d. C8 신규 시나리오(storm/harbor/pirate) 전환 무에러
+  let c8ok = true;
+  for (const s of ['storm', 'harbor', 'pirate']) {
+    await page.evaluate(n => window._mds.scenario(n), s);
+    await page.waitForTimeout(300);
+    const t = await page.evaluate(() => window._mds.total);
+    if (!(t > 0)) { c8ok = false; break; }
+  }
+  ok(c8ok, 'C8 신규 시나리오 3종(storm/harbor/pirate)');
+
   // 8. 페이지 런타임 에러 없음
   ok(pageErrors.length === 0, `런타임 에러 0건${pageErrors.length ? ' → ' + pageErrors.join(' | ') : ''}`);
 } catch (e) {

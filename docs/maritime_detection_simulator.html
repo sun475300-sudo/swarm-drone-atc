@@ -88,6 +88,9 @@
             <option value="fog">안개·저시정 (탐지 저하)</option>
             <option value="night">야간 (EO 저하)</option>
             <option value="intrusion">비협조 침입 (고속정)</option>
+            <option value="storm">폭풍·악천후 (2NM, 시클러터↑)</option>
+            <option value="harbor">항만 출입 (느린 20척)</option>
+            <option value="pirate">비협조 고속정 다수 (18척)</option>
         </select>
         <div class="row" style="align-items:center;font-size:9px;color:#5a7a96;">
             속도<input type="range" id="speed" min="0.5" max="6" step="0.5" value="1.5" style="flex:1;"><span id="speed-v" style="min-width:26px;text-align:right;color:#cfe0ee;">1.5×</span>
@@ -95,6 +98,10 @@
         <div class="row" style="margin-top:6px;">
             <button class="btn" id="cam-orbit" style="flex:1;">오빗</button>
             <button class="btn active" id="cam-top" style="flex:1;">탑다운</button>
+        </div>
+        <div class="row" style="margin-top:6px;">
+            <button class="btn" id="btn-png" style="flex:1;" title="현재 상태 PNG 리포트 저장">📷 PNG</button>
+            <button class="btn" id="btn-csv" style="flex:1;" title="표적 텔레메트리 CSV 저장">💾 CSV</button>
         </div>
         <div class="ctitle" style="margin-top:12px;">🎚 센서 레이어</div>
         <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-radar" checked> 레이더 스윕·링</label>
@@ -178,6 +185,9 @@
             fog: { n: 14, radar: 2.4, accMul: 0.8, fast: 0.05 },     // 안개: 거리·정확도 저하
             night: { n: 14, radar: 3.4, accMul: 0.85, fast: 0.08 },  // 야간: EO 저하
             intrusion: { n: 16, radar: 4.0, accMul: 1.0, fast: 0.4 },// 고속 침입 다수
+            storm: { n: 10, radar: 2.0, accMul: 0.7, fast: 0.05 },    // C8 폭풍: 시클러터·거리·정확도 모두 저하
+            harbor: { n: 20, radar: 3.5, accMul: 1.0, fast: 0.02 },   // C8 항만 출입: 느린 다수
+            pirate: { n: 18, radar: 4.0, accMul: 0.9, fast: 0.55 },   // C8 비협조 고속정 떼
         };
 
         // ===== Three.js =====
@@ -648,11 +658,100 @@
             layer.trail = e.target.checked;
             for (const v of vessels) if (v.trailLine) v.trailLine.visible = layer.trail;
         });
+        document.getElementById('btn-png').addEventListener('click', exportPNG);
+        document.getElementById('btn-csv').addEventListener('click', exportCSV);
         document.getElementById('detail-x').addEventListener('click', deselectVessel);
         addEventListener('keydown', e => { if (e.key === 'Escape') deselectVessel(); });
         addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 
         // ===== 테스트/외부 API =====
+        // ===== C6 리포트·내보내기 =====
+        function buildReportCanvas() {
+            // 헤더 + 3D 캡처 + 통계 패널 합성
+            const W = 1280, H = 800, pad = 24;
+            const c = document.createElement('canvas'); c.width = W; c.height = H;
+            const x = c.getContext('2d');
+            // 배경 + 헤더
+            x.fillStyle = '#02060d'; x.fillRect(0, 0, W, H);
+            x.fillStyle = '#29c5ff'; x.font = 'bold 22px JetBrains Mono, monospace';
+            x.fillText('SDACS-Marine 리포트 — 소형선 탐지·식별', pad, 38);
+            x.font = '11px JetBrains Mono'; x.fillStyle = '#5a7a96';
+            const ts = new Date().toISOString().replace('T', ' ').slice(0, 19);
+            x.fillText(`생성 ${ts} · 시뮬 ${simTime.toFixed(0)}s · 시나리오 ${document.getElementById('scenario').value}`, pad, 56);
+            // 3D 캡처(좌측)
+            renderer.render(scene, camera);
+            const src = renderer.domElement;
+            const sw = 760, sh = 480, sy = 80;
+            x.drawImage(src, pad, sy, sw, sh);
+            x.strokeStyle = 'rgba(41,197,255,0.4)'; x.lineWidth = 1; x.strokeRect(pad, sy, sw, sh);
+            // 통계 패널(우측)
+            const px = pad + sw + 16, pw = W - px - pad;
+            x.fillStyle = 'rgba(41,197,255,0.06)'; x.fillRect(px, sy, pw, sh);
+            x.strokeStyle = 'rgba(41,197,255,0.3)'; x.strokeRect(px, sy, pw, sh);
+            x.fillStyle = '#29c5ff'; x.font = 'bold 14px JetBrains Mono'; x.fillText('📊 KPI', px + 12, sy + 26);
+            const rows = [
+                ['총 표적', vessels.length],
+                ['탐지', stats.detected],
+                ['식별', stats.identified],
+                ['AIS 협조', stats.ais],
+                ['비협조', stats.noncoop],
+                ['융합(R+A)', stats.fused],
+                ['CPA 경고', stats.cpaWarn],
+                ['식별 정확도', (stats.identified ? (stats.correct / stats.identified * 100).toFixed(1) : '100') + '%'],
+                ['평균 탐지', (stats.detN ? stats.detSum / stats.detN : 0).toFixed(2) + 's'],
+                ['레이더 거리', RADAR_NM.toFixed(1) + 'NM'],
+                ['레이더 수평선', (radarHorizonM(2.4) / NM).toFixed(2) + 'NM'],
+            ];
+            x.font = '12px JetBrains Mono';
+            rows.forEach(([k, v], i) => {
+                const y = sy + 50 + i * 24;
+                x.fillStyle = '#5a7a96'; x.fillText(k, px + 12, y);
+                x.fillStyle = '#cfe0ee'; x.textAlign = 'right'; x.fillText(String(v), px + pw - 12, y); x.textAlign = 'left';
+            });
+            // 하단: 조우 분류·이벤트 요약
+            const by = sy + sh + 18;
+            x.fillStyle = '#29c5ff'; x.font = 'bold 13px JetBrains Mono'; x.fillText('🎯 COLREG 조우 분류', pad, by);
+            const encCount = {};
+            for (const v of vessels) if (v.encounter) encCount[v.encounter] = (encCount[v.encounter] || 0) + 1;
+            x.font = '11px JetBrains Mono'; x.fillStyle = '#cfe0ee';
+            const encTxt = Object.entries(encCount).map(([k, n]) => `${k}: ${n}`).join('  ·  ') || '없음';
+            x.fillText(encTxt, pad, by + 18);
+            x.fillStyle = '#29c5ff'; x.font = 'bold 13px JetBrains Mono'; x.fillText('📡 최근 이벤트', pad, by + 48);
+            x.font = '10px JetBrains Mono'; x.fillStyle = '#cfe0ee';
+            events.slice(0, 6).forEach((e, i) => {
+                const tt = `[${Math.floor(e.t / 60)}:${String(Math.floor(e.t % 60)).padStart(2, '0')}]`;
+                x.fillText(`${tt} ${e.msg}`.slice(0, 110), pad, by + 68 + i * 14);
+            });
+            return c;
+        }
+        function exportPNG() {
+            const c = buildReportCanvas();
+            const a = document.createElement('a');
+            a.download = `sdacs-marine-report-${Date.now()}.png`;
+            a.href = c.toDataURL('image/png'); a.click();
+            logEvent('📷 PNG 리포트 저장', '#a78bfa');
+        }
+        function exportCSV() {
+            const head = 'id,type,len_m,has_ais,radar_det,ais_det,identified,classified,encounter,wx,wz,vx,vz,speed_kn,heading_deg,bearing_deg,dist_nm,cpa_m,tcpa_s,rcs_m2,hgt_m';
+            const lines = [head];
+            for (const v of vessels) {
+                const sp = Math.hypot(v.vx, v.vz), hd = (v.vx || v.vz) ? Math.atan2(v.vx, v.vz) * 180 / Math.PI : 0;
+                const br = Math.atan2(v.wx, v.wz) * 180 / Math.PI;
+                lines.push([v.id, v.type.id, v.lenM.toFixed(1), v.hasAIS ? 1 : 0, v.radarDet ? 1 : 0, v.aisDet ? 1 : 0,
+                    v.identified ? 1 : 0, (v.classified || {}).id || '', v.encounter || '',
+                    v.wx.toFixed(1), v.wz.toFixed(1), v.vx.toFixed(2), v.vz.toFixed(2),
+                    (sp / 0.514).toFixed(1), hd.toFixed(0), br.toFixed(0),
+                    (Math.hypot(v.wx, v.wz) / NM).toFixed(2),
+                    v.cpaDist === Infinity ? '' : v.cpaDist.toFixed(0),
+                    v.cpaTime === Infinity ? '' : v.cpaTime.toFixed(0),
+                    v.rcs, v.hgtM].join(','));
+            }
+            const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+            const a = document.createElement('a'); a.download = `sdacs-marine-tracks-${Date.now()}.csv`;
+            a.href = URL.createObjectURL(blob); a.click();
+            logEvent(`💾 CSV 저장 (${vessels.length}척)`, '#a78bfa');
+        }
+
         window._mds = {
             get total() { return vessels.length; },
             get detected() { return stats.detected; },
@@ -664,6 +763,12 @@
             get horizonNM() { return radarHorizonM(2.4) / NM; },                                      // C1 평균 수평선(NM)
             select(id) { const v = vessels.find(x => x.id === id || x.id === `V-${String(id).padStart(3,'0')}`); if (v) selectVessel(v); return v ? v.id : null; }, // C5
             deselect: deselectVessel,
+            reportDataURL() { return buildReportCanvas().toDataURL('image/png'); }, // C6 PNG
+            csvText() {                                                              // C6 CSV (테스트용)
+                const head = 'id,type,len_m,radar_det,ais_det,identified';
+                const rows = vessels.map(v => [v.id, v.type.id, v.lenM.toFixed(1), v.radarDet ? 1 : 0, v.aisDet ? 1 : 0, v.identified ? 1 : 0].join(','));
+                return [head, ...rows].join('\n');
+            },
             get selectedId() { return selected ? selected.id : null; },
             start() { running = true; }, stop() { running = false; },
             scenario(n) { document.getElementById('scenario').value = n; initScenario(n); },

@@ -14,17 +14,17 @@ import time
 from typing import Callable
 
 try:
+    from fastapi import APIRouter, Request, Response
+    from fastapi.routing import APIRoute
     from prometheus_client import (
+        CONTENT_TYPE_LATEST,
+        REGISTRY,
+        CollectorRegistry,
         Counter,
         Gauge,
         Histogram,
-        REGISTRY,
-        CollectorRegistry,
         generate_latest,
-        CONTENT_TYPE_LATEST,
     )
-    from fastapi import APIRouter, Request, Response
-    from fastapi.routing import APIRoute
     _PROMETHEUS_AVAILABLE = True
 except ImportError:  # prometheus_client 없을 때 graceful degradation
     _PROMETHEUS_AVAILABLE = False

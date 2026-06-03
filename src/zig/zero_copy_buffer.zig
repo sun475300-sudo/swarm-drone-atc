@@ -1,180 +1,200 @@
-// Phase 594: Zero-Copy Ring Buffer — Zig
-// 무복사 링 버퍼: 고성능 텔레메트리 스트리밍,
-// lock-free 단일 생산자/소비자 큐.
+// Phase 584: Zero-Copy Ring Buffer — Zig
+// SDACS lock-free ring buffer for drone telemetry streaming
 
 const std = @import("std");
-const print = std.debug.print;
+const Allocator = std.mem.Allocator;
 const assert = std.debug.assert;
 
-/// 텔레메트리 패킷 구조체
-const TelemetryPacket = struct {
-    drone_id: u16,
-    timestamp: u64,
-    latitude: f64,
-    longitude: f64,
-    altitude: f32,
-    speed: f32,
-    heading: f32,
-    battery_pct: u8,
-    flags: u8,
-
-    pub fn format(self: TelemetryPacket) void {
-        print("  DRONE_{d:0>3} | alt={d:.1} spd={d:.1} bat={d}%\n", .{
-            self.drone_id,
-            self.altitude,
-            self.speed,
-            self.battery_pct,
-        });
-    }
-};
-
-/// Zero-Copy Ring Buffer
-/// 단일 생산자, 단일 소비자 (SPSC) lock-free 큐
-fn RingBuffer(comptime T: type, comptime capacity: usize) type {
+/// Lock-free single-producer single-consumer ring buffer
+/// Uses power-of-2 capacity for efficient masking
+pub fn RingBuffer(comptime T: type) type {
     return struct {
         const Self = @This();
 
-        buffer: [capacity]T = undefined,
-        write_idx: usize = 0,
-        read_idx: usize = 0,
-        count: usize = 0,
-        total_written: u64 = 0,
-        total_read: u64 = 0,
-        overflows: u64 = 0,
+        buffer   : []T,
+        capacity : usize,
+        mask     : usize,
+        read_idx : std.atomic.Value(usize),
+        write_idx: std.atomic.Value(usize),
+        alloc    : Allocator,
 
-        /// 초기화
-        pub fn init() Self {
-            return Self{};
+        pub fn init(alloc: Allocator, capacity: usize) !Self {
+            // Round up to next power of 2
+            var cap = capacity;
+            if (cap == 0) cap = 1;
+            if (!std.math.isPowerOfTwo(cap)) {
+                cap = std.math.ceilPowerOfTwo(usize, cap) catch return error.Overflow;
+            }
+
+            const buf = try alloc.alloc(T, cap);
+            return Self{
+                .buffer    = buf,
+                .capacity  = cap,
+                .mask      = cap - 1,
+                .read_idx  = std.atomic.Value(usize).init(0),
+                .write_idx = std.atomic.Value(usize).init(0),
+                .alloc     = alloc,
+            };
         }
 
-        /// 쓰기 (생산자)
+        pub fn deinit(self: *Self) void {
+            self.alloc.free(self.buffer);
+        }
+
+        /// Push an item. Returns false if buffer is full.
         pub fn push(self: *Self, item: T) bool {
-            if (self.count >= capacity) {
-                self.overflows += 1;
-                return false; // 버퍼 풀
-            }
-            self.buffer[self.write_idx] = item;
-            self.write_idx = (self.write_idx + 1) % capacity;
-            self.count += 1;
-            self.total_written += 1;
+            const write = self.write_idx.load(.monotonic);
+            const read  = self.read_idx.load(.acquire);
+            if (write - read >= self.capacity) return false;
+
+            self.buffer[write & self.mask] = item;
+            self.write_idx.store(write + 1, .release);
             return true;
         }
 
-        /// 읽기 (소비자) — 무복사: 포인터 반환
-        pub fn peek(self: *Self) ?*const T {
-            if (self.count == 0) return null;
-            return &self.buffer[self.read_idx];
-        }
-
-        /// 소비 확인 (읽기 완료 후 호출)
+        /// Pop an item. Returns null if buffer is empty.
         pub fn pop(self: *Self) ?T {
-            if (self.count == 0) return null;
-            const item = self.buffer[self.read_idx];
-            self.read_idx = (self.read_idx + 1) % capacity;
-            self.count -= 1;
-            self.total_read += 1;
+            const read  = self.read_idx.load(.monotonic);
+            const write = self.write_idx.load(.acquire);
+            if (read == write) return null;
+
+            const item = self.buffer[read & self.mask];
+            self.read_idx.store(read + 1, .release);
             return item;
         }
 
-        /// 벌크 쓰기
-        pub fn pushSlice(self: *Self, items: []const T) usize {
-            var written: usize = 0;
-            for (items) |item| {
-                if (!self.push(item)) break;
-                written += 1;
-            }
-            return written;
+        /// Peek at the next item without consuming it.
+        pub fn peek(self: *const Self) ?T {
+            const read  = self.read_idx.load(.monotonic);
+            const write = self.write_idx.load(.acquire);
+            if (read == write) return null;
+            return self.buffer[read & self.mask];
         }
 
-        /// 현재 상태
+        /// Number of items currently in buffer
+        pub fn len(self: *const Self) usize {
+            const write = self.write_idx.load(.acquire);
+            const read  = self.read_idx.load(.acquire);
+            return write - read;
+        }
+
         pub fn isEmpty(self: *const Self) bool {
-            return self.count == 0;
+            return self.len() == 0;
         }
 
         pub fn isFull(self: *const Self) bool {
-            return self.count >= capacity;
+            return self.len() >= self.capacity;
         }
 
-        pub fn available(self: *const Self) usize {
-            return capacity - self.count;
+        pub fn availableSpace(self: *const Self) usize {
+            return self.capacity - self.len();
         }
 
-        pub fn getCapacity() usize {
-            return capacity;
+        /// Drain up to max_items into a slice, returns count drained
+        pub fn drain(self: *Self, dest: []T) usize {
+            var count: usize = 0;
+            while (count < dest.len) {
+                if (self.pop()) |item| {
+                    dest[count] = item;
+                    count += 1;
+                } else break;
+            }
+            return count;
         }
 
-        /// 통계 출력
-        pub fn printStats(self: *const Self) void {
-            print("=== Ring Buffer Stats ===\n", .{});
-            print("  Capacity:      {d}\n", .{capacity});
-            print("  Current count: {d}\n", .{self.count});
-            print("  Total written: {d}\n", .{self.total_written});
-            print("  Total read:    {d}\n", .{self.total_read});
-            print("  Overflows:     {d}\n", .{self.overflows});
-            print("  Available:     {d}\n", .{self.available()});
+        /// Fill buffer from a slice, returns count pushed
+        pub fn fill(self: *Self, src: []const T) usize {
+            var count: usize = 0;
+            for (src) |item| {
+                if (!self.push(item)) break;
+                count += 1;
+            }
+            return count;
+        }
+
+        pub fn reset(self: *Self) void {
+            self.read_idx.store(0, .release);
+            self.write_idx.store(0, .release);
         }
     };
 }
 
-/// 텔레메트리 링 버퍼 (256 슬롯)
-const TelemetryBuffer = RingBuffer(TelemetryPacket, 256);
+/// Telemetry frame for drone data
+pub const TelemetryFrame = extern struct {
+    drone_id  : u16,
+    timestamp : u64,
+    lat       : f32,
+    lon       : f32,
+    alt       : f32,
+    speed     : f32,
+    heading   : f32,
+    battery   : f32,
+    sequence  : u32,
+    _pad      : u32 = 0,
+};
 
-/// CRC8 체크섬 (간이)
-fn crc8(data: []const u8) u8 {
-    var crc: u8 = 0xFF;
-    for (data) |byte| {
-        crc ^= byte;
-        var i: u3 = 0;
-        while (i < 8) : (i += 1) {
-            if (crc & 0x80 != 0) {
-                crc = (crc << 1) ^ 0x31;
-            } else {
-                crc <<= 1;
-            }
+/// Telemetry ring buffer with statistics
+pub const TelemetryBuffer = struct {
+    ring      : RingBuffer(TelemetryFrame),
+    pushed    : usize,
+    dropped   : usize,
+    consumed  : usize,
+
+    pub fn init(alloc: Allocator, capacity: usize) !TelemetryBuffer {
+        return TelemetryBuffer{
+            .ring    = try RingBuffer(TelemetryFrame).init(alloc, capacity),
+            .pushed  = 0,
+            .dropped = 0,
+            .consumed = 0,
+        };
+    }
+
+    pub fn deinit(self: *TelemetryBuffer) void {
+        self.ring.deinit();
+    }
+
+    pub fn write(self: *TelemetryBuffer, frame: TelemetryFrame) void {
+        if (self.ring.push(frame)) {
+            self.pushed += 1;
+        } else {
+            self.dropped += 1;
         }
     }
-    return crc;
+
+    pub fn read(self: *TelemetryBuffer) ?TelemetryFrame {
+        const frame = self.ring.pop();
+        if (frame != null) self.consumed += 1;
+        return frame;
+    }
+
+    pub fn stats(self: *const TelemetryBuffer) void {
+        std.debug.print("TelemetryBuffer: pushed={} dropped={} consumed={} buffered={}\n",
+            .{ self.pushed, self.dropped, self.consumed, self.ring.len() });
+    }
+};
+
+test "RingBuffer basic push/pop" {
+    var buf = try RingBuffer(u32).init(std.testing.allocator, 8);
+    defer buf.deinit();
+
+    try std.testing.expect(buf.isEmpty());
+    try std.testing.expect(buf.push(42));
+    try std.testing.expect(!buf.isEmpty());
+    try std.testing.expectEqual(@as(?u32, 42), buf.pop());
+    try std.testing.expect(buf.isEmpty());
 }
 
-/// 메인 시뮬레이션
-pub fn main() void {
-    print("=== SDACS Zero-Copy Ring Buffer ===\n\n", .{});
+test "RingBuffer overflow" {
+    var buf = try RingBuffer(u8).init(std.testing.allocator, 4);
+    defer buf.deinit();
 
-    var buf = TelemetryBuffer.init();
-
-    // 텔레메트리 데이터 생산
-    print("--- Producing telemetry ---\n", .{});
-    var i: u16 = 0;
-    while (i < 50) : (i += 1) {
-        const packet = TelemetryPacket{
-            .drone_id = i % 10,
-            .timestamp = @as(u64, i) * 100,
-            .latitude = 37.5665 + @as(f64, @floatFromInt(i)) * 0.0001,
-            .longitude = 126.978 + @as(f64, @floatFromInt(i)) * 0.0001,
-            .altitude = 50.0 + @as(f32, @floatFromInt(i)) * 5.0,
-            .speed = 10.0 + @as(f32, @floatFromInt(i % 20)),
-            .heading = @as(f32, @floatFromInt(i * 7 % 360)),
-            .battery_pct = @intCast(100 - i % 30),
-            .flags = 0x01,
-        };
-        _ = buf.push(packet);
+    for (0..4) |i| {
+        try std.testing.expect(buf.push(@intCast(i)));
     }
-    print("  Produced: {d} packets\n\n", .{buf.total_written});
+    try std.testing.expect(!buf.push(99));  // full
+    try std.testing.expect(buf.isFull());
+}
 
-    // 텔레메트리 데이터 소비 (무복사 peek)
-    print("--- Consuming (zero-copy peek) ---\n", .{});
-    var consumed: u32 = 0;
-    while (!buf.isEmpty()) {
-        if (buf.peek()) |pkt| {
-            if (consumed < 5) {
-                pkt.format();
-            }
-        }
-        _ = buf.pop();
-        consumed += 1;
-    }
-    print("  Consumed: {d} packets\n\n", .{consumed});
-
-    // 통계
-    buf.printStats();
+test "TelemetryFrame size" {
+    try std.testing.expect(@sizeOf(TelemetryFrame) == 40);
 }

@@ -1,153 +1,100 @@
-// Phase 654: Ring Buffer V2 — Zig Lock-Free Telemetry Buffer
-// 무잠금 링버퍼: 실시간 텔레메트리 저장 + FIFO 오버라이트
+// Phase 644: Ring Buffer v2 — Zig
+// SDACS enhanced lock-free ring buffer with batch operations and statistics
 
 const std = @import("std");
+const Allocator = std.mem.Allocator;
 
-pub const TelemetryEntry = struct {
-    drone_id: [8]u8,
-    timestamp_ns: u64,
-    position: [3]f64,
-    velocity: [3]f64,
-    battery_pct: f32,
-    status: u8, // 0=idle, 1=active, 2=emergency, 3=rtl
-};
+pub fn RingBufferV2(comptime T: type, comptime Capacity: usize) type {
+    comptime if (!std.math.isPowerOfTwo(Capacity)) @compileError("Capacity must be power of 2");
 
-pub fn RingBuffer(comptime capacity: usize) type {
     return struct {
         const Self = @This();
+        const MASK = Capacity - 1;
 
-        buffer: [capacity]TelemetryEntry,
-        head: usize,
-        tail: usize,
-        count: usize,
-        total_writes: u64,
-        total_overwrites: u64,
+        buffer:    [Capacity]T,
+        read_idx:  std.atomic.Value(usize),
+        write_idx: std.atomic.Value(usize),
+        stat_push: usize,
+        stat_pop:  usize,
+        stat_drop: usize,
 
         pub fn init() Self {
-            return Self{
-                .buffer = undefined,
-                .head = 0,
-                .tail = 0,
-                .count = 0,
-                .total_writes = 0,
-                .total_overwrites = 0,
+            return .{
+                .buffer    = undefined,
+                .read_idx  = std.atomic.Value(usize).init(0),
+                .write_idx = std.atomic.Value(usize).init(0),
+                .stat_push = 0,
+                .stat_pop  = 0,
+                .stat_drop = 0,
             };
         }
 
-        pub fn push(self: *Self, entry: TelemetryEntry) void {
-            self.buffer[self.head] = entry;
-            self.head = (self.head + 1) % capacity;
-            self.total_writes += 1;
-
-            if (self.count == capacity) {
-                // Buffer full: overwrite oldest
-                self.tail = (self.tail + 1) % capacity;
-                self.total_overwrites += 1;
-            } else {
-                self.count += 1;
-            }
+        pub fn push(self: *Self, item: T) bool {
+            const w = self.write_idx.load(.monotonic);
+            const r = self.read_idx.load(.acquire);
+            if (w - r >= Capacity) { self.stat_drop += 1; return false; }
+            self.buffer[w & MASK] = item;
+            self.write_idx.store(w + 1, .release);
+            self.stat_push += 1;
+            return true;
         }
 
-        pub fn pop(self: *Self) ?TelemetryEntry {
-            if (self.count == 0) return null;
-            const entry = self.buffer[self.tail];
-            self.tail = (self.tail + 1) % capacity;
-            self.count -= 1;
-            return entry;
-        }
-
-        pub fn peek(self: *const Self) ?TelemetryEntry {
-            if (self.count == 0) return null;
-            return self.buffer[self.tail];
-        }
-
-        pub fn isFull(self: *const Self) bool {
-            return self.count == capacity;
-        }
-
-        pub fn isEmpty(self: *const Self) bool {
-            return self.count == 0;
+        pub fn pop(self: *Self) ?T {
+            const r = self.read_idx.load(.monotonic);
+            const w = self.write_idx.load(.acquire);
+            if (r == w) return null;
+            const item = self.buffer[r & MASK];
+            self.read_idx.store(r + 1, .release);
+            self.stat_pop += 1;
+            return item;
         }
 
         pub fn len(self: *const Self) usize {
-            return self.count;
+            const w = self.write_idx.load(.acquire);
+            const r = self.read_idx.load(.acquire);
+            return w - r;
         }
 
-        pub fn clear(self: *Self) void {
-            self.head = 0;
-            self.tail = 0;
-            self.count = 0;
+        pub fn isEmpty(self: *const Self) bool { return self.len() == 0; }
+        pub fn isFull(self: *const Self)  bool { return self.len() >= Capacity; }
+
+        pub fn pushBatch(self: *Self, items: []const T) usize {
+            var count: usize = 0;
+            for (items) |item| { if (self.push(item)) count += 1 else break; }
+            return count;
         }
 
-        pub fn utilizationPct(self: *const Self) f64 {
-            return @as(f64, @floatFromInt(self.count)) / @as(f64, @floatFromInt(capacity)) * 100.0;
+        pub fn popBatch(self: *Self, dest: []T) usize {
+            var count: usize = 0;
+            while (count < dest.len) {
+                if (self.pop()) |item| { dest[count] = item; count += 1; } else break;
+            }
+            return count;
         }
 
-        pub fn stats(self: *const Self) struct { count: usize, writes: u64, overwrites: u64, util_pct: f64 } {
-            return .{
-                .count = self.count,
-                .writes = self.total_writes,
-                .overwrites = self.total_overwrites,
-                .util_pct = self.utilizationPct(),
-            };
+        pub fn stats(self: *const Self) struct { pushed: usize, popped: usize, dropped: usize } {
+            return .{ .pushed = self.stat_push, .popped = self.stat_pop, .dropped = self.stat_drop };
         }
     };
 }
 
-// Benchmark: throughput measurement
-pub fn benchmarkRingBuffer(n_ops: usize) struct { ops: usize, final_count: usize } {
-    var rb = RingBuffer(1024).init();
-
-    var i: usize = 0;
-    while (i < n_ops) : (i += 1) {
-        var drone_id: [8]u8 = undefined;
-        const id_str = "D-00";
-        @memcpy(drone_id[0..4], id_str);
-        drone_id[4] = @intCast((i % 100) / 10 + '0');
-        drone_id[5] = @intCast((i % 10) + '0');
-        drone_id[6] = 0;
-        drone_id[7] = 0;
-
-        rb.push(.{
-            .drone_id = drone_id,
-            .timestamp_ns = @intCast(i * 100_000),
-            .position = .{ @floatFromInt(i), 0.0, 60.0 },
-            .velocity = .{ 5.0, 0.0, 0.0 },
-            .battery_pct = 95.0 - @as(f32, @floatFromInt(i % 100)) * 0.1,
-            .status = 1,
-        });
-    }
-
-    return .{ .ops = n_ops, .final_count = rb.len() };
+test "RingBufferV2 basic" {
+    var buf = RingBufferV2(u32, 16).init();
+    try std.testing.expect(buf.push(1));
+    try std.testing.expect(buf.push(2));
+    try std.testing.expectEqual(@as(?u32, 1), buf.pop());
+    try std.testing.expectEqual(@as(?u32, 2), buf.pop());
+    try std.testing.expect(buf.isEmpty());
 }
 
-pub fn main() !void {
-    const stdout = std.io.getStdOut().writer();
+test "RingBufferV2 batch ops" {
+    var buf = RingBufferV2(u8, 8).init();
+    const items = [_]u8{ 1, 2, 3, 4, 5 };
+    const pushed = buf.pushBatch(&items);
+    try std.testing.expectEqual(@as(usize, 5), pushed);
 
-    var rb = RingBuffer(256).init();
-
-    // Fill buffer
-    var i: usize = 0;
-    while (i < 300) : (i += 1) {
-        var drone_id: [8]u8 = .{ 'D', '-', '0', '0', '0', '1', 0, 0 };
-        _ = drone_id;
-        rb.push(.{
-            .drone_id = .{ 'D', '-', '0', '0', '0', '1', 0, 0 },
-            .timestamp_ns = @intCast(i * 100_000),
-            .position = .{ @as(f64, @floatFromInt(i)) * 0.5, 0.0, 60.0 },
-            .velocity = .{ 5.0, 0.0, 0.0 },
-            .battery_pct = 100.0 - @as(f32, @floatFromInt(i)) * 0.1,
-            .status = if (i < 280) 1 else 2,
-        });
-    }
-
-    const s = rb.stats();
-    try stdout.print("Ring Buffer V2 Stats:\n", .{});
-    try stdout.print("  Count: {d}\n", .{s.count});
-    try stdout.print("  Total Writes: {d}\n", .{s.writes});
-    try stdout.print("  Overwrites: {d}\n", .{s.overwrites});
-
-    // Benchmark
-    const bench = benchmarkRingBuffer(10000);
-    try stdout.print("  Benchmark: {d} ops, final count: {d}\n", .{ bench.ops, bench.final_count });
+    var out: [5]u8 = undefined;
+    const popped = buf.popBatch(&out);
+    try std.testing.expectEqual(@as(usize, 5), popped);
+    try std.testing.expectEqualSlices(u8, &items, &out);
 }

@@ -1,125 +1,203 @@
--- Phase 552: Haskell Monadic Safety Verification
--- 모나드 기반 안전성 검증: Maybe/Either로 실패 전파, State 모나드로 검증 상태 추적
+-- Phase 552: Safety Verifier — Haskell
+-- SDACS formal safety property verification using Either/Maybe monad chains
 
-module SafetyVerifier where
+module SafetyVerifier
+  ( DroneState(..)
+  , SafetyProperty(..)
+  , SafetyResult(..)
+  , verifyAll
+  , verifyState
+  , altitudeProperty
+  , batteryProperty
+  , separationProperty
+  , speedProperty
+  , geofenceProperty
+  ) where
 
-import Data.List (foldl')
+-- Phase 552 marker — Safety verification with Either/Maybe monadic composition
 
--- Types
-data SafetyLevel = Safe | Warning | Critical | Failed deriving (Show, Eq, Ord)
+import Data.List (intercalate)
+
+-- ============================================================
+-- Domain types
 
 data DroneState = DroneState
-  { dsId       :: String
-  , dsAltitude :: Double
-  , dsBattery  :: Double
-  , dsSpeed    :: Double
-  , dsTemp     :: Double
-  } deriving (Show)
+  { droneId    :: String
+  , latitude   :: Double
+  , longitude  :: Double
+  , altitude   :: Double
+  , speed      :: Double
+  , battery    :: Double
+  , mode       :: String
+  , heading    :: Double
+  } deriving (Show, Eq)
 
-data VerifyResult = VerifyResult
-  { vrDroneId :: String
-  , vrLevel   :: SafetyLevel
-  , vrChecks  :: Int
-  , vrPassed  :: Int
-  , vrMessage :: String
-  } deriving (Show)
+data Severity = Info | Warning | Critical | Emergency
+  deriving (Show, Eq, Ord)
 
-data PRNG = PRNG { prngState :: Int }
+data SafetyViolation = SafetyViolation
+  { violationId   :: String
+  , property      :: String
+  , severity      :: Severity
+  , description   :: String
+  , actualValue   :: Double
+  , limitValue    :: Double
+  } deriving (Show, Eq)
 
-mkPRNG :: Int -> PRNG
-mkPRNG seed = PRNG (seed `xor` 0x6c62272e)
-  where xor = Data.Bits.xor
+data SafetyResult
+  = Safe
+  | Violation SafetyViolation
+  deriving (Show, Eq)
 
-nextPRNG :: PRNG -> (Int, PRNG)
-nextPRNG (PRNG s) = let s1 = s `xor` (s `shiftL` 13)
-                        s2 = s1 `xor` (s1 `shiftR` 7)
-                        s3 = s2 `xor` (s2 `shiftL` 17)
-                    in (abs s3, PRNG s3)
-  where xor = Data.Bits.xor
-        shiftL = Data.Bits.shiftL
-        shiftR = Data.Bits.shiftR
+type SafetyProperty = DroneState -> SafetyResult
 
--- Pure safety checks using Maybe/Either pattern
-checkAltitude :: DroneState -> Either String ()
-checkAltitude ds
-  | dsAltitude ds < 0    = Left "Altitude below ground"
-  | dsAltitude ds > 400  = Left "Altitude exceeds ceiling"
-  | otherwise            = Right ()
+-- ============================================================
+-- Safety properties
 
-checkBattery :: DroneState -> Either String ()
-checkBattery ds
-  | dsBattery ds < 5     = Left "Critical battery"
-  | dsBattery ds < 20    = Left "Low battery warning"
-  | otherwise            = Right ()
+altitudeProperty :: Double -> Double -> SafetyProperty
+altitudeProperty minAlt maxAlt state
+  | altitude state > maxAlt =
+      Violation $ SafetyViolation
+        { violationId   = "ALT-001"
+        , property      = "max_altitude"
+        , severity      = Critical
+        , description   = "Altitude exceeds maximum limit"
+        , actualValue   = altitude state
+        , limitValue    = maxAlt
+        }
+  | altitude state < minAlt && mode state /= "LAND" =
+      Violation $ SafetyViolation
+        { violationId   = "ALT-002"
+        , property      = "min_altitude"
+        , severity      = Warning
+        , description   = "Altitude below minimum during non-landing"
+        , actualValue   = altitude state
+        , limitValue    = minAlt
+        }
+  | otherwise = Safe
 
-checkSpeed :: DroneState -> Either String ()
-checkSpeed ds
-  | dsSpeed ds > 30      = Left "Speed exceeds limit"
-  | dsSpeed ds < 0       = Left "Invalid negative speed"
-  | otherwise            = Right ()
+batteryProperty :: Double -> Double -> SafetyProperty
+batteryProperty criticalPct rtlPct state
+  | battery state <= criticalPct =
+      Violation $ SafetyViolation
+        { violationId   = "BAT-001"
+        , property      = "critical_battery"
+        , severity      = Emergency
+        , description   = "Battery critically low — immediate landing required"
+        , actualValue   = battery state
+        , limitValue    = criticalPct
+        }
+  | battery state <= rtlPct =
+      Violation $ SafetyViolation
+        { violationId   = "BAT-002"
+        , property      = "rtl_battery"
+        , severity      = Critical
+        , description   = "Battery low — RTL required"
+        , actualValue   = battery state
+        , limitValue    = rtlPct
+        }
+  | otherwise = Safe
 
-checkTemp :: DroneState -> Either String ()
-checkTemp ds
-  | dsTemp ds > 60       = Left "Overheating"
-  | dsTemp ds < -10      = Left "Too cold for operation"
-  | otherwise            = Right ()
+speedProperty :: Double -> SafetyProperty
+speedProperty maxSpeed state
+  | speed state > maxSpeed =
+      Violation $ SafetyViolation
+        { violationId   = "SPD-001"
+        , property      = "max_speed"
+        , severity      = Warning
+        , description   = "Speed exceeds safety limit"
+        , actualValue   = speed state
+        , limitValue    = maxSpeed
+        }
+  | otherwise = Safe
 
--- Monadic composition of checks
-verifyDrone :: DroneState -> VerifyResult
-verifyDrone ds =
-  let checks = [ ("altitude", checkAltitude ds)
-               , ("battery",  checkBattery ds)
-               , ("speed",    checkSpeed ds)
-               , ("temp",     checkTemp ds)
-               ]
-      results = map snd checks
-      nChecks = length checks
-      nPassed = length (filter isRight results)
-      level   = if nPassed == nChecks then Safe
-                else if nPassed >= nChecks - 1 then Warning
-                else if nPassed >= 1 then Critical
-                else Failed
-      msgs    = concatMap showErr results
-  in VerifyResult (dsId ds) level nChecks nPassed (if null msgs then "All clear" else unwords msgs)
-  where
-    isRight (Right _) = True
-    isRight _         = False
-    showErr (Left e)  = [e]
-    showErr _         = []
+-- Haversine distance between two positions in meters
+haversine :: Double -> Double -> Double -> Double -> Double
+haversine lat1 lon1 lat2 lon2 =
+  let earthR  = 6_371_000
+      toRad x = x * pi / 180
+      dLat    = toRad (lat2 - lat1)
+      dLon    = toRad (lon2 - lon1)
+      a       = sin (dLat/2)^2
+              + cos (toRad lat1) * cos (toRad lat2) * sin (dLon/2)^2
+  in earthR * 2 * atan2 (sqrt a) (sqrt (1 - a))
 
--- Generate test drones
-generateDrones :: Int -> [DroneState]
-generateDrones n = map mkDrone [0..n-1]
-  where
-    mkDrone i = DroneState
-      { dsId       = "drone_" ++ show i
-      , dsAltitude = 30 + fromIntegral (i * 17 `mod` 370)
-      , dsBattery  = 10 + fromIntegral (i * 23 `mod` 90)
-      , dsSpeed    = 2 + fromIntegral (i * 7 `mod` 28)
-      , dsTemp     = 20 + fromIntegral (i * 11 `mod` 45)
-      }
+geofenceProperty :: Double -> Double -> Double -> SafetyProperty
+geofenceProperty centerLat centerLon radiusM state =
+  let dist = haversine (latitude state) (longitude state) centerLat centerLon
+  in if dist > radiusM
+     then Violation $ SafetyViolation
+            { violationId   = "GEO-001"
+            , property      = "geofence"
+            , severity      = Critical
+            , description   = "Drone outside geofence boundary"
+            , actualValue   = dist
+            , limitValue    = radiusM
+            }
+     else Safe
 
--- Run verification
-runVerification :: Int -> [VerifyResult]
-runVerification n = map verifyDrone (generateDrones n)
+separationProperty :: Double -> [DroneState] -> SafetyProperty
+separationProperty minSepM others state =
+  let violations = do
+        other <- others
+        let dist = haversine (latitude state) (longitude state)
+                              (latitude other) (longitude other)
+            altDiff = abs (altitude state - altitude other)
+            sep3d = sqrt (dist^2 + altDiff^2)
+        if droneId other /= droneId state && sep3d < minSepM
+        then [Violation $ SafetyViolation
+               { violationId   = "SEP-001"
+               , property      = "minimum_separation"
+               , severity      = Critical
+               , description   = "Separation below minimum with " ++ droneId other
+               , actualValue   = sep3d
+               , limitValue    = minSepM
+               }]
+        else []
+  in case violations of
+       (v:_) -> v
+       []    -> Safe
 
--- Statistics
-data Stats = Stats { statTotal :: Int, statSafe :: Int, statWarning :: Int, statCritical :: Int }
-  deriving (Show)
+-- ============================================================
+-- Verification runner
 
-computeStats :: [VerifyResult] -> Stats
-computeStats vrs = foldl' accum (Stats 0 0 0 0) vrs
-  where
-    accum (Stats t s w c) vr = Stats (t+1)
-      (if vrLevel vr == Safe then s+1 else s)
-      (if vrLevel vr == Warning then w+1 else w)
-      (if vrLevel vr == Critical then c+1 else c)
+verifyState :: DroneState -> [SafetyProperty] -> [SafetyViolation]
+verifyState state props =
+  [ v | prop <- props
+      , Violation v <- [prop state]
+  ]
 
-main :: IO ()
-main = do
-  let results = runVerification 15
-      stats   = computeStats results
-  putStrLn $ "Drones verified: " ++ show (statTotal stats)
-  putStrLn $ "Safe: " ++ show (statSafe stats)
-  putStrLn $ "Warning: " ++ show (statWarning stats)
-  putStrLn $ "Critical: " ++ show (statCritical stats)
+verifyAll :: [DroneState] -> [SafetyProperty] -> Either [SafetyViolation] ()
+verifyAll states props =
+  let allViolations = concatMap (\s -> verifyState s props) states
+  in if null allViolations
+     then Right ()
+     else Left allViolations
+
+-- ============================================================
+-- Default property set
+
+defaultProperties :: [DroneState] -> [SafetyProperty]
+defaultProperties allDrones =
+  [ altitudeProperty 10.0 120.0
+  , batteryProperty 10.0 20.0
+  , speedProperty 15.0
+  , geofenceProperty 37.5665 126.978 1000.0
+  , separationProperty 30.0 allDrones
+  ]
+
+-- ============================================================
+-- Report
+
+formatViolation :: SafetyViolation -> String
+formatViolation v =
+  "[" ++ show (severity v) ++ "] " ++ violationId v ++
+  ": " ++ description v ++
+  " (actual=" ++ show (actualValue v) ++
+  ", limit=" ++ show (limitValue v) ++ ")"
+
+printReport :: Either [SafetyViolation] () -> IO ()
+printReport (Right ()) = putStrLn "Safety check PASSED — all properties satisfied"
+printReport (Left vs)  = do
+  putStrLn $ "Safety check FAILED — " ++ show (length vs) ++ " violation(s):"
+  mapM_ (putStrLn . ("  " ++) . formatViolation) vs

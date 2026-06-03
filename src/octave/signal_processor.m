@@ -1,95 +1,33 @@
-% Phase 620: Signal Processor — Octave/MATLAB FFT Analysis
-% 드론 센서 신호 FFT 분석
+% Phase 620: Signal Processor — GNU Octave
+% SDACS digital signal processing for drone sensor data filtering
 
-function results = signal_processor(signal_data, sample_rate)
-    % SIGNAL_PROCESSOR Analyze drone sensor signals using FFT
-    %
-    % Parameters:
-    %   signal_data - time-domain signal vector
-    %   sample_rate - sampling frequency in Hz
-    %
-    % Returns:
-    %   results - struct with frequency analysis
+function signal_processor()
+    fprintf('Phase 620: Signal Processor\n');
 
-    if nargin < 2
-        sample_rate = 1000;  % default 1kHz
-    end
+    % Generate noisy altitude signal
+    Fs  = 100;   % sampling rate (Hz)
+    T   = 10;    % duration (s)
+    t   = 0:1/Fs:T-1/Fs;
+    alt_true  = 60 + 5*sin(2*pi*0.2*t);
+    noise     = 2 * randn(size(t));
+    alt_noisy = alt_true + noise;
 
-    N = length(signal_data);
-    t = (0:N-1) / sample_rate;
+    % Low-pass FIR filter (moving average)
+    window   = 10;
+    weights  = ones(1, window) / window;
+    alt_filt = filter(weights, 1, alt_noisy);
 
-    % ── FFT Analysis ──
-    Y = fft(signal_data);
-    P2 = abs(Y / N);
-    P1 = P2(1:floor(N/2)+1);
-    P1(2:end-1) = 2 * P1(2:end-1);
-    f = sample_rate * (0:floor(N/2)) / N;
+    % RMS noise before/after
+    noise_before = rms(alt_noisy - alt_true);
+    noise_after  = rms(alt_filt - alt_true);
 
-    % ── Peak Detection ──
-    [peak_vals, peak_locs] = findpeaks(P1, 'MinPeakHeight', max(P1) * 0.1);
-    peak_freqs = f(peak_locs);
-
-    % ── Power Spectral Density ──
-    psd = (abs(Y).^2) / (N * sample_rate);
-    psd_one_sided = psd(1:floor(N/2)+1);
-    psd_one_sided(2:end-1) = 2 * psd_one_sided(2:end-1);
-    total_power = sum(psd_one_sided);
-
-    % ── Band Power ──
-    low_band = sum(psd_one_sided(f < 10));
-    mid_band = sum(psd_one_sided(f >= 10 & f < 100));
-    high_band = sum(psd_one_sided(f >= 100));
-
-    % ── Signal Statistics ──
-    signal_mean = mean(signal_data);
-    signal_std = std(signal_data);
-    signal_rms = sqrt(mean(signal_data.^2));
-    snr_estimate = 10 * log10(signal_rms^2 / signal_std^2);
-
-    % ── Moving Average Filter ──
-    window_size = min(50, floor(N/10));
-    if window_size > 0
-        filtered = movmean(signal_data, window_size);
-    else
-        filtered = signal_data;
-    end
-
-    % ── Results ──
-    results.frequencies = f;
-    results.spectrum = P1;
-    results.psd = psd_one_sided;
-    results.peak_frequencies = peak_freqs;
-    results.peak_amplitudes = peak_vals;
-    results.total_power = total_power;
-    results.band_power.low = low_band;
-    results.band_power.mid = mid_band;
-    results.band_power.high = high_band;
-    results.stats.mean = signal_mean;
-    results.stats.std = signal_std;
-    results.stats.rms = signal_rms;
-    results.stats.snr_db = snr_estimate;
-    results.filtered = filtered;
-    results.sample_rate = sample_rate;
-    results.n_samples = N;
-
+    fprintf('  RMS noise before filter: %.3f m\n', noise_before);
+    fprintf('  RMS noise after filter:  %.3f m\n', noise_after);
+    fprintf('  SNR improvement:         %.1f dB\n', 20*log10(noise_before/noise_after));
 end
 
-% ── Helper: Generate test signal ──
-function sig = generate_test_signal(duration, sample_rate)
-    t = 0:1/sample_rate:duration;
-    % 50Hz drone motor + 200Hz vibration + noise
-    sig = sin(2*pi*50*t) + 0.5*sin(2*pi*200*t) + 0.3*randn(size(t));
+function r = rms(x)
+    r = sqrt(mean(x.^2));
 end
 
-% ── Helper: Detect anomalies in spectrum ──
-function anomalies = detect_spectral_anomalies(results, threshold_db)
-    if nargin < 2
-        threshold_db = 20;
-    end
-    mean_power = mean(results.psd);
-    threshold = mean_power * 10^(threshold_db/10);
-    anomaly_idx = find(results.psd > threshold);
-    anomalies.frequencies = results.frequencies(anomaly_idx);
-    anomalies.powers = results.psd(anomaly_idx);
-    anomalies.count = length(anomaly_idx);
-end
+signal_processor();

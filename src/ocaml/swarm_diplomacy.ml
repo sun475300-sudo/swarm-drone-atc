@@ -1,97 +1,153 @@
-(* Phase 527: OCaml Swarm Diplomacy — Nash Bargaining Solution *)
+(** Phase 527: Swarm Diplomacy — OCaml
+    SDACS multi-faction drone swarm negotiation using Nash equilibrium theory *)
 
+(* Phase 527 marker — Nash equilibrium game theory for swarm coordination *)
+
+(** Faction identifier *)
+type faction_id = string
+
+(** Resource type being contested *)
+type resource = Airspace | Bandwidth | ChargingStation | PriorityLane
+
+(** Strategy in a negotiation game *)
+type strategy = Cooperate | Defect | Negotiate | Yield | Assert
+
+(** Payoff matrix entry *)
+type payoff = { self_payoff: float; other_payoff: float }
+
+(** A faction in the swarm *)
 type faction = {
-  id: string;
-  name: string;
-  n_drones: int;
-  resources: float;
-  reputation: float;
-  power: float;
+  id:          faction_id;
+  name:        string;
+  drone_count: int;
+  priority:    int;    (* 1=highest *)
+  resources:   resource list;
 }
 
-type treaty_type = AirspaceSharing | ResourceExchange | NonAggression | MutualAid
-type action = Cooperate | Defect | Negotiate
-
-type event = {
-  event_id: string;
-  factions: string * string;
-  action: action;
-  outcome: string;
-  payoff_a: float;
-  payoff_b: float;
+(** Game state between two factions *)
+type game_state = {
+  faction_a:   faction;
+  faction_b:   faction;
+  resource:    resource;
+  round:       int;
+  history_a:   strategy list;
+  history_b:   strategy list;
 }
 
-type treaty = {
-  treaty_id: string;
-  ttype: treaty_type;
-  parties: string * string;
-  active: bool;
-}
+(** Payoff matrix for the airspace allocation game *)
+let airspace_payoff (sa: strategy) (sb: strategy) : payoff * payoff =
+  (* Returns (payoff_for_a, payoff_for_b) *)
+  match sa, sb with
+  | Cooperate, Cooperate -> ({self_payoff=3.0; other_payoff=3.0},
+                              {self_payoff=3.0; other_payoff=3.0})
+  | Cooperate, Defect    -> ({self_payoff=0.0; other_payoff=5.0},
+                              {self_payoff=5.0; other_payoff=0.0})
+  | Defect,    Cooperate -> ({self_payoff=5.0; other_payoff=0.0},
+                              {self_payoff=0.0; other_payoff=5.0})
+  | Defect,    Defect    -> ({self_payoff=1.0; other_payoff=1.0},
+                              {self_payoff=1.0; other_payoff=1.0})
+  | Negotiate, _         -> ({self_payoff=2.5; other_payoff=2.5},
+                              {self_payoff=2.5; other_payoff=2.5})
+  | _,         Negotiate -> ({self_payoff=2.5; other_payoff=2.5},
+                              {self_payoff=2.5; other_payoff=2.5})
+  | Yield,     _         -> ({self_payoff=1.5; other_payoff=4.0},
+                              {self_payoff=4.0; other_payoff=1.5})
+  | _,         Yield     -> ({self_payoff=4.0; other_payoff=1.5},
+                              {self_payoff=1.5; other_payoff=4.0})
+  | Assert,    Assert    -> ({self_payoff=2.0; other_payoff=2.0},
+                              {self_payoff=2.0; other_payoff=2.0})
+  | Assert,    _         -> ({self_payoff=3.5; other_payoff=1.5},
+                              {self_payoff=1.5; other_payoff=3.5})
+  | _,         Assert    -> ({self_payoff=1.5; other_payoff=3.5},
+                              {self_payoff=3.5; other_payoff=1.5})
 
-type prng = { mutable state: int }
+(** Check if a strategy pair is a Nash equilibrium *)
+let is_nash_equilibrium (sa: strategy) (sb: strategy) : bool =
+  let all_strats = [Cooperate; Defect; Negotiate; Yield; Assert] in
+  let (pa, _) = airspace_payoff sa sb in
+  let best_a_responds = List.for_all (fun s ->
+    let (pa', _) = airspace_payoff s sb in
+    pa.self_payoff >= pa'.self_payoff
+  ) all_strats in
+  let (_, pb) = airspace_payoff sa sb in
+  let best_b_responds = List.for_all (fun s ->
+    let (_, pb') = airspace_payoff sa s in
+    pb.self_payoff >= pb'.self_payoff
+  ) all_strats in
+  best_a_responds && best_b_responds
 
-let make_prng seed = { state = seed lxor 0x6c62272e }
+(** Find Nash equilibria for the airspace game *)
+let find_nash_equilibria () : (strategy * strategy) list =
+  let all_strats = [Cooperate; Defect; Negotiate; Yield; Assert] in
+  List.filter (fun (sa, sb) -> is_nash_equilibrium sa sb)
+    (List.concat_map (fun sa ->
+       List.map (fun sb -> (sa, sb)) all_strats
+     ) all_strats)
 
-let next_int rng =
-  rng.state <- rng.state lxor (rng.state lsl 13);
-  rng.state <- rng.state lxor (rng.state asr 7);
-  rng.state <- rng.state lxor (rng.state lsl 17);
-  abs rng.state
+(** Tit-for-tat strategy based on history *)
+let tit_for_tat (history: strategy list) : strategy =
+  match history with
+  | [] -> Cooperate  (* cooperate initially *)
+  | prev :: _ -> prev  (* mirror opponent's last move *)
 
-let next_float rng =
-  float_of_int (next_int rng mod 10000) /. 10000.0
+(** Priority-aware strategy: high priority faction asserts more *)
+let priority_strategy (own_priority: int) (resource: resource) : strategy =
+  match resource, own_priority with
+  | PriorityLane, p when p <= 2 -> Assert
+  | Airspace,     p when p <= 1 -> Assert
+  | _,            p when p <= 2 -> Negotiate
+  | _,            _             -> Cooperate
 
-(* Nash bargaining: maximize (u_a - d_a) * (u_b - d_b) *)
-let nash_bargain rng n_options =
-  let ua = Array.init n_options (fun _ -> next_float rng) in
-  let ub = Array.init n_options (fun _ -> next_float rng) in
-  let best = ref (-1.0, 0.0, 0.0) in
-  Array.iteri (fun i _ ->
-    let product = ua.(i) *. ub.(i) in
-    let (best_p, _, _) = !best in
-    if product > best_p then
-      best := (product, ua.(i), ub.(i))
-  ) ua;
-  let (_, a, b) = !best in (a, b)
+(** Simulate one round of negotiation *)
+let simulate_round (state: game_state) : game_state * payoff * payoff =
+  let sa = priority_strategy state.faction_a.priority state.resource in
+  let sb = tit_for_tat state.history_b in
+  let (pa, pb) = airspace_payoff sa sb in
+  let new_state = {
+    state with
+    round     = state.round + 1;
+    history_a = sa :: state.history_a;
+    history_b = sb :: state.history_b;
+  } in
+  (new_state, pa, pb)
 
-let create_factions rng n =
-  let names = [|"Alpha";"Bravo";"Charlie";"Delta";"Echo";"Foxtrot";"Golf";"Hotel"|] in
-  Array.init n (fun i ->
-    { id = Printf.sprintf "faction_%d" i;
-      name = names.(i mod Array.length names);
-      n_drones = 5 + next_int rng mod 45;
-      resources = 50.0 +. next_float rng *. 150.0;
-      reputation = 0.3 +. next_float rng *. 0.5;
-      power = 0.2 +. next_float rng *. 0.7; })
+(** Run multi-round negotiation *)
+let negotiate (faction_a: faction) (faction_b: faction)
+              (resource: resource) (rounds: int)
+    : (payoff * payoff) list =
+  let initial = {
+    faction_a; faction_b; resource;
+    round = 0; history_a = []; history_b = [];
+  } in
+  let rec loop state acc = function
+    | 0 -> List.rev acc
+    | n ->
+      let (state', pa, pb) = simulate_round state in
+      loop state' ((pa, pb) :: acc) (n - 1)
+  in
+  loop initial [] rounds
 
-let negotiate rng fa fb =
-  let (pay_a, pay_b) = nash_bargain rng 10 in
-  let coop_prob = (fa.reputation +. fb.reputation) /. 2.0 in
-  if next_float rng < coop_prob then
-    { event_id = Printf.sprintf "EVT-%05d" (next_int rng mod 99999);
-      factions = (fa.id, fb.id); action = Cooperate;
-      outcome = "Treaty signed"; payoff_a = pay_a; payoff_b = pay_b }
-  else
-    { event_id = Printf.sprintf "EVT-%05d" (next_int rng mod 99999);
-      factions = (fa.id, fb.id); action = Defect;
-      outcome = "Negotiation failed"; payoff_a = 0.0; payoff_b = 0.0 }
+(** Compute total payoffs from negotiation rounds *)
+let total_payoffs (rounds: (payoff * payoff) list) : float * float =
+  List.fold_left (fun (ta, tb) (pa, pb) ->
+    (ta +. pa.self_payoff, tb +. pb.self_payoff)
+  ) (0.0, 0.0) rounds
+
+(** Print Nash equilibria *)
+let report_equilibria () =
+  let eq = find_nash_equilibria () in
+  Printf.printf "Nash equilibria found: %d\n" (List.length eq);
+  List.iter (fun (sa, sb) ->
+    Printf.printf "  (%s, %s)\n"
+      (match sa with Cooperate->"C"|Defect->"D"|Negotiate->"N"|Yield->"Y"|Assert->"A")
+      (match sb with Cooperate->"C"|Defect->"D"|Negotiate->"N"|Yield->"Y"|Assert->"A")
+  ) eq
 
 let () =
-  let rng = make_prng 42 in
-  let factions = create_factions rng 5 in
-  let events = ref [] in
-  let treaties = ref 0 in
-
-  for _ = 0 to 9 do
-    let i = next_int rng mod Array.length factions in
-    let j = (i + 1 + next_int rng mod (Array.length factions - 1)) mod Array.length factions in
-    let ev = negotiate rng factions.(i) factions.(j) in
-    events := ev :: !events;
-    if ev.action = Cooperate then incr treaties;
-  done;
-
-  Printf.printf "Factions: %d\n" (Array.length factions);
-  Printf.printf "Negotiations: %d\n" (List.length !events);
-  Printf.printf "Treaties signed: %d\n" !treaties;
-  Printf.printf "Cooperation rate: %.2f\n"
-    (float_of_int !treaties /. float_of_int (max 1 (List.length !events)))
+  Printf.printf "Phase 527: Swarm Diplomacy — Nash Equilibrium Analysis\n";
+  report_equilibria ();
+  let f1 = { id="F1"; name="Commercial"; drone_count=5; priority=2; resources=[Airspace] } in
+  let f2 = { id="F2"; name="Emergency";  drone_count=2; priority=1; resources=[PriorityLane] } in
+  let results = negotiate f1 f2 Airspace 5 in
+  let (ta, tb) = total_payoffs results in
+  Printf.printf "Negotiation over 5 rounds: faction_a=%.1f faction_b=%.1f\n" ta tb

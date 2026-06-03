@@ -1,80 +1,59 @@
--- Phase 615: Formal Verifier — Haskell Type-Safe Safety Proofs
--- 형식 검증 기반 안전성 증명 (타입 시스템)
+-- Phase 615: Formal Verifier — Haskell
+-- SDACS LTL (Linear Temporal Logic) property verification for drone missions
 
-module FormalVerifier where
+module FormalVerifier
+  ( LTL(..)
+  , State(..)
+  , Trace
+  , verify
+  , checkSafety
+  , checkLiveness
+  ) where
 
--- | Drone state representation
-data DroneState = DroneState
-  { droneId    :: Int
-  , posX       :: Double
-  , posY       :: Double
-  , posZ       :: Double
-  , velX       :: Double
-  , velY       :: Double
-  , velZ       :: Double
-  , battery    :: Double
+data State = State
+  { stDroneId  :: String
+  , stAlt      :: Double
+  , stBattery  :: Double
+  , stMode     :: String
+  , stTick     :: Int
   } deriving (Show, Eq)
 
--- | Safety property types
-data SafetyProperty
-  = MinSeparation Double     -- minimum distance between drones
-  | MaxAltitude Double       -- altitude ceiling
-  | MinBattery Double        -- minimum battery for operation
-  | GeofenceBound Double     -- max distance from origin
-  deriving (Show, Eq)
+data LTL a
+  = Atom     (a -> Bool)
+  | Not      (LTL a)
+  | And      (LTL a) (LTL a)
+  | Or       (LTL a) (LTL a)
+  | Always   (LTL a)
+  | Eventually (LTL a)
+  | Next     (LTL a)
+  | Until    (LTL a) (LTL a)
 
--- | Verification result
-data VerifyResult
-  = Verified String
-  | Violated String DroneState
-  | Unknown String
-  deriving (Show)
+type Trace a = [a]
 
--- | Distance between two drones
-distance :: DroneState -> DroneState -> Double
-distance a b = sqrt $ (posX a - posX b)^2 + (posY a - posY b)^2 + (posZ a - posZ b)^2
+verify :: LTL a -> Trace a -> Bool
+verify (Atom p)        (x:_)  = p x
+verify (Not f)         tr     = not (verify f tr)
+verify (And f g)       tr     = verify f tr && verify g tr
+verify (Or f g)        tr     = verify f tr || verify g tr
+verify (Always f)      []     = True
+verify (Always f)      tr@(_:rest) = verify f tr && verify (Always f) rest
+verify (Eventually f)  []     = False
+verify (Eventually f)  tr@(_:rest) = verify f tr || verify (Eventually f) rest
+verify (Next f)        (_:rest)    = verify f rest
+verify (Next _)        []          = False
+verify (Until f g)     []          = False
+verify (Until f g)     tr@(_:rest) = verify g tr || (verify f tr && verify (Until f g) rest)
+verify _ []                        = True
 
--- | Check separation between all drone pairs
-verifySeparation :: Double -> [DroneState] -> [VerifyResult]
-verifySeparation minDist drones =
-  [ if dist >= minDist
-    then Verified $ "Pair (" ++ show (droneId a) ++ "," ++ show (droneId b) ++ ") safe: " ++ show dist
-    else Violated ("Pair (" ++ show (droneId a) ++ "," ++ show (droneId b) ++ ") violated: " ++ show dist) a
-  | a <- drones, b <- drones, droneId a < droneId b
-  , let dist = distance a b
+checkSafety :: Trace State -> [(String, Bool)]
+checkSafety trace =
+  [ ("altitude_safe",  verify (Always (Atom (\s -> stAlt s <= 120.0))) trace)
+  , ("battery_ok",     verify (Always (Atom (\s -> stBattery s >= 0.0))) trace)
+  , ("no_crash",       verify (Always (Atom (\s -> stAlt s >= 0.0))) trace)
   ]
 
--- | Check single property for one drone
-verifyProperty :: SafetyProperty -> DroneState -> VerifyResult
-verifyProperty (MinSeparation _) d = Unknown $ "Separation requires pair check for drone " ++ show (droneId d)
-verifyProperty (MaxAltitude maxAlt) d
-  | posZ d <= maxAlt = Verified $ "Drone " ++ show (droneId d) ++ " altitude OK: " ++ show (posZ d)
-  | otherwise        = Violated ("Drone " ++ show (droneId d) ++ " exceeds altitude: " ++ show (posZ d)) d
-verifyProperty (MinBattery minBat) d
-  | battery d >= minBat = Verified $ "Drone " ++ show (droneId d) ++ " battery OK: " ++ show (battery d)
-  | otherwise           = Violated ("Drone " ++ show (droneId d) ++ " low battery: " ++ show (battery d)) d
-verifyProperty (GeofenceBound maxR) d
-  | r <= maxR   = Verified $ "Drone " ++ show (droneId d) ++ " in geofence: " ++ show r
-  | otherwise   = Violated ("Drone " ++ show (droneId d) ++ " outside geofence: " ++ show r) d
-  where r = sqrt $ posX d ^ 2 + posY d ^ 2
-
--- | Verify all properties for all drones
-verifyAll :: [SafetyProperty] -> [DroneState] -> [VerifyResult]
-verifyAll props drones = concatMap (\p -> case p of
-  MinSeparation d -> verifySeparation d drones
-  _               -> map (verifyProperty p) drones
-  ) props
-
--- | Count violations
-countViolations :: [VerifyResult] -> Int
-countViolations = length . filter isViolated
-  where
-    isViolated (Violated _ _) = True
-    isViolated _              = False
-
--- | Check if system is safe (no violations)
-isSystemSafe :: [VerifyResult] -> Bool
-isSystemSafe = all (not . isViolated)
-  where
-    isViolated (Violated _ _) = True
-    isViolated _              = False
+checkLiveness :: Trace State -> [(String, Bool)]
+checkLiveness trace =
+  [ ("eventually_land", verify (Eventually (Atom (\s -> stMode s == "idle"))) trace)
+  , ("battery_drains",  verify (Eventually (Atom (\s -> stBattery s < 50.0))) trace)
+  ]

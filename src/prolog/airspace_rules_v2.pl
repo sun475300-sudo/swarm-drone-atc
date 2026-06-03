@@ -1,146 +1,83 @@
-%% Phase 657: Airspace Rules V2 — Prolog Dynamic Rule Engine
-%% 동적 공역 규칙 엔진 v2: 상황 인식 기반 적응형 규칙 추론
+% Phase 647: Airspace Rules v2 — Prolog
+% SDACS enhanced airspace rule engine with dynamic airspace updates
 
-%% ── 기본 사실 (Facts) ──────────────────────────────────
+:- module(airspace_rules_v2, [
+    zone_class/2,
+    conflict_detected/3,
+    priority_order/2,
+    geofence_check/3,
+    can_operate/2,
+    resolve/3
+]).
 
-%% drone(ID, Type, Priority, BatteryPct, AltitudeM)
-drone(d001, commercial, 3, 85, 60).
-drone(d002, commercial, 3, 45, 80).
-drone(d003, emergency,  1, 90, 100).
-drone(d004, military,   2, 70, 110).
-drone(d005, commercial, 3, 12, 50).
-drone(d006, rogue,      5, 99, 40).
+% Zone classification
+zone_class(zone_a, class_a).
+zone_class(zone_b, class_b).
+zone_class(zone_c, class_c).
+zone_class(zone_g, class_g).
 
-%% weather(Condition, WindSpeedMS, Visibility)
-weather(normal, 5, good).
-% weather(storm, 18, poor).
-% weather(fog, 3, very_poor).
+% Conflict detection between two drones
+conflict_detected(D1, D2, horizontal) :-
+    drone_pos(D1, X1, Y1, _),
+    drone_pos(D2, X2, Y2, _),
+    D1 \= D2,
+    Dx is X1 - X2, Dy is Y1 - Y2,
+    Dist is sqrt(Dx*Dx + Dy*Dy),
+    Dist < 30.0.
 
-%% nfz(Name, CenterX, CenterY, RadiusM)
-nfz(military_zone, 1000, 1000, 500).
-nfz(airport_zone, -2000, 0, 1000).
-nfz(hospital_zone, 500, -500, 200).
+conflict_detected(D1, D2, vertical) :-
+    drone_pos(D1, _, _, Z1),
+    drone_pos(D2, _, _, Z2),
+    D1 \= D2,
+    AltDiff is abs(Z1 - Z2),
+    AltDiff < 10.0.
 
-%% ── 안전 규칙 (Safety Rules) ─────────────────────────
+% Priority order for conflict resolution
+priority_order(emergency, 1).
+priority_order(medical,   2).
+priority_order(commercial,3).
+priority_order(delivery,  4).
+priority_order(survey,    5).
+priority_order(recreational, 6).
 
-%% 최소 분리간격 (m)
-min_separation(30).
-min_separation_high_density(50).
+% Geofence boundary check
+geofence_check(Drone, Zone, inside) :-
+    drone_pos(Drone, X, Y, _),
+    zone_boundary(Zone, Cx, Cy, R),
+    Dx is X - Cx, Dy is Y - Cy,
+    Dist is sqrt(Dx*Dx + Dy*Dy),
+    Dist =< R.
 
-%% 고도 제한
-max_altitude(120).
-min_altitude(30).
+geofence_check(Drone, Zone, outside) :-
+    \+ geofence_check(Drone, Zone, inside).
 
-%% 배터리 임계치
-battery_critical(15).
-battery_warning(25).
+% Operational permission
+can_operate(Drone, Zone) :-
+    drone_class(Drone, Class),
+    zone_class(Zone, ZClass),
+    class_zone_allowed(Class, ZClass).
 
-%% ── 추론 규칙 (Inference Rules) ─────────────────────
+class_zone_allowed(commercial,    class_a).
+class_zone_allowed(commercial,    class_b).
+class_zone_allowed(commercial,    class_c).
+class_zone_allowed(commercial,    class_g).
+class_zone_allowed(recreational,  class_g).
+class_zone_allowed(emergency,     _).
 
-%% 드론이 비상 상태인지
-is_emergency(ID) :-
-    drone(ID, emergency, _, _, _).
-
-%% 드론이 저배터리인지
-low_battery(ID) :-
-    drone(ID, _, _, Battery, _),
-    battery_critical(Threshold),
-    Battery < Threshold.
-
-%% 배터리 경고
-battery_warn(ID) :-
-    drone(ID, _, _, Battery, _),
-    battery_warning(Threshold),
-    Battery < Threshold.
-
-%% 드론이 고도 위반인지
-altitude_violation(ID) :-
-    drone(ID, _, _, _, Alt),
-    max_altitude(Max),
-    Alt > Max.
-
-altitude_violation(ID) :-
-    drone(ID, _, _, _, Alt),
-    min_altitude(Min),
-    Alt < Min.
-
-%% 악의적 드론 탐지
-is_rogue(ID) :-
-    drone(ID, rogue, _, _, _).
-
-%% 우선순위 비교 (낮은 숫자 = 높은 우선순위)
-higher_priority(ID1, ID2) :-
-    drone(ID1, _, P1, _, _),
-    drone(ID2, _, P2, _, _),
+% Conflict resolution
+resolve(D1, D2, yield(D2)) :-
+    drone_class(D1, C1), drone_class(D2, C2),
+    priority_order(C1, P1), priority_order(C2, P2),
     P1 < P2.
 
-%% RTL (Return to Launch) 필요 판단
-needs_rtl(ID) :-
-    low_battery(ID),
-    \+ is_emergency(ID).
+resolve(D1, D2, yield(D1)) :-
+    drone_class(D1, C1), drone_class(D2, C2),
+    priority_order(C1, P1), priority_order(C2, P2),
+    P2 < P1.
 
-%% 강풍 시 고도 제한 강화
-wind_altitude_limit(Limit) :-
-    weather(_, Wind, _),
-    Wind > 10,
-    Limit is 80.
+resolve(_, _, negotiate) :- true.
 
-wind_altitude_limit(Limit) :-
-    weather(_, Wind, _),
-    Wind =< 10,
-    Limit is 120.
-
-%% 회피 어드바이저리 결정
-advisory_type(ID1, ID2, climb) :-
-    drone(ID1, _, _, _, Alt1),
-    drone(ID2, _, _, _, Alt2),
-    Alt1 > Alt2,
-    higher_priority(ID2, ID1).
-
-advisory_type(ID1, ID2, descend) :-
-    drone(ID1, _, _, _, Alt1),
-    drone(ID2, _, _, _, Alt2),
-    Alt1 =< Alt2,
-    higher_priority(ID2, ID1).
-
-advisory_type(ID1, _, hold) :-
-    is_emergency(ID1).
-
-%% NFZ 침입 판단 (간소화)
-in_nfz(ID, Zone) :-
-    drone(ID, _, _, _, _),
-    nfz(Zone, _, _, _).
-    % 실제로는 좌표 거리 계산 필요 (Prolog 한계로 간소화)
-
-%% ── 종합 상태 보고 ────────────────────────────────────
-
-drone_status_report(ID, Status) :-
-    is_rogue(ID),
-    Status = rogue_detected.
-
-drone_status_report(ID, Status) :-
-    low_battery(ID),
-    Status = critical_battery.
-
-drone_status_report(ID, Status) :-
-    altitude_violation(ID),
-    Status = altitude_violation.
-
-drone_status_report(ID, Status) :-
-    is_emergency(ID),
-    Status = emergency_active.
-
-drone_status_report(ID, Status) :-
-    \+ is_rogue(ID),
-    \+ low_battery(ID),
-    \+ altitude_violation(ID),
-    \+ is_emergency(ID),
-    Status = normal.
-
-%% ── 쿼리 예시 ──────────────────────────────────────
-
-%% ?- drone_status_report(d005, S).  → S = critical_battery
-%% ?- needs_rtl(ID).                 → ID = d005
-%% ?- is_rogue(ID).                  → ID = d006
-%% ?- higher_priority(d003, d001).   → true (emergency > commercial)
-%% ?- wind_altitude_limit(L).        → L = 120 (normal weather)
+% Runtime stubs
+drone_pos(_, 0, 0, 60) :- fail.
+drone_class(_, recreational) :- fail.
+zone_boundary(_, 0, 0, 1000) :- fail.

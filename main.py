@@ -40,7 +40,7 @@ def _setup_logging(level: str = "INFO"):
 # ── simulate ─────────────────────────────────────────────────
 
 def cmd_simulate(args: argparse.Namespace) -> None:
-    """``cmd_simulate`` 동작을 수행한다."""
+    """단일 SwarmSimulator 실행 후 KPI·이벤트·비행단계 요약 출력 (simulate 서브커맨드)"""
     _setup_logging(getattr(args, "log_level", "INFO"))
     import time as _time
 
@@ -101,7 +101,7 @@ def cmd_simulate(args: argparse.Namespace) -> None:
 # ── scenario ─────────────────────────────────────────────────
 
 def cmd_scenario(args: argparse.Namespace) -> None:
-    """``cmd_scenario`` 동작을 수행한다."""
+    """명명된 시나리오를 n회 실행하고 집계 KPI를 출력 (--list 시 시나리오 목록만 표시)"""
     _setup_logging(getattr(args, "log_level", "INFO"))
     from simulation.scenario_runner import list_scenarios, run_scenario
 
@@ -151,7 +151,7 @@ def cmd_scenario(args: argparse.Namespace) -> None:
 # ── monte-carlo ──────────────────────────────────────────────
 
 def cmd_monte_carlo(args: argparse.Namespace) -> None:
-    """``cmd_monte_carlo`` 동작을 수행한다."""
+    """Monte Carlo 파라미터 스윕 (quick/full) 실행 후 설정별 집계 결과를 표로 출력"""
     _setup_logging(getattr(args, "log_level", "INFO"))
     from simulation.monte_carlo import run_monte_carlo, summarize_results
 
@@ -168,12 +168,14 @@ def cmd_monte_carlo(args: argparse.Namespace) -> None:
 # ── visualize ────────────────────────────────────────────────
 
 def _normalize_benchmark_method(method: str) -> str:
+    """사용자 입력 메서드 이름을 내부 어댑터 키로 정규화 (예: 'hybrid' → 'sdacs_hybrid')"""
     return {
         "hybrid": "sdacs_hybrid",
     }.get(method, method)
 
 
 def _load_benchmark_manifest(scenario_id: str) -> dict:
+    """벤치마크 시나리오 매니페스트 YAML 로드 (benchmarks/scenarios/{id}/manifest.yaml)"""
     from pathlib import Path
 
     import yaml
@@ -186,7 +188,7 @@ def _load_benchmark_manifest(scenario_id: str) -> dict:
 
 
 def cmd_benchmark(args: argparse.Namespace) -> None:
-    """``cmd_benchmark`` 동작을 수행한다."""
+    """재현 가능한 벤치마크 셀 실행: 시나리오·메서드·시드 고정 → 메트릭(NMR/PE/RTF 등) JSON 출력"""
     _setup_logging(getattr(args, "log_level", "INFO"))
 
     import json
@@ -263,7 +265,7 @@ def cmd_benchmark(args: argparse.Namespace) -> None:
 
 
 def cmd_visualize(args: argparse.Namespace) -> None:
-    """``cmd_visualize`` 동작을 수행한다."""
+    """Dash 3D 실시간 대시보드 실행 (별도 스레드에서 시뮬레이션, Plotly 렌더링)"""
     _setup_logging(getattr(args, "log_level", "INFO"))
     import threading
 
@@ -284,7 +286,7 @@ def cmd_visualize(args: argparse.Namespace) -> None:
 # ── visualize-3d ────────────────────────────────────────────
 
 def cmd_visualize_3d(args: argparse.Namespace) -> None:
-    """``cmd_visualize_3d`` 동작을 수행한다."""
+    """기본 브라우저로 Three.js 3D 시뮬레이터 HTML 파일 오픈 (visualization/swarm_3d_simulator.html)"""
     import webbrowser
     from pathlib import Path
 
@@ -301,7 +303,7 @@ def cmd_visualize_3d(args: argparse.Namespace) -> None:
 # ── chatbot ────────────────────────────────────────────────
 
 def cmd_chatbot(args: argparse.Namespace) -> None:
-    """``cmd_chatbot`` 동작을 수행한다."""
+    """보세전시장 민원상담 챗봇 웹 서버 실행 (rule 또는 llm 엔진 선택 가능)"""
     _setup_logging(getattr(args, "log_level", "INFO"))
     from chatbot.app import run_chatbot
 
@@ -316,7 +318,7 @@ def cmd_chatbot(args: argparse.Namespace) -> None:
 # ── chatbot-sim ───────────────────────────────────────────────
 
 def cmd_chatbot_sim(args: argparse.Namespace) -> None:
-    """``cmd_chatbot_sim`` 동작을 수행한다."""
+    """챗봇 CLI 시뮬레이터 실행 (브라우저 없이 터미널에서 대화형 테스트)"""
     _setup_logging(getattr(args, "log_level", "INFO"))
     from chatbot.simulator import run_simulator
 
@@ -324,7 +326,7 @@ def cmd_chatbot_sim(args: argparse.Namespace) -> None:
 
 
 def cmd_api(args: argparse.Namespace) -> None:
-    """``cmd_api`` 동작을 수행한다."""
+    """FastAPI 백엔드 서버 실행 (uvicorn, pip install .[api] 필요)"""
     _setup_logging(getattr(args, "log_level", "INFO"))
     try:
         from api.fastapi_server import run_dev_server
@@ -342,7 +344,7 @@ def cmd_api(args: argparse.Namespace) -> None:
 
 
 def cmd_ops_report(args: argparse.Namespace) -> None:
-    """``cmd_ops_report`` 동작을 수행한다."""
+    """E2E 운영 리포트 번들 생성: 배송·컴플라이언스·교통·기상 데이터 통합 → JSON/Markdown 출력"""
     _setup_logging(getattr(args, "log_level", "INFO"))
     from simulation.compliance_engine import ComplianceEngine
     from simulation.delivery_simulation import DeliverySimulation
@@ -459,7 +461,7 @@ def cmd_ops_report(args: argparse.Namespace) -> None:
 # ── main ─────────────────────────────────────────────────────
 
 def main() -> None:
-    """``main`` 동작을 수행한다."""
+    """CLI 진입점: argparse 서브커맨드 파싱 후 해당 cmd_* 핸들러로 디스패치"""
     parser = argparse.ArgumentParser(
         prog="sdacs",
         description="군집드론 공역통제 자동화 시스템 (SDACS)",

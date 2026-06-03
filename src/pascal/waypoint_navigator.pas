@@ -1,178 +1,161 @@
 {
-  Phase 579: Waypoint Navigator — Pascal
-  웨이포인트 기반 드론 네비게이션.
-  경로 계획, 거리/방위 계산, ETA 추정.
+  Phase 579: Waypoint Navigator — Pascal/Free Pascal
+  SDACS autonomous waypoint navigation using Haversine geodesy
 }
-
 program WaypointNavigator;
 
 uses
-  SysUtils, Math;
+  Math, SysUtils;
 
 const
-  MAX_WAYPOINTS = 100;
-  EARTH_RADIUS  = 6371000.0;    { 미터 }
-  DEG_TO_RAD    = Pi / 180.0;
-  RAD_TO_DEG    = 180.0 / Pi;
-  DEFAULT_SPEED = 15.0;         { m/s }
+  EARTH_RADIUS_M  = 6371000.0;
+  DEG_TO_RAD      = Pi / 180.0;
+  RAD_TO_DEG      = 180.0 / Pi;
+  MAX_WAYPOINTS   = 256;
+  ARRIVAL_RADIUS  = 5.0;  { meters }
 
 type
-  { 웨이포인트 레코드 }
   TWaypoint = record
-    Id:        Integer;
-    Name:      string[32];
-    Latitude:  Double;
-    Longitude: Double;
-    Altitude:  Double;          { 미터 AGL }
-    Speed:     Double;          { m/s, 0이면 기본값 }
-    Action:    string[16];      { hover, photo, land, pass }
+    Id        : Integer;
+    Latitude  : Double;
+    Longitude : Double;
+    Altitude  : Double;
+    Speed     : Double;
+    Loiter    : Boolean;
+    LoiterSec : Integer;
   end;
 
-  { 네비게이션 결과 }
-  TNavResult = record
-    FromWP:    Integer;
-    ToWP:      Integer;
-    Distance:  Double;          { 미터 }
-    Bearing:   Double;          { 도 }
-    ETA:       Double;          { 초 }
-    AltChange: Double;          { 미터 }
+  TMissionPlan = record
+    Name      : string[64];
+    Count     : Integer;
+    Points    : array[0..MAX_WAYPOINTS - 1] of TWaypoint;
+    HomeIndex : Integer;
   end;
 
-  { 드론 상태 }
-  TDroneState = record
-    Lat:       Double;
-    Lon:       Double;
-    Alt:       Double;
-    Heading:   Double;
-    Speed:     Double;
-    Battery:   Double;          { 퍼센트 }
-    WPIndex:   Integer;
+  TNavigatorState = record
+    CurrentIndex : Integer;
+    Reached      : Boolean;
+    DistanceToWP : Double;
+    BearingToWP  : Double;
+    CrossTrackErr: Double;
+    MissionDone  : Boolean;
   end;
 
-  { 웨이포인트 배열 }
-  TWaypointArray = array[0..MAX_WAYPOINTS-1] of TWaypoint;
-  TNavResultArray = array[0..MAX_WAYPOINTS-1] of TNavResult;
-
+{ Haversine distance between two lat/lon points in meters }
+function Haversine(Lat1, Lon1, Lat2, Lon2: Double): Double;
 var
-  Waypoints:     TWaypointArray;
-  NavResults:    TNavResultArray;
-  WaypointCount: Integer;
-  DroneState:    TDroneState;
-
-{ ─── Haversine 거리 계산 ─── }
-function HaversineDistance(Lat1, Lon1, Lat2, Lon2: Double): Double;
-var
-  dLat, dLon, a, c: Double;
+  DLat, DLon, A, C: Double;
 begin
-  dLat := (Lat2 - Lat1) * DEG_TO_RAD;
-  dLon := (Lon2 - Lon1) * DEG_TO_RAD;
-  a := Sin(dLat / 2) * Sin(dLat / 2) +
+  DLat := (Lat2 - Lat1) * DEG_TO_RAD;
+  DLon := (Lon2 - Lon1) * DEG_TO_RAD;
+  A := Sin(DLat / 2) * Sin(DLat / 2) +
        Cos(Lat1 * DEG_TO_RAD) * Cos(Lat2 * DEG_TO_RAD) *
-       Sin(dLon / 2) * Sin(dLon / 2);
-  c := 2 * ArcTan2(Sqrt(a), Sqrt(1 - a));
-  HaversineDistance := EARTH_RADIUS * c;
+       Sin(DLon / 2) * Sin(DLon / 2);
+  C := 2 * ArcTan2(Sqrt(A), Sqrt(1 - A));
+  Result := EARTH_RADIUS_M * C;
 end;
 
-{ ─── 방위각 계산 ─── }
-function CalculateBearing(Lat1, Lon1, Lat2, Lon2: Double): Double;
+{ Initial bearing from point 1 to point 2 in degrees }
+function InitialBearing(Lat1, Lon1, Lat2, Lon2: Double): Double;
 var
-  dLon, x, y, bearing: Double;
+  DLon, X, Y: Double;
 begin
-  dLon := (Lon2 - Lon1) * DEG_TO_RAD;
-  y := Sin(dLon) * Cos(Lat2 * DEG_TO_RAD);
-  x := Cos(Lat1 * DEG_TO_RAD) * Sin(Lat2 * DEG_TO_RAD) -
-       Sin(Lat1 * DEG_TO_RAD) * Cos(Lat2 * DEG_TO_RAD) * Cos(dLon);
-  bearing := ArcTan2(y, x) * RAD_TO_DEG;
-  if bearing < 0 then
-    bearing := bearing + 360.0;
-  CalculateBearing := bearing;
+  DLon := (Lon2 - Lon1) * DEG_TO_RAD;
+  Y := Sin(DLon) * Cos(Lat2 * DEG_TO_RAD);
+  X := Cos(Lat1 * DEG_TO_RAD) * Sin(Lat2 * DEG_TO_RAD) -
+       Sin(Lat1 * DEG_TO_RAD) * Cos(Lat2 * DEG_TO_RAD) * Cos(DLon);
+  Result := ArcTan2(Y, X) * RAD_TO_DEG;
+  if Result < 0 then
+    Result := Result + 360.0;
 end;
 
-{ ─── ETA 계산 ─── }
-function CalculateETA(Distance, Speed: Double): Double;
-begin
-  if Speed > 0 then
-    CalculateETA := Distance / Speed
-  else
-    CalculateETA := Distance / DEFAULT_SPEED;
-end;
-
-{ ─── 웨이포인트 추가 ─── }
-procedure AddWaypoint(Id: Integer; Name: string; Lat, Lon, Alt, Spd: Double; Act: string);
-begin
-  if WaypointCount < MAX_WAYPOINTS then
-  begin
-    Waypoints[WaypointCount].Id := Id;
-    Waypoints[WaypointCount].Name := Name;
-    Waypoints[WaypointCount].Latitude := Lat;
-    Waypoints[WaypointCount].Longitude := Lon;
-    Waypoints[WaypointCount].Altitude := Alt;
-    Waypoints[WaypointCount].Speed := Spd;
-    Waypoints[WaypointCount].Action := Act;
-    Inc(WaypointCount);
-  end;
-end;
-
-{ ─── 경로 분석 ─── }
-procedure AnalyzeRoute;
+{ Cross-track error in meters (negative = left of track) }
+function CrossTrackError(Lat1, Lon1, Lat2, Lon2, LatP, LonP: Double): Double;
 var
-  i: Integer;
-  dist, bearing, eta, altChange: Double;
-  totalDist, totalETA: Double;
+  D13, Theta13, Theta12: Double;
 begin
-  totalDist := 0;
-  totalETA := 0;
+  D13 := Haversine(Lat1, Lon1, LatP, LonP) / EARTH_RADIUS_M;
+  Theta13 := InitialBearing(Lat1, Lon1, LatP, LonP) * DEG_TO_RAD;
+  Theta12 := InitialBearing(Lat1, Lon1, Lat2, Lon2) * DEG_TO_RAD;
+  Result := ArcSin(Sin(D13) * Sin(Theta13 - Theta12)) * EARTH_RADIUS_M;
+end;
 
-  WriteLn('=== Route Analysis ===');
-  WriteLn(Format('%-4s %-12s %-12s %-10s %-8s %-8s',
-    ['Leg', 'From', 'To', 'Dist(m)', 'Brg(°)', 'ETA(s)']));
-  WriteLn(StringOfChar('-', 60));
+{ Initialize a waypoint }
+function MakeWaypoint(Id: Integer; Lat, Lon, Alt, Spd: Double;
+                      Loiter: Boolean; LoiterSec: Integer): TWaypoint;
+begin
+  Result.Id        := Id;
+  Result.Latitude  := Lat;
+  Result.Longitude := Lon;
+  Result.Altitude  := Alt;
+  Result.Speed     := Spd;
+  Result.Loiter    := Loiter;
+  Result.LoiterSec := LoiterSec;
+end;
 
-  for i := 0 to WaypointCount - 2 do
+{ Navigator update: returns next waypoint action }
+function UpdateNavigator(var State: TNavigatorState;
+                         const Plan: TMissionPlan;
+                         CurLat, CurLon, CurAlt: Double): TNavigatorState;
+var
+  WP: TWaypoint;
+begin
+  if State.MissionDone or (Plan.Count = 0) then
   begin
-    dist := HaversineDistance(
-      Waypoints[i].Latitude, Waypoints[i].Longitude,
-      Waypoints[i+1].Latitude, Waypoints[i+1].Longitude);
-    bearing := CalculateBearing(
-      Waypoints[i].Latitude, Waypoints[i].Longitude,
-      Waypoints[i+1].Latitude, Waypoints[i+1].Longitude);
-    altChange := Waypoints[i+1].Altitude - Waypoints[i].Altitude;
-    eta := CalculateETA(dist, Waypoints[i+1].Speed);
-
-    NavResults[i].FromWP := i;
-    NavResults[i].ToWP := i + 1;
-    NavResults[i].Distance := dist;
-    NavResults[i].Bearing := bearing;
-    NavResults[i].ETA := eta;
-    NavResults[i].AltChange := altChange;
-
-    totalDist := totalDist + dist;
-    totalETA := totalETA + eta;
-
-    WriteLn(Format('%-4d %-12s %-12s %-10.1f %-8.1f %-8.1f',
-      [i, Waypoints[i].Name, Waypoints[i+1].Name, dist, bearing, eta]));
+    State.MissionDone := True;
+    Result := State;
+    Exit;
   end;
 
-  WriteLn(StringOfChar('-', 60));
-  WriteLn(Format('Total distance: %.1f m', [totalDist]));
-  WriteLn(Format('Total ETA:      %.1f s (%.1f min)', [totalETA, totalETA / 60]));
-  WriteLn(Format('Waypoints:      %d', [WaypointCount]));
+  WP := Plan.Points[State.CurrentIndex];
+  State.DistanceToWP := Haversine(CurLat, CurLon, WP.Latitude, WP.Longitude);
+  State.BearingToWP  := InitialBearing(CurLat, CurLon, WP.Latitude, WP.Longitude);
+
+  if State.CurrentIndex > 0 then
+  begin
+    var Prev := Plan.Points[State.CurrentIndex - 1];
+    State.CrossTrackErr := CrossTrackError(
+      Prev.Latitude, Prev.Longitude,
+      WP.Latitude, WP.Longitude,
+      CurLat, CurLon
+    );
+  end;
+
+  State.Reached := State.DistanceToWP < ARRIVAL_RADIUS;
+
+  if State.Reached and (State.CurrentIndex < Plan.Count - 1) then
+  begin
+    State.CurrentIndex := State.CurrentIndex + 1;
+    State.Reached := False;
+  end
+  else if State.Reached and (State.CurrentIndex = Plan.Count - 1) then
+    State.MissionDone := True;
+
+  Result := State;
 end;
 
-{ ─── 메인 프로그램 ─── }
+{ Main demo }
+var
+  Plan  : TMissionPlan;
+  State : TNavigatorState;
 begin
-  WaypointCount := 0;
+  Plan.Name      := 'Demo Mission';
+  Plan.Count     := 3;
+  Plan.HomeIndex := 0;
 
-  WriteLn('=== SDACS Waypoint Navigator ===');
-  WriteLn;
+  Plan.Points[0] := MakeWaypoint(0, 37.5665, 126.9780, 50.0, 10.0, False, 0);
+  Plan.Points[1] := MakeWaypoint(1, 37.5700, 126.9800, 60.0, 10.0, True,  5);
+  Plan.Points[2] := MakeWaypoint(2, 37.5665, 126.9780, 10.0, 5.0,  False, 0);
 
-  { 테스트 웨이포인트 (서울 지역) }
-  AddWaypoint(0, 'HOME',     37.5665, 126.9780, 0,   0,  'takeoff');
-  AddWaypoint(1, 'WP_ALPHA', 37.5700, 126.9750, 100, 15, 'pass');
-  AddWaypoint(2, 'WP_BRAVO', 37.5750, 126.9800, 120, 12, 'hover');
-  AddWaypoint(3, 'WP_CHARLIE',37.5720, 126.9850, 80, 15, 'photo');
-  AddWaypoint(4, 'WP_DELTA', 37.5680, 126.9820, 100, 10, 'pass');
-  AddWaypoint(5, 'LANDING',  37.5665, 126.9780, 0,   8,  'land');
+  State.CurrentIndex := 0;
+  State.MissionDone  := False;
+  State.Reached      := False;
 
-  AnalyzeRoute;
+  WriteLn('Waypoint Navigator initialized.');
+  WriteLn('Mission: ', Plan.Name);
+  WriteLn('Waypoints: ', Plan.Count);
+
+  State := UpdateNavigator(State, Plan, 37.5666, 126.9781, 45.0);
+  WriteLn(Format('Distance to WP0: %.1f m', [State.DistanceToWP]));
+  WriteLn(Format('Bearing to WP0: %.1f deg', [State.BearingToWP]));
 end.

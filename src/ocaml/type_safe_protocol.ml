@@ -1,152 +1,148 @@
-(* Phase 591: Type-Safe Communication Protocol — OCaml *)
-(* 타입 안전 드론 통신 프로토콜: 대수적 데이터 타입, 패턴 매칭, 직렬화. *)
+(** Phase 581: Type-Safe Protocol — OCaml
+    SDACS type-safe communication protocol using phantom types and GADTs *)
 
-(* ─── 메시지 타입 ─── *)
-type drone_id = string
+(** Message direction phantom types *)
+type request
+type response
+type notification
 
-type position = {
-  lat : float;
-  lon : float;
-  alt : float;
-}
+(** Protocol version *)
+type version = V1 | V2 | V3
 
-type velocity = {
-  vx : float;
-  vy : float;
-  vz : float;
-}
-
-type battery_status = {
-  voltage : float;
-  current : float;
-  remaining : int;  (* percent *)
-}
-
-type alert_level = Low | Medium | High | Critical
-
-type conflict_info = {
-  drone_a : drone_id;
-  drone_b : drone_id;
-  distance : float;
-  time_to_collision : float;
-}
-
-type advisory_action =
-  | Climb of float
-  | Descend of float
-  | TurnLeft of float
-  | TurnRight of float
+(** Drone command types *)
+type command =
+  | Arm
+  | Disarm
+  | TakeOff of float          (** altitude in meters *)
+  | Land
+  | GoTo of float * float * float  (** lat, lon, alt *)
+  | RTL
   | Hold
-  | ReturnToBase
+  | SetSpeed of float
+  | SetHeading of float
 
-(* ─── 프로토콜 메시지 (Sum Type) ─── *)
-type message =
-  | Heartbeat of drone_id * float  (* drone_id, timestamp *)
-  | PositionReport of drone_id * position * velocity
-  | BatteryReport of drone_id * battery_status
-  | ConflictAlert of conflict_info * alert_level
-  | ResolutionAdvisory of drone_id * advisory_action
-  | MissionAssign of drone_id * string * position list
-  | MissionComplete of drone_id * string * float  (* mission_id, duration *)
-  | EmergencyLand of drone_id * string  (* reason *)
-  | Acknowledge of drone_id * int  (* message_id *)
-  | Ping of drone_id
-  | Pong of drone_id * float  (* latency_ms *)
+(** Telemetry data *)
+type telemetry = {
+  drone_id  : string;
+  timestamp : float;
+  lat       : float;
+  lon       : float;
+  alt       : float;
+  speed     : float;
+  heading   : float;
+  battery   : float;
+  mode      : string;
+}
 
-(* ─── 직렬화 ─── *)
-let string_of_position p =
-  Printf.sprintf "(%.6f, %.6f, %.1f)" p.lat p.lon p.alt
+(** Alert severity *)
+type severity = Info | Warning | Critical | Emergency
 
-let string_of_advisory = function
-  | Climb h -> Printf.sprintf "CLIMB %.1fm" h
-  | Descend h -> Printf.sprintf "DESCEND %.1fm" h
-  | TurnLeft d -> Printf.sprintf "TURN_LEFT %.1f°" d
-  | TurnRight d -> Printf.sprintf "TURN_RIGHT %.1f°" d
-  | Hold -> "HOLD"
-  | ReturnToBase -> "RTB"
+(** Alert type *)
+type alert = {
+  alert_id   : string;
+  drone_id   : string;
+  severity   : severity;
+  message    : string;
+  timestamp  : float;
+}
 
-let string_of_alert = function
-  | Low -> "LOW"
-  | Medium -> "MEDIUM"
-  | High -> "HIGH"
-  | Critical -> "CRITICAL"
+(** GADT message type — direction-indexed *)
+type _ message =
+  | Command      : string * command           -> request message
+  | TelemetryMsg : telemetry                  -> notification message
+  | AlertMsg     : alert                      -> notification message
+  | CommandAck   : string * bool * string     -> response message
+  | QueryDrones  : string                     -> request message
+  | DroneList    : string list                -> response message
 
-let serialize_message = function
-  | Heartbeat (id, ts) ->
-    Printf.sprintf "HB|%s|%.3f" id ts
-  | PositionReport (id, pos, vel) ->
-    Printf.sprintf "POS|%s|%s|vx=%.2f,vy=%.2f,vz=%.2f"
-      id (string_of_position pos) vel.vx vel.vy vel.vz
-  | BatteryReport (id, bat) ->
-    Printf.sprintf "BAT|%s|%.1fV|%.1fA|%d%%" id bat.voltage bat.current bat.remaining
-  | ConflictAlert (info, level) ->
-    Printf.sprintf "CONFLICT|%s|%s-%s|dist=%.1f|ttc=%.1f"
-      (string_of_alert level) info.drone_a info.drone_b
-      info.distance info.time_to_collision
-  | ResolutionAdvisory (id, action) ->
-    Printf.sprintf "RA|%s|%s" id (string_of_advisory action)
-  | MissionAssign (id, mission, wps) ->
-    Printf.sprintf "MISSION|%s|%s|waypoints=%d" id mission (List.length wps)
-  | MissionComplete (id, mission, dur) ->
-    Printf.sprintf "DONE|%s|%s|%.1fs" id mission dur
-  | EmergencyLand (id, reason) ->
-    Printf.sprintf "EMERGENCY|%s|%s" id reason
-  | Acknowledge (id, msg_id) ->
-    Printf.sprintf "ACK|%s|%d" id msg_id
-  | Ping id ->
-    Printf.sprintf "PING|%s" id
-  | Pong (id, lat) ->
-    Printf.sprintf "PONG|%s|%.1fms" id lat
+(** Protocol frame wraps any message with routing info *)
+type 'dir frame = {
+  frame_id : string;
+  version  : version;
+  payload  : 'dir message;
+}
 
-(* ─── 메시지 검증 ─── *)
-let validate_message = function
-  | PositionReport (_, pos, _) ->
-    pos.lat >= -90.0 && pos.lat <= 90.0 &&
-    pos.lon >= -180.0 && pos.lon <= 180.0 &&
-    pos.alt >= 0.0 && pos.alt <= 10000.0
-  | BatteryReport (_, bat) ->
-    bat.voltage > 0.0 && bat.remaining >= 0 && bat.remaining <= 100
-  | ConflictAlert (info, _) ->
-    info.distance >= 0.0 && info.time_to_collision >= 0.0
-  | _ -> true
+(** Encode a message to a string representation *)
+let encode_command = function
+  | Arm              -> "ARM"
+  | Disarm           -> "DISARM"
+  | TakeOff alt      -> Printf.sprintf "TAKEOFF %.1f" alt
+  | Land             -> "LAND"
+  | GoTo (la,lo,al)  -> Printf.sprintf "GOTO %.6f %.6f %.1f" la lo al
+  | RTL              -> "RTL"
+  | Hold             -> "HOLD"
+  | SetSpeed spd     -> Printf.sprintf "SPEED %.1f" spd
+  | SetHeading hdg   -> Printf.sprintf "HEADING %.1f" hdg
 
-(* ─── 메시지 우선순위 ─── *)
-let priority_of = function
-  | EmergencyLand _ -> 0
-  | ConflictAlert (_, Critical) -> 1
-  | ConflictAlert (_, High) -> 2
-  | ResolutionAdvisory _ -> 3
-  | ConflictAlert _ -> 4
-  | PositionReport _ -> 5
-  | BatteryReport _ -> 6
-  | MissionAssign _ -> 7
-  | MissionComplete _ -> 8
-  | Heartbeat _ -> 9
-  | Acknowledge _ -> 10
-  | Ping _ | Pong _ -> 11
+let encode_severity = function
+  | Info      -> "INFO"
+  | Warning   -> "WARN"
+  | Critical  -> "CRIT"
+  | Emergency -> "EMER"
 
-(* ─── 테스트 ─── *)
-let () =
-  let messages = [
-    Heartbeat ("DRONE_001", 1000.0);
-    PositionReport ("DRONE_001",
-      { lat = 37.5665; lon = 126.978; alt = 100.0 },
-      { vx = 5.0; vy = 3.0; vz = 0.0 });
-    BatteryReport ("DRONE_002",
-      { voltage = 11.8; current = 5.2; remaining = 72 });
-    ConflictAlert (
-      { drone_a = "DRONE_001"; drone_b = "DRONE_003";
-        distance = 45.0; time_to_collision = 12.5 },
-      High);
-    ResolutionAdvisory ("DRONE_001", Climb 30.0);
-    EmergencyLand ("DRONE_005", "motor_failure");
-    Ping "DRONE_002";
-    Pong ("DRONE_002", 2.3);
-  ] in
-  Printf.printf "=== Type-Safe Protocol ===\n";
-  List.iter (fun msg ->
-    let valid = if validate_message msg then "OK" else "INVALID" in
-    let pri = priority_of msg in
-    Printf.printf "  [P%02d][%s] %s\n" pri valid (serialize_message msg)
-  ) messages;
-  Printf.printf "Messages: %d\n" (List.length messages)
+let encode_message : type d. d message -> string = function
+  | Command (drone_id, cmd) ->
+      Printf.sprintf "CMD|%s|%s" drone_id (encode_command cmd)
+  | TelemetryMsg t ->
+      Printf.sprintf "TELEM|%s|%.6f|%.6f|%.1f|%.1f|%.1f|%.1f"
+        t.drone_id t.lat t.lon t.alt t.speed t.heading t.battery
+  | AlertMsg a ->
+      Printf.sprintf "ALERT|%s|%s|%s|%s"
+        a.drone_id (encode_severity a.severity) a.alert_id a.message
+  | CommandAck (msg_id, ok, err) ->
+      Printf.sprintf "ACK|%s|%b|%s" msg_id ok err
+  | QueryDrones filter ->
+      Printf.sprintf "QUERY|DRONES|%s" filter
+  | DroneList ids ->
+      Printf.sprintf "DRONES|%s" (String.concat "," ids)
+
+(** Frame encoder *)
+let encode_frame (frame : 'dir frame) : string =
+  let ver = match frame.version with V1 -> "1" | V2 -> "2" | V3 -> "3" in
+  Printf.sprintf "%s|v%s|%s" frame.frame_id ver (encode_message frame.payload)
+
+(** Make a request frame *)
+let make_request ?(version=V3) frame_id payload =
+  { frame_id; version; payload = (payload : request message) }
+
+(** Make a notification frame *)
+let make_notification ?(version=V3) frame_id payload =
+  { frame_id; version; payload = (payload : notification message) }
+
+(** Telemetry update builder *)
+let make_telemetry drone_id lat lon alt speed heading battery mode =
+  { drone_id; timestamp = Unix.gettimeofday ();
+    lat; lon; alt; speed; heading; battery; mode }
+
+(** Protocol handler type *)
+type handler = {
+  on_command      : string -> command -> unit;
+  on_telemetry    : telemetry -> unit;
+  on_alert        : alert -> unit;
+}
+
+(** Dispatch a message to the appropriate handler *)
+let dispatch : type d. handler -> d message -> unit = fun h msg ->
+  match msg with
+  | Command (drone_id, cmd) -> h.on_command drone_id cmd
+  | TelemetryMsg t          -> h.on_telemetry t
+  | AlertMsg a              -> h.on_alert a
+  | CommandAck _            -> ()
+  | QueryDrones _           -> ()
+  | DroneList _             -> ()
+
+(** Default no-op handler *)
+let noop_handler = {
+  on_command   = (fun _ _ -> ());
+  on_telemetry = (fun _ -> ());
+  on_alert     = (fun _ -> ());
+}
+
+(** Protocol statistics *)
+type stats = {
+  mutable messages_sent : int;
+  mutable messages_recv : int;
+  mutable errors        : int;
+}
+
+let make_stats () = { messages_sent = 0; messages_recv = 0; errors = 0 }

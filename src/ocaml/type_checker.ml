@@ -1,171 +1,155 @@
-(* Phase 660: Type Checker — OCaml Flight Plan Type Verifier *)
-(* 비행 계획 타입 검증기: ADT 기반 안전한 비행 명령 타입 시스템 *)
+(** Phase 650: Type Checker — OCaml
+    SDACS static type analysis for drone mission script validation *)
 
-(* ── 기본 타입 정의 ───────────────────────────────── *)
+(** Primitive types in the mission scripting language *)
+type prim_type =
+  | TInt
+  | TFloat
+  | TBool
+  | TString
+  | TUnit
 
-type position = {
-  x : float;
-  y : float;
-  z : float;
-}
+(** Compound types *)
+type drone_type =
+  | TPrim    of prim_type
+  | TList    of drone_type
+  | TTuple   of drone_type list
+  | TFun     of drone_type list * drone_type
+  | TRecord  of (string * drone_type) list
+  | TVar     of string
 
-type velocity = {
-  vx : float;
-  vy : float;
-  vz : float;
-}
+(** Type environment *)
+type type_env = (string * drone_type) list
 
-type drone_id = DroneId of string
+(** Type error *)
+type type_error =
+  | UnboundVar   of string
+  | TypeMismatch of drone_type * drone_type
+  | ArityError   of int * int
+  | NotCallable  of drone_type
 
-type altitude_band = {
-  min_alt : float;
-  max_alt : float;
-}
+exception TypeError of type_error
 
-(* ── 비행 명령 ADT ──────────────────────────────── *)
+(** Pretty-print a type *)
+let rec pp_type = function
+  | TPrim TInt    -> "Int"
+  | TPrim TFloat  -> "Float"
+  | TPrim TBool   -> "Bool"
+  | TPrim TString -> "String"
+  | TPrim TUnit   -> "Unit"
+  | TList t       -> Printf.sprintf "List[%s]" (pp_type t)
+  | TTuple ts     -> Printf.sprintf "(%s)" (String.concat " * " (List.map pp_type ts))
+  | TFun (args, ret) ->
+      Printf.sprintf "(%s) -> %s"
+        (String.concat ", " (List.map pp_type args)) (pp_type ret)
+  | TRecord fields ->
+      Printf.sprintf "{%s}" (String.concat "; "
+        (List.map (fun (n, t) -> Printf.sprintf "%s: %s" n (pp_type t)) fields))
+  | TVar v        -> Printf.sprintf "'%s" v
 
-type flight_command =
-  | Takeoff of { target_alt : float }
-  | Land of { descent_rate : float }
-  | Hover of { duration_s : float }
-  | MoveTo of { target : position; speed : float }
-  | AvoidClimb of { delta_alt : float }
-  | AvoidDescend of { delta_alt : float }
-  | AvoidTurnLeft of { angle_deg : float }
-  | AvoidTurnRight of { angle_deg : float }
-  | EmergencyStop
-  | ReturnToLaunch
+(** Check if two types are compatible *)
+let rec types_equal t1 t2 = match t1, t2 with
+  | TPrim p1, TPrim p2      -> p1 = p2
+  | TList a,  TList b       -> types_equal a b
+  | TTuple l1, TTuple l2    ->
+      List.length l1 = List.length l2 && List.for_all2 types_equal l1 l2
+  | TFun (a1, r1), TFun (a2, r2) ->
+      List.length a1 = List.length a2 &&
+      List.for_all2 types_equal a1 a2 && types_equal r1 r2
+  | TVar v1, TVar v2        -> v1 = v2
+  | _,        _             -> false
 
-(* ── 비행 계획 ──────────────────────────────────── *)
+(** Look up a variable in the type environment *)
+let env_lookup env name =
+  match List.assoc_opt name env with
+  | Some t -> t
+  | None   -> raise (TypeError (UnboundVar name))
 
-type flight_plan = {
-  drone : drone_id;
-  commands : flight_command list;
-  altitude_band : altitude_band;
-}
+(** Assert two types match or raise *)
+let unify t1 t2 =
+  if not (types_equal t1 t2) then
+    raise (TypeError (TypeMismatch (t1, t2)))
 
-(* ── 타입 검증 결과 ──────────────────────────────── *)
+(** Built-in drone API type environment *)
+let builtin_env : type_env = [
+  ("takeoff",    TFun ([TPrim TFloat], TPrim TUnit));
+  ("land",       TFun ([],            TPrim TUnit));
+  ("goto",       TFun ([TPrim TFloat; TPrim TFloat; TPrim TFloat], TPrim TUnit));
+  ("rtl",        TFun ([],            TPrim TUnit));
+  ("battery",    TFun ([],            TPrim TFloat));
+  ("altitude",   TFun ([],            TPrim TFloat));
+  ("speed",      TFun ([],            TPrim TFloat));
+  ("set_speed",  TFun ([TPrim TFloat], TPrim TUnit));
+  ("sleep",      TFun ([TPrim TFloat], TPrim TUnit));
+  ("log",        TFun ([TPrim TString], TPrim TUnit));
+  ("min_sep",    TPrim TFloat);
+  ("max_alt",    TPrim TFloat);
+  ("drone_id",   TPrim TString);
+]
 
-type check_result =
-  | Ok
-  | Error of string
-  | Warning of string
+(** Simple expression AST *)
+type expr =
+  | Lit_int   of int
+  | Lit_float of float
+  | Lit_bool  of bool
+  | Lit_str   of string
+  | Var       of string
+  | Call      of string * expr list
+  | If        of expr * expr * expr
+  | Let       of string * expr * expr
 
-(* ── 검증 함수 ──────────────────────────────────── *)
+(** Type-check an expression *)
+let rec type_of env = function
+  | Lit_int _   -> TPrim TInt
+  | Lit_float _ -> TPrim TFloat
+  | Lit_bool _  -> TPrim TBool
+  | Lit_str _   -> TPrim TString
+  | Var name    -> env_lookup env name
+  | Call (fn_name, args) ->
+      let fn_type = env_lookup env fn_name in
+      (match fn_type with
+       | TFun (param_types, ret_type) ->
+           if List.length param_types <> List.length args then
+             raise (TypeError (ArityError (List.length param_types, List.length args)));
+           List.iter2 (fun pt arg ->
+             unify pt (type_of env arg)
+           ) param_types args;
+           ret_type
+       | t -> raise (TypeError (NotCallable t)))
+  | If (cond, then_e, else_e) ->
+      unify (TPrim TBool) (type_of env cond);
+      let t_then = type_of env then_e in
+      let t_else = type_of env else_e in
+      unify t_then t_else;
+      t_then
+  | Let (name, value_e, body_e) ->
+      let vt = type_of env value_e in
+      type_of ((name, vt) :: env) body_e
 
-let check_altitude_bounds (band : altitude_band) (cmd : flight_command) : check_result =
-  match cmd with
-  | Takeoff { target_alt } ->
-    if target_alt > band.max_alt then
-      Error (Printf.sprintf "Takeoff target %.1fm exceeds max %.1fm" target_alt band.max_alt)
-    else if target_alt < band.min_alt then
-      Warning (Printf.sprintf "Takeoff target %.1fm below min %.1fm" target_alt band.min_alt)
-    else Ok
-  | MoveTo { target; _ } ->
-    if target.z > band.max_alt then
-      Error (Printf.sprintf "MoveTo altitude %.1fm exceeds max %.1fm" target.z band.max_alt)
-    else if target.z < band.min_alt then
-      Warning (Printf.sprintf "MoveTo altitude %.1fm below min %.1fm" target.z band.min_alt)
-    else Ok
-  | AvoidClimb { delta_alt } ->
-    if delta_alt > 50.0 then
-      Warning (Printf.sprintf "Large climb delta: %.1fm" delta_alt)
-    else Ok
-  | AvoidDescend { delta_alt } ->
-    if delta_alt > 50.0 then
-      Warning (Printf.sprintf "Large descend delta: %.1fm" delta_alt)
-    else Ok
-  | _ -> Ok
-
-let check_speed_limit (cmd : flight_command) : check_result =
-  match cmd with
-  | MoveTo { speed; _ } ->
-    if speed > 25.0 then
-      Error (Printf.sprintf "Speed %.1f m/s exceeds limit 25.0 m/s" speed)
-    else if speed > 20.0 then
-      Warning (Printf.sprintf "Speed %.1f m/s near limit" speed)
-    else Ok
-  | Land { descent_rate } ->
-    if descent_rate > 5.0 then
-      Error (Printf.sprintf "Descent rate %.1f m/s too fast (max 5.0)" descent_rate)
-    else Ok
-  | _ -> Ok
-
-let check_sequence_validity (commands : flight_command list) : check_result list =
-  let rec check_seq cmds has_takeoff =
-    match cmds with
-    | [] -> []
-    | Takeoff _ :: rest ->
-      if has_takeoff then
-        Error "Duplicate Takeoff command" :: check_seq rest true
-      else
-        Ok :: check_seq rest true
-    | Land _ :: rest ->
-      if not has_takeoff then
-        Error "Land before Takeoff" :: check_seq rest false
-      else
-        Ok :: check_seq rest false
-    | MoveTo _ :: rest ->
-      if not has_takeoff then
-        Warning "MoveTo before Takeoff" :: check_seq rest has_takeoff
-      else
-        Ok :: check_seq rest has_takeoff
-    | _ :: rest -> Ok :: check_seq rest has_takeoff
-  in
-  check_seq commands false
-
-(* ── 전체 검증 ──────────────────────────────────── *)
-
-let verify_plan (plan : flight_plan) : check_result list =
-  let alt_checks = List.map (check_altitude_bounds plan.altitude_band) plan.commands in
-  let speed_checks = List.map check_speed_limit plan.commands in
-  let seq_checks = check_sequence_validity plan.commands in
-  alt_checks @ speed_checks @ seq_checks
-
-let count_errors (results : check_result list) : int * int * int =
-  List.fold_left (fun (ok, warn, err) r ->
-    match r with
-    | Ok -> (ok + 1, warn, err)
-    | Warning _ -> (ok, warn + 1, err)
-    | Error _ -> (ok, warn, err + 1)
-  ) (0, 0, 0) results
-
-(* ── 메인 ──────────────────────────────────────── *)
+(** Check a list of expressions against expected types *)
+let check_program env exprs =
+  List.map (fun e ->
+    try Ok (type_of env e)
+    with TypeError err ->
+      Error (match err with
+        | UnboundVar v     -> Printf.sprintf "Unbound variable: %s" v
+        | TypeMismatch (e,g) -> Printf.sprintf "Type mismatch: expected %s, got %s"
+                                  (pp_type e) (pp_type g)
+        | ArityError (e,g) -> Printf.sprintf "Arity error: expected %d args, got %d" e g
+        | NotCallable t    -> Printf.sprintf "Not callable: %s" (pp_type t))
+  ) exprs
 
 let () =
-  let plan = {
-    drone = DroneId "D-0001";
-    altitude_band = { min_alt = 30.0; max_alt = 120.0 };
-    commands = [
-      Takeoff { target_alt = 60.0 };
-      MoveTo { target = { x = 100.0; y = 200.0; z = 80.0 }; speed = 15.0 };
-      AvoidClimb { delta_alt = 20.0 };
-      Hover { duration_s = 10.0 };
-      MoveTo { target = { x = 0.0; y = 0.0; z = 50.0 }; speed = 12.0 };
-      Land { descent_rate = 2.0 };
-    ];
-  } in
-  let results = verify_plan plan in
-  let (ok, warn, err) = count_errors results in
-  Printf.printf "=== Flight Plan Type Checker ===\n";
-  Printf.printf "  OK: %d  Warnings: %d  Errors: %d\n" ok warn err;
-
-  (* Test with invalid plan *)
-  let bad_plan = {
-    drone = DroneId "D-BAD";
-    altitude_band = { min_alt = 30.0; max_alt = 120.0 };
-    commands = [
-      Land { descent_rate = 8.0 };  (* Land before takeoff *)
-      Takeoff { target_alt = 150.0 };  (* Exceeds max altitude *)
-      MoveTo { target = { x = 0.0; y = 0.0; z = 60.0 }; speed = 30.0 }; (* Over speed *)
-    ];
-  } in
-  let bad_results = verify_plan bad_plan in
-  let (ok2, warn2, err2) = count_errors bad_results in
-  Printf.printf "\n  Bad plan: OK: %d  Warnings: %d  Errors: %d\n" ok2 warn2 err2;
-  List.iter (fun r ->
+  Printf.printf "Phase 650: OCaml Type Checker\n";
+  let env = builtin_env in
+  let program = [
+    Call ("takeoff", [Lit_float 60.0]);
+    Call ("set_speed", [Lit_float 10.0]);
+    Var "battery";
+  ] in
+  let results = check_program env program in
+  List.iteri (fun i r ->
     match r with
-    | Error msg -> Printf.printf "    [ERROR] %s\n" msg
-    | Warning msg -> Printf.printf "    [WARN]  %s\n" msg
-    | Ok -> ()
-  ) bad_results
+    | Ok t    -> Printf.printf "  expr[%d]: %s\n" i (pp_type t)
+    | Error m -> Printf.printf "  expr[%d] ERROR: %s\n" i m
+  ) results

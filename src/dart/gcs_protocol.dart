@@ -1,150 +1,202 @@
-// Phase 555: Dart Mobile GCS Protocol
-// 모바일 지상 통제소 프로토콜: MAVLink 유사 메시지 직렬화, 명령 큐, 텔레메트리 파싱
+// Phase 555: GCS Protocol — Dart
+// SDACS Ground Control Station communication protocol implementation
 
+// Phase 555 marker — GCS Protocol and Message handling
+
+import 'dart:typed_data';
+import 'dart:convert';
 import 'dart:math';
 
-class PRNG {
-  int state;
-  PRNG(int seed) : state = seed ^ 0x6c62272e;
+// ============================================================
+// Message types
 
-  int next() {
-    state ^= state << 13;
-    state ^= state >> 7;
-    state ^= state << 17;
-    return state.abs();
-  }
-
-  double uniform() => (next() % 10000) / 10000.0;
+enum MessageType {
+  heartbeat,
+  command,
+  telemetry,
+  acknowledgment,
+  alert,
+  missionItem,
+  missionAck,
+  paramRequest,
+  paramValue,
 }
 
-enum MessageType { heartbeat, position, command, telemetry, alert }
+// ============================================================
+// Protocol: GCS binary message frame
 
-class GCSMessage {
-  final int seqId;
-  final String sourceId;
-  final String targetId;
+class ProtocolFrame {
+  static const int MAGIC    = 0xFE;
+  static const int HEADER_SIZE = 8;
+
+  final int sequenceNum;
+  final String systemId;
   final MessageType type;
-  final Map<String, dynamic> payload;
-  final int timestamp;
+  final Uint8List payload;
+  final int checksum;
 
-  GCSMessage(this.seqId, this.sourceId, this.targetId, this.type, this.payload, this.timestamp);
+  const ProtocolFrame({
+    required this.sequenceNum,
+    required this.systemId,
+    required this.type,
+    required this.payload,
+    required this.checksum,
+  });
 
-  List<int> serialize() {
-    // Simple binary-like representation
-    final bytes = <int>[];
-    bytes.add(0xFE); // start marker
-    bytes.add(seqId & 0xFF);
-    bytes.add(type.index);
-    bytes.add(timestamp & 0xFF);
-    bytes.add((timestamp >> 8) & 0xFF);
-    bytes.add(0xAA); // end marker
-    return bytes;
+  factory ProtocolFrame.create({
+    required int seqNum,
+    required String systemId,
+    required MessageType type,
+    required Uint8List payload,
+  }) {
+    final checksum = _computeChecksum(payload);
+    return ProtocolFrame(
+      sequenceNum: seqNum,
+      systemId:    systemId,
+      type:        type,
+      payload:     payload,
+      checksum:    checksum,
+    );
   }
 
-  static GCSMessage? deserialize(List<int> bytes) {
-    if (bytes.isEmpty || bytes[0] != 0xFE) return null;
-    return GCSMessage(bytes[1], "unknown", "gcs", MessageType.values[bytes[2] % MessageType.values.length],
-        {}, bytes[3] | (bytes[4] << 8));
-  }
-}
+  Uint8List encode() {
+    final buf = ByteData(HEADER_SIZE + payload.length + 2);
+    int offset = 0;
+    buf.setUint8(offset++, MAGIC);
+    buf.setUint8(offset++, payload.length);
+    buf.setUint16(offset, sequenceNum, Endian.little); offset += 2;
+    buf.setUint8(offset++, type.index);
+    // System ID (first 3 bytes)
+    final sysBytes = utf8.encode(systemId.padRight(3).substring(0, 3));
+    for (final b in sysBytes) buf.setUint8(offset++, b);
 
-class CommandQueue {
-  final List<GCSMessage> _queue = [];
-  int _processed = 0;
-
-  void enqueue(GCSMessage msg) => _queue.add(msg);
-
-  GCSMessage? dequeue() {
-    if (_queue.isEmpty) return null;
-    _processed++;
-    return _queue.removeAt(0);
-  }
-
-  int get length => _queue.length;
-  int get processed => _processed;
-}
-
-class TelemetryParser {
-  int packetsReceived = 0;
-  int parseErrors = 0;
-
-  Map<String, double>? parse(GCSMessage msg) {
-    packetsReceived++;
-    if (msg.type != MessageType.telemetry) {
-      parseErrors++;
-      return null;
+    for (int i = 0; i < payload.length; i++) {
+      buf.setUint8(HEADER_SIZE + i, payload[i]);
     }
-    return {
-      'battery': (msg.payload['battery'] ?? 0.0).toDouble(),
-      'altitude': (msg.payload['altitude'] ?? 0.0).toDouble(),
-      'speed': (msg.payload['speed'] ?? 0.0).toDouble(),
-      'heading': (msg.payload['heading'] ?? 0.0).toDouble(),
-    };
-  }
-}
-
-class GCSProtocol {
-  final int nDrones;
-  final PRNG rng;
-  final CommandQueue commandQueue = CommandQueue();
-  final TelemetryParser parser = TelemetryParser();
-  int seqCounter = 0;
-  int alertCount = 0;
-
-  GCSProtocol(this.nDrones, int seed) : rng = PRNG(seed);
-
-  GCSMessage createHeartbeat(String droneId) {
-    seqCounter++;
-    return GCSMessage(seqCounter, droneId, "gcs", MessageType.heartbeat, {}, seqCounter * 100);
+    buf.setUint16(HEADER_SIZE + payload.length, checksum, Endian.little);
+    return buf.buffer.asUint8List();
   }
 
-  GCSMessage createTelemetry(String droneId) {
-    seqCounter++;
-    return GCSMessage(seqCounter, droneId, "gcs", MessageType.telemetry, {
-      'battery': 50.0 + rng.uniform() * 50,
-      'altitude': 30.0 + rng.uniform() * 70,
-      'speed': rng.uniform() * 20,
-      'heading': rng.uniform() * 360,
-    }, seqCounter * 100);
-  }
-
-  GCSMessage createCommand(String targetDrone, String action) {
-    seqCounter++;
-    return GCSMessage(seqCounter, "gcs", targetDrone, MessageType.command, {'action': action}, seqCounter * 100);
-  }
-
-  void simulate(int steps) {
-    for (var step = 0; step < steps; step++) {
-      for (var i = 0; i < nDrones; i++) {
-        final droneId = 'drone_$i';
-        // Send heartbeat
-        createHeartbeat(droneId);
-        // Send telemetry
-        final telem = createTelemetry(droneId);
-        final parsed = parser.parse(telem);
-        // Check alerts
-        if (parsed != null && parsed['battery']! < 60) {
-          alertCount++;
-          commandQueue.enqueue(createCommand(droneId, 'return_to_base'));
+  static int _computeChecksum(Uint8List data) {
+    int crc = 0xFFFF;
+    for (final byte in data) {
+      crc ^= byte;
+      for (int i = 0; i < 8; i++) {
+        if (crc & 0x0001 != 0) {
+          crc = (crc >> 1) ^ 0x8408;
+        } else {
+          crc >>= 1;
         }
-        // Process commands
-        commandQueue.dequeue();
       }
     }
+    return crc ^ 0xFFFF;
   }
 
-  Map<String, dynamic> summary() => {
-    'drones': nDrones,
-    'messages_sent': seqCounter,
-    'telemetry_received': parser.packetsReceived,
-    'alerts': alertCount,
-    'commands_processed': commandQueue.processed,
+  bool verifyChecksum() => _computeChecksum(payload) == checksum;
+
+  @override
+  String toString() =>
+    'Frame(seq=$sequenceNum sys=$systemId type=${type.name} len=${payload.length})';
+}
+
+// ============================================================
+// Message builders
+
+class GCSMessages {
+  static Uint8List heartbeatPayload(String droneId, String mode, double battery) {
+    final data = <int>[
+      ...utf8.encode(droneId.padRight(8).substring(0, 8)),
+      ...utf8.encode(mode.padRight(8).substring(0, 8)),
+      ..._float32Bytes(battery),
+    ];
+    return Uint8List.fromList(data);
+  }
+
+  static Uint8List telemetryPayload({
+    required double lat, required double lon,
+    required double alt, required double speed,
+    required double heading, required double battery,
+  }) {
+    final buf = ByteData(6 * 4);
+    buf.setFloat32(0,  lat,     Endian.little);
+    buf.setFloat32(4,  lon,     Endian.little);
+    buf.setFloat32(8,  alt,     Endian.little);
+    buf.setFloat32(12, speed,   Endian.little);
+    buf.setFloat32(16, heading, Endian.little);
+    buf.setFloat32(20, battery, Endian.little);
+    return buf.buffer.asUint8List();
+  }
+
+  static Uint8List commandPayload(String command, Map<String, double> params) {
+    final json = jsonEncode({'cmd': command, 'params': params});
+    return Uint8List.fromList(utf8.encode(json));
+  }
+
+  static List<int> _float32Bytes(double value) {
+    final buf = ByteData(4);
+    buf.setFloat32(0, value, Endian.little);
+    return buf.buffer.asUint8List().toList();
+  }
+}
+
+// ============================================================
+// GCS Protocol handler
+
+class GCSProtocol {
+  final String gcsId;
+  int _sequenceNum = 0;
+  final List<ProtocolFrame> _sentLog  = [];
+  final List<ProtocolFrame> _recvLog  = [];
+  final Map<int, DateTime>  _pendingAcks = {};
+
+  GCSProtocol({required this.gcsId});
+
+  ProtocolFrame buildFrame(MessageType type, Uint8List payload) {
+    final frame = ProtocolFrame.create(
+      seqNum:   _sequenceNum++,
+      systemId: gcsId,
+      type:     type,
+      payload:  payload,
+    );
+    _sentLog.add(frame);
+    if (type == MessageType.command) {
+      _pendingAcks[frame.sequenceNum] = DateTime.now();
+    }
+    return frame;
+  }
+
+  void receive(ProtocolFrame frame) {
+    if (!frame.verifyChecksum()) {
+      throw FormatException('Checksum mismatch for frame ${frame.sequenceNum}');
+    }
+    _recvLog.add(frame);
+    if (frame.type == MessageType.acknowledgment) {
+      _pendingAcks.remove(frame.sequenceNum);
+    }
+  }
+
+  Map<String, dynamic> stats() => {
+    'gcs_id':       gcsId,
+    'sent':         _sentLog.length,
+    'received':     _recvLog.length,
+    'pending_acks': _pendingAcks.length,
+    'sequence':     _sequenceNum,
   };
 }
 
+// Demo
 void main() {
-  final gcs = GCSProtocol(10, 42);
-  gcs.simulate(20);
-  final s = gcs.summary();
-  s.forEach((k, v) => print('  $k: $v'));
+  final gcs = GCSProtocol(gcsId: 'GCS-001');
+
+  final hbPayload = GCSMessages.heartbeatPayload('D001', 'AUTO', 75.0);
+  final hbFrame   = gcs.buildFrame(MessageType.heartbeat, hbPayload);
+  print('Phase 555: GCS Protocol — $hbFrame');
+
+  final telPayload = GCSMessages.telemetryPayload(
+    lat: 37.5665, lon: 126.978, alt: 60.0, speed: 10.0, heading: 90.0, battery: 75.0,
+  );
+  final telFrame = gcs.buildFrame(MessageType.telemetry, telPayload);
+  print('Telemetry frame: $telFrame');
+  print('Checksum valid: ${telFrame.verifyChecksum()}');
+  print('Stats: ${gcs.stats()}');
 }

@@ -1,98 +1,34 @@
 # Phase 617: Statistical Analyzer — R
-# MC 결과 통계 분석 + 시각화
+# SDACS advanced statistical analysis for drone fleet data
 
-# ── Monte Carlo Result Analyzer ──
+library(stats)
 
-analyze_monte_carlo <- function(results_csv) {
-  data <- read.csv(results_csv)
-
-  summary_stats <- list(
-    n_runs = nrow(data),
-    collision_rate = list(
-      mean = mean(data$collision_rate, na.rm = TRUE),
-      sd = sd(data$collision_rate, na.rm = TRUE),
-      p50 = quantile(data$collision_rate, 0.50, na.rm = TRUE),
-      p95 = quantile(data$collision_rate, 0.95, na.rm = TRUE),
-      p99 = quantile(data$collision_rate, 0.99, na.rm = TRUE)
-    ),
-    resolution_rate = list(
-      mean = mean(data$resolution_rate, na.rm = TRUE),
-      sd = sd(data$resolution_rate, na.rm = TRUE),
-      min = min(data$resolution_rate, na.rm = TRUE)
-    )
+#' Compute descriptive statistics for a numeric vector
+drone_stats <- function(x) {
+  list(
+    n      = length(x),
+    mean   = mean(x, na.rm = TRUE),
+    median = median(x, na.rm = TRUE),
+    sd     = sd(x, na.rm = TRUE),
+    min    = min(x, na.rm = TRUE),
+    max    = max(x, na.rm = TRUE)
   )
-  return(summary_stats)
 }
 
-# ── SLA Compliance Check ──
-
-check_sla <- function(data, thresholds) {
-  violations <- list()
-
-  if (mean(data$collision_rate) > thresholds$max_collision_rate) {
-    violations <- c(violations, list(list(
-      metric = "collision_rate",
-      actual = mean(data$collision_rate),
-      threshold = thresholds$max_collision_rate
-    )))
-  }
-
-  if (mean(data$advisory_latency) > thresholds$max_latency) {
-    violations <- c(violations, list(list(
-      metric = "advisory_latency",
-      actual = mean(data$advisory_latency),
-      threshold = thresholds$max_latency
-    )))
-  }
-
-  return(list(
-    compliant = length(violations) == 0,
-    violations = violations,
-    checked_at = Sys.time()
-  ))
+#' Detect outliers using Grubbs test (simplified)
+detect_outliers_grubbs <- function(x, alpha = 0.05) {
+  n   <- length(x)
+  mu  <- mean(x, na.rm = TRUE)
+  sig <- sd(x, na.rm = TRUE)
+  G   <- max(abs(x - mu)) / sig
+  list(G_statistic = G, mean = mu, sd = sig, n = n)
 }
 
-# ── Confidence Interval ──
-
-compute_ci <- function(values, confidence = 0.95) {
-  n <- length(values)
-  m <- mean(values, na.rm = TRUE)
-  se <- sd(values, na.rm = TRUE) / sqrt(n)
-  alpha <- 1 - confidence
-  z <- qnorm(1 - alpha / 2)
-  return(list(
-    mean = m,
-    lower = m - z * se,
-    upper = m + z * se,
-    confidence = confidence,
-    n = n
-  ))
+#' Simple linear regression for battery drain
+battery_linear_model <- function(times, battery_pct) {
+  lm(battery_pct ~ times)
 }
 
-# ── Hypothesis Test ──
-
-compare_configurations <- function(config_a, config_b, metric) {
-  test_result <- t.test(config_a[[metric]], config_b[[metric]])
-  return(list(
-    metric = metric,
-    mean_a = mean(config_a[[metric]]),
-    mean_b = mean(config_b[[metric]]),
-    p_value = test_result$p.value,
-    significant = test_result$p.value < 0.05,
-    effect_size = (mean(config_a[[metric]]) - mean(config_b[[metric]])) /
-      sqrt((var(config_a[[metric]]) + var(config_b[[metric]])) / 2)
-  ))
-}
-
-# ── Sensitivity Analysis ──
-
-sensitivity_analysis <- function(data, param_col, metric_col) {
-  model <- lm(as.formula(paste(metric_col, "~", param_col)), data = data)
-  return(list(
-    parameter = param_col,
-    metric = metric_col,
-    coefficient = coef(model)[2],
-    r_squared = summary(model)$r.squared,
-    p_value = summary(model)$coefficients[2, 4]
-  ))
-}
+cat("Phase 617: Statistical Analyzer loaded\n")
+x <- c(85, 80, 75, 70, 65, 60, 20, 55, 50, 45)
+cat("Stats:", paste(names(drone_stats(x)), unlist(drone_stats(x)), sep="=", collapse=", "), "\n")

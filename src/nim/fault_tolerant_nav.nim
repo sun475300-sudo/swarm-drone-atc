@@ -1,131 +1,161 @@
-# Phase 526: Nim Fault-Tolerant Navigation — EKF Sensor Fusion
-import math, strformat
+# Phase 526: Fault-Tolerant Navigation — Nim
+# SDACS EKF-based fault-tolerant state estimator for drone navigation
+
+import std/[math, tables, strformat]
+
+# Phase 526 marker — EKF Kalman filter for fault-tolerant navigation
+
+const
+  STATE_DIM  = 9  # [x, y, z, vx, vy, vz, ax, ay, az]
+  SENSOR_DIM = 6  # [gps_x, gps_y, gps_z, baro_alt, acc_x, acc_y]
 
 type
-  NavSensor = enum
-    GPS, IMU, Vision, Barometer, Magnetometer, Lidar
+  Vec9  = array[STATE_DIM, float]
+  Vec6  = array[SENSOR_DIM, float]
+  Mat9  = array[STATE_DIM, array[STATE_DIM, float]]
+  Mat6  = array[SENSOR_DIM, array[SENSOR_DIM, float]]
+  Mat96 = array[STATE_DIM, array[SENSOR_DIM, float]]
+  Mat69 = array[SENSOR_DIM, array[STATE_DIM, float]]
 
-  NavHealth = enum
-    Nominal, Degraded, Failed
+  SensorHealth* = enum
+    shGood, shDegraded, shFailed
 
-  Vec3 = object
-    x, y, z: float64
+  Sensor* = object
+    id*:        string
+    kind*:      string
+    health*:    SensorHealth
+    last_value*: Vec6
+    fail_count*: int
 
-  SensorState = object
-    sensor: NavSensor
-    health: NavHealth
-    position: Vec3
-    confidence: float64
+  EKFState* = object
+    x*:  Vec9   # state estimate
+    P*:  Mat9   # covariance
+    Q*:  Mat9   # process noise
+    R*:  Mat6   # measurement noise
 
-  NavSolution = object
-    position: Vec3
-    velocity: Vec3
-    heading: float64
-    confidence: float64
-    integrity: float64
-    sensorsUsed: int
+  FaultTolerantNav* = object
+    ekf*:      EKFState
+    sensors*:  Table[string, Sensor]
+    dt*:       float
+    fault_log*: seq[string]
 
-  PRNG = object
-    state: uint64
+# Matrix helpers
+proc zeros9(): Mat9 =
+  for i in 0..<STATE_DIM:
+    for j in 0..<STATE_DIM: result[i][j] = 0.0
 
-proc initPRNG(seed: uint64): PRNG =
-  result.state = seed xor 0x6c62272e07bb0142'u64
+proc eye9(scale: float = 1.0): Mat9 =
+  for i in 0..<STATE_DIM:
+    result[i][i] = scale
 
-proc next(rng: var PRNG): uint64 =
-  rng.state = rng.state xor (rng.state shl 13)
-  rng.state = rng.state xor (rng.state shr 7)
-  rng.state = rng.state xor (rng.state shl 17)
-  result = rng.state
+proc matMul9(a, b: Mat9): Mat9 =
+  for i in 0..<STATE_DIM:
+    for j in 0..<STATE_DIM:
+      var s = 0.0
+      for k in 0..<STATE_DIM: s += a[i][k] * b[k][j]
+      result[i][j] = s
 
-proc uniform(rng: var PRNG): float64 =
-  float64(rng.next() and 0x7FFFFFFF'u64) / float64(0x7FFFFFFF)
+proc matAdd9(a, b: Mat9): Mat9 =
+  for i in 0..<STATE_DIM:
+    for j in 0..<STATE_DIM:
+      result[i][j] = a[i][j] + b[i][j]
 
-proc normal(rng: var PRNG): float64 =
-  let u1 = max(rng.uniform(), 1e-10)
-  let u2 = rng.uniform()
-  sqrt(-2.0 * ln(u1)) * cos(2.0 * PI * u2)
+proc transpose9(a: Mat9): Mat9 =
+  for i in 0..<STATE_DIM:
+    for j in 0..<STATE_DIM:
+      result[i][j] = a[j][i]
 
-proc vec3(x, y, z: float64): Vec3 = Vec3(x: x, y: y, z: z)
-proc add(a, b: Vec3): Vec3 = vec3(a.x+b.x, a.y+b.y, a.z+b.z)
-proc scale(a: Vec3, s: float64): Vec3 = vec3(a.x*s, a.y*s, a.z*s)
-proc norm(a: Vec3): float64 = sqrt(a.x*a.x + a.y*a.y + a.z*a.z)
+# EKF predict step
+proc predict*(nav: var FaultTolerantNav) =
+  let dt = nav.dt
+  # State transition matrix (constant velocity model)
+  var F = eye9(1.0)
+  F[0][3] = dt; F[1][4] = dt; F[2][5] = dt  # pos += vel*dt
+  F[3][6] = dt; F[4][7] = dt; F[5][8] = dt  # vel += acc*dt
 
-type EKF = object
-  pos, vel: Vec3
-  pDiag: array[6, float64]
+  # x = F*x
+  var x_new: Vec9
+  for i in 0..<STATE_DIM:
+    var s = 0.0
+    for j in 0..<STATE_DIM: s += F[i][j] * nav.ekf.x[j]
+    x_new[i] = s
+  nav.ekf.x = x_new
 
-proc initEKF(): EKF =
-  result.pos = vec3(0, 0, 50)
-  result.vel = vec3(2, 1, 0)
-  for i in 0..5: result.pDiag[i] = 10.0
+  # P = F*P*F^T + Q
+  let FP   = matMul9(F, nav.ekf.P)
+  let FT   = transpose9(F)
+  let FPFT = matMul9(FP, FT)
+  nav.ekf.P = matAdd9(FPFT, nav.ekf.Q)
 
-proc predict(ekf: var EKF, dt: float64) =
-  ekf.pos = add(ekf.pos, scale(ekf.vel, dt))
-  for i in 0..5: ekf.pDiag[i] += 0.01 * dt
+# EKF update step (simplified)
+proc update*(nav: var FaultTolerantNav, z: Vec6) =
+  # Observation matrix H (6x9 — simplified)
+  var H: Mat69
+  H[0][0] = 1.0  # GPS x
+  H[1][1] = 1.0  # GPS y
+  H[2][2] = 1.0  # GPS z
+  H[3][2] = 1.0  # baro alt ≈ z
+  H[4][6] = 1.0  # accel x
+  H[5][7] = 1.0  # accel y
 
-proc update(ekf: var EKF, measurement: Vec3, noise: float64) =
-  let k = ekf.pDiag[0] / (ekf.pDiag[0] + noise * noise)
-  ekf.pos.x += k * (measurement.x - ekf.pos.x)
-  ekf.pos.y += k * (measurement.y - ekf.pos.y)
-  ekf.pos.z += k * (measurement.z - ekf.pos.z)
-  for i in 0..2: ekf.pDiag[i] *= (1.0 - k)
+  # Innovation: y = z - H*x
+  var y: Vec6
+  for i in 0..<SENSOR_DIM:
+    var Hx = 0.0
+    for j in 0..<STATE_DIM: Hx += H[i][j] * nav.ekf.x[j]
+    y[i] = z[i] - Hx
 
-proc simulateSensor(rng: var PRNG, truePos: Vec3, sensor: NavSensor,
-                     health: NavHealth): SensorState =
-  let noiseMap = [2.0, 0.5, 1.0, 3.0, 5.0, 0.3]  # GPS,IMU,Vision,Baro,Mag,Lidar
-  var noise = noiseMap[ord(sensor)]
-  if health == Degraded: noise *= 5.0
-  elif health == Failed: noise *= 50.0
+  # Simple scalar Kalman gain approximation per sensor
+  for i in 0..<SENSOR_DIM:
+    let Pii = nav.ekf.P[i][i]
+    let Rii = nav.ekf.R[i][i]
+    let K   = Pii / (Pii + Rii)
+    if i < STATE_DIM:
+      nav.ekf.x[i] += K * y[i]
+      nav.ekf.P[i][i] *= (1.0 - K)
 
-  let pos = vec3(
-    truePos.x + rng.normal() * noise,
-    truePos.y + rng.normal() * noise,
-    truePos.z + rng.normal() * noise
-  )
-  let conf = max(0.1, 1.0 - noise / 20.0)
-  SensorState(sensor: sensor, health: health, position: pos,
-              confidence: if health == Failed: 0.05 else: conf)
+# Sensor health monitor
+proc checkSensorHealth*(nav: var FaultTolerantNav, sensorId: string,
+                        innovation: float, threshold: float = 3.0) =
+  if sensorId notin nav.sensors: return
+  var s = nav.sensors[sensorId]
+  if abs(innovation) > threshold:
+    s.fail_count += 1
+    if s.fail_count > 5:
+      s.health = shFailed
+      nav.fault_log.add(fmt"FAULT: sensor {sensorId} failed (innov={innovation:.2f})")
+    elif s.fail_count > 2:
+      s.health = shDegraded
+  else:
+    s.fail_count = max(0, s.fail_count - 1)
+    if s.fail_count == 0: s.health = shGood
+  nav.sensors[sensorId] = s
 
-proc vote(states: seq[SensorState]): (Vec3, float64) =
-  var totalW = 0.0
-  var pos = vec3(0, 0, 0)
-  var healthy = 0
-  for s in states:
-    if s.health != Failed:
-      pos = add(pos, scale(s.position, s.confidence))
-      totalW += s.confidence
-      healthy += 1
-  if totalW > 0:
-    pos = scale(pos, 1.0 / totalW)
-  let integrity = if healthy >= 2: 0.95 else: 0.5
-  (pos, integrity)
+proc initNav*(dt: float = 0.1): FaultTolerantNav =
+  result.dt = dt
+  result.ekf.x = [0.0, 0.0, 60.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  result.ekf.P = eye9(10.0)
+  result.ekf.Q = eye9(0.1)
+  result.ekf.R[0][0] = 1.5  # GPS noise
+  result.ekf.R[1][1] = 1.5
+  result.ekf.R[2][2] = 2.0
+  result.ekf.R[3][3] = 0.5  # baro noise
+  result.ekf.R[4][4] = 0.3  # accel noise
+  result.ekf.R[5][5] = 0.3
+  result.sensors = initTable[string, Sensor]()
+  result.fault_log = @[]
+
+  for kind in ["gps", "baro", "imu"]:
+    result.sensors[kind] = Sensor(id: kind, kind: kind, health: shGood)
 
 when isMainModule:
-  var rng = initPRNG(42)
-  var ekf = initEKF()
-  var truePos = vec3(0, 0, 50)
-  var trueVel = vec3(2, 1, 0)
-  let sensorHealths = [Nominal, Nominal, Nominal, Nominal, Nominal, Nominal]
-  var totalConf = 0.0
+  var nav = initNav(0.1)
+  echo fmt"Phase 526: EKF Kalman nav initialized"
+  echo fmt"State: pos=({nav.ekf.x[0]:.1f}, {nav.ekf.x[1]:.1f}, {nav.ekf.x[2]:.1f})"
 
-  for step in 0..<100:
-    let dt = 0.1
-    truePos = add(truePos, scale(trueVel, dt))
-    trueVel = add(trueVel, vec3(rng.normal()*0.05, rng.normal()*0.05, rng.normal()*0.01))
-    ekf.predict(dt)
-
-    var states: seq[SensorState] = @[]
-    for sensor in [GPS, IMU, Vision]:
-      let health = sensorHealths[ord(sensor)]
-      let s = simulateSensor(rng, truePos, sensor, health)
-      states.add(s)
-      if health != Failed:
-        ekf.update(s.position, if health == Degraded: 10.0 else: 2.0)
-
-    let (votedPos, integrity) = vote(states)
-    totalConf += integrity
-
-  echo fmt"Nav steps: 100"
-  echo fmt"Final pos: ({ekf.pos.x:.1f}, {ekf.pos.y:.1f}, {ekf.pos.z:.1f})"
-  echo fmt"True pos:  ({truePos.x:.1f}, {truePos.y:.1f}, {truePos.z:.1f})"
-  echo fmt"Avg integrity: {totalConf / 100.0:.4f}"
+  nav.predict()
+  let z: Vec6 = [0.1, 0.05, 60.2, 60.1, 0.01, 0.02]
+  nav.update(z)
+  nav.checkSensorHealth("gps", 0.2)
+  echo fmt"After update: pos=({nav.ekf.x[0]:.3f}, {nav.ekf.x[1]:.3f}, {nav.ekf.x[2]:.3f})"
+  echo fmt"GPS health: {nav.sensors[\"gps\"].health}"

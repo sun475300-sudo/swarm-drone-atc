@@ -1,113 +1,180 @@
-// Phase 525: Kotlin Predictive Routing — Dijkstra + Traffic AI
+// Phase 525: Predictive Routing — Kotlin
+// SDACS Dijkstra-based predictive route planning with traffic awareness
+
+package sdacs.routing
+
 import java.util.PriorityQueue
 import kotlin.math.sqrt
 import kotlin.math.abs
 
-data class Waypoint(val id: String, val x: Double, val y: Double, val z: Double, var load: Int = 0, val capacity: Int = 10)
-data class Edge(val from: String, val to: String, val distance: Double, var delay: Double = 0.0)
-data class Route(val waypoints: List<String>, val distance: Double, val time: Double, val risk: Double)
+// Phase 525 marker — Dijkstra predictive routing with traffic model
 
-class TrafficPredictor(private var seed: Long = 42L) {
-    private val history = mutableMapOf<String, MutableList<Double>>()
+data class Node(
+    val id: String,
+    val lat: Double,
+    val lon: Double,
+    val alt: Double = 60.0
+)
 
-    private fun nextRandom(): Double {
-        seed = seed xor (seed shl 13); seed = seed xor (seed shr 7); seed = seed xor (seed shl 17)
-        return abs(seed % 10000).toDouble() / 10000.0
+data class Edge(
+    val from: String,
+    val to: String,
+    val baseDistance: Double,
+    var trafficFactor: Double = 1.0  // >1 = congested
+)
+
+data class Route(
+    val nodes: List<String>,
+    val totalCost: Double,
+    val estimatedTimeSec: Double,
+    val trafficScore: Double
+)
+
+class TrafficModel {
+    private val congestion = mutableMapOf<String, Double>()
+
+    fun updateTraffic(edgeKey: String, factor: Double) {
+        congestion[edgeKey] = factor.coerceIn(0.5, 5.0)
     }
 
-    fun record(wpId: String, load: Double) {
-        history.getOrPut(wpId) { mutableListOf() }.also {
-            it.add(load); if (it.size > 50) it.removeFirst()
-        }
+    fun getTrafficFactor(from: String, to: String): Double {
+        return congestion["$from->$to"] ?: 1.0
     }
 
-    fun predict(wpId: String): Double {
-        val h = history[wpId] ?: return nextRandom() * 0.5
-        if (h.size < 3) return nextRandom() * 0.5
-        val recent = h.takeLast(5)
-        val trend = (recent.last() - recent.first()) / recent.size
-        return (recent.last() + trend * 5).coerceIn(0.0, 1.0) + nextRandom() * 0.05
+    fun predictTraffic(from: String, to: String, futureSeconds: Double): Double {
+        val current = getTrafficFactor(from, to)
+        // Simple decay model: traffic normalizes over time
+        return 1.0 + (current - 1.0) * Math.exp(-futureSeconds / 300.0)
     }
 }
 
-class SpatioTemporalGraph {
-    val waypoints = mutableMapOf<String, Waypoint>()
-    val edges = mutableMapOf<String, MutableList<Edge>>()
+class RouteGraph {
+    private val nodes = mutableMapOf<String, Node>()
+    private val adjacency = mutableMapOf<String, MutableList<Edge>>()
 
-    fun addWaypoint(wp: Waypoint) {
-        waypoints[wp.id] = wp
-        edges.putIfAbsent(wp.id, mutableListOf())
+    fun addNode(node: Node) {
+        nodes[node.id] = node
+        adjacency.getOrPut(node.id) { mutableListOf() }
     }
 
-    fun addEdge(from: String, to: String) {
-        val w1 = waypoints[from] ?: return
-        val w2 = waypoints[to] ?: return
-        val dist = sqrt((w1.x-w2.x)*(w1.x-w2.x) + (w1.y-w2.y)*(w1.y-w2.y) + (w1.z-w2.z)*(w1.z-w2.z))
-        edges.getOrPut(from) { mutableListOf() }.add(Edge(from, to, dist))
+    fun addEdge(from: String, to: String, bidirectional: Boolean = true) {
+        val fromNode = nodes[from] ?: return
+        val toNode   = nodes[to]   ?: return
+        val dist     = haversineDistance(fromNode, toNode)
+
+        adjacency.getOrPut(from) { mutableListOf() }.add(Edge(from, to, dist))
+        if (bidirectional) {
+            adjacency.getOrPut(to) { mutableListOf() }.add(Edge(to, from, dist))
+        }
     }
 
-    fun dijkstra(start: String, end: String): Route? {
-        if (start !in waypoints || end !in waypoints) return null
-        val dist = mutableMapOf(start to 0.0)
-        val prev = mutableMapOf<String, Pair<String, Edge>>()
-        val pq = PriorityQueue<Pair<Double, String>>(compareBy { it.first })
-        pq.add(0.0 to start)
-        val visited = mutableSetOf<String>()
+    fun getNeighbors(nodeId: String): List<Edge> = adjacency[nodeId] ?: emptyList()
+
+    fun getNode(id: String): Node? = nodes[id]
+
+    fun nodeCount(): Int = nodes.size
+
+    fun edgeCount(): Int = adjacency.values.sumOf { it.size }
+
+    private fun haversineDistance(a: Node, b: Node): Double {
+        val earthR = 6_371_000.0
+        val lat1   = Math.toRadians(a.lat)
+        val lat2   = Math.toRadians(b.lat)
+        val dLat   = Math.toRadians(b.lat - a.lat)
+        val dLon   = Math.toRadians(b.lon - a.lon)
+        val sinLat = Math.sin(dLat / 2)
+        val sinLon = Math.sin(dLon / 2)
+        val h = sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLon * sinLon
+        return earthR * 2 * Math.atan2(sqrt(h), sqrt(1 - h))
+    }
+}
+
+class PredictiveRouter(
+    private val graph: RouteGraph,
+    private val traffic: TrafficModel = TrafficModel()
+) {
+    private data class DijkstraNode(
+        val id: String,
+        val cost: Double,
+        val parent: String?
+    ) : Comparable<DijkstraNode> {
+        override fun compareTo(other: DijkstraNode) = cost.compareTo(other.cost)
+    }
+
+    /**
+     * Dijkstra shortest path with traffic-aware edge costs.
+     */
+    fun findRoute(
+        start: String,
+        goal: String,
+        droneSpeed: Double = 10.0,
+        departureDelaySec: Double = 0.0
+    ): Route? {
+        val dist    = mutableMapOf<String, Double>().withDefault { Double.MAX_VALUE }
+        val parent  = mutableMapOf<String, String?>()
+        val pq      = PriorityQueue<DijkstraNode>()
+
+        dist[start] = 0.0
+        pq.add(DijkstraNode(start, 0.0, null))
 
         while (pq.isNotEmpty()) {
-            val (d, u) = pq.poll()
-            if (u in visited) continue
-            visited.add(u)
-            if (u == end) break
-            for (edge in edges[u] ?: emptyList()) {
-                val w = edge.distance / 10.0 + edge.delay
-                val nd = d + w
-                if (nd < (dist[edge.to] ?: Double.MAX_VALUE)) {
-                    dist[edge.to] = nd
-                    prev[edge.to] = u to edge
-                    pq.add(nd to edge.to)
+            val curr = pq.poll()
+            if (curr.cost > (dist[curr.id] ?: Double.MAX_VALUE)) continue
+            parent[curr.id] = curr.parent
+
+            if (curr.id == goal) break
+
+            for (edge in graph.getNeighbors(curr.id)) {
+                val travelTime = edge.baseDistance / droneSpeed
+                val tf = traffic.predictTraffic(edge.from, edge.to,
+                                                 departureDelaySec + travelTime)
+                val edgeCost = edge.baseDistance * tf
+                val newCost  = curr.cost + edgeCost
+                if (newCost < (dist[edge.to] ?: Double.MAX_VALUE)) {
+                    dist[edge.to] = newCost
+                    pq.add(DijkstraNode(edge.to, newCost, curr.id))
                 }
             }
         }
-        if (end !in prev && start != end) return null
-        val path = mutableListOf(end)
-        var totalDist = 0.0; var totalTime = 0.0; var totalRisk = 0.0
-        var node = end
-        while (node in prev) {
-            val (parent, edge) = prev[node]!!
-            path.add(parent); totalDist += edge.distance
-            totalTime += edge.distance / 10.0 + edge.delay
-            totalRisk += edge.delay * 0.1
-            node = parent
+
+        if (!parent.containsKey(goal)) return null
+
+        // Reconstruct path
+        val path = mutableListOf<String>()
+        var current: String? = goal
+        while (current != null) {
+            path.add(current)
+            current = parent[current]
         }
         path.reverse()
-        return Route(path, totalDist, totalTime, totalRisk)
+
+        val totalDist = dist[goal] ?: return null
+        val eta       = totalDist / droneSpeed
+
+        return Route(
+            nodes            = path,
+            totalCost        = totalDist,
+            estimatedTimeSec = eta,
+            trafficScore     = totalDist / (path.size * 100.0)
+        )
+    }
+
+    fun updateTraffic(from: String, to: String, factor: Double) {
+        traffic.updateTraffic("$from->$to", factor)
     }
 }
 
+// Demo
 fun main() {
-    val graph = SpatioTemporalGraph()
-    val predictor = TrafficPredictor()
-    var seed = 42L
-    fun rand(): Double { seed = seed xor (seed shl 13); seed = seed xor (seed shr 7); seed = seed xor (seed shl 17); return abs(seed % 1000).toDouble() - 500.0 }
-
-    for (i in 0 until 20) {
-        graph.addWaypoint(Waypoint("WP-$i", rand(), rand(), 30.0 + abs(rand()) % 120))
+    val g = RouteGraph()
+    listOf("A","B","C","D","E").forEachIndexed { i, id ->
+        g.addNode(Node(id, 37.5665 + i * 0.001, 126.978 + i * 0.001))
     }
-    val wpIds = graph.waypoints.keys.toList()
-    for (i in wpIds.indices) {
-        for (j in listOf((i+1) % wpIds.size, (i+3) % wpIds.size)) {
-            graph.addEdge(wpIds[i], wpIds[j])
-        }
-    }
+    g.addEdge("A","B"); g.addEdge("B","C"); g.addEdge("C","D")
+    g.addEdge("A","C"); g.addEdge("B","D"); g.addEdge("D","E")
 
-    for (id in wpIds) predictor.record(id, abs(seed % 100).toDouble() / 100.0)
-
-    val route = graph.dijkstra(wpIds.first(), wpIds.last())
-    if (route != null) {
-        println("Route: ${route.waypoints.size} waypoints, dist=${String.format("%.1f", route.distance)}m, time=${String.format("%.1f", route.time)}s")
-    } else {
-        println("No route found")
-    }
-    println("Waypoints: ${graph.waypoints.size}, Edges: ${graph.edges.values.sumOf { it.size }}")
+    val router = PredictiveRouter(g)
+    val route  = router.findRoute("A", "E")
+    println("Phase 525: Dijkstra route A->E: ${route?.nodes}")
+    println("ETA: ${route?.estimatedTimeSec?.toLong()}s")
 }

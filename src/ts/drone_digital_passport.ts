@@ -1,185 +1,245 @@
-// Phase 530: TypeScript Drone Digital Passport — Certificate Chain
+// Phase 530: Drone Digital Passport — TypeScript
+// SDACS blockchain-backed digital identity and certification for drones
 
-import * as crypto from 'crypto';
+// Phase 530 marker — digital passport with Certificate and Passport management
 
-enum CertificateType {
-  Airworthiness = 'airworthiness',
-  OperatorLicense = 'operator_license',
-  TypeCertificate = 'type_certificate',
-  Insurance = 'insurance',
-  Registration = 'registration',
+import { createHash, randomUUID } from "crypto";
+
+// ============================================================
+// Types
+
+export interface DroneIdentity {
+  droneId:       string;
+  model:         string;
+  serialNumber:  string;
+  manufacturer:  string;
+  productionDate: string;
+  maxAltitude:   number;
+  maxSpeed:      number;
+  weightKg:      number;
 }
 
-enum PassportStatus {
-  Valid = 'valid',
-  Suspended = 'suspended',
-  Revoked = 'revoked',
-  Expired = 'expired',
+export interface Certificate {
+  certId:        string;
+  type:          CertificateType;
+  issuedBy:      string;
+  issuedAt:      string;
+  expiresAt:     string;
+  droneId:       string;
+  fingerprint:   string;
+  revoked:       boolean;
+  metadata:      Record<string, string>;
 }
 
-interface Certificate {
-  certId: string;
-  certType: CertificateType;
-  issuer: string;
-  subject: string;
-  validFrom: number;
-  validUntil: number;
-  signature: string;
-  revoked: boolean;
+export type CertificateType =
+  | "airworthiness"
+  | "registration"
+  | "operator_license"
+  | "rfid_transponder"
+  | "remote_id"
+  | "insurance";
+
+export interface FlightPermission {
+  permissionId:  string;
+  droneId:       string;
+  zone:          string;
+  validFrom:     string;
+  validUntil:    string;
+  maxAltitude:   number;
+  maxSpeed:      number;
+  grantedBy:     string;
 }
 
-interface FlightEntry {
-  flightId: string;
-  departure: string;
-  destination: string;
-  durationS: number;
-  distanceKm: number;
-  incidents: number;
+export interface Passport {
+  passportId:    string;
+  version:       number;
+  identity:      DroneIdentity;
+  certificates:  Certificate[];
+  permissions:   FlightPermission[];
+  createdAt:     string;
+  updatedAt:     string;
+  checksum:      string;
 }
 
-interface DigitalPassport {
-  passportId: string;
-  droneId: string;
-  manufacturer: string;
-  model: string;
-  serial: string;
-  status: PassportStatus;
-  certificates: Certificate[];
-  flightHistory: FlightEntry[];
-  totalFlightHours: number;
-  maintenanceDue: boolean;
-}
+// ============================================================
+// Certificate factory
 
-class PRNG {
-  private state: number;
-  constructor(seed: number) { this.state = seed ^ 0x6c62272e; }
-  next(): number {
-    this.state ^= this.state << 13;
-    this.state ^= this.state >> 7;
-    this.state ^= this.state << 17;
-    return Math.abs(this.state);
-  }
-  float(): number { return (this.next() & 0x7FFFFFFF) / 0x7FFFFFFF; }
-}
+export class CertificateFactory {
+  static create(
+    type:      CertificateType,
+    droneId:   string,
+    issuedBy:  string,
+    validDays: number = 365,
+    metadata:  Record<string, string> = {}
+  ): Certificate {
+    const now      = new Date();
+    const expires  = new Date(now.getTime() + validDays * 86400_000);
+    const certId   = randomUUID();
+    const payload  = `${certId}:${type}:${droneId}:${issuedBy}:${now.toISOString()}`;
+    const fingerprint = createHash("sha256").update(payload).digest("hex");
 
-function sha256Short(data: string): string {
-  return crypto.createHash('sha256').update(data).digest('hex').slice(0, 24);
-}
-
-class CertificateAuthority {
-  private caName: string;
-  private counter = 0;
-  issued: Certificate[] = [];
-  private revoked = new Set<string>();
-
-  constructor(caName: string = 'SDACS-CA') { this.caName = caName; }
-
-  issue(certType: CertificateType, subject: string, validityDays: number = 365): Certificate {
-    this.counter++;
-    const now = this.counter * 86400;
-    const sig = sha256Short(`${this.caName}:${subject}:${this.counter}`);
-    const cert: Certificate = {
-      certId: `CERT-${String(this.counter).padStart(6, '0')}`,
-      certType, issuer: this.caName, subject,
-      validFrom: now, validUntil: now + validityDays * 86400,
-      signature: sig, revoked: false,
+    return {
+      certId,
+      type,
+      issuedBy,
+      issuedAt:  now.toISOString(),
+      expiresAt: expires.toISOString(),
+      droneId,
+      fingerprint,
+      revoked:   false,
+      metadata,
     };
-    this.issued.push(cert);
-    return cert;
   }
 
-  revoke(certId: string): void {
-    this.revoked.add(certId);
-    const cert = this.issued.find(c => c.certId === certId);
-    if (cert) cert.revoked = true;
+  static isValid(cert: Certificate): boolean {
+    if (cert.revoked) return false;
+    return new Date(cert.expiresAt) > new Date();
   }
 
-  verify(cert: Certificate, currentTime?: number): boolean {
-    if (this.revoked.has(cert.certId) || cert.revoked) return false;
-    const t = currentTime ?? cert.validFrom + 1;
-    return cert.validFrom <= t && t <= cert.validUntil;
+  static revoke(cert: Certificate): Certificate {
+    return { ...cert, revoked: true };
   }
 }
 
-class DronePassportManager {
-  private ca = new CertificateAuthority();
-  private rng: PRNG;
-  passports = new Map<string, DigitalPassport>();
-  private flightCounter = 0;
+// ============================================================
+// Passport manager
 
-  constructor(nDrones: number = 20, seed: number = 42) {
-    this.rng = new PRNG(seed);
-    const manufacturers = ['DroneCorp', 'SkyTech', 'AeroSystems', 'SwarmWorks'];
-    const models = ['X-100', 'Falcon-V2', 'Scout-Pro', 'Titan-Heavy'];
+export class PassportManager {
+  private passports: Map<string, Passport> = new Map();
+  private revokedCerts: Set<string> = new Set();
 
-    for (let i = 0; i < nDrones; i++) {
-      const droneId = `drone_${i}`;
-      const serial = sha256Short(`sn_${i}`).slice(0, 12);
-      const passport: DigitalPassport = {
-        passportId: `PP-${String(i).padStart(5, '0')}`,
-        droneId, manufacturer: manufacturers[i % 4],
-        model: models[i % 4], serial,
-        status: PassportStatus.Valid,
-        certificates: [],
-        flightHistory: [],
-        totalFlightHours: Math.round(this.rng.float() * 490 + 10),
-        maintenanceDue: false,
-      };
+  createPassport(identity: DroneIdentity): Passport {
+    const passportId = randomUUID();
+    const now = new Date().toISOString();
+    const passport: Passport = {
+      passportId,
+      version:      1,
+      identity,
+      certificates: [],
+      permissions:  [],
+      createdAt:    now,
+      updatedAt:    now,
+      checksum:     "",
+    };
+    passport.checksum = this.computeChecksum(passport);
+    this.passports.set(passport.passportId, passport);
+    return passport;
+  }
 
-      for (const ct of Object.values(CertificateType)) {
-        passport.certificates.push(this.ca.issue(ct as CertificateType, droneId, 90 + this.rng.float() * 640));
-      }
-      passport.maintenanceDue = passport.totalFlightHours > 400;
-      this.passports.set(droneId, passport);
+  addCertificate(passportId: string, cert: Certificate): Passport | null {
+    const passport = this.passports.get(passportId);
+    if (!passport) return null;
+
+    const updated: Passport = {
+      ...passport,
+      certificates: [...passport.certificates, cert],
+      version:      passport.version + 1,
+      updatedAt:    new Date().toISOString(),
+      checksum:     "",
+    };
+    updated.checksum = this.computeChecksum(updated);
+    this.passports.set(passportId, updated);
+    return updated;
+  }
+
+  addPermission(passportId: string, permission: FlightPermission): Passport | null {
+    const passport = this.passports.get(passportId);
+    if (!passport) return null;
+
+    const updated: Passport = {
+      ...passport,
+      permissions: [...passport.permissions, permission],
+      version:     passport.version + 1,
+      updatedAt:   new Date().toISOString(),
+      checksum:    "",
+    };
+    updated.checksum = this.computeChecksum(updated);
+    this.passports.set(passportId, updated);
+    return updated;
+  }
+
+  validatePassport(passportId: string): { valid: boolean; issues: string[] } {
+    const passport = this.passports.get(passportId);
+    if (!passport) return { valid: false, issues: ["Passport not found"] };
+
+    const issues: string[] = [];
+
+    // Verify checksum
+    const expectedChecksum = this.computeChecksum({ ...passport, checksum: "" });
+    if (expectedChecksum !== passport.checksum) {
+      issues.push("Checksum mismatch — passport may be tampered");
     }
+
+    // Check certificates
+    for (const cert of passport.certificates) {
+      if (this.revokedCerts.has(cert.certId)) {
+        issues.push(`Certificate ${cert.certId} has been revoked`);
+      } else if (!CertificateFactory.isValid(cert)) {
+        issues.push(`Certificate ${cert.type} (${cert.certId}) is expired`);
+      }
+    }
+
+    // Check required certs
+    const requiredTypes: CertificateType[] = ["airworthiness", "registration", "remote_id"];
+    for (const required of requiredTypes) {
+      const hasCert = passport.certificates.some(c => c.type === required && CertificateFactory.isValid(c));
+      if (!hasCert) {
+        issues.push(`Missing required certificate: ${required}`);
+      }
+    }
+
+    return { valid: issues.length === 0, issues };
   }
 
-  recordFlight(droneId: string, dep = 'A', dest = 'B', durS = 600, distKm = 5): FlightEntry | null {
-    const pp = this.passports.get(droneId);
-    if (!pp || pp.status !== PassportStatus.Valid) return null;
-    this.flightCounter++;
-    const entry: FlightEntry = {
-      flightId: `FLT-${String(this.flightCounter).padStart(6, '0')}`,
-      departure: dep, destination: dest, durationS: durS, distanceKm: distKm, incidents: 0,
-    };
-    pp.flightHistory.push(entry);
-    pp.totalFlightHours += durS / 3600;
-    if (pp.totalFlightHours > 400) pp.maintenanceDue = true;
-    return entry;
+  revokeCertificate(certId: string): void {
+    this.revokedCerts.add(certId);
   }
 
-  suspend(droneId: string): void {
-    const pp = this.passports.get(droneId);
-    if (pp) pp.status = PassportStatus.Suspended;
+  getPassport(passportId: string): Passport | undefined {
+    return this.passports.get(passportId);
   }
 
-  validate(droneId: string): { valid: boolean; status: string; certValid: boolean } {
-    const pp = this.passports.get(droneId);
-    if (!pp) return { valid: false, status: 'not_found', certValid: false };
-    const certValid = pp.certificates.every(c => this.ca.verify(c));
-    return { valid: pp.status === PassportStatus.Valid && certValid, status: pp.status, certValid };
+  getAllPassports(): Passport[] {
+    return Array.from(this.passports.values());
   }
 
-  audit(): { total: number; valid: number; suspended: number; flights: number; certs: number } {
-    let valid = 0, suspended = 0;
-    this.passports.forEach(p => {
-      if (p.status === PassportStatus.Valid) valid++;
-      if (p.status === PassportStatus.Suspended) suspended++;
+  private computeChecksum(passport: Omit<Passport, "checksum"> & { checksum?: string }): string {
+    const payload = JSON.stringify({
+      passportId:   passport.passportId,
+      version:      passport.version,
+      identity:     passport.identity,
+      certificates: passport.certificates,
+      permissions:  passport.permissions,
+      createdAt:    passport.createdAt,
     });
-    return { total: this.passports.size, valid, suspended, flights: this.flightCounter, certs: this.ca.issued.length };
+    return createHash("sha256").update(payload).digest("hex");
   }
 }
 
-// Main
-const mgr = new DronePassportManager(20, 42);
-mgr.recordFlight('drone_0', 'Base', 'DropZone', 900, 8.5);
-mgr.recordFlight('drone_1', 'Base', 'Warehouse', 1200, 12.0);
-mgr.suspend('drone_5');
+// ============================================================
+// Demo
 
-const v0 = mgr.validate('drone_0');
-const v5 = mgr.validate('drone_5');
-const audit = mgr.audit();
+const manager = new PassportManager();
+const identity: DroneIdentity = {
+  droneId:        "D-530-DEMO",
+  model:          "SDACS-X3",
+  serialNumber:   "SN-2026-530",
+  manufacturer:   "SDACS Labs",
+  productionDate: "2026-01-01",
+  maxAltitude:    120,
+  maxSpeed:       15,
+  weightKg:       2.5,
+};
 
-console.log(`Drone 0: valid=${v0.valid} status=${v0.status}`);
-console.log(`Drone 5: valid=${v5.valid} status=${v5.status}`);
-console.log(`Audit: total=${audit.total} valid=${audit.valid} suspended=${audit.suspended} flights=${audit.flights} certs=${audit.certs}`);
+const passport = manager.createPassport(identity);
+const airCert  = CertificateFactory.create("airworthiness", identity.droneId, "KCAB", 730);
+const regCert  = CertificateFactory.create("registration",  identity.droneId, "MOLIT", 365);
+const remId    = CertificateFactory.create("remote_id",     identity.droneId, "KCAB", 365);
+
+manager.addCertificate(passport.passportId, airCert);
+manager.addCertificate(passport.passportId, regCert);
+manager.addCertificate(passport.passportId, remId);
+
+const result = manager.validatePassport(passport.passportId);
+console.log(`Phase 530: Passport valid=${result.valid} issues=${result.issues.length}`);
+console.log(`Passport ID: ${passport.passportId}`);

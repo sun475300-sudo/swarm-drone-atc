@@ -1,178 +1,151 @@
-# Phase 593: Realtime Scheduler — Nim
-# 실시간 태스크 스케줄러: Rate Monotonic,
-# 데드라인 모니터링, 우선순위 역전 방지.
+# Phase 583: Real-Time Scheduler — Nim
+# SDACS hard real-time task scheduler with deadline monitoring
 
-import std/[tables, algorithm, sequtils, strformat, times, math]
+import std/[times, monotimes, heapqueue, tables, strformat, options]
 
-# ─── 타입 정의 ───
 type
-  TaskState = enum
+  Priority* = enum
+    pCritical = 0
+    pHigh     = 1
+    pNormal   = 2
+    pLow      = 3
+
+  TaskState* = enum
     tsReady, tsRunning, tsBlocked, tsCompleted, tsMissed
 
-  TaskPriority = enum
-    tpCritical, tpHigh, tpMedium, tpLow
+  Task* = object
+    id*           : string
+    priority*     : Priority
+    period_ns*    : int64       ## periodic interval in nanoseconds
+    deadline_ns*  : int64       ## deadline relative to period start
+    wcet_ns*      : int64       ## worst-case execution time estimate
+    next_release* : int64       ## absolute monotime of next release
+    state*        : TaskState
+    miss_count*   : int
+    exec_count*   : int
 
-  RealtimeTask = object
-    id: int
-    name: string
-    period: float          # ms
-    wcet: float            # Worst-Case Execution Time (ms)
-    deadline: float        # ms
-    priority: TaskPriority
-    state: TaskState
-    executionTime: float
-    responseTime: float
-    deadlineMisses: int
-    completions: int
+  RTScheduler* = object
+    tasks*        : Table[string, Task]
+    ready_queue*  : HeapQueue[(int64, string)]  ## (priority_key, task_id)
+    tick_ns*      : int64
+    deadline_misses* : int
+    total_exec*   : int
 
-  SchedulerStats = object
-    totalTasks: int
-    completedTasks: int
-    missedDeadlines: int
-    cpuUtilization: float
-    avgResponseTime: float
+  SchedulerStats* = object
+    total_tasks*     : int
+    total_executions*: int
+    deadline_misses* : int
+    utilization*     : float
+    uptime_s*        : float
 
-  RTScheduler = object
-    tasks: seq[RealtimeTask]
-    currentTime: float
-    quantum: float         # ms
-    contextSwitches: int
-    idleTime: float
-    totalTime: float
-
-# ─── Rate Monotonic 우선순위 할당 ───
-proc assignRMPriority(task: var RealtimeTask) =
-  ## 주기가 짧을수록 높은 우선순위
-  if task.period <= 10.0:
-    task.priority = tpCritical
-  elif task.period <= 50.0:
-    task.priority = tpHigh
-  elif task.period <= 100.0:
-    task.priority = tpMedium
-  else:
-    task.priority = tpLow
-
-# ─── 스케줄 가능성 검증 (Liu & Layland) ───
-proc isSchedulable(tasks: seq[RealtimeTask]): bool =
-  let n = tasks.len
-  if n == 0: return true
-  var utilization = 0.0
-  for t in tasks:
-    utilization += t.wcet / t.period
-  let bound = float(n) * (pow(2.0, 1.0 / float(n)) - 1.0)
-  return utilization <= bound
-
-# ─── 스케줄러 초기화 ───
-proc initScheduler(quantum: float = 1.0): RTScheduler =
-  result.tasks = @[]
-  result.currentTime = 0.0
-  result.quantum = quantum
-  result.contextSwitches = 0
-  result.idleTime = 0.0
-  result.totalTime = 0.0
-
-proc addTask(sched: var RTScheduler, name: string, period, wcet: float) =
-  var task = RealtimeTask(
-    id: sched.tasks.len,
-    name: name,
-    period: period,
-    wcet: wcet,
-    deadline: period,
-    state: tsReady,
-    executionTime: 0.0,
-    responseTime: 0.0,
-    deadlineMisses: 0,
-    completions: 0
+proc newRTScheduler*(tick_us: int = 1000): RTScheduler =
+  result = RTScheduler(
+    tasks:           initTable[string, Task](),
+    ready_queue:     initHeapQueue[(int64, string)](),
+    tick_ns:         tick_us.int64 * 1000,
+    deadline_misses: 0,
+    total_exec:      0,
   )
-  assignRMPriority(task)
-  sched.tasks.add(task)
 
-# ─── 스케줄링 스텝 ───
-proc scheduleStep(sched: var RTScheduler) =
-  let dt = sched.quantum
-  sched.currentTime += dt
-  sched.totalTime += dt
+proc addTask*(sched: var RTScheduler, id: string, priority: Priority,
+              period_ms: int, deadline_ms: int, wcet_us: int) =
+  let now = getMonoTime().ticks
+  let task = Task(
+    id:           id,
+    priority:     priority,
+    period_ns:    period_ms.int64 * 1_000_000,
+    deadline_ns:  deadline_ms.int64 * 1_000_000,
+    wcet_ns:      wcet_us.int64 * 1_000,
+    next_release: now,
+    state:        tsReady,
+    miss_count:   0,
+    exec_count:   0,
+  )
+  sched.tasks[id] = task
 
-  # 가장 높은 우선순위 Ready 태스크 선택
-  var bestIdx = -1
-  var bestPri = tpLow
+proc removeTask*(sched: var RTScheduler, id: string) =
+  sched.tasks.del(id)
 
-  for i, task in sched.tasks:
-    if task.state == tsReady and task.priority <= bestPri:
-      bestPri = task.priority
-      bestIdx = i
+proc releaseReady*(sched: var RTScheduler) =
+  let now = getMonoTime().ticks
+  for id, task in sched.tasks.mpairs:
+    if task.state == tsReady and task.next_release <= now:
+      # Priority key: lower value = higher priority; use -(deadline) for EDF
+      let deadline_abs = task.next_release + task.deadline_ns
+      let key = deadline_abs  # Earliest Deadline First
+      sched.ready_queue.push((key, id))
 
-  if bestIdx >= 0:
-    sched.tasks[bestIdx].state = tsRunning
-    sched.tasks[bestIdx].executionTime += dt
-    sched.contextSwitches += 1
+proc checkDeadlines*(sched: var RTScheduler) =
+  let now = getMonoTime().ticks
+  for id, task in sched.tasks.mpairs:
+    if task.state == tsRunning:
+      let deadline_abs = task.next_release + task.deadline_ns
+      if now > deadline_abs:
+        sched.tasks[id].state = tsMissed
+        sched.tasks[id].miss_count += 1
+        sched.deadline_misses += 1
 
-    # 실행 완료 체크
-    if sched.tasks[bestIdx].executionTime >= sched.tasks[bestIdx].wcet:
-      sched.tasks[bestIdx].state = tsCompleted
-      sched.tasks[bestIdx].completions += 1
-      sched.tasks[bestIdx].responseTime = sched.tasks[bestIdx].executionTime
-      sched.tasks[bestIdx].executionTime = 0.0
-  else:
-    sched.idleTime += dt
+proc nextTask*(sched: var RTScheduler): Option[string] =
+  sched.releaseReady()
+  sched.checkDeadlines()
+  if sched.ready_queue.len == 0:
+    return none(string)
+  let (_, id) = sched.ready_queue.pop()
+  if id in sched.tasks:
+    sched.tasks[id].state = tsRunning
+    return some(id)
+  none(string)
 
-  # 주기적 재활성화 및 데드라인 체크
-  for i in 0..<sched.tasks.len:
-    if sched.tasks[i].state == tsCompleted:
-      let elapsed = sched.currentTime
-      let periods = floor(elapsed / sched.tasks[i].period)
-      if elapsed >= periods * sched.tasks[i].period + sched.tasks[i].period:
-        sched.tasks[i].state = tsReady
-    elif sched.tasks[i].state == tsReady:
-      if sched.tasks[i].executionTime > sched.tasks[i].deadline:
-        sched.tasks[i].deadlineMisses += 1
-        sched.tasks[i].state = tsMissed
-        sched.tasks[i].executionTime = 0.0
+proc completeTask*(sched: var RTScheduler, id: string) =
+  if id notin sched.tasks: return
+  sched.tasks[id].state = tsReady
+  sched.tasks[id].next_release += sched.tasks[id].period_ns
+  sched.tasks[id].exec_count += 1
+  sched.total_exec += 1
 
-proc run(sched: var RTScheduler, duration: float) =
-  while sched.currentTime < duration:
-    sched.scheduleStep()
+proc utilization*(sched: RTScheduler): float =
+  var total = 0.0
+  for _, task in sched.tasks:
+    if task.period_ns > 0:
+      total += task.wcet_ns.float / task.period_ns.float
+  total
 
-# ─── 통계 ───
-proc getStats(sched: RTScheduler): SchedulerStats =
-  let completed = sched.tasks.mapIt(it.completions).foldl(a + b, 0)
-  let missed = sched.tasks.mapIt(it.deadlineMisses).foldl(a + b, 0)
-  let avgResp = if sched.tasks.len > 0:
-    sched.tasks.mapIt(it.responseTime).foldl(a + b, 0.0) / float(sched.tasks.len)
-  else: 0.0
-  let util = if sched.totalTime > 0:
-    (sched.totalTime - sched.idleTime) / sched.totalTime * 100.0
-  else: 0.0
-
+proc stats*(sched: RTScheduler): SchedulerStats =
   SchedulerStats(
-    totalTasks: sched.tasks.len,
-    completedTasks: completed,
-    missedDeadlines: missed,
-    cpuUtilization: util,
-    avgResponseTime: avgResp
+    total_tasks:      sched.tasks.len,
+    total_executions: sched.total_exec,
+    deadline_misses:  sched.deadline_misses,
+    utilization:      sched.utilization(),
+    uptime_s:         0.0,  # populated by caller
   )
 
-# ─── 메인 ───
+proc schedulable*(sched: RTScheduler): bool =
+  ## Rate-monotonic schedulability bound (Liu & Layland)
+  let n = sched.tasks.len.float
+  let bound = n * (2.0.pow(1.0/n) - 1.0)
+  sched.utilization() <= bound
+
+proc `$`*(task: Task): string =
+  fmt"Task({task.id} prio={task.priority} exec={task.exec_count} miss={task.miss_count})"
+
+proc `$`*(stats: SchedulerStats): string =
+  fmt"Stats(tasks={stats.total_tasks} exec={stats.total_executions} " &
+  fmt"miss={stats.deadline_misses} util={stats.utilization:.2f})"
+
 when isMainModule:
-  echo "=== SDACS Realtime Scheduler ==="
+  var sched = newRTScheduler(1000)
+  sched.addTask("control_loop",  pCritical, 10,  10,  500)
+  sched.addTask("telemetry_tx",  pHigh,     50,  45,  1000)
+  sched.addTask("battery_check", pNormal,   1000, 900, 200)
+  sched.addTask("log_writer",    pLow,      5000, 4500, 5000)
 
-  var sched = initScheduler(0.5)
+  echo fmt"Scheduler created with {sched.tasks.len} tasks"
+  echo fmt"Schedulable: {sched.schedulable()}"
+  echo fmt"Utilization: {sched.utilization():.3f}"
 
-  # 드론 태스크 등록
-  sched.addTask("IMU_Fusion", 5.0, 1.0)      # 200Hz
-  sched.addTask("Motor_Control", 10.0, 2.0)   # 100Hz
-  sched.addTask("GPS_Update", 50.0, 5.0)      # 20Hz
-  sched.addTask("Telemetry_TX", 100.0, 8.0)   # 10Hz
-  sched.addTask("Path_Plan", 200.0, 15.0)     # 5Hz
-  sched.addTask("Battery_Mon", 500.0, 3.0)    # 2Hz
+  let next = sched.nextTask()
+  if next.isSome:
+    echo fmt"Next task: {next.get()}"
+    sched.completeTask(next.get())
 
-  echo &"  Tasks: {sched.tasks.len}"
-  echo &"  Schedulable: {isSchedulable(sched.tasks)}"
-
-  sched.run(1000.0)  # 1초 시뮬레이션
-
-  let stats = sched.getStats()
-  echo &"  Completed: {stats.completedTasks}"
-  echo &"  Missed: {stats.missedDeadlines}"
-  echo &"  CPU Util: {stats.cpuUtilization:.1f}%"
-  echo &"  Avg Response: {stats.avgResponseTime:.2f} ms"
+  echo $sched.stats()

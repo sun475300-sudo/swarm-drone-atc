@@ -1,134 +1,162 @@
-// Phase 592: Reactive Pipeline — F#
-// 반응형 데이터 파이프라인: Observable 패턴,
-// 이벤트 스트림 변환, 비동기 파이프라인.
+// Phase 582: Reactive Pipeline — F# Functional Reactive
+// SDACS real-time drone data processing pipeline
 
 open System
+open System.Collections.Concurrent
 
-// ─── 도메인 타입 ───
-type DroneId = string
+// Domain types
+type DroneId = DroneId of string
 
-type TelemetryData = {
-    DroneId: DroneId
-    Latitude: float
-    Longitude: float
-    Altitude: float
-    Speed: float
-    Battery: float
-    Timestamp: DateTime
+type Vector3 = { X: float; Y: float; Z: float }
+
+type TelemetryFrame = {
+    DroneId   : DroneId
+    Timestamp : DateTimeOffset
+    Position  : Vector3
+    Velocity  : Vector3
+    Heading   : float
+    Battery   : float
+    Mode      : string
 }
 
-type Alert =
-    | LowBattery of DroneId * float
-    | SpeedViolation of DroneId * float
-    | AltitudeViolation of DroneId * float
-    | ProximityWarning of DroneId * DroneId * float
+type PipelineEvent =
+    | Telemetry   of TelemetryFrame
+    | Alert       of DroneId * string * string  // drone, severity, message
+    | Conflict    of DroneId * DroneId * float  // d1, d2, separation_m
+    | BatteryLow  of DroneId * float
+    | ModeChange  of DroneId * string * string  // drone, old_mode, new_mode
 
-type PipelineStats = {
-    Processed: int
-    Alerts: int
-    Filtered: int
-    AvgLatency: float
-}
+type PipelineStage<'T, 'U> = 'T -> 'U option
 
-// ─── 파이프라인 연산자 ───
+// Pipeline combinator
 module Pipeline =
-    let filter predicate source =
-        source |> Seq.filter predicate
+    let map f = fun x -> Some (f x)
 
-    let map transform source =
-        source |> Seq.map transform
+    let filter pred = fun x -> if pred x then Some x else None
 
-    let window size source =
-        source |> Seq.windowed size
+    let bind f = fun x ->
+        match f x with
+        | Some y -> Some y
+        | None   -> None
 
-    let throttle interval source =
-        source
-        |> Seq.mapi (fun i x -> (i, x))
-        |> Seq.filter (fun (i, _) -> i % interval = 0)
-        |> Seq.map snd
+    let compose (stages: PipelineStage<'a, 'a> list) : PipelineStage<'a, 'a> =
+        List.fold (fun acc stage ->
+            fun x ->
+                match acc x with
+                | Some y -> stage y
+                | None   -> None
+        ) (fun x -> Some x) stages
 
-    let aggregate folder initial source =
-        source |> Seq.fold folder initial
+    let run (pipeline: PipelineStage<'a, 'b>) input =
+        pipeline input
 
-// ─── 텔레메트리 생성 ───
-let generateTelemetry (rng: Random) (droneId: DroneId) count =
-    [| for i in 0..count-1 ->
-        { DroneId = droneId
-          Latitude = 37.5665 + rng.NextDouble() * 0.01
-          Longitude = 126.978 + rng.NextDouble() * 0.01
-          Altitude = 50.0 + rng.NextDouble() * 350.0
-          Speed = rng.NextDouble() * 30.0
-          Battery = 100.0 - (float i * 0.5) + rng.NextDouble() * 5.0
-          Timestamp = DateTime.UtcNow.AddSeconds(float i) }
-    |]
+// Telemetry filters
+module TelemetryFilter =
+    let validBattery frame =
+        if frame.Battery >= 0.0 && frame.Battery <= 100.0 then Some frame
+        else None
 
-// ─── 경보 감지 파이프라인 ───
-let detectAlerts (telemetry: TelemetryData seq) : Alert list =
-    let mutable alerts = []
+    let validAltitude minAlt maxAlt frame =
+        if frame.Position.Z >= minAlt && frame.Position.Z <= maxAlt then Some frame
+        else None
 
-    for t in telemetry do
-        if t.Battery < 20.0 then
-            alerts <- LowBattery(t.DroneId, t.Battery) :: alerts
-        if t.Speed > 25.0 then
-            alerts <- SpeedViolation(t.DroneId, t.Speed) :: alerts
-        if t.Altitude > 400.0 then
-            alerts <- AltitudeViolation(t.DroneId, t.Altitude) :: alerts
+    let validSpeed maxSpeed frame =
+        let speed = sqrt (frame.Velocity.X**2.0 + frame.Velocity.Y**2.0 + frame.Velocity.Z**2.0)
+        if speed <= maxSpeed then Some frame
+        else None
 
-    alerts |> List.rev
+// Alert generators
+module AlertGen =
+    let batteryAlert threshold frame =
+        if frame.Battery < threshold then
+            Some (BatteryLow (frame.DroneId, frame.Battery))
+        else None
 
-// ─── 통계 집계 ───
-let computeStats (telemetry: TelemetryData[]) (alerts: Alert list) =
-    let avgAlt =
-        if telemetry.Length > 0 then
-            telemetry |> Array.averageBy (fun t -> t.Altitude)
-        else 0.0
-    let avgSpeed =
-        if telemetry.Length > 0 then
-            telemetry |> Array.averageBy (fun t -> t.Speed)
-        else 0.0
-    {| Processed = telemetry.Length
-       Alerts = alerts.Length
-       AvgAltitude = Math.Round(avgAlt, 2)
-       AvgSpeed = Math.Round(avgSpeed, 2)
-       DroneCount =
-           telemetry
-           |> Array.map (fun t -> t.DroneId)
-           |> Array.distinct
-           |> Array.length |}
+    let altitudeAlert maxAlt frame =
+        if frame.Position.Z > maxAlt then
+            Some (Alert (frame.DroneId, "WARNING", sprintf "Altitude %.1f exceeds max %.1f" frame.Position.Z maxAlt))
+        else None
 
-// ─── 메시지 포맷 ───
-let formatAlert = function
-    | LowBattery(id, pct) -> sprintf "LOW_BATTERY: %s (%.1f%%)" id pct
-    | SpeedViolation(id, spd) -> sprintf "SPEED_VIOLATION: %s (%.1f m/s)" id spd
-    | AltitudeViolation(id, alt) -> sprintf "ALT_VIOLATION: %s (%.1f m)" id alt
-    | ProximityWarning(a, b, dist) -> sprintf "PROXIMITY: %s <-> %s (%.1f m)" a b dist
+// Main reactive pipeline processor
+type ReactiveProcessor() =
+    let mutable eventCount = 0
+    let mutable alertCount = 0
+    let eventQueue = ConcurrentQueue<PipelineEvent>()
+    let handlers = ConcurrentDictionary<string, PipelineEvent -> unit>()
 
-// ─── 실행 ───
-let rng = Random(42)
-let droneIds = [| for i in 0..9 -> sprintf "DRONE_%03d" i |]
+    member _.Publish(event: PipelineEvent) =
+        eventQueue.Enqueue(event)
+        eventCount <- eventCount + 1
 
-printfn "=== SDACS Reactive Pipeline ==="
+    member _.Subscribe(name: string, handler: PipelineEvent -> unit) =
+        handlers.[name] <- handler
 
-// 텔레메트리 생성
-let allTelemetry =
-    droneIds
-    |> Array.collect (fun id -> generateTelemetry rng id 50)
+    member _.Unsubscribe(name: string) =
+        handlers.TryRemove(name) |> ignore
 
-// 파이프라인 처리
-let filtered =
-    allTelemetry
-    |> Pipeline.filter (fun t -> t.Battery > 5.0)
-    |> Seq.toArray
+    member _.Process() =
+        let mutable event = Unchecked.defaultof<PipelineEvent>
+        while eventQueue.TryDequeue(&event) do
+            for kvp in handlers do
+                try kvp.Value event
+                with ex -> eprintfn "Handler %s error: %s" kvp.Key ex.Message
 
-let alerts = detectAlerts filtered
-let stats = computeStats filtered alerts
+    member _.ProcessTelemetry(frame: TelemetryFrame) =
+        let pipeline = Pipeline.compose [
+            TelemetryFilter.validBattery
+            TelemetryFilter.validAltitude 0.0 400.0
+            TelemetryFilter.validSpeed 30.0
+        ]
+        match Pipeline.run pipeline frame with
+        | Some validFrame ->
+            this.Publish(Telemetry validFrame)
+            // Generate derived alerts
+            AlertGen.batteryAlert 20.0 validFrame |> Option.iter this.Publish
+            AlertGen.altitudeAlert 120.0 validFrame |> Option.iter (fun _ -> alertCount <- alertCount + 1)
+        | None ->
+            eprintfn "Invalid telemetry frame from %A" frame.DroneId
 
-printfn "  Processed: %d" stats.Processed
-printfn "  Alerts: %d" stats.Alerts
-printfn "  Avg Altitude: %.2f m" stats.AvgAltitude
-printfn "  Avg Speed: %.2f m/s" stats.AvgSpeed
-printfn "  Drones: %d" stats.DroneCount
+    member _.Stats() = {|
+        EventCount = eventCount
+        AlertCount = alertCount
+        QueueDepth = eventQueue.Count
+        Handlers   = handlers.Count
+    |}
 
-printfn "\n  Recent alerts:"
-alerts |> List.take (min 5 alerts.Length) |> List.iter (fun a ->
-    printfn "    %s" (formatAlert a))
+// Conflict detection stage
+let detectConflicts (frames: TelemetryFrame list) : PipelineEvent list =
+    [ for i in 0..frames.Length-2 do
+        for j in i+1..frames.Length-1 do
+            let a = frames.[i]
+            let b = frames.[j]
+            let dx = a.Position.X - b.Position.X
+            let dy = a.Position.Y - b.Position.Y
+            let dz = a.Position.Z - b.Position.Z
+            let dist = sqrt (dx*dx + dy*dy + dz*dz)
+            if dist < 50.0 then
+                yield Conflict (a.DroneId, b.DroneId, dist) ]
+
+// Demo
+let demo () =
+    let processor = ReactiveProcessor()
+    processor.Subscribe("logger", fun evt ->
+        match evt with
+        | Telemetry f -> printfn "[TELEM] %A bat=%.0f%%" f.DroneId f.Battery
+        | Alert (id, sev, msg) -> printfn "[ALERT] %A %s: %s" id sev msg
+        | BatteryLow (id, pct) -> printfn "[LOW BAT] %A %.0f%%" id pct
+        | Conflict (a, b, d) -> printfn "[CONFLICT] %A <-> %A sep=%.1fm" a b d
+        | ModeChange (id, old, nw) -> printfn "[MODE] %A %s->%s" id old nw
+    )
+
+    let frame = {
+        DroneId   = DroneId "D001"
+        Timestamp = DateTimeOffset.UtcNow
+        Position  = { X = 100.0; Y = 200.0; Z = 60.0 }
+        Velocity  = { X = 5.0; Y = 0.0; Z = 0.0 }
+        Heading   = 90.0
+        Battery   = 18.5
+        Mode      = "AUTO"
+    }
+    processor.ProcessTelemetry(frame)
+    processor.Process()
+    printfn "Stats: %A" (processor.Stats())

@@ -1,95 +1,48 @@
-;; Phase 637: Event Sourcing v2 — Clojure CQRS Enhanced
-;; CQRS 이벤트 소싱 고도화 (트랜잭션 로그)
+;; Phase 637: Event Sourcing v2 — Clojure
+;; SDACS event-sourced drone state management with CQRS pattern
 
 (ns sdacs.event-sourcing-v2
-  (:require [clojure.string :as str]))
+  (:require [clojure.spec.alpha :as s]))
 
-;; ── Event Store ──
+(s/def ::event-type keyword?)
+(s/def ::drone-id string?)
+(s/def ::timestamp number?)
+(s/def ::payload map?)
+(s/def ::event (s/keys :req-un [::event-type ::drone-id ::timestamp ::payload]))
 
-(def event-store (atom []))
-(def snapshots (atom {}))
-(def projections (atom {}))
+(defprotocol EventStore
+  (append! [store drone-id event])
+  (load-events [store drone-id])
+  (snapshot [store drone-id]))
 
-(defn create-event [type aggregate-id data]
-  {:event-id (str (java.util.UUID/randomUUID))
-   :type type
-   :aggregate-id aggregate-id
-   :data data
-   :timestamp (System/currentTimeMillis)
-   :version (inc (count @event-store))})
+(defrecord InMemoryEventStore [store-atom]
+  EventStore
+  (append! [_ drone-id event]
+    (swap! store-atom update drone-id (fnil conj []) event))
+  (load-events [_ drone-id]
+    (get @store-atom drone-id []))
+  (snapshot [_ drone-id]
+    (get @store-atom drone-id [])))
 
-(defn append-event! [type aggregate-id data]
-  (let [event (create-event type aggregate-id data)]
-    (swap! event-store conj event)
+(defn new-store [] (->InMemoryEventStore (atom {})))
+
+(defmulti apply-event (fn [state event] (:event-type event)))
+(defmethod apply-event :takeoff [state event]  (assoc state :mode :flying :alt (get-in event [:payload :alt] 60)))
+(defmethod apply-event :land    [state event]  (assoc state :mode :idle :alt 0))
+(defmethod apply-event :telemetry [state event](merge state (:payload event)))
+(defmethod apply-event :default [state _]      state)
+
+(defn rebuild-state [events]
+  (reduce apply-event {:mode :idle :alt 0 :battery 100} events))
+
+(defn record-event! [store drone-id event-type payload]
+  (let [event {:event-type event-type :drone-id drone-id
+               :timestamp (System/currentTimeMillis) :payload payload}]
+    (append! store drone-id event)
     event))
 
-;; ── Drone Events ──
-
-(defn drone-launched! [drone-id position]
-  (append-event! :drone-launched drone-id {:position position}))
-
-(defn drone-moved! [drone-id from to]
-  (append-event! :drone-moved drone-id {:from from :to to}))
-
-(defn conflict-detected! [drone-a drone-b distance]
-  (append-event! :conflict-detected
-                 (str drone-a "-" drone-b)
-                 {:drone-a drone-a
-                  :drone-b drone-b
-                  :distance distance}))
-
-(defn advisory-issued! [drone-id advisory-type]
-  (append-event! :advisory-issued drone-id {:type advisory-type}))
-
-(defn drone-landed! [drone-id]
-  (append-event! :drone-landed drone-id {}))
-
-;; ── Projections ──
-
-(defn build-drone-projection [events]
-  (reduce
-    (fn [state event]
-      (case (:type event)
-        :drone-launched (assoc state (:aggregate-id event)
-                              {:status :flying
-                               :position (get-in event [:data :position])})
-        :drone-moved (update state (:aggregate-id event)
-                            assoc :position (get-in event [:data :to]))
-        :drone-landed (update state (:aggregate-id event)
-                             assoc :status :landed)
-        state))
-    {}
-    events))
-
-(defn build-conflict-projection [events]
-  (let [conflicts (filter #(= (:type %) :conflict-detected) events)]
-    {:total-conflicts (count conflicts)
-     :unique-pairs (count (distinct (map :aggregate-id conflicts)))
-     :avg-distance (if (seq conflicts)
-                     (/ (reduce + (map #(get-in % [:data :distance]) conflicts))
-                        (count conflicts))
-                     0)}))
-
-;; ── Snapshots ──
-
-(defn create-snapshot! [aggregate-id]
-  (let [events (filter #(= (:aggregate-id %) aggregate-id) @event-store)
-        snapshot {:aggregate-id aggregate-id
-                  :version (count events)
-                  :state (build-drone-projection events)
-                  :timestamp (System/currentTimeMillis)}]
-    (swap! snapshots assoc aggregate-id snapshot)
-    snapshot))
-
-;; ── Query ──
-
-(defn get-events-since [version]
-  (filter #(> (:version %) version) @event-store))
-
-(defn get-aggregate-events [aggregate-id]
-  (filter #(= (:aggregate-id %) aggregate-id) @event-store))
-
-(defn summary []
-  {:total-events (count @event-store)
-   :event-types (frequencies (map :type @event-store))
-   :snapshots (count @snapshots)})
+(comment
+  (def store (new-store))
+  (record-event! store "D001" :takeoff {:alt 60})
+  (record-event! store "D001" :telemetry {:battery 85 :speed 10})
+  (println "Phase 637:" (rebuild-state (load-events store "D001"))))

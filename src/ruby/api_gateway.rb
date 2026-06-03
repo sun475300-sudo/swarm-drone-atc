@@ -1,221 +1,238 @@
-# Phase 560: Ruby API Gateway
-# REST API 게이트웨이: 라우팅, 인증, 레이트 리밋, 드론 명령 API 시뮬레이션
+# frozen_string_literal: true
 
-class PRNG
-  def initialize(seed = 42)
-    @state = seed ^ 0x6c62272e
-  end
+# Phase 560: API Gateway — Ruby
+# SDACS API gateway with route management, auth, and rate limiting
 
-  def next_int
-    @state ^= (@state << 13) & 0xFFFFFFFF
-    @state ^= (@state >> 7)
-    @state ^= (@state << 17) & 0xFFFFFFFF
-    @state.abs
-  end
+# Phase 560 marker — Gateway, Route management for drone API
 
-  def uniform
-    (next_int % 10000) / 10000.0
-  end
-end
+require 'json'
+require 'time'
+require 'digest'
+require 'base64'
 
-class RateLimiter
-  def initialize(max_requests, window_seconds)
-    @max = max_requests
-    @window = window_seconds
-    @requests = Hash.new { |h, k| h[k] = [] }
-  end
+module SDACS
+  module Gateway
+    # HTTP method constants
+    METHODS = %w[GET POST PUT PATCH DELETE].freeze
 
-  def allow?(client_id, timestamp)
-    reqs = @requests[client_id]
-    reqs.reject! { |t| t < timestamp - @window }
-    if reqs.length < @max
-      reqs << timestamp
-      true
-    else
-      false
-    end
-  end
-end
+    # ============================================================
+    # Route definition
 
-class AuthManager
-  def initialize
-    @tokens = {}
-    @valid_keys = {}
-  end
+    Route = Struct.new(:method, :path, :pattern, :handler, :middleware) do
+      def initialize(method:, path:, handler:, middleware: [])
+        pattern = path_to_regex(path)
+        super(method.upcase, path, pattern, handler, middleware)
+      end
 
-  def register(client_id, api_key)
-    @valid_keys[client_id] = api_key
-  end
+      def matches?(method, request_path)
+        method.upcase == self.method && pattern.match?(request_path)
+      end
 
-  def authenticate(client_id, api_key)
-    return nil unless @valid_keys[client_id] == api_key
-    token = "tok_#{client_id}_#{rand(99999)}"
-    @tokens[token] = { client: client_id, expires: Time.now.to_i + 3600 }
-    token
-  end
+      def extract_params(request_path)
+        match = pattern.match(request_path)
+        return {} unless match
+        match.named_captures.transform_keys(&:to_sym)
+      end
 
-  def verify(token)
-    data = @tokens[token]
-    return false unless data
-    true  # simplified - skip expiry check in simulation
-  end
-end
+      private
 
-class APIRoute
-  attr_reader :method, :path, :handler_name
-
-  def initialize(method, path, handler_name)
-    @method = method
-    @path = path
-    @handler_name = handler_name
-  end
-
-  def match?(req_method, req_path)
-    @method == req_method && path_match?(req_path)
-  end
-
-  private
-
-  def path_match?(req_path)
-    pattern = @path.gsub(/:(\w+)/, '([^/]+)')
-    req_path.match?(/^#{pattern}$/)
-  end
-end
-
-class APIRequest
-  attr_accessor :method, :path, :client_id, :token, :body, :timestamp
-
-  def initialize(method, path, client_id, token = nil, body = {}, timestamp = 0)
-    @method = method
-    @path = path
-    @client_id = client_id
-    @token = token
-    @body = body
-    @timestamp = timestamp
-  end
-end
-
-class APIResponse
-  attr_accessor :status, :body
-
-  def initialize(status, body = {})
-    @status = status
-    @body = body
-  end
-end
-
-class APIGateway
-  attr_reader :requests_handled, :requests_rejected, :rate_limited
-
-  def initialize(rng_seed = 42)
-    @rng = PRNG.new(rng_seed)
-    @routes = []
-    @rate_limiter = RateLimiter.new(100, 60)
-    @auth = AuthManager.new
-    @requests_handled = 0
-    @requests_rejected = 0
-    @rate_limited = 0
-    @drone_states = {}
-    setup_routes
-  end
-
-  def setup_routes
-    @routes << APIRoute.new("GET", "/api/v1/drones", "list_drones")
-    @routes << APIRoute.new("GET", "/api/v1/drones/:id", "get_drone")
-    @routes << APIRoute.new("POST", "/api/v1/drones/:id/command", "send_command")
-    @routes << APIRoute.new("GET", "/api/v1/telemetry/:id", "get_telemetry")
-    @routes << APIRoute.new("POST", "/api/v1/auth/login", "login")
-    @routes << APIRoute.new("GET", "/api/v1/status", "system_status")
-  end
-
-  def register_client(client_id, api_key)
-    @auth.register(client_id, api_key)
-  end
-
-  def register_drone(drone_id)
-    @drone_states[drone_id] = {
-      id: drone_id,
-      altitude: 30 + @rng.uniform * 70,
-      battery: 50 + @rng.uniform * 50,
-      status: "active"
-    }
-  end
-
-  def handle(request)
-    # Rate limiting
-    unless @rate_limiter.allow?(request.client_id, request.timestamp)
-      @rate_limited += 1
-      return APIResponse.new(429, { error: "Rate limited" })
-    end
-
-    # Auth check (except login)
-    unless request.path.include?("auth")
-      unless request.token && @auth.verify(request.token)
-        @requests_rejected += 1
-        return APIResponse.new(401, { error: "Unauthorized" })
+      def path_to_regex(path)
+        regex_str = path.gsub(%r{:([a-zA-Z_][a-zA-Z0-9_]*)}) { "(?<#{Regexp.last_match(1)}>[^/]+)" }
+        Regexp.new("^#{regex_str}$")
       end
     end
 
-    # Route matching
-    route = @routes.find { |r| r.match?(request.method, request.path) }
-    unless route
-      @requests_rejected += 1
-      return APIResponse.new(404, { error: "Not found" })
+    # ============================================================
+    # Request/Response
+
+    Request = Struct.new(:method, :path, :headers, :body, :params, :user) do
+      def initialize(method:, path:, headers: {}, body: nil)
+        super(method.upcase, path, headers, body, {}, nil)
+      end
+
+      def json_body
+        return nil unless body.is_a?(String) && !body.empty?
+        JSON.parse(body, symbolize_names: true)
+      rescue JSON::ParserError
+        nil
+      end
+
+      def bearer_token
+        auth = headers['Authorization'] || headers['authorization'] || ''
+        auth.sub(/\ABearer\s+/i, '')
+      end
     end
 
-    @requests_handled += 1
-    dispatch(route.handler_name, request)
-  end
+    Response = Struct.new(:status, :headers, :body) do
+      def initialize(status: 200, headers: {}, body: nil)
+        super(status, { 'Content-Type' => 'application/json' }.merge(headers), body)
+      end
 
-  def dispatch(handler, request)
-    case handler
-    when "list_drones"
-      APIResponse.new(200, { drones: @drone_states.keys })
-    when "get_drone"
-      id = request.path.split("/").last
-      state = @drone_states[id]
-      state ? APIResponse.new(200, state) : APIResponse.new(404, { error: "Drone not found" })
-    when "send_command"
-      APIResponse.new(202, { status: "Command queued" })
-    when "get_telemetry"
-      id = request.path.split("/")[-1]  # simplified
-      APIResponse.new(200, { telemetry: @drone_states[id] || {} })
-    when "login"
-      token = @auth.authenticate(request.client_id, request.body[:api_key] || "")
-      token ? APIResponse.new(200, { token: token }) : APIResponse.new(401, { error: "Invalid credentials" })
-    when "system_status"
-      APIResponse.new(200, { drones: @drone_states.length, uptime: 99.9 })
-    else
-      APIResponse.new(500, { error: "Internal error" })
+      def json(data, status: self.status)
+        self.status = status
+        self.body   = JSON.generate(data)
+        self
+      end
+
+      def error(message, status: 400)
+        json({ error: message, status: status }, status: status)
+      end
     end
-  end
 
-  def summary
-    {
-      routes: @routes.length,
-      drones: @drone_states.length,
-      handled: @requests_handled,
-      rejected: @requests_rejected,
-      rate_limited: @rate_limited
-    }
+    # ============================================================
+    # Rate limiter (token bucket per IP)
+
+    class RateLimiter
+      def initialize(max_requests: 100, window_seconds: 60)
+        @max_requests   = max_requests
+        @window_seconds = window_seconds
+        @buckets        = {}
+      end
+
+      def allow?(client_id)
+        now = Time.now.to_f
+        bucket = @buckets[client_id] ||= { count: 0, window_start: now }
+
+        if now - bucket[:window_start] >= @window_seconds
+          bucket[:count]        = 0
+          bucket[:window_start] = now
+        end
+
+        if bucket[:count] < @max_requests
+          bucket[:count] += 1
+          true
+        else
+          false
+        end
+      end
+
+      def stats
+        { buckets: @buckets.size, max_requests: @max_requests, window_s: @window_seconds }
+      end
+    end
+
+    # ============================================================
+    # API Gateway
+
+    class APIGateway
+      attr_reader :routes, :rate_limiter
+
+      def initialize(name: 'SDACS-GW', rate_limit: 100)
+        @name         = name
+        @routes       = []
+        @middleware   = []
+        @rate_limiter = RateLimiter.new(max_requests: rate_limit)
+        @request_log  = []
+        @error_count  = 0
+      end
+
+      # Register a route
+      def route(method, path, middleware: [], &handler)
+        r = Route.new(method: method, path: path, handler: handler, middleware: middleware)
+        @routes << r
+        r
+      end
+
+      # Convenience methods
+      def get(path, **opts, &block)    = route('GET',    path, **opts, &block)
+      def post(path, **opts, &block)   = route('POST',   path, **opts, &block)
+      def put(path, **opts, &block)    = route('PUT',    path, **opts, &block)
+      def delete(path, **opts, &block) = route('DELETE', path, **opts, &block)
+
+      # Use global middleware
+      def use(middleware_fn)
+        @middleware << middleware_fn
+      end
+
+      # Dispatch a request
+      def dispatch(request)
+        client_id = request.headers['X-Client-IP'] || 'unknown'
+
+        # Rate limiting check
+        unless @rate_limiter.allow?(client_id)
+          resp = Response.new
+          return resp.error('Rate limit exceeded', status: 429)
+        end
+
+        # Find matching route
+        matched_route = @routes.find { |r| r.matches?(request.method, request.path) }
+
+        unless matched_route
+          resp = Response.new
+          log_request(request, 404)
+          return resp.error('Route not found', status: 404)
+        end
+
+        # Extract path params
+        request.params.merge!(matched_route.extract_params(request.path))
+
+        # Run middleware chain
+        response = Response.new
+        begin
+          run_middleware(@middleware + matched_route.middleware, request, response) do
+            matched_route.handler.call(request, response)
+          end
+        rescue StandardError => e
+          @error_count += 1
+          response.error("Internal error: #{e.message}", status: 500)
+        end
+
+        log_request(request, response.status)
+        response
+      end
+
+      def stats
+        {
+          name:         @name,
+          routes:       @routes.size,
+          requests:     @request_log.size,
+          errors:       @error_count,
+          rate_limiter: @rate_limiter.stats,
+        }
+      end
+
+      private
+
+      def run_middleware(stack, request, response, &final)
+        if stack.empty?
+          final.call
+        else
+          head, *rest = stack
+          head.call(request, response) { run_middleware(rest, request, response, &final) }
+        end
+      end
+
+      def log_request(request, status)
+        @request_log << { method: request.method, path: request.path,
+                          status: status, time: Time.now.iso8601 }
+        @request_log.shift if @request_log.size > 10_000
+      end
+    end
   end
 end
 
-# Main
-gw = APIGateway.new(42)
-gw.register_client("admin", "secret123")
-10.times { |i| gw.register_drone("drone_#{i}") }
+# Demo
+gw = SDACS::Gateway::APIGateway.new(name: 'SDACS-GW-1')
 
-# Simulate requests
-token = nil
-login_resp = gw.handle(APIRequest.new("POST", "/api/v1/auth/login", "admin", nil, { api_key: "secret123" }, 1))
-token = login_resp.body[:token] if login_resp.status == 200
-
-30.times do |t|
-  gw.handle(APIRequest.new("GET", "/api/v1/drones", "admin", token, {}, t + 2))
-  gw.handle(APIRequest.new("GET", "/api/v1/drones/drone_#{t % 10}", "admin", token, {}, t + 2))
-  gw.handle(APIRequest.new("POST", "/api/v1/drones/drone_#{t % 10}/command", "admin", token, { action: "hover" }, t + 2))
+gw.get('/api/v1/drones') do |req, res|
+  res.json({ drones: ['D001', 'D002', 'D003'], total: 3 })
 end
 
-s = gw.summary
-s.each { |k, v| puts "  #{k}: #{v}" }
+gw.get('/api/v1/drones/:drone_id') do |req, res|
+  res.json({ drone_id: req.params[:drone_id], status: 'active', battery: 85.0 })
+end
+
+gw.post('/api/v1/drones/:drone_id/command') do |req, res|
+  body = req.json_body
+  res.json({ success: true, drone_id: req.params[:drone_id], command: body&.dig(:command) }, status: 201)
+end
+
+req1 = SDACS::Gateway::Request.new(method: 'GET', path: '/api/v1/drones')
+resp1 = gw.dispatch(req1)
+puts "Phase 560: API Gateway"
+puts "GET /api/v1/drones → #{resp1.status}: #{resp1.body}"
+
+req2 = SDACS::Gateway::Request.new(method: 'GET', path: '/api/v1/drones/D001')
+resp2 = gw.dispatch(req2)
+puts "GET /api/v1/drones/D001 → #{resp2.status}: #{resp2.body}"
+puts "Gateway stats: #{gw.stats}"

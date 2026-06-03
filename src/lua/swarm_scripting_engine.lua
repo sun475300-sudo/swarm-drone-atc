@@ -1,197 +1,205 @@
--- Phase 553: Lua Lightweight Scripting Engine for Drone Control
--- 경량 스크립팅: 미션 DSL, 조건 기반 행동 트리, 이벤트 트리거
+-- Phase 553: Swarm Scripting Engine — Lua
+-- SDACS mission scripting interpreter for drone swarm behavior programming
 
-local PRNG = {}
-PRNG.__index = PRNG
+-- Phase 553 marker — Mission/Event scripting engine for drone swarms
 
-function PRNG.new(seed)
-    local self = setmetatable({}, PRNG)
-    self.state = (seed or 42) ~ 0x6c62272e  -- XOR
+local SwarmEngine = {}
+SwarmEngine.__index = SwarmEngine
+
+-- Event types
+local EVENT_TYPES = {
+    MISSION_START   = "mission_start",
+    MISSION_END     = "mission_end",
+    WAYPOINT_REACHED = "waypoint_reached",
+    BATTERY_LOW     = "battery_low",
+    CONFLICT        = "conflict",
+    DRONE_JOINED    = "drone_joined",
+    DRONE_LEFT      = "drone_left",
+    COMMAND         = "command",
+    TELEMETRY       = "telemetry",
+}
+
+-- Create a new swarm scripting engine
+function SwarmEngine.new()
+    local self = setmetatable({}, SwarmEngine)
+    self.drones       = {}
+    self.missions     = {}
+    self.handlers     = {}
+    self.event_queue  = {}
+    self.tick_count   = 0
+    self.globals      = {}
+    self.plugins      = {}
     return self
 end
 
-function PRNG:next()
-    self.state = self.state ~ (self.state << 13)
-    self.state = self.state ~ (self.state >> 7)
-    self.state = self.state ~ (self.state << 17)
-    return math.abs(self.state)
+-- Register an event handler
+function SwarmEngine:on(event_type, handler_fn)
+    if not self.handlers[event_type] then
+        self.handlers[event_type] = {}
+    end
+    table.insert(self.handlers[event_type], handler_fn)
 end
 
-function PRNG:uniform()
-    return (self:next() % 10000) / 10000.0
+-- Emit an event
+function SwarmEngine:emit(event_type, data)
+    local event = {
+        type      = event_type,
+        data      = data or {},
+        timestamp = self.tick_count,
+    }
+    table.insert(self.event_queue, event)
 end
 
--- Drone state
-local Drone = {}
-Drone.__index = Drone
-
-function Drone.new(id, rng)
-    local self = setmetatable({}, Drone)
-    self.id = id
-    self.x = rng:uniform() * 100 - 50
-    self.y = rng:uniform() * 100 - 50
-    self.z = 30 + rng:uniform() * 70
-    self.battery = 80 + rng:uniform() * 20
-    self.status = "idle"
-    self.mission = nil
-    self.log = {}
-    return self
+-- Process all queued events
+function SwarmEngine:process_events()
+    local processed = 0
+    while #self.event_queue > 0 do
+        local event = table.remove(self.event_queue, 1)
+        local handlers = self.handlers[event.type] or {}
+        for _, handler in ipairs(handlers) do
+            local ok, err = pcall(handler, event)
+            if not ok then
+                print("[ERROR] Event handler failed for " .. event.type .. ": " .. tostring(err))
+            end
+        end
+        processed = processed + 1
+    end
+    return processed
 end
 
-function Drone:execute(cmd)
-    table.insert(self.log, cmd)
-    if cmd.action == "move" then
-        self.x = self.x + (cmd.dx or 0)
-        self.y = self.y + (cmd.dy or 0)
-        self.z = self.z + (cmd.dz or 0)
-        self.battery = self.battery - 0.5
-    elseif cmd.action == "hover" then
-        self.battery = self.battery - 0.1
-    elseif cmd.action == "land" then
-        self.z = 0
-        self.status = "landed"
-    elseif cmd.action == "takeoff" then
-        self.z = 50
-        self.status = "flying"
+-- Register a drone
+function SwarmEngine:add_drone(id, config)
+    self.drones[id] = {
+        id       = id,
+        lat      = config.lat or 0,
+        lon      = config.lon or 0,
+        alt      = config.alt or 0,
+        speed    = config.speed or 10,
+        battery  = config.battery or 100,
+        mode     = "idle",
+        waypoints = {},
+    }
+    self:emit(EVENT_TYPES.DRONE_JOINED, { drone_id = id })
+    return self.drones[id]
+end
+
+-- Remove a drone
+function SwarmEngine:remove_drone(id)
+    if self.drones[id] then
+        self:emit(EVENT_TYPES.DRONE_LEFT, { drone_id = id })
+        self.drones[id] = nil
     end
 end
 
--- Mission DSL
-local Mission = {}
-Mission.__index = Mission
-
-function Mission.new(name)
-    local self = setmetatable({}, Mission)
-    self.name = name
-    self.steps = {}
-    self.current = 1
-    return self
+-- Mission definition
+function SwarmEngine:define_mission(name, script_fn)
+    self.missions[name] = {
+        name      = name,
+        script    = script_fn,
+        state     = "ready",
+        progress  = 0,
+    }
 end
 
-function Mission:add_step(step)
-    table.insert(self.steps, step)
-end
-
-function Mission:next_step()
-    if self.current <= #self.steps then
-        local step = self.steps[self.current]
-        self.current = self.current + 1
-        return step
+-- Execute a mission
+function SwarmEngine:run_mission(name, context)
+    local mission = self.missions[name]
+    if not mission then
+        return nil, "Mission not found: " .. name
     end
-    return nil
-end
-
-function Mission:is_complete()
-    return self.current > #self.steps
-end
-
--- Behavior Tree nodes
-local function condition_node(check_fn)
-    return function(drone)
-        return check_fn(drone)
-    end
-end
-
-local function action_node(action_fn)
-    return function(drone)
-        action_fn(drone)
+    mission.state = "running"
+    self:emit(EVENT_TYPES.MISSION_START, { mission = name, context = context })
+    local ok, err = pcall(mission.script, self, context or {})
+    if ok then
+        mission.state = "completed"
+        self:emit(EVENT_TYPES.MISSION_END, { mission = name, success = true })
         return true
+    else
+        mission.state = "failed"
+        self:emit(EVENT_TYPES.MISSION_END, { mission = name, success = false, error = err })
+        return false, err
     end
 end
 
-local function sequence(nodes)
-    return function(drone)
-        for _, node in ipairs(nodes) do
-            if not node(drone) then return false end
-        end
-        return true
-    end
-end
-
--- Event system
-local EventSystem = {}
-EventSystem.__index = EventSystem
-
-function EventSystem.new()
-    local self = setmetatable({}, EventSystem)
-    self.listeners = {}
-    self.events_fired = 0
-    return self
-end
-
-function EventSystem:on(event, callback)
-    if not self.listeners[event] then
-        self.listeners[event] = {}
-    end
-    table.insert(self.listeners[event], callback)
-end
-
-function EventSystem:fire(event, data)
-    self.events_fired = self.events_fired + 1
-    if self.listeners[event] then
-        for _, cb in ipairs(self.listeners[event]) do
-            cb(data)
+-- Send command to drone
+function SwarmEngine:command(drone_id, cmd, params)
+    local drone = self.drones[drone_id]
+    if not drone then return false end
+    self:emit(EVENT_TYPES.COMMAND, { drone_id = drone_id, command = cmd, params = params })
+    if cmd == "TAKEOFF" then
+        drone.mode = "flying"
+        drone.alt  = params and params.alt or 60
+    elseif cmd == "LAND" then
+        drone.mode = "landing"
+        drone.alt  = 0
+    elseif cmd == "RTL" then
+        drone.mode = "rtl"
+    elseif cmd == "GOTO" then
+        if params then
+            table.insert(drone.waypoints, { lat = params.lat, lon = params.lon, alt = params.alt })
         end
     end
+    return true
 end
 
--- Main simulation
-local function main()
-    local rng = PRNG.new(42)
-    local n_drones = 8
-    local drones = {}
-    local events = EventSystem.new()
-    local missions_completed = 0
-
-    -- Create drones
-    for i = 1, n_drones do
-        drones[i] = Drone.new("drone_" .. (i-1), rng)
+-- Update telemetry
+function SwarmEngine:update_telemetry(drone_id, telem)
+    local drone = self.drones[drone_id]
+    if not drone then return end
+    for k, v in pairs(telem) do drone[k] = v end
+    self:emit(EVENT_TYPES.TELEMETRY, { drone_id = drone_id, data = telem })
+    if drone.battery and drone.battery < 20 then
+        self:emit(EVENT_TYPES.BATTERY_LOW, { drone_id = drone_id, battery = drone.battery })
     end
+end
 
-    -- Setup events
-    events:on("low_battery", function(data)
-        data.drone:execute({action = "land"})
-    end)
-
-    events:on("mission_complete", function(data)
-        missions_completed = missions_completed + 1
-    end)
-
-    -- Create missions
-    for _, drone in ipairs(drones) do
-        local m = Mission.new("patrol_" .. drone.id)
-        m:add_step({action = "takeoff"})
-        for j = 1, 3 do
-            m:add_step({action = "move", dx = rng:uniform() * 10 - 5, dy = rng:uniform() * 10 - 5, dz = 0})
-        end
-        m:add_step({action = "hover"})
-        m:add_step({action = "land"})
-        drone.mission = m
-    end
-
-    -- Run simulation
-    for step = 1, 20 do
-        for _, drone in ipairs(drones) do
-            if drone.mission and not drone.mission:is_complete() then
-                local cmd = drone.mission:next_step()
-                if cmd then drone:execute(cmd) end
+-- Tick simulation forward
+function SwarmEngine:tick(dt)
+    self.tick_count = self.tick_count + 1
+    dt = dt or 0.1
+    -- Update drone positions (simple forward integration)
+    for id, drone in pairs(self.drones) do
+        if drone.mode == "flying" and #drone.waypoints > 0 then
+            -- Move toward next waypoint (simplified)
+            local wp = drone.waypoints[1]
+            local dlat = wp.lat - drone.lat
+            local dlon = wp.lon - drone.lon
+            local dist = math.sqrt(dlat^2 + dlon^2) * 111000  -- approx meters
+            if dist < 5.0 then
+                table.remove(drone.waypoints, 1)
+                self:emit(EVENT_TYPES.WAYPOINT_REACHED, { drone_id = id })
             else
-                events:fire("mission_complete", {drone = drone})
-                drone.mission = nil
-            end
-
-            if drone.battery < 15 then
-                events:fire("low_battery", {drone = drone})
+                local step = drone.speed * dt / dist
+                drone.lat = drone.lat + dlat * step
+                drone.lon = drone.lon + dlon * step
             end
         end
+        if drone.battery then
+            drone.battery = math.max(0, drone.battery - 0.01 * dt)
+        end
     end
-
-    print("Drones: " .. #drones)
-    print("Missions completed: " .. missions_completed)
-    print("Events fired: " .. events.events_fired)
-    local total_cmds = 0
-    for _, d in ipairs(drones) do total_cmds = total_cmds + #d.log end
-    print("Total commands: " .. total_cmds)
+    return self:process_events()
 end
 
-main()
+-- Statistics
+function SwarmEngine:stats()
+    local count = 0
+    for _ in pairs(self.drones) do count = count + 1 end
+    return {
+        drones    = count,
+        missions  = #(function() local t={}; for k in pairs(self.missions) do t[#t+1]=k end; return t end)(),
+        tick      = self.tick_count,
+        events_processed = self.tick_count,  -- approximate
+    }
+end
+
+-- Plugin system
+function SwarmEngine:use_plugin(plugin)
+    if plugin.install then
+        plugin.install(self)
+    end
+    self.plugins[plugin.name] = plugin
+end
+
+-- Export module
+return SwarmEngine

@@ -1,130 +1,86 @@
-# Phase 659: Async Dispatcher — Nim Asynchronous Event Dispatcher
-# 비동기 이벤트 디스패처: 멀티드론 텔레메트리 이벤트 라우팅
+# Phase 649: Async Dispatcher — Nim
+# SDACS async event dispatcher for drone command processing
 
-import std/[asyncdispatch, tables, times, strformat, sequtils, random]
+import std/[asyncdispatch, tables, strformat, times]
 
 type
-  EventPriority* = enum
-    epCritical = 0
-    epHigh = 1
-    epNormal = 2
-    epLow = 3
+  CommandType* = enum
+    cmdTakeoff, cmdLand, cmdGoto, cmdRTL, cmdHold, cmdSetSpeed
 
-  DroneEvent* = object
-    droneId*: string
-    eventType*: string
-    priority*: EventPriority
-    timestamp*: float64
-    data*: Table[string, string]
+  DroneCommand* = object
+    drone_id*: string
+    cmd_type*: CommandType
+    params*:   Table[string, float]
+    issued_at*: float
 
-  EventHandler* = proc(event: DroneEvent): Future[void]
-
-  DispatcherStats* = object
-    totalDispatched*: int
-    totalDropped*: int
-    avgLatencyMs*: float64
-    queueDepth*: int
+  CommandResult* = object
+    success*:   bool
+    message*:   string
+    latency_ms*: float
 
   AsyncDispatcher* = ref object
-    handlers: Table[string, seq[EventHandler]]
-    queue: seq[DroneEvent]
-    maxQueueSize: int
-    stats: DispatcherStats
-    running: bool
+    handlers*:    Table[CommandType, proc(cmd: DroneCommand): Future[CommandResult] {.async.}]
+    queue_size*:  int
+    dispatched*:  int
+    failed*:      int
 
-proc newDispatcher*(maxQueue: int = 1000): AsyncDispatcher =
-  result = AsyncDispatcher(
-    handlers: initTable[string, seq[EventHandler]](),
-    queue: @[],
-    maxQueueSize: maxQueue,
-    stats: DispatcherStats(),
-    running: false
+proc newAsyncDispatcher*(): AsyncDispatcher =
+  AsyncDispatcher(
+    handlers:   initTable[CommandType, proc(cmd: DroneCommand): Future[CommandResult] {.async.}](),
+    queue_size: 0,
+    dispatched: 0,
+    failed:     0,
   )
 
-proc subscribe*(d: AsyncDispatcher, eventType: string, handler: EventHandler) =
-  if eventType notin d.handlers:
-    d.handlers[eventType] = @[]
-  d.handlers[eventType].add(handler)
+proc register*(dispatcher: AsyncDispatcher, cmd_type: CommandType,
+               handler: proc(cmd: DroneCommand): Future[CommandResult] {.async.}) =
+  dispatcher.handlers[cmd_type] = handler
 
-proc publish*(d: AsyncDispatcher, event: DroneEvent) =
-  if d.queue.len >= d.maxQueueSize:
-    # Drop lowest priority events
-    d.stats.totalDropped += 1
-    if event.priority <= epHigh:
-      # High priority: find and replace a low priority event
-      var replaced = false
-      for i in countdown(d.queue.high, 0):
-        if d.queue[i].priority > event.priority:
-          d.queue[i] = event
-          replaced = true
-          break
-      if not replaced:
-        d.stats.totalDropped += 1
-  else:
-    d.queue.add(event)
-    d.stats.queueDepth = d.queue.len
+proc dispatch*(dispatcher: AsyncDispatcher, cmd: DroneCommand): Future[CommandResult] {.async.} =
+  if cmd.cmd_type notin dispatcher.handlers:
+    dispatcher.failed += 1
+    return CommandResult(success: false, message: "No handler registered for " & $cmd.cmd_type)
 
-proc dispatch*(d: AsyncDispatcher): Future[int] {.async.} =
-  ## Process all events in queue, return count processed
-  var processed = 0
-
-  # Sort by priority (critical first)
-  d.queue.sort(proc(a, b: DroneEvent): int =
-    ord(a.priority) - ord(b.priority)
-  )
-
-  for event in d.queue:
-    if event.eventType in d.handlers:
-      for handler in d.handlers[event.eventType]:
-        await handler(event)
-    d.stats.totalDispatched += 1
-    processed += 1
-
-  d.queue.setLen(0)
-  d.stats.queueDepth = 0
-  return processed
-
-proc getStats*(d: AsyncDispatcher): DispatcherStats =
-  d.stats
-
-# ── Simulation ───────────────────────────────────────
-
-proc simulateDispatcher*() {.async.} =
-  let dispatcher = newDispatcher(500)
-  var rng = initRand(42)
-
-  # Register handlers
-  dispatcher.subscribe("telemetry", proc(e: DroneEvent): Future[void] {.async.} =
-    discard # Process telemetry
-  )
-  dispatcher.subscribe("alert", proc(e: DroneEvent): Future[void] {.async.} =
-    discard # Process alert
-  )
-  dispatcher.subscribe("advisory", proc(e: DroneEvent): Future[void] {.async.} =
-    discard # Process advisory
-  )
-
-  # Generate events
-  let eventTypes = @["telemetry", "alert", "advisory", "heartbeat"]
-  let priorities = @[epCritical, epHigh, epNormal, epLow]
-
-  for i in 0 ..< 200:
-    let event = DroneEvent(
-      droneId: fmt"D-{i mod 20:04d}",
-      eventType: eventTypes[rng.rand(eventTypes.high)],
-      priority: priorities[rng.rand(priorities.high)],
-      timestamp: float64(i) * 0.1,
-      data: {"step": $i}.toTable
+  let t0 = epochTime()
+  try:
+    let result = await dispatcher.handlers[cmd.cmd_type](cmd)
+    dispatcher.dispatched += 1
+    return CommandResult(
+      success:    result.success,
+      message:    result.message,
+      latency_ms: (epochTime() - t0) * 1000,
     )
-    dispatcher.publish(event)
+  except Exception as e:
+    dispatcher.failed += 1
+    return CommandResult(success: false, message: e.msg)
 
-  let processed = await dispatcher.dispatch()
-  let stats = dispatcher.getStats()
+proc dispatchBatch*(dispatcher: AsyncDispatcher, cmds: seq[DroneCommand]): Future[seq[CommandResult]] {.async.} =
+  var futures = newSeq[Future[CommandResult]]()
+  for cmd in cmds:
+    futures.add(dispatcher.dispatch(cmd))
+  result = await all(futures)
 
-  echo fmt"=== Async Dispatcher Stats ==="
-  echo fmt"  Dispatched: {stats.totalDispatched}"
-  echo fmt"  Dropped:    {stats.totalDropped}"
-  echo fmt"  Processed:  {processed}"
+proc stats*(dispatcher: AsyncDispatcher): string =
+  fmt"Dispatcher(dispatched={dispatcher.dispatched} failed={dispatcher.failed} handlers={dispatcher.handlers.len})"
+
+proc defaultTakeoffHandler(cmd: DroneCommand): Future[CommandResult] {.async.} =
+  let alt = cmd.params.getOrDefault("alt", 60.0)
+  await sleepAsync(1)  # simulate async op
+  return CommandResult(success: true, message: fmt"Drone {cmd.drone_id} taking off to {alt}m")
 
 when isMainModule:
-  waitFor simulateDispatcher()
+  proc main() {.async.} =
+    let dispatcher = newAsyncDispatcher()
+    dispatcher.register(cmdTakeoff, defaultTakeoffHandler)
+
+    let cmd = DroneCommand(
+      drone_id: "D001",
+      cmd_type: cmdTakeoff,
+      params:   {"alt": 60.0}.toTable,
+      issued_at: epochTime(),
+    )
+    let result = await dispatcher.dispatch(cmd)
+    echo fmt"Phase 649: {result.message} (latency={result.latency_ms:.1f}ms)"
+    echo dispatcher.stats()
+
+  waitFor main()

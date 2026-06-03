@@ -1,187 +1,134 @@
--- Phase 595: Safety-Critical Flight Controller — Ada
--- 안전 필수 비행 제어기: SPARK 스타일 계약 프로그래밍,
--- 런타임 검증, 삼중 다수결 투표.
+-- Phase 585: Safety-Critical System — Ada
+-- SDACS DO-178C compliant safety monitor for drone operations
 
-with Ada.Text_IO;           use Ada.Text_IO;
-with Ada.Float_Text_IO;     use Ada.Float_Text_IO;
-with Ada.Integer_Text_IO;   use Ada.Integer_Text_IO;
-with Ada.Numerics.Float_Random;
+with Ada.Real_Time;          use Ada.Real_Time;
+with Ada.Text_IO;            use Ada.Text_IO;
+with Ada.Numerics.Elementary_Functions; use Ada.Numerics.Elementary_Functions;
 
-procedure Safety_Critical is
+package body Safety_Critical is
 
-   -- ─── 타입 정의 ───
-   subtype Altitude_Type is Float range 0.0 .. 10000.0;
-   subtype Speed_Type is Float range 0.0 .. 100.0;
-   subtype Battery_Type is Float range 0.0 .. 100.0;
-   subtype Angle_Type is Float range -180.0 .. 180.0;
+   -- Internal state protected object
+   protected body Safety_Monitor is
 
-   type Sensor_Status is (Valid, Degraded, Failed);
-
-   type Flight_Phase is (
-      Pre_Flight, Takeoff, Climb, Cruise,
-      Descent, Approach, Landing, Emergency
-   );
-
-   -- ─── 센서 값 (삼중 다수결) ───
-   type Triple_Sensor is record
-      Value_A  : Float := 0.0;
-      Value_B  : Float := 0.0;
-      Value_C  : Float := 0.0;
-      Status_A : Sensor_Status := Valid;
-      Status_B : Sensor_Status := Valid;
-      Status_C : Sensor_Status := Valid;
-   end record;
-
-   type Flight_State is record
-      Altitude  : Triple_Sensor;
-      Speed     : Triple_Sensor;
-      Heading   : Triple_Sensor;
-      Battery   : Battery_Type := 100.0;
-      Phase     : Flight_Phase := Pre_Flight;
-      Armed     : Boolean := False;
-      Faults    : Natural := 0;
-   end record;
-
-   type Control_Command is record
-      Throttle : Float range 0.0 .. 1.0 := 0.0;
-      Pitch    : Angle_Type := 0.0;
-      Roll     : Angle_Type := 0.0;
-      Yaw      : Angle_Type := 0.0;
-   end record;
-
-   -- ─── 삼중 다수결 투표 (TMR) ───
-   function Voted_Value (S : Triple_Sensor) return Float is
-      Valid_Count : Natural := 0;
-      Sum : Float := 0.0;
-   begin
-      if S.Status_A = Valid then
-         Sum := Sum + S.Value_A;
-         Valid_Count := Valid_Count + 1;
-      end if;
-      if S.Status_B = Valid then
-         Sum := Sum + S.Value_B;
-         Valid_Count := Valid_Count + 1;
-      end if;
-      if S.Status_C = Valid then
-         Sum := Sum + S.Value_C;
-         Valid_Count := Valid_Count + 1;
-      end if;
-
-      if Valid_Count >= 2 then
-         return Sum / Float (Valid_Count);
-      elsif Valid_Count = 1 then
-         return Sum;  -- 단일 센서 (경고)
-      else
-         return 0.0;  -- 전체 실패
-      end if;
-   end Voted_Value;
-
-   -- ─── 센서 건강 상태 확인 ───
-   function Sensor_Health (S : Triple_Sensor) return Sensor_Status is
-      Failed_Count : Natural := 0;
-   begin
-      if S.Status_A = Failed then Failed_Count := Failed_Count + 1; end if;
-      if S.Status_B = Failed then Failed_Count := Failed_Count + 1; end if;
-      if S.Status_C = Failed then Failed_Count := Failed_Count + 1; end if;
-
-      if Failed_Count >= 2 then
-         return Failed;
-      elsif Failed_Count = 1 then
-         return Degraded;
-      else
-         return Valid;
-      end if;
-   end Sensor_Health;
-
-   -- ─── 비행 제어 법칙 ───
-   function Compute_Control (State : Flight_State;
-                              Target_Alt : Float) return Control_Command is
-      Cmd : Control_Command;
-      Alt : Float := Voted_Value (State.Altitude);
-      Alt_Error : Float := Target_Alt - Alt;
-      Kp : constant Float := 0.02;
-   begin
-      -- 고도 P 제어
-      Cmd.Throttle := Float'Max (0.0, Float'Min (1.0, 0.5 + Kp * Alt_Error));
-
-      -- 안전 제한
-      if State.Battery < 15.0 then
-         Cmd.Throttle := Float'Min (Cmd.Throttle, 0.3);
-      end if;
-
-      if Sensor_Health (State.Altitude) = Failed then
-         Cmd.Throttle := 0.2;  -- 안전 하강
-      end if;
-
-      return Cmd;
-   end Compute_Control;
-
-   -- ─── 시뮬레이션 ───
-   State : Flight_State;
-   Cmd : Control_Command;
-   Gen : Ada.Numerics.Float_Random.Generator;
-
-begin
-   Put_Line ("=== SDACS Safety-Critical Controller ===");
-   New_Line;
-
-   Ada.Numerics.Float_Random.Reset (Gen, 42);
-   State.Armed := True;
-   State.Phase := Cruise;
-
-   -- 초기 센서값 설정
-   State.Altitude.Value_A := 100.0;
-   State.Altitude.Value_B := 100.5;
-   State.Altitude.Value_C := 99.8;
-   State.Speed.Value_A := 15.0;
-   State.Speed.Value_B := 15.2;
-   State.Speed.Value_C := 14.9;
-
-   Put_Line ("Step  Alt(m)   Spd(m/s)  Thrtl  Phase    Health");
-   Put_Line ("----  -------  --------  -----  -------  ------");
-
-   for Step in 1 .. 20 loop
-      -- 센서 노이즈 추가
-      declare
-         Noise : Float := (Ada.Numerics.Float_Random.Random (Gen) - 0.5) * 2.0;
+      procedure Update_State (New_State : Drone_State) is
       begin
-         State.Altitude.Value_A := State.Altitude.Value_A + Noise;
-         State.Altitude.Value_B := State.Altitude.Value_B + Noise * 0.8;
-         State.Altitude.Value_C := State.Altitude.Value_C + Noise * 1.1;
-      end;
+         Current_State := New_State;
+         Check_Safety_Conditions;
+      end Update_State;
 
-      -- 10번째 스텝에서 센서 A 고장 주입
-      if Step = 10 then
-         State.Altitude.Status_A := Failed;
-         State.Faults := State.Faults + 1;
-         Put_Line ("  >> FAULT INJECTED: Altitude sensor A failed!");
+      function Get_State return Drone_State is
+      begin
+         return Current_State;
+      end Get_State;
+
+      function Is_Safe return Boolean is
+      begin
+         return Safety_Status = Safe;
+      end Is_Safe;
+
+      function Get_Safety_Status return Safety_Level is
+      begin
+         return Safety_Status;
+      end Get_Safety_Status;
+
+      procedure Trigger_Emergency_Stop is
+      begin
+         Safety_Status := Emergency;
+         Emergency_Count := Emergency_Count + 1;
+      end Trigger_Emergency_Stop;
+
+      function Emergency_Count_Val return Natural is
+      begin
+         return Emergency_Count;
+      end Emergency_Count_Val;
+
+      procedure Check_Safety_Conditions is
+      begin
+         -- Check altitude envelope
+         if Current_State.Altitude > Max_Altitude then
+            Safety_Status := Critical;
+         elsif Current_State.Altitude < Min_Altitude and
+               Current_State.Mode /= Landing then
+            Safety_Status := Warning;
+         -- Check battery level
+         elsif Current_State.Battery_Pct <= Critical_Battery then
+            Safety_Status := Emergency;
+            Emergency_Count := Emergency_Count + 1;
+         elsif Current_State.Battery_Pct <= Low_Battery then
+            Safety_Status := Critical;
+         -- Check speed envelope
+         elsif Current_State.Speed > Max_Speed then
+            Safety_Status := Warning;
+         else
+            Safety_Status := Safe;
+         end if;
+      end Check_Safety_Conditions;
+
+   end Safety_Monitor;
+
+   -- TMR voter: majority vote across 3 redundant readings
+   function TMR_Vote (A, B, C : Float) return Float is
+      Tolerance : constant Float := 0.5;
+   begin
+      if abs (A - B) <= Tolerance then
+         return (A + B) / 2.0;
+      elsif abs (A - C) <= Tolerance then
+         return (A + C) / 2.0;
+      elsif abs (B - C) <= Tolerance then
+         return (B + C) / 2.0;
+      else
+         -- No agreement — return median
+         declare
+            Min_Val : Float := Float'Min (A, Float'Min (B, C));
+            Max_Val : Float := Float'Max (A, Float'Max (B, C));
+         begin
+            return A + B + C - Min_Val - Max_Val;
+         end;
       end if;
+   end TMR_Vote;
 
-      -- 배터리 소모
-      State.Battery := Float'Max (0.0, State.Battery - 0.5);
+   -- Watchdog task body
+   task body Watchdog is
+      Period    : constant Time_Span := Milliseconds (100);
+      Next_Time : Time := Clock;
+      Heartbeat : Natural := 0;
+   begin
+      loop
+         -- Feed watchdog
+         Heartbeat := Heartbeat + 1;
 
-      -- 제어 계산
-      Cmd := Compute_Control (State, 100.0);
+         -- Check safety monitor
+         if not Monitor.Is_Safe then
+            Put_Line ("[WATCHDOG] Safety violation detected! " &
+                      Safety_Level'Image (Monitor.Get_Safety_Status));
+         end if;
 
-      -- 상태 출력
-      Put (Step, Width => 4);
-      Put ("  ");
-      Put (Voted_Value (State.Altitude), Fore => 4, Aft => 1, Exp => 0);
-      Put ("  ");
-      Put (Voted_Value (State.Speed), Fore => 5, Aft => 1, Exp => 0);
-      Put ("  ");
-      Put (Cmd.Throttle, Fore => 1, Aft => 3, Exp => 0);
-      Put ("  ");
-      Put (Flight_Phase'Image (State.Phase));
-      Put ("  ");
-      Put (Sensor_Status'Image (Sensor_Health (State.Altitude)));
-      New_Line;
-   end loop;
+         -- Periodic tick
+         Next_Time := Next_Time + Period;
+         delay until Next_Time;
+      end loop;
+   end Watchdog;
 
-   New_Line;
-   Put_Line ("--- Summary ---");
-   Put ("  Final Battery: "); Put (State.Battery, Fore => 3, Aft => 1, Exp => 0);
-   Put_Line ("%");
-   Put ("  Faults detected: "); Put (State.Faults, Width => 1); New_Line;
-   Put ("  Armed: "); Put_Line (Boolean'Image (State.Armed));
+   -- Geofence check
+   function Within_Geofence
+     (Lat, Lon   : Float;
+      Center_Lat : Float := 37.5665;
+      Center_Lon : Float := 126.9780;
+      Radius_M   : Float := 1000.0) return Boolean
+   is
+      Earth_R   : constant Float := 6_371_000.0;
+      Pi        : constant Float := 3.14159265;
+      Deg2Rad   : constant Float := Pi / 180.0;
+      DLat      : Float := (Lat - Center_Lat) * Deg2Rad;
+      DLon      : Float := (Lon - Center_Lon) * Deg2Rad;
+      A         : Float;
+      Distance  : Float;
+   begin
+      A := Sin (DLat / 2.0) ** 2 +
+           Cos (Lat * Deg2Rad) * Cos (Center_Lat * Deg2Rad) *
+           Sin (DLon / 2.0) ** 2;
+      Distance := Earth_R * 2.0 * Arctan (Sqrt (A), Sqrt (1.0 - A));
+      return Distance <= Radius_M;
+   end Within_Geofence;
+
 end Safety_Critical;

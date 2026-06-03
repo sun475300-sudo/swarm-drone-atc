@@ -1,115 +1,143 @@
-%% Phase 573: Airspace Rules Engine — Prolog
-%% 공역 규칙 추론 시스템: 비행 허가, 충돌 판정, 우선순위 결정.
+% Phase 573: Airspace Rules — Prolog Logic Engine
+% SDACS declarative airspace classification and conflict resolution
 
-%% ─── 공역 분류 ───
-airspace_class(alpha, 0, 18000).       % Class A: 계기비행 전용
-airspace_class(bravo, 0, 10000).       % Class B: 대형 공항
-airspace_class(charlie, 0, 4000).      % Class C: 중형 공항
-airspace_class(delta, 0, 2500).        % Class D: 소형 공항
-airspace_class(echo, 0, 1200).         % Class E: 비관제
-airspace_class(golf, 0, 400).          % Class G: 비관제 저고도
+:- module(airspace_rules, [
+    airspace_class/3,
+    conflict/4,
+    priority/2,
+    geofence/3,
+    resolve_conflict/4,
+    can_enter/2,
+    altitude_range/3
+]).
 
-%% ─── 드론 유형 ───
-drone_type(multirotor, small, 25).     % 최대 25kg
-drone_type(multirotor, medium, 150).
-drone_type(fixed_wing, small, 25).
-drone_type(fixed_wing, large, 600).
-drone_type(vtol, medium, 150).
+% Airspace classification rules
+airspace_class(Zone, class_a, Params) :-
+    zone_altitude(Zone, Alt),
+    Alt >= 18000,
+    Params = [controlled, ifr_only, clearance_required].
 
-%% ─── 비행 제한 ───
-max_altitude(drone, 400).              % 드론 최대 고도 (ft AGL)
-min_separation_h(50).                  % 수평 최소 분리 (m)
-min_separation_v(15).                  % 수직 최소 분리 (m)
+airspace_class(Zone, class_b, Params) :-
+    zone_altitude(Zone, Alt),
+    Alt >= 1200, Alt < 18000,
+    zone_type(Zone, terminal),
+    Params = [controlled, atc_clearance, transponder_required].
 
-%% ─── 비행 허가 규칙 ───
-flight_permitted(DroneId, Class, Alt) :-
-    airspace_class(Class, MinAlt, MaxAlt),
-    Alt >= MinAlt,
-    Alt =< MaxAlt,
-    max_altitude(drone, MaxDroneAlt),
-    Alt =< MaxDroneAlt,
-    has_clearance(DroneId, Class).
+airspace_class(Zone, class_c, Params) :-
+    zone_altitude(Zone, Alt),
+    Alt >= 1200, Alt < 4000,
+    zone_type(Zone, approach),
+    Params = [controlled, two_way_radio, transponder].
 
-%% 자동 허가 (Class G, E)
-has_clearance(_, golf).
-has_clearance(_, echo).
+airspace_class(Zone, class_d, Params) :-
+    zone_type(Zone, tower_controlled),
+    Params = [controlled, two_way_radio].
 
-%% 관제 허가 필요 (Class B, C, D)
-has_clearance(DroneId, bravo) :- atc_approved(DroneId, bravo).
-has_clearance(DroneId, charlie) :- atc_approved(DroneId, charlie).
-has_clearance(DroneId, delta) :- atc_approved(DroneId, delta).
+airspace_class(Zone, class_e, Params) :-
+    zone_type(Zone, controlled_en_route),
+    Params = [controlled, ifr_separation].
 
-%% ─── 충돌 판정 ───
-conflict(Drone1, Drone2) :-
-    position(Drone1, X1, Y1, Z1),
-    position(Drone2, X2, Y2, Z2),
-    Drone1 \= Drone2,
-    DX is X2 - X1, DY is Y2 - Y1,
-    DistH is sqrt(DX*DX + DY*DY),
-    DistV is abs(Z2 - Z1),
-    min_separation_h(MinH),
-    min_separation_v(MinV),
-    DistH < MinH,
-    DistV < MinV.
+airspace_class(Zone, class_g, Params) :-
+    zone_type(Zone, uncontrolled),
+    Params = [uncontrolled, vfr_allowed].
 
-%% ─── 우선순위 규칙 ───
-priority(emergency, 1).
-priority(medical, 2).
-priority(law_enforcement, 3).
-priority(commercial, 4).
-priority(recreational, 5).
-
-higher_priority(Drone1, Drone2) :-
-    mission_type(Drone1, Type1),
-    mission_type(Drone2, Type2),
-    priority(Type1, P1),
-    priority(Type2, P2),
-    P1 < P2.
-
-%% ─── 회피 조언 ───
-resolution_advisory(Drone1, Drone2, Advisory) :-
-    conflict(Drone1, Drone2),
-    (higher_priority(Drone1, Drone2) ->
-        Advisory = yield(Drone2)
+% Geofence definition and enforcement
+geofence(DroneId, Zone, Status) :-
+    drone_position(DroneId, Pos),
+    zone_boundary(Zone, Boundary),
+    ( inside_boundary(Pos, Boundary) ->
+        Status = inside
     ;
-        Advisory = yield(Drone1)
+        Status = outside
     ).
 
-%% 수직 회피
-vertical_resolution(Drone, climb) :-
-    position(Drone, _, _, Z),
-    max_altitude(drone, MaxAlt),
-    Z + 30 =< MaxAlt.
+geofence(DroneId, restricted_zone, violation) :-
+    drone_position(DroneId, Pos),
+    restricted_area(Area),
+    inside_boundary(Pos, Area).
 
-vertical_resolution(Drone, descend) :-
-    position(Drone, _, _, Z),
-    Z - 30 >= 0.
+% Conflict detection between drones
+conflict(Drone1, Drone2, Type, Severity) :-
+    drone_position(Drone1, Pos1),
+    drone_position(Drone2, Pos2),
+    separation_distance(Pos1, Pos2, Dist),
+    minimum_separation(MinSep),
+    Dist < MinSep,
+    conflict_type(Drone1, Drone2, Type),
+    severity_level(Dist, MinSep, Severity).
 
-%% ─── 지오펜스 ───
-geofence(no_fly_zone_1, circle, 1000, 2000, 500).   % cx, cy, radius
-geofence(restricted_area, circle, 3000, 3000, 1000).
+conflict_type(D1, D2, head_on) :-
+    drone_heading(D1, H1),
+    drone_heading(D2, H2),
+    angle_between(H1, H2, Angle),
+    Angle > 150.
 
-inside_geofence(Drone, Zone) :-
-    position(Drone, X, Y, _),
-    geofence(Zone, circle, CX, CY, R),
-    DX is X - CX, DY is Y - CY,
-    Dist is sqrt(DX*DX + DY*DY),
-    Dist < R.
+conflict_type(D1, D2, converging) :-
+    drone_heading(D1, H1),
+    drone_heading(D2, H2),
+    angle_between(H1, H2, Angle),
+    Angle >= 30, Angle =< 150.
 
-violation(Drone, geofence_breach, Zone) :-
-    inside_geofence(Drone, Zone).
+conflict_type(_, _, overtake) :- true.
 
-%% ─── 테스트 데이터 ───
-position(drone_001, 100, 200, 50).
-position(drone_002, 130, 210, 55).
-position(drone_003, 5000, 5000, 100).
-mission_type(drone_001, commercial).
-mission_type(drone_002, emergency).
-mission_type(drone_003, recreational).
-atc_approved(drone_001, charlie).
+% Priority rules for conflict resolution
+priority(Drone, Priority) :-
+    drone_class(Drone, Class),
+    class_priority(Class, Priority).
 
-%% ─── 쿼리 예시 ───
-%% ?- conflict(drone_001, drone_002).
-%% ?- resolution_advisory(drone_001, drone_002, A).
-%% ?- flight_permitted(drone_001, golf, 200).
-%% ?- inside_geofence(drone_001, no_fly_zone_1).
+class_priority(emergency, 1).
+class_priority(medical, 2).
+class_priority(commercial, 3).
+class_priority(delivery, 4).
+class_priority(recreational, 5).
+
+% Resolve conflict based on priority
+resolve_conflict(Drone1, Drone2, Action1, Action2) :-
+    priority(Drone1, P1),
+    priority(Drone2, P2),
+    ( P1 < P2 ->
+        Action1 = maintain,
+        Action2 = yield
+    ; P1 > P2 ->
+        Action1 = yield,
+        Action2 = maintain
+    ;
+        Action1 = turn_right,
+        Action2 = turn_right
+    ).
+
+% Entry permission check
+can_enter(DroneId, Zone) :-
+    drone_class(DroneId, Class),
+    airspace_class(Zone, ZoneClass, _Params),
+    class_allowed(Class, ZoneClass).
+
+class_allowed(commercial, class_a).
+class_allowed(commercial, class_b).
+class_allowed(commercial, class_c).
+class_allowed(commercial, class_d).
+class_allowed(commercial, class_e).
+class_allowed(commercial, class_g).
+class_allowed(recreational, class_g).
+class_allowed(recreational, class_e).
+
+% Altitude range for zones
+altitude_range(class_a, 18000, unlimited).
+altitude_range(class_b, 1200, 18000).
+altitude_range(class_c, 1200, 4000).
+altitude_range(class_g, 0, 1200).
+
+% Helper predicates (stubs — populated at runtime)
+inside_boundary(_, _) :- fail.
+zone_altitude(_, 0) :- fail.
+zone_type(_, unknown) :- fail.
+zone_boundary(_, []) :- fail.
+restricted_area([]) :- fail.
+drone_position(_, [0,0,0]) :- fail.
+drone_heading(_, 0) :- fail.
+drone_class(_, recreational) :- fail.
+separation_distance(_, _, 0) :- fail.
+minimum_separation(50).
+angle_between(_, _, 0) :- fail.
+severity_level(D, M, high) :- D < M / 2, !.
+severity_level(_, _, medium).

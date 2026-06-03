@@ -1,117 +1,201 @@
-// Phase 529: Swift Satellite Relay — LEO Orbital Mechanics
+// Phase 529: Satellite Relay — Swift
+// SDACS satellite-based relay communication for beyond-LOS drone operations
+
 import Foundation
 
-struct Vec3 {
-    var x, y, z: Double
-    static func +(a: Vec3, b: Vec3) -> Vec3 { Vec3(x: a.x+b.x, y: a.y+b.y, z: a.z+b.z) }
-    static func *(a: Vec3, s: Double) -> Vec3 { Vec3(x: a.x*s, y: a.y*s, z: a.z*s) }
-    var norm: Double { sqrt(x*x + y*y + z*z) }
-}
+// Phase 529 marker — orbital satellite relay with handover protocol
 
-struct Satellite {
-    let id: String
-    var position: Vec3
-    var velocity: Vec3
-    let altitudeKm: Double
-    let bandwidthMbps: Double
-    let latencyMs: Double
-}
+// MARK: - Orbital mechanics
 
-struct RelayLink {
-    let droneId: String
-    var satId: String
-    var snrDb: Double
-    var throughputMbps: Double
-    var handovers: Int
-}
+struct SatelliteOrbit {
+    let inclination:  Double  // degrees
+    let altitude:     Double  // km above Earth surface
+    let period:       Double  // orbital period in seconds
+    let eccentricity: Double  // 0 = circular
 
-class PRNG {
-    var state: UInt64
-    init(_ seed: UInt64) { self.state = seed ^ 0x6c62272e07bb0142 }
-    func next() -> UInt64 {
-        state ^= state << 13; state ^= state >> 7; state ^= state << 17
-        return state
+    static let earthRadiusKm = 6371.0
+
+    var semiMajorAxis: Double {
+        return Self.earthRadiusKm + altitude
     }
-    func uniform() -> Double { Double(next() & 0x7FFFFFFF) / Double(0x7FFFFFFF) }
-    func normal() -> Double {
-        let u1 = max(uniform(), 1e-10), u2 = uniform()
-        return sqrt(-2 * log(u1)) * cos(2 * .pi * u2)
+
+    var orbitalSpeed: Double {
+        let mu = 3.986e14  // Earth's gravitational parameter m^3/s^2
+        let r  = semiMajorAxis * 1000  // convert to meters
+        return sqrt(mu / r)
     }
 }
 
-func createConstellation(nSats: Int, altKm: Double, rng: PRNG) -> [Satellite] {
-    let earthR = 6371.0
-    let mu = 398600.4418
-    let r = earthR + altKm
-    let vCirc = sqrt(mu / r)
+// MARK: - Satellite node
 
-    return (0..<nSats).map { i in
-        let angle = 2.0 * .pi * Double(i) / Double(nSats) + rng.normal() * 0.1
-        let incl = (50.0 + rng.uniform() * 48.0) * .pi / 180.0
-        let pos = Vec3(x: r * cos(angle), y: r * sin(angle) * cos(incl), z: r * sin(angle) * sin(incl))
-        let vel = Vec3(x: -vCirc * sin(angle), y: vCirc * cos(angle) * cos(incl), z: vCirc * cos(angle) * sin(incl))
-        let lat = vCirc / r * 1000 * 2
-        return Satellite(id: String(format: "SAT-%03d", i), position: pos, velocity: vel,
-                        altitudeKm: altKm, bandwidthMbps: 50 + rng.uniform() * 150,
-                        latencyMs: lat)
+class SatelliteNode {
+    let nodeId:    String
+    let name:      String
+    let orbit:     SatelliteOrbit
+    var isActive:  Bool
+    var latency:   Double  // ms
+    var bandwidth: Double  // Mbps
+
+    private(set) var connectedDrones: Set<String> = []
+    private(set) var relayCount:      Int = 0
+
+    init(nodeId: String, name: String, orbit: SatelliteOrbit,
+         latency: Double = 250, bandwidth: Double = 10.0) {
+        self.nodeId    = nodeId
+        self.name      = name
+        self.orbit     = orbit
+        self.isActive  = true
+        self.latency   = latency
+        self.bandwidth = bandwidth
+    }
+
+    func isVisibleFrom(droneAlt: Double, droneLat: Double, droneLon: Double) -> Bool {
+        // Simplified visibility: satellite is above horizon if elevation > 5 degrees
+        let minElevation = 5.0
+        let earthR = SatelliteOrbit.earthRadiusKm
+        let satR   = earthR + orbit.altitude
+        let cosMin = earthR / satR * cos(minElevation * .pi / 180)
+        return cosMin < 1.0  // simplified always-visible for LEO
+    }
+
+    func connect(droneId: String) -> Bool {
+        guard isActive else { return false }
+        connectedDrones.insert(droneId)
+        return true
+    }
+
+    func disconnect(droneId: String) {
+        connectedDrones.remove(droneId)
+    }
+
+    func relay(packet: DataPacket) -> DataPacket? {
+        guard isActive, connectedDrones.contains(packet.sourceId) else { return nil }
+        relayCount += 1
+        return DataPacket(
+            packetId:    packet.packetId,
+            sourceId:    packet.sourceId,
+            destId:      packet.destId,
+            payload:     packet.payload,
+            hopCount:    packet.hopCount + 1,
+            relayedBy:   nodeId,
+            timestamp:   Date()
+        )
     }
 }
 
-func propagate(_ sat: inout Satellite, dtS: Double) {
-    sat.position = sat.position + sat.velocity * (dtS / 1000.0)
-    let r = sat.position.norm
-    if r > 0 {
-        let targetR = 6371.0 + sat.altitudeKm
-        sat.position = sat.position * (targetR / r)
+// MARK: - Data packet
+
+struct DataPacket {
+    let packetId:  UUID
+    let sourceId:  String
+    let destId:    String
+    let payload:   Data
+    let hopCount:  Int
+    let relayedBy: String?
+    let timestamp: Date
+
+    init(packetId: UUID = UUID(), sourceId: String, destId: String,
+         payload: Data, hopCount: Int = 0, relayedBy: String? = nil,
+         timestamp: Date = Date()) {
+        self.packetId  = packetId
+        self.sourceId  = sourceId
+        self.destId    = destId
+        self.payload   = payload
+        self.hopCount  = hopCount
+        self.relayedBy = relayedBy
+        self.timestamp = timestamp
     }
 }
 
-func selectBestSat(dronePos: Vec3, satellites: [Satellite]) -> Satellite? {
-    var best: Satellite? = nil
-    var bestScore = -1.0
-    for sat in satellites {
-        let dist = (sat.position + dronePos * -1.0).norm
-        if dist > sat.altitudeKm * 3 { continue }
-        let elev = asin(sat.altitudeKm / (dist + 1e-8)) * 180.0 / .pi
-        if elev < 10 { continue }
-        let score = elev / 90.0 * sat.bandwidthMbps / 200.0
-        if score > bestScore { bestScore = score; best = sat }
-    }
-    return best
+// MARK: - Handover protocol
+
+struct HandoverEvent {
+    let droneId:   String
+    let fromSat:   String
+    let toSat:     String
+    let timestamp: Date
+    let reason:    HandoverReason
 }
 
-// Main
-let rng = PRNG(42)
-var sats = createConstellation(nSats: 12, altKm: 550, rng: rng)
-var links: [RelayLink] = []
-let nDrones = 10
-
-for i in 0..<nDrones {
-    let dronePos = Vec3(x: 6371 + rng.normal() * 0.001, y: rng.normal() * 0.001, z: 0.05 + rng.uniform() * 0.1)
-    if let best = selectBestSat(dronePos: dronePos, satellites: sats) {
-        let snr = 10.0 + rng.uniform() * 20.0
-        links.append(RelayLink(droneId: "drone_\(i)", satId: best.id,
-                               snrDb: snr, throughputMbps: best.bandwidthMbps * snr / 30.0, handovers: 0))
-    }
+enum HandoverReason {
+    case signalDegraded
+    case betterCoverage
+    case loadBalancing
+    case satelliteUnavailable
 }
 
-var totalHandovers = 0
-for _ in 0..<20 {
-    for idx in sats.indices { propagate(&sats[idx], dtS: 10) }
-    for idx in links.indices {
-        if rng.uniform() < 0.05 {
-            let dp = Vec3(x: 6371, y: 0, z: 0.1)
-            if let best = selectBestSat(dronePos: dp, satellites: sats), best.id != links[idx].satId {
-                links[idx].satId = best.id
-                links[idx].handovers += 1
-                totalHandovers += 1
-            }
+class SatelliteRelayNetwork {
+    private var satellites: [String: SatelliteNode] = [:]
+    private var droneAssignments: [String: String]   = [:]  // droneId -> satId
+    private var handoverLog: [HandoverEvent]          = []
+
+    func addSatellite(_ sat: SatelliteNode) {
+        satellites[sat.nodeId] = sat
+    }
+
+    func registerDrone(droneId: String) -> String? {
+        guard let sat = satellites.values.first(where: { $0.isActive }) else {
+            return nil
         }
+        _ = sat.connect(droneId: droneId)
+        droneAssignments[droneId] = sat.nodeId
+        return sat.nodeId
+    }
+
+    func handover(droneId: String, targetSatId: String) -> Bool {
+        guard let currentSatId = droneAssignments[droneId],
+              let currentSat   = satellites[currentSatId],
+              let targetSat    = satellites[targetSatId],
+              targetSat.isActive else { return false }
+
+        currentSat.disconnect(droneId: droneId)
+        _ = targetSat.connect(droneId: droneId)
+        droneAssignments[droneId] = targetSatId
+
+        handoverLog.append(HandoverEvent(
+            droneId:   droneId,
+            fromSat:   currentSatId,
+            toSat:     targetSatId,
+            timestamp: Date(),
+            reason:    .betterCoverage
+        ))
+        return true
+    }
+
+    func route(_ packet: DataPacket) -> DataPacket? {
+        guard let satId = droneAssignments[packet.sourceId],
+              let sat   = satellites[satId] else { return nil }
+        return sat.relay(packet: packet)
+    }
+
+    func networkStats() -> [String: Any] {
+        let totalRelays = satellites.values.reduce(0) { $0 + $1.relayCount }
+        return [
+            "satellites":   satellites.count,
+            "active_sats":  satellites.values.filter { $0.isActive }.count,
+            "connected":    droneAssignments.count,
+            "total_relays": totalRelays,
+            "handovers":    handoverLog.count,
+        ]
     }
 }
 
-print("Satellites: \(sats.count)")
-print("Active links: \(links.count)")
-print("Total handovers: \(totalHandovers)")
-let avgLat = links.isEmpty ? 0 : links.map { $0.snrDb }.reduce(0, +) / Double(links.count)
-print(String(format: "Avg SNR: %.1f dB", avgLat))
+// MARK: - Entry point
+
+let leo = SatelliteOrbit(inclination: 53.0, altitude: 550, period: 5640, eccentricity: 0.001)
+let sat1 = SatelliteNode(nodeId: "SAT-001", name: "SDACS-LEO-1", orbit: leo)
+let sat2 = SatelliteNode(nodeId: "SAT-002", name: "SDACS-LEO-2", orbit: leo, latency: 240)
+
+let network = SatelliteRelayNetwork()
+network.addSatellite(sat1)
+network.addSatellite(sat2)
+
+if let assignedSat = network.registerDrone(droneId: "D001") {
+    print("Phase 529: Drone D001 connected to satellite \(assignedSat)")
+}
+let packet = DataPacket(sourceId: "D001", destId: "GCS",
+                        payload: "telemetry".data(using: .utf8)!)
+if let relayed = network.route(packet) {
+    print("Packet relayed via \(relayed.relayedBy ?? "?"), hop=\(relayed.hopCount)")
+}
+print("Network stats: \(network.networkStats())")

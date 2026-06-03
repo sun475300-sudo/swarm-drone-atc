@@ -1,201 +1,155 @@
 // Phase 578: Build Pipeline — Groovy
-// 드론 펌웨어 CI/CD 파이프라인 정의.
-// Jenkins Pipeline DSL 스타일 빌드/테스트/배포.
+// SDACS CI/CD pipeline orchestration for drone software builds
 
+package sdacs.pipeline
+
+import groovy.transform.CompileStatic
 import groovy.transform.ToString
-import groovy.transform.EqualsAndHashCode
+import java.time.Instant
 
-// ─── 파이프라인 모델 ───
-@ToString
-class PipelineStage {
+@CompileStatic
+@ToString(includeNames = true)
+class PipelineConfig {
     String name
-    String status = "pending"  // pending, running, passed, failed, skipped
-    long startTime = 0
-    long endTime = 0
-    List<String> logs = []
-    Closure action
-
-    long duration() {
-        endTime > 0 ? endTime - startTime : 0
-    }
+    String version
+    List<String> targets = []
+    Map<String, Object> env = [:]
+    int timeout = 3600
+    boolean parallel = true
 }
 
-@ToString
-class BuildArtifact {
-    String name
-    String path
-    String checksum
-    long sizeBytes
-    String buildId
+@CompileStatic
+@ToString(includeNames = true)
+class StageResult {
+    String stageName
+    boolean success
+    long durationMs
+    String output
+    String error
 }
 
-@ToString
-class DeployTarget {
-    String name
-    String environment  // dev, staging, production
-    String endpoint
-    boolean healthy = true
-}
+@CompileStatic
+class Pipeline {
+    private final PipelineConfig config
+    private final List<StageResult> results = []
+    private boolean aborted = false
 
-// ─── 파이프라인 정의 ───
-class DroneFirmwarePipeline {
-
-    String buildId
-    List<PipelineStage> stages = []
-    List<BuildArtifact> artifacts = []
-    Map<String, String> env = [:]
-    boolean aborted = false
-
-    DroneFirmwarePipeline(String buildId) {
-        this.buildId = buildId
-        this.env = [
-            BUILD_ID: buildId,
-            FIRMWARE_VERSION: "2.4.1",
-            TARGET_ARCH: "arm-cortex-m4",
-            OPTIMIZATION: "-O2",
-            DRONE_MODEL: "SDACS-MR-X1"
-        ]
+    Pipeline(PipelineConfig config) {
+        this.config = config
     }
 
-    // ─── 스테이지 등록 ───
-    void stage(String name, Closure action) {
-        stages << new PipelineStage(name: name, action: action)
-    }
-
-    // ─── 파이프라인 실행 ───
-    Map<String, Object> execute() {
-        println "🔧 Pipeline ${buildId} starting..."
-        def results = [:]
-
-        for (s in stages) {
-            if (aborted) {
-                s.status = "skipped"
-                continue
-            }
-
-            s.status = "running"
-            s.startTime = System.currentTimeMillis()
-            s.logs << "[${new Date()}] Stage '${s.name}' started"
-
-            try {
-                s.action.call(this, s)
-                s.status = "passed"
-                s.logs << "[${new Date()}] Stage '${s.name}' PASSED"
-            } catch (Exception e) {
-                s.status = "failed"
-                s.logs << "[${new Date()}] Stage '${s.name}' FAILED: ${e.message}"
-                aborted = true
-            }
-
-            s.endTime = System.currentTimeMillis()
-            results[s.name] = s.status
+    StageResult runStage(String stageName, Closure<Boolean> action) {
+        if (aborted) {
+            return new StageResult(
+                stageName: stageName,
+                success: false,
+                durationMs: 0,
+                output: '',
+                error: 'Pipeline aborted'
+            )
         }
 
+        long start = System.currentTimeMillis()
+        def result = new StageResult(stageName: stageName)
+
+        try {
+            def output = new StringBuilder()
+            result.success = action.call()
+            result.output = output.toString()
+            result.error = ''
+        } catch (Exception e) {
+            result.success = false
+            result.error = e.message ?: e.class.simpleName
+            aborted = true
+        } finally {
+            result.durationMs = System.currentTimeMillis() - start
+        }
+
+        results << result
+        return result
+    }
+
+    List<StageResult> runParallelStages(Map<String, Closure<Boolean>> stages) {
+        def parallelResults = stages.collectParallel { name, action ->
+            runStage(name, action)
+        } as List<StageResult>
+        results.addAll(parallelResults)
+        return parallelResults
+    }
+
+    boolean allPassed() {
+        results.every { it.success }
+    }
+
+    Map<String, Object> summary() {
         [
-            buildId: buildId,
-            stages: results,
-            artifacts: artifacts.collect { it.name },
-            totalDuration: stages.sum { it.duration() } ?: 0,
-            success: stages.every { it.status in ["passed", "skipped"] }
-        ]
-    }
-
-    // ─── 빌드 유틸리티 ───
-    void addArtifact(String name, String path, long size) {
-        artifacts << new BuildArtifact(
-            name: name,
-            path: path,
-            checksum: generateChecksum(name),
-            sizeBytes: size,
-            buildId: buildId
-        )
-    }
-
-    static String generateChecksum(String input) {
-        def md = java.security.MessageDigest.getInstance("SHA-256")
-        md.update(input.bytes)
-        md.digest().collect { String.format("%02x", it) }.join("")[0..15]
+            pipeline: config.name,
+            version:  config.version,
+            total:    results.size(),
+            passed:   results.count { it.success },
+            failed:   results.count { !it.success },
+            duration: results.sum { it.durationMs } ?: 0,
+            aborted:  aborted
+        ] as Map<String, Object>
     }
 }
 
-// ─── 파이프라인 구성 ───
-def configurePipeline(String buildId) {
-    def pipeline = new DroneFirmwarePipeline(buildId)
-
-    pipeline.stage("Checkout") { pipe, stage ->
-        stage.logs << "Cloning repository..."
-        stage.logs << "Branch: main, Commit: ${pipe.buildId[0..7]}"
-        Thread.sleep(50)  // 시뮬레이션
+@CompileStatic
+class SDACSBuildPipeline {
+    static Pipeline create(String projectVersion) {
+        def config = new PipelineConfig(
+            name:    'SDACS Drone Build',
+            version: projectVersion,
+            targets: ['test', 'lint', 'build', 'package'],
+            env:     ['PYTHONPATH': 'src', 'PYTEST_WORKERS': '4'],
+            timeout: 1800,
+            parallel: true
+        )
+        return new Pipeline(config)
     }
 
-    pipeline.stage("Compile Firmware") { pipe, stage ->
-        stage.logs << "Target: ${pipe.env.TARGET_ARCH}"
-        stage.logs << "Optimization: ${pipe.env.OPTIMIZATION}"
-        stage.logs << "Compiling flight_controller.c..."
-        stage.logs << "Compiling motor_driver.c..."
-        stage.logs << "Compiling telemetry.c..."
-        stage.logs << "Compiling navigation.c..."
-        Thread.sleep(100)
-        pipe.addArtifact("firmware.bin", "build/firmware.bin", 256_000)
-        pipe.addArtifact("firmware.elf", "build/firmware.elf", 512_000)
-        stage.logs << "Compilation successful: 4 modules, 0 warnings"
-    }
+    static void main(String[] args) {
+        def pipeline = create(args ? args[0] : '1.0.0-dev')
 
-    pipeline.stage("Unit Tests") { pipe, stage ->
-        def tests = ["test_pid_controller", "test_imu_fusion",
-                     "test_gps_parser", "test_mavlink_protocol",
-                     "test_failsafe", "test_battery_monitor"]
-        int passed = 0
-        tests.each { test ->
-            stage.logs << "Running ${test}... PASS"
-            passed++
+        // Stage 1: Environment check
+        pipeline.runStage('environment') {
+            println "Checking environment..."
+            System.getenv('PYTHONPATH') != null
         }
-        stage.logs << "Results: ${passed}/${tests.size()} passed"
-    }
 
-    pipeline.stage("Integration Tests") { pipe, stage ->
-        stage.logs << "Starting SITL (Software In The Loop)..."
-        stage.logs << "Testing hover stability... OK"
-        stage.logs << "Testing waypoint navigation... OK"
-        stage.logs << "Testing failsafe RTL... OK"
-        Thread.sleep(50)
-    }
+        // Stage 2: Lint
+        pipeline.runStage('lint') {
+            println "Running ruff linter..."
+            def proc = 'ruff check src/'.execute()
+            proc.waitFor()
+            proc.exitValue() == 0
+        }
 
-    pipeline.stage("Static Analysis") { pipe, stage ->
-        stage.logs << "Running cppcheck..."
-        stage.logs << "Running MISRA C compliance check..."
-        stage.logs << "0 critical, 2 warnings, 5 info"
-        Thread.sleep(30)
-    }
+        // Stage 3: Type check
+        pipeline.runStage('type-check') {
+            println "Running mypy type checker..."
+            def proc = 'mypy src/ --ignore-missing-imports'.execute()
+            proc.waitFor()
+            proc.exitValue() == 0
+        }
 
-    pipeline.stage("Package") { pipe, stage ->
-        def version = pipe.env.FIRMWARE_VERSION
-        stage.logs << "Creating release package v${version}..."
-        pipe.addArtifact("sdacs-firmware-${version}.zip",
-                         "dist/sdacs-firmware-${version}.zip", 384_000)
-        stage.logs << "Package checksum: ${DroneFirmwarePipeline.generateChecksum(version)}"
-    }
+        // Stage 4: Unit tests
+        pipeline.runStage('unit-tests') {
+            println "Running pytest..."
+            def proc = 'pytest tests/ -v --tb=short -q'.execute()
+            proc.waitFor()
+            proc.exitValue() == 0
+        }
 
-    pipeline.stage("Deploy to Staging") { pipe, stage ->
-        def target = new DeployTarget(
-            name: "staging-fleet",
-            environment: "staging",
-            endpoint: "https://staging.sdacs.internal/ota"
-        )
-        stage.logs << "Deploying to ${target.name} (${target.endpoint})..."
-        stage.logs << "OTA update pushed to 5 test drones"
-        Thread.sleep(50)
-    }
+        // Stage 5: Build artifact
+        pipeline.runStage('build') {
+            println "Building SDACS package..."
+            new File('dist').mkdirs()
+            true
+        }
 
-    return pipeline
+        def summary = pipeline.summary()
+        println "Pipeline complete: ${summary}"
+        System.exit(pipeline.allPassed() ? 0 : 1)
+    }
 }
-
-// ─── 메인 실행 ───
-def buildId = "build-${System.currentTimeMillis()}"
-def pipeline = configurePipeline(buildId)
-def result = pipeline.execute()
-
-println "\n=== Pipeline Result ==="
-result.each { k, v -> println "  ${k}: ${v}" }
-println "  total_stages: ${pipeline.stages.size()}"
-println "  artifacts_count: ${pipeline.artifacts.size()}"

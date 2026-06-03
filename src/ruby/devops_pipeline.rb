@@ -1,110 +1,56 @@
-# Phase 636: DevOps Pipeline — Ruby Deployment Automation
-# 배포 자동화 Rake 태스크 + CI/CD
+# frozen_string_literal: true
+
+# Phase 636: DevOps Pipeline — Ruby
+# SDACS CI/CD pipeline automation for drone software deployment
 
 module SDACS
-  class DeployConfig
-    attr_accessor :environment, :version, :drones, :region, :replicas
+  module DevOps
+    Stage = Struct.new(:name, :command, :timeout, :retry_count, keyword_init: true)
+    StageResult = Struct.new(:stage, :success, :duration, :output, keyword_init: true)
 
-    def initialize(env = :staging)
-      @environment = env
-      @version = "1.0.0"
-      @drones = 20
-      @region = "ap-northeast-2"
-      @replicas = env == :production ? 3 : 1
-    end
+    class Pipeline
+      attr_reader :stages, :results, :name
 
-    def to_h
-      {
-        environment: @environment,
-        version: @version,
-        drones: @drones,
-        region: @region,
-        replicas: @replicas,
-        timestamp: Time.now.iso8601
-      }
-    end
-  end
+      def initialize(name:)
+        @name    = name
+        @stages  = []
+        @results = []
+      end
 
-  class Pipeline
-    attr_reader :stages, :status, :logs
+      def add_stage(name:, command:, timeout: 300, retry_count: 1)
+        @stages << Stage.new(name: name, command: command, timeout: timeout, retry_count: retry_count)
+        self
+      end
 
-    def initialize(config)
-      @config = config
-      @stages = [:lint, :test, :build, :deploy, :verify]
-      @status = {}
-      @logs = []
-    end
-
-    def run
-      @stages.each do |stage|
-        log("Starting stage: #{stage}")
-        result = execute_stage(stage)
-        @status[stage] = result
-        unless result[:success]
-          log("FAILED at stage: #{stage} — #{result[:error]}")
-          return false
+      def run
+        @results = @stages.map do |stage|
+          t0 = Time.now
+          success = simulate_stage(stage)
+          StageResult.new(stage: stage.name, success: success,
+                          duration: Time.now - t0, output: "")
         end
-        log("Completed stage: #{stage}")
+        all_passed?
       end
-      true
-    end
 
-    def summary
-      {
-        config: @config.to_h,
-        stages: @status.transform_values { |v| v[:success] ? "PASS" : "FAIL" },
-        total_stages: @stages.length,
-        passed: @status.values.count { |v| v[:success] },
-        failed: @status.values.count { |v| !v[:success] },
-        logs_count: @logs.length
-      }
-    end
+      def all_passed? = @results.all?(&:success)
 
-    private
-
-    def execute_stage(stage)
-      case stage
-      when :lint
-        { success: true, duration: 2.3 }
-      when :test
-        { success: true, duration: 45.7, tests: 2750, passed: 2750 }
-      when :build
-        { success: true, duration: 12.1, artifacts: ["sdacs-#{@config.version}.tar.gz"] }
-      when :deploy
-        { success: true, duration: 8.5, target: @config.environment }
-      when :verify
-        { success: true, duration: 5.2, health_check: "OK" }
-      else
-        { success: false, error: "Unknown stage: #{stage}" }
+      def summary
+        { name: @name, stages: @stages.size, passed: @results.count(&:success),
+          failed: @results.count { !_1.success } }
       end
-    end
 
-    def log(message)
-      @logs << "[#{Time.now.strftime('%H:%M:%S')}] #{message}"
-    end
-  end
+      private
 
-  class HealthChecker
-    def initialize(endpoint)
-      @endpoint = endpoint
-      @checks = []
-    end
-
-    def check
-      result = {
-        endpoint: @endpoint,
-        status: :healthy,
-        response_time_ms: rand(10..100),
-        drones_active: rand(15..25),
-        memory_mb: rand(200..500),
-        cpu_percent: rand(10..60)
-      }
-      @checks << result
-      result
-    end
-
-    def history
-      @checks
+      def simulate_stage(stage)
+        stage.name != "always_fail"
+      end
     end
   end
 end
+
+pipeline = SDACS::DevOps::Pipeline.new(name: "SDACS Deploy")
+pipeline.add_stage(name: "lint",  command: "ruff check src/")
+        .add_stage(name: "test",  command: "pytest tests/ -q")
+        .add_stage(name: "build", command: "python -m build")
+pipeline.run
+puts "Phase 636: #{pipeline.summary}"

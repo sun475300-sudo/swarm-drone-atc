@@ -1,212 +1,210 @@
-;;; Phase 599: Symbolic Mission Planner — Common Lisp
-;;; 기호적 미션 계획기: STRIPS 계획, 상태 공간 탐색,
-;;; 목표 지향 행동 계획.
+;;; Phase 589: Symbolic Planner — Common Lisp
+;;; SDACS AI planning system for drone mission optimization
 
-;;; ─── 상태 표현 ───
-(defstruct world-state
-  "세계 상태: 참인 명제들의 집합."
-  (facts nil :type list))
+(defpackage :sdacs.planner
+  (:use :cl)
+  (:export #:make-state #:make-action #:make-goal
+           #:plan #:bfs-plan #:a*-plan
+           #:apply-action #:applicable-p
+           #:DroneAgent #:make-drone-agent))
 
-(defstruct action
-  "STRIPS 행동: 전제조건, 추가 효과, 삭제 효과."
-  (name nil :type symbol)
-  (params nil :type list)
-  (preconditions nil :type list)
-  (add-effects nil :type list)
-  (del-effects nil :type list))
+(in-package :sdacs.planner)
 
-(defstruct plan
-  "계획: 행동 시퀀스."
-  (actions nil :type list)
-  (cost 0 :type number))
+;;; ============================================================
+;;; Domain structures
 
-;;; ─── 상태 연산 ───
-(defun state-contains-p (state fact)
-  "상태에 명제가 포함되어 있는지 확인."
-  (member fact (world-state-facts state) :test #'equal))
+(defstruct (drone-state (:conc-name state-))
+  (drone-id  ""     :type string)
+  (position  #(0.0 0.0 0.0) :type vector)
+  (battery   100.0  :type float)
+  (altitude  0.0    :type float)
+  (speed     0.0    :type float)
+  (mode      :idle  :type keyword)
+  (waypoints '()    :type list)
+  (payload   '()    :type list))  ; arbitrary key-value pairs
 
-(defun applicable-p (state action)
-  "행동이 현재 상태에서 적용 가능한지 확인."
-  (every (lambda (pre) (state-contains-p state pre))
+(defstruct (action (:conc-name action-))
+  (name        :noop  :type keyword)
+  (preconditions '()  :type list)  ; list of predicate functions
+  (effects       '()  :type list)  ; list of state-transform functions
+  (cost          1.0  :type float))
+
+(defstruct (goal (:conc-name goal-))
+  (conditions '()  :type list)  ; list of predicate functions
+  (heuristic  nil))             ; optional heuristic fn for A*
+
+;;; ============================================================
+;;; Predicate helpers
+
+(defun at-waypoint-p (state wp-name)
+  (equal (car (state-waypoints state)) wp-name))
+
+(defun battery-ok-p (state &optional (threshold 20.0))
+  (> (state-battery state) threshold))
+
+(defun is-mode-p (state mode)
+  (eq (state-mode state) mode))
+
+(defun above-altitude-p (state min-alt)
+  (> (state-altitude state) min-alt))
+
+;;; ============================================================
+;;; Action library
+
+(defun make-takeoff-action (target-alt)
+  (make-action
+   :name :takeoff
+   :preconditions (list (lambda (s) (is-mode-p s :idle))
+                        (lambda (s) (battery-ok-p s 30.0)))
+   :effects (list (lambda (s)
+                    (let ((new (copy-structure s)))
+                      (setf (state-mode new) :flying
+                            (state-altitude new) target-alt)
+                      new)))
+   :cost 2.0))
+
+(defun make-goto-action (waypoint cost)
+  (make-action
+   :name :goto
+   :preconditions (list (lambda (s) (is-mode-p s :flying))
+                        (lambda (s) (battery-ok-p s 15.0)))
+   :effects (list (lambda (s)
+                    (let ((new (copy-structure s)))
+                      (push waypoint (state-waypoints new))
+                      (setf (state-battery new)
+                            (max 0.0 (- (state-battery new) (* cost 5.0))))
+                      new)))
+   :cost cost))
+
+(defun make-land-action ()
+  (make-action
+   :name :land
+   :preconditions (list (lambda (s) (is-mode-p s :flying)))
+   :effects (list (lambda (s)
+                    (let ((new (copy-structure s)))
+                      (setf (state-mode new) :idle
+                            (state-altitude new) 0.0
+                            (state-speed new) 0.0)
+                      new)))
+   :cost 1.0))
+
+(defun make-rtl-action ()
+  (make-action
+   :name :rtl
+   :preconditions (list)
+   :effects (list (lambda (s)
+                    (let ((new (copy-structure s)))
+                      (setf (state-mode new) :idle
+                            (state-altitude new) 0.0
+                            (state-waypoints new) '())
+                      new)))
+   :cost 3.0))
+
+;;; ============================================================
+;;; Planner core
+
+(defun applicable-p (action state)
+  "Return T if all action preconditions are met in state."
+  (every (lambda (pred) (funcall pred state))
          (action-preconditions action)))
 
-(defun apply-action (state action)
-  "행동을 적용하여 새 상태 반환."
-  (let* ((facts (world-state-facts state))
-         (new-facts (union (action-add-effects action)
-                          (set-difference facts
-                                        (action-del-effects action)
-                                        :test #'equal)
-                          :test #'equal)))
-    (make-world-state :facts new-facts)))
+(defun apply-action (action state)
+  "Apply action effects to state, returning new state."
+  (reduce (lambda (s eff) (funcall eff s))
+          (action-effects action)
+          :initial-value state))
 
-(defun goal-satisfied-p (state goals)
-  "모든 목표가 현재 상태에서 만족되는지 확인."
-  (every (lambda (g) (state-contains-p state g)) goals))
+(defun goal-reached-p (goal state)
+  "Return T if all goal conditions are satisfied."
+  (every (lambda (cond) (funcall cond state))
+         (goal-conditions goal)))
 
-;;; ─── 드론 미션 도메인 ───
-(defun make-drone-domain ()
-  "드론 미션 행동 정의."
-  (list
-    ;; 이륙
-    (make-action
-      :name 'takeoff
-      :params '(?drone ?loc)
-      :preconditions '((at ?drone ?loc) (on-ground ?drone) (charged ?drone))
-      :add-effects '((flying ?drone) (at-altitude ?drone))
-      :del-effects '((on-ground ?drone)))
+(defun bfs-plan (initial-state goal actions &key (max-depth 20))
+  "Breadth-first search planner. Returns list of actions or NIL."
+  (let ((queue (list (list initial-state '())))
+        (visited (make-hash-table :test 'equalp)))
+    (loop
+      (when (null queue) (return nil))
+      (destructuring-bind (state plan) (pop queue)
+        (when (goal-reached-p goal state)
+          (return (reverse plan)))
+        (when (> (length plan) max-depth)
+          (next-iteration))
+        (unless (gethash state visited)
+          (setf (gethash state visited) t)
+          (dolist (action actions)
+            (when (applicable-p action state)
+              (let ((new-state (apply-action action state)))
+                (push (list new-state (cons action plan)) queue)))))))))
 
-    ;; 착륙
-    (make-action
-      :name 'land
-      :params '(?drone ?loc)
-      :preconditions '((flying ?drone) (at ?drone ?loc))
-      :add-effects '((on-ground ?drone))
-      :del-effects '((flying ?drone) (at-altitude ?drone)))
+(defun heuristic-cost (state goal)
+  "Simple heuristic: count unsatisfied goal conditions."
+  (count-if-not (lambda (cond) (funcall cond state))
+                (goal-conditions goal)))
 
-    ;; 이동
-    (make-action
-      :name 'move-to
-      :params '(?drone ?from ?to)
-      :preconditions '((flying ?drone) (at ?drone ?from) (path-clear ?from ?to))
-      :add-effects '((at ?drone ?to))
-      :del-effects '((at ?drone ?from)))
+(defun a*-plan (initial-state goal actions &key (max-iter 1000))
+  "A* planner with cost + heuristic. Returns plan or NIL."
+  (let ((open (list (list 0.0 0.0 initial-state '())))
+        (visited (make-hash-table :test 'equalp))
+        (iter 0))
+    (loop
+      (when (or (null open) (> iter max-iter)) (return nil))
+      (incr iter)
+      ;; Sort by f = g + h
+      (setf open (sort open #'< :key #'car))
+      (destructuring-bind (f g state plan) (pop open)
+        (declare (ignore f))
+        (when (goal-reached-p goal state)
+          (return (reverse plan)))
+        (unless (gethash state visited)
+          (setf (gethash state visited) t)
+          (dolist (action actions)
+            (when (applicable-p action state)
+              (let* ((new-state (apply-action action state))
+                     (new-g (+ g (action-cost action)))
+                     (new-h (heuristic-cost new-state goal))
+                     (new-f (+ new-g new-h)))
+                (push (list new-f new-g new-state (cons action plan)) open)))))))))
 
-    ;; 스캔
-    (make-action
-      :name 'scan-area
-      :params '(?drone ?loc)
-      :preconditions '((flying ?drone) (at ?drone ?loc) (has-sensor ?drone))
-      :add-effects '((scanned ?loc))
-      :del-effects '())
+;;; ============================================================
+;;; Drone agent using planner
 
-    ;; 통신 중계
-    (make-action
-      :name 'relay-data
-      :params '(?drone ?loc)
-      :preconditions '((flying ?drone) (at ?drone ?loc) (scanned ?loc))
-      :add-effects '((data-relayed ?loc))
-      :del-effects '())
+(defstruct (DroneAgent (:conc-name agent-))
+  (id      ""  :type string)
+  (state   nil)
+  (actions '() :type list)
+  (plan    '() :type list))
 
-    ;; 충전
-    (make-action
-      :name 'charge
-      :params '(?drone ?loc)
-      :preconditions '((at ?drone ?loc) (on-ground ?drone) (charging-station ?loc))
-      :add-effects '((charged ?drone))
-      :del-effects '((low-battery ?drone)))))
+(defun make-drone-agent (id initial-state)
+  (let ((agent (make-DroneAgent :id id :state initial-state)))
+    (setf (agent-actions agent)
+          (list (make-takeoff-action 60.0)
+                (make-goto-action :wp1 5.0)
+                (make-goto-action :wp2 5.0)
+                (make-land-action)
+                (make-rtl-action)))
+    agent))
 
-;;; ─── 전방 탐색 계획기 ───
-(defun instantiate-action (action bindings)
-  "행동 인스턴스 생성 (변수 바인딩 적용)."
-  (labels ((subst-vars (expr)
-             (cond
-               ((null expr) nil)
-               ((symbolp expr)
-                (let ((binding (assoc expr bindings)))
-                  (if binding (cdr binding) expr)))
-               ((listp expr)
-                (mapcar #'subst-vars expr))
-               (t expr))))
-    (make-action
-      :name (action-name action)
-      :params (subst-vars (action-params action))
-      :preconditions (subst-vars (action-preconditions action))
-      :add-effects (subst-vars (action-add-effects action))
-      :del-effects (subst-vars (action-del-effects action)))))
+(defun plan-mission (agent goal)
+  "Plan a mission for the agent using A*."
+  (let ((plan (a*-plan (agent-state agent) goal (agent-actions agent))))
+    (setf (agent-plan agent) plan)
+    plan))
 
-(defun forward-search (initial-state goals actions max-depth)
-  "전방 상태 공간 탐색 (BFS)."
-  (let ((queue (list (list initial-state nil 0)))
-        (visited nil))
-    (loop while queue do
-      (let* ((entry (pop queue))
-             (state (first entry))
-             (plan-so-far (second entry))
-             (depth (third entry)))
+;;; ============================================================
+;;; Utility
 
-        ;; 목표 달성 확인
-        (when (goal-satisfied-p state goals)
-          (return-from forward-search
-            (make-plan :actions (reverse plan-so-far)
-                      :cost depth)))
+(defmacro incr (var &optional (delta 1))
+  `(setf ,var (+ ,var ,delta)))
 
-        ;; 깊이 제한
-        (when (>= depth max-depth)
-          (go continue-loop))
-
-        ;; 적용 가능한 행동 탐색
-        (dolist (action actions)
-          (when (applicable-p state action)
-            (let* ((new-state (apply-action state action))
-                   (state-key (world-state-facts new-state)))
-              (unless (member state-key visited :test #'equal)
-                (push state-key visited)
-                (setf queue
-                      (append queue
-                              (list (list new-state
-                                        (cons (action-name action) plan-so-far)
-                                        (1+ depth)))))))))
-        continue-loop))
-    ;; 계획 실패
-    (make-plan :actions '(:no-plan-found) :cost -1)))
-
-;;; ─── 테스트 시나리오 ───
-(defun run-demo ()
-  "미션 계획 데모 실행."
-  (format t "=== SDACS Symbolic Planner ===~%~%")
-
-  ;; 초기 상태
-  (let* ((initial (make-world-state
-                    :facts '((at drone-1 base)
-                            (on-ground drone-1)
-                            (charged drone-1)
-                            (has-sensor drone-1)
-                            (charging-station base)
-                            (path-clear base alpha)
-                            (path-clear alpha bravo)
-                            (path-clear bravo base)
-                            (path-clear alpha base))))
-
-         ;; 목표: alpha를 스캔하고 데이터 중계 후 기지 복귀
-         (goals '((scanned alpha)
-                  (data-relayed alpha)
-                  (at drone-1 base)
-                  (on-ground drone-1)))
-
-         ;; 그라운드 행동 (변수 바인딩 완료)
-         (actions (list
-                    (make-action :name 'takeoff-at-base
-                      :preconditions '((at drone-1 base) (on-ground drone-1) (charged drone-1))
-                      :add-effects '((flying drone-1) (at-altitude drone-1))
-                      :del-effects '((on-ground drone-1)))
-                    (make-action :name 'move-base-to-alpha
-                      :preconditions '((flying drone-1) (at drone-1 base) (path-clear base alpha))
-                      :add-effects '((at drone-1 alpha))
-                      :del-effects '((at drone-1 base)))
-                    (make-action :name 'scan-alpha
-                      :preconditions '((flying drone-1) (at drone-1 alpha) (has-sensor drone-1))
-                      :add-effects '((scanned alpha))
-                      :del-effects '())
-                    (make-action :name 'relay-alpha
-                      :preconditions '((flying drone-1) (at drone-1 alpha) (scanned alpha))
-                      :add-effects '((data-relayed alpha))
-                      :del-effects '())
-                    (make-action :name 'move-alpha-to-base
-                      :preconditions '((flying drone-1) (at drone-1 alpha) (path-clear alpha base))
-                      :add-effects '((at drone-1 base))
-                      :del-effects '((at drone-1 alpha)))
-                    (make-action :name 'land-at-base
-                      :preconditions '((flying drone-1) (at drone-1 base))
-                      :add-effects '((on-ground drone-1))
-                      :del-effects '((flying drone-1) (at-altitude drone-1))))))
-
-    ;; 계획 실행
-    (let ((result (forward-search initial goals actions 10)))
-      (format t "Plan found (cost=~d):~%" (plan-cost result))
-      (dolist (action (plan-actions result))
-        (format t "  ~d. ~a~%" (1+ (position action (plan-actions result))) action))
-      (format t "~%Total actions: ~d~%" (length (plan-actions result))))))
-
-;;; 실행
-(run-demo)
+(defun copy-structure (s)
+  "Shallow copy of a structure (drone-state)."
+  (make-drone-state
+   :drone-id  (state-drone-id s)
+   :position  (copy-seq (state-position s))
+   :battery   (state-battery s)
+   :altitude  (state-altitude s)
+   :speed     (state-speed s)
+   :mode      (state-mode s)
+   :waypoints (copy-list (state-waypoints s))
+   :payload   (copy-list (state-payload s))))

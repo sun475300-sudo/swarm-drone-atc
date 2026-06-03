@@ -1,166 +1,101 @@
-"Phase 596: Message Broker — Smalltalk"
-"드론 간 메시지 브로커: 발행-구독 패턴, 토픽 라우팅, 큐 관리."
+"Phase 586: Message Broker — Smalltalk
+ SDACS pub/sub message broker for drone communication"
 
-"─── 메시지 클래스 ───"
-Object subclass: #DroneMessage
-    instanceVariableNames: 'senderId topic payload timestamp priority'
-    classVariableNames: ''
-    poolDictionaries: ''
-    category: 'SDACS-Broker'.
-
-DroneMessage >> senderId
-    ^ senderId.
-
-DroneMessage >> topic
-    ^ topic.
-
-DroneMessage >> payload
-    ^ payload.
-
-DroneMessage >> timestamp
-    ^ timestamp.
-
-DroneMessage >> priority
-    ^ priority.
-
-DroneMessage >> senderId: anId topic: aTopic payload: aPayload priority: aPriority
-    senderId := anId.
-    topic := aTopic.
-    payload := aPayload.
-    timestamp := DateAndTime now.
-    priority := aPriority.
-    ^ self.
-
-DroneMessage >> printString
-    ^ 'Message[', senderId asString, ' -> ', topic, ': ', payload asString, ']'.
-
-"─── 구독자 클래스 ───"
-Object subclass: #Subscriber
-    instanceVariableNames: 'subscriberId topics messageQueue maxQueueSize'
-    classVariableNames: ''
-    poolDictionaries: ''
-    category: 'SDACS-Broker'.
-
-Subscriber >> initialize: anId
-    subscriberId := anId.
-    topics := OrderedCollection new.
-    messageQueue := OrderedCollection new.
-    maxQueueSize := 100.
-    ^ self.
-
-Subscriber >> subscribeTo: aTopic
-    (topics includes: aTopic) ifFalse: [
-        topics add: aTopic
-    ].
-
-Subscriber >> unsubscribeFrom: aTopic
-    topics remove: aTopic ifAbsent: [].
-
-Subscriber >> receive: aMessage
-    messageQueue size >= maxQueueSize ifTrue: [
-        messageQueue removeFirst.  "버퍼 오버플로 시 오래된 메시지 제거"
-    ].
-    messageQueue add: aMessage.
-
-Subscriber >> pendingMessages
-    ^ messageQueue size.
-
-Subscriber >> consumeAll
-    | messages |
-    messages := messageQueue copy.
-    messageQueue removeAll.
-    ^ messages.
-
-Subscriber >> isSubscribedTo: aTopic
-    ^ topics includes: aTopic.
-
-"─── 메시지 브로커 ───"
 Object subclass: #MessageBroker
-    instanceVariableNames: 'subscribers topicQueues publishedCount deliveredCount deadLetterQueue'
+    instanceVariableNames: 'subscriptions messageQueue droneRegistry messageCount'
     classVariableNames: ''
     poolDictionaries: ''
-    category: 'SDACS-Broker'.
+    category: 'SDACS-Communication'!
 
-MessageBroker >> initialize
-    subscribers := Dictionary new.
-    topicQueues := Dictionary new.
-    publishedCount := 0.
-    deliveredCount := 0.
-    deadLetterQueue := OrderedCollection new.
-    ^ self.
+!MessageBroker class methodsFor: 'instance creation'!
+new
+    ^super new initialize! !
 
-MessageBroker >> register: aSubscriberId
-    | sub |
-    sub := Subscriber new initialize: aSubscriberId.
-    subscribers at: aSubscriberId put: sub.
-    ^ sub.
+!MessageBroker methodsFor: 'initialization'!
+initialize
+    subscriptions := Dictionary new.
+    messageQueue  := OrderedCollection new.
+    droneRegistry := Dictionary new.
+    messageCount  := 0.
+    ^self! !
 
-MessageBroker >> subscribe: aSubscriberId to: aTopic
-    | sub |
-    sub := subscribers at: aSubscriberId ifAbsent: [^ nil].
-    sub subscribeTo: aTopic.
+!MessageBroker methodsFor: 'subscription management'!
+subscribe: aTopic handler: aBlock
+    | topicSubs |
+    topicSubs := subscriptions at: aTopic ifAbsent: [OrderedCollection new].
+    topicSubs add: aBlock.
+    subscriptions at: aTopic put: topicSubs.
+    ^self!
 
-MessageBroker >> publish: aMessage
-    | delivered |
-    publishedCount := publishedCount + 1.
-    delivered := false.
+unsubscribe: aTopic handler: aBlock
+    | topicSubs |
+    topicSubs := subscriptions at: aTopic ifAbsent: [^self].
+    topicSubs remove: aBlock ifAbsent: [].
+    ^self!
 
-    "토픽 큐에 저장"
-    (topicQueues includesKey: aMessage topic) ifFalse: [
-        topicQueues at: aMessage topic put: OrderedCollection new.
-    ].
-    (topicQueues at: aMessage topic) add: aMessage.
+unsubscribeAll: aTopic
+    subscriptions removeKey: aTopic ifAbsent: []! !
 
-    "구독자에게 라우팅"
-    subscribers valuesDo: [:sub |
-        (sub isSubscribedTo: aMessage topic) ifTrue: [
-            sub receive: aMessage.
-            deliveredCount := deliveredCount + 1.
-            delivered := true.
-        ].
-    ].
+!MessageBroker methodsFor: 'publishing'!
+publish: aMessage topic: aTopic
+    | handlers |
+    messageCount := messageCount + 1.
+    messageQueue addLast: (Association key: aTopic value: aMessage).
+    handlers := subscriptions at: aTopic ifAbsent: [^self].
+    handlers do: [:handler | handler value: aMessage].
+    ^self!
 
-    "배달 불가 메시지"
-    delivered ifFalse: [
-        deadLetterQueue add: aMessage.
-    ].
+broadcast: aMessage
+    subscriptions keysDo: [:topic |
+        self publish: aMessage topic: topic].
+    ^self! !
 
-MessageBroker >> stats
-    ^ Dictionary new
-        at: 'published' put: publishedCount;
-        at: 'delivered' put: deliveredCount;
-        at: 'subscribers' put: subscribers size;
-        at: 'topics' put: topicQueues size;
-        at: 'dead_letters' put: deadLetterQueue size;
-        yourself.
+!MessageBroker methodsFor: 'drone registry'!
+registerDrone: aDroneId state: aState
+    droneRegistry at: aDroneId put: aState.
+    self publish: aState topic: 'drone.registered'.
+    ^self!
 
-"─── 시뮬레이션 실행 ───"
-| broker drones topics msg |
-broker := MessageBroker new initialize.
+updateDrone: aDroneId state: aState
+    droneRegistry at: aDroneId put: aState.
+    self publish: aState topic: 'drone.telemetry'.
+    ^self!
 
-"드론 등록 및 구독"
-drones := #('DRONE_001' 'DRONE_002' 'DRONE_003' 'DRONE_004' 'DRONE_005').
-topics := #('position' 'conflict' 'advisory' 'battery' 'mission').
+removeDrone: aDroneId
+    droneRegistry removeKey: aDroneId ifAbsent: [].
+    self publish: aDroneId topic: 'drone.removed'.
+    ^self!
 
-drones do: [:id |
-    broker register: id.
-    topics do: [:t |
-        broker subscribe: id to: t.
-    ].
-].
+dronesCount
+    ^droneRegistry size! !
 
-"메시지 발행"
-1 to: 50 do: [:i |
-    msg := DroneMessage new
-        senderId: (drones atRandom)
-        topic: (topics atRandom)
-        payload: ('data_', i printString)
-        priority: (i \\ 3).
-    broker publish: msg.
-].
+!MessageBroker methodsFor: 'querying'!
+messageCount
+    ^messageCount!
 
-"통계 출력"
-Transcript show: '=== SDACS Message Broker ==='; cr.
-broker stats keysAndValuesDo: [:k :v |
-    Transcript show: '  ', k, ': ', v printString; cr.
-].
+queueSize
+    ^messageQueue size!
+
+topics
+    ^subscriptions keys asArray!
+
+subscriberCount: aTopic
+    ^(subscriptions at: aTopic ifAbsent: [#()]) size!
+
+stats
+    ^Dictionary new
+        at: 'messageCount'   put: messageCount;
+        at: 'queueSize'      put: messageQueue size;
+        at: 'topicCount'     put: subscriptions size;
+        at: 'droneCount'     put: droneRegistry size;
+        yourself! !
+
+"Test / demo"
+| broker count |
+broker := MessageBroker new.
+count := 0.
+broker subscribe: 'drone.telemetry' handler: [:msg | count := count + 1].
+broker publish: 'hello' topic: 'drone.telemetry'.
+broker publish: 'world' topic: 'drone.telemetry'.
+Transcript show: 'Messages received: ', count printString; nl.
+Transcript show: 'Stats: ', broker stats printString; nl.

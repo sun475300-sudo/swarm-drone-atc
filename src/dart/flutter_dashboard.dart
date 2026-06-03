@@ -1,101 +1,49 @@
-// Phase 634: Flutter Dashboard — Dart Cross-platform Monitor
-// 크로스플랫폼 모니터링 UI 위젯
+// Phase 634: Flutter Dashboard — Dart
+// SDACS cross-platform drone fleet dashboard built with Flutter
 
-class DroneData {
-  final String droneId;
-  final double x, y, z;
-  final double battery;
-  final String status;
-  final DateTime timestamp;
+import 'dart:async';
+import 'dart:math';
 
-  DroneData({
-    required this.droneId,
-    required this.x,
-    required this.y,
-    required this.z,
-    required this.battery,
-    required this.status,
-    DateTime? timestamp,
-  }) : timestamp = timestamp ?? DateTime.now();
-
-  bool get isLowBattery => battery < 0.2;
-  bool get isActive => status != 'idle';
-  double get altitude => z;
-
-  Map<String, dynamic> toJson() => {
-    'drone_id': droneId,
-    'position': {'x': x, 'y': y, 'z': z},
-    'battery': battery,
-    'status': status,
-    'timestamp': timestamp.toIso8601String(),
-  };
-
-  factory DroneData.fromJson(Map<String, dynamic> json) {
-    final pos = json['position'] as Map<String, dynamic>;
-    return DroneData(
-      droneId: json['drone_id'] as String,
-      x: (pos['x'] as num).toDouble(),
-      y: (pos['y'] as num).toDouble(),
-      z: (pos['z'] as num).toDouble(),
-      battery: (json['battery'] as num).toDouble(),
-      status: json['status'] as String,
-    );
-  }
+class DroneState {
+  final String id;
+  final double lat, lon, alt, battery, speed;
+  final String mode;
+  const DroneState({required this.id, required this.lat, required this.lon,
+    required this.alt, required this.battery, required this.speed, required this.mode});
 }
 
-class FleetSummary {
-  final int totalDrones;
-  final int activeDrones;
-  final int lowBatteryCount;
-  final int alertCount;
-  final double avgBattery;
+class FleetDashboardModel {
+  final _stateCtrl = StreamController<List<DroneState>>.broadcast();
+  final Map<String, DroneState> _drones = {};
 
-  FleetSummary({
-    required this.totalDrones,
-    required this.activeDrones,
-    required this.lowBatteryCount,
-    required this.alertCount,
-    required this.avgBattery,
+  Stream<List<DroneState>> get droneStream => _stateCtrl.stream;
+
+  void update(DroneState state) {
+    _drones[state.id] = state;
+    _stateCtrl.add(_drones.values.toList());
+  }
+
+  List<DroneState> get drones => _drones.values.toList();
+
+  double get avgBattery {
+    if (_drones.isEmpty) return 0;
+    return _drones.values.map((d) => d.battery).reduce((a, b) => a + b) / _drones.length;
+  }
+
+  void dispose() => _stateCtrl.close();
+}
+
+void main() async {
+  final model = FleetDashboardModel();
+  final sub = model.droneStream.listen((drones) {
+    print('Fleet update: ${drones.length} drones, avg battery: ${model.avgBattery.toStringAsFixed(1)}%');
   });
 
-  factory FleetSummary.fromDrones(List<DroneData> drones) {
-    final active = drones.where((d) => d.isActive).length;
-    final lowBat = drones.where((d) => d.isLowBattery).length;
-    final avgBat = drones.isEmpty
-        ? 0.0
-        : drones.map((d) => d.battery).reduce((a, b) => a + b) / drones.length;
-    return FleetSummary(
-      totalDrones: drones.length,
-      activeDrones: active,
-      lowBatteryCount: lowBat,
-      alertCount: lowBat,
-      avgBattery: avgBat,
-    );
-  }
-}
+  model.update(DroneState(id: 'D001', lat: 37.5665, lon: 126.978, alt: 60, battery: 85, speed: 10, mode: 'AUTO'));
+  model.update(DroneState(id: 'D002', lat: 37.5670, lon: 126.979, alt: 55, battery: 72, speed:  8, mode: 'AUTO'));
 
-class DashboardState {
-  final List<DroneData> _drones = [];
-  final List<String> _alerts = [];
-  bool isConnected = false;
-
-  void updateDrone(DroneData data) {
-    _drones.removeWhere((d) => d.droneId == data.droneId);
-    _drones.add(data);
-    if (data.isLowBattery) {
-      _alerts.add('Low battery: ${data.droneId} (${(data.battery * 100).toInt()}%)');
-    }
-  }
-
-  FleetSummary get summary => FleetSummary.fromDrones(_drones);
-  List<DroneData> get drones => List.unmodifiable(_drones);
-  List<String> get alerts => List.unmodifiable(_alerts);
-
-  List<DroneData> getNearby(double cx, double cy, double radius) {
-    return _drones.where((d) {
-      final dx = d.x - cx;
-      final dy = d.y - cy;
-      return dx * dx + dy * dy <= radius * radius;
-    }).toList();
-  }
+  await Future.delayed(Duration(milliseconds: 10));
+  sub.cancel();
+  model.dispose();
+  print('Phase 634: Flutter Dashboard demo complete');
 }

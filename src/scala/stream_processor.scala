@@ -1,86 +1,53 @@
-// Phase 632: Stream Processor — Scala Akka-style Telemetry Pipeline
-// 실시간 텔레메트리 스트림 파이프라인
+// Phase 632: Stream Processor — Scala
+// SDACS real-time event stream processing for drone telemetry
 
-package com.sdacs.stream
+package sdacs.streaming
 
-case class TelemetryEvent(
-  droneId: String,
-  timestamp: Long,
-  x: Double,
-  y: Double,
-  z: Double,
-  battery: Double,
-  eventType: String
-)
+import scala.collection.mutable
 
-case class WindowResult(
-  windowStart: Long,
-  windowEnd: Long,
-  count: Int,
-  avgBattery: Double,
-  minAltitude: Double,
-  maxAltitude: Double,
-  anomalyCount: Int
-)
+case class TelemetryEvent(droneId: String, battery: Double, altitude: Double,
+                           speed: Double, timestamp: Long = System.currentTimeMillis())
 
-class TumblingWindow(val windowSize: Long) {
-  private var buffer: List[TelemetryEvent] = Nil
-  private var windowStart: Long = 0
-  private var results: List[WindowResult] = Nil
+case class AlertEvent(droneId: String, severity: String, message: String,
+                      timestamp: Long = System.currentTimeMillis())
 
-  def process(event: TelemetryEvent): Option[WindowResult] = {
-    if (buffer.isEmpty) {
-      windowStart = event.timestamp
-    }
-
-    buffer = buffer :+ event
-
-    if (event.timestamp - windowStart >= windowSize) {
-      val result = aggregate()
-      results = results :+ result
-      buffer = Nil
-      Some(result)
-    } else {
-      None
-    }
-  }
-
-  private def aggregate(): WindowResult = {
-    val count = buffer.length
-    val avgBat = if (count > 0) buffer.map(_.battery).sum / count else 0.0
-    val minAlt = if (count > 0) buffer.map(_.z).min else 0.0
-    val maxAlt = if (count > 0) buffer.map(_.z).max else 0.0
-    val anomalies = buffer.count(e => e.battery < 0.15 || e.z > 120.0 || e.z < 0.0)
-
-    WindowResult(
-      windowStart = windowStart,
-      windowEnd = buffer.lastOption.map(_.timestamp).getOrElse(windowStart),
-      count = count,
-      avgBattery = avgBat,
-      minAltitude = minAlt,
-      maxAltitude = maxAlt,
-      anomalyCount = anomalies
-    )
-  }
-
-  def getResults: List[WindowResult] = results
+trait StreamProcessor[In, Out] {
+  def process(event: In): Option[Out]
+  def flush(): Seq[Out] = Seq.empty
 }
 
-class StreamProcessor(windowSize: Long = 5000) {
-  private val window = new TumblingWindow(windowSize)
-  private var processedCount: Int = 0
-  private var totalAnomalies: Int = 0
+class BatteryAlertProcessor(threshold: Double = 20.0)
+    extends StreamProcessor[TelemetryEvent, AlertEvent] {
+  def process(e: TelemetryEvent): Option[AlertEvent] =
+    if (e.battery < threshold)
+      Some(AlertEvent(e.droneId, "WARNING", f"Battery low: ${e.battery}%.1f%%"))
+    else None
+}
 
-  def ingest(event: TelemetryEvent): Option[WindowResult] = {
-    processedCount += 1
-    val result = window.process(event)
-    result.foreach(r => totalAnomalies += r.anomalyCount)
-    result
-  }
+class StreamPipeline[A, B, C](first: StreamProcessor[A, B], second: StreamProcessor[B, C]) {
+  def process(event: A): Option[C] = first.process(event).flatMap(second.process)
+}
 
-  def summary: Map[String, Any] = Map(
-    "processed" -> processedCount,
-    "windows" -> window.getResults.length,
-    "totalAnomalies" -> totalAnomalies
+class StreamAggregator {
+  private val window = mutable.Queue[TelemetryEvent]()
+  private val size   = 10
+
+  def add(e: TelemetryEvent): Unit = { window.enqueue(e); if (window.size > size) window.dequeue() }
+  def avgBattery: Double = if (window.isEmpty) 0.0 else window.map(_.battery).sum / window.size
+  def stats: Map[String, Any] = Map("count" -> window.size, "avg_battery" -> avgBattery)
+}
+
+object StreamProcessorDemo extends App {
+  val processor = new BatteryAlertProcessor(20.0)
+  val agg = new StreamAggregator()
+  val events = List(
+    TelemetryEvent("D001", 85.0, 60.0, 10.0),
+    TelemetryEvent("D002", 15.0, 55.0,  8.0),
+    TelemetryEvent("D003", 92.0, 70.0, 12.0),
   )
+  events.foreach { e =>
+    agg.add(e)
+    processor.process(e).foreach(a => println(s"Alert: ${a.message}"))
+  }
+  println(s"Phase 632: Stream stats: ${agg.stats}")
 }

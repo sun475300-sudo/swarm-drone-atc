@@ -1,122 +1,218 @@
-// Phase 524: C++ Formation GAN Engine — Generator/Discriminator
-#include <cstdio>
-#include <cmath>
+// Phase 524: Formation GAN Engine — C++
+// SDACS generative adversarial network for optimal drone formation generation
+
 #include <vector>
-#include <numeric>
+#include <cmath>
+#include <random>
+#include <iostream>
 #include <algorithm>
+#include <stdexcept>
+#include <string>
 
-struct PRNG {
-    uint64_t state;
-    PRNG(uint64_t seed = 42) : state(seed ^ 0x6c62272e07bb0142ULL) {}
-    uint64_t next() { state ^= state << 13; state ^= state >> 7; state ^= state << 17; return state; }
-    double uniform() { return (next() & 0x7FFFFFFF) / double(0x7FFFFFFF); }
-    double normal() { double u1 = std::max(uniform(), 1e-10), u2 = uniform();
-                      return std::sqrt(-2*std::log(u1)) * std::cos(2*M_PI*u2); }
-};
+// Phase 524 marker — formation GAN with Generator and Discriminator
 
-struct Matrix {
-    std::vector<double> data;
-    int rows, cols;
-    Matrix(int r, int c) : data(r*c, 0.0), rows(r), cols(c) {}
-    double& at(int i, int j) { return data[i*cols+j]; }
-    double at(int i, int j) const { return data[i*cols+j]; }
-    void randomize(PRNG& rng, double scale) {
-        for (auto& v : data) v = rng.normal() * scale;
-    }
-};
+namespace sdacs {
 
-Matrix matmul(const Matrix& a, const Matrix& b) {
-    Matrix c(a.rows, b.cols);
-    for (int i = 0; i < a.rows; i++)
-        for (int j = 0; j < b.cols; j++) {
-            double s = 0;
-            for (int k = 0; k < a.cols; k++) s += a.at(i,k) * b.at(k,j);
-            c.at(i,j) = s;
-        }
-    return c;
+using Vec = std::vector<float>;
+using Mat = std::vector<Vec>;
+
+// ============================================================
+// Activation functions
+
+inline float relu(float x) { return x > 0.0f ? x : 0.0f; }
+inline float sigmoid(float x) { return 1.0f / (1.0f + std::exp(-x)); }
+inline float tanh_act(float x) { return std::tanh(x); }
+
+Vec apply_relu(const Vec& v) {
+    Vec out(v.size());
+    std::transform(v.begin(), v.end(), out.begin(), relu);
+    return out;
 }
 
-double sigmoid(double x) { return 1.0 / (1.0 + std::exp(-x)); }
-
-struct Generator {
-    Matrix W1, W2;
-    int latent_dim, hidden, out_dim;
-    Generator(int lat, int hid, int out, PRNG& rng)
-        : W1(lat, hid), W2(hid, out), latent_dim(lat), hidden(hid), out_dim(out) {
-        W1.randomize(rng, 0.1); W2.randomize(rng, 0.1);
-    }
-    std::vector<double> forward(const std::vector<double>& z) {
-        Matrix zi(1, latent_dim);
-        for (int i = 0; i < latent_dim; i++) zi.at(0,i) = z[i];
-        auto h = matmul(zi, W1);
-        for (auto& v : h.data) v = std::tanh(v);
-        auto o = matmul(h, W2);
-        for (auto& v : o.data) v *= 50.0;
-        return o.data;
-    }
-    void perturb(PRNG& rng, double scale) {
-        for (auto& v : W1.data) v += rng.normal() * scale;
-        for (auto& v : W2.data) v += rng.normal() * scale;
-    }
-};
-
-struct Discriminator {
-    Matrix W1, W2;
-    Discriminator(int in_dim, int hid, PRNG& rng)
-        : W1(in_dim, hid), W2(hid, 1) {
-        W1.randomize(rng, 0.1); W2.randomize(rng, 0.1);
-    }
-    double forward(const std::vector<double>& x) {
-        Matrix xi(1, W1.rows);
-        for (int i = 0; i < std::min((int)x.size(), W1.rows); i++) xi.at(0,i) = x[i];
-        auto h = matmul(xi, W1);
-        for (auto& v : h.data) v = std::tanh(v);
-        auto o = matmul(h, W2);
-        return sigmoid(o.data[0]);
-    }
-    void perturb(PRNG& rng, double scale) {
-        for (auto& v : W1.data) v += rng.normal() * scale;
-        for (auto& v : W2.data) v += rng.normal() * scale;
-    }
-};
-
-double evaluateFormation(const std::vector<double>& pos, int n_drones) {
-    double min_dist = 1e9;
-    for (int i = 0; i < n_drones; i++)
-        for (int j = i+1; j < n_drones; j++) {
-            double dx = pos[i*3]-pos[j*3], dy = pos[i*3+1]-pos[j*3+1], dz = pos[i*3+2]-pos[j*3+2];
-            min_dist = std::min(min_dist, std::sqrt(dx*dx+dy*dy+dz*dz));
-        }
-    double sep = std::min(1.0, min_dist/5.0);
-    double cx=0,cy=0,cz=0;
-    for (int i = 0; i < n_drones; i++) { cx+=pos[i*3]; cy+=pos[i*3+1]; cz+=pos[i*3+2]; }
-    cx/=n_drones; cy/=n_drones; cz/=n_drones;
-    double var=0;
-    for (int i = 0; i < n_drones; i++) {
-        double dx=pos[i*3]-cx, dy=pos[i*3+1]-cy, dz=pos[i*3+2]-cz;
-        var += dx*dx+dy*dy+dz*dz;
-    }
-    double spread = std::min(1.0, std::sqrt(var/n_drones)/30.0);
-    return 0.5*sep + 0.5*spread;
+Vec apply_sigmoid(const Vec& v) {
+    Vec out(v.size());
+    std::transform(v.begin(), v.end(), out.begin(), sigmoid);
+    return out;
 }
+
+Vec apply_tanh(const Vec& v) {
+    Vec out(v.size());
+    std::transform(v.begin(), v.end(), out.begin(), tanh_act);
+    return out;
+}
+
+// ============================================================
+// Dense layer: y = W*x + b
+
+class DenseLayer {
+public:
+    Mat weights;
+    Vec bias;
+    std::string activation;
+    int in_size, out_size;
+
+    DenseLayer(int in_sz, int out_sz, const std::string& act = "relu",
+               unsigned seed = 42)
+        : in_size(in_sz), out_size(out_sz), activation(act)
+    {
+        std::mt19937 rng(seed);
+        std::normal_distribution<float> dist(0.0f, 0.1f);
+        weights.resize(out_sz, Vec(in_sz));
+        bias.resize(out_sz, 0.0f);
+        for (auto& row : weights)
+            for (auto& w : row) w = dist(rng);
+    }
+
+    Vec forward(const Vec& x) const {
+        if ((int)x.size() != in_size)
+            throw std::invalid_argument("Input size mismatch");
+        Vec out(out_size, 0.0f);
+        for (int i = 0; i < out_size; i++) {
+            for (int j = 0; j < in_size; j++)
+                out[i] += weights[i][j] * x[j];
+            out[i] += bias[i];
+        }
+        if      (activation == "relu")    return apply_relu(out);
+        else if (activation == "sigmoid") return apply_sigmoid(out);
+        else if (activation == "tanh")    return apply_tanh(out);
+        return out;  // linear
+    }
+};
+
+// ============================================================
+// Generator: noise vector → formation positions
+
+class Generator {
+public:
+    std::vector<DenseLayer> layers;
+    int noise_dim;
+    int n_drones;
+
+    explicit Generator(int n_drones = 10, int noise_dim = 32)
+        : noise_dim(noise_dim), n_drones(n_drones)
+    {
+        layers.emplace_back(noise_dim, 64,       "relu",    101);
+        layers.emplace_back(64,        128,       "relu",    102);
+        layers.emplace_back(128,       64,        "relu",    103);
+        layers.emplace_back(64,        n_drones*3,"tanh",    104);  // (x,y,z)*n
+    }
+
+    // Generate formation: returns [n_drones][x,y,z] positions
+    std::vector<std::array<float,3>> generate(const Vec& noise) const {
+        if ((int)noise.size() != noise_dim)
+            throw std::invalid_argument("Noise dim mismatch");
+
+        Vec h = noise;
+        for (const auto& layer : layers) h = layer.forward(h);
+
+        // Reshape flat output to positions
+        std::vector<std::array<float,3>> positions(n_drones);
+        for (int i = 0; i < n_drones; i++) {
+            positions[i] = {
+                h[i*3]   * 100.0f,  // x in [-100, 100] m
+                h[i*3+1] * 100.0f,  // y in [-100, 100] m
+                h[i*3+2] *  60.0f + 60.0f  // z in [0, 120] m
+            };
+        }
+        return positions;
+    }
+
+    Vec sample_noise(unsigned seed = 0) const {
+        std::mt19937 rng(seed);
+        std::normal_distribution<float> dist(0.0f, 1.0f);
+        Vec noise(noise_dim);
+        for (auto& n : noise) n = dist(rng);
+        return noise;
+    }
+};
+
+// ============================================================
+// Discriminator: formation positions → real/fake score
+
+class Discriminator {
+public:
+    std::vector<DenseLayer> layers;
+    int input_dim;
+    int n_drones;
+
+    explicit Discriminator(int n_drones = 10)
+        : input_dim(n_drones * 3), n_drones(n_drones)
+    {
+        layers.emplace_back(input_dim, 128, "relu",    201);
+        layers.emplace_back(128,        64,  "relu",    202);
+        layers.emplace_back(64,         32,  "relu",    203);
+        layers.emplace_back(32,          1,  "sigmoid", 204);
+    }
+
+    float discriminate(const std::vector<std::array<float,3>>& positions) const {
+        Vec flat(n_drones * 3);
+        for (int i = 0; i < n_drones; i++) {
+            flat[i*3]   = positions[i][0] / 100.0f;
+            flat[i*3+1] = positions[i][1] / 100.0f;
+            flat[i*3+2] = (positions[i][2] - 60.0f) / 60.0f;
+        }
+        Vec h = flat;
+        for (const auto& layer : layers) h = layer.forward(h);
+        return h[0];  // probability of real
+    }
+};
+
+// ============================================================
+// GAN orchestrator
+
+class FormationGAN {
+public:
+    Generator    generator;
+    Discriminator discriminator;
+    int n_drones;
+
+    explicit FormationGAN(int n_drones = 10)
+        : generator(n_drones), discriminator(n_drones), n_drones(n_drones) {}
+
+    // Generate an optimal formation
+    std::vector<std::array<float,3>> generate_formation(unsigned seed = 0) const {
+        auto noise = generator.sample_noise(seed);
+        return generator.generate(noise);
+    }
+
+    // Score how "real" (good) a formation looks
+    float score_formation(const std::vector<std::array<float,3>>& positions) const {
+        return discriminator.discriminate(positions);
+    }
+
+    // Find best formation from multiple samples
+    std::vector<std::array<float,3>> best_formation(int n_samples = 10) const {
+        float best_score = -1.0f;
+        std::vector<std::array<float,3>> best;
+
+        for (int i = 0; i < n_samples; i++) {
+            auto f = generate_formation(i * 137);
+            float score = score_formation(f);
+            if (score > best_score) {
+                best_score = score;
+                best = f;
+            }
+        }
+        return best;
+    }
+};
+
+}  // namespace sdacs
 
 int main() {
-    PRNG rng(42);
-    int n_drones = 8, latent = 16;
-    Generator gen(latent, 32, n_drones*3, rng);
-    Discriminator disc(n_drones*3, 16, rng);
+    sdacs::FormationGAN gan(8);
+    auto formation = gan.best_formation(20);
 
-    for (int epoch = 0; epoch < 20; epoch++) {
-        std::vector<double> z(latent);
-        for (auto& v : z) v = rng.normal();
-        auto fake = gen.forward(z);
-        double d_score = disc.forward(fake);
-        double quality = evaluateFormation(fake, n_drones);
-        gen.perturb(rng, 0.005);
-        disc.perturb(rng, 0.005);
-        if (epoch % 5 == 0)
-            printf("Epoch %2d: D=%.4f quality=%.4f\n", epoch, d_score, quality);
+    std::cout << "Phase 524: Formation GAN — Generated " << formation.size()
+              << " drone positions:\n";
+    for (size_t i = 0; i < formation.size(); i++) {
+        std::cout << "  D" << i << ": ("
+                  << formation[i][0] << ", "
+                  << formation[i][1] << ", "
+                  << formation[i][2] << ")\n";
     }
-    printf("Training complete: %d epochs\n", 20);
+
+    float score = gan.score_formation(formation);
+    std::cout << "Formation score: " << score << "\n";
     return 0;
 }

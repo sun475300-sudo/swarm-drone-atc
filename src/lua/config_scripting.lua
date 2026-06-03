@@ -1,105 +1,56 @@
--- Phase 635: Config Scripting — Lua Embedded Configuration Engine
--- 임베디드 설정 스크립트 엔진 (드론 FW)
+-- Phase 635: Config Scripting — Lua
+-- SDACS Lua-based configuration scripting for drone fleet parameters
 
-local ConfigEngine = {}
-ConfigEngine.__index = ConfigEngine
+local Config = {}
+Config.__index = Config
 
-function ConfigEngine.new()
-    local self = setmetatable({}, ConfigEngine)
-    self.params = {}
-    self.defaults = {
-        max_altitude = 120.0,
-        min_separation = 50.0,
-        max_speed = 15.0,
-        battery_threshold = 0.15,
-        heartbeat_interval = 1.0,
-        geofence_radius = 500.0,
-        wind_compensation = true,
-        formation_type = "V",
-        communication_freq = 1.0,
-        emergency_protocol = "RTL",
-    }
-    self.validators = {}
-    self.history = {}
+function Config.new(defaults)
+    local self = setmetatable({}, Config)
+    self._store   = {}
+    self._defaults = defaults or {}
+    self._validators = {}
+    for k, v in pairs(self._defaults) do self._store[k] = v end
     return self
 end
 
-function ConfigEngine:set(key, value)
-    if self.validators[key] then
-        local ok, err = self.validators[key](value)
-        if not ok then
-            return false, "Validation failed: " .. (err or "unknown")
-        end
+function Config:set(key, value)
+    local validator = self._validators[key]
+    if validator and not validator(value) then
+        error("Invalid value for key: " .. key)
     end
-    local old = self.params[key]
-    self.params[key] = value
-    table.insert(self.history, {
-        key = key,
-        old_value = old,
-        new_value = value,
-        timestamp = os.time(),
-    })
-    return true
+    self._store[key] = value
 end
 
-function ConfigEngine:get(key)
-    if self.params[key] ~= nil then
-        return self.params[key]
+function Config:get(key, default)
+    return self._store[key] ~= nil and self._store[key] or default
+end
+
+function Config:validate(key, fn)
+    self._validators[key] = fn
+end
+
+function Config:load_string(str)
+    local fn = load("return {" .. str .. "}")
+    if not fn then return false end
+    local ok, data = pcall(fn)
+    if ok and type(data) == "table" then
+        for k, v in pairs(data) do self:set(k, v) end
+        return true
     end
-    return self.defaults[key]
+    return false
 end
 
-function ConfigEngine:add_validator(key, fn)
-    self.validators[key] = fn
+function Config:all()
+    return self._store
 end
 
-function ConfigEngine:load_profile(profile)
-    for key, value in pairs(profile) do
-        self:set(key, value)
-    end
-end
-
-function ConfigEngine:export()
-    local result = {}
-    for key, default_val in pairs(self.defaults) do
-        result[key] = self:get(key)
-    end
-    for key, val in pairs(self.params) do
-        result[key] = val
-    end
-    return result
-end
-
-function ConfigEngine:get_history()
-    return self.history
-end
-
-function ConfigEngine:reset()
-    self.params = {}
-    self.history = {}
-end
-
--- Predefined profiles
-local PROFILES = {
-    normal = {
-        max_altitude = 120.0,
-        min_separation = 50.0,
-        max_speed = 15.0,
-    },
-    high_density = {
-        max_altitude = 80.0,
-        min_separation = 30.0,
-        max_speed = 10.0,
-    },
-    storm = {
-        max_altitude = 50.0,
-        min_separation = 80.0,
-        max_speed = 8.0,
-        wind_compensation = true,
-    },
-}
-
-return {
-    ConfigEngine = ConfigEngine,
-    PROFILES = PROFILES,
-}
+-- Demo
+local cfg = Config.new({
+    drone_count   = 10,
+    max_altitude  = 120,
+    default_speed = 10,
+})
+cfg:validate("drone_count", function(v) return type(v)=="number" and v > 0 end)
+cfg:set("drone_count", 15)
+print("Phase 635: drone_count=" .. cfg:get("drone_count"))
+print("max_altitude=" .. cfg:get("max_altitude"))

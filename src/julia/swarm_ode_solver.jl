@@ -1,98 +1,64 @@
-# Phase 631: Swarm ODE Solver — Julia High-Performance Integration
-# 고성능 ODE 수치 적분
+# Phase 631: Swarm ODE Solver — Julia
+# SDACS numerical ODE integration for drone swarm dynamics
 
 module SwarmODESolver
 
-using LinearAlgebra
+export DroneODEState, swarm_dynamics!, rk4_step, simulate_swarm
 
-struct DroneState
-    x::Float64
-    y::Float64
-    z::Float64
-    vx::Float64
-    vy::Float64
-    vz::Float64
+struct DroneODEState
+    position :: Vector{Float64}  # [x, y, z]
+    velocity :: Vector{Float64}  # [vx, vy, vz]
 end
 
-struct SwarmODE
-    n_drones::Int
-    states::Vector{DroneState}
-    dt::Float64
-    k_repulsion::Float64
-    k_attraction::Float64
-end
+function swarm_dynamics!(du, u, p, t)
+    # u = [x, y, z, vx, vy, vz] for each drone
+    n_drones = length(u) ÷ 6
+    k_rep = p[:k_rep]
 
-function create_swarm(n::Int; dt=0.01, k_rep=100.0, k_att=0.1)
-    states = [DroneState(
-        randn() * 20, randn() * 20, rand() * 50 + 10,
-        0.0, 0.0, 0.0
-    ) for _ in 1:n]
-    SwarmODE(n, states, dt, k_rep, k_att)
-end
-
-function compute_acceleration(swarm::SwarmODE, i::Int)
-    ax, ay, az = 0.0, 0.0, 0.0
-    si = swarm.states[i]
-
-    for j in 1:swarm.n_drones
-        j == i && continue
-        sj = swarm.states[j]
-        dx = sj.x - si.x
-        dy = sj.y - si.y
-        dz = sj.z - si.z
-        dist = sqrt(dx^2 + dy^2 + dz^2) + 1e-3
-
-        # Repulsion (close range)
-        f_rep = -swarm.k_repulsion / dist^3
-        # Attraction (long range)
-        f_att = swarm.k_attraction * dist
-
-        f_total = f_rep + f_att
-        ax += f_total * dx / dist
-        ay += f_total * dy / dist
-        az += f_total * dz / dist
-    end
-
-    return (ax, ay, az)
-end
-
-# RK4 integration step
-function rk4_step!(swarm::SwarmODE)
-    n = swarm.n_drones
-    dt = swarm.dt
-    new_states = Vector{DroneState}(undef, n)
-
-    for i in 1:n
-        s = swarm.states[i]
-        ax, ay, az = compute_acceleration(swarm, i)
-
-        # k1
-        k1_vx, k1_vy, k1_vz = ax, ay, az
-        k1_x, k1_y, k1_z = s.vx, s.vy, s.vz
-
-        # Simplified RK4 (using Euler for inner stages)
-        new_vx = s.vx + dt * k1_vx
-        new_vy = s.vy + dt * k1_vy
-        new_vz = s.vz + dt * k1_vz
-        new_x = s.x + dt * k1_x
-        new_y = s.y + dt * k1_y
-        new_z = s.z + dt * k1_z
-
-        # Damping
-        new_vx *= 0.99
-        new_vy *= 0.99
-        new_vz *= 0.99
-
-        new_states[i] = DroneState(new_x, new_y, max(0.0, new_z), new_vx, new_vy, new_vz)
-    end
-
-    for i in 1:n
-        swarm.states[i] = new_states[i]
+    for i in 1:n_drones
+        idx = (i-1)*6 + 1
+        pos_i = u[idx:idx+2]
+        vel_i = u[idx+3:idx+5]
+        du[idx:idx+2]   = vel_i  # dx/dt = v
+        force = zeros(3)
+        for j in 1:n_drones
+            if i == j; continue; end
+            jdx   = (j-1)*6 + 1
+            pos_j = u[jdx:jdx+2]
+            diff  = pos_i - pos_j
+            dist  = max(norm(diff), 1e-3)
+            if dist < 50.0
+                force += k_rep * diff / dist^3
+            end
+        end
+        du[idx+3:idx+5] = force  # dv/dt = F/m
     end
 end
 
-function total_kinetic_energy(swarm::SwarmODE)
-    sum(0.5 * (s.vx^2 + s.vy^2 + s.vz^2) for s in swarm.states)
+function rk4_step(f, u, p, t, dt)
+    k1 = similar(u); f(k1, u,           p, t)
+    k2 = similar(u); f(k2, u .+ dt/2*k1, p, t + dt/2)
+    k3 = similar(u); f(k3, u .+ dt/2*k2, p, t + dt/2)
+    k4 = similar(u); f(k4, u .+ dt*k3,   p, t + dt)
+    u .+ dt/6 .* (k1 .+ 2k2 .+ 2k3 .+ k4)
 end
 
-end # module
+function simulate_swarm(n::Int, T::Float64, dt::Float64)
+    u = rand(n * 6) .* 100
+    p = Dict(:k_rep => 100.0)
+    t = 0.0
+    steps = round(Int, T / dt)
+    for _ in 1:steps
+        du = zeros(n*6)
+        swarm_dynamics!(du, u, p, t)
+        u = rk4_step(swarm_dynamics!, u, p, t, dt)
+        t += dt
+    end
+    u
+end
+
+end
+
+using .SwarmODESolver
+u = simulate_swarm(5, 1.0, 0.01)
+println("Phase 631: Swarm ODE Solver — final state shape: $(size(u))")

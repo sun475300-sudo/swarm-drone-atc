@@ -83,6 +83,12 @@ try {
   ok(perf && perf.drones === 1000 && perf.megaMode === true && perf.drawCalls > 0 && perf.drawCalls < perf.drones && Number.isFinite(perf.fps) && perf.visibleInstances > 0,
     `B6 성능 측정 (DC=${perf.drawCalls} < 1000대, fps=${perf.fps}, vis=${perf.visibleInstances})`);
 
+  // 8b2. B2(P732) 대규모 CPA 공간 해시 — 1000대 스폰 규모에서 충돌예측이 더 이상 하드 스킵(>400)되지 않고
+  // 매 프레임 공간 해시로 실행되어 충돌쌍 수를 노출(유한·비음수). 이전엔 air>400시 즉시 return으로 생략됐다.
+  const cpa1k = await page.evaluate(() => ({ pairs: window._sdacs.cpaPairs, spawned: window._sdacs.droneCount }));
+  ok(cpa1k.spawned === 1000 && Number.isFinite(cpa1k.pairs) && cpa1k.pairs >= 0,
+    `B2 대규모 CPA 공간해시 (spawned=${cpa1k.spawned}, pairs=${cpa1k.pairs})`);
+
   // 8c. B4 다중 선택 — 여러 드론 선택 후 집계 패널 동작
   await page.evaluate(() => window._sdacs.selectScenario('route_conflict'));
   await page.waitForTimeout(400);

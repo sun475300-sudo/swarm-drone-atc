@@ -7,6 +7,7 @@
 
 ### 추가 (feat)
 
+- `scripts/daily_status_report.py` — 일일 상태 리포트 생성기 (로드맵 트랙별 진행도·pytest 수집 수·git 현황을 `reports/daily_status/<날짜>.md` 로 기록)
 - `FormationPattern.DIAMOND` (5번째 편대 패턴) — 영상 컨셉 4방향 외곽 확장 (`a222b08`, PR #23)
 - `swarm_autonomous_no_preplan` 시나리오 — 사전 경로 없이 자율 탐색 데모 (`4c67eac`, PR #23)
 - `docs/MASTER_TODO_ATC.md` — 통합 백로그 (A0~A4 트랙 + Phase 691~720) (PR #19)
@@ -33,6 +34,7 @@
 
 ### 테스트 (test)
 
+- `tests/test_daily_status_report.py` — 일일 상태 리포트 순수 함수(로드맵 파싱·pytest 수집 파싱·리포트 생성) 7건
 - `tests/test_apf_engine_fallback.py` — torch fallback 회귀 방지 4건 (PR #19)
 - `tests/test_main_cli.py` — argparse 회귀 방어 8건 (PR #22)
 - `tests/test_formation.py` — 5 패턴 30 회귀 (DIAMOND 신규 포함) (PR #23)

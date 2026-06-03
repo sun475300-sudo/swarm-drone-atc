@@ -39,8 +39,10 @@ PASS  런타임 에러 0건
 | 9 | 리포트 PNG | `buildReportCanvas` | PASS |
 | 10 | 대규모 InstancedMesh | `syncInstances`(megaMode) | PASS |
 | 11 | 런타임 에러 0건 | pageerror 수집 | PASS |
+| 12 | P732 대규모 CPA 충돌예측 | `updateConflictViz`(공간 해시) + `_sdacs.conflictPairs` | PASS |
 
 > 주: 헤드리스 swiftshader FPS는 3~5fps로 실제 GPU 성능과 무관(렌더 병목). 본 스모크는 **기능·무에러 회귀** 검증용이며 FPS 수치는 측정 대상이 아니다.
+> P732(B2): `updateConflictViz`를 공간 해시 그리드(O(N·k))로 재작성해 기존 400대 컷오프를 제거, megaMode(1000대)에서도 CPA 충돌쌍을 검출·시각화(상위 60쌍 렌더)한다. 헤드리스에서는 저FPS로 동시 공중 드론이 ~10대에 그쳐 충돌쌍 수는 작지만(0~1), megaMode에서 새 경로가 무행(no-hang)으로 실행됨을 회귀 검증한다.
 
 ---
 

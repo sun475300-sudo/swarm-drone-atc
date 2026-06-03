@@ -83,6 +83,12 @@ try {
   ok(perf && perf.drones === 1000 && perf.megaMode === true && perf.drawCalls > 0 && perf.drawCalls < perf.drones && Number.isFinite(perf.fps) && perf.visibleInstances > 0,
     `B6 성능 측정 (DC=${perf.drawCalls} < 1000대, fps=${perf.fps}, vis=${perf.visibleInstances})`);
 
+  // 8b2. P732 대규모 CPA 충돌예측 복원 — megaMode(1000대)에서 공간 해시로 충돌쌍 검출(과거 400대 컷오프 제거)
+  const cp = await page.evaluate(() => window._sdacs.conflictPairs);
+  const cpMega = await page.evaluate(() => window._sdacs.megaMode);
+  ok(cpMega === true && Number.isFinite(cp) && cp >= 0,
+    `P732 대규모 CPA 충돌쌍 검출 (megaMode, pairs=${cp})`);
+
   // 8c. B4 다중 선택 — 여러 드론 선택 후 집계 패널 동작
   await page.evaluate(() => window._sdacs.selectScenario('route_conflict'));
   await page.waitForTimeout(400);

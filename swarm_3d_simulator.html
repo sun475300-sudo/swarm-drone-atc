@@ -4936,6 +4936,7 @@
         const conflictVizGroup = new THREE.Group(); scene.add(conflictVizGroup);
         const _cvLines = [], _cvMarks = []; let _cvLineIdx = 0, _cvMarkIdx = 0;
         const _cvLabels = []; let _cvLabelData = []; // {x,y,z,ttc,cpa} — 저빈도 재생성
+        let _conflictPairCount = 0; // P732: 검출된 전체 충돌쌍 수(시각화 상한과 무관)
         function _cvLine() {
             let l = _cvLines[_cvLineIdx];
             if (!l) {
@@ -4960,49 +4961,82 @@
             const f = Math.max(0, Math.min(1, ttc / CPA_LOOKAHEAD));
             return (255 << 16) | (Math.round(40 + 170 * f) << 8) | 40;
         }
+        // P732(B2): 공간 해시 그리드로 O(N·k) 이웃 탐색 → 1k+ 대규모 환경에서도 CPA 충돌쌍 예측 복원.
+        // 기존 O(N²)·400대 컷오프를 제거하고, 검출된 전체 쌍 수(_conflictPairCount)는 그대로 노출하되
+        // 선/마커 렌더는 가장 위험한 MAX_PAIRS쌍으로 상한을 둔다(대규모 렌더 비용 억제).
         function updateConflictViz() {
             for (let i = 0; i < _cvLineIdx; i++) _cvLines[i].visible = false;
             for (let i = 0; i < _cvMarkIdx; i++) _cvMarks[i].visible = false;
             _cvLineIdx = 0; _cvMarkIdx = 0;
+            _conflictPairCount = 0;
             if (!showConflictViz) { _cvLabelData = []; return; }
             const air = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
-            if (air.length > 400) { _cvLabelData = []; return; } // 초대규모는 생략(성능)
             const THRESH = NEAR_MISS_DIST * 1.5;
-            const labelCand = [];
-            let pairs = 0; const MAX_PAIRS = 60;
-            for (let i = 0; i < air.length && pairs < MAX_PAIRS; i++) {
-                const a = air[i];
+
+            // 공간 해시: 셀 크기 EVADE_DIST, 3×3 인접 셀만 검사
+            const cellSize = EVADE_DIST;
+            const grid = new Map();
+            for (const d of air) {
+                const key = Math.floor(d.wx / cellSize) + ',' + Math.floor(d.wz / cellSize);
+                let cell = grid.get(key);
+                if (!cell) { cell = []; grid.set(key, cell); }
+                cell.push(d);
+            }
+
+            const cand = []; // {a,b,ttc,cpa} 위험 쌍 후보
+            const seen = new Set();
+            for (const a of air) {
+                const cx = Math.floor(a.wx / cellSize), cz = Math.floor(a.wz / cellSize);
                 const ra = a.heading * Math.PI / 180;
                 const avx = Math.sin(ra) * a.speed, avz = Math.cos(ra) * a.speed, avy = a.vy || 0;
-                for (let j = i + 1; j < air.length && pairs < MAX_PAIRS; j++) {
-                    const b = air[j];
-                    const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
-                    if (Math.abs(dx) > EVADE_DIST || Math.abs(dz) > EVADE_DIST) continue;
-                    const rb = b.heading * Math.PI / 180;
-                    const dvx = avx - Math.sin(rb) * b.speed, dvz = avz - Math.cos(rb) * b.speed, dvy = avy - (b.vy || 0);
-                    const relV2 = dvx * dvx + dvz * dvz + dvy * dvy;
-                    if (relV2 < 0.1) continue;
-                    const tCPA = -(dx * dvx + dz * dvz + dy * dvy) / relV2;
-                    if (tCPA <= 0 || tCPA > CPA_LOOKAHEAD) continue; // 수렴 + 예측 지평 내
-                    const fpx = dx + dvx * tCPA, fpz = dz + dvz * tCPA, fpy = dy + dvy * tCPA;
-                    const cpaDist = Math.sqrt(fpx * fpx + fpz * fpz + fpy * fpy);
-                    if (cpaDist > THRESH) continue;
-                    const col = ttcColor(tCPA);
-                    const ln = _cvLine(), p = ln.geometry.attributes.position.array;
-                    p[0] = a.group.position.x; p[1] = a.group.position.y; p[2] = a.group.position.z;
-                    p[3] = b.group.position.x; p[4] = b.group.position.y; p[5] = b.group.position.z;
-                    ln.geometry.attributes.position.needsUpdate = true;
-                    ln.material.color.set(col); ln.material.opacity = cpaDist < NEAR_MISS_DIST ? 0.75 : 0.4;
-                    ln.visible = true;
-                    const mk = _cvMark();
-                    mk.position.set((a.group.position.x + b.group.position.x) / 2,
-                        (a.group.position.y + b.group.position.y) / 2,
-                        (a.group.position.z + b.group.position.z) / 2);
-                    const s = cpaDist < NEAR_MISS_DIST ? 1.5 : 1.0;
-                    mk.scale.set(s, s, s); mk.material.color.set(col); mk.material.opacity = 0.9; mk.visible = true;
-                    labelCand.push({ x: mk.position.x, y: mk.position.y + 0.6, z: mk.position.z, ttc: tCPA, cpa: cpaDist });
-                    pairs++;
+                for (let di = -1; di <= 1; di++) {
+                    for (let dj = -1; dj <= 1; dj++) {
+                        const cell = grid.get((cx + di) + ',' + (cz + dj));
+                        if (!cell) continue;
+                        for (const b of cell) {
+                            if (a === b) continue;
+                            const pairKey = a.id < b.id ? a.id + '|' + b.id : b.id + '|' + a.id;
+                            if (seen.has(pairKey)) continue;
+                            seen.add(pairKey);
+                            const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
+                            if (Math.abs(dx) > EVADE_DIST || Math.abs(dz) > EVADE_DIST) continue;
+                            const rb = b.heading * Math.PI / 180;
+                            const dvx = avx - Math.sin(rb) * b.speed, dvz = avz - Math.cos(rb) * b.speed, dvy = avy - (b.vy || 0);
+                            const relV2 = dvx * dvx + dvz * dvz + dvy * dvy;
+                            if (relV2 < 0.1) continue;
+                            const tCPA = -(dx * dvx + dz * dvz + dy * dvy) / relV2;
+                            if (tCPA <= 0 || tCPA > CPA_LOOKAHEAD) continue; // 수렴 + 예측 지평 내
+                            const fpx = dx + dvx * tCPA, fpz = dz + dvz * tCPA, fpy = dy + dvy * tCPA;
+                            const cpaDist = Math.sqrt(fpx * fpx + fpz * fpz + fpy * fpy);
+                            if (cpaDist > THRESH) continue;
+                            cand.push({ a, b, ttc: tCPA, cpa: cpaDist });
+                        }
+                    }
                 }
+            }
+            _conflictPairCount = cand.length;
+
+            // 가장 위험한(=CPA 이격 작은) 쌍부터 렌더 — 선/마커는 MAX_PAIRS로 상한
+            cand.sort((p, q) => (p.cpa - q.cpa) || (p.ttc - q.ttc));
+            const MAX_PAIRS = 60;
+            const lim = Math.min(cand.length, MAX_PAIRS);
+            const labelCand = [];
+            for (let k = 0; k < lim; k++) {
+                const { a, b, ttc, cpa } = cand[k];
+                const col = ttcColor(ttc);
+                const ln = _cvLine(), p = ln.geometry.attributes.position.array;
+                p[0] = a.group.position.x; p[1] = a.group.position.y; p[2] = a.group.position.z;
+                p[3] = b.group.position.x; p[4] = b.group.position.y; p[5] = b.group.position.z;
+                ln.geometry.attributes.position.needsUpdate = true;
+                ln.material.color.set(col); ln.material.opacity = cpa < NEAR_MISS_DIST ? 0.75 : 0.4;
+                ln.visible = true;
+                const mk = _cvMark();
+                mk.position.set((a.group.position.x + b.group.position.x) / 2,
+                    (a.group.position.y + b.group.position.y) / 2,
+                    (a.group.position.z + b.group.position.z) / 2);
+                const s = cpa < NEAR_MISS_DIST ? 1.5 : 1.0;
+                mk.scale.set(s, s, s); mk.material.color.set(col); mk.material.opacity = 0.9; mk.visible = true;
+                labelCand.push({ x: mk.position.x, y: mk.position.y + 0.6, z: mk.position.z, ttc, cpa });
             }
             // 가장 임박한 6쌍만 라벨 후보로 저장 (저빈도로 재생성)
             labelCand.sort((p, q) => p.ttc - q.ttc);
@@ -6896,6 +6930,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             async reportDataURL() { return (await buildReportCanvas()).toDataURL('image/png'); },
             exportPNG, exportCSV, exportHTML, exportMD,
             get megaMode() { return megaMode; },
+            get conflictPairs() { return _conflictPairCount; }, // P732: 공간 해시 CPA 충돌쌍 수
             get instanceCount() { return bodyInst.count; },
             get visibleInstances() { return _visibleInst; },
             get perf() { return { fps: perfMetrics.fps, cpuMs: +perfMetrics.cpuMs.toFixed(2), gpuMs: +perfMetrics.gpuMs.toFixed(2), drawCalls: perfMetrics.drawCalls, triangles: perfMetrics.triangles, drones: drones.length, megaMode, visibleInstances: _visibleInst }; }, // B6

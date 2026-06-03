@@ -1,0 +1,39 @@
+# ============================================================
+# SDACS ConfigMap — 비밀이 아닌 환경설정 값 저장
+# 시뮬레이션 파라미터, 서비스 URL, 로그 레벨 등을 Pod에 주입
+# ============================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sdacs.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sdacs.labels" . | nindent 4 }}
+data:
+  # ---- Python 런타임 설정 ----
+  PYTHONUNBUFFERED: {{ .Values.env.PYTHONUNBUFFERED | quote }}
+  PYTHONIOENCODING: {{ .Values.env.PYTHONIOENCODING | quote }}
+
+  # ---- 서버 포트 설정 ----
+  # FastAPI 백엔드가 리슨할 포트
+  API_PORT: {{ .Values.env.API_PORT | quote }}
+  # Dash 3D 시각화 대시보드가 리슨할 포트
+  DASH_PORT: {{ .Values.env.DASH_PORT | quote }}
+
+  # ---- 서비스 간 통신 URL ----
+  # 백엔드가 Redis에 접속하는 URL (드론 상태 캐싱 및 Pub/Sub)
+  REDIS_URL: {{ include "sdacs.redis.url" . | quote }}
+
+  # ---- 시뮬레이션 파라미터 ----
+  # 기본 드론 수 (drones.default_count 설정 키와 연동)
+  DEFAULT_DRONE_COUNT: {{ .Values.env.DEFAULT_DRONE_COUNT | quote }}
+  # APF 강풍 모드 전환 임계값 (m/s) — 이 값 초과 시 APF_PARAMS_WINDY 사용
+  WIND_THRESHOLD: {{ .Values.env.WIND_THRESHOLD | quote }}
+
+  # ---- 로깅 설정 ----
+  LOG_LEVEL: {{ .Values.env.LOG_LEVEL | quote }}
+
+  # ---- 시뮬레이션 설정 파일 경로 ----
+  # values.yaml의 volumes.config.mountPath와 동기화
+  CONFIG_PATH: {{ .Values.volumes.config.mountPath | quote }}
+  RESULTS_PATH: {{ .Values.volumes.results.mountPath | quote }}

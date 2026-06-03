@@ -1,0 +1,44 @@
+# P718 — Prometheus 스크레이프 설정
+# SDACS FastAPI 및 Redis 메트릭 수집
+
+global:
+  scrape_interval: 15s       # 기본 수집 주기
+  evaluation_interval: 15s   # 알럿 평가 주기
+  scrape_timeout: 10s
+
+# 알럿 규칙 파일 경로
+rule_files:
+  - "alerts.yml"
+
+# Alertmanager 연동 (선택적 — 필요 시 활성화)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ["alertmanager:9093"]
+
+scrape_configs:
+  # SDACS FastAPI 메트릭 엔드포인트
+  - job_name: "sdacs-api"
+    static_configs:
+      - targets: ["localhost:8080"]
+        labels:
+          service: "sdacs-api"
+          env: "production"
+    metrics_path: "/metrics"
+    scrape_interval: 15s
+
+  # Redis Exporter 메트릭 (redis_exporter가 있을 경우)
+  - job_name: "redis"
+    static_configs:
+      - targets: ["localhost:9121"]  # redis_exporter 기본 포트
+        labels:
+          service: "redis"
+          env: "production"
+    scrape_interval: 15s
+
+  # Prometheus 자체 메트릭
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+        labels:
+          service: "prometheus"

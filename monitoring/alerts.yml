@@ -1,0 +1,87 @@
+# P718 — Prometheus 알럿 규칙
+# SDACS 핵심 SLO 기반 경고 정의
+
+groups:
+  - name: sdacs_performance
+    interval: 30s
+    rules:
+      # 드론 처리 지연 > 100ms 경고
+      - alert: DroneProcessingLatencyHigh
+        expr: |
+          histogram_quantile(0.95,
+            rate(request_duration_seconds_bucket{job="sdacs-api"}[5m])
+          ) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          team: sdacs
+        annotations:
+          summary: "드론 처리 응답 시간 p95 초과"
+          description: >
+            API p95 응답 시간이 100ms를 초과했습니다.
+            현재 값: {{ $value | humanizeDuration }}.
+            대상: {{ $labels.instance }}
+
+      # API 오류율 > 5% 경고
+      - alert: APIErrorRateHigh
+        expr: |
+          (
+            rate(api_requests_total{status=~"5.."}[5m])
+            /
+            rate(api_requests_total[5m])
+          ) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          team: sdacs
+        annotations:
+          summary: "API 5xx 오류율 5% 초과"
+          description: >
+            지난 5분간 API 5xx 오류율이 {{ $value | humanizePercentage }}입니다.
+            대상: {{ $labels.instance }}
+
+  - name: sdacs_resources
+    interval: 60s
+    rules:
+      # 메모리 사용률 > 85% 경고
+      - alert: MemoryUsageHigh
+        expr: |
+          (
+            process_resident_memory_bytes{job="sdacs-api"}
+            /
+            node_memory_MemTotal_bytes
+          ) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          team: sdacs
+        annotations:
+          summary: "메모리 사용률 85% 초과"
+          description: >
+            프로세스 메모리 사용률이 {{ $value | humanizePercentage }}입니다.
+            대상: {{ $labels.instance }}
+
+      # Redis 연결 끊김 경고
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: sdacs
+        annotations:
+          summary: "Redis 인스턴스 응답 없음"
+          description: "Redis가 1분 이상 응답하지 않습니다. 대상: {{ $labels.instance }}"
+
+  - name: sdacs_simulation
+    interval: 30s
+    rules:
+      # 활성 드론 수 비정상 저하
+      - alert: ActiveDronesLow
+        expr: active_drones < 1
+        for: 3m
+        labels:
+          severity: info
+          team: sdacs
+        annotations:
+          summary: "활성 드론 없음"
+          description: "3분 이상 활성 드론이 0입니다. 시뮬레이션이 정지했을 수 있습니다."

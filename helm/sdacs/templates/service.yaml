@@ -1,0 +1,46 @@
+# ============================================================
+# SDACS Service — Pod에 대한 안정적인 네트워크 엔드포인트 제공
+# 백엔드(FastAPI)와 대시보드(Dash)를 각각 별도 서비스로 노출
+# Ingress가 각 서비스로 경로를 라우팅함
+# ============================================================
+
+# ---- 백엔드 서비스 (FastAPI REST API + WebSocket /ws/telemetry) ----
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sdacs.fullname" . }}-backend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sdacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    # Deployment의 selectorLabels와 일치해야 함
+    {{- include "sdacs.selectorLabels" . | nindent 4 }}
+  ports:
+    # FastAPI HTTP 포트 (REST API + WebSocket)
+    - name: http-backend
+      port: {{ .Values.service.backendPort }}
+      targetPort: backend
+      protocol: TCP
+---
+# ---- 대시보드 서비스 (Dash 3D 시각화) ----
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sdacs.fullname" . }}-dashboard
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sdacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: dashboard
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "sdacs.selectorLabels" . | nindent 4 }}
+  ports:
+    # Dash 3D 시각화 대시보드 포트
+    - name: http-dashboard
+      port: {{ .Values.service.dashboardPort }}
+      targetPort: dashboard
+      protocol: TCP

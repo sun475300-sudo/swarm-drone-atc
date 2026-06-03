@@ -1,0 +1,292 @@
+# ============================================================
+# SDACS Helm 차트 기본값 (values.yaml)
+# 각 항목은 helm install --set 또는 -f custom-values.yaml로 덮어쓸 수 있음
+# ============================================================
+
+# ------------------------------------------------------------
+# 글로벌 설정
+# ------------------------------------------------------------
+global:
+  # 네임스페이스 전체에서 공유할 이미지 풀 시크릿 (프라이빗 레지스트리 사용 시 설정)
+  imagePullSecrets: []
+
+# ------------------------------------------------------------
+# SDACS 백엔드 복제본 수
+# ------------------------------------------------------------
+replicaCount: 2
+
+# ------------------------------------------------------------
+# 컨테이너 이미지 설정
+# ------------------------------------------------------------
+image:
+  # 컨테이너 레지스트리 + 이미지 이름
+  repository: sdacs
+  # 이미지 태그 (CI/CD에서 빌드 번호로 덮어쓰는 것을 권장)
+  tag: latest
+  # 이미지 풀 정책: IfNotPresent(기본), Always, Never
+  pullPolicy: IfNotPresent
+
+# 프라이빗 레지스트리 시크릿 이름 목록
+imagePullSecrets: []
+
+# ------------------------------------------------------------
+# 서비스 계정 설정
+# ------------------------------------------------------------
+serviceAccount:
+  # 서비스 계정 자동 생성 여부
+  create: true
+  annotations: {}
+  # 비어있으면 차트 이름 기반으로 자동 생성
+  name: ""
+
+# ------------------------------------------------------------
+# Pod 어노테이션 / 레이블
+# ------------------------------------------------------------
+podAnnotations: {}
+podLabels: {}
+
+# Pod 보안 컨텍스트 (루트 실행 방지 등)
+podSecurityContext:
+  fsGroup: 2000
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# 컨테이너 보안 컨텍스트
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+# ------------------------------------------------------------
+# 컨테이너 포트 설정
+# ------------------------------------------------------------
+ports:
+  # FastAPI 백엔드 포트
+  backend: 8080
+  # Dash 3D 시각화 대시보드 포트
+  dashboard: 8050
+
+# ------------------------------------------------------------
+# Kubernetes Service 설정
+# ------------------------------------------------------------
+service:
+  # ClusterIP: 클러스터 내부 전용 / LoadBalancer: 외부 노출
+  type: ClusterIP
+  # 외부에서 접근할 포트 (LoadBalancer 또는 NodePort 타입에서 사용)
+  port: 80
+  # 백엔드 서비스 포트
+  backendPort: 8080
+  # 대시보드 서비스 포트
+  dashboardPort: 8050
+
+# ------------------------------------------------------------
+# Ingress 설정
+# ------------------------------------------------------------
+ingress:
+  # Ingress 리소스 활성화 여부
+  enabled: true
+  # Ingress 컨트롤러 클래스 이름 (nginx, traefik, alb 등)
+  className: nginx
+  annotations:
+    # nginx rewrite 설정 — /api/* 경로를 백엔드로 전달
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # WebSocket 업그레이드 지원 (ws/telemetry 엔드포인트용)
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+  hosts:
+    - host: sdacs.local
+      paths:
+        # 루트 경로 → Dash 대시보드
+        - path: /
+          pathType: Prefix
+          service: dashboard
+        # /api 경로 → FastAPI 백엔드
+        - path: /api(/|$)(.*)
+          pathType: ImplementationSpecific
+          service: backend
+        # WebSocket 텔레메트리 엔드포인트
+        - path: /ws
+          pathType: Prefix
+          service: backend
+  tls: []
+  # TLS 설정 예시:
+  # - secretName: sdacs-tls
+  #   hosts:
+  #     - sdacs.local
+
+# ------------------------------------------------------------
+# 컨테이너 리소스 요청 및 제한
+# ------------------------------------------------------------
+resources:
+  requests:
+    # 최소 CPU 보장량 (500 밀리코어)
+    cpu: 500m
+    # 최소 메모리 보장량
+    memory: 512Mi
+  limits:
+    # 최대 CPU 사용량 (2 코어)
+    cpu: 2000m
+    # 최대 메모리 사용량
+    memory: 2Gi
+
+# ------------------------------------------------------------
+# Liveness / Readiness Probe 설정
+# ------------------------------------------------------------
+livenessProbe:
+  httpGet:
+    # FastAPI 헬스체크 엔드포인트
+    path: /health
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  failureThreshold: 3
+
+# ------------------------------------------------------------
+# HorizontalPodAutoscaler (HPA) 설정
+# ------------------------------------------------------------
+autoscaling:
+  # HPA 활성화 여부
+  enabled: true
+  # 최소 복제본 수
+  minReplicas: 2
+  # 최대 복제본 수 (트래픽 급증 시 자동 확장)
+  maxReplicas: 10
+  # CPU 사용률 임계값 (70% 초과 시 스케일 아웃)
+  targetCPUUtilizationPercentage: 70
+  # 메모리 사용률 임계값 (80% 초과 시 스케일 아웃)
+  targetMemoryUtilizationPercentage: 80
+
+# ------------------------------------------------------------
+# Pod 배치 전략 (노드 분산, 토폴로지 설정)
+# ------------------------------------------------------------
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  # 동일 노드에 여러 Pod가 집중되지 않도록 분산 배치
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - sdacs
+          topologyKey: kubernetes.io/hostname
+
+# ------------------------------------------------------------
+# 배포 전략 설정
+# ------------------------------------------------------------
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    # 업데이트 중 동시에 교체할 최대 Pod 수
+    maxSurge: 1
+    # 업데이트 중 최소 가용 Pod 수
+    maxUnavailable: 0
+
+# ------------------------------------------------------------
+# 환경 변수 설정 (ConfigMap에서 주입)
+# ------------------------------------------------------------
+env:
+  PYTHONUNBUFFERED: "1"
+  PYTHONIOENCODING: "utf-8"
+  # FastAPI 서버 포트
+  API_PORT: "8080"
+  # Dash 대시보드 포트
+  DASH_PORT: "8050"
+  # 시뮬레이션 기본 드론 수
+  DEFAULT_DRONE_COUNT: "20"
+  # APF 알고리즘 강풍 임계값 (m/s)
+  WIND_THRESHOLD: "10.0"
+  # 로그 레벨
+  LOG_LEVEL: "INFO"
+
+# ------------------------------------------------------------
+# Redis 설정 (드론 상태 캐싱 및 Pub/Sub 메시징)
+# ------------------------------------------------------------
+redis:
+  # Redis StatefulSet 활성화 여부
+  enabled: true
+  image:
+    repository: redis
+    # notify-keyspace-events 지원이 검증된 버전
+    tag: "7.2-alpine"
+    pullPolicy: IfNotPresent
+  # Redis 서비스 포트
+  port: 6379
+  # Keyspace 이벤트 알림 활성화 (드론 상태 변경 감지용)
+  config: |
+    notify-keyspace-events KEA
+    maxmemory 256mb
+    maxmemory-policy allkeys-lru
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  # Redis 데이터 영속성 볼륨 (StatefulSet PVC)
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 1Gi
+
+# ------------------------------------------------------------
+# PostgreSQL / TimescaleDB 설정 (시계열 시뮬레이션 결과 저장)
+# ------------------------------------------------------------
+postgresql:
+  # PostgreSQL StatefulSet 활성화 여부
+  enabled: true
+  image:
+    # TimescaleDB 확장이 내장된 공식 이미지
+    repository: timescale/timescaledb
+    tag: "latest-pg15"
+    pullPolicy: IfNotPresent
+  port: 5432
+  # 데이터베이스 이름 (Secret에서 주입)
+  database: sdacs
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  persistence:
+    enabled: true
+    storageClass: ""
+    # 시뮬레이션 결과 저장을 위한 충분한 용량
+    size: 10Gi
+
+# ------------------------------------------------------------
+# 볼륨 마운트 설정
+# ------------------------------------------------------------
+volumes:
+  config:
+    # 시뮬레이션 설정 파일 마운트 경로
+    mountPath: /app/config
+  results:
+    # 시뮬레이션 결과 저장 경로
+    mountPath: /app/results
+
+# 추가 볼륨 마운트 (커스텀)
+extraVolumeMounts: []
+extraVolumes: []

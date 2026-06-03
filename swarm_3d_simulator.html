@@ -2653,7 +2653,20 @@
         bodyInst.visible = false;
         bodyInst.frustumCulled = false;
         scene.add(bodyInst);
+        // B3: 대규모 모드 글로우 인스턴스 — body와 동일 변환·색이되 크고 반투명(추가 draw call 1, 드론 수 무관)
+        const glowInst = new THREE.InstancedMesh(
+            new THREE.OctahedronGeometry(0.22, 0),
+            new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.22, depthWrite: false, blending: THREE.AdditiveBlending }),
+            MAX_INST
+        );
+        glowInst.count = 0;
+        glowInst.visible = false;
+        glowInst.frustumCulled = false;
+        glowInst.renderOrder = 1;
+        scene.add(glowInst);
+        const GLOW_SCALE = 2.1;   // body 대비 글로우 배율
         const _iM = new THREE.Matrix4(), _iPos = new THREE.Vector3(), _iScl = new THREE.Vector3(1, 1, 1);
+        const _iMg = new THREE.Matrix4(), _iSclG = new THREE.Vector3(1, 1, 1);
         const _iQ = new THREE.Quaternion(), _iCol = new THREE.Color();
         // 대규모 프러스텀 컬링 + LOD
         let megaCull = true;
@@ -2689,10 +2702,19 @@
                 bodyInst.setMatrixAt(i, _iM);
                 _iCol.setHex((PHASES[d.phase] || PHASES.GROUNDED).color);
                 bodyInst.setColorAt(i, _iCol);
+                // B3 글로우: 동일 위치·색, 더 크게(숨김 드론은 s=0이라 글로우도 0)
+                const gs = s * GLOW_SCALE;
+                _iSclG.set(gs, gs, gs);
+                _iMg.compose(_iPos, _iQ, _iSclG);
+                glowInst.setMatrixAt(i, _iMg);
+                glowInst.setColorAt(i, _iCol);
             }
             bodyInst.count = n;
             bodyInst.instanceMatrix.needsUpdate = true;
             if (bodyInst.instanceColor) bodyInst.instanceColor.needsUpdate = true;
+            glowInst.count = n;
+            glowInst.instanceMatrix.needsUpdate = true;
+            if (glowInst.instanceColor) glowInst.instanceColor.needsUpdate = true;
         }
 
         function _droneFromInstance(instanceId) {
@@ -2853,6 +2875,8 @@
             megaMode = count >= MEGA_THRESHOLD;
             bodyInst.visible = megaMode;
             bodyInst.count = 0;
+            glowInst.visible = megaMode;   // B3 글로우 인스턴스 동기화
+            glowInst.count = 0;
 
             // 기상 시스템 초기화 (전체 리셋)
             // 건물 표시 (도시 시나리오)

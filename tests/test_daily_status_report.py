@@ -127,3 +127,4 @@ def test_build_report_is_markdown_with_heading():
 
     # Assert
     assert report.lstrip().startswith("#")
+    assert "측정 안 함 (--no-pytest)" in report

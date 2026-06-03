@@ -18,6 +18,7 @@ import argparse
 import datetime as _dt
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
@@ -62,7 +63,7 @@ def parse_roadmap(text: str) -> dict:
     return {"tracks": tracks, "totals": totals}
 
 
-def parse_pytest_collect_output(output: str):
+def parse_pytest_collect_output(output: str) -> tuple[int | None, int | None]:
     """pytest 출력에서 (수집 수, 에러 수)를 추출한다. 못 찾으면 (None, None)."""
     match = _COLLECT.search(output)
     if not match:
@@ -122,7 +123,10 @@ def _git(args: list[str]) -> str:
         return subprocess.run(
             ["git", *args], cwd=_ROOT, capture_output=True, text=True, check=True
         ).stdout.strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except subprocess.CalledProcessError:
+        return ""
+    except FileNotFoundError:
+        print("[경고] git 실행 파일을 찾을 수 없어 git 현황을 생략합니다.", file=sys.stderr)
         return ""
 
 
@@ -135,11 +139,19 @@ def collect_git_stats() -> dict:
 
 def collect_test_stats() -> dict:
     proc = subprocess.run(
-        ["python", "-m", "pytest", "tests/", "--collect-only", "-q", "-o", "addopts="],
+        [sys.executable, "-m", "pytest", "tests/", "--collect-only", "-q",
+         "-o", "addopts="],
         cwd=_ROOT,
         capture_output=True,
         text=True,
     )
+    # 0=정상, 5=수집된 테스트 없음(유효). 그 외 코드는 수집 실패 신호.
+    if proc.returncode not in (0, 5):
+        print(
+            f"[경고] pytest --collect-only 가 코드 {proc.returncode} 로 종료됨 "
+            "(수집 실패 가능).",
+            file=sys.stderr,
+        )
     collected, errors = parse_pytest_collect_output(proc.stdout + proc.stderr)
     return {"collected": collected, "errors": errors}
 

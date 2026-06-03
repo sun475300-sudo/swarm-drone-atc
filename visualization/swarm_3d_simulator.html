@@ -6934,7 +6934,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             set megaCull(v) { megaCull = !!v; },
             get megaCull() { return megaCull; },
             get conflictPairs() { return _conflictPairCount; }, // B2: 직전 프레임 CPA 충돌쌍 수(대규모 포함)
-            _conflictPairCount(list) { return _conflictCandidates(list).length; }, // B2: 검증용 순수 함수
+            conflictPairCount(list) { return _conflictCandidates(list).length; }, // B2: 검증용 순수 함수(클로저 변수 _conflictPairCount와 구분)
             get replayFrames() { return recorder.frames.length; },
             get dni() { return { ...dniStats, objects: externalObjs.length }; },
             replaySeek(idx) { enterReplay(); replayIdx = Math.max(0, Math.min(idx, recorder.frames.length - 1)); applyFrame(replayIdx); return replayIdx; },

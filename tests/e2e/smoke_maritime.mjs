@@ -112,12 +112,13 @@ try {
   }
   ok(c8ok, 'C8 신규 시나리오 3종(storm/harbor/pirate)');
 
-  // 7e. C9 시나리오별 검증 기록 — 여러 시나리오 전환 후 기록 누적
+  // 7e. C9 시나리오별 검증 기록 — 탐지 누적 후 스냅샷 기록
+  // snapshotValidation() 게이트는 detected>=1 && simTime>=3. validation getter가 호출 시마다
+  // 현재 시나리오를 스냅샷하므로, 고정 대기/전환 타이밍에 의존하지 않고 기록이 채워질 때까지 폴링한다
+  // (느린 CI swiftshader에서 0건 스냅샷으로 플레이키하던 문제 해소).
   await page.evaluate(() => window._mds.start());
   await page.evaluate(() => window._mds.scenario('normal'));
-  await page.waitForTimeout(4000);                       // 탐지 누적
-  await page.evaluate(() => window._mds.scenario('fog')); // 전환 → normal 스냅샷
-  await page.waitForTimeout(500);
+  await page.waitForFunction(() => window._mds.validation.length > 0, { timeout: 25000 }).catch(() => {});
   const val = await page.evaluate(() => window._mds.validation);
   const vOK = Array.isArray(val) && val.length > 0 && val.every(r => typeof r.scen === 'string' && Number.isFinite(r.acc) && r.acc >= 0 && r.acc <= 100);
   ok(vOK, `C9 검증 기록 (${val.length}개 시나리오, 예: ${val[0]?.scen} acc=${val[0]?.acc?.toFixed(0)}%)`);

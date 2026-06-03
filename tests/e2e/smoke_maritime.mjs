@@ -122,6 +122,12 @@ try {
   const vOK = Array.isArray(val) && val.length > 0 && val.every(r => typeof r.scen === 'string' && Number.isFinite(r.acc) && r.acc >= 0 && r.acc <= 100);
   ok(vOK, `C9 검증 기록 (${val.length}개 시나리오, 예: ${val[0]?.scen} acc=${val[0]?.acc?.toFixed(0)}%)`);
 
+  // 7f. B5 i18n — EN 전환 시 제목이 영어로, KO 복귀 시 한국어로
+  const ko0 = await page.evaluate(() => window._mds.titleText);
+  const en1 = await page.evaluate(() => { window._mds.lang('en'); return window._mds.titleText; });
+  const ko1 = await page.evaluate(() => { window._mds.lang('ko'); return window._mds.titleText; });
+  ok(en1.includes('Detection') && en1 !== ko0 && ko1 === ko0, `B5 i18n (KO↔EN: "${en1.slice(0,28)}")`);
+
   // 8. 페이지 런타임 에러 없음
   ok(pageErrors.length === 0, `런타임 에러 0건${pageErrors.length ? ' → ' + pageErrors.join(' | ') : ''}`);
 } catch (e) {

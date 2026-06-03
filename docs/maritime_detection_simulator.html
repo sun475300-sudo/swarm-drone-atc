@@ -65,60 +65,63 @@
     <div id="cv"></div>
 
     <div class="hud top">
-        <div>
-            <div class="title">SDACS-MARINE — 소형선 감지·식별</div>
-            <div class="sub">Small-Vessel Detection &amp; Identification · Mother-ship Sensor Network</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div>
+                <div class="title" data-i18n="title">SDACS-MARINE — 소형선 감지·식별</div>
+                <div class="sub" data-i18n="sub">Small-Vessel Detection &amp; Identification · Mother-ship Sensor Network</div>
+            </div>
+            <button class="btn" id="btn-lang" style="font-size:9px;padding:3px 8px;" title="한국어/English">EN</button>
         </div>
         <div class="stats">
-            <div class="stat"><div class="l">선박</div><div class="v" id="s-total">0</div></div>
-            <div class="stat"><div class="l">탐지</div><div class="v" id="s-det" style="color:#22c55e;">0</div></div>
-            <div class="stat"><div class="l">식별</div><div class="v" id="s-id" style="color:#29c5ff;">0</div></div>
-            <div class="stat"><div class="l">비협조</div><div class="v" id="s-noncoop" style="color:#f59e0b;">0</div></div>
-            <div class="stat"><div class="l">CPA 경고</div><div class="v" id="s-cpa" style="color:#ef4444;">0</div></div>
+            <div class="stat"><div class="l" data-i18n="st.total">선박</div><div class="v" id="s-total">0</div></div>
+            <div class="stat"><div class="l" data-i18n="st.det">탐지</div><div class="v" id="s-det" style="color:#22c55e;">0</div></div>
+            <div class="stat"><div class="l" data-i18n="st.id">식별</div><div class="v" id="s-id" style="color:#29c5ff;">0</div></div>
+            <div class="stat"><div class="l" data-i18n="st.noncoop">비협조</div><div class="v" id="s-noncoop" style="color:#f59e0b;">0</div></div>
+            <div class="stat"><div class="l" data-i18n="st.cpa">CPA 경고</div><div class="v" id="s-cpa" style="color:#ef4444;">0</div></div>
         </div>
     </div>
 
     <div class="hud panel left">
-        <div class="ctitle">🛰 관제 · 시나리오</div>
+        <div class="ctitle" data-i18n="p.control">🛰 관제 · 시나리오</div>
         <div class="row">
-            <button class="btn active" id="btn-start" style="flex:1;">시작</button>
-            <button class="btn" id="btn-pause" style="flex:1;">일시정지</button>
-            <button class="btn" id="btn-reset" style="flex:1;">초기화</button>
+            <button class="btn active" id="btn-start" style="flex:1;" data-i18n="b.start">시작</button>
+            <button class="btn" id="btn-pause" style="flex:1;" data-i18n="b.pause">일시정지</button>
+            <button class="btn" id="btn-reset" style="flex:1;" data-i18n="b.reset">초기화</button>
         </div>
         <select id="scenario" style="margin-bottom:6px;">
-            <option value="normal">평시 (소형선 12척)</option>
-            <option value="busy">혼잡 항만 (24척)</option>
-            <option value="fog">안개·저시정 (탐지 저하)</option>
-            <option value="night">야간 (EO 저하)</option>
-            <option value="intrusion">비협조 침입 (고속정)</option>
-            <option value="storm">폭풍·악천후 (2NM, 시클러터↑)</option>
-            <option value="harbor">항만 출입 (느린 20척)</option>
-            <option value="pirate">비협조 고속정 다수 (18척)</option>
+            <option value="normal" data-i18n="sc.normal">평시 (소형선 12척)</option>
+            <option value="busy" data-i18n="sc.busy">혼잡 항만 (24척)</option>
+            <option value="fog" data-i18n="sc.fog">안개·저시정 (탐지 저하)</option>
+            <option value="night" data-i18n="sc.night">야간 (EO 저하)</option>
+            <option value="intrusion" data-i18n="sc.intrusion">비협조 침입 (고속정)</option>
+            <option value="storm" data-i18n="sc.storm">폭풍·악천후 (2NM, 시클러터↑)</option>
+            <option value="harbor" data-i18n="sc.harbor">항만 출입 (느린 20척)</option>
+            <option value="pirate" data-i18n="sc.pirate">비협조 고속정 다수 (18척)</option>
         </select>
         <div class="row" style="align-items:center;font-size:9px;color:#5a7a96;">
             속도<input type="range" id="speed" min="0.5" max="6" step="0.5" value="1.5" style="flex:1;"><span id="speed-v" style="min-width:26px;text-align:right;color:#cfe0ee;">1.5×</span>
         </div>
         <div class="row" style="margin-top:6px;">
-            <button class="btn" id="cam-orbit" style="flex:1;">오빗</button>
-            <button class="btn active" id="cam-top" style="flex:1;">탑다운</button>
+            <button class="btn" id="cam-orbit" style="flex:1;" data-i18n="b.orbit">오빗</button>
+            <button class="btn active" id="cam-top" style="flex:1;" data-i18n="b.top">탑다운</button>
         </div>
         <div class="row" style="margin-top:6px;">
             <button class="btn" id="btn-png" style="flex:1;" title="현재 상태 PNG 리포트 저장">📷 PNG</button>
             <button class="btn" id="btn-csv" style="flex:1;" title="표적 텔레메트리 CSV 저장">💾 CSV</button>
         </div>
-        <div class="ctitle" style="margin-top:12px;">🎚 센서 레이어</div>
-        <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-radar" checked> 레이더 스윕·링</label>
-        <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-cpa" checked> CPA 충돌 예측선</label>
-        <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-label" checked> 식별 라벨·인식 링</label>
-        <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-trail" checked> 트랙 트레일</label>
-        <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-env" checked> 해안선·항로</label>
+        <div class="ctitle" style="margin-top:12px;" data-i18n="p.layers">🎚 센서 레이어</div>
+        <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-radar" checked> <span data-i18n="ly.radar">레이더 스윕·링</span></label>
+        <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-cpa" checked> <span data-i18n="ly.cpa">CPA 충돌 예측선</span></label>
+        <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-label" checked> <span data-i18n="ly.label">식별 라벨·인식 링</span></label>
+        <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-trail" checked> <span data-i18n="ly.trail">트랙 트레일</span></label>
+        <label style="display:flex;gap:6px;font-size:10px;margin:2px 0;"><input type="checkbox" id="lyr-env" checked> <span data-i18n="ly.env">해안선·항로</span></label>
         <div class="kpi">
-            <div class="kc"><div class="l">AIS 협조</div><div class="v" id="k-ais" style="color:#22c55e;">0</div></div>
-            <div class="kc"><div class="l">융합(R+A)</div><div class="v" id="k-fused" style="color:#a78bfa;">0</div></div>
-            <div class="kc"><div class="l">식별 정확도</div><div class="v" id="k-acc" style="color:#22c55e;">100%</div></div>
-            <div class="kc"><div class="l">평균 탐지</div><div class="v" id="k-dt" style="color:#f59e0b;">0.0s</div></div>
-            <div class="kc"><div class="l">레이더 거리</div><div class="v" id="k-range" style="color:#29c5ff;">4.0NM</div></div>
-            <div class="kc"><div class="l">레이더 수평선</div><div class="v" id="k-horizon" style="color:#29c5ff;">5.4NM</div></div>
+            <div class="kc"><div class="l" data-i18n="k.ais">AIS 협조</div><div class="v" id="k-ais" style="color:#22c55e;">0</div></div>
+            <div class="kc"><div class="l" data-i18n="k.fused">융합(R+A)</div><div class="v" id="k-fused" style="color:#a78bfa;">0</div></div>
+            <div class="kc"><div class="l" data-i18n="k.acc">식별 정확도</div><div class="v" id="k-acc" style="color:#22c55e;">100%</div></div>
+            <div class="kc"><div class="l" data-i18n="k.dt">평균 탐지</div><div class="v" id="k-dt" style="color:#f59e0b;">0.0s</div></div>
+            <div class="kc"><div class="l" data-i18n="k.range">레이더 거리</div><div class="v" id="k-range" style="color:#29c5ff;">4.0NM</div></div>
+            <div class="kc"><div class="l" data-i18n="k.horizon">레이더 수평선</div><div class="v" id="k-horizon" style="color:#29c5ff;">5.4NM</div></div>
         </div>
         <div class="legend">
             <span class="dot" style="background:#22c55e;"></span>AIS 협조 &nbsp;<span class="dot" style="background:#f59e0b;"></span>비협조 미식별<br>
@@ -127,14 +130,14 @@
     </div>
 
     <div class="hud panel right">
-        <div class="ctitle">📋 표적 트랙</div>
+        <div class="ctitle" data-i18n="p.tracks">📋 표적 트랙</div>
         <div id="tracklist"></div>
         <div class="ctitle" style="margin-top:10px;">🧪 시나리오 검증 기록 <button class="btn" id="btn-vcsv" style="margin-left:auto;font-size:9px;padding:2px 7px;">CSV</button></div>
         <div id="validlist" style="font-size:9px;color:#5a7a96;">시나리오를 전환하면 직전 KPI가 기록됩니다.</div>
     </div>
 
     <div class="hud panel log">
-        <div class="ctitle" style="margin-bottom:4px;">📡 이벤트 로그</div>
+        <div class="ctitle" style="margin-bottom:4px;"><span data-i18n="p.log">📡 이벤트 로그</span></div>
         <div class="loglist" id="loglist"></div>
     </div>
 
@@ -959,8 +962,39 @@
             get selectedId() { return selected ? selected.id : null; },
             start() { running = true; }, stop() { running = false; },
             scenario(n) { document.getElementById('scenario').value = n; initScenario(n); },
+            lang(l) { if (l) applyLang(l); return _lang; },                                    // B5 i18n
+            get titleText() { return document.querySelector('[data-i18n="title"]').textContent; },
             camera, scene, renderer,
         };
+
+        // ===== B5 i18n (KO/EN) — 정적 UI 텍스트 전환 (동적 로그·트랙은 후속 과제) =====
+        const I18N_EN = {
+            title: 'SDACS-MARINE — Small-Vessel Detection',
+            sub: 'Small-Vessel Detection & Identification · Mother-ship Sensor Network',
+            'st.total': 'Vessels', 'st.det': 'Detected', 'st.id': 'Identified', 'st.noncoop': 'Non-coop', 'st.cpa': 'CPA Alert',
+            'p.control': '🛰 Control · Scenario', 'p.layers': '🎚 Sensor Layers', 'p.tracks': '📋 Target Tracks', 'p.log': '📡 Event Log',
+            'b.start': 'Start', 'b.pause': 'Pause', 'b.reset': 'Reset', 'b.orbit': 'Orbit', 'b.top': 'Top-down',
+            'sc.normal': 'Normal (12 vessels)', 'sc.busy': 'Busy harbor (24)', 'sc.fog': 'Fog / low-vis (degraded)',
+            'sc.night': 'Night (EO degraded)', 'sc.intrusion': 'Non-coop intrusion (fast)', 'sc.storm': 'Storm (2NM, clutter↑)',
+            'sc.harbor': 'Harbor traffic (20 slow)', 'sc.pirate': 'Non-coop fast boats (18)',
+            'ly.radar': 'Radar sweep·rings', 'ly.cpa': 'CPA prediction lines', 'ly.label': 'ID labels·rings', 'ly.trail': 'Track trails', 'ly.env': 'Coastline·lanes',
+            'k.ais': 'AIS coop', 'k.fused': 'Fused (R+A)', 'k.acc': 'ID accuracy', 'k.dt': 'Avg detect', 'k.range': 'Radar range', 'k.horizon': 'Radar horizon',
+        };
+        let _lang = 'ko';
+        const _i18nKO = {};   // 초기 한국어 textContent 백업
+        function applyLang(lang) {
+            _lang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const k = el.dataset.i18n;
+                if (!(k in _i18nKO)) _i18nKO[k] = el.textContent;   // 최초 1회 KO 백업
+                el.textContent = lang === 'en' ? (I18N_EN[k] ?? _i18nKO[k]) : _i18nKO[k];
+            });
+            const btn = document.getElementById('btn-lang');
+            if (btn) btn.textContent = lang === 'en' ? 'KO' : 'EN';
+            document.documentElement.lang = lang;
+        }
+        document.getElementById('btn-lang').addEventListener('click', () => applyLang(_lang === 'ko' ? 'en' : 'ko'));
+        applyLang('ko');   // KO 백업 채우기(표시는 그대로)
 
         initScenario('normal');
         running = true;

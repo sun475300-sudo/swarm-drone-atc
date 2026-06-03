@@ -861,47 +861,53 @@
     <!-- HUD: Top Bar -->
     <div class="hud-overlay hud-top">
         <div>
-            <div class="hud-title">SDACS — 군집드론 공역통제 3D 시뮬레이터</div>
-            <div class="hud-subtitle">Swarm Drone Airspace Control System — Capstone: Mokpo National University</div>
+            <div class="hud-title" id="hud-title-text" data-i18n="page-title">SDACS — 군집드론 공역통제 3D 시뮬레이터</div>
+            <div class="hud-subtitle" id="hud-subtitle-text" data-i18n="page-subtitle">Swarm Drone Airspace Control System — Capstone: Mokpo National University</div>
         </div>
         <div class="hud-stats">
             <div class="stat-box">
-                <div class="stat-label">활성 드론</div>
+                <div class="stat-label" data-i18n="stat-active-lbl">활성 드론</div>
                 <div class="stat-value" id="stat-active">0</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">충돌 위험</div>
+                <div class="stat-label" data-i18n="stat-conflict-lbl">충돌 위험</div>
                 <div class="stat-value" id="stat-conflicts" style="color:#f59e0b;">0</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">근접 경고</div>
+                <div class="stat-label" data-i18n="stat-near-lbl">근접 경고</div>
                 <div class="stat-value" id="stat-near" style="color:#ff6d00;">0</div>
             </div>
             <div class="stat-box" style="border-color:rgba(239,68,68,0.3);">
-                <div class="stat-label">충돌</div>
+                <div class="stat-label" data-i18n="stat-collision-lbl">충돌</div>
                 <div class="stat-value" id="stat-collisions" style="color:#ef4444;">0</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">회피 명령</div>
+                <div class="stat-label" data-i18n="stat-adv-lbl">회피 명령</div>
                 <div class="stat-value" id="stat-advisories" style="color:#a78bfa;">0</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">평균 배터리</div>
+                <div class="stat-label" data-i18n="stat-batt-lbl">평균 배터리</div>
                 <div class="stat-value" id="stat-battery" style="color:#10b981;">100%</div>
             </div>
             <div class="stat-box" style="border-color:rgba(0,229,255,0.4);">
-                <div class="stat-label">관제 드론</div>
+                <div class="stat-label" data-i18n="stat-atc-lbl">관제 드론</div>
                 <div class="stat-value" style="color:#00e5ff;">13</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">풍속</div>
+                <div class="stat-label" data-i18n="stat-wind-lbl">풍속</div>
                 <div class="stat-value" id="stat-wind" style="color:#60a5fa;">0.0</div>
             </div>
             <div class="stat-box" style="border-color:rgba(0,255,136,0.4);background:rgba(0,255,136,0.08);">
                 <div class="stat-label">GPU</div>
                 <div class="stat-value" style="color:#00ff88;font-size:11px;">RTX 5070 Ti</div>
             </div>
+            <div class="stat-box" id="ws-stat-box" style="border-color:rgba(120,120,120,0.3);min-width:52px;">
+                <div class="stat-label" data-i18n="data-source">데이터</div>
+                <div class="stat-value" id="stat-ws" style="color:#666;font-size:11px;">DEMO</div>
+            </div>
         </div>
+        <button id="lang-btn" title="언어 전환 / Switch Language"
+            style="background:rgba(6,10,19,0.85);border:1px solid rgba(0,229,255,0.35);color:#00e5ff;font-size:10px;font-weight:700;cursor:pointer;padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;align-self:center;white-space:nowrap;">KO</button>
     </div>
 
     <!-- HUD: 직군별 드론 현황 바 -->
@@ -6622,19 +6628,100 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             _workerForces = null; _workerEvents = null;
         }
 
-        // ===== WebSocket 실시간 연동 (선택적) =====
+        // ===== i18n — KO/EN 언어 전환 (P730) =====
+        let currentLang = 'ko';
+        const I18N_MAP = {
+            en: {
+                'data-source': 'Data', 'page-title': 'SDACS — Swarm Drone ATC 3D Simulator',
+                'page-subtitle': 'Swarm Drone Airspace Control System — Capstone: Mokpo National University',
+                'stat-active-lbl': 'Active', 'stat-conflict-lbl': 'Conflicts',
+                'stat-near-lbl': 'Near Miss', 'stat-collision-lbl': 'Collisions',
+                'stat-adv-lbl': 'Advisories', 'stat-batt-lbl': 'Avg Batt',
+                'stat-atc-lbl': 'ATC Ctrl', 'stat-wind-lbl': 'Wind',
+                'fleet-hdr': 'Fleet Tracker',
+            },
+            ko: {
+                'data-source': '데이터', 'page-title': 'SDACS — 군집드론 공역통제 3D 시뮬레이터',
+                'page-subtitle': 'Swarm Drone Airspace Control System — Capstone: Mokpo National University',
+                'stat-active-lbl': '활성 드론', 'stat-conflict-lbl': '충돌 위험',
+                'stat-near-lbl': '근접 경고', 'stat-collision-lbl': '충돌',
+                'stat-adv-lbl': '회피 명령', 'stat-batt-lbl': '평균 배터리',
+                'stat-atc-lbl': '관제 드론', 'stat-wind-lbl': '풍속',
+                'fleet-hdr': '편대 추적기',
+            },
+        };
+        function setLang(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang;
+            const btn = document.getElementById('lang-btn');
+            if (btn) btn.textContent = lang.toUpperCase();
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                const val = (I18N_MAP[lang] || {})[key];
+                if (val !== undefined) el.textContent = val;
+            });
+            // title/subtitle via IDs
+            const t = I18N_MAP[lang];
+            const el = (id) => document.getElementById(id);
+            if (el('hud-title-text') && t['page-title']) el('hud-title-text').textContent = t['page-title'];
+            if (el('hud-subtitle-text') && t['page-subtitle']) el('hud-subtitle-text').textContent = t['page-subtitle'];
+        }
+        document.getElementById('lang-btn')?.addEventListener('click', () => setLang(currentLang === 'ko' ? 'en' : 'ko'));
+
+        // ===== WebSocket 실시간 연동 + LIVE 모드 (P733) =====
         let _wsConnected = false;
         let _wsData = null;
+
+        const _WS_PHASE_MAP = {
+            CRUISE: 'ENROUTE', ENROUTE: 'ENROUTE', TAKEOFF: 'TAKEOFF',
+            LANDING: 'LANDING', GROUNDED: 'GROUNDED', HOVER: 'HOLDING',
+            HOLD: 'HOLDING', RTL: 'RTL', FAILED: 'FAILED', EVADE: 'EVADING',
+        };
+
+        function _wsSetStatus(connected) {
+            const box = document.getElementById('ws-stat-box');
+            const val = document.getElementById('stat-ws');
+            if (!val || !box) return;
+            if (connected) {
+                val.textContent = 'LIVE'; val.style.color = '#22c55e';
+                box.style.borderColor = 'rgba(34,197,94,0.5)';
+                box.style.background = 'rgba(34,197,94,0.06)';
+            } else {
+                val.textContent = 'DEMO'; val.style.color = '#666';
+                box.style.borderColor = 'rgba(120,120,120,0.3)';
+                box.style.background = '';
+            }
+        }
+
+        function applyLiveData() {
+            if (!_wsData) return;
+            const snap = _wsData;
+            _wsData = null;
+            if (snap.stats) {
+                stats.collisions = snap.stats.collisions ?? stats.collisions;
+                stats.nearMisses = snap.stats.near_misses ?? stats.nearMisses;
+                stats.conflicts  = snap.stats.conflicts  ?? stats.conflicts;
+                stats.advisories = snap.stats.advisories ?? stats.advisories;
+            }
+            for (const wd of (snap.drones || [])) {
+                const d = drones[wd.id];
+                if (!d) continue;
+                if (wd.pos) { d.wx = wd.pos[0]; d.wy = wd.pos[2]; d.wz = wd.pos[1]; }
+                if (wd.battery !== undefined) d.battery = wd.battery;
+                if (wd.phase) d.phase = _WS_PHASE_MAP[wd.phase] || d.phase;
+            }
+        }
+
         function connectWebSocket(url = 'ws://localhost:8765') {
             try {
                 const ws = new WebSocket(url);
-                ws.onopen = () => { _wsConnected = true; console.log('🟢 WS 연결됨'); };
-                ws.onclose = () => { _wsConnected = false; console.log('🔴 WS 연결 끊김'); };
-                ws.onmessage = (e) => { _wsData = JSON.parse(e.data); };
-                ws.onerror = () => { _wsConnected = false; };
+                ws.onopen  = () => { _wsConnected = true;  _wsSetStatus(true);  console.log('🟢 WS LIVE'); };
+                ws.onclose = () => { _wsConnected = false; _wsSetStatus(false); console.log('🔴 WS DEMO'); };
+                ws.onmessage = (e) => { try { _wsData = JSON.parse(e.data); } catch (_) {} };
+                ws.onerror = () => { _wsConnected = false; _wsSetStatus(false); };
             } catch (e) { /* WS 미사용 시 무시 */ }
         }
-        // 자동 연결 시도 (ws_bridge.py 실행 중이면 연결됨)
+        // 자동 연결 시도 (ws_bridge.py 실행 중이면 LIVE 모드로 전환)
         connectWebSocket();
 
         // ===== Animation Loop =====
@@ -6667,6 +6754,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 updateWeather(dt);
             }
             drones.forEach(d => updateDrone(d, dt));
+
+            // WS LIVE 모드: 백엔드 데이터로 드론 위치 덮어쓰기 (P733)
+            if (_wsConnected && _wsData) applyLiveData();
 
             // APF: GPU Compute → Worker → CPU 폴백 (우선순위)
             if (simRunning) {

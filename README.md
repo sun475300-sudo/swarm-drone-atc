@@ -781,6 +781,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-03 12:27 | `2038470` | fix: OCaml GADT 테스트 단언 stale 수정 (CI 차단 해소) | tests/test_phase571_600.py |
 | 2026-06-03 12:19 | `925e7ef` | fix: 일일 리포트 도구 코드리뷰 반영 (sys.executable·타입힌트·에러 가시화) | scripts/daily_status_report.py, tests/test_daily_status_report.py |
 | 2026-06-03 12:17 | `77f3128` | feat: 일일 상태 리포트 생성기 (scripts/daily_status_report.py) | CHANGELOG.md, reports/daily_status/2026-06-03.md, scripts/daily_status_report.py, tests/test_daily_status_report.py |
 | 2026-06-03 11:51 | `b113fbe` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | README.md, ROADMAP.md, api/auth.py, api/fastapi_server.py, benchmarks/baselines/sdacs/adapter.py, main.py … |

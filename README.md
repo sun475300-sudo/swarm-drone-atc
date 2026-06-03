@@ -746,6 +746,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-03 11:42 | `4a7ec26` | feat: B4 드론 다중 선택(Shift+클릭) + 집계 패널 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/smoke_sim.mjs, visualization/swarm_3d_simulator.html |
 | 2026-06-03 11:36 | `c9493a2` | feat: 두 시뮬레이터 상호 네비게이션 링크(군집↔해양) | docs/maritime_detection_simulator.html, docs/simulator.html, docs/swarm_3d_simulator.html, maritime_detection_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-06-03 11:34 | `74d002a` | feat: C9 해양 시나리오별 검증 기록 + CSV 내보내기 | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
 | 2026-06-03 11:30 | `abc3915` | perf: O2→B10 CPA 라벨 스프라이트 풀 재사용 (GC 압력 해소) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/TEST_LOG.md, visualization/swarm_3d_simulator.html |

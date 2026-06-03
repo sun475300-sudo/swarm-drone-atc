@@ -4966,46 +4966,72 @@
             _cvLineIdx = 0; _cvMarkIdx = 0;
             if (!showConflictViz) { _cvLabelData = []; return; }
             const air = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
-            if (air.length > 400) { _cvLabelData = []; return; } // 초대규모는 생략(성능)
             const THRESH = NEAR_MISS_DIST * 1.5;
-            const labelCand = [];
-            let pairs = 0; const MAX_PAIRS = 60;
-            for (let i = 0; i < air.length && pairs < MAX_PAIRS; i++) {
-                const a = air[i];
+            const MAX_PAIRS = 60; // 렌더 예산 — 가장 임박한 쌍 우선 시각화
+
+            // ─── Spatial Hash: O(N·k) 이웃 탐색 — 1k+ 환경 충돌쌍 복원(B2) ───
+            // 물리 루프(apfCollisionAvoidance)와 동일한 셀 격자로 후보 쌍만 검사.
+            const cellSize = EVADE_DIST;
+            const grid = new Map();
+            for (const d of air) {
+                const key = Math.floor(d.wx / cellSize) + ',' + Math.floor(d.wz / cellSize);
+                let cell = grid.get(key); if (!cell) { cell = []; grid.set(key, cell); }
+                cell.push(d);
+            }
+            const seen = new Set(); // 중복 쌍 방지
+            const cand = []; // {a, b, ttc, cpa} — 수렴 + 예측 지평 내 충돌쌍
+            for (const a of air) {
                 const ra = a.heading * Math.PI / 180;
                 const avx = Math.sin(ra) * a.speed, avz = Math.cos(ra) * a.speed, avy = a.vy || 0;
-                for (let j = i + 1; j < air.length && pairs < MAX_PAIRS; j++) {
-                    const b = air[j];
-                    const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
-                    if (Math.abs(dx) > EVADE_DIST || Math.abs(dz) > EVADE_DIST) continue;
-                    const rb = b.heading * Math.PI / 180;
-                    const dvx = avx - Math.sin(rb) * b.speed, dvz = avz - Math.cos(rb) * b.speed, dvy = avy - (b.vy || 0);
-                    const relV2 = dvx * dvx + dvz * dvz + dvy * dvy;
-                    if (relV2 < 0.1) continue;
-                    const tCPA = -(dx * dvx + dz * dvz + dy * dvy) / relV2;
-                    if (tCPA <= 0 || tCPA > CPA_LOOKAHEAD) continue; // 수렴 + 예측 지평 내
-                    const fpx = dx + dvx * tCPA, fpz = dz + dvz * tCPA, fpy = dy + dvy * tCPA;
-                    const cpaDist = Math.sqrt(fpx * fpx + fpz * fpz + fpy * fpy);
-                    if (cpaDist > THRESH) continue;
-                    const col = ttcColor(tCPA);
-                    const ln = _cvLine(), p = ln.geometry.attributes.position.array;
-                    p[0] = a.group.position.x; p[1] = a.group.position.y; p[2] = a.group.position.z;
-                    p[3] = b.group.position.x; p[4] = b.group.position.y; p[5] = b.group.position.z;
-                    ln.geometry.attributes.position.needsUpdate = true;
-                    ln.material.color.set(col); ln.material.opacity = cpaDist < NEAR_MISS_DIST ? 0.75 : 0.4;
-                    ln.visible = true;
-                    const mk = _cvMark();
-                    mk.position.set((a.group.position.x + b.group.position.x) / 2,
-                        (a.group.position.y + b.group.position.y) / 2,
-                        (a.group.position.z + b.group.position.z) / 2);
-                    const s = cpaDist < NEAR_MISS_DIST ? 1.5 : 1.0;
-                    mk.scale.set(s, s, s); mk.material.color.set(col); mk.material.opacity = 0.9; mk.visible = true;
-                    labelCand.push({ x: mk.position.x, y: mk.position.y + 0.6, z: mk.position.z, ttc: tCPA, cpa: cpaDist });
-                    pairs++;
+                const cx = Math.floor(a.wx / cellSize), cz = Math.floor(a.wz / cellSize);
+                for (let di = -1; di <= 1; di++) {
+                    for (let dj = -1; dj <= 1; dj++) {
+                        const cell = grid.get((cx + di) + ',' + (cz + dj));
+                        if (!cell) continue;
+                        for (const b of cell) {
+                            if (a === b) continue;
+                            const pairKey = a.id < b.id ? a.id + '-' + b.id : b.id + '-' + a.id;
+                            if (seen.has(pairKey)) continue;
+                            seen.add(pairKey);
+                            const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
+                            if (Math.abs(dx) > EVADE_DIST || Math.abs(dz) > EVADE_DIST) continue;
+                            const rb = b.heading * Math.PI / 180;
+                            const dvx = avx - Math.sin(rb) * b.speed, dvz = avz - Math.cos(rb) * b.speed, dvy = avy - (b.vy || 0);
+                            const relV2 = dvx * dvx + dvz * dvz + dvy * dvy;
+                            if (relV2 < 0.1) continue;
+                            const tCPA = -(dx * dvx + dz * dvz + dy * dvy) / relV2;
+                            if (tCPA <= 0 || tCPA > CPA_LOOKAHEAD) continue; // 수렴 + 예측 지평 내
+                            const fpx = dx + dvx * tCPA, fpz = dz + dvz * tCPA, fpy = dy + dvy * tCPA;
+                            const cpaDist = Math.sqrt(fpx * fpx + fpz * fpz + fpy * fpy);
+                            if (cpaDist > THRESH) continue;
+                            cand.push({ a, b, ttc: tCPA, cpa: cpaDist });
+                        }
+                    }
                 }
             }
-            // 가장 임박한 6쌍만 라벨 후보로 저장 (저빈도로 재생성)
-            labelCand.sort((p, q) => p.ttc - q.ttc);
+
+            // 가장 임박한 쌍 우선 — 렌더 예산(MAX_PAIRS) 내에서만 라인·마커 갱신
+            cand.sort((p, q) => p.ttc - q.ttc);
+            const labelCand = [];
+            const n = Math.min(cand.length, MAX_PAIRS);
+            for (let k = 0; k < n; k++) {
+                const { a, b, ttc, cpa } = cand[k];
+                const col = ttcColor(ttc);
+                const ln = _cvLine(), p = ln.geometry.attributes.position.array;
+                p[0] = a.group.position.x; p[1] = a.group.position.y; p[2] = a.group.position.z;
+                p[3] = b.group.position.x; p[4] = b.group.position.y; p[5] = b.group.position.z;
+                ln.geometry.attributes.position.needsUpdate = true;
+                ln.material.color.set(col); ln.material.opacity = cpa < NEAR_MISS_DIST ? 0.75 : 0.4;
+                ln.visible = true;
+                const mk = _cvMark();
+                mk.position.set((a.group.position.x + b.group.position.x) / 2,
+                    (a.group.position.y + b.group.position.y) / 2,
+                    (a.group.position.z + b.group.position.z) / 2);
+                const s = cpa < NEAR_MISS_DIST ? 1.5 : 1.0;
+                mk.scale.set(s, s, s); mk.material.color.set(col); mk.material.opacity = 0.9; mk.visible = true;
+                labelCand.push({ x: mk.position.x, y: mk.position.y + 0.6, z: mk.position.z, ttc, cpa });
+            }
+            // cand가 ttc 오름차순이므로 앞 6개가 가장 임박한 라벨 후보 (저빈도로 재생성)
             _cvLabelData = labelCand.slice(0, 6);
         }
 
@@ -6901,6 +6927,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get perf() { return { fps: perfMetrics.fps, cpuMs: +perfMetrics.cpuMs.toFixed(2), gpuMs: +perfMetrics.gpuMs.toFixed(2), drawCalls: perfMetrics.drawCalls, triangles: perfMetrics.triangles, drones: drones.length, megaMode, visibleInstances: _visibleInst }; }, // B6
             set megaCull(v) { megaCull = !!v; },
             get megaCull() { return megaCull; },
+            get conflictPairs() { return _cvLineIdx; }, // B2: 현재 시각화된 CPA 충돌쌍 수
             get replayFrames() { return recorder.frames.length; },
             get dni() { return { ...dniStats, objects: externalObjs.length }; },
             replaySeek(idx) { enterReplay(); replayIdx = Math.max(0, Math.min(idx, recorder.frames.length - 1)); applyFrame(replayIdx); return replayIdx; },

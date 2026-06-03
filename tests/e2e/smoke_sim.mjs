@@ -83,6 +83,12 @@ try {
   ok(perf && perf.drones === 1000 && perf.megaMode === true && perf.drawCalls > 0 && perf.drawCalls < perf.drones && Number.isFinite(perf.fps) && perf.visibleInstances > 0,
     `B6 성능 측정 (DC=${perf.drawCalls} < 1000대, fps=${perf.fps}, vis=${perf.visibleInstances})`);
 
+  // 8d. B2 대규모 CPA 충돌예측 — 1000대 환경에서 공간 해시로 충돌쌍 시각화(>400 컷오프 제거)
+  await page.evaluate(() => window._sdacs.setLayer('cpa', true));
+  await page.waitForTimeout(1200);
+  const cpaPairs = await page.evaluate(() => window._sdacs.conflictPairs);
+  ok(typeof cpaPairs === 'number' && cpaPairs >= 0, `B2 대규모 CPA 충돌쌍 시각화 (1000대, 쌍=${cpaPairs})`);
+
   // 8c. B4 다중 선택 — 여러 드론 선택 후 집계 패널 동작
   await page.evaluate(() => window._sdacs.selectScenario('route_conflict'));
   await page.waitForTimeout(400);

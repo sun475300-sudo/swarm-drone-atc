@@ -128,6 +128,21 @@ try {
   const ko1 = await page.evaluate(() => { window._mds.lang('ko'); return window._mds.titleText; });
   ok(en1.includes('Detection') && en1 !== ko0 && ko1 === ko0, `B5 i18n (KO↔EN: "${en1.slice(0,28)}")`);
 
+  // 7g. B5 i18n 동적 텍스트(P730 잔여) — 상세패널 필드 라벨이 EN 전환 시 영어로
+  await page.evaluate(() => window._mds.start());
+  await page.evaluate(() => window._mds.scenario('normal'));
+  await page.waitForFunction(() => window._mds.tracks.length > 0, { timeout: 15000 }).catch(() => {});
+  const dynI18n = await page.evaluate(async () => {
+    const t = window._mds.tracks; if (t.length) window._mds.select(t[0]);
+    const read = () => document.getElementById('detail-body').textContent;
+    window._mds.lang('ko'); await new Promise(r => setTimeout(r, 500)); const ko = read();
+    window._mds.lang('en'); await new Promise(r => setTimeout(r, 500)); const en = read();
+    window._mds.lang('ko');
+    return { ko, en };
+  });
+  ok(dynI18n.en.includes('Type') && dynI18n.en.includes('Source') && dynI18n.ko.includes('선종'),
+    `B5 i18n 동적 텍스트(상세패널 KO "선종"→EN "Type/Source")`);
+
   // 8. 페이지 런타임 에러 없음
   ok(pageErrors.length === 0, `런타임 에러 0건${pageErrors.length ? ' → ' + pageErrors.join(' | ') : ''}`);
 } catch (e) {

@@ -128,6 +128,22 @@ try {
   const ko1 = await page.evaluate(() => { window._mds.lang('ko'); return window._mds.titleText; });
   ok(en1.includes('Detection') && en1 !== ko0 && ko1 === ko0, `B5 i18n (KO↔EN: "${en1.slice(0,28)}")`);
 
+  // 7f2. B5 동적 i18n(P730 잔여) — EN 전환 시 로그·트랙행이 영어로 재렌더
+  await page.evaluate(() => window._mds.start());
+  await page.evaluate(() => window._mds.scenario('busy'));
+  await page.waitForTimeout(2500);                         // 탐지·식별 로그 누적
+  const dyn = await page.evaluate(() => {
+    window._mds.lang('en');
+    return new Promise(res => setTimeout(() => res({
+      log: document.getElementById('loglist').innerText,
+      track: document.getElementById('tracklist').innerText,
+    }), 700));                                              // 400ms 렌더 주기 경과 대기
+  });
+  const logEn = /Target detected|ID |Scenario:/.test(dyn.log);
+  const trackEn = /Fishing|Leisure|Fast boat|Buoy|Unident\.|Det\b/.test(dyn.track);
+  ok(logEn && trackEn, `B5 동적 i18n (로그·트랙 EN: log=${logEn} track=${trackEn})`);
+  await page.evaluate(() => window._mds.lang('ko'));
+
   // 8. 페이지 런타임 에러 없음
   ok(pageErrors.length === 0, `런타임 에러 0건${pageErrors.length ? ' → ' + pageErrors.join(' | ') : ''}`);
 } catch (e) {

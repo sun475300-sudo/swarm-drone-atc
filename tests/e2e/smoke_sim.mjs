@@ -83,6 +83,27 @@ try {
   ok(perf && perf.drones === 1000 && perf.megaMode === true && perf.drawCalls > 0 && perf.drawCalls < perf.drones && Number.isFinite(perf.fps) && perf.visibleInstances > 0,
     `B6 성능 측정 (DC=${perf.drawCalls} < 1000대, fps=${perf.fps}, vis=${perf.visibleInstances})`);
 
+  // 8d. B2 공간해시 CPA 검출 — 합성 입력 결정론 검증(정면 수렴=1, 발산=0, 단일=0)
+  const b2 = await page.evaluate(() => {
+    const mk = (id, wx, wz, heading, speed) => ({ id, wx, wz, wy: 0, heading, speed, vy: 0 });
+    // 정면 충돌 코스: A는 +z로(heading 0), B는 -z로(heading 180), 200m 이격 → 수렴 1쌍
+    const converging = window._sdacs._conflictPairCount([mk('A', 0, -100, 0, 20), mk('B', 0, 100, 180, 20)]);
+    // 발산 코스: 서로 반대로 멀어짐 → 0쌍
+    const diverging = window._sdacs._conflictPairCount([mk('A', 0, 0, 180, 20), mk('B', 0, 50, 0, 20)]);
+    const single = window._sdacs._conflictPairCount([mk('A', 0, 0, 0, 20)]);
+    return { converging, diverging, single };
+  });
+  ok(b2.converging === 1 && b2.diverging === 0 && b2.single === 0,
+    `B2 공간해시 CPA 검출 (수렴=${b2.converging}, 발산=${b2.diverging}, 단일=${b2.single})`);
+
+  // 8e. B2 대규모 conflictPairs 유한 — 1k megaMode에서 컷오프/크래시 없이 유한·비음수
+  await page.evaluate(() => window._sdacs.selectScenario('mega_swarm_1k'));
+  await page.evaluate(() => window._sdacs.startSim());
+  await page.waitForTimeout(2000);
+  const megaPairs = await page.evaluate(() => window._sdacs.conflictPairs);
+  ok(Number.isFinite(megaPairs) && megaPairs >= 0,
+    `B2 대규모 conflictPairs 유한 (1k megaMode, pairs=${megaPairs})`);
+
   // 8c. B4 다중 선택 — 여러 드론 선택 후 집계 패널 동작
   await page.evaluate(() => window._sdacs.selectScenario('route_conflict'));
   await page.waitForTimeout(400);

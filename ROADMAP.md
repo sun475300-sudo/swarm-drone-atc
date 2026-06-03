@@ -181,10 +181,10 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P726** — 경로효율 per-leg 정정(B9) + CPA 라벨 스프라이트 풀 최적화(B10) (2026-06-03)
 - [x] **P727** — 해양 소형선 감지 시뮬레이터 신설 — 레이더 물리(C1)·AIS융합(C2)·EO/IR(C3)·COLREG(C4)·트랙상세(C5)·리포트(C6)·해안선(C7)·시나리오8종(C8)·검증기록(C9) (2026-06-03)
 - [x] **P728** — 해양 기술 문서(`docs/maritime_detection_technical.md`) + 헤드리스 스모크 17/17 (2026-06-03)
-- [ ] **P729** — 대규모 모드 로터·글로우 InstancedMesh 확장(B3, 1k~10k 추가 최적화)
-- [ ] **P730** — UI 국제화(B5, KO/EN 토글) + 모바일·터치 대응
+- [x] **P729** — 대규모 모드 로터·글로우 InstancedMesh 확장(B3) — main에 반영됨(체크박스 정정)
+- [~] **P730** — UI 국제화(B5, KO/EN 토글) — 해양 시뮬 i18n 완료(main 반영). swarm 시뮬 i18n·모바일/터치 잔여
 - [ ] **P731** — 공역 레이어 패널 중복 통합(O1) + 두 시뮬레이터 공통 컴포넌트 추출(D1)
-- [ ] **P732** — 대규모 CPA 충돌예측 복원(B2, 공간 해시) — 1k+ 환경 충돌쌍 시각화
+- [x] **P732** — 대규모 CPA 충돌예측 복원(B2, 공간 해시) — `air.length>400` 컷오프 제거, `_conflictCandidates()` 순수함수(셀=EVADE_DIST, 3×3 인접탐색) O(N·k), megaMode 렌더예산 120쌍, `_sdacs.conflictPairs` API, 스모크 16/16 (2026-06-03)
 - [ ] **P733** — `ws_bridge` 실데이터 라이브 수신 토글(데모↔실측)
 - [ ] **P734** — 리플레이·타임라인 스크러버 + 동기화 멀티뷰 고도화
 - [ ] **P735** — 해양 EO/IR 실 카메라 프레임 연동(센서 SDK) — 실기화 연계
@@ -196,4 +196,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-06-03 — Track C 배포 인프라: P714(TimescaleDB asyncpg·하이퍼테이블)·P715(Helm 8템플릿)·P718(Prometheus·Grafana·Loki)·P719(bandit·pip-audit·trivy 보안 감사) 완료, P720(공개 베타) 진행 예정. Track D 웹 시뮬레이터: P721 Electron 데스크탑 앱(.bat 런처 폐기 + 3-OS 자동 빌드) + P722~P730(해양 C1~C9·메인 B3/B4/B6/B9/B10·B5 i18n) 완료, P731~P735 진행 예정. 테스트 3,830+개.*
+*Last updated: 2026-06-03 — Track C 배포 인프라: P714(TimescaleDB asyncpg·하이퍼테이블)·P715(Helm 8템플릿)·P718(Prometheus·Grafana·Loki)·P719(bandit·pip-audit·trivy 보안 감사) 완료, P720(공개 베타) 진행 예정. Track D 웹 시뮬레이터: P721~P729 + P732(대규모 CPA 공간해시 복원) 완료, P730(swarm i18n·모바일 잔여)·P731·P733~P735 진행 예정. 테스트 3,830+개 + 웹 스모크 16/16.*

@@ -83,6 +83,16 @@ try {
   ok(perf && perf.drones === 1000 && perf.megaMode === true && perf.drawCalls > 0 && perf.drawCalls < perf.drones && Number.isFinite(perf.fps) && perf.visibleInstances > 0,
     `B6 성능 측정 (DC=${perf.drawCalls} < 1000대, fps=${perf.fps}, vis=${perf.visibleInstances})`);
 
+  // 8c. B4 다중 선택 — 여러 드론 선택 후 집계 패널 동작
+  await page.evaluate(() => window._sdacs.selectScenario('route_conflict'));
+  await page.waitForTimeout(400);
+  const multiN = await page.evaluate(() => window._sdacs.multiSelect([0, 1, 2, 3]));
+  const multiList = await page.evaluate(() => window._sdacs.multiSelection);
+  ok(multiN === 4 && multiList.length === 4, `B4 다중 선택 (${multiN}대: ${multiList.join(',')})`);
+  await page.evaluate(() => window._sdacs.clearMulti());
+  const cleared = await page.evaluate(() => window._sdacs.multiSelection.length);
+  ok(cleared === 0, 'B4 다중 선택 해제');
+
   // 9. 페이지 런타임 에러 없음
   ok(pageErrors.length === 0, `런타임 에러 0건${pageErrors.length ? ' → ' + pageErrors.join(' | ') : ''}`);
 } catch (e) {

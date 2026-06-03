@@ -282,6 +282,23 @@
             padding: 10px 12px;
         }
 
+        .hud-multi {
+            position: absolute;
+            top: 84px;
+            right: 12px;
+            width: 210px;
+            background: rgba(19, 12, 4, 0.94);
+            border: 1px solid rgba(245, 158, 11, 0.45);
+            border-radius: 8px;
+            box-shadow: 0 0 24px rgba(245, 158, 11, 0.15);
+            padding: 10px 12px;
+            z-index: 30;
+        }
+        .hud-multi .multi-title { font-size: 12px; font-weight: 700; color: #f59e0b; margin-bottom: 8px; }
+        .hud-multi .md-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; padding: 2px 0; }
+        .hud-multi .md-k { color: #8a7a5a; }
+        .hud-multi .md-v { color: #e8dcc8; font-weight: 600; }
+
         .detail-close {
             position: absolute;
             top: 6px;
@@ -1195,6 +1212,13 @@
         <div id="detail-body"></div>
     </div>
 
+    <!-- HUD: B4 다중 선택 집계 패널 (Shift+클릭) -->
+    <div class="hud-overlay hud-multi hud-interactive" id="multi-detail" style="display:none;">
+        <button class="detail-close" id="multi-close" title="다중 선택 해제">✕</button>
+        <div class="multi-title">🟠 다중 선택 (Shift+클릭)</div>
+        <div id="multi-body"></div>
+    </div>
+
     <!-- HUD: Drone Live Tooltip -->
     <div class="drone-tooltip" id="drone-tooltip" style="display:none;"></div>
 
@@ -1209,7 +1233,7 @@
                 <button id="help-close" style="background:none;border:1px solid rgba(255,255,255,0.15);color:#4a6785;border-radius:4px;cursor:pointer;font-size:12px;padding:2px 8px;">✕</button>
             </div>
             <div style="font-size:11px;color:#22d3ee;letter-spacing:1px;margin:10px 0 4px;">마우스</div>
-            <div style="font-size:12px;line-height:1.8;">드래그=회전 · 스크롤=줌 · <b>드론 클릭=선택</b> · 드론 호버=라이브 툴팁</div>
+            <div style="font-size:12px;line-height:1.8;">드래그=회전 · 스크롤=줌 · <b>드론 클릭=선택</b> · <b>Shift+클릭=다중 선택</b> · 드론 호버=라이브 툴팁</div>
             <div style="font-size:11px;color:#22d3ee;letter-spacing:1px;margin:12px 0 4px;">단축키</div>
             <div style="font-size:12px;line-height:1.9;">
                 <b>Space</b> 재생/정지 · <b>A</b> 분석 뷰 · <b>F</b> 선택 드론 추적 · <b>1~4</b> 카메라(기본/탑다운/추적/오빗)<br>
@@ -4366,6 +4390,47 @@
         selectionRing.visible = false;
         scene.add(selectionRing);
 
+        // ===== B4 다중 선택 (Shift+클릭) — 단일 선택과 독립적인 비파괴 오버레이 =====
+        const multiSel = new Set();          // 선택된 drone 객체들
+        const _multiRings = [];              // 재사용 링 풀(주황)
+        const multiSelGroup = new THREE.Group(); scene.add(multiSelGroup);
+        function _multiRing(i) {
+            while (_multiRings.length <= i) {
+                const r = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.05, 8, 32),
+                    new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.9, depthTest: false }));
+                r.rotation.x = Math.PI / 2; r.renderOrder = 998; r.visible = false;
+                multiSelGroup.add(r); _multiRings.push(r);
+            }
+            return _multiRings[i];
+        }
+        function toggleMulti(d) {
+            if (!d) return;
+            if (multiSel.has(d)) multiSel.delete(d); else multiSel.add(d);
+            updateMultiPanel();
+        }
+        function clearMulti() { multiSel.clear(); for (const r of _multiRings) r.visible = false; updateMultiPanel(); }
+        function updateMultiPanel() {
+            const panel = document.getElementById('multi-detail');
+            if (!panel) return;
+            if (multiSel.size === 0) { panel.style.display = 'none'; return; }
+            panel.style.display = 'block';
+            const arr = [...multiSel];
+            const avgBat = arr.reduce((s, d) => s + d.battery, 0) / arr.length;
+            const avgAlt = arr.reduce((s, d) => s + d.wy, 0) / arr.length;
+            const phaseCount = {};
+            for (const d of arr) phaseCount[d.phase] = (phaseCount[d.phase] || 0) + 1;
+            const evading = arr.filter(d => d.phase === 'EVADE' || d.evadeTimer > 0).length;
+            const lowBat = arr.filter(d => d.battery < 20).length;
+            const phaseStr = Object.entries(phaseCount).map(([k, n]) => `${k} ${n}`).join(' · ');
+            document.getElementById('multi-body').innerHTML = `
+                <div class="md-row"><span class="md-k">선택 수</span><span class="md-v" style="color:#f59e0b;">${arr.length}대</span></div>
+                <div class="md-row"><span class="md-k">평균 배터리</span><span class="md-v" style="color:${avgBat < 20 ? '#ef4444' : avgBat < 50 ? '#f59e0b' : '#10b981'};">${avgBat.toFixed(0)}%</span></div>
+                <div class="md-row"><span class="md-k">평균 고도</span><span class="md-v">${avgAlt.toFixed(0)}m</span></div>
+                <div class="md-row"><span class="md-k">회피 중</span><span class="md-v" style="color:${evading ? '#ef4444' : '#cfe0ee'};">${evading}대</span></div>
+                <div class="md-row"><span class="md-k">저배터리</span><span class="md-v" style="color:${lowBat ? '#f59e0b' : '#cfe0ee'};">${lowBat}대</span></div>
+                <div class="md-row"><span class="md-k">단계 분포</span><span class="md-v" style="font-size:10px;">${phaseStr}</span></div>`;
+        }
+
         function renderDroneDetail() {
             const d = selectedDrone;
             if (!d) return;
@@ -4485,16 +4550,19 @@
             if (megaMode) { // 대규모: InstancedMesh instanceId → 드론
                 const ih = _ray.intersectObject(bodyInst, false);
                 const d = ih.length ? _droneFromInstance(ih[0].instanceId) : null;
-                if (d) { selectDrone(d); return; }
-                deselectDrone(); return;
+                if (d) { if (e.shiftKey) toggleMulti(d); else selectDrone(d); return; }
+                if (!e.shiftKey) deselectDrone(); return;
             }
             const hits = _ray.intersectObjects(droneGroup.children, true);
             for (const h of hits) {
                 let obj = h.object;
                 while (obj && !(obj.userData && obj.userData.id)) obj = obj.parent;
-                if (obj && obj.userData && obj.userData.id) { selectDrone(obj.userData); return; }
+                if (obj && obj.userData && obj.userData.id) {
+                    if (e.shiftKey) toggleMulti(obj.userData); else selectDrone(obj.userData);
+                    return;
+                }
             }
-            deselectDrone();
+            if (!e.shiftKey) deselectDrone();   // Shift+빈공간은 다중 선택 유지
         });
 
         // 편대 목록 카드 클릭 선택
@@ -4502,10 +4570,13 @@
             const card = e.target.closest('.drone-card');
             if (!card) return;
             const id = card.getAttribute('data-id');
-            if (id) selectDrone(id);
+            if (!id) return;
+            if (e.shiftKey) { const d = drones.find(x => x.id === id); toggleMulti(d); }
+            else selectDrone(id);
         });
 
         document.getElementById('detail-close').addEventListener('click', deselectDrone);
+        document.getElementById('multi-close').addEventListener('click', clearMulti);
 
         // ===== Live Hover Tooltip =====
         let hoveredDrone = null;
@@ -5639,6 +5710,7 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                 case 'Escape':
                     if (document.getElementById('help-overlay').style.display !== 'none') toggleHelp(false);
                     else if (analysisMode) toggleAnalysis(false);
+                    else if (multiSel.size) clearMulti();
                     else deselectDrone();
                     break;
             }
@@ -6673,6 +6745,19 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 }
             }
 
+            // B4 다중 선택 링 추종(제거된 드론은 Set에서 정리)
+            if (multiSel.size) {
+                let i = 0, dirty = false;
+                for (const d of multiSel) {
+                    if (d.group && d.group.parent) {
+                        const r = _multiRing(i++); r.visible = true;
+                        r.position.copy(d.group.position); r.rotation.z = -t * 1.5;
+                    } else { multiSel.delete(d); dirty = true; }
+                }
+                for (let k = i; k < _multiRings.length; k++) _multiRings[k].visible = false;
+                if (dirty) updateMultiPanel();
+            }
+
             // 라이브 툴팁: 호버 드론을 따라다니며 상태 실시간 갱신
             if (hoveredDrone) {
                 if (hoveredDrone.group && hoveredDrone.group.parent) {
@@ -6776,6 +6861,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             stopSim() { simRunning = false; },
             selectDrone(idOrIndex) { const d = selectDrone(idOrIndex); return d ? d.id : null; },
             deselectDrone() { deselectDrone(); },
+            multiSelect(ids) { for (const id of ids) { const d = drones.find(x => x.id === id) || drones[id]; if (d) multiSel.add(d); } updateMultiPanel(); return multiSel.size; }, // B4
+            clearMulti() { clearMulti(); },
+            get multiSelection() { return [...multiSel].map(d => d.id); },
             getSelected() { return selectedDrone ? { ...selectedDrone, group: undefined, body: undefined, rotor: undefined, glow: undefined } : null; },
             hoverDrone(idOrIndex) { let d = idOrIndex; if (typeof idOrIndex === 'string') d = drones.find(x => x.id === idOrIndex); else if (typeof idOrIndex === 'number') d = drones[idOrIndex]; setHover(d); return d ? d.id : null; },
             clearHover() { setHover(null); },

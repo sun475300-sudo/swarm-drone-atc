@@ -112,6 +112,16 @@ try {
   }
   ok(c8ok, 'C8 신규 시나리오 3종(storm/harbor/pirate)');
 
+  // 7e. C9 시나리오별 검증 기록 — 여러 시나리오 전환 후 기록 누적
+  await page.evaluate(() => window._mds.start());
+  await page.evaluate(() => window._mds.scenario('normal'));
+  await page.waitForTimeout(4000);                       // 탐지 누적
+  await page.evaluate(() => window._mds.scenario('fog')); // 전환 → normal 스냅샷
+  await page.waitForTimeout(500);
+  const val = await page.evaluate(() => window._mds.validation);
+  const vOK = Array.isArray(val) && val.length > 0 && val.every(r => typeof r.scen === 'string' && Number.isFinite(r.acc) && r.acc >= 0 && r.acc <= 100);
+  ok(vOK, `C9 검증 기록 (${val.length}개 시나리오, 예: ${val[0]?.scen} acc=${val[0]?.acc?.toFixed(0)}%)`);
+
   // 8. 페이지 런타임 에러 없음
   ok(pageErrors.length === 0, `런타임 에러 0건${pageErrors.length ? ' → ' + pageErrors.join(' | ') : ''}`);
 } catch (e) {

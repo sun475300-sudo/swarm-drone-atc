@@ -129,6 +129,8 @@
     <div class="hud panel right">
         <div class="ctitle">📋 표적 트랙</div>
         <div id="tracklist"></div>
+        <div class="ctitle" style="margin-top:10px;">🧪 시나리오 검증 기록 <button class="btn" id="btn-vcsv" style="margin-left:auto;font-size:9px;padding:2px 7px;">CSV</button></div>
+        <div id="validlist" style="font-size:9px;color:#5a7a96;">시나리오를 전환하면 직전 KPI가 기록됩니다.</div>
     </div>
 
     <div class="hud panel log">
@@ -434,12 +436,27 @@
         }
 
         let curScen = SCEN.normal;
+        // C9 시나리오별 검증 기록 — 시나리오를 떠날 때 누적 KPI 스냅샷 저장
+        let curScenName = 'normal';
+        const validationLog = [];   // {scen, t, total, det, id, acc, ais, fused, cpa}
+        function snapshotValidation() {
+            if (stats.detected < 1 || simTime < 3) return;   // 의미있는 표본만(최소 탐지·시간)
+            validationLog.unshift({
+                scen: curScenName, t: simTime,
+                spawned: _vid, det: stats.detected, id: stats.identified,
+                acc: stats.identified ? stats.correct / stats.identified * 100 : 100,
+                ais: stats.ais, fused: stats.fused, cpa: stats.cpaWarn,
+                detRate: _vid ? stats.detected / _vid * 100 : 0,
+            });
+            if (validationLog.length > 24) validationLog.pop();
+        }
         function initScenario(name) {
-            curScen = SCEN[name] || SCEN.normal;
+            snapshotValidation();                            // 직전 시나리오 KPI 기록
+            curScen = SCEN[name] || SCEN.normal; curScenName = name;
             RADAR_NM = curScen.radar; rebuildRings();
             sweep.geometry.dispose(); sweep.geometry = new THREE.CircleGeometry(RADAR_NM * NM * SCALE, 48, 0, Math.PI / 9);
             for (const o of vessels) disposeVessel(o);
-            vessels.length = 0;
+            vessels.length = 0; _vid = 0;
             Object.keys(stats).forEach(k => stats[k] = 0);
             simTime = 0; _detTimer = 0; _cpaPrev = 0; events.length = 0;
             scene.fog.density = name === 'fog' ? 0.011 : (name === 'night' ? 0.006 : 0.004);
@@ -717,6 +734,14 @@
                 const encEl = document.getElementById('detail-enc');
                 encEl.innerHTML = v.encounter ? `<span class="enc" style="color:${ENC_COL[v.encounter]};background:${ENC_COL[v.encounter]}22;border:1px solid ${ENC_COL[v.encounter]}55;">조우: ${v.encounter}</span>` : '';
             }
+            // C9 검증 기록
+            const vl = document.getElementById('validlist');
+            if (vl) vl.innerHTML = validationLog.length ? validationLog.slice(0, 8).map(r => {
+                const ac = r.acc >= 90 ? '#22c55e' : r.acc >= 80 ? '#f59e0b' : '#ef4444';
+                return `<div class="vrow" style="font-size:9px;"><div class="h"><span>${r.scen}</span>
+                    <span style="color:${ac};">정확도 ${r.acc.toFixed(0)}%</span></div>
+                    <div style="color:#5a7a96;margin-top:1px;">탐지율 ${r.detRate.toFixed(0)}% · 식별 ${r.id} · AIS ${r.ais} · 융합 ${r.fused} · CPA ${r.cpa} · ${r.t.toFixed(0)}s</div></div>`;
+            }).join('') : '<div>시나리오를 전환하면 직전 KPI가 기록됩니다.</div>';
             // 로그
             document.getElementById('loglist').innerHTML = events.slice(0, 30).map(e =>
                 `<div><span style="color:#44607c;">[${Math.floor(e.t / 60)}:${String(Math.floor(e.t % 60)).padStart(2, '0')}]</span> <span style="color:${e.color};">${e.msg}</span></div>`).join('');
@@ -741,6 +766,7 @@
         document.getElementById('lyr-env').addEventListener('change', e => showEnv = e.target.checked);
         document.getElementById('btn-png').addEventListener('click', exportPNG);
         document.getElementById('btn-csv').addEventListener('click', exportCSV);
+        document.getElementById('btn-vcsv').addEventListener('click', exportValidationCSV);
         document.getElementById('eo-eo').addEventListener('click', () => { eoMode = 'EO'; document.getElementById('eo-eo').classList.add('active'); document.getElementById('eo-ir').classList.remove('active'); updateEOIRPanel(); });
         document.getElementById('eo-ir').addEventListener('click', () => { eoMode = 'IR'; document.getElementById('eo-ir').classList.add('active'); document.getElementById('eo-eo').classList.remove('active'); updateEOIRPanel(); });
         document.getElementById('detail-x').addEventListener('click', deselectVessel);
@@ -878,6 +904,16 @@
             a.href = c.toDataURL('image/png'); a.click();
             logEvent('📷 PNG 리포트 저장', '#a78bfa');
         }
+        function exportValidationCSV() {
+            snapshotValidation();   // 현재 시나리오도 포함
+            const head = 'scenario,sim_time_s,spawned,detected,identified,detect_rate_pct,id_accuracy_pct,ais_coop,fused,cpa_warn';
+            const lines = [head, ...validationLog.map(r =>
+                [r.scen, r.t.toFixed(0), r.spawned, r.det, r.id, r.detRate.toFixed(1), r.acc.toFixed(1), r.ais, r.fused, r.cpa].join(','))];
+            const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+            const a = document.createElement('a'); a.download = `sdacs-marine-validation-${Date.now()}.csv`;
+            a.href = URL.createObjectURL(blob); a.click();
+            logEvent(`🧪 검증 CSV 저장 (${validationLog.length}개 시나리오)`, '#a78bfa');
+        }
         function exportCSV() {
             const head = 'id,type,len_m,has_ais,radar_det,ais_det,identified,classified,encounter,wx,wz,vx,vz,speed_kn,heading_deg,bearing_deg,dist_nm,cpa_m,tcpa_s,rcs_m2,hgt_m';
             const lines = [head];
@@ -908,6 +944,7 @@
             get fused() { return stats.fused; },                                                     // C2 융합 트랙
             get encounters() { return vessels.filter(v => v.encounter).map(v => ({ id: v.id, type: v.encounter })); }, // C4
             get tracks() { return vessels.filter(v => v.detected).map(v => v.id); },                                  // 탐지 트랙 id
+            get validation() { snapshotValidation(); return validationLog.map(r => ({ ...r })); },                    // C9 시나리오별 검증 기록
             get horizonNM() { return radarHorizonM(2.4) / NM; },                                      // C1 평균 수평선(NM)
             select(id) { const v = vessels.find(x => x.id === id || x.id === `V-${String(id).padStart(3,'0')}`); if (v) selectVessel(v); return v ? v.id : null; }, // C5
             deselect: deselectVessel,

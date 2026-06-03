@@ -83,6 +83,26 @@ try {
   ok(perf && perf.drones === 1000 && perf.megaMode === true && perf.drawCalls > 0 && perf.drawCalls < perf.drones && Number.isFinite(perf.fps) && perf.visibleInstances > 0,
     `B6 성능 측정 (DC=${perf.drawCalls} < 1000대, fps=${perf.fps}, vis=${perf.visibleInstances})`);
 
+  // 8d. B2(P732) 대규모 CPA 충돌쌍 복원 — 공간해시 검출 로직을 합성 입력으로 결정론적 검증.
+  // 실제 충돌쌍은 회피 로직 탓에 드물고 일시적이라, 순수 함수 _conflictPairCount로 직접 검증한다.
+  const det = await page.evaluate(() => {
+    const mk = (id, wx, wz, heading) => ({ id, wx, wz, wy: 50, heading, speed: 10, vy: 0 });
+    return {
+      // A(+z 진행)·B(−z 진행)이 200m 간격서 정면 수렴 → 충돌쌍 1
+      converge: window._sdacs._conflictPairCount([mk('A', 0, 0, 0), mk('B', 0, 200, 180)]),
+      // 서로 멀어지는 방향(발산) → 충돌쌍 0
+      diverge: window._sdacs._conflictPairCount([mk('A', 0, 0, 180), mk('B', 0, 200, 0)]),
+      // 단일 기체 → 쌍 없음 0
+      single: window._sdacs._conflictPairCount([mk('A', 0, 0, 0)]),
+    };
+  });
+  ok(det.converge === 1 && det.diverge === 0 && det.single === 0,
+    `B2 공간해시 CPA 검출 (수렴=${det.converge}/발산=${det.diverge}/단일=${det.single})`);
+
+  // 8e. B2 대규모 모드 무결성 — 1k(megaMode)서 conflictPairs API가 유한값 반환(400대 컷오프·크래시 없음 확인)
+  const cpMega = await page.evaluate(() => window._sdacs.conflictPairs);
+  ok(Number.isFinite(cpMega) && cpMega >= 0, `B2 대규모 conflictPairs 유한 (1k 모드=${cpMega})`);
+
   // 8c. B4 다중 선택 — 여러 드론 선택 후 집계 패널 동작
   await page.evaluate(() => window._sdacs.selectScenario('route_conflict'));
   await page.waitForTimeout(400);

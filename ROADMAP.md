@@ -173,7 +173,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 브라우저 단독 실행(Three.js) 시뮬레이터를 데모·교육·검증 자산으로 고도화. 모든 항목 헤드리스 스모크(`tests/e2e/`) + CI(`sim-smoke.yml`)로 검증.
 
-- [x] **P721** — 원클릭 로컬 실행 — Win/Mac/Linux 더블클릭 런처 + 포트 자동회피 `scripts/serve.py` (2026-06-03)
+- [x] **P721** — Electron 데스크탑 앱 (Win NSIS / Mac DMG / Linux AppImage) — 홈 화면에서 두 시뮬레이터 카드 선택, three.js 로컬 vendor 패키징, GitHub Actions 3-OS 자동 빌드 → Releases 드래프트 (2026-06-03, .bat/.command/.sh + serve.py 폐기)
 - [x] **P722** — 드론 상세/호버 툴팁·클릭 선택·2×2 분석 뷰 (2026-05)
 - [x] **P723** — 외부 드론·조류 탐지·식별(DnI) + 식별 정확도 모델 (2026-05)
 - [x] **P724** — 대규모 InstancedMesh 렌더(1k~10k) + 성능 측정 HUD(B6: draw call·FPS·삼각형) (2026-06-03)
@@ -196,4 +196,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-06-03 (Track D 웹 시뮬레이터 신설: P721~P728 완료 — 원클릭 실행·해양 시뮬레이터 C1~C9·메인 B4/B6/B9/B10. P729~P735 진행 예정. Track C P718·P719·P720 병렬 진행 중)*
+*Last updated: 2026-06-03 (Track D 웹 시뮬레이터: P721 Electron 데스크탑 앱(.bat 런처 폐기 + 3-OS 자동 빌드) + P722~P730 완료 — 해양 C1~C9·메인 B3/B4/B6/B9/B10·B5 i18n. P731~P735 진행 예정. Track C P718·P719·P720 병렬 진행 중)*

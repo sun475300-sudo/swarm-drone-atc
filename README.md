@@ -98,41 +98,47 @@ docker compose run --rm sdacs python main.py monte-carlo --mode quick
 > `docker compose down` 후에도 `./results/` 디렉터리의 산출물은 호스트에 그대로 남습니다. 설정은 읽기 전용으로 마운트되므로 컨테이너가 호스트 파일을 덮어쓰지 않습니다.
 
 ---
-## 🖥 로컬에서 3D 시뮬레이터 실행 / Run the Simulator Locally
+## 🖥 데스크탑 앱 — 더블클릭으로 실행 / Desktop App
 
-빌드 도구 없이 정적 파일만으로 실행됩니다. **Python만 있으면 더블클릭 한 번으로 실행됩니다.**
+SDACS는 **Electron 데스크탑 앱**으로 빌드돼 OS별 설치 파일(.exe/.dmg/.AppImage)을 더블클릭만으로 실행합니다. 별도 런타임·CLI·브라우저 설치가 필요 없습니다.
 
-### 🖱 원클릭 실행 (더블클릭)
+### 📥 다운로드 (사용자)
 
-| OS | 더블클릭할 파일 |
-|----|----------------|
-| **Windows** | `run_simulator.bat` |
-| **macOS** | `run_simulator.command` (최초 1회: 우클릭 → 열기) |
-| **Linux** | `run_simulator.sh` |
+[**최신 릴리스에서 다운로드 →**](https://github.com/sun475300-sudo/swarm-drone-atc/releases/latest)
 
-더블클릭하면 로컬 서버가 뜨고 브라우저가 자동으로 열립니다. 포트(8123)가 사용 중이면 다음 빈 포트를 자동으로 찾습니다. 종료는 뜬 콘솔 창에서 `Ctrl+C` (Windows는 `Terminate batch job (Y/N)?`가 나오면 `Y`).
+| OS | 파일 | 동작 |
+|---|---|---|
+| **Windows** | `SDACS-Simulator-X.Y.Z-Setup.exe` | 더블클릭 → 설치 → 시작 메뉴에서 실행 |
+| **macOS** | `SDACS-Simulator-X.Y.Z-x64.dmg` / `-arm64.dmg` | 더블클릭 → Applications로 드래그 → 실행 (Gatekeeper: 우클릭 → 열기) |
+| **Linux** | `SDACS-Simulator-X.Y.Z-x64.AppImage` | `chmod +x` 후 더블클릭 또는 실행 |
 
-> Python이 없으면 [python.org](https://www.python.org/downloads/)에서 설치하세요(Windows는 설치 시 "Add Python to PATH" 체크).
+앱을 열면 **홈 화면**에서 두 시뮬레이터(군집 드론 / 해양 소형선) 카드를 선택해 들어갈 수 있고, 메뉴(`Ctrl+1`/`Ctrl+2`)로 즉시 전환됩니다.
 
-### ⌨ 명령줄 실행
+### 🛠 개발자 — 로컬 실행 / 빌드
 
 ```bash
-# 방법 1) 포함된 런처 (브라우저 자동 오픈, 포트 8123→사용 중이면 자동 증가)
-python3 scripts/serve.py                 # → 3D 군집 시뮬레이터
-python3 scripts/serve.py --page maritime # → 해양 소형선 감지 시뮬레이터
-python3 scripts/serve.py --page landing  # → 랜딩 페이지(모든 데모 링크)
+# 의존성 설치(Electron + electron-builder)
+npm install
 
-# 방법 2) npm 스크립트
-npm start            # = python3 scripts/serve.py
-npm run smoke        # 헤드리스 스모크 테스트(먼저 npm run pw:install 후, 서버 실행 중)
+# 개발 모드(자동 DevTools)
+npm run dev
+# 또는: npm start
 
-# 방법 3) 한 줄 (파이썬 표준 서버)
-python3 -m http.server 8123   # → http://localhost:8123/swarm_3d_simulator.html
+# 패키징(현재 OS용)
+npm run dist               # 모든 타깃
+npm run dist:win           # Windows NSIS
+npm run dist:mac           # macOS DMG
+npm run dist:linux         # Linux AppImage
+
+# 헤드리스 스모크(시뮬레이터 단독 — Electron 없이)
+npm run test-server &      # 로컬 정적 서버
+npm run smoke              # 군집 시뮬레이터 14/14
+npm run smoke:maritime     # 해양 시뮬레이터 18/18
 ```
 
-> **오프라인 실행**: 시뮬레이터는 기본적으로 three.js를 unpkg CDN에서 로드합니다(인터넷 필요). 인터넷 없이 쓰려면 `bash scripts/vendor_three.sh`로 three.js를 `vendor/`에 받은 뒤, 안내된 대로 `swarm_3d_simulator.html`의 importmap을 로컬 경로로 교체하세요.
->
-> ⚠️ `file://`로 직접 열면 ES module importmap이 동작하지 않으니 반드시 HTTP 서버로 여세요.
+> **오프라인 동작**: three.js는 `vendor/three/`로 함께 패키징되어 인터넷 없이 완전 동작합니다. importmap은 상대경로(`./vendor/three/...`)로 빌드 산출물에 포함됩니다.
+
+> **자동 릴리스**: GitHub Actions(`.github/workflows/desktop-build.yml`)가 `v*` 태그 푸시 시 3-OS 빌드를 동시 실행해 GitHub Releases에 드래프트로 업로드합니다.
 
 ---
 ## 🚢 해양 소형선 감지 시뮬레이터 / Maritime Small-Vessel Detection

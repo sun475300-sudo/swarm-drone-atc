@@ -143,7 +143,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 목포대 캡스톤 결과물을 학술적 기여로 정제.
 
-- [ ] **P701** — 논문 주제 확정 및 기여 포인트 3개 도출 (CBS+APF 하이브리드? Voronoi 분할?)
+- [~] **P701** — 논문 주제 outline 작성 — `docs/paper/contribution_outline.md` 3개 기여 후보(C1 APF+CBS 하이브리드, C2 Voronoi 동적 공역, C3 DnI 정확도) 비교표 + §-outline + 권장 순위. 지도교수 컨펌 대기 (2026-06-03)
 - [ ] **P702** — 선행 연구 서베이 (최소 30편, IROS/ICRA/AIAA 기준)
 - [x] **P703** — 벤치마크 데이터셋 공개화 — `benchmarks/` 10개 시나리오 + 3개 기준선(ORCA/VO/CBS) + CC-BY-4.0 + DATASET_CARD.md + CITATION.bib 완비 (2026-05-29)
 - [x] **P704** — Reproducibility 패키지 — Dockerfile·Dockerfile.gpu·Dockerfile.reproducible + docker-compose.reproducible.yml (PYTHONHASHSEED=0, seed 고정) 완비 (2026-05-29)
@@ -152,7 +152,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [ ] **P707** — 논문 초안 작성 (IROS 2026 또는 AIAA SciTech 2027 투고 목표)
 - [ ] **P708** — 내부 리뷰 3회 + 지도교수 피드백 반영
 - [ ] **P709** — 공식 투고 및 arXiv 프리프린트 업로드
-- [ ] **P710** — 학술대회 발표 슬라이드·포스터 (동강대 학술대회 4/23 포함)
+- [~] **P710** — 학술대회 발표 슬라이드·포스터 스켈레톤 — `docs/poster/donggang_2026_ko.md` (동강대 4/23 한국어 포스터 8섹션) + `docs/slides/README.md` (12분 15장 outline). 차트·다이어그램 asset은 SP2-3에서 완성 (2026-06-03)
 
 ### Track C — 배포·서비스화 (Phase 711-720)
 

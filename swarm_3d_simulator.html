@@ -1300,6 +1300,7 @@
             <span style="color:#a855f7;">APF</span>:<span id="perf-apf">-</span>ms
             <span style="color:#f59e0b;" id="perf-apf-label">WRK</span> |
             <span style="color:#22d3ee;">DRN</span>:<span id="perf-drn">0</span><span id="perf-render"></span> |
+            <span style="color:#84cc16;">DC</span>:<span id="perf-dc">0</span> |
             드래그: 회전 | 스크롤: 줌
         </div>
     </div>
@@ -6061,7 +6062,7 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
         // CPU Worker: APF 공간해시 + 힘 계산 (WebGPU 미지원 시 폴백)
         // CPU Main: 드론 상태머신, UI 업데이트, 이벤트 처리
         const PHASE_NUM = { GROUNDED: 0, TAKEOFF: 1, ENROUTE: 2, HOLDING: 3, LANDING: 4, EVADING: 5, FAILED: 6, RTL: 7 };
-        const perfMetrics = { cpuMs: 0, gpuMs: 0, workerMs: 0, gpuComputeMs: 0, workerActive: false, useWorker: true, useGpuCompute: false };
+        const perfMetrics = { cpuMs: 0, gpuMs: 0, workerMs: 0, gpuComputeMs: 0, workerActive: false, useWorker: true, useGpuCompute: false, fps: 60, drawCalls: 0, triangles: 0 };
         let _workerBusy = false, _workerForces = null, _workerEvents = null;
 
         // ===== WebGPU Compute Shader — APF 힘 계산 GPU 가속 =====
@@ -6527,9 +6528,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             const dt = Math.min(clock.getDelta(), 0.1);
             const t = clock.elapsedTime;
 
-            // FPS
+            // FPS (B6: perfMetrics.fps에 저장해 측정 API로 노출)
             if (t - lastFpsTime >= 1) {
                 document.getElementById('fps-counter').textContent = frameCount;
+                perfMetrics.fps = frameCount;
                 frameCount = 0;
                 lastFpsTime = t;
             }
@@ -6667,6 +6669,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             const gpuStart = performance.now();
             renderer.render(scene, camera);
             perfMetrics.gpuMs = performance.now() - gpuStart;
+            // B6 렌더 통계(draw call·삼각형) — three.js renderer.info
+            perfMetrics.drawCalls = renderer.info.render.calls;
+            perfMetrics.triangles = renderer.info.render.triangles;
         }
 
         // UI refresh at lower rate
@@ -6683,6 +6688,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             document.getElementById('perf-render').textContent = megaMode
                 ? ` ⚡INST ${_visibleInst}/${drones.length}${megaCull ? ' cull' : ''}`
                 : '';
+            document.getElementById('perf-dc').textContent = perfMetrics.drawCalls;
             if (perfMetrics.useGpuCompute) {
                 document.getElementById('perf-apf').textContent = perfMetrics.gpuComputeMs.toFixed(1);
                 document.getElementById('perf-apf-label').textContent = 'GPU⚡';
@@ -6755,6 +6761,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get megaMode() { return megaMode; },
             get instanceCount() { return bodyInst.count; },
             get visibleInstances() { return _visibleInst; },
+            get perf() { return { fps: perfMetrics.fps, cpuMs: +perfMetrics.cpuMs.toFixed(2), gpuMs: +perfMetrics.gpuMs.toFixed(2), drawCalls: perfMetrics.drawCalls, triangles: perfMetrics.triangles, drones: drones.length, megaMode, visibleInstances: _visibleInst }; }, // B6
             set megaCull(v) { megaCull = !!v; },
             get megaCull() { return megaCull; },
             get replayFrames() { return recorder.frames.length; },

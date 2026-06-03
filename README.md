@@ -746,6 +746,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-03 11:24 | `a638221` | feat: 해양 EO/IR 카메라 뷰(C3) + 해안선·항로·선박 3D 디테일(C7) | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
 | 2026-06-03 11:02 | `93cafb2` | feat: 해양 시뮬레이터 PNG/CSV 리포트(C6) + README 해양 섹션(D2) | README.md, docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
 | 2026-06-03 10:59 | `9540f48` | feat: 해양 시나리오 3종(C8) + 스왐 경로효율 per-leg 수정(O3→B9) | docs/simulator.html, docs/swarm_3d_simulator.html, maritime_detection_simulator.html, swarm_3d_simulator.html, tests/e2e/TEST_LOG.md, visualization/swarm_3d_simulator.html |
 | 2026-06-03 10:56 | `88e76b4` | feat: 해양 시뮬레이터 실용성 강화 — C1 레이더 물리 + C2 AIS·레이더 융합 + C4 COLREG + C5 트랙 상세 | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |

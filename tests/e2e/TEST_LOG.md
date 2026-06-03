@@ -59,13 +59,13 @@ PASS  런타임 에러 0건
 | B7 | MEDIUM | 100~499대 구간 매 프레임 O(N·M) 센서 거리검사 | `updateExternals` 센서망 매 프레임 재구성·전수 검사 | 스로틀(시간 기반)로 빈도 감소 | `afa66c2`·`bb9c50f` |
 | B8 | LOW | `updateDrone`에서 `d.rotor` 잠재 null 역참조 | `d.body` 가드 안에서 `d.rotor` 무가드 접근(향후 변경 취약) | `if (d.rotor)` 가드 | `afa66c2` |
 | B9 (← O3) | LOW | 경로효율(detail 패널)이 1을 크게 초과 | `distanceTraveled`가 다중 trip 누적이라 단일 leg 기준 아님 | TAKEOFF 진입에 `legStartX/Z/Dist` 저장 → per-leg 거리·직선 비율 사용(폴백 유지) | PR #39 |
+| B10 (← O2) | MEDIUM | `rebuildConflictLabels`가 ~3Hz로 `makeTextSprite`(canvas+texture) 반복 생성 → GC 압력 | 스프라이트 풀(`_makePooledLabel`/`_drawPooledLabel`)로 객체 재사용, 캔버스만 갱신·needsUpdate. 초과분 visible=false | PR #39 |
 
 ### 2-2. 미해결 / 보류 (Open)
 
 | ID | 심각도 | 내용 | 주석(사유/계획) |
 |---|---|---|---|
 | O1 | MEDIUM | 공역 레이어 패널 2개 중복(`Airspace Layers`/`layer-*` vs `공역·관제 레이어`/`tg-*`) — 체크박스 상태 desync 가능 | 병렬 Codex `applyLayerVisibility` 시스템과 얽혀 리팩터 충돌 위험 → 보류. 계획: `tg-*` 단일 소스로 통합 또는 중복 패널 숨김 |
-| O2 | MEDIUM | `rebuildConflictLabels`가 ~3Hz로 `makeTextSprite`(canvas+texture) 반복 생성 | disposed되나 GC 압력. 계획: 라벨 6개 텍스처 사전생성·재사용 |
 | O4 | INFO(프로세스) | 동일 브랜치에 병렬 Codex 세션 동시 커밋 → 반복 충돌·B1 크래시 유발 | 시뮬레이터 작업 전용 브랜치 분리 권장 |
 
 ---

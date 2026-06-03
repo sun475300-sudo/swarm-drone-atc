@@ -4915,21 +4915,45 @@
 
         // CPA 라벨(TTC·이격거리): 텍스처 비용 때문에 저빈도로만 재생성
         // KNOWN ISSUE(O2): ~3Hz로 makeTextSprite(canvas+texture) 반복 생성(disposed되나 GC 압력). 6개 텍스처 사전생성·재사용 예정.
+        // O2: conflict 라벨 스프라이트 풀 — 매 호출 dispose/재생성 대신 캔버스만 갱신.
+        // TTC 값이 동적이라 텍스처 캐시는 비효율 → 스프라이트·캔버스·텍스처 객체를 재사용한다.
+        function _makePooledLabel() {
+            const c = document.createElement('canvas');
+            c.width = 256; c.height = 64;
+            const tex = new THREE.CanvasTexture(c);
+            const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+            sp.scale.set(3, 0.8, 1);
+            sp._canvas = c; sp._tex = tex;
+            return sp;
+        }
+        function _drawPooledLabel(sp, text, color, fontSize) {
+            const ctx = sp._canvas.getContext('2d');
+            ctx.clearRect(0, 0, 256, 64);
+            ctx.font = `bold ${fontSize || 7}px JetBrains Mono, monospace`;
+            ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(text, 128, 32);
+            sp._tex.needsUpdate = true;
+        }
         function rebuildConflictLabels() {
-            for (const s of _cvLabels) {
-                conflictVizGroup.remove(s);
-                if (s.material.map) s.material.map.dispose();
-                s.material.dispose();
-            }
-            _cvLabels.length = 0;
-            if (!showConflictViz) return;
-            for (const c of _cvLabelData) {
-                const danger = c.cpa < NEAR_MISS_DIST;
-                const sp = makeTextSprite(`${c.ttc.toFixed(1)}s · ${c.cpa.toFixed(0)}m`, danger ? '#ff4040' : '#ffcc40', 7);
-                sp.position.set(c.x, c.y, c.z);
-                sp.scale.set(3, 0.8, 1);
+            // 풀이 부족하면 확장(라벨 개수가 늘어난 만큼만 신규 생성)
+            const need = showConflictViz ? _cvLabelData.length : 0;
+            while (_cvLabels.length < need) {
+                const sp = _makePooledLabel();
                 conflictVizGroup.add(sp);
                 _cvLabels.push(sp);
+            }
+            // 필요분 갱신, 초과분 숨김(재사용 위해 dispose하지 않음)
+            for (let i = 0; i < _cvLabels.length; i++) {
+                const sp = _cvLabels[i];
+                if (i < need) {
+                    const c = _cvLabelData[i];
+                    const danger = c.cpa < NEAR_MISS_DIST;
+                    _drawPooledLabel(sp, `${c.ttc.toFixed(1)}s · ${c.cpa.toFixed(0)}m`, danger ? '#ff4040' : '#ffcc40', 7);
+                    sp.position.set(c.x, c.y, c.z);
+                    sp.visible = true;
+                } else {
+                    sp.visible = false;
+                }
             }
         }
 

@@ -52,6 +52,28 @@ try {
   const cpa = await page.evaluate(() => window._mds.cpaWarn);
   ok(Number.isFinite(cpa) && cpa >= 0, `CPA 경보 카운터 (${cpa})`);
 
+  // 5b. C1 레이더 수평선(NM) 합리적 범위 (~5~7NM, 모선 안테나 12m)
+  const horizon = await page.evaluate(() => window._mds.horizonNM);
+  ok(Number.isFinite(horizon) && horizon > 3 && horizon < 12, `C1 레이더 수평선 (${horizon.toFixed(2)}NM)`);
+
+  // 5c. C2 융합 트랙 카운트(필드 존재·정수)
+  const fused = await page.evaluate(() => window._mds.fused);
+  ok(Number.isFinite(fused) && fused >= 0, `C2 융합 트랙 카운터 (${fused})`);
+
+  // 5d. C4 조우 분류 배열(필드 존재·배열·각 항목 type)
+  const encs = await page.evaluate(() => window._mds.encounters);
+  const encOK = Array.isArray(encs) && encs.every(e => typeof e.id === 'string' && typeof e.type === 'string');
+  ok(encOK, `C4 조우 분류 (${encs.length}건 ${encs.slice(0,3).map(e=>e.type).join(',')})`);
+
+  // 5e. C5 트랙 선택 API — 첫 식별 트랙 선택
+  const selId = await page.evaluate(() => {
+    const v = window._mds; const all = window._mds.encounters; // 식별된 것 우선
+    return v.select(all[0]?.id || 1);
+  });
+  const selRead = await page.evaluate(() => window._mds.selectedId);
+  ok((selId === null) || (selId && selRead === selId), `C5 트랙 선택 (${selId} == ${selRead})`);
+  await page.evaluate(() => window._mds.deselect());
+
   // 6. 시나리오 전환 (비협조 침입)
   await page.evaluate(() => window._mds.scenario('intrusion'));
   await page.waitForTimeout(800);

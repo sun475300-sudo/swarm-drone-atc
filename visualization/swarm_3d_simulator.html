@@ -1133,6 +1133,21 @@
             </div>
         </div>
 
+        <!-- 데이터 소스: 데모 ↔ 실측 (P733) -->
+        <div class="ctrl-panel">
+            <div class="ctrl-title">
+                <div style="width:6px;height:6px;border-radius:50%;background:#22c55e;"></div>
+                📡 데이터 소스
+            </div>
+            <div style="display:flex;gap:4px;align-items:center;margin-top:5px;">
+                <button class="ctrl-btn active" id="src-demo" style="flex:1;">데모</button>
+                <button class="ctrl-btn" id="src-live" style="flex:1;">실측 (WS)</button>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:5px;align-items:center;font-size:9px;font-family:'JetBrains Mono',monospace;color:#4a6785;">
+                <span id="src-status">데모 시뮬레이션</span>
+            </div>
+        </div>
+
         <!-- 공역·관제 레이어 토글 -->
         <div class="ctrl-panel">
             <div class="ctrl-title">
@@ -6622,20 +6637,87 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             _workerForces = null; _workerEvents = null;
         }
 
-        // ===== WebSocket 실시간 연동 (선택적) =====
+        // ===== WebSocket 실시간 연동 — 데모↔실측 토글 (P733) =====
+        // 좌표 규약: ws_bridge 스냅샷 pos=[x, y, alt] → 데모 wx=x, wz=y, wy=alt
+        // (simulator.py position[2]=고도, 데모 wy=고도와 일치)
         let _wsConnected = false;
         let _wsData = null;
-        function connectWebSocket(url = 'ws://localhost:8765') {
-            try {
-                const ws = new WebSocket(url);
-                ws.onopen = () => { _wsConnected = true; console.log('🟢 WS 연결됨'); };
-                ws.onclose = () => { _wsConnected = false; console.log('🔴 WS 연결 끊김'); };
-                ws.onmessage = (e) => { _wsData = JSON.parse(e.data); };
-                ws.onerror = () => { _wsConnected = false; };
-            } catch (e) { /* WS 미사용 시 무시 */ }
+        let liveMode = false;
+        let _ws = null;
+        let _preLiveRunning = true;  // 실측 진입 직전 데모 실행 상태 (복귀 시 복원)
+        const WS_URL = 'ws://localhost:8765';
+
+        function _setSrcStatus(text) {
+            const el = document.getElementById('src-status');
+            if (el) el.textContent = text;
         }
-        // 자동 연결 시도 (ws_bridge.py 실행 중이면 연결됨)
-        connectWebSocket();
+
+        function connectWebSocket(url = WS_URL) {
+            try {
+                _ws = new WebSocket(url);
+                _ws.onopen = () => { _wsConnected = true; if (liveMode) _setSrcStatus('● 실측 연결됨'); };
+                _ws.onclose = () => { _wsConnected = false; if (liveMode) _setSrcStatus('○ 연결 끊김 — ws_bridge.py 실행 필요'); };
+                _ws.onmessage = (e) => { try { _wsData = JSON.parse(e.data); } catch (err) { /* 손상 프레임 무시 */ } };
+                _ws.onerror = () => { _wsConnected = false; if (liveMode) _setSrcStatus('○ 연결 대기 — ws_bridge.py 실행 필요'); };
+            } catch (e) { _wsConnected = false; if (liveMode) _setSrcStatus('○ WebSocket 미지원'); }
+        }
+
+        function disconnectWebSocket() {
+            if (_ws) { try { _ws.close(); } catch (e) { /* 무시 */ } _ws = null; }
+            _wsConnected = false; _wsData = null;
+        }
+
+        // 실측 스냅샷을 기존 드론 객체에 적용 (인덱스 매칭, 데모 물리 정지 상태에서 호출)
+        function applyLiveSnapshot() {
+            if (!_wsData || !Array.isArray(_wsData.drones)) return;
+            const wsd = _wsData.drones;
+            const n = Math.min(drones.length, wsd.length);
+            for (let i = 0; i < n; i++) {
+                const dr = drones[i], s = wsd[i];
+                if (!s || !Array.isArray(s.pos)) continue;
+                dr.wx = s.pos[0]; dr.wz = s.pos[1]; dr.wy = s.pos[2];
+                if (typeof s.phase === 'string' && s.phase) dr.phase = s.phase;
+                if (typeof s.battery === 'number') dr.battery = s.battery;
+                dr.group.position.set(dr.wx * SCALE, dr.wy * SCALE * 3, dr.wz * SCALE);
+                const col = (PHASES[dr.phase] || PHASES.GROUNDED).color;
+                if (dr.body) {
+                    dr.body.material.color.setHex(col);
+                    if (dr.body.material.emissive) dr.body.material.emissive.setHex(col);
+                    if (dr.rotor) dr.rotor.material.color.setHex(col);
+                }
+            }
+            if (_wsData.stats) {
+                const st = _wsData.stats;
+                if (typeof st.collisions === 'number') stats.collisions = st.collisions;
+                if (typeof st.near_misses === 'number') stats.nearMisses = st.near_misses;
+                if (typeof st.conflicts === 'number') stats.conflicts = st.conflicts;
+                if (typeof st.advisories === 'number') stats.advisories = st.advisories;
+            }
+            if (typeof _wsData.t === 'number') simTime = _wsData.t;
+        }
+
+        function setLiveMode(on) {
+            liveMode = !!on;
+            const dBtn = document.getElementById('src-demo');
+            const lBtn = document.getElementById('src-live');
+            if (dBtn) dBtn.classList.toggle('active', !liveMode);
+            if (lBtn) lBtn.classList.toggle('active', liveMode);
+            if (liveMode) {
+                _preLiveRunning = simRunning;  // 데모 실행/일시정지 상태 보존
+                goLive();            // 리플레이 중이면 라이브로 복귀
+                simRunning = false;  // 데모 물리 정지 — 실측 스냅샷이 표시를 구동
+                _setSrcStatus(_wsConnected ? '● 실측 연결됨' : '○ 연결 대기 — ws_bridge.py 실행 필요');
+                if (!_ws) connectWebSocket();
+            } else {
+                disconnectWebSocket();
+                simRunning = _preLiveRunning;  // 진입 직전 데모 상태 복원 (강제 재개 방지)
+                _setSrcStatus('데모 시뮬레이션');
+            }
+            return liveMode;
+        }
+
+        document.getElementById('src-demo').addEventListener('click', () => setLiveMode(false));
+        document.getElementById('src-live').addEventListener('click', () => setLiveMode(true));
 
         // ===== Animation Loop =====
         const clock = new THREE.Clock();
@@ -6661,15 +6743,20 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // 리플레이 재생 (라이브 정지 상태에서 기록 프레임 적용)
             advanceReplay(dt);
 
-            // Update weather & drones (CPU Main)
-            if (simRunning) {
-                simTime += dt * simSpeed;
-                updateWeather(dt);
+            // 실측 모드: ws_bridge 스냅샷이 표시를 구동 (데모 물리·기상 우회)
+            if (liveMode) {
+                applyLiveSnapshot();
+            } else {
+                // Update weather & drones (CPU Main)
+                if (simRunning) {
+                    simTime += dt * simSpeed;
+                    updateWeather(dt);
+                }
+                drones.forEach(d => updateDrone(d, dt));
             }
-            drones.forEach(d => updateDrone(d, dt));
 
             // APF: GPU Compute → Worker → CPU 폴백 (우선순위)
-            if (simRunning) {
+            if (simRunning && !liveMode) {  // P733: 실측 모드에선 APF가 실측 좌표를 덮어쓰지 않도록 우회
                 if (perfMetrics.useGpuCompute && _gpuDevice) {
                     applyGpuForces();
                     if (!_gpuBusy) dispatchGpuCompute();
@@ -6905,6 +6992,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get dni() { return { ...dniStats, objects: externalObjs.length }; },
             replaySeek(idx) { enterReplay(); replayIdx = Math.max(0, Math.min(idx, recorder.frames.length - 1)); applyFrame(replayIdx); return replayIdx; },
             goLive,
+            get liveMode() { return liveMode; },                 // P733
+            setLiveMode(on) { return setLiveMode(on); },         // P733 데모↔실측 토글
+            get wsConnected() { return _wsConnected; },          // P733 실측 연결 상태
             selectScenario(name) { document.getElementById('scenario-select').value = name; document.getElementById('scenario-select').dispatchEvent(new Event('change')); },
             setLayer(name, on) {
                 if (!(name in layerVisibility)) return null;

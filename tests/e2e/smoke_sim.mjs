@@ -93,6 +93,15 @@ try {
   const cleared = await page.evaluate(() => window._sdacs.multiSelection.length);
   ok(cleared === 0, 'B4 다중 선택 해제');
 
+  // 8d. P733 데이터 소스 데모↔실측 토글 — ws_bridge 미실행 시에도 크래시 없이 전환
+  const liveOn = await page.evaluate(() => window._sdacs.setLiveMode(true));
+  await page.waitForTimeout(600);
+  const liveState = await page.evaluate(() => ({ live: window._sdacs.liveMode, ws: window._sdacs.wsConnected }));
+  ok(liveOn === true && liveState.live === true && liveState.ws === false,
+    `P733 실측 모드 ON (live=${liveState.live}, ws연결=${liveState.ws} — 서버 미실행)`);
+  const demoBack = await page.evaluate(() => window._sdacs.setLiveMode(false));
+  ok(demoBack === false, 'P733 데모 모드 복귀');
+
   // 9. 페이지 런타임 에러 없음
   ok(pageErrors.length === 0, `런타임 에러 0건${pageErrors.length ? ' → ' + pageErrors.join(' | ') : ''}`);
 } catch (e) {

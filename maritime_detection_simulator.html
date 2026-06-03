@@ -88,6 +88,9 @@
             <option value="fog">안개·저시정 (탐지 저하)</option>
             <option value="night">야간 (EO 저하)</option>
             <option value="intrusion">비협조 침입 (고속정)</option>
+            <option value="storm">폭풍·악천후 (2NM, 시클러터↑)</option>
+            <option value="harbor">항만 출입 (느린 20척)</option>
+            <option value="pirate">비협조 고속정 다수 (18척)</option>
         </select>
         <div class="row" style="align-items:center;font-size:9px;color:#5a7a96;">
             속도<input type="range" id="speed" min="0.5" max="6" step="0.5" value="1.5" style="flex:1;"><span id="speed-v" style="min-width:26px;text-align:right;color:#cfe0ee;">1.5×</span>
@@ -178,6 +181,9 @@
             fog: { n: 14, radar: 2.4, accMul: 0.8, fast: 0.05 },     // 안개: 거리·정확도 저하
             night: { n: 14, radar: 3.4, accMul: 0.85, fast: 0.08 },  // 야간: EO 저하
             intrusion: { n: 16, radar: 4.0, accMul: 1.0, fast: 0.4 },// 고속 침입 다수
+            storm: { n: 10, radar: 2.0, accMul: 0.7, fast: 0.05 },    // C8 폭풍: 시클러터·거리·정확도 모두 저하
+            harbor: { n: 20, radar: 3.5, accMul: 1.0, fast: 0.02 },   // C8 항만 출입: 느린 다수
+            pirate: { n: 18, radar: 4.0, accMul: 0.9, fast: 0.55 },   // C8 비협조 고속정 떼
         };
 
         // ===== Three.js =====

@@ -3635,6 +3635,8 @@
                     if (d.groundDelay <= 0 && d.battery > 10 && takeoffController.canTakeoff(d)) {
                         d.phase = 'TAKEOFF';
                         d.throttle = 0.8;
+                        // O3: 새 trip 시작 — 이번 leg 거리 기준점 저장
+                        d.legStartX = d.wx; d.legStartZ = d.wz; d.legStartDist = d.distanceTraveled;
                         takeoffController.recordTakeoff(d);
                         logEvent('takeoff', `${d.id} [${d.role.label}] 이륙 개시`);
                     }
@@ -4374,10 +4376,16 @@
             const goalDist = Math.sqrt(gDx * gDx + gDz * gDz + gDy * gDy);
             const fmtT = (s) => isFinite(s) ? `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}` : '—';
             const etaStr = d.speed > 0.3 ? fmtT(goalDist / d.speed) : '—';
-            // 경로효율 = 실제 비행거리 / (출발→목표 직선거리), 1에 가까울수록 효율적
-            // KNOWN ISSUE(O3): distanceTraveled가 다중 트립 누적이라 단일 leg 기준이 아님(값이 1 초과). per-leg 추적 예정.
+            // 경로효율 = 현재 leg 실제 비행거리 / (leg 시작→목표 직선거리), 1에 가까울수록 효율적
+            // O3 fix: legStartX/Z/Dist를 TAKEOFF 진입에 저장하여 다중 trip 누적분 제외(단일 leg 기준).
             let routeEff = '—';
-            if (d.startPad && d.goalPad) {
+            const haveLeg = Number.isFinite(d.legStartX) && Number.isFinite(d.legStartZ) && Number.isFinite(d.legStartDist);
+            if (haveLeg && d.goalPad) {
+                const sg = Math.hypot(d.goalPad.x - d.legStartX, d.goalPad.z - d.legStartZ);
+                const legDist = d.distanceTraveled - d.legStartDist;
+                if (sg > 1 && legDist > 1) routeEff = '×' + (legDist / sg).toFixed(2);
+            } else if (d.startPad && d.goalPad) {
+                // 폴백(아직 이륙 전): 기존 누적 기반
                 const sg = Math.hypot(d.goalPad.x - d.startPad.x, d.goalPad.z - d.startPad.z);
                 if (sg > 1 && d.distanceTraveled > 1) routeEff = '×' + (d.distanceTraveled / sg).toFixed(2);
             }

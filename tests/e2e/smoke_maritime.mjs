@@ -112,12 +112,16 @@ try {
   }
   ok(c8ok, 'C8 신규 시나리오 3종(storm/harbor/pirate)');
 
-  // 7e. C9 시나리오별 검증 기록 — 여러 시나리오 전환 후 기록 누적
+  // 7e. C9 시나리오별 검증 기록 — 탐지·시간 누적 후 스냅샷
+  // _mds.validation getter가 snapshotValidation()을 호출하며, 가드는 detected>=1 && simTime>=3.
+  // 느린 CI(저FPS)에서 고정 대기는 가드 미충족으로 플래키하므로, 실제 기록 생성을 폴링한다
+  // (getter가 현재 시나리오를 스냅샷하므로 시나리오 전환 없이 'normal' 누적만으로 충분).
   await page.evaluate(() => window._mds.start());
   await page.evaluate(() => window._mds.scenario('normal'));
-  await page.waitForTimeout(4000);                       // 탐지 누적
-  await page.evaluate(() => window._mds.scenario('fog')); // 전환 → normal 스냅샷
-  await page.waitForTimeout(500);
+  await page.waitForFunction(
+    () => Array.isArray(window._mds.validation) && window._mds.validation.length > 0,
+    { timeout: 25000 }
+  ).catch(() => {});
   const val = await page.evaluate(() => window._mds.validation);
   const vOK = Array.isArray(val) && val.length > 0 && val.every(r => typeof r.scen === 'string' && Number.isFinite(r.acc) && r.acc >= 0 && r.acc <= 100);
   ok(vOK, `C9 검증 기록 (${val.length}개 시나리오, 예: ${val[0]?.scen} acc=${val[0]?.acc?.toFixed(0)}%)`);

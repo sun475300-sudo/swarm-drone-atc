@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12",
+  "$id": "https://github.com/sun475300-sudo/swarm-drone-atc/benchmarks/_schema/manifest.schema.json",
+  "title": "SDACS Scenario Manifest",
+  "description": "Schema for SDACS benchmark scenario manifests (v1.0)",
+  "type": "object",
+  "required": [
+    "id", "name", "version", "category", "difficulty",
+    "duration_seconds", "dt_seconds",
+    "airspace", "agents", "obstacles", "weather", "communications",
+    "regulatory", "success_criteria", "expected_baseline_performance"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9]{2}_[a-z_]+$",
+      "description": "Unique scenario identifier (e.g. '01_corridor_crossing')"
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "category": { "type": "string", "enum": ["standard", "stress"] },
+    "difficulty": { "type": "string", "enum": ["easy", "medium", "hard", "extreme"] },
+    "duration_seconds": { "type": "number", "exclusiveMinimum": 0 },
+    "dt_seconds": { "type": "number", "exclusiveMinimum": 0, "maximum": 10 },
+    "airspace": {
+      "type": "object",
+      "required": ["bounds_m", "volume_m3", "capacity_max_agents"],
+      "additionalProperties": false,
+      "properties": {
+        "bounds_m": {
+          "type": "object",
+          "required": ["x", "y", "z"],
+          "properties": {
+            "x": { "$ref": "#/$defs/range" },
+            "y": { "$ref": "#/$defs/range" },
+            "z": { "$ref": "#/$defs/range" }
+          }
+        },
+        "volume_m3": { "type": "number", "exclusiveMinimum": 0 },
+        "capacity_max_agents": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "agents": {
+      "type": "object",
+      "required": ["count", "kinematics", "spawn_pattern", "goal_pattern"],
+      "properties": {
+        "count": { "type": "integer", "minimum": 1 },
+        "kinematics": {
+          "type": "object",
+          "required": ["max_speed_m_s", "max_accel_m_s2", "turn_rate_deg_s"],
+          "properties": {
+            "max_speed_m_s": { "type": "number", "exclusiveMinimum": 0 },
+            "max_accel_m_s2": { "type": "number", "exclusiveMinimum": 0 },
+            "turn_rate_deg_s": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "spawn_pattern": { "type": "string" },
+        "goal_pattern": { "type": "string" }
+      }
+    },
+    "obstacles": {
+      "type": "object",
+      "required": ["static", "dynamic"],
+      "properties": {
+        "static": { "type": "array" },
+        "dynamic": { "type": "array" }
+      }
+    },
+    "weather": {
+      "type": "object",
+      "required": ["wind", "visibility_m", "precipitation_mm_per_h"],
+      "properties": {
+        "wind": {
+          "type": "object",
+          "required": ["mean_m_s", "gust_m_s", "direction_deg"],
+          "properties": {
+            "mean_m_s": { "type": "number", "minimum": 0 },
+            "gust_m_s": { "type": "number", "minimum": 0 },
+            "direction_deg": { "type": "number", "minimum": 0, "maximum": 360 }
+          }
+        },
+        "visibility_m": { "type": "number", "minimum": 0 },
+        "precipitation_mm_per_h": { "type": "number", "minimum": 0 }
+      }
+    },
+    "communications": {
+      "type": "object",
+      "required": ["quality", "packet_loss", "blackout_windows_s"],
+      "properties": {
+        "quality": { "type": "string", "enum": ["perfect", "degraded", "lossy", "disrupted"] },
+        "packet_loss": { "type": "number", "minimum": 0, "maximum": 1 },
+        "blackout_windows_s": { "type": "array", "items": { "$ref": "#/$defs/range" } }
+      }
+    },
+    "regulatory": {
+      "type": "object",
+      "required": ["remote_id_required", "laanc_volume_class", "geofences"],
+      "properties": {
+        "remote_id_required": { "type": "boolean" },
+        "laanc_volume_class": { "type": "string" },
+        "geofences": { "type": "array" }
+      }
+    },
+    "success_criteria": {
+      "type": "object",
+      "required": ["NMR_max", "MSD_min_m", "geofence_violations_max", "RID_CR_min"],
+      "properties": {
+        "NMR_max": { "type": "number", "minimum": 0 },
+        "MSD_min_m": { "type": "number", "minimum": 0 },
+        "geofence_violations_max": { "type": "integer", "minimum": 0 },
+        "RID_CR_min": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "expected_baseline_performance": {
+      "type": "object",
+      "properties": {
+        "NMR": { "type": "number", "minimum": 0 },
+        "MSD_m": { "type": "number" },
+        "PE": { "type": "number", "minimum": 0, "maximum": 1 },
+        "MS_s": { "type": "number", "minimum": 0 },
+        "RTF": { "type": "number", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "range": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 2
+    }
+  }
+}

@@ -787,6 +787,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-03 21:19 | `c1bfd3d` | feat: P732(B2) 대규모 CPA 충돌예측 복원 — 공간 해시 1k+ 시각화 | ROADMAP.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/smoke_sim.mjs, visualization/swarm_3d_simulator.html |
 | 2026-06-03 13:12 | `3295124` | feat: 병렬 세션의 고유 작업 통합 (Track A SW + P706 결과 + 벤치마크 schema) | benchmarks/_schema/manifest.schema.json, results/p706_comparison_3sc_5seed.csv, results/p706_summary.json, scripts/compare_baselines.py, simulation/environmental_scenario.py, simulation/failsafe_manager.py … |
 | 2026-06-03 12:39 | `cd82157` | Merge remote-tracking branch 'origin/claude/dazzling-maxwell-5AnBo' | .github/workflows/security.yml, README.md, ROADMAP.md, db/migrations/001_initial_schema.sql, helm/sdacs/.helmignore, helm/sdacs/Chart.yaml … |
 | 2026-06-03 12:32 | `b8bb893` | feat: SDACS Electron 데스크탑 앱 — .bat 런처 폐기 + 3-OS 자동 빌드 | .github/workflows/desktop-build.yml, .gitignore, README.md, ROADMAP.md, desktop/home.html, desktop/main.js … |

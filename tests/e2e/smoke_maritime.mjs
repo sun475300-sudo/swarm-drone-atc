@@ -115,9 +115,11 @@ try {
   // 7e. C9 시나리오별 검증 기록 — 여러 시나리오 전환 후 기록 누적
   await page.evaluate(() => window._mds.start());
   await page.evaluate(() => window._mds.scenario('normal'));
-  await page.waitForTimeout(4000);                       // 탐지 누적
+  // CI 부하(직전 대규모 테스트)에서 rAF throttle로 고정 대기는 탐지/시뮬시간 누적을 보장 못해 flaky.
+  // 스냅샷 전제조건(detected>=1 && simTime>=3, maritime initScenario가 simTime을 0으로 리셋)을 직접 폴링.
+  await page.waitForFunction(() => window._mds.detected >= 1 && window._mds.simTime >= 3.2, { timeout: 25000 });
   await page.evaluate(() => window._mds.scenario('fog')); // 전환 → normal 스냅샷
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(300);
   const val = await page.evaluate(() => window._mds.validation);
   const vOK = Array.isArray(val) && val.length > 0 && val.every(r => typeof r.scen === 'string' && Number.isFinite(r.acc) && r.acc >= 0 && r.acc <= 100);
   ok(vOK, `C9 검증 기록 (${val.length}개 시나리오, 예: ${val[0]?.scen} acc=${val[0]?.acc?.toFixed(0)}%)`);

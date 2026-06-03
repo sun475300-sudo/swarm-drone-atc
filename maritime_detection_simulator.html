@@ -940,6 +940,7 @@
 
         window._mds = {
             get total() { return vessels.length; },
+            get simTime() { return simTime; },   // 헤드리스 테스트용: 검증 스냅샷 전제(simTime>=3) 폴링
             get detected() { return stats.detected; },
             get identified() { return stats.identified; },
             get accuracy() { return stats.identified ? stats.correct / stats.identified * 100 : 100; },

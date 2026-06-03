@@ -787,6 +787,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-03 12:32 | `b8bb893` | feat: SDACS Electron 데스크탑 앱 — .bat 런처 폐기 + 3-OS 자동 빌드 | .github/workflows/desktop-build.yml, .gitignore, README.md, ROADMAP.md, desktop/home.html, desktop/main.js … |
 | 2026-06-03 12:13 | `d510a1c` | fix: OCaml type_safe_protocol에 'type message' 정의 추가 (CI 3.10/3.11/3.12 그린화) | src/ocaml/type_safe_protocol.ml |
 | 2026-06-03 12:01 | `73d48f8` | feat: P730(B5) 해양 시뮬레이터 UI 국제화(KO/EN 토글) | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
 | 2026-06-03 11:57 | `2f43895` | feat: P729(B3) 대규모 모드 글로우 인스턴싱 + ROADMAP Track D 신설 | ROADMAP.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |

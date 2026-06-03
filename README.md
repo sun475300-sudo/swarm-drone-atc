@@ -677,6 +677,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-03 13:18 | `713f096` | fix: test_ws_bridge asyncio.get_event_loop() → Python 3.10+ 호환 수정 | tests/test_ws_bridge.py |
 | 2026-05-31 02:18 | `795a34a` | feat: P711/P712/P713 FastAPI /readyz + /metrics Prometheus 엔드포인트 추가 | ROADMAP.md, api/fastapi_server.py |
 | 2026-05-31 02:15 | `b278888` | feat: P715 Helm 차트 + P717 부하테스트 + P718 관측성 스택 + ROADMAP 갱신 | ROADMAP.md, deploy/helm/sdacs/Chart.yaml, deploy/helm/sdacs/templates/configmap.yaml, deploy/helm/sdacs/templates/deployment.yaml, deploy/helm/sdacs/templates/redis-deployment.yaml, deploy/helm/sdacs/templates/service.yaml … |
 | 2026-05-31 02:11 | `38c6c87` | feat: P700 FMEA 보고서 생성기 + P716/P719 보안 스캔 CI 추가 | .github/workflows/ci.yml, ROADMAP.md, scripts/generate_fmea.py, tests/test_p700_fmea.py |

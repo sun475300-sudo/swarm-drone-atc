@@ -1,0 +1,85 @@
+# P718 — SDACS 관측성 스택
+# Prometheus + Grafana + Loki + Promtail
+# 사용법: docker compose -f docker-compose.monitoring.yml up -d
+
+version: "3.8"
+
+networks:
+  sdacs_network:
+    external: true  # 기존 메인 docker-compose가 생성한 네트워크 재사용
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+
+services:
+  # ---------- Prometheus — 메트릭 수집 ----------
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: sdacs_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+      - "--web.enable-lifecycle"
+    networks:
+      - sdacs_network
+    restart: unless-stopped
+
+  # ---------- Grafana — 시각화 대시보드 ----------
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: sdacs_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+      # Loki 데이터소스 자동 등록
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - sdacs_network
+    depends_on:
+      - prometheus
+      - loki
+    restart: unless-stopped
+
+  # ---------- Loki — 로그 집계 ----------
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: sdacs_loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - sdacs_network
+    restart: unless-stopped
+
+  # ---------- Promtail — 로그 수집 에이전트 ----------
+  promtail:
+    image: grafana/promtail:3.0.0
+    container_name: sdacs_promtail
+    volumes:
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./promtail.yml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - sdacs_network
+    depends_on:
+      - loki
+    restart: unless-stopped

@@ -1,0 +1,84 @@
+# ============================================================
+# Redis StatefulSet — 드론 상태 캐싱 및 keyspace 이벤트 알림
+# - 드론 위치/속도 상태를 메모리에 캐싱 (10Hz 업데이트 대응)
+# - notify-keyspace-events KEA: 상태 변경 이벤트 Pub/Sub
+# - StatefulSet: 재시작 시 동일 PVC 재연결 보장
+# ============================================================
+{{- if .Values.redis.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "sdacs.redis.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sdacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
+spec:
+  serviceName: {{ include "sdacs.redis.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "sdacs.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: redis
+  template:
+    metadata:
+      labels:
+        {{- include "sdacs.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: redis
+    spec:
+      containers:
+        - name: redis
+          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
+          imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+          ports:
+            - name: redis
+              containerPort: {{ .Values.redis.port }}
+              protocol: TCP
+          command:
+            - redis-server
+            - --notify-keyspace-events
+            - KEA
+          resources:
+            {{- toYaml .Values.redis.resources | nindent 12 }}
+          {{- if .Values.redis.persistence.enabled }}
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          {{- end }}
+          livenessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+  {{- if .Values.redis.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if .Values.redis.persistence.storageClass }}
+        storageClassName: {{ .Values.redis.persistence.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.redis.persistence.size }}
+  {{- end }}
+---
+# Redis 클러스터 내부 접근용 Headless 서비스
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sdacs.redis.fullname" . }}
+  labels:
+    {{- include "sdacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
+spec:
+  clusterIP: None
+  selector:
+    {{- include "sdacs.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
+  ports:
+    - name: redis
+      port: {{ .Values.redis.port }}
+      targetPort: redis
+{{- end }}

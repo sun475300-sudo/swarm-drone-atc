@@ -57,6 +57,9 @@ type alert = {
   timestamp  : float;
 }
 
+(** Serialized wire message payload *)
+type message = string
+
 (** GADT message type — direction-indexed *)
 type _ message =
   | Command      : string * command           -> request message

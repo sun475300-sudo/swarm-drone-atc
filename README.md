@@ -814,6 +814,9 @@ MIT License — Developed for academic and educational purposes.
 | 2026-05-29 09:23 | `3a59a91` | chore: package.json 추적(강제) — 로컬 npm 실행 스크립트 활성화 | package.json |
 | 2026-05-29 09:23 | `a831ba3` | feat: 로컬 실행/빌드 지원 — serve.py 런처 + npm 스크립트 + 오프라인 벤더링 | README.md, scripts/serve.py, scripts/vendor_three.sh |
 | 2026-05-29 09:21 | `bb9c50f` | feat: 외부 드론·조류 인식 가시화 + 탐지 스로틀 시간기반 안정화 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
+| 2026-06-03 11:55 | `0fd32dd` | fix: numpy 2.4.x mypy assignment 오류 type: ignore 추가 | src/boids_swarm.py, src/sensor_fusion.py |
+| 2026-06-03 11:42 | `bea5a20` | fix: OCaml type message 추가 + ws_bridge 이벤트루프 수정 | src/ocaml/type_safe_protocol.ml, tests/test_ws_bridge.py |
+| 2026-06-03 11:31 | `d3b5837` | fix: ruff I001 import 정렬 수정 (src/monitoring/metrics.py) | src/monitoring/metrics.py |
 | 2026-06-02 09:18 | `d84bb85` | docs: update README with Phase 521-660 multi-language coverage and latest stats | README.md |
 | 2026-06-02 10:20 | `main` | docs: README 최신 내용으로 업데이트 (Phase 521-660 다중 언어 반영, 배지/통계 갱신) | README.md |
 | 2026-06-02 09:17 | `c5b2111` | feat: add 68 multi-language stub files and fix BatteryPredictor numpy bool | simulation/battery_predictor.py, src/ada/safety_critical.adb, src/ada/tmr_voter_v2.adb, src/asm/crc32_checksum.asm, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj … |

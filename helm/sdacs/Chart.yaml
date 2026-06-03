@@ -1,0 +1,19 @@
+# SDACS Helm 차트 메타데이터
+# 군집드론 공역통제 자동화 시스템 (Swarm Drone Airspace Control System)
+apiVersion: v2
+name: sdacs
+description: >
+  Swarm Drone Airspace Control System — SimPy 기반 이산 이벤트 시뮬레이션과
+  Dash 3D 시각화를 포함한 군집드론 공역통제 자동화 시스템
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - drone
+  - simulation
+  - airspace
+  - swarm
+  - atc
+maintainers:
+  - name: SDACS Team
+    email: sun475300@gmail.com

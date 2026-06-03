@@ -1,0 +1,185 @@
+# ============================================================
+# SDACS Deployment — 백엔드(FastAPI) + 대시보드(Dash) 배포
+# 4계층 아키텍처의 Layer 3(시뮬) / Layer 4(UI) 를 컨테이너로 실행
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sdacs.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sdacs.labels" . | nindent 4 }}
+spec:
+  # HPA가 활성화된 경우 replicas를 HPA가 관리하므로 명시하지 않음
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "sdacs.selectorLabels" . | nindent 6 }}
+  # 배포 전략 — 무중단 롤링 업데이트
+  strategy:
+    type: {{ .Values.strategy.type }}
+    {{- if eq .Values.strategy.type "RollingUpdate" }}
+    rollingUpdate:
+      maxSurge: {{ .Values.strategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.strategy.rollingUpdate.maxUnavailable }}
+    {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "sdacs.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        # ConfigMap/Secret 변경 시 Pod 재시작 트리거 (설정 변경 자동 반영)
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "sdacs.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      # ---- 초기화 컨테이너: Redis 준비 대기 ----
+      initContainers:
+        - name: wait-for-redis
+          image: redis:7.2-alpine
+          # Redis가 응답할 때까지 대기 (최대 30초 × 10회 = 5분)
+          command:
+            - sh
+            - -c
+            - |
+              until redis-cli -h {{ include "sdacs.redis.fullname" . }} -p {{ .Values.redis.port }} ping; do
+                echo "Redis 준비 대기 중..."
+                sleep 3
+              done
+              echo "Redis 연결 확인 완료"
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+
+      containers:
+        # ---- 메인 컨테이너: SDACS 애플리케이션 ----
+        - name: {{ .Chart.Name }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          ports:
+            # FastAPI 백엔드 포트 (REST API + WebSocket /ws/telemetry)
+            - name: backend
+              containerPort: {{ .Values.ports.backend }}
+              protocol: TCP
+            # Dash 3D 시각화 대시보드 포트
+            - name: dashboard
+              containerPort: {{ .Values.ports.dashboard }}
+              protocol: TCP
+
+          # ---- 환경 변수: ConfigMap에서 주입 ----
+          envFrom:
+            - configMapRef:
+                name: {{ include "sdacs.fullname" . }}-config
+
+          # ---- 추가 환경 변수: Secret 및 런타임 동적 값 ----
+          env:
+            # PostgreSQL 접속 URL (시뮬레이션 결과 저장용)
+            {{- if .Values.postgresql.enabled }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sdacs.fullname" . }}-secret
+                  key: POSTGRES_PASSWORD
+            - name: DATABASE_URL
+              value: "postgresql://sdacs:$(POSTGRES_PASSWORD)@{{ include "sdacs.postgresql.fullname" . }}:{{ .Values.postgresql.port }}/{{ .Values.postgresql.database }}"
+            {{- end }}
+            # Discord Webhook (알림 선택사항)
+            - name: DISCORD_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sdacs.fullname" . }}-secret
+                  key: DISCORD_WEBHOOK_URL
+                  optional: true
+            # Pod 자신의 이름 (분산 환경 로깅 추적용)
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
+          # ---- 헬스 체크: 컨테이너 생존 여부 확인 ----
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          # ---- 준비 상태 체크: 트래픽 수신 가능 여부 확인 ----
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          # ---- CPU / 메모리 리소스 요청 및 제한 ----
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          # ---- 볼륨 마운트 ----
+          volumeMounts:
+            # 시뮬레이션 설정 파일 (읽기 전용)
+            - name: config-volume
+              mountPath: {{ .Values.volumes.config.mountPath }}
+              readOnly: true
+            # 시뮬레이션 결과 출력 디렉토리
+            - name: results-volume
+              mountPath: {{ .Values.volumes.results.mountPath }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+
+      # ---- 볼륨 정의 ----
+      volumes:
+        # 시뮬레이션 설정 ConfigMap 볼륨 (config/default_simulation.yaml 등)
+        - name: config-volume
+          configMap:
+            name: {{ include "sdacs.fullname" . }}-config
+        # 시뮬레이션 결과 저장 볼륨 (emptyDir — 영속성이 필요하면 PVC로 교체)
+        - name: results-volume
+          emptyDir: {}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+
+      # ---- 노드 선택 / 내결함성 / 배치 전략 ----
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

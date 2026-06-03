@@ -1,0 +1,90 @@
+# ============================================================
+# TimescaleDB StatefulSet — 시계열 드론 텔레메트리 이력 저장
+# - timescale/timescaledb 이미지: PostgreSQL + 시계열 확장 내장
+# - Monte Carlo 시뮬레이션 결과, 비행 경로 이력, 충돌 이벤트 저장
+# - StatefulSet: 데이터 영속성 보장 (PVC 재연결)
+# ============================================================
+{{- if .Values.postgresql.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "sdacs.postgresql.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sdacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgresql
+spec:
+  serviceName: {{ include "sdacs.postgresql.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "sdacs.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: postgresql
+  template:
+    metadata:
+      labels:
+        {{- include "sdacs.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: postgresql
+    spec:
+      containers:
+        - name: timescaledb
+          image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+          imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+          ports:
+            - name: postgresql
+              containerPort: {{ .Values.postgresql.port }}
+              protocol: TCP
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.postgresql.database | quote }}
+            - name: POSTGRES_USER
+              value: sdacs
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sdacs.fullname" . }}-secret
+                  key: POSTGRES_PASSWORD
+          resources:
+            {{- toYaml .Values.postgresql.resources | nindent 12 }}
+          {{- if .Values.postgresql.persistence.enabled }}
+          volumeMounts:
+            - name: postgresql-data
+              mountPath: /var/lib/postgresql/data
+          {{- end }}
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "sdacs"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+  {{- if .Values.postgresql.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: postgresql-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if .Values.postgresql.persistence.storageClass }}
+        storageClassName: {{ .Values.postgresql.persistence.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.postgresql.persistence.size }}
+  {{- end }}
+---
+# PostgreSQL 클러스터 내부 서비스
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sdacs.postgresql.fullname" . }}
+  labels:
+    {{- include "sdacs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgresql
+spec:
+  clusterIP: None
+  selector:
+    {{- include "sdacs.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: postgresql
+  ports:
+    - name: postgresql
+      port: {{ .Values.postgresql.port }}
+      targetPort: postgresql
+{{- end }}

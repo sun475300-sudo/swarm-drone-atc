@@ -462,13 +462,19 @@ class TestAdaptiveCommProtocol:
 
 
 # ── collision_predictor ───────────────────────────────────────────────────
+import importlib as _il
+import pytest as _pt
+
+_TORCH_OK = _il.util.find_spec("torch") is not None
 
 from simulation.apf_engine.apf import APFState
-from simulation.collision_predictor import CollisionPredictor, generate_training_data
+from simulation.collision_predictor import generate_training_data
 
 
+@_pt.mark.skipif(not _TORCH_OK, reason="torch not installed")
 class TestCollisionPredictor:
     def setup_method(self):
+        from simulation.collision_predictor import CollisionPredictor
         self.cp = CollisionPredictor()
 
     def test_predict(self):

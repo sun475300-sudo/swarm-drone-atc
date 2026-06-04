@@ -187,7 +187,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [~] **P732** — 대규모 CPA 공간 해시 복원 (PR #88 머지 대기)
 - [~] **P733** — `ws_bridge` LIVE 토글 (PR #81 머지 대기 + 다른 세션 PR #85)
 - [~] **P734** — 키보드 스크러버 + 멀티뷰 동기화 (PR #89·#91 머지 대기 + 다른 세션 PR #86)
-- [~] **P735** — 해양 EO/IR adapter 패턴 + Mock SDK (PR #92 머지 대기)
+- [x] **P735** — 해양 EO/IR 어댑터 패턴 — `registerEOIRSource()`/`selectEOIRSource()` 외부 SDK hook + synth fallback. `docs/maritime_eoir_adapter.md` (PR #92, 2026-06-03)
 
 ### Track E — 확장 연구·기술 심화 (Phase 736-745)
 

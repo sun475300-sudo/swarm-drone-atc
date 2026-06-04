@@ -187,7 +187,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [ ] **P732** — 대규모 CPA 충돌예측 복원(B2, 공간 해시) — 1k+ 환경 충돌쌍 시각화
 - [ ] **P733** — `ws_bridge` 실데이터 라이브 수신 토글(데모↔실측)
 - [ ] **P734** — 리플레이·타임라인 스크러버 + 동기화 멀티뷰 고도화
-- [ ] **P735** — 해양 EO/IR 실 카메라 프레임 연동(센서 SDK) — 실기화 연계
+- [~] **P735** — 해양 EO/IR 어댑터 패턴 — `registerEOIRSource()`/`selectEOIRSource()` 외부 SDK hook + synth fallback + 안전 catch. `docs/maritime_eoir_adapter.md` 가이드 (FLIR Boson 등 연동 예시 포함). 실 SDK 연결은 사용자 환경 (2026-06-03)
 
 ---
 

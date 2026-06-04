@@ -7,8 +7,8 @@
 ### 현재 보유 (✅ 22개)
 InstancedMesh · mega_swarm 4종 · CPA 예측 · APF · GPU compute · Web Worker · Chart history · Replay 레코더 · 4-view 분석 · 다중 선택 · 호버 툴팁 · 상세 패널 · 이벤트 로그 · NFZ · 9-layer 고도 · 회랑 · 정밀 기상(마이크로버스트·스톰셀·태풍·결빙·돌풍) · 22 직군 · 66 시나리오 · 21 ATC zones · PNG/CSV/HTML/MD 리포트 · **🎮 ATC 콘솔 (Phase 1 완료)**
 
-### 누락 (❌ 28개)
-predictedTrail · velocityArrow · separationBubble · priorityIcon · cumulativeHeatmap · missionPlanning · A* · RRT · MediaRecorder · sunCycle · fog/rain/snow particles · UnrealBloom · SMAA · SSAO · FPVcamera · chaseCamera · PiP · faultInjection · GPSloss · motorFail · rogueDrone · dynamicNFZ · EMP · touchGesture · PWA · LaTeX · abComparison · 모바일 자동 LOD
+### 누락 (❌ 잔여)
+~~predictedTrail · velocityArrow · separationBubble · priorityIcon~~ (Phase 2 TAC-1~5 완료) · cumulativeHeatmap · missionPlanning · A* · RRT · MediaRecorder · sunCycle · fog/rain/snow particles · UnrealBloom · SMAA · SSAO · FPVcamera · chaseCamera · PiP · faultInjection · GPSloss · motorFail · rogueDrone · dynamicNFZ · EMP · touchGesture · PWA · LaTeX · abComparison · 모바일 자동 LOD
 
 ---
 

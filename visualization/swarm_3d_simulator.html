@@ -1377,6 +1377,8 @@
             <label class="av-toggle"><input type="checkbox" id="tg-path" checked> 웨이포인트·이동경로</label>
             <label class="av-toggle"><input type="checkbox" id="tg-pred-trail" checked> 예측 비행경로 (8초)</label>
             <label class="av-toggle"><input type="checkbox" id="tg-vel-arrow"> 속도 벡터 화살표</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-sep-bubble"> 분리 표준 거품</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-pri-icon"> 우선순위 심볼</label>
             <label class="av-toggle"><input type="checkbox" id="tg-cpa-marker" checked> CPA 충돌점 마커 + TTC</label>
             <label class="av-toggle"><input type="checkbox" id="tg-nfz" checked> NFZ 비행금지구역</label>
             <label class="av-toggle"><input type="checkbox" id="tg-corridor" checked> 복도/회랑</label>
@@ -5516,6 +5518,107 @@
             }
         }
 
+        // ===== Phase 2 TAC-4 — 분리 표준 거품 (선택/다중선택 드론) =====
+        let _sepBubbleEnabled = false;
+        const _sepBubbles = new Map();   // droneId → { group, sphere, disk }
+        const sepBubbleGroup = new THREE.Group();
+        sepBubbleGroup.renderOrder = 990;
+        scene.add(sepBubbleGroup);
+        const _SEP_R = NEAR_MISS_DIST * SCALE;        // 100m → 1.0 unit 수평 분리 반경
+        const _SEP_VY = SEPARATION_ALT * SCALE * 3;   // 20m × 3배 고도 과장 → 수직 반경
+
+        function _makeSepBubble() {
+            const sphere = new THREE.Mesh(
+                new THREE.SphereGeometry(_SEP_R, 16, 12),
+                new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true, transparent: true, opacity: 0.25, depthTest: false }));
+            sphere.scale.y = _SEP_VY / _SEP_R;        // 수직 분리 기준으로 납작한 회전타원체
+            const disk = new THREE.Mesh(
+                new THREE.RingGeometry(_SEP_R * 0.96, _SEP_R, 48),
+                new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthTest: false }));
+            disk.rotation.x = Math.PI / 2;
+            const g = new THREE.Group(); g.add(sphere); g.add(disk); g.renderOrder = 990;
+            sepBubbleGroup.add(g);
+            return { group: g, sphere, disk };
+        }
+
+        function updateSepBubbles() {
+            if (!_sepBubbleEnabled || megaMode) { sepBubbleGroup.visible = false; return; }
+            sepBubbleGroup.visible = true;
+            const targets = new Set();
+            if (selectedDrone) targets.add(selectedDrone);
+            for (const d of multiSel) targets.add(d);
+            for (const [id, b] of _sepBubbles) {
+                if (![...targets].some(d => d.id === id)) {
+                    sepBubbleGroup.remove(b.group);
+                    b.sphere.geometry.dispose(); b.sphere.material.dispose();
+                    b.disk.geometry.dispose(); b.disk.material.dispose();
+                    _sepBubbles.delete(id);
+                }
+            }
+            const now = performance.now();
+            for (const d of targets) {
+                if (d.phase === 'GROUNDED' || d.phase === 'FAILED' || !d.group) continue;
+                let b = _sepBubbles.get(d.id);
+                if (!b) { b = _makeSepBubble(); _sepBubbles.set(d.id, b); }
+                b.group.position.copy(d.group.position);
+                // 침입 감지: 다른 드론이 수평 NEAR_MISS_DIST + 수직 SEPARATION_ALT 이내
+                let breach = false;
+                for (const o of drones) {
+                    if (o === d || o.phase === 'GROUNDED' || o.phase === 'FAILED') continue;
+                    const dx = o.wx - d.wx, dz = o.wz - d.wz, dy = o.wy - d.wy;
+                    if (dx * dx + dz * dz < NEAR_MISS_DIST * NEAR_MISS_DIST && Math.abs(dy) < SEPARATION_ALT) { breach = true; break; }
+                }
+                const col = breach ? 0xef4444 : 0x38bdf8;
+                b.sphere.material.color.setHex(col);
+                b.sphere.material.opacity = breach ? (0.35 + 0.22 * Math.sin(now * 0.012)) : 0.25;
+                b.disk.material.color.setHex(col);
+                b.disk.material.opacity = breach ? 0.7 : 0.5;
+                b.group._breach = breach;
+            }
+        }
+
+        // ===== Phase 2 TAC-5 — 우선순위 심볼 (드론 위 빌보드) =====
+        let _priIconEnabled = false;
+        const _priIcons = new Map();   // droneId → Sprite
+        const priIconGroup = new THREE.Group();
+        priIconGroup.renderOrder = 992;
+        scene.add(priIconGroup);
+        const _priTexCache = {};
+        function _priTexture(tier) {
+            if (_priTexCache[tier]) return _priTexCache[tier];
+            // tier: high ★ 적색(P1) / mid ◆ 황색(P2-4) / low ● 회색(P5+)
+            const sym = tier === 'high' ? '★' : tier === 'mid' ? '◆' : '●';
+            const color = tier === 'high' ? '#ef4444' : tier === 'mid' ? '#fbbf24' : '#94a3b8';
+            const c = document.createElement('canvas'); c.width = 64; c.height = 64;
+            const g = c.getContext('2d');
+            g.font = 'bold 44px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+            g.fillStyle = color; g.fillText(sym, 32, 34);
+            const tex = new THREE.CanvasTexture(c); tex.needsUpdate = true;
+            _priTexCache[tier] = tex; return tex;
+        }
+        function _priTier(p) { return p <= 1 ? 'high' : p <= 4 ? 'mid' : 'low'; }
+
+        function updatePriIcons() {
+            if (!_priIconEnabled || megaMode) { priIconGroup.visible = false; return; }
+            priIconGroup.visible = true;
+            const seen = new Set();
+            for (const d of drones) {
+                if (d.phase === 'GROUNDED' || d.phase === 'FAILED' || !d.group) continue;
+                seen.add(d.id);
+                const tier = _priTier(d.priority);
+                let s = _priIcons.get(d.id);
+                if (!s) {
+                    s = new THREE.Sprite(new THREE.SpriteMaterial({ map: _priTexture(tier), transparent: true, depthTest: false, opacity: 0.95 }));
+                    s.scale.set(1.4, 1.4, 1); s._tier = tier;
+                    priIconGroup.add(s); _priIcons.set(d.id, s);
+                } else if (s._tier !== tier) {
+                    s.material.map = _priTexture(tier); s.material.needsUpdate = true; s._tier = tier;
+                }
+                s.position.copy(d.group.position); s.position.y += 1.6; s.visible = true;
+            }
+            for (const [id, s] of _priIcons) { if (!seen.has(id)) s.visible = false; }
+        }
+
         // ===== B4 다중 선택 (Shift+클릭) — 단일 선택과 독립적인 비파괴 오버레이 =====
         const multiSel = new Set();          // 선택된 drone 객체들
         const _multiRings = [];              // 재사용 링 풀(주황)
@@ -6676,6 +6779,14 @@
         document.getElementById('tg-vel-arrow').addEventListener('change', e => {
             _velArrowEnabled = e.target.checked;
             if (!_velArrowEnabled) velArrowGroup.visible = false;
+        });
+        document.getElementById('tg-sep-bubble').addEventListener('change', e => {
+            _sepBubbleEnabled = e.target.checked;
+            if (!_sepBubbleEnabled) sepBubbleGroup.visible = false;
+        });
+        document.getElementById('tg-pri-icon').addEventListener('change', e => {
+            _priIconEnabled = e.target.checked;
+            if (!_priIconEnabled) priIconGroup.visible = false;
         });
         document.getElementById('tg-cpa-marker').addEventListener('change', e => {
             _cpaMarkerEnabled = e.target.checked;
@@ -8456,6 +8567,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // Phase 2 TAC — 예측 비행경로 + 속도 화살표 + CPA 마커
             if (typeof updatePredTrails === 'function') updatePredTrails();
             if (typeof updateVelArrows === 'function') updateVelArrows();
+            if (typeof updateSepBubbles === 'function') updateSepBubbles();
+            if (typeof updatePriIcons === 'function') updatePriIcons();
             if (typeof updateCpaMarkers === 'function') {
                 // _cpaPairs는 apfCollisionAvoidance 또는 CPA detection 루프에서 push됨
                 updateCpaMarkers(_cpaPairs);
@@ -8659,6 +8772,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get predHorizon() { return _predHorizon; },
             setVelArrow(on) { _velArrowEnabled = !!on; const e = document.getElementById('tg-vel-arrow'); if (e) e.checked = _velArrowEnabled; return _velArrowEnabled; },
             get velArrow() { return _velArrowEnabled; },
+            setSepBubble(on) { _sepBubbleEnabled = !!on; const e = document.getElementById('tg-sep-bubble'); if (e) e.checked = _sepBubbleEnabled; return _sepBubbleEnabled; },
+            get sepBubble() { return _sepBubbleEnabled; },
+            get sepBubbleCount() { return _sepBubbles.size; },
+            setPriIcon(on) { _priIconEnabled = !!on; const e = document.getElementById('tg-pri-icon'); if (e) e.checked = _priIconEnabled; return _priIconEnabled; },
+            get priIcon() { return _priIconEnabled; },
+            get priIconCount() { return _priIcons.size; },
             setCpaMarker(on) { _cpaMarkerEnabled = !!on; const e = document.getElementById('tg-cpa-marker'); if (e) e.checked = _cpaMarkerEnabled; return _cpaMarkerEnabled; },
             get cpaMarker() { return _cpaMarkerEnabled; },
             get cpaPairsCount() { return _cpaMarkerIdx; },

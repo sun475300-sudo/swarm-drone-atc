@@ -16,7 +16,7 @@
 >
 > **💥 신규: Phase 6 INJ 장애 주입** — GPS 손실 / 모터 페일 / 통신 두절 / 배터리 급강하 + ROGUE spawn + 동적 NFZ + 시나리오 EMP/EMI 일괄 + 통계 카운터 + 전체 해제.
 >
-> **🎯 Phase 2 TAC 전술 시각화** — 예측 비행경로 라인(8초 fade) + CPA 충돌점 마커(TTC 색상) + 속도 벡터 화살표.
+> **🎯 Phase 2 TAC 전술 시각화** — 예측 비행경로 라인(8초 fade) + CPA 충돌점 마커(TTC 색상) + 속도 벡터 화살표 + **분리 표준 거품(침입 시 적색 펄스)** + **우선순위 심볼(★◆● 3단)**.
 >
 > **🎮 Phase 1 ATC 관제 콘솔** — HOLD/RTB/REROUTE/ALT±/SPD±/TURN/CLEAR + 한국어 TTS + Web Audio 비프 + 시안 발광 링 + CSV 감사 로그.
 >

@@ -4,6 +4,8 @@
 - 예측 비행경로 라인 (TAC-1)
 - CPA 충돌점 마커 (TAC-2)
 - 속도 벡터 화살표 (TAC-3)
+- 분리 표준 거품 (TAC-4)
+- 우선순위 심볼 (TAC-5)
 - 토글·LOD·외부 API
 """
 from __future__ import annotations
@@ -177,6 +179,87 @@ def test_pred_horizon_default(page):
     pg, _ = page
     horizon = pg.evaluate("window._sdacs.predHorizon")
     assert horizon == 8.0, f"Expected default 8s, got {horizon}"
+
+
+def test_sep_bubble_api_and_toggle(page):
+    pg, _ = page
+    keys = pg.evaluate("Object.keys(window._sdacs)")
+    for k in ["setSepBubble", "sepBubble", "sepBubbleCount"]:
+        assert k in keys, f"_sdacs.{k} missing"
+    r = pg.evaluate("""
+        () => {
+            const off0 = window._sdacs.sepBubble;       // 기본 OFF
+            window._sdacs.setSepBubble(true);
+            const on = window._sdacs.sepBubble;
+            window._sdacs.setSepBubble(false);
+            const off1 = window._sdacs.sepBubble;
+            return { off0, on, off1 };
+        }
+    """)
+    assert r["off0"] is False
+    assert r["on"] is True
+    assert r["off1"] is False
+
+
+def test_sep_bubble_creates_on_select(page):
+    pg, _ = page
+    if pg.evaluate("window._sdacs.airborne") < 1:
+        pytest.skip("no airborne drone")
+    pg.evaluate("window._sdacs.setSepBubble(true)")
+    # 비행 드론은 일부뿐 — 인덱스를 스캔해 거품이 생성되는지 확인
+    created = 0
+    for i in range(pg.evaluate("window._sdacs.droneCount")):
+        pg.evaluate(f"window._sdacs.selectDrone({i})")
+        pg.wait_for_timeout(60)
+        created = pg.evaluate("window._sdacs.sepBubbleCount")
+        if created >= 1:
+            break
+    pg.evaluate("window._sdacs.setSepBubble(false)")
+    assert created >= 1, "비행 드론 선택 시 분리 거품이 생성되어야 함"
+
+
+def test_pri_icon_api_and_toggle(page):
+    pg, _ = page
+    keys = pg.evaluate("Object.keys(window._sdacs)")
+    for k in ["setPriIcon", "priIcon", "priIconCount"]:
+        assert k in keys, f"_sdacs.{k} missing"
+    r = pg.evaluate("""
+        () => {
+            const off0 = window._sdacs.priIcon;          // 기본 OFF
+            window._sdacs.setPriIcon(true);
+            const on = window._sdacs.priIcon;
+            window._sdacs.setPriIcon(false);
+            const off1 = window._sdacs.priIcon;
+            return { off0, on, off1 };
+        }
+    """)
+    assert r["off0"] is False
+    assert r["on"] is True
+    assert r["off1"] is False
+
+
+def test_pri_icon_count_matches_airborne(page):
+    pg, _ = page
+    pg.evaluate("window._sdacs.setPriIcon(true)")
+    pg.wait_for_timeout(400)  # 렌더 프레임 1회 경과 대기
+    r = pg.evaluate("({ count: window._sdacs.priIconCount, drones: window._sdacs.droneCount, air: window._sdacs.airborne })")
+    pg.evaluate("window._sdacs.setPriIcon(false)")
+    # 우선순위 아이콘은 비지상 드론마다 1개 — 전체 드론 수 이하
+    assert r["count"] <= r["drones"]
+    if r["air"] >= 1:
+        assert r["count"] >= 1, "비행 드론이 있으면 우선순위 심볼이 1개 이상이어야 함"
+
+
+def test_tac45_toggle_ui_present(page):
+    pg, _ = page
+    r = pg.evaluate("""
+        () => ({
+            sep: !!document.getElementById('tg-sep-bubble'),
+            pri: !!document.getElementById('tg-pri-icon'),
+        })
+    """)
+    assert r["sep"], "tg-sep-bubble checkbox missing"
+    assert r["pri"], "tg-pri-icon checkbox missing"
 
 
 def test_no_js_errors_with_tac(page):

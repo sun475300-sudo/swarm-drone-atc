@@ -829,6 +829,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 15:55 | `08df0d1` | feat(P730): 메인 시뮬레이터 KO/EN i18n 토글 (B5) | ROADMAP.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/smoke_sim.mjs |
 | 2026-06-04 15:33 | `95dd6ea` | fix: SDACS 어댑터 LAANC 지연 범위를 테스트 계약(80~120ms)에 정렬 | benchmarks/baselines/sdacs/adapter.py |
 | 2026-06-04 15:23 | `48e472d` | fix: main 머지로 유입된 충돌마커 손상·분기 정리 — CI 그린화 | api/auth.py, api/fastapi_server.py, benchmarks/baselines/sdacs/adapter.py, results/comparison/COMPARISON_REPORT.md, results/comparison/comparison_report.json, scripts/load_test.py … |
 | 2026-06-04 15:09 | `f3d1165` | merge: origin/main 통합 + README·ROADMAP 충돌 마커 해소 | README.md, api/auth.py, api/fastapi_server.py, benchmarks/baselines/sdacs/adapter.py, results/comparison/01_corridor_crossing/cbs/seed42.json, results/comparison/01_corridor_crossing/cbs/seed43.json … |

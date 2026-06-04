@@ -141,7 +141,7 @@ for each drone (visible):
 
 - README 최신화 (모든 신규 기능 반영)
 - `_sdacs` API 전체 문서화 (`docs/SDACS_API.md`)
-- E2E 테스트 통합 매트릭스 (`.github/workflows/sim-smoke.yml`)
+- ✅ E2E 테스트 통합 매트릭스 (`.github/workflows/sim-smoke.yml`) — Phase 1-9 Playwright pytest 5종(`test_simulator_{atc,tac,cin_inj,cam_aud,mis_ana_mob}.py`, 61 passed/1 skipped)을 `e2e-pytest` 잡으로 CI 편입 (2026-06-04)
 - 데모 영상 녹화 (Phase 3 CIN 녹화 기능 사용, 2분)
 - 라이브 데모 GitHub Pages 동기화
 

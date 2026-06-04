@@ -53,3 +53,36 @@ jobs:
         env:
           SIM_URL: http://localhost:8123/maritime_detection_simulator.html
         run: node tests/e2e/smoke_maritime.mjs
+
+  # Phase 1-9 세부 기능별 Playwright E2E (ATC·TAC·CIN·INJ·CAM·AUD·MIS·ANA·MOB).
+  # node 스모크가 API 표면을 검증한다면, 이쪽은 각 Phase 명령·상태 전환을 케이스별로 검증.
+  e2e-pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python Playwright + deps
+        run: |
+          python -m pip install --upgrade pip
+          # conftest.py(numpy/yaml) + e2e 픽스처(playwright)만 필요한 최소 집합.
+          # playwright는 node 스모크 잡(1.56.1)과 동일 Chromium rev(1194)에 핀.
+          pip install pytest "playwright==1.56.0" numpy pyyaml
+          python -m playwright install --with-deps chromium
+
+      - name: Run simulator Phase E2E (ATC/TAC/CIN/INJ/CAM/AUD/MIS/ANA/MOB)
+        # addopts(xdist·cov)를 비워 브라우저 E2E에 무관한 커버리지 게이트를 우회.
+        run: |
+          python -m pytest \
+            tests/e2e/test_simulator_atc.py \
+            tests/e2e/test_simulator_tac.py \
+            tests/e2e/test_simulator_cin_inj.py \
+            tests/e2e/test_simulator_cam_aud.py \
+            tests/e2e/test_simulator_mis_ana_mob.py \
+            -o addopts="" -p no:cacheprovider -v

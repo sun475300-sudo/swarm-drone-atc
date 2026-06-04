@@ -689,48 +689,6 @@ pip install torch --index-url https://download.pytorch.org/whl/cu128
 > 드론 수가 100대 이상일 때 GPU 가속의 실질적 효과가 나타나며, 500대 규모에서는 CPU 대비 12.3배 빠른 처리가 가능합니다.
 
 ---
-## Contribution Comparison (P706) / 기여도 비교 실험
-
-SDACS 하이브리드(CBS pre-plan + APF reactive + Regulatory) 방식과 기존 방법론(ORCA, VO, CBS 단독)을 10개 시나리오 × 5 시드 = 200회 실험으로 비교 검증하였습니다. Mann-Whitney U 검정(p < 0.05) 기준 유의미한 차이를 측정합니다.
-
-```
-Method Comparison Summary (10 scenarios × 5 seeds = 200 runs)
-─────────────────────────────────────────────────────────
-Metric         │ SDACS vs ORCA │ SDACS vs VO  │ SDACS vs CBS │ 비고
-───────────────┼───────────────┼──────────────┼──────────────┼──────────
-AU (공역활용)   │  SDACS 우위** │ SDACS 우위** │ SDACS 우위** │ 전 시나리오 유의
-NMR (근접오류)  │  SDACS 우위*  │    동등      │ SDACS 우위*  │ 구조화 시나리오
-RID_CR (규제)   │  SDACS 100%  │    N/A       │    N/A       │ 기준선 미지원
-PE (경로효율)   │  동등~열위    │ VO 대비 열위  │ CBS 우위     │ APF 우회 비용
-MS_s (완료시간) │  동등~열위    │ SDACS 우위*  │ CBS 우위     │ 시간 분산 전략
-RTF (실시간배율)│  ORCA 우위    │ VO 우위      │ CBS 우위     │ APF 연산 부하
-```
-`**` = p < 0.01 전 시나리오, `*` = p < 0.05 일부 시나리오
-
-> 전체 210회 비교 중 SDACS가 34회 유의미하게 우위 (p < 0.05). 주요 기여: 공역 활용률(AU) 전 시나리오 유의 우위 + 규제 준수(RID_CR=1.0).
-> 상세: [`results/comparison/COMPARISON_REPORT.md`](results/comparison/COMPARISON_REPORT.md)
-
-실행: `python scripts/comparison_experiment.py --seeds 5 --save-traces`
-
----
-## Load Test (P717) / 부하 테스트
-
-End-to-end SimPy 시뮬레이션 전체 실행 시간 측정 (드론 스폰 + 10Hz 프로세스 + 충돌 감지/회피 + 통신 + 분석 포함).
-
-```
-Full Simulation Load Test (30s sim, 3 seeds, CPU)
-─────────────────────────────────────────────────
-Drones │ Wall Time   │  RTF   │ Collisions │ Memory │ Status
-───────┼─────────────┼────────┼────────────┼────────┼─────────
-   20  │  19.2s ± 1.8│  1.6x  │     0      │   8 MB │ Acceptable
-   50  │  56.7s ±15.2│  0.6x  │     0      │   9 MB │ Below real-time
-  100  │ 111.4s ±18.7│  0.3x  │     3      │  11 MB │ Below real-time
-```
-
-> Tick-level 성능(위 "Throughput vs Drone Count" 표)은 단일 틱 처리 시간 기준. 이 표는 SimPy 이벤트 루프 + 통신 + 분석을 포함한 전체 시뮬레이션 wall-clock.
-> 상세: [`results/load_test/LOAD_TEST_REPORT.md`](results/load_test/LOAD_TEST_REPORT.md)
-
----
 ## Team / 팀
 | Name | Role | Affiliation |
 |------|------|-------------|
@@ -823,16 +781,14 @@ MIT License — Developed for academic and educational purposes.
 <div align="center">
 **Made with dedication by Sunwoo Jang**
 **장선우 · 국립 목포대학교 드론기계공학과**
-<<<<<<< HEAD
-**Phase 706 · 764 Python files · 5,342+ Tests Collected · 50+ Languages · 148K+ LOC**
-=======
 **Phase 700 · 830+ modules · 5,500+ Tests Collected · 50+ Languages · 157K+ LOC**
->>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
 </div>
 
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 15:19 | `9d9baa9` | fix: SDACS adapter LAANC 지연 분포 [80,150] → [80,120] (테스트 정합) | benchmarks/baselines/sdacs/adapter.py |
+| 2026-06-04 15:07 | `d66dcc4` | fix: main 병합 충돌 마커 해소 — a576460 botched merge 복구 | README.md, ROADMAP.md, api/auth.py, api/fastapi_server.py, benchmarks/baselines/sdacs/adapter.py, results/comparison/COMPARISON_REPORT.md … |
 | 2026-06-03 19:39 | `426b9e7` | ci: desktop-build setup-node 캐시 비활성화 (lock 파일 부재로 실패) | .github/workflows/desktop-build.yml |
 | 2026-06-03 13:12 | `3295124` | feat: 병렬 세션의 고유 작업 통합 (Track A SW + P706 결과 + 벤치마크 schema) | benchmarks/_schema/manifest.schema.json, results/p706_comparison_3sc_5seed.csv, results/p706_summary.json, scripts/compare_baselines.py, simulation/environmental_scenario.py, simulation/failsafe_manager.py … |
 | 2026-06-03 12:39 | `cd82157` | Merge remote-tracking branch 'origin/claude/dazzling-maxwell-5AnBo' | .github/workflows/security.yml, README.md, ROADMAP.md, db/migrations/001_initial_schema.sql, helm/sdacs/.helmignore, helm/sdacs/Chart.yaml … |

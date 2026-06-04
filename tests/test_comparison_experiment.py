@@ -182,6 +182,77 @@ class TestDiscoverScenarios:
         assert "01_corridor_crossing" in scenarios
 
 
+class TestSDACSHybridAdapter:
+    """Tests for the real CBS+APF SDACS hybrid adapter."""
+
+    @pytest.fixture(scope="class")
+    def manifest(self) -> dict:
+        import yaml
+        path = REPO_ROOT / "benchmarks" / "scenarios" / "01_corridor_crossing" / "manifest.yaml"
+        with open(path, encoding="utf-8") as f:
+            return yaml.safe_load(f)
+
+    def test_adapter_creates_valid_trace(self, manifest: dict) -> None:
+        from benchmarks.baselines._base import make_adapter
+        adapter = make_adapter("sdacs_hybrid", manifest, seed=42)
+        trace = adapter.run(hard_wall_time_s=30.0)
+        assert trace.method == "sdacs_hybrid"
+        assert len(trace.agents) > 0
+        assert trace.wall_clock_seconds > 0
+
+    def test_regulatory_fields_populated(self, manifest: dict) -> None:
+        from benchmarks.baselines._base import make_adapter
+        adapter = make_adapter("sdacs_hybrid", manifest, seed=42)
+        trace = adapter.run(hard_wall_time_s=30.0)
+        assert len(trace.remote_id_valid_seconds_per_agent) == len(trace.agents)
+        assert len(trace.laanc_request_latencies_ms) == len(trace.agents)
+        assert all(80.0 <= lat <= 120.0 for lat in trace.laanc_request_latencies_ms)
+        assert len(trace.geofence_violation_timestamps) == 0
+
+    def test_cpa_conflicts_detected(self, manifest: dict) -> None:
+        from benchmarks.baselines._base import make_adapter
+        adapter = make_adapter("sdacs_hybrid", manifest, seed=42)
+        trace = adapter.run(hard_wall_time_s=30.0)
+        assert isinstance(trace.predicted_conflicts, list)
+        for c in trace.predicted_conflicts:
+            assert c.lead_time_s >= 0
+            assert c.predicted_min_distance_m >= 0
+
+    def test_voronoi_assignments_per_step(self, manifest: dict) -> None:
+        from benchmarks.baselines._base import make_adapter
+        adapter = make_adapter("sdacs_hybrid", manifest, seed=42)
+        trace = adapter.run(hard_wall_time_s=30.0)
+        assert len(trace.voronoi_assignments) > 0
+        for step in trace.voronoi_assignments:
+            assert isinstance(step, dict)
+            for cell in step.values():
+                assert cell in (0, 1, 2, 3)
+
+    def test_agents_reach_goals(self, manifest: dict) -> None:
+        from benchmarks.baselines._base import make_adapter
+        adapter = make_adapter("sdacs_hybrid", manifest, seed=42)
+        trace = adapter.run(hard_wall_time_s=60.0)
+        arrived = sum(1 for a in trace.agents if a.goal_reached_at_s is not None)
+        assert arrived > 0
+
+    def test_rid_compliance_is_perfect(self, manifest: dict) -> None:
+        from benchmarks.baselines._base import make_adapter
+        from src.analytics.metrics import Evaluator
+        adapter = make_adapter("sdacs_hybrid", manifest, seed=42)
+        trace = adapter.run(hard_wall_time_s=30.0)
+        result = Evaluator().evaluate(trace)
+        assert result["RID_CR"] == pytest.approx(1.0)
+
+    def test_deterministic_with_same_seed(self, manifest: dict) -> None:
+        from benchmarks.baselines._base import make_adapter
+        adapter1 = make_adapter("sdacs_hybrid", manifest, seed=99)
+        trace1 = adapter1.run(hard_wall_time_s=30.0)
+        adapter2 = make_adapter("sdacs_hybrid", manifest, seed=99)
+        trace2 = adapter2.run(hard_wall_time_s=30.0)
+        for a1, a2 in zip(trace1.agents, trace2.agents):
+            assert len(a1.positions) == len(a2.positions)
+
+
 class TestGenerateMarkdownReport:
     def test_writes_file(self, tmp_path: Path) -> None:
         runs = (

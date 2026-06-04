@@ -1,0 +1,60 @@
+# P742 변형 #1: eVTOL 비상 — 단일 기체 엔진 실패 + 인접 회피
+scenario:
+  name: evtol_emergency
+  description: "회랑 운영 중 1기 엔진 실패 → 4기 인접 회피 + 1기 RTL"
+  duration_minutes: 15
+  random_seed: 100
+
+drones:
+  default_count: 5
+  profile: "EVTOL_PASSENGER"
+  mtow_kg: 850
+  cruise_speed_mps: 50
+  max_altitude_m: 600
+
+airspace:
+  bounds_km:
+    x: [-3, 3]
+    y: [-3, 3]
+    z: [50, 600]
+
+corridors:
+  - id: COR-MAIN
+    waypoints:
+      - [-2500, 0, 300]
+      - [2500, 0, 300]
+    width_m: 80
+    altitude_min: 250
+    altitude_max: 350
+
+vertiports:
+  - id: VP-A
+    position: [-2500, 0, 0]
+  - id: VP-B
+    position: [2500, 0, 0]
+
+safety_net:
+  layer_1_drone_agent: enabled
+  layer_2_apf: enabled
+  layer_3_cpa_lookahead_s: 60
+  layer_4_atc_cbs: enabled
+  layer_5_utm:
+    k_utm_endpoint: "https://k-utm.molit.go.kr/api/v1"
+
+weather:
+  wind_speed_mps: 12.0    # APF_PARAMS_WINDY 자동 전환
+  wind_direction_deg: 90
+  turbulence: true
+
+emergency_scenarios:
+  - trigger_at_s: 180
+    type: "engine_failure"
+    drone: 1
+    expected_response: "RTL_OR_EMERGENCY_LAND"
+
+metrics_target:
+  near_miss_rate_max: 0.08      # 비상 상황 완화
+  mean_separation_distance_min_m: 40
+  airspace_utilization_min: 0.50
+  real_time_factor_min: 1.0
+  scenario_completion_min: 0.80  # 1기 비상 착륙은 정상 결말

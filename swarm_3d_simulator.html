@@ -5754,6 +5754,17 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                 if (e.key === 'Escape') e.target.blur();
                 return;
             }
+            // P734: 리플레이 스크러버 키보드 — 녹화 프레임이 있을 때만 동작
+            const _scrub = (delta) => {
+                if (recorder.frames.length === 0) return false;
+                if (!replayMode) enterReplay();
+                replayPlaying = false;
+                document.getElementById('replay-play').textContent = '▶';
+                replayIdx = Math.max(0, Math.min(replayIdx + delta, recorder.frames.length - 1));
+                document.getElementById('replay-slider').value = replayIdx;
+                applyFrame(replayIdx);
+                return true;
+            };
             switch (e.key) {
                 case ' ': e.preventDefault();
                     (simRunning ? document.getElementById('btn-pause') : document.getElementById('btn-start')).click(); break;
@@ -5765,6 +5776,11 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                 case '4': setCamMode('orbit'); break;
                 case '/': e.preventDefault(); document.getElementById('drone-search').focus(); break;
                 case 'h': case 'H': case '?': toggleHelp(); break;
+                case 'ArrowLeft': if (_scrub(e.shiftKey ? -10 : -1)) e.preventDefault(); break;
+                case 'ArrowRight': if (_scrub(e.shiftKey ? 10 : 1)) e.preventDefault(); break;
+                case 'Home': if (_scrub(-recorder.frames.length)) e.preventDefault(); break;
+                case 'End': if (_scrub(recorder.frames.length)) e.preventDefault(); break;
+                case 'l': case 'L': if (replayMode) { goLive(); e.preventDefault(); } break;
                 case 'Escape':
                     if (document.getElementById('help-overlay').style.display !== 'none') toggleHelp(false);
                     else if (analysisMode) toggleAnalysis(false);
@@ -6940,6 +6956,24 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             },
             get layers() { return { ...layerVisibility }; },
             get conflictPairs() { return _cvLineIdx; },
+            // P734: 리플레이 외부 API — 스크러버·키보드(←/→/Shift/Home/End/L) 호환
+            get replay() {
+                return {
+                    mode: replayMode, playing: replayPlaying, speed: replaySpeed,
+                    idx: replayIdx, totalFrames: recorder.frames.length,
+                    t: recorder.frames[replayIdx]?.t ?? null,
+                };
+            },
+            replayStep(delta = 1) {
+                if (recorder.frames.length === 0) return null;
+                if (!replayMode) enterReplay();
+                replayPlaying = false;
+                document.getElementById('replay-play').textContent = '▶';
+                replayIdx = Math.max(0, Math.min(replayIdx + delta, recorder.frames.length - 1));
+                document.getElementById('replay-slider').value = replayIdx;
+                applyFrame(replayIdx);
+                return replayIdx;
+            },
             camera, renderer, scene, controls,
             captureScreenshot() { renderer.render(scene, camera); return renderer.domElement.toDataURL('image/png'); },
         };

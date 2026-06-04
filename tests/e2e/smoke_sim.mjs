@@ -95,6 +95,12 @@ try {
   const cleared = await page.evaluate(() => window._sdacs.multiSelection.length);
   ok(cleared === 0, 'B4 다중 선택 해제');
 
+  // 8d. P730 i18n — EN 전환 시 타이틀이 영어로, KO 복귀 시 한국어로
+  const ko0 = await page.evaluate(() => window._sdacs.titleText);
+  const en1 = await page.evaluate(() => { window._sdacs.lang('en'); return window._sdacs.titleText; });
+  const ko1 = await page.evaluate(() => { window._sdacs.lang('ko'); return window._sdacs.titleText; });
+  ok(en1.includes('Swarm Drone Airspace') && en1 !== ko0 && ko1 === ko0, `P730 i18n (KO↔EN: "${en1.slice(0, 30)}")`);
+
   // 9. 페이지 런타임 에러 없음
   ok(pageErrors.length === 0, `런타임 에러 0건${pageErrors.length ? ' → ' + pageErrors.join(' | ') : ''}`);
 } catch (e) {

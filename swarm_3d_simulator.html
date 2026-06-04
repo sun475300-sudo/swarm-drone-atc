@@ -861,40 +861,40 @@
     <!-- HUD: Top Bar -->
     <div class="hud-overlay hud-top">
         <div>
-            <div class="hud-title">SDACS — 군집드론 공역통제 3D 시뮬레이터</div>
+            <div class="hud-title" data-i18n="title">SDACS — 군집드론 공역통제 3D 시뮬레이터</div>
             <div class="hud-subtitle">Swarm Drone Airspace Control System — Capstone: Mokpo National University</div>
         </div>
         <div class="hud-stats">
             <div class="stat-box">
-                <div class="stat-label">활성 드론</div>
+                <div class="stat-label" data-i18n="st.active">활성 드론</div>
                 <div class="stat-value" id="stat-active">0</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">충돌 위험</div>
+                <div class="stat-label" data-i18n="st.conflicts">충돌 위험</div>
                 <div class="stat-value" id="stat-conflicts" style="color:#f59e0b;">0</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">근접 경고</div>
+                <div class="stat-label" data-i18n="st.near">근접 경고</div>
                 <div class="stat-value" id="stat-near" style="color:#ff6d00;">0</div>
             </div>
             <div class="stat-box" style="border-color:rgba(239,68,68,0.3);">
-                <div class="stat-label">충돌</div>
+                <div class="stat-label" data-i18n="st.collisions">충돌</div>
                 <div class="stat-value" id="stat-collisions" style="color:#ef4444;">0</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">회피 명령</div>
+                <div class="stat-label" data-i18n="st.advisories">회피 명령</div>
                 <div class="stat-value" id="stat-advisories" style="color:#a78bfa;">0</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">평균 배터리</div>
+                <div class="stat-label" data-i18n="st.battery">평균 배터리</div>
                 <div class="stat-value" id="stat-battery" style="color:#10b981;">100%</div>
             </div>
             <div class="stat-box" style="border-color:rgba(0,229,255,0.4);">
-                <div class="stat-label">관제 드론</div>
+                <div class="stat-label" data-i18n="st.managed">관제 드론</div>
                 <div class="stat-value" style="color:#00e5ff;">13</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">풍속</div>
+                <div class="stat-label" data-i18n="st.wind">풍속</div>
                 <div class="stat-value" id="stat-wind" style="color:#60a5fa;">0.0</div>
             </div>
             <div class="stat-box" style="border-color:rgba(0,255,136,0.4);background:rgba(0,255,136,0.08);">
@@ -1027,9 +1027,9 @@
                 <input type="range" class="ctrl-range" id="speed-slider" min="0.25" max="5" step="0.25" value="1">
             </div>
             <div style="display:flex;gap:6px;">
-                <button class="ctrl-btn active" id="btn-start">시작</button>
-                <button class="ctrl-btn" id="btn-pause">일시정지</button>
-                <button class="ctrl-btn danger" id="btn-reset">초기화</button>
+                <button class="ctrl-btn active" id="btn-start" data-i18n="b.start">시작</button>
+                <button class="ctrl-btn" id="btn-pause" data-i18n="b.pause">일시정지</button>
+                <button class="ctrl-btn danger" id="btn-reset" data-i18n="b.reset">초기화</button>
             </div>
             <div style="display:flex;gap:6px;margin-top:6px;">
                 <button class="ctrl-btn" id="btn-analysis" style="flex:1;">📊 분석 뷰 (4분할)</button>
@@ -1090,10 +1090,10 @@
             <input id="drone-search" type="text" placeholder="드론 검색 (ID/직군) → Enter"
                 style="width:100%;box-sizing:border-box;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.25);color:#cdd9e8;font-size:10px;padding:4px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;">
             <div style="display:flex;gap:4px;margin-top:5px;">
-                <button class="ctrl-btn cam-preset active" data-cam="reset" style="flex:1;">기본</button>
-                <button class="ctrl-btn cam-preset" data-cam="top" style="flex:1;">탑다운</button>
-                <button class="ctrl-btn cam-preset" data-cam="follow" style="flex:1;">추적</button>
-                <button class="ctrl-btn cam-preset" data-cam="orbit" style="flex:1;">오빗</button>
+                <button class="ctrl-btn cam-preset active" data-cam="reset" style="flex:1;" data-i18n="cam.reset">기본</button>
+                <button class="ctrl-btn cam-preset" data-cam="top" style="flex:1;" data-i18n="cam.top">탑다운</button>
+                <button class="ctrl-btn cam-preset" data-cam="follow" style="flex:1;" data-i18n="cam.follow">추적</button>
+                <button class="ctrl-btn cam-preset" data-cam="orbit" style="flex:1;" data-i18n="cam.orbit">오빗</button>
             </div>
             <div style="display:flex;gap:4px;margin-top:5px;align-items:center;">
                 <select id="filter-phase" class="ctrl-select" style="flex:1;font-size:9px;">
@@ -6900,6 +6900,39 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         });
 
         // ── 자동 테스트 API (외부 접근용) ──
+        // ===== P730 i18n (KO/EN) — 정적 UI 텍스트 전환 (동적 로그·상세는 후속 과제) =====
+        const I18N_EN = {
+            title: 'SDACS — Swarm Drone Airspace Control 3D Simulator',
+            'st.active': 'Active Drones', 'st.conflicts': 'Conflict Risk', 'st.near': 'Near Warnings',
+            'st.collisions': 'Collisions', 'st.advisories': 'Avoidance Cmds', 'st.battery': 'Avg Battery',
+            'st.managed': 'Managed Drones', 'st.wind': 'Wind Speed',
+            'b.start': 'Start', 'b.pause': 'Pause', 'b.reset': 'Reset',
+            'cam.reset': 'Default', 'cam.top': 'Top-down', 'cam.follow': 'Follow', 'cam.orbit': 'Orbit',
+        };
+        let _lang = 'ko';
+        const _i18nKO = {};
+        function applyLang(lang) {
+            _lang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const k = el.dataset.i18n;
+                if (!(k in _i18nKO)) _i18nKO[k] = el.textContent;
+                el.textContent = lang === 'en' ? (I18N_EN[k] ?? _i18nKO[k]) : _i18nKO[k];
+            });
+            const btn = document.getElementById('btn-lang');
+            if (btn) btn.textContent = lang === 'en' ? 'KO' : 'EN';
+            document.documentElement.lang = lang;
+        }
+        (function () {  // 토글 버튼 — 레이아웃 비침습(고정 위치)
+            const b = document.createElement('button');
+            b.id = 'btn-lang'; b.textContent = 'EN'; b.title = '한국어/English';
+            b.style.cssText = 'position:fixed;top:10px;right:12px;z-index:60;font-size:11px;padding:4px 9px;' +
+                'background:rgba(10,16,28,0.82);color:#cfe0ee;border:1px solid rgba(0,229,255,0.4);' +
+                'border-radius:5px;cursor:pointer;font-family:inherit;';
+            b.addEventListener('click', () => applyLang(_lang === 'ko' ? 'en' : 'ko'));
+            document.body.appendChild(b);
+        })();
+        applyLang('ko');   // KO 백업 채우기(표시는 그대로)
+
         window._sdacs = {
             get stats() { return { ...stats }; },
             get simTime() { return simTime; },
@@ -6926,6 +6959,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get megaMode() { return megaMode; },
             get instanceCount() { return bodyInst.count; },
             get rotorInstanceCount() { return rotorInst.count; },  // P729
+            lang(l) { if (l) applyLang(l); return _lang; },                  // P730 i18n
+            get langCode() { return _lang; },
+            get titleText() { const el = document.querySelector('[data-i18n="title"]'); return el ? el.textContent : ''; },
             get visibleInstances() { return _visibleInst; },
             get perf() { return { fps: perfMetrics.fps, cpuMs: +perfMetrics.cpuMs.toFixed(2), gpuMs: +perfMetrics.gpuMs.toFixed(2), drawCalls: perfMetrics.drawCalls, triangles: perfMetrics.triangles, drones: drones.length, megaMode, visibleInstances: _visibleInst }; }, // B6
             set megaCull(v) { megaCull = !!v; },

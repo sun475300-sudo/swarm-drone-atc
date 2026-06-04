@@ -131,7 +131,7 @@ def verify_and_decrypt(
     return aes.decrypt(frame.nonce, frame.ciphertext, associated_data=frame.sender_id.encode())
 
 
-def estimate_overhead(message_size_bytes: int = 100) -> dict[str, int]:
+def estimate_overhead(message_size_bytes: int = 100) -> dict[str, int | float]:
     """프레임 오버헤드 분석 — 텔레메트리 대역폭 영향 평가."""
     return {
         "plaintext_bytes": message_size_bytes,

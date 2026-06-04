@@ -6955,7 +6955,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 return layerVisibility[name];
             },
             get layers() { return { ...layerVisibility }; },
-<<<<<<< HEAD
+            get conflictPairs() { return _cvLineIdx; },
             // P734: 리플레이 외부 API — 스크러버·키보드(←/→/Shift/Home/End/L) 호환
             get replay() {
                 return {
@@ -6974,9 +6974,6 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 applyFrame(replayIdx);
                 return replayIdx;
             },
-=======
-            get conflictPairs() { return _cvLineIdx; },
->>>>>>> origin/main
             camera, renderer, scene, controls,
             captureScreenshot() { renderer.render(scene, camera); return renderer.domElement.toDataURL('image/png'); },
         };

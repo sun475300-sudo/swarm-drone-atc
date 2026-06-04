@@ -1286,6 +1286,9 @@
             <label class="av-toggle"><input type="checkbox" id="tg-conflict" checked> 충돌 예측선 (CPA)</label>
             <label class="av-toggle"><input type="checkbox" id="tg-advisory" checked> 회피 어드바이저리</label>
             <label class="av-toggle"><input type="checkbox" id="tg-path" checked> 웨이포인트·이동경로</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-pred-trail" checked> 예측 비행경로 (8초)</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-vel-arrow"> 속도 벡터 화살표</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-cpa-marker" checked> CPA 충돌점 마커 + TTC</label>
             <label class="av-toggle"><input type="checkbox" id="tg-nfz" checked> NFZ 비행금지구역</label>
             <label class="av-toggle"><input type="checkbox" id="tg-corridor" checked> 복도/회랑</label>
             <label class="av-toggle"><input type="checkbox" id="tg-altlayer"> 고도 레이어 (9단)</label>
@@ -4620,6 +4623,242 @@
             }
         }
 
+        // ===== Phase 2 TAC-1 — 예측 비행경로 라인 =====
+        const predTrailGroup = new THREE.Group();
+        predTrailGroup.renderOrder = 990;
+        scene.add(predTrailGroup);
+        let _predTrailEnabled = true;        // toggle
+        let _predHorizon = 8.0;              // seconds lookahead
+        const _predSteps = 8;                // 1초 간격 8 steps
+        let _predFrameSkip = 0;              // LOD: 큰 시나리오에서 매 N 프레임만 업데이트
+
+        function _ensurePredTrail(d) {
+            if (d._predTrail) return d._predTrail;
+            const N = _predSteps + 1;
+            const positions = new Float32Array(N * 3);
+            const colors = new Float32Array(N * 3);
+            for (let i = 0; i < N; i++) {
+                // 초기 색상: cyan → fade
+                const t = i / _predSteps;
+                colors[i * 3] = 0.0;
+                colors[i * 3 + 1] = 0.9 - t * 0.4;
+                colors[i * 3 + 2] = 1.0 - t * 0.3;
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            const mat = new THREE.LineBasicMaterial({
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.75,
+                depthTest: false,
+            });
+            const line = new THREE.Line(geo, mat);
+            line.renderOrder = 990;
+            line.frustumCulled = false;
+            predTrailGroup.add(line);
+            d._predTrail = { line, geometry: geo, positions, colors, mat };
+            return d._predTrail;
+        }
+
+        function _disposePredTrail(d) {
+            if (!d._predTrail) return;
+            predTrailGroup.remove(d._predTrail.line);
+            d._predTrail.geometry.dispose();
+            d._predTrail.mat.dispose();
+            d._predTrail = null;
+        }
+
+        function updatePredTrails() {
+            if (!_predTrailEnabled || megaMode) {
+                predTrailGroup.visible = false;
+                return;
+            }
+            predTrailGroup.visible = true;
+            // LOD: 드론 수에 따른 frame skip
+            const cnt = drones.length;
+            const skipMod = cnt > 200 ? 4 : cnt > 100 ? 2 : 1;
+            _predFrameSkip = (_predFrameSkip + 1) % skipMod;
+            const updateThisFrame = _predFrameSkip === 0;
+            const N = _predSteps;
+            const dt = _predHorizon / N;
+            for (const d of drones) {
+                if (d.phase === 'GROUNDED' || d.phase === 'FAILED') {
+                    if (d._predTrail) d._predTrail.line.visible = false;
+                    continue;
+                }
+                const t = _ensurePredTrail(d);
+                t.line.visible = true;
+                if (!updateThisFrame) continue;
+                // SCALE 적용 (world → scene)
+                const sx = SCALE, sy = SCALE * (ALT_SCALE / Math.max(1, MAX_ALT * SCALE)); // wy는 ALT_SCALE 기반
+                // 시작점 = 현재 위치 (scene 좌표)
+                if (d.group) {
+                    t.positions[0] = d.group.position.x;
+                    t.positions[1] = d.group.position.y;
+                    t.positions[2] = d.group.position.z;
+                } else {
+                    t.positions[0] = d.wx * sx;
+                    t.positions[1] = d.wy * SCALE * 3; // ALT_SCALE relative
+                    t.positions[2] = d.wz * sx;
+                }
+                // 외삽: 등속 직선 + targetAlt 수렴
+                for (let i = 1; i <= N; i++) {
+                    const tau = i * dt;
+                    const nx = (d.wx + (d.vx || 0) * tau) * sx;
+                    const nz = (d.wz + (d.vz || 0) * tau) * sx;
+                    // 고도: 수직속도 + targetAlt 점근 (simple low-pass)
+                    const alt = d.wy + (d.vy || 0) * tau;
+                    const ny = Math.max(5, Math.min(180, alt)) * SCALE * 3;
+                    t.positions[i * 3] = nx;
+                    t.positions[i * 3 + 1] = ny;
+                    t.positions[i * 3 + 2] = nz;
+                }
+                t.geometry.attributes.position.needsUpdate = true;
+                t.geometry.computeBoundingSphere();
+                // 위험 색조: ATC 제어 중이면 노랑, 회피 중이면 주황
+                const baseR = (d.atc && d.atc.cmd) ? 0.95 : (d.phase === 'EVADING' ? 0.95 : 0.0);
+                const baseG = (d.atc && d.atc.cmd) ? 0.85 : (d.phase === 'EVADING' ? 0.55 : 0.9);
+                const baseB = (d.atc && d.atc.cmd) ? 0.0 : (d.phase === 'EVADING' ? 0.0 : 1.0);
+                for (let i = 0; i <= N; i++) {
+                    const f = 1 - i / N;
+                    t.colors[i * 3] = baseR * f;
+                    t.colors[i * 3 + 1] = baseG * f;
+                    t.colors[i * 3 + 2] = baseB * f;
+                }
+                t.geometry.attributes.color.needsUpdate = true;
+            }
+        }
+
+        // ===== Phase 2 TAC-2 — CPA 충돌점 마커 + TTC 라벨 =====
+        const cpaMarkerGroup = new THREE.Group();
+        cpaMarkerGroup.renderOrder = 992;
+        scene.add(cpaMarkerGroup);
+        const _cpaMarkerPool = [];
+        let _cpaMarkerIdx = 0;
+        let _cpaMarkerEnabled = true;
+
+        function _makeCpaMarkerTexture(color = '#ff5252') {
+            const c = document.createElement('canvas');
+            c.width = 64; c.height = 64;
+            const g = c.getContext('2d');
+            g.beginPath();
+            g.arc(32, 32, 14, 0, Math.PI * 2);
+            g.strokeStyle = color;
+            g.lineWidth = 4;
+            g.stroke();
+            g.beginPath();
+            g.moveTo(32, 14); g.lineTo(32, 50);
+            g.moveTo(14, 32); g.lineTo(50, 32);
+            g.strokeStyle = color;
+            g.lineWidth = 2.5;
+            g.stroke();
+            const tex = new THREE.CanvasTexture(c);
+            tex.needsUpdate = true;
+            return tex;
+        }
+        const _cpaMarkerTex = _makeCpaMarkerTexture();
+
+        function _cpaMarkerAcquire() {
+            if (_cpaMarkerIdx < _cpaMarkerPool.length) return _cpaMarkerPool[_cpaMarkerIdx];
+            const s = new THREE.Sprite(new THREE.SpriteMaterial({
+                map: _cpaMarkerTex,
+                transparent: true,
+                opacity: 0.9,
+                depthTest: false,
+            }));
+            s.scale.set(1.2, 1.2, 1);
+            cpaMarkerGroup.add(s);
+            _cpaMarkerPool.push(s);
+            return s;
+        }
+
+        function updateCpaMarkers(pairs) {
+            if (!_cpaMarkerEnabled || megaMode) {
+                cpaMarkerGroup.visible = false;
+                return;
+            }
+            cpaMarkerGroup.visible = true;
+            _cpaMarkerIdx = 0;
+            for (const p of pairs) {
+                if (!p || p.ttc == null || p.ttc < 0 || p.ttc > CPA_LOOKAHEAD) continue;
+                const m = _cpaMarkerAcquire();
+                m.visible = true;
+                m.position.set(p.x, p.y, p.z);
+                // 위험도 색상: 0~2s 적색, 2~5s 황색, 5~12s 회색
+                const f = Math.max(0, Math.min(1, p.ttc / CPA_LOOKAHEAD));
+                const r = f < 0.17 ? 0.9 : f < 0.42 ? 1.0 : 0.4;
+                const g = f < 0.17 ? 0.2 : f < 0.42 ? 0.8 : 0.5;
+                const b = f < 0.17 ? 0.2 : f < 0.42 ? 0.0 : 0.5;
+                m.material.color.setRGB(r, g, b);
+                m.material.opacity = 0.5 + 0.5 * (1 - f);
+                const sc = 0.8 + 0.6 * (1 - f); // 임박할수록 커짐
+                m.scale.set(sc, sc, 1);
+                _cpaMarkerIdx++;
+            }
+            // 남은 풀 숨김
+            for (let i = _cpaMarkerIdx; i < _cpaMarkerPool.length; i++) {
+                _cpaMarkerPool[i].visible = false;
+            }
+        }
+        // cpaPairs는 apfCollisionAvoidance 또는 CPA detection에서 채워짐
+        let _cpaPairs = [];
+        window._cpaPushPair = function(p) { _cpaPairs.push(p); };
+
+        // ===== Phase 2 TAC-3 — 속도 벡터 화살표 (선택 또는 호버 드론) =====
+        let _velArrowEnabled = false;
+        const _velArrows = new Map();    // droneId → ArrowHelper
+        const velArrowGroup = new THREE.Group();
+        velArrowGroup.renderOrder = 991;
+        scene.add(velArrowGroup);
+
+        function updateVelArrows() {
+            if (!_velArrowEnabled || megaMode) {
+                velArrowGroup.visible = false;
+                return;
+            }
+            velArrowGroup.visible = true;
+            // 대상: 선택 드론 + 다중 선택 드론 (호버는 옵션)
+            const targets = new Set();
+            if (selectedDrone) targets.add(selectedDrone);
+            for (const d of multiSel) targets.add(d);
+            // 기존 화살표 중 대상이 아닌 것 제거
+            for (const [id, arr] of _velArrows) {
+                if (![...targets].some(d => d.id === id)) {
+                    velArrowGroup.remove(arr);
+                    arr.dispose && arr.dispose();
+                    _velArrows.delete(id);
+                }
+            }
+            for (const d of targets) {
+                if (d.phase === 'GROUNDED' || d.phase === 'FAILED') continue;
+                const speed = Math.sqrt((d.vx || 0) ** 2 + (d.vz || 0) ** 2 + (d.vy || 0) ** 2);
+                if (speed < 0.1) continue;
+                const dirX = d.vx / speed, dirZ = d.vz / speed, dirY = (d.vy || 0) / speed;
+                const dir = new THREE.Vector3(dirX, dirY, dirZ).normalize();
+                const origin = d.group ? d.group.position.clone() : new THREE.Vector3(d.wx * SCALE, d.wy * SCALE * 3, d.wz * SCALE);
+                origin.y += 0.3;
+                const len = Math.min(8, 0.5 + speed * 0.25);
+                // 색상: 속도 단계
+                let color;
+                if (speed < 5) color = 0x60a5fa;
+                else if (speed < 15) color = 0x10b981;
+                else if (speed < 25) color = 0xfbbf24;
+                else color = 0xef4444;
+                let arrow = _velArrows.get(d.id);
+                if (!arrow) {
+                    arrow = new THREE.ArrowHelper(dir, origin, len, color, 0.6, 0.35);
+                    velArrowGroup.add(arrow);
+                    _velArrows.set(d.id, arrow);
+                } else {
+                    arrow.position.copy(origin);
+                    arrow.setDirection(dir);
+                    arrow.setLength(len, 0.6, 0.35);
+                    arrow.setColor(new THREE.Color(color));
+                }
+            }
+        }
+
         // ===== B4 다중 선택 (Shift+클릭) — 단일 선택과 독립적인 비파괴 오버레이 =====
         const multiSel = new Set();          // 선택된 drone 객체들
         const _multiRings = [];              // 재사용 링 풀(주황)
@@ -5430,6 +5669,13 @@
                 const s = cpaDist < NEAR_MISS_DIST ? 1.5 : 1.0;
                 mk.scale.set(s, s, s); mk.material.color.set(col); mk.material.opacity = 0.9; mk.visible = true;
                 labelCand.push({ x: mk.position.x, y: mk.position.y + 0.6, z: mk.position.z, ttc: tCPA, cpa: cpaDist });
+                // Phase 2 TAC-2 — 예측 충돌점 마커 데이터 전달 (정확한 미래 최근접점)
+                if (typeof window._cpaPushPair === 'function' && tCPA > 0.01) {
+                    const fpx = (a.wx + (a.vx || 0) * tCPA + b.wx + (b.vx || 0) * tCPA) * 0.5 * SCALE;
+                    const fpy = ((a.wy + (a.vy || 0) * tCPA + b.wy + (b.vy || 0) * tCPA) * 0.5) * SCALE * 3;
+                    const fpz = (a.wz + (a.vz || 0) * tCPA + b.wz + (b.vz || 0) * tCPA) * 0.5 * SCALE;
+                    window._cpaPushPair({ x: fpx, y: fpy, z: fpz, ttc: tCPA, cpaDist, pair: [a.id, b.id] });
+                }
                 pairs++;
             };
 
@@ -5661,6 +5907,19 @@
         });
         document.getElementById('tg-advisory').addEventListener('change', e => { showAdvisory = e.target.checked; if (!showAdvisory) advisoryGroup.children.forEach(o => o.visible = false); });
         document.getElementById('tg-path').addEventListener('change', e => { showFlightPath = e.target.checked; if (!showFlightPath) flightPathGroup.children.forEach(o => o.visible = false); });
+        // Phase 2 TAC 토글
+        document.getElementById('tg-pred-trail').addEventListener('change', e => {
+            _predTrailEnabled = e.target.checked;
+            if (!_predTrailEnabled) predTrailGroup.visible = false;
+        });
+        document.getElementById('tg-vel-arrow').addEventListener('change', e => {
+            _velArrowEnabled = e.target.checked;
+            if (!_velArrowEnabled) velArrowGroup.visible = false;
+        });
+        document.getElementById('tg-cpa-marker').addEventListener('change', e => {
+            _cpaMarkerEnabled = e.target.checked;
+            if (!_cpaMarkerEnabled) cpaMarkerGroup.visible = false;
+        });
         document.getElementById('tg-nfz').addEventListener('change', e => {
             const v = e.target.checked;
             layerVisibility.nfz = !!v;
@@ -7302,6 +7561,15 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // ATC 제어 중인 드론들 시안 발광 링 (Phase 1C)
             if (typeof updateAtcRings === 'function') updateAtcRings(t);
 
+            // Phase 2 TAC — 예측 비행경로 + 속도 화살표 + CPA 마커
+            if (typeof updatePredTrails === 'function') updatePredTrails();
+            if (typeof updateVelArrows === 'function') updateVelArrows();
+            if (typeof updateCpaMarkers === 'function') {
+                // _cpaPairs는 apfCollisionAvoidance 또는 CPA detection 루프에서 push됨
+                updateCpaMarkers(_cpaPairs);
+                _cpaPairs.length = 0; // 매 프레임 리셋 후 다시 detection
+            }
+
             // B4 다중 선택 링 추종(제거된 드론은 Set에서 정리)
             if (multiSel.size) {
                 let i = 0, dirty = false;
@@ -7467,6 +7735,16 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             atcCommand(did, cmd, params, source) { return window.atcCommand(did, cmd, params, source); },
             get atcLog() { return atcLog.slice(); },
             get atcControlled() { return drones.filter(d => d.atc && d.atc.cmd).map(d => ({ id: d.id, cmd: d.atc.cmd, lockUntil: d.atc.lockUntil })); },
+            // ===== Phase 2 — TAC 전술 시각화 외부 API =====
+            setPredTrail(on) { _predTrailEnabled = !!on; const e = document.getElementById('tg-pred-trail'); if (e) e.checked = _predTrailEnabled; return _predTrailEnabled; },
+            get predTrail() { return _predTrailEnabled; },
+            setPredHorizon(s) { _predHorizon = Math.max(2, Math.min(20, +s)); return _predHorizon; },
+            get predHorizon() { return _predHorizon; },
+            setVelArrow(on) { _velArrowEnabled = !!on; const e = document.getElementById('tg-vel-arrow'); if (e) e.checked = _velArrowEnabled; return _velArrowEnabled; },
+            get velArrow() { return _velArrowEnabled; },
+            setCpaMarker(on) { _cpaMarkerEnabled = !!on; const e = document.getElementById('tg-cpa-marker'); if (e) e.checked = _cpaMarkerEnabled; return _cpaMarkerEnabled; },
+            get cpaMarker() { return _cpaMarkerEnabled; },
+            get cpaPairsCount() { return _cpaMarkerIdx; },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

@@ -1,8 +1,12 @@
 # SDACS 종합 진척 보고서
 
-*Last updated: 2026-06-04 — 본 세션 PR 15개 머지 완료 + Phase 1 ATC 관제사 명령 콘솔 추가*
+*Last updated: 2026-06-04 — Phase 1(ATC) + Phase 2(TAC) 완료, 19/20 E2E 통과*
 
-> **🎮 신규: ATC 관제 콘솔 (Phase 1A-1E)** — 드론 클릭 시 명령 그리드 (HOLD/RTB/REROUTE/ALT±/SPD±/TURN/CLEAR) · 한국어 TTS · Web Audio 비프 · 시안 발광 링 · ATC 명령 감사 로그 · CSV `ATC_Commands` 시트. Playwright E2E **10/11 통과**, 회귀 **4,140/4,140 통과**. 상세: [`docs/SIMULATOR_ULTRA_PLAN.md`](docs/SIMULATOR_ULTRA_PLAN.md)
+> **🎯 신규: Phase 2 TAC 전술 시각화** — 예측 비행경로 라인(8초, fade gradient) + CPA 충돌점 마커(TTC 색상 단계) + 속도 벡터 화살표(선택 드론). 100/200/500대 자동 LOD, megaMode 자동 OFF.
+>
+> **🎮 신규: Phase 1 ATC 관제 콘솔** — 명령 그리드(HOLD/RTB/REROUTE/ALT±/SPD±/TURN/CLEAR) · 한국어 TTS · Web Audio 비프 · 시안 발광 링 · ATC 명령 감사 로그 · CSV `ATC_Commands` 시트.
+>
+> Playwright E2E **19/20 통과** (10 ATC + 9 TAC, 1 skip), 회귀 **4,140/4,140 통과**. 마스터 플랜: [`docs/SIMULATOR_MEGA_PLAN.md`](docs/SIMULATOR_MEGA_PLAN.md) · 상세: [`docs/SIMULATOR_PHASE_PLANS.md`](docs/SIMULATOR_PHASE_PLANS.md)
 
 ## 🎯 핵심 KPI (실제 측정값)
 

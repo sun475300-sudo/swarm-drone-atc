@@ -31,7 +31,7 @@
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
 </div>
 
-> **🆕 최신 업데이트 (2026-06-04 · Phase 1 ATC 콘솔)** — 메인 3D 시뮬레이터에 **ATC 관제사 명령 콘솔**이 추가되었습니다. 드론을 클릭하면 상세 패널에 `HOLD / RTB / REROUTE / ALT± / SPD± / TURN◀▶ / CLEAR` 명령 버튼이 나타나 직접 관제할 수 있고, **한국어 TTS 음성 어드바이저리**(Web Speech API) · **Web Audio 비프 경보** · **시안 발광 링**(수동 제어 중인 드론 식별) · **ATC 명령 로그 패널**(타임스탬프·감사) · **CSV 내보내기에 ATC_Commands 시트 추가** · **외부 API**(`_sdacs.atcCommand(id, cmd)`)가 함께 들어갔습니다. Playwright E2E 10/10 통과, 회귀 4,140/4,140 통과. 상세 로드맵: [`docs/SIMULATOR_ULTRA_PLAN.md`](docs/SIMULATOR_ULTRA_PLAN.md)
+> **🆕 최신 업데이트 (2026-06-04 · Phase 2 전술 시각화 + Phase 1 ATC 콘솔)** — 메인 3D 시뮬레이터에 **🎯 예측 비행경로 라인**(다음 8초 궤적·페이드 그라데이션·ATC/EVADE 색조), **🎯 CPA 충돌점 마커**(예측 최근접점·TTC 색상 단계), **➡️ 속도 벡터 화살표**(선택 드론, 속도 단계별 색상), 그리고 **🎮 ATC 관제사 명령 콘솔**(HOLD/RTB/REROUTE/ALT±/SPD±/TURN◀▶/CLEAR · 한국어 TTS · Web Audio 비프 · 시안 발광 링 · 명령 감사 로그 · CSV `ATC_Commands` 시트)이 추가됐습니다. Playwright E2E **19/20 통과**, 회귀 **4,140/4,140 통과**. 마스터 플랜: [`docs/SIMULATOR_MEGA_PLAN.md`](docs/SIMULATOR_MEGA_PLAN.md) · 상세 명세: [`docs/SIMULATOR_PHASE_PLANS.md`](docs/SIMULATOR_PHASE_PLANS.md)
 >
 > **이전 업데이트** — **원클릭 로컬 실행**(Win/Mac/Linux 더블클릭) · **해양 소형선 감지 시뮬레이터**(레이더 물리·AIS 융합·EO/IR·COLREG·CPA, 8개 시나리오) · 메인 3D **다중 선택·대규모 성능 측정·경로효율·라벨 풀 최적화**.
 
@@ -320,8 +320,9 @@ SimPy 기반 이산 이벤트 시뮬레이션 엔진으로, 다양한 환경 조
   - **리플레이·타임라인** — 0.5s 스냅샷 레코더 + 스크러버(재생/속도/LIVE)
   - **리포트 내보내기** — 4분할 PNG / CSV(시계열·텔레메트리·**ATC_Commands 감사 로그**) / KPI 클립보드 복사
   - **🎮 ATC 관제사 명령 콘솔** (2026-06 신규) — 드론 클릭 시 상세 패널에 명령 그리드 등장: `HOLD` (호버 락) · `RTB` (출발 패드 귀환) · `REROUTE` (대체 패드 변경) · `ALT±` (목표고도 ±10m) · `SPD±` (속도 ±20%) · `TURN◀▶` (즉시 좌/우 30° 선회) · `CLEAR` (자율 복귀). **시안 발광 링**으로 수동 제어 중인 드론 식별, **한국어 TTS 음성**(Web Speech API, "드론 7번 즉시 호버") + **Web Audio 비프 경보**(충돌 2초 전 자동), **ATC 명령 로그 패널**(타임스탬프·감사 추적, 좌측 하단)
-  - `window._sdacs` API — 자동화 테스트 및 외부 연동 (`selectDrone`/`hoverDrone`/`setAnalysisView`/`replaySeek`/`reportDataURL`/**`atcCommand(id, cmd, params)`**/**`atcLog`**/**`atcControlled`**/**`setAtcAudio(on)`**/**`clearAllAtc()`** 등)
-  - 헤드리스 스모크 테스트: `tests/e2e/smoke_sim.mjs` (군집 14/14) + **`tests/e2e/test_simulator_atc.py`** (ATC 10/11, CI: `.github/workflows/sim-smoke.yml`)
+  - **🎯 전술 시각화** (Phase 2, 2026-06 신규) — 드론별 **예측 비행경로 라인**(다음 8초, 1초 step×8, fade gradient, ATC=노랑·EVADE=주황 색조), **CPA 충돌점 마커**(예측 최근접점에 ⊕ 마커 + TTC 색상 단계: <2s 적색·2-5s 황색·5-12s 회색·임박할수록 크기↑), **속도 벡터 화살표**(선택/다중 선택 드론, 속도 0-5 청·5-15 녹·15-25 황·>25 적), 좌측 패널 토글 3개 (`tg-pred-trail`/`tg-vel-arrow`/`tg-cpa-marker`), megaMode≥500 자동 LOD/OFF, 100-200대 frame skip
+  - `window._sdacs` API — 자동화 테스트 및 외부 연동 (`selectDrone`/`hoverDrone`/`setAnalysisView`/`replaySeek`/`reportDataURL`/**`atcCommand(id, cmd, params)`**/**`atcLog`**/**`atcControlled`**/**`setAtcAudio(on)`**/**`clearAllAtc()`**/**`setPredTrail(on)`**/**`setPredHorizon(s)`**/**`setVelArrow(on)`**/**`setCpaMarker(on)`**/**`cpaPairsCount`** 등)
+  - 헤드리스 스모크 테스트: `tests/e2e/smoke_sim.mjs` (군집 14/14) + **`tests/e2e/test_simulator_atc.py`** (ATC 10/11) + **`tests/e2e/test_simulator_tac.py`** (TAC 9/9) — 총 19/20 통과 (CI: `.github/workflows/sim-smoke.yml`)
 - **파일**: `main.py`, `visualization/simulator_3d.py`, `swarm_3d_simulator.html` · _구버전 `swarm_3d_simulator_v2.html`·`*.v1.backup.html`은 디프리케이트(참고용)_
 ```mermaid
 sequenceDiagram

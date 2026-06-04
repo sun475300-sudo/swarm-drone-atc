@@ -1,6 +1,8 @@
 # SDACS 종합 진척 보고서
 
-*Last updated: 2026-06-04 — 본 세션 PR 15개 전부 main 머지 완료*
+*Last updated: 2026-06-04 — 본 세션 PR 15개 머지 완료 + Phase 1 ATC 관제사 명령 콘솔 추가*
+
+> **🎮 신규: ATC 관제 콘솔 (Phase 1A-1E)** — 드론 클릭 시 명령 그리드 (HOLD/RTB/REROUTE/ALT±/SPD±/TURN/CLEAR) · 한국어 TTS · Web Audio 비프 · 시안 발광 링 · ATC 명령 감사 로그 · CSV `ATC_Commands` 시트. Playwright E2E **10/11 통과**, 회귀 **4,140/4,140 통과**. 상세: [`docs/SIMULATOR_ULTRA_PLAN.md`](docs/SIMULATOR_ULTRA_PLAN.md)
 
 ## 🎯 핵심 KPI (실제 측정값)
 
@@ -8,7 +10,7 @@
 |---|---|---|---|
 | Phase 1-690 완료 | 100% | 100% | ✅ 690/690 |
 | Phase 691-755 완료 | **92%** (60/65) | 100% | 🟢 잔여 5항목 사용자 환경 |
-| 테스트 수 | **4,080+** | 5,000 | 🟢 본 세션 +250 |
+| 테스트 수 | **4,150+** | 5,000 | 🟢 본 세션 +320 (ATC E2E 포함) |
 | 코드 커버리지 | **88.18%** | 90% | 🟢 (CI 측정값) |
 | 머지 PR (본 세션) | **15개** | — | ✅ 완료 |
 | 머지 close PR (중복) | **7개** | — | ✅ 완료 |

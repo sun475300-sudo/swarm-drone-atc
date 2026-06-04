@@ -368,6 +368,149 @@
             font-weight: 600;
         }
 
+        /* ===== ATC 관제 콘솔 (Phase 1A) ===== */
+        .atc-panel {
+            margin-top: 8px;
+            padding: 6px;
+            border: 1px solid rgba(0, 229, 255, 0.4);
+            border-radius: 4px;
+            background: linear-gradient(180deg, rgba(0, 229, 255, 0.06), rgba(0, 229, 255, 0.02));
+        }
+
+        .atc-panel-title {
+            font-size: 8px;
+            color: #00e5ff;
+            letter-spacing: 1.5px;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .atc-panel-title .atc-state {
+            color: #f59e0b;
+            font-weight: 700;
+        }
+
+        .atc-btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 3px;
+        }
+
+        .atc-btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 4px 0;
+            border: 1px solid rgba(0, 229, 255, 0.5);
+            background: rgba(0, 20, 30, 0.4);
+            color: #00e5ff;
+            cursor: pointer;
+            border-radius: 3px;
+            letter-spacing: 0.5px;
+            transition: all 0.12s;
+        }
+
+        .atc-btn:hover {
+            background: rgba(0, 229, 255, 0.18);
+            box-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+        }
+
+        .atc-btn:active { transform: translateY(1px); }
+
+        .atc-btn.atc-warn {
+            color: #f59e0b;
+            border-color: rgba(245, 158, 11, 0.5);
+        }
+        .atc-btn.atc-warn:hover { background: rgba(245, 158, 11, 0.16); }
+
+        .atc-btn.atc-danger {
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+        .atc-btn.atc-danger:hover { background: rgba(239, 68, 68, 0.18); }
+
+        .atc-btn.atc-clear {
+            grid-column: 1 / 4;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+        .atc-btn.atc-clear:hover { background: rgba(16, 185, 129, 0.22); }
+
+        /* ATC 명령 로그 패널 */
+        #atc-log {
+            position: fixed;
+            left: 10px;
+            bottom: 76px;
+            width: 260px;
+            max-height: 180px;
+            overflow-y: auto;
+            padding: 6px 8px;
+            background: rgba(8, 14, 24, 0.84);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            color: #cdd9e8;
+            z-index: 30;
+            backdrop-filter: blur(8px);
+            display: none;
+        }
+
+        #atc-log.has-cmds { display: block; }
+
+        #atc-log-title {
+            font-size: 8px;
+            color: #00e5ff;
+            letter-spacing: 1.5px;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #atc-log-list { max-height: 140px; overflow-y: auto; }
+
+        .atc-log-row {
+            display: flex;
+            gap: 6px;
+            padding: 1px 0;
+            border-bottom: 1px dotted rgba(74, 103, 133, 0.2);
+        }
+        .atc-log-row .t { color: #4a6785; }
+        .atc-log-row .d { color: #f59e0b; font-weight: 600; }
+        .atc-log-row .c { color: #00e5ff; }
+
+        /* ATC 카운터 (상단 헤더) */
+        #atc-count-badge {
+            display: none;
+            padding: 2px 8px;
+            background: rgba(0, 229, 255, 0.12);
+            border: 1px solid rgba(0, 229, 255, 0.5);
+            border-radius: 10px;
+            color: #00e5ff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            font-weight: 700;
+        }
+        #atc-count-badge.active { display: inline-block; }
+
+        /* 음성/사운드 토글 (헤더) */
+        .atc-audio-btn {
+            background: rgba(0, 229, 255, 0.06);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            color: #00e5ff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            padding: 2px 6px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .atc-audio-btn.off { color: #4a6785; border-color: rgba(74, 103, 133, 0.3); }
+        .atc-audio-btn:hover { background: rgba(0, 229, 255, 0.15); }
+
         .detail-rogue {
             margin-top: 8px;
             padding: 3px 6px;
@@ -1051,6 +1194,12 @@
                 <span class="ctrl-label">경과 시간</span>
                 <span class="ctrl-value" id="sim-time">00:00</span>
             </div>
+            <!-- ATC 관제 콘솔 상태 + 음성 토글 (Phase 1) -->
+            <div style="display:flex;gap:4px;margin-top:6px;align-items:center;justify-content:space-between;">
+                <span id="atc-count-badge" title="현재 ATC 수동 제어 중인 드론 수">🎮 ATC: 0</span>
+                <button id="btn-atc-audio" class="atc-audio-btn off" title="ATC 음성 어드바이저리·경보음 토글">🔇 음성 OFF</button>
+                <button id="btn-atc-log" class="atc-audio-btn" title="ATC 명령 로그 표시 토글">📋 로그</button>
+            </div>
             <!-- P731(O1): 'Airspace Layers' 5종(layer-*)은 좌측 '공역·관제 레이어' 패널(tg-*)과
                  기능 중복이라 제거. tg-nfz/tg-altlayer/tg-corridor/tg-atc/tg-conflict가 단일 소스. -->
         </div>
@@ -1212,6 +1361,15 @@
         <button class="detail-close" id="multi-close" title="다중 선택 해제">✕</button>
         <div class="multi-title">🟠 다중 선택 (Shift+클릭)</div>
         <div id="multi-body"></div>
+    </div>
+
+    <!-- ATC 명령 로그 패널 (Phase 1B) -->
+    <div id="atc-log" class="hud-interactive">
+        <div id="atc-log-title">
+            <span>🎮 ATC 명령 로그</span>
+            <span id="atc-log-count" style="color:#cdd9e8;">0</span>
+        </div>
+        <div id="atc-log-list"></div>
     </div>
 
     <!-- HUD: Drone Live Tooltip -->
@@ -2811,6 +2969,13 @@
                 holdingOrbitAngle: 0,         // 홀딩 패턴 각도
                 // APF 회피 벡터 (속도 보정)
                 apfVx: 0, apfVz: 0, apfVy: 0,
+                // ===== ATC 관제 오버라이드 (Phase 1A) =====
+                // cmd: 'HOLD'|'RTB'|'ALT'|'SPD'|'TURN'|'REROUTE'|null
+                // lockUntil: simTime 까지 자율 진입 불가, params: 명령별 페이로드
+                atc: { cmd: null, lockUntil: 0, params: null, issuedAt: 0 },
+                _atcSpdFactor: 1.0,        // ATC SPD ± 누적 (0.5 ~ 1.6 클램프)
+                _atcAltOffset: 0,          // ATC ALT ± 누적 (-50 ~ +50 클램프)
+                _atcHeadingOffset: 0,      // 즉시 좌/우 30° 누적
             };
 
             group.userData = drone;
@@ -3879,7 +4044,8 @@
                             landingManager.release(d);
                             logEvent('info', `${d.id} 착륙 대기 초과 → 대체 패드`);
                         }
-                    } else if (simTime - d._holdStart > 8.0) {
+                    } else if (simTime - d._holdStart > 8.0 && (!d.atc || !d.atc.cmd || d.atc.lockUntil <= simTime)) {
+                        // ATC HOLD lock 중에는 8초 타임아웃으로 자동 RTL되지 않음
                         d._holdStart = null;
                         d._holdActive = false;
                         d.phase = 'RTL';
@@ -4409,6 +4575,51 @@
         selectionRing.visible = false;
         scene.add(selectionRing);
 
+        // ===== Phase 1C — ATC 제어 드론 시안 발광 링 풀 =====
+        const atcRingGroup = new THREE.Group();
+        atcRingGroup.renderOrder = 998;
+        scene.add(atcRingGroup);
+        const _atcRingPool = [];
+        const _atcRingGeo = new THREE.TorusGeometry(0.85, 0.06, 6, 28);
+        const _atcRingMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.7, depthTest: false });
+        function _atcRingAcquire() {
+            for (const r of _atcRingPool) if (!r.visible) return r;
+            const r = new THREE.Mesh(_atcRingGeo, _atcRingMat);
+            r.rotation.x = Math.PI / 2;
+            r.renderOrder = 998;
+            atcRingGroup.add(r);
+            _atcRingPool.push(r);
+            return r;
+        }
+        function updateAtcRings(timeNow) {
+            for (const r of _atcRingPool) r.visible = false;
+            let ctrlCount = 0;
+            for (const d of drones) {
+                if (!d.atc || !d.atc.cmd) continue;
+                ctrlCount++;
+                if (!d.group || !d.group.parent) continue;
+                const r = _atcRingAcquire();
+                r.visible = true;
+                r.position.copy(d.group.position);
+                const s = 1.0 + 0.18 * Math.sin(timeNow * 4 + ctrlCount);
+                r.scale.set(s, s, s);
+                r.rotation.z = timeNow * 1.2;
+            }
+            // 헤더 카운터 갱신
+            const badge = document.getElementById('atc-count-badge');
+            if (badge) {
+                if (ctrlCount > 0) { badge.classList.add('active'); badge.textContent = `🎮 ATC: ${ctrlCount}대 수동`; }
+                else badge.classList.remove('active');
+            }
+            // 만료된 lock 해제
+            for (const d of drones) {
+                if (d.atc && d.atc.cmd && d.atc.lockUntil > 0 && d.atc.lockUntil <= simTime && (d.atc.cmd === 'TURN' || d.atc.cmd === 'ALT' || d.atc.cmd === 'SPD' || d.atc.cmd === 'REROUTE')) {
+                    // 일시적 명령(TURN/ALT/SPD/REROUTE)은 만료 후 cmd 표시 해제 (drone은 새 파라미터를 유지)
+                    d.atc.cmd = null; d.atc.lockUntil = 0; d.atc.params = null;
+                }
+            }
+        }
+
         // ===== B4 다중 선택 (Shift+클릭) — 단일 선택과 독립적인 비파괴 오버레이 =====
         const multiSel = new Set();          // 선택된 drone 객체들
         const _multiRings = [];              // 재사용 링 풀(주황)
@@ -4529,6 +4740,33 @@
             } else if (d.phase === 'FAILED') {
                 html += `<div class="detail-rogue" style="color:#ef4444;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);">🔴 장애 발생</div>`;
             }
+
+            // ===== ATC 관제 명령 패널 (Phase 1A) =====
+            const atc = d.atc || { cmd: null };
+            const atcState = atc.cmd
+                ? `🎮 ${atc.cmd}${atc.lockUntil > simTime ? ` · ${(atc.lockUntil - simTime).toFixed(0)}s` : ''}`
+                : 'AUTO';
+            const atcStateColor = atc.cmd ? '#00e5ff' : '#4a6785';
+            const did = d.id.replace(/'/g, '');
+            html += `
+      <div class="atc-panel">
+        <div class="atc-panel-title">
+          <span>ATC 관제 명령</span>
+          <span class="atc-state" style="color:${atcStateColor};">${atcState}</span>
+        </div>
+        <div class="atc-btn-grid">
+          <button class="atc-btn atc-warn" onclick="atcCommand('${did}','HOLD')" title="현재 위치 호버">HOLD</button>
+          <button class="atc-btn atc-warn" onclick="atcCommand('${did}','RTB')" title="출발 패드로 귀환">RTB</button>
+          <button class="atc-btn" onclick="atcCommand('${did}','REROUTE')" title="다른 가용 패드로 변경">REROUTE</button>
+          <button class="atc-btn" onclick="atcCommand('${did}','ALT',{delta:10})" title="목표고도 +10m">ALT+</button>
+          <button class="atc-btn" onclick="atcCommand('${did}','ALT',{delta:-10})" title="목표고도 -10m">ALT-</button>
+          <button class="atc-btn" onclick="atcCommand('${did}','SPD',{factor:1.2})" title="최대속도 ×1.2">SPD+</button>
+          <button class="atc-btn" onclick="atcCommand('${did}','SPD',{factor:0.8})" title="최대속도 ×0.8">SPD-</button>
+          <button class="atc-btn" onclick="atcCommand('${did}','TURN',{deg:-30})" title="좌선회 30°">◀ TURN</button>
+          <button class="atc-btn" onclick="atcCommand('${did}','TURN',{deg:30})" title="우선회 30°">TURN ▶</button>
+          <button class="atc-btn atc-clear" onclick="atcCommand('${did}','CLEAR')" title="모든 ATC 오버라이드 해제 + 자율 복귀">자율 복귀 (CLEAR)</button>
+        </div>
+      </div>`;
             document.getElementById('detail-body').innerHTML = html;
         }
 
@@ -4544,6 +4782,164 @@
             updateFleetList();
             return d;
         }
+
+        // ===== Phase 1A — ATC 관제 명령 시스템 =====
+        const atcLog = [];               // [{ts, did, cmd, params, source}]
+        const ATC_LOG_MAX = 200;
+        let atcAudioEnabled = false;     // 음성 + 비프 토글 (기본 OFF)
+        let _audioCtx = null;
+
+        function _atcBeep(freq = 880, ms = 120, gain = 0.05) {
+            if (!atcAudioEnabled) return;
+            try {
+                _audioCtx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+                const o = _audioCtx.createOscillator();
+                const g = _audioCtx.createGain();
+                o.type = 'sine'; o.frequency.value = freq;
+                g.gain.value = gain;
+                o.connect(g); g.connect(_audioCtx.destination);
+                o.start();
+                g.gain.exponentialRampToValueAtTime(0.0001, _audioCtx.currentTime + ms / 1000);
+                o.stop(_audioCtx.currentTime + ms / 1000);
+            } catch (e) { /* ignore */ }
+        }
+
+        function _atcSpeak(text) {
+            if (!atcAudioEnabled) return;
+            try {
+                if (!('speechSynthesis' in window)) return;
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'ko-KR';
+                u.rate = 1.15;
+                u.pitch = 1.0;
+                u.volume = 0.85;
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(u);
+            } catch (e) { /* ignore */ }
+        }
+
+        function _atcLogPush(did, cmd, params, source = 'controller') {
+            const ts = simTime;
+            atcLog.push({ ts, did, cmd, params: params || null, source });
+            if (atcLog.length > ATC_LOG_MAX) atcLog.shift();
+            // UI 갱신
+            const panel = document.getElementById('atc-log');
+            const list = document.getElementById('atc-log-list');
+            const cnt = document.getElementById('atc-log-count');
+            if (panel && list && cnt) {
+                panel.classList.add('has-cmds');
+                cnt.textContent = atcLog.length;
+                const rows = atcLog.slice(-20).reverse().map(e => {
+                    const m = Math.floor(e.ts / 60), s = Math.floor(e.ts % 60);
+                    const tstr = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                    const cstr = e.params && (e.params.delta !== undefined || e.params.factor !== undefined || e.params.deg !== undefined)
+                        ? `${e.cmd} ${e.params.delta !== undefined ? (e.params.delta > 0 ? '+' : '') + e.params.delta + 'm' : ''}${e.params.factor !== undefined ? '×' + e.params.factor : ''}${e.params.deg !== undefined ? (e.params.deg > 0 ? '+' : '') + e.params.deg + '°' : ''}`
+                        : e.cmd;
+                    return `<div class="atc-log-row"><span class="t">${tstr}</span><span class="d">${e.did}</span><span class="c">${cstr}</span></div>`;
+                }).join('');
+                list.innerHTML = rows;
+            }
+            // 헤더 카운터
+            const ctrlCount = drones.filter(x => x.atc && x.atc.cmd && x.atc.cmd !== 'CLEAR').length;
+            const badge = document.getElementById('atc-count-badge');
+            if (badge) {
+                if (ctrlCount > 0) { badge.classList.add('active'); badge.textContent = `🎮 ATC: ${ctrlCount}대 수동`; }
+                else badge.classList.remove('active');
+            }
+        }
+
+        // ATC 명령 적용 (외부 호출 가능: 글로벌 atcCommand)
+        window.atcCommand = function (didOrDrone, cmd, params, source) {
+            let d = didOrDrone;
+            if (typeof didOrDrone === 'string') d = drones.find(x => x.id === didOrDrone);
+            else if (typeof didOrDrone === 'number') d = drones[didOrDrone];
+            if (!d) { console.warn('atcCommand: drone not found', didOrDrone); return null; }
+            if (!d.atc) d.atc = { cmd: null, lockUntil: 0, params: null, issuedAt: 0 };
+            params = params || {};
+            const lockSec = cmd === 'HOLD' ? 30 : cmd === 'RTB' ? 60 : cmd === 'REROUTE' ? 8 : 4;
+            const src = source || 'controller';
+            let voiceTxt = '';
+            const droneNum = d.id.replace(/[^0-9]/g, '') || d.id;
+            switch (cmd) {
+                case 'HOLD':
+                    d.atc.cmd = 'HOLD'; d.atc.lockUntil = simTime + lockSec; d.atc.params = null;
+                    d.phase = 'HOLDING';
+                    d.speed = 0; d.vx = 0; d.vz = 0;
+                    voiceTxt = `드론 ${droneNum}, 즉시 호버`;
+                    break;
+                case 'RTB':
+                    d.atc.cmd = 'RTB'; d.atc.lockUntil = simTime + lockSec; d.atc.params = null;
+                    if (d.startPad) {
+                        d.goalX = d.startPad.x; d.goalZ = d.startPad.z;
+                        d.goalPad = d.startPad;
+                    }
+                    d.phase = 'RTL';
+                    voiceTxt = `드론 ${droneNum}, 출발지 귀환`;
+                    break;
+                case 'REROUTE': {
+                    d.atc.cmd = 'REROUTE'; d.atc.lockUntil = simTime + lockSec; d.atc.params = null;
+                    const newPad = (typeof randomPad === 'function') ? randomPad() : (LANDING_PADS[Math.floor(Math.random() * LANDING_PADS.length)]);
+                    if (newPad && newPad !== d.goalPad) {
+                        d.goalX = newPad.x; d.goalZ = newPad.z; d.goalPad = newPad;
+                        d.phase = 'ENROUTE';
+                        voiceTxt = `드론 ${droneNum}, 목적지 ${newPad.name || '대체'}로 변경`;
+                    }
+                    break;
+                }
+                case 'ALT': {
+                    const delta = params.delta || 10;
+                    d._atcAltOffset = Math.max(-50, Math.min(50, (d._atcAltOffset || 0) + delta));
+                    d.targetAlt = Math.max(20, Math.min(180, d.targetAlt + delta));
+                    d.atc.cmd = 'ALT'; d.atc.lockUntil = simTime + lockSec; d.atc.params = { offset: d._atcAltOffset };
+                    voiceTxt = `드론 ${droneNum}, 고도 ${delta > 0 ? '상승' : '하강'} ${Math.abs(delta)} 미터`;
+                    break;
+                }
+                case 'SPD': {
+                    const factor = params.factor || 1.2;
+                    d._atcSpdFactor = Math.max(0.5, Math.min(1.6, (d._atcSpdFactor || 1.0) * factor));
+                    d.maxSpeed = Math.max(2, Math.min(30, d.maxSpeed * factor));
+                    d.atc.cmd = 'SPD'; d.atc.lockUntil = simTime + lockSec; d.atc.params = { factor: d._atcSpdFactor };
+                    voiceTxt = `드론 ${droneNum}, 속도 ${factor > 1 ? '증가' : '감속'}`;
+                    break;
+                }
+                case 'TURN': {
+                    const deg = params.deg || 30;
+                    d._atcHeadingOffset = (d._atcHeadingOffset || 0) + deg;
+                    d.heading = ((d.heading + deg) % 360 + 360) % 360;
+                    d.targetHeading = d.heading;
+                    d.atc.cmd = 'TURN'; d.atc.lockUntil = simTime + 3; d.atc.params = { deg };
+                    voiceTxt = `드론 ${droneNum}, ${deg > 0 ? '우' : '좌'}선회 ${Math.abs(deg)}도`;
+                    break;
+                }
+                case 'CLEAR':
+                    d.atc.cmd = null; d.atc.lockUntil = 0; d.atc.params = null;
+                    d._atcSpdFactor = 1.0; d._atcAltOffset = 0; d._atcHeadingOffset = 0;
+                    voiceTxt = `드론 ${droneNum}, 자율 모드 복귀`;
+                    break;
+                default:
+                    console.warn('atcCommand: unknown cmd', cmd);
+                    return null;
+            }
+            d.atc.issuedAt = simTime;
+            _atcLogPush(d.id, cmd, params, src);
+            if (typeof logEvent === 'function') logEvent('advisory', `🎮 ATC ${cmd}${params.delta ? ` ${params.delta > 0 ? '+' : ''}${params.delta}m` : ''}${params.factor ? ` ×${params.factor}` : ''}${params.deg ? ` ${params.deg > 0 ? '+' : ''}${params.deg}°` : ''} → ${d.id}`);
+            _atcBeep(cmd === 'HOLD' || cmd === 'RTB' ? 660 : 880, 100);
+            if (voiceTxt) _atcSpeak(voiceTxt);
+            // 선택된 드론이면 패널 즉시 갱신
+            if (selectedDrone && selectedDrone.id === d.id) renderDroneDetail();
+            return d;
+        };
+
+        // ATC 충돌 자동 경보 (Phase 1E) — 충돌 0.5초 전 비프
+        function _atcCollisionAlert(a, b, ttc) {
+            if (!atcAudioEnabled) return;
+            if (ttc < 2.0) {
+                _atcBeep(1320, 80, 0.06);
+                if (ttc < 0.8) _atcSpeak(`드론 ${a.id.replace(/[^0-9]/g,'')} 충돌 임박`);
+            }
+        }
+        // 글로벌 노출 (phase 루프에서 사용)
+        window._atcCollisionAlert = _atcCollisionAlert;
 
         function deselectDrone() {
             selectedDrone = null;
@@ -5320,11 +5716,21 @@
             }
             lines.push('');
             lines.push('## Drones');
-            lines.push('id,role,phase,battery,wx,wy,wz,speed,heading,distance_m,flight_s,evasions');
+            lines.push('id,role,phase,battery,wx,wy,wz,speed,heading,distance_m,flight_s,evasions,atc_cmd,atc_lock_until_s');
             for (const d of drones) {
+                const acmd = (d.atc && d.atc.cmd) ? d.atc.cmd : '';
+                const alck = (d.atc && d.atc.lockUntil) ? d.atc.lockUntil.toFixed(1) : '';
                 lines.push([d.id, d.role.label, d.phase, d.battery.toFixed(1), d.wx.toFixed(0), d.wy.toFixed(0),
                 d.wz.toFixed(0), d.speed.toFixed(1), Math.round(d.heading), d.distanceTraveled.toFixed(0),
-                d.flightTime.toFixed(0), d.evasionCount].join(','));
+                d.flightTime.toFixed(0), d.evasionCount, acmd, alck].join(','));
+            }
+            // Phase 1B — ATC 명령 감사 로그
+            lines.push('');
+            lines.push('## ATC_Commands');
+            lines.push('t_s,drone_id,cmd,params,source');
+            for (const e of atcLog) {
+                const pstr = e.params ? JSON.stringify(e.params).replace(/,/g, ';') : '';
+                lines.push([e.ts.toFixed(1), e.did, e.cmd, pstr, e.source].join(','));
             }
             const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
             _download(`sdacs_report_${Date.now()}.csv`, URL.createObjectURL(blob));
@@ -5458,6 +5864,27 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
         document.getElementById('btn-copy-kpi').addEventListener('click', copyKPI);
         document.getElementById('btn-export-html').addEventListener('click', exportHTML);
         document.getElementById('btn-export-md').addEventListener('click', exportMD);
+
+        // ATC 음성·로그 토글 (Phase 1D / 1B)
+        document.getElementById('btn-atc-audio').addEventListener('click', (e) => {
+            atcAudioEnabled = !atcAudioEnabled;
+            const btn = e.currentTarget;
+            if (atcAudioEnabled) {
+                btn.classList.remove('off');
+                btn.textContent = '🔊 음성 ON';
+                _atcBeep(880, 90);
+                _atcSpeak('관제 음성 모드 활성화');
+            } else {
+                btn.classList.add('off');
+                btn.textContent = '🔇 음성 OFF';
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            }
+        });
+        document.getElementById('btn-atc-log').addEventListener('click', () => {
+            const panel = document.getElementById('atc-log');
+            if (!panel) return;
+            panel.classList.toggle('has-cmds');
+        });
 
         // ===== 리플레이·타임라인 (Phase 3) =====
         const recorder = { frames: [], max: 1200 }; // 0.5s 간격, 최대 ~10분
@@ -6872,6 +7299,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 }
             }
 
+            // ATC 제어 중인 드론들 시안 발광 링 (Phase 1C)
+            if (typeof updateAtcRings === 'function') updateAtcRings(t);
+
             // B4 다중 선택 링 추종(제거된 드론은 Set에서 정리)
             if (multiSel.size) {
                 let i = 0, dirty = false;
@@ -7033,6 +7463,21 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get dni() { return { ...dniStats, objects: externalObjs.length }; },
             replaySeek(idx) { enterReplay(); replayIdx = Math.max(0, Math.min(idx, recorder.frames.length - 1)); applyFrame(replayIdx); return replayIdx; },
             goLive,
+            // ===== Phase 1 — ATC 관제 외부 API =====
+            atcCommand(did, cmd, params, source) { return window.atcCommand(did, cmd, params, source); },
+            get atcLog() { return atcLog.slice(); },
+            get atcControlled() { return drones.filter(d => d.atc && d.atc.cmd).map(d => ({ id: d.id, cmd: d.atc.cmd, lockUntil: d.atc.lockUntil })); },
+            setAtcAudio(on) {
+                atcAudioEnabled = !!on;
+                const btn = document.getElementById('btn-atc-audio');
+                if (btn) {
+                    btn.classList.toggle('off', !atcAudioEnabled);
+                    btn.textContent = atcAudioEnabled ? '🔊 음성 ON' : '🔇 음성 OFF';
+                }
+                return atcAudioEnabled;
+            },
+            get atcAudio() { return atcAudioEnabled; },
+            clearAllAtc() { let n = 0; for (const d of drones) { if (d.atc && d.atc.cmd) { window.atcCommand(d, 'CLEAR'); n++; } } return n; },
             selectScenario(name) { document.getElementById('scenario-select').value = name; document.getElementById('scenario-select').dispatchEvent(new Event('change')); },
             setLayer(name, on) {
                 if (!(name in layerVisibility)) return null;

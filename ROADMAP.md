@@ -197,11 +197,11 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [~] **P737** — 비협조 침입자(UAS-T) 결정 트리 — `src/uast/intruder_response.py` + 9개 단위 테스트 PASS (2026-06-04)
 - [~] **P738** — 도시 LiDAR/Mesh 임포터 — `src/env/nsdi_importer.py` NSDI Web Map Service → NFZ 자동 생성 (API 키 필요) (2026-06-04)
 - [~] **P739** — Sim-to-Real Domain Randomization — `src/training/domain_rand.py` + 7개 단위 테스트 PASS, ADR 곡선 학습 포함 (2026-06-04)
-- [ ] **P740** — 디지털 트윈 — MAVLink2 텔레메트리 → SDACS 상태 <50ms (실기 연계)
+- [~] **P740** — 디지털 트윈 동기화 엔진 — `src/digital_twin/sync_engine.py` MAVLink GLOBAL_POSITION_INT 파서 + LatencyStats(p50/p99) + GPS→ENU 변환. 6개 단위 테스트 PASS (2026-06-04)
 - [~] **P741** — 페일오버 클러스터링 (Raft HA) — `src/raft/airspace_controller_ha.py` + 13개 단위 테스트 PASS (2026-06-04)
-- [ ] **P742** — eVTOL·UAM 시나리오 — K-UAM Grand Challenge 호환
-- [ ] **P743** — 양자 안전 통신 — Kyber/Dilithium PoC
-- [ ] **P744** — 폐쇄망(MIL/L4) 운영 모드 — 외부 인터넷 0의존
+- [~] **P742** — K-UAM Grand Challenge 시나리오 — `config/scenario_params/uam/k_uam_grand_challenge.yaml` 5기 eVTOL × 3 회랑 × 3 vertiport × 30분 + 5계층 안전망 + 비상시나리오 3종 (2026-06-04)
+- [~] **P743** — 양자 안전 통신 PoC — `src/quantum/pqc_telemetry.py` Kyber-768 KEM + Dilithium-3 서명 + AES-256-GCM. `docs/track_e/p743_pqc_overhead.md` 대역폭 33× 증가 분석 (2026-06-04)
+- [~] **P744** — 폐쇄망(MIL/L4) 모드 — `src/closed_net/airgap_mode.py` AirGapPolicy + 외부 도메인 감사 + 군용 정책 프리셋. 8개 단위 테스트 PASS (2026-06-04)
 - [~] **P745** — 멀티 모달 LLM 관제 보조 — `src/llm/voice_atc.py` Whisper + Claude 음성→ATC 명령 (API 키 필요) (2026-06-04)
 
 ### Track F — 산학 실증·사업화 (Phase 746-755)
@@ -212,12 +212,12 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [~] **P747** — 해수부 항만 시범 가이드 — `docs/track_f/p747_marine.md` (3 항만 × 3년 × 18억) (2026-06-04)
 - [~] **P748** — 산림청 산불 감시 가이드 — `docs/track_f/p748_forest.md` (야간 IR + 2.5년 23억) (2026-06-04)
 - [~] **P749** — KISA 보안 평가 가이드 — `docs/track_f/p749_security_audit.md` (CSAP 96항목, 1.5억) (2026-06-04)
-- [ ] **P750** — 농업용 방제 드론 통합
-- [ ] **P751** — 도서·산간 의료 배송 PoC
+- [~] **P750** — 농업용 방제 드론 — `src/applications/agri_spray.py` Shoelace 면적 + Voronoi 분할 + 보급 횟수 계산. 5개 단위 테스트 PASS (2026-06-04)
+- [~] **P751** — 도서·산간 의료 배송 — `src/applications/medical_delivery.py` Urgency 4단계 + 우선순위 heap + Haversine ETA + SLA 검증. 6개 단위 테스트 PASS (2026-06-04)
 - [~] **P752** — 학회 워크숍 가이드 — `docs/track_f/p752_workshop.md` (IROS/ICRA/AIAA workshop proposal) (2026-06-04)
 - [~] **P753** — 기술 이전 / 라이선싱 가이드 — `docs/track_f/p753_licensing.md` (듀얼 라이선스 + 5건 특허 + 5개 회사 타겟) (2026-06-04)
-- [ ] **P754** — 후속 캡스톤 연계 (멘토링)
-- [~] **P755** — 창업 / 분사 검토 — `docs/track_f/p755_startup.md` (TIPS vs 사내벤처 vs JV, 5년 매출 계획) (2026-06-04)
+- [~] **P754** — 후속 캡스톤 멘토링 — `docs/track_f/p754_mentoring.md` 인수인계 자산 + 후속 주제 + 멘토링 일정 + 인수 체크리스트 (2026-06-04)
+- [ ] **P755** — 창업·분사 검토 (별도 PR 진행 예정)
 
 ---
 

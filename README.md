@@ -9,7 +9,8 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Phase](https://img.shields.io/badge/Phase-700-gold?style=for-the-badge&logo=rocket)](simulation/)
+[![Phase](https://img.shields.io/badge/Phase-755-gold?style=for-the-badge&logo=rocket)](ROADMAP.md)
+[![Roadmap](https://img.shields.io/badge/Roadmap_691--755-89%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
 [![Tests](https://img.shields.io/badge/Tests-5%2C500%2B%20Collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Algorithms](https://img.shields.io/badge/Algorithms-700+-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#core-algorithms)
 [![Modules](https://img.shields.io/badge/Modules-830+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
@@ -31,6 +32,22 @@
 </div>
 
 > **🆕 최신 업데이트 (2026-06)** — **원클릭 로컬 실행**(Win/Mac/Linux 더블클릭) · **해양 소형선 감지 시뮬레이터**(레이더 물리·AIS 융합·EO/IR·COLREG·CPA, 8개 시나리오) · 메인 3D 시뮬레이터 **다중 선택·대규모 성능 측정·경로효율·라벨 풀 최적화**가 추가되었습니다. 두 시뮬레이터 모두 헤드리스 스모크(군집 14/14·해양 17/17)와 CI로 검증됩니다.
+
+---
+
+## 📊 개발 진척 현황 / Progress (2026-06-04)
+
+| 트랙 | 범위 | 진척 | 비고 |
+|---|---|---|---|
+| **Core** | Phase 1-690 | ✅ 100% | 시뮬·이론·AI·HW·UTM·AIM |
+| **Track A** 실기 드론 | P691-700 | 📘 가이드 100% | 실기 검증은 하드웨어 도착 후 |
+| **Track B** 논문화 | P701-710 | 🟢 90% | IROS 2026 투고 준비 |
+| **Track C** 서비스화 | P711-720 | ✅ 100% | FastAPI+React+K8s+관측성 |
+| **Track D** 웹 시뮬 | P721-735 | ✅ 100% | 군집·해양 + Electron |
+| **Track E** 확장 연구 | P736-745 | 🟢 90% | RL·디지털트윈·양자·폐쇄망 |
+| **Track F** 산학 | P746-755 | 🟢 90% | K-UAM·해수부·창업 docs |
+
+> **전체 Phase 691-755: 89%** (58/65, partial 포함). 상세는 [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/ULTRA_PLAN.md`](docs/ULTRA_PLAN.md) 참조.
 
 ---
 

@@ -1047,17 +1047,8 @@
                 <span class="ctrl-label">경과 시간</span>
                 <span class="ctrl-value" id="sim-time">00:00</span>
             </div>
-            <div style="margin-top:8px;border-top:1px solid rgba(0,229,255,0.12);padding-top:6px;">
-                <label class="ctrl-label" style="display:block;margin-bottom:4px;">Airspace Layers</label>
-                <!-- KNOWN ISSUE(O1): 좌측 '공역·관제 레이어'(tg-*) 패널과 기능 중복. tg-* 단일 소스로 통합 예정. -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;font-size:10px;color:#9db7d1;">
-                    <label><input type="checkbox" id="layer-nfz" checked> NFZ</label>
-                    <label><input type="checkbox" id="layer-altitude" checked> ALT</label>
-                    <label><input type="checkbox" id="layer-corridor" checked> COR</label>
-                    <label><input type="checkbox" id="layer-atc" checked> ATC</label>
-                    <label><input type="checkbox" id="layer-cpa" checked> CPA</label>
-                </div>
-            </div>
+            <!-- P731(O1): 'Airspace Layers' 5종(layer-*)은 좌측 '공역·관제 레이어' 패널(tg-*)과
+                 기능 중복이라 제거. tg-nfz/tg-altlayer/tg-corridor/tg-atc/tg-conflict가 단일 소스. -->
         </div>
 
         <!-- 외부 탐지·식별 (DnI) -->
@@ -5779,22 +5770,13 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
             simSpeed = parseFloat(e.target.value);
             document.getElementById('speed-label').textContent = simSpeed.toFixed(2) + 'x';
         });
-        const layerControlMap = {
-            'layer-nfz': 'nfz',
-            'layer-altitude': 'altitude',
-            'layer-corridor': 'corridor',
-            'layer-atc': 'atc',
-            'layer-cpa': 'cpa',
+        // P731(O1): layerVisibility ↔ tg-* 체크박스 단일 소스. layer-* 5종은 제거됨.
+        // _sdacs.setLayer(name, on)이 layerVisibility[name]을 갱신하면
+        // applyLayerVisibility()가 tg-* 체크박스도 동기화한다.
+        const _LAYER_TG_ID = {
+            nfz: 'tg-nfz', altitude: 'tg-altlayer', corridor: 'tg-corridor',
+            atc: 'tg-atc', cpa: 'tg-conflict',
         };
-        Object.entries(layerControlMap).forEach(([id, key]) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.checked = layerVisibility[key];
-            el.addEventListener('change', () => {
-                layerVisibility[key] = !!el.checked;
-                applyLayerVisibility();
-            });
-        });
         applyLayerVisibility();
 
         // 패널 접기/펼치기 토글
@@ -6909,9 +6891,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             setLayer(name, on) {
                 if (!(name in layerVisibility)) return null;
                 layerVisibility[name] = !!on;
-                const id = Object.keys(layerControlMap).find(k => layerControlMap[k] === name);
-                const el = id ? document.getElementById(id) : null;
-                if (el) el.checked = layerVisibility[name];
+                // applyLayerVisibility()가 tg-* 체크박스를 syncChecked로 자동 갱신
                 applyLayerVisibility();
                 return layerVisibility[name];
             },

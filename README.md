@@ -787,6 +787,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 12:17 | `d2f8a22` | feat: 울트라플랜 SP4-5 일괄 — P740/742/743/744/750/751/754 + Track E/F 확장 | ROADMAP.md, config/scenario_params/uam/k_uam_grand_challenge.yaml, docs/track_e/p743_pqc_overhead.md, docs/track_f/p754_mentoring.md, src/applications/__init__.py, src/applications/agri_spray.py … |
 | 2026-06-03 19:39 | `426b9e7` | ci: desktop-build setup-node 캐시 비활성화 (lock 파일 부재로 실패) | .github/workflows/desktop-build.yml |
 | 2026-06-03 13:12 | `3295124` | feat: 병렬 세션의 고유 작업 통합 (Track A SW + P706 결과 + 벤치마크 schema) | benchmarks/_schema/manifest.schema.json, results/p706_comparison_3sc_5seed.csv, results/p706_summary.json, scripts/compare_baselines.py, simulation/environmental_scenario.py, simulation/failsafe_manager.py … |
 | 2026-06-03 12:39 | `cd82157` | Merge remote-tracking branch 'origin/claude/dazzling-maxwell-5AnBo' | .github/workflows/security.yml, README.md, ROADMAP.md, db/migrations/001_initial_schema.sql, helm/sdacs/.helmignore, helm/sdacs/Chart.yaml … |

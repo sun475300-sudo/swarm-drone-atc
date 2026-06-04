@@ -9,7 +9,8 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Phase](https://img.shields.io/badge/Phase-700-gold?style=for-the-badge&logo=rocket)](simulation/)
+[![Phase](https://img.shields.io/badge/Phase-755-gold?style=for-the-badge&logo=rocket)](ROADMAP.md)
+[![Roadmap](https://img.shields.io/badge/Roadmap_691--755-89%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
 [![Tests](https://img.shields.io/badge/Tests-5%2C500%2B%20Collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Algorithms](https://img.shields.io/badge/Algorithms-700+-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#core-algorithms)
 [![Modules](https://img.shields.io/badge/Modules-830+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
@@ -31,6 +32,22 @@
 </div>
 
 > **🆕 최신 업데이트 (2026-06)** — **원클릭 로컬 실행**(Win/Mac/Linux 더블클릭) · **해양 소형선 감지 시뮬레이터**(레이더 물리·AIS 융합·EO/IR·COLREG·CPA, 8개 시나리오) · 메인 3D 시뮬레이터 **다중 선택·대규모 성능 측정·경로효율·라벨 풀 최적화**가 추가되었습니다. 두 시뮬레이터 모두 헤드리스 스모크(군집 14/14·해양 17/17)와 CI로 검증됩니다.
+
+---
+
+## 📊 개발 진척 현황 / Progress (2026-06-04)
+
+| 트랙 | 범위 | 진척 | 비고 |
+|---|---|---|---|
+| **Core** | Phase 1-690 | ✅ 100% | 시뮬·이론·AI·HW·UTM·AIM |
+| **Track A** 실기 드론 | P691-700 | 📘 가이드 100% | 실기 검증은 하드웨어 도착 후 |
+| **Track B** 논문화 | P701-710 | 🟢 90% | IROS 2026 투고 준비 |
+| **Track C** 서비스화 | P711-720 | ✅ 100% | FastAPI+React+K8s+관측성 |
+| **Track D** 웹 시뮬 | P721-735 | ✅ 100% | 군집·해양 + Electron |
+| **Track E** 확장 연구 | P736-745 | 🟢 90% | RL·디지털트윈·양자·폐쇄망 |
+| **Track F** 산학 | P746-755 | 🟢 90% | K-UAM·해수부·창업 docs |
+
+> **전체 Phase 691-755: 89%** (58/65, partial 포함). 상세는 [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/ULTRA_PLAN.md`](docs/ULTRA_PLAN.md) 참조.
 
 ---
 
@@ -787,6 +804,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 16:00 | `4b1c4e7` | Merge remote-tracking branch 'origin/main' into feat/paper-slides-eval | .github/workflows/airgap-audit.yml, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py, config/scenario_params/uam/k_uam_grand_challenge.yaml … |
 | 2026-06-04 15:59 | `d278477` | Merge remote-tracking branch 'origin/main' into feat/final-polish | README.md, ROADMAP.md, benchmarks/baselines/sdacs/adapter.py, config/scenario_params/uam/k_uam_grand_challenge.yaml, docs/beta/README.md, docs/hardware/README.md … |
 | 2026-06-04 15:58 | `55193ee` | Merge remote-tracking branch 'origin/main' into feat/track-e-finale | README.md, ROADMAP.md, benchmarks/baselines/sdacs/adapter.py, docs/beta/README.md, docs/hardware/README.md, docs/hardware/environmental_test.md … |
 | 2026-06-04 15:47 | `cf27396` | Merge remote-tracking branch 'origin/main' into feat/track-b-paper-master | README.md, benchmarks/baselines/sdacs/adapter.py, results/comparison/01_corridor_crossing/cbs/seed42.json, results/comparison/01_corridor_crossing/cbs/seed43.json, results/comparison/01_corridor_crossing/cbs/seed44.json, results/comparison/01_corridor_crossing/cbs/seed45.json … |
@@ -796,6 +814,7 @@ MIT License — Developed for academic and educational purposes.
 | 2026-06-04 12:28 | `4fb5b86` | fix(P743): mypy dict-item — overhead_pct float ↔ int 충돌 해결 | src/quantum/pqc_telemetry.py |
 | 2026-06-04 12:17 | `d2f8a22` | feat: 울트라플랜 SP4-5 일괄 — P740/742/743/744/750/751/754 + Track E/F 확장 | ROADMAP.md, config/scenario_params/uam/k_uam_grand_challenge.yaml, docs/track_e/p743_pqc_overhead.md, docs/track_f/p754_mentoring.md, src/applications/__init__.py, src/applications/agri_spray.py … |
 | 2026-06-04 13:02 | `996d322` | feat: 울트라플랜 최종 마무리 — STATUS_REPORT + 차트·CI·CHANGELOG | .github/workflows/airgap-audit.yml, ROADMAP.md, STATUS_REPORT.md, docs/CHANGELOG.md, docs/poster/assets/pareto_front.png, docs/poster/assets/results_nmr_msd_bar.png … |
+| 2026-06-04 13:51 | `7376e33` | feat: P707 §4-§7 LaTeX + P710 Marp 슬라이드 + P742 평가기 + README 진척 | README.md, ROADMAP.md, docs/paper/latex/sections_4to7.tex, docs/slides/donggang_2026_ko.md, scripts/uam_evaluator.py, tests/track_e/test_uam_evaluator.py |
 | 2026-06-03 19:39 | `426b9e7` | ci: desktop-build setup-node 캐시 비활성화 (lock 파일 부재로 실패) | .github/workflows/desktop-build.yml |
 | 2026-06-03 13:12 | `3295124` | feat: 병렬 세션의 고유 작업 통합 (Track A SW + P706 결과 + 벤치마크 schema) | benchmarks/_schema/manifest.schema.json, results/p706_comparison_3sc_5seed.csv, results/p706_summary.json, scripts/compare_baselines.py, simulation/environmental_scenario.py, simulation/failsafe_manager.py … |
 | 2026-06-03 12:39 | `cd82157` | Merge remote-tracking branch 'origin/claude/dazzling-maxwell-5AnBo' | .github/workflows/security.yml, README.md, ROADMAP.md, db/migrations/001_initial_schema.sql, helm/sdacs/.helmignore, helm/sdacs/Chart.yaml … |

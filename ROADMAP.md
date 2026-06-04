@@ -149,10 +149,10 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P704** — Reproducibility 패키지 — Dockerfile·Dockerfile.gpu·Dockerfile.reproducible + docker-compose.reproducible.yml (PYTHONHASHSEED=0, seed 고정) 완비 (2026-05-29)
 - [x] **P705** — 평가 메트릭 정형화 — `src/analytics/metrics.py` NMR·MSD·PE·MS·FT·AU·RID_CR·RTF 8종 공식 정의 및 Evaluator 클래스 구현 (2026-05-29)
 - [x] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS) — SDACS W2 APF+CBS 하이브리드 어댑터 완성, NMR·MSD·AU 유의미 개선 확인 (2026-06-01)
-- [~] **P707** — 논문 초안 LaTeX scaffold — `docs/paper/latex/main.tex` (Abstract/§1-§3 + algorithm + TODO §4-§7) (2026-06-04)
-- [~] **P708** — 내부 리뷰 가이드 — `docs/paper/review_checklist.md` (R1 self / R2 peer / R3 advisor + 잠재 reviewer 질문 사전 대비) (2026-06-04)
-- [~] **P709** — 투고 가이드 — `docs/paper/submission_guide.md` (IROS PaperCept + arXiv + rebuttal + 예산) (2026-06-04)
-- [~] **P710** — 학술대회 발표 자산 — 포스터/슬라이드 스켈레톤 (별도 PR #90)
+- [~] **P707** — 논문 초안 — `docs/paper/latex/main.tex`(§1-§3) + `sections_4to7.tex`(§4-§7 Experiments/Results/Ablation/Discussion/Conclusion + 결과·ablation 표) (PR #93·본 PR, 실험 그래프 보강 잔여)
+- [~] **P708** — 내부 리뷰 가이드 `docs/paper/review_checklist.md` (PR #93)
+- [~] **P709** — 투고 가이드 `docs/paper/submission_guide.md` (PR #93, 실제 투고 사용자)
+- [~] **P710** — 발표 자산 — 포스터 `donggang_2026_ko.md` + Marp 슬라이드 15장 + 차트 2종(NMR/MSD bar·Pareto) (PR #90·#95·본 PR)
 
 ### Track C — 배포·서비스화 (Phase 711-720)
 

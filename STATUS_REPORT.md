@@ -1,7 +1,9 @@
 # SDACS 종합 진척 보고서
 
-*Last updated: 2026-06-04 — Phase 1(ATC)+2(TAC)+3(CIN)+4(CAM)+6(INJ)+8(AUD) 완료, 46/47 E2E 통과*
+*Last updated: 2026-06-04 — Phase 1(ATC)+2(TAC)+3(CIN)+4(CAM)+5(MIS)+6(INJ)+8(AUD) 완료, 55/56 E2E 통과*
 
+> **📋 신규: Phase 5 MIS 임무 계획 UI** — 지면 클릭 웨이포인트 + 템플릿(수색 4×4 / 정찰 8점 / 배달) + 선택 드론 임무 할당 + 웨이포인트 추종(ENROUTE→다음 WP→원 목적지 복귀) + 진행률 패널. node 헤드리스 18/18 PASS.
+>
 > **🎥 신규: Phase 4 CAM 카메라 모드** — FPV 1인칭(드론 head, FOV 75°) · 추격캠(spring damping) · 측면 뷰. 7개 프리셋 + 단축키 1-7.
 >
 > **🌬 신규: Phase 8 AUD 환경 사운드** — Web Audio 바람 화이트노이즈(풍속 비례) · 우천 노이즈 · 배터리 임계 알람(880Hz).

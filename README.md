@@ -31,7 +31,7 @@
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
 </div>
 
-> **🆕 최신 업데이트 (2026-06-04 · Phase 1+2+3+4+6+8 일괄 완료)** — 메인 3D 시뮬레이터에 **🎥 카메라 모드**(FPV 1인칭·추격 spring·측면, 단축키 5/6/7), **🌬 환경 사운드**(풍속 비례 바람 화이트노이즈 + 우천음 + 배터리 임계 알람), **🎬 시네마틱**(동적 태양 24h·비/눈 입자·MediaRecorder 화면 녹화), **💥 장애 주입**(GPS/모터/통신/배터리/Rogue/동적 NFZ + EMP·EMI 시나리오), **🎯 전술 시각화**(예측 경로·CPA 마커·속도 벡터), **🎮 ATC 관제 콘솔**(HOLD/RTB/REROUTE/ALT±/SPD±/TURN/CLEAR + 한국어 TTS + 비프)이 함께 들어갔습니다. Playwright E2E **46/47 통과**, 회귀 **4,140/4,140 통과**. 마스터 플랜: [`docs/SIMULATOR_MEGA_PLAN.md`](docs/SIMULATOR_MEGA_PLAN.md) · 상세 명세: [`docs/SIMULATOR_PHASE_PLANS.md`](docs/SIMULATOR_PHASE_PLANS.md)
+> **🆕 최신 업데이트 (2026-06-04 · Phase 1+2+3+4+5+6+8 일괄 완료)** — 메인 3D 시뮬레이터에 **📋 임무 계획 UI**(지면 클릭 웨이포인트·수색/정찰/배달 템플릿·선택 드론 임무 할당·웨이포인트 추종·진행률 패널), **🎥 카메라 모드**(FPV 1인칭·추격 spring·측면, 단축키 5/6/7), **🌬 환경 사운드**(풍속 비례 바람 화이트노이즈 + 우천음 + 배터리 임계 알람), **🎬 시네마틱**(동적 태양 24h·비/눈 입자·MediaRecorder 화면 녹화), **💥 장애 주입**(GPS/모터/통신/배터리/Rogue/동적 NFZ + EMP·EMI 시나리오), **🎯 전술 시각화**(예측 경로·CPA 마커·속도 벡터), **🎮 ATC 관제 콘솔**(HOLD/RTB/REROUTE/ALT±/SPD±/TURN/CLEAR + 한국어 TTS + 비프)이 함께 들어갔습니다. Playwright E2E **55/56 통과**, 회귀 **4,140/4,140 통과**. 마스터 플랜: [`docs/SIMULATOR_MEGA_PLAN.md`](docs/SIMULATOR_MEGA_PLAN.md) · 상세 명세: [`docs/SIMULATOR_PHASE_PLANS.md`](docs/SIMULATOR_PHASE_PLANS.md)
 >
 > **이전 업데이트** — **원클릭 로컬 실행**(Win/Mac/Linux 더블클릭) · **해양 소형선 감지 시뮬레이터**(레이더 물리·AIS 융합·EO/IR·COLREG·CPA, 8개 시나리오) · 메인 3D **다중 선택·대규모 성능 측정·경로효율·라벨 풀 최적화**.
 

@@ -1245,6 +1245,28 @@
                     <button class="atc-btn atc-clear" id="btn-inj-clear" title="모든 장애 해제" style="grid-column:1/3;">🟢 전체 해제</button>
                 </div>
             </div>
+            <!-- Phase 5 MIS — 임무 계획 콘솔 -->
+            <div style="margin-top:8px;padding:6px;border:1px solid rgba(34,211,153,0.35);border-radius:4px;background:linear-gradient(180deg,rgba(34,211,153,0.06),transparent);">
+                <div style="font-size:8px;color:#22d399;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;display:flex;justify-content:space-between;">
+                    <span>📋 임무 계획 (MIS)</span>
+                    <span id="mis-wp-count" style="color:#cdd9e8;font-size:8px;">WP 0</span>
+                </div>
+                <button class="atc-btn" id="btn-mis-plan" title="지도(지면) 클릭으로 웨이포인트 추가 모드 토글" style="width:100%;margin-bottom:4px;">🗺 웨이포인트 모드 OFF</button>
+                <div style="display:flex;gap:4px;margin-bottom:4px;">
+                    <select id="mis-template" class="ctrl-select" style="flex:1;font-size:9px;">
+                        <option value="">직접 클릭</option>
+                        <option value="search">수색 (4×4 격자)</option>
+                        <option value="recon">정찰 (원형 8점)</option>
+                        <option value="delivery">배달 (직선)</option>
+                    </select>
+                    <button class="atc-btn" id="btn-mis-tpl" title="선택 템플릿으로 웨이포인트 생성 (선택 드론 중심)" style="flex:0 0 48px;">생성</button>
+                </div>
+                <div class="atc-btn-grid" style="grid-template-columns:1fr 1fr;">
+                    <button class="atc-btn" id="btn-mis-assign" title="선택 드론에 현재 웨이포인트 임무 할당" style="border-color:rgba(34,211,153,0.5);color:#22d399;">▶ 임무 할당</button>
+                    <button class="atc-btn atc-clear" id="btn-mis-clear" title="계획 웨이포인트 초기화">🗑 초기화</button>
+                </div>
+                <div id="mis-active-list" style="margin-top:5px;font-size:8px;color:#9fb4cc;font-family:'JetBrains Mono',monospace;line-height:1.5;max-height:80px;overflow-y:auto;">진행 중 임무 없음</div>
+            </div>
             <!-- P731(O1): 'Airspace Layers' 5종(layer-*)은 좌측 '공역·관제 레이어' 패널(tg-*)과
                  기능 중복이라 제거. tg-nfz/tg-altlayer/tg-corridor/tg-atc/tg-conflict가 단일 소스. -->
         </div>
@@ -3401,6 +3423,9 @@
                 _atcSpdFactor: 1.0,        // ATC SPD ± 누적 (0.5 ~ 1.6 클램프)
                 _atcAltOffset: 0,          // ATC ALT ± 누적 (-50 ~ +50 클램프)
                 _atcHeadingOffset: 0,      // 즉시 좌/우 30° 누적
+                // ===== Phase 5 MIS 임무 계획 =====
+                // mission: { waypoints:[{x,z,alt}], idx, dispatched, name, origGoalX/Z/Pad/Alt }
+                mission: null,
             };
 
             group.userData = drone;
@@ -3417,6 +3442,7 @@
             if (typeof resetViewFilter === 'function') resetViewFilter();
             if (typeof resetDnI === 'function') resetDnI();
             if (typeof resetChartEvents === 'function') resetChartEvents();
+            if (typeof resetMissions === 'function') resetMissions();
             _prevColl = 0; _prevNear = 0;
             // Clear (geometry/material 해제 — GPU 메모리 누수 방지)
             while (droneGroup.children.length) {
@@ -4298,6 +4324,8 @@
                 }
 
                 case 'ENROUTE': {
+                    // Phase 5 MIS — 활성 임무가 있으면 현재 웨이포인트로 목표 갱신·도달 시 전환
+                    if (d.mission) advanceMission(d);
                     // NFZ 진입 감지 → 회피 전환 (ROGUE 제외)
                     const lookaheadX = d.wx + (d.goalX - d.wx) * 0.02;
                     const lookaheadZ = d.wz + (d.goalZ - d.wz) * 0.02;
@@ -5688,6 +5716,12 @@
             _ptr.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
             _ptr.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
             _ray.setFromCamera(_ptr, camera);
+            // Phase 5 MIS — 웨이포인트 모드: 지면(y=0) 교차점에 웨이포인트 추가
+            if (typeof _misPlanning !== 'undefined' && _misPlanning) {
+                const _hit = new THREE.Vector3();
+                if (_ray.ray.intersectPlane(_misGroundPlane, _hit)) addWaypointAt(_hit.x, _hit.z, MIS_WP_ALT);
+                return;
+            }
             if (megaMode) { // 대규모: InstancedMesh instanceId → 드론
                 const ih = _ray.intersectObject(bodyInst, false);
                 const d = ih.length ? _droneFromInstance(ih[0].instanceId) : null;
@@ -8028,6 +8062,196 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         connectWebSocket();
         _updateWsStatus();
 
+        // ===== Phase 5 MIS — 임무 계획 시스템 =====
+        const _misWpGroup = new THREE.Group();
+        _misWpGroup.renderOrder = 992;
+        scene.add(_misWpGroup);
+        const _misGroundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // y=0 지면
+        let _misPlanning = false;            // 웨이포인트 추가 모드
+        let _misWaypoints = [];              // 계획 중 웨이포인트 [{x,z,alt,marker,label}]
+        let _misPlanLine = null;             // 계획 웨이포인트 연결선
+        let _misLastTemplate = '';           // 마지막 템플릿명
+        const _misRoutes = new Map();        // 활성 임무 경로선: droneId -> THREE.Line
+        const MIS_WP_ALT = 90;               // 기본 웨이포인트 고도 (m)
+        const MIS_WP_REACH = 160;            // 웨이포인트 도달 판정 (착륙 임계 150보다 커야 전환 우선)
+        const _misWpGeo = new THREE.OctahedronGeometry(25);
+        const _misWpMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 0.85 });
+
+        function updateMisWpCount() {
+            const el = document.getElementById('mis-wp-count');
+            if (el) el.textContent = `WP ${_misWaypoints.length}`;
+        }
+
+        function _misRebuildPlanLine() {
+            if (_misPlanLine) { _misWpGroup.remove(_misPlanLine); _misPlanLine.geometry.dispose(); _misPlanLine = null; }
+            if (_misWaypoints.length < 2) return;
+            const pts = _misWaypoints.map(w => new THREE.Vector3(w.x, w.alt, w.z));
+            const geo = new THREE.BufferGeometry().setFromPoints(pts);
+            _misPlanLine = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 0.5 }));
+            _misWpGroup.add(_misPlanLine);
+        }
+
+        function addWaypointAt(x, z, alt) {
+            const a = alt || MIS_WP_ALT;
+            const marker = new THREE.Mesh(_misWpGeo, _misWpMat); // geometry/material 공유
+            marker.position.set(x, a, z);
+            _misWpGroup.add(marker);
+            const label = makeTextSprite(String(_misWaypoints.length + 1), '#fbbf24', 28);
+            label.position.set(x, a + 45, z);
+            label.scale.set(70, 18, 1);
+            _misWpGroup.add(label);
+            _misWaypoints.push({ x, z, alt: a, marker, label });
+            _misRebuildPlanLine();
+            updateMisWpCount();
+            return _misWaypoints.length;
+        }
+
+        function _misClearPlanning() {
+            for (const w of _misWaypoints) {
+                _misWpGroup.remove(w.marker);  // 공유 geometry/material → dispose 안 함
+                _misWpGroup.remove(w.label);
+                if (w.label.material.map) w.label.material.map.dispose();
+                w.label.material.dispose();
+            }
+            if (_misPlanLine) { _misWpGroup.remove(_misPlanLine); _misPlanLine.geometry.dispose(); _misPlanLine = null; }
+            _misWaypoints = [];
+            updateMisWpCount();
+        }
+
+        function _misBuildRoute(d, wps) {
+            _misDisposeRoute(d);
+            const pts = [new THREE.Vector3(d.wx, d.wy || MIS_WP_ALT, d.wz),
+                         ...wps.map(w => new THREE.Vector3(w.x, w.alt, w.z))];
+            const geo = new THREE.BufferGeometry().setFromPoints(pts);
+            const line = new THREE.Line(geo, new THREE.LineDashedMaterial({
+                color: 0x22d399, dashSize: 35, gapSize: 22, transparent: true, opacity: 0.6,
+            }));
+            line.computeLineDistances();
+            _misWpGroup.add(line);
+            _misRoutes.set(d.id, line);
+        }
+
+        function _misDisposeRoute(d) {
+            const line = _misRoutes.get(d.id);
+            if (line) { _misWpGroup.remove(line); line.geometry.dispose(); line.material.dispose(); _misRoutes.delete(d.id); }
+        }
+
+        function setMissionMode(on) {
+            _misPlanning = !!on;
+            const btn = document.getElementById('btn-mis-plan');
+            if (btn) {
+                btn.classList.toggle('active', _misPlanning);
+                btn.textContent = _misPlanning ? '🗺 웨이포인트 모드 ON' : '🗺 웨이포인트 모드 OFF';
+            }
+            return _misPlanning;
+        }
+
+        // 템플릿: 선택 드론(없으면 원점) 중심으로 웨이포인트 자동 생성
+        function missionTemplate(name, cx, cz) {
+            _misClearPlanning();
+            _misLastTemplate = name;
+            const ox = (cx != null) ? cx : (selectedDrone ? selectedDrone.wx : 0);
+            const oz = (cz != null) ? cz : (selectedDrone ? selectedDrone.wz : 0);
+            if (name === 'search') {            // 4×4 보스트로페돈 격자 (셀 400m)
+                const N = 4, step = 400, half = (N - 1) * step / 2;
+                for (let r = 0; r < N; r++) {
+                    for (let c = 0; c < N; c++) {
+                        const cc = (r % 2 === 0) ? c : (N - 1 - c);
+                        addWaypointAt(ox - half + cc * step, oz - half + r * step, MIS_WP_ALT);
+                    }
+                }
+            } else if (name === 'recon') {      // 원형 8점 궤도 (반경 600m)
+                const R = 600, N = 8;
+                for (let i = 0; i < N; i++) {
+                    const ang = (i / N) * Math.PI * 2;
+                    addWaypointAt(ox + Math.cos(ang) * R, oz + Math.sin(ang) * R, MIS_WP_ALT + 20);
+                }
+            } else if (name === 'delivery') {   // 직선 A→B 2점
+                addWaypointAt(ox + 800, oz + 800, MIS_WP_ALT);
+                addWaypointAt(ox + 1600, oz + 200, MIS_WP_ALT);
+            }
+            return _misWaypoints.length;
+        }
+
+        // 선택/지정 드론에 현재 계획 웨이포인트를 임무로 할당
+        function assignMission(droneOrId) {
+            if (_misWaypoints.length === 0) return null;
+            let d = droneOrId;
+            if (typeof droneOrId === 'string') d = drones.find(x => x.id === droneOrId);
+            else if (typeof droneOrId === 'number') d = drones[droneOrId];
+            if (!d) d = selectedDrone;
+            if (!d || d.phase === 'FAILED') return null;
+            const wps = _misWaypoints.map(w => ({ x: w.x, z: w.z, alt: w.alt }));
+            d.mission = {
+                waypoints: wps, idx: 0, dispatched: simTime, name: _misLastTemplate || '직접',
+                origGoalX: d.goalX, origGoalZ: d.goalZ, origPad: d.goalPad, origAlt: d.targetAlt,
+            };
+            d.goalX = wps[0].x; d.goalZ = wps[0].z; d.targetAlt = wps[0].alt;
+            if (d.phase === 'GROUNDED') { d.phase = 'TAKEOFF'; d.groundDelay = 0; d.throttle = 0.8; }
+            else if (d.phase === 'HOLDING' || d.phase === 'RTL' || d.phase === 'EVADING') d.phase = 'ENROUTE';
+            _misBuildRoute(d, wps);
+            if (typeof logEvent === 'function') logEvent('info', `${d.id} 임무 할당: ${wps.length}개 WP (${d.mission.name})`);
+            _misClearPlanning();
+            updateMissionPanel();
+            return d.id;
+        }
+
+        // ENROUTE 매 틱: 현재 웨이포인트로 목표 설정·도달 시 다음 WP·완료 시 원 목적지 복귀
+        function advanceMission(d) {
+            const m = d.mission;
+            if (!m || m.idx >= m.waypoints.length) return;
+            const wp = m.waypoints[m.idx];
+            d.goalX = wp.x; d.goalZ = wp.z;
+            if (wp.alt) d.targetAlt = wp.alt;
+            const dist = Math.hypot(wp.x - d.wx, wp.z - d.wz);
+            if (dist < MIS_WP_REACH) {
+                m.idx++;
+                d.waypointHits++;
+                if (m.idx >= m.waypoints.length) {
+                    // 임무 완료 → 원 목적지(패드) 복귀 → 기존 착륙 시퀀스 인계
+                    d.goalX = m.origGoalX; d.goalZ = m.origGoalZ; d.goalPad = m.origPad; d.targetAlt = m.origAlt;
+                    if (typeof logEvent === 'function') logEvent('landing', `${d.id} 임무 완료 (${m.waypoints.length} WP) → ${m.origPad ? m.origPad.name : '복귀'}`);
+                    _misDisposeRoute(d);
+                    d.mission = null;
+                } else {
+                    // 같은 틱에서 다음 웨이포인트로 목표 즉시 갱신
+                    // (큰 timestep에서 도달 직후 goalX가 직전 WP에 머물러 착륙 블록 오동작하는 것 방지)
+                    const nx = m.waypoints[m.idx];
+                    d.goalX = nx.x; d.goalZ = nx.z; if (nx.alt) d.targetAlt = nx.alt;
+                }
+                updateMissionPanel();
+            }
+        }
+
+        function updateMissionPanel() {
+            const el = document.getElementById('mis-active-list');
+            if (!el) return;
+            const act = drones.filter(d => d.mission);
+            if (act.length === 0) { el.textContent = '진행 중 임무 없음'; return; }
+            el.innerHTML = act.map(d => {
+                const m = d.mission;
+                const pct = Math.round((m.idx / m.waypoints.length) * 100);
+                return `${d.id} → ${pct}% (WP${Math.min(m.idx + 1, m.waypoints.length)}/${m.waypoints.length})`;
+            }).join('<br>');
+        }
+
+        function resetMissions() {
+            for (const line of _misRoutes.values()) { _misWpGroup.remove(line); line.geometry.dispose(); line.material.dispose(); }
+            _misRoutes.clear();
+            _misClearPlanning();
+            _misLastTemplate = '';
+            if (_misPlanning) setMissionMode(false);
+            updateMissionPanel();
+        }
+
+        document.getElementById('btn-mis-plan').addEventListener('click', () => setMissionMode(!_misPlanning));
+        document.getElementById('btn-mis-tpl').addEventListener('click', () => {
+            const name = document.getElementById('mis-template').value;
+            if (name) missionTemplate(name);
+        });
+        document.getElementById('btn-mis-assign').addEventListener('click', () => assignMission(selectedDrone));
+        document.getElementById('btn-mis-clear').addEventListener('click', () => { _misClearPlanning(); _misLastTemplate = ''; });
+
         // ===== Animation Loop =====
         const clock = new THREE.Clock();
         let frameCount = 0, lastFpsTime = 0;
@@ -8384,6 +8608,15 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             setCamMode(mode) { setCamMode(mode); return camMode; },
             get camMode() { return camMode; },
             focusDrone(idOrIndex) { let d = idOrIndex; if (typeof idOrIndex === 'string') d = drones.find(x => x.id === idOrIndex); else if (typeof idOrIndex === 'number') d = drones[idOrIndex]; if (d) focusDrone(d); return d ? d.id : null; },
+            // ===== Phase 5 — MIS 임무 계획 외부 API =====
+            setMissionMode(on) { return setMissionMode(on); },
+            get missionMode() { return _misPlanning; },
+            addWaypoint(x, z, alt) { return addWaypointAt(x, z, alt); },
+            get waypoints() { return _misWaypoints.map(w => ({ x: w.x, z: w.z, alt: w.alt })); },
+            clearWaypoints() { _misClearPlanning(); _misLastTemplate = ''; return 0; },
+            missionTemplate(name, cx, cz) { return missionTemplate(name, cx, cz); },
+            assignMission(droneId) { return assignMission(droneId); },
+            get missions() { return drones.filter(d => d.mission).map(d => ({ id: d.id, idx: d.mission.idx, total: d.mission.waypoints.length, name: d.mission.name })); },
             // ===== Phase 8 — AUD 환경 사운드 외부 API =====
             setAmbientAudio(on) { audAmbient.enabled = !!on; const b = document.getElementById('btn-aud-ambient'); if (b) { b.classList.toggle('off', !audAmbient.enabled); b.textContent = audAmbient.enabled ? '🌬 환경음 ON' : '🌬 환경음 OFF'; } return audAmbient.enabled; },
             get ambientAudio() { return audAmbient.enabled; },

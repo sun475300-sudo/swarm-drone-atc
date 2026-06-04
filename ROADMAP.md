@@ -197,12 +197,12 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P727** — 해양 소형선 감지 시뮬레이터 신설 — 레이더 물리(C1)·AIS융합(C2)·EO/IR(C3)·COLREG(C4)·트랙상세(C5)·리포트(C6)·해안선(C7)·시나리오8종(C8)·검증기록(C9) (2026-06-03)
 - [x] **P728** — 해양 기술 문서(`docs/maritime_detection_technical.md`) + 헤드리스 스모크 17/17 (2026-06-03)
 - [x] **P729** — 대규모 모드 글로우 InstancedMesh(B3, 1k~10k 단일 드로우콜) — main `2f43895` 반영 + 본 세션 docs 보강 (2026-06-04)
-- [x] **P730** — UI 국제화(B5, KO/EN 토글) — HUD data-i18n + I18N_MAP + lang-btn (PR #81, 2026-06-03)
-- [~] **P731** — 공역 레이어 패널 중복 통합 (PR #84 머지 대기)
+- [~] **P730** — UI 국제화 KO/EN 토글 (PR #81 머지 대기, 모바일·터치는 후속)
+- [x] **P731** — 공역 레이어 패널 중복 통합(O1) — 우측 'Airspace Layers'(layer-*) 5종 제거, tg-* 단일 소스 통합 (PR #84, 2026-06-03)
 - [~] **P732** — 대규모 CPA 공간 해시 복원 (PR #88 머지 대기)
 - [x] **P733** — `ws_bridge` LIVE 토글 — applyLiveData + _WS_PHASE_MAP + ws-status 인디케이터 (PR #81, 2026-06-03)
 - [~] **P734** — 키보드 스크러버 + 멀티뷰 동기화 (PR #89·#91 머지 대기 + 다른 세션 PR #86)
-- [~] **P735** — 해양 EO/IR adapter 패턴 + Mock SDK (PR #92 머지 대기)
+- [x] **P735** — 해양 EO/IR 어댑터 패턴 — `registerEOIRSource()`/`selectEOIRSource()` 외부 SDK hook + synth fallback. `docs/maritime_eoir_adapter.md` (PR #92, 2026-06-03)
 
 ### Track E — 확장 연구·기술 심화 (Phase 736-745)
 

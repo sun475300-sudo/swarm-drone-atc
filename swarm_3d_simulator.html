@@ -1051,17 +1051,8 @@
                 <span class="ctrl-label">경과 시간</span>
                 <span class="ctrl-value" id="sim-time">00:00</span>
             </div>
-            <div style="margin-top:8px;border-top:1px solid rgba(0,229,255,0.12);padding-top:6px;">
-                <label class="ctrl-label" style="display:block;margin-bottom:4px;">Airspace Layers</label>
-                <!-- KNOWN ISSUE(O1): 좌측 '공역·관제 레이어'(tg-*) 패널과 기능 중복. tg-* 단일 소스로 통합 예정. -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;font-size:10px;color:#9db7d1;">
-                    <label><input type="checkbox" id="layer-nfz" checked> NFZ</label>
-                    <label><input type="checkbox" id="layer-altitude" checked> ALT</label>
-                    <label><input type="checkbox" id="layer-corridor" checked> COR</label>
-                    <label><input type="checkbox" id="layer-atc" checked> ATC</label>
-                    <label><input type="checkbox" id="layer-cpa" checked> CPA</label>
-                </div>
-            </div>
+            <!-- P731(O1): 'Airspace Layers' 5종(layer-*)은 좌측 '공역·관제 레이어' 패널(tg-*)과
+                 기능 중복이라 제거. tg-nfz/tg-altlayer/tg-corridor/tg-atc/tg-conflict가 단일 소스. -->
         </div>
 
         <!-- 외부 탐지·식별 (DnI) -->
@@ -4841,6 +4832,29 @@
             ctx.fillStyle = '#4a6785'; ctx.font = '8px JetBrains Mono, monospace';
             ctx.fillText('100%', 2, toY(100) + 8); ctx.fillText('0%', 2, toY(0) - 1);
 
+            // P734 멀티뷰 동기화: 라이브 = simTime, 리플레이 = recorder.frames[replayIdx].t
+            // chartHistory.time 배열에서 가장 가까운 인덱스를 찾아 수직 cursor 그리기
+            const _curT = (replayMode && recorder.frames[replayIdx])
+                ? recorder.frames[replayIdx].t : simTime;
+            if (chartHistory.time.length >= 2 && Number.isFinite(_curT)) {
+                let _idx = chartHistory.time.length - 1;
+                for (let i = chartHistory.time.length - 1; i >= 0; i--) {
+                    if (chartHistory.time[i] <= _curT) { _idx = i; break; }
+                }
+                const _cx = _idx * (w / Math.max(1, chartHistory.time.length - 1));
+                ctx.strokeStyle = replayMode ? 'rgba(168,85,247,0.85)' : 'rgba(0,229,255,0.55)';
+                ctx.lineWidth = replayMode ? 1.5 : 1;
+                ctx.setLineDash(replayMode ? [] : [3, 3]);
+                ctx.beginPath(); ctx.moveTo(_cx, h * 0.05); ctx.lineTo(_cx, h * 0.95); ctx.stroke();
+                ctx.setLineDash([]);
+                const _mm = String(Math.floor(_curT / 60)).padStart(2, '0');
+                const _ss = String(Math.floor(_curT % 60)).padStart(2, '0');
+                const _lbl = (replayMode ? '◀ ' : '● ') + _mm + ':' + _ss;
+                const _lw = ctx.measureText(_lbl).width;
+                ctx.fillStyle = replayMode ? 'rgba(168,85,247,0.95)' : 'rgba(0,229,255,0.85)';
+                ctx.fillText(_lbl, Math.max(0, Math.min(w - _lw - 2, _cx - _lw / 2)), h * 0.05 - 1);
+            }
+
             // 하단 시간축 라벨(시작/중간/현재)
             if (chartHistory.time.length > 1) {
                 const startT = chartHistory.time[0];
@@ -4970,42 +4984,85 @@
             _cvLineIdx = 0; _cvMarkIdx = 0;
             if (!showConflictViz) { _cvLabelData = []; return; }
             const air = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
-            if (air.length > 400) { _cvLabelData = []; return; } // 초대규모는 생략(성능)
+            if (air.length > 2000) { _cvLabelData = []; return; } // 초초대규모(2k+)만 생략
             const THRESH = NEAR_MISS_DIST * 1.5;
             const labelCand = [];
             let pairs = 0; const MAX_PAIRS = 60;
-            for (let i = 0; i < air.length && pairs < MAX_PAIRS; i++) {
-                const a = air[i];
-                const ra = a.heading * Math.PI / 180;
+
+            // P732(B2): 공간 해시 broad-phase — O(N²) → O(N × avg_neighbors).
+            // cellSize = EVADE_DIST(=500m). 각 셀 + 인접 8셀(2D, xz 평면)만 페어 후보.
+            const CELL = EVADE_DIST;
+            const useHash = air.length > 80; // 소규모는 단순 O(N²)가 더 빠름(해시 오버헤드 회피)
+            const buckets = new Map();
+            const _key = (ix, iz) => ix * 100000 + iz;
+            if (useHash) {
+                for (let i = 0; i < air.length; i++) {
+                    const a = air[i];
+                    const ix = Math.floor(a.wx / CELL), iz = Math.floor(a.wz / CELL);
+                    const k = _key(ix, iz);
+                    let b = buckets.get(k); if (!b) { b = []; buckets.set(k, b); }
+                    b.push(i);
+                }
+            }
+            const neigh = [-1, 0, 1];
+
+            const _processPair = (a, b) => {
+                if (pairs >= MAX_PAIRS) return;
+                const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
+                if (Math.abs(dx) > EVADE_DIST || Math.abs(dz) > EVADE_DIST) return;
+                const ra = a.heading * Math.PI / 180, rb = b.heading * Math.PI / 180;
                 const avx = Math.sin(ra) * a.speed, avz = Math.cos(ra) * a.speed, avy = a.vy || 0;
-                for (let j = i + 1; j < air.length && pairs < MAX_PAIRS; j++) {
-                    const b = air[j];
-                    const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
-                    if (Math.abs(dx) > EVADE_DIST || Math.abs(dz) > EVADE_DIST) continue;
-                    const rb = b.heading * Math.PI / 180;
-                    const dvx = avx - Math.sin(rb) * b.speed, dvz = avz - Math.cos(rb) * b.speed, dvy = avy - (b.vy || 0);
-                    const relV2 = dvx * dvx + dvz * dvz + dvy * dvy;
-                    if (relV2 < 0.1) continue;
-                    const tCPA = -(dx * dvx + dz * dvz + dy * dvy) / relV2;
-                    if (tCPA <= 0 || tCPA > CPA_LOOKAHEAD) continue; // 수렴 + 예측 지평 내
-                    const fpx = dx + dvx * tCPA, fpz = dz + dvz * tCPA, fpy = dy + dvy * tCPA;
-                    const cpaDist = Math.sqrt(fpx * fpx + fpz * fpz + fpy * fpy);
-                    if (cpaDist > THRESH) continue;
-                    const col = ttcColor(tCPA);
-                    const ln = _cvLine(), p = ln.geometry.attributes.position.array;
-                    p[0] = a.group.position.x; p[1] = a.group.position.y; p[2] = a.group.position.z;
-                    p[3] = b.group.position.x; p[4] = b.group.position.y; p[5] = b.group.position.z;
-                    ln.geometry.attributes.position.needsUpdate = true;
-                    ln.material.color.set(col); ln.material.opacity = cpaDist < NEAR_MISS_DIST ? 0.75 : 0.4;
-                    ln.visible = true;
-                    const mk = _cvMark();
-                    mk.position.set((a.group.position.x + b.group.position.x) / 2,
-                        (a.group.position.y + b.group.position.y) / 2,
-                        (a.group.position.z + b.group.position.z) / 2);
-                    const s = cpaDist < NEAR_MISS_DIST ? 1.5 : 1.0;
-                    mk.scale.set(s, s, s); mk.material.color.set(col); mk.material.opacity = 0.9; mk.visible = true;
-                    labelCand.push({ x: mk.position.x, y: mk.position.y + 0.6, z: mk.position.z, ttc: tCPA, cpa: cpaDist });
-                    pairs++;
+                const dvx = avx - Math.sin(rb) * b.speed, dvz = avz - Math.cos(rb) * b.speed, dvy = avy - (b.vy || 0);
+                const relV2 = dvx * dvx + dvz * dvz + dvy * dvy;
+                if (relV2 < 0.1) return;
+                const tCPA = -(dx * dvx + dz * dvz + dy * dvy) / relV2;
+                if (tCPA <= 0 || tCPA > CPA_LOOKAHEAD) return;
+                const fpx = dx + dvx * tCPA, fpz = dz + dvz * tCPA, fpy = dy + dvy * tCPA;
+                const cpaDist = Math.sqrt(fpx * fpx + fpz * fpz + fpy * fpy);
+                if (cpaDist > THRESH) return;
+                const col = ttcColor(tCPA);
+                const ln = _cvLine(), p = ln.geometry.attributes.position.array;
+                p[0] = a.group.position.x; p[1] = a.group.position.y; p[2] = a.group.position.z;
+                p[3] = b.group.position.x; p[4] = b.group.position.y; p[5] = b.group.position.z;
+                ln.geometry.attributes.position.needsUpdate = true;
+                ln.material.color.set(col); ln.material.opacity = cpaDist < NEAR_MISS_DIST ? 0.75 : 0.4;
+                ln.visible = true;
+                const mk = _cvMark();
+                mk.position.set((a.group.position.x + b.group.position.x) / 2,
+                    (a.group.position.y + b.group.position.y) / 2,
+                    (a.group.position.z + b.group.position.z) / 2);
+                const s = cpaDist < NEAR_MISS_DIST ? 1.5 : 1.0;
+                mk.scale.set(s, s, s); mk.material.color.set(col); mk.material.opacity = 0.9; mk.visible = true;
+                labelCand.push({ x: mk.position.x, y: mk.position.y + 0.6, z: mk.position.z, ttc: tCPA, cpa: cpaDist });
+                pairs++;
+            };
+
+            if (useHash) {
+                // 공간 해시: 각 드론 i가 자신 셀 + 인접 8셀의 j(>i)와만 페어
+                const seen = new Set(); // i*air.length+j 키로 중복 제거(인접 셀 겹침 대비)
+                for (let i = 0; i < air.length && pairs < MAX_PAIRS; i++) {
+                    const a = air[i];
+                    const ix = Math.floor(a.wx / CELL), iz = Math.floor(a.wz / CELL);
+                    for (const dix of neigh) for (const diz of neigh) {
+                        const k = _key(ix + dix, iz + diz);
+                        const arr = buckets.get(k); if (!arr) continue;
+                        for (const j of arr) {
+                            if (j <= i) continue;
+                            const pk = i * 100000 + j;
+                            if (seen.has(pk)) continue;
+                            seen.add(pk);
+                            _processPair(a, air[j]);
+                            if (pairs >= MAX_PAIRS) break;
+                        }
+                        if (pairs >= MAX_PAIRS) break;
+                    }
+                }
+            } else {
+                // 소규모: 단순 O(N²)
+                for (let i = 0; i < air.length && pairs < MAX_PAIRS; i++) {
+                    for (let j = i + 1; j < air.length && pairs < MAX_PAIRS; j++) {
+                        _processPair(air[i], air[j]);
+                    }
                 }
             }
             // 가장 임박한 6쌍만 라벨 후보로 저장 (저빈도로 재생성)
@@ -5724,6 +5781,17 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                 if (e.key === 'Escape') e.target.blur();
                 return;
             }
+            // P734: 리플레이 스크러버 키보드 — 녹화 프레임이 있을 때만 동작
+            const _scrub = (delta) => {
+                if (recorder.frames.length === 0) return false;
+                if (!replayMode) enterReplay();
+                replayPlaying = false;
+                document.getElementById('replay-play').textContent = '▶';
+                replayIdx = Math.max(0, Math.min(replayIdx + delta, recorder.frames.length - 1));
+                document.getElementById('replay-slider').value = replayIdx;
+                applyFrame(replayIdx);
+                return true;
+            };
             switch (e.key) {
                 case ' ': e.preventDefault();
                     (simRunning ? document.getElementById('btn-pause') : document.getElementById('btn-start')).click(); break;
@@ -5735,6 +5803,11 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                 case '4': setCamMode('orbit'); break;
                 case '/': e.preventDefault(); document.getElementById('drone-search').focus(); break;
                 case 'h': case 'H': case '?': toggleHelp(); break;
+                case 'ArrowLeft': if (_scrub(e.shiftKey ? -10 : -1)) e.preventDefault(); break;
+                case 'ArrowRight': if (_scrub(e.shiftKey ? 10 : 1)) e.preventDefault(); break;
+                case 'Home': if (_scrub(-recorder.frames.length)) e.preventDefault(); break;
+                case 'End': if (_scrub(recorder.frames.length)) e.preventDefault(); break;
+                case 'l': case 'L': if (replayMode) { goLive(); e.preventDefault(); } break;
                 case 'Escape':
                     if (document.getElementById('help-overlay').style.display !== 'none') toggleHelp(false);
                     else if (analysisMode) toggleAnalysis(false);
@@ -5783,22 +5856,13 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
             simSpeed = parseFloat(e.target.value);
             document.getElementById('speed-label').textContent = simSpeed.toFixed(2) + 'x';
         });
-        const layerControlMap = {
-            'layer-nfz': 'nfz',
-            'layer-altitude': 'altitude',
-            'layer-corridor': 'corridor',
-            'layer-atc': 'atc',
-            'layer-cpa': 'cpa',
+        // P731(O1): layerVisibility ↔ tg-* 체크박스 단일 소스. layer-* 5종은 제거됨.
+        // _sdacs.setLayer(name, on)이 layerVisibility[name]을 갱신하면
+        // applyLayerVisibility()가 tg-* 체크박스도 동기화한다.
+        const _LAYER_TG_ID = {
+            nfz: 'tg-nfz', altitude: 'tg-altlayer', corridor: 'tg-corridor',
+            atc: 'tg-atc', cpa: 'tg-conflict',
         };
-        Object.entries(layerControlMap).forEach(([id, key]) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.checked = layerVisibility[key];
-            el.addEventListener('change', () => {
-                layerVisibility[key] = !!el.checked;
-                applyLayerVisibility();
-            });
-        });
         applyLayerVisibility();
 
         // 패널 접기/펼치기 토글
@@ -6973,13 +7037,30 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             setLayer(name, on) {
                 if (!(name in layerVisibility)) return null;
                 layerVisibility[name] = !!on;
-                const id = Object.keys(layerControlMap).find(k => layerControlMap[k] === name);
-                const el = id ? document.getElementById(id) : null;
-                if (el) el.checked = layerVisibility[name];
+                // applyLayerVisibility()가 tg-* 체크박스를 syncChecked로 자동 갱신
                 applyLayerVisibility();
                 return layerVisibility[name];
             },
             get layers() { return { ...layerVisibility }; },
+            get conflictPairs() { return _cvLineIdx; },
+            // P734: 리플레이 외부 API — 스크러버·키보드(←/→/Shift/Home/End/L) 호환
+            get replay() {
+                return {
+                    mode: replayMode, playing: replayPlaying, speed: replaySpeed,
+                    idx: replayIdx, totalFrames: recorder.frames.length,
+                    t: recorder.frames[replayIdx]?.t ?? null,
+                };
+            },
+            replayStep(delta = 1) {
+                if (recorder.frames.length === 0) return null;
+                if (!replayMode) enterReplay();
+                replayPlaying = false;
+                document.getElementById('replay-play').textContent = '▶';
+                replayIdx = Math.max(0, Math.min(replayIdx + delta, recorder.frames.length - 1));
+                document.getElementById('replay-slider').value = replayIdx;
+                applyFrame(replayIdx);
+                return replayIdx;
+            },
             camera, renderer, scene, controls,
             captureScreenshot() { renderer.render(scene, camera); return renderer.domElement.toDataURL('image/png'); },
         };

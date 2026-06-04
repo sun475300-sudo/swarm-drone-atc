@@ -804,6 +804,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 16:08 | `2cae80c` | Merge remote-tracking branch 'origin/main' into feat/p734-multiview-sync | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
 | 2026-06-04 16:03 | `1d5bcaa` | Merge remote-tracking branch 'origin/main' into feat/track-e-test-coverage | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
 | 2026-06-04 16:01 | `337d835` | Merge remote-tracking branch 'origin/main' into feat/contributing-index-extras | .github/workflows/airgap-audit.yml, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py, config/scenario_params/uam/k_uam_grand_challenge.yaml … |
 | 2026-06-04 16:00 | `4b1c4e7` | Merge remote-tracking branch 'origin/main' into feat/paper-slides-eval | .github/workflows/airgap-audit.yml, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py, config/scenario_params/uam/k_uam_grand_challenge.yaml … |

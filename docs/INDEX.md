@@ -87,3 +87,4 @@
 - [GitHub Pages 메인](https://sun475300-sudo.github.io/swarm-drone-atc/)
 - [군집 드론 3D 시뮬레이터](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html)
 - [해양 소형선 감지](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html)
+- [시뮬레이터 자동화 API 레퍼런스](SDACS_API.md) — `window._sdacs` / `window._mds` 전체 멤버

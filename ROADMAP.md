@@ -189,6 +189,28 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [ ] **P734** — 리플레이·타임라인 스크러버 + 동기화 멀티뷰 고도화
 - [ ] **P735** — 해양 EO/IR 실 카메라 프레임 연동(센서 SDK) — 실기화 연계
 
+### Track E — 확장 연구·기술 심화 (Phase 736-745)
+
+- [ ] **P736** — RL 충돌 회피 (별도 PR 진행 예정)
+- [ ] **P737** — 비협조 침입자(UAS-T) 결정 트리 (별도 PR 진행 예정)
+- [ ] **P738** — 도시 LiDAR/Mesh 임포터 (별도 PR 진행 예정)
+- [ ] **P739** — Sim-to-Real Domain Randomization (별도 PR 진행 예정)
+- [~] **P740** — 디지털 트윈 동기화 엔진 — `src/digital_twin/sync_engine.py` MAVLink GLOBAL_POSITION_INT 파서 + LatencyStats(p50/p99) + GPS→ENU 변환. 6개 단위 테스트 PASS (2026-06-04)
+- [ ] **P741** — Raft HA (별도 PR 진행 예정)
+- [~] **P742** — K-UAM Grand Challenge 시나리오 — `config/scenario_params/uam/k_uam_grand_challenge.yaml` 5기 eVTOL × 3 회랑 × 3 vertiport × 30분 + 5계층 안전망 + 비상시나리오 3종 (2026-06-04)
+- [~] **P743** — 양자 안전 통신 PoC — `src/quantum/pqc_telemetry.py` Kyber-768 KEM + Dilithium-3 서명 + AES-256-GCM. `docs/track_e/p743_pqc_overhead.md` 대역폭 33× 증가 분석 (2026-06-04)
+- [~] **P744** — 폐쇄망(MIL/L4) 모드 — `src/closed_net/airgap_mode.py` AirGapPolicy + 외부 도메인 감사 + 군용 정책 프리셋. 8개 단위 테스트 PASS (2026-06-04)
+- [ ] **P745** — LLM 관제 보조 (별도 PR 진행 예정)
+
+### Track F — 산학 실증·사업화 (Phase 746-755)
+
+- [ ] **P746-P749** — K-UAM·해수부·산림청·KISA (별도 PR 진행 예정)
+- [~] **P750** — 농업용 방제 드론 — `src/applications/agri_spray.py` Shoelace 면적 + Voronoi 분할 + 보급 횟수 계산. 5개 단위 테스트 PASS (2026-06-04)
+- [~] **P751** — 도서·산간 의료 배송 — `src/applications/medical_delivery.py` Urgency 4단계 + 우선순위 heap + Haversine ETA + SLA 검증. 6개 단위 테스트 PASS (2026-06-04)
+- [ ] **P752-P753** — 워크숍·라이선싱 (별도 PR 진행 예정)
+- [~] **P754** — 후속 캡스톤 멘토링 — `docs/track_f/p754_mentoring.md` 인수인계 자산 + 후속 주제 + 멘토링 일정 + 인수 체크리스트 (2026-06-04)
+- [ ] **P755** — 창업·분사 검토 (별도 PR 진행 예정)
+
 ---
 
 ## Contributing / 기여

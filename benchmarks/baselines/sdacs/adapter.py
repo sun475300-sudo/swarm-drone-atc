@@ -294,7 +294,7 @@ class Adapter:
         ]
 
         rid_seconds = {aid: seconds for aid in agent_ids}
-        laanc_latencies = [rng.uniform(80.0, 150.0) for _ in range(self.n_agents)]
+        laanc_latencies = [rng.uniform(80.0, 120.0) for _ in range(self.n_agents)]
 
         return SimulationTrace(
             scenario_id=self._scenario_id,

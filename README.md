@@ -810,6 +810,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 19:17 | `eecfd81` | feat(simulator): Phase 1 ATC 관제사 명령 콘솔 + 한국어 TTS + Web Audio 경보 | README.md, STATUS_REPORT.md, docs/SIMULATOR_ULTRA_PLAN.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html … |
 | 2026-06-04 18:40 | `002336b` | ci(desktop): tag push에서 항상 공개 Release 발행 + paths 필터 분리 | .github/workflows/desktop-build.yml |
 | 2026-06-04 18:33 | `6ff357e` | docs: 본 세션 PR 15개 main 머지 완료 반영 — ROADMAP·README·ULTRA_PLAN·STATUS_REPORT 일괄 갱신 | README.md, ROADMAP.md, STATUS_REPORT.md, docs/ULTRA_PLAN.md |
 | 2026-06-04 18:19 | `b9103ec` | Merge remote-tracking branch 'origin/main' into feat/roadmap-p730-p733 | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/maritime_eoir_adapter.md, docs/paper/contribution_outline.md, docs/poster/README.md … |

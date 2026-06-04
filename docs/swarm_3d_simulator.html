@@ -3688,6 +3688,7 @@
             _linePoolIdx = 0;
             resetConflictViz();
             resetAdvisory();
+            resetTacOverlays();
 
             const cfg = SCENARIOS[scenario] || SCENARIOS.default;
             windEnabled = cfg.wind;
@@ -5562,11 +5563,14 @@
                 if (!b) { b = _makeSepBubble(); _sepBubbles.set(d.id, b); }
                 b.group.position.copy(d.group.position);
                 // 침입 감지: 다른 드론이 수평 NEAR_MISS_DIST + 수직 SEPARATION_ALT 이내
+                // (일시정지 시 위치 불변 → O(N) 스캔 생략, idle 비용 제거)
                 let breach = false;
-                for (const o of drones) {
-                    if (o === d || o.phase === 'GROUNDED' || o.phase === 'FAILED') continue;
-                    const dx = o.wx - d.wx, dz = o.wz - d.wz, dy = o.wy - d.wy;
-                    if (dx * dx + dz * dz < NEAR_MISS_DIST * NEAR_MISS_DIST && Math.abs(dy) < SEPARATION_ALT) { breach = true; break; }
+                if (simRunning) {
+                    for (const o of drones) {
+                        if (o === d || o.phase === 'GROUNDED' || o.phase === 'FAILED') continue;
+                        const dx = o.wx - d.wx, dz = o.wz - d.wz, dy = o.wy - d.wy;
+                        if (dx * dx + dz * dz < NEAR_MISS_DIST * NEAR_MISS_DIST && Math.abs(dy) < SEPARATION_ALT) { breach = true; break; }
+                    }
                 }
                 const col = breach ? 0xef4444 : 0x38bdf8;
                 b.sphere.material.color.setHex(col);
@@ -6660,6 +6664,18 @@
                 for (const s of p.pool) { advisoryGroup.remove(s); if (s.material.map) s.material.map.dispose(); s.material.dispose(); }
                 p.pool.length = 0; p.idx = 0;
             }
+        }
+        // 시나리오 리셋 시 TAC-4 분리거품 / TAC-5 우선순위심볼 정리 (메모리 누수 방지)
+        function resetTacOverlays() {
+            for (const [, b] of _sepBubbles) {
+                sepBubbleGroup.remove(b.group);
+                b.sphere.geometry.dispose(); b.sphere.material.dispose();
+                b.disk.geometry.dispose(); b.disk.material.dispose();
+            }
+            _sepBubbles.clear();
+            for (const [, s] of _priIcons) { priIconGroup.remove(s); s.material.dispose(); }
+            _priIcons.clear();
+            for (const k in _priTexCache) { _priTexCache[k].dispose(); delete _priTexCache[k]; }
         }
 
         // --- 분리간격 위반 경보 (충돌/근접 발생 시 화면 플래시 + 배너) ---

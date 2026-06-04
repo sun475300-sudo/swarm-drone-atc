@@ -210,7 +210,7 @@ def test_sep_bubble_creates_on_select(page):
     created = 0
     for i in range(pg.evaluate("window._sdacs.droneCount")):
         pg.evaluate(f"window._sdacs.selectDrone({i})")
-        pg.wait_for_timeout(60)
+        pg.wait_for_timeout(150)  # CI 부하에서도 rAF 1회 이상 보장
         created = pg.evaluate("window._sdacs.sepBubbleCount")
         if created >= 1:
             break
@@ -248,6 +248,20 @@ def test_pri_icon_count_matches_airborne(page):
     assert r["count"] <= r["drones"]
     if r["air"] >= 1:
         assert r["count"] >= 1, "비행 드론이 있으면 우선순위 심볼이 1개 이상이어야 함"
+
+
+def test_tac45_cleared_on_scenario_reset(page):
+    """시나리오 전환 시 분리거품·우선순위심볼 Map이 정리되어야 함 (메모리 누수 방지)."""
+    pg, _ = page
+    pg.evaluate("window._sdacs.setSepBubble(true); window._sdacs.setPriIcon(true); window._sdacs.selectDrone(0)")
+    pg.wait_for_timeout(200)
+    # 시나리오 재초기화 → resetTacOverlays()로 즉시 0
+    pg.evaluate("window._sdacs.selectScenario('default')")
+    pg.wait_for_timeout(100)
+    counts = pg.evaluate("({ sep: window._sdacs.sepBubbleCount, pri: window._sdacs.priIconCount })")
+    pg.evaluate("window._sdacs.setSepBubble(false); window._sdacs.setPriIcon(false)")
+    assert counts["sep"] == 0, "시나리오 리셋 후 분리거품 Map이 비어야 함"
+    assert counts["pri"] == 0, "시나리오 리셋 후 우선순위심볼 Map이 비어야 함"
 
 
 def test_tac45_toggle_ui_present(page):

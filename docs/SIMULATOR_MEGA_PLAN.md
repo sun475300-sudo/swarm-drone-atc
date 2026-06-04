@@ -139,11 +139,11 @@ for each drone (visible):
 
 ## Phase 10 — 통합·문서·CI (마지막)
 
-- README 최신화 (모든 신규 기능 반영)
-- `_sdacs` API 전체 문서화 (`docs/SDACS_API.md`)
-- E2E 테스트 통합 매트릭스 (`.github/workflows/sim-smoke.yml`)
-- 데모 영상 녹화 (Phase 3 CIN 녹화 기능 사용, 2분)
-- 라이브 데모 GitHub Pages 동기화
+- [x] README 최신화 (모든 신규 기능 반영)
+- [x] `_sdacs`·`_mds` API 전체 문서화 ([`docs/SDACS_API.md`](SDACS_API.md))
+- [x] E2E 테스트 통합 매트릭스 (`.github/workflows/sim-smoke.yml`)
+- [ ] 데모 영상 녹화 (Phase 3 CIN 녹화 기능 사용, 2분) — 사용자 브라우저 환경
+- [x] 라이브 데모 GitHub Pages 동기화 (`deploy-pages.yml`·`pages.yml`)
 
 ---
 

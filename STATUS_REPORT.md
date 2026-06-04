@@ -141,6 +141,7 @@
 ## 🔗 핵심 링크
 
 - Roadmap: [`ROADMAP.md`](ROADMAP.md) (88 [x] · 1 [~] · 1 [ ])
+- 시뮬레이터 API: [`docs/SDACS_API.md`](docs/SDACS_API.md) (`_sdacs`·`_mds` 전수 레퍼런스 — Phase 10)
 - Ultra Plan v2: [`docs/ULTRA_PLAN.md`](docs/ULTRA_PLAN.md)
 - 문서 INDEX: [`docs/INDEX.md`](docs/INDEX.md) (80+ 문서)
 - 종합 점검: [`docs/HEALTH_CHECK.md`](docs/HEALTH_CHECK.md)

@@ -829,6 +829,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 15:09 | `f3d1165` | merge: origin/main 통합 + README·ROADMAP 충돌 마커 해소 | README.md, api/auth.py, api/fastapi_server.py, benchmarks/baselines/sdacs/adapter.py, results/comparison/01_corridor_crossing/cbs/seed42.json, results/comparison/01_corridor_crossing/cbs/seed43.json … |
 | 2026-06-04 14:21 | `478c174` | test(e2e): C9 해양 검증기록 스모크 플레이크 수정 — 고정 대기→폴링 | tests/e2e/smoke_maritime.mjs |
 | 2026-06-04 14:16 | `23b3471` | feat(P729): 대규모 모드 로터 InstancedMesh 확장 (B3) | ROADMAP.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/smoke_sim.mjs |
 | 2026-06-03 19:39 | `426b9e7` | ci: desktop-build setup-node 캐시 비활성화 (lock 파일 부재로 실패) | .github/workflows/desktop-build.yml |

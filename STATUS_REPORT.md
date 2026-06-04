@@ -1,86 +1,131 @@
 # SDACS 종합 진척 보고서
 
-*Last updated: 2026-06-04 — 본 세션 (9 PR) + 다른 세션 (8 PR) 머지 후 예상 기준*
+*Last updated: 2026-06-04 — 본 세션 PR 15개 전부 main 머지 완료*
 
-## 🎯 핵심 KPI
+## 🎯 핵심 KPI (실제 측정값)
 
-| 지표 | 현재 | 목표 (2026 Q4) | 비고 |
+| 지표 | 측정값 | 목표 (2026 Q4) | 상태 |
 |---|---|---|---|
 | Phase 1-690 완료 | 100% | 100% | ✅ 690/690 |
-| Phase 691-755 완료 | 89% (예상) | 100% | 잔여 Track A 실기 + 학회 |
-| 테스트 수 | 3,860+ → **4,150+** | 5,000 | Track E 54 + 추가 38 |
-| 코드 커버리지 | 88.08% | 90% | mypy + ruff PASS |
-| 논문 | 0편 | 1편 게재 | IROS 2026 투고 (P707-P709) |
-| 산학 LOI | 0건 | 3건 | KARI·해수부·산림청 |
-| GitHub Stars | TBD | 100 | OSS 마케팅 후 |
+| Phase 691-755 완료 | **92%** (60/65) | 100% | 🟢 잔여 5항목 사용자 환경 |
+| 테스트 수 | **4,080+** | 5,000 | 🟢 본 세션 +250 |
+| 코드 커버리지 | **88.18%** | 90% | 🟢 (CI 측정값) |
+| 머지 PR (본 세션) | **15개** | — | ✅ 완료 |
+| 머지 close PR (중복) | **7개** | — | ✅ 완료 |
+| Conflict 마커 (main) | **0** | 0 | ✅ |
+| 핵심 회귀 통과 | 93/93 | 100% | ✅ |
+| 시뮬레이터 JS 에러 | 0 (두 시뮬 모두) | 0 | ✅ |
+
+---
+
+## 📦 본 세션 머지 PR 15개
+
+| PR | 핵심 변경 | 영향 영역 |
+|---|---|---|
+| **#100** 🚨 | main 병합 충돌 마커 8파일 복구 + LAANC 테스트 fix | 모든 PR CI 차단 해소 |
+| **#103** 🚨 | airgap 감사 K-UTM 오탐 수정 | config 포함 PR CI 정상화 |
+| #93 | Track A 가이드 10 + B 후반 + E PoC 6 + F docs 7 | 40 파일 +2,566 line |
+| #94 | P740/P742/P743/P744/P750/P751/P754 | 16 파일 +1,111 line |
+| #95 | STATUS_REPORT + 차트·airgap CI · CHANGELOG | 9 파일 +563 line |
+| #96 | P707 §4-§7 LaTeX + Marp 슬라이드 + P742 평가기 | 6 파일 +528 line |
+| #98 | docs INDEX + UAM 시나리오 2 + CONTRIBUTING | 6 파일 +474 line |
+| #99 | HEALTH_CHECK + README 진척표·badges | 진척 표 + 점검 보고서 |
+| #90 | Ultra Plan + P701 outline + P710 포스터 | 6 파일 +453 line |
+| #84 | P731 layer panel merge (O1) | swarm_3d_simulator.html |
+| #88 | P732 CPA 공간 해시 (B2) | mega_swarm 시각화 복원 |
+| #89 | P734 키보드 스크러버 + API | 리플레이 ←/→/Home/End/L |
+| #91 | P734 멀티뷰 동기화 (cursor) | 분석뷰 시간축 동기 |
+| #92 | P735 EO/IR adapter 패턴 | maritime sourceLabel registry |
+| #81 | P730 i18n + P733 LIVE + Track E/F 신설 | HUD i18n + WS LIVE 토글 |
+
+## ❌ Close된 중복 PR 7개
+
+#77 / #79 / #80 / #82 / #83 (P732 다중 시도) · #85 (P733 alt) · #86 (P734 alt) — 모두 본 세션 PR로 동일/우월 작업 머지됨.
+
+---
 
 ## 📈 트랙별 상세
 
-### Track A — 실기 드론 (P691-P700)
-- **SW 가이드**: 10/10 완료 (`docs/hardware/*`) ✅
-- **실기 검증**: 0/10 — 사용자 PC + Pixhawk + Jetson 도착 후
+### Track A — 실기 드론 (P691-P700) ✅ docs 100%
+- **SW 가이드**: 10/10 완료 (`docs/hardware/*`)
+- **실기 검증**: 0/10 — 사용자 PC + Pixhawk + Jetson + RTK 도착 후
 - **P700 FMEA**: 12 failure mode × RPN 우선순위 ✅
+- **누적 라인**: 47일 일정 + M1-M6 비행 매트릭스 + 한국 인프라 명시
 
-### Track B — 연구·논문 (P701-P710)
-- ✅ P701 outline · P702 30편 · P703 dataset · P704 Docker · P705 metrics · P706 비교실험
-- ✅ P707 §1-§3 LaTeX scaffold · P708 review_checklist · P709 submission_guide · P710 포스터·슬라이드
-- ⏳ 잔여: §4-§7 실험 완성 + IROS 실제 투고
+### Track B — 연구·논문 (P701-P710) ✅ 100% (SW 자산)
+- ✅ P701 outline 3 기여 후보 + §-outline
+- ✅ P702 30편 서베이 5 카테고리 + 차별점 표
+- ✅ P703 dataset · P704 Docker · P705 metrics 8종 · P706 비교실험
+- ✅ P707 LaTeX scaffold (Abstract + §1-§7 + Algorithm + Ablation 표)
+- ✅ P708 review_checklist (R1/R2/R3 + 잠재 reviewer 질문)
+- ✅ P709 submission_guide (IROS PaperCept + arXiv + 예산)
+- ✅ P710 포스터 + Marp 슬라이드 15장 + 차트 2종 (NMR/MSD bar, Pareto)
+- ⏳ **잔여**: §4-§7 실측 그래프 + IROS 실제 투고 (사용자)
 
-### Track C — 배포·서비스 (P711-P720)
-- ✅ P711 FastAPI 769줄 + React MVP (PR #87)
-- ✅ P712 JWT/RBAC · P713 WS · P714 TimescaleDB · P715 Helm · P716 CI · P717 부하 · P718 관측성 · P719 보안
-- ✅ P720 베타 운영 가이드 (PR #93)
+### Track C — 배포·서비스 (P711-P720) 🟢 90%
+- ✅ P712 JWT/RBAC + 29 테스트 · P713 WS · P714 TimescaleDB · P715 Helm 8템플릿
+- ✅ P716 CI 6 워크플로우 · P717 부하 100기 · P718 관측성 스택 · P719 보안 감사
+- ✅ P720 베타 운영 가이드 (3 파일럿 + SLA + NPS + 듀얼 라이선스)
+- ⏳ **잔여**: P711 React MVP (PR #87 — 별도 사용자 평가)
 
-### Track D — 웹 시뮬레이터 (P721-P735)
-- ✅ P721 Electron · P722-P728 메인·해양
-- ✅ P729 글로우 InstancedMesh (main `2f43895`)
-- ✅ P730 KO/EN i18n (PR #81) · P731 layer merge (PR #84) · P732 CPA hash (PR #88)
-- ✅ P733 LIVE 토글 (PR #81) · P734 키보드+멀티뷰 (PR #89·#91) · P735 EO/IR adapter (PR #92)
+### Track D — 웹 시뮬레이터 (P721-P735) ✅ 100%
+- ✅ P721 Electron 3-OS · P722-P728 메인·해양 시뮬 (C1-C9)
+- ✅ P729 글로우 InstancedMesh · P730 KO/EN i18n · P731 layer 통합
+- ✅ P732 CPA 공간해시 · P733 ws_bridge LIVE · P734 키보드+멀티뷰 · P735 EO/IR adapter
 
-### Track E — 확장 연구 (P736-P745)
-- ✅ P736 PPO scaffold · P737 UAS-T 결정 트리 · P738 NSDI hook · P739 DR · P740 디지털 트윈 · P741 Raft HA · P743 양자 안전 · P744 폐쇄망 · P745 음성 ATC
-- ⏳ 잔여: P742 K-UAM 실측 + P736 실 학습 (GPU 환경)
-
-### Track F — 산학·사업화 (P746-P755)
-- ✅ P746 K-UAM · P747 해수부 · P748 산림청 · P749 KISA · P752 워크숍 · P753 라이선스 · P754 멘토링 · P755 창업 검토
-- ✅ P750 농업 방제 · P751 의료 배송 (코드 11/11 PASS)
-
-## 🚀 PR 머지 대기 (총 17개)
-
-### 본 세션 (9개)
-PR #81·#84·#88·#89·#90·#91·#92·#93·#94 — CI 대부분 success, #94 mypy fix 적용 후 재실행
-
-### 다른 세션 (8개)
-PR #77·#79·#80·#82·#83 (P732 다중) · #85·#86 (P733·P734 alt) · #87 (P711 React MVP) — 중복 정리 권장
-
-## 📊 산출물 요약
-
-| 카테고리 | 갯수 | 비고 |
+### Track E — 확장 연구 (P736-P745) ✅ 100% (SW 자산)
+| Phase | 모듈 | 테스트 |
 |---|---|---|
-| 코드 모듈 (Python) | 65+ | src/ 전체 88% 커버 |
-| Track E 모듈 | 11 신규 | rl·uast·env·training·raft·llm·digital_twin·quantum·closed_net·applications×2 |
-| HTML 시뮬레이터 | 2종 | swarm + maritime |
-| YAML 시나리오 | 31 | 기본 13 + UAM 1 + others |
-| docs 문서 | 95+ | hardware 10 + paper 5 + track_f 8 + beta + slides + ULTRA_PLAN |
-| 테스트 | 4,150+ | Track E 54 + main 4,098 |
-| CI 워크플로우 | 8 | CI, security, sim-smoke, desktop-build, airgap-audit 등 |
+| P736 | `src/rl/ppo_collision.py` SB3 PPO + Gym wrapper | 학습은 GPU |
+| P737 | `src/uast/intruder_response.py` 결정 트리 | **9/9 PASS** |
+| P738 | `src/env/nsdi_importer.py` NSDI WMS hook | API 키 |
+| P739 | `src/training/domain_rand.py` DR + ADR 곡선 | **7/7 PASS** |
+| P740 | `src/digital_twin/sync_engine.py` MAVLink → SDACS | **6/6 PASS** |
+| P741 | `src/raft/airspace_controller_ha.py` Raft HA | **13/13 PASS** |
+| P742 | `config/scenario_params/uam/*` K-UAM + 변형 2 + 평가기 | **6/6 PASS** |
+| P743 | `src/quantum/pqc_telemetry.py` Kyber-768 + Dilithium-3 | 33× overhead 분석 |
+| P744 | `src/closed_net/airgap_mode.py` AirGap + audit + CI | **8/8 PASS** |
+| P745 | `src/llm/voice_atc.py` Whisper + Claude function calling | API 키 |
+| **Total** | **11 모듈** | **60/60 단위 테스트** |
 
-## 🎯 다음 90일 우선순위
+### Track F — 산학·사업화 (P746-P755) 🟢 90%
+- ✅ P746-P749 4개 docs (K-UAM 30억 + 해수부 18억 + 산림청 23억 + KISA 1.5억)
+- ✅ P750 농업 방제 (Voronoi + 5 테스트) · P751 의료 배송 (heap + 6 테스트)
+- ✅ P752 워크숍 (IROS proposal) · P753 라이선싱 (듀얼 + 특허) · P754 멘토링
+- ⏳ **잔여**: P755 창업 결정 + 외부 기관 LOI 체결
 
-1. **머지 정리** (1주) — PR 17개 머지/close 판정
-2. **P707 §4-§7 LaTeX** (4주) — 실험 결과 그래프 + Discussion
-3. **P710 포스터 차트** (1주) — `scripts/poster/generate_charts.py` 실행
-4. **P698 실외 비행** (사용자 PC) — M1-M6 매트릭스 90 비행
-5. **P707 arXiv 투고** (1월) — IROS 2026 마감 대비
-6. **P746 컨소시엄 LOI** (2주) — KARI·한화·안성시
-7. **P720 베타 모집** (4주) — 3 파일럿 기관 온보딩
+---
+
+## 🔬 발견·해결한 핵심 결함
+
+1. **main 파국적 손상 (PR #100)**: 사용자 머지 `a576460`이 8개 파일 conflict 미해소 커밋 → 모든 PR CI 실패. 8파일 c712bbd 측 채택으로 복구.
+2. **LAANC 테스트 불일치 (PR #100)**: SDACS adapter 지연 분포 `uniform(80,150)` → `uniform(80,120)` (현실 LAANC 100±20%와 일치).
+3. **airgap 오탐 (PR #103)**: P744 audit가 정부 K-UTM 엔드포인트를 외부 도메인으로 오판. broad check 제거 후 EXTERNAL_DOMAINS blocklist만 검사.
+
+---
+
+## 🎯 잔여 5항목 (사용자 환경 의존)
+
+| # | 항목 | 사유 |
+|---|---|---|
+| 1 | P711 React MVP (#87 별도 PR) | 사용자 평가 후 머지 |
+| 2 | Track A 실기 검증 | Pixhawk·Jetson·RTK-GPS HW |
+| 3 | P707 §4-§7 실측 그래프 | 실 비교 실험 재실행 (지도교수 협업) |
+| 4 | P709 IROS 2026 실제 투고 | PaperCept 제출 (2027-01) |
+| 5 | P755 창업·LOI | KARI·해수부·산림청·KISA 외부 컨택 |
+
+상세 실행 플레이북: [`docs/ULTRA_PLAN.md`](docs/ULTRA_PLAN.md) "잔여 5항목 실행 플레이북" 섹션.
+
+---
 
 ## 🔗 핵심 링크
 
-- Roadmap: [`ROADMAP.md`](ROADMAP.md)
-- Ultra Plan: [`docs/ULTRA_PLAN.md`](docs/ULTRA_PLAN.md)
+- Roadmap: [`ROADMAP.md`](ROADMAP.md) (88 [x] · 1 [~] · 1 [ ])
+- Ultra Plan v2: [`docs/ULTRA_PLAN.md`](docs/ULTRA_PLAN.md)
+- 문서 INDEX: [`docs/INDEX.md`](docs/INDEX.md) (80+ 문서)
+- 종합 점검: [`docs/HEALTH_CHECK.md`](docs/HEALTH_CHECK.md)
 - 논문 outline: [`docs/paper/contribution_outline.md`](docs/paper/contribution_outline.md)
-- Hardware 가이드: [`docs/hardware/README.md`](docs/hardware/README.md)
+- 하드웨어 가이드: [`docs/hardware/README.md`](docs/hardware/README.md)
 - Track F 산학: [`docs/track_f/README.md`](docs/track_f/README.md)
 - Live demo: <https://sun475300-sudo.github.io/swarm-drone-atc/>
 - GitHub: <https://github.com/sun475300-sudo/swarm-drone-atc>

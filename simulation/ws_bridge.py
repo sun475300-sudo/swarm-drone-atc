@@ -50,6 +50,19 @@ async def _run_simulation(drones: int, seed: int, port: int):
     cfg = {"drones": {"default_count": drones}}
     sim = SwarmSimulator(seed=seed, scenario_cfg=cfg)
 
+    # SwarmSimulator.run()이 일괄 실행 패턴이라, 라이브 스트리밍을 위해
+    # 드론 스폰 + 컨트롤러/APF 루프를 명시적으로 시작해 incremental tick.
+    sim._spawn_drones()
+    sim.env.process(sim.controller.run())
+    sim.env.process(sim._apf_batch_loop())
+
+    def _safe_int(obj: object, *names: str) -> int:
+        for n in names:
+            v = getattr(obj, n, None)
+            if isinstance(v, (int, float)):
+                return int(v)
+        return 0
+
     # SimPy 환경을 0.1초씩 진행하면서 스냅샷 전송
     dt = 0.1
     tick = 0
@@ -62,27 +75,30 @@ async def _run_simulation(drones: int, seed: int, port: int):
             await asyncio.sleep(0.01)
             continue
 
-        # 드론 스냅샷 구성
+        # 컨트롤러 통계 (run() 종료 전이라 직접 참조)
+        ctrl = sim.controller
         snapshot = {
             "t": round(float(sim.env.now), 1),
             "drones": [],
             "stats": {
-                "collisions": sim.metrics.collision_count,
-                "near_misses": sim.metrics.near_miss_count,
-                "conflicts": sim.metrics.conflicts_total,
-                "advisories": sim.metrics.advisories_issued,
-                "resolution_rate": round(sim.metrics.conflict_resolution_rate_pct, 1),
+                "collisions": _safe_int(ctrl, "_collision_count", "collisions"),
+                "near_misses": _safe_int(ctrl, "_near_miss_count", "near_misses"),
+                "conflicts": _safe_int(ctrl, "_conflicts_total", "conflicts_total"),
+                "advisories": _safe_int(ctrl, "_advisories_issued", "advisories_issued"),
+                "cbs_attempts": _safe_int(ctrl, "_cbs_attempts"),
+                "cbs_successes": _safe_int(ctrl, "_cbs_successes"),
             },
             "backend": backend.get("device", "cpu"),
         }
 
+        # SwarmSimulator._drones[id] = DroneState (직접 속성, state 래퍼 없음)
         for did, drone in sim._drones.items():
             snapshot["drones"].append({
                 "id": did,
-                "pos": [round(float(x), 1) for x in drone.state.position],
-                "vel": [round(float(x), 1) for x in drone.state.velocity],
-                "phase": drone.state.flight_phase.name,
-                "battery": round(float(drone.state.battery_pct), 1),
+                "pos": [round(float(x), 1) for x in drone.position],
+                "vel": [round(float(x), 1) for x in drone.velocity],
+                "phase": drone.flight_phase.name,
+                "battery": round(float(drone.battery_pct), 1),
             })
 
         msg = json.dumps(snapshot, ensure_ascii=False)

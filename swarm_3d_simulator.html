@@ -861,46 +861,50 @@
     <!-- HUD: Top Bar -->
     <div class="hud-overlay hud-top">
         <div>
-            <div class="hud-title">SDACS — 군집드론 공역통제 3D 시뮬레이터</div>
+            <div class="hud-title" data-i18n="title">SDACS — 군집드론 공역통제 3D 시뮬레이터</div>
             <div class="hud-subtitle">Swarm Drone Airspace Control System — Capstone: Mokpo National University</div>
         </div>
         <div class="hud-stats">
             <div class="stat-box">
-                <div class="stat-label">활성 드론</div>
+                <div class="stat-label" data-i18n="active">활성 드론</div>
                 <div class="stat-value" id="stat-active">0</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">충돌 위험</div>
+                <div class="stat-label" data-i18n="conflicts">충돌 위험</div>
                 <div class="stat-value" id="stat-conflicts" style="color:#f59e0b;">0</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">근접 경고</div>
+                <div class="stat-label" data-i18n="near">근접 경고</div>
                 <div class="stat-value" id="stat-near" style="color:#ff6d00;">0</div>
             </div>
             <div class="stat-box" style="border-color:rgba(239,68,68,0.3);">
-                <div class="stat-label">충돌</div>
+                <div class="stat-label" data-i18n="collisions">충돌</div>
                 <div class="stat-value" id="stat-collisions" style="color:#ef4444;">0</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">회피 명령</div>
+                <div class="stat-label" data-i18n="advisories">회피 명령</div>
                 <div class="stat-value" id="stat-advisories" style="color:#a78bfa;">0</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">평균 배터리</div>
+                <div class="stat-label" data-i18n="battery">평균 배터리</div>
                 <div class="stat-value" id="stat-battery" style="color:#10b981;">100%</div>
             </div>
             <div class="stat-box" style="border-color:rgba(0,229,255,0.4);">
-                <div class="stat-label">관제 드론</div>
+                <div class="stat-label" data-i18n="atc">관제 드론</div>
                 <div class="stat-value" style="color:#00e5ff;">13</div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">풍속</div>
+                <div class="stat-label" data-i18n="wind">풍속</div>
                 <div class="stat-value" id="stat-wind" style="color:#60a5fa;">0.0</div>
             </div>
             <div class="stat-box" style="border-color:rgba(0,255,136,0.4);background:rgba(0,255,136,0.08);">
-                <div class="stat-label">GPU</div>
+                <div class="stat-label" data-i18n="gpu">GPU</div>
                 <div class="stat-value" style="color:#00ff88;font-size:11px;">RTX 5070 Ti</div>
             </div>
+            <div id="ws-status" title="WebSocket 상태 (LIVE = ws_bridge 연결 / DEMO = 내장 시뮬)"
+                style="margin-left:8px;padding:4px 10px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.4);border-radius:4px;color:#f59e0b;font:600 11px 'JetBrains Mono',monospace;align-self:center;letter-spacing:0.5px;">● DEMO</div>
+            <button id="lang-btn" title="Language / 언어"
+                style="margin-left:8px;padding:4px 10px;background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.4);border-radius:4px;color:#00e5ff;font:600 11px 'JetBrains Mono',monospace;cursor:pointer;align-self:center;">KO</button>
         </div>
     </div>
 
@@ -6686,20 +6690,53 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             _workerForces = null; _workerEvents = null;
         }
 
-        // ===== WebSocket 실시간 연동 (선택적) =====
+        // ===== WebSocket 실시간 연동 (P733 LIVE 모드) =====
         let _wsConnected = false;
         let _wsData = null;
+        let _wsFrames = 0;
+        // ws_bridge.py의 FlightPhase enum → HTML 시뮬레이터 phase 매핑
+        const _WS_PHASE_MAP = { GROUNDED:'GROUNDED', TAKEOFF:'TAKEOFF', CRUISE:'ENROUTE', ENROUTE:'ENROUTE', HOLD:'HOLDING', HOLDING:'HOLDING', LANDING:'LANDING', LAND:'LANDING', EVADE:'EVADING', EVADING:'EVADING', RTL:'RTL', RETURN:'RTL', FAIL:'FAILED', FAILED:'FAILED' };
+        function _updateWsStatus() {
+            const el = document.getElementById('ws-status');
+            if (!el) return;
+            if (_wsConnected) {
+                el.textContent = '● LIVE';
+                el.style.color = '#10b981';
+                el.style.background = 'rgba(16,185,129,0.15)';
+                el.style.borderColor = 'rgba(16,185,129,0.5)';
+            } else {
+                el.textContent = '● DEMO';
+                el.style.color = '#f59e0b';
+                el.style.background = 'rgba(245,158,11,0.12)';
+                el.style.borderColor = 'rgba(245,158,11,0.4)';
+            }
+        }
         function connectWebSocket(url = 'ws://localhost:8765') {
             try {
                 const ws = new WebSocket(url);
-                ws.onopen = () => { _wsConnected = true; console.log('🟢 WS 연결됨'); };
-                ws.onclose = () => { _wsConnected = false; console.log('🔴 WS 연결 끊김'); };
-                ws.onmessage = (e) => { _wsData = JSON.parse(e.data); };
-                ws.onerror = () => { _wsConnected = false; };
+                ws.onopen = () => { _wsConnected = true; _updateWsStatus(); console.log('🟢 WS 연결됨 (LIVE)'); };
+                ws.onclose = () => { _wsConnected = false; _updateWsStatus(); console.log('🔴 WS 연결 끊김 (DEMO)'); };
+                ws.onmessage = (e) => { _wsData = JSON.parse(e.data); _wsFrames++; };
+                ws.onerror = () => { _wsConnected = false; _updateWsStatus(); };
             } catch (e) { /* WS 미사용 시 무시 */ }
+        }
+        // ws_bridge의 드론 상태를 HTML 시뮬에 반영 (LIVE 모드 전용)
+        function applyLiveData() {
+            if (!_wsConnected || !_wsData || !_wsData.drones || drones.length === 0) return;
+            const idMap = new Map();
+            for (const d of drones) idMap.set(d.id, d);
+            for (const wd of _wsData.drones) {
+                const d = idMap.get(wd.id) || drones[parseInt(wd.id, 10) - 1];
+                if (!d || !wd.pos) continue;
+                d.wx = wd.pos[0]; d.wy = wd.pos[1]; d.wz = wd.pos[2];
+                d.battery = wd.battery ?? d.battery;
+                const mapped = _WS_PHASE_MAP[wd.phase];
+                if (mapped) d.phase = mapped;
+            }
         }
         // 자동 연결 시도 (ws_bridge.py 실행 중이면 연결됨)
         connectWebSocket();
+        _updateWsStatus();
 
         // ===== Animation Loop =====
         const clock = new THREE.Clock();
@@ -6730,6 +6767,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 simTime += dt * simSpeed;
                 updateWeather(dt);
             }
+            // P733 LIVE 모드: ws_bridge 연결 시 시뮬 대신 실측 데이터로 드론 상태 갱신
+            if (_wsConnected && _wsData) applyLiveData();
             drones.forEach(d => updateDrone(d, dt));
 
             // APF: GPU Compute → Worker → CPU 폴백 (우선순위)
@@ -6935,6 +6974,26 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             }
         });
 
+        // ── P730 UI i18n (KO ↔ EN 토글) ──
+        const I18N_MAP = {
+            ko: { title: 'SDACS — 군집드론 공역통제 3D 시뮬레이터', active: '활성 드론', conflicts: '충돌 위험', near: '근접 경고', collisions: '충돌', advisories: '회피 명령', battery: '평균 배터리', atc: '관제 드론', wind: '풍속', gpu: 'GPU' },
+            en: { title: 'SDACS — Swarm Drone Airspace 3D Simulator', active: 'Active', conflicts: 'Conflicts', near: 'Near Miss', collisions: 'Collisions', advisories: 'Advisories', battery: 'Avg Battery', atc: 'ATC Nodes', wind: 'Wind', gpu: 'GPU' },
+        };
+        let currentLang = 'ko';
+        function setLang(lang) {
+            if (!I18N_MAP[lang]) return;
+            currentLang = lang;
+            const dict = I18N_MAP[lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (dict[key]) el.textContent = dict[key];
+            });
+            const btn = document.getElementById('lang-btn');
+            if (btn) btn.textContent = lang === 'ko' ? 'KO' : 'EN';
+        }
+        const _langBtn = document.getElementById('lang-btn');
+        if (_langBtn) _langBtn.addEventListener('click', () => setLang(currentLang === 'ko' ? 'en' : 'ko'));
+
         // ── 자동 테스트 API (외부 접근용) ──
         window._sdacs = {
             get stats() { return { ...stats }; },
@@ -6962,6 +7021,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get megaMode() { return megaMode; },
             get instanceCount() { return bodyInst.count; },
             get visibleInstances() { return _visibleInst; },
+            get lang() { return currentLang; },
+            setLang(lang) { setLang(lang); return currentLang; },
+            get wsConnected() { return _wsConnected; },
+            get wsFrames() { return _wsFrames; },
+            get liveMode() { return _wsConnected && _wsData != null; },
             get perf() { return { fps: perfMetrics.fps, cpuMs: +perfMetrics.cpuMs.toFixed(2), gpuMs: +perfMetrics.gpuMs.toFixed(2), drawCalls: perfMetrics.drawCalls, triangles: perfMetrics.triangles, drones: drones.length, megaMode, visibleInstances: _visibleInst }; }, // B6
             set megaCull(v) { megaCull = !!v; },
             get megaCull() { return megaCull; },

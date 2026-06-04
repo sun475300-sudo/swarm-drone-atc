@@ -32,36 +32,51 @@ def _run_coro_in_new_loop(coro):
 def _make_fake_sim_modules():
     """Return fake simulation.apf_engine and simulation.simulator modules."""
 
-    class FakeDroneState:
-        position = [0.0, 0.0, 100.0]
-        velocity = [1.0, 0.0, 0.0]
-
-        class flight_phase:
-            name = "CRUISE"
-
-        battery_pct = 95.0
+    class FakeFlightPhase:
+        name = "CRUISE"
 
     class FakeDrone:
-        state = FakeDroneState()
+        # SwarmSimulator._drones[id] = DroneState (직접 속성, state 래퍼 없음)
+        position = [0.0, 0.0, 100.0]
+        velocity = [1.0, 0.0, 0.0]
+        flight_phase = FakeFlightPhase()
+        battery_pct = 95.0
 
-    class FakeMetrics:
-        collision_count = 0
-        near_miss_count = 0
-        conflicts_total = 0
-        advisories_issued = 0
-        conflict_resolution_rate_pct = 100.0
+    class FakeController:
+        # 컨트롤러 내부 통계 카운터 (ws_bridge가 _safe_int로 안전 접근)
+        _collision_count = 0
+        _near_miss_count = 0
+        _conflicts_total = 0
+        _advisories_issued = 0
+        _cbs_attempts = 0
+        _cbs_successes = 0
+
+        def run(self):
+            if False:
+                yield  # generator 형태 유지
 
     class FakeEnv:
         now = 0.0
 
-        def run(self, until):
+        def run(self, until: float) -> None:
             self.now = until
+
+        def process(self, _coro) -> None:
+            # SimPy.env.process 모킹 — 등록만 하고 실행은 무시
+            return None
 
     class FakeSwarmSimulator:
         def __init__(self, **kwargs):
             self.env = FakeEnv()
             self._drones = {1: FakeDrone()}
-            self.metrics = FakeMetrics()
+            self.controller = FakeController()
+
+        def _spawn_drones(self) -> None:
+            return None
+
+        def _apf_batch_loop(self):
+            if False:
+                yield  # generator 형태 유지
 
     fake_sim = types.SimpleNamespace(SwarmSimulator=FakeSwarmSimulator)
     fake_apf = types.SimpleNamespace(

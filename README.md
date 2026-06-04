@@ -804,6 +804,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 18:19 | `b9103ec` | Merge remote-tracking branch 'origin/main' into feat/roadmap-p730-p733 | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/maritime_eoir_adapter.md, docs/paper/contribution_outline.md, docs/poster/README.md … |
 | 2026-06-04 18:19 | `bd25cac` | Merge remote-tracking branch 'origin/main' into feat/p735-eoir-adapter | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md … |
 | 2026-06-04 18:18 | `61b8b22` | Merge remote-tracking branch 'origin/main' into feat/p734-multiview-sync | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md … |
 | 2026-06-04 18:17 | `fc582c0` | fix: swarm_3d HTML conflict 해소 — replay API + conflictPairs union | swarm_3d_simulator.html |
@@ -813,6 +814,7 @@ MIT License — Developed for academic and educational purposes.
 | 2026-06-04 18:15 | `09a5da6` | Merge remote-tracking branch 'origin/main' into feat/p731-layer-panel-merge | README.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md, docs/slides/README.md … |
 | 2026-06-04 18:14 | `e8a347c` | Merge remote-tracking branch 'origin/main' into docs/p701-p710-ultraplan | README.md, src/closed_net/airgap_mode.py |
 | 2026-06-04 16:12 | `f1d0378` | Merge remote-tracking branch 'origin/main' into feat/p735-eoir-adapter | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
+| 2026-06-04 16:13 | `899d6d2` | Merge remote-tracking branch 'origin/main' into feat/roadmap-p730-p733 | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
 | 2026-06-04 16:11 | `da9096b` | fix(P744): airgap 감사가 운영 API 엔드포인트 오탐 — blocklist만 검사 | src/closed_net/airgap_mode.py |
 | 2026-06-04 16:04 | `f8e6fd8` | Merge remote-tracking branch 'origin/main' into docs/p701-p710-ultraplan | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
 | 2026-06-04 16:06 | `744f305` | Merge remote-tracking branch 'origin/main' into feat/p731-layer-panel-merge | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
@@ -843,6 +845,9 @@ MIT License — Developed for academic and educational purposes.
 | 2026-06-04 06:25 | `87ebe64` | feat(P734): 리플레이 타임라인 키보드 스크러버 + 외부 API | ROADMAP.md, swarm_3d_simulator.html |
 | 2026-06-04 09:44 | `cf64eec` | feat(P734): 멀티뷰 동기화 — 분석뷰 차트에 시간축 cursor | ROADMAP.md, swarm_3d_simulator.html |
 | 2026-06-04 10:07 | `6620d54` | feat(P735): 해양 EO/IR 어댑터 패턴 — 외부 SDK hook + synth fallback | ROADMAP.md, docs/maritime_eoir_adapter.md, maritime_detection_simulator.html |
+| 2026-06-03 22:07 | `34ab0c3` | test: ws_bridge fake mock을 새 SwarmSimulator 인터페이스에 맞춤 | tests/test_ws_bridge.py |
+| 2026-06-03 21:57 | `c072d6c` | feat: P733 ws_bridge LIVE 모드 + ws_bridge 인터페이스 정합성 수정 | simulation/ws_bridge.py, swarm_3d_simulator.html |
+| 2026-06-03 21:50 | `1e80c65` | feat: ROADMAP 진행 현황 표 + Track E/F 신설 + P730 UI i18n(KO/EN) | ROADMAP.md, swarm_3d_simulator.html |
 | 2026-06-03 19:39 | `426b9e7` | ci: desktop-build setup-node 캐시 비활성화 (lock 파일 부재로 실패) | .github/workflows/desktop-build.yml |
 | 2026-06-03 13:12 | `3295124` | feat: 병렬 세션의 고유 작업 통합 (Track A SW + P706 결과 + 벤치마크 schema) | benchmarks/_schema/manifest.schema.json, results/p706_comparison_3sc_5seed.csv, results/p706_summary.json, scripts/compare_baselines.py, simulation/environmental_scenario.py, simulation/failsafe_manager.py … |
 | 2026-06-03 12:39 | `cd82157` | Merge remote-tracking branch 'origin/claude/dazzling-maxwell-5AnBo' | .github/workflows/security.yml, README.md, ROADMAP.md, db/migrations/001_initial_schema.sql, helm/sdacs/.helmignore, helm/sdacs/Chart.yaml … |

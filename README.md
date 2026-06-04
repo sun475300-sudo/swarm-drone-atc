@@ -9,12 +9,13 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Phase](https://img.shields.io/badge/Phase-700-gold?style=for-the-badge&logo=rocket)](simulation/)
-[![Tests](https://img.shields.io/badge/Tests-5%2C500%2B%20Collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Phase](https://img.shields.io/badge/Phase-755-gold?style=for-the-badge&logo=rocket)](ROADMAP.md)
+[![Roadmap](https://img.shields.io/badge/Roadmap_691--755-89%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
+[![Tests](https://img.shields.io/badge/Tests-4%2C078%2B%20Collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Algorithms](https://img.shields.io/badge/Algorithms-700+-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#core-algorithms)
 [![Modules](https://img.shields.io/badge/Modules-830+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
-[![Languages](https://img.shields.io/badge/Languages-50%2B-FF5722?style=for-the-badge&logo=github&logoColor=white)](#multi-language-architecture)
-[![LOC](https://img.shields.io/badge/Total-157K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
+[![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
+[![LOC](https://img.shields.io/badge/Total-160K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 **Mokpo National University, Dept. of Drone Mechanical Engineering — Capstone Design (2026)**
@@ -31,6 +32,22 @@
 </div>
 
 > **🆕 최신 업데이트 (2026-06)** — **원클릭 로컬 실행**(Win/Mac/Linux 더블클릭) · **해양 소형선 감지 시뮬레이터**(레이더 물리·AIS 융합·EO/IR·COLREG·CPA, 8개 시나리오) · 메인 3D 시뮬레이터 **다중 선택·대규모 성능 측정·경로효율·라벨 풀 최적화**가 추가되었습니다. 두 시뮬레이터 모두 헤드리스 스모크(군집 14/14·해양 17/17)와 CI로 검증됩니다.
+
+---
+
+## 📊 개발 진척 현황 / Development Progress (2026-06-04)
+
+| 트랙 | 범위 | 진척 | 핵심 산출물 |
+|---|---|---|---|
+| **Core** | Phase 1-690 | ✅ 100% | 시뮬·이론·AI·HW·UTM·AIM (690 phase) |
+| **A** 실기 드론 | P691-700 | 📘 가이드 100% | Pixhawk·Jetson·RTK·FMEA (실기 검증은 HW 도착 후) |
+| **B** 논문화 | P701-710 | 🟢 90% | 30편 서베이·LaTeX §1-§7·포스터·슬라이드 (IROS 2026 투고 준비) |
+| **C** 서비스화 | P711-720 | ✅ 100% | FastAPI+React·JWT/RBAC·TimescaleDB·K8s·관측성 |
+| **D** 웹 시뮬 | P721-735 | ✅ 100% | 군집·해양 3D + Electron 3-OS + i18n + LIVE 모드 |
+| **E** 확장 연구 | P736-745 | 🟢 90% | RL·디지털트윈·양자안전·폐쇄망·LLM 관제 (GPU 학습 잔여) |
+| **F** 산학·사업화 | P746-755 | 🟢 90% | K-UAM·해수부·산림청·창업 계획 (LOI 체결 잔여) |
+
+> **전체 Phase 691-755: 89%** (58/65, partial 포함) · 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/ULTRA_PLAN.md`](docs/ULTRA_PLAN.md)
 
 ---
 

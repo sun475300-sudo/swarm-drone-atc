@@ -813,6 +813,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 20:03 | `9b8fe22` | feat(simulator): Phase 3 CIN 시네마틱 + Phase 6 INJ 장애 주입 일괄 구현 | README.md, STATUS_REPORT.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_cin_inj.py … |
 | 2026-06-04 19:41 | `547a5d1` | feat(simulator): Phase 2 TAC 전술 시각화 + MEGA 마스터 플랜 | README.md, STATUS_REPORT.md, docs/SIMULATOR_MEGA_PLAN.md, docs/SIMULATOR_PHASE_PLANS.md, docs/simulator.html, docs/swarm_3d_simulator.html … |
 | 2026-06-04 19:17 | `eecfd81` | feat(simulator): Phase 1 ATC 관제사 명령 콘솔 + 한국어 TTS + Web Audio 경보 | README.md, STATUS_REPORT.md, docs/SIMULATOR_ULTRA_PLAN.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html … |
 | 2026-06-04 18:40 | `002336b` | ci(desktop): tag push에서 항상 공개 Release 발행 + paths 필터 분리 | .github/workflows/desktop-build.yml |

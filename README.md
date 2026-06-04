@@ -818,6 +818,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-05 07:14 | `708832b` | fix(cli): simulate --output JSON 기록 추가 — main CI benchmark RED 복구 | main.py, tests/test_main_cli.py |
 | 2026-06-04 21:47 | `3db57ec` | feat(simulator): Phase 5 MIS + Phase 7 ANA + Phase 9 MOB — MEGA 플랜 9 Phase 전부 완료 | README.md, STATUS_REPORT.md, docs/manifest.webmanifest, docs/sdacs-sw.js, docs/simulator.html, docs/swarm_3d_simulator.html … |
 | 2026-06-04 20:13 | `6192d6d` | feat(simulator): Phase 4 CAM 카메라 모드 + Phase 8 AUD 환경 사운드 | README.md, STATUS_REPORT.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_cam_aud.py … |
 | 2026-06-04 20:03 | `9b8fe22` | feat(simulator): Phase 3 CIN 시네마틱 + Phase 6 INJ 장애 주입 일괄 구현 | README.md, STATUS_REPORT.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_cin_inj.py … |

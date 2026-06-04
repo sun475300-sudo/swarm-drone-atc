@@ -74,8 +74,10 @@ try {
   await page.evaluate(() => window._sdacs.selectScenario('mega_swarm_1k'));
   await page.evaluate(() => window._sdacs.startSim());
   await page.waitForTimeout(2500);
-  const mega = await page.evaluate(() => ({ n: window._sdacs.droneCount, mode: window._sdacs.megaMode, inst: window._sdacs.instanceCount }));
+  const mega = await page.evaluate(() => ({ n: window._sdacs.droneCount, mode: window._sdacs.megaMode, inst: window._sdacs.instanceCount, rotor: window._sdacs.rotorInstanceCount }));
   ok(mega.n === 1000 && mega.mode === true && mega.inst > 0, `대규모 InstancedMesh (${mega.n}대, inst=${mega.inst})`);
+  // P729: 로터 인스턴스가 body와 동수로 동기화(단일 추가 draw call, 드론 수 무관)
+  ok(mega.rotor === mega.inst, `P729 로터 InstancedMesh (rotor=${mega.rotor} == body=${mega.inst})`);
 
   // 8b. B6 성능 측정 API — 1000대 megaMode에서 draw call이 드론 수보다 적어야(InstancedMesh 효과 증명)
   await page.waitForTimeout(1200);

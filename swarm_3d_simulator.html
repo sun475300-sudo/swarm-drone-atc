@@ -2664,9 +2664,24 @@
         glowInst.frustumCulled = false;
         glowInst.renderOrder = 1;
         scene.add(glowInst);
+        // P729(B3 확장): 대규모 모드 로터 인스턴스 — 수평 블레이드 바, 시간 기반 Y축 회전으로 로터 회전 표현.
+        // 추가 draw call 1개(드론 수 무관), per-mesh 로터 없이 1k~10k 군집에 회전 시각 단서 제공.
+        const rotorInst = new THREE.InstancedMesh(
+            new THREE.BoxGeometry(0.52, 0.02, 0.09),
+            new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.6, depthWrite: false }),
+            MAX_INST
+        );
+        rotorInst.count = 0;
+        rotorInst.visible = false;
+        rotorInst.frustumCulled = false;
+        rotorInst.renderOrder = 2;
+        scene.add(rotorInst);
+        const ROTOR_SCALE = 1.15;  // body 대비 로터 스팬 배율
         const GLOW_SCALE = 2.1;   // body 대비 글로우 배율
         const _iM = new THREE.Matrix4(), _iPos = new THREE.Vector3(), _iScl = new THREE.Vector3(1, 1, 1);
         const _iMg = new THREE.Matrix4(), _iSclG = new THREE.Vector3(1, 1, 1);
+        const _iMr = new THREE.Matrix4(), _iSclR = new THREE.Vector3(1, 1, 1), _iQr = new THREE.Quaternion();
+        const _iAxisY = new THREE.Vector3(0, 1, 0);
         const _iQ = new THREE.Quaternion(), _iCol = new THREE.Color();
         // 대규모 프러스텀 컬링 + LOD
         let megaCull = true;
@@ -2681,6 +2696,8 @@
             // 프러스텀 컬링용 절두체 갱신 (matrixWorldInverse 최신화 후)
             if (megaCull) { camera.updateMatrixWorld(); _frustum.setFromProjectionMatrix(_frMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)); }
             _visibleInst = 0;
+            // P729: 전 인스턴스 공통 로터 회전각(시간 기반) — 수평면(Y축) 회전
+            _iQr.setFromAxisAngle(_iAxisY, (performance.now() * 0.012) % (Math.PI * 2));
             for (let i = 0; i < n; i++) {
                 const d = drones[i];
                 const pos = d.group.position;
@@ -2708,6 +2725,12 @@
                 _iMg.compose(_iPos, _iQ, _iSclG);
                 glowInst.setMatrixAt(i, _iMg);
                 glowInst.setColorAt(i, _iCol);
+                // P729 로터: 동일 위치·색, body 대비 약간 넓은 스팬, 시간 기반 Y축 회전
+                const rs = s * ROTOR_SCALE;
+                _iSclR.set(rs, rs, rs);
+                _iMr.compose(_iPos, _iQr, _iSclR);
+                rotorInst.setMatrixAt(i, _iMr);
+                rotorInst.setColorAt(i, _iCol);
             }
             bodyInst.count = n;
             bodyInst.instanceMatrix.needsUpdate = true;
@@ -2715,6 +2738,9 @@
             glowInst.count = n;
             glowInst.instanceMatrix.needsUpdate = true;
             if (glowInst.instanceColor) glowInst.instanceColor.needsUpdate = true;
+            rotorInst.count = n;
+            rotorInst.instanceMatrix.needsUpdate = true;
+            if (rotorInst.instanceColor) rotorInst.instanceColor.needsUpdate = true;
         }
 
         function _droneFromInstance(instanceId) {
@@ -2877,6 +2903,8 @@
             bodyInst.count = 0;
             glowInst.visible = megaMode;   // B3 글로우 인스턴스 동기화
             glowInst.count = 0;
+            rotorInst.visible = megaMode;  // P729 로터 인스턴스 동기화
+            rotorInst.count = 0;
 
             // 기상 시스템 초기화 (전체 리셋)
             // 건물 표시 (도시 시나리오)
@@ -6897,6 +6925,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             exportPNG, exportCSV, exportHTML, exportMD,
             get megaMode() { return megaMode; },
             get instanceCount() { return bodyInst.count; },
+            get rotorInstanceCount() { return rotorInst.count; },  // P729
             get visibleInstances() { return _visibleInst; },
             get perf() { return { fps: perfMetrics.fps, cpuMs: +perfMetrics.cpuMs.toFixed(2), gpuMs: +perfMetrics.gpuMs.toFixed(2), drawCalls: perfMetrics.drawCalls, triangles: perfMetrics.triangles, drones: drones.length, megaMode, visibleInstances: _visibleInst }; }, // B6
             set megaCull(v) { megaCull = !!v; },

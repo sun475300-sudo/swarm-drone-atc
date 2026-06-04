@@ -1262,8 +1262,10 @@
             <div style="margin-top:8px;padding:6px;border:1px solid rgba(139,92,246,0.35);border-radius:4px;background:linear-gradient(180deg,rgba(139,92,246,0.06),transparent);">
                 <div style="font-size:8px;color:#8b5cf6;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">📊 분석 강화 (ANA)</div>
                 <label class="av-toggle"><input type="checkbox" id="tg-ana-heatmap"> 누적 위협 히트맵 (10s 감쇠)</label>
+                <label class="av-toggle"><input type="checkbox" id="tg-ana-telemetry"> 드론별 텔레메트리 기록 (ANA-6)</label>
                 <div style="display:flex;gap:4px;margin-top:4px;">
                     <button class="atc-btn" id="btn-ana-latex" style="flex:1;color:#8b5cf6;border-color:rgba(139,92,246,0.5);" title="KPI를 LaTeX 표로 출력 (.tex 다운로드 + 클립보드)">📐 LaTeX 표</button>
+                    <button class="atc-btn" id="btn-ana-telemetry-csv" style="flex:1;color:#8b5cf6;border-color:rgba(139,92,246,0.5);" title="드론별 시계열 텔레메트리 CSV 내보내기 (토글 ON 후 기록됨)">📈 텔레메트리 CSV</button>
                 </div>
             </div>
             <!-- Phase 6 INJ — 장애 주입 콘솔 -->
@@ -2664,6 +2666,58 @@
             navigator.clipboard?.writeText(tex).catch(() => {});
         }
 
+        // ANA-6 — 드론별 텔레메트리 (per-drone time series) → CSV 내보내기
+        // 기본 OFF. 켜면 sampleChartData와 동일 cadence(저빈도 UI 틱)에서 드론별 상태를 기록.
+        // 토글은 기록 일시정지/재개(누적 보존). 버퍼는 시나리오 전환 시에만 초기화.
+        const anaTelemetry = {
+            enabled: false,
+            rows: [],          // {t, id, wx, wy, wz, vx, vy, vz, phase, battery}
+            maxRows: 120000,   // 메모리 가드 (≈100대 × 600샘플 × 2)
+            lastSampleT: -1,
+        };
+        function resetAnaTelemetry() { anaTelemetry.rows.length = 0; anaTelemetry.lastSampleT = -1; }
+        function _anaTelemetryTick() {
+            if (!anaTelemetry.enabled || !simRunning || drones.length === 0) return;
+            if (anaTelemetry.lastSampleT === simTime) return;  // 동일 sim-time 중복 가드
+            anaTelemetry.lastSampleT = simTime;
+            for (const d of drones) {
+                anaTelemetry.rows.push({
+                    t: simTime, id: d.id, wx: d.wx, wy: d.wy, wz: d.wz,
+                    vx: d.vx || 0, vy: d.vy || 0, vz: d.vz || 0,
+                    phase: d.phase, battery: d.battery,
+                });
+            }
+            if (anaTelemetry.rows.length > anaTelemetry.maxRows) {
+                anaTelemetry.rows.splice(0, anaTelemetry.rows.length - anaTelemetry.maxRows);
+            }
+        }
+        function exportTelemetryCSV() {
+            if (!anaTelemetry.rows.length) {
+                logEvent('info', '📈 텔레메트리 기록 없음 — 토글 ON 후 시뮬레이션을 실행하세요');
+                return false;
+            }
+            const scen = document.getElementById('scenario-select')?.value || 'default';
+            const lines = [];
+            lines.push('# SDACS Per-Drone Telemetry (ANA-6)');
+            lines.push('# scenario,' + scen);
+            lines.push('# samples,' + anaTelemetry.rows.length);
+            lines.push('# t_max_s,' + simTime.toFixed(1));
+            lines.push('');
+            lines.push('## TelemetryPerDrone');
+            lines.push('t_s,drone_id,wx,wy,wz,vx,vy,vz,phase,battery');
+            for (const r of anaTelemetry.rows) {
+                lines.push([r.t.toFixed(1), r.id, r.wx.toFixed(1), r.wy.toFixed(1), r.wz.toFixed(1),
+                    r.vx.toFixed(2), r.vy.toFixed(2), r.vz.toFixed(2), r.phase, r.battery.toFixed(1)].join(','));
+            }
+            const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            _download(`sdacs_telemetry_${Date.now()}.csv`, url);
+            // 대용량(최대 ~7MB) blob 누수 방지 — 다운로드 시작 후 URL 해제
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            logEvent('info', `📈 텔레메트리 CSV 저장됨 (${anaTelemetry.rows.length} 샘플)`);
+            return true;
+        }
+
         // ===== Phase 9 MOB — 모바일/터치 자동 LOD =====
         const mobConfig = {
             isMobile: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent),
@@ -3652,6 +3706,7 @@
             if (typeof resetViewFilter === 'function') resetViewFilter();
             if (typeof resetDnI === 'function') resetDnI();
             if (typeof resetChartEvents === 'function') resetChartEvents();
+            if (typeof resetAnaTelemetry === 'function') resetAnaTelemetry();
             _prevColl = 0; _prevNear = 0;
             // Clear (geometry/material 해제 — GPU 메모리 누수 방지)
             while (droneGroup.children.length) {
@@ -6949,6 +7004,8 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
         // Phase 7 ANA 이벤트
         document.getElementById('tg-ana-heatmap').addEventListener('change', (e) => { anaHeatmap.enabled = e.target.checked; });
         document.getElementById('btn-ana-latex').addEventListener('click', () => exportLatexKpi());
+        document.getElementById('tg-ana-telemetry').addEventListener('change', (e) => { anaTelemetry.enabled = e.target.checked; });
+        document.getElementById('btn-ana-telemetry-csv').addEventListener('click', () => exportTelemetryCSV());
 
         // Phase 8 AUD 환경음 토글
         document.getElementById('btn-aud-ambient').addEventListener('click', (e) => {
@@ -8524,6 +8581,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             updateStatsUI();
             updateEventLog();
             sampleChartData();
+            _anaTelemetryTick();   // ANA-6 드론별 텔레메트리 기록(토글 ON 시)
             renderAnalytics();
             // 성능 모니터 업데이트
             document.getElementById('perf-cpu').textContent = perfMetrics.cpuMs.toFixed(1);
@@ -8704,6 +8762,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get anaHeatmap() { return anaHeatmap.enabled; },
             get anaKpiWindow() { return { time: anaKpiWindow.time.slice(), cr: anaKpiWindow.cr.slice(), avgBat: anaKpiWindow.avgBat.slice(), fps: anaKpiWindow.fps.slice() }; },
             exportLatexKpi() { return exportLatexKpi(); },
+            // ANA-6 드론별 텔레메트리
+            setAnaTelemetry(on) { anaTelemetry.enabled = !!on; const e = document.getElementById('tg-ana-telemetry'); if (e) e.checked = anaTelemetry.enabled; return anaTelemetry.enabled; },
+            resetAnaTelemetry() { resetAnaTelemetry(); return anaTelemetry.rows.length; },
+            get anaTelemetry() { return anaTelemetry.enabled; },
+            get anaTelemetryCount() { return anaTelemetry.rows.length; },
+            exportTelemetryCSV() { return exportTelemetryCSV(); },
             // ===== Phase 9 — MOB 모바일 외부 API =====
             get isMobile() { return mobConfig.isMobile; },
             get mobileLOD() { return mobConfig.autoLOD; },

@@ -486,10 +486,13 @@ const _arrowPool = [];         // ArrowHelper 풀
 - 결과: "DR-007 (P3) failed to yield to DR-013 (P1)"
 - 책임 드론을 적색 발광 처리 (5초)
 
-#### ANA-6. 드론별 텔레메트리 CSV
-- 각 드론마다 10Hz 샘플 (wx, wy, wz, vx, vy, vz, phase, battery)
-- 별도 시트 `## TelemetryPerDrone` 추가 (드론수 × 시간)
-- 메모리: 100대 × 600초 × 10Hz × 8필드 = 4.8MB → OK
+#### ANA-6. 드론별 텔레메트리 CSV ✅ 구현 완료 (2026-06-04)
+- 각 드론마다 샘플 (wx, wy, wz, vx, vy, vz, phase, battery)
+- 별도 시트 `## TelemetryPerDrone` (드론수 × 시간) → `sdacs_telemetry_*.csv` 다운로드
+- 토글 `tg-ana-telemetry`(기본 OFF, 기록 일시정지/재개) + 버튼 `btn-ana-telemetry-csv`
+- 샘플 cadence: 저빈도 UI 틱(≈2Hz)에서 기록 (10Hz는 메모리/성능 과다라 실측 cadence 채택), `maxRows` 12만 가드
+- 버퍼는 시나리오 전환 시 초기화. `_sdacs` API: `setAnaTelemetry`/`anaTelemetry`/`anaTelemetryCount`/`exportTelemetryCSV`/`resetAnaTelemetry`
+- E2E: `tests/e2e/test_simulator_mis_ana_mob.py` ANA-6 케이스 4종
 
 ### UI Mockup
 ```

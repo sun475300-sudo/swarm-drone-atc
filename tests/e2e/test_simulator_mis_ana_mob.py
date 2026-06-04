@@ -176,10 +176,84 @@ def test_ana_ui_present(page):
         () => ({
             heatmap: !!document.getElementById('tg-ana-heatmap'),
             latex: !!document.getElementById('btn-ana-latex'),
+            telemetry_tg: !!document.getElementById('tg-ana-telemetry'),
+            telemetry_btn: !!document.getElementById('btn-ana-telemetry-csv'),
         })
     """)
     for k, v in r.items():
         assert v, f"ANA UI element missing: {k}"
+
+
+# ===== Phase 7 ANA-6 — 드론별 텔레메트리 =====
+
+def test_ana6_api_exposed(page):
+    pg, _ = page
+    keys = pg.evaluate("Object.keys(window._sdacs)")
+    for k in ["setAnaTelemetry", "anaTelemetry", "anaTelemetryCount",
+              "exportTelemetryCSV", "resetAnaTelemetry"]:
+        assert k in keys, f"_sdacs.{k} missing"
+
+
+def test_ana6_default_off(page):
+    pg, _ = page
+    assert pg.evaluate("window._sdacs.anaTelemetry") is False
+
+
+def test_ana6_accumulates_when_enabled(page):
+    pg, _ = page
+    # self-contained: reset → enable → run → expect growth from a known baseline
+    r = pg.evaluate("""
+        async () => {
+            window._sdacs.resetAnaTelemetry();
+            const c0 = window._sdacs.anaTelemetryCount;   // 0 after reset
+            window._sdacs.setAnaTelemetry(true);
+            window._sdacs.startSim();
+            await new Promise(r => setTimeout(r, 2500));
+            const c1 = window._sdacs.anaTelemetryCount;
+            const checked = document.getElementById('tg-ana-telemetry').checked;
+            return { c0, c1, checked };
+        }
+    """)
+    assert r["c0"] == 0
+    assert r["c1"] > 0, f"telemetry should accumulate, got {r['c1']}"
+    assert r["checked"] is True
+
+
+def test_ana6_disable_preserves_buffer_and_stops_growth(page):
+    pg, _ = page
+    # self-contained: enable+run to accumulate, then disable and confirm
+    # buffer is preserved (pause semantics) and does not keep growing.
+    r = pg.evaluate("""
+        async () => {
+            window._sdacs.setAnaTelemetry(true);
+            window._sdacs.startSim();
+            await new Promise(r => setTimeout(r, 1500));
+            const grown = window._sdacs.anaTelemetryCount;
+            window._sdacs.setAnaTelemetry(false);
+            const a = window._sdacs.anaTelemetryCount;
+            await new Promise(r => setTimeout(r, 1200));
+            const b = window._sdacs.anaTelemetryCount;
+            return { grown, a, b };
+        }
+    """)
+    assert r["grown"] > 0, "should have accumulated before disabling"
+    assert r["a"] == r["grown"], "disabling must preserve buffer (pause, not clear)"
+    assert r["a"] == r["b"], f"disabled telemetry must not grow: {r['a']} -> {r['b']}"
+
+
+def test_ana6_export_returns_true_with_data(page):
+    pg, _ = page
+    r = pg.evaluate("""
+        async () => {
+            window._sdacs.setAnaTelemetry(true);
+            window._sdacs.startSim();
+            await new Promise(r => setTimeout(r, 1500));
+            const ok = window._sdacs.exportTelemetryCSV();
+            return { ok, count: window._sdacs.anaTelemetryCount };
+        }
+    """)
+    assert r["count"] > 0
+    assert r["ok"] is True, "exportTelemetryCSV should return True when data exists"
 
 
 # ===== Phase 9 MOB =====

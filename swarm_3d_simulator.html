@@ -3,7 +3,22 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="theme-color" content="#03050a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.webmanifest">
+    <style id="mobile-style">
+        @media (max-width: 1024px) {
+            .hud-overlay, #drone-detail, .hud-side-panel { font-size: 12px !important; }
+            .ctrl-btn, .atc-btn, .av-toggle { min-height: 32px; }
+            #drone-detail { max-width: 92vw !important; }
+            body { overscroll-behavior: none; }
+        }
+        @media (pointer: coarse) {
+            .ctrl-btn, .atc-btn, button { min-height: 44px; min-width: 44px; }
+        }
+    </style>
     <title>SDACS — 군집드론 공역통제 3D 시뮬레이터</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap');
@@ -1225,6 +1240,30 @@
                 <div style="display:flex;gap:4px;margin-top:4px;align-items:center;">
                     <button id="btn-rec-toggle" class="atc-audio-btn" style="flex:1;color:#ef4444;border-color:rgba(239,68,68,0.5);" title="화면 녹화 시작/중지 (WebM)">🔴 녹화</button>
                     <span id="rec-indicator" style="width:8px;height:8px;border-radius:50%;background:#333;"></span>
+                </div>
+            </div>
+            <!-- Phase 5 MIS — 임무 계획 콘솔 -->
+            <div style="margin-top:8px;padding:6px;border:1px solid rgba(34,197,94,0.35);border-radius:4px;background:linear-gradient(180deg,rgba(34,197,94,0.06),transparent);">
+                <div style="font-size:8px;color:#22c55e;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">📋 임무 계획 (MIS)</div>
+                <select id="mis-template" style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(34,197,94,0.3);color:#cdd9e8;font-size:10px;padding:3px;border-radius:3px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">
+                    <option value="search_grid">🔍 수색 (4×4 격자)</option>
+                    <option value="recon_orbit">🛸 정찰 (8 원형 궤도)</option>
+                    <option value="delivery">📦 배달 (A→B 직선)</option>
+                    <option value="spray_voronoi">🌾 농업 방제 (Voronoi)</option>
+                    <option value="medical_heap">🚑 의료 우선순위</option>
+                </select>
+                <div style="display:flex;gap:4px;">
+                    <button class="atc-btn" id="btn-mis-assign" title="선택 드론에 템플릿 임무 할당" style="flex:1;color:#22c55e;border-color:rgba(34,197,94,0.5);">📋 임무 할당</button>
+                    <button class="atc-btn atc-clear" id="btn-mis-clear" title="모든 임무 해제" style="flex:1;">🟢 전체 해제</button>
+                </div>
+                <div id="mis-list" style="margin-top:4px;max-height:80px;overflow-y:auto;"></div>
+            </div>
+            <!-- Phase 7 ANA — 분석 강화 -->
+            <div style="margin-top:8px;padding:6px;border:1px solid rgba(139,92,246,0.35);border-radius:4px;background:linear-gradient(180deg,rgba(139,92,246,0.06),transparent);">
+                <div style="font-size:8px;color:#8b5cf6;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">📊 분석 강화 (ANA)</div>
+                <label class="av-toggle"><input type="checkbox" id="tg-ana-heatmap"> 누적 위협 히트맵 (10s 감쇠)</label>
+                <div style="display:flex;gap:4px;margin-top:4px;">
+                    <button class="atc-btn" id="btn-ana-latex" style="flex:1;color:#8b5cf6;border-color:rgba(139,92,246,0.5);" title="KPI를 LaTeX 표로 출력 (.tex 다운로드 + 클립보드)">📐 LaTeX 표</button>
                 </div>
             </div>
             <!-- Phase 6 INJ — 장애 주입 콘솔 -->
@@ -2449,6 +2488,202 @@
             _dynNfzList.length = 0;
             injStats.dynamicNfz = 0;
             logEvent('info', '🟢 모든 장애 해제');
+        }
+
+        // ===== Phase 5 MIS — 임무 계획 시스템 =====
+        const missions = [];                 // [{id, droneId, waypoints:[{x,z}], currentIdx, dispatchedAt, completion}]
+        const _pendingWaypoints = [];        // 현재 계획 중인 wp 리스트
+        let _missionTemplate = 'custom';
+        let _missionNextId = 1;
+
+        function _missionGenerateTemplate(name, originX, originZ) {
+            // 5종 임무 템플릿
+            const wps = [];
+            if (name === 'search_grid') {
+                // 4×4 격자 패턴 (반경 ±400m)
+                const step = 200;
+                for (let row = 0; row < 4; row++) {
+                    const z = originZ + (row - 1.5) * step;
+                    const dir = row % 2 === 0 ? 1 : -1;
+                    for (let col = 0; col < 4; col++) {
+                        const x = originX + (col - 1.5) * step * dir;
+                        wps.push({ x, z, label: `S-${row}-${col}` });
+                    }
+                }
+            } else if (name === 'recon_orbit') {
+                // 원형 궤도 8 포인트, 반경 500m
+                for (let i = 0; i < 8; i++) {
+                    const ang = (i / 8) * Math.PI * 2;
+                    wps.push({ x: originX + Math.cos(ang) * 500, z: originZ + Math.sin(ang) * 500, label: `O-${i}` });
+                }
+            } else if (name === 'delivery') {
+                // A → B 직선 (단일 wp)
+                wps.push({ x: originX, z: originZ, label: 'DEST' });
+            } else if (name === 'spray_voronoi') {
+                // Voronoi-like 지그재그 (8 wp)
+                for (let i = 0; i < 8; i++) {
+                    wps.push({ x: originX + (i % 2 === 0 ? -300 : 300), z: originZ + (i - 4) * 100, label: `V-${i}` });
+                }
+            } else if (name === 'medical_heap') {
+                // 의료 우선순위 라인 (5 wp)
+                for (let i = 0; i < 5; i++) {
+                    wps.push({ x: originX + i * 200 - 400, z: originZ + i * 150 - 300, label: `M-${i}` });
+                }
+            }
+            return wps;
+        }
+
+        function missionAdd(droneId, waypoints, templateName) {
+            const d = (typeof droneId === 'string') ? drones.find(x => x.id === droneId) : (typeof droneId === 'number' ? drones[droneId] : droneId);
+            if (!d || !waypoints || waypoints.length === 0) return null;
+            const m = {
+                id: `M-${String(_missionNextId++).padStart(3, '0')}`,
+                droneId: d.id,
+                waypoints: waypoints.slice(),
+                currentIdx: 0,
+                dispatchedAt: simTime,
+                completion: 0,
+                template: templateName || _missionTemplate,
+            };
+            missions.push(m);
+            // 드론에 mission 주입 → 첫 웨이포인트로 즉시 출발
+            d.mission = m;
+            d.goalX = waypoints[0].x;
+            d.goalZ = waypoints[0].z;
+            d.goalPad = { x: waypoints[0].x, z: waypoints[0].z, name: waypoints[0].label || m.id };
+            if (d.phase === 'GROUNDED') d.groundDelay = 0;
+            if (d.phase === 'HOLDING') { d.phase = 'ENROUTE'; d._holdActive = false; }
+            logEvent('info', `📋 임무 ${m.id} 할당 → ${d.id} (${waypoints.length} wp)`);
+            _missionRefreshUI();
+            return m;
+        }
+
+        function updateMissions() {
+            for (const m of missions) {
+                if (m.completion >= 1.0) continue;
+                const d = drones.find(x => x.id === m.droneId);
+                if (!d) { m.completion = 1.0; continue; }
+                const wp = m.waypoints[m.currentIdx];
+                if (!wp) { m.completion = 1.0; continue; }
+                const dx = wp.x - d.wx, dz = wp.z - d.wz;
+                const dist = Math.sqrt(dx * dx + dz * dz);
+                if (dist < 120) {
+                    m.currentIdx++;
+                    if (m.currentIdx >= m.waypoints.length) {
+                        m.completion = 1.0;
+                        logEvent('info', `✅ 임무 ${m.id} 완료 → ${d.id}`);
+                        d.mission = null;
+                    } else {
+                        const nwp = m.waypoints[m.currentIdx];
+                        d.goalX = nwp.x; d.goalZ = nwp.z;
+                        d.goalPad = { x: nwp.x, z: nwp.z, name: nwp.label || m.id };
+                        m.completion = m.currentIdx / m.waypoints.length;
+                    }
+                }
+            }
+            _missionRefreshUI();
+        }
+
+        function _missionRefreshUI() {
+            const el = document.getElementById('mis-list');
+            if (!el) return;
+            if (missions.length === 0) { el.innerHTML = '<div style="color:#4a6785;font-size:9px;text-align:center;">진행 중 임무 없음</div>'; return; }
+            el.innerHTML = missions.slice(-5).reverse().map(m => {
+                const pct = Math.round(m.completion * 100);
+                const col = pct >= 100 ? '#22c55e' : pct >= 50 ? '#fbbf24' : '#00e5ff';
+                return `<div style="font-size:9px;padding:2px 0;border-bottom:1px dotted rgba(74,103,133,0.2);">
+                  <span style="color:#f59e0b;">${m.id}</span>
+                  <span style="color:#cdd9e8;"> → ${m.droneId}</span>
+                  <span style="color:${col};float:right;">${pct}% (${m.currentIdx}/${m.waypoints.length})</span>
+                </div>`;
+            }).join('');
+        }
+
+        function missionClearAll() { missions.length = 0; _pendingWaypoints.length = 0; for (const d of drones) d.mission = null; _missionRefreshUI(); }
+
+        // ===== Phase 7 ANA — 분석 강화: 누적 히트맵 + 실시간 KPI 차트 + LaTeX =====
+        // 누적 충돌 히트맵 (100×100 격자, 시간 감쇠)
+        const anaHeatmap = {
+            enabled: false,
+            grid: null,     // Uint16Array(100*100)
+            size: 100,
+            decay: 0.992,   // 매 sim-tick 곱
+            cellSize: 100,  // m per cell (10km × 10km 영역)
+        };
+        function _anaInitHeatmap() {
+            if (anaHeatmap.grid) return;
+            anaHeatmap.grid = new Float32Array(anaHeatmap.size * anaHeatmap.size);
+        }
+        function _anaHeatmapTick() {
+            if (!anaHeatmap.enabled) return;
+            _anaInitHeatmap();
+            // 감쇠
+            for (let i = 0; i < anaHeatmap.grid.length; i++) anaHeatmap.grid[i] *= anaHeatmap.decay;
+            // 현재 충돌·근접 위치 누적
+            for (const d of drones) {
+                if (d.phase === 'GROUNDED' || d.phase === 'FAILED') continue;
+                const half = anaHeatmap.size / 2;
+                const cx = Math.floor(d.wx / anaHeatmap.cellSize + half);
+                const cz = Math.floor(d.wz / anaHeatmap.cellSize + half);
+                if (cx < 0 || cx >= anaHeatmap.size || cz < 0 || cz >= anaHeatmap.size) continue;
+                // EVADING 드론은 누적 가중치 ↑
+                const w = d.phase === 'EVADING' ? 3.0 : 0.1;
+                anaHeatmap.grid[cz * anaHeatmap.size + cx] += w;
+            }
+        }
+
+        // KPI 시계열 슬라이딩 (5s window)
+        const anaKpiWindow = {
+            time: [], cr: [], conflicts: [], avgBat: [], fps: [],
+            max: 300,    // ~5s × 60fps
+        };
+        function _anaKpiTick(fps) {
+            if (!anaKpiWindow.time.length || (simTime - anaKpiWindow.time[anaKpiWindow.time.length - 1]) > 0.1) {
+                anaKpiWindow.time.push(simTime);
+                anaKpiWindow.conflicts.push(stats.conflicts);
+                const cr = (stats.conflicts + stats.collisions) > 0
+                    ? (1 - stats.collisions / (stats.conflicts + stats.collisions)) * 100 : 100;
+                anaKpiWindow.cr.push(cr);
+                const ab = drones.reduce((s, d) => s + d.battery, 0) / (drones.length || 1);
+                anaKpiWindow.avgBat.push(ab);
+                anaKpiWindow.fps.push(fps || perfMetrics.fps || 60);
+                while (anaKpiWindow.time.length > anaKpiWindow.max) {
+                    anaKpiWindow.time.shift(); anaKpiWindow.cr.shift(); anaKpiWindow.conflicts.shift();
+                    anaKpiWindow.avgBat.shift(); anaKpiWindow.fps.shift();
+                }
+            }
+        }
+
+        function exportLatexKpi() {
+            const scen = document.getElementById('scenario-select')?.value || 'default';
+            const rows = kpiList().map(([k, v]) => `${k.replace(/[%$&_]/g, '\\$&')} & ${String(v).replace(/[%$&_]/g, '\\$&')} \\\\`).join('\n  ');
+            const tex = `% SDACS KPI Table — scenario=${scen}, t=${simTime.toFixed(0)}s, drones=${drones.length}\n\\begin{table}[h]\n\\centering\n\\caption{SDACS Simulation Results — ${scen}}\n\\label{tab:sdacs-kpi}\n\\begin{tabular}{lr}\n\\hline\nMetric & Value \\\\\n\\hline\n  ${rows}\n\\hline\n\\end{tabular}\n\\end{table}\n`;
+            const blob = new Blob([tex], { type: 'text/x-tex;charset=utf-8' });
+            _download(`sdacs_kpi_${Date.now()}.tex`, URL.createObjectURL(blob));
+            logEvent('info', '📐 LaTeX 표 저장됨');
+            navigator.clipboard?.writeText(tex).catch(() => {});
+        }
+
+        // ===== Phase 9 MOB — 모바일/터치 자동 LOD =====
+        const mobConfig = {
+            isMobile: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent),
+            autoLOD: false,
+            touchGesturesEnabled: false,
+        };
+        function applyMobileLOD() {
+            if (!mobConfig.isMobile) return;
+            mobConfig.autoLOD = true;
+            // 자동: 입자 OFF, glow 약화, predTrail OFF
+            if (typeof cinParticles !== 'undefined') {
+                cinParticles.rain.enabled = false;
+                cinParticles.snow.enabled = false;
+            }
+            // 시뮬레이터 ≥200대일 때 추가 비주얼 OFF
+            if (drones.length > 200) {
+                _predTrailEnabled = false;
+                _velArrowEnabled = false;
+            }
+            logEvent('info', '📱 모바일 자동 LOD 활성');
         }
 
         // ===== Ground =====
@@ -5679,6 +5914,45 @@
         const _ptr = new THREE.Vector2();
         let _pDown = null;
         renderer.domElement.addEventListener('pointerdown', (e) => { _pDown = { x: e.clientX, y: e.clientY }; });
+
+        // Phase 9 MOB — 더블 탭으로 드론 선택, 길게 누르기로 ATC HOLD
+        let _tapTimer = null, _lastTap = 0, _longPressTimer = null;
+        renderer.domElement.addEventListener('touchstart', (e) => {
+            if (e.touches.length !== 1) return;
+            const t = e.touches[0];
+            mobConfig.touchGesturesEnabled = true;
+            const now = Date.now();
+            if (now - _lastTap < 350) {
+                // 더블 탭 → raycast 선택
+                const rect = renderer.domElement.getBoundingClientRect();
+                _ptr.x = ((t.clientX - rect.left) / rect.width) * 2 - 1;
+                _ptr.y = -((t.clientY - rect.top) / rect.height) * 2 + 1;
+                _ray.setFromCamera(_ptr, camera);
+                const hits = _ray.intersectObjects(droneGroup.children, true);
+                if (hits.length > 0) {
+                    let obj = hits[0].object;
+                    while (obj && !obj.userData?.id) obj = obj.parent;
+                    if (obj && obj.userData) selectDrone(obj.userData);
+                }
+                _lastTap = 0;
+            } else {
+                _lastTap = now;
+            }
+            // 길게 누르기 (600ms) → ATC HOLD
+            _longPressTimer = setTimeout(() => {
+                if (selectedDrone) {
+                    window.atcCommand(selectedDrone.id, 'HOLD');
+                }
+            }, 600);
+        }, { passive: true });
+        renderer.domElement.addEventListener('touchend', () => {
+            if (_longPressTimer) clearTimeout(_longPressTimer);
+            _longPressTimer = null;
+        }, { passive: true });
+        renderer.domElement.addEventListener('touchmove', () => {
+            if (_longPressTimer) clearTimeout(_longPressTimer);
+            _longPressTimer = null;
+        }, { passive: true });
         renderer.domElement.addEventListener('pointerup', (e) => {
             if (!_pDown) return;
             const moved = Math.hypot(e.clientX - _pDown.x, e.clientY - _pDown.y);
@@ -6661,6 +6935,20 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
         document.getElementById('btn-inj-emp').addEventListener('click', () => { injectScenario('EMP'); });
         document.getElementById('btn-inj-emi').addEventListener('click', () => { injectScenario('EMI'); });
         document.getElementById('btn-inj-clear').addEventListener('click', () => { injClearAll(); });
+
+        // Phase 5 MIS 이벤트
+        document.getElementById('mis-template').addEventListener('change', (e) => { _missionTemplate = e.target.value; });
+        document.getElementById('btn-mis-assign').addEventListener('click', () => {
+            if (!selectedDrone) { logEvent('info', '📋 드론을 먼저 선택하세요'); return; }
+            const wps = _missionGenerateTemplate(_missionTemplate, selectedDrone.wx, selectedDrone.wz);
+            if (wps.length === 0) { logEvent('info', '📋 템플릿 wp 없음'); return; }
+            missionAdd(selectedDrone.id, wps, _missionTemplate);
+        });
+        document.getElementById('btn-mis-clear').addEventListener('click', () => { missionClearAll(); logEvent('info', '📋 모든 임무 해제'); });
+
+        // Phase 7 ANA 이벤트
+        document.getElementById('tg-ana-heatmap').addEventListener('change', (e) => { anaHeatmap.enabled = e.target.checked; });
+        document.getElementById('btn-ana-latex').addEventListener('click', () => exportLatexKpi());
 
         // Phase 8 AUD 환경음 토글
         document.getElementById('btn-aud-ambient').addEventListener('click', (e) => {
@@ -8185,6 +8473,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             if (typeof updateAudAmbient === 'function') updateAudAmbient();
             if (typeof _audCriticalAlarm === 'function' && simRunning) _audCriticalAlarm();
 
+            // Phase 5 MIS — 임무 진행 + Phase 7 ANA — 누적 히트맵 + KPI 시계열
+            if (typeof updateMissions === 'function' && simRunning) updateMissions();
+            if (typeof _anaHeatmapTick === 'function' && simRunning) _anaHeatmapTick();
+            if (typeof _anaKpiTick === 'function' && simRunning) _anaKpiTick(perfMetrics.fps);
+
             // B4 다중 선택 링 추종(제거된 드론은 Set에서 정리)
             if (multiSel.size) {
                 let i = 0, dirty = false;
@@ -8272,6 +8565,14 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // 충돌위험 히트맵 누적(켜졌을 때)
             if (showHeatmap) updateHeatGrid();
         }, 500);
+
+        // Phase 9 MOB — 모바일 감지 시 자동 LOD + Service Worker 등록 시도
+        if (mobConfig.isMobile) {
+            applyMobileLOD();
+        }
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sdacs-sw.js').catch(() => {/* offline cache 선택사항 */});
+        }
 
         animate();
 
@@ -8387,6 +8688,26 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // ===== Phase 8 — AUD 환경 사운드 외부 API =====
             setAmbientAudio(on) { audAmbient.enabled = !!on; const b = document.getElementById('btn-aud-ambient'); if (b) { b.classList.toggle('off', !audAmbient.enabled); b.textContent = audAmbient.enabled ? '🌬 환경음 ON' : '🌬 환경음 OFF'; } return audAmbient.enabled; },
             get ambientAudio() { return audAmbient.enabled; },
+            // ===== Phase 5 — MIS 임무 계획 외부 API =====
+            missionAdd(droneId, waypoints, templateName) { return missionAdd(droneId, waypoints, templateName); },
+            missionTemplate(name, originX, originZ) { return _missionGenerateTemplate(name, originX || 0, originZ || 0); },
+            missionAssignTemplate(droneId, templateName) {
+                const d = (typeof droneId === 'string') ? drones.find(x => x.id === droneId) : drones[droneId];
+                if (!d) return null;
+                const wps = _missionGenerateTemplate(templateName || 'recon_orbit', d.wx, d.wz);
+                return missionAdd(d.id, wps, templateName || 'recon_orbit');
+            },
+            missionClearAll() { missionClearAll(); return missions.length; },
+            get missions() { return missions.map(m => ({ id: m.id, droneId: m.droneId, wpCount: m.waypoints.length, currentIdx: m.currentIdx, completion: m.completion, template: m.template })); },
+            // ===== Phase 7 — ANA 분석 강화 외부 API =====
+            setAnaHeatmap(on) { anaHeatmap.enabled = !!on; const e = document.getElementById('tg-ana-heatmap'); if (e) e.checked = anaHeatmap.enabled; return anaHeatmap.enabled; },
+            get anaHeatmap() { return anaHeatmap.enabled; },
+            get anaKpiWindow() { return { time: anaKpiWindow.time.slice(), cr: anaKpiWindow.cr.slice(), avgBat: anaKpiWindow.avgBat.slice(), fps: anaKpiWindow.fps.slice() }; },
+            exportLatexKpi() { return exportLatexKpi(); },
+            // ===== Phase 9 — MOB 모바일 외부 API =====
+            get isMobile() { return mobConfig.isMobile; },
+            get mobileLOD() { return mobConfig.autoLOD; },
+            applyMobileLOD() { applyMobileLOD(); return mobConfig.autoLOD; },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

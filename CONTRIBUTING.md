@@ -101,9 +101,43 @@ CPU NumPy 백엔드로 graceful fallback 가능해야 함. 이유: `docs/REGRESS
 
 ## Phase 통합
 
-이 저장소는 **Phase 1~660 + 661~690 완료** 상태이고, **Phase 691~720** 이 작업 중.
-새 작업은 가능한 적절한 Phase 범위에 매핑하여 `tests/test_phase<N1>_<N2>.py` 에 회귀 테스트 추가.
-대규모 변경은 `docs/MASTER_TODO_ATC.md` / `ROADMAP.md` 갱신.
+이 저장소는 **Phase 1~660 + 661~690 완료** 상태이고, **Phase 691~755** 가 작업 중 (Track A-F 6개 트랙).
+새 작업은 가능한 적절한 Phase 범위에 매핑하여 `tests/test_phase<N1>_<N2>.py` 또는 `tests/track_e/test_*.py` 에 회귀 테스트 추가.
+대규모 변경은 `docs/MASTER_TODO_ATC.md` / `ROADMAP.md` / `STATUS_REPORT.md` 갱신.
+
+## 🎓 후속 캡스톤 인수 (P754)
+
+후속 학번 인계 시 다음 체크리스트를 따라 주세요:
+
+### Week 1 — 환경·코드 베이스 학습
+- [ ] `git clone` + `pip install -r requirements.txt`
+- [ ] `pytest tests/ -v` → 4,000+ 통과 확인
+- [ ] `python main.py simulate --duration 30` → Dash 대시보드 동작 확인
+- [ ] HTML 시뮬레이터 더블클릭(또는 http-server) → 정상 표시
+- [ ] [`docs/INDEX.md`](docs/INDEX.md) 마스터 인덱스 일독
+
+### Week 2-4 — 주제 선정·논문 읽기
+- [ ] [`docs/track_f/p754_mentoring.md`](docs/track_f/p754_mentoring.md) 후속 주제 6개 검토
+- [ ] [`docs/paper/related_work.md`](docs/paper/related_work.md) 30편 중 본인 주제 인접 5편 정독
+- [ ] 지도교수 사전 미팅 + 주제 확정
+
+### Week 5-12 — 본 작업
+- 주 1회 진척 보고 (Slack/Email)
+- 매 작업 단위마다 **PR 작성** (작은 단위, draft 활용)
+- PR은 반드시 `pytest` + `code-reviewer` 통과 후 머지
+
+### Week 13-18 — 마무리·발표
+- [ ] 회귀 테스트 80%+ 커버
+- [ ] `ROADMAP.md` 해당 Phase `[x]` 갱신
+- [ ] 발표·논문 자료 작성 ([`docs/slides/`](docs/slides/) 참고)
+
+### 인수 정책
+- **첫 1개월**: PR 머지 금지 (코드 학습 기간)
+- **3개월 후**: 독립 PR 가능
+- **6개월 후**: 다른 학생 리뷰 가능
+- **1년 후**: 학회·심포지엄 발표 권장
+
+자세한 멘토링 일정·정책은 [`docs/track_f/p754_mentoring.md`](docs/track_f/p754_mentoring.md) 참조.
 
 ## License
 

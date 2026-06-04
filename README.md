@@ -807,6 +807,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 18:33 | `6ff357e` | docs: 본 세션 PR 15개 main 머지 완료 반영 — ROADMAP·README·ULTRA_PLAN·STATUS_REPORT 일괄 갱신 | README.md, ROADMAP.md, STATUS_REPORT.md, docs/ULTRA_PLAN.md |
 | 2026-06-04 18:19 | `b9103ec` | Merge remote-tracking branch 'origin/main' into feat/roadmap-p730-p733 | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/maritime_eoir_adapter.md, docs/paper/contribution_outline.md, docs/poster/README.md … |
 | 2026-06-04 18:19 | `bd25cac` | Merge remote-tracking branch 'origin/main' into feat/p735-eoir-adapter | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md … |
 | 2026-06-04 18:18 | `61b8b22` | Merge remote-tracking branch 'origin/main' into feat/p734-multiview-sync | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md … |

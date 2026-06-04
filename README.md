@@ -815,6 +815,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 21:39 | `9363862` | test(e2e): 해양 스모크 C9 검증기록 — 고정 대기를 조건 폴링으로(CI 저속 FPS 결정화) | tests/e2e/smoke_maritime.mjs |
 | 2026-06-04 21:33 | `0beb484` | fix(simulator): Phase 5 MIS 코드리뷰 반영 (방어 가드) | docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-06-04 21:29 | `c823936` | feat(simulator): Phase 5 MIS 임무 계획 UI | README.md, STATUS_REPORT.md, docs/SIMULATOR_MEGA_PLAN.md, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_mis.py … |
 | 2026-06-04 20:13 | `6192d6d` | feat(simulator): Phase 4 CAM 카메라 모드 + Phase 8 AUD 환경 사운드 | README.md, STATUS_REPORT.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_cam_aud.py … |

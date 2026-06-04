@@ -24,8 +24,11 @@ predictedTrail · velocityArrow · separationBubble · priorityIcon · cumulativ
 | 6 | INJ 장애 주입 | 후속 | ~450 | 10 | P3 |
 | 7 | ANA 분석 강화 | 후속 | ~550 | 8 | P3 |
 | 8 | AUD 음성 확장 | 후속 | ~300 | 5 | P2 |
-| 9 | MOB 모바일/PWA | 후속 | ~450 | 6 | P4 |
-| 10 | 통합·문서·CI | 후속 | ~200 | — | — |
+| 9 | MOB 모바일/PWA | ✅ **완료** | ~450 | 6 | P4 |
+| **10** | **통합·문서·CI** | ▶ **진행 중** | ~200 | — | — |
+
+> Phase 1-9 전부 완료(`3db57ec`). Phase 10은 `docs/SDACS_API.md`(전체 `_sdacs` API 레퍼런스) 신설로 문서 트랙 착수.
+> 데모 영상 녹화·라이브 Pages 동기화는 사용자 환경 의존 잔여 항목.
 
 ---
 
@@ -139,11 +142,11 @@ for each drone (visible):
 
 ## Phase 10 — 통합·문서·CI (마지막)
 
-- README 최신화 (모든 신규 기능 반영)
-- `_sdacs` API 전체 문서화 (`docs/SDACS_API.md`)
-- E2E 테스트 통합 매트릭스 (`.github/workflows/sim-smoke.yml`)
-- 데모 영상 녹화 (Phase 3 CIN 녹화 기능 사용, 2분)
-- 라이브 데모 GitHub Pages 동기화
+- [x] README 최신화 (모든 신규 기능 반영) — 9 Phase 완료 시 반영됨
+- [x] `_sdacs` API 전체 문서화 (`docs/SDACS_API.md`) — 17개 섹션, Phase 1-9 전 API 정리
+- [x] E2E 테스트 통합 매트릭스 (`.github/workflows/sim-smoke.yml`) — 기존 워크플로우 존재
+- [ ] 데모 영상 녹화 (Phase 3 CIN 녹화 기능 사용, 2분) — 사용자 환경 의존
+- [ ] 라이브 데모 GitHub Pages 동기화 — 사용자 환경 의존
 
 ---
 

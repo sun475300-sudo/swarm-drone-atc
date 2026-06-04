@@ -804,6 +804,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 18:16 | `25b0396` | Merge remote-tracking branch 'origin/main' into feat/p734-replay-scrubber | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md … |
 | 2026-06-04 18:16 | `637e515` | fix: ROADMAP conflict 마커 잔존 정리 (base 채택) | ROADMAP.md |
 | 2026-06-04 18:15 | `bbd98eb` | Merge remote-tracking branch 'origin/main' into feat/p732-cpa-spatial-hash | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md … |
 | 2026-06-04 18:15 | `09a5da6` | Merge remote-tracking branch 'origin/main' into feat/p731-layer-panel-merge | README.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md, docs/slides/README.md … |

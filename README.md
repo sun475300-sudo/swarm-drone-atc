@@ -787,6 +787,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 11:09 | `32e00be` | feat: 울트라플랜 대규모 실행 — Track A 실기·B 후반·C 베타·E PoC·F 산학 일괄 | ROADMAP.md, docs/beta/README.md, docs/hardware/README.md, docs/hardware/environmental_test.md, docs/hardware/failsafe_logic.md, docs/hardware/fmea_report.md … |
 | 2026-06-03 19:39 | `426b9e7` | ci: desktop-build setup-node 캐시 비활성화 (lock 파일 부재로 실패) | .github/workflows/desktop-build.yml |
 | 2026-06-03 13:12 | `3295124` | feat: 병렬 세션의 고유 작업 통합 (Track A SW + P706 결과 + 벤치마크 schema) | benchmarks/_schema/manifest.schema.json, results/p706_comparison_3sc_5seed.csv, results/p706_summary.json, scripts/compare_baselines.py, simulation/environmental_scenario.py, simulation/failsafe_manager.py … |
 | 2026-06-03 12:39 | `cd82157` | Merge remote-tracking branch 'origin/claude/dazzling-maxwell-5AnBo' | .github/workflows/security.yml, README.md, ROADMAP.md, db/migrations/001_initial_schema.sql, helm/sdacs/.helmignore, helm/sdacs/Chart.yaml … |

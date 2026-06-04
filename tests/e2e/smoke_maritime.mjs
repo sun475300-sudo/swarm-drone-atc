@@ -112,12 +112,16 @@ try {
   }
   ok(c8ok, 'C8 신규 시나리오 3종(storm/harbor/pirate)');
 
-  // 7e. C9 시나리오별 검증 기록 — 여러 시나리오 전환 후 기록 누적
+  // 7e. C9 시나리오별 검증 기록 — 탐지·시간 누적 후 스냅샷
+  // 스냅샷 게이트는 detected>=1 && simTime>=3 (snapshotValidation). simTime은
+  // min(delta,0.1)*1.5로 누적돼 저속 CI 렌더(swiftshader ~3fps)에서는 벽시계보다
+  // 느리게(약 0.6/s) 증가하므로, 고정 대기가 아니라 스냅샷 가능 조건이 충족될
+  // 때까지 폴링한다(FPS 무관 결정적). validation getter가 게이트 충족 시 기록을 남김.
   await page.evaluate(() => window._mds.start());
   await page.evaluate(() => window._mds.scenario('normal'));
-  await page.waitForTimeout(4000);                       // 탐지 누적
+  await page.waitForFunction(() => window._mds.validation.length > 0, { timeout: 30000 });
   await page.evaluate(() => window._mds.scenario('fog')); // 전환 → normal 스냅샷
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(300);
   const val = await page.evaluate(() => window._mds.validation);
   const vOK = Array.isArray(val) && val.length > 0 && val.every(r => typeof r.scen === 'string' && Number.isFinite(r.acc) && r.acc >= 0 && r.acc <= 100);
   ok(vOK, `C9 검증 기록 (${val.length}개 시나리오, 예: ${val[0]?.scen} acc=${val[0]?.acc?.toFixed(0)}%)`);

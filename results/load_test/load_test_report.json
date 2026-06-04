@@ -1,53 +1,68 @@
 {
   "aggregate": [
     {
-      "clearances_per_sec_mean": 0.33,
+      "clearances_per_sec_mean": 0.32,
       "collisions_mean": 0.0,
       "drone_count": 20,
-      "n_seeds": 2,
+      "n_seeds": 3,
       "near_misses_mean": 0.0,
       "peak_memory_mb_max": 8.7,
       "peak_memory_mb_mean": 8.5,
       "resolution_rate_pct": 100.0,
-      "rtf_mean": 1.56,
-      "rtf_std": 0.15,
+      "rtf_mean": 2.43,
+      "rtf_std": 1.37,
       "status": "Acceptable",
-      "wall_s_mean": 19.247,
-      "wall_s_std": 1.838
+      "wall_s_mean": 14.698,
+      "wall_s_std": 6.267
     },
     {
-      "clearances_per_sec_mean": 0.81,
+      "clearances_per_sec_mean": 0.82,
       "collisions_mean": 0.0,
       "drone_count": 50,
-      "n_seeds": 2,
+      "n_seeds": 3,
       "near_misses_mean": 0.0,
       "peak_memory_mb_max": 9.4,
       "peak_memory_mb_mean": 9.3,
       "resolution_rate_pct": 100.0,
-      "rtf_mean": 0.55,
-      "rtf_std": 0.14,
+      "rtf_mean": 0.48,
+      "rtf_std": 0.1,
       "status": "Below real-time",
-      "wall_s_mean": 56.688,
-      "wall_s_std": 15.16
+      "wall_s_mean": 63.856,
+      "wall_s_std": 12.551
     },
     {
-      "clearances_per_sec_mean": 1.63,
-      "collisions_mean": 3.0,
+      "clearances_per_sec_mean": 1.62,
+      "collisions_mean": 2.3,
       "drone_count": 100,
-      "n_seeds": 2,
-      "near_misses_mean": 14.5,
-      "peak_memory_mb_max": 11.9,
-      "peak_memory_mb_mean": 11.1,
-      "resolution_rate_pct": 98.72,
-      "rtf_mean": 0.28,
-      "rtf_std": 0.05,
+      "n_seeds": 3,
+      "near_misses_mean": 10.3,
+      "peak_memory_mb_max": 12.0,
+      "peak_memory_mb_mean": 11.3,
+      "resolution_rate_pct": 99.06,
+      "rtf_mean": 0.26,
+      "rtf_std": 0.03,
       "status": "Below real-time",
-      "wall_s_mean": 111.379,
-      "wall_s_std": 18.72
+      "wall_s_mean": 117.779,
+      "wall_s_std": 13.403
+    },
+    {
+      "clearances_per_sec_mean": 3.27,
+      "collisions_mean": 3.0,
+      "drone_count": 200,
+      "n_seeds": 3,
+      "near_misses_mean": 28.7,
+      "peak_memory_mb_max": 16.5,
+      "peak_memory_mb_mean": 15.3,
+      "resolution_rate_pct": 99.85,
+      "rtf_mean": 0.15,
+      "rtf_std": 0.01,
+      "status": "Below real-time",
+      "wall_s_mean": 198.91,
+      "wall_s_std": 13.446
     }
   ],
   "duration_s": 30.0,
-  "generated_at": "2026-05-31T20:04:44",
+  "generated_at": "2026-05-31T20:12:42",
   "per_run": [
     {
       "clearances_per_sec": 0.32,
@@ -57,10 +72,10 @@
       "duration_s": 30.0,
       "near_miss_count": 0,
       "peak_memory_mb": 8.3,
-      "real_time_factor": 1.46,
+      "real_time_factor": 1.64,
       "route_efficiency_mean": 0.0035,
       "seed": 42,
-      "wall_seconds": 20.547
+      "wall_seconds": 18.324
     },
     {
       "clearances_per_sec": 0.33,
@@ -70,10 +85,23 @@
       "duration_s": 30.0,
       "near_miss_count": 0,
       "peak_memory_mb": 8.7,
-      "real_time_factor": 1.67,
+      "real_time_factor": 1.64,
       "route_efficiency_mean": 0.008,
       "seed": 43,
-      "wall_seconds": 17.947
+      "wall_seconds": 18.308
+    },
+    {
+      "clearances_per_sec": 0.3,
+      "collision_count": 0,
+      "conflict_resolution_rate_pct": 100.0,
+      "drone_count": 20,
+      "duration_s": 30.0,
+      "near_miss_count": 0,
+      "peak_memory_mb": 8.4,
+      "real_time_factor": 4.02,
+      "route_efficiency_mean": 0.0052,
+      "seed": 44,
+      "wall_seconds": 7.462
     },
     {
       "clearances_per_sec": 0.83,
@@ -83,10 +111,10 @@
       "duration_s": 30.0,
       "near_miss_count": 0,
       "peak_memory_mb": 9.2,
-      "real_time_factor": 0.45,
+      "real_time_factor": 0.44,
       "route_efficiency_mean": 0.01,
       "seed": 42,
-      "wall_seconds": 67.408
+      "wall_seconds": 68.559
     },
     {
       "clearances_per_sec": 0.8,
@@ -95,11 +123,24 @@
       "drone_count": 50,
       "duration_s": 30.0,
       "near_miss_count": 0,
-      "peak_memory_mb": 9.4,
-      "real_time_factor": 0.65,
-      "route_efficiency_mean": 0.0097,
+      "peak_memory_mb": 9.3,
+      "real_time_factor": 0.6,
+      "route_efficiency_mean": 0.0098,
       "seed": 43,
-      "wall_seconds": 45.968
+      "wall_seconds": 49.632
+    },
+    {
+      "clearances_per_sec": 0.83,
+      "collision_count": 0,
+      "conflict_resolution_rate_pct": 100.0,
+      "drone_count": 50,
+      "duration_s": 30.0,
+      "near_miss_count": 0,
+      "peak_memory_mb": 9.4,
+      "real_time_factor": 0.41,
+      "route_efficiency_mean": 0.0111,
+      "seed": 44,
+      "wall_seconds": 73.376
     },
     {
       "clearances_per_sec": 1.63,
@@ -109,23 +150,75 @@
       "duration_s": 30.0,
       "near_miss_count": 28,
       "peak_memory_mb": 10.3,
-      "real_time_factor": 0.31,
+      "real_time_factor": 0.28,
       "route_efficiency_mean": 0.0114,
       "seed": 42,
-      "wall_seconds": 98.142
+      "wall_seconds": 105.576
     },
     {
-      "clearances_per_sec": 1.63,
+      "clearances_per_sec": 1.62,
       "collision_count": 0,
       "conflict_resolution_rate_pct": 100.0,
       "drone_count": 100,
       "duration_s": 30.0,
       "near_miss_count": 1,
-      "peak_memory_mb": 11.9,
-      "real_time_factor": 0.24,
-      "route_efficiency_mean": 0.0123,
+      "peak_memory_mb": 12.0,
+      "real_time_factor": 0.26,
+      "route_efficiency_mean": 0.0122,
       "seed": 43,
-      "wall_seconds": 124.616
+      "wall_seconds": 115.636
+    },
+    {
+      "clearances_per_sec": 1.62,
+      "collision_count": 1,
+      "conflict_resolution_rate_pct": 99.73,
+      "drone_count": 100,
+      "duration_s": 30.0,
+      "near_miss_count": 2,
+      "peak_memory_mb": 11.6,
+      "real_time_factor": 0.23,
+      "route_efficiency_mean": 0.0125,
+      "seed": 44,
+      "wall_seconds": 132.124
+    },
+    {
+      "clearances_per_sec": 3.27,
+      "collision_count": 0,
+      "conflict_resolution_rate_pct": 100.0,
+      "drone_count": 200,
+      "duration_s": 30.0,
+      "near_miss_count": 4,
+      "peak_memory_mb": 14.8,
+      "real_time_factor": 0.16,
+      "route_efficiency_mean": 0.0139,
+      "seed": 42,
+      "wall_seconds": 188.804
+    },
+    {
+      "clearances_per_sec": 3.32,
+      "collision_count": 6,
+      "conflict_resolution_rate_pct": 99.68,
+      "drone_count": 200,
+      "duration_s": 30.0,
+      "near_miss_count": 29,
+      "peak_memory_mb": 14.7,
+      "real_time_factor": 0.15,
+      "route_efficiency_mean": 0.0143,
+      "seed": 43,
+      "wall_seconds": 193.756
+    },
+    {
+      "clearances_per_sec": 3.22,
+      "collision_count": 3,
+      "conflict_resolution_rate_pct": 99.86,
+      "drone_count": 200,
+      "duration_s": 30.0,
+      "near_miss_count": 53,
+      "peak_memory_mb": 16.5,
+      "real_time_factor": 0.14,
+      "route_efficiency_mean": 0.0139,
+      "seed": 44,
+      "wall_seconds": 214.171
     }
   ]
 }

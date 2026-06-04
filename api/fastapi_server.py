@@ -51,14 +51,6 @@ except ImportError as exc:  # pragma: no cover
         "pip install 'fastapi>=0.110' 'uvicorn[standard]>=0.29' 'pydantic>=2.5'"
     ) from exc
 
-from api.auth import (
-    AuditMiddleware,
-    Role,
-    get_current_user,
-    register_auth_routes,
-    require_role,
-)
-
 LOGGER = logging.getLogger("sdacs.fastapi")
 API_VERSION = "1.2.0"
 
@@ -491,11 +483,6 @@ async def _demo_telemetry_stream() -> None:
         await asyncio.sleep(0.1)
 
 
-<<<<<<< HEAD
-# --- Auth dependency (P712: JWT + RBAC, see api/auth.py) ---
-
-require_token = get_current_user
-=======
 # --- Auth dependency (P712 — delegates to api.auth) ---
 
 
@@ -504,7 +491,6 @@ async def require_token(authorization: str = Header(default="")) -> str:
     if not authorization.startswith("Bearer "):
         raise HTTPException(401, detail="missing bearer token")
     return authorization[len("Bearer "):]
->>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
 
 
 # --- Pydantic models ---
@@ -554,8 +540,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.add_middleware(AuditMiddleware)
-register_auth_routes(app)
 
 # P712: mount the auth router (/auth/token, /auth/refresh, /auth/me, /auth/audit)
 try:

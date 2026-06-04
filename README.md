@@ -823,11 +823,7 @@ MIT License — Developed for academic and educational purposes.
 <div align="center">
 **Made with dedication by Sunwoo Jang**
 **장선우 · 국립 목포대학교 드론기계공학과**
-<<<<<<< HEAD
-**Phase 706 · 764 Python files · 5,342+ Tests Collected · 50+ Languages · 148K+ LOC**
-=======
-**Phase 700 · 830+ modules · 5,500+ Tests Collected · 50+ Languages · 157K+ LOC**
->>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
+**Phase 706 · 760+ Python files · 5,300+ Tests Collected · 50+ Languages · 150K+ LOC**
 </div>
 
 ## 변경 이력 (Changelog)

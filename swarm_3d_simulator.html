@@ -1262,6 +1262,8 @@
             <div style="margin-top:8px;padding:6px;border:1px solid rgba(139,92,246,0.35);border-radius:4px;background:linear-gradient(180deg,rgba(139,92,246,0.06),transparent);">
                 <div style="font-size:8px;color:#8b5cf6;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">📊 분석 강화 (ANA)</div>
                 <label class="av-toggle"><input type="checkbox" id="tg-ana-heatmap"> 누적 위협 히트맵 (10s 감쇠)</label>
+                <label class="av-toggle"><input type="checkbox" id="tg-ana-blame"> 충돌 책임 분석 (양보 위반 추적)</label>
+                <div id="ana-blame-list" style="margin-top:3px;max-height:70px;overflow-y:auto;font-size:8px;line-height:1.5;font-family:'JetBrains Mono',monospace;color:#fca5a5;"></div>
                 <div style="display:flex;gap:4px;margin-top:4px;">
                     <button class="atc-btn" id="btn-ana-latex" style="flex:1;color:#8b5cf6;border-color:rgba(139,92,246,0.5);" title="KPI를 LaTeX 표로 출력 (.tex 다운로드 + 클립보드)">📐 LaTeX 표</button>
                 </div>
@@ -3672,6 +3674,7 @@
             }
             drones = [];
             stats = { conflicts: 0, nearMisses: 0, collisions: 0, advisories: 0 };
+            if (typeof resetAnaBlame === 'function') resetAnaBlame();
             simTime = 0;
             // 분석 히스토리 초기화
             Object.keys(chartHistory).forEach(k => { if (Array.isArray(chartHistory[k])) chartHistory[k].length = 0; });
@@ -4945,6 +4948,7 @@
                                     spawnCollisionParticles(midX, midY, midZ);
                                     triggerCameraShake(0.3);
                                     logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist3d)}m)`);
+                                    if (typeof anaRecordBlame === 'function') anaRecordBlame(a, b, 'collision', dist3d);
                                 }
 
                                 // 긴급 회피: 강한 반발 + 수직 분리 (강풍 증폭)
@@ -4964,6 +4968,7 @@
                                     nearCooldown.set(nearKey, simTime);
                                     if (lineCount < maxLines) { addProximityLine(a, b, 0xff6600, 0.3); lineCount++; }
                                     if (eventLog.length < 80) logEvent('near', `${a.id} ↔ ${b.id} 근접경고 (${Math.round(effectiveDist)}m)`);
+                                    if (typeof anaRecordBlame === 'function') anaRecordBlame(a, b, 'near', effectiveDist);
                                 }
 
                                 // 지수 반발력 (가까울수록 급격히 증가, 강풍 증폭)
@@ -5278,6 +5283,90 @@
                     d.atc.cmd = null; d.atc.lockUntil = 0; d.atc.params = null;
                 }
             }
+        }
+
+        // ===== Phase 7 ANA-5 — 충돌 책임 분석 (양보 위반 추적) =====
+        // 분리위반(충돌·근접) 발생 시 통행권 규칙으로 양보 의무 드론을 판정하고
+        // 적색 발광 링(5초)으로 책임 드론을 표시 + 분석 로그 기록.
+        let _anaBlameEnabled = false;
+        const _anaBlameRecords = [];          // {t, responsibleId, otherId, kind, sep, msg}
+        const _ANA_BLAME_MAX = 200;
+        const _anaBlameGlow = new Map();      // droneId → {drone, expiry}
+        const _anaBlameCooldown = new Map();  // pairKey → 마지막 기록 simTime (프레임당 중복 방지)
+        const _ANA_BLAME_COOLDOWN_SEC = 2.0;
+        const _ANA_BLAME_GLOW_SEC = 5.0;
+        const anaBlameGroup = new THREE.Group();
+        anaBlameGroup.renderOrder = 997;
+        scene.add(anaBlameGroup);
+        const _anaBlameGeo = new THREE.TorusGeometry(1.05, 0.09, 6, 28);
+        const _anaBlameMat = new THREE.MeshBasicMaterial({ color: 0xff3030, transparent: true, opacity: 0.8, depthTest: false });
+        const _anaBlamePool = [];
+        function _anaBlameRingAcquire() {
+            for (const r of _anaBlamePool) if (!r.visible) return r;
+            const r = new THREE.Mesh(_anaBlameGeo, _anaBlameMat);
+            r.rotation.x = Math.PI / 2;
+            r.renderOrder = 997;
+            anaBlameGroup.add(r);
+            _anaBlamePool.push(r);
+            return r;
+        }
+        function _anaBlameRenderList() {
+            const el = document.getElementById('ana-blame-list');
+            if (!el) return;
+            const recent = _anaBlameRecords.slice(-6).reverse();
+            el.innerHTML = recent.map(r => `<div>⚖ t${Math.round(r.t)}s · ${r.msg}</div>`).join('');
+        }
+        // 책임 판정: 우선순위 숫자가 작을수록 통행권(높은 우선순위). 큰 쪽이 양보 의무 → 위반 시 책임.
+        // 동급이면 ID 결정론 규칙(작은 ID 통행권)을 적용해 큰 ID가 책임.
+        function anaRecordBlame(a, b, kind, sep) {
+            if (!_anaBlameEnabled) return;
+            // GPU/Worker 경로는 프레임당 raw 이벤트를 방출 → 같은 쌍 중복 기록 방지(2s 쿨다운)
+            const ck = a.id < b.id ? a.id + '|' + b.id : b.id + '|' + a.id;
+            const last = _anaBlameCooldown.get(ck) || -1e9;
+            if (simTime - last < _ANA_BLAME_COOLDOWN_SEC) return;
+            _anaBlameCooldown.set(ck, simTime);
+            let resp, other;
+            if (a.priority === b.priority) {
+                const ai = parseInt(a.id.replace('DR-', '')), bi = parseInt(b.id.replace('DR-', ''));
+                resp = ai > bi ? a : b;
+            } else {
+                resp = a.priority > b.priority ? a : b;
+            }
+            other = resp === a ? b : a;
+            const msg = `${resp.id} (P${resp.priority}) failed to yield to ${other.id} (P${other.priority})`;
+            _anaBlameRecords.push({ t: +simTime.toFixed(2), responsibleId: resp.id, otherId: other.id, kind, sep: Math.round(sep), msg });
+            if (_anaBlameRecords.length > _ANA_BLAME_MAX) _anaBlameRecords.splice(0, _anaBlameRecords.length - _ANA_BLAME_MAX);
+            _anaBlameGlow.set(resp.id, { drone: resp, expiry: simTime + _ANA_BLAME_GLOW_SEC });
+            _anaBlameRenderList();
+        }
+        function updateAnaBlame(timeNow) {
+            if (!_anaBlameEnabled || megaMode) { anaBlameGroup.visible = false; return; }
+            anaBlameGroup.visible = true;
+            for (const r of _anaBlamePool) r.visible = false;
+            let n = 0;
+            for (const [id, g] of _anaBlameGlow) {
+                if (g.expiry <= simTime || !g.drone.group || !g.drone.group.parent) { _anaBlameGlow.delete(id); continue; }
+                const r = _anaBlameRingAcquire();
+                r.visible = true;
+                r.position.copy(g.drone.group.position);
+                const pulse = 0.85 + 0.3 * Math.sin(timeNow * 8 + n);
+                r.scale.set(pulse, pulse, pulse);
+                r.rotation.z = timeNow * 2.0;
+                n++;
+            }
+            // 쿨다운 맵 누수 방지: 커지면 만료 항목 정리
+            if (_anaBlameCooldown.size > 256) {
+                for (const [k, t] of _anaBlameCooldown) {
+                    if (simTime - t > _ANA_BLAME_COOLDOWN_SEC * 2) _anaBlameCooldown.delete(k);
+                }
+            }
+        }
+        function resetAnaBlame() {
+            _anaBlameRecords.length = 0;
+            _anaBlameGlow.clear();
+            _anaBlameCooldown.clear();
+            for (const r of _anaBlamePool) r.visible = false;
+            _anaBlameRenderList();
         }
 
         // ===== Phase 2 TAC-1 — 예측 비행경로 라인 =====
@@ -6948,6 +7037,10 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
 
         // Phase 7 ANA 이벤트
         document.getElementById('tg-ana-heatmap').addEventListener('change', (e) => { anaHeatmap.enabled = e.target.checked; });
+        document.getElementById('tg-ana-blame').addEventListener('change', (e) => {
+            _anaBlameEnabled = e.target.checked;
+            if (!_anaBlameEnabled) anaBlameGroup.visible = false;
+        });
         document.getElementById('btn-ana-latex').addEventListener('click', () => exportLatexKpi());
 
         // Phase 8 AUD 환경음 토글
@@ -8110,8 +8203,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 const type = ev[e], ai = ev[e+1], bi = ev[e+2], dist = ev[e+3];
                 const a = drones[ai], b = drones[bi];
                 if (!a || !b) continue;
-                if (type === 0) { stats.collisions++; logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist)}m)`); }
-                else if (type === 1) { stats.nearMisses++; }
+                if (type === 0) { stats.collisions++; logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist)}m)`); if (typeof anaRecordBlame === 'function') anaRecordBlame(a, b, 'collision', dist); }
+                else if (type === 1) { stats.nearMisses++; if (typeof anaRecordBlame === 'function') anaRecordBlame(a, b, 'near', dist); }
                 else if (type === 2) { stats.conflicts++; }
             }
             _gpuForces = null; _gpuEvents = null;
@@ -8261,8 +8354,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 const type = ev[e], ai = ev[e+1], bi = ev[e+2], dist = ev[e+3];
                 const a = drones[ai], b = drones[bi];
                 if (!a || !b) continue;
-                if (type === 0) { stats.collisions++; logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist)}m)`); }
-                else if (type === 1) { stats.nearMisses++; }
+                if (type === 0) { stats.collisions++; logEvent('collision', `${a.id} ↔ ${b.id} 충돌! (${Math.round(dist)}m)`); if (typeof anaRecordBlame === 'function') anaRecordBlame(a, b, 'collision', dist); }
+                else if (type === 1) { stats.nearMisses++; if (typeof anaRecordBlame === 'function') anaRecordBlame(a, b, 'near', dist); }
                 else if (type === 2) { stats.conflicts++; }
             }
             _workerForces = null; _workerEvents = null;
@@ -8452,6 +8545,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
             // ATC 제어 중인 드론들 시안 발광 링 (Phase 1C)
             if (typeof updateAtcRings === 'function') updateAtcRings(t);
+
+            // Phase 7 ANA-5 — 충돌 책임(양보 위반) 드론 적색 발광
+            if (typeof updateAnaBlame === 'function') updateAnaBlame(t);
 
             // Phase 2 TAC — 예측 비행경로 + 속도 화살표 + CPA 마커
             if (typeof updatePredTrails === 'function') updatePredTrails();
@@ -8704,6 +8800,13 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get anaHeatmap() { return anaHeatmap.enabled; },
             get anaKpiWindow() { return { time: anaKpiWindow.time.slice(), cr: anaKpiWindow.cr.slice(), avgBat: anaKpiWindow.avgBat.slice(), fps: anaKpiWindow.fps.slice() }; },
             exportLatexKpi() { return exportLatexKpi(); },
+            // ANA-5 충돌 책임 분석
+            setAnaBlame(on) { _anaBlameEnabled = !!on; const e = document.getElementById('tg-ana-blame'); if (e) e.checked = _anaBlameEnabled; if (!_anaBlameEnabled) anaBlameGroup.visible = false; return _anaBlameEnabled; },
+            get anaBlame() { return _anaBlameEnabled; },
+            get anaBlameCount() { return _anaBlameRecords.length; },
+            get anaBlameActive() { return _anaBlameGlow.size; },
+            get anaBlameRecords() { return _anaBlameRecords.slice(-50).map(r => ({ t: r.t, responsibleId: r.responsibleId, otherId: r.otherId, kind: r.kind, sep: r.sep, msg: r.msg })); },
+            resetAnaBlame() { resetAnaBlame(); return _anaBlameRecords.length; },
             // ===== Phase 9 — MOB 모바일 외부 API =====
             get isMobile() { return mobConfig.isMobile; },
             get mobileLOD() { return mobConfig.autoLOD; },

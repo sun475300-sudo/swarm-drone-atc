@@ -481,10 +481,11 @@ const _arrowPool = [];         // ArrowHelper 풀
 - 클립보드 복사 or `.tex` 파일 다운로드
 - 시나리오·드론수·기상 변수 메타 헤더 자동 추가
 
-#### ANA-5. 충돌 책임 분석
-- CPA 발생 시점에 두 드론의 우선순위·회피 여부 비교
-- 결과: "DR-007 (P3) failed to yield to DR-013 (P1)"
-- 책임 드론을 적색 발광 처리 (5초)
+#### ANA-5. 충돌 책임 분석 ✅ 구현 완료
+- 분리위반(충돌·근접) 발생 시 통행권 규칙으로 양보 의무 드론 판정 (우선순위 숫자가 큰 쪽이 책임, 동급 시 ID 결정론)
+- 결과: "DR-021 (P8) failed to yield to DR-006 (P6)" — 분석 로그 패널 + 책임 드론 적색 발광 링 (5초 펄스)
+- 토글 `tg-ana-blame`(기본 OFF) · `_sdacs` API: `setAnaBlame`/`anaBlame`/`anaBlameCount`/`anaBlameActive`/`anaBlameRecords`/`resetAnaBlame`
+- GPU/Worker/CPU 3개 충돌 감지 경로 모두에 연결 · E2E 4종 (`test_simulator_mis_ana_mob.py`)
 
 #### ANA-6. 드론별 텔레메트리 CSV
 - 각 드론마다 10Hz 샘플 (wx, wy, wz, vx, vy, vz, phase, battery)

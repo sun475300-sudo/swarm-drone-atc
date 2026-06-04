@@ -176,10 +176,67 @@ def test_ana_ui_present(page):
         () => ({
             heatmap: !!document.getElementById('tg-ana-heatmap'),
             latex: !!document.getElementById('btn-ana-latex'),
+            blame: !!document.getElementById('tg-ana-blame'),
+            blame_list: !!document.getElementById('ana-blame-list'),
         })
     """)
     for k, v in r.items():
         assert v, f"ANA UI element missing: {k}"
+
+
+# ===== Phase 7 ANA-5 충돌 책임 분석 =====
+
+def test_ana_blame_api_exposed(page):
+    pg, _ = page
+    keys = pg.evaluate("Object.keys(window._sdacs)")
+    for k in ["setAnaBlame", "anaBlame", "anaBlameCount", "anaBlameActive",
+              "anaBlameRecords", "resetAnaBlame"]:
+        assert k in keys, f"_sdacs.{k} missing"
+
+
+def test_ana_blame_default_off(page):
+    pg, _ = page
+    assert pg.evaluate("window._sdacs.anaBlame") is False
+    assert pg.evaluate("window._sdacs.setAnaBlame(true)") is True
+    assert pg.evaluate("document.getElementById('tg-ana-blame').checked") is True
+    pg.evaluate("window._sdacs.setAnaBlame(false)")
+
+
+def test_ana_blame_records_responsibility(page):
+    """분리위반(충돌·근접) 발생 시 양보 위반 드론을 판정·기록하고 발광 링을 표시한다."""
+    pg, _ = page
+    # 고밀도 시나리오로 전환해 분리위반을 유도
+    pg.evaluate("""
+        () => {
+            window._sdacs.resetAnaBlame();
+            window._sdacs.setAnaBlame(true);
+            const s = document.getElementById('scenario');
+            if (s) { s.value = 'high_density'; s.dispatchEvent(new Event('change')); }
+            window._sdacs.setAnaBlame(true);
+            window._sdacs.startSim();
+        }
+    """)
+    pg.wait_for_function("window._sdacs.anaBlameCount > 0", timeout=30000)
+    rec = pg.evaluate("""
+        () => ({
+            count: window._sdacs.anaBlameCount,
+            active: window._sdacs.anaBlameActive,
+            sample: window._sdacs.anaBlameRecords.slice(-1)[0],
+        })
+    """)
+    assert rec["count"] > 0, "책임 기록이 누적되어야 함"
+    assert rec["active"] > 0, "책임 드론 발광 링이 활성이어야 함"
+    s = rec["sample"]
+    assert s and "failed to yield" in s["msg"], f"메시지 포맷 불일치: {s}"
+    assert s["responsibleId"] and s["otherId"], "책임/상대 드론 ID 기록 필요"
+    assert s["responsibleId"] != s["otherId"], "책임/상대는 서로 다른 드론"
+
+
+def test_ana_blame_reset_clears(page):
+    pg, _ = page
+    after = pg.evaluate("window._sdacs.resetAnaBlame()")
+    assert after == 0
+    assert pg.evaluate("window._sdacs.anaBlameCount") == 0
 
 
 # ===== Phase 9 MOB =====

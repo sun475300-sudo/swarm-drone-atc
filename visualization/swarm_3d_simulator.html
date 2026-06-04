@@ -1211,6 +1211,9 @@
                 <button id="btn-atc-audio" class="atc-audio-btn off" title="ATC 음성 어드바이저리·경보음 토글">🔇 음성 OFF</button>
                 <button id="btn-atc-log" class="atc-audio-btn" title="ATC 명령 로그 표시 토글">📋 로그</button>
             </div>
+            <div style="display:flex;gap:4px;margin-top:4px;align-items:center;justify-content:flex-end;">
+                <button id="btn-aud-ambient" class="atc-audio-btn off" title="환경 사운드(바람·우천) + 임계 알람음 (음성 ON 필요)">🌬 환경음 OFF</button>
+            </div>
             <!-- Phase 3 CIN — 시네마틱 모드 -->
             <div style="margin-top:8px;padding:6px;border:1px solid rgba(168,85,247,0.35);border-radius:4px;background:linear-gradient(180deg,rgba(168,85,247,0.06),transparent);">
                 <div style="font-size:8px;color:#a855f7;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">🎬 시네마틱 (CIN)</div>
@@ -1280,6 +1283,11 @@
                 <button class="ctrl-btn cam-preset" data-cam="top" style="flex:1;">탑다운</button>
                 <button class="ctrl-btn cam-preset" data-cam="follow" style="flex:1;">추적</button>
                 <button class="ctrl-btn cam-preset" data-cam="orbit" style="flex:1;">오빗</button>
+            </div>
+            <div style="display:flex;gap:4px;margin-top:4px;">
+                <button class="ctrl-btn cam-preset" data-cam="fpv" style="flex:1;" title="선택 드론 1인칭 시점 (드론 카메라)">🎥 FPV</button>
+                <button class="ctrl-btn cam-preset" data-cam="chase" style="flex:1;" title="선택 드론 뒤 추격 (spring 보간)">🏁 추격</button>
+                <button class="ctrl-btn cam-preset" data-cam="side" style="flex:1;" title="측면 시점">↔ 측면</button>
             </div>
             <div style="display:flex;gap:4px;margin-top:5px;align-items:center;">
                 <select id="filter-phase" class="ctrl-select" style="flex:1;font-size:9px;">
@@ -5471,6 +5479,71 @@
             } catch (e) { /* ignore */ }
         }
 
+        // ===== Phase 8 AUD — 환경 사운드 + 임계 알람 톤 =====
+        const audAmbient = {
+            enabled: false,
+            windNode: null,
+            windGain: null,
+            started: false,
+            _lastAlarmTs: 0,
+        };
+
+        function _audEnsureWind() {
+            if (audAmbient.started) return;
+            try {
+                _audioCtx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+                // 화이트노이즈 버퍼 → 바람 소리
+                const bufSize = _audioCtx.sampleRate * 2;
+                const buf = _audioCtx.createBuffer(1, bufSize, _audioCtx.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+                const src = _audioCtx.createBufferSource();
+                src.buffer = buf;
+                src.loop = true;
+                // 로우패스 필터로 바람 질감
+                const filter = _audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 500;
+                const gain = _audioCtx.createGain();
+                gain.gain.value = 0;
+                src.connect(filter); filter.connect(gain); gain.connect(_audioCtx.destination);
+                src.start();
+                audAmbient.windNode = filter;
+                audAmbient.windGain = gain;
+                audAmbient.started = true;
+            } catch (e) { /* ignore */ }
+        }
+
+        function updateAudAmbient() {
+            if (!audAmbient.enabled || !atcAudioEnabled) {
+                if (audAmbient.windGain) audAmbient.windGain.gain.value = 0;
+                return;
+            }
+            _audEnsureWind();
+            if (!audAmbient.windGain) return;
+            // 풍속에 비례한 바람 소리 음량 (0~12 m/s → 0~0.15 gain)
+            const windSpd = Math.sqrt(weather.baseWind.x ** 2 + weather.baseWind.z ** 2) + weather.gustIntensity;
+            const targetGain = windEnabled ? Math.min(0.15, windSpd * 0.012) : 0.005;
+            audAmbient.windGain.gain.value += (targetGain - audAmbient.windGain.gain.value) * 0.05;
+            // 풍속 높으면 필터 주파수 ↑ (휘파람 효과)
+            if (audAmbient.windNode) audAmbient.windNode.frequency.value = 300 + windSpd * 80;
+            // 비/눈 활성 시 추가 노이즈 (강도 비례)
+            if (cinParticles.rain.enabled && audAmbient.windGain) {
+                audAmbient.windGain.gain.value = Math.max(audAmbient.windGain.gain.value, 0.05 + cinParticles.rain.intensity * 0.08);
+            }
+        }
+
+        // 임계 상황 알람 (배터리·충돌) — 1초 쿨다운
+        function _audCriticalAlarm() {
+            if (!audAmbient.enabled || !atcAudioEnabled) return;
+            if (simTime - audAmbient._lastAlarmTs < 1.0) return;
+            const critBat = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED' && d.battery < 15).length;
+            if (critBat > 0) {
+                _atcBeep(880, 120, 0.04);
+                audAmbient._lastAlarmTs = simTime;
+            }
+        }
+
         function _atcLogPush(did, cmd, params, source = 'controller') {
             const ts = simTime;
             atcLog.push({ ts, did, cmd, params: params || null, source });
@@ -6589,6 +6662,20 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
         document.getElementById('btn-inj-emi').addEventListener('click', () => { injectScenario('EMI'); });
         document.getElementById('btn-inj-clear').addEventListener('click', () => { injClearAll(); });
 
+        // Phase 8 AUD 환경음 토글
+        document.getElementById('btn-aud-ambient').addEventListener('click', (e) => {
+            audAmbient.enabled = !audAmbient.enabled;
+            const btn = e.currentTarget;
+            if (audAmbient.enabled) {
+                btn.classList.remove('off');
+                btn.textContent = '🌬 환경음 ON';
+                if (!atcAudioEnabled) logEvent('info', '🔊 음성 ON도 활성화하세요');
+            } else {
+                btn.classList.add('off');
+                btn.textContent = '🌬 환경음 OFF';
+            }
+        });
+
         // ATC 음성·로그 토글 (Phase 1D / 1B)
         document.getElementById('btn-atc-audio').addEventListener('click', (e) => {
             atcAudioEnabled = !atcAudioEnabled;
@@ -6711,27 +6798,76 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
         let camMode = 'reset';
         const _followOffset = new THREE.Vector3(20, 16, 20);
 
+        // Phase 4 CAM — FPV/chase 모드 상태
+        const _camTmp = new THREE.Vector3();
+        const _camTmp2 = new THREE.Vector3();
+        let _origFov = camera.fov;
+
         function setCamMode(mode) {
             camMode = mode;
             controls.autoRotate = (mode === 'orbit');
             if (mode === 'orbit') controls.autoRotateSpeed = 0.6;
             document.querySelectorAll('.cam-preset').forEach(b => b.classList.toggle('active', b.dataset.cam === mode));
-            if (mode === 'reset') { camera.position.set(70, 50, 70); controls.target.set(0, 2, 0); }
+            // FPV/chase는 OrbitControls 비활성 (직접 카메라 제어)
+            const directCam = (mode === 'fpv' || mode === 'chase');
+            controls.enabled = !directCam;
+            if (mode === 'reset') { camera.position.set(70, 50, 70); controls.target.set(0, 2, 0); camera.fov = _origFov; camera.updateProjectionMatrix(); }
             else if (mode === 'top') { camera.position.set(0, 130, 0.1); controls.target.set(0, 0, 0); }
+            else if (mode === 'side') { camera.position.set(110, 25, 0); controls.target.set(0, 15, 0); }
             else if (mode === 'follow') {
                 _followOffset.copy(camera.position).sub(controls.target);
                 if (_followOffset.lengthSq() < 1) _followOffset.set(20, 16, 20);
+            } else if (directCam) {
+                // FPV/chase는 선택 드론 필요
+                if (!selectedDrone) {
+                    logEvent('info', '🎥 드론을 먼저 선택하세요 (FPV/추격)');
+                    if (mode === 'fpv') camera.fov = 75, camera.updateProjectionMatrix();
+                }
             }
             controls.update();
         }
         document.querySelectorAll('.cam-preset').forEach(b => b.addEventListener('click', () => setCamMode(b.dataset.cam)));
 
         function updateFollowCam() {
-            if (camMode !== 'follow') return;
             const d = selectedDrone;
-            if (d && d.group && d.group.parent) {
-                controls.target.lerp(d.group.position, 0.15);
-                camera.position.lerp(d.group.position.clone().add(_followOffset), 0.1);
+            if (camMode === 'follow') {
+                if (d && d.group && d.group.parent) {
+                    controls.target.lerp(d.group.position, 0.15);
+                    camera.position.lerp(d.group.position.clone().add(_followOffset), 0.1);
+                }
+                return;
+            }
+            // Phase 4 CAM — FPV 1인칭
+            if (camMode === 'fpv') {
+                if (!d || !d.group || !d.group.parent) return;
+                if (camera.fov !== 75) { camera.fov = 75; camera.updateProjectionMatrix(); }
+                const hdgRad = (d.heading || 0) * Math.PI / 180;
+                // 카메라를 드론 head에 배치 (살짝 위·앞)
+                _camTmp.copy(d.group.position);
+                _camTmp.y += 0.35;
+                camera.position.lerp(_camTmp, 0.5);
+                // 진행 방향(heading) + 약간 아래 시선
+                _camTmp2.set(
+                    d.group.position.x + Math.sin(hdgRad) * 10,
+                    d.group.position.y - 1.5,
+                    d.group.position.z + Math.cos(hdgRad) * 10
+                );
+                camera.lookAt(_camTmp2);
+                return;
+            }
+            // Phase 4 CAM — 추격 (chase, spring-damped)
+            if (camMode === 'chase') {
+                if (!d || !d.group || !d.group.parent) return;
+                if (camera.fov !== _origFov) { camera.fov = _origFov; camera.updateProjectionMatrix(); }
+                const hdgRad = (d.heading || 0) * Math.PI / 180;
+                // 드론 뒤 8m, 위 3m
+                _camTmp.set(
+                    d.group.position.x - Math.sin(hdgRad) * 8,
+                    d.group.position.y + 3,
+                    d.group.position.z - Math.cos(hdgRad) * 8
+                );
+                camera.position.lerp(_camTmp, 0.08); // spring damping
+                camera.lookAt(d.group.position);
             }
         }
 
@@ -6952,6 +7088,9 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                 case '2': setCamMode('top'); break;
                 case '3': setCamMode('follow'); break;
                 case '4': setCamMode('orbit'); break;
+                case '5': setCamMode('fpv'); break;
+                case '6': setCamMode('chase'); break;
+                case '7': setCamMode('side'); break;
                 case '/': e.preventDefault(); document.getElementById('drone-search').focus(); break;
                 case 'h': case 'H': case '?': toggleHelp(); break;
                 case 'ArrowLeft': if (_scrub(e.shiftKey ? -10 : -1)) e.preventDefault(); break;
@@ -8042,6 +8181,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // Phase 6 INJ — 장애 효과 + 만료 처리
             if (typeof updateInjFaults === 'function' && simRunning) updateInjFaults(dt);
 
+            // Phase 8 AUD — 환경 사운드 + 임계 알람
+            if (typeof updateAudAmbient === 'function') updateAudAmbient();
+            if (typeof _audCriticalAlarm === 'function' && simRunning) _audCriticalAlarm();
+
             // B4 다중 선택 링 추종(제거된 드론은 Set에서 정리)
             if (multiSel.size) {
                 let i = 0, dirty = false;
@@ -8072,7 +8215,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             }
 
             updateFollowCam();
-            controls.update();
+            // FPV/chase는 카메라 직접 제어 → OrbitControls update 생략 (덮어쓰기 방지)
+            if (camMode !== 'fpv' && camMode !== 'chase') controls.update();
             const gpuStart = performance.now();
             renderer.render(scene, camera);
             perfMetrics.gpuMs = performance.now() - gpuStart;
@@ -8236,6 +8380,13 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             injClearAll() { return injClearAll(); },
             get injStats() { return { ...injStats }; },
             get dynamicNfzList() { return _dynNfzList.slice(); },
+            // ===== Phase 4 — CAM 카메라 모드 외부 API =====
+            setCamMode(mode) { setCamMode(mode); return camMode; },
+            get camMode() { return camMode; },
+            focusDrone(idOrIndex) { let d = idOrIndex; if (typeof idOrIndex === 'string') d = drones.find(x => x.id === idOrIndex); else if (typeof idOrIndex === 'number') d = drones[idOrIndex]; if (d) focusDrone(d); return d ? d.id : null; },
+            // ===== Phase 8 — AUD 환경 사운드 외부 API =====
+            setAmbientAudio(on) { audAmbient.enabled = !!on; const b = document.getElementById('btn-aud-ambient'); if (b) { b.classList.toggle('off', !audAmbient.enabled); b.textContent = audAmbient.enabled ? '🌬 환경음 ON' : '🌬 환경음 OFF'; } return audAmbient.enabled; },
+            get ambientAudio() { return audAmbient.enabled; },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

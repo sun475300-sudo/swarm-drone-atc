@@ -31,7 +31,7 @@
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
 </div>
 
-> **🆕 최신 업데이트 (2026-06-04 · Phase 1+2+3+6 일괄 완료)** — 메인 3D 시뮬레이터에 **🎬 시네마틱 모드**(동적 태양 24h 시간대 슬라이더 + 자동 시간 흐름 · 비/눈 입자 시스템 · MediaRecorder 화면 녹화 WebM/MP4), **💥 장애 주입 콘솔**(GPS 손실/모터 페일/통신 두절/배터리 급강하/Rogue 드론 spawn/동적 NFZ + 시나리오 일괄: 도시 EMP·EMI 폭격), **🎯 전술 시각화**(예측 비행경로 라인·CPA 충돌점 마커·속도 벡터 화살표), **🎮 ATC 관제 콘솔**(HOLD/RTB/REROUTE/ALT±/SPD±/TURN/CLEAR + 한국어 TTS + Web Audio 비프 + 시안 발광 링 + 감사 로그)이 함께 들어갔습니다. Playwright E2E **36/37 통과** (Phase 1: 10 + Phase 2: 9 + Phase 3+6: 17), 회귀 **4,140/4,140 통과**. 마스터 플랜: [`docs/SIMULATOR_MEGA_PLAN.md`](docs/SIMULATOR_MEGA_PLAN.md) · 상세 명세: [`docs/SIMULATOR_PHASE_PLANS.md`](docs/SIMULATOR_PHASE_PLANS.md)
+> **🆕 최신 업데이트 (2026-06-04 · Phase 1+2+3+4+6+8 일괄 완료)** — 메인 3D 시뮬레이터에 **🎥 카메라 모드**(FPV 1인칭·추격 spring·측면, 단축키 5/6/7), **🌬 환경 사운드**(풍속 비례 바람 화이트노이즈 + 우천음 + 배터리 임계 알람), **🎬 시네마틱**(동적 태양 24h·비/눈 입자·MediaRecorder 화면 녹화), **💥 장애 주입**(GPS/모터/통신/배터리/Rogue/동적 NFZ + EMP·EMI 시나리오), **🎯 전술 시각화**(예측 경로·CPA 마커·속도 벡터), **🎮 ATC 관제 콘솔**(HOLD/RTB/REROUTE/ALT±/SPD±/TURN/CLEAR + 한국어 TTS + 비프)이 함께 들어갔습니다. Playwright E2E **46/47 통과**, 회귀 **4,140/4,140 통과**. 마스터 플랜: [`docs/SIMULATOR_MEGA_PLAN.md`](docs/SIMULATOR_MEGA_PLAN.md) · 상세 명세: [`docs/SIMULATOR_PHASE_PLANS.md`](docs/SIMULATOR_PHASE_PLANS.md)
 >
 > **이전 업데이트** — **원클릭 로컬 실행**(Win/Mac/Linux 더블클릭) · **해양 소형선 감지 시뮬레이터**(레이더 물리·AIS 융합·EO/IR·COLREG·CPA, 8개 시나리오) · 메인 3D **다중 선택·대규모 성능 측정·경로효율·라벨 풀 최적화**.
 
@@ -324,7 +324,9 @@ SimPy 기반 이산 이벤트 시뮬레이션 엔진으로, 다양한 환경 조
   - **🎬 시네마틱 모드** (Phase 3, 2026-06 신규) — **동적 태양 24h 사이클**(시간대별 RGB·앰비언트 강도 자동 변환: 새벽 청 → 정오 백 → 황혼 황 → 야간 짙은 청, 0-24h 슬라이더 + 0.05h/s 자동 흐름), **비/눈 입자 시스템**(5,000 비 + 3,000 눈 sprite, 강도 0-1 슬라이더, 바람 드리프트), **화면 녹화**(MediaRecorder API, VP9/VP8/MP4 자동 코덱 감지, 8Mbps WebM 다운로드, 빨간 점멸 인디케이터)
   - **💥 장애 주입 콘솔** (Phase 6, 2026-06 신규) — 선택 드론에 **GPS 손실**(노이즈 ±20m, 20초) / **모터 페일**(maxSpeed 50%) / **통신 두절**(ATC 명령 무시, 10초) / **배터리 급강하**(5%/s × 20초) 주입, **ROGUE 드론 spawn**(NFZ 횡단 시도), **동적 NFZ 생성**(임의 위치 r=100m × 30초), **시나리오 일괄**: 도시 EMP(30% GPS 손실) / EMI 폭격(50% 통신두절), 통계 카운터 + 전체 해제 버튼
   - `window._sdacs` API — 자동화 테스트 및 외부 연동 (`selectDrone`/`hoverDrone`/`setAnalysisView`/`replaySeek`/`reportDataURL`/**`atcCommand(id, cmd, params)`**/**`atcLog`**/**`atcControlled`**/**`setAtcAudio(on)`**/**`clearAllAtc()`**/**`setPredTrail(on)`**/**`setPredHorizon(s)`**/**`setVelArrow(on)`**/**`setCpaMarker(on)`**/**`cpaPairsCount`**/**`setSunCycle(on)`**/**`setSunHour(h)`**/**`setSunAuto(on)`**/**`setRain(on, intensity)`**/**`setSnow(on, intensity)`**/**`startRecording()`**/**`stopRecording()`**/**`injectFault(id, type, opts)`**/**`injectRogue()`**/**`injectDynamicNFZ(x, z, r, dur)`**/**`injectScenario(name)`**/**`injClearAll()`**/**`injStats`** 등)
-  - 헤드리스 스모크 테스트: `tests/e2e/smoke_sim.mjs` (군집 14/14) + **`tests/e2e/test_simulator_atc.py`** (ATC 10/11) + **`tests/e2e/test_simulator_tac.py`** (TAC 9/9) + **`tests/e2e/test_simulator_cin_inj.py`** (CIN+INJ 17/17) — 총 **36/37 통과** (CI: `.github/workflows/sim-smoke.yml`)
+  - **🎥 카메라 모드** (Phase 4, 2026-06 신규) — **FPV 1인칭**(선택 드론 head 시점, FOV 75°, heading 방향 시선), **추격캠**(드론 뒤 8m·위 3m, spring damping 0.08), **측면 뷰**, 기존 기본/탑다운/추적/오빗과 함께 7개 프리셋 + 단축키 1-7
+  - **🌬 환경 사운드** (Phase 8, 2026-06 신규) — Web Audio 합성 **바람 화이트노이즈**(풍속 비례 음량·lowpass 필터 휘파람), **우천 노이즈**(비 입자 강도 연동), **배터리 임계 알람**(<15% 드론 발생 시 880Hz 비프, 1초 쿨다운). 음성 ON + 환경음 ON 동시 필요
+  - 헤드리스 스모크 테스트: `tests/e2e/smoke_sim.mjs` (군집 14/14) + **`tests/e2e/test_simulator_atc.py`** (ATC 10/11) + **`tests/e2e/test_simulator_tac.py`** (TAC 9/9) + **`tests/e2e/test_simulator_cin_inj.py`** (CIN+INJ 17/17) + **`tests/e2e/test_simulator_cam_aud.py`** (CAM+AUD 10/10) — 총 **46/47 통과** (CI: `.github/workflows/sim-smoke.yml`)
 - **파일**: `main.py`, `visualization/simulator_3d.py`, `swarm_3d_simulator.html` · _구버전 `swarm_3d_simulator_v2.html`·`*.v1.backup.html`은 디프리케이트(참고용)_
 ```mermaid
 sequenceDiagram

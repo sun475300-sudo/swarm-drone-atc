@@ -1,8 +1,12 @@
 # SDACS 종합 진척 보고서
 
-*Last updated: 2026-06-04 — Phase 1(ATC) + 2(TAC) + 3(CIN) + 6(INJ) 완료, 36/37 E2E 통과*
+*Last updated: 2026-06-04 — Phase 1(ATC)+2(TAC)+3(CIN)+4(CAM)+6(INJ)+8(AUD) 완료, 46/47 E2E 통과*
 
-> **🎬 신규: Phase 3 CIN 시네마틱** — 동적 태양 24h(시간대별 RGB·자동 흐름) · 비/눈 입자 시스템(5K rain + 3K snow) · MediaRecorder 화면 녹화(WebM/MP4 자동 코덱).
+> **🎥 신규: Phase 4 CAM 카메라 모드** — FPV 1인칭(드론 head, FOV 75°) · 추격캠(spring damping) · 측면 뷰. 7개 프리셋 + 단축키 1-7.
+>
+> **🌬 신규: Phase 8 AUD 환경 사운드** — Web Audio 바람 화이트노이즈(풍속 비례) · 우천 노이즈 · 배터리 임계 알람(880Hz).
+>
+> **🎬 Phase 3 CIN 시네마틱** — 동적 태양 24h(시간대별 RGB·자동 흐름) · 비/눈 입자 시스템(5K rain + 3K snow) · MediaRecorder 화면 녹화(WebM/MP4 자동 코덱).
 >
 > **💥 신규: Phase 6 INJ 장애 주입** — GPS 손실 / 모터 페일 / 통신 두절 / 배터리 급강하 + ROGUE spawn + 동적 NFZ + 시나리오 EMP/EMI 일괄 + 통계 카운터 + 전체 해제.
 >
@@ -10,7 +14,7 @@
 >
 > **🎮 Phase 1 ATC 관제 콘솔** — HOLD/RTB/REROUTE/ALT±/SPD±/TURN/CLEAR + 한국어 TTS + Web Audio 비프 + 시안 발광 링 + CSV 감사 로그.
 >
-> Playwright E2E **36/37 통과**, 회귀 **4,140/4,140 통과**. 마스터 플랜: [`docs/SIMULATOR_MEGA_PLAN.md`](docs/SIMULATOR_MEGA_PLAN.md) · 상세: [`docs/SIMULATOR_PHASE_PLANS.md`](docs/SIMULATOR_PHASE_PLANS.md)
+> Playwright E2E **46/47 통과**, 회귀 **4,140/4,140 통과**. 마스터 플랜: [`docs/SIMULATOR_MEGA_PLAN.md`](docs/SIMULATOR_MEGA_PLAN.md) · 상세: [`docs/SIMULATOR_PHASE_PLANS.md`](docs/SIMULATOR_PHASE_PLANS.md)
 
 ## 🎯 핵심 KPI (실제 측정값)
 

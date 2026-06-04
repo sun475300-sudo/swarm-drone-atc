@@ -8180,11 +8180,17 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             if (typeof droneOrId === 'string') d = drones.find(x => x.id === droneOrId);
             else if (typeof droneOrId === 'number') d = drones[droneOrId];
             if (!d) d = selectedDrone;
-            if (!d || d.phase === 'FAILED') return null;
+            // FAILED·LANDING(착륙 시퀀스 진입) 드론은 임무 할당 제외 — goalPad 상태 오염 방지
+            if (!d || d.phase === 'FAILED' || d.phase === 'LANDING') return null;
             const wps = _misWaypoints.map(w => ({ x: w.x, z: w.z, alt: w.alt }));
+            // 이미 임무 중인 드론에 재할당 시 '원 목적지'는 최초 스냅샷을 보존(웨이포인트로 덮어쓰지 않음)
+            const prev = d.mission;
             d.mission = {
                 waypoints: wps, idx: 0, dispatched: simTime, name: _misLastTemplate || '직접',
-                origGoalX: d.goalX, origGoalZ: d.goalZ, origPad: d.goalPad, origAlt: d.targetAlt,
+                origGoalX: prev ? prev.origGoalX : d.goalX,
+                origGoalZ: prev ? prev.origGoalZ : d.goalZ,
+                origPad: prev ? prev.origPad : d.goalPad,
+                origAlt: prev ? prev.origAlt : d.targetAlt,
             };
             d.goalX = wps[0].x; d.goalZ = wps[0].z; d.targetAlt = wps[0].alt;
             if (d.phase === 'GROUNDED') { d.phase = 'TAKEOFF'; d.groundDelay = 0; d.throttle = 0.8; }
@@ -8209,7 +8215,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 d.waypointHits++;
                 if (m.idx >= m.waypoints.length) {
                     // 임무 완료 → 원 목적지(패드) 복귀 → 기존 착륙 시퀀스 인계
-                    d.goalX = m.origGoalX; d.goalZ = m.origGoalZ; d.goalPad = m.origPad; d.targetAlt = m.origAlt;
+                    // origPad가 null이면 현재 goalPad 유지(착륙 블록의 goalPad.name 크래시 방지)
+                    d.goalX = m.origGoalX; d.goalZ = m.origGoalZ; d.goalPad = m.origPad || d.goalPad; d.targetAlt = m.origAlt;
                     if (typeof logEvent === 'function') logEvent('landing', `${d.id} 임무 완료 (${m.waypoints.length} WP) → ${m.origPad ? m.origPad.name : '복귀'}`);
                     _misDisposeRoute(d);
                     d.mission = null;
@@ -8236,6 +8243,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         }
 
         function resetMissions() {
+            // 라이브 드론의 논리 임무도 해제(런타임 단독 호출 시 시각/논리 상태 일관성)
+            if (typeof drones !== 'undefined') for (const d of drones) { if (d.mission) d.mission = null; }
             for (const line of _misRoutes.values()) { _misWpGroup.remove(line); line.geometry.dispose(); line.material.dispose(); }
             _misRoutes.clear();
             _misClearPlanning();

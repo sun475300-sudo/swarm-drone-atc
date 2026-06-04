@@ -787,6 +787,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 15:24 | `b0be868` | fix: SDACS 어댑터 LAANC 지연 범위를 테스트 계약(80~120ms)에 정렬 | benchmarks/baselines/sdacs/adapter.py |
 | 2026-06-04 15:13 | `1d335f1` | docs: PR 백로그 트리아지 2026-06-04 — main 복구(#100) + 중복 클러스터 정리 권고 | docs/PR_BACKLOG_TRIAGE_2026-06-04.md |
 | 2026-06-04 15:07 | `d66dcc4` | fix: main 병합 충돌 마커 해소 — a576460 botched merge 복구 | README.md, ROADMAP.md, api/auth.py, api/fastapi_server.py, benchmarks/baselines/sdacs/adapter.py, results/comparison/COMPARISON_REPORT.md … |
 | 2026-06-03 19:39 | `426b9e7` | ci: desktop-build setup-node 캐시 비활성화 (lock 파일 부재로 실패) | .github/workflows/desktop-build.yml |

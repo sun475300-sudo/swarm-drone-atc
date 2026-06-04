@@ -804,6 +804,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 18:18 | `61b8b22` | Merge remote-tracking branch 'origin/main' into feat/p734-multiview-sync | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md … |
 | 2026-06-04 18:17 | `fc582c0` | fix: swarm_3d HTML conflict 해소 — replay API + conflictPairs union | swarm_3d_simulator.html |
 | 2026-06-04 18:16 | `25b0396` | Merge remote-tracking branch 'origin/main' into feat/p734-replay-scrubber | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md … |
 | 2026-06-04 18:16 | `637e515` | fix: ROADMAP conflict 마커 잔존 정리 (base 채택) | ROADMAP.md |

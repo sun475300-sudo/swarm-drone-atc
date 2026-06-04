@@ -5314,7 +5314,12 @@
             const el = document.getElementById('ana-blame-list');
             if (!el) return;
             const recent = _anaBlameRecords.slice(-6).reverse();
-            el.innerHTML = recent.map(r => `<div>⚖ t${Math.round(r.t)}s · ${r.msg}</div>`).join('');
+            // textContent 사용 — 시뮬레이터 파생 문자열도 DOM 인젝션 베이스라인 차단
+            el.replaceChildren(...recent.map(r => {
+                const d = document.createElement('div');
+                d.textContent = `⚖ t${Math.round(r.t)}s · ${r.msg}`;
+                return d;
+            }));
         }
         // 책임 판정: 우선순위 숫자가 작을수록 통행권(높은 우선순위). 큰 쪽이 양보 의무 → 위반 시 책임.
         // 동급이면 ID 결정론 규칙(작은 ID 통행권)을 적용해 큰 ID가 책임.
@@ -5344,8 +5349,9 @@
             anaBlameGroup.visible = true;
             for (const r of _anaBlamePool) r.visible = false;
             let n = 0;
+            const _stale = [];
             for (const [id, g] of _anaBlameGlow) {
-                if (g.expiry <= simTime || !g.drone.group || !g.drone.group.parent) { _anaBlameGlow.delete(id); continue; }
+                if (g.expiry <= simTime || !g.drone.group || !g.drone.group.parent) { _stale.push(id); continue; }
                 const r = _anaBlameRingAcquire();
                 r.visible = true;
                 r.position.copy(g.drone.group.position);
@@ -5354,6 +5360,7 @@
                 r.rotation.z = timeNow * 2.0;
                 n++;
             }
+            for (const id of _stale) _anaBlameGlow.delete(id);
             // 쿨다운 맵 누수 방지: 커지면 만료 항목 정리
             if (_anaBlameCooldown.size > 256) {
                 for (const [k, t] of _anaBlameCooldown) {

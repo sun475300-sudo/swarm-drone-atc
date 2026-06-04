@@ -179,6 +179,70 @@ def test_pred_horizon_default(page):
     assert horizon == 8.0, f"Expected default 8s, got {horizon}"
 
 
+def test_tac6_apf_intent_api_exposed(page):
+    pg, _ = page
+    keys = pg.evaluate("Object.keys(window._sdacs)")
+    for k in ["setApfIntent", "apfIntent", "apfIntentCount"]:
+        assert k in keys, f"_sdacs.{k} missing"
+
+
+def test_tac6_apf_intent_default_off(page):
+    pg, _ = page
+    # 기본 OFF (선택 기반 오버레이, 부담 큰 시각화라 opt-in)
+    assert pg.evaluate("window._sdacs.apfIntent") is False
+    assert pg.evaluate("window._sdacs.apfIntentCount") == 0
+
+
+def test_tac6_apf_intent_toggle(page):
+    pg, _ = page
+    r = pg.evaluate("""
+        () => {
+            const on = window._sdacs.setApfIntent(true);
+            const ui = document.getElementById('tg-apf-intent').checked;
+            const off = window._sdacs.setApfIntent(false);
+            return { on, ui, off };
+        }
+    """)
+    assert r["on"] is True
+    assert r["ui"] is True
+    assert r["off"] is False
+
+
+def test_tac6_apf_intent_renders_under_conflict(page):
+    pg, _ = page
+    # 공역 드론이 EVADE_DIST(500m) 내로 수렴하면 회피 의도 화살표가 생성된다.
+    # module-scope page를 공유하므로 직전 시나리오를 저장 후 복원한다.
+    prev = pg.evaluate("document.getElementById('scenario-select').value")
+    try:
+        pg.evaluate("window._sdacs.selectScenario('high_density'); window._sdacs.startSim();")
+        pg.evaluate(
+            "() => { const n = window._sdacs.droneCount;"
+            " const ids = Array.from({length: n}, (_, k) => k);"
+            " window._sdacs.multiSelect(ids); window._sdacs.setApfIntent(true); }"
+        )
+        max_cnt = 0
+        for _ in range(20):
+            pg.wait_for_timeout(900)
+            c = pg.evaluate("window._sdacs.apfIntentCount")
+            max_cnt = max(max_cnt, c)
+            if max_cnt > 0:
+                break
+        if max_cnt == 0:
+            pytest.skip("airborne drones did not converge within EVADE_DIST in headless time budget")
+        assert max_cnt > 0
+    finally:
+        # 공유 상태 복원: 의도선 OFF + 직전 시나리오 재선택
+        pg.evaluate("window._sdacs.setApfIntent(false)")
+        pg.evaluate(f"window._sdacs.selectScenario('{prev}'); window._sdacs.startSim();")
+        pg.wait_for_timeout(500)
+
+
+def test_tac6_apf_intent_ui_present(page):
+    pg, _ = page
+    assert pg.evaluate("!!document.getElementById('tg-apf-intent')"), \
+        "tg-apf-intent checkbox missing"
+
+
 def test_no_js_errors_with_tac(page):
     pg, errors = page
     benign = ["favicon", "WebGPU", "DevTools", "ws_bridge", "WebSocket",

@@ -1377,6 +1377,7 @@
             <label class="av-toggle"><input type="checkbox" id="tg-path" checked> 웨이포인트·이동경로</label>
             <label class="av-toggle"><input type="checkbox" id="tg-pred-trail" checked> 예측 비행경로 (8초)</label>
             <label class="av-toggle"><input type="checkbox" id="tg-vel-arrow"> 속도 벡터 화살표</label>
+            <label class="av-toggle"><input type="checkbox" id="tg-apf-intent"> 회피 의도선 (APF)</label>
             <label class="av-toggle"><input type="checkbox" id="tg-cpa-marker" checked> CPA 충돌점 마커 + TTC</label>
             <label class="av-toggle"><input type="checkbox" id="tg-nfz" checked> NFZ 비행금지구역</label>
             <label class="av-toggle"><input type="checkbox" id="tg-corridor" checked> 복도/회랑</label>
@@ -2682,6 +2683,7 @@
             if (drones.length > 200) {
                 _predTrailEnabled = false;
                 _velArrowEnabled = false;
+                _apfIntentEnabled = false;
             }
             logEvent('info', '📱 모바일 자동 LOD 활성');
         }
@@ -5516,6 +5518,126 @@
             }
         }
 
+        // ===== Phase 2 TAC-6 — 회피 의도선 (APF Vector Preview) =====
+        // 선택/다중선택 드론의 APF 합력(회피 의도)을 화살표로 미리 본다.
+        // 핫패스(apfCollisionAvoidance)를 건드리지 않고, 대상 드론에 대해서만
+        // 동일 반발력 모델을 on-demand로 계산한다(대상은 소수라 비용 무시 가능).
+        let _apfIntentEnabled = false;
+        const _apfIntentArrows = new Map();   // droneId → ArrowHelper
+        const apfIntentGroup = new THREE.Group();
+        apfIntentGroup.renderOrder = 990;
+        scene.add(apfIntentGroup);
+
+        // ArrowHelper.dispose()는 공유 cone/line geometry 싱글톤까지 dispose하므로
+        // 다른 ArrowHelper가 깨진다 → 인스턴스별 material만 안전하게 해제한다.
+        function _disposeApfArrow(a) {
+            if (a.line && a.line.material) a.line.material.dispose();
+            if (a.cone && a.cone.material) a.cone.material.dispose();
+        }
+
+        // apfCollisionAvoidance와 동일한 3단계(충돌/근접/회피) 반발력 모델을 단일 드론 a에 대해 재현.
+        function computeApfForce(a) {
+            const windSpd = Math.sqrt(weather.baseWind.x ** 2 + weather.baseWind.z ** 2) + weather.gustIntensity;
+            const windyBoost = windSpd > 5 ? 1 + (windSpd - 5) * 0.1 : 1.0;
+            let fx = 0, fz = 0, fy = 0;
+            const radA = a.heading * Math.PI / 180;
+            const avx = Math.sin(radA) * a.speed, avz = Math.cos(radA) * a.speed, avy = a.vy || 0;
+            for (const b of drones) {
+                if (b === a || b.phase === 'GROUNDED' || b.phase === 'FAILED') continue;
+                const dx = a.wx - b.wx, dz = a.wz - b.wz, dy = a.wy - b.wy;
+                const hDist = Math.sqrt(dx * dx + dz * dz);
+                const dist3d = Math.sqrt(dx * dx + dz * dz + dy * dy);
+                if (dist3d > EVADE_DIST) continue;
+                const radB = b.heading * Math.PI / 180;
+                const bvx = Math.sin(radB) * b.speed, bvz = Math.cos(radB) * b.speed, bvy = b.vy || 0;
+                const dvx = avx - bvx, dvz = avz - bvz, dvy = avy - bvy;
+                const relV2 = dvx * dvx + dvz * dvz + dvy * dvy;
+                let cpaDist = dist3d;
+                if (relV2 > 0.1) {
+                    const tCPA = Math.max(0, Math.min(CPA_LOOKAHEAD, -(dx * dvx + dz * dvz + dy * dvy) / relV2));
+                    const fpx = dx + dvx * tCPA, fpz = dz + dvz * tCPA, fpy = dy + dvy * tCPA;
+                    cpaDist = Math.sqrt(fpx * fpx + fpz * fpz + fpy * fpy);
+                }
+                const effectiveDist = Math.min(dist3d, cpaDist);
+                const isConverging = cpaDist < dist3d;
+                const closingSpeed = Math.sqrt(relV2);
+                const aYield = a.priority >= b.priority ? 0.7 : 0.3;
+                const safeDist = Math.max(hDist, 1);
+                if (dist3d < COLLISION_DIST) {
+                    const push = 40 * windyBoost * (1 + closingSpeed * 0.5);
+                    fx += (dx / safeDist) * push * aYield;
+                    fz += (dz / safeDist) * push * aYield;
+                    const aUp = (parseInt(a.id.replace('DR-', '')) % 2 === 0) ? 1 : -1;
+                    fy += aUp * 20;
+                } else if (dist3d < NEAR_MISS_DIST || (isConverging && cpaDist < NEAR_MISS_DIST)) {
+                    const ratio = 1 - effectiveDist / NEAR_MISS_DIST;
+                    const strength = 25 * windyBoost * ratio * ratio * (1 + closingSpeed * 0.3);
+                    fx += (dx / safeDist) * strength * aYield;
+                    fz += (dz / safeDist) * strength * aYield;
+                    if (Math.abs(dy) < SEPARATION_ALT * 2) {
+                        const aUp = (parseInt(a.id.replace('DR-', '')) % 2 === 0) ? 1 : -1;
+                        fy += aUp * strength * 0.5;
+                    }
+                } else if (dist3d < EVADE_DIST || (isConverging && cpaDist < EVADE_DIST * 0.7)) {
+                    const ratio = 1 - effectiveDist / EVADE_DIST;
+                    const strength = 12 * windyBoost * ratio * (1 + closingSpeed * 0.15);
+                    fx += (dx / safeDist) * strength * aYield;
+                    fz += (dz / safeDist) * strength * aYield;
+                }
+            }
+            return { fx, fz, fy, mag: Math.sqrt(fx * fx + fz * fz + fy * fy) };
+        }
+
+        function updateApfIntent() {
+            if (!_apfIntentEnabled || megaMode) {
+                apfIntentGroup.visible = false;
+                return;
+            }
+            apfIntentGroup.visible = true;
+            const targets = new Set();
+            if (selectedDrone) targets.add(selectedDrone);
+            for (const d of multiSel) targets.add(d);
+            // 대상 아닌 화살표 정리 — Map 순회 중 삭제 시 미방문 엔트리 스킵 방지 위해
+            // 먼저 제거 대상을 수집한 뒤 일괄 삭제(인스턴스 material만 안전 해제).
+            const _toRemove = [..._apfIntentArrows].filter(([id]) => ![...targets].some(d => d.id === id));
+            for (const [id, arr] of _toRemove) {
+                apfIntentGroup.remove(arr);
+                _disposeApfArrow(arr);
+                _apfIntentArrows.delete(id);
+            }
+            for (const d of targets) {
+                let arrow = _apfIntentArrows.get(d.id);
+                if (d.phase === 'GROUNDED' || d.phase === 'FAILED') {
+                    if (arrow) { apfIntentGroup.remove(arrow); _disposeApfArrow(arrow); _apfIntentArrows.delete(d.id); }
+                    continue;
+                }
+                const f = computeApfForce(d);
+                if (f.mag < 0.5) {
+                    // 회피 의도 없음 → 화살표 숨김
+                    if (arrow) arrow.visible = false;
+                    continue;
+                }
+                const dir = new THREE.Vector3(f.fx / f.mag, f.fy / f.mag, f.fz / f.mag).normalize();
+                const origin = d.group ? d.group.position.clone() : new THREE.Vector3(d.wx * SCALE, d.wy * SCALE * 3, d.wz * SCALE);
+                origin.y += 0.5;
+                const len = Math.min(10, 1 + f.mag * 0.15);
+                // 회피 강도(0~1) → 색상: 약함 청록(cyan) → 강함 적색(red)
+                const t = Math.min(1, f.mag / 40);
+                const color = new THREE.Color().setHSL(0.55 - t * 0.55, 0.9, 0.55);
+                if (!arrow) {
+                    arrow = new THREE.ArrowHelper(dir, origin, len, color, 0.7, 0.4);
+                    apfIntentGroup.add(arrow);
+                    _apfIntentArrows.set(d.id, arrow);
+                } else {
+                    arrow.visible = true;
+                    arrow.position.copy(origin);
+                    arrow.setDirection(dir);
+                    arrow.setLength(len, 0.7, 0.4);
+                    arrow.setColor(color);
+                }
+            }
+        }
+
         // ===== B4 다중 선택 (Shift+클릭) — 단일 선택과 독립적인 비파괴 오버레이 =====
         const multiSel = new Set();          // 선택된 drone 객체들
         const _multiRings = [];              // 재사용 링 풀(주황)
@@ -6676,6 +6798,10 @@
         document.getElementById('tg-vel-arrow').addEventListener('change', e => {
             _velArrowEnabled = e.target.checked;
             if (!_velArrowEnabled) velArrowGroup.visible = false;
+        });
+        document.getElementById('tg-apf-intent').addEventListener('change', e => {
+            _apfIntentEnabled = e.target.checked;
+            if (!_apfIntentEnabled) apfIntentGroup.visible = false;
         });
         document.getElementById('tg-cpa-marker').addEventListener('change', e => {
             _cpaMarkerEnabled = e.target.checked;
@@ -8456,6 +8582,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // Phase 2 TAC — 예측 비행경로 + 속도 화살표 + CPA 마커
             if (typeof updatePredTrails === 'function') updatePredTrails();
             if (typeof updateVelArrows === 'function') updateVelArrows();
+            if (typeof updateApfIntent === 'function') updateApfIntent();
             if (typeof updateCpaMarkers === 'function') {
                 // _cpaPairs는 apfCollisionAvoidance 또는 CPA detection 루프에서 push됨
                 updateCpaMarkers(_cpaPairs);
@@ -8659,6 +8786,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get predHorizon() { return _predHorizon; },
             setVelArrow(on) { _velArrowEnabled = !!on; const e = document.getElementById('tg-vel-arrow'); if (e) e.checked = _velArrowEnabled; return _velArrowEnabled; },
             get velArrow() { return _velArrowEnabled; },
+            setApfIntent(on) { _apfIntentEnabled = !!on; const e = document.getElementById('tg-apf-intent'); if (e) e.checked = _apfIntentEnabled; return _apfIntentEnabled; },
+            get apfIntent() { return _apfIntentEnabled; },
+            get apfIntentCount() { if (!_apfIntentEnabled || megaMode) return 0; let n = 0; for (const a of _apfIntentArrows.values()) if (a.visible) n++; return n; },
             setCpaMarker(on) { _cpaMarkerEnabled = !!on; const e = document.getElementById('tg-cpa-marker'); if (e) e.checked = _cpaMarkerEnabled; return _cpaMarkerEnabled; },
             get cpaMarker() { return _cpaMarkerEnabled; },
             get cpaPairsCount() { return _cpaMarkerIdx; },

@@ -82,10 +82,17 @@
 - 기존 `advisoryGroup` 옆에 배치
 - megaMode에서는 자동 비활성
 
-#### TAC-6. 회피 의도선 (APF Vector Preview)
+#### TAC-6. 회피 의도선 (APF Vector Preview) ✅ 구현 완료
 - 선택 드론의 현재 APF 합력 벡터를 화살표로 표시
 - 의도 회피 방향 시각화 → 관제사가 자율 행동 예측 가능
-- 색상: 회피 강도에 따라 0~1 alpha
+- 색상: 회피 강도(0~1)에 따라 청록(cyan)→적색(red) HSL 그라데이션
+- 구현: 핫패스(`apfCollisionAvoidance`)를 건드리지 않고 선택/다중선택 드론에
+  대해서만 동일 3단계(충돌/근접/회피) 드론-드론 반발력 모델을 on-demand로 재계산
+  (`computeApfForce`). `megaMode` 자동 OFF, 기본 OFF 토글 `tg-apf-intent`.
+- 트레이드오프: 의도선은 **드론-드론 회피력만** 표시하며 도시 시나리오의 건물
+  반발력은 제외(선택 드론 미리보기 단순화). 따라서 건물 인접 시 실제 비행
+  경로와 의도선 방향이 다소 차이날 수 있음.
+- API: `_sdacs.setApfIntent(on)` / `apfIntent` / `apfIntentCount`
 
 ### UI Mockup
 ```

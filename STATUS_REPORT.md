@@ -1,12 +1,16 @@
 # SDACS 종합 진척 보고서
 
-*Last updated: 2026-06-04 — Phase 1(ATC) + Phase 2(TAC) 완료, 19/20 E2E 통과*
+*Last updated: 2026-06-04 — Phase 1(ATC) + 2(TAC) + 3(CIN) + 6(INJ) 완료, 36/37 E2E 통과*
 
-> **🎯 신규: Phase 2 TAC 전술 시각화** — 예측 비행경로 라인(8초, fade gradient) + CPA 충돌점 마커(TTC 색상 단계) + 속도 벡터 화살표(선택 드론). 100/200/500대 자동 LOD, megaMode 자동 OFF.
+> **🎬 신규: Phase 3 CIN 시네마틱** — 동적 태양 24h(시간대별 RGB·자동 흐름) · 비/눈 입자 시스템(5K rain + 3K snow) · MediaRecorder 화면 녹화(WebM/MP4 자동 코덱).
 >
-> **🎮 신규: Phase 1 ATC 관제 콘솔** — 명령 그리드(HOLD/RTB/REROUTE/ALT±/SPD±/TURN/CLEAR) · 한국어 TTS · Web Audio 비프 · 시안 발광 링 · ATC 명령 감사 로그 · CSV `ATC_Commands` 시트.
+> **💥 신규: Phase 6 INJ 장애 주입** — GPS 손실 / 모터 페일 / 통신 두절 / 배터리 급강하 + ROGUE spawn + 동적 NFZ + 시나리오 EMP/EMI 일괄 + 통계 카운터 + 전체 해제.
 >
-> Playwright E2E **19/20 통과** (10 ATC + 9 TAC, 1 skip), 회귀 **4,140/4,140 통과**. 마스터 플랜: [`docs/SIMULATOR_MEGA_PLAN.md`](docs/SIMULATOR_MEGA_PLAN.md) · 상세: [`docs/SIMULATOR_PHASE_PLANS.md`](docs/SIMULATOR_PHASE_PLANS.md)
+> **🎯 Phase 2 TAC 전술 시각화** — 예측 비행경로 라인(8초 fade) + CPA 충돌점 마커(TTC 색상) + 속도 벡터 화살표.
+>
+> **🎮 Phase 1 ATC 관제 콘솔** — HOLD/RTB/REROUTE/ALT±/SPD±/TURN/CLEAR + 한국어 TTS + Web Audio 비프 + 시안 발광 링 + CSV 감사 로그.
+>
+> Playwright E2E **36/37 통과**, 회귀 **4,140/4,140 통과**. 마스터 플랜: [`docs/SIMULATOR_MEGA_PLAN.md`](docs/SIMULATOR_MEGA_PLAN.md) · 상세: [`docs/SIMULATOR_PHASE_PLANS.md`](docs/SIMULATOR_PHASE_PLANS.md)
 
 ## 🎯 핵심 KPI (실제 측정값)
 

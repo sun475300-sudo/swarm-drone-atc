@@ -511,6 +511,17 @@
         .atc-audio-btn.off { color: #4a6785; border-color: rgba(74, 103, 133, 0.3); }
         .atc-audio-btn:hover { background: rgba(0, 229, 255, 0.15); }
 
+        /* Phase 3 CIN — 녹화 인디케이터 */
+        #rec-indicator.rec-active {
+            background: #ef4444 !important;
+            box-shadow: 0 0 8px #ef4444;
+            animation: rec-pulse 1s infinite ease-in-out;
+        }
+        @keyframes rec-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
         .detail-rogue {
             margin-top: 8px;
             padding: 3px 6px;
@@ -1199,6 +1210,37 @@
                 <span id="atc-count-badge" title="현재 ATC 수동 제어 중인 드론 수">🎮 ATC: 0</span>
                 <button id="btn-atc-audio" class="atc-audio-btn off" title="ATC 음성 어드바이저리·경보음 토글">🔇 음성 OFF</button>
                 <button id="btn-atc-log" class="atc-audio-btn" title="ATC 명령 로그 표시 토글">📋 로그</button>
+            </div>
+            <!-- Phase 3 CIN — 시네마틱 모드 -->
+            <div style="margin-top:8px;padding:6px;border:1px solid rgba(168,85,247,0.35);border-radius:4px;background:linear-gradient(180deg,rgba(168,85,247,0.06),transparent);">
+                <div style="font-size:8px;color:#a855f7;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">🎬 시네마틱 (CIN)</div>
+                <label class="av-toggle" style="display:flex;align-items:center;gap:4px;"><input type="checkbox" id="tg-sun-cycle"> 동적 태양 <span id="sun-hour-label" style="margin-left:auto;color:#fbbf24;font-size:9px;">12.0h</span></label>
+                <input type="range" id="sun-hour" min="0" max="24" step="0.5" value="12" style="width:100%;margin:2px 0;">
+                <label class="av-toggle"><input type="checkbox" id="tg-sun-auto"> 자동 시간 흐름 (0.05h/s)</label>
+                <label class="av-toggle"><input type="checkbox" id="tg-rain"> 🌧 비</label>
+                <label class="av-toggle"><input type="checkbox" id="tg-snow"> ❄ 눈</label>
+                <div style="display:flex;gap:4px;margin-top:4px;align-items:center;">
+                    <button id="btn-rec-toggle" class="atc-audio-btn" style="flex:1;color:#ef4444;border-color:rgba(239,68,68,0.5);" title="화면 녹화 시작/중지 (WebM)">🔴 녹화</button>
+                    <span id="rec-indicator" style="width:8px;height:8px;border-radius:50%;background:#333;"></span>
+                </div>
+            </div>
+            <!-- Phase 6 INJ — 장애 주입 콘솔 -->
+            <div style="margin-top:8px;padding:6px;border:1px solid rgba(239,68,68,0.35);border-radius:4px;background:linear-gradient(180deg,rgba(239,68,68,0.06),transparent);">
+                <div style="font-size:8px;color:#ef4444;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;display:flex;justify-content:space-between;">
+                    <span>💥 장애 주입 (INJ)</span>
+                    <span id="inj-stats" style="color:#cdd9e8;font-size:8px;">—</span>
+                </div>
+                <div class="atc-btn-grid" style="grid-template-columns:1fr 1fr;">
+                    <button class="atc-btn atc-danger" id="btn-inj-gps" title="선택 드론 GPS 손실 20초">📡 GPS</button>
+                    <button class="atc-btn atc-danger" id="btn-inj-motor" title="선택 드론 모터 페일">⚙️ 모터</button>
+                    <button class="atc-btn atc-danger" id="btn-inj-comms" title="선택 드론 통신 두절 10초">📵 통신</button>
+                    <button class="atc-btn atc-danger" id="btn-inj-bat" title="선택 드론 배터리 급강하">🔋 배터리</button>
+                    <button class="atc-btn atc-warn" id="btn-inj-rogue" title="ROGUE 드론 1대 침입">👹 ROGUE</button>
+                    <button class="atc-btn atc-warn" id="btn-inj-nfz" title="임의 위치 동적 NFZ 30초">⚠️ 동NFZ</button>
+                    <button class="atc-btn atc-danger" id="btn-inj-emp" title="시나리오: 도시 EMP - 30% GPS 손실">🌃 EMP</button>
+                    <button class="atc-btn atc-danger" id="btn-inj-emi" title="시나리오: EMI 폭격 - 50% 통신두절">📡 EMI</button>
+                    <button class="atc-btn atc-clear" id="btn-inj-clear" title="모든 장애 해제" style="grid-column:1/3;">🟢 전체 해제</button>
+                </div>
             </div>
             <!-- P731(O1): 'Airspace Layers' 5종(layer-*)은 좌측 '공역·관제 레이어' 패널(tg-*)과
                  기능 중복이라 제거. tg-nfz/tg-altlayer/tg-corridor/tg-atc/tg-conflict가 단일 소스. -->
@@ -2028,6 +2070,378 @@
         const pointLight = new THREE.PointLight(0x00e5ff, 1.5, 80);
         pointLight.position.set(0, 10, 0);
         scene.add(pointLight);
+
+        // ===== Phase 3 CIN-1 — 동적 태양 + 시간대 (Dynamic Sun Cycle) =====
+        const sunCycle = {
+            enabled: false,
+            hour: 12.0,
+            auto: false,
+            speed: 0.05,           // hours per second when auto
+            ambientBase: 0.6,
+            dirLightBase: 0.8,
+        };
+
+        function _hourToColor(h) {
+            // 시간대별 RGB: 새벽 청 → 정오 백 → 황혼 황 → 야간 짙은 청
+            // h: 0..24
+            if (h < 5) return { r: 0.05, g: 0.07, b: 0.18, ambient: 0.15, dir: 0.05 }; // 깊은 밤
+            if (h < 7) {
+                const t = (h - 5) / 2;
+                return { r: 0.05 + 0.4 * t, g: 0.07 + 0.35 * t, b: 0.18 + 0.2 * t, ambient: 0.15 + 0.25 * t, dir: 0.05 + 0.45 * t };
+            }
+            if (h < 11) {
+                const t = (h - 7) / 4;
+                return { r: 0.45 + 0.45 * t, g: 0.42 + 0.5 * t, b: 0.38 + 0.5 * t, ambient: 0.4 + 0.4 * t, dir: 0.5 + 0.4 * t };
+            }
+            if (h < 14) return { r: 0.95, g: 0.95, b: 0.92, ambient: 0.85, dir: 1.0 };          // 정오
+            if (h < 17) {
+                const t = (h - 14) / 3;
+                return { r: 0.95 - 0.05 * t, g: 0.95 - 0.3 * t, b: 0.92 - 0.5 * t, ambient: 0.85 - 0.2 * t, dir: 1.0 - 0.15 * t };
+            }
+            if (h < 19) {
+                const t = (h - 17) / 2;
+                return { r: 0.9 - 0.4 * t, g: 0.5 - 0.35 * t, b: 0.3 + 0.05 * t, ambient: 0.65 - 0.4 * t, dir: 0.85 - 0.5 * t };
+            }
+            if (h < 21) {
+                const t = (h - 19) / 2;
+                return { r: 0.5 - 0.4 * t, g: 0.2 - 0.13 * t, b: 0.35 - 0.15 * t, ambient: 0.25 - 0.1 * t, dir: 0.35 - 0.25 * t };
+            }
+            return { r: 0.05, g: 0.07, b: 0.18, ambient: 0.15, dir: 0.05 }; // 야간
+        }
+
+        function updateSunCycle(dt) {
+            if (!sunCycle.enabled) return;
+            if (sunCycle.auto) {
+                sunCycle.hour = (sunCycle.hour + sunCycle.speed * dt * simSpeed) % 24;
+                const sl = document.getElementById('sun-hour');
+                if (sl) sl.value = sunCycle.hour.toFixed(1);
+                const lbl = document.getElementById('sun-hour-label');
+                if (lbl) lbl.textContent = sunCycle.hour.toFixed(1) + 'h';
+            }
+            // 태양 위치 = 동(x=-W)→남쪽 정상(y)→서(x=+W)
+            const angle = ((sunCycle.hour - 6) / 12) * Math.PI; // 6시=0, 18시=π
+            const sunR = 80;
+            dirLight.position.set(Math.cos(angle) * sunR, Math.max(2, Math.sin(angle) * sunR), 20);
+            const c = _hourToColor(sunCycle.hour);
+            dirLight.color.setRGB(c.r * 0.7 + 0.3, c.g * 0.7 + 0.3, c.b * 0.7 + 0.3);
+            dirLight.intensity = c.dir * 0.8;
+            // 하늘 배경 (scene.fog 색상 동기)
+            if (scene.fog && scene.fog.color) {
+                scene.fog.color.setRGB(c.r * 0.3, c.g * 0.3, c.b * 0.4);
+            }
+            renderer.setClearColor(new THREE.Color(c.r * 0.15, c.g * 0.15, c.b * 0.25), 1);
+        }
+
+        // ===== Phase 3 CIN-2 — 입자 효과 (비·눈·안개 농도) =====
+        const cinParticles = {
+            rain: { enabled: false, intensity: 0.5, points: null, vels: null, count: 0 },
+            snow: { enabled: false, intensity: 0.5, points: null, vels: null, count: 0 },
+            fog:  { enabled: false, density: 0.012 },
+        };
+
+        function _ensureRain() {
+            if (cinParticles.rain.points) return;
+            const n = 5000;
+            const positions = new Float32Array(n * 3);
+            for (let i = 0; i < n; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * W * 2;
+                positions[i * 3 + 1] = Math.random() * 60;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * W * 2;
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const mat = new THREE.PointsMaterial({ color: 0x88aacc, size: 0.08, transparent: true, opacity: 0.55, depthWrite: false });
+            const pts = new THREE.Points(geo, mat);
+            pts.frustumCulled = false;
+            scene.add(pts);
+            cinParticles.rain.points = pts;
+            cinParticles.rain.count = n;
+        }
+
+        function _ensureSnow() {
+            if (cinParticles.snow.points) return;
+            const n = 3000;
+            const positions = new Float32Array(n * 3);
+            const drifts = new Float32Array(n);
+            for (let i = 0; i < n; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * W * 2;
+                positions[i * 3 + 1] = Math.random() * 50;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * W * 2;
+                drifts[i] = Math.random() * Math.PI * 2;
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.18, transparent: true, opacity: 0.85, depthWrite: false });
+            const pts = new THREE.Points(geo, mat);
+            pts.frustumCulled = false;
+            scene.add(pts);
+            cinParticles.snow.points = pts;
+            cinParticles.snow.count = n;
+            cinParticles.snow.drifts = drifts;
+        }
+
+        function updateCinParticles(dt) {
+            // 비
+            if (cinParticles.rain.enabled) {
+                _ensureRain();
+                const p = cinParticles.rain.points;
+                p.visible = true;
+                const pos = p.geometry.attributes.position.array;
+                const vy = -25 * cinParticles.rain.intensity * dt;
+                for (let i = 0; i < cinParticles.rain.count; i++) {
+                    pos[i * 3 + 1] += vy;
+                    if (pos[i * 3 + 1] < 0) {
+                        pos[i * 3] = (Math.random() - 0.5) * W * 2;
+                        pos[i * 3 + 1] = 50 + Math.random() * 20;
+                        pos[i * 3 + 2] = (Math.random() - 0.5) * W * 2;
+                    }
+                }
+                p.geometry.attributes.position.needsUpdate = true;
+                p.material.opacity = 0.3 + 0.5 * cinParticles.rain.intensity;
+            } else if (cinParticles.rain.points) {
+                cinParticles.rain.points.visible = false;
+            }
+            // 눈
+            if (cinParticles.snow.enabled) {
+                _ensureSnow();
+                const p = cinParticles.snow.points;
+                p.visible = true;
+                const pos = p.geometry.attributes.position.array;
+                const drifts = cinParticles.snow.drifts;
+                const vy = -3 * cinParticles.snow.intensity * dt;
+                for (let i = 0; i < cinParticles.snow.count; i++) {
+                    pos[i * 3] += Math.sin(drifts[i] + simTime * 0.3) * 0.04;
+                    pos[i * 3 + 1] += vy;
+                    if (pos[i * 3 + 1] < 0) {
+                        pos[i * 3] = (Math.random() - 0.5) * W * 2;
+                        pos[i * 3 + 1] = 40 + Math.random() * 15;
+                        pos[i * 3 + 2] = (Math.random() - 0.5) * W * 2;
+                    }
+                }
+                p.geometry.attributes.position.needsUpdate = true;
+                p.material.opacity = 0.5 + 0.4 * cinParticles.snow.intensity;
+            } else if (cinParticles.snow.points) {
+                cinParticles.snow.points.visible = false;
+            }
+            // 안개 농도
+            if (cinParticles.fog.enabled && scene.fog) {
+                scene.fog.density = cinParticles.fog.density;
+            }
+        }
+
+        // ===== Phase 3 CIN-4 — 영상 녹화 (MediaRecorder) =====
+        const cinRecorder = {
+            recording: false,
+            mediaRecorder: null,
+            chunks: [],
+            mimeType: null,
+            startTs: 0,
+            stream: null,
+        };
+
+        function _pickMimeType() {
+            const candidates = [
+                'video/webm;codecs=vp9',
+                'video/webm;codecs=vp8',
+                'video/webm',
+                'video/mp4',
+            ];
+            for (const m of candidates) {
+                if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(m)) return m;
+            }
+            return '';
+        }
+
+        function startRecording() {
+            if (cinRecorder.recording) return false;
+            if (typeof MediaRecorder === 'undefined') {
+                logEvent('info', '🔴 MediaRecorder 미지원 브라우저');
+                return false;
+            }
+            const stream = renderer.domElement.captureStream(60);
+            const mt = _pickMimeType();
+            if (!mt) {
+                logEvent('info', '🔴 지원 코덱 없음');
+                return false;
+            }
+            cinRecorder.stream = stream;
+            cinRecorder.mimeType = mt;
+            cinRecorder.chunks = [];
+            const mr = new MediaRecorder(stream, { mimeType: mt, videoBitsPerSecond: 8_000_000 });
+            mr.ondataavailable = (e) => { if (e.data && e.data.size > 0) cinRecorder.chunks.push(e.data); };
+            mr.onstop = () => {
+                const blob = new Blob(cinRecorder.chunks, { type: mt });
+                const url = URL.createObjectURL(blob);
+                const ext = mt.includes('mp4') ? 'mp4' : 'webm';
+                _download(`sdacs_recording_${Date.now()}.${ext}`, url);
+                logEvent('info', `🔴 녹화 종료 → ${(blob.size / 1024 / 1024).toFixed(1)}MB`);
+                cinRecorder.chunks = [];
+            };
+            mr.start(1000);
+            cinRecorder.mediaRecorder = mr;
+            cinRecorder.recording = true;
+            cinRecorder.startTs = simTime;
+            logEvent('info', `🔴 녹화 시작 (${mt})`);
+            const ind = document.getElementById('rec-indicator');
+            if (ind) ind.classList.add('rec-active');
+            return true;
+        }
+
+        function stopRecording() {
+            if (!cinRecorder.recording || !cinRecorder.mediaRecorder) return false;
+            cinRecorder.mediaRecorder.stop();
+            cinRecorder.recording = false;
+            cinRecorder.mediaRecorder = null;
+            const ind = document.getElementById('rec-indicator');
+            if (ind) ind.classList.remove('rec-active');
+            return true;
+        }
+
+        // ===== Phase 6 INJ — 장애 주입 시스템 =====
+        const injStats = {
+            gpsLost: 0,
+            motorFail: 0,
+            commsLost: 0,
+            batteryDrain: 0,
+            rogueAdded: 0,
+            dynamicNfz: 0,
+        };
+        const _dynNfzList = []; // {x, z, r, expireAt}
+
+        function injectFault(droneId, type, opts) {
+            const d = (typeof droneId === 'string') ? drones.find(x => x.id === droneId) : (typeof droneId === 'number' ? drones[droneId] : droneId);
+            if (!d) return null;
+            opts = opts || {};
+            const dur = opts.duration || 10;
+            switch (type) {
+                case 'GPS_LOSS':
+                    d.gpsLost = true;
+                    d.gpsLossUntil = simTime + dur;
+                    d.gpsNoise = opts.noise || 20;
+                    injStats.gpsLost++;
+                    logEvent('fail', `📡 ${d.id} GPS 손실 (${dur}s, ±${d.gpsNoise}m)`);
+                    break;
+                case 'MOTOR_FAIL':
+                    d.motorFail = true;
+                    d._origMaxSpeed = d._origMaxSpeed || d.maxSpeed;
+                    d.maxSpeed = d._origMaxSpeed * (opts.factor || 0.5);
+                    injStats.motorFail++;
+                    logEvent('fail', `⚙️ ${d.id} 모터 페일 (속도 ${Math.round((opts.factor || 0.5) * 100)}%)`);
+                    break;
+                case 'COMMS_LOSS':
+                    d.commsLost = true;
+                    d.commsLostUntil = simTime + dur;
+                    injStats.commsLost++;
+                    logEvent('fail', `📵 ${d.id} 통신 두절 (${dur}s)`);
+                    break;
+                case 'BATTERY_DRAIN':
+                    d.batteryDrainRate = opts.rate || 5; // %/s
+                    d.batteryDrainUntil = simTime + dur;
+                    injStats.batteryDrain++;
+                    logEvent('fail', `🔋 ${d.id} 배터리 급강하 (${d.batteryDrainRate}%/s, ${dur}s)`);
+                    break;
+            }
+            return d;
+        }
+
+        function injectRogue() {
+            // 임의 위치에 ROGUE 드론 생성 (NFZ 횡단 시도)
+            const pads = LANDING_PADS;
+            const start = pads[Math.floor(Math.random() * pads.length)];
+            const id = drones.length + 1;
+            const d = createDrone(id, start);
+            d.id = 'RG-' + String(id).padStart(3, '0');
+            d.isRogue = true;
+            d.role = DRONE_ROLES[0];
+            d.phase = 'TAKEOFF';
+            d.battery = 70;
+            d.targetAlt = 80;
+            d.maxSpeed = 18;
+            // 목표 = NFZ 중심 부근 (위협 시나리오)
+            d.goalX = 0; d.goalZ = 0;
+            d.goalPad = { x: 0, z: 0, name: 'ROGUE-TARGET' };
+            drones.push(d);
+            injStats.rogueAdded++;
+            logEvent('rogue', `👹 ROGUE 드론 ${d.id} 침입 발생`);
+            return d;
+        }
+
+        function injectDynamicNFZ(x, z, r, dur) {
+            x = x ?? (Math.random() - 0.5) * W * 2 * 50;
+            z = z ?? (Math.random() - 0.5) * W * 2 * 50;
+            r = r || 100;
+            dur = dur || 30;
+            const nfz = { x, z, r, expireAt: simTime + dur };
+            _dynNfzList.push(nfz);
+            injStats.dynamicNfz++;
+            logEvent('advisory', `⚠️ 동적 NFZ (${Math.round(x)},${Math.round(z)}) r=${r}m, ${dur}s`);
+            return nfz;
+        }
+
+        function injectScenario(name) {
+            const fraction = name === 'EMP' ? 0.3 : name === 'EMI' ? 0.5 : name === 'BAT_LIMIT' ? 1.0 : 0;
+            const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+            const n = Math.floor(airborne.length * fraction);
+            let count = 0;
+            for (let i = 0; i < n; i++) {
+                const d = airborne[Math.floor(Math.random() * airborne.length)];
+                if (name === 'EMP') injectFault(d, 'GPS_LOSS', { duration: 20 });
+                else if (name === 'EMI') injectFault(d, 'COMMS_LOSS', { duration: 10 });
+                else if (name === 'BAT_LIMIT' && d.battery < 20) injectFault(d, 'BATTERY_DRAIN', { rate: 3, duration: 30 });
+                count++;
+            }
+            logEvent('fail', `🌃 시나리오 ${name} 주입: ${count}대 영향`);
+            return count;
+        }
+
+        // 매 sim-tick에서 만료된 장애 해제 + 효과 적용
+        function updateInjFaults(dt) {
+            for (const d of drones) {
+                if (d.gpsLost && d.gpsLossUntil <= simTime) { d.gpsLost = false; d.gpsLossUntil = 0; injStats.gpsLost = Math.max(0, injStats.gpsLost - 1); }
+                if (d.gpsLost) {
+                    d.wx += (Math.random() - 0.5) * d.gpsNoise * 0.1 * dt;
+                    d.wz += (Math.random() - 0.5) * d.gpsNoise * 0.1 * dt;
+                }
+                if (d.commsLost && d.commsLostUntil <= simTime) { d.commsLost = false; d.commsLostUntil = 0; injStats.commsLost = Math.max(0, injStats.commsLost - 1); }
+                if (d.batteryDrainRate && d.batteryDrainUntil > simTime) {
+                    d.battery = Math.max(0, d.battery - d.batteryDrainRate * dt * simSpeed);
+                } else if (d.batteryDrainRate && d.batteryDrainUntil <= simTime) {
+                    d.batteryDrainRate = 0; injStats.batteryDrain = Math.max(0, injStats.batteryDrain - 1);
+                }
+                if (d.motorFail && d._origMaxSpeed) {
+                    // motor fail은 명시 CLEAR 전까지 유지
+                }
+            }
+            // 동적 NFZ 만료 처리
+            for (let i = _dynNfzList.length - 1; i >= 0; i--) {
+                if (_dynNfzList[i].expireAt <= simTime) {
+                    _dynNfzList.splice(i, 1);
+                    injStats.dynamicNfz = Math.max(0, injStats.dynamicNfz - 1);
+                }
+            }
+            // INJ 통계 UI 갱신
+            const el = document.getElementById('inj-stats');
+            if (el) {
+                el.innerHTML = `
+                    📡:${injStats.gpsLost} ⚙️:${injStats.motorFail} 📵:${injStats.commsLost}
+                    🔋:${injStats.batteryDrain} 👹:${injStats.rogueAdded} ⚠️:${injStats.dynamicNfz}`;
+            }
+        }
+
+        function injClearAll() {
+            for (const d of drones) {
+                if (d.gpsLost) injStats.gpsLost = 0;
+                if (d.motorFail && d._origMaxSpeed) { d.maxSpeed = d._origMaxSpeed; d.motorFail = false; injStats.motorFail = 0; }
+                if (d.commsLost) injStats.commsLost = 0;
+                if (d.batteryDrainRate) injStats.batteryDrain = 0;
+                d.gpsLost = false; d.gpsLossUntil = 0;
+                d.commsLost = false; d.commsLostUntil = 0;
+                d.batteryDrainRate = 0; d.batteryDrainUntil = 0;
+            }
+            _dynNfzList.length = 0;
+            injStats.dynamicNfz = 0;
+            logEvent('info', '🟢 모든 장애 해제');
+        }
 
         // ===== Ground =====
         const gridH = new THREE.GridHelper(W * 2, 40, 0x0a1628, 0x0a1628);
@@ -6124,6 +6538,57 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
         document.getElementById('btn-export-html').addEventListener('click', exportHTML);
         document.getElementById('btn-export-md').addEventListener('click', exportMD);
 
+        // ===== Phase 3 CIN 이벤트 =====
+        document.getElementById('tg-sun-cycle').addEventListener('change', (e) => {
+            sunCycle.enabled = e.target.checked;
+            if (!sunCycle.enabled) {
+                dirLight.color.set(0x4488cc);
+                dirLight.intensity = 0.8;
+                dirLight.position.set(30, 40, 20);
+            }
+        });
+        document.getElementById('sun-hour').addEventListener('input', (e) => {
+            sunCycle.hour = parseFloat(e.target.value);
+            const lbl = document.getElementById('sun-hour-label');
+            if (lbl) lbl.textContent = sunCycle.hour.toFixed(1) + 'h';
+        });
+        document.getElementById('tg-sun-auto').addEventListener('change', (e) => {
+            sunCycle.auto = e.target.checked;
+            if (sunCycle.auto && !sunCycle.enabled) {
+                sunCycle.enabled = true;
+                document.getElementById('tg-sun-cycle').checked = true;
+            }
+        });
+        document.getElementById('tg-rain').addEventListener('change', (e) => { cinParticles.rain.enabled = e.target.checked; });
+        document.getElementById('tg-snow').addEventListener('change', (e) => { cinParticles.snow.enabled = e.target.checked; });
+        document.getElementById('btn-rec-toggle').addEventListener('click', () => {
+            if (cinRecorder.recording) stopRecording();
+            else startRecording();
+        });
+
+        // ===== Phase 6 INJ 이벤트 =====
+        document.getElementById('btn-inj-gps').addEventListener('click', () => {
+            if (selectedDrone) injectFault(selectedDrone, 'GPS_LOSS', { duration: 20 });
+            else logEvent('info', '드론을 먼저 선택하세요');
+        });
+        document.getElementById('btn-inj-motor').addEventListener('click', () => {
+            if (selectedDrone) injectFault(selectedDrone, 'MOTOR_FAIL', { factor: 0.5 });
+            else logEvent('info', '드론을 먼저 선택하세요');
+        });
+        document.getElementById('btn-inj-comms').addEventListener('click', () => {
+            if (selectedDrone) injectFault(selectedDrone, 'COMMS_LOSS', { duration: 10 });
+            else logEvent('info', '드론을 먼저 선택하세요');
+        });
+        document.getElementById('btn-inj-bat').addEventListener('click', () => {
+            if (selectedDrone) injectFault(selectedDrone, 'BATTERY_DRAIN', { rate: 5, duration: 20 });
+            else logEvent('info', '드론을 먼저 선택하세요');
+        });
+        document.getElementById('btn-inj-rogue').addEventListener('click', () => { injectRogue(); });
+        document.getElementById('btn-inj-nfz').addEventListener('click', () => { injectDynamicNFZ(); });
+        document.getElementById('btn-inj-emp').addEventListener('click', () => { injectScenario('EMP'); });
+        document.getElementById('btn-inj-emi').addEventListener('click', () => { injectScenario('EMI'); });
+        document.getElementById('btn-inj-clear').addEventListener('click', () => { injClearAll(); });
+
         // ATC 음성·로그 토글 (Phase 1D / 1B)
         document.getElementById('btn-atc-audio').addEventListener('click', (e) => {
             atcAudioEnabled = !atcAudioEnabled;
@@ -7570,6 +8035,13 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 _cpaPairs.length = 0; // 매 프레임 리셋 후 다시 detection
             }
 
+            // Phase 3 CIN — 동적 태양 + 입자 효과
+            if (typeof updateSunCycle === 'function') updateSunCycle(dt);
+            if (typeof updateCinParticles === 'function') updateCinParticles(dt);
+
+            // Phase 6 INJ — 장애 효과 + 만료 처리
+            if (typeof updateInjFaults === 'function' && simRunning) updateInjFaults(dt);
+
             // B4 다중 선택 링 추종(제거된 드론은 Set에서 정리)
             if (multiSel.size) {
                 let i = 0, dirty = false;
@@ -7745,6 +8217,25 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             setCpaMarker(on) { _cpaMarkerEnabled = !!on; const e = document.getElementById('tg-cpa-marker'); if (e) e.checked = _cpaMarkerEnabled; return _cpaMarkerEnabled; },
             get cpaMarker() { return _cpaMarkerEnabled; },
             get cpaPairsCount() { return _cpaMarkerIdx; },
+            // ===== Phase 3 — CIN 시네마틱 외부 API =====
+            setSunCycle(on) { sunCycle.enabled = !!on; const e = document.getElementById('tg-sun-cycle'); if (e) e.checked = sunCycle.enabled; return sunCycle.enabled; },
+            setSunHour(h) { sunCycle.hour = Math.max(0, Math.min(24, +h)); const sl = document.getElementById('sun-hour'); if (sl) sl.value = sunCycle.hour; return sunCycle.hour; },
+            setSunAuto(on) { sunCycle.auto = !!on; if (sunCycle.auto) sunCycle.enabled = true; return sunCycle.auto; },
+            get sunHour() { return sunCycle.hour; },
+            get sunEnabled() { return sunCycle.enabled; },
+            setRain(on, intensity) { cinParticles.rain.enabled = !!on; if (intensity != null) cinParticles.rain.intensity = Math.max(0, Math.min(1, intensity)); const e = document.getElementById('tg-rain'); if (e) e.checked = cinParticles.rain.enabled; return cinParticles.rain.enabled; },
+            setSnow(on, intensity) { cinParticles.snow.enabled = !!on; if (intensity != null) cinParticles.snow.intensity = Math.max(0, Math.min(1, intensity)); const e = document.getElementById('tg-snow'); if (e) e.checked = cinParticles.snow.enabled; return cinParticles.snow.enabled; },
+            startRecording() { return startRecording(); },
+            stopRecording() { return stopRecording(); },
+            get recording() { return cinRecorder.recording; },
+            // ===== Phase 6 — INJ 장애 주입 외부 API =====
+            injectFault(droneId, type, opts) { return injectFault(droneId, type, opts); },
+            injectRogue() { return injectRogue(); },
+            injectDynamicNFZ(x, z, r, dur) { return injectDynamicNFZ(x, z, r, dur); },
+            injectScenario(name) { return injectScenario(name); },
+            injClearAll() { return injClearAll(); },
+            get injStats() { return { ...injStats }; },
+            get dynamicNfzList() { return _dynNfzList.slice(); },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

@@ -1,0 +1,107 @@
+# P742 변형 #2: 도심 고밀도 — 10기 eVTOL 동시 운영 + 건물 NFZ
+scenario:
+  name: urban_dense
+  description: "서울 도심 가정 — 10 eVTOL × 5 NFZ 건물 × 60분"
+  duration_minutes: 60
+  random_seed: 200
+
+drones:
+  default_count: 10
+  profile: "EVTOL_PASSENGER"
+  mtow_kg: 850
+  cruise_speed_mps: 50
+  max_altitude_m: 600
+
+airspace:
+  bounds_km:
+    x: [-2, 2]    # 4km × 4km (도심)
+    y: [-2, 2]
+    z: [80, 500]  # 건물 회피 위해 최소 고도 상향
+
+corridors:
+  - id: COR-N-S
+    waypoints:
+      - [0, -2000, 250]
+      - [0, 2000, 250]
+    width_m: 60
+    altitude_min: 220
+    altitude_max: 280
+  - id: COR-E-W
+    waypoints:
+      - [-2000, 0, 350]
+      - [2000, 0, 350]
+    width_m: 60
+    altitude_min: 320
+    altitude_max: 380
+  - id: COR-NE-SW
+    waypoints:
+      - [-1400, -1400, 450]
+      - [1400, 1400, 450]
+    width_m: 50
+
+# P738 NSDI 임포터에서 자동 생성될 수 있는 건물 NFZ 5개 (예시)
+no_fly_zones:
+  - id: NFZ-BLDG-1
+    center: [500, 500, 100]
+    radius_m: 80
+    z_min: 0
+    z_max: 200
+    reason: "building"
+  - id: NFZ-BLDG-2
+    center: [-700, 300, 80]
+    radius_m: 60
+    z_min: 0
+    z_max: 160
+    reason: "building"
+  - id: NFZ-BLDG-3
+    center: [300, -800, 120]
+    radius_m: 90
+    z_min: 0
+    z_max: 240
+    reason: "building"
+  - id: NFZ-BLDG-4
+    center: [-1000, -500, 70]
+    radius_m: 70
+    z_min: 0
+    z_max: 140
+    reason: "building"
+  - id: NFZ-BLDG-5
+    center: [1100, 900, 100]
+    radius_m: 100
+    z_min: 0
+    z_max: 200
+    reason: "building"
+
+vertiports:
+  - id: VP-SEOUL-CITY
+    position: [0, 0, 0]
+    pad_count: 6
+  - id: VP-SEOUL-N
+    position: [0, 1800, 0]
+    pad_count: 4
+  - id: VP-SEOUL-S
+    position: [0, -1800, 0]
+    pad_count: 4
+
+safety_net:
+  layer_1_drone_agent: enabled
+  layer_2_apf: enabled
+  layer_3_cpa_lookahead_s: 90
+  layer_4_atc_cbs: enabled
+  layer_5_utm:
+    k_utm_endpoint: "https://k-utm.molit.go.kr/api/v1"
+    adsb_in_enabled: true
+    remote_id_v2_enabled: true
+
+weather:
+  wind_speed_mps: 6.0
+  wind_direction_deg: 315
+  turbulence: false
+  visibility_km: 3       # 도심 가시거리
+
+metrics_target:
+  near_miss_rate_max: 0.04
+  mean_separation_distance_min_m: 60
+  airspace_utilization_min: 0.70  # 도심은 높은 활용도 요구
+  real_time_factor_min: 1.0
+  scenario_completion_min: 0.95

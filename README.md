@@ -804,6 +804,11 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 18:15 | `09a5da6` | Merge remote-tracking branch 'origin/main' into feat/p731-layer-panel-merge | README.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md, docs/slides/README.md … |
+| 2026-06-04 18:14 | `e8a347c` | Merge remote-tracking branch 'origin/main' into docs/p701-p710-ultraplan | README.md, src/closed_net/airgap_mode.py |
+| 2026-06-04 16:11 | `da9096b` | fix(P744): airgap 감사가 운영 API 엔드포인트 오탐 — blocklist만 검사 | src/closed_net/airgap_mode.py |
+| 2026-06-04 16:04 | `f8e6fd8` | Merge remote-tracking branch 'origin/main' into docs/p701-p710-ultraplan | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
+| 2026-06-04 16:06 | `744f305` | Merge remote-tracking branch 'origin/main' into feat/p731-layer-panel-merge | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
 | 2026-06-04 16:07 | `b55b421` | Merge remote-tracking branch 'origin/main' into feat/p732-cpa-spatial-hash | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
 | 2026-06-04 16:03 | `1d5bcaa` | Merge remote-tracking branch 'origin/main' into feat/track-e-test-coverage | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
 | 2026-06-04 16:01 | `337d835` | Merge remote-tracking branch 'origin/main' into feat/contributing-index-extras | .github/workflows/airgap-audit.yml, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py, config/scenario_params/uam/k_uam_grand_challenge.yaml … |
@@ -822,6 +827,8 @@ MIT License — Developed for academic and educational purposes.
 | 2026-06-04 14:51 | `ec6f9fe` | docs: README 최신화 — Phase 755 배지 + 7트랙 진척 현황 표 | README.md |
 | 2026-06-04 14:48 | `0382904` | ci: re-trigger (flaky adapter encoding + audit.sh mode, PR #93 same main success) | - |
 | 2026-06-04 14:38 | `2081602` | docs: 종합 점검 보고서 (HEALTH_CHECK) — 소스·시뮬레이터·배포 위치 | docs/HEALTH_CHECK.md |
+| 2026-06-04 08:22 | `0ad4e1e` | docs: SDACS Ultra Plan + P701 논문 outline + P710 포스터/슬라이드 스켈레톤 | ROADMAP.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md, docs/slides/README.md |
+| 2026-06-03 23:19 | `3e020ee` | feat(P731): 공역 레이어 패널 중복 통합 — layer-* 제거, tg-* 단일 소스화 | ROADMAP.md, swarm_3d_simulator.html |
 | 2026-06-04 06:22 | `972a3d3` | feat(P732): 대규모 CPA 충돌예측 공간 해시 복원 (B2) | ROADMAP.md, swarm_3d_simulator.html |
 | 2026-06-03 19:39 | `426b9e7` | ci: desktop-build setup-node 캐시 비활성화 (lock 파일 부재로 실패) | .github/workflows/desktop-build.yml |
 | 2026-06-03 13:12 | `3295124` | feat: 병렬 세션의 고유 작업 통합 (Track A SW + P706 결과 + 벤치마크 schema) | benchmarks/_schema/manifest.schema.json, results/p706_comparison_3sc_5seed.csv, results/p706_summary.json, scripts/compare_baselines.py, simulation/environmental_scenario.py, simulation/failsafe_manager.py … |

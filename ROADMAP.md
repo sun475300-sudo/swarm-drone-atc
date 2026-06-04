@@ -183,8 +183,13 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P728** — 해양 기술 문서(`docs/maritime_detection_technical.md`) + 헤드리스 스모크 17/17 (2026-06-03)
 - [x] **P729** — 대규모 모드 글로우 InstancedMesh(B3, 1k~10k 단일 드로우콜) — main `2f43895` 반영 + 본 세션 docs 보강 (2026-06-04)
 - [~] **P730** — UI 국제화 KO/EN 토글 (PR #81 머지 대기, 모바일·터치는 후속)
+<<<<<<< HEAD
 - [~] **P731** — 공역 레이어 패널 중복 통합 (PR #84 머지 대기)
 - [x] **P732** — 대규모 CPA 충돌예측 복원(B2, 공간 해시) — `updateConflictViz()` 공간 해시 broad-phase, 1k+ 환경 충돌쌍 시각화. `_sdacs.conflictPairs` API (PR #88, 2026-06-03)
+=======
+- [x] **P731** — 공역 레이어 패널 중복 통합(O1) — 우측 'Airspace Layers'(layer-*) 5종 제거, tg-* 단일 소스 통합 (PR #84, 2026-06-03)
+- [~] **P732** — 대규모 CPA 공간 해시 복원 (PR #88 머지 대기)
+>>>>>>> origin/main
 - [~] **P733** — `ws_bridge` LIVE 토글 (PR #81 머지 대기 + 다른 세션 PR #85)
 - [~] **P734** — 키보드 스크러버 + 멀티뷰 동기화 (PR #89·#91 머지 대기 + 다른 세션 PR #86)
 - [~] **P735** — 해양 EO/IR adapter 패턴 + Mock SDK (PR #92 머지 대기)

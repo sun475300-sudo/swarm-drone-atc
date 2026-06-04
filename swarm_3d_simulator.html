@@ -4828,6 +4828,29 @@
             ctx.fillStyle = '#4a6785'; ctx.font = '8px JetBrains Mono, monospace';
             ctx.fillText('100%', 2, toY(100) + 8); ctx.fillText('0%', 2, toY(0) - 1);
 
+            // P734 멀티뷰 동기화: 라이브 = simTime, 리플레이 = recorder.frames[replayIdx].t
+            // chartHistory.time 배열에서 가장 가까운 인덱스를 찾아 수직 cursor 그리기
+            const _curT = (replayMode && recorder.frames[replayIdx])
+                ? recorder.frames[replayIdx].t : simTime;
+            if (chartHistory.time.length >= 2 && Number.isFinite(_curT)) {
+                let _idx = chartHistory.time.length - 1;
+                for (let i = chartHistory.time.length - 1; i >= 0; i--) {
+                    if (chartHistory.time[i] <= _curT) { _idx = i; break; }
+                }
+                const _cx = _idx * (w / Math.max(1, chartHistory.time.length - 1));
+                ctx.strokeStyle = replayMode ? 'rgba(168,85,247,0.85)' : 'rgba(0,229,255,0.55)';
+                ctx.lineWidth = replayMode ? 1.5 : 1;
+                ctx.setLineDash(replayMode ? [] : [3, 3]);
+                ctx.beginPath(); ctx.moveTo(_cx, h * 0.05); ctx.lineTo(_cx, h * 0.95); ctx.stroke();
+                ctx.setLineDash([]);
+                const _mm = String(Math.floor(_curT / 60)).padStart(2, '0');
+                const _ss = String(Math.floor(_curT % 60)).padStart(2, '0');
+                const _lbl = (replayMode ? '◀ ' : '● ') + _mm + ':' + _ss;
+                const _lw = ctx.measureText(_lbl).width;
+                ctx.fillStyle = replayMode ? 'rgba(168,85,247,0.95)' : 'rgba(0,229,255,0.85)';
+                ctx.fillText(_lbl, Math.max(0, Math.min(w - _lw - 2, _cx - _lw / 2)), h * 0.05 - 1);
+            }
+
             // 하단 시간축 라벨(시작/중간/현재)
             if (chartHistory.time.length > 1) {
                 const startT = chartHistory.time[0];

@@ -1,13 +1,14 @@
 name: Desktop Build (Win/Mac/Linux)
 
 # SDACS 데스크탑 앱 빌드 — Win NSIS · Mac DMG · Linux AppImage.
-# 트리거: v* 태그 push → GitHub Releases 자동 발행
+# 트리거: v* 태그 push → GitHub Releases 자동 발행(공개)
 #        main push (desktop/* 변경) → artifact 업로드(스모크)
 #        수동 실행(workflow_dispatch)
 on:
   push:
-    branches: [main]
     tags: ['v*']
+  workflow_dispatch:
+  pull_request:
     paths:
       - 'desktop/**'
       - 'swarm_3d_simulator.html'
@@ -15,7 +16,6 @@ on:
       - 'vendor/three/**'
       - 'package.json'
       - '.github/workflows/desktop-build.yml'
-  workflow_dispatch:
 
 permissions:
   contents: write   # GitHub Releases 업로드용
@@ -90,6 +90,23 @@ jobs:
             dist/*.dmg
             dist/*.AppImage
           generate_release_notes: true
-          draft: true
+          draft: false
+          prerelease: false
+          name: SDACS Desktop ${{ github.ref_name }}
+          body: |
+            ## SDACS 데스크탑 앱 다운로드
+
+            **자동 빌드**: Win NSIS · macOS DMG · Linux AppImage
+
+            ### 설치 방법
+            - **Windows**: `*.exe` 다운로드 → 실행
+            - **macOS**: `*.dmg` 다운로드 → 마운트 → 앱 드래그
+            - **Linux**: `*.AppImage` 다운로드 → `chmod +x` → 실행
+
+            ### 포함된 시뮬레이터
+            - 군집 드론 3D 시뮬레이터 (`swarm_3d_simulator.html`)
+            - 해양 탐지 시뮬레이터 (`maritime_detection_simulator.html`)
+
+            전체 소스: https://github.com/${{ github.repository }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

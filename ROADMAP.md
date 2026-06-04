@@ -217,7 +217,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [~] **P752** — 학회 워크숍 가이드 — `docs/track_f/p752_workshop.md` (IROS/ICRA/AIAA workshop proposal) (2026-06-04)
 - [~] **P753** — 기술 이전 / 라이선싱 가이드 — `docs/track_f/p753_licensing.md` (듀얼 라이선스 + 5건 특허 + 5개 회사 타겟) (2026-06-04)
 - [~] **P754** — 후속 캡스톤 멘토링 — `docs/track_f/p754_mentoring.md` 인수인계 자산 + 후속 주제 + 멘토링 일정 + 인수 체크리스트 (2026-06-04)
-- [ ] **P755** — 창업·분사 검토 (별도 PR 진행 예정)
+- [~] **P755** — 창업·분사 검토 — `docs/track_f/p755_startup.md` (결정 매트릭스 4종 + TIPS 창업 시나리오 + 5년 매출/Exit 계획 + Go/No-Go 체크리스트, 실제 의사결정 2028+) (2026-06-04)
 
 ---
 
@@ -227,3 +227,5 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
 *Last updated: 2026-06-04 — **울트라플랜 대규모 실행**: Track A 실기 가이드 10종 + Track B 후반(P702/P707/P708/P709) + Track C P720 베타 + Track E PoC 코드 6종 (`src/rl·uast·env·training·raft·llm`) + Track F 산학 docs 7종 신설. Track E 단위 테스트 29/29 PASS. 테스트 3,860+개. 전체 진행률 Phase 691-755 중 39/65 = 60% (코드 완성도 기준 partial 포함).*
+
+*Daily check 2026-06-04 — P755 산출물(`docs/track_f/p755_startup.md`) 완성 확인 후 상태를 `[ ]`→`[~]`로 정정, Track F README에 P754 링크 추가. Phase 691-755 전 65항목이 모두 산출물 보유(완료 또는 partial); 잔여 작업은 외부 의존(실기 하드웨어·GPU 학습·API 키·기관 협약)으로 자동화 범위 밖. 회귀 검증: Track E 72 + 핵심 APF/시나리오 33 = 105 테스트 PASS.*

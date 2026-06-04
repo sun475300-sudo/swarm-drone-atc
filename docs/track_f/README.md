@@ -36,4 +36,5 @@
 - [p749_security_audit.md](p749_security_audit.md)
 - [p752_workshop.md](p752_workshop.md)
 - [p753_licensing.md](p753_licensing.md)
+- [p754_mentoring.md](p754_mentoring.md)
 - [p755_startup.md](p755_startup.md)

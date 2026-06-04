@@ -804,6 +804,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 16:00 | `4b1c4e7` | Merge remote-tracking branch 'origin/main' into feat/paper-slides-eval | .github/workflows/airgap-audit.yml, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py, config/scenario_params/uam/k_uam_grand_challenge.yaml … |
 | 2026-06-04 15:59 | `d278477` | Merge remote-tracking branch 'origin/main' into feat/final-polish | README.md, ROADMAP.md, benchmarks/baselines/sdacs/adapter.py, config/scenario_params/uam/k_uam_grand_challenge.yaml, docs/beta/README.md, docs/hardware/README.md … |
 | 2026-06-04 15:58 | `55193ee` | Merge remote-tracking branch 'origin/main' into feat/track-e-finale | README.md, ROADMAP.md, benchmarks/baselines/sdacs/adapter.py, docs/beta/README.md, docs/hardware/README.md, docs/hardware/environmental_test.md … |
 | 2026-06-04 15:47 | `cf27396` | Merge remote-tracking branch 'origin/main' into feat/track-b-paper-master | README.md, benchmarks/baselines/sdacs/adapter.py, results/comparison/01_corridor_crossing/cbs/seed42.json, results/comparison/01_corridor_crossing/cbs/seed43.json, results/comparison/01_corridor_crossing/cbs/seed44.json, results/comparison/01_corridor_crossing/cbs/seed45.json … |

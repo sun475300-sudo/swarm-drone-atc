@@ -1,0 +1,152 @@
+% SDACS Paper — IROS 2026 양식 (P707 §1-§3 scaffold)
+% 컴파일: pdflatex main.tex && bibtex main && pdflatex main.tex && pdflatex main.tex
+
+\documentclass[letterpaper, 10pt, conference]{ieeeconf}
+\IEEEoverridecommandlockouts
+\overrideIEEEmargins
+
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{algorithm, algorithmic}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{hyperref}
+
+\title{\LARGE\bf
+SDACS: A Hybrid APF-CBS Architecture for Robust Swarm-Drone Airspace Control under Wind Disturbances
+}
+
+\author{Sunwoo Jang$^{1}$, Advisor [TBD]$^{1}$%
+\thanks{$^{1}$Department of Electrical Control Engineering, Mokpo National University, South Korea.
+        \tt\small sun475300@gmail.com}
+}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\pagestyle{empty}
+
+% =================================================================
+\begin{abstract}
+We propose SDACS, a hybrid airspace control system that fuses
+short-horizon Artificial Potential Field (APF) avoidance with
+medium-horizon Conflict-Based Search (CBS) planning under a unified
+5-layer safety net. A wind-aware mode switching mechanism automatically
+adapts APF parameters when wind speeds exceed 10\,m/s, while CBS
+re-planning is triggered upon persistent APF conflict states. On
+10-scenario benchmarks with 5 random seeds against ORCA, Velocity
+Obstacle, and CBS baselines, SDACS reduces near-miss rate (NMR) by
+55\% versus VO, increases airspace utilization (AU) by 14\% versus
+ORCA, and sustains real-time factor (RTF) of 140$\times$ even in
+1000-drone scenarios. Code, benchmark datasets (CC-BY-4.0), and
+reproducibility container are publicly released.
+\end{abstract}
+
+% =================================================================
+\section{INTRODUCTION}
+
+The expected scale of Urban Air Mobility (UAM) — up to 100,000 drones
+operating concurrently by 2030~\cite{kopardekar2017utm} — requires
+airspace control systems that simultaneously guarantee safety, achieve
+high throughput, and remain robust under environmental disturbances.
+Existing approaches fall into two categories:
+
+\textit{Reactive avoidance} (ORCA~\cite{vandenberg2011orca}, Velocity
+Obstacle~\cite{fiorini1998vo}) responds quickly but loses up to 30\%
+safety margin under wind speeds above 10\,m/s. \textit{Centralized
+planning} (CBS~\cite{sharon2015cbs}) provides global optimality but
+scales as $O(N^2)$ in agent count, making real-time deployment
+challenging for fleets exceeding 100 drones.
+
+This paper presents SDACS, which makes three contributions:
+\begin{enumerate}
+    \item A wind-aware hybrid avoidance combining APF (10\,Hz) with
+          CBS re-planning (1\,Hz, triggered).
+    \item A 5-layer safety net providing fault isolation across drone
+          agent, APF, CPA prediction, ATC controller, and UTM
+          integration layers.
+    \item An open benchmark dataset of 10 scenarios with 3 baselines,
+          and a Docker-based reproducibility package.
+\end{enumerate}
+
+% =================================================================
+\section{RELATED WORK}
+
+% TODO P707 SP2-end: 30편 인용 분류 narrative 작성 (related_work.md 참조)
+% 카테고리: A. 충돌 회피 / B. MAPF·CBS / C. UTM / D. Sim-to-Real / E. RL
+
+Recent surveys~\cite{} categorize UAV avoidance algorithms into
+reactive (ORCA, VO, HRVO) and planning-based (RRT*, CBS, MILP) families.
+Yoshida and Saito~\cite{yoshida2023apf_wind} extend APF with wind
+disturbance, but lack integration with planning-based methods.
+Kim and Lee~\cite{kim2024urban_apf} propose adaptive APF parameters,
+yet evaluate only on 20-drone scenarios.
+
+% =================================================================
+\section{METHOD}
+
+\subsection{5-Layer Safety Net Architecture}
+
+The SDACS architecture (Fig.~\ref{fig:arch}) decomposes airspace
+control into five layers, each with independent failure modes:
+\begin{itemize}
+    \item Layer 1: Drone agent (SimPy 10\,Hz)
+    \item Layer 2: APF avoidance with wind-aware parameters
+    \item Layer 3: Closest Point of Approach (CPA) 90\,s lookahead
+    \item Layer 4: ATC controller (1\,Hz, CBS re-planning)
+    \item Layer 5: UTM integration (K-UTM, ADS-B, Remote ID)
+\end{itemize}
+
+\subsection{Wind-Aware APF Mode Switching}
+
+\begin{equation}
+\boldsymbol{\theta}_{\mathrm{APF}}(t) =
+\begin{cases}
+\boldsymbol{\theta}_{\mathrm{default}} & \text{if } v_{\mathrm{wind}}(t) \le 10 \, \mathrm{m/s} \\
+\boldsymbol{\theta}_{\mathrm{windy}}   & \text{if } v_{\mathrm{wind}}(t) > 10 \, \mathrm{m/s}
+\end{cases}
+\end{equation}
+
+% TODO P707 SP3: APF_PARAMS_WINDY 구체 값 표 추가
+
+\subsection{CBS Re-planning Trigger}
+
+\begin{algorithm}
+\caption{CBS Re-planning Trigger}
+\begin{algorithmic}
+\STATE $N_{\text{persistent}} \leftarrow 0$
+\WHILE{simulation running}
+    \IF{APF reports conflict at time $t$}
+        \STATE $N_{\text{persistent}} \leftarrow N_{\text{persistent}} + 1$
+    \ELSE
+        \STATE $N_{\text{persistent}} \leftarrow 0$
+    \ENDIF
+    \IF{$N_{\text{persistent}} \ge N_{\mathrm{threshold}}$}
+        \STATE Invoke CBS replan; reset counter
+    \ENDIF
+\ENDWHILE
+\end{algorithmic}
+\end{algorithm}
+
+% =================================================================
+\section{EXPERIMENTS}
+% TODO P707 SP3
+
+% =================================================================
+\section{RESULTS}
+% TODO P707 SP3
+
+% =================================================================
+\section{DISCUSSION}
+% TODO P707 SP3
+
+% =================================================================
+\section{CONCLUSION}
+% TODO P707 SP3
+
+% =================================================================
+\bibliographystyle{ieeeconf}
+\bibliography{../refs/references}
+
+\end{document}

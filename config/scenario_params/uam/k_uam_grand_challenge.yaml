@@ -1,0 +1,99 @@
+# P742: K-UAM Grand Challenge 2단계 시나리오
+# 도심 회랑 + 다중 기체 통제 + 5kg+ MTOW eVTOL
+# Reference: 국토교통부 K-UAM 2단계 ConOps (2024)
+
+scenario:
+  name: k_uam_grand_challenge
+  description: "K-UAM 도심 회랑 시뮬 — 5기 eVTOL × 30분 운영"
+  duration_minutes: 30
+  random_seed: 42
+
+drones:
+  default_count: 5
+  profile: "EVTOL_PASSENGER"      # 신규 프로필 (P742에서 정의)
+  mtow_kg: 850                    # eVTOL 표준
+  cruise_speed_mps: 50            # 180 km/h
+  max_altitude_m: 600             # AGL
+  battery_capacity_kwh: 100
+
+airspace:
+  bounds_km:
+    x: [-5, 5]                    # 10km × 10km
+    y: [-5, 5]
+    z: [50, 600]                  # 회랑 고도대
+
+corridors:
+  # K-UAM 표준 회랑 (편도 5km, 양방향)
+  - id: COR-N-S
+    waypoints:
+      - [0, -5000, 300]
+      - [0, 5000, 300]
+    width_m: 100
+    altitude_min: 250
+    altitude_max: 350
+  - id: COR-E-W
+    waypoints:
+      - [-5000, 0, 400]
+      - [5000, 0, 400]
+    width_m: 100
+    altitude_min: 350
+    altitude_max: 450
+  - id: COR-DIAG
+    waypoints:
+      - [-3500, -3500, 500]
+      - [3500, 3500, 500]
+    width_m: 80
+    altitude_min: 450
+    altitude_max: 550
+
+vertiports:
+  - id: VP-SEOUL
+    position: [0, 0, 0]
+    pad_count: 4
+    operational_hours: "06:00-22:00"
+  - id: VP-INCHEON
+    position: [-4000, 0, 0]
+    pad_count: 2
+  - id: VP-GIMPO
+    position: [3000, 1000, 0]
+    pad_count: 2
+
+# 5계층 안전망 활성
+safety_net:
+  layer_1_drone_agent: enabled
+  layer_2_apf: enabled
+  layer_3_cpa_lookahead_s: 90
+  layer_4_atc_cbs: enabled
+  layer_5_utm:
+    k_utm_endpoint: "https://k-utm.molit.go.kr/api/v1"
+    adsb_in_enabled: true
+    remote_id_v2_enabled: true
+
+weather:
+  wind_speed_mps: 8.0
+  wind_direction_deg: 270         # W → E
+  turbulence: false
+  visibility_km: 5
+
+emergency_scenarios:
+  # K-UAM 평가 지표
+  - trigger_at_s: 600             # 10분
+    type: "engine_failure"
+    drone: 2
+    expected_response: "RTL"
+  - trigger_at_s: 1200            # 20분
+    type: "comms_loss"
+    drone: 3
+    expected_response: "LOITER_THEN_LAND"
+  - trigger_at_s: 1500
+    type: "intruder"
+    classification: "uncooperative_drone"
+    expected_response: "EVADE"
+
+metrics_target:
+  # K-UAM 통과 기준
+  near_miss_rate_max: 0.05
+  mean_separation_distance_min_m: 50
+  airspace_utilization_min: 0.6
+  real_time_factor_min: 1.0
+  scenario_completion_min: 0.95

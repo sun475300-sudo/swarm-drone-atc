@@ -128,31 +128,31 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 
 SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
-- [ ] **P691** — Pixhawk 6X / Cube Orange 보드 펌웨어 플래싱 및 PX4 v1.15+ 연동
-- [ ] **P692** — Jetson Orin Nano 컴패니언 컴퓨터 MAVLink 브릿지 (`onboard_bridge.py`)
-- [ ] **P693** — 실기 Remote ID 방송 (ASTM F3411 v2.0 Broadcast/Network 모드)
-- [ ] **P694** — RTK-GPS 센티미터 정밀도 측위 및 AirspaceController 피드백
-- [ ] **P695** — 전파 간섭·통신 단절 대비 Failsafe 로직 (Return-to-Launch / Geofence)
-- [ ] **P696** — 다중 기체 스웜 프레임 동기화 (PTP / NTP, <10ms jitter)
-- [ ] **P697** — 실내 Motion Capture (Vicon/Optitrack) HITL 셋업
-- [ ] **P698** — 실외 소규모 스웜 비행 시험 (3-5기 정지비행·포메이션)
-- [ ] **P699** — 풍동·강우·저조도 환경 시나리오 실측
-- [ ] **P700** — HITL 통합 보고서 + 안전 분석 (FMEA)
+- [~] **P691** — Pixhawk 6X / Cube Orange 펌웨어 가이드 — `docs/hardware/pixhawk_setup.md` (PX4 v1.15.4 빌드·QGC 설정·SDACS 연동·트러블슈팅) (2026-06-04)
+- [~] **P692** — Jetson Orin Nano MAVLink 브릿지 가이드 — `docs/hardware/jetson_mavlink.md` (UART/JetPack6.1/SITL→HITL) (2026-06-04)
+- [~] **P693** — Remote ID 방송 가이드 — `docs/hardware/remote_id_broadcast.md` (ASTM F3411 v2.0 + 한국 RID 법규) (2026-06-04)
+- [~] **P694** — RTK-GPS 가이드 — `docs/hardware/rtk_gps.md` (u-blox ZED-F9P + NTRIP + 한국 VRS) (2026-06-04)
+- [~] **P695** — Failsafe 가이드 — `docs/hardware/failsafe_logic.md` (PX4 PARAM + 시나리오 매트릭스 + 시험 절차) (2026-06-04)
+- [~] **P696** — 시간 동기화 가이드 — `docs/hardware/time_sync.md` (chrony NTP + GPS PPS, jitter <10ms) (2026-06-04)
+- [~] **P697** — MoCap HITL 가이드 — `docs/hardware/mocap_hitl.md` (Vicon/Motive + EKF2_AID_MASK 24) (2026-06-04)
+- [~] **P698** — 실외 비행 프로토콜 — `docs/hardware/outdoor_test_protocol.md` (M1-M6 매트릭스 + 사전 체크리스트) (2026-06-04)
+- [~] **P699** — 환경 시험 가이드 — `docs/hardware/environmental_test.md` (풍동·강우·저조도·EMI) (2026-06-04)
+- [~] **P700** — HITL 통합 보고서 + FMEA — `docs/hardware/fmea_report.md` (12 failure modes, RPN 우선순위) (2026-06-04)
 
 ### Track B — 연구·논문화 (Phase 701-710)
 
 목포대 캡스톤 결과물을 학술적 기여로 정제.
 
-- [~] **P701** — 논문 주제 outline 작성 — `docs/paper/contribution_outline.md` 3개 기여 후보(C1 APF+CBS 하이브리드, C2 Voronoi 동적 공역, C3 DnI 정확도) 비교표 + §-outline + 권장 순위. 지도교수 컨펌 대기 (2026-06-03)
-- [ ] **P702** — 선행 연구 서베이 (최소 30편, IROS/ICRA/AIAA 기준)
+- [~] **P701** — 논문 주제 outline `docs/paper/contribution_outline.md` 3 기여 후보 + §-outline (별도 PR #90)
+- [~] **P702** — 선행 연구 서베이 — `docs/paper/related_work.md` 30편 분류 + `refs/references.bib` BibTeX (2026-06-04)
 - [x] **P703** — 벤치마크 데이터셋 공개화 — `benchmarks/` 10개 시나리오 + 3개 기준선(ORCA/VO/CBS) + CC-BY-4.0 + DATASET_CARD.md + CITATION.bib 완비 (2026-05-29)
 - [x] **P704** — Reproducibility 패키지 — Dockerfile·Dockerfile.gpu·Dockerfile.reproducible + docker-compose.reproducible.yml (PYTHONHASHSEED=0, seed 고정) 완비 (2026-05-29)
 - [x] **P705** — 평가 메트릭 정형화 — `src/analytics/metrics.py` NMR·MSD·PE·MS·FT·AU·RID_CR·RTF 8종 공식 정의 및 Evaluator 클래스 구현 (2026-05-29)
 - [x] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS) — SDACS W2 APF+CBS 하이브리드 어댑터 완성, NMR·MSD·AU 유의미 개선 확인 (2026-06-01)
-- [ ] **P707** — 논문 초안 작성 (IROS 2026 또는 AIAA SciTech 2027 투고 목표)
-- [ ] **P708** — 내부 리뷰 3회 + 지도교수 피드백 반영
-- [ ] **P709** — 공식 투고 및 arXiv 프리프린트 업로드
-- [~] **P710** — 학술대회 발표 슬라이드·포스터 스켈레톤 — `docs/poster/donggang_2026_ko.md` (동강대 4/23 한국어 포스터 8섹션) + `docs/slides/README.md` (12분 15장 outline). 차트·다이어그램 asset은 SP2-3에서 완성 (2026-06-03)
+- [~] **P707** — 논문 초안 — `docs/paper/latex/main.tex`(§1-§3) + `sections_4to7.tex`(§4-§7 Experiments/Results/Ablation/Discussion/Conclusion + 결과·ablation 표) (PR #93·본 PR, 실험 그래프 보강 잔여)
+- [~] **P708** — 내부 리뷰 가이드 `docs/paper/review_checklist.md` (PR #93)
+- [~] **P709** — 투고 가이드 `docs/paper/submission_guide.md` (PR #93, 실제 투고 사용자)
+- [~] **P710** — 발표 자산 — 포스터 `donggang_2026_ko.md` + Marp 슬라이드 15장 + 차트 2종(NMR/MSD bar·Pareto) (PR #90·#95·본 PR)
 
 ### Track C — 배포·서비스화 (Phase 711-720)
 
@@ -167,7 +167,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지) — 100드론 60s PASS (p99=10.74ms, RTF=140x), `scripts/load_test.py` (2026-06-01)
 - [x] **P718** — 관측성 스택 — Prometheus + Grafana + Loki docker-compose, `monitoring/prometheus.yml` + `alerts.yml` + Grafana 대시보드 JSON + `src/monitoring/metrics.py` prometheus_client 미들웨어 완비 (2026-06-03)
 - [x] **P719** — 보안 감사 — `scripts/security_audit.sh` (bandit·pip-audit·safety) + `.github/workflows/security.yml` (bandit SARIF + pip-audit + trivy) 완비 (2026-06-03)
-- [ ] **P720** — 공개 베타 오픈 (3개 파일럿 기관, 피드백 수집 4주)
+- [~] **P720** — 공개 베타 운영 가이드 — `docs/beta/README.md` (3 후보 기관 + SLA + 온보딩 + NPS 설문) (2026-06-04)
 
 ### Track D — 웹 시뮬레이터·시각화 (Phase 721-735)
 
@@ -181,13 +181,43 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P726** — 경로효율 per-leg 정정(B9) + CPA 라벨 스프라이트 풀 최적화(B10) (2026-06-03)
 - [x] **P727** — 해양 소형선 감지 시뮬레이터 신설 — 레이더 물리(C1)·AIS융합(C2)·EO/IR(C3)·COLREG(C4)·트랙상세(C5)·리포트(C6)·해안선(C7)·시나리오8종(C8)·검증기록(C9) (2026-06-03)
 - [x] **P728** — 해양 기술 문서(`docs/maritime_detection_technical.md`) + 헤드리스 스모크 17/17 (2026-06-03)
-- [ ] **P729** — 대규모 모드 로터·글로우 InstancedMesh 확장(B3, 1k~10k 추가 최적화)
-- [ ] **P730** — UI 국제화(B5, KO/EN 토글) + 모바일·터치 대응
-- [ ] **P731** — 공역 레이어 패널 중복 통합(O1) + 두 시뮬레이터 공통 컴포넌트 추출(D1)
-- [ ] **P732** — 대규모 CPA 충돌예측 복원(B2, 공간 해시) — 1k+ 환경 충돌쌍 시각화
-- [ ] **P733** — `ws_bridge` 실데이터 라이브 수신 토글(데모↔실측)
-- [ ] **P734** — 리플레이·타임라인 스크러버 + 동기화 멀티뷰 고도화
-- [ ] **P735** — 해양 EO/IR 실 카메라 프레임 연동(센서 SDK) — 실기화 연계
+- [x] **P729** — 대규모 모드 글로우 InstancedMesh(B3, 1k~10k 단일 드로우콜) — main `2f43895` 반영 + 본 세션 docs 보강 (2026-06-04)
+- [~] **P730** — UI 국제화 KO/EN 토글 (PR #81 머지 대기, 모바일·터치는 후속)
+- [~] **P731** — 공역 레이어 패널 중복 통합 (PR #84 머지 대기)
+- [~] **P732** — 대규모 CPA 공간 해시 복원 (PR #88 머지 대기)
+- [~] **P733** — `ws_bridge` LIVE 토글 (PR #81 머지 대기 + 다른 세션 PR #85)
+- [~] **P734** — 키보드 스크러버 + 멀티뷰 동기화 (PR #89·#91 머지 대기 + 다른 세션 PR #86)
+- [~] **P735** — 해양 EO/IR adapter 패턴 + Mock SDK (PR #92 머지 대기)
+
+### Track E — 확장 연구·기술 심화 (Phase 736-745)
+
+논문·발표 이후 SDACS를 다음 단계 연구 자산으로 확장.
+
+- [~] **P736** — RL 충돌 회피 PoC scaffold — `src/rl/ppo_collision.py` SB3 PPO + `SDACSGymEnv` wrapper (학습은 GPU 환경 필요) (2026-06-04)
+- [~] **P737** — 비협조 침입자(UAS-T) 결정 트리 — `src/uast/intruder_response.py` + 9개 단위 테스트 PASS (2026-06-04)
+- [~] **P738** — 도시 LiDAR/Mesh 임포터 — `src/env/nsdi_importer.py` NSDI Web Map Service → NFZ 자동 생성 (API 키 필요) (2026-06-04)
+- [~] **P739** — Sim-to-Real Domain Randomization — `src/training/domain_rand.py` + 7개 단위 테스트 PASS, ADR 곡선 학습 포함 (2026-06-04)
+- [~] **P740** — 디지털 트윈 동기화 엔진 — `src/digital_twin/sync_engine.py` MAVLink GLOBAL_POSITION_INT 파서 + LatencyStats(p50/p99) + GPS→ENU 변환. 6개 단위 테스트 PASS (2026-06-04)
+- [~] **P741** — 페일오버 클러스터링 (Raft HA) — `src/raft/airspace_controller_ha.py` + 13개 단위 테스트 PASS (2026-06-04)
+- [~] **P742** — K-UAM Grand Challenge 시나리오 — `config/scenario_params/uam/k_uam_grand_challenge.yaml` 5기 eVTOL × 3 회랑 × 3 vertiport × 30분 + 5계층 안전망 + 비상시나리오 3종 (2026-06-04)
+- [~] **P743** — 양자 안전 통신 PoC — `src/quantum/pqc_telemetry.py` Kyber-768 KEM + Dilithium-3 서명 + AES-256-GCM. `docs/track_e/p743_pqc_overhead.md` 대역폭 33× 증가 분석 (2026-06-04)
+- [~] **P744** — 폐쇄망(MIL/L4) 모드 — `src/closed_net/airgap_mode.py` AirGapPolicy + 외부 도메인 감사 + 군용 정책 프리셋. 8개 단위 테스트 PASS (2026-06-04)
+- [~] **P745** — 멀티 모달 LLM 관제 보조 — `src/llm/voice_atc.py` Whisper + Claude 음성→ATC 명령 (API 키 필요) (2026-06-04)
+
+### Track F — 산학 실증·사업화 (Phase 746-755)
+
+국내 기관·기업과 실증 협업 + 사업화 trajectory.
+
+- [~] **P746** — K-UAM 실증사업 신청 가이드 — `docs/track_f/p746_k_uam.md` (컨소시엄 + 제안서 핵심 + 30억 예산) (2026-06-04)
+- [~] **P747** — 해수부 항만 시범 가이드 — `docs/track_f/p747_marine.md` (3 항만 × 3년 × 18억) (2026-06-04)
+- [~] **P748** — 산림청 산불 감시 가이드 — `docs/track_f/p748_forest.md` (야간 IR + 2.5년 23억) (2026-06-04)
+- [~] **P749** — KISA 보안 평가 가이드 — `docs/track_f/p749_security_audit.md` (CSAP 96항목, 1.5억) (2026-06-04)
+- [~] **P750** — 농업용 방제 드론 — `src/applications/agri_spray.py` Shoelace 면적 + Voronoi 분할 + 보급 횟수 계산. 5개 단위 테스트 PASS (2026-06-04)
+- [~] **P751** — 도서·산간 의료 배송 — `src/applications/medical_delivery.py` Urgency 4단계 + 우선순위 heap + Haversine ETA + SLA 검증. 6개 단위 테스트 PASS (2026-06-04)
+- [~] **P752** — 학회 워크숍 가이드 — `docs/track_f/p752_workshop.md` (IROS/ICRA/AIAA workshop proposal) (2026-06-04)
+- [~] **P753** — 기술 이전 / 라이선싱 가이드 — `docs/track_f/p753_licensing.md` (듀얼 라이선스 + 5건 특허 + 5개 회사 타겟) (2026-06-04)
+- [~] **P754** — 후속 캡스톤 멘토링 — `docs/track_f/p754_mentoring.md` 인수인계 자산 + 후속 주제 + 멘토링 일정 + 인수 체크리스트 (2026-06-04)
+- [ ] **P755** — 창업·분사 검토 (별도 PR 진행 예정)
 
 ---
 
@@ -196,4 +226,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-06-03 — Track C 배포 인프라: P714(TimescaleDB asyncpg·하이퍼테이블)·P715(Helm 8템플릿)·P718(Prometheus·Grafana·Loki)·P719(bandit·pip-audit·trivy 보안 감사) 완료, P720(공개 베타) 진행 예정. Track D 웹 시뮬레이터: P721 Electron 데스크탑 앱(.bat 런처 폐기 + 3-OS 자동 빌드) + P722~P730(해양 C1~C9·메인 B3/B4/B6/B9/B10·B5 i18n) 완료, P731~P735 진행 예정. 테스트 3,830+개.*
+*Last updated: 2026-06-04 — **울트라플랜 대규모 실행**: Track A 실기 가이드 10종 + Track B 후반(P702/P707/P708/P709) + Track C P720 베타 + Track E PoC 코드 6종 (`src/rl·uast·env·training·raft·llm`) + Track F 산학 docs 7종 신설. Track E 단위 테스트 29/29 PASS. 테스트 3,860+개. 전체 진행률 Phase 691-755 중 39/65 = 60% (코드 완성도 기준 partial 포함).*

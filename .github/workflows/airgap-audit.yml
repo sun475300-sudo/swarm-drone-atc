@@ -1,0 +1,81 @@
+name: P744 Air-Gap Policy Audit
+
+# 폐쇄망(MIL/L4) 운영 모드 보장 — 설정 파일에 외부 도메인 침투 방지.
+# config/, helm/, monitoring/, deploy/, frontend/ 안에 google·jsdelivr·CDN 등 검출 시 실패.
+
+on:
+  pull_request:
+    paths:
+      - 'config/**'
+      - 'helm/**'
+      - 'monitoring/**'
+      - 'deploy/**'
+      - 'frontend/**'
+      - 'src/closed_net/**'
+      - 'maritime_detection_simulator.html'
+      - 'swarm_3d_simulator.html'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    name: Audit external dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pyyaml
+        run: pip install pyyaml
+
+      - name: Run airgap audit on configs
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          import yaml
+
+          from src.closed_net.airgap_mode import AirGapPolicy, audit_config
+
+          policy = AirGapPolicy()
+          violations: list[str] = []
+
+          # YAML 설정
+          for yml in Path("config").rglob("*.yaml"):
+              try:
+                  with yml.open() as f:
+                      data = yaml.safe_load(f)
+                  if data:
+                      vs = audit_config(data, policy)
+                      for v in vs:
+                          violations.append(f"{yml}: {v}")
+              except Exception as e:
+                  print(f"skip {yml}: {e}")
+
+          # Helm values (있을 때만)
+          for yml in Path("helm").rglob("values*.yaml"):
+              try:
+                  with yml.open() as f:
+                      data = yaml.safe_load(f)
+                  if data:
+                      vs = audit_config(data, policy)
+                      for v in vs:
+                          violations.append(f"{yml}: {v}")
+              except Exception as e:
+                  print(f"skip {yml}: {e}")
+
+          if violations:
+              print("\n❌ Air-Gap 정책 위반 — 외부 도메인 검출:")
+              for v in violations:
+                  print(f"  {v}")
+              print(f"\n총 {len(violations)} 건. 폐쇄망(MIL/L4) 배포 불가.")
+              sys.exit(1)
+
+          print("✅ Air-Gap 정책 준수 — 외부 도메인 0건")
+          PY

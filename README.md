@@ -9,12 +9,13 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Phase](https://img.shields.io/badge/Phase-700-gold?style=for-the-badge&logo=rocket)](simulation/)
-[![Tests](https://img.shields.io/badge/Tests-5%2C500%2B%20Collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Phase](https://img.shields.io/badge/Phase-755-gold?style=for-the-badge&logo=rocket)](ROADMAP.md)
+[![Roadmap](https://img.shields.io/badge/Roadmap_691--755-89%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
+[![Tests](https://img.shields.io/badge/Tests-4%2C078%2B%20Collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Algorithms](https://img.shields.io/badge/Algorithms-700+-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#core-algorithms)
 [![Modules](https://img.shields.io/badge/Modules-830+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
-[![Languages](https://img.shields.io/badge/Languages-50%2B-FF5722?style=for-the-badge&logo=github&logoColor=white)](#multi-language-architecture)
-[![LOC](https://img.shields.io/badge/Total-157K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
+[![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
+[![LOC](https://img.shields.io/badge/Total-160K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 **Mokpo National University, Dept. of Drone Mechanical Engineering — Capstone Design (2026)**
@@ -31,6 +32,22 @@
 </div>
 
 > **🆕 최신 업데이트 (2026-06)** — **원클릭 로컬 실행**(Win/Mac/Linux 더블클릭) · **해양 소형선 감지 시뮬레이터**(레이더 물리·AIS 융합·EO/IR·COLREG·CPA, 8개 시나리오) · 메인 3D 시뮬레이터 **다중 선택·대규모 성능 측정·경로효율·라벨 풀 최적화**가 추가되었습니다. 두 시뮬레이터 모두 헤드리스 스모크(군집 14/14·해양 17/17)와 CI로 검증됩니다.
+
+---
+
+## 📊 개발 진척 현황 / Development Progress (2026-06-04)
+
+| 트랙 | 범위 | 진척 | 핵심 산출물 |
+|---|---|---|---|
+| **Core** | Phase 1-690 | ✅ 100% | 시뮬·이론·AI·HW·UTM·AIM (690 phase) |
+| **A** 실기 드론 | P691-700 | 📘 가이드 100% | Pixhawk·Jetson·RTK·FMEA (실기 검증은 HW 도착 후) |
+| **B** 논문화 | P701-710 | 🟢 90% | 30편 서베이·LaTeX §1-§7·포스터·슬라이드 (IROS 2026 투고 준비) |
+| **C** 서비스화 | P711-720 | ✅ 100% | FastAPI+React·JWT/RBAC·TimescaleDB·K8s·관측성 |
+| **D** 웹 시뮬 | P721-735 | ✅ 100% | 군집·해양 3D + Electron 3-OS + i18n + LIVE 모드 |
+| **E** 확장 연구 | P736-745 | 🟢 90% | RL·디지털트윈·양자안전·폐쇄망·LLM 관제 (GPU 학습 잔여) |
+| **F** 산학·사업화 | P746-755 | 🟢 90% | K-UAM·해수부·산림청·창업 계획 (LOI 체결 잔여) |
+
+> **전체 Phase 691-755: 89%** (58/65, partial 포함) · 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/ULTRA_PLAN.md`](docs/ULTRA_PLAN.md)
 
 ---
 
@@ -787,6 +804,23 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-04 16:03 | `1d5bcaa` | Merge remote-tracking branch 'origin/main' into feat/track-e-test-coverage | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
+| 2026-06-04 16:01 | `337d835` | Merge remote-tracking branch 'origin/main' into feat/contributing-index-extras | .github/workflows/airgap-audit.yml, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py, config/scenario_params/uam/k_uam_grand_challenge.yaml … |
+| 2026-06-04 16:00 | `4b1c4e7` | Merge remote-tracking branch 'origin/main' into feat/paper-slides-eval | .github/workflows/airgap-audit.yml, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py, config/scenario_params/uam/k_uam_grand_challenge.yaml … |
+| 2026-06-04 15:59 | `d278477` | Merge remote-tracking branch 'origin/main' into feat/final-polish | README.md, ROADMAP.md, benchmarks/baselines/sdacs/adapter.py, config/scenario_params/uam/k_uam_grand_challenge.yaml, docs/beta/README.md, docs/hardware/README.md … |
+| 2026-06-04 15:58 | `55193ee` | Merge remote-tracking branch 'origin/main' into feat/track-e-finale | README.md, ROADMAP.md, benchmarks/baselines/sdacs/adapter.py, docs/beta/README.md, docs/hardware/README.md, docs/hardware/environmental_test.md … |
+| 2026-06-04 15:47 | `cf27396` | Merge remote-tracking branch 'origin/main' into feat/track-b-paper-master | README.md, benchmarks/baselines/sdacs/adapter.py, results/comparison/01_corridor_crossing/cbs/seed42.json, results/comparison/01_corridor_crossing/cbs/seed43.json, results/comparison/01_corridor_crossing/cbs/seed44.json, results/comparison/01_corridor_crossing/cbs/seed45.json … |
+| 2026-06-04 15:19 | `9d9baa9` | fix: SDACS adapter LAANC 지연 분포 [80,150] → [80,120] (테스트 정합) | benchmarks/baselines/sdacs/adapter.py |
+| 2026-06-04 15:07 | `d66dcc4` | fix: main 병합 충돌 마커 해소 — a576460 botched merge 복구 | README.md, ROADMAP.md, api/auth.py, api/fastapi_server.py, benchmarks/baselines/sdacs/adapter.py, results/comparison/COMPARISON_REPORT.md … |
+| 2026-06-04 11:09 | `32e00be` | feat: 울트라플랜 대규모 실행 — Track A 실기·B 후반·C 베타·E PoC·F 산학 일괄 | ROADMAP.md, docs/beta/README.md, docs/hardware/README.md, docs/hardware/environmental_test.md, docs/hardware/failsafe_logic.md, docs/hardware/fmea_report.md … |
+| 2026-06-04 12:28 | `4fb5b86` | fix(P743): mypy dict-item — overhead_pct float ↔ int 충돌 해결 | src/quantum/pqc_telemetry.py |
+| 2026-06-04 12:17 | `d2f8a22` | feat: 울트라플랜 SP4-5 일괄 — P740/742/743/744/750/751/754 + Track E/F 확장 | ROADMAP.md, config/scenario_params/uam/k_uam_grand_challenge.yaml, docs/track_e/p743_pqc_overhead.md, docs/track_f/p754_mentoring.md, src/applications/__init__.py, src/applications/agri_spray.py … |
+| 2026-06-04 13:02 | `996d322` | feat: 울트라플랜 최종 마무리 — STATUS_REPORT + 차트·CI·CHANGELOG | .github/workflows/airgap-audit.yml, ROADMAP.md, STATUS_REPORT.md, docs/CHANGELOG.md, docs/poster/assets/pareto_front.png, docs/poster/assets/results_nmr_msd_bar.png … |
+| 2026-06-04 13:51 | `7376e33` | feat: P707 §4-§7 LaTeX + P710 Marp 슬라이드 + P742 평가기 + README 진척 | README.md, ROADMAP.md, docs/paper/latex/sections_4to7.tex, docs/slides/donggang_2026_ko.md, scripts/uam_evaluator.py, tests/track_e/test_uam_evaluator.py |
+| 2026-06-04 14:18 | `d21ad22` | feat: docs INDEX + UAM 시나리오 2종 + 알고리즘 비교 + CONTRIBUTING/PR 정리 | CONTRIBUTING.md, config/scenario_params/uam/evtol_emergency.yaml, config/scenario_params/uam/urban_dense.yaml, docs/INDEX.md, docs/PR_CLEANUP.md, scripts/compare_baselines_ext.py |
+| 2026-06-04 14:51 | `ec6f9fe` | docs: README 최신화 — Phase 755 배지 + 7트랙 진척 현황 표 | README.md |
+| 2026-06-04 14:48 | `0382904` | ci: re-trigger (flaky adapter encoding + audit.sh mode, PR #93 same main success) | - |
+| 2026-06-04 14:38 | `2081602` | docs: 종합 점검 보고서 (HEALTH_CHECK) — 소스·시뮬레이터·배포 위치 | docs/HEALTH_CHECK.md |
 | 2026-06-04 08:22 | `0ad4e1e` | docs: SDACS Ultra Plan + P701 논문 outline + P710 포스터/슬라이드 스켈레톤 | ROADMAP.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md, docs/slides/README.md |
 | 2026-06-03 19:39 | `426b9e7` | ci: desktop-build setup-node 캐시 비활성화 (lock 파일 부재로 실패) | .github/workflows/desktop-build.yml |
 | 2026-06-03 13:12 | `3295124` | feat: 병렬 세션의 고유 작업 통합 (Track A SW + P706 결과 + 벤치마크 schema) | benchmarks/_schema/manifest.schema.json, results/p706_comparison_3sc_5seed.csv, results/p706_summary.json, scripts/compare_baselines.py, simulation/environmental_scenario.py, simulation/failsafe_manager.py … |

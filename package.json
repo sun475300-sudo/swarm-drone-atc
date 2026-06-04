@@ -1,0 +1,77 @@
+{
+  "name": "sdacs-simulator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SDACS Desktop Simulator — 군집 드론 공역통제 + 해양 소형선 감지 (Electron + Three.js)",
+  "author": "SDACS Capstone Team, Mokpo National University",
+  "license": "MIT",
+  "main": "desktop/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --enable-logging",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win nsis",
+    "dist:mac": "electron-builder --mac dmg",
+    "dist:linux": "electron-builder --linux AppImage",
+    "pack": "electron-builder --dir",
+    "smoke": "SIM_URL=http://localhost:8123/swarm_3d_simulator.html node tests/e2e/smoke_sim.mjs",
+    "smoke:maritime": "SIM_URL=http://localhost:8123/maritime_detection_simulator.html node tests/e2e/smoke_maritime.mjs",
+    "pw:install": "playwright install chromium",
+    "test-server": "python3 -m http.server 8123"
+  },
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "electron-builder": "^25.0.0",
+    "playwright": "1.56.1"
+  },
+  "build": {
+    "appId": "com.sdacs.simulator",
+    "productName": "SDACS Simulator",
+    "copyright": "© 2026 SDACS Capstone, Mokpo National University",
+    "directories": {
+      "output": "dist-desktop",
+      "buildResources": "desktop/build-resources"
+    },
+    "files": [
+      "desktop/**/*",
+      "swarm_3d_simulator.html",
+      "maritime_detection_simulator.html",
+      "vendor/three/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "vendor/three/**/*"
+    ],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "artifactName": "SDACS-Simulator-${version}-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SDACS Simulator"
+    },
+    "mac": {
+      "target": [{ "target": "dmg", "arch": ["x64", "arm64"] }],
+      "category": "public.app-category.developer-tools",
+      "artifactName": "SDACS-Simulator-${version}-${arch}.${ext}",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "linux": {
+      "target": [{ "target": "AppImage", "arch": ["x64"] }],
+      "category": "Science",
+      "artifactName": "SDACS-Simulator-${version}-${arch}.${ext}"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "sun475300-sudo",
+      "repo": "swarm-drone-atc",
+      "releaseType": "draft"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "n_drones": 500,
+  "duration_s": 60.0,
+  "n_ticks": 60,
+  "wall_s": 3.8138903149999805,
+  "rtf": 15.731967897456512,
+  "tick_p50_ms": 56.287816000008206,
+  "tick_p95_ms": 106.23906445002262,
+  "tick_p99_ms": 112.17111971002507,
+  "tick_max_ms": 115.91162000001987,
+  "tick_mean_ms": 61.72066841667743,
+  "peak_memory_mb": 35.22987365722656,
+  "goals_reached_pct": 0.8,
+  "passed": false,
+  "failures": [
+    "p99_ms_ok"
+  ],
+  "assertions": {
+    "p99_ms_ok": false,
+    "rtf_ok": true,
+    "memory_ok": true,
+    "n_ticks_ok": true
+  }
+}

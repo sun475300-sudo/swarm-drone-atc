@@ -180,7 +180,7 @@ class SwarmSimulator:
 
         Returns force vector pointing away from neighbors.
         """
-        force = np.zeros(3, dtype=np.float64)
+        force: np.ndarray = np.zeros(3, dtype=np.float64)
         if not neighbors:
             return force
 
@@ -198,12 +198,12 @@ class SwarmSimulator:
                 count += 1
 
         if count > 0:
-            force = force / count
+            force = force / count  # type: ignore[assignment]
 
         # Limit force magnitude
         force_mag = np.linalg.norm(force)
         if force_mag > 0:
-            force = (force / force_mag) * boid.max_force
+            force = (force / force_mag) * boid.max_force  # type: ignore[assignment]
 
         return force
 
@@ -213,15 +213,15 @@ class SwarmSimulator:
 
         Returns force vector to align velocity with neighbors.
         """
-        force = np.zeros(3, dtype=np.float64)
+        force: np.ndarray = np.zeros(3, dtype=np.float64)
         if not neighbors:
             return force
 
         # Average velocity of neighbors
-        avg_velocity = np.zeros(3, dtype=np.float64)
+        avg_velocity: np.ndarray = np.zeros(3, dtype=np.float64)
         for neighbor in neighbors:
             avg_velocity += neighbor.velocity
-        avg_velocity = avg_velocity / len(neighbors)
+        avg_velocity = avg_velocity / len(neighbors)  # type: ignore[assignment]
 
         # Steering vector (desired - current)
         steering = avg_velocity - boid.velocity
@@ -239,15 +239,15 @@ class SwarmSimulator:
 
         Returns force vector toward center of neighbors.
         """
-        force = np.zeros(3, dtype=np.float64)
+        force: np.ndarray = np.zeros(3, dtype=np.float64)
         if not neighbors:
             return force
 
         # Average position of neighbors
-        center = np.zeros(3, dtype=np.float64)
+        center: np.ndarray = np.zeros(3, dtype=np.float64)
         for neighbor in neighbors:
             center += neighbor.position
-        center = center / len(neighbors)
+        center = center / len(neighbors)  # type: ignore[assignment]
 
         # Steering toward center
         steering = center - boid.position
@@ -265,7 +265,7 @@ class SwarmSimulator:
 
         Returns force vector away from nearby obstacles.
         """
-        force = np.zeros(3, dtype=np.float64)
+        force: np.ndarray = np.zeros(3, dtype=np.float64)
         avoidance_distance = 50.0
 
         for obstacle_pos in self.obstacles:
@@ -283,7 +283,7 @@ class SwarmSimulator:
         # Limit force magnitude
         force_mag = np.linalg.norm(force)
         if force_mag > 0:
-            force = (force / force_mag) * boid.max_force
+            force = (force / force_mag) * boid.max_force  # type: ignore[assignment]
 
         return force
 

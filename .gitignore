@@ -6,6 +6,11 @@ __pycache__/
 .Python
 *.egg-info/
 dist/
+dist-desktop/
+*.AppImage
+*.dmg
+*.exe
+out/
 build/
 .eggs/
 venv/

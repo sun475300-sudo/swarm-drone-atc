@@ -148,7 +148,11 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P703** — 벤치마크 데이터셋 공개화 — `benchmarks/` 10개 시나리오 + 3개 기준선(ORCA/VO/CBS) + CC-BY-4.0 + DATASET_CARD.md + CITATION.bib 완비 (2026-05-29)
 - [x] **P704** — Reproducibility 패키지 — Dockerfile·Dockerfile.gpu·Dockerfile.reproducible + docker-compose.reproducible.yml (PYTHONHASHSEED=0, seed 고정) 완비 (2026-05-29)
 - [x] **P705** — 평가 메트릭 정형화 — `src/analytics/metrics.py` NMR·MSD·PE·MS·FT·AU·RID_CR·RTF 8종 공식 정의 및 Evaluator 클래스 구현 (2026-05-29)
+<<<<<<< HEAD
 - [x] **P706** — 기여도 비교 실험 — `scripts/comparison_experiment.py` 10 시나리오 × 4 방법 × 5 시드 = 200회 실험 + Mann-Whitney U 유의성 검정 + 비교 리포트 생성 (2026-05-31)
+=======
+- [x] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS) — SDACS W2 APF+CBS 하이브리드 어댑터 완성, NMR·MSD·AU 유의미 개선 확인 (2026-06-01)
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
 - [ ] **P707** — 논문 초안 작성 (IROS 2026 또는 AIAA SciTech 2027 투고 목표)
 - [ ] **P708** — 내부 리뷰 3회 + 지도교수 피드백 반영
 - [ ] **P709** — 공식 투고 및 arXiv 프리프린트 업로드
@@ -159,15 +163,45 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 공역 관리자용 대시보드를 SaaS 수준으로 안정화.
 
 - [~] **P711** — FastAPI 백엔드 완성 (`api/fastapi_server.py` 769줄, 전체 엔드포인트 구현) — React 프론트엔드 미구현
+<<<<<<< HEAD
 - [x] **P712** — 인증·권한 완비 — `api/auth.py` HS256 JWT 생성/검증 + RBAC 3계층(admin/operator/viewer) + AuditMiddleware 감사 로그 (2026-05-31)
+=======
+- [x] **P712** — 인증·권한(OAuth2, RBAC) 및 감사 로그 — HS256 JWT + 3계층 RBAC(admin/operator/viewer) + 감사로그 완전 구현, 29개 테스트 통과 (2026-06-01)
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
 - [x] **P713** — 실시간 WebSocket 채널 — `simulation/ws_bridge.py` 2Hz 스트리밍 + FastAPI `/ws/telemetry` 완비 (2026-05-29)
-- [ ] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존
-- [ ] **P715** — Docker Compose → Kubernetes Helm 차트 변환
+- [~] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존 — `src/storage/timescale.py` asyncpg 클라이언트 + `db/migrations/001_initial_schema.sql` 하이퍼테이블·보존정책 완비, 36개 테스트 통과 (2026-06-03)
+- [x] **P715** — Docker Compose → Kubernetes Helm 차트 변환 — `helm/sdacs/` Chart.yaml + values.yaml + 8개 템플릿 (Deployment·Service·Ingress·HPA·Redis·PostgreSQL) 완비 (2026-06-03)
 - [x] **P716** — CI/CD 완비 — GitHub Actions 6개 워크플로우 (테스트 3-버전 매트릭스, lint, mypy, 재현성 검증, E2E smoke, Pages 배포) (2026-05-29)
+<<<<<<< HEAD
 - [x] **P717** — 부하 테스트 완비 — `scripts/load_test.py` 20/50/100기 벤치마크, 20기 RTF=1.6x 실시간, 100기 RTF=0.3x, 메모리 8-12MB (2026-05-31)
 - [ ] **P718** — 관측성 스택 (Prometheus + Grafana + Loki)
 - [ ] **P719** — 보안 감사 (OWASP ZAP, 의존성 CVE 스캔)
+=======
+- [x] **P717** — 부하 테스트 (100기 스웜 실시간 시각화, 60 FPS 유지) — 100드론 60s PASS (p99=10.74ms, RTF=140x), `scripts/load_test.py` (2026-06-01)
+- [x] **P718** — 관측성 스택 — Prometheus + Grafana + Loki docker-compose, `monitoring/prometheus.yml` + `alerts.yml` + Grafana 대시보드 JSON + `src/monitoring/metrics.py` prometheus_client 미들웨어 완비 (2026-06-03)
+- [x] **P719** — 보안 감사 — `scripts/security_audit.sh` (bandit·pip-audit·safety) + `.github/workflows/security.yml` (bandit SARIF + pip-audit + trivy) 완비 (2026-06-03)
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
 - [ ] **P720** — 공개 베타 오픈 (3개 파일럿 기관, 피드백 수집 4주)
+
+### Track D — 웹 시뮬레이터·시각화 (Phase 721-735)
+
+브라우저 단독 실행(Three.js) 시뮬레이터를 데모·교육·검증 자산으로 고도화. 모든 항목 헤드리스 스모크(`tests/e2e/`) + CI(`sim-smoke.yml`)로 검증.
+
+- [x] **P721** — Electron 데스크탑 앱 (Win NSIS / Mac DMG / Linux AppImage) — 홈 화면에서 두 시뮬레이터 카드 선택, three.js 로컬 vendor 패키징, GitHub Actions 3-OS 자동 빌드 → Releases 드래프트 (2026-06-03, .bat/.command/.sh + serve.py 폐기)
+- [x] **P722** — 드론 상세/호버 툴팁·클릭 선택·2×2 분석 뷰 (2026-05)
+- [x] **P723** — 외부 드론·조류 탐지·식별(DnI) + 식별 정확도 모델 (2026-05)
+- [x] **P724** — 대규모 InstancedMesh 렌더(1k~10k) + 성능 측정 HUD(B6: draw call·FPS·삼각형) (2026-06-03)
+- [x] **P725** — 드론 다중 선택(B4, Shift+클릭) + 집계 패널 (2026-06-03)
+- [x] **P726** — 경로효율 per-leg 정정(B9) + CPA 라벨 스프라이트 풀 최적화(B10) (2026-06-03)
+- [x] **P727** — 해양 소형선 감지 시뮬레이터 신설 — 레이더 물리(C1)·AIS융합(C2)·EO/IR(C3)·COLREG(C4)·트랙상세(C5)·리포트(C6)·해안선(C7)·시나리오8종(C8)·검증기록(C9) (2026-06-03)
+- [x] **P728** — 해양 기술 문서(`docs/maritime_detection_technical.md`) + 헤드리스 스모크 17/17 (2026-06-03)
+- [ ] **P729** — 대규모 모드 로터·글로우 InstancedMesh 확장(B3, 1k~10k 추가 최적화)
+- [ ] **P730** — UI 국제화(B5, KO/EN 토글) + 모바일·터치 대응
+- [ ] **P731** — 공역 레이어 패널 중복 통합(O1) + 두 시뮬레이터 공통 컴포넌트 추출(D1)
+- [ ] **P732** — 대규모 CPA 충돌예측 복원(B2, 공간 해시) — 1k+ 환경 충돌쌍 시각화
+- [ ] **P733** — `ws_bridge` 실데이터 라이브 수신 토글(데모↔실측)
+- [ ] **P734** — 리플레이·타임라인 스크러버 + 동기화 멀티뷰 고도화
+- [ ] **P735** — 해양 EO/IR 실 카메라 프레임 연동(센서 SDK) — 실기화 연계
 
 ---
 
@@ -176,4 +210,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
+<<<<<<< HEAD
 *Last updated: 2026-05-31 (P706 비교 실험 + P712 인증/RBAC 완료, P703·P704·P705·P713·P716 완료 확인, Track C P711 FastAPI 부분 완료)*
+=======
+*Last updated: 2026-06-03 — Track C 배포 인프라: P714(TimescaleDB asyncpg·하이퍼테이블)·P715(Helm 8템플릿)·P718(Prometheus·Grafana·Loki)·P719(bandit·pip-audit·trivy 보안 감사) 완료, P720(공개 베타) 진행 예정. Track D 웹 시뮬레이터: P721 Electron 데스크탑 앱(.bat 런처 폐기 + 3-OS 자동 빌드) + P722~P730(해양 C1~C9·메인 B3/B4/B6/B9/B10·B5 i18n) 완료, P731~P735 진행 예정. 테스트 3,830+개.*
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02

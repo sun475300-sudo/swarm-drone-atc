@@ -10,23 +10,27 @@
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
 [![Phase](https://img.shields.io/badge/Phase-700-gold?style=for-the-badge&logo=rocket)](simulation/)
-[![Tests](https://img.shields.io/badge/Tests-5%2C342%2B%20Collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
-[![Algorithms](https://img.shields.io/badge/Algorithms-600+-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#core-algorithms)
-[![Modules](https://img.shields.io/badge/Modules-760+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
-[![Languages](https://img.shields.io/badge/Languages-50+-FF5722?style=for-the-badge&logo=github&logoColor=white)](#multi-language-architecture)
-[![LOC](https://img.shields.io/badge/Total-148K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
+[![Tests](https://img.shields.io/badge/Tests-5%2C500%2B%20Collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Algorithms](https://img.shields.io/badge/Algorithms-700+-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#core-algorithms)
+[![Modules](https://img.shields.io/badge/Modules-830+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
+[![Languages](https://img.shields.io/badge/Languages-50%2B-FF5722?style=for-the-badge&logo=github&logoColor=white)](#multi-language-architecture)
+[![LOC](https://img.shields.io/badge/Total-157K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 **Mokpo National University, Dept. of Drone Mechanical Engineering — Capstone Design (2026)**
 
 **국립 목포대학교 드론기계공학과 캡스톤 디자인**
 
-[**3D Simulator Demo (메인 시뮬레이터)**](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [**최종 보고서 v6 (기술)**](docs/report/SDACS_Final_Report_v6.docx) | [**최종 보고서 v7 (일반인용)**](docs/report/SDACS_Final_Report_v7_Easy.docx) | [Performance Charts](docs/images/)
+[**🌐 메인 페이지 (Live Site)**](https://sun475300-sudo.github.io/swarm-drone-atc/) | [**🛰 3D 시뮬레이터**](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [**🚢 해양 소형선 감지**](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html) | [**최종 보고서 v6**](docs/report/SDACS_Final_Report_v6.docx) | [**v7**](docs/report/SDACS_Final_Report_v7_Easy.docx)
+
+> 🔗 **GitHub Pages 라이브 사이트**: <https://sun475300-sudo.github.io/swarm-drone-atc/> — 랜딩 페이지(소개·성과·아키텍처)에서 3D 시뮬레이터·해양 소형선 감지·시나리오 비교·테스트 리포트로 이동할 수 있습니다.
 
 </div>
 <div align="center">
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
 </div>
+
+> **🆕 최신 업데이트 (2026-06)** — **원클릭 로컬 실행**(Win/Mac/Linux 더블클릭) · **해양 소형선 감지 시뮬레이터**(레이더 물리·AIS 융합·EO/IR·COLREG·CPA, 8개 시나리오) · 메인 3D 시뮬레이터 **다중 선택·대규모 성능 측정·경로효율·라벨 풀 최적화**가 추가되었습니다. 두 시뮬레이터 모두 헤드리스 스모크(군집 14/14·해양 17/17)와 CI로 검증됩니다.
 
 ---
 
@@ -94,6 +98,83 @@ docker compose run --rm sdacs python main.py monte-carlo --mode quick
 > `docker compose down` 후에도 `./results/` 디렉터리의 산출물은 호스트에 그대로 남습니다. 설정은 읽기 전용으로 마운트되므로 컨테이너가 호스트 파일을 덮어쓰지 않습니다.
 
 ---
+## 🖥 데스크탑 앱 — 더블클릭으로 실행 / Desktop App
+
+SDACS는 **Electron 데스크탑 앱**으로 빌드돼 OS별 설치 파일(.exe/.dmg/.AppImage)을 더블클릭만으로 실행합니다. 별도 런타임·CLI·브라우저 설치가 필요 없습니다.
+
+### 📥 다운로드 (사용자)
+
+[**최신 릴리스에서 다운로드 →**](https://github.com/sun475300-sudo/swarm-drone-atc/releases/latest)
+
+| OS | 파일 | 동작 |
+|---|---|---|
+| **Windows** | `SDACS-Simulator-X.Y.Z-Setup.exe` | 더블클릭 → 설치 → 시작 메뉴에서 실행 |
+| **macOS** | `SDACS-Simulator-X.Y.Z-x64.dmg` / `-arm64.dmg` | 더블클릭 → Applications로 드래그 → 실행 (Gatekeeper: 우클릭 → 열기) |
+| **Linux** | `SDACS-Simulator-X.Y.Z-x64.AppImage` | `chmod +x` 후 더블클릭 또는 실행 |
+
+앱을 열면 **홈 화면**에서 두 시뮬레이터(군집 드론 / 해양 소형선) 카드를 선택해 들어갈 수 있고, 메뉴(`Ctrl+1`/`Ctrl+2`)로 즉시 전환됩니다.
+
+### 🛠 개발자 — 로컬 실행 / 빌드
+
+```bash
+# 의존성 설치(Electron + electron-builder)
+npm install
+
+# 개발 모드(자동 DevTools)
+npm run dev
+# 또는: npm start
+
+# 패키징(현재 OS용)
+npm run dist               # 모든 타깃
+npm run dist:win           # Windows NSIS
+npm run dist:mac           # macOS DMG
+npm run dist:linux         # Linux AppImage
+
+# 헤드리스 스모크(시뮬레이터 단독 — Electron 없이)
+npm run test-server &      # 로컬 정적 서버
+npm run smoke              # 군집 시뮬레이터 14/14
+npm run smoke:maritime     # 해양 시뮬레이터 18/18
+```
+
+> **오프라인 동작**: three.js는 `vendor/three/`로 함께 패키징되어 인터넷 없이 완전 동작합니다. importmap은 상대경로(`./vendor/three/...`)로 빌드 산출물에 포함됩니다.
+
+> **자동 릴리스**: GitHub Actions(`.github/workflows/desktop-build.yml`)가 `v*` 태그 푸시 시 3-OS 빌드를 동시 실행해 GitHub Releases에 드래프트로 업로드합니다.
+
+---
+## 🚢 해양 소형선 감지 시뮬레이터 / Maritime Small-Vessel Detection
+
+**`maritime_detection_simulator.html`** — 대형 모선에서 **7~15m 소형선**(어선·레저보트·고속정·부표)을 레이더·AIS로 탐지·식별·추적하는 전용 시뮬레이터. SDACS의 비협조 표적 탐지·인식 기술을 해양 도메인에 이식한 사례입니다.
+
+### 핵심 기능
+
+| 영역 | 내용 |
+|---|---|
+| **C1 레이더 물리** | 표적별 RCS(어선 12 / 레저 5 / 고속정 3 / 부표 1 m²) + 안테나 높이 기반 **레이더 수평선** 자동 차폐(1.23×(√h_r+√h_t) NM) + **시클러터 블라인드** + RCS·거리·기상 4승 거리법 확률 탐지 |
+| **C2 AIS·레이더 융합** | `radarDet`/`aisDet` 별도 추적 → 첫 감지에 트랙 생성, 둘 다 잡힐 때 "RADAR+AIS 융합" 표기·카운트 |
+| **C4 COLREG 조우** | 표적 침로와 모선 방위 각도 차로 **HEAD-ON / CROSSING / PASSING / AWAY** 분류 + 라벨·트랙리스트·상세 패널 배지 |
+| **C5 트랙 상세** | 클릭(드래그 구분) 또는 트랙리스트 행 클릭 → 상세 패널(ID/소스/신뢰도/거리·방위/속력·침로/RCS/CPA·TCPA/조우) + 0.7s 8샘플 **트레일** + 노란 깜빡 선택 링 |
+| **C6 리포트** | **📷 PNG 리포트**(헤더+3D 캡처+KPI+COLREG 요약+최근 이벤트) · **💾 CSV** 표적 텔레메트리 (`id,type,...,cpa_m,tcpa_s,rcs_m2`) |
+| **C8 시나리오** | 평시(12) · 혼잡 항만(24) · 안개·저시정(2.4NM·acc 0.8) · 야간(EO 저하) · 비협조 침입(고속정) · **폭풍·악천후(2NM)** · **항만 출입(20척)** · **비협조 고속정 다수(18척)** |
+
+### 빠른 사용법
+
+```bash
+# 더블클릭 런처(Win/Mac/Linux) → 메인 시뮬레이터가 열림
+# 해양으로 직접 열려면:
+python3 scripts/serve.py --page maritime
+#   → http://localhost:8123/maritime_detection_simulator.html
+```
+
+상단 시나리오 셀렉터에서 8개 중 선택 → 좌측 패널에서 센서 레이어(레이더 스윕·CPA 예측선·식별 라벨·트랙 트레일) 토글 → 트랙 클릭으로 상세 확인 → 📷/💾 버튼으로 리포트 저장.
+
+### 검증
+
+- 헤드리스 스모크 `tests/e2e/smoke_maritime.mjs` **17/17 통과**(스폰·탐지·식별·정확도·CPA·C1 수평선·C2 융합·C4 조우·C5 선택·시나리오·C3 EO/IR·C6 PNG/CSV·C8 신규 3종·C9 검증기록·무에러)
+- CI(`.github/workflows/sim-smoke.yml`)에서 push·PR마다 자동 실행
+
+📄 **기술 상세**: 레이더 물리·AIS 융합·COLREG·CPA 공식은 [`docs/maritime_detection_technical.md`](docs/maritime_detection_technical.md) 참조
+
+---
 ## What is SDACS? / SDACS란?
 
 > **"레이더를 땅에 설치하는 대신, 드론 자체가 레이더가 되면 어떨까?"**
@@ -145,7 +226,8 @@ SDACS는 이 단순한 발상에서 출발했습니다. 20대의 관제 드론�
 | **Scenario Coverage** | **63 scenarios** | 7대 광역시 도시환경 + 극한 기상 + 침입 + GPS 재밍 + 대규모 배송 |
 | **Concurrent Drones** | **100+** | 20대: 충돌 0, 50대: avg 15, 100대: avg 29 |
 | **Deployment Time** | **30 min** | No fixed infrastructure required |
-| **Test Collection** | **5,342+ tests** | Automated pytest collection across 761 Python files and 105 test files |
+| **Multi-Language Coverage** | **50+ Languages** | Phase 521-660: Zig, Rust, Go, C++, Kotlin, Nim, OCaml, F#, Swift, TS, Scala, Haskell, Lua, Julia, Dart, Elixir, R, Octave, Perl, Ruby, VHDL, Prolog, Fortran, Ada, COBOL and more |
+| **Test Collection** | **5,500+ tests** | Automated pytest collection across 830+ Python files and 110+ test files |
 <div align="center">
 <img src="docs/images/imgur/wHuMIfM.png" alt="기존 방식 대비 SDACS 성능 비교" width="750"/>
 <br/><sub>기존 Rule-based Static ATC vs SDACS Swarm Autonomous — 주요 KPI 비교</sub>
@@ -741,12 +823,57 @@ MIT License — Developed for academic and educational purposes.
 <div align="center">
 **Made with dedication by Sunwoo Jang**
 **장선우 · 국립 목포대학교 드론기계공학과**
+<<<<<<< HEAD
 **Phase 706 · 764 Python files · 5,342+ Tests Collected · 50+ Languages · 148K+ LOC**
+=======
+**Phase 700 · 830+ modules · 5,500+ Tests Collected · 50+ Languages · 157K+ LOC**
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
 </div>
 
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-03 19:39 | `426b9e7` | ci: desktop-build setup-node 캐시 비활성화 (lock 파일 부재로 실패) | .github/workflows/desktop-build.yml |
+| 2026-06-03 13:12 | `3295124` | feat: 병렬 세션의 고유 작업 통합 (Track A SW + P706 결과 + 벤치마크 schema) | benchmarks/_schema/manifest.schema.json, results/p706_comparison_3sc_5seed.csv, results/p706_summary.json, scripts/compare_baselines.py, simulation/environmental_scenario.py, simulation/failsafe_manager.py … |
+| 2026-06-03 12:39 | `cd82157` | Merge remote-tracking branch 'origin/claude/dazzling-maxwell-5AnBo' | .github/workflows/security.yml, README.md, ROADMAP.md, db/migrations/001_initial_schema.sql, helm/sdacs/.helmignore, helm/sdacs/Chart.yaml … |
+| 2026-06-03 12:32 | `b8bb893` | feat: SDACS Electron 데스크탑 앱 — .bat 런처 폐기 + 3-OS 자동 빌드 | .github/workflows/desktop-build.yml, .gitignore, README.md, ROADMAP.md, desktop/home.html, desktop/main.js … |
+| 2026-06-03 12:13 | `d510a1c` | fix: OCaml type_safe_protocol에 'type message' 정의 추가 (CI 3.10/3.11/3.12 그린화) | src/ocaml/type_safe_protocol.ml |
+| 2026-06-03 12:01 | `73d48f8` | feat: P730(B5) 해양 시뮬레이터 UI 국제화(KO/EN 토글) | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
+| 2026-06-03 11:57 | `2f43895` | feat: P729(B3) 대규모 모드 글로우 인스턴싱 + ROADMAP Track D 신설 | ROADMAP.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
+| 2026-06-03 11:51 | `b113fbe` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | README.md, ROADMAP.md, api/auth.py, api/fastapi_server.py, benchmarks/baselines/sdacs/adapter.py, main.py … |
+| 2026-06-03 11:44 | `4173b45` | docs: D2 해양 시뮬레이터 기술 문서 + README 링크 | README.md, docs/maritime_detection_technical.md |
+| 2026-06-03 11:42 | `4a7ec26` | feat: B4 드론 다중 선택(Shift+클릭) + 집계 패널 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/smoke_sim.mjs, visualization/swarm_3d_simulator.html |
+| 2026-06-03 11:36 | `c9493a2` | feat: 두 시뮬레이터 상호 네비게이션 링크(군집↔해양) | docs/maritime_detection_simulator.html, docs/simulator.html, docs/swarm_3d_simulator.html, maritime_detection_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
+| 2026-06-03 11:34 | `74d002a` | feat: C9 해양 시나리오별 검증 기록 + CSV 내보내기 | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
+| 2026-06-03 11:30 | `abc3915` | perf: O2→B10 CPA 라벨 스프라이트 풀 재사용 (GC 압력 해소) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/TEST_LOG.md, visualization/swarm_3d_simulator.html |
+| 2026-06-03 11:28 | `00a94ca` | feat: B6 대규모 성능 측정 — draw call·FPS·삼각형 HUD + _sdacs.perf API | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/smoke_sim.mjs, visualization/swarm_3d_simulator.html |
+| 2026-06-03 11:24 | `a638221` | feat: 해양 EO/IR 카메라 뷰(C3) + 해안선·항로·선박 3D 디테일(C7) | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
+| 2026-06-03 11:02 | `93cafb2` | feat: 해양 시뮬레이터 PNG/CSV 리포트(C6) + README 해양 섹션(D2) | README.md, docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
+| 2026-06-03 10:59 | `9540f48` | feat: 해양 시나리오 3종(C8) + 스왐 경로효율 per-leg 수정(O3→B9) | docs/simulator.html, docs/swarm_3d_simulator.html, maritime_detection_simulator.html, swarm_3d_simulator.html, tests/e2e/TEST_LOG.md, visualization/swarm_3d_simulator.html |
+| 2026-06-03 10:56 | `88e76b4` | feat: 해양 시뮬레이터 실용성 강화 — C1 레이더 물리 + C2 AIS·레이더 융합 + C4 COLREG + C5 트랙 상세 | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
+| 2026-05-29 20:34 | `a2bbc54` | fix: numpy 배열 선언에 shape-무관 타입주석 (Python 3.10 mypy 그린화) | src/boids_swarm.py, src/sensor_fusion.py |
+| 2026-05-29 20:09 | `e4172d3` | fix: test_ws_bridge가 Python 3.10에서 깨지던 asyncio 루프 패턴 교체 | tests/test_ws_bridge.py |
+| 2026-05-29 19:38 | `01495f7` | fix: BatteryPredictor.should_rtl가 numpy bool 대신 파이썬 bool 반환 | simulation/battery_predictor.py |
+| 2026-05-29 19:29 | `3c63e82` | fix: 누락 폴리글랏 레퍼런스 파일 전체 복원 (118개 추가, 총 147) | src/ada/safety_critical.adb, src/asm/crc32_checksum.asm, src/clojure/event_stream.clj, src/cpp/apf_simd.cpp, src/cpp/formation_gan_engine.cpp, src/cpp/hil_physics.cpp … |
+| 2026-05-29 19:08 | `fafe3cb` | fix: 누락된 폴리글랏 참조 파일 29개 복원 (CI test 잡 그린화) | src/ada/tmr_voter_v2.adb, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj, src/cobol/legacy_atc_bridge.cob, src/cpp/particle_filter.cpp, src/dart/flutter_dashboard.dart … |
+| 2026-05-29 18:35 | `e6e75ca` | test: 해양 시뮬레이터 헤드리스 스모크 + CI 등록 + 랜딩 카드 | .github/workflows/sim-smoke.yml, docs/index.html, tests/e2e/smoke_maritime.mjs |
+| 2026-05-29 10:20 | `8ed7fc3` | feat: 해양 소형선 감지·식별 전용 시뮬레이터 (maritime_detection_simulator.html) | .github/workflows/deploy-pages.yml, README.md, docs/maritime_detection_simulator.html, maritime_detection_simulator.html |
+| 2026-05-29 10:14 | `208974a` | docs: 스모크 테스트 로그 + 버그 리스트(TEST_LOG.md) + 미해결 항목 코드 주석 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/TEST_LOG.md, visualization/swarm_3d_simulator.html |
+| 2026-05-29 09:27 | `e57192d` | feat: 각 드론 세부 쿼드콥터 모델링 (본체 허브+4암+4링+회전 프롭) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
+| 2026-05-29 09:23 | `3a59a91` | chore: package.json 추적(강제) — 로컬 npm 실행 스크립트 활성화 | package.json |
+| 2026-05-29 09:23 | `a831ba3` | feat: 로컬 실행/빌드 지원 — serve.py 런처 + npm 스크립트 + 오프라인 벤더링 | README.md, scripts/serve.py, scripts/vendor_three.sh |
+| 2026-05-29 09:21 | `bb9c50f` | feat: 외부 드론·조류 인식 가시화 + 탐지 스로틀 시간기반 안정화 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
+| 2026-06-03 11:55 | `0fd32dd` | fix: numpy 2.4.x mypy assignment 오류 type: ignore 추가 | src/boids_swarm.py, src/sensor_fusion.py |
+| 2026-06-03 11:42 | `bea5a20` | fix: OCaml type message 추가 + ws_bridge 이벤트루프 수정 | src/ocaml/type_safe_protocol.ml, tests/test_ws_bridge.py |
+| 2026-06-03 11:31 | `d3b5837` | fix: ruff I001 import 정렬 수정 (src/monitoring/metrics.py) | src/monitoring/metrics.py |
+| 2026-06-02 09:18 | `d84bb85` | docs: update README with Phase 521-660 multi-language coverage and latest stats | README.md |
+| 2026-06-02 10:20 | `main` | docs: README 최신 내용으로 업데이트 (Phase 521-660 다중 언어 반영, 배지/통계 갱신) | README.md |
+| 2026-06-02 09:17 | `c5b2111` | feat: add 68 multi-language stub files and fix BatteryPredictor numpy bool | simulation/battery_predictor.py, src/ada/safety_critical.adb, src/ada/tmr_voter_v2.adb, src/asm/crc32_checksum.asm, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj … |
+| 2026-06-02 08:38 | `687ff34` | fix: typing-extensions 4.12.2→4.15.0 (pydantic 2.13.4 호환성) | requirements.lock.txt |
+| 2026-06-02 08:36 | `55169dd` | fix: requirements.lock.txt에 fastapi 스택 추가 (CI test_auth_p712 ERROR 수정) | requirements.lock.txt |
+| 2026-06-02 08:34 | `a1c5006` | fix: fastapi를 requirements.txt에 추가 + test_auth_p712 import guard (CI fix) | requirements.txt, tests/test_auth_p712.py |
+| 2026-06-02 08:26 | `785d450` | chore: 500드론 부하 테스트 결과 추가 (P717 참고용) | results/load_test_500drones.json |
+| 2026-06-02 08:25 | `4861860` | feat: P706 W2 SDACS 어댑터 + P712 OAuth2/RBAC + P717 부하 테스트 | ROADMAP.md, api/auth.py, api/fastapi_server.py, benchmarks/baselines/sdacs/adapter.py, results/comparison/COMPARISON_REPORT.md, results/comparison/comparison_report.json … |
 | 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
 | 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |
 | 2026-05-29 08:44 | `a5277c3` | feat: DnI 식별 정확도 모델 — 클래스별 정확도 + 오분류 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |

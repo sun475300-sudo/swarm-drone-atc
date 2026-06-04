@@ -1,0 +1,138 @@
+# P719 — SDACS 보안 감사 CI 워크플로우
+# 트리거: main 브랜치 push, PR, 매주 월요일 09:00 KST (00:00 UTC)
+name: Security Audit
+
+"on":
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # 매주 월요일 09:00 KST = 00:00 UTC
+    - cron: "0 0 * * 1"
+
+permissions:
+  contents: read
+  security-events: write  # SARIF 업로드에 필요
+
+jobs:
+  # --------------------------------------------------------------------------
+  # Bandit — Python 정적 보안 분석
+  # --------------------------------------------------------------------------
+  bandit:
+    name: Bandit Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 3.11 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Bandit 설치
+        run: pip install bandit[toml] bandit-sarif-formatter
+
+      - name: Bandit 스캔 (SARIF 출력)
+        run: |
+          bandit -r src/ api/ \
+            --severity-level medium \
+            --confidence-level medium \
+            --format sarif \
+            --output bandit-results.sarif \
+            || true  # 결과 있어도 step 실패 방지 (SARIF 업로드 후 판단)
+
+      - name: SARIF 결과 GitHub Security 탭에 업로드
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: bandit-results.sarif
+          category: bandit
+
+      - name: Bandit 결과 텍스트 출력 (로그 확인용)
+        run: |
+          bandit -r src/ api/ \
+            --severity-level medium \
+            --confidence-level medium \
+            --format txt \
+            || echo "Bandit 이슈 발견됨 — Security 탭을 확인하세요."
+
+  # --------------------------------------------------------------------------
+  # pip-audit — CVE 의존성 취약점 스캔
+  # --------------------------------------------------------------------------
+  pip-audit:
+    name: pip-audit Dependency CVE Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 3.11 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: pip-audit 설치
+        run: pip install pip-audit
+
+      - name: requirements.txt CVE 스캔
+        run: |
+          pip-audit \
+            --requirement requirements.txt \
+            --format json \
+            --output pip-audit-results.json \
+            || true
+
+      - name: 스캔 결과 텍스트 출력
+        run: |
+          pip-audit \
+            --requirement requirements.txt \
+            --format columns \
+            || echo "pip-audit: 취약한 의존성이 발견되었습니다."
+
+      - name: 결과 아티팩트 저장
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pip-audit-results
+          path: pip-audit-results.json
+          retention-days: 30
+
+  # --------------------------------------------------------------------------
+  # Trivy — 컨테이너 이미지 스캔
+  # --------------------------------------------------------------------------
+  trivy:
+    name: Trivy Container Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Trivy 설치
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: "CRITICAL,HIGH"
+          exit-code: "0"  # SARIF 업로드 후 별도 판단
+
+      - name: SARIF 결과 GitHub Security 탭에 업로드
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy
+
+      - name: Trivy Dockerfile 전용 스캔
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "config"
+          scan-ref: "."
+          format: "table"
+          severity: "CRITICAL,HIGH"
+          exit-code: "0"

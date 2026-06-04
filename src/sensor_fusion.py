@@ -119,7 +119,7 @@ class KalmanFilter:
         self.dt = dt
 
         # State vector: [x, y, z, vx, vy, vz]
-        self.state = np.zeros(6, dtype=np.float64)
+        self.state: np.ndarray = np.zeros(6, dtype=np.float64)
         self.state[:3] = np.asarray(initial_position, dtype=np.float64)
         self.state[3:] = np.asarray(initial_velocity, dtype=np.float64)
 
@@ -141,7 +141,7 @@ class KalmanFilter:
         Updates state using kinematic model and adds process noise.
         """
         # x = F @ x
-        self.state = self.F @ self.state
+        self.state = self.F @ self.state  # type: ignore[assignment]
 
         # P = F @ P @ F^T + Q
         self.covariance = self.F @ self.covariance @ self.F.T + self.process_noise
@@ -176,7 +176,7 @@ class KalmanFilter:
         K = self.covariance @ H.T @ np.linalg.inv(S)
 
         # Update state estimate
-        self.state = self.state + K @ innovation
+        self.state = self.state + K @ innovation  # type: ignore[assignment]
 
         # Update covariance estimate
         I = np.eye(6, dtype=np.float64)

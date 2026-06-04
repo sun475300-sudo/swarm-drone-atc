@@ -38,6 +38,13 @@ try:
     from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
     from fastapi.middleware.cors import CORSMiddleware
     from pydantic import BaseModel, Field
+
+    from api.auth import (  # P712 RBAC
+        auth_router,
+        require_operator,
+        require_viewer,
+        AuthContext,
+    )
 except ImportError as exc:  # pragma: no cover
     raise RuntimeError(
         "FastAPI and pydantic are required. "
@@ -484,9 +491,20 @@ async def _demo_telemetry_stream() -> None:
         await asyncio.sleep(0.1)
 
 
+<<<<<<< HEAD
 # --- Auth dependency (P712: JWT + RBAC, see api/auth.py) ---
 
 require_token = get_current_user
+=======
+# --- Auth dependency (P712 — delegates to api.auth) ---
+
+
+async def require_token(authorization: str = Header(default="")) -> str:
+    """Legacy compatibility shim — new code should use require_operator / require_viewer."""
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(401, detail="missing bearer token")
+    return authorization[len("Bearer "):]
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
 
 
 # --- Pydantic models ---
@@ -538,6 +556,12 @@ app.add_middleware(
 )
 app.add_middleware(AuditMiddleware)
 register_auth_routes(app)
+
+# P712: mount the auth router (/auth/token, /auth/refresh, /auth/me, /auth/audit)
+try:
+    app.include_router(auth_router)
+except Exception:  # pragma: no cover
+    pass
 
 
 # --- Health ---

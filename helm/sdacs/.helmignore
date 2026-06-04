@@ -1,0 +1,41 @@
+# ============================================================
+# .helmignore — Helm 패키징 시 제외할 파일/디렉토리 목록
+# helm package 명령 실행 시 이 패턴에 매칭되는 파일은 포함되지 않음
+# ============================================================
+
+# 버전 관리 디렉토리
+.git/
+.gitignore
+.github/
+
+# CI/CD 설정
+.circleci/
+.travis.yml
+.gitlab-ci.yml
+
+# 개발 환경 설정
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 문서 (차트 패키지에 불필요)
+*.md
+docs/
+
+# 테스트 파일 (helm test는 templates/tests/에서 별도 관리)
+tests/
+
+# 빌드 산출물
+*.tgz
+dist/
+
+# 환경 변수 파일 (시크릿 노출 방지)
+.env
+.env.*
+*.local
+
+# OS 생성 파일
+.DS_Store
+Thumbs.db

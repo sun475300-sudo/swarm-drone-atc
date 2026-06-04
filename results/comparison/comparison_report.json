@@ -13,10 +13,17 @@
       "NMR_std": 0.0,
       "PE_mean": 1.0,
       "PE_std": 0.0,
+<<<<<<< HEAD
       "RTF_mean": 419125.52754454827,
       "RTF_std": 165589.4060260366,
       "method": "cbs",
       "n_runs": 5,
+=======
+      "RTF_mean": 191865.74515056377,
+      "RTF_std": 0.0,
+      "method": "cbs",
+      "n_runs": 1,
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
       "scenario": "01_corridor_crossing"
     },
     "01_corridor_crossing__orca": {
@@ -32,6 +39,7 @@
       "NMR_std": 0.0,
       "PE_mean": 1.0,
       "PE_std": 0.0,
+<<<<<<< HEAD
       "RTF_mean": 173155.68050557136,
       "RTF_std": 12179.332665956937,
       "method": "orca",
@@ -55,6 +63,31 @@
       "RTF_std": 487.3406492295114,
       "method": "sdacs_hybrid",
       "n_runs": 5,
+=======
+      "RTF_mean": 191342.19106244924,
+      "RTF_std": 0.0,
+      "method": "orca",
+      "n_runs": 1,
+      "scenario": "01_corridor_crossing"
+    },
+    "01_corridor_crossing__sdacs_hybrid": {
+      "AU_mean": 1.0,
+      "AU_std": 0.0,
+      "FT_drone_s_mean": 304.0,
+      "FT_drone_s_std": 0.0,
+      "MSD_mean": 4.820423326491362,
+      "MSD_std": 0.0,
+      "MS_s_mean": 77.0,
+      "MS_s_std": 0.0,
+      "NMR_mean": 0.001851851851851852,
+      "NMR_std": 0.0,
+      "PE_mean": 0.9697544980484626,
+      "PE_std": 0.0,
+      "RTF_mean": 10209.224442663039,
+      "RTF_std": 0.0,
+      "method": "sdacs_hybrid",
+      "n_runs": 1,
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
       "scenario": "01_corridor_crossing"
     },
     "01_corridor_crossing__vo": {
@@ -70,6 +103,7 @@
       "NMR_std": 0.0,
       "PE_mean": 0.7456249829049068,
       "PE_std": 0.0,
+<<<<<<< HEAD
       "RTF_mean": 21088.72873759014,
       "RTF_std": 365.6173106112796,
       "method": "vo",
@@ -763,6 +797,93 @@
   },
   "generated_at": "2026-05-31T19:52:45",
   "n_runs": 200,
+=======
+      "RTF_mean": 10894.738906323806,
+      "RTF_std": 0.0,
+      "method": "vo",
+      "n_runs": 1,
+      "scenario": "01_corridor_crossing"
+    },
+    "08_stress_high_density__cbs": {
+      "AU_mean": 0.1756,
+      "AU_std": 0.0,
+      "FT_drone_s_mean": 10136.0,
+      "FT_drone_s_std": 0.0,
+      "MSD_mean": 0.15701852539359606,
+      "MSD_std": 0.0,
+      "MS_s_mean": 87.0,
+      "MS_s_std": 0.0,
+      "NMR_mean": 6.197654941373535e-06,
+      "NMR_std": 0.0,
+      "PE_mean": 1.0,
+      "PE_std": 0.0,
+      "RTF_mean": 14894.54661000999,
+      "RTF_std": 0.0,
+      "method": "cbs",
+      "n_runs": 1,
+      "scenario": "08_stress_high_density"
+    },
+    "08_stress_high_density__orca": {
+      "AU_mean": 0.17650000000000002,
+      "AU_std": 0.0,
+      "FT_drone_s_mean": 10390.0,
+      "FT_drone_s_std": 0.0,
+      "MSD_mean": 1.5571749707997946,
+      "MSD_std": 0.0,
+      "MS_s_mean": 89.0,
+      "MS_s_std": 0.0,
+      "NMR_mean": 5.1926298157453935e-06,
+      "NMR_std": 0.0,
+      "PE_mean": 1.0,
+      "PE_std": 0.0,
+      "RTF_mean": 12508.67946001324,
+      "RTF_std": 0.0,
+      "method": "orca",
+      "n_runs": 1,
+      "scenario": "08_stress_high_density"
+    },
+    "08_stress_high_density__sdacs_hybrid": {
+      "AU_mean": 1.0,
+      "AU_std": 0.0,
+      "FT_drone_s_mean": 20656.0,
+      "FT_drone_s_std": 0.0,
+      "MSD_mean": 2.4348312917005615,
+      "MSD_std": 0.0,
+      "MS_s_mean": 174.0,
+      "MS_s_std": 0.0,
+      "NMR_mean": 3.015075376884422e-06,
+      "NMR_std": 0.0,
+      "PE_mean": 0.9774921715280397,
+      "PE_std": 0.0,
+      "RTF_mean": 226.7267399116042,
+      "RTF_std": 0.0,
+      "method": "sdacs_hybrid",
+      "n_runs": 1,
+      "scenario": "08_stress_high_density"
+    },
+    "08_stress_high_density__vo": {
+      "AU_mean": 0.6587166666666668,
+      "AU_std": 0.0,
+      "FT_drone_s_mean": 39404.0,
+      "FT_drone_s_std": 0.0,
+      "MSD_mean": 1.7732834188065705,
+      "MSD_std": 0.0,
+      "MS_s_mean": 300.0,
+      "MS_s_std": 0.0,
+      "NMR_mean": 4.187604690117253e-06,
+      "NMR_std": 0.0,
+      "PE_mean": 0.40356586019431206,
+      "PE_std": 0.0,
+      "RTF_mean": 7.162144982099149,
+      "RTF_std": 0.0,
+      "method": "vo",
+      "n_runs": 1,
+      "scenario": "08_stress_high_density"
+    }
+  },
+  "generated_at": "2026-06-01T23:24:51",
+  "n_runs": 8,
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
   "per_run": [
     {
       "method": "orca",
@@ -775,7 +896,11 @@
         "NMR": 0.005555555555555556,
         "PE": 1.0,
         "RID_CR": 0.0,
+<<<<<<< HEAD
         "RTF": 155494.1257546861,
+=======
+        "RTF": 191342.19106244924,
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
         "TTC_mean_s": NaN,
         "TTC_median_s": NaN,
         "TTC_p5_s": NaN,
@@ -784,6 +909,7 @@
         "VCU_mean_occupancy": NaN,
         "geofence_violations": 0.0,
         "peak_memory_mb": NaN,
+<<<<<<< HEAD
         "tick_p50_ms": 0.00020000004496978363,
         "tick_p95_ms": 0.006099999848174775,
         "tick_p99_ms": 0.010150999844427157
@@ -903,6 +1029,15 @@
       "scenario": "01_corridor_crossing",
       "seed": 46,
       "wall_seconds": 0.0024812999999994645
+=======
+        "tick_p50_ms": 0.0003029999788850546,
+        "tick_p95_ms": 0.012575650077906158,
+        "tick_p99_ms": 0.028892530025359568
+      },
+      "scenario": "01_corridor_crossing",
+      "seed": 42,
+      "wall_seconds": 0.013665263000007144
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
     },
     {
       "method": "vo",
@@ -915,7 +1050,11 @@
         "NMR": 0.0,
         "PE": 0.7456249829049068,
         "RID_CR": 0.0,
+<<<<<<< HEAD
         "RTF": 21297.23845839436,
+=======
+        "RTF": 10894.738906323806,
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
         "TTC_mean_s": NaN,
         "TTC_median_s": NaN,
         "TTC_p5_s": NaN,
@@ -924,6 +1063,7 @@
         "VCU_mean_occupancy": NaN,
         "geofence_violations": 0.0,
         "peak_memory_mb": NaN,
+<<<<<<< HEAD
         "tick_p50_ms": 0.0470500000346874,
         "tick_p95_ms": 0.062104999926759774,
         "tick_p99_ms": 0.1001930000097673
@@ -1043,6 +1183,15 @@
       "scenario": "01_corridor_crossing",
       "seed": 46,
       "wall_seconds": 0.009944800000084797
+=======
+        "tick_p50_ms": 0.09156350000694147,
+        "tick_p95_ms": 0.15460909998523673,
+        "tick_p99_ms": 0.21140415995432704
+      },
+      "scenario": "01_corridor_crossing",
+      "seed": 42,
+      "wall_seconds": 0.01679528800002572
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
     },
     {
       "method": "cbs",
@@ -1055,7 +1204,11 @@
         "NMR": 0.005555555555555556,
         "PE": 1.0,
         "RID_CR": 0.0,
+<<<<<<< HEAD
         "RTF": 126129.9138111556,
+=======
+        "RTF": 191865.74515056377,
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
         "TTC_mean_s": NaN,
         "TTC_median_s": NaN,
         "TTC_p5_s": NaN,
@@ -1064,6 +1217,7 @@
         "VCU_mean_occupancy": NaN,
         "geofence_violations": 0.0,
         "peak_memory_mb": NaN,
+<<<<<<< HEAD
         "tick_p50_ms": 0.0001999999312829459,
         "tick_p95_ms": 0.0032000000373955118,
         "tick_p99_ms": 0.010119999978996923
@@ -1183,10 +1337,20 @@
       "scenario": "01_corridor_crossing",
       "seed": 46,
       "wall_seconds": 0.0014943000001039763
+=======
+        "tick_p50_ms": 0.00030499995773425326,
+        "tick_p95_ms": 0.006117999987509393,
+        "tick_p99_ms": 0.019137199979013496
+      },
+      "scenario": "01_corridor_crossing",
+      "seed": 42,
+      "wall_seconds": 0.0011604730000271957
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
     },
     {
       "method": "sdacs_hybrid",
       "metrics": {
+<<<<<<< HEAD
         "AU": 0.6333333333333333,
         "FT_drone_s": 452.0,
         "LAANC_latency_ms": 107.68800437278762,
@@ -4683,6 +4847,32 @@
       "scenario": "07_communication_loss",
       "seed": 46,
       "wall_seconds": 0.13305170000012367
+=======
+        "AU": 1.0,
+        "FT_drone_s": 304.0,
+        "LAANC_latency_ms": 128.45400765237832,
+        "MSD": 4.820423326491362,
+        "MS_s": 77.0,
+        "NMR": 0.001851851851851852,
+        "PE": 0.9697544980484626,
+        "RID_CR": 1.0,
+        "RTF": 10209.224442663039,
+        "TTC_mean_s": 14.822776811721976,
+        "TTC_median_s": 16.219751779648654,
+        "TTC_p5_s": 0.0,
+        "TTC_p95_s": 26.969751779648657,
+        "VCU_handoff_rate": 0.022222222222222223,
+        "VCU_mean_occupancy": 1.0037037037037035,
+        "geofence_violations": 0.0,
+        "peak_memory_mb": NaN,
+        "tick_p50_ms": 0.05850500002679837,
+        "tick_p95_ms": 0.2951270499465863,
+        "tick_p99_ms": 0.34609833994522887
+      },
+      "scenario": "01_corridor_crossing",
+      "seed": 42,
+      "wall_seconds": 0.017944424999996045
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
     },
     {
       "method": "orca",
@@ -4695,7 +4885,11 @@
         "NMR": 5.1926298157453935e-06,
         "PE": 1.0,
         "RID_CR": 0.0,
+<<<<<<< HEAD
         "RTF": 24529.042385914534,
+=======
+        "RTF": 12508.67946001324,
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
         "TTC_mean_s": NaN,
         "TTC_median_s": NaN,
         "TTC_p5_s": NaN,
@@ -4704,6 +4898,7 @@
         "VCU_mean_occupancy": NaN,
         "geofence_violations": 0.0,
         "peak_memory_mb": NaN,
+<<<<<<< HEAD
         "tick_p50_ms": 0.0033999999686784577,
         "tick_p95_ms": 0.15771499981838133,
         "tick_p99_ms": 0.1828609998710816
@@ -4823,6 +5018,15 @@
       "scenario": "08_stress_high_density",
       "seed": 46,
       "wall_seconds": 0.012734099999988757
+=======
+        "tick_p50_ms": 0.005080500045551162,
+        "tick_p95_ms": 0.35376534992224157,
+        "tick_p99_ms": 0.4262438599539561
+      },
+      "scenario": "08_stress_high_density",
+      "seed": 42,
+      "wall_seconds": 0.024222410999982458
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
     },
     {
       "method": "vo",
@@ -4835,7 +5039,11 @@
         "NMR": 4.187604690117253e-06,
         "PE": 0.40356586019431206,
         "RID_CR": 0.0,
+<<<<<<< HEAD
         "RTF": 12.943985889122487,
+=======
+        "RTF": 7.162144982099149,
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
         "TTC_mean_s": NaN,
         "TTC_median_s": NaN,
         "TTC_p5_s": NaN,
@@ -4844,6 +5052,7 @@
         "VCU_mean_occupancy": NaN,
         "geofence_violations": 0.0,
         "peak_memory_mb": NaN,
+<<<<<<< HEAD
         "tick_p50_ms": 57.32524999996258,
         "tick_p95_ms": 128.2232799998951,
         "tick_p99_ms": 132.2812199998475
@@ -4963,6 +5172,15 @@
       "scenario": "08_stress_high_density",
       "seed": 46,
       "wall_seconds": 25.419840399999885
+=======
+        "tick_p50_ms": 103.12606400003688,
+        "tick_p95_ms": 227.2919727499925,
+        "tick_p99_ms": 237.36825755004472
+      },
+      "scenario": "08_stress_high_density",
+      "seed": 42,
+      "wall_seconds": 41.88733309500003
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
     },
     {
       "method": "cbs",
@@ -4975,7 +5193,11 @@
         "NMR": 6.197654941373535e-06,
         "PE": 1.0,
         "RID_CR": 0.0,
+<<<<<<< HEAD
         "RTF": 30552.387159731516,
+=======
+        "RTF": 14894.54661000999,
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
         "TTC_mean_s": NaN,
         "TTC_median_s": NaN,
         "TTC_p5_s": NaN,
@@ -4984,6 +5206,7 @@
         "VCU_mean_occupancy": NaN,
         "geofence_violations": 0.0,
         "peak_memory_mb": NaN,
+<<<<<<< HEAD
         "tick_p50_ms": 0.003200000264769187,
         "tick_p95_ms": 0.12280000009923242,
         "tick_p99_ms": 0.19370000018170686
@@ -5103,10 +5326,20 @@
       "scenario": "08_stress_high_density",
       "seed": 46,
       "wall_seconds": 0.012699800000063988
+=======
+        "tick_p50_ms": 0.004998000008527015,
+        "tick_p95_ms": 0.253061000080379,
+        "tick_p99_ms": 0.3125050000107876
+      },
+      "scenario": "08_stress_high_density",
+      "seed": 42,
+      "wall_seconds": 0.02067893200000981
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
     },
     {
       "method": "sdacs_hybrid",
       "metrics": {
+<<<<<<< HEAD
         "AU": 0.8904333333333333,
         "FT_drone_s": 53350.0,
         "LAANC_latency_ms": 99.5856748165082,
@@ -8887,4 +9120,33 @@
       "u_statistic": 0.0
     }
   ]
+=======
+        "AU": 1.0,
+        "FT_drone_s": 20656.0,
+        "LAANC_latency_ms": 114.27493092888933,
+        "MSD": 2.4348312917005615,
+        "MS_s": 174.0,
+        "NMR": 3.015075376884422e-06,
+        "PE": 0.9774921715280397,
+        "RID_CR": 1.0,
+        "RTF": 226.7267399116042,
+        "TTC_mean_s": 26.713435293888164,
+        "TTC_median_s": 23.37851031283853,
+        "TTC_p5_s": 0.0,
+        "TTC_p95_s": 59.754960182068146,
+        "VCU_handoff_rate": 0.67,
+        "VCU_mean_occupancy": 50.0,
+        "geofence_violations": 0.0,
+        "peak_memory_mb": NaN,
+        "tick_p50_ms": 5.734923999966668,
+        "tick_p95_ms": 13.821666000001187,
+        "tick_p99_ms": 14.939677069941121
+      },
+      "scenario": "08_stress_high_density",
+      "seed": 42,
+      "wall_seconds": 1.3364746570000534
+    }
+  ],
+  "significance": []
+>>>>>>> c712bbd5ecb51bce6d827215bbc998a957a56a02
 }

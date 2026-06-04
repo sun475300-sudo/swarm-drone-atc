@@ -1281,6 +1281,11 @@
                 <button class="ctrl-btn cam-preset" data-cam="follow" style="flex:1;">추적</button>
                 <button class="ctrl-btn cam-preset" data-cam="orbit" style="flex:1;">오빗</button>
             </div>
+            <!-- Phase 4 CAM — 카메라 모드 (FPV / 측면) -->
+            <div style="display:flex;gap:4px;margin-top:4px;">
+                <button class="ctrl-btn cam-preset" data-cam="fpv" style="flex:1;" title="1인칭 FPV (선택 드론 필요, 키 5)">🎥 FPV</button>
+                <button class="ctrl-btn cam-preset" data-cam="side" style="flex:1;" title="측면 뷰 (키 S)">측면</button>
+            </div>
             <div style="display:flex;gap:4px;margin-top:5px;align-items:center;">
                 <select id="filter-phase" class="ctrl-select" style="flex:1;font-size:9px;">
                     <option value="">전체 단계</option>
@@ -1417,6 +1422,9 @@
         <div id="atc-log-list"></div>
     </div>
 
+    <!-- Phase 4 CAM — FPV 온보드 HUD 오버레이 -->
+    <div id="fpv-hud" style="display:none;position:fixed;left:50%;bottom:54px;transform:translateX(-50%);z-index:40;background:rgba(4,10,18,0.74);border:1px solid rgba(0,229,255,0.38);border-radius:8px;padding:8px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#cdd9e8;min-width:160px;backdrop-filter:blur(6px);pointer-events:none;box-shadow:0 0 24px rgba(0,229,255,0.18);"></div>
+
     <!-- HUD: Drone Live Tooltip -->
     <div class="drone-tooltip" id="drone-tooltip" style="display:none;"></div>
 
@@ -1435,6 +1443,7 @@
             <div style="font-size:11px;color:#22d3ee;letter-spacing:1px;margin:12px 0 4px;">단축키</div>
             <div style="font-size:12px;line-height:1.9;">
                 <b>Space</b> 재생/정지 · <b>A</b> 분석 뷰 · <b>F</b> 선택 드론 추적 · <b>1~4</b> 카메라(기본/탑다운/추적/오빗)<br>
+                <b>5</b> FPV 온보드(선택 드론·휠로 FOV) · <b>S</b> 측면 뷰<br>
                 <b>/</b> 검색창 · <b>H</b> 또는 <b>?</b> 도움말 · <b>Esc</b> 닫기/선택 해제
             </div>
             <div style="font-size:11px;color:#22d3ee;letter-spacing:1px;margin:12px 0 4px;">패널</div>
@@ -6225,8 +6234,8 @@
             _alertTimer = setTimeout(() => { el.style.opacity = '0'; if (bn) bn.style.opacity = '0'; }, 450);
         }
         function checkSeparationAlerts() {
-            if (stats.collisions > _prevColl) triggerAlert('rgba(239,68,68,0.55)', '⛔ 충돌 발생 — 분리간격 위반');
-            else if (stats.nearMisses > _prevNear) triggerAlert('rgba(245,158,11,0.4)', '⚠ 근접 경고 — 분리간격 접근');
+            if (stats.collisions > _prevColl) { triggerAlert('rgba(239,68,68,0.55)', '⛔ 충돌 발생 — 분리간격 위반'); triggerCameraShake(0.4); }
+            else if (stats.nearMisses > _prevNear) { triggerAlert('rgba(245,158,11,0.4)', '⚠ 근접 경고 — 분리간격 접근'); triggerCameraShake(0.15); }
             _prevColl = stats.collisions; _prevNear = stats.nearMisses;
         }
 
@@ -6712,12 +6721,31 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
         const _followOffset = new THREE.Vector3(20, 16, 20);
 
         function setCamMode(mode) {
+            // Phase 4 CAM-1 — FPV는 선택 드론이 있어야 진입
+            if (mode === 'fpv' && !selectedDrone) {
+                logEvent('info', '🎥 FPV: 먼저 드론을 클릭해 선택하세요');
+                return;
+            }
+            const prev = camMode;
             camMode = mode;
             controls.autoRotate = (mode === 'orbit');
             if (mode === 'orbit') controls.autoRotateSpeed = 0.6;
+            // FPV 진입/이탈: OrbitControls 비활성 + HUD 토글 + FOV 복원
+            const fpvHud = document.getElementById('fpv-hud');
+            if (mode === 'fpv') {
+                controls.enabled = false;
+                if (fpvHud) fpvHud.style.display = 'block';
+            } else {
+                if (prev === 'fpv') {
+                    controls.enabled = true;
+                    camera.fov = 60; camera.updateProjectionMatrix();
+                }
+                if (fpvHud) fpvHud.style.display = 'none';
+            }
             document.querySelectorAll('.cam-preset').forEach(b => b.classList.toggle('active', b.dataset.cam === mode));
             if (mode === 'reset') { camera.position.set(70, 50, 70); controls.target.set(0, 2, 0); }
             else if (mode === 'top') { camera.position.set(0, 130, 0.1); controls.target.set(0, 0, 0); }
+            else if (mode === 'side') { camera.position.set(140, 14, 0); controls.target.set(0, 8, 0); }   // Phase 4 CAM-3
             else if (mode === 'follow') {
                 _followOffset.copy(camera.position).sub(controls.target);
                 if (_followOffset.lengthSq() < 1) _followOffset.set(20, 16, 20);
@@ -6743,6 +6771,53 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
             camera.position.copy(d.group.position).add(off);
             controls.update();
         }
+
+        // ===== Phase 4 CAM — 카메라 모드 (FPV 온보드 · 카메라 흔들림 · FOV) =====
+        const _fpvFwd = new THREE.Vector3(0, 0, 1);
+        const _fpvCamPos = new THREE.Vector3();
+        const _fpvLook = new THREE.Vector3();
+        const _fpvRow = (k, v) => `<div style="display:flex;justify-content:space-between;gap:16px;line-height:1.55;"><span style="opacity:0.6;">${k}</span><b style="color:#7dd3fc;">${v}</b></div>`;
+
+        function _droneForward(d, out) {
+            // 진행 방향 = 속도 벡터(없으면 기수). FPV 시점/추월 방향 산출에 공용 사용.
+            const spd = Math.sqrt((d.vx || 0) ** 2 + (d.vz || 0) ** 2 + (d.vy || 0) ** 2);
+            if (spd > 0.2) { out.set(d.vx / spd, (d.vy || 0) / spd, d.vz / spd); }
+            else { const h = (d.heading || 0) * Math.PI / 180; out.set(Math.sin(h), 0, Math.cos(h)); }
+            return out;
+        }
+
+        function updateFpvCam() {                                   // Phase 4 CAM-1
+            if (camMode !== 'fpv') return;
+            const d = selectedDrone;
+            if (!d || !d.group || !d.group.parent) { setCamMode('reset'); return; }
+            const p = d.group.position;
+            _droneForward(d, _fpvFwd);
+            _fpvCamPos.copy(p).addScaledVector(_fpvFwd, 0.6); _fpvCamPos.y += 0.5;
+            camera.position.lerp(_fpvCamPos, 0.45);
+            _fpvLook.copy(p).addScaledVector(_fpvFwd, 24); _fpvLook.y += 0.4;
+            camera.lookAt(_fpvLook);
+            if (frameCount % 6 === 0) {
+                const el = document.getElementById('fpv-hud');
+                if (el) {
+                    const spd = Math.sqrt((d.vx || 0) ** 2 + (d.vz || 0) ** 2 + (d.vy || 0) ** 2);
+                    el.innerHTML =
+                        `<div style="font-size:10px;letter-spacing:1px;color:#22d3ee;margin-bottom:5px;">🎥 FPV ONBOARD — ${d.id}</div>`
+                        + _fpvRow('고도', (d.wy || 0).toFixed(0) + ' m')
+                        + _fpvRow('속도', spd.toFixed(1) + ' m/s')
+                        + _fpvRow('기수', (d.heading || 0).toFixed(0) + '°')
+                        + _fpvRow('배터리', (d.battery || 0).toFixed(0) + '%')
+                        + _fpvRow('FOV', camera.fov.toFixed(0) + '°');
+                }
+            }
+        }
+
+        // CAM-1 — FPV 모드 마우스 휠 → FOV 30~90° (OrbitControls 줌은 비활성 상태)
+        renderer.domElement.addEventListener('wheel', (e) => {
+            if (camMode !== 'fpv') return;
+            e.preventDefault();
+            camera.fov = Math.max(30, Math.min(90, camera.fov + (e.deltaY > 0 ? 3 : -3)));
+            camera.updateProjectionMatrix();
+        }, { passive: false });
         document.getElementById('drone-search').addEventListener('keydown', e => {
             if (e.key !== 'Enter') return;
             const q = e.target.value.trim().toUpperCase();
@@ -6952,6 +7027,8 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                 case '2': setCamMode('top'); break;
                 case '3': setCamMode('follow'); break;
                 case '4': setCamMode('orbit'); break;
+                case '5': setCamMode('fpv'); break;                 // Phase 4 CAM-1 FPV
+                case 's': case 'S': setCamMode('side'); break;      // Phase 4 CAM-3 측면
                 case '/': e.preventDefault(); document.getElementById('drone-search').focus(); break;
                 case 'h': case 'H': case '?': toggleHelp(); break;
                 case 'ArrowLeft': if (_scrub(e.shiftKey ? -10 : -1)) e.preventDefault(); break;
@@ -8073,6 +8150,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
             updateFollowCam();
             controls.update();
+            updateFpvCam();                                          // Phase 4 CAM-1 FPV 온보드
             const gpuStart = performance.now();
             renderer.render(scene, camera);
             perfMetrics.gpuMs = performance.now() - gpuStart;
@@ -8228,6 +8306,13 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             startRecording() { return startRecording(); },
             stopRecording() { return stopRecording(); },
             get recording() { return cinRecorder.recording; },
+            // ===== Phase 4 — CAM 카메라 모드 외부 API =====
+            setCamMode(mode) { setCamMode(mode); return camMode; },
+            get camMode() { return camMode; },
+            get fpvActive() { return camMode === 'fpv'; },
+            get fov() { return camera.fov; },
+            setFov(v) { camera.fov = Math.max(30, Math.min(90, +v)); camera.updateProjectionMatrix(); return camera.fov; },
+            cameraShake(amp = 0.3) { triggerCameraShake(amp); return true; },
             // ===== Phase 6 — INJ 장애 주입 외부 API =====
             injectFault(droneId, type, opts) { return injectFault(droneId, type, opts); },
             injectRogue() { return injectRogue(); },

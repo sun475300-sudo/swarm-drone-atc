@@ -1,7 +1,9 @@
 # SDACS 종합 진척 보고서
 
-*Last updated: 2026-06-04 — Phase 1(ATC) + 2(TAC) + 3(CIN) + 6(INJ) 완료, 36/37 E2E 통과*
+*Last updated: 2026-06-04 — Phase 1(ATC) + 2(TAC) + 3(CIN) + 4(CAM) + 6(INJ) 완료*
 
+> **🎥 신규: Phase 4 CAM 카메라 모드** — FPV 온보드 1인칭 시점(선택 드론 부착 · 마우스 휠 FOV 30~90° · 실시간 미니 HUD: 고도·속도·기수·배터리) · 측면 뷰 프리셋 · 충돌/근접 시 카메라 흔들림(기존 시스템 연동) · 단축키 `5`(FPV)/`S`(측면). E2E 8 케이스 신설.
+>
 > **🎬 신규: Phase 3 CIN 시네마틱** — 동적 태양 24h(시간대별 RGB·자동 흐름) · 비/눈 입자 시스템(5K rain + 3K snow) · MediaRecorder 화면 녹화(WebM/MP4 자동 코덱).
 >
 > **💥 신규: Phase 6 INJ 장애 주입** — GPS 손실 / 모터 페일 / 통신 두절 / 배터리 급강하 + ROGUE spawn + 동적 NFZ + 시나리오 EMP/EMI 일괄 + 통계 카운터 + 전체 해제.

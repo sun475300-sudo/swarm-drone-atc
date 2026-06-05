@@ -3112,6 +3112,246 @@
             for (const d of drones) batteryAgeUpdate(d, dt);
         }
 
+        // ===== HYPER Phase 18 — AR Overlay (WebXR AR mode + 카메라 pin) =====
+        const arOverlay = {
+            enabled: false,
+            session: null,
+            cameraPins: [],          // [{id, lat, lon, label}]
+        };
+        async function arEnter() {
+            if (!('xr' in navigator)) {
+                logEvent('info', '🌐 WebXR 미지원 브라우저');
+                return false;
+            }
+            try {
+                const supported = await navigator.xr.isSessionSupported('immersive-ar');
+                if (!supported) {
+                    logEvent('info', '🌐 immersive-ar 미지원 — 시뮬 모드 fallback');
+                    arOverlay.enabled = true;
+                    return false;
+                }
+                const session = await navigator.xr.requestSession('immersive-ar', {
+                    requiredFeatures: ['local-floor'],
+                    optionalFeatures: ['dom-overlay', 'hit-test', 'plane-detection'],
+                });
+                arOverlay.session = session;
+                arOverlay.enabled = true;
+                if (renderer.xr) renderer.xr.setSession(session);
+                logEvent('info', '🌐 AR 세션 활성');
+                return true;
+            } catch (e) {
+                logEvent('info', '🌐 AR 진입 실패: ' + (e.message || e));
+                return false;
+            }
+        }
+        function arExit() {
+            if (arOverlay.session) { try { arOverlay.session.end(); } catch (e) {} }
+            arOverlay.session = null;
+            arOverlay.enabled = false;
+            return true;
+        }
+        function arAddPin(lat, lon, label) {
+            const pin = {
+                id: 'PIN-' + (arOverlay.cameraPins.length + 1),
+                lat, lon,
+                label: label || '',
+                addedAt: simTime,
+            };
+            arOverlay.cameraPins.push(pin);
+            return pin;
+        }
+        function arClearPins() {
+            const n = arOverlay.cameraPins.length;
+            arOverlay.cameraPins.length = 0;
+            return n;
+        }
+
+        // ===== HYPER Phase 26 — Acoustic Propagation (음향 전파 모델) =====
+        // 드론 모터음 거리 감쇠 (역제곱) + 지면 반사 + 시민 신고 시뮬.
+        const acoustic = {
+            enabled: false,
+            sourceSPL_dB: 80,         // 1m 기준 모터 음압 (전형 쿼드콥터)
+            backgroundSPL_dB: 35,     // 야간 도심 배경 소음
+            complaintThreshold_dB: 50, // 시민 신고 임계
+            observerPoints: [],        // [{x, z, label, lastDb, complaints}]
+            currentLevels: new Map(),  // observerId → dB
+        };
+        function acousticAddObserver(x, z, label) {
+            const obs = {
+                id: 'OBS-' + (acoustic.observerPoints.length + 1),
+                x, z,
+                label: label || '',
+                complaints: 0,
+                lastDb: 0,
+            };
+            acoustic.observerPoints.push(obs);
+            return obs;
+        }
+        // 단일 드론 → 단일 observer SPL (역제곱 감쇠 + 지면 반사 +3dB)
+        function _acousticSPL(d, obs) {
+            const dx = d.wx - obs.x, dz = d.wz - obs.z, dy = d.wy;
+            const dist = Math.sqrt(dx * dx + dz * dz + dy * dy);
+            if (dist < 1) return acoustic.sourceSPL_dB;
+            // 6 dB / 거리 두배 (역제곱) + 지면 반사 +3 dB
+            return acoustic.sourceSPL_dB - 20 * Math.log10(dist) + 3;
+        }
+        // 다중 음원 합산 (incoherent dB 합: 10 log10(sum(10^(SPL/10))))
+        function _acousticSumDb(spls) {
+            let sumLin = Math.pow(10, acoustic.backgroundSPL_dB / 10);
+            for (const spl of spls) sumLin += Math.pow(10, spl / 10);
+            return 10 * Math.log10(sumLin);
+        }
+        function updateAcoustic(dt) {
+            if (!acoustic.enabled) return;
+            for (const obs of acoustic.observerPoints) {
+                const spls = [];
+                for (const d of drones) {
+                    if (d.phase === 'GROUNDED' || d.phase === 'FAILED') continue;
+                    spls.push(_acousticSPL(d, obs));
+                }
+                const totalDb = _acousticSumDb(spls);
+                obs.lastDb = totalDb;
+                acoustic.currentLevels.set(obs.id, totalDb);
+                // 신고 발생: 임계 초과 시 30초마다 카운트
+                if (totalDb > acoustic.complaintThreshold_dB) {
+                    if (!obs._lastComplaintTs || simTime - obs._lastComplaintTs > 30) {
+                        obs.complaints++;
+                        obs._lastComplaintTs = simTime;
+                        logEvent('advisory', `🔊 ${obs.id} 소음 신고 (${totalDb.toFixed(1)} dB > ${acoustic.complaintThreshold_dB})`);
+                    }
+                }
+            }
+        }
+        function acousticStats() {
+            const arr = [...acoustic.currentLevels.values()];
+            if (arr.length === 0) return null;
+            return {
+                observerCount: acoustic.observerPoints.length,
+                maxDb: Math.max(...arr),
+                avgDb: arr.reduce((a, b) => a + b, 0) / arr.length,
+                totalComplaints: acoustic.observerPoints.reduce((s, o) => s + o.complaints, 0),
+            };
+        }
+
+        // ===== HYPER Phase 29 — Weather Forecast Hook =====
+        // 5일 기상 예보 (시뮬 데이터, 향후 외부 API hook)
+        const forecast = {
+            data: null,           // [{hour, windSpd, windDir, precip, vis, ceiling_m}]
+            generatedAt: 0,
+            location: '목포대 (Mokpo)',
+        };
+        function generateForecast(hours) {
+            hours = hours || 120;     // 5일 × 24시간
+            const data = [];
+            for (let h = 0; h < hours; h++) {
+                // sin 기반 daily cycle + random
+                const day = h / 24;
+                const hourOfDay = h % 24;
+                const baseWind = 4 + Math.sin(day * Math.PI / 2) * 2 + Math.sin(hourOfDay / 24 * Math.PI * 2) * 1.5;
+                const noise = (Math.random() - 0.5) * 1.5;
+                data.push({
+                    hour: h,
+                    windSpd: Math.max(0, baseWind + noise),
+                    windDir: ((h * 3) + Math.random() * 30) % 360,
+                    precip: Math.random() < 0.15 ? Math.random() * 8 : 0,
+                    vis_km: 8 + Math.random() * 4,
+                    ceiling_m: 800 + Math.random() * 1500,
+                });
+            }
+            forecast.data = data;
+            forecast.generatedAt = simTime;
+            logEvent('info', `🌦 ${hours}h 일기 예보 생성 (${data.length} 데이터)`);
+            return data.length;
+        }
+        function forecastQueryHour(h) {
+            if (!forecast.data) return null;
+            return forecast.data[Math.max(0, Math.min(forecast.data.length - 1, h))];
+        }
+        function forecastFlyableHours(windMax, precipMax) {
+            if (!forecast.data) return [];
+            windMax = windMax || 8;
+            precipMax = precipMax || 2;
+            const ok = [];
+            for (const f of forecast.data) {
+                if (f.windSpd <= windMax && f.precip <= precipMax) ok.push(f.hour);
+            }
+            return ok;
+        }
+
+        // ===== HYPER Phase 30 — UTM Federation (다중 UTM 인스턴스) =====
+        const utmFederation = {
+            enabled: false,
+            instances: [],         // [{id, label, region, droneCount, lastSync}]
+            handoffLog: [],         // [{ts, droneId, fromUtm, toUtm}]
+        };
+        function utmFederationAdd(id, label, region) {
+            const inst = {
+                id,
+                label: label || id,
+                region: region || 'KR',
+                droneCount: 0,
+                lastSync: 0,
+            };
+            utmFederation.instances.push(inst);
+            return inst;
+        }
+        function utmFederationHandoff(droneId, fromUtm, toUtm) {
+            const entry = { ts: simTime, droneId, fromUtm, toUtm };
+            utmFederation.handoffLog.push(entry);
+            if (utmFederation.handoffLog.length > 100) utmFederation.handoffLog.shift();
+            logEvent('info', `🔁 UTM Handoff: ${droneId} ${fromUtm} → ${toUtm}`);
+            return entry;
+        }
+        function utmFederationSync() {
+            for (const i of utmFederation.instances) {
+                i.droneCount = drones.filter(d => (d._utm || 'default') === i.id).length;
+                i.lastSync = simTime;
+            }
+            return utmFederation.instances.length;
+        }
+
+        // ===== HYPER Phase 31 — Quantum-Resistant Telemetry (PQC) 시각화 hook =====
+        // src/quantum/pqc_telemetry.py와 통합: Kyber-768 + Dilithium-3 + AES-256-GCM
+        // 시뮬 내 모든 통신에 PQC 헤더 오버헤드 시각화 (33× bandwidth)
+        const pqc = {
+            enabled: false,
+            kyberPubKeyBytes: 1184,    // Kyber-768 공개키 크기
+            kyberCtBytes: 1088,        // ciphertext
+            dilithiumSigBytes: 3293,   // Dilithium-3 서명
+            aesGcmTagBytes: 16,
+            baselineMsgBytes: 64,      // 평문 텔레메트리 (기존)
+            totalMsgs: 0,
+            totalBytesBaseline: 0,
+            totalBytesPqc: 0,
+        };
+        function pqcEncodeOverhead(msgSize) {
+            msgSize = msgSize || pqc.baselineMsgBytes;
+            // PQC 추가: Kyber CT (key wrap) + Dilithium sig + GCM tag (per message)
+            // Note: Kyber KEM은 세션당 1회, Dilithium은 매 msg
+            // 실제 오버헤드: msg + sig + tag (KEM 한 번만 amortized)
+            return msgSize + pqc.dilithiumSigBytes + pqc.aesGcmTagBytes;
+        }
+        function pqcUpdate() {
+            if (!pqc.enabled) return;
+            // 매 sim-tick에 N개 메시지 발생 가정 (드론수 × 1Hz 텔레메트리)
+            const n = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED').length;
+            pqc.totalMsgs += n;
+            pqc.totalBytesBaseline += n * pqc.baselineMsgBytes;
+            pqc.totalBytesPqc += n * pqcEncodeOverhead();
+        }
+        function pqcStats() {
+            const overhead = pqc.totalBytesBaseline > 0
+                ? pqc.totalBytesPqc / pqc.totalBytesBaseline
+                : 0;
+            return {
+                enabled: pqc.enabled,
+                totalMsgs: pqc.totalMsgs,
+                baselineBytes: pqc.totalBytesBaseline,
+                pqcBytes: pqc.totalBytesPqc,
+                overheadFactor: overhead,    // ≈ 52× (실 33× 분석은 KEM amortize 포함)
+            };
+        }
+
         function injectDynamicNFZ(x, z, r, dur) {
             x = x ?? (Math.random() - 0.5) * W * 2 * 50;
             z = z ?? (Math.random() - 0.5) * W * 2 * 50;
@@ -9266,6 +9506,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // HYPER Phase 25 — Battery Aging Model
             if (typeof updateBatteryAging === 'function') updateBatteryAging(dt);
 
+            // HYPER Phase 26 — Acoustic Propagation + Phase 31 PQC overhead
+            if (typeof updateAcoustic === 'function' && simRunning) updateAcoustic(dt);
+            if (typeof pqcUpdate === 'function' && simRunning) pqcUpdate();
+
             // Phase 8 AUD — 환경 사운드 + 임계 알람
             if (typeof updateAudAmbient === 'function') updateAudAmbient();
             if (typeof _audCriticalAlarm === 'function' && simRunning) _audCriticalAlarm();
@@ -9862,6 +10106,34 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get notamCount() { return notams.length; },
             // ===== HYPER Phase 25 — Battery Aging =====
             get batteryAgeStats() { return batteryAgeStats(); },
+            // ===== HYPER Phase 18 — AR Overlay =====
+            arEnter() { return arEnter(); },
+            arExit() { return arExit(); },
+            arAddPin(lat, lon, label) { return arAddPin(lat, lon, label); },
+            arClearPins() { return arClearPins(); },
+            get arEnabled() { return arOverlay.enabled; },
+            get arPins() { return arOverlay.cameraPins.slice(); },
+            // ===== HYPER Phase 26 — Acoustic Propagation =====
+            enableAcoustic(on) { acoustic.enabled = !!on; return acoustic.enabled; },
+            acousticAddObserver(x, z, label) { return acousticAddObserver(x, z, label); },
+            get acousticEnabled() { return acoustic.enabled; },
+            get acousticObservers() { return acoustic.observerPoints.slice(); },
+            get acousticStats() { return acousticStats(); },
+            // ===== HYPER Phase 29 — Weather Forecast =====
+            generateForecast(hours) { return generateForecast(hours); },
+            forecastQueryHour(h) { return forecastQueryHour(h); },
+            forecastFlyableHours(windMax, precipMax) { return forecastFlyableHours(windMax, precipMax); },
+            get forecastData() { return forecast.data ? forecast.data.slice(0, 5) : null; },
+            // ===== HYPER Phase 30 — UTM Federation =====
+            utmFederationAdd(id, label, region) { return utmFederationAdd(id, label, region); },
+            utmFederationHandoff(droneId, fromUtm, toUtm) { return utmFederationHandoff(droneId, fromUtm, toUtm); },
+            utmFederationSync() { return utmFederationSync(); },
+            get utmFederationInstances() { return utmFederation.instances.slice(); },
+            get utmFederationHandoffLog() { return utmFederation.handoffLog.slice(); },
+            // ===== HYPER Phase 31 — PQC Telemetry =====
+            enablePqc(on) { pqc.enabled = !!on; return pqc.enabled; },
+            get pqcStats() { return pqcStats(); },
+            get pqcEnabled() { return pqc.enabled; },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

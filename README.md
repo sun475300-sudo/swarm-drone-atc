@@ -818,6 +818,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-05 15:12 | `781cd25` | docs: 50 Phase 완료 후속 작업 — API 재생성·CHANGELOG·v1.2 빌드·논문 표 | CHANGELOG.md, docs/SDACS_API.md, docs/paper/SDACS_50_Phases_Results.tex, package.json |
 | 2026-06-05 14:38 | `c2ceda1` | feat(simulator): HYPER Phase 32-50 일괄 19개 완료 — MEGA 9 + HYPER 41 = 50 Phase 통합 | README.md, STATUS_REPORT.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_phase32_50.py … |
 | 2026-06-05 14:13 | `db2c4e4` | feat(simulator): HYPER Phase 18+26+29+30+31 일괄 — AR·Acoustic·Forecast·UTM Fed·PQC | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_ar_acoustic_etc.py, visualization/swarm_3d_simulator.html |
 | 2026-06-05 13:51 | `84641b5` | feat(simulator): HYPER Phase 13+16+22+24+25 일괄 — WebGPU·CRDT·Digital Twin·NOTAM·Battery Aging | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_5phases.py, visualization/swarm_3d_simulator.html |

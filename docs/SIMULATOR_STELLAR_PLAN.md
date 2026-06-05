@@ -10,7 +10,7 @@
 ## 🚀 STELLAR 5대 영역
 
 ### Track Ω — Autonomous Decision (자율 결정)
-- **Phase 51** LLM Multi-Agent (드론 그룹별 GPT-4o 임시 위임)
+- [x] **Phase 51** LLM Multi-Agent — 드론 그룹별 LLM 임시 위임. 규칙 기반 오프라인 권고(`_stellar51Recommend`: RTB/ISOLATE/REROUTE/RESUME/STANDBY/MAINTAIN) + `stellar51Tick`/`stellar51Revoke`/`stellar51Groups` API. 실 API 키 없이 결정적 시연 (Copilot Phase 20과 동일 철학). E2E 6종 (2026-06-05)
 - **Phase 52** RLHF (인간 피드백 강화학습)
 - **Phase 53** Causal Inference (인과추론 의사결정)
 - **Phase 54** Adversarial Robustness (FGSM/PGD/CW 공격 방어)

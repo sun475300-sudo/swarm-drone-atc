@@ -3,6 +3,11 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased] — STELLAR 착수
+
+### 추가 (feat) — 자율 결정
+- **Phase 51** LLM Multi-Agent — 드론 그룹별 LLM 임시 의사결정 위임. 규칙 기반 오프라인 권고(`_stellar51Recommend`)로 실 API 키 없이 결정적 시연. `stellar51DelegateGroup`/`stellar51Tick`/`stellar51Revoke`/`stellar51Groups` API + E2E 6종 (시드 → 완성 전환)
+
 ## [v1.2.0] - 2026-06-05 — HYPER FINAL (Phase 32-50 일괄 19개)
 
 ### 추가 (feat) — 통신·네트워크

@@ -3352,6 +3352,481 @@
             };
         }
 
+        // ===== HYPER Phase 32 — Satellite Constellation (LEO 백홀) =====
+        const satellite = {
+            enabled: false,
+            constellation: 'starlink',     // 'starlink' | 'oneweb' | 'kuiper'
+            altitude_km: 550,
+            inclination_deg: 53,
+            satellites: [],                 // [{id, lon, lat, alt}]
+            handoffCount: 0,
+        };
+        function _satConfig(name) {
+            const configs = {
+                starlink: { alt: 550, inc: 53, count: 24 },
+                oneweb: { alt: 1200, inc: 87, count: 18 },
+                kuiper: { alt: 590, inc: 51.9, count: 20 },
+            };
+            return configs[name] || configs.starlink;
+        }
+        function satelliteInit(name) {
+            const cfg = _satConfig(name);
+            satellite.constellation = name || satellite.constellation;
+            satellite.altitude_km = cfg.alt;
+            satellite.inclination_deg = cfg.inc;
+            satellite.satellites = [];
+            for (let i = 0; i < cfg.count; i++) {
+                satellite.satellites.push({
+                    id: `SAT-${String(i + 1).padStart(3, '0')}`,
+                    lon: (i * 360 / cfg.count) - 180,
+                    lat: Math.sin(i * 0.5) * cfg.inc,
+                    alt: cfg.alt,
+                });
+            }
+            return satellite.satellites.length;
+        }
+        function satelliteVisibleAt(lat, lon) {
+            // 단순 가시성: 위도 차이 < 30° + 경도 차이 < 60°
+            return satellite.satellites.filter(s =>
+                Math.abs(s.lat - lat) < 30 && Math.abs(s.lon - lon) < 60
+            );
+        }
+        function satelliteHandoff() {
+            satellite.handoffCount++;
+            return satellite.handoffCount;
+        }
+
+        // ===== HYPER Phase 33 — Underwater Vehicle (UUV) =====
+        // 해양 시뮬에 통합 예정, 군집 시뮬에는 메타데이터만 보관
+        const uuv = {
+            enabled: false,
+            vehicles: [],                   // [{id, depth, x, y_neg, z, comms: 'acoustic'}]
+            acousticBandKbps: 1.0,          // 수중 음파 통신 (저속)
+        };
+        function uuvAdd(x, z, depthM) {
+            const v = {
+                id: `UUV-${String(uuv.vehicles.length + 1).padStart(3, '0')}`,
+                x, z,
+                depth_m: depthM || 50,
+                comms: 'acoustic',
+                lastSync: simTime,
+            };
+            uuv.vehicles.push(v);
+            return v;
+        }
+        function uuvAcousticBudget() {
+            // 수중 통신 budget 계산 (음향 1 kbps 기준)
+            return {
+                vehicles: uuv.vehicles.length,
+                kbpsPerVehicle: uuv.acousticBandKbps,
+                totalKbps: uuv.vehicles.length * uuv.acousticBandKbps,
+            };
+        }
+
+        // ===== HYPER Phase 34 — Sensor Fusion Workbench =====
+        const sensorFusion = {
+            enabled: false,
+            sensors: { lidar: true, radar: true, eo: true, ir: false, rf: false },
+            filter: 'ekf',                  // 'kalman' | 'ekf' | 'particle'
+            noise: { lidar: 0.05, radar: 0.3, eo: 0.1, ir: 0.4, rf: 1.0 },  // m
+        };
+        function sensorFusionToggle(sensor, on) {
+            if (!(sensor in sensorFusion.sensors)) return false;
+            sensorFusion.sensors[sensor] = !!on;
+            return sensorFusion.sensors[sensor];
+        }
+        function sensorFusionSetFilter(name) {
+            if (!['kalman', 'ekf', 'particle'].includes(name)) return false;
+            sensorFusion.filter = name;
+            return true;
+        }
+        function sensorFusionEffectiveNoise() {
+            // 활성 센서 noise inverse-variance weighted sum
+            let invSum = 0;
+            for (const [k, on] of Object.entries(sensorFusion.sensors)) {
+                if (on) invSum += 1 / (sensorFusion.noise[k] ** 2);
+            }
+            return invSum > 0 ? 1 / Math.sqrt(invSum) : 1.0;
+        }
+
+        // ===== HYPER Phase 35 — Edge Computing MEC (5G) =====
+        const mec = {
+            enabled: false,
+            nodes: [],                      // [{id, x, z, capacity, latency_ms, currentLoad}]
+            workloads: [],                   // [{id, sourceDroneId, mecNodeId, sizeKB, deadlineMs}]
+        };
+        function mecAdd(x, z, capacity, latency) {
+            const node = {
+                id: `MEC-${String(mec.nodes.length + 1).padStart(3, '0')}`,
+                x, z,
+                capacity: capacity || 100,   // Mbps
+                latency_ms: latency || 5,
+                currentLoad: 0,
+            };
+            mec.nodes.push(node);
+            return node;
+        }
+        function mecAssign(droneId, sizeKB) {
+            if (mec.nodes.length === 0) return null;
+            // 가장 가까운 노드 + 부하 낮은 노드 선택
+            const d = drones.find(x => x.id === droneId);
+            if (!d) return null;
+            let best = null, bestScore = -Infinity;
+            for (const n of mec.nodes) {
+                const dist = Math.hypot(d.wx - n.x, d.wz - n.z);
+                const free = 1 - (n.currentLoad / n.capacity);
+                const score = free * 1000 - dist * 0.1;
+                if (score > bestScore) { bestScore = score; best = n; }
+            }
+            if (best) {
+                best.currentLoad = Math.min(best.capacity, best.currentLoad + (sizeKB / 1024) * 8);
+                mec.workloads.push({
+                    id: `W-${mec.workloads.length + 1}`,
+                    sourceDroneId: droneId,
+                    mecNodeId: best.id,
+                    sizeKB: sizeKB || 100,
+                    deadlineMs: best.latency_ms + 10,
+                });
+                if (mec.workloads.length > 200) mec.workloads.shift();
+            }
+            return best;
+        }
+
+        // ===== HYPER Phase 36 — Federated Learning =====
+        const fedLearn = {
+            enabled: false,
+            round: 0,
+            participants: 0,
+            aggregatedModel: { params: 1.0e6, loss: 0.5 },
+            privacyEpsilon: 1.0,             // differential privacy budget
+            history: [],                     // [{round, loss, participants, epsilon}]
+        };
+        function fedLearnRound(participantCount, localLoss) {
+            fedLearn.round++;
+            fedLearn.participants = participantCount || drones.length;
+            // Federated averaging (mock): convex combination
+            fedLearn.aggregatedModel.loss = 0.7 * fedLearn.aggregatedModel.loss + 0.3 * (localLoss != null ? localLoss : 0.4);
+            // Privacy budget 소진
+            fedLearn.privacyEpsilon = Math.max(0.1, fedLearn.privacyEpsilon - 0.05);
+            fedLearn.history.push({
+                round: fedLearn.round,
+                loss: fedLearn.aggregatedModel.loss,
+                participants: fedLearn.participants,
+                epsilon: fedLearn.privacyEpsilon,
+            });
+            if (fedLearn.history.length > 100) fedLearn.history.shift();
+            return fedLearn.aggregatedModel;
+        }
+
+        // ===== HYPER Phase 37 — Multi-Domain (Air+Ground+Maritime) =====
+        const multiDomain = {
+            enabled: false,
+            ugv: [],                          // ground vehicles
+            handoffLog: [],                    // [{ts, droneId, fromDomain, toDomain, missionId}]
+        };
+        function ugvAdd(x, z, label) {
+            const v = {
+                id: `UGV-${String(multiDomain.ugv.length + 1).padStart(3, '0')}`,
+                x, z,
+                label: label || '',
+                phase: 'GROUNDED',
+                battery: 100,
+                domain: 'ground',
+            };
+            multiDomain.ugv.push(v);
+            return v;
+        }
+        function multiDomainHandoff(droneId, fromDomain, toDomain, missionId) {
+            const entry = { ts: simTime, droneId, fromDomain, toDomain, missionId: missionId || null };
+            multiDomain.handoffLog.push(entry);
+            if (multiDomain.handoffLog.length > 100) multiDomain.handoffLog.shift();
+            return entry;
+        }
+
+        // ===== HYPER Phase 38 — Realistic Audio Engine (HRTF + Doppler) =====
+        const audioEngine = {
+            enabled: false,
+            hrtfEnabled: true,
+            dopplerEnabled: true,
+            soundSpeed_mps: 343,
+            listenerX: 0, listenerZ: 0,
+        };
+        function audioDopplerShift(d, sourceFreq) {
+            sourceFreq = sourceFreq || 440;
+            const dx = d.wx - audioEngine.listenerX;
+            const dz = d.wz - audioEngine.listenerZ;
+            const dist = Math.hypot(dx, dz);
+            if (dist < 0.01) return sourceFreq;
+            // Radial velocity 컴포넌트 (드론 → 청자)
+            const vr = (dx * (d.vx || 0) + dz * (d.vz || 0)) / dist;
+            // Doppler: f' = f * (c - vr) / c (청자 정지 가정)
+            return sourceFreq * (audioEngine.soundSpeed_mps - vr) / audioEngine.soundSpeed_mps;
+        }
+        function audioSetListener(x, z) {
+            audioEngine.listenerX = x; audioEngine.listenerZ = z;
+            return { x, z };
+        }
+
+        // ===== HYPER Phase 39 — Photogrammetry Replay =====
+        const photogrammetry = {
+            enabled: false,
+            importedScenes: [],              // [{id, name, bboxKm, modelUrl, importedAt}]
+        };
+        function photogrammetryImport(name, bboxKm, modelUrl) {
+            const scene = {
+                id: `SCENE-${photogrammetry.importedScenes.length + 1}`,
+                name: name || '?',
+                bboxKm: bboxKm || 1.0,
+                modelUrl: modelUrl || null,
+                importedAt: simTime,
+            };
+            photogrammetry.importedScenes.push(scene);
+            return scene;
+        }
+
+        // ===== HYPER Phase 40 — Esports Mode =====
+        const esports = {
+            enabled: false,
+            mode: 'pvp',                     // 'pvp' | 'coop' | 'tournament'
+            players: [],                      // [{id, name, score, role: 'defender'|'attacker'}]
+            tournamentBracket: [],
+        };
+        function esportsAddPlayer(name, role) {
+            const p = {
+                id: `P-${esports.players.length + 1}`,
+                name: name || `Player ${esports.players.length + 1}`,
+                role: role || 'defender',
+                score: 0,
+            };
+            esports.players.push(p);
+            return p;
+        }
+        function esportsScore(playerId, delta) {
+            const p = esports.players.find(x => x.id === playerId);
+            if (!p) return null;
+            p.score += delta;
+            return p.score;
+        }
+
+        // ===== HYPER Phase 41 — Procedural City Generation =====
+        const procCity = {
+            enabled: false,
+            buildings: [],                   // [{x, z, w, d, h}]
+            roads: [],                        // [{x1, z1, x2, z2, width}]
+        };
+        function procCityGenerate(sizeKm, density) {
+            sizeKm = sizeKm || 5;
+            density = density || 0.5;
+            procCity.buildings = [];
+            const n = Math.floor(sizeKm * sizeKm * density * 50);
+            for (let i = 0; i < n; i++) {
+                procCity.buildings.push({
+                    x: (Math.random() - 0.5) * sizeKm * 1000,
+                    z: (Math.random() - 0.5) * sizeKm * 1000,
+                    w: 20 + Math.random() * 60,
+                    d: 20 + Math.random() * 60,
+                    h: 10 + Math.random() * 100,
+                });
+            }
+            return procCity.buildings.length;
+        }
+
+        // ===== HYPER Phase 42 — Eye-Tracking Heatmap =====
+        const eyeTrack = {
+            enabled: false,
+            gazePoints: [],                  // [{x, y, ts}]
+            heatmap: null,                    // Float32Array
+            gridSize: 32,
+        };
+        function eyeTrackAdd(x, y) {
+            eyeTrack.gazePoints.push({ x, y, ts: Date.now() });
+            if (eyeTrack.gazePoints.length > 5000) eyeTrack.gazePoints.shift();
+            return eyeTrack.gazePoints.length;
+        }
+        function eyeTrackBuildHeatmap() {
+            const N = eyeTrack.gridSize;
+            const grid = new Float32Array(N * N);
+            const w = innerWidth, h = innerHeight;
+            for (const p of eyeTrack.gazePoints) {
+                const cx = Math.floor((p.x / w) * N);
+                const cy = Math.floor((p.y / h) * N);
+                if (cx >= 0 && cx < N && cy >= 0 && cy < N) grid[cy * N + cx]++;
+            }
+            eyeTrack.heatmap = grid;
+            return grid.length;
+        }
+
+        // ===== HYPER Phase 43 — Voice Command Macros =====
+        const voiceMacros = {
+            enabled: false,
+            macros: {},                       // name → [op1, op2, ...]
+            history: [],
+        };
+        function voiceMacroDefine(name, ops) {
+            voiceMacros.macros[name] = ops || [];
+            return Object.keys(voiceMacros.macros).length;
+        }
+        function voiceMacroExecute(name) {
+            const ops = voiceMacros.macros[name];
+            if (!ops) return null;
+            let n = 0;
+            for (const op of ops) {
+                try {
+                    if (op.type === 'atc' && window.atcCommand) {
+                        window.atcCommand(op.target, op.cmd, op.params || {}, 'voice-macro');
+                        n++;
+                    } else if (op.type === 'mission' && typeof missionAssignTemplate === 'function') {
+                        missionAssignTemplate(op.droneId, op.template);
+                        n++;
+                    }
+                } catch (e) {}
+            }
+            voiceMacros.history.push({ ts: simTime, name, executed: n });
+            return { name, executed: n };
+        }
+
+        // ===== HYPER Phase 44 — Time Compression/Dilation =====
+        const timeCompress = {
+            originalSpeed: 1,
+            maxSpeed: 10000,
+            minSpeed: 0.1,
+        };
+        function timeCompressSet(factor) {
+            const f = Math.max(timeCompress.minSpeed, Math.min(timeCompress.maxSpeed, +factor));
+            if (typeof simSpeed !== 'undefined') simSpeed = f;
+            return f;
+        }
+        function timeCompressReset() {
+            if (typeof simSpeed !== 'undefined') simSpeed = timeCompress.originalSpeed;
+            return timeCompress.originalSpeed;
+        }
+
+        // ===== HYPER Phase 45 — HITL Cluster (다중 Pixhawk) =====
+        const hitlCluster = {
+            enabled: false,
+            nodes: [],                       // [{id, label, connected, lastSync}]
+        };
+        function hitlAdd(id, label) {
+            const node = {
+                id: id || `HITL-${hitlCluster.nodes.length + 1}`,
+                label: label || '',
+                connected: false,
+                lastSync: 0,
+            };
+            hitlCluster.nodes.push(node);
+            return node;
+        }
+        function hitlConnect(id) {
+            const node = hitlCluster.nodes.find(n => n.id === id);
+            if (!node) return false;
+            node.connected = true;
+            node.lastSync = simTime;
+            return true;
+        }
+
+        // ===== HYPER Phase 46 — National Airspace (1:1) =====
+        const nationalAS = {
+            enabled: false,
+            airports: [],                   // [{icao, lat, lon, name}]
+            scale: '1:1',                    // 한국 전 영공
+        };
+        function nationalASAddAirport(icao, lat, lon, name) {
+            nationalAS.airports.push({ icao, lat, lon, name: name || icao });
+            return nationalAS.airports.length;
+        }
+        function nationalASInitKorea() {
+            // 주요 공항
+            nationalASAddAirport('RKSI', 37.4602, 126.4407, '인천');
+            nationalASAddAirport('RKSS', 37.5586, 126.7906, '김포');
+            nationalASAddAirport('RKPK', 35.1796, 128.9381, '김해');
+            nationalASAddAirport('RKPC', 33.5113, 126.4930, '제주');
+            nationalASAddAirport('RKTU', 36.7166, 127.4990, '청주');
+            nationalASAddAirport('RKTN', 35.8941, 128.6589, '대구');
+            return nationalAS.airports.length;
+        }
+
+        // ===== HYPER Phase 47 — Climate Impact Modeling =====
+        const climate = {
+            enabled: false,
+            co2KgPerKwh: 0.434,             // 한국 발전믹스 (2024)
+            avgPowerW: 250,                  // 쿼드콥터 평균 소비
+            totalFlightHours: 0,
+            totalCo2Kg: 0,
+        };
+        function climateUpdate(dt) {
+            if (!climate.enabled) return;
+            const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED').length;
+            const dhr = (dt / 3600) * airborne;
+            climate.totalFlightHours += dhr;
+            const kwh = dhr * (climate.avgPowerW / 1000);
+            climate.totalCo2Kg += kwh * climate.co2KgPerKwh;
+        }
+        function climateScore() {
+            // 친환경 점수 (낮을수록 좋음)
+            return {
+                flightHours: climate.totalFlightHours,
+                co2Kg: climate.totalCo2Kg,
+                co2GPerMin: climate.totalFlightHours > 0
+                    ? (climate.totalCo2Kg * 1000) / (climate.totalFlightHours * 60) : 0,
+            };
+        }
+
+        // ===== HYPER Phase 48 — Cross-Border Coordination =====
+        const crossBorder = {
+            enabled: false,
+            borders: [],                    // [{country, lat, lon, restriction}]
+            transitsLog: [],                 // [{ts, droneId, fromCountry, toCountry, approved}]
+        };
+        function crossBorderTransit(droneId, fromCountry, toCountry, approved) {
+            const entry = { ts: simTime, droneId, fromCountry, toCountry, approved: !!approved };
+            crossBorder.transitsLog.push(entry);
+            if (crossBorder.transitsLog.length > 100) crossBorder.transitsLog.shift();
+            return entry;
+        }
+
+        // ===== HYPER Phase 49 — Mars/Lunar Operation =====
+        const planetary = {
+            enabled: false,
+            body: 'earth',                   // 'earth' | 'moon' | 'mars'
+            gravity: 9.81,
+            airDensity: 1.225,               // kg/m³
+        };
+        function planetarySetBody(name) {
+            const configs = {
+                earth: { gravity: 9.81, airDensity: 1.225 },
+                moon: { gravity: 1.62, airDensity: 0 },
+                mars: { gravity: 3.72, airDensity: 0.020 },
+            };
+            const cfg = configs[name];
+            if (!cfg) return false;
+            planetary.body = name;
+            planetary.gravity = cfg.gravity;
+            planetary.airDensity = cfg.airDensity;
+            return true;
+        }
+
+        // ===== HYPER Phase 50 — Open Source Public Demo =====
+        const publicDemo = {
+            enabled: false,
+            guestSessions: 0,
+            dailyChallengeId: null,
+            leaderboard: [],                  // [{name, score, ts}]
+        };
+        function publicDemoLeaderboardAdd(name, score) {
+            publicDemo.leaderboard.push({ name: name || 'Anonymous', score: +score || 0, ts: Date.now() });
+            publicDemo.leaderboard.sort((a, b) => b.score - a.score);
+            if (publicDemo.leaderboard.length > 100) publicDemo.leaderboard.length = 100;
+            return publicDemo.leaderboard.findIndex(x => x.name === name) + 1;
+        }
+        function publicDemoDailyChallenge() {
+            // 날짜 기반 deterministic 시나리오 선택
+            const today = new Date().toISOString().slice(0, 10);
+            publicDemo.dailyChallengeId = today;
+            const scenarios = Object.keys(SCENARIOS || {});
+            const idx = today.split('-').reduce((a, b) => a + parseInt(b), 0) % scenarios.length;
+            return { date: today, scenario: scenarios[idx] || 'default' };
+        }
+
         function injectDynamicNFZ(x, z, r, dur) {
             x = x ?? (Math.random() - 0.5) * W * 2 * 50;
             z = z ?? (Math.random() - 0.5) * W * 2 * 50;
@@ -9510,6 +9985,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             if (typeof updateAcoustic === 'function' && simRunning) updateAcoustic(dt);
             if (typeof pqcUpdate === 'function' && simRunning) pqcUpdate();
 
+            // HYPER Phase 47 — Climate Impact 누적
+            if (typeof climateUpdate === 'function' && simRunning) climateUpdate(dt);
+
             // Phase 8 AUD — 환경 사운드 + 임계 알람
             if (typeof updateAudAmbient === 'function') updateAudAmbient();
             if (typeof _audCriticalAlarm === 'function' && simRunning) _audCriticalAlarm();
@@ -10134,6 +10612,81 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             enablePqc(on) { pqc.enabled = !!on; return pqc.enabled; },
             get pqcStats() { return pqcStats(); },
             get pqcEnabled() { return pqc.enabled; },
+            // ===== HYPER Phase 32 — Satellite Constellation =====
+            satelliteInit(name) { return satelliteInit(name); },
+            satelliteVisibleAt(lat, lon) { return satelliteVisibleAt(lat, lon).map(s => s.id); },
+            satelliteHandoff() { return satelliteHandoff(); },
+            get satelliteConstellation() { return satellite.constellation; },
+            get satelliteCount() { return satellite.satellites.length; },
+            // ===== HYPER Phase 33 — UUV =====
+            uuvAdd(x, z, depth) { return uuvAdd(x, z, depth); },
+            uuvAcousticBudget() { return uuvAcousticBudget(); },
+            get uuvVehicles() { return uuv.vehicles.slice(); },
+            // ===== HYPER Phase 34 — Sensor Fusion =====
+            sensorFusionToggle(sensor, on) { return sensorFusionToggle(sensor, on); },
+            sensorFusionSetFilter(name) { return sensorFusionSetFilter(name); },
+            sensorFusionEffectiveNoise() { return sensorFusionEffectiveNoise(); },
+            get sensorFusionState() { return { sensors: { ...sensorFusion.sensors }, filter: sensorFusion.filter }; },
+            // ===== HYPER Phase 35 — MEC =====
+            mecAdd(x, z, cap, lat) { return mecAdd(x, z, cap, lat); },
+            mecAssign(droneId, sizeKB) { const r = mecAssign(droneId, sizeKB); return r ? r.id : null; },
+            get mecNodes() { return mec.nodes.slice(); },
+            get mecWorkloads() { return mec.workloads.slice(); },
+            // ===== HYPER Phase 36 — Federated Learning =====
+            fedLearnRound(n, loss) { return fedLearnRound(n, loss); },
+            get fedLearnState() { return { round: fedLearn.round, loss: fedLearn.aggregatedModel.loss, epsilon: fedLearn.privacyEpsilon }; },
+            get fedLearnHistory() { return fedLearn.history.slice(); },
+            // ===== HYPER Phase 37 — Multi-Domain =====
+            ugvAdd(x, z, label) { return ugvAdd(x, z, label); },
+            multiDomainHandoff(droneId, fromD, toD, missionId) { return multiDomainHandoff(droneId, fromD, toD, missionId); },
+            get ugvs() { return multiDomain.ugv.slice(); },
+            get multiDomainHandoffLog() { return multiDomain.handoffLog.slice(); },
+            // ===== HYPER Phase 38 — Realistic Audio =====
+            audioDopplerShift(droneIdx, freq) { const d = drones[droneIdx]; return d ? audioDopplerShift(d, freq) : null; },
+            audioSetListener(x, z) { return audioSetListener(x, z); },
+            get audioEngineState() { return { ...audioEngine }; },
+            // ===== HYPER Phase 39 — Photogrammetry =====
+            photogrammetryImport(name, bboxKm, url) { return photogrammetryImport(name, bboxKm, url); },
+            get photogrammetryScenes() { return photogrammetry.importedScenes.slice(); },
+            // ===== HYPER Phase 40 — Esports =====
+            esportsAddPlayer(name, role) { return esportsAddPlayer(name, role); },
+            esportsScore(playerId, delta) { return esportsScore(playerId, delta); },
+            get esportsPlayers() { return esports.players.slice(); },
+            // ===== HYPER Phase 41 — Procedural City =====
+            procCityGenerate(sizeKm, density) { return procCityGenerate(sizeKm, density); },
+            get procCityBuildingCount() { return procCity.buildings.length; },
+            // ===== HYPER Phase 42 — Eye-Tracking =====
+            eyeTrackAdd(x, y) { return eyeTrackAdd(x, y); },
+            eyeTrackBuildHeatmap() { return eyeTrackBuildHeatmap(); },
+            get eyeTrackPointCount() { return eyeTrack.gazePoints.length; },
+            // ===== HYPER Phase 43 — Voice Macros =====
+            voiceMacroDefine(name, ops) { return voiceMacroDefine(name, ops); },
+            voiceMacroExecute(name) { return voiceMacroExecute(name); },
+            get voiceMacros() { return Object.keys(voiceMacros.macros); },
+            // ===== HYPER Phase 44 — Time Compression =====
+            timeCompressSet(f) { return timeCompressSet(f); },
+            timeCompressReset() { return timeCompressReset(); },
+            // ===== HYPER Phase 45 — HITL Cluster =====
+            hitlAdd(id, label) { return hitlAdd(id, label); },
+            hitlConnect(id) { return hitlConnect(id); },
+            get hitlNodes() { return hitlCluster.nodes.slice(); },
+            // ===== HYPER Phase 46 — National Airspace =====
+            nationalASInitKorea() { return nationalASInitKorea(); },
+            nationalASAddAirport(icao, lat, lon, name) { return nationalASAddAirport(icao, lat, lon, name); },
+            get nationalASAirports() { return nationalAS.airports.slice(); },
+            // ===== HYPER Phase 47 — Climate =====
+            enableClimate(on) { climate.enabled = !!on; return climate.enabled; },
+            get climateScore() { return climateScore(); },
+            // ===== HYPER Phase 48 — Cross-Border =====
+            crossBorderTransit(droneId, fromC, toC, approved) { return crossBorderTransit(droneId, fromC, toC, approved); },
+            get crossBorderTransitsLog() { return crossBorder.transitsLog.slice(); },
+            // ===== HYPER Phase 49 — Planetary =====
+            planetarySetBody(name) { return planetarySetBody(name); },
+            get planetaryState() { return { ...planetary }; },
+            // ===== HYPER Phase 50 — Public Demo =====
+            publicDemoLeaderboardAdd(name, score) { return publicDemoLeaderboardAdd(name, score); },
+            publicDemoDailyChallenge() { return publicDemoDailyChallenge(); },
+            get publicDemoLeaderboard() { return publicDemo.leaderboard.slice(); },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

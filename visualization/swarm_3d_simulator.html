@@ -4334,6 +4334,143 @@
             };
         }
 
+        // ===== ULTIMATE Phase 111-120 — Materials & Nano =====
+        const matNano = {
+            nanoDrones: [],            // 111 1mm³
+            smartDustCount: 0,         // 112
+            grapheneBatteryDensity: 1.0,  // 113 multiplier
+            selfHealCycles: 0,         // 114
+            bioDegradableHours: 720,   // 115 (30 days)
+            atmoHarvested_kJ: 0,       // 116
+            piezoGen_W: 0,             // 117
+            solarEfficiency: 0.30,     // 118 (33.7% Shockley limit baseline)
+            metaInvisibilityActive: false, // 119
+            programmableMatterShape: 'sphere',  // 120
+        };
+        function nano111Spawn(n) {
+            for (let i = 0; i < (n || 1000); i++) {
+                matNano.nanoDrones.push({ id: 'N' + matNano.nanoDrones.length, x: Math.random() * 100, z: Math.random() * 100 });
+            }
+            return matNano.nanoDrones.length;
+        }
+        function smartDust112Deploy(count) { matNano.smartDustCount += count || 10000; return matNano.smartDustCount; }
+        function graphene113Boost(factor) { matNano.grapheneBatteryDensity = factor || 10; return matNano.grapheneBatteryDensity; }
+        function selfHeal114Cycle() { matNano.selfHealCycles++; return matNano.selfHealCycles; }
+        function bioDeg115SetLife(hours) { matNano.bioDegradableHours = hours || 720; return matNano.bioDegradableHours; }
+        function atmo116Harvest(joules) { matNano.atmoHarvested_kJ += (joules || 0) / 1000; return matNano.atmoHarvested_kJ; }
+        function piezo117Generate(watts) { matNano.piezoGen_W = watts || 0.5; return matNano.piezoGen_W; }
+        function solar118SetEff(eff) { matNano.solarEfficiency = Math.min(1.0, Math.max(0, eff || 0.30)); return matNano.solarEfficiency; }
+        function meta119Activate(on) { matNano.metaInvisibilityActive = !!on; return matNano.metaInvisibilityActive; }
+        function progMatter120Reshape(shape) { matNano.programmableMatterShape = shape || 'sphere'; return matNano.programmableMatterShape; }
+
+        // ===== ULTIMATE Phase 121-130 — Bio-Hybrid =====
+        const bioHybrid = {
+            neuralBandwidth: 0,        // 121 Hz (neuron-silicon)
+            dnaStorageGB: 0,           // 122
+            bacterialDrones: 0,        // 123
+            algaeChargingRate_W: 0,    // 124
+            myceliumRepair: 0,         // 125
+            birdsPartnered: 0,         // 126
+            insectsJoined: 0,          // 127
+            symbioticPairs: [],        // 128
+            biofluorSignals: 0,        // 129
+            livingDrones: [],          // 130
+        };
+        function neuron121Connect(hz) { bioHybrid.neuralBandwidth = hz || 1000; return bioHybrid.neuralBandwidth; }
+        function dna122Store(gb) { bioHybrid.dnaStorageGB += gb || 1; return bioHybrid.dnaStorageGB; }
+        function bacteria123Spawn(n) { bioHybrid.bacterialDrones += n || 100; return bioHybrid.bacterialDrones; }
+        function algae124Power(watts) { bioHybrid.algaeChargingRate_W = watts || 5; return bioHybrid.algaeChargingRate_W; }
+        function mycelium125Repair() { bioHybrid.myceliumRepair++; return bioHybrid.myceliumRepair; }
+        function bird126Partner(species) { bioHybrid.birdsPartnered++; return { species: species || 'eagle', total: bioHybrid.birdsPartnered }; }
+        function insect127Join(swarm) { bioHybrid.insectsJoined += swarm || 1000; return bioHybrid.insectsJoined; }
+        function symbiotic128Bond(droneId, animalSpecies) {
+            bioHybrid.symbioticPairs.push({ droneId, species: animalSpecies || 'dolphin', ts: simTime });
+            return bioHybrid.symbioticPairs.length;
+        }
+        function biofluor129Emit(color) { bioHybrid.biofluorSignals++; return { color: color || 'green', total: bioHybrid.biofluorSignals }; }
+        function living130Spawn(genome) {
+            bioHybrid.livingDrones.push({ id: 'LV-' + bioHybrid.livingDrones.length, genome: genome || 'synthetic-v1', ts: simTime });
+            return bioHybrid.livingDrones.length;
+        }
+
+        // ===== ULTIMATE Phase 131-140 — Universal Standard =====
+        const standards = {
+            rfcDraft: null,        // 131 IETF RFC
+            icaoAdopted: false,    // 132
+            isoCertNumber: null,   // 133
+            ieeeStandard: null,    // 134 802.UAS
+            ituFreqAllocated: 0,   // 135 MHz
+            unResolutions: 0,      // 136 ECOSOC
+            easaIntegrated: false, // 137
+            faaPart108: false,     // 138
+            caacCompat: false,     // 139
+            globalAdoptionPct: 0,  // 140
+        };
+        function rfc131Submit(title) { standards.rfcDraft = { title: title || 'SDACS Protocol v1.0', submittedAt: simTime, status: 'draft' }; return standards.rfcDraft; }
+        function icao132Adopt() { standards.icaoAdopted = true; return true; }
+        function iso133Cert(num) { standards.isoCertNumber = num || 'ISO-21384-3'; return standards.isoCertNumber; }
+        function ieee134Standard(name) { standards.ieeeStandard = name || '802.UAS'; return standards.ieeeStandard; }
+        function itu135AllocateFreq(mhz) { standards.ituFreqAllocated += mhz || 100; return standards.ituFreqAllocated; }
+        function un136Resolution() { standards.unResolutions++; return standards.unResolutions; }
+        function easa137Integrate() { standards.easaIntegrated = true; return true; }
+        function faa138Part108() { standards.faaPart108 = true; return true; }
+        function caac139Compat() { standards.caacCompat = true; return true; }
+        function global140Adopt(pct) { standards.globalAdoptionPct = Math.min(100, Math.max(0, pct || 50)); return standards.globalAdoptionPct; }
+
+        // ===== ULTIMATE Phase 141-150 — SDACS Eternal =====
+        const eternal = {
+            selfAware: false,             // 141
+            recursionDepth: 0,            // 142
+            consciousnessExperiments: 0,  // 143
+            realityBlurLevel: 0.0,        // 144
+            universalTranslators: 0,      // 145
+            eternalMissionsActive: 0,     // 146
+            timeLoopIterations: 0,        // 147
+            parallelUniverses: 0,         // 148
+            toeUnified: false,            // 149
+            universeOSDeployed: false,    // 150
+        };
+        function selfAware141Activate() { eternal.selfAware = true; return true; }
+        function recursion142Sim() { eternal.recursionDepth++; return eternal.recursionDepth; }
+        function consciousness143Experiment() { eternal.consciousnessExperiments++; return eternal.consciousnessExperiments; }
+        function realityBlur144Set(level) { eternal.realityBlurLevel = Math.min(1.0, Math.max(0, level || 0.5)); return eternal.realityBlurLevel; }
+        function translator145Add() { eternal.universalTranslators++; return eternal.universalTranslators; }
+        function eternalMission146Start() { eternal.eternalMissionsActive++; return eternal.eternalMissionsActive; }
+        function timeLoop147Iterate() { eternal.timeLoopIterations++; return eternal.timeLoopIterations; }
+        function parallel148Universe() { eternal.parallelUniverses++; return eternal.parallelUniverses; }
+        function toe149Unify() { eternal.toeUnified = true; return true; }
+        function universeOS150Deploy() {
+            eternal.universeOSDeployed = true;
+            return {
+                deployed: true,
+                version: 'Universe-OS-1.0',
+                ts: simTime,
+                message: 'SDACS = Universe Operating System. 100% complete.',
+            };
+        }
+        function ultimate111_150Stats() {
+            return {
+                nano: matNano.nanoDrones.length,
+                bio: bioHybrid.livingDrones.length,
+                standards: {
+                    rfc: !!standards.rfcDraft,
+                    icao: standards.icaoAdopted,
+                    iso: !!standards.isoCertNumber,
+                    ieee: !!standards.ieeeStandard,
+                    un: standards.unResolutions,
+                    easa: standards.easaIntegrated,
+                    faa: standards.faaPart108,
+                    caac: standards.caacCompat,
+                    globalAdoption: standards.globalAdoptionPct,
+                },
+                eternal: {
+                    selfAware: eternal.selfAware,
+                    recursion: eternal.recursionDepth,
+                    universeOS: eternal.universeOSDeployed,
+                },
+            };
+        }
+
         function injectDynamicNFZ(x, z, r, dur) {
             x = x ?? (Math.random() - 0.5) * W * 2 * 50;
             z = z ?? (Math.random() - 0.5) * W * 2 * 50;
@@ -11277,6 +11414,51 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             dpu109Offload(bytes) { return dpu109Offload(bytes); },
             megaScale110SetCurrent(n) { return megaScale110SetCurrent(n); },
             get ultimate101_110Stats() { return ultimate101_110Stats(); },
+            // ===== ULTIMATE Phase 111-120 — Materials & Nano =====
+            nano111Spawn(n) { return nano111Spawn(n); },
+            smartDust112Deploy(n) { return smartDust112Deploy(n); },
+            graphene113Boost(f) { return graphene113Boost(f); },
+            selfHeal114Cycle() { return selfHeal114Cycle(); },
+            bioDeg115SetLife(h) { return bioDeg115SetLife(h); },
+            atmo116Harvest(j) { return atmo116Harvest(j); },
+            piezo117Generate(w) { return piezo117Generate(w); },
+            solar118SetEff(e) { return solar118SetEff(e); },
+            meta119Activate(on) { return meta119Activate(on); },
+            progMatter120Reshape(s) { return progMatter120Reshape(s); },
+            // ===== ULTIMATE Phase 121-130 — Bio-Hybrid =====
+            neuron121Connect(hz) { return neuron121Connect(hz); },
+            dna122Store(gb) { return dna122Store(gb); },
+            bacteria123Spawn(n) { return bacteria123Spawn(n); },
+            algae124Power(w) { return algae124Power(w); },
+            mycelium125Repair() { return mycelium125Repair(); },
+            bird126Partner(sp) { return bird126Partner(sp); },
+            insect127Join(n) { return insect127Join(n); },
+            symbiotic128Bond(d, a) { return symbiotic128Bond(d, a); },
+            biofluor129Emit(c) { return biofluor129Emit(c); },
+            living130Spawn(g) { return living130Spawn(g); },
+            // ===== ULTIMATE Phase 131-140 — Universal Standard =====
+            rfc131Submit(t) { return rfc131Submit(t); },
+            icao132Adopt() { return icao132Adopt(); },
+            iso133Cert(num) { return iso133Cert(num); },
+            ieee134Standard(name) { return ieee134Standard(name); },
+            itu135AllocateFreq(mhz) { return itu135AllocateFreq(mhz); },
+            un136Resolution() { return un136Resolution(); },
+            easa137Integrate() { return easa137Integrate(); },
+            faa138Part108() { return faa138Part108(); },
+            caac139Compat() { return caac139Compat(); },
+            global140Adopt(pct) { return global140Adopt(pct); },
+            // ===== ULTIMATE Phase 141-150 — SDACS Eternal =====
+            selfAware141Activate() { return selfAware141Activate(); },
+            recursion142Sim() { return recursion142Sim(); },
+            consciousness143Experiment() { return consciousness143Experiment(); },
+            realityBlur144Set(l) { return realityBlur144Set(l); },
+            translator145Add() { return translator145Add(); },
+            eternalMission146Start() { return eternalMission146Start(); },
+            timeLoop147Iterate() { return timeLoop147Iterate(); },
+            parallel148Universe() { return parallel148Universe(); },
+            toe149Unify() { return toe149Unify(); },
+            universeOS150Deploy() { return universeOS150Deploy(); },
+            get ultimate111_150Stats() { return ultimate111_150Stats(); },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

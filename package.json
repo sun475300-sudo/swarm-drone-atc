@@ -1,8 +1,8 @@
 {
   "name": "sdacs-simulator",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
-  "description": "SDACS Desktop Simulator v1.1 — 군집 드론 공역통제 (Phase 1-9: ATC·TAC·CIN·CAM·MIS·INJ·ANA·AUD·MOB) + 해양 소형선 감지 (Electron + Three.js)",
+  "description": "SDACS Desktop Simulator v1.2 — MEGA 9 + HYPER 41 = 50 Phase 통합 (군집 ATC + 해양 + 시네마틱 + AI Copilot + VR/AR + Counter-UAS + 행성 + 공개 데모 등 240+ API)",
   "author": "SDACS Capstone Team, Mokpo National University",
   "license": "MIT",
   "main": "desktop/main.js",

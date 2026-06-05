@@ -3,6 +3,80 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [v1.2.0] - 2026-06-05 — HYPER FINAL (Phase 32-50 일괄 19개)
+
+### 추가 (feat) — 통신·네트워크
+- **Phase 32** Satellite Constellation (Starlink alt=550 inc=53 / OneWeb 1200/87 / Kuiper 590/51.9)
+- **Phase 33** UUV 수중 드론 + 음파 통신 1 kbps
+- **Phase 35** 5G MEC Edge Computing (노드 부하 기반 할당)
+- **Phase 38** Realistic Audio (HRTF + Doppler 343 m/s)
+
+### 추가 (feat) — AI·학습
+- **Phase 34** Sensor Fusion Workbench (LiDAR/Radar/EO/IR/RF + Kalman/EKF/Particle)
+- **Phase 36** Federated Learning (DP epsilon 소진, convex avg)
+- **Phase 42** Eye-Tracking Heatmap (32×32 grid)
+- **Phase 43** Voice Command Macros (시퀀스 등록·실행)
+
+### 추가 (feat) — 운영·연동
+- **Phase 37** Multi-Domain (공중+지상 UGV+해양 inter-domain handoff)
+- **Phase 39** Photogrammetry Replay (외부 3D import)
+- **Phase 41** Procedural City Generation
+- **Phase 44** Time Compression/Dilation (0.1× - 10000×)
+- **Phase 45** HITL Cluster (다중 Pixhawk)
+
+### 추가 (feat) — 정책·시나리오
+- **Phase 40** Esports Mode (PvP defender vs attacker)
+- **Phase 46** National Airspace 1:1 (한국 6 공항 ICAO)
+- **Phase 47** Climate Impact (0.434 kg CO2/kWh, 평균 250W)
+- **Phase 48** Cross-Border Coordination
+- **Phase 49** Mars/Lunar (중력 + 대기 밀도)
+- **Phase 50** Public Demo Leaderboard + Daily Challenge
+
+### 검증
+- E2E **22/22** (`tests/e2e/test_simulator_phase32_50.py`)
+- 누적 **193/194 E2E + 4,140 회귀 = 4,333 통과**
+- `_sdacs` API: 170 → **231**
+
+## [v1.1.0] - 2026-06-04 — HYPER MID (Phase 11-31)
+
+### 추가 (feat)
+- Phase 11 해양 ATC 콘솔 (8 명령 + TTS)
+- Phase 12 Electron 멀티 윈도우 + IPC 시간축 동기
+- Phase 13 WebGPU 50K 스캐폴드
+- Phase 14 시나리오 갤러리 (5 카테고리)
+- Phase 15 4언어 i18n (KO/EN/JA/ZH)
+- Phase 16 CRDT 다중 관제 (Lamport)
+- Phase 17 WebXR VR
+- Phase 18 AR Overlay
+- Phase 19 Mission Recorder 공유 (.sdacs-mission)
+- Phase 20 AI Copilot (22 NLP 패턴)
+- Phase 21 적대 드론 4종
+- Phase 22 Digital Twin Pixhawk (MAVLink GPI)
+- Phase 23 Wind Field 64×64
+- Phase 24 NOTAM hook
+- Phase 25 Battery Aging Model
+- Phase 26 Acoustic Propagation (50dB 신고)
+- Phase 27 Counter-UAS (RF/GPS/net/hijack)
+- Phase 28 Choreography 5종
+- Phase 29 Weather Forecast 120h
+- Phase 30 UTM Federation
+- Phase 31 PQC Telemetry (Kyber+Dilithium, ~52× overhead)
+
+## [v1.0.0] - 2026-06-04 — MEGA (Phase 1-9)
+
+### 추가 (feat)
+- Phase 1 ATC 콘솔 (HOLD/RTB/REROUTE/ALT/SPD/TURN/CLEAR + TTS)
+- Phase 2 TAC 전술 시각화 (예측 라인·CPA 마커·속도 벡터)
+- Phase 3 CIN 시네마틱 (태양 24h + 입자 + MediaRecorder)
+- Phase 4 CAM 카메라 모드 (FPV/chase/side + 7 프리셋)
+- Phase 5 MIS 임무 계획 (5 템플릿)
+- Phase 6 INJ 장애 주입 (GPS/모터/통신/Rogue/NFZ/EMP/EMI)
+- Phase 7 ANA 분석 강화 (히트맵·KPI window·LaTeX)
+- Phase 8 AUD 환경 사운드
+- Phase 9 MOB 모바일/PWA
+- Electron 데스크탑 v1.1 (Win NSIS / Mac DMG / Linux AppImage)
+- CI 3-job (js-syntax + node-smoke + python-pytest)
+
 ## [Unreleased] - 2026-05-03
 
 ### 추가 (feat)

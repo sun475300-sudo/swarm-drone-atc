@@ -81,11 +81,11 @@
 - 컨트롤러로 드론 선택·명령
 - 6DoF 카메라 (관제사가 공역 안에서 직접 보기)
 
-### Phase 18 — AR Overlay (사상자 식별)
-- WebXR AR mode
-- 실제 카메라 피드 위 가상 드론 오버레이
-- 위치 핀 GPS 정합 (시뮬-실제)
-- 모바일 카메라 사용
+### Phase 18 — AR Overlay (사상자 식별) ✅ 구현 완료
+- [x] WebXR `immersive-ar` 세션 진입 (`📱 AR` 버튼, 지원 단말에서만 노출)
+- [x] 실제 카메라 피드 위 가상 드론 오버레이 — AR 진입 시 배경(별·fog·클리어 알파) 투명화
+- [x] `_sdacs.setArMode / arActive / arSupported` 외부 API + E2E 3건
+- [ ] 위치 핀 GPS 정합 (시뮬-실제) — hit-test anchor 후속
 
 ### Phase 19 — Mission Recorder + Playback Sharing
 - 임무 시작→완료 전체 캡처 (.sdacs-mission 포맷)

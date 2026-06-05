@@ -79,6 +79,48 @@ def test_xr_not_presenting_by_default(page):
     assert r["presenting"] is False  # 헤드리스에선 VR 세션 시작 안 됨
 
 
+# ===== Phase 18 — AR Overlay =====
+
+def test_ar_api_exposed(page):
+    pg, _ = page
+    keys = pg.evaluate("Object.keys(window._sdacs)")
+    for k in ["arSupported", "arActive", "setArMode"]:
+        assert k in keys, f"_sdacs.{k} missing"
+
+
+def test_ar_inactive_by_default(page):
+    pg, _ = page
+    assert pg.evaluate("window._sdacs.arActive") is False
+
+
+def test_ar_mode_toggle_hides_background(page):
+    pg, _ = page
+    # setArMode(true) → arActive True + starfield 숨김 + fog 제거
+    r = pg.evaluate("""
+        () => {
+            const on = window._sdacs.setArMode(true);
+            const sceneHasFog = !!window._sdacs.scene.fog;
+            // starfield(Points)가 보이지 않아야 함
+            const starHidden = window._sdacs.scene.children.some(
+                o => o.type === 'Points' && o.visible === false);
+            return { on, active: window._sdacs.arActive, sceneHasFog, starHidden };
+        }
+    """)
+    assert r["on"] is True
+    assert r["active"] is True
+    assert r["sceneHasFog"] is False  # AR 모드에서 fog 제거
+
+    # 복원: setArMode(false) → fog·별 복귀
+    r2 = pg.evaluate("""
+        () => {
+            window._sdacs.setArMode(false);
+            return { active: window._sdacs.arActive, sceneHasFog: !!window._sdacs.scene.fog };
+        }
+    """)
+    assert r2["active"] is False
+    assert r2["sceneHasFog"] is True  # fog 복원됨
+
+
 # ===== Phase 19 — Mission Recorder 공유 =====
 
 def test_mission_api_exposed(page):

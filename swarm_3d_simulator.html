@@ -2029,6 +2029,10 @@
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
         // ===== Starfield Background (경량) =====
+        // HYPER Phase 18 — AR 모드에서 카메라 패스스루를 위해 핸들 보관 (배경 숨김용)
+        let starfield = null;
+        let arActive = false;       // AR 오버레이 모드 활성 여부
+        let _arSavedFog = null;     // AR 진입 시 보관한 fog (종료 시 복원)
         (function createStarfield() {
             const n = 500;
             const pos = new Float32Array(n * 3);
@@ -2042,7 +2046,8 @@
             }
             const g = new THREE.BufferGeometry();
             g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-            scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xaaccff, size: 0.5, transparent: true, opacity: 0.5 })));
+            starfield = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xaaccff, size: 0.5, transparent: true, opacity: 0.5 }));
+            scene.add(starfield);
         })();
 
         // ===== Collision Particle System (경량) =====
@@ -2203,7 +2208,12 @@
             if (scene.fog && scene.fog.color) {
                 scene.fog.color.setRGB(c.r * 0.3, c.g * 0.3, c.b * 0.4);
             }
-            renderer.setClearColor(new THREE.Color(c.r * 0.15, c.g * 0.15, c.b * 0.25), 1);
+            // HYPER Phase 18 — AR 모드에서는 클리어 알파 0 (카메라 피드 통과)
+            if (arActive) {
+                renderer.setClearAlpha(0);
+            } else {
+                renderer.setClearColor(new THREE.Color(c.r * 0.15, c.g * 0.15, c.b * 0.25), 1);
+            }
         }
 
         // ===== Phase 3 CIN-2 — 입자 효과 (비·눈·안개 농도) =====
@@ -8758,6 +8768,48 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             }).catch(() => {/* xr API 미지원 */});
         }
 
+        // ===== HYPER Phase 18 — AR Overlay (사상자 식별·현장 정합) =====
+        // immersive-ar 세션에서 실제 카메라 피드 위에 가상 드론을 합성한다.
+        // 배경(별·fog·클리어 색)을 투명화하여 패스스루가 보이도록 전환.
+        function setArMode(on) {
+            arActive = !!on;
+            if (arActive) {
+                if (scene.fog) { _arSavedFog = scene.fog; scene.fog = null; }
+                if (starfield) starfield.visible = false;
+                renderer.setClearAlpha(0);
+            } else {
+                if (_arSavedFog) { scene.fog = _arSavedFog; _arSavedFog = null; }
+                if (starfield) starfield.visible = true;
+                renderer.setClearAlpha(1);
+            }
+            return arActive;
+        }
+
+        // AR 버튼 (immersive-ar 지원 시 VR 버튼 아래에 표시)
+        if (navigator.xr) {
+            navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
+                if (!supported) return;
+                const btn = document.createElement('button');
+                btn.id = 'btn-ar-enter';
+                btn.textContent = '📱 AR';
+                btn.style.cssText = 'position:fixed;bottom:48px;right:12px;z-index:200;padding:8px 14px;background:rgba(16,185,129,0.9);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:JetBrains Mono,monospace;font-size:12px;font-weight:700;box-shadow:0 4px 12px rgba(16,185,129,0.4);';
+                btn.title = 'AR 모드 — 실제 카메라 위 가상 드론 오버레이 (모바일·헤드셋)';
+                btn.onclick = async () => {
+                    try {
+                        const session = await navigator.xr.requestSession('immersive-ar', { optionalFeatures: ['local-floor', 'dom-overlay', 'hit-test'] });
+                        setArMode(true);
+                        session.addEventListener('end', () => setArMode(false));
+                        renderer.xr.setSession(session);
+                        logEvent('info', '📱 AR 모드 진입 — 카메라 위 가상 드론 합성');
+                    } catch (e) {
+                        setArMode(false);
+                        logEvent('info', '📱 AR 세션 시작 실패: ' + (e.message || e));
+                    }
+                };
+                document.body.appendChild(btn);
+            }).catch(() => {/* xr API 미지원 */});
+        }
+
         // ===== Resize =====
         window.addEventListener('resize', () => {
             if (analysisMode) {
@@ -9106,6 +9158,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // ===== HYPER Phase 17 — WebXR VR 외부 API =====
             get xrSupported() { return !!(navigator.xr && renderer.xr && renderer.xr.enabled); },
             get xrPresenting() { return !!(renderer.xr && renderer.xr.isPresenting); },
+            // ===== HYPER Phase 18 — AR Overlay 외부 API =====
+            get arSupported() { return !!(navigator.xr && renderer.xr && renderer.xr.enabled); },
+            get arActive() { return arActive; },
+            setArMode(on) { return setArMode(on); },
             // ===== HYPER Phase 19 — Mission Recorder 공유 외부 API =====
             exportMission() { return exportMission(); },
             importMission(jsonText) { return importMission(jsonText); },

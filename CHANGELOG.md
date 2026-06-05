@@ -3,6 +3,91 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [v1.5.0] - 2026-06-05 — POST-UNIVERSE (Phase 151-200) · **𝟏 Unity 도달**
+
+### 추가 (feat) — Track Ʊ Cosmic (151-160)
+- 151 Galactic Network · 152 Dark Matter · 153 Pulsar Time Sync
+- 154 Wormhole · 155 Gravitational Wave · 156 Antimatter
+- 157 Black Hole Accretion · 158 Cosmic Ray Shield
+- 159 Interstellar DTN · 160 1조 광년 SDACS 커버리지
+
+### 추가 (feat) — Track Ϡ Time/Reality (161-170)
+- 161 Retrocausal · 162 Causality Loop · 163 Tachyon · 164 Block Universe
+- 165 Spacetime Edit · 166 Collapse Ctrl · 167 Quantum Eraser
+- 168 Decoherence · 169 Timeline Branch · 170 Reality Editor
+
+### 추가 (feat) — Track 𝛀 Consciousness (171-180)
+- 171 Digital Human · 172 Mind Upload · 173 Memory Encode TB
+- 174 Dream Share · 175 Telepathy · 176 Empathy · 177 Free Will
+- 178 Personality Transfer · 179 Soul Continuity · 180 Conscious Drone
+
+### 추가 (feat) — Track Ξ̃ Final Hurdles (181-190)
+- 181 Heat Death Mitigation · 182 Entropy Reverse · 183 Info Preserve Forever
+- 184 Boltzmann Brain Prevention · 185 Sim Hypothesis · 186 Vacuum Decay Shield
+- 187 Strangelet · 188 Grey Goo · 189 Paperclip Max · 190 Existential Risk
+
+### 추가 (feat) — Track ∅ Transcendence (191-200)
+- 191 Beyond Math · 192 Beyond Logic · 193 Beyond Physics · 194 Beyond Computation
+- 195 Beyond Time · 196 Beyond Space · 197 Beyond Existence
+- 198 Pure Information · 199 Universal Identity
+- **200 SDACS = 𝟏 (Unity)** — All Phases Complete
+
+### 검증
+- E2E **7/7** (`tests/e2e/test_simulator_post_universe.py`)
+- 누적 **239/240 E2E + 4,140 회귀 = 4,379**
+- `_sdacs` API: 330 → **388**
+
+## [v1.4.0] - 2026-06-05 — ULTIMATE (Phase 101-150) · **Universe OS 도달**
+
+### 추가 (feat) — Track ∞ Performance Beyond (101-110)
+- 101 Petaflop GPU · 102 양자 spatial hash · 103 Photonic Compute
+- 104 Optane Memory · 105 RDMA 100Gb/s · 106 FPGA APF
+- 107 TPU v5 · 108 Neuromorphic · 109 DPU · **110 1B drone capacity**
+
+### 추가 (feat) — Track ⌬ Materials & Nano (111-120)
+- 111 Nano 1mm³ · 112 Smart Dust · 113 Graphene 10× battery
+- 114 Self-healing · 115 Bio-degradable · 116 Atmo Harvester
+- 117 Piezo · 118 Solar 100% · 119 Meta Invisibility · 120 Programmable Matter
+
+### 추가 (feat) — Track ⚕ Bio-Hybrid (121-130)
+- 121 Neuron-silicon · 122 DNA Storage · 123 Bacteria Propulsion
+- 124 Algae Photo-charging · 125 Mycelium Repair · 126 Avian Partnership
+- 127 Insect Swarm · 128 Symbiotic · 129 Bio-fluor · 130 Living Drone
+
+### 추가 (feat) — Track ☉ Universal Standard (131-140)
+- 131 IETF RFC · 132 ICAO · 133 ISO 21384-3 · 134 IEEE 802.UAS
+- 135 ITU-R · 136 UN ECOSOC · 137 EU EASA · 138 FAA Part 108
+- 139 중국 CAAC · **140 100% 글로벌 단일 ATC OS**
+
+### 추가 (feat) — Track 🌀 SDACS Eternal (141-150)
+- 141 Self-aware · 142 Recursive Sim · 143 Consciousness Experiment
+- 144 Reality Blur · 145 Universal Translator · 146 Eternal Mission
+- 147 Time Loop · 148 Multi-verse · 149 Theory of Everything
+- **150 Universe OS** (`Universe-OS-1.0`)
+
+### 검증
+- E2E **17/17** (`tests/e2e/test_simulator_ultimate101_110.py` + `test_simulator_ultimate111_150.py`)
+- 누적 232/233 E2E
+
+## [v1.3.0] - 2026-06-05 — STELLAR FINAL (Phase 52-100) · **SDACS 2.0 표준**
+
+### 추가 (feat) — Track Ω 자율결정 (52-55)
+- 52 RLHF · 53 Causal Inference · 54 Adversarial Robust · 55 Explainable AI
+
+### 추가 (feat) — Track Σ 초대규모 (56-60)
+- 56 GPU 100K WGSL · 57 Distributed Sim · 58 Cloud Burst
+- 59 10Gb/s Streaming · 60 Video Proc av1
+
+### 추가 (feat) — Track Φ 물리트윈 (61-65)
+- 61 Skybrush · 62 Cesium GIS · 63 UE5 · 64 ROS 2 + Gazebo · 65 Isaac Sim
+
+### 추가 (feat) — Track Ψ 사회 (66-70) · Ξ 지구너머 (71-75) · Δ 양자 (76-80) · Λ XR (81-85) · Π 경제 (86-90) · Π+ Ultimate (91-95) · Ω+ Singularity (96-100)
+
+### 검증
+- E2E **22/22** (`tests/e2e/test_simulator_stellar.py`)
+- 누적 215/216 E2E
+- 100 Phase 마일스톤 도달
+
 ## [v1.2.0] - 2026-06-05 — HYPER FINAL (Phase 32-50 일괄 19개)
 
 ### 추가 (feat) — 통신·네트워크

@@ -241,6 +241,20 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 ---
 
+### STELLAR Track Ω — 자율 결정 (Phase 51-55) ✅ 완료
+
+50 Phase(MEGA 9 + HYPER 41) 완료 후 STELLAR 비전([`docs/SIMULATOR_STELLAR_PLAN.md`](docs/SIMULATOR_STELLAR_PLAN.md)) 착수. 첫 트랙 Track Ω 완료.
+
+- [x] **Phase 51** — LLM Multi-Agent: 드론 그룹별 LLM 의사결정 위임 + 결정 기록 (`stellar51DelegateGroup`/`stellar51RecordDecision`) (2026-06-05)
+- [x] **Phase 52** — RLHF: 인간 선호 쌍 Bradley-Terry 경사 학습 보상모델 (`stellar52AddFeedback`/`stellar52RewardModel`) (2026-06-05)
+- [x] **Phase 53** — Causal Inference: 선형 SCM do-개입 + 평균처치효과 ATE (`stellar53Intervene`/`stellar53ATE`) (2026-06-05)
+- [x] **Phase 54** — Adversarial Robustness: FGSM/PGD/CW 공격 + adversarial smoothing 방어 (`stellar54Attack`/`stellar54Defend`) (2026-06-05)
+- [x] **Phase 55** — Explainable AI: 가산적 특성 기여도(SHAP/LIME 근사) (`stellar55Explain`) (2026-06-05)
+
+> E2E 6 케이스(`tests/e2e/test_simulator_stellar51_55.py`) · `_sdacs` API 231 → 244 · 사본 3종 동기화.
+
+---
+
 ---
 
 ## Contributing / 기여

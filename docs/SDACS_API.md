@@ -1,8 +1,8 @@
-# 📚 `window._sdacs` API 레퍼런스 — MEGA 9 + HYPER 41 = 50 Phase 통합
+# 📚 `window._sdacs` API 레퍼런스 — MEGA 9 + HYPER 41 + STELLAR 5 = 55 Phase 통합
 
-*자동 생성: 2026-06-05 — `swarm_3d_simulator.html`*
+*갱신: 2026-06-05 — `swarm_3d_simulator.html` (STELLAR Track Ω 51-55 추가)*
 
-**전체 항목 수: 231개**
+**전체 항목 수: 244개** (231 + STELLAR 13)
 
 ---
 
@@ -487,8 +487,47 @@
 | `method` | **`publicDemoDailyChallenge`** | `publicDemoDailyChallenge() { return publicDemoDailyChallenge(); },` |
 | `get` | **`publicDemoLeaderboard`** | `get publicDemoLeaderboard() { return publicDemo.leaderboard.slice(); },` |
 
+## STELLAR 51 — LLM Multi-Agent
+
+| Kind | Name | Signature |
+|---|---|---|
+| `get` | **`stellar51DelegatedGroups`** | `stellar51DelegatedGroups: []` |
+| `method` | **`stellar51DelegateGroup`** | `stellar51DelegateGroup(droneIds, llmProvider)` |
+| `method` | **`stellar51RecordDecision`** | `stellar51RecordDecision(groupId)` |
+
+## STELLAR 52 — RLHF
+
+| Kind | Name | Signature |
+|---|---|---|
+| `method` | **`stellar52AddFeedback`** | `stellar52AddFeedback(featA, featB, preferred)` |
+| `method` | **`stellar52RewardModel`** | `stellar52RewardModel(features)` |
+| `get` | **`stellar52Weights`** | `get stellar52Weights() { return stellar52.weights.slice(); }` |
+
+## STELLAR 53 — Causal Inference
+
+| Kind | Name | Signature |
+|---|---|---|
+| `method` | **`stellar53Intervene`** | `stellar53Intervene(variable, value)` |
+| `method` | **`stellar53ATE`** | `stellar53ATE(variable)` |
+
+## STELLAR 54 — Adversarial Robustness
+
+| Kind | Name | Signature |
+|---|---|---|
+| `method` | **`stellar54Attack`** | `stellar54Attack(input, method, epsilon)` |
+| `method` | **`stellar54Defend`** | `stellar54Defend(input)` |
+| `get` | **`stellar54Stats`** | `get stellar54Stats() { return { ...stellar54 }; }` |
+
+## STELLAR 55 — Explainable AI
+
+| Kind | Name | Signature |
+|---|---|---|
+| `method` | **`stellar55Explain`** | `stellar55Explain(features, weights)` |
+| `get` | **`stellar55LastExplanation`** | `get stellar55LastExplanation() { return stellar55.lastExplanation; }` |
+
 ## 🔗 참고 문서
 
 - [`SIMULATOR_MEGA_PLAN.md`](SIMULATOR_MEGA_PLAN.md)
 - [`SIMULATOR_HYPER_PLAN.md`](SIMULATOR_HYPER_PLAN.md)
+- [`SIMULATOR_STELLAR_PLAN.md`](SIMULATOR_STELLAR_PLAN.md)
 - [`RELEASE_GUIDE.md`](RELEASE_GUIDE.md)

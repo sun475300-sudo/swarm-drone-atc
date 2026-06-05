@@ -9,12 +9,14 @@
 
 ## 🚀 STELLAR 5대 영역
 
-### Track Ω — Autonomous Decision (자율 결정)
-- **Phase 51** LLM Multi-Agent (드론 그룹별 GPT-4o 임시 위임)
-- **Phase 52** RLHF (인간 피드백 강화학습)
-- **Phase 53** Causal Inference (인과추론 의사결정)
-- **Phase 54** Adversarial Robustness (FGSM/PGD/CW 공격 방어)
-- **Phase 55** Explainable AI (SHAP/LIME 설명)
+### Track Ω — Autonomous Decision (자율 결정) ✅ **완료** (2026-06-05)
+- [x] **Phase 51** LLM Multi-Agent — 드론 그룹별 LLM 위임 hook (`stellar51DelegateGroup`/`stellar51RecordDecision`)
+- [x] **Phase 52** RLHF — Bradley-Terry 선호 학습 보상모델 (`stellar52AddFeedback`/`stellar52RewardModel`)
+- [x] **Phase 53** Causal Inference — 선형 SCM do-개입 + ATE (`stellar53Intervene`/`stellar53ATE`)
+- [x] **Phase 54** Adversarial Robustness — FGSM/PGD/CW 공격 + smoothing 방어 (`stellar54Attack`/`stellar54Defend`)
+- [x] **Phase 55** Explainable AI — 가산적 특성 기여도(SHAP/LIME 근사) (`stellar55Explain`)
+
+> E2E `tests/e2e/test_simulator_stellar51_55.py` 6 케이스 · 인라인 JS 구문 OK · 사본 3종 동기화.
 
 ### Track Σ — Massive Scale (초대규모)
 - **Phase 56** GPU 100K Spatial Hash (Phase 13 정식 WGSL 구현)

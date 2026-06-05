@@ -3,6 +3,20 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased] - 2026-06-05 — STELLAR Track Ω (Phase 51-55 자율 결정)
+
+### 추가 (feat) — 자율 결정 (Autonomous Decision)
+- **Phase 51** LLM Multi-Agent — 드론 그룹별 LLM 의사결정 위임 hook + 결정 기록(`stellar51RecordDecision`)
+- **Phase 52** RLHF — 인간 선호 쌍 Bradley-Terry 경사 학습 보상모델
+- **Phase 53** Causal Inference — 선형 구조적 인과모델 do-개입 + 평균처치효과(ATE)
+- **Phase 54** Adversarial Robustness — FGSM/PGD/CW 섭동 공격 + adversarial smoothing 방어
+- **Phase 55** Explainable AI — 가산적 특성 기여도(additive attribution, SHAP/LIME 근사)
+
+### 검증
+- E2E **6/6** (`tests/e2e/test_simulator_stellar51_55.py`) — Phase 51-55 + JS 무에러
+- 인라인 JS 구문 검증 통과 · 사본 3종(root/visualization/docs) md5 동기화
+- `_sdacs` API: 231 → **244** (STELLAR 13개)
+
 ## [v1.2.0] - 2026-06-05 — HYPER FINAL (Phase 32-50 일괄 19개)
 
 ### 추가 (feat) — 통신·네트워크

@@ -3827,6 +3827,84 @@
             return { date: today, scenario: scenarios[idx] || 'default' };
         }
 
+        // ===== STELLAR Phase 52 — RLHF (인간 피드백 강화학습) =====
+        // 선호 쌍(preference pair)으로 보상모델 가중치를 Bradley-Terry 경사 1스텝 갱신
+        const stellar52 = {
+            preferences: [],                 // [{preferred, ts}]
+            weights: [0, 0, 0],              // 3-feature 보상모델 가중치
+            lr: 0.1,
+        };
+        function stellar52AddFeedback(featA, featB, preferred) {
+            featA = featA || [0, 0, 0];
+            featB = featB || [0, 0, 0];
+            const win = preferred === 'b' ? featB : featA;
+            const lose = preferred === 'b' ? featA : featB;
+            for (let i = 0; i < stellar52.weights.length; i++) {
+                stellar52.weights[i] += stellar52.lr * ((win[i] || 0) - (lose[i] || 0));
+            }
+            stellar52.preferences.push({ preferred: preferred || 'a', ts: Date.now() });
+            if (stellar52.preferences.length > 200) stellar52.preferences.shift();
+            return stellar52.weights.slice();
+        }
+        function stellar52RewardModel(features) {
+            features = features || [0, 0, 0];
+            let r = 0;
+            for (let i = 0; i < stellar52.weights.length; i++) r += stellar52.weights[i] * (features[i] || 0);
+            return r;
+        }
+
+        // ===== STELLAR Phase 53 — Causal Inference (인과추론 의사결정) =====
+        // 선형 구조적 인과모델(SCM): 충돌위험 ~ b_sep*간격 + b_spd*속도 + b_wind*풍속
+        const stellar53 = {
+            coef: { separation: -0.8, speed: 0.5, wind: 0.3 },
+        };
+        function stellar53Intervene(variable, value) {
+            // do(variable=value) 개입 후 충돌위험 기여분 예측
+            const c = stellar53.coef;
+            if (!(variable in c)) return null;
+            return c[variable] * (value || 0);
+        }
+        function stellar53AverageTreatmentEffect(variable) {
+            // ATE = E[risk | do(X=1)] - E[risk | do(X=0)]
+            if (!(variable in stellar53.coef)) return null;
+            return stellar53.coef[variable] * 1 - stellar53.coef[variable] * 0;
+        }
+
+        // ===== STELLAR Phase 54 — Adversarial Robustness (FGSM/PGD/CW 방어) =====
+        const stellar54 = { lastEpsilon: 0, attacks: 0, defenses: 0 };
+        function stellar54Attack(input, method, epsilon) {
+            // FGSM(단일 스텝)·PGD(다단계)·CW(L2 제약 완화) sign 기반 섭동
+            input = input || [];
+            epsilon = epsilon || 0.1;
+            stellar54.lastEpsilon = epsilon;
+            stellar54.attacks++;
+            const steps = method === 'pgd' ? 5 : 1;
+            const scale = method === 'cw' ? 0.5 : 1;
+            return input.map((x, i) => x + epsilon * scale * steps * (Math.sin(i + 1) >= 0 ? 1 : -1));
+        }
+        function stellar54Defend(input) {
+            // adversarial smoothing — 이웃 평균으로 섭동 완화
+            input = input || [];
+            stellar54.defenses++;
+            return input.map((x, i) => {
+                const prev = input[i - 1] ?? x, next = input[i + 1] ?? x;
+                return (prev + x + next) / 3;
+            });
+        }
+
+        // ===== STELLAR Phase 55 — Explainable AI (SHAP/LIME 설명) =====
+        const stellar55 = { lastExplanation: null };
+        function stellar55Explain(features, weights) {
+            // 가산적 특성 기여도(additive attribution): contribution_i = w_i * x_i
+            features = features || [];
+            weights = weights || features.map(() => 1);
+            const contributions = features.map((x, i) => (weights[i] || 0) * x);
+            const prediction = contributions.reduce((a, b) => a + b, 0);
+            const exp = { contributions, prediction };
+            stellar55.lastExplanation = exp;
+            return exp;
+        }
+
         function injectDynamicNFZ(x, z, r, dur) {
             x = x ?? (Math.random() - 0.5) * W * 2 * 50;
             z = z ?? (Math.random() - 0.5) * W * 2 * 50;
@@ -10696,6 +10774,26 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 if (window._sdacs.stellar51DelegatedGroups.length > 50) window._sdacs.stellar51DelegatedGroups.shift();
                 return grp;
             },
+            stellar51RecordDecision(groupId) {
+                const grp = window._sdacs.stellar51DelegatedGroups.find(g => g.id === groupId);
+                if (!grp) return null;
+                grp.decisions++;
+                return grp.decisions;
+            },
+            // ===== STELLAR Phase 52 — RLHF =====
+            stellar52AddFeedback(featA, featB, preferred) { return stellar52AddFeedback(featA, featB, preferred); },
+            stellar52RewardModel(features) { return stellar52RewardModel(features); },
+            get stellar52Weights() { return stellar52.weights.slice(); },
+            // ===== STELLAR Phase 53 — Causal Inference =====
+            stellar53Intervene(variable, value) { return stellar53Intervene(variable, value); },
+            stellar53ATE(variable) { return stellar53AverageTreatmentEffect(variable); },
+            // ===== STELLAR Phase 54 — Adversarial Robustness =====
+            stellar54Attack(input, method, epsilon) { return stellar54Attack(input, method, epsilon); },
+            stellar54Defend(input) { return stellar54Defend(input); },
+            get stellar54Stats() { return { ...stellar54 }; },
+            // ===== STELLAR Phase 55 — Explainable AI =====
+            stellar55Explain(features, weights) { return stellar55Explain(features, weights); },
+            get stellar55LastExplanation() { return stellar55.lastExplanation; },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

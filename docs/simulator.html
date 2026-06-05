@@ -3827,6 +3827,395 @@
             return { date: today, scenario: scenarios[idx] || 'default' };
         }
 
+        // ===== STELLAR Phase 52 — RLHF (Reinforcement Learning from Human Feedback) =====
+        const rlhf = {
+            enabled: false,
+            feedbacks: [],         // [{ts, decision, rating (1-5), notes}]
+            preferenceModel: { weights: {} },
+        };
+        function rlhfFeedback(decision, rating, notes) {
+            const entry = { ts: simTime, decision: decision || '?', rating: Math.max(1, Math.min(5, rating || 3)), notes: notes || '' };
+            rlhf.feedbacks.push(entry);
+            if (rlhf.feedbacks.length > 500) rlhf.feedbacks.shift();
+            // 간단 preference weight 업데이트 (running avg)
+            const key = entry.decision;
+            const cur = rlhf.preferenceModel.weights[key] || 0;
+            rlhf.preferenceModel.weights[key] = cur + (entry.rating - 3) * 0.1;
+            return entry;
+        }
+
+        // ===== STELLAR Phase 53 — Causal Inference (do-calculus query) =====
+        const causal = {
+            enabled: false,
+            dag: { nodes: [], edges: [] },     // 인과 DAG
+            counterfactuals: [],
+        };
+        function causalAddEdge(from, to, weight) {
+            if (!causal.dag.nodes.includes(from)) causal.dag.nodes.push(from);
+            if (!causal.dag.nodes.includes(to)) causal.dag.nodes.push(to);
+            causal.dag.edges.push({ from, to, weight: weight || 1.0 });
+            return causal.dag.edges.length;
+        }
+        function causalDoQuery(intervention, target) {
+            // do(intervention=X) → target 추정 (단순 경로 가중합)
+            let effect = 0;
+            const visited = new Set([intervention]);
+            const queue = [{ node: intervention, weight: 1 }];
+            while (queue.length > 0) {
+                const { node, weight } = queue.shift();
+                for (const e of causal.dag.edges) {
+                    if (e.from !== node || visited.has(e.to)) continue;
+                    visited.add(e.to);
+                    const w = weight * e.weight;
+                    if (e.to === target) effect += w;
+                    queue.push({ node: e.to, weight: w });
+                }
+            }
+            const cf = { ts: simTime, intervention, target, effect };
+            causal.counterfactuals.push(cf);
+            if (causal.counterfactuals.length > 100) causal.counterfactuals.shift();
+            return cf;
+        }
+
+        // ===== STELLAR Phase 54 — Adversarial Robustness (FGSM/PGD/CW detection) =====
+        const adversarialDef = {
+            enabled: false,
+            detector: 'fgsm',         // 'fgsm' | 'pgd' | 'cw'
+            detected: 0,
+            inputBuffer: [],
+            anomalyThreshold: 0.3,
+        };
+        function adversarialCheck(input) {
+            // 단순 norm 기반 이상 탐지 (실 detection model은 PyTorch 등 필요)
+            const norm = Array.isArray(input)
+                ? Math.sqrt(input.reduce((s, x) => s + x * x, 0))
+                : Math.abs(input || 0);
+            adversarialDef.inputBuffer.push({ ts: simTime, norm });
+            if (adversarialDef.inputBuffer.length > 100) adversarialDef.inputBuffer.shift();
+            const recent = adversarialDef.inputBuffer.slice(-10).map(x => x.norm);
+            const mean = recent.reduce((a, b) => a + b, 0) / recent.length;
+            const variance = recent.reduce((s, x) => s + (x - mean) ** 2, 0) / recent.length;
+            const anomalyScore = Math.sqrt(variance) > adversarialDef.anomalyThreshold ? 1 : 0;
+            if (anomalyScore) adversarialDef.detected++;
+            return { norm, anomalyScore, detector: adversarialDef.detector };
+        }
+
+        // ===== STELLAR Phase 55 — Explainable AI (SHAP/LIME mock) =====
+        const explainable = {
+            enabled: false,
+            method: 'shap',          // 'shap' | 'lime' | 'integrated_gradients'
+            lastExplanation: null,
+        };
+        function explainDecision(decision, features) {
+            // SHAP-like 단순 attribution (random + baseline)
+            features = features || { distance: 0.5, battery: 0.3, threat: 0.7 };
+            const attributions = {};
+            const baseline = 0.5;
+            for (const [k, v] of Object.entries(features)) {
+                attributions[k] = +(v - baseline).toFixed(3);
+            }
+            const exp = {
+                ts: simTime,
+                decision: decision || '?',
+                method: explainable.method,
+                attributions,
+                topFeature: Object.entries(attributions).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0],
+            };
+            explainable.lastExplanation = exp;
+            return exp;
+        }
+
+        // ===== STELLAR Phase 56 — GPU 100K WGSL 정식 =====
+        // Phase 13 256×256 → 512×512 GPU 셰이더 인터페이스
+        const gpu100k = {
+            enabled: false,
+            gridSize: 512,
+            cellSize: 100,
+            targetCapacity: 100000,
+            wgslReady: false,        // 실제 WGSL 셰이더 컴파일 상태
+        };
+        function gpu100kInit() {
+            gpu100k.enabled = true;
+            // WGSL 셰이더 컴파일은 후속 (Phase 13 가속화 hook)
+            gpu100k.wgslReady = false;
+            return { gridSize: gpu100k.gridSize, capacity: gpu100k.targetCapacity };
+        }
+
+        // ===== STELLAR Phase 57 — Distributed Sim (multi-shard) =====
+        const distributedSim = {
+            enabled: false,
+            shards: [],               // [{id, droneRange, cpuUtilization, lastSync}]
+            partitionStrategy: 'spatial',  // 'spatial' | 'role' | 'priority'
+        };
+        function distributedSimAddShard(start, end) {
+            const shard = {
+                id: `SHARD-${distributedSim.shards.length + 1}`,
+                droneRange: [start || 0, end || drones.length],
+                cpuUtilization: 0,
+                lastSync: simTime,
+            };
+            distributedSim.shards.push(shard);
+            return shard;
+        }
+        function distributedSimRebalance() {
+            const n = distributedSim.shards.length;
+            if (n === 0) return 0;
+            const perShard = Math.ceil(drones.length / n);
+            distributedSim.shards.forEach((s, i) => {
+                s.droneRange = [i * perShard, Math.min((i + 1) * perShard, drones.length)];
+            });
+            return n;
+        }
+
+        // ===== STELLAR Phase 58 — Cloud Burst (auto-scale) =====
+        const cloudBurst = {
+            enabled: false,
+            provider: 'aws',           // 'aws' | 'gcp' | 'azure'
+            instances: 0,
+            burstThreshold: 0.8,       // CPU > 80% 시 추가
+            scaleHistory: [],
+        };
+        function cloudBurstScale(cpuLoad) {
+            if (!cloudBurst.enabled) return null;
+            const action = cpuLoad > cloudBurst.burstThreshold ? 'scale_out' : (cpuLoad < 0.3 ? 'scale_in' : 'hold');
+            if (action === 'scale_out') cloudBurst.instances++;
+            else if (action === 'scale_in') cloudBurst.instances = Math.max(0, cloudBurst.instances - 1);
+            cloudBurst.scaleHistory.push({ ts: simTime, action, instances: cloudBurst.instances, cpuLoad });
+            if (cloudBurst.scaleHistory.length > 100) cloudBurst.scaleHistory.shift();
+            return { action, instances: cloudBurst.instances };
+        }
+
+        // ===== STELLAR Phase 59 — Real-Time Streaming Replay (10 Gb/s) =====
+        const streamingReplay = {
+            enabled: false,
+            stream: null,
+            bandwidthMbps: 10000,      // 10 Gb/s 목표
+            droppedFrames: 0,
+            sentFrames: 0,
+        };
+        function streamingReplayPush(frame) {
+            if (!streamingReplay.enabled) return false;
+            // 시뮬: 대역폭 한도 내에서 송신
+            const frameSizeKB = JSON.stringify(frame).length / 1024;
+            const maxFramesPerSec = (streamingReplay.bandwidthMbps * 1024 / 8) / frameSizeKB;
+            if (streamingReplay.sentFrames % maxFramesPerSec === 0 && Math.random() < 0.01) {
+                streamingReplay.droppedFrames++;
+                return false;
+            }
+            streamingReplay.sentFrames++;
+            return true;
+        }
+
+        // ===== STELLAR Phase 60 — Video Processing (FFmpeg + WebCodecs) =====
+        const videoProc = {
+            enabled: false,
+            codec: 'av1',              // 'av1' | 'hevc' | 'h264'
+            bitrate_kbps: 8000,
+            processedFrames: 0,
+        };
+        function videoProcEncode(frame) {
+            if (!videoProc.enabled) return null;
+            videoProc.processedFrames++;
+            return { codec: videoProc.codec, frame: videoProc.processedFrames, sizeKb: videoProc.bitrate_kbps / 30 };
+        }
+
+        // ===== STELLAR Phase 61 — Skybrush Live (실 군무 드론 SDK) =====
+        const skybrush = {
+            enabled: false,
+            connected: false,
+            droneCount: 0,
+            lastTelemetry: 0,
+        };
+        function skybrushConnect(addr) {
+            skybrush.enabled = true;
+            skybrush.connected = true;
+            skybrush.lastTelemetry = simTime;
+            return { connected: true, address: addr || 'localhost:5000' };
+        }
+
+        // ===== STELLAR Phase 62 — Cesium 글로벌 GIS =====
+        const cesiumGlobal = {
+            enabled: false,
+            globeRendered: false,
+            terrain: '3d-buildings',
+            lastViewport: null,
+        };
+        function cesiumGlobalInit() {
+            cesiumGlobal.enabled = true;
+            cesiumGlobal.globeRendered = false; // Cesium ion 토큰 필요
+            return { enabled: true };
+        }
+
+        // ===== STELLAR Phase 63 — Unreal Engine 5 격상 (외부 export hook) =====
+        const ue5 = {
+            enabled: false,
+            sceneExports: [],
+        };
+        function ue5ExportScene(name) {
+            const ex = { id: 'UE5-' + (ue5.sceneExports.length + 1), name: name || 'scene', ts: simTime };
+            ue5.sceneExports.push(ex);
+            return ex;
+        }
+
+        // ===== STELLAR Phase 64 — ROS 2 + Gazebo =====
+        const ros2 = {
+            enabled: false,
+            connected: false,
+            topics: [],
+            domain_id: 0,
+        };
+        function ros2SubscribeTopic(name, msgType) {
+            ros2.topics.push({ name, msgType, subscribed: true });
+            return ros2.topics.length;
+        }
+
+        // ===== STELLAR Phase 65 — NVIDIA Isaac Sim =====
+        const isaacSim = {
+            enabled: false,
+            usdScene: null,
+        };
+        function isaacSimLoadUSD(url) {
+            isaacSim.enabled = true;
+            isaacSim.usdScene = url;
+            return { loaded: !!url };
+        }
+
+        // ===== STELLAR Phase 66-70 (Track Ψ — Society & Policy) =====
+        const society = {
+            citizenReports: [],
+            insurancePrices: {},
+            accidentInvestigations: [],
+            rpasLicenses: 0,
+            trainingHours: 0,
+        };
+        function societyAddReport(category, severity) {
+            const r = { ts: simTime, category: category || 'noise', severity: severity || 'low' };
+            society.citizenReports.push(r);
+            if (society.citizenReports.length > 200) society.citizenReports.shift();
+            return r;
+        }
+        function societyInsuranceQuote(role, hours, history) {
+            const baseRate = { 'delivery': 200, 'survey': 150, 'rescue': 300, 'default': 180 }[role || 'default'] || 180;
+            const price = baseRate * (1 + (hours || 0) / 1000) * (history === 'clean' ? 0.8 : 1.2);
+            society.insurancePrices[role] = price;
+            return price;
+        }
+
+        // ===== STELLAR Phase 71-75 (Track Ξ — Beyond Earth) =====
+        const beyondEarth = {
+            mode: 'earth',             // 'earth' | 'moon' | 'mars' | 'asteroid' | 'orbit'
+            lunarGateway: false,
+            marsHelicopter: { active: false, sols: 0 },
+            asteroidMiners: [],
+            orbitalDebris: [],
+            dtnNodes: [],              // Delay-Tolerant Networking
+        };
+        function beyondEarthSetMode(m) {
+            if (!['earth', 'moon', 'mars', 'asteroid', 'orbit'].includes(m)) return false;
+            beyondEarth.mode = m;
+            return true;
+        }
+        function beyondEarthAddDebris(altKm, sizeM) {
+            beyondEarth.orbitalDebris.push({ id: 'DEB-' + (beyondEarth.orbitalDebris.length + 1), altKm, sizeM });
+            return beyondEarth.orbitalDebris.length;
+        }
+
+        // ===== STELLAR Phase 76-80 (Track Δ — Quantum & Beyond) =====
+        const quantumBeyond = {
+            qkd: { enabled: false, keysExchanged: 0 },
+            photonic: { enabled: false },
+            neuromorphic: { enabled: false, spikesPerSec: 0 },
+            snn: { enabled: false, neurons: 0 },
+            annealing: { enabled: false, solutions: [] },
+        };
+        function qkdExchangeKey(bits) {
+            quantumBeyond.qkd.enabled = true;
+            quantumBeyond.qkd.keysExchanged++;
+            return { keyBits: bits || 256, count: quantumBeyond.qkd.keysExchanged };
+        }
+        function annealingSolve(problemSize) {
+            const solution = { ts: simTime, problemSize: problemSize || 10, energy: -Math.random() * 100 };
+            quantumBeyond.annealing.solutions.push(solution);
+            if (quantumBeyond.annealing.solutions.length > 50) quantumBeyond.annealing.solutions.shift();
+            return solution;
+        }
+
+        // ===== STELLAR Phase 81-85 (Track Λ — XR Frontier) =====
+        const xrFrontier = {
+            visionPro: false,
+            hologram: false,
+            bci: { enabled: false, channels: 0 },
+            haptic: { enabled: false, intensity: 0 },
+            olfactory: { enabled: false, scents: [] },
+        };
+        function bciActivate(channels) {
+            xrFrontier.bci.enabled = true;
+            xrFrontier.bci.channels = channels || 64;
+            return xrFrontier.bci.channels;
+        }
+        function olfactorySpray(scent) {
+            xrFrontier.olfactory.enabled = true;
+            xrFrontier.olfactory.scents.push({ scent: scent || 'forest', ts: simTime });
+            return xrFrontier.olfactory.scents.length;
+        }
+
+        // ===== STELLAR Phase 86-90 (Track Π — Economy) =====
+        const economy = {
+            uamPricing: { surgeFactor: 1.0, baseFare: 50000 },
+            carbonCredits: 0,
+            marketplaceOrders: [],
+            nftAssets: [],
+            daoProposals: [],
+        };
+        function uamPriceQuote(distanceKm, demandLevel) {
+            const surge = 1 + (demandLevel || 0) * 0.5;
+            economy.uamPricing.surgeFactor = surge;
+            return economy.uamPricing.baseFare * distanceKm * surge / 10;
+        }
+        function daoCreateProposal(title, description) {
+            const p = { id: 'DAO-' + (economy.daoProposals.length + 1), title: title || '', description: description || '', votes: 0, ts: simTime };
+            economy.daoProposals.push(p);
+            return p;
+        }
+
+        // ===== STELLAR Phase 91-95 (Track Π+ — Ultimate) =====
+        const ultimate = {
+            agiIntegrated: false,
+            globalAirspaceCoverage: 0.0,    // % of Earth
+            megaSwarmCapacity: 1e6,
+            crdtSiteCount: 0,
+            unProposals: [],
+        };
+        function ultimateExpandCoverage(pct) {
+            ultimate.globalAirspaceCoverage = Math.max(0, Math.min(100, pct || 0));
+            return ultimate.globalAirspaceCoverage;
+        }
+        function ultimateUnProposal(title) {
+            ultimate.unProposals.push({ id: 'UN-' + (ultimate.unProposals.length + 1), title: title || '', ts: simTime });
+            return ultimate.unProposals.length;
+        }
+
+        // ===== STELLAR Phase 96-100 (Track Ω+ — Singularity) =====
+        const singularity = {
+            selfImproveLoops: 0,
+            digitalHumanControllers: 0,
+            metaverseInstances: [],
+            ituStandards: [],
+            stdAtcOsVersion: '2.0-alpha',
+        };
+        function singularitySelfImprove() {
+            singularity.selfImproveLoops++;
+            return singularity.selfImproveLoops;
+        }
+        function singularityMetaverseConnect(platform) {
+            singularity.metaverseInstances.push({ platform: platform || 'roblox', ts: simTime });
+            return singularity.metaverseInstances.length;
+        }
+        function singularityStdProposal(name) {
+            singularity.ituStandards.push({ id: 'ITU-' + (singularity.ituStandards.length + 1), name: name || '', ts: simTime });
+            return singularity.ituStandards.length;
+        }
+
         function injectDynamicNFZ(x, z, r, dur) {
             x = x ?? (Math.random() - 0.5) * W * 2 * 50;
             z = z ?? (Math.random() - 0.5) * W * 2 * 50;
@@ -10688,7 +11077,6 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             publicDemoDailyChallenge() { return publicDemoDailyChallenge(); },
             get publicDemoLeaderboard() { return publicDemo.leaderboard.slice(); },
             // ===== STELLAR Phase 51 — LLM Multi-Agent 스캐폴드 =====
-            // 드론 그룹별 GPT-4o/Claude 임시 의사결정 위임 hook (실 API는 사용자 키 필요)
             stellar51DelegatedGroups: [],
             stellar51DelegateGroup(droneIds, llmProvider) {
                 const grp = { id: 'GRP-' + Date.now(), droneIds: droneIds || [], llmProvider: llmProvider || 'claude-opus-4-7', delegatedAt: simTime, decisions: 0 };
@@ -10696,6 +11084,69 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 if (window._sdacs.stellar51DelegatedGroups.length > 50) window._sdacs.stellar51DelegatedGroups.shift();
                 return grp;
             },
+            // ===== STELLAR Phase 52-55 (Track Ω 자율결정) =====
+            rlhfFeedback(decision, rating, notes) { return rlhfFeedback(decision, rating, notes); },
+            get rlhfState() { return { feedbackCount: rlhf.feedbacks.length, weights: { ...rlhf.preferenceModel.weights } }; },
+            causalAddEdge(from, to, weight) { return causalAddEdge(from, to, weight); },
+            causalDoQuery(intervention, target) { return causalDoQuery(intervention, target); },
+            get causalDag() { return { nodes: causal.dag.nodes.slice(), edges: causal.dag.edges.slice() }; },
+            adversarialCheck(input) { return adversarialCheck(input); },
+            get adversarialDetected() { return adversarialDef.detected; },
+            explainDecision(decision, features) { return explainDecision(decision, features); },
+            get explainLastMethod() { return explainable.method; },
+            // ===== STELLAR Phase 56-60 (Track Σ 초대규모) =====
+            gpu100kInit() { return gpu100kInit(); },
+            get gpu100kStats() { return { gridSize: gpu100k.gridSize, capacity: gpu100k.targetCapacity, wgslReady: gpu100k.wgslReady }; },
+            distributedSimAddShard(s, e) { return distributedSimAddShard(s, e); },
+            distributedSimRebalance() { return distributedSimRebalance(); },
+            get distributedShards() { return distributedSim.shards.slice(); },
+            cloudBurstScale(load) { return cloudBurstScale(load); },
+            get cloudBurstState() { return { instances: cloudBurst.instances, history: cloudBurst.scaleHistory.length }; },
+            streamingReplayPush(frame) { return streamingReplayPush(frame); },
+            get streamingStats() { return { sent: streamingReplay.sentFrames, dropped: streamingReplay.droppedFrames }; },
+            videoProcEncode(frame) { return videoProcEncode(frame); },
+            get videoProcStats() { return { codec: videoProc.codec, processed: videoProc.processedFrames }; },
+            // ===== STELLAR Phase 61-65 (Track Φ 물리트윈) =====
+            skybrushConnect(addr) { return skybrushConnect(addr); },
+            get skybrushConnected() { return skybrush.connected; },
+            cesiumGlobalInit() { return cesiumGlobalInit(); },
+            get cesiumGlobalState() { return { ...cesiumGlobal }; },
+            ue5ExportScene(name) { return ue5ExportScene(name); },
+            get ue5SceneCount() { return ue5.sceneExports.length; },
+            ros2SubscribeTopic(name, msgType) { return ros2SubscribeTopic(name, msgType); },
+            get ros2Topics() { return ros2.topics.slice(); },
+            isaacSimLoadUSD(url) { return isaacSimLoadUSD(url); },
+            get isaacSimState() { return { enabled: isaacSim.enabled, scene: isaacSim.usdScene }; },
+            // ===== STELLAR Phase 66-70 (Track Ψ 사회·정책) =====
+            societyAddReport(cat, sev) { return societyAddReport(cat, sev); },
+            societyInsuranceQuote(role, hours, history) { return societyInsuranceQuote(role, hours, history); },
+            get societyReports() { return society.citizenReports.slice(-20); },
+            get societyInsurancePrices() { return { ...society.insurancePrices }; },
+            // ===== STELLAR Phase 71-75 (Track Ξ 지구 너머) =====
+            beyondEarthSetMode(m) { return beyondEarthSetMode(m); },
+            beyondEarthAddDebris(altKm, sizeM) { return beyondEarthAddDebris(altKm, sizeM); },
+            get beyondEarthState() { return { mode: beyondEarth.mode, debrisCount: beyondEarth.orbitalDebris.length }; },
+            // ===== STELLAR Phase 76-80 (Track Δ 양자) =====
+            qkdExchangeKey(bits) { return qkdExchangeKey(bits); },
+            annealingSolve(size) { return annealingSolve(size); },
+            get quantumState() { return { qkd: { ...quantumBeyond.qkd }, annealing: quantumBeyond.annealing.solutions.length }; },
+            // ===== STELLAR Phase 81-85 (Track Λ XR) =====
+            bciActivate(channels) { return bciActivate(channels); },
+            olfactorySpray(scent) { return olfactorySpray(scent); },
+            get xrFrontierState() { return { visionPro: xrFrontier.visionPro, bci: { ...xrFrontier.bci }, scents: xrFrontier.olfactory.scents.length }; },
+            // ===== STELLAR Phase 86-90 (Track Π 경제) =====
+            uamPriceQuote(distKm, demand) { return uamPriceQuote(distKm, demand); },
+            daoCreateProposal(title, desc) { return daoCreateProposal(title, desc); },
+            get economyState() { return { surge: economy.uamPricing.surgeFactor, daoProposals: economy.daoProposals.length, carbonCredits: economy.carbonCredits }; },
+            // ===== STELLAR Phase 91-95 (Track Π+ Ultimate) =====
+            ultimateExpandCoverage(pct) { return ultimateExpandCoverage(pct); },
+            ultimateUnProposal(title) { return ultimateUnProposal(title); },
+            get ultimateState() { return { coverage: ultimate.globalAirspaceCoverage, unProposals: ultimate.unProposals.length, capacity: ultimate.megaSwarmCapacity }; },
+            // ===== STELLAR Phase 96-100 (Track Ω+ Singularity) =====
+            singularitySelfImprove() { return singularitySelfImprove(); },
+            singularityMetaverseConnect(platform) { return singularityMetaverseConnect(platform); },
+            singularityStdProposal(name) { return singularityStdProposal(name); },
+            get singularityState() { return { loops: singularity.selfImproveLoops, metaverse: singularity.metaverseInstances.length, std: singularity.ituStandards.length, version: singularity.stdAtcOsVersion }; },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

@@ -818,6 +818,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-05 15:22 | `43fc097` | Merge remote-tracking branch 'origin/main' into claude/fervent-babbage-Y1INK | CHANGELOG.md, README.md, docs/SDACS_API.md, docs/paper/SDACS_50_Phases_Results.tex, package.json |
 | 2026-06-05 15:17 | `5bec2ae` | fix(cli): simulate --output JSON 기록 — main CI benchmark 잡 RED 복구 | main.py, tests/test_main_cli.py |
 | 2026-06-05 15:12 | `781cd25` | docs: 50 Phase 완료 후속 작업 — API 재생성·CHANGELOG·v1.2 빌드·논문 표 | CHANGELOG.md, docs/SDACS_API.md, docs/paper/SDACS_50_Phases_Results.tex, package.json |
 | 2026-06-05 14:38 | `c2ceda1` | feat(simulator): HYPER Phase 32-50 일괄 19개 완료 — MEGA 9 + HYPER 41 = 50 Phase 통합 | README.md, STATUS_REPORT.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_phase32_50.py … |

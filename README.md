@@ -820,6 +820,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-06 06:26 | `5902e37` | feat: ① 데모 영상 자동 녹화 + ② Pages 동기화 + ③ v1.5.0 가이드 + ④ Post-200 트랙 | docs/POST_200_DIRECTIONS.md, docs/V1_5_0_RELEASE_INSTRUCTIONS.md, docs/demo/sdacs_200phase_showcase.webm, scripts/record_showcase_demo.py |
 | 2026-06-06 01:08 | `6402352` | feat: 200 Phase 통합 showcase + 통합 회귀 + CI 갱신 | .github/workflows/sim-smoke.yml, docs/demo/all_phases_showcase.js, tests/e2e/test_simulator_200phase_integration.py |
 | 2026-06-06 00:47 | `05c8200` | docs: Phase 200 완료 마무리 — SDACS_API 388 항목 + CHANGELOG + STATUS_REPORT | CHANGELOG.md, STATUS_REPORT.md, docs/SDACS_API.md |
 | 2026-06-05 23:46 | `eed47c9` | feat(simulator): POST-UNIVERSE Phase 151-200 일괄 — Phase 200 = SDACS = 𝟏 (Unity) 도달 | docs/SIMULATOR_POST_UNIVERSE_PLAN.md, docs/simulator.html, docs/swarm_3d_simulator.html, package.json, swarm_3d_simulator.html, tests/e2e/test_simulator_post_universe.py … |

@@ -820,6 +820,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-06 00:17 | `61c8c1f` | fix(cli): simulate에 --output 추가 — 나이틀리 벤치마크 CI RED 복구 | main.py, tests/test_main_cli.py |
 | 2026-06-05 23:46 | `eed47c9` | feat(simulator): POST-UNIVERSE Phase 151-200 일괄 — Phase 200 = SDACS = 𝟏 (Unity) 도달 | docs/SIMULATOR_POST_UNIVERSE_PLAN.md, docs/simulator.html, docs/swarm_3d_simulator.html, package.json, swarm_3d_simulator.html, tests/e2e/test_simulator_post_universe.py … |
 | 2026-06-05 23:33 | `33be50b` | chore: package v1.3.0 → v1.4.0 + README 150 Phase + Universe OS 마일스톤 명시 | README.md, package.json |
 | 2026-06-05 23:32 | `117eab3` | feat(simulator): ULTIMATE Phase 111-150 일괄 — 150 Phase 전부 완료 (Phase 150 = Universe OS) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_ultimate111_150.py, visualization/swarm_3d_simulator.html |

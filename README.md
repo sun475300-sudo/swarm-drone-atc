@@ -820,6 +820,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-06 01:51 | `93541c9` | ci: sim-smoke pytest 잡에 pytest-cov 설치 추가 — --cov/--no-cov 인식 복구 | .github/workflows/sim-smoke.yml |
 | 2026-06-06 01:49 | `ef74338` | ci: sim-smoke pytest 잡에 numpy 설치 추가 — conftest ImportError 복구 | .github/workflows/sim-smoke.yml |
 | 2026-06-06 01:15 | `cae397d` | fix(cli): simulate에 --output JSON 추가 — 나이틀리 벤치마크 CI RED 복구 | CHANGELOG.md, main.py, tests/test_main_cli.py |
 | 2026-06-06 01:08 | `6402352` | feat: 200 Phase 통합 showcase + 통합 회귀 + CI 갱신 | .github/workflows/sim-smoke.yml, docs/demo/all_phases_showcase.js, tests/e2e/test_simulator_200phase_integration.py |

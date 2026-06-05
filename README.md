@@ -818,6 +818,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-05 17:25 | `cb8c447` | ci: E2E 잡에 numpy 설치 추가 — conftest import 실패 해소 | .github/workflows/sim-smoke.yml |
 | 2026-06-05 17:22 | `a0d96e6` | feat(simulator): STELLAR Track Ω Phase 51-55 — 자율 결정 5종 | CHANGELOG.md, ROADMAP.md, STATUS_REPORT.md, docs/SDACS_API.md, docs/SIMULATOR_STELLAR_PLAN.md, docs/swarm_3d_simulator.html … |
 | 2026-06-05 15:24 | `cf25c25` | feat: 통합 마감 사이클 — ROADMAP·v1.2 노트·STELLAR 플랜·데모 mission·STELLAR Phase 51 시드 | ROADMAP.md, docs/INDEX.md, docs/RELEASE_NOTES_v1.2.0.md, docs/SIMULATOR_STELLAR_PLAN.md, docs/demo/sample_search_rescue.sdacs-mission, docs/simulator.html … |
 | 2026-06-05 15:12 | `781cd25` | docs: 50 Phase 완료 후속 작업 — API 재생성·CHANGELOG·v1.2 빌드·논문 표 | CHANGELOG.md, docs/SDACS_API.md, docs/paper/SDACS_50_Phases_Results.tex, package.json |

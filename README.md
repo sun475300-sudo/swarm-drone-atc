@@ -818,6 +818,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-05 16:19 | `84070db` | ci(sim-smoke): E2E job에 pytest-cov 설치 추가 | .github/workflows/sim-smoke.yml |
 | 2026-06-05 16:17 | `d4c59c0` | ci(sim-smoke): E2E job에 numpy 설치 추가 + STELLAR Phase 51 E2E 포함 | .github/workflows/sim-smoke.yml |
 | 2026-06-05 16:12 | `b3bf3a8` | feat(simulator): STELLAR Phase 51 완성 — LLM Multi-Agent 규칙 기반 위임 | CHANGELOG.md, STATUS_REPORT.md, docs/SIMULATOR_STELLAR_PLAN.md, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_stellar51.py … |
 | 2026-06-05 15:24 | `cf25c25` | feat: 통합 마감 사이클 — ROADMAP·v1.2 노트·STELLAR 플랜·데모 mission·STELLAR Phase 51 시드 | ROADMAP.md, docs/INDEX.md, docs/RELEASE_NOTES_v1.2.0.md, docs/SIMULATOR_STELLAR_PLAN.md, docs/demo/sample_search_rescue.sdacs-mission, docs/simulator.html … |

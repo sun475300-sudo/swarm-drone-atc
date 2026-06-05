@@ -818,6 +818,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-05 12:38 | `c3fca2f` | feat(simulator): HYPER Phase 20 — AI Copilot 자연어 → ATC 명령 분해 | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_copilot.py, visualization/swarm_3d_simulator.html |
 | 2026-06-05 12:33 | `7c3de01` | feat(desktop): HYPER Phase 12 — Electron 멀티 윈도우 + IPC 시간축 동기 + ATC 브로드캐스트 | README.md, desktop/main.js, desktop/preload.js, docs/maritime_detection_simulator.html, docs/simulator.html, docs/swarm_3d_simulator.html … |
 | 2026-06-05 10:05 | `d16b6f2` | feat(simulator): HYPER Phase 14 시나리오 갤러리 + Phase 15 KO/EN/JA/ZH 4언어 | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_gallery_i18n.py, visualization/swarm_3d_simulator.html |
 | 2026-06-05 09:46 | `d26d4d5` | feat(maritime): HYPER Phase 11 — 해양 ATC 명령 콘솔 동등 이식 | README.md, docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/test_maritime_atc.py, visualization/maritime_detection_simulator.html |

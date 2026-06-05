@@ -818,6 +818,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-05 13:51 | `84641b5` | feat(simulator): HYPER Phase 13+16+22+24+25 일괄 — WebGPU·CRDT·Digital Twin·NOTAM·Battery Aging | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_5phases.py, visualization/swarm_3d_simulator.html |
 | 2026-06-05 13:29 | `6af3107` | feat(simulator): HYPER Phase 27 Counter-UAS + Phase 23 Wind Field Grid | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_cuas_wind.py, visualization/swarm_3d_simulator.html |
 | 2026-06-05 13:12 | `37ea702` | feat(simulator): HYPER Phase 21 적대 드론 정책 + Phase 28 Swarm Choreography | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_adversarial_choreo.py, visualization/swarm_3d_simulator.html |
 | 2026-06-05 12:54 | `487abd1` | feat(simulator): HYPER Phase 17 WebXR + Phase 19 Mission Recorder 공유 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_xr_mission.py, visualization/swarm_3d_simulator.html |

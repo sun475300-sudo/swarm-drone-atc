@@ -41,11 +41,13 @@
 - COLREG 위반 자동 경보
 - `_mds.atcCommand` API
 
-### Phase 12 — 데스크탑 멀티 윈도우 + 라이브 동기화
-- Electron BrowserView 2개 (군집 + 해양 동시)
-- IPC 통신으로 시간축 동기 (sim time broadcast)
-- 다중 모니터 자동 분산
-- 메뉴: "View → Tile Horizontally / Vertically"
+### Phase 12 — 데스크탑 멀티 윈도우 + 라이브 동기화 ✅
+- [x] 멀티 윈도우: 군집·해양 시뮬레이터를 각각 새 창으로 동시 실행 (`newWindow()`)
+- [x] IPC 시간축 동기: `sdacs:sim-time` 브로드캐스트 + preload `emitSimTime/onSimTime`
+- [x] 다중 모니터 자동 분산: `desktop/layout.js` `computeTileBounds()` (모니터 수 ≥ 윈도우 수면 모니터별 전체 배치)
+- [x] 메뉴: "창 / Window → 새 창(Ctrl+Shift+1/2) · 가로/세로 정렬(Tile H/V)"
+- [x] 검증: `tests/test_desktop_layout.py` 10/10 PASS (순수 배치 로직 + `node --check` 구문)
+- 비고: 렌더러(시뮬 HTML) 시간 송출 연결은 후속 — preload API는 노출 완료
 
 ### Phase 13 — WebGPU Compute Shader 확장
 - 현재 APF force compute → CPA prediction까지 GPU

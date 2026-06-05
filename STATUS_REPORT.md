@@ -1,7 +1,9 @@
 # SDACS 종합 진척 보고서
 
-*Last updated: 2026-06-04 — MEGA 플랜 9 Phase 전부 완료, 61/62 E2E 통과 (4,140 회귀 + 61 시뮬 = 4,201)*
+*Last updated: 2026-06-05 — HYPER Phase 12(데스크탑 멀티 윈도우) 구현. 회귀 3,923 PASS / 15 skip (e2e 제외) + Phase 12 신규 10 PASS*
 
+> **🖥 신규: HYPER Phase 12 데스크탑 멀티 윈도우** — 군집·해양 시뮬레이터 동시 다중 창 + 윈도우 타일 정렬(다중 모니터 자동 분산, `desktop/layout.js`) + 윈도우 간 시뮬 시간 IPC 동기(`emitSimTime/onSimTime`). `tests/test_desktop_layout.py` 10/10 PASS.
+>
 > **📋 신규: Phase 5 MIS 임무 계획** — 5종 템플릿(수색·정찰·배달·농업 Voronoi·의료) + 자동 진행 추적 + 진행률 패널.
 >
 > **📊 신규: Phase 7 ANA 분석 강화** — 누적 위협 히트맵(100×100·decay 0.992) + 5s KPI 슬라이딩 윈도우 + **LaTeX 표 자동 출력** (논문 §Results 직접 삽입).

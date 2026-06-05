@@ -21,6 +21,9 @@ env/
 data/results/
 data/reports/
 
+# CI benchmark artifacts (simulate --output, transient)
+results/bench_*.json
+
 # Model cache
 ~/.cache/huggingface/
 

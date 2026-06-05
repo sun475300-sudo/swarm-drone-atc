@@ -31,7 +31,7 @@
 - [x] sim-smoke.yml 3-job 강화
 - [x] RELEASE_GUIDE.md 작성
 - [x] visualization/maritime 사본 동기화
-- [ ] `_sdacs` 전체 API 자동 문서화 (`docs/SDACS_API.md`)
+- [x] `_sdacs` 전체 API 자동 문서화 (`docs/SDACS_API.md`) — `scripts/gen_sdacs_api.py` 생성기 + 동기 검증 테스트 3종(94항목, Phase 0-15)
 - [ ] 데모 영상 30초 (Phase 1-9 하이라이트) — MediaRecorder 활용
 
 ### Phase 11 — 해양 시뮬레이터 ATC 동등 이식

@@ -8761,6 +8761,110 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             }
         });
 
+        // ===== HYPER Phase 20 — AI Copilot (자연어 → ATC 명령 분해) =====
+        // 규칙 기반 NLP (오프라인 동작, Claude API 없이도 시연 가능).
+        // 사용자가 Claude API 키를 설정하면 클라우드 LLM으로 격상 가능 (window._sdacs.copilotLLMUrl).
+        const copilotHistory = [];
+        const COPILOT_PATTERNS = [
+            // 호버/정지
+            { re: /(\d+)[번호\s]*드론[을를]?\s*(정지|호버|hold|hover)/i, cmd: 'HOLD', target: 'drone' },
+            { re: /드론\s*(\d+)[번호\s]*(정지|호버|hold)/i, cmd: 'HOLD', target: 'drone' },
+            // 귀환
+            { re: /(\d+)[번호\s]*드론[을를]?\s*(귀환|복귀|RTB|return)/i, cmd: 'RTB', target: 'drone' },
+            { re: /드론\s*(\d+)[번호\s]*(귀환|복귀|RTB)/i, cmd: 'RTB', target: 'drone' },
+            // 회피·우회
+            { re: /(\d+)[번호\s]*드론[을를]?\s*(회피|우회|reroute)/i, cmd: 'REROUTE', target: 'drone' },
+            // 고도 변경
+            { re: /(\d+)[번호\s]*드론.*?(상승|올려|UP|up).*?(\d+)?/i, cmd: 'ALT', target: 'drone', params: { delta: 10 } },
+            { re: /(\d+)[번호\s]*드론.*?(하강|내려|DOWN|down).*?(\d+)?/i, cmd: 'ALT', target: 'drone', params: { delta: -10 } },
+            // 좌선회/우선회
+            { re: /(\d+)[번호\s]*드론.*?(좌선회|좌회전|port|left)/i, cmd: 'TURN', target: 'drone', params: { deg: -30 } },
+            { re: /(\d+)[번호\s]*드론.*?(우선회|우회전|starboard|right)/i, cmd: 'TURN', target: 'drone', params: { deg: 30 } },
+            // 일괄 명령 (모든 드론)
+            { re: /(모든|전체|all)\s*드론[을를]?\s*(정지|호버|hold)/i, cmd: 'HOLD', target: 'all' },
+            { re: /(모든|전체|all)\s*드론[을를]?\s*(귀환|복귀|RTB)/i, cmd: 'RTB', target: 'all' },
+            // 자율 복귀
+            { re: /(자율|자동|auto|clear).*?(복귀|모드)/i, cmd: 'CLEAR', target: 'all' },
+            // 시나리오 변경
+            { re: /시나리오\s*(\w+)/i, cmd: 'SCENARIO', target: 'meta' },
+            { re: /갤러리\s*(열어|보여|show|open)/i, cmd: 'GALLERY_OPEN', target: 'meta' },
+            // 비/눈/태양
+            { re: /(비|rain)\s*(켜|시작|on)/i, cmd: 'RAIN_ON', target: 'meta' },
+            { re: /(비|rain)\s*(꺼|중지|off)/i, cmd: 'RAIN_OFF', target: 'meta' },
+            { re: /(눈|snow)\s*(켜|시작|on)/i, cmd: 'SNOW_ON', target: 'meta' },
+            { re: /(눈|snow)\s*(꺼|중지|off)/i, cmd: 'SNOW_OFF', target: 'meta' },
+            { re: /시간.*?(\d+)\s*시/i, cmd: 'SUN_HOUR', target: 'meta' },
+            // 녹화
+            { re: /(녹화|record)\s*(시작|start)/i, cmd: 'REC_START', target: 'meta' },
+            { re: /(녹화|record)\s*(중지|stop)/i, cmd: 'REC_STOP', target: 'meta' },
+        ];
+
+        function _copilotPlan(prompt) {
+            if (!prompt || typeof prompt !== 'string') return { steps: [], summary: '빈 입력' };
+            const steps = [];
+            for (const p of COPILOT_PATTERNS) {
+                const m = prompt.match(p.re);
+                if (!m) continue;
+                let target = p.target;
+                let droneIdx = null;
+                if (p.target === 'drone') {
+                    const num = parseInt(m[1] || '', 10);
+                    if (Number.isFinite(num)) droneIdx = num;
+                }
+                steps.push({
+                    cmd: p.cmd,
+                    target: p.target,
+                    droneIdx,
+                    params: p.params || null,
+                    raw: m[0],
+                });
+            }
+            const summary = steps.length === 0
+                ? `명령 인식 실패 ("${prompt.slice(0, 30)}…")`
+                : `${steps.length}개 명령 인식: ${steps.map(s => s.cmd).join(', ')}`;
+            return { steps, summary, prompt };
+        }
+
+        function _copilotExecute(plan) {
+            if (!plan || !plan.steps) return { ok: false, reason: 'invalid plan' };
+            let n = 0;
+            for (const s of plan.steps) {
+                try {
+                    if (s.target === 'drone' && s.droneIdx != null) {
+                        const d = drones[s.droneIdx - 1] || drones.find(x => x.id.endsWith(String(s.droneIdx).padStart(3, '0')));
+                        if (d && window.atcCommand) {
+                            window.atcCommand(d.id, s.cmd, s.params || {}, 'copilot');
+                            n++;
+                        }
+                    } else if (s.target === 'all') {
+                        for (const d of drones) {
+                            if (d.phase === 'GROUNDED' || d.phase === 'FAILED') continue;
+                            if (window.atcCommand) { window.atcCommand(d.id, s.cmd, s.params || {}, 'copilot'); n++; }
+                        }
+                    } else if (s.target === 'meta') {
+                        switch (s.cmd) {
+                            case 'GALLERY_OPEN': openScenarioGallery(); n++; break;
+                            case 'RAIN_ON': cinParticles.rain.enabled = true; n++; break;
+                            case 'RAIN_OFF': cinParticles.rain.enabled = false; n++; break;
+                            case 'SNOW_ON': cinParticles.snow.enabled = true; n++; break;
+                            case 'SNOW_OFF': cinParticles.snow.enabled = false; n++; break;
+                            case 'REC_START': if (typeof startRecording === 'function') { startRecording(); n++; } break;
+                            case 'REC_STOP': if (typeof stopRecording === 'function') { stopRecording(); n++; } break;
+                            case 'SUN_HOUR': { const h = parseInt(s.raw.match(/(\d+)\s*시/)?.[1] || '12'); sunCycle.enabled = true; sunCycle.hour = Math.max(0, Math.min(24, h)); n++; break; }
+                        }
+                    }
+                } catch (e) { /* skip errored step */ }
+            }
+            copilotHistory.push({ ts: simTime, prompt: plan.prompt, steps: plan.steps.length, executed: n });
+            if (copilotHistory.length > 100) copilotHistory.shift();
+            logEvent('info', `🤖 Copilot 실행: ${n}/${plan.steps.length} 명령`);
+            return { ok: true, executed: n, total: plan.steps.length };
+        }
+
+        // 글로벌 노출 (테스트 외부 접근)
+        window._copilotPlan = _copilotPlan;
+        window._copilotExecute = _copilotExecute;
+
         // ── 자동 테스트 API (외부 접근용) ──
         window._sdacs = {
             get stats() { return { ...stats }; },
@@ -8867,6 +8971,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get scenarioCategories() { return Object.keys(SCENARIO_CATEGORIES); },
             // ===== HYPER Phase 15 — 다국어 외부 API (KO/EN/JA/ZH) =====
             get availableLangs() { return LANG_ORDER.slice(); },
+            // ===== HYPER Phase 20 — AI Copilot 외부 API =====
+            copilotPlan(prompt) { return _copilotPlan(prompt); },
+            copilotExecute(plan) { return _copilotExecute(plan); },
+            get copilotHistory() { return copilotHistory.slice(); },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

@@ -55,6 +55,11 @@ PX4-Autopilot/build/
 /gazebo_models/
 node_modules/
 package.json
+
+# Electron-builder artifacts at repo root (정본은 desktop/main.js, desktop/preload.js)
+# electron-builder 빌드 중 entry point 복사본을 루트에 남기는 부작용 차단
+/main.js
+/preload.js
 package-lock.json
 .coverage
 

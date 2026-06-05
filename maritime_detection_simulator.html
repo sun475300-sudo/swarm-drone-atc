@@ -1150,6 +1150,26 @@
             navigator.serviceWorker.register('sdacs-sw.js').catch(() => {});
         }
 
+        // HYPER Phase 12 — Electron IPC 시간축 동기 (분할 모드)
+        if (window.sdacs && window.sdacs.isElectron) {
+            setInterval(() => {
+                if (window.sdacs.sendTimeTick) window.sdacs.sendTimeTick(simTime, 1);
+            }, 1000);
+            if (window.sdacs.onTimeSync) {
+                window.sdacs.onTimeSync((p) => {
+                    if (!p || typeof p.simTime !== 'number') return;
+                    if (Math.abs(p.simTime - simTime) > 3.0) simTime = p.simTime;
+                });
+            }
+            if (window.sdacs.onSplitMode) {
+                window.sdacs.onSplitMode((p) => {
+                    if (typeof logEvent === 'function') {
+                        logEvent(p && p.enabled ? '🪟 분할 모드 활성 (군집 동기)' : '🪟 단일 모드 복귀', '#29c5ff');
+                    }
+                });
+            }
+        }
+
         animate();
     </script>
 </body>

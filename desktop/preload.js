@@ -1,4 +1,23 @@
-// 보안 격리된 preload — 현재는 노출할 IPC 없음(시뮬레이터는 순수 클라이언트 JS).
-// 추후 파일 저장/로드(IPC) 등이 필요할 때 확장한다.
-const { contextBridge } = require('electron');
-contextBridge.exposeInMainWorld('sdacs', { version: '1.0.0', isElectron: true });
+// SDACS preload — HYPER Phase 12 IPC 시간축 동기 + 분할 모드
+const { contextBridge, ipcRenderer } = require('electron');
+
+// 보안: contextIsolation + sandbox 활성화 상태에서 노출 가능한 안전한 API만
+contextBridge.exposeInMainWorld('sdacs', {
+  version: '1.1.0',
+  isElectron: true,
+
+  // Phase 12 — 시간축 동기 (분할 모드 양쪽 윈도우)
+  sendTimeTick: (simTime, simSpeed) => ipcRenderer.send('sim-time-tick', { simTime, simSpeed, ts: Date.now() }),
+  onTimeSync: (cb) => ipcRenderer.on('sim-time-sync', (_e, p) => cb(p)),
+
+  // Phase 12 — ATC 명령 브로드캐스트
+  sendAtcBroadcast: (cmd, target, params) =>
+    ipcRenderer.send('atc-broadcast', { cmd, target, params, ts: Date.now() }),
+  onAtcBroadcast: (cb) => ipcRenderer.on('atc-broadcast-recv', (_e, p) => cb(p)),
+
+  // Phase 12 — 분할 모드 상태 알림
+  onSplitMode: (cb) => ipcRenderer.on('split-mode', (_e, p) => cb(p)),
+
+  // 윈도우 수 query
+  windowsCount: () => ipcRenderer.invoke('windows-count'),
+});

@@ -8591,6 +8591,39 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             navigator.serviceWorker.register('sdacs-sw.js').catch(() => {/* offline cache 선택사항 */});
         }
 
+        // HYPER Phase 12 — Electron IPC 시간축 동기 + ATC 브로드캐스트
+        if (window.sdacs && window.sdacs.isElectron) {
+            // 1초마다 sim time tick 송신 (분할 모드에서 양쪽 동기)
+            setInterval(() => {
+                if (window.sdacs.sendTimeTick) window.sdacs.sendTimeTick(simTime, simSpeed);
+            }, 1000);
+            // 다른 윈도우의 sim time 수신 → drift 보정 (>3s 차이 시만)
+            if (window.sdacs.onTimeSync) {
+                window.sdacs.onTimeSync((p) => {
+                    if (!p || typeof p.simTime !== 'number') return;
+                    if (Math.abs(p.simTime - simTime) > 3.0) simTime = p.simTime;
+                });
+            }
+            // 분할 모드 표시
+            if (window.sdacs.onSplitMode) {
+                window.sdacs.onSplitMode((p) => {
+                    if (typeof logEvent === 'function') {
+                        logEvent('info', p && p.enabled ? '🪟 분할 모드 활성 (해양 동기)' : '🪟 단일 모드 복귀');
+                    }
+                });
+            }
+            // ATC 명령 송수신: 명령 발행 시 자동 브로드캐스트
+            const _origAtcCmd = window.atcCommand;
+            if (_origAtcCmd && window.sdacs.sendAtcBroadcast) {
+                window.atcCommand = function(didOrDrone, cmd, params, source) {
+                    const r = _origAtcCmd(didOrDrone, cmd, params, source);
+                    if (source !== 'ipc-sync') {
+                        try { window.sdacs.sendAtcBroadcast(cmd, typeof didOrDrone === 'string' ? didOrDrone : (r && r.id), params); } catch (e) {}
+                    }
+                    return r;
+                };
+            }
+        }
         animate();
 
         // ===== Resize =====

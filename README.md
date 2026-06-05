@@ -820,6 +820,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-06 02:18 | `8a14e10` | Merge remote-tracking branch 'origin/main' into claude/fervent-babbage-NNbe4 | .github/workflows/sim-smoke.yml, CHANGELOG.md, README.md, STATUS_REPORT.md, docs/SDACS_API.md, docs/demo/all_phases_showcase.js … |
 | 2026-06-06 01:08 | `6402352` | feat: 200 Phase 통합 showcase + 통합 회귀 + CI 갱신 | .github/workflows/sim-smoke.yml, docs/demo/all_phases_showcase.js, tests/e2e/test_simulator_200phase_integration.py |
 | 2026-06-06 00:47 | `05c8200` | docs: Phase 200 완료 마무리 — SDACS_API 388 항목 + CHANGELOG + STATUS_REPORT | CHANGELOG.md, STATUS_REPORT.md, docs/SDACS_API.md |
 | 2026-06-06 00:17 | `61c8c1f` | fix(cli): simulate에 --output 추가 — 나이틀리 벤치마크 CI RED 복구 | main.py, tests/test_main_cli.py |

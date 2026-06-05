@@ -1219,6 +1219,10 @@
                 <button class="ctrl-btn" id="btn-export-html" style="flex:1;" title="세션 리포트 HTML">📄 HTML</button>
                 <button class="ctrl-btn" id="btn-export-md" style="flex:1;" title="세션 리포트 Markdown">📝 MD</button>
             </div>
+            <div style="display:flex;gap:6px;margin-top:4px;">
+                <button class="ctrl-btn" id="btn-mission-export" style="flex:1;background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.4);" title="현재 녹화를 .sdacs-mission 파일로 저장 (HYPER Phase 19)">📼 임무 저장</button>
+                <button class="ctrl-btn" id="btn-mission-import" style="flex:1;background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.4);" title=".sdacs-mission 파일 로드 후 리플레이">📼 임무 로드</button>
+            </div>
             <div class="ctrl-row" style="margin-top:8px;">
                 <span class="ctrl-label">경과 시간</span>
                 <span class="ctrl-value" id="sim-time">00:00</span>
@@ -2016,6 +2020,12 @@
         renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.2;
+        // HYPER Phase 17 — WebXR (VR/AR 헤드셋) 지원 활성화
+        // Meta Quest / Vision Pro 등에서 'VR 모드' 버튼으로 진입
+        if ('xr' in navigator) {
+            renderer.xr.enabled = true;
+            renderer.xr.setReferenceSpaceType('local-floor');
+        }
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
         // ===== Starfield Background (경량) =====
@@ -6901,6 +6911,9 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
         document.getElementById('btn-copy-kpi').addEventListener('click', copyKPI);
         document.getElementById('btn-export-html').addEventListener('click', exportHTML);
         document.getElementById('btn-export-md').addEventListener('click', exportMD);
+        // HYPER Phase 19 — Mission Recorder 공유
+        document.getElementById('btn-mission-export').addEventListener('click', exportMission);
+        document.getElementById('btn-mission-import').addEventListener('click', triggerMissionImport);
 
         // ===== Phase 3 CIN 이벤트 =====
         document.getElementById('tg-sun-cycle').addEventListener('change', (e) => {
@@ -7019,6 +7032,87 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
             sl.max = recorder.frames.length - 1;
             if (!replayPlaying) sl.value = sl.max; // 라이브: 최신 프레임에 고정
         }
+
+        // ===== HYPER Phase 19 — Mission Recorder 공유 (.sdacs-mission JSON) =====
+        function exportMission() {
+            if (recorder.frames.length === 0) {
+                logEvent('info', '📼 녹화된 프레임이 없습니다');
+                return null;
+            }
+            const scen = document.getElementById('scenario-select')?.value || 'default';
+            const data = {
+                _format: 'sdacs-mission',
+                _version: '1.0',
+                _createdAt: new Date().toISOString(),
+                scenario: scen,
+                droneCount: drones.length,
+                frameCount: recorder.frames.length,
+                duration: recorder.frames.length > 0 ? recorder.frames[recorder.frames.length - 1].t - recorder.frames[0].t : 0,
+                frames: recorder.frames,
+                droneIds: drones.map(d => d.id),
+                droneRoles: drones.map(d => d.role.id),
+                stats: { ...stats },
+                kpi: typeof kpiList === 'function' ? kpiList() : [],
+                atcLog: typeof atcLog !== 'undefined' ? atcLog.slice() : [],
+                copilotHistory: typeof copilotHistory !== 'undefined' ? copilotHistory.slice() : [],
+            };
+            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            const fname = `sdacs_mission_${scen}_${Date.now()}.sdacs-mission`;
+            _download(fname, URL.createObjectURL(blob));
+            logEvent('info', `📼 임무 녹화 저장: ${data.frameCount} 프레임, ${data.duration.toFixed(1)}s`);
+            return fname;
+        }
+
+        function importMission(jsonText) {
+            try {
+                const data = typeof jsonText === 'string' ? JSON.parse(jsonText) : jsonText;
+                if (!data || data._format !== 'sdacs-mission') {
+                    throw new Error('잘못된 포맷 (sdacs-mission 아님)');
+                }
+                if (!Array.isArray(data.frames) || data.frames.length === 0) {
+                    throw new Error('frames 비어있음');
+                }
+                // 시나리오 매칭 시도
+                if (data.scenario) {
+                    const sel = document.getElementById('scenario-select');
+                    if (sel && [...sel.options].some(o => o.value === data.scenario)) {
+                        sel.value = data.scenario;
+                        sel.dispatchEvent(new Event('change'));
+                    }
+                }
+                // 녹화 데이터 주입 + 리플레이 모드 진입
+                recorder.frames.length = 0;
+                for (const f of data.frames) recorder.frames.push(f);
+                if (typeof enterReplay === 'function') enterReplay();
+                else replayMode = true;
+                replayIdx = 0;
+                if (typeof applyFrame === 'function') applyFrame(0);
+                const sl = document.getElementById('replay-slider');
+                if (sl) { sl.max = recorder.frames.length - 1; sl.value = 0; }
+                logEvent('info', `📼 임무 로드: ${data.scenario || '?'} · ${data.frameCount} 프레임 · ${data.duration?.toFixed(1) || '?'}s`);
+                return { ok: true, frames: data.frames.length, scenario: data.scenario };
+            } catch (e) {
+                logEvent('info', `📼 임무 로드 실패: ${e.message || e}`);
+                return { ok: false, error: String(e) };
+            }
+        }
+
+        // 파일 선택 + import 핸들러
+        function triggerMissionImport() {
+            const inp = document.createElement('input');
+            inp.type = 'file';
+            inp.accept = '.sdacs-mission,.json,application/json';
+            inp.onchange = (ev) => {
+                const f = ev.target.files && ev.target.files[0];
+                if (!f) return;
+                const r = new FileReader();
+                r.onload = () => importMission(r.result);
+                r.readAsText(f);
+            };
+            inp.click();
+        }
+        window._exportMission = exportMission;
+        window._importMission = importMission;
 
         function applyFrame(idx) {
             const f = recorder.frames[idx];
@@ -8340,7 +8434,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         initDrones('default');
 
         function animate() {
-            requestAnimationFrame(animate);
+            // HYPER Phase 17 — WebXR 활성화 시 renderer.xr 가 자체 loop 관리,
+            // 그 외에는 기존 requestAnimationFrame 사용
+            if (!renderer.xr || !renderer.xr.enabled || !renderer.xr.isPresenting) {
+                requestAnimationFrame(animate);
+            }
             const cpuStart = performance.now();
             const dt = Math.min(clock.getDelta(), 0.1);
             const t = clock.elapsedTime;
@@ -8625,6 +8723,40 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             }
         }
         animate();
+
+        // HYPER Phase 17 — WebXR 세션 진입/종료 시 animate loop 라우팅
+        if (renderer.xr && renderer.xr.enabled) {
+            renderer.xr.addEventListener('sessionstart', () => {
+                renderer.setAnimationLoop(() => animate());
+                logEvent('info', '🥽 VR 모드 진입 — 헤드셋 시점 활성');
+            });
+            renderer.xr.addEventListener('sessionend', () => {
+                renderer.setAnimationLoop(null);
+                requestAnimationFrame(animate);
+                logEvent('info', '🥽 VR 모드 종료');
+            });
+        }
+
+        // HYPER Phase 17 — VR 버튼 (WebXR 지원 시 헤더 우측에 표시)
+        if (navigator.xr) {
+            navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
+                if (!supported) return;
+                const btn = document.createElement('button');
+                btn.id = 'btn-vr-enter';
+                btn.textContent = '🥽 VR';
+                btn.style.cssText = 'position:fixed;bottom:12px;right:12px;z-index:200;padding:8px 14px;background:rgba(168,85,247,0.9);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:JetBrains Mono,monospace;font-size:12px;font-weight:700;box-shadow:0 4px 12px rgba(168,85,247,0.4);';
+                btn.title = 'VR 헤드셋으로 시뮬레이션 몰입 (Meta Quest / Vision Pro)';
+                btn.onclick = async () => {
+                    try {
+                        const session = await navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor', 'bounded-floor'] });
+                        renderer.xr.setSession(session);
+                    } catch (e) {
+                        logEvent('info', '🥽 VR 세션 시작 실패: ' + (e.message || e));
+                    }
+                };
+                document.body.appendChild(btn);
+            }).catch(() => {/* xr API 미지원 */});
+        }
 
         // ===== Resize =====
         window.addEventListener('resize', () => {
@@ -8971,6 +9103,13 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get scenarioCategories() { return Object.keys(SCENARIO_CATEGORIES); },
             // ===== HYPER Phase 15 — 다국어 외부 API (KO/EN/JA/ZH) =====
             get availableLangs() { return LANG_ORDER.slice(); },
+            // ===== HYPER Phase 17 — WebXR VR 외부 API =====
+            get xrSupported() { return !!(navigator.xr && renderer.xr && renderer.xr.enabled); },
+            get xrPresenting() { return !!(renderer.xr && renderer.xr.isPresenting); },
+            // ===== HYPER Phase 19 — Mission Recorder 공유 외부 API =====
+            exportMission() { return exportMission(); },
+            importMission(jsonText) { return importMission(jsonText); },
+            triggerMissionImport() { return triggerMissionImport(); },
             // ===== HYPER Phase 20 — AI Copilot 외부 API =====
             copilotPlan(prompt) { return _copilotPlan(prompt); },
             copilotExecute(plan) { return _copilotExecute(plan); },

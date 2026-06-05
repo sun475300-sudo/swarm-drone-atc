@@ -31,7 +31,7 @@
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
 </div>
 
-> **🆕 최신 업데이트 (2026-06-04 · v1.1 데스크탑 빌드 + Phase 1-9 + 해양 PWA)** — **🖥 데스크탑 앱 v1.1 빌드 성공** (Linux AppImage 105MB 검증 완료, Windows NSIS + macOS DMG는 desktop-build.yml 자동), 메인 3D 시뮬레이터에 **MEGA 플랜 9 Phase 전부 통합**(ATC 관제 콘솔·전술 시각화·시네마틱·카메라 모드·임무 계획·장애 주입·분석 강화·환경 사운드·모바일/PWA), **해양 시뮬레이터에도 PWA + 모바일 viewport 적용**(viewport-fit·theme-color·manifest·SW), **CI 워크플로우 3-job 강화**(js-syntax + node-smoke + python-pytest). Playwright E2E **67/68 통과** (Phase 1-9: 61 + 해양 PWA: 6, 1 skip), 회귀 **4,140/4,140 통과**. 마스터 플랜: [`docs/SIMULATOR_MEGA_PLAN.md`](docs/SIMULATOR_MEGA_PLAN.md) · 상세: [`docs/SIMULATOR_PHASE_PLANS.md`](docs/SIMULATOR_PHASE_PLANS.md)
+> **🆕 최신 업데이트 (2026-06-04 · v1.1 데스크탑 빌드 + Phase 1-9 + 해양 PWA + HYPER 플랜)** — **🖥 데스크탑 앱 v1.1 빌드 성공** (Linux AppImage 105MB ASAR 패키징 검증 완료, Windows NSIS + macOS DMG는 `v*` 태그 푸시로 자동 발행), 메인 3D에 **MEGA 플랜 9 Phase 전부 통합**(ATC·TAC·CIN·CAM·MIS·INJ·ANA·AUD·MOB), **해양에도 PWA 적용**, **CI 3-job 강화**, **HYPER 플랜 Phase 10-50 작성**(VR·AI Copilot·Multi-Domain·국가 단위 공역 등 1-2년 로드맵), **92개 `_sdacs` API 자동 문서화**, **RELEASE_GUIDE** 작성. Playwright E2E **67/68 통과**, 회귀 **4,140/4,140 통과**. 🌌 HYPER 플랜: [`docs/SIMULATOR_HYPER_PLAN.md`](docs/SIMULATOR_HYPER_PLAN.md) · API: [`docs/SDACS_API.md`](docs/SDACS_API.md) · 릴리스 가이드: [`docs/RELEASE_GUIDE.md`](docs/RELEASE_GUIDE.md) · 마스터: [`docs/SIMULATOR_MEGA_PLAN.md`](docs/SIMULATOR_MEGA_PLAN.md)
 >
 > **이전 업데이트** — **원클릭 로컬 실행**(Win/Mac/Linux 더블클릭) · **해양 소형선 감지 시뮬레이터**(레이더 물리·AIS 융합·EO/IR·COLREG·CPA, 8개 시나리오) · 메인 3D **다중 선택·대규모 성능 측정·경로효율·라벨 풀 최적화**.
 

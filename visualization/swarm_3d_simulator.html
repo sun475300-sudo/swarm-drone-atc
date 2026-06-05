@@ -2663,6 +2663,202 @@
             logEvent('info', '🟢 군무 패턴 해제 (드론 자율 복귀)');
         }
 
+        // ===== HYPER Phase 27 — Counter-UAS (대(對)드론 방어 시스템) =====
+        // Phase 21 적대 드론에 대응하는 다층 방어 (RF 탐지 → 추적 → 무력화)
+        const CUAS_MODES = {
+            rf_jam: {
+                label: '📡 RF 재밍',
+                description: '반경 800m 내 ROGUE 드론 commsLost + 속도 30%로 감속',
+                action: (target) => {
+                    if (!target) return false;
+                    target.commsLost = true;
+                    target.commsLostUntil = simTime + 30;
+                    if (target._origMaxSpeed == null) target._origMaxSpeed = target.maxSpeed;
+                    target.maxSpeed = target._origMaxSpeed * 0.3;
+                    return true;
+                },
+            },
+            gps_spoof: {
+                label: '🛰 GPS 스푸핑',
+                description: 'ROGUE 위치 노이즈 ±50m → 항법 불가',
+                action: (target) => {
+                    if (!target) return false;
+                    target.gpsLost = true;
+                    target.gpsNoise = 50;
+                    target.gpsLossUntil = simTime + 30;
+                    return true;
+                },
+            },
+            net_capture: {
+                label: '🕸 그물 포획',
+                description: '근거리 (반경 100m) ROGUE 즉시 GROUNDED',
+                action: (target, dist) => {
+                    if (!target || dist > 100) return false;
+                    target.phase = 'GROUNDED';
+                    target.speed = 0; target.vx = 0; target.vz = 0; target.vy = 0;
+                    target.wy = 0;
+                    logEvent('rogue', `🕸 ${target.id} 그물 포획 → 강제 착륙`);
+                    return true;
+                },
+            },
+            hijack: {
+                label: '🎮 하이재킹',
+                description: 'ROGUE 제어권 탈취 → 친화적 자율로 전환 (isRogue=false, RTB)',
+                action: (target) => {
+                    if (!target) return false;
+                    target.isRogue = false;
+                    target.role = DRONE_ROLES[0];
+                    if (target.startPad) {
+                        target.goalX = target.startPad.x;
+                        target.goalZ = target.startPad.z;
+                        target.goalPad = target.startPad;
+                    }
+                    target.phase = 'RTL';
+                    logEvent('info', `🎮 ${target.id} 하이재킹 성공 → 아군 전환 (RTB)`);
+                    return true;
+                },
+            },
+        };
+
+        const cuasState = {
+            enabled: false,
+            mode: 'rf_jam',
+            stationX: 0, stationZ: 0,    // 방어 기지 위치 (원점)
+            range: 1500,                  // 탐지 반경
+            engagementCount: 0,            // 누적 무력화 횟수
+            lastEngageTs: 0,
+            cooldown: 5,                   // 모드별 쿨다운 (초)
+            log: [],                       // [{ts, mode, target, success}]
+        };
+
+        function cuasDetect() {
+            // 탐지 + 무력화 가능한 ROGUE 드론 목록 반환
+            const targets = [];
+            for (const d of drones) {
+                if (!d.isRogue || d.phase === 'GROUNDED' || d.phase === 'FAILED') continue;
+                const dist = Math.hypot(d.wx - cuasState.stationX, d.wz - cuasState.stationZ);
+                if (dist <= cuasState.range) targets.push({ drone: d, dist });
+            }
+            return targets.sort((a, b) => a.dist - b.dist);
+        }
+
+        function cuasEngage() {
+            if (!cuasState.enabled) return null;
+            if (simTime - cuasState.lastEngageTs < cuasState.cooldown) return null;
+            const mode = CUAS_MODES[cuasState.mode];
+            if (!mode) return null;
+            const targets = cuasDetect();
+            if (targets.length === 0) return null;
+            const { drone, dist } = targets[0];
+            const success = mode.action(drone, dist);
+            cuasState.lastEngageTs = simTime;
+            cuasState.log.push({ ts: simTime, mode: cuasState.mode, target: drone.id, success, dist: Math.round(dist) });
+            if (cuasState.log.length > 100) cuasState.log.shift();
+            if (success) {
+                cuasState.engagementCount++;
+                logEvent('rogue', `🛡 C-UAS ${mode.label} → ${drone.id} (${Math.round(dist)}m)`);
+            }
+            return { mode: cuasState.mode, target: drone.id, success, dist };
+        }
+
+        function setCuasMode(mode) {
+            if (!CUAS_MODES[mode]) return false;
+            cuasState.mode = mode;
+            return true;
+        }
+
+        function enableCuas(on) {
+            cuasState.enabled = !!on;
+            if (cuasState.enabled) logEvent('info', '🛡 C-UAS 방어 시스템 활성');
+            else logEvent('info', '🛡 C-UAS 비활성');
+            return cuasState.enabled;
+        }
+
+        function updateCuas(dt) {
+            if (!cuasState.enabled) return;
+            // 자동 교전: 쿨다운 만료 시마다 가장 가까운 ROGUE 무력화 시도
+            cuasEngage();
+        }
+
+        // ===== HYPER Phase 23 — Wind Field Grid (격자 풍속장) =====
+        // 100×100 격자 (10km × 10km, cell=100m) 각 셀에 (u, v, w) 벡터
+        // 시간 진화: Perlin-like noise + 글로벌 흐름
+        const windField = {
+            enabled: false,
+            size: 64,                          // 격자 해상도
+            cellM: 156,                        // 셀당 거리 (m), 64×156 ≈ 10km
+            u: null, v: null,                  // Float32Array(size*size) — x, z 성분
+            evolution: 0,                      // 시간 진화 누적
+            globalU: 2.0, globalV: 0.5,        // 기본 흐름
+            regime: 'mild',                    // 'mild' / 'sheared' / 'turbulent'
+        };
+
+        function initWindField() {
+            const N = windField.size;
+            windField.u = new Float32Array(N * N);
+            windField.v = new Float32Array(N * N);
+            for (let i = 0; i < N * N; i++) {
+                windField.u[i] = windField.globalU;
+                windField.v[i] = windField.globalV;
+            }
+        }
+
+        function updateWindField(dt) {
+            if (!windField.enabled) return;
+            if (!windField.u) initWindField();
+            const N = windField.size;
+            windField.evolution += dt * 0.1;
+            const t = windField.evolution;
+            // Regime별 변동 패턴
+            for (let zi = 0; zi < N; zi++) {
+                for (let xi = 0; xi < N; xi++) {
+                    const idx = zi * N + xi;
+                    const nx = (xi / N) * 4, nz = (zi / N) * 4;
+                    if (windField.regime === 'mild') {
+                        windField.u[idx] = windField.globalU + Math.sin(nx + t) * 0.5;
+                        windField.v[idx] = windField.globalV + Math.cos(nz + t) * 0.5;
+                    } else if (windField.regime === 'sheared') {
+                        // 고도 의존 전단 (격자 z 성분으로 모사)
+                        const shear = (zi / N) * 8;
+                        windField.u[idx] = windField.globalU + shear * Math.sin(nx + t);
+                        windField.v[idx] = windField.globalV + shear * 0.3;
+                    } else if (windField.regime === 'turbulent') {
+                        // 난류: 멀티 옥타브 노이즈
+                        const a = Math.sin(nx * 2 + t * 1.3) + 0.5 * Math.sin(nx * 5 - t * 0.7);
+                        const b = Math.cos(nz * 2 + t * 1.1) + 0.5 * Math.cos(nz * 5 + t * 0.5);
+                        windField.u[idx] = windField.globalU + a * 4;
+                        windField.v[idx] = windField.globalV + b * 4;
+                    }
+                }
+            }
+            // weather.baseWind에 평균값 동기 → 기존 기상 시스템 통합
+            if (windField.enabled && weather && weather.baseWind) {
+                let su = 0, sv = 0;
+                for (let i = 0; i < N * N; i++) { su += windField.u[i]; sv += windField.v[i]; }
+                weather.baseWind.x = su / (N * N);
+                weather.baseWind.z = sv / (N * N);
+            }
+        }
+
+        // 특정 (wx, wz) 좌표에서 격자 풍속 query (bilinear)
+        function sampleWindAt(wx, wz) {
+            if (!windField.enabled || !windField.u) return { u: weather?.baseWind?.x || 0, v: weather?.baseWind?.z || 0 };
+            const N = windField.size;
+            const cell = windField.cellM;
+            const half = N / 2;
+            const fx = wx / cell + half;
+            const fz = wz / cell + half;
+            const xi = Math.max(0, Math.min(N - 1, Math.floor(fx)));
+            const zi = Math.max(0, Math.min(N - 1, Math.floor(fz)));
+            return { u: windField.u[zi * N + xi], v: windField.v[zi * N + xi] };
+        }
+
+        function setWindRegime(name) {
+            if (!['mild', 'sheared', 'turbulent'].includes(name)) return false;
+            windField.regime = name;
+            return true;
+        }
+
         function injectDynamicNFZ(x, z, r, dur) {
             x = x ?? (Math.random() - 0.5) * W * 2 * 50;
             z = z ?? (Math.random() - 0.5) * W * 2 * 50;
@@ -8810,6 +9006,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // HYPER Phase 21 — 적대 정책 액션 실행
             if (typeof updateAdversarial === 'function' && simRunning) updateAdversarial(dt);
 
+            // HYPER Phase 27 — C-UAS 자동 교전 + Phase 23 풍속장 진화
+            if (typeof updateCuas === 'function' && simRunning) updateCuas(dt);
+            if (typeof updateWindField === 'function' && simRunning) updateWindField(dt);
+
             // Phase 8 AUD — 환경 사운드 + 임계 알람
             if (typeof updateAudAmbient === 'function') updateAudAmbient();
             if (typeof _audCriticalAlarm === 'function' && simRunning) _audCriticalAlarm();
@@ -9352,6 +9552,33 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             clearChoreography() { clearChoreography(); return true; },
             get choreoPattern() { return choreoState.pattern; },
             get choreoPatterns() { return Object.keys(CHOREOGRAPHY_PATTERNS); },
+            // ===== HYPER Phase 27 — Counter-UAS 외부 API =====
+            enableCuas(on) { return enableCuas(on); },
+            setCuasMode(m) { return setCuasMode(m); },
+            cuasEngage() { return cuasEngage(); },
+            cuasDetect() { return cuasDetect().map(t => ({ id: t.drone.id, dist: Math.round(t.dist) })); },
+            get cuasEnabled() { return cuasState.enabled; },
+            get cuasMode() { return cuasState.mode; },
+            get cuasEngagements() { return cuasState.engagementCount; },
+            get cuasLog() { return cuasState.log.slice(); },
+            get cuasModes() { return Object.keys(CUAS_MODES); },
+            // ===== HYPER Phase 23 — Wind Field 외부 API =====
+            enableWindField(on) { windField.enabled = !!on; if (on && !windField.u) initWindField(); return windField.enabled; },
+            setWindRegime(name) { return setWindRegime(name); },
+            sampleWindAt(wx, wz) { return sampleWindAt(wx, wz); },
+            get windFieldEnabled() { return windField.enabled; },
+            get windRegime() { return windField.regime; },
+            get windFieldStats() {
+                if (!windField.u) return null;
+                let su = 0, sv = 0, mx = 0;
+                for (let i = 0; i < windField.u.length; i++) {
+                    su += windField.u[i]; sv += windField.v[i];
+                    const m = Math.hypot(windField.u[i], windField.v[i]);
+                    if (m > mx) mx = m;
+                }
+                const n = windField.u.length;
+                return { avgU: su / n, avgV: sv / n, maxMag: mx, size: windField.size };
+            },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

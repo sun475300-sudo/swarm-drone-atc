@@ -161,6 +161,23 @@
         <div class="ctitle" style="margin-bottom:6px;">🎯 표적 상세 <span class="x" id="detail-x" title="닫기">✕</span></div>
         <div class="dl" id="detail-body"></div>
         <div id="detail-enc"></div>
+        <!-- HYPER Phase 11 — 해양 ATC 명령 패널 (군집 ATC 동등) -->
+        <div id="marine-atc-panel" style="margin-top:8px;padding:6px;border:1px solid rgba(41,197,255,0.4);border-radius:4px;background:linear-gradient(180deg,rgba(41,197,255,0.06),transparent);">
+            <div style="font-size:8px;color:#29c5ff;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;display:flex;justify-content:space-between;">
+                <span>🚢 해상 관제 명령 (Marine ATC)</span>
+                <span id="marine-atc-state" style="color:#5a7a96;">AUTO</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;">
+                <button class="ctrl-btn" onclick="marineAtcCommand('HOLD')" title="현재 위치 정지 (앵커)">⚓ HOLD</button>
+                <button class="ctrl-btn" onclick="marineAtcCommand('RTB')" title="모선으로 귀환">🏠 RTB</button>
+                <button class="ctrl-btn" onclick="marineAtcCommand('AVOID')" title="회피 우현 변침 20°">↪ AVOID</button>
+                <button class="ctrl-btn" onclick="marineAtcCommand('SLOW')" title="감속 50%">🐌 SLOW</button>
+                <button class="ctrl-btn" onclick="marineAtcCommand('FAST')" title="가속 150%">⚡ FAST</button>
+                <button class="ctrl-btn" onclick="marineAtcCommand('PORT')" title="좌현 변침 20°">◀ PORT</button>
+                <button class="ctrl-btn" onclick="marineAtcCommand('STBD')" title="우현 변침 20°">STBD ▶</button>
+                <button class="ctrl-btn" onclick="marineAtcCommand('CLEAR')" title="자율 복귀" style="grid-column:span 2;background:rgba(34,197,94,0.12);color:#22c55e;">🟢 CLEAR (자율 복귀)</button>
+            </div>
+        </div>
     </div>
 
     <div id="alert"></div>
@@ -352,7 +369,93 @@
             selected = v; selRing.visible = true;
             const p = document.getElementById('detail-panel'); if (p) p.style.display = 'block';
             if (typeof updateEOIRPanel === 'function') updateEOIRPanel();
+            _marineAtcUpdateState();
         }
+
+        // ===== HYPER Phase 11 — 해양 ATC 명령 시스템 =====
+        const marineAtcLog = [];
+        let marineAtcAudio = false;
+        let _marineAudioCtx = null;
+        function _marineBeep(freq = 660, ms = 100) {
+            if (!marineAtcAudio) return;
+            try {
+                _marineAudioCtx = _marineAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+                const o = _marineAudioCtx.createOscillator(); const g = _marineAudioCtx.createGain();
+                o.type = 'sine'; o.frequency.value = freq; g.gain.value = 0.05;
+                o.connect(g); g.connect(_marineAudioCtx.destination); o.start();
+                g.gain.exponentialRampToValueAtTime(0.0001, _marineAudioCtx.currentTime + ms / 1000);
+                o.stop(_marineAudioCtx.currentTime + ms / 1000);
+            } catch (e) {}
+        }
+        function _marineSpeak(text) {
+            if (!marineAtcAudio || !('speechSynthesis' in window)) return;
+            try {
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'ko-KR'; u.rate = 1.1; u.volume = 0.85;
+                window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+            } catch (e) {}
+        }
+        function _marineAtcUpdateState() {
+            const v = selected; if (!v) return;
+            const st = document.getElementById('marine-atc-state');
+            if (!st) return;
+            st.textContent = v.atc ? (v.atc.cmd || 'AUTO') : 'AUTO';
+            st.style.color = v.atc && v.atc.cmd ? '#29c5ff' : '#5a7a96';
+        }
+        window.marineAtcCommand = function (cmd) {
+            const v = selected;
+            if (!v) { logEvent('🚢 표적을 먼저 선택하세요', '#fbbf24'); return null; }
+            if (!v.atc) v.atc = { cmd: null, lockUntil: 0, params: null };
+            const num = (v.id || '').replace(/[^0-9]/g, '') || v.id;
+            let voiceTxt = '';
+            switch (cmd) {
+                case 'HOLD':
+                    v.atc.cmd = 'HOLD'; v.atc.lockUntil = simTime + 30;
+                    v._origVx = v._origVx ?? v.vx; v._origVz = v._origVz ?? v.vz;
+                    v.vx = 0; v.vz = 0; v.speedKn = 0;
+                    voiceTxt = `함정 ${num}, 정지 명령`; break;
+                case 'RTB':
+                    v.atc.cmd = 'RTB'; v.atc.lockUntil = simTime + 60;
+                    const dx = -v.wx, dz = -v.wz; const d = Math.hypot(dx, dz) || 1;
+                    v.vx = (dx / d) * (v.speedKn || 5) * 0.5;
+                    v.vz = (dz / d) * (v.speedKn || 5) * 0.5;
+                    voiceTxt = `함정 ${num}, 모선 귀환`; break;
+                case 'AVOID':
+                    v.atc.cmd = 'AVOID'; v.atc.lockUntil = simTime + 10;
+                    const ang = Math.PI / 9; // 20°
+                    const cs = Math.cos(ang), sn = Math.sin(ang);
+                    const nx = v.vx * cs - v.vz * sn, nz = v.vx * sn + v.vz * cs;
+                    v.vx = nx; v.vz = nz;
+                    voiceTxt = `함정 ${num}, 우현 변침 20도`; break;
+                case 'SLOW':
+                    v.atc.cmd = 'SLOW'; v.atc.lockUntil = simTime + 30;
+                    v.vx *= 0.5; v.vz *= 0.5;
+                    voiceTxt = `함정 ${num}, 감속 절반`; break;
+                case 'FAST':
+                    v.atc.cmd = 'FAST'; v.atc.lockUntil = simTime + 30;
+                    v.vx *= 1.5; v.vz *= 1.5;
+                    voiceTxt = `함정 ${num}, 가속 1.5배`; break;
+                case 'PORT': case 'STBD': {
+                    v.atc.cmd = cmd; v.atc.lockUntil = simTime + 5;
+                    const a = (cmd === 'PORT' ? -1 : 1) * Math.PI / 9;
+                    const c = Math.cos(a), s = Math.sin(a);
+                    const x = v.vx * c - v.vz * s, z = v.vx * s + v.vz * c;
+                    v.vx = x; v.vz = z;
+                    voiceTxt = `함정 ${num}, ${cmd === 'PORT' ? '좌현' : '우현'} 변침 20도`; break;
+                }
+                case 'CLEAR':
+                    if (v._origVx != null) { v.vx = v._origVx; v.vz = v._origVz; v._origVx = null; v._origVz = null; }
+                    v.atc.cmd = null; v.atc.lockUntil = 0;
+                    voiceTxt = `함정 ${num}, 자율 모드 복귀`; break;
+            }
+            marineAtcLog.push({ ts: simTime, vid: v.id, cmd });
+            if (marineAtcLog.length > 100) marineAtcLog.shift();
+            logEvent(`🎮 Marine ATC ${cmd} → ${v.id}`, '#29c5ff');
+            _marineBeep(cmd === 'HOLD' || cmd === 'RTB' ? 520 : 660);
+            if (voiceTxt) _marineSpeak(voiceTxt);
+            _marineAtcUpdateState();
+            return v;
+        };
 
         function logEvent(msg, color = '#9db7d1') { events.unshift({ t: simTime, msg, color }); if (events.length > 60) events.pop(); }
 
@@ -980,6 +1083,13 @@
             get validation() { snapshotValidation(); return validationLog.map(r => ({ ...r })); },                    // C9 시나리오별 검증 기록
             get horizonNM() { return radarHorizonM(2.4) / NM; },                                      // C1 평균 수평선(NM)
             select(id) { const v = vessels.find(x => x.id === id || x.id === `V-${String(id).padStart(3,'0')}`); if (v) selectVessel(v); return v ? v.id : null; }, // C5
+            // HYPER Phase 11 — 해양 ATC 명령 외부 API
+            atcCommand(cmd) { return window.marineAtcCommand(cmd); },
+            get atcLog() { return marineAtcLog.slice(); },
+            get atcControlled() { return vessels.filter(v => v.atc && v.atc.cmd).map(v => ({ id: v.id, cmd: v.atc.cmd, lockUntil: v.atc.lockUntil })); },
+            setAtcAudio(on) { marineAtcAudio = !!on; return marineAtcAudio; },
+            get atcAudio() { return marineAtcAudio; },
+            marineAtcClearAll() { for (const v of vessels) if (v.atc && v.atc.cmd) { v.atc.cmd = null; v.atc.lockUntil = 0; } return vessels.length; },
             deselect: deselectVessel,
             eoirMode(m) { if (m === 'EO' || m === 'IR') { eoMode = m; updateEOIRPanel(); } return eoMode; }, // C3
             eoirDataURL() { drawEOIR(); const cv = document.getElementById('eoir-cv'); return cv ? cv.toDataURL('image/png') : null; }, // C3

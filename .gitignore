@@ -74,3 +74,4 @@ _*.ps1
 htmlcov/
 .pytest_cache/
 pytest-cache-files-*/
+scripts/recordings/

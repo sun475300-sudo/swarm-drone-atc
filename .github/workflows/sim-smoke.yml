@@ -93,9 +93,9 @@ jobs:
         run: node tests/e2e/smoke_maritime.mjs
 
   smoke-pytest:
-    name: Python Playwright E2E (Phase 1-9 ATC·TAC·CIN·CAM·MIS·INJ·ANA·AUD·MOB)
+    name: Python Playwright E2E (200 Phase 통합 — MEGA·HYPER·STELLAR·ULTIMATE·POST-UNIVERSE)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -111,6 +111,7 @@ jobs:
           pip install pytest pytest-xdist playwright
           python -m playwright install --with-deps chromium
 
-      - name: Run Phase 1-9 E2E
+      - name: Run all 200-Phase E2E
         run: |
-          python -m pytest tests/e2e/test_simulator_atc.py tests/e2e/test_simulator_tac.py tests/e2e/test_simulator_cin_inj.py tests/e2e/test_simulator_cam_aud.py tests/e2e/test_simulator_mis_ana_mob.py -v --no-cov -n auto
+          python -m pytest tests/e2e/ -v --no-cov -n auto \
+            --ignore=tests/e2e/test_desktop_phase12.py  # AppImage 빌드 필요, 별도 job

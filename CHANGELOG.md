@@ -3,6 +3,14 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased]
+
+### 수정 (fix)
+- `main.py simulate` 에 `--output` 플래그 추가 — KPI 결과를 JSON으로 기록.
+  CI 나이틀리 벤치마크 잡(`.github/workflows/ci.yml`)이 `simulate --output`을
+  호출하는데 미지원이어서 발생하던 main 브랜치 CI RED를 복구. 회귀 방어
+  테스트(`tests/test_main_cli.py::test_simulate_output_writes_json`) 추가.
+
 ## [v1.5.0] - 2026-06-05 — POST-UNIVERSE (Phase 151-200) · **𝟏 Unity 도달**
 
 ### 추가 (feat) — Track Ʊ Cosmic (151-160)

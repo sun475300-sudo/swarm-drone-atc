@@ -60,6 +60,20 @@ def cmd_simulate(args: argparse.Namespace) -> None:
     result = sim.run(duration_s=duration)
     elapsed = _time.monotonic() - t0
 
+    # 결과 JSON 기록 (--output) — CI 나이틀리 벤치마크에서 사용
+    output_path = getattr(args, "output", None)
+    if output_path:
+        import json
+        from pathlib import Path
+
+        out_path = Path(output_path)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        payload = result.to_dict()
+        payload["wall_time_s"] = elapsed
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, sort_keys=True)
+        print(f"📝 결과 JSON 기록: {out_path}")
+
     # KPI 요약 테이블
     print(result.summary_table())
 
@@ -473,6 +487,7 @@ def main() -> None:
     p_sim.add_argument("--duration", type=float, default=600.0, help="시뮬레이션 시간 (초)")
     p_sim.add_argument("--seed",     type=int,   default=42, help="랜덤 시드")
     p_sim.add_argument("--drones",   type=int,   default=100, help="드론 수")
+    p_sim.add_argument("--output",   default=None, help="결과 KPI JSON 저장 경로")
     p_sim.add_argument("--log-level", default="INFO")
 
     # ── scenario ────────────────────────────────────────────────

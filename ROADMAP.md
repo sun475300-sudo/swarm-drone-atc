@@ -178,7 +178,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 공역 관리자용 대시보드를 SaaS 수준으로 안정화.
 
-- [~] **P711** — FastAPI 백엔드 완성 (`api/fastapi_server.py` 769줄, 전체 엔드포인트 구현) — React 프론트엔드 미구현
+- [x] **P711** — FastAPI 백엔드(`api/fastapi_server.py` 769줄) + **React 프론트엔드 MVP** 완성 — `frontend/` Vite+React+TS: 타입 API 클라이언트(봉투 해제·ApiError) + WS 텔레메트리 훅(지수 백오프 재연결) + 시나리오 목록·실행·폴링 대시보드 + Bearer 토큰(P712 RBAC 연동). `npm run build`(tsc+vite) + vitest 4/4 통과 (2026-06-05)
 - [x] **P712** — 인증·권한(OAuth2, RBAC) 및 감사 로그 — HS256 JWT + 3계층 RBAC(admin/operator/viewer) + 감사로그 완전 구현, 29개 테스트 통과 (2026-06-01)
 - [x] **P713** — 실시간 WebSocket 채널 — `simulation/ws_bridge.py` 2Hz 스트리밍 + FastAPI `/ws/telemetry` 완비 (2026-05-29)
 - [x] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존 — `src/storage/timescale.py` asyncpg 클라이언트 + `db/migrations/001_initial_schema.sql` 하이퍼테이블·보존정책 완비, 36개 테스트 통과 (2026-06-03)

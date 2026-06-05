@@ -108,9 +108,10 @@ jobs:
       - name: Install pytest + playwright (python)
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-xdist playwright
+          # numpy: 루트 tests/conftest.py가 수집 단계에서 import (E2E 자체는 미사용)
+          pip install pytest pytest-xdist playwright numpy
           python -m playwright install --with-deps chromium
 
       - name: Run Phase 1-9 E2E
         run: |
-          python -m pytest tests/e2e/test_simulator_atc.py tests/e2e/test_simulator_tac.py tests/e2e/test_simulator_cin_inj.py tests/e2e/test_simulator_cam_aud.py tests/e2e/test_simulator_mis_ana_mob.py -v --no-cov -n auto
+          python -m pytest tests/e2e/test_simulator_atc.py tests/e2e/test_simulator_tac.py tests/e2e/test_simulator_cin_inj.py tests/e2e/test_simulator_cam_aud.py tests/e2e/test_simulator_mis_ana_mob.py tests/e2e/test_simulator_xr_mission.py -v --no-cov -n auto

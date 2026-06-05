@@ -126,7 +126,7 @@
 - ✅ P712 JWT/RBAC + 29 테스트 · P713 WS · P714 TimescaleDB · P715 Helm 8템플릿
 - ✅ P716 CI 6 워크플로우 · P717 부하 100기 · P718 관측성 스택 · P719 보안 감사
 - ✅ P720 베타 운영 가이드 (3 파일럿 + SLA + NPS + 듀얼 라이선스)
-- ⏳ **잔여**: P711 React MVP (PR #87 — 별도 사용자 평가)
+- ✅ **P711 React 프론트엔드 MVP 완성** — `frontend/` Vite+React+TS, `npm run build` + vitest 4/4 통과 (2026-06-05)
 
 ### Track D — 웹 시뮬레이터 (P721-P735) ✅ 100%
 - ✅ P721 Electron 3-OS · P722-P728 메인·해양 시뮬 (C1-C9)
@@ -164,15 +164,16 @@
 
 ---
 
-## 🎯 잔여 5항목 (사용자 환경 의존)
+## 🎯 잔여 4항목 (전부 사용자 환경 의존 — 코드 작업 아님)
 
 | # | 항목 | 사유 |
 |---|---|---|
-| 1 | P711 React MVP (#87 별도 PR) | 사용자 평가 후 머지 |
-| 2 | Track A 실기 검증 | Pixhawk·Jetson·RTK-GPS HW |
-| 3 | P707 §4-§7 실측 그래프 | 실 비교 실험 재실행 (지도교수 협업) |
-| 4 | P709 IROS 2026 실제 투고 | PaperCept 제출 (2027-01) |
-| 5 | P755 창업·LOI | KARI·해수부·산림청·KISA 외부 컨택 |
+| 1 | Track A 실기 검증 | Pixhawk·Jetson·RTK-GPS HW |
+| 2 | P707 §4-§7 실측 그래프 | 실 비교 실험 재실행 (지도교수 협업) |
+| 3 | P709 IROS 2026 실제 투고 | PaperCept 제출 (2027-01) |
+| 4 | P755 창업·LOI | KARI·해수부·산림청·KISA 외부 컨택 |
+
+> ✅ **P711 React MVP는 본 세션에서 완성·검증·머지** (frontend/ 디렉터리, npm build + vitest 4/4).
 
 상세 실행 플레이북: [`docs/ULTRA_PLAN.md`](docs/ULTRA_PLAN.md) "잔여 5항목 실행 플레이북" 섹션.
 
@@ -180,7 +181,7 @@
 
 ## 🔗 핵심 링크
 
-- Roadmap: [`ROADMAP.md`](ROADMAP.md) (88 [x] · 1 [~] · 1 [ ])
+- Roadmap: [`ROADMAP.md`](ROADMAP.md) (89 [x] · 0 [~] · 1 [ ] — 잔여 P755는 사업화 결정, 사용자 환경 의존)
 - Ultra Plan v2: [`docs/ULTRA_PLAN.md`](docs/ULTRA_PLAN.md)
 - 문서 INDEX: [`docs/INDEX.md`](docs/INDEX.md) (80+ 문서)
 - 종합 점검: [`docs/HEALTH_CHECK.md`](docs/HEALTH_CHECK.md)

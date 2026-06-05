@@ -97,6 +97,28 @@ def cmd_simulate(args: argparse.Namespace) -> None:
 
     print(f"\n✅ 시뮬레이션 완료 ({duration:.0f}s, {drones}기, 실행시간 {elapsed:.1f}s)\n")
 
+    # KPI 요약 JSON 기록 (--output 지정 시: CI 벤치마크 잡에서 사용)
+    output_path = getattr(args, "output", None)
+    if output_path:
+        import json
+        from pathlib import Path
+
+        summary = result.to_dict()
+        summary.update(
+            {
+                "seed": seed,
+                "drones": drones,
+                "duration_s": duration,
+                "wall_time_s": elapsed,
+                "event_counts": event_counts,
+                "phase_counts": phase_counts,
+            }
+        )
+        out = Path(output_path)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
+        print(f"📄 KPI 요약 JSON 기록: {out}\n")
+
 
 # ── scenario ─────────────────────────────────────────────────
 
@@ -473,6 +495,7 @@ def main() -> None:
     p_sim.add_argument("--duration", type=float, default=600.0, help="시뮬레이션 시간 (초)")
     p_sim.add_argument("--seed",     type=int,   default=42, help="랜덤 시드")
     p_sim.add_argument("--drones",   type=int,   default=100, help="드론 수")
+    p_sim.add_argument("--output",   default=None, help="KPI 요약 JSON 출력 경로")
     p_sim.add_argument("--log-level", default="INFO")
 
     # ── scenario ────────────────────────────────────────────────

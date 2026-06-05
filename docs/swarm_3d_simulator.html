@@ -1093,7 +1093,10 @@
                 시뮬레이션 제어
             </div>
             <div style="margin-bottom:8px;">
-                <label class="ctrl-label">시나리오 선택</label>
+                <label class="ctrl-label" style="display:flex;justify-content:space-between;align-items:center;">
+                    <span>시나리오 선택</span>
+                    <button id="btn-scenario-gallery" style="font-size:9px;padding:2px 6px;background:rgba(168,85,247,0.12);color:#a855f7;border:1px solid rgba(168,85,247,0.4);border-radius:3px;cursor:pointer;" title="시나리오 갤러리 (Phase 14)">🖼 갤러리</button>
+                </label>
                 <select class="ctrl-select" id="scenario-select">
                     <optgroup label="기본">
                         <option value="default">기본 (50대)</option>
@@ -1462,6 +1465,20 @@
             <span id="atc-log-count" style="color:#cdd9e8;">0</span>
         </div>
         <div id="atc-log-list"></div>
+    </div>
+
+    <!-- HYPER Phase 14 — 시나리오 갤러리 모달 -->
+    <div id="scenario-gallery-modal" style="display:none;position:fixed;inset:0;background:rgba(2,5,10,0.93);z-index:9999;overflow-y:auto;backdrop-filter:blur(6px);" class="hud-interactive">
+        <div style="max-width:1100px;margin:24px auto;padding:24px;background:rgba(6,14,24,0.96);border:1px solid rgba(168,85,247,0.5);border-radius:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <div>
+                    <h2 style="color:#a855f7;font-size:20px;letter-spacing:1px;font-family:'JetBrains Mono',monospace;">🖼 시나리오 갤러리 (Phase 14)</h2>
+                    <div style="font-size:11px;color:#5a7a96;margin-top:4px;">5개 카테고리 · 카드 클릭 → 즉시 로드</div>
+                </div>
+                <button id="btn-gallery-close" style="font-size:14px;color:#cdd9e8;background:rgba(0,0,0,0.4);border:1px solid #335a78;border-radius:4px;padding:6px 14px;cursor:pointer;">✕ 닫기 (ESC)</button>
+            </div>
+            <div id="scenario-gallery-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;"></div>
+        </div>
     </div>
 
     <!-- HUD: Drone Live Tooltip -->
@@ -8589,11 +8606,15 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             }
         });
 
-        // ── P730 UI i18n (KO ↔ EN 토글) ──
+        // ── P730 + HYPER Phase 15: UI i18n (KO/EN/JA/ZH 4언어 순환 토글) ──
         const I18N_MAP = {
             ko: { title: 'SDACS — 군집드론 공역통제 3D 시뮬레이터', active: '활성 드론', conflicts: '충돌 위험', near: '근접 경고', collisions: '충돌', advisories: '회피 명령', battery: '평균 배터리', atc: '관제 드론', wind: '풍속', gpu: 'GPU' },
             en: { title: 'SDACS — Swarm Drone Airspace 3D Simulator', active: 'Active', conflicts: 'Conflicts', near: 'Near Miss', collisions: 'Collisions', advisories: 'Advisories', battery: 'Avg Battery', atc: 'ATC Nodes', wind: 'Wind', gpu: 'GPU' },
+            ja: { title: 'SDACS — 群集ドローン空域管制 3Dシミュレーター', active: '稼働中', conflicts: '衝突危険', near: '近接警告', collisions: '衝突', advisories: '回避命令', battery: '平均バッテリー', atc: '管制ノード', wind: '風速', gpu: 'GPU' },
+            zh: { title: 'SDACS — 集群无人机空域管制3D仿真器', active: '活动中', conflicts: '冲突风险', near: '近距警告', collisions: '冲突', advisories: '避让指令', battery: '平均电量', atc: '管制节点', wind: '风速', gpu: 'GPU' },
         };
+        const LANG_ORDER = ['ko', 'en', 'ja', 'zh'];
+        const LANG_LABEL = { ko: 'KO', en: 'EN', ja: 'JA', zh: 'ZH' };
         let currentLang = 'ko';
         function setLang(lang) {
             if (!I18N_MAP[lang]) return;
@@ -8604,10 +8625,108 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 if (dict[key]) el.textContent = dict[key];
             });
             const btn = document.getElementById('lang-btn');
-            if (btn) btn.textContent = lang === 'ko' ? 'KO' : 'EN';
+            if (btn) btn.textContent = LANG_LABEL[lang] || lang.toUpperCase();
+            // HTML lang 속성도 동기 (접근성)
+            document.documentElement.lang = lang;
         }
         const _langBtn = document.getElementById('lang-btn');
-        if (_langBtn) _langBtn.addEventListener('click', () => setLang(currentLang === 'ko' ? 'en' : 'ko'));
+        if (_langBtn) _langBtn.addEventListener('click', () => {
+            const idx = LANG_ORDER.indexOf(currentLang);
+            setLang(LANG_ORDER[(idx + 1) % LANG_ORDER.length]);
+        });
+
+        // ===== HYPER Phase 14 — 시나리오 갤러리 (5 카테고리 카드) =====
+        const SCENARIO_CATEGORIES = {
+            featured: { label: '⭐ 추천', color: '#fbbf24', keys: ['default', 'high_density', 'ultra_swarm', 'mega_swarm', 'formation_flight', 'search_rescue'] },
+            stress: { label: '🔥 스트레스', color: '#ef4444', keys: ['mega_swarm', 'extreme_stress', 'apocalypse', 'total_war', 'multi_failure', 'cascade_failure'] },
+            weather: { label: '🌪 기상', color: '#06b6d4', keys: ['microburst_storm', 'ice_storm', 'typhoon', 'multi_cell_storm', 'heavy_storm', 'fog_low_vis', 'thermal_updraft', 'weather_hell'] },
+            military: { label: '🛡 군용·임무', color: '#10b981', keys: ['mass_takeoff', 'military_exercise', 'swarm_attack', 'adversarial_intrusion', 'gps_spoofing', 'comms_loss', 'night_ops', 'emergency_failure'] },
+            urban: { label: '🛸 도시·UAM', color: '#a855f7', keys: ['urban_canyon', 'urban_delivery', 'urban_emergency', 'busan_canyon', 'incheon_canyon', 'daegu_canyon', 'daejeon_canyon', 'gwangju_canyon', 'ulsan_canyon', 'uam_corridor', 'city_rush_hour', 'mega_delivery'] },
+        };
+        function _galleryDrawThumbnail(canvas, key, cfg) {
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width, h = canvas.height;
+            // 배경 그라데이션
+            const grad = ctx.createLinearGradient(0, 0, 0, h);
+            grad.addColorStop(0, '#0a1628'); grad.addColorStop(1, '#02060d');
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
+            // 드론 점 분포 (시나리오 count 기반)
+            const n = Math.min(cfg.count || 50, 200);
+            ctx.fillStyle = cfg.wind ? '#06b6d4' : (cfg.failRate > 0 ? '#fbbf24' : '#10b981');
+            for (let i = 0; i < n; i++) {
+                const x = Math.random() * w, y = Math.random() * h;
+                const sz = Math.random() < 0.1 ? 2.5 : 1.5;
+                ctx.fillRect(x, y, sz, sz);
+            }
+            // 카운트 라벨
+            ctx.fillStyle = 'rgba(0,229,255,0.92)';
+            ctx.font = 'bold 14px JetBrains Mono, monospace';
+            ctx.fillText(`${cfg.count}`, 8, 18);
+            ctx.font = '10px JetBrains Mono, monospace';
+            ctx.fillStyle = 'rgba(205,217,232,0.6)';
+            ctx.fillText('drones', 8, 30);
+            // 기상 표시
+            if (cfg.wind) { ctx.fillStyle = '#06b6d4'; ctx.fillText('🌪 wind', w - 56, 18); }
+            if (cfg.failRate > 0) { ctx.fillStyle = '#ef4444'; ctx.fillText(`⚠ ${(cfg.failRate*100).toFixed(0)}%`, w - 56, 32); }
+        }
+        function openScenarioGallery() {
+            const grid = document.getElementById('scenario-gallery-grid');
+            const modal = document.getElementById('scenario-gallery-modal');
+            if (!grid || !modal) return;
+            grid.innerHTML = '';
+            // 카테고리별 섹션
+            for (const [catKey, cat] of Object.entries(SCENARIO_CATEGORIES)) {
+                // 카테고리 헤더 (full row)
+                const header = document.createElement('div');
+                header.style.cssText = `grid-column: 1 / -1; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: ${cat.color}; letter-spacing: 2px; padding: 8px 0 4px; border-bottom: 1px solid ${cat.color}40; margin-top: ${catKey === 'featured' ? 0 : 12}px;`;
+                header.textContent = cat.label;
+                grid.appendChild(header);
+                for (const key of cat.keys) {
+                    const cfg = SCENARIOS[key];
+                    if (!cfg) continue;
+                    const card = document.createElement('div');
+                    card.style.cssText = `background: rgba(8,14,24,0.85); border: 1px solid ${cat.color}40; border-radius: 6px; padding: 10px; cursor: pointer; transition: 0.15s; font-family: 'JetBrains Mono', monospace;`;
+                    card.onmouseenter = () => { card.style.borderColor = cat.color; card.style.transform = 'translateY(-2px)'; };
+                    card.onmouseleave = () => { card.style.borderColor = cat.color + '40'; card.style.transform = ''; };
+                    card.onclick = () => {
+                        const sel = document.getElementById('scenario-select');
+                        if (sel) { sel.value = key; sel.dispatchEvent(new Event('change')); }
+                        closeScenarioGallery();
+                    };
+                    const cv = document.createElement('canvas');
+                    cv.width = 220; cv.height = 100;
+                    cv.style.cssText = 'width: 100%; height: 100px; border-radius: 4px; display: block; margin-bottom: 6px;';
+                    card.appendChild(cv);
+                    _galleryDrawThumbnail(cv, key, cfg);
+                    const title = document.createElement('div');
+                    title.style.cssText = `font-size: 11px; color: #cdd9e8; font-weight: 700; margin-bottom: 2px;`;
+                    title.textContent = cfg.label || key;
+                    card.appendChild(title);
+                    const meta = document.createElement('div');
+                    meta.style.cssText = 'font-size: 9px; color: #5a7a96;';
+                    meta.textContent = `${key} · ${cfg.count}대${cfg.wind ? ' · 풍속' : ''}${cfg.failRate > 0 ? ` · ${(cfg.failRate*100).toFixed(0)}% 장애` : ''}`;
+                    card.appendChild(meta);
+                    grid.appendChild(card);
+                }
+            }
+            modal.style.display = 'block';
+        }
+        function closeScenarioGallery() {
+            const modal = document.getElementById('scenario-gallery-modal');
+            if (modal) modal.style.display = 'none';
+        }
+        const _galleryBtn = document.getElementById('btn-scenario-gallery');
+        if (_galleryBtn) _galleryBtn.addEventListener('click', openScenarioGallery);
+        const _galleryClose = document.getElementById('btn-gallery-close');
+        if (_galleryClose) _galleryClose.addEventListener('click', closeScenarioGallery);
+        addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeScenarioGallery();
+            if (e.key === 'g' || e.key === 'G') {
+                const modal = document.getElementById('scenario-gallery-modal');
+                if (modal && modal.style.display === 'block') closeScenarioGallery();
+                else openScenarioGallery();
+            }
+        });
 
         // ── 자동 테스트 API (외부 접근용) ──
         window._sdacs = {
@@ -8708,6 +8827,13 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             get isMobile() { return mobConfig.isMobile; },
             get mobileLOD() { return mobConfig.autoLOD; },
             applyMobileLOD() { applyMobileLOD(); return mobConfig.autoLOD; },
+            // ===== HYPER Phase 14 — 시나리오 갤러리 외부 API =====
+            openGallery() { openScenarioGallery(); return true; },
+            closeGallery() { closeScenarioGallery(); return true; },
+            get galleryOpen() { return document.getElementById('scenario-gallery-modal')?.style.display === 'block'; },
+            get scenarioCategories() { return Object.keys(SCENARIO_CATEGORIES); },
+            // ===== HYPER Phase 15 — 다국어 외부 API (KO/EN/JA/ZH) =====
+            get availableLangs() { return LANG_ORDER.slice(); },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

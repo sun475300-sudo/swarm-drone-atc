@@ -20,6 +20,7 @@ env/
 # Data outputs (large files)
 data/results/
 data/reports/
+results/bench_*.json
 
 # Model cache
 ~/.cache/huggingface/

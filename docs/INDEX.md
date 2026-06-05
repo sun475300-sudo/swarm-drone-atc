@@ -1,6 +1,17 @@
 # SDACS Documentation Index
 
-이 저장소의 **80+ 문서** 마스터 인덱스. 빠르게 원하는 자료를 찾을 수 있도록 정리.
+이 저장소의 **90+ 문서** 마스터 인덱스. 빠르게 원하는 자료를 찾을 수 있도록 정리.
+
+## 🌟 시뮬레이터 50 Phase (MEGA + HYPER 완료)
+
+- **마스터**: [`SIMULATOR_MEGA_PLAN.md`](SIMULATOR_MEGA_PLAN.md) (Phase 1-9 ✅)
+- **확장**: [`SIMULATOR_HYPER_PLAN.md`](SIMULATOR_HYPER_PLAN.md) (Phase 11-50 ✅)
+- **상세**: [`SIMULATOR_PHASE_PLANS.md`](SIMULATOR_PHASE_PLANS.md)
+- **초장기**: [`SIMULATOR_STELLAR_PLAN.md`](SIMULATOR_STELLAR_PLAN.md) (Phase 51-100, 향후 5년)
+- **API**: [`SDACS_API.md`](SDACS_API.md) — 231개 자동 추출
+- **릴리스**: [`RELEASE_GUIDE.md`](RELEASE_GUIDE.md) · [`RELEASE_NOTES_v1.2.0.md`](RELEASE_NOTES_v1.2.0.md)
+- **데모**: [`demo/sample_search_rescue.sdacs-mission`](demo/sample_search_rescue.sdacs-mission)
+- **논문**: [`paper/SDACS_50_Phases_Results.tex`](paper/SDACS_50_Phases_Results.tex)
 
 ## 🚀 시작하기
 

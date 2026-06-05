@@ -10687,6 +10687,15 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             publicDemoLeaderboardAdd(name, score) { return publicDemoLeaderboardAdd(name, score); },
             publicDemoDailyChallenge() { return publicDemoDailyChallenge(); },
             get publicDemoLeaderboard() { return publicDemo.leaderboard.slice(); },
+            // ===== STELLAR Phase 51 — LLM Multi-Agent 스캐폴드 =====
+            // 드론 그룹별 GPT-4o/Claude 임시 의사결정 위임 hook (실 API는 사용자 키 필요)
+            stellar51DelegatedGroups: [],
+            stellar51DelegateGroup(droneIds, llmProvider) {
+                const grp = { id: 'GRP-' + Date.now(), droneIds: droneIds || [], llmProvider: llmProvider || 'claude-opus-4-7', delegatedAt: simTime, decisions: 0 };
+                window._sdacs.stellar51DelegatedGroups.push(grp);
+                if (window._sdacs.stellar51DelegatedGroups.length > 50) window._sdacs.stellar51DelegatedGroups.shift();
+                return grp;
+            },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

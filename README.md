@@ -818,6 +818,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-05 13:12 | `37ea702` | feat(simulator): HYPER Phase 21 적대 드론 정책 + Phase 28 Swarm Choreography | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_adversarial_choreo.py, visualization/swarm_3d_simulator.html |
 | 2026-06-05 12:54 | `487abd1` | feat(simulator): HYPER Phase 17 WebXR + Phase 19 Mission Recorder 공유 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_xr_mission.py, visualization/swarm_3d_simulator.html |
 | 2026-06-05 12:40 | `4b7df4d` | chore(gitignore): electron-builder 빌드 부산물 루트 main.js/preload.js 차단 | .gitignore |
 | 2026-06-05 12:38 | `c3fca2f` | feat(simulator): HYPER Phase 20 — AI Copilot 자연어 → ATC 명령 분해 | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_copilot.py, visualization/swarm_3d_simulator.html |

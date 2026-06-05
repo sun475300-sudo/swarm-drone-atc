@@ -2440,6 +2440,229 @@
             return d;
         }
 
+        // ===== HYPER Phase 21 — 적대 드론 정책 (Adversarial Drone Policies) =====
+        // 5계층 안전망 robustness 시연용 정책 기반 적대 드론.
+        // 정책별로 다른 공격 패턴 + 안전망 응답 측정.
+        const ADVERSARIAL_POLICIES = {
+            decoy: {
+                label: '🎭 미끼 유인',
+                description: '높이 변하며 우선순위 드론 근처 진입 → 회피 강제',
+                action: (d) => {
+                    if (d._policyT === undefined) d._policyT = 0;
+                    d._policyT += 0.05;
+                    d.targetAlt = 60 + Math.sin(d._policyT) * 30;
+                    // 가장 가까운 비-ROGUE 드론 추적
+                    let nearest = null, nd = Infinity;
+                    for (const o of drones) {
+                        if (o === d || o.isRogue || o.phase === 'GROUNDED' || o.phase === 'FAILED') continue;
+                        const dist = (o.wx - d.wx) ** 2 + (o.wz - d.wz) ** 2;
+                        if (dist < nd) { nd = dist; nearest = o; }
+                    }
+                    if (nearest) { d.goalX = nearest.wx; d.goalZ = nearest.wz; }
+                },
+            },
+            swarm_intrusion: {
+                label: '👥 군집 침투',
+                description: '여러 적대 드론이 동시 진입 (3개 spawn)',
+                spawn: () => 3,
+                action: (d) => {
+                    // 무리 비행 (Boids-like cohesion)
+                    let cx = 0, cz = 0, n = 0;
+                    for (const o of drones) {
+                        if (!o.isRogue || o === d) continue;
+                        cx += o.wx; cz += o.wz; n++;
+                    }
+                    if (n > 0) {
+                        cx /= n; cz /= n;
+                        d.goalX = cx; d.goalZ = cz;
+                    }
+                },
+            },
+            jamming: {
+                label: '📡 통신 방해',
+                description: '주변 1km 드론 통신 두절 유발 (자체는 ENROUTE)',
+                action: (d) => {
+                    // 매 5초마다 주변 드론에 comms_loss 주입
+                    if (d._policyT === undefined) d._policyT = simTime;
+                    if (simTime - d._policyT > 5) {
+                        d._policyT = simTime;
+                        let hit = 0;
+                        for (const o of drones) {
+                            if (o === d || o.isRogue) continue;
+                            const dist = Math.hypot(o.wx - d.wx, o.wz - d.wz);
+                            if (dist < 1000 && !o.commsLost) {
+                                o.commsLost = true;
+                                o.commsLostUntil = simTime + 3;
+                                hit++;
+                            }
+                        }
+                        if (hit > 0) logEvent('rogue', `📡 ${d.id} 통신 방해 → ${hit}대 영향`);
+                    }
+                },
+            },
+            direct_intercept: {
+                label: '🎯 직접 요격',
+                description: '가장 가치 높은 드론 (P1 우선순위) 직선 접근',
+                action: (d) => {
+                    let target = null, bestP = 99;
+                    for (const o of drones) {
+                        if (o === d || o.isRogue || o.phase === 'GROUNDED') continue;
+                        if (o.priority < bestP) { bestP = o.priority; target = o; }
+                    }
+                    if (target) { d.goalX = target.wx; d.goalZ = target.wz; d.maxSpeed = 22; }
+                },
+            },
+        };
+        const adversarialState = {
+            activePolicy: null,
+            droneIds: [],          // 활성 적대 드론 ID
+            safetyResponseTimes: [], // 안전망 응답 시간 측정 (ms)
+            startTs: 0,
+        };
+
+        function spawnAdversarial(policyName) {
+            const policy = ADVERSARIAL_POLICIES[policyName];
+            if (!policy) { logEvent('info', `❌ 알 수 없는 정책: ${policyName}`); return null; }
+            const count = policy.spawn ? policy.spawn() : 1;
+            adversarialState.activePolicy = policyName;
+            adversarialState.startTs = simTime;
+            adversarialState.droneIds = [];
+            for (let i = 0; i < count; i++) {
+                const d = injectRogue();
+                if (!d) continue;
+                d._policy = policyName;
+                d.id = 'ADV-' + String(drones.length).padStart(3, '0');
+                adversarialState.droneIds.push(d.id);
+            }
+            logEvent('rogue', `🎭 적대 정책 활성: ${policy.label} (${count} 드론)`);
+            return adversarialState.droneIds;
+        }
+
+        function updateAdversarial(dt) {
+            if (!adversarialState.activePolicy) return;
+            const policy = ADVERSARIAL_POLICIES[adversarialState.activePolicy];
+            if (!policy || !policy.action) return;
+            for (const d of drones) {
+                if (!adversarialState.droneIds.includes(d.id)) continue;
+                if (d.phase === 'GROUNDED' || d.phase === 'FAILED') continue;
+                try { policy.action(d); } catch (e) {}
+            }
+            // 안전망 응답 측정: 첫 회피 발생 시점 기록
+            if (adversarialState.safetyResponseTimes.length === 0 && stats.advisories > 0) {
+                adversarialState.safetyResponseTimes.push((simTime - adversarialState.startTs) * 1000);
+            }
+        }
+
+        function clearAdversarial() {
+            adversarialState.activePolicy = null;
+            adversarialState.droneIds.length = 0;
+            // 실제 ROGUE 드론은 그대로 두고 정책만 해제 (장애 주입과 동등)
+            logEvent('info', '🟢 적대 정책 해제 (드론은 유지)');
+        }
+
+        // ===== HYPER Phase 28 — Swarm Choreography (군무 형상 변환) =====
+        // 비행 중 드론들을 기하학 패턴으로 형상화. 발표·홍보 영상용.
+        const CHOREOGRAPHY_PATTERNS = {
+            circle: {
+                label: '⭕ 원형',
+                generator: (n, ctr) => {
+                    const r = 400; const pts = [];
+                    for (let i = 0; i < n; i++) {
+                        const a = (i / n) * Math.PI * 2;
+                        pts.push({ x: ctr.x + Math.cos(a) * r, z: ctr.z + Math.sin(a) * r, y: 80 });
+                    }
+                    return pts;
+                },
+            },
+            v_formation: {
+                label: '✈ V 편대',
+                generator: (n, ctr) => {
+                    const pts = [];
+                    const spread = 50;
+                    for (let i = 0; i < n; i++) {
+                        const row = Math.floor(i / 2);
+                        const side = i % 2 === 0 ? -1 : 1;
+                        pts.push({ x: ctr.x + side * row * spread, z: ctr.z + row * spread, y: 80 });
+                    }
+                    return pts;
+                },
+            },
+            grid: {
+                label: '🔲 격자',
+                generator: (n, ctr) => {
+                    const pts = []; const cols = Math.ceil(Math.sqrt(n)); const step = 80;
+                    for (let i = 0; i < n; i++) {
+                        const r = Math.floor(i / cols), c = i % cols;
+                        pts.push({ x: ctr.x + (c - cols / 2) * step, z: ctr.z + (r - cols / 2) * step, y: 80 });
+                    }
+                    return pts;
+                },
+            },
+            heart: {
+                label: '❤ 하트',
+                generator: (n, ctr) => {
+                    const pts = []; const s = 20;
+                    for (let i = 0; i < n; i++) {
+                        const t = (i / n) * Math.PI * 2;
+                        // Parametric heart
+                        const x = 16 * Math.sin(t) ** 3;
+                        const z = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+                        pts.push({ x: ctr.x + x * s, z: ctr.z + z * s, y: 80 });
+                    }
+                    return pts;
+                },
+            },
+            sdacs_logo: {
+                label: '🏷 SDACS 로고',
+                generator: (n, ctr) => {
+                    // 단순 'S' + 'D' 모양 (드론 자리)
+                    const pts = []; const step = 30;
+                    const path = []; // (x, z) 정규화 좌표
+                    // 'S'
+                    for (let i = 0; i < 8; i++) path.push([-50 + i * 12, -40]);
+                    for (let i = 0; i < 4; i++) path.push([-50, -40 + i * 12]);
+                    for (let i = 0; i < 8; i++) path.push([-50 + i * 12, 0]);
+                    for (let i = 0; i < 4; i++) path.push([-50 + 8 * 12, i * 12]);
+                    for (let i = 0; i < 8; i++) path.push([-50 + (8 - i) * 12, 40]);
+                    for (let i = 0; i < n; i++) {
+                        const pt = path[i % path.length];
+                        pts.push({ x: ctr.x + pt[0] * step / 12, z: ctr.z + pt[1] * step / 12, y: 80 + (i / n) * 20 });
+                    }
+                    return pts;
+                },
+            },
+        };
+        const choreoState = { pattern: null, targets: [], startTs: 0 };
+
+        function startChoreography(name) {
+            const p = CHOREOGRAPHY_PATTERNS[name];
+            if (!p) { logEvent('info', `❌ 알 수 없는 패턴: ${name}`); return false; }
+            const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED' && !d.isRogue);
+            if (airborne.length === 0) { logEvent('info', '✈ 비행 중 드론이 없습니다'); return false; }
+            const ctr = { x: 0, z: 0 };
+            const pts = p.generator(airborne.length, ctr);
+            choreoState.pattern = name;
+            choreoState.targets = airborne.map((d, i) => ({ id: d.id, target: pts[i] }));
+            choreoState.startTs = simTime;
+            // 각 드론에 목표 강제 변경
+            for (const e of choreoState.targets) {
+                const d = drones.find(x => x.id === e.id);
+                if (!d) continue;
+                d.goalX = e.target.x; d.goalZ = e.target.z;
+                d.targetAlt = e.target.y;
+                d.goalPad = { x: e.target.x, z: e.target.z, name: 'CHOREO' };
+                if (d.phase === 'HOLDING') { d.phase = 'ENROUTE'; d._holdActive = false; }
+            }
+            logEvent('info', `💃 군무 패턴 활성: ${p.label} (${airborne.length} 드론)`);
+            return true;
+        }
+
+        function clearChoreography() {
+            choreoState.pattern = null;
+            choreoState.targets.length = 0;
+            logEvent('info', '🟢 군무 패턴 해제 (드론 자율 복귀)');
+        }
+
         function injectDynamicNFZ(x, z, r, dur) {
             x = x ?? (Math.random() - 0.5) * W * 2 * 50;
             z = z ?? (Math.random() - 0.5) * W * 2 * 50;
@@ -8584,6 +8807,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // Phase 6 INJ — 장애 효과 + 만료 처리
             if (typeof updateInjFaults === 'function' && simRunning) updateInjFaults(dt);
 
+            // HYPER Phase 21 — 적대 정책 액션 실행
+            if (typeof updateAdversarial === 'function' && simRunning) updateAdversarial(dt);
+
             // Phase 8 AUD — 환경 사운드 + 임계 알람
             if (typeof updateAudAmbient === 'function') updateAudAmbient();
             if (typeof _audCriticalAlarm === 'function' && simRunning) _audCriticalAlarm();
@@ -9114,6 +9340,18 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             copilotPlan(prompt) { return _copilotPlan(prompt); },
             copilotExecute(plan) { return _copilotExecute(plan); },
             get copilotHistory() { return copilotHistory.slice(); },
+            // ===== HYPER Phase 21 — 적대 드론 정책 외부 API =====
+            spawnAdversarial(policy) { return spawnAdversarial(policy); },
+            clearAdversarial() { clearAdversarial(); return adversarialState.droneIds.length; },
+            get adversarialPolicy() { return adversarialState.activePolicy; },
+            get adversarialDrones() { return adversarialState.droneIds.slice(); },
+            get adversarialSafetyResponse() { return adversarialState.safetyResponseTimes.slice(); },
+            get adversarialPolicies() { return Object.keys(ADVERSARIAL_POLICIES); },
+            // ===== HYPER Phase 28 — Swarm Choreography 외부 API =====
+            startChoreography(pattern) { return startChoreography(pattern); },
+            clearChoreography() { clearChoreography(); return true; },
+            get choreoPattern() { return choreoState.pattern; },
+            get choreoPatterns() { return Object.keys(CHOREOGRAPHY_PATTERNS); },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

@@ -2859,6 +2859,259 @@
             return true;
         }
 
+        // ===== HYPER Phase 13 — WebGPU 50K Spatial Hash 스캐폴드 =====
+        // 50K 드론 spatial hash 격자 빌드용 GPU compute 인터페이스.
+        // 현재는 메모리 + CPU 폴백 구현, WGSL 셰이더는 후속 추가 가능.
+        const gpu50k = {
+            enabled: false,
+            cellSize: 100,            // m per cell
+            gridSize: 256,             // 25.6km × 25.6km coverage
+            buckets: null,             // Map(cellId → drone indices)
+            statsLastMs: 0,
+            targetCapacity: 50000,
+        };
+        function gpu50kBuildHash() {
+            if (!gpu50k.enabled) return null;
+            const t0 = performance.now();
+            const buckets = new Map();
+            const half = gpu50k.gridSize / 2;
+            for (let i = 0; i < drones.length; i++) {
+                const d = drones[i];
+                if (d.phase === 'GROUNDED' || d.phase === 'FAILED') continue;
+                const cx = Math.floor(d.wx / gpu50k.cellSize + half);
+                const cz = Math.floor(d.wz / gpu50k.cellSize + half);
+                if (cx < 0 || cx >= gpu50k.gridSize || cz < 0 || cz >= gpu50k.gridSize) continue;
+                const cid = cz * gpu50k.gridSize + cx;
+                if (!buckets.has(cid)) buckets.set(cid, []);
+                buckets.get(cid).push(i);
+            }
+            gpu50k.buckets = buckets;
+            gpu50k.statsLastMs = performance.now() - t0;
+            return { cells: buckets.size, durationMs: gpu50k.statsLastMs };
+        }
+        function gpu50kQueryNeighbors(droneIdx, radius) {
+            if (!gpu50k.enabled || !gpu50k.buckets) return [];
+            const d = drones[droneIdx];
+            if (!d) return [];
+            const half = gpu50k.gridSize / 2;
+            const cellRadius = Math.ceil(radius / gpu50k.cellSize);
+            const cx = Math.floor(d.wx / gpu50k.cellSize + half);
+            const cz = Math.floor(d.wz / gpu50k.cellSize + half);
+            const result = [];
+            for (let dz = -cellRadius; dz <= cellRadius; dz++) {
+                for (let dx = -cellRadius; dx <= cellRadius; dx++) {
+                    const nx = cx + dx, nz = cz + dz;
+                    if (nx < 0 || nx >= gpu50k.gridSize || nz < 0 || nz >= gpu50k.gridSize) continue;
+                    const cid = nz * gpu50k.gridSize + nx;
+                    const ids = gpu50k.buckets.get(cid);
+                    if (ids) for (const i of ids) if (i !== droneIdx) result.push(i);
+                }
+            }
+            return result;
+        }
+
+        // ===== HYPER Phase 16 — CRDT 다중 관제사 (in-memory 스캐폴드) =====
+        // Yjs CDN 없이 동작하는 단순 last-writer-wins CRDT.
+        // 실 협업은 후속에서 WebRTC P2P + Yjs로 격상.
+        const crdtState = {
+            enabled: false,
+            siteId: 'site-' + Math.floor(Math.random() * 1e6),
+            ops: [],                  // [{ts, siteId, target, cmd, params, lamport}]
+            lamport: 0,
+            peers: new Set(),         // peer site ID
+        };
+        function crdtAddOp(target, cmd, params) {
+            crdtState.lamport++;
+            const op = {
+                ts: Date.now(),
+                siteId: crdtState.siteId,
+                target,
+                cmd,
+                params: params || null,
+                lamport: crdtState.lamport,
+            };
+            crdtState.ops.push(op);
+            if (crdtState.ops.length > 500) crdtState.ops.shift();
+            return op;
+        }
+        function crdtMerge(remoteOps) {
+            // Simple: lamport sort + dedup by (siteId, lamport)
+            const seen = new Set();
+            for (const o of crdtState.ops) seen.add(`${o.siteId}:${o.lamport}`);
+            let added = 0;
+            for (const o of remoteOps || []) {
+                const key = `${o.siteId}:${o.lamport}`;
+                if (seen.has(key)) continue;
+                crdtState.ops.push(o);
+                crdtState.peers.add(o.siteId);
+                if (o.lamport > crdtState.lamport) crdtState.lamport = o.lamport;
+                seen.add(key);
+                added++;
+            }
+            crdtState.ops.sort((a, b) => a.lamport - b.lamport || a.siteId.localeCompare(b.siteId));
+            return added;
+        }
+        function crdtSnapshot() {
+            return {
+                siteId: crdtState.siteId,
+                lamport: crdtState.lamport,
+                opCount: crdtState.ops.length,
+                peers: [...crdtState.peers],
+                lastOps: crdtState.ops.slice(-20),
+            };
+        }
+
+        // ===== HYPER Phase 22 — Digital Twin Pixhawk HITL (MAVLink 스캐폴드) =====
+        // MAVLink GLOBAL_POSITION_INT (msgid=33) 파싱 → 시뮬 드론에 매핑.
+        // 실 Pixhawk WebSerial / WebUSB 연결은 후속에서 추가.
+        const dtwin = {
+            enabled: false,
+            linkedDroneId: null,
+            lastMessage: null,
+            packetCount: 0,
+            mappingMode: 'overwrite',  // 'overwrite' | 'compare'
+        };
+        // MAVLink GPI 페이로드 디코딩 (32바이트, little-endian):
+        //   time_boot_ms u32, lat i32 (1e7 deg), lon i32 (1e7 deg), alt i32 (mm),
+        //   relative_alt i32 (mm), vx i16 (cm/s), vy i16 (cm/s), vz i16 (cm/s), hdg u16 (cdeg)
+        function dtwinDecodeGPI(buf) {
+            if (!buf || buf.byteLength < 28) return null;
+            const dv = new DataView(buf);
+            return {
+                time_boot_ms: dv.getUint32(0, true),
+                lat: dv.getInt32(4, true) / 1e7,
+                lon: dv.getInt32(8, true) / 1e7,
+                alt_mm: dv.getInt32(12, true),
+                rel_alt_mm: dv.getInt32(16, true),
+                vx_cms: dv.getInt16(20, true),
+                vy_cms: dv.getInt16(22, true),
+                vz_cms: dv.getInt16(24, true),
+                hdg_cdeg: dv.getUint16(26, true),
+            };
+        }
+        // GPS → 로컬 ENU 변환 (단순화, 작은 영역 가정)
+        const dtwinOrigin = { lat: 34.808, lon: 126.391 }; // 목포대 기본
+        function dtwinGpsToEnu(lat, lon) {
+            const R = 6378137;
+            const dLat = (lat - dtwinOrigin.lat) * Math.PI / 180;
+            const dLon = (lon - dtwinOrigin.lon) * Math.PI / 180;
+            const meanLat = (lat + dtwinOrigin.lat) * 0.5 * Math.PI / 180;
+            return {
+                e: dLon * R * Math.cos(meanLat),
+                n: dLat * R,
+            };
+        }
+        function dtwinApplyGPI(payload, droneIdx) {
+            if (!dtwin.enabled || !payload) return false;
+            const idx = droneIdx ?? 0;
+            const d = drones[idx];
+            if (!d) return false;
+            const enu = dtwinGpsToEnu(payload.lat, payload.lon);
+            if (dtwin.mappingMode === 'overwrite') {
+                d.wx = enu.e;
+                d.wz = -enu.n;          // ENU → sim coord
+                d.wy = payload.rel_alt_mm / 1000;
+                d.vx = payload.vx_cms / 100;
+                d.vz = -payload.vy_cms / 100;
+                d.vy = -payload.vz_cms / 100;
+                d.heading = payload.hdg_cdeg / 100;
+            }
+            dtwin.lastMessage = { ...payload, enu };
+            dtwin.packetCount++;
+            dtwin.linkedDroneId = d.id;
+            return true;
+        }
+        function dtwinSetOrigin(lat, lon) {
+            dtwinOrigin.lat = lat; dtwinOrigin.lon = lon;
+            return { ...dtwinOrigin };
+        }
+
+        // ===== HYPER Phase 24 — NOTAM API hook (시뮬 + 오프라인 레지스트리) =====
+        // 실 NOTAM API 연결 전 단계: 임시 NFZ 자동 생성용 레지스트리.
+        const notams = [];
+        function notamAdd(entry) {
+            // entry: { id, lat, lon, radius_m, validUntil, type, raw }
+            // 또는 sim 직접 좌표: { x, z, r, dur }
+            if (!entry) return null;
+            const n = Object.assign({
+                id: 'NOTAM-' + (notams.length + 1),
+                addedAt: simTime,
+            }, entry);
+            // GPS → 로컬 변환
+            if (n.lat != null && n.lon != null) {
+                const enu = dtwinGpsToEnu(n.lat, n.lon);
+                n.x = enu.e; n.z = -enu.n;
+                n.r = n.radius_m || 200;
+            }
+            notams.push(n);
+            // 동적 NFZ로 자동 변환 (Phase 6 INJ와 통합)
+            if (n.x != null && n.z != null && n.r != null && typeof injectDynamicNFZ === 'function') {
+                const dur = n.validUntil ? Math.max(10, n.validUntil - simTime) : 600;
+                injectDynamicNFZ(n.x, n.z, n.r, dur);
+            }
+            logEvent('advisory', `📋 NOTAM ${n.id} 등록 (r=${Math.round(n.r || 0)}m)`);
+            return n;
+        }
+        function notamImportJson(text) {
+            try {
+                const data = typeof text === 'string' ? JSON.parse(text) : text;
+                const arr = Array.isArray(data) ? data : (data?.notams || []);
+                let n = 0;
+                for (const e of arr) {
+                    if (notamAdd(e)) n++;
+                }
+                logEvent('info', `📋 NOTAM ${n}건 import`);
+                return n;
+            } catch (e) {
+                logEvent('info', `📋 NOTAM import 실패: ${e.message || e}`);
+                return 0;
+            }
+        }
+
+        // ===== HYPER Phase 25 — Battery Aging Model =====
+        // cycle count + voltage sag under load + cold weather derating.
+        // 시뮬 시작 시 각 드론에 batteryAge 초기화 (이미 init에 없으면 lazy 생성).
+        function batteryAgeUpdate(d, dt) {
+            if (!d || d.phase === 'GROUNDED' || d.phase === 'FAILED') return;
+            if (d._batCycles == null) d._batCycles = Math.floor(Math.random() * 200);
+            // 1 사이클 = 100% → 0% → 100% 완전 충방전. 시뮬에서는 비행거리 누적으로 근사.
+            if (d._lastBatChk == null) d._lastBatChk = d.battery;
+            const consumed = Math.max(0, d._lastBatChk - d.battery);
+            d._batCycles += consumed / 100;
+            d._lastBatChk = d.battery;
+            // 사이클 누적에 따른 capacity fade: 500 cycles → 80% capacity
+            const fade = Math.max(0.6, 1 - d._batCycles / 2500);
+            // Voltage sag under load: 고추력 시 가용 용량 추가 감소 (5% 추가 sag)
+            const sag = d.throttle && d.throttle > 0.7 ? 0.95 : 1.0;
+            // Cold weather derating: weather.icing > 0 시 -15%
+            const cold = (typeof weather !== 'undefined' && weather.icing > 0) ? 0.85 : 1.0;
+            d._batEffective = fade * sag * cold;
+            // 효과 적용: 배터리 소모율 가속 (실 batteryAge 영향)
+            if (d._batEffective < 1.0 && d.battery > 0) {
+                d.battery = Math.max(0, d.battery - (1 - d._batEffective) * 0.5 * dt);
+            }
+        }
+        function batteryAgeStats() {
+            let totalCycles = 0, avgEff = 0, n = 0;
+            for (const d of drones) {
+                if (d._batCycles == null) continue;
+                totalCycles += d._batCycles;
+                avgEff += (d._batEffective || 1.0);
+                n++;
+            }
+            return n > 0 ? {
+                droneCount: n,
+                avgCycles: totalCycles / n,
+                avgEffective: avgEff / n,
+                worstEffective: Math.min(...drones.filter(d => d._batEffective != null).map(d => d._batEffective)),
+            } : null;
+        }
+        // 매 frame 업데이트
+        function updateBatteryAging(dt) {
+            if (!simRunning) return;
+            for (const d of drones) batteryAgeUpdate(d, dt);
+        }
+
         function injectDynamicNFZ(x, z, r, dur) {
             x = x ?? (Math.random() - 0.5) * W * 2 * 50;
             z = z ?? (Math.random() - 0.5) * W * 2 * 50;
@@ -9010,6 +9263,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             if (typeof updateCuas === 'function' && simRunning) updateCuas(dt);
             if (typeof updateWindField === 'function' && simRunning) updateWindField(dt);
 
+            // HYPER Phase 25 — Battery Aging Model
+            if (typeof updateBatteryAging === 'function') updateBatteryAging(dt);
+
             // Phase 8 AUD — 환경 사운드 + 임계 알람
             if (typeof updateAudAmbient === 'function') updateAudAmbient();
             if (typeof _audCriticalAlarm === 'function' && simRunning) _audCriticalAlarm();
@@ -9579,6 +9835,33 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 const n = windField.u.length;
                 return { avgU: su / n, avgV: sv / n, maxMag: mx, size: windField.size };
             },
+            // ===== HYPER Phase 13 — WebGPU 50K Spatial Hash =====
+            enableGpu50k(on) { gpu50k.enabled = !!on; return gpu50k.enabled; },
+            gpu50kBuild() { return gpu50kBuildHash(); },
+            gpu50kQuery(idx, radius) { return gpu50kQueryNeighbors(idx, radius || 200); },
+            get gpu50kEnabled() { return gpu50k.enabled; },
+            get gpu50kStats() { return { cellSize: gpu50k.cellSize, gridSize: gpu50k.gridSize, lastBuildMs: gpu50k.statsLastMs, bucketCount: gpu50k.buckets ? gpu50k.buckets.size : 0, targetCapacity: gpu50k.targetCapacity }; },
+            // ===== HYPER Phase 16 — CRDT 다중 관제사 =====
+            enableCrdt(on) { crdtState.enabled = !!on; return crdtState.enabled; },
+            crdtAddOp(target, cmd, params) { return crdtAddOp(target, cmd, params); },
+            crdtMerge(remoteOps) { return crdtMerge(remoteOps); },
+            crdtSnapshot() { return crdtSnapshot(); },
+            get crdtEnabled() { return crdtState.enabled; },
+            get crdtSiteId() { return crdtState.siteId; },
+            // ===== HYPER Phase 22 — Digital Twin Pixhawk =====
+            enableDtwin(on) { dtwin.enabled = !!on; return dtwin.enabled; },
+            dtwinDecodeGPI(buf) { return dtwinDecodeGPI(buf); },
+            dtwinApplyGPI(payload, idx) { return dtwinApplyGPI(payload, idx); },
+            dtwinSetOrigin(lat, lon) { return dtwinSetOrigin(lat, lon); },
+            get dtwinEnabled() { return dtwin.enabled; },
+            get dtwinStats() { return { linkedDroneId: dtwin.linkedDroneId, packetCount: dtwin.packetCount, lastMessage: dtwin.lastMessage, origin: { ...dtwinOrigin } }; },
+            // ===== HYPER Phase 24 — NOTAM =====
+            notamAdd(entry) { return notamAdd(entry); },
+            notamImportJson(text) { return notamImportJson(text); },
+            get notams() { return notams.slice(); },
+            get notamCount() { return notams.length; },
+            // ===== HYPER Phase 25 — Battery Aging =====
+            get batteryAgeStats() { return batteryAgeStats(); },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

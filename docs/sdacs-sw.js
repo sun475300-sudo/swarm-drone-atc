@@ -1,10 +1,12 @@
 // SDACS Service Worker — Phase 9 MOB
 // 정적 자산 캐싱 + 오프라인 동작 (시뮬레이터 핵심 파일만)
-const CACHE = 'sdacs-v1-2026-06-04';
+const CACHE = 'sdacs-v2-2026-06-04';
 const PRECACHE = [
   'swarm_3d_simulator.html',
   'maritime_detection_simulator.html',
   'manifest.webmanifest',
+  'vendor/three/three.module.js',
+  'vendor/three/addons/controls/OrbitControls.js',
 ];
 
 self.addEventListener('install', (event) => {

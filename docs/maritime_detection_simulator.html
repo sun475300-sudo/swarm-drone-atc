@@ -3,7 +3,11 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#02060d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.webmanifest">
     <title>SDACS-Marine — 소형선 감지·식별 시뮬레이터</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -779,15 +783,21 @@
         // ===== 테스트/외부 API =====
         // ===== C3 EO/IR 합성 카메라 뷰 =====
         let eoMode = 'EO';                       // 'EO' | 'IR'
-        function drawEOIR() {
-            const cv = document.getElementById('eoir-cv'); if (!cv) return;
-            const x = cv.getContext('2d'), W2 = cv.width, H2 = cv.height;
-            const v = selected;
-            if (!v) { x.fillStyle = '#000'; x.fillRect(0, 0, W2, H2); return; }
-            const ct = v.classified || v.type;
-            const speedKn = Math.hypot(v.vx, v.vz) / 0.514;
+        // P735: EO/IR 소스 adapter 레지스트리 — 'synth'(기본 합성) + 외부 SDK 등록 가능
+        let eoirSource = 'synth';
+        const eoirSources = {};
+        function registerEOIRSource(name, handler) {
+            // handler(ctx, w, h, ctx_info) — ctx_info = { eoMode, vessel, NM, distNM, speedKn }
+            if (typeof handler === 'function' && typeof name === 'string') eoirSources[name] = handler;
+        }
+        function selectEOIRSource(name) {
+            if (name in eoirSources || name === 'synth') { eoirSource = name; return eoirSource; }
+            return null;
+        }
+        function _drawEOIRSynth(x, W2, H2, info) {
+            const v = info.vessel, ct = v.classified || v.type;
             const horizon = H2 * 0.52;
-            if (eoMode === 'EO') {
+            if (info.eoMode === 'EO') {
                 // 주간 광학: 하늘/바다/표적 실루엣
                 const sky = x.createLinearGradient(0, 0, 0, horizon);
                 sky.addColorStop(0, '#7fa8c9'); sky.addColorStop(1, '#bcd4e6'); x.fillStyle = sky;
@@ -802,10 +812,9 @@
                 x.fillRect(0, 0, W2, H2);
             }
             // 표적 실루엣(거리에 따라 크기) — 중앙 배치
-            const distNM = Math.hypot(v.wx, v.wz) / NM;
-            const scale = Math.max(0.4, Math.min(1.6, 2.2 / (distNM + 0.5)));
+            const scale = Math.max(0.4, Math.min(1.6, 2.2 / (info.distNM + 0.5)));
             const bw = 64 * scale, bh = 20 * scale, cx = W2 / 2, cy = horizon - bh * 0.3;
-            if (eoMode === 'EO') {
+            if (info.eoMode === 'EO') {
                 x.fillStyle = '#' + ct.color.toString(16).padStart(6, '0');
                 x.fillRect(cx - bw / 2, cy - bh, bw, bh);
                 x.fillStyle = '#dfeaf2'; x.fillRect(cx - bw * 0.18, cy - bh * 1.7, bw * 0.36, bh * 0.7); // 선실
@@ -822,14 +831,35 @@
                 x.fillRect(cx - bw / 2, cy - bh, bw, bh);
             }
             // 조준 십자선 + 정보 오버레이
-            x.strokeStyle = eoMode === 'EO' ? 'rgba(255,255,255,0.5)' : 'rgba(0,255,170,0.6)'; x.lineWidth = 1;
+            x.strokeStyle = info.eoMode === 'EO' ? 'rgba(255,255,255,0.5)' : 'rgba(0,255,170,0.6)'; x.lineWidth = 1;
             x.beginPath(); x.moveTo(cx, cy - 40); x.lineTo(cx, cy + 14); x.moveTo(cx - 28, cy - bh * 0.5); x.lineTo(cx + 28, cy - bh * 0.5); x.stroke();
             x.strokeRect(cx - bw / 2 - 4, cy - bh - 4, bw + 8, bh + 8);
-            x.font = '9px JetBrains Mono'; x.fillStyle = eoMode === 'EO' ? '#fff' : '#0fb';
-            x.fillText(`${eoMode}  ${ct.label}`, 6, 13);
-            x.fillText(`${distNM.toFixed(1)}NM  ${speedKn.toFixed(0)}kn`, 6, H2 - 6);
+            x.font = '9px JetBrains Mono'; x.fillStyle = info.eoMode === 'EO' ? '#fff' : '#0fb';
+            x.fillText(`${info.eoMode}  ${ct.label}`, 6, 13);
+            x.fillText(`${info.distNM.toFixed(1)}NM  ${info.speedKn.toFixed(0)}kn`, 6, H2 - 6);
             x.fillText(v.id, W2 - 44, 13);
             if (v.cpaWarn) { x.fillStyle = '#ef4444'; x.fillText('⚠ CPA', W2 - 52, H2 - 6); }
+        }
+        eoirSources.synth = _drawEOIRSynth;
+        function drawEOIR() {
+            const cv = document.getElementById('eoir-cv'); if (!cv) return;
+            const x = cv.getContext('2d'), W2 = cv.width, H2 = cv.height;
+            const v = selected;
+            if (!v) { x.fillStyle = '#000'; x.fillRect(0, 0, W2, H2); return; }
+            const info = {
+                eoMode, vessel: v, NM,
+                distNM: Math.hypot(v.wx, v.wz) / NM,
+                speedKn: Math.hypot(v.vx, v.vz) / 0.514,
+                sourceLabel: eoirSource,
+            };
+            const handler = eoirSources[eoirSource] || eoirSources.synth;
+            try {
+                handler(x, W2, H2, info);
+            } catch (e) {
+                // 외부 SDK 실패 시 synth fallback
+                console.warn('EO/IR source', eoirSource, 'failed → synth fallback:', e?.message);
+                eoirSources.synth(x, W2, H2, info);
+            }
         }
         function updateEOIRPanel() {
             const p = document.getElementById('eoir-panel'); if (!p) return;
@@ -953,6 +983,12 @@
             deselect: deselectVessel,
             eoirMode(m) { if (m === 'EO' || m === 'IR') { eoMode = m; updateEOIRPanel(); } return eoMode; }, // C3
             eoirDataURL() { drawEOIR(); const cv = document.getElementById('eoir-cv'); return cv ? cv.toDataURL('image/png') : null; }, // C3
+            // P735: EO/IR 외부 SDK adapter — handler(ctx, w, h, info) 등록
+            // info = { eoMode:'EO'|'IR', vessel, NM, distNM, speedKn, sourceLabel }
+            registerEOIRSource(name, handler) { registerEOIRSource(name, handler); return Object.keys(eoirSources); },
+            selectEOIRSource(name) { return selectEOIRSource(name); },
+            get eoirSource() { return eoirSource; },
+            get eoirSources() { return Object.keys(eoirSources); },
             reportDataURL() { return buildReportCanvas().toDataURL('image/png'); }, // C6 PNG
             csvText() {                                                              // C6 CSV (테스트용)
                 const head = 'id,type,len_m,radar_det,ais_det,identified';
@@ -998,6 +1034,12 @@
 
         initScenario('normal');
         running = true;
+
+        // Phase 9 MOB — Service Worker 등록 (오프라인 실행)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sdacs-sw.js').catch(() => {});
+        }
+
         animate();
     </script>
 </body>

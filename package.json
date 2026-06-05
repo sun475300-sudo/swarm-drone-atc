@@ -1,8 +1,8 @@
 {
   "name": "sdacs-simulator",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "SDACS Desktop Simulator — 군집 드론 공역통제 + 해양 소형선 감지 (Electron + Three.js)",
+  "description": "SDACS Desktop Simulator v1.1 — 군집 드론 공역통제 (Phase 1-9: ATC·TAC·CIN·CAM·MIS·INJ·ANA·AUD·MOB) + 해양 소형선 감지 (Electron + Three.js)",
   "author": "SDACS Capstone Team, Mokpo National University",
   "license": "MIT",
   "main": "desktop/main.js",
@@ -36,6 +36,8 @@
       "desktop/**/*",
       "swarm_3d_simulator.html",
       "maritime_detection_simulator.html",
+      "manifest.webmanifest",
+      "sdacs-sw.js",
       "vendor/three/**/*",
       "package.json"
     ],

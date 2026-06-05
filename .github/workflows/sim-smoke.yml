@@ -1,24 +1,62 @@
 name: Simulator Smoke Test
 
-# swarm_3d_simulator.html(메인 시뮬레이터)와 maritime_detection_simulator.html(해양)
+# swarm_3d_simulator.html(메인 ATC 시뮬레이터)와 maritime_detection_simulator.html(해양)
 # 의 _sdacs/_mds API를 헤드리스 브라우저로 검증.
+# Phase 1-9 (ATC/TAC/CIN/CAM/MIS/INJ/ANA/AUD/MOB) Playwright E2E 통합.
 on:
   push:
     paths:
       - 'swarm_3d_simulator.html'
       - 'maritime_detection_simulator.html'
+      - 'visualization/swarm_3d_simulator.html'
+      - 'docs/swarm_3d_simulator.html'
+      - 'docs/simulator.html'
+      - 'manifest.webmanifest'
+      - 'sdacs-sw.js'
       - 'tests/e2e/**'
       - '.github/workflows/sim-smoke.yml'
   pull_request:
     paths:
       - 'swarm_3d_simulator.html'
       - 'maritime_detection_simulator.html'
+      - 'visualization/swarm_3d_simulator.html'
+      - 'docs/swarm_3d_simulator.html'
+      - 'docs/simulator.html'
+      - 'manifest.webmanifest'
+      - 'sdacs-sw.js'
       - 'tests/e2e/**'
       - '.github/workflows/sim-smoke.yml'
   workflow_dispatch:
 
 jobs:
-  smoke:
+  js-syntax:
+    name: JS 구문 검사 (node --check)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Extract + check swarm script
+        run: |
+          python3 -c "
+          import re
+          for f in ['swarm_3d_simulator.html', 'maritime_detection_simulator.html']:
+              s = open(f).read()
+              m = re.search(r'<script type=\"module\">(.*?)</script>', s, re.DOTALL)
+              if m:
+                  out = f.replace('.html', '_extracted.mjs')
+                  open('/tmp/' + out, 'w').write(m.group(1))
+                  print(f'extracted: /tmp/{out} ({len(m.group(1))} chars)')
+          "
+          node --check /tmp/swarm_3d_simulator_extracted.mjs
+          node --check /tmp/maritime_detection_simulator_extracted.mjs
+
+  smoke-node:
+    name: Node 헤드리스 스모크 (smoke_sim.mjs · smoke_maritime.mjs)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -53,3 +91,26 @@ jobs:
         env:
           SIM_URL: http://localhost:8123/maritime_detection_simulator.html
         run: node tests/e2e/smoke_maritime.mjs
+
+  smoke-pytest:
+    name: Python Playwright E2E (Phase 1-9 ATC·TAC·CIN·CAM·MIS·INJ·ANA·AUD·MOB)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pytest + playwright (python)
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-xdist playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Run Phase 1-9 E2E
+        run: |
+          python -m pytest tests/e2e/test_simulator_atc.py tests/e2e/test_simulator_tac.py tests/e2e/test_simulator_cin_inj.py tests/e2e/test_simulator_cam_aud.py tests/e2e/test_simulator_mis_ana_mob.py -v --no-cov -n auto

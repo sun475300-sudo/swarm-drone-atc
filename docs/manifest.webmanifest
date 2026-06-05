@@ -1,7 +1,7 @@
 {
   "name": "SDACS — Swarm Drone Airspace Control",
   "short_name": "SDACS",
-  "description": "군집드론 공역통제 자동화 시스템 3D 시뮬레이터",
+  "description": "군집드론 공역통제 자동화 시스템 + 해양 소형선 감지 3D 시뮬레이터",
   "lang": "ko",
   "start_url": "swarm_3d_simulator.html",
   "scope": ".",
@@ -15,6 +15,20 @@
       "sizes": "192x192 512x512",
       "type": "image/png",
       "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "군집 ATC 시뮬레이터",
+      "short_name": "ATC",
+      "description": "Phase 1-9 통합 군집 드론 관제 시뮬레이터",
+      "url": "swarm_3d_simulator.html"
+    },
+    {
+      "name": "해양 탐지 시뮬레이터",
+      "short_name": "Maritime",
+      "description": "레이더·AIS·EO/IR·COLREG·CPA 융합 소형선 감지",
+      "url": "maritime_detection_simulator.html"
     }
   ],
   "categories": ["education", "utilities", "productivity"]

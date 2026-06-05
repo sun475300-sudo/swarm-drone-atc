@@ -3,7 +3,11 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#02060d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.webmanifest">
     <title>SDACS-Marine — 소형선 감지·식별 시뮬레이터</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1030,6 +1034,12 @@
 
         initScenario('normal');
         running = true;
+
+        // Phase 9 MOB — Service Worker 등록 (오프라인 실행)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sdacs-sw.js').catch(() => {});
+        }
+
         animate();
     </script>
 </body>

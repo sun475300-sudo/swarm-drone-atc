@@ -818,6 +818,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-05 10:05 | `d16b6f2` | feat(simulator): HYPER Phase 14 시나리오 갤러리 + Phase 15 KO/EN/JA/ZH 4언어 | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_gallery_i18n.py, visualization/swarm_3d_simulator.html |
 | 2026-06-05 09:46 | `d26d4d5` | feat(maritime): HYPER Phase 11 — 해양 ATC 명령 콘솔 동등 이식 | README.md, docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/test_maritime_atc.py, visualization/maritime_detection_simulator.html |
 | 2026-06-05 09:41 | `4ea7956` | docs: HYPER 플랜 Phase 10-50 + SDACS_API 92항목 자동문서 + RELEASE_GUIDE + 사본 동기화 | README.md, docs/RELEASE_GUIDE.md, docs/SDACS_API.md, docs/SIMULATOR_HYPER_PLAN.md, visualization/maritime_detection_simulator.html |
 | 2026-06-05 09:19 | `a77c3f3` | feat(self-feedback): 데스크탑 v1.1 빌드 + 해양 PWA + CI 3-job 강화 | .github/workflows/sim-smoke.yml, README.md, desktop/home.html, docs/manifest.webmanifest, docs/maritime_detection_simulator.html, docs/sdacs-sw.js … |

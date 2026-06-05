@@ -108,7 +108,7 @@ jobs:
       - name: Install pytest + playwright (python)
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-xdist playwright numpy
+          pip install pytest pytest-xdist pytest-cov playwright numpy
           python -m playwright install --with-deps chromium
 
       - name: Run Phase 1-9 + STELLAR E2E

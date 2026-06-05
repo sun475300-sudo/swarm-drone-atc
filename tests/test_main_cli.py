@@ -67,6 +67,30 @@ def test_simulate_rejects_unknown_flag():
     assert result.returncode != 0
 
 
+def test_simulate_output_writes_json(tmp_path):
+    """simulate --output 가 유효한 KPI JSON 을 기록해야 한다.
+
+    나이틀리 벤치마크 CI(.github/workflows/ci.yml)가
+    `simulate --duration 60 --drones N --output results/bench_N.json`
+    형태로 호출한다. --output 플래그가 누락되면 벤치마크 잡이 RED 가 된다.
+    """
+    import json
+
+    out_file = tmp_path / "bench.json"
+    result = _run_help(
+        "simulate", "--duration", "2", "--drones", "3",
+        "--output", str(out_file),
+    )
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    assert out_file.exists(), "출력 JSON 파일이 생성되지 않았다"
+
+    payload = json.loads(out_file.read_text(encoding="utf-8"))
+    # 벤치마크 소비자가 기대하는 핵심 키
+    assert "conflict_resolution_rate_pct" in payload
+    assert "elapsed_s" in payload
+    assert payload["n_drones"] == 3
+
+
 def test_main_imports_without_error():
     """main 모듈 자체가 import 단계에서 예외 없이 로드되어야 한다.
 

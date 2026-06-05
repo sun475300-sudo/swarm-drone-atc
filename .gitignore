@@ -74,3 +74,6 @@ _*.ps1
 htmlcov/
 .pytest_cache/
 pytest-cache-files-*/
+
+# 나이틀리 벤치마크 CI 산출물 (artifact 업로드용, 커밋 대상 아님)
+results/bench_*.json

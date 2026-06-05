@@ -818,6 +818,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-05 18:17 | `f3aefd6` | docs: 일일 점검 2026-06-05 — STELLAR 51-100 main 반영 확인 + 회귀 3,932 pass 정합화 | CHANGELOG.md, ROADMAP.md, STATUS_REPORT.md |
 | 2026-06-05 17:55 | `8921e1d` | chore: package v1.2.0 → v1.3.0 — STELLAR Phase 52-100 통합 (100 Phase 완료) | package.json |
 | 2026-06-05 17:54 | `4c0dcd6` | feat(simulator): STELLAR Phase 52-100 일괄 49개 — 100 Phase 전부 완료 | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_stellar.py, visualization/swarm_3d_simulator.html |
 | 2026-06-05 15:24 | `cf25c25` | feat: 통합 마감 사이클 — ROADMAP·v1.2 노트·STELLAR 플랜·데모 mission·STELLAR Phase 51 시드 | ROADMAP.md, docs/INDEX.md, docs/RELEASE_NOTES_v1.2.0.md, docs/SIMULATOR_STELLAR_PLAN.md, docs/demo/sample_search_rescue.sdacs-mission, docs/simulator.html … |

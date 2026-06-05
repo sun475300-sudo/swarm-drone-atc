@@ -67,6 +67,26 @@ def test_simulate_rejects_unknown_flag():
     assert result.returncode != 0
 
 
+def test_simulate_output_writes_json(tmp_path):
+    """simulate --output 가 KPI 요약 JSON 파일을 기록해야 한다.
+
+    CI benchmark 잡(`python main.py simulate ... --output results/bench_*.json`)이
+    이 플래그에 의존하므로, 누락 시 main CI 가 RED 가 된다.
+    """
+    import json
+
+    out_file = tmp_path / "bench.json"
+    result = _run_help(
+        "simulate", "--duration", "3", "--drones", "5",
+        "--output", str(out_file),
+    )
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    assert out_file.exists(), "출력 JSON 파일이 생성되지 않았다"
+    payload = json.loads(out_file.read_text(encoding="utf-8"))
+    assert "collision_count" in payload
+    assert payload["n_drones"] == 5
+
+
 def test_main_imports_without_error():
     """main 모듈 자체가 import 단계에서 예외 없이 로드되어야 한다.
 

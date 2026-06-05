@@ -97,6 +97,21 @@ def cmd_simulate(args: argparse.Namespace) -> None:
 
     print(f"\n✅ 시뮬레이션 완료 ({duration:.0f}s, {drones}기, 실행시간 {elapsed:.1f}s)\n")
 
+    # KPI 요약 JSON 저장 (--output)
+    output = getattr(args, "output", None)
+    if output:
+        import json
+        from pathlib import Path
+
+        payload = result.to_dict()
+        payload["elapsed_s"] = round(elapsed, 3)
+        payload["event_counts"] = event_counts
+        payload["phase_counts"] = phase_counts
+        out_path = Path(output)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"📄 KPI 요약 저장: {out_path}\n")
+
 
 # ── scenario ─────────────────────────────────────────────────
 
@@ -473,6 +488,7 @@ def main() -> None:
     p_sim.add_argument("--duration", type=float, default=600.0, help="시뮬레이션 시간 (초)")
     p_sim.add_argument("--seed",     type=int,   default=42, help="랜덤 시드")
     p_sim.add_argument("--drones",   type=int,   default=100, help="드론 수")
+    p_sim.add_argument("--output",   default=None, help="KPI 요약 JSON 저장 경로")
     p_sim.add_argument("--log-level", default="INFO")
 
     # ── scenario ────────────────────────────────────────────────

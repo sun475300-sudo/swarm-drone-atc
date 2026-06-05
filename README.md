@@ -818,6 +818,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-05 16:12 | `b3bf3a8` | feat(simulator): STELLAR Phase 51 완성 — LLM Multi-Agent 규칙 기반 위임 | CHANGELOG.md, STATUS_REPORT.md, docs/SIMULATOR_STELLAR_PLAN.md, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_stellar51.py … |
 | 2026-06-05 15:24 | `cf25c25` | feat: 통합 마감 사이클 — ROADMAP·v1.2 노트·STELLAR 플랜·데모 mission·STELLAR Phase 51 시드 | ROADMAP.md, docs/INDEX.md, docs/RELEASE_NOTES_v1.2.0.md, docs/SIMULATOR_STELLAR_PLAN.md, docs/demo/sample_search_rescue.sdacs-mission, docs/simulator.html … |
 | 2026-06-05 15:12 | `781cd25` | docs: 50 Phase 완료 후속 작업 — API 재생성·CHANGELOG·v1.2 빌드·논문 표 | CHANGELOG.md, docs/SDACS_API.md, docs/paper/SDACS_50_Phases_Results.tex, package.json |
 | 2026-06-05 14:38 | `c2ceda1` | feat(simulator): HYPER Phase 32-50 일괄 19개 완료 — MEGA 9 + HYPER 41 = 50 Phase 통합 | README.md, STATUS_REPORT.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_phase32_50.py … |

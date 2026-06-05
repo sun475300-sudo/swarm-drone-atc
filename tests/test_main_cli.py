@@ -67,6 +67,27 @@ def test_simulate_rejects_unknown_flag():
     assert result.returncode != 0
 
 
+def test_simulate_output_writes_json(tmp_path: Path):
+    """simulate --output 가 KPI JSON 파일을 생성해야 한다.
+
+    나이틀리 벤치마크 CI(`ci.yml`)가 의존하는 경로. 이 인자가 없으면
+    `unrecognized arguments: --output` 으로 benchmark 잡이 RED 가 된다.
+    """
+    import json
+
+    out_path = tmp_path / "bench.json"
+    result = _run_help(
+        "simulate", "--duration", "5", "--drones", "5",
+        "--output", str(out_path),
+    )
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    assert out_path.exists()
+
+    record = json.loads(out_path.read_text(encoding="utf-8"))
+    assert record["n_drones"] == 5
+    assert "wall_time_s" in record
+
+
 def test_main_imports_without_error():
     """main 모듈 자체가 import 단계에서 예외 없이 로드되어야 한다.
 

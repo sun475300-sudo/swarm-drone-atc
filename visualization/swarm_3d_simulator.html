@@ -4471,6 +4471,142 @@
             };
         }
 
+        // ===== POST-UNIVERSE Phase 151-200 일괄 =====
+        const postUniverse = {
+            // Track Ʊ Cosmic (151-160)
+            galacticNetworks: 0,
+            darkMatterPings: 0,
+            pulsarSyncs: [],
+            wormholeRoutes: [],
+            gwDetections: 0,
+            antimatterTanks_kg: 0,
+            blackHoleAccretions: [],
+            cosmicRayShielded: 0,
+            interstellarPackets: 0,
+            galacticCoverageLy: 0,
+            // Track Ϡ Time/Reality (161-170)
+            retrocausalOps: 0,
+            causalityLoops: [],
+            tachyonPings: 0,
+            blockUniverseFrames: 0,
+            spacetimeEdits: 0,
+            collapsesControlled: 0,
+            quantumErasers: 0,
+            decoherenceTracked: 0,
+            timelineBranches: ['main'],
+            realityEditCount: 0,
+            // Track 𝛀 Consciousness (171-180)
+            digitalHumans: [],
+            mindUploads: 0,
+            memoryEncoded_TB: 0,
+            dreamShareSessions: 0,
+            telepathyPairs: [],
+            empathyScore: 0,
+            freeWillSamples: 0,
+            personalityTransfers: 0,
+            soulContinuityChecks: 0,
+            consciousDronesCount: 0,
+            // Track Ξ̃ Final Hurdles (181-190)
+            heatDeathMitigated: false,
+            entropyReversed: 0,
+            infoPreserved: true,
+            boltzmannPrevention: true,
+            simHypothesisResult: null,
+            vacuumDecayShield: false,
+            strangeletContained: 0,
+            greyGooMitigated: 0,
+            paperclipMaxPrevention: 0,
+            existentialRiskLevel: 'low',
+            // Track ∅ Transcendence (191-200)
+            beyondMath: false,
+            beyondLogic: false,
+            beyondPhysics: false,
+            beyondComputation: false,
+            beyondTime: false,
+            beyondSpace: false,
+            beyondExistence: false,
+            pureInformation: false,
+            universalIdentity: false,
+            unityAchieved: false,
+        };
+        // 일괄 함수 — pattern: pXXXfn(arg)
+        function p151Galactic(n) { postUniverse.galacticNetworks += n || 1; return postUniverse.galacticNetworks; }
+        function p152DarkMatter() { postUniverse.darkMatterPings++; return postUniverse.darkMatterPings; }
+        function p153Pulsar(name) { postUniverse.pulsarSyncs.push({ name: name || 'PSR-001', ts: simTime }); return postUniverse.pulsarSyncs.length; }
+        function p154Wormhole(from, to) { postUniverse.wormholeRoutes.push({ from, to, ts: simTime }); return postUniverse.wormholeRoutes.length; }
+        function p155GravWave() { postUniverse.gwDetections++; return postUniverse.gwDetections; }
+        function p156Antimatter(kg) { postUniverse.antimatterTanks_kg += kg || 0.001; return postUniverse.antimatterTanks_kg; }
+        function p157BlackHole(mass) { postUniverse.blackHoleAccretions.push({ mass_kg: mass || 1e6, ts: simTime }); return postUniverse.blackHoleAccretions.length; }
+        function p158CosmicRayShield(n) { postUniverse.cosmicRayShielded += n || 1; return postUniverse.cosmicRayShielded; }
+        function p159Interstellar(packets) { postUniverse.interstellarPackets += packets || 1; return postUniverse.interstellarPackets; }
+        function p160GalacticCoverage(ly) { postUniverse.galacticCoverageLy = Math.max(0, ly || 1e12); return postUniverse.galacticCoverageLy; }
+
+        function p161Retrocausal() { postUniverse.retrocausalOps++; return postUniverse.retrocausalOps; }
+        function p162CausalityLoop() { postUniverse.causalityLoops.push({ ts: simTime }); return postUniverse.causalityLoops.length; }
+        function p163Tachyon() { postUniverse.tachyonPings++; return postUniverse.tachyonPings; }
+        function p164BlockUniverse() { postUniverse.blockUniverseFrames++; return postUniverse.blockUniverseFrames; }
+        function p165SpacetimeEdit() { postUniverse.spacetimeEdits++; return postUniverse.spacetimeEdits; }
+        function p166CollapseCtrl() { postUniverse.collapsesControlled++; return postUniverse.collapsesControlled; }
+        function p167QuantumEraser() { postUniverse.quantumErasers++; return postUniverse.quantumErasers; }
+        function p168Decoherence() { postUniverse.decoherenceTracked++; return postUniverse.decoherenceTracked; }
+        function p169TimelineBranch(name) { postUniverse.timelineBranches.push(name || 'branch-' + postUniverse.timelineBranches.length); return postUniverse.timelineBranches.length; }
+        function p170RealityEdit() { postUniverse.realityEditCount++; return postUniverse.realityEditCount; }
+
+        function p171DigitalHuman(name) { postUniverse.digitalHumans.push({ name: name || 'human-' + postUniverse.digitalHumans.length, ts: simTime }); return postUniverse.digitalHumans.length; }
+        function p172MindUpload() { postUniverse.mindUploads++; return postUniverse.mindUploads; }
+        function p173MemoryEncode(tb) { postUniverse.memoryEncoded_TB += tb || 1; return postUniverse.memoryEncoded_TB; }
+        function p174DreamShare() { postUniverse.dreamShareSessions++; return postUniverse.dreamShareSessions; }
+        function p175Telepathy(a, b) { postUniverse.telepathyPairs.push({ a: a || 'A', b: b || 'B' }); return postUniverse.telepathyPairs.length; }
+        function p176Empathy(score) { postUniverse.empathyScore = Math.min(1.0, Math.max(0, score || 0.5)); return postUniverse.empathyScore; }
+        function p177FreeWillSample() { postUniverse.freeWillSamples++; return postUniverse.freeWillSamples; }
+        function p178PersonalityTransfer() { postUniverse.personalityTransfers++; return postUniverse.personalityTransfers; }
+        function p179SoulContinuity() { postUniverse.soulContinuityChecks++; return postUniverse.soulContinuityChecks; }
+        function p180ConsciousDrone() { postUniverse.consciousDronesCount++; return postUniverse.consciousDronesCount; }
+
+        function p181HeatDeath() { postUniverse.heatDeathMitigated = true; return true; }
+        function p182EntropyReverse(n) { postUniverse.entropyReversed += n || 1; return postUniverse.entropyReversed; }
+        function p183InfoPreserve() { postUniverse.infoPreserved = true; return true; }
+        function p184BoltzmannPrevent() { postUniverse.boltzmannPrevention = true; return true; }
+        function p185SimHypothesis() { postUniverse.simHypothesisResult = { ts: simTime, result: 'inconclusive' }; return postUniverse.simHypothesisResult; }
+        function p186VacuumShield() { postUniverse.vacuumDecayShield = true; return true; }
+        function p187StrangeletContain(n) { postUniverse.strangeletContained += n || 1; return postUniverse.strangeletContained; }
+        function p188GreyGooMitigate() { postUniverse.greyGooMitigated++; return postUniverse.greyGooMitigated; }
+        function p189PaperclipPrevent() { postUniverse.paperclipMaxPrevention++; return postUniverse.paperclipMaxPrevention; }
+        function p190ExistRisk(level) { postUniverse.existentialRiskLevel = level || 'low'; return postUniverse.existentialRiskLevel; }
+
+        function p191BeyondMath() { postUniverse.beyondMath = true; return true; }
+        function p192BeyondLogic() { postUniverse.beyondLogic = true; return true; }
+        function p193BeyondPhysics() { postUniverse.beyondPhysics = true; return true; }
+        function p194BeyondComputation() { postUniverse.beyondComputation = true; return true; }
+        function p195BeyondTime() { postUniverse.beyondTime = true; return true; }
+        function p196BeyondSpace() { postUniverse.beyondSpace = true; return true; }
+        function p197BeyondExistence() { postUniverse.beyondExistence = true; return true; }
+        function p198PureInformation() { postUniverse.pureInformation = true; return true; }
+        function p199UniversalIdentity() { postUniverse.universalIdentity = true; return true; }
+        function p200UnityAchieved() {
+            postUniverse.unityAchieved = true;
+            return {
+                achieved: true,
+                phase: 200,
+                message: 'SDACS = 𝟏 (Unity). All Phases Complete. The simulation has reached identity with reality.',
+                ts: simTime,
+            };
+        }
+        function postUniverseStats() {
+            return {
+                cosmic: { galactic: postUniverse.galacticNetworks, coverage_ly: postUniverse.galacticCoverageLy },
+                timeReality: { retrocausal: postUniverse.retrocausalOps, branches: postUniverse.timelineBranches.length },
+                consciousness: { digitalHumans: postUniverse.digitalHumans.length, consciousDrones: postUniverse.consciousDronesCount },
+                finalHurdles: { heatDeath: postUniverse.heatDeathMitigated, riskLevel: postUniverse.existentialRiskLevel },
+                transcendence: {
+                    beyondMath: postUniverse.beyondMath,
+                    beyondPhysics: postUniverse.beyondPhysics,
+                    pureInfo: postUniverse.pureInformation,
+                    unity: postUniverse.unityAchieved,
+                },
+            };
+        }
+
         function injectDynamicNFZ(x, z, r, dur) {
             x = x ?? (Math.random() - 0.5) * W * 2 * 50;
             z = z ?? (Math.random() - 0.5) * W * 2 * 50;
@@ -11459,6 +11595,58 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             toe149Unify() { return toe149Unify(); },
             universeOS150Deploy() { return universeOS150Deploy(); },
             get ultimate111_150Stats() { return ultimate111_150Stats(); },
+            // ===== POST-UNIVERSE Phase 151-200 — Cosmic / Time / Consciousness / Final / Transcendence =====
+            p151Galactic(n) { return p151Galactic(n); },
+            p152DarkMatter() { return p152DarkMatter(); },
+            p153Pulsar(name) { return p153Pulsar(name); },
+            p154Wormhole(from, to) { return p154Wormhole(from, to); },
+            p155GravWave() { return p155GravWave(); },
+            p156Antimatter(kg) { return p156Antimatter(kg); },
+            p157BlackHole(mass) { return p157BlackHole(mass); },
+            p158CosmicRayShield(n) { return p158CosmicRayShield(n); },
+            p159Interstellar(packets) { return p159Interstellar(packets); },
+            p160GalacticCoverage(ly) { return p160GalacticCoverage(ly); },
+            p161Retrocausal() { return p161Retrocausal(); },
+            p162CausalityLoop() { return p162CausalityLoop(); },
+            p163Tachyon() { return p163Tachyon(); },
+            p164BlockUniverse() { return p164BlockUniverse(); },
+            p165SpacetimeEdit() { return p165SpacetimeEdit(); },
+            p166CollapseCtrl() { return p166CollapseCtrl(); },
+            p167QuantumEraser() { return p167QuantumEraser(); },
+            p168Decoherence() { return p168Decoherence(); },
+            p169TimelineBranch(name) { return p169TimelineBranch(name); },
+            p170RealityEdit() { return p170RealityEdit(); },
+            p171DigitalHuman(name) { return p171DigitalHuman(name); },
+            p172MindUpload() { return p172MindUpload(); },
+            p173MemoryEncode(tb) { return p173MemoryEncode(tb); },
+            p174DreamShare() { return p174DreamShare(); },
+            p175Telepathy(a, b) { return p175Telepathy(a, b); },
+            p176Empathy(s) { return p176Empathy(s); },
+            p177FreeWillSample() { return p177FreeWillSample(); },
+            p178PersonalityTransfer() { return p178PersonalityTransfer(); },
+            p179SoulContinuity() { return p179SoulContinuity(); },
+            p180ConsciousDrone() { return p180ConsciousDrone(); },
+            p181HeatDeath() { return p181HeatDeath(); },
+            p182EntropyReverse(n) { return p182EntropyReverse(n); },
+            p183InfoPreserve() { return p183InfoPreserve(); },
+            p184BoltzmannPrevent() { return p184BoltzmannPrevent(); },
+            p185SimHypothesis() { return p185SimHypothesis(); },
+            p186VacuumShield() { return p186VacuumShield(); },
+            p187StrangeletContain(n) { return p187StrangeletContain(n); },
+            p188GreyGooMitigate() { return p188GreyGooMitigate(); },
+            p189PaperclipPrevent() { return p189PaperclipPrevent(); },
+            p190ExistRisk(l) { return p190ExistRisk(l); },
+            p191BeyondMath() { return p191BeyondMath(); },
+            p192BeyondLogic() { return p192BeyondLogic(); },
+            p193BeyondPhysics() { return p193BeyondPhysics(); },
+            p194BeyondComputation() { return p194BeyondComputation(); },
+            p195BeyondTime() { return p195BeyondTime(); },
+            p196BeyondSpace() { return p196BeyondSpace(); },
+            p197BeyondExistence() { return p197BeyondExistence(); },
+            p198PureInformation() { return p198PureInformation(); },
+            p199UniversalIdentity() { return p199UniversalIdentity(); },
+            p200UnityAchieved() { return p200UnityAchieved(); },
+            get postUniverseStats() { return postUniverseStats(); },
             setAtcAudio(on) {
                 atcAudioEnabled = !!on;
                 const btn = document.getElementById('btn-atc-audio');

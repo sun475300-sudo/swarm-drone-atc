@@ -97,6 +97,29 @@ def cmd_simulate(args: argparse.Namespace) -> None:
 
     print(f"\n✅ 시뮬레이션 완료 ({duration:.0f}s, {drones}기, 실행시간 {elapsed:.1f}s)\n")
 
+    # 결과 JSON 저장 (--output, 나이틀리 벤치마크 CI 등에서 사용)
+    if getattr(args, "output", None):
+        import json
+        from pathlib import Path
+
+        out_path = Path(args.output)
+        if out_path.parent and not out_path.parent.exists():
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "seed": seed,
+            "drones": drones,
+            "duration_s": duration,
+            "elapsed_s": round(elapsed, 3),
+            "rtf": round(duration / elapsed, 2) if elapsed > 0 else None,
+            "kpi": result.to_dict(),
+            "event_counts": event_counts,
+            "phase_counts": phase_counts,
+            "comm": dict(cs),
+        }
+        out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2),
+                            encoding="utf-8")
+        print(f"📄 결과 JSON 저장: {out_path}\n")
+
 
 # ── scenario ─────────────────────────────────────────────────
 
@@ -473,6 +496,7 @@ def main() -> None:
     p_sim.add_argument("--duration", type=float, default=600.0, help="시뮬레이션 시간 (초)")
     p_sim.add_argument("--seed",     type=int,   default=42, help="랜덤 시드")
     p_sim.add_argument("--drones",   type=int,   default=100, help="드론 수")
+    p_sim.add_argument("--output",   default=None, help="결과 KPI를 저장할 JSON 경로")
     p_sim.add_argument("--log-level", default="INFO")
 
     # ── scenario ────────────────────────────────────────────────

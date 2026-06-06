@@ -3,6 +3,15 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased]
+
+### 추가 (feat) — P711 React 대시보드 MVP
+- `frontend/` Vite + React 공역 관제 대시보드 신설 (기존 FastAPI 백엔드 무변경 소비)
+- 로그인(JWT/RBAC 역할 표시) · 시나리오 목록·실행 + run 폴링 · 공역 스냅샷 폴링 · WebSocket 텔레메트리 피드 · 헬스 배지
+- `src/api.js` 응답 봉투 정규화 클라이언트 + vitest 단위 테스트 5개
+- 실 백엔드(uvicorn) E2E 스모크 검증: 로그인·시나리오·run 생애주기·무인증 401 게이팅 확인
+- ROADMAP P711 `[~] → [x]`, Track C 90% → 100%
+
 ## [v1.5.0] - 2026-06-05 — POST-UNIVERSE (Phase 151-200) · **𝟏 Unity 도달**
 
 ### 추가 (feat) — Track Ʊ Cosmic (151-160)

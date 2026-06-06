@@ -122,11 +122,11 @@
 - ✅ P710 포스터 + Marp 슬라이드 15장 + 차트 2종 (NMR/MSD bar, Pareto)
 - ⏳ **잔여**: §4-§7 실측 그래프 + IROS 실제 투고 (사용자)
 
-### Track C — 배포·서비스 (P711-P720) 🟢 90%
+### Track C — 배포·서비스 (P711-P720) ✅ 100%
+- ✅ P711 FastAPI 백엔드 + **React 대시보드 MVP** (`frontend/`) — 로그인(JWT/RBAC)·시나리오 실행·run 폴링·공역 스냅샷·WS 텔레메트리, vitest 5 + vite 빌드 통과, 실 백엔드 E2E 스모크 검증
 - ✅ P712 JWT/RBAC + 29 테스트 · P713 WS · P714 TimescaleDB · P715 Helm 8템플릿
 - ✅ P716 CI 6 워크플로우 · P717 부하 100기 · P718 관측성 스택 · P719 보안 감사
 - ✅ P720 베타 운영 가이드 (3 파일럿 + SLA + NPS + 듀얼 라이선스)
-- ⏳ **잔여**: P711 React MVP (PR #87 — 별도 사용자 평가)
 
 ### Track D — 웹 시뮬레이터 (P721-P735) ✅ 100%
 - ✅ P721 Electron 3-OS · P722-P728 메인·해양 시뮬 (C1-C9)
@@ -164,23 +164,22 @@
 
 ---
 
-## 🎯 잔여 5항목 (사용자 환경 의존)
+## 🎯 잔여 4항목 (사용자 환경 의존)
 
 | # | 항목 | 사유 |
 |---|---|---|
-| 1 | P711 React MVP (#87 별도 PR) | 사용자 평가 후 머지 |
-| 2 | Track A 실기 검증 | Pixhawk·Jetson·RTK-GPS HW |
-| 3 | P707 §4-§7 실측 그래프 | 실 비교 실험 재실행 (지도교수 협업) |
-| 4 | P709 IROS 2026 실제 투고 | PaperCept 제출 (2027-01) |
-| 5 | P755 창업·LOI | KARI·해수부·산림청·KISA 외부 컨택 |
+| 1 | Track A 실기 검증 | Pixhawk·Jetson·RTK-GPS HW |
+| 2 | P707 §4-§7 실측 그래프 | 실 비교 실험 재실행 (지도교수 협업) |
+| 3 | P709 IROS 2026 실제 투고 | PaperCept 제출 (2027-01) |
+| 4 | P755 창업·LOI | KARI·해수부·산림청·KISA 외부 컨택 |
 
-상세 실행 플레이북: [`docs/ULTRA_PLAN.md`](docs/ULTRA_PLAN.md) "잔여 5항목 실행 플레이북" 섹션.
+상세 실행 플레이북: [`docs/ULTRA_PLAN.md`](docs/ULTRA_PLAN.md) "잔여 항목 실행 플레이북" 섹션.
 
 ---
 
 ## 🔗 핵심 링크
 
-- Roadmap: [`ROADMAP.md`](ROADMAP.md) (88 [x] · 1 [~] · 1 [ ])
+- Roadmap: [`ROADMAP.md`](ROADMAP.md) (89 [x] · 1 [ ])
 - Ultra Plan v2: [`docs/ULTRA_PLAN.md`](docs/ULTRA_PLAN.md)
 - 문서 INDEX: [`docs/INDEX.md`](docs/INDEX.md) (80+ 문서)
 - 종합 점검: [`docs/HEALTH_CHECK.md`](docs/HEALTH_CHECK.md)

@@ -97,6 +97,28 @@ def cmd_simulate(args: argparse.Namespace) -> None:
 
     print(f"\n✅ 시뮬레이션 완료 ({duration:.0f}s, {drones}기, 실행시간 {elapsed:.1f}s)\n")
 
+    # KPI 요약 JSON 출력 (나이틀리 벤치마크 CI 등에서 사용)
+    output_arg = getattr(args, "output", None)
+    if output_arg:
+        import json
+        from pathlib import Path
+
+        out_path = Path(output_arg)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "seed": seed,
+            "drones": drones,
+            "duration_s": duration,
+            "wall_time_s": elapsed,
+            "kpi": result.to_dict(),
+            "event_counts": event_counts,
+            "phase_counts": phase_counts,
+            "comm": dict(cs),
+        }
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False, sort_keys=True)
+        print(f"📄 KPI JSON 기록: {out_path}\n")
+
 
 # ── scenario ─────────────────────────────────────────────────
 
@@ -473,6 +495,7 @@ def main() -> None:
     p_sim.add_argument("--duration", type=float, default=600.0, help="시뮬레이션 시간 (초)")
     p_sim.add_argument("--seed",     type=int,   default=42, help="랜덤 시드")
     p_sim.add_argument("--drones",   type=int,   default=100, help="드론 수")
+    p_sim.add_argument("--output",   default=None, help="KPI 요약 JSON 출력 경로")
     p_sim.add_argument("--log-level", default="INFO")
 
     # ── scenario ────────────────────────────────────────────────

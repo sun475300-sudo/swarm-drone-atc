@@ -820,6 +820,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-06 19:12 | `8807acb` | fix(cli): simulate --output JSON 추가 — 나이틀리 벤치마크 CI RED 복구 | README.md, main.py, tests/test_main_cli.py |
 | 2026-06-06 18:30 | `(본 커밋)` | fix(cli): simulate --output JSON 추가 — 나이틀리 벤치마크 CI(ci.yml) RED 복구 | main.py, tests/test_main_cli.py |
 | 2026-06-06 17:59 | `602537c` | feat: ①②③④⑤ 모두 실행 (sandbox 가능 범위) | docs/paper/SDACS_IROS_2026_sections_4to7.pdf |
 | 2026-06-06 06:34 | `0b6ec17` | feat: ①②③④ 모두 시작 — 태그·논문 §Discussion·캡스톤 DOCX·HITL+베타 스캐폴드 | docs/beta/v1_5_PILOT_KICKOFF.md, docs/hardware/pixhawk_sdacs_hitl.md, docs/paper/latex/sections_4to7.tex, docs/report/SDACS_Capstone_Report_v200.docx, scripts/generate_capstone_report.py |

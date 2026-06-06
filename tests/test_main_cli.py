@@ -67,6 +67,29 @@ def test_simulate_rejects_unknown_flag():
     assert result.returncode != 0
 
 
+def test_simulate_output_writes_json(tmp_path: Path):
+    """simulate --output <path> 가 KPI JSON 을 기록하고 exit 0 이어야 한다.
+
+    회귀 방어 대상: 나이틀리 벤치마크 CI(`ci.yml` benchmark 잡)는
+    `simulate --output results/bench_*.json` 을 호출한다. simulate 파서에
+    --output 이 없으면 'unrecognized arguments' 로 CI 가 RED 가 된다.
+    """
+    import json
+
+    out_file = tmp_path / "bench.json"
+    result = _run_help(
+        "simulate", "--duration", "2", "--drones", "5",
+        "--output", str(out_file),
+    )
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    assert out_file.exists(), "출력 JSON 파일이 생성되지 않음"
+    data = json.loads(out_file.read_text(encoding="utf-8"))
+    # SimulationResult.to_dict() 의 핵심 KPI 키가 포함되어야 함
+    assert "collision_count" in data
+    assert "conflicts_total" in data
+    assert "n_drones" in data
+
+
 def test_main_imports_without_error():
     """main 모듈 자체가 import 단계에서 예외 없이 로드되어야 한다.
 

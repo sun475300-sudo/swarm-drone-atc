@@ -885,6 +885,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-06 23:16 | `1ffad71` | feat(raft): P741 Raft 합의 루프 실제 구현 (선거·quorum 복제·페일오버) | ROADMAP.md, src/raft/airspace_controller_ha.py, tests/track_e/test_raft.py |
 | 2026-06-06 21:38 | `77b6a8b` | docs(readme): 배포 파일 다운로드 섹션 추가 (v1.5.0 — 200 Phase Unity) | README.md |
 | 2026-06-06 17:59 | `602537c` | feat: ①②③④⑤ 모두 실행 (sandbox 가능 범위) | docs/paper/SDACS_IROS_2026_sections_4to7.pdf |
 | 2026-06-06 06:34 | `0b6ec17` | feat: ①②③④ 모두 시작 — 태그·논문 §Discussion·캡스톤 DOCX·HITL+베타 스캐폴드 | docs/beta/v1_5_PILOT_KICKOFF.md, docs/hardware/pixhawk_sdacs_hitl.md, docs/paper/latex/sections_4to7.tex, docs/report/SDACS_Capstone_Report_v200.docx, scripts/generate_capstone_report.py |

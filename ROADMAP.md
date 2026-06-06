@@ -237,7 +237,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P752** — 학회 워크숍 가이드 — `docs/track_f/p752_workshop.md` (IROS/ICRA/AIAA workshop proposal) (2026-06-04)
 - [x] **P753** — 기술 이전 / 라이선싱 가이드 — `docs/track_f/p753_licensing.md` (듀얼 라이선스 + 5건 특허 + 5개 회사 타겟) (2026-06-04)
 - [x] **P754** — 후속 캡스톤 멘토링 — `docs/track_f/p754_mentoring.md` 인수인계 자산 + 후속 주제 + 멘토링 일정 + 인수 체크리스트 (2026-06-04)
-- [ ] **P755** — 창업·분사 검토 (별도 PR 진행 예정)
+- [x] **P755** — 창업·분사 검토 — `docs/track_f/p755_startup.md` (결정 매트릭스 4안 + TIPS 창업 시나리오 + 5년 매출 80억 + Exit(IPO/M&A) + Go/No-Go 2028) (2026-06-06)
 
 ---
 
@@ -248,4 +248,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-06-04 — **본 세션 PR 15개 전부 main 머지 완료** (#100·#103 main 복구 + #93·#94·#95·#96·#98·#99·#90·#84·#88·#89·#91·#92·#81). Track A 가이드 100% · Track B 9/10 · Track C 10/10 · Track D 15/15 · Track E 10/10 · Track F 9/10. 잔여 (사용자 환경 의존): Track A 실기 검증, P707 §4-§7 실측 그래프, P709 IROS 2026 실제 투고, P755 창업, P711 React (PR #87). 전체 Phase 691-755 진척률 **92%** (60/65 완료). 핵심 회귀 테스트 93/93 PASS · conflict 마커 0.*
+*Last updated: 2026-06-06 — Track A 가이드 100% · Track B 9/10 · Track C 10/10 · Track D 15/15 · Track E 10/10 · Track F 10/10 (P755 산출물 `docs/track_f/p755_startup.md` 완료). 잔여 (모두 사용자 환경 의존): Track A 실기 검증, P707 §4-§7 실측 그래프, P709 IROS 2026 실제 투고, P711 React (PR #87). 전체 Phase 691-755 진척률 **94%** (61/65 완료, 잔여 4건 전부 사용자 환경 의존). 전체 테스트 스위트 3932 passed · 254 skipped · 0 failed 검증 (2026-06-06).*

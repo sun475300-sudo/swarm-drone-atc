@@ -67,6 +67,39 @@ def test_simulate_rejects_unknown_flag():
     assert result.returncode != 0
 
 
+def test_simulate_output_writes_json(tmp_path: Path):
+    """simulate --output 가 KPI 요약 JSON 을 기록해야 한다.
+
+    나이틀리 벤치마크 CI(`ci.yml`)가
+    `simulate --duration 60 --drones 20 --output results/bench_20.json`
+    형태로 호출하므로, --output 플래그와 JSON 기록을 회귀 방어한다.
+    """
+    import json
+
+    out_file = tmp_path / "bench_smoke.json"
+    result = subprocess.run(
+        [
+            sys.executable, str(_MAIN), "simulate",
+            "--duration", "10", "--drones", "10",
+            "--output", str(out_file), "--log-level", "WARNING",
+        ],
+        cwd=str(_ROOT),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=180,
+    )
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    assert out_file.exists(), "simulate --output 가 JSON 파일을 생성하지 않음"
+
+    data = json.loads(out_file.read_text(encoding="utf-8"))
+    # SimulationResult 핵심 KPI 키가 직렬화되어 있어야 함
+    assert "collision_count" in data
+    assert "conflict_resolution_rate_pct" in data
+    assert "n_drones" in data
+
+
 def test_main_imports_without_error():
     """main 모듈 자체가 import 단계에서 예외 없이 로드되어야 한다.
 

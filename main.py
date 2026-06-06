@@ -95,6 +95,20 @@ def cmd_simulate(args: argparse.Namespace) -> None:
     cs = sim.comm_bus.stats
     print(f"\n📡 통신: sent={cs['sent']}  delivered={cs['delivered']}  dropped={cs['dropped']}")
 
+    # KPI 요약 JSON 저장 (--output 지정 시, 나이틀리 벤치마크 CI 등에서 사용)
+    output = getattr(args, "output", None)
+    if output:
+        import json
+        from pathlib import Path
+        out_path = Path(output)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        payload = result.to_dict()
+        payload["elapsed_s"] = round(elapsed, 3)
+        payload["real_time_factor"] = round(duration / elapsed, 2) if elapsed > 0 else 0.0
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, sort_keys=True, ensure_ascii=False)
+        print(f"📝 KPI JSON 저장: {out_path}")
+
     print(f"\n✅ 시뮬레이션 완료 ({duration:.0f}s, {drones}기, 실행시간 {elapsed:.1f}s)\n")
 
 
@@ -473,6 +487,7 @@ def main() -> None:
     p_sim.add_argument("--duration", type=float, default=600.0, help="시뮬레이션 시간 (초)")
     p_sim.add_argument("--seed",     type=int,   default=42, help="랜덤 시드")
     p_sim.add_argument("--drones",   type=int,   default=100, help="드론 수")
+    p_sim.add_argument("--output",   default=None, help="KPI 요약 JSON 저장 경로 (예: results/bench_20.json)")
     p_sim.add_argument("--log-level", default="INFO")
 
     # ── scenario ────────────────────────────────────────────────

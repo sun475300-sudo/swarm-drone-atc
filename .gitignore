@@ -21,6 +21,9 @@ env/
 data/results/
 data/reports/
 
+# 나이틀리 벤치마크 CI 산출물 (actions/upload-artifact로만 보관)
+results/bench_*.json
+
 # Model cache
 ~/.cache/huggingface/
 

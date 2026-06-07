@@ -1,6 +1,56 @@
 # SDACS 종합 점검 보고서 (Health Check)
 
-*점검 일시: 2026-06-04 — 본 세션 전체 SW 점검*
+*점검 일시: 2026-06-07 — v1.5.0 (200 Phase Unity) 도달 후 종합 점검*
+
+## 🎯 v1.5.0 종합 상태 — 🟢 모든 항목 PASS
+
+| 카테고리 | 항목 | 값 | 상태 |
+|---|---|:-:|:-:|
+| **시뮬레이터** | 군집 코드 | 11,695 line | 🟢 |
+| | 해양 코드 | 1,177 line | 🟢 |
+| | Phase 완료 | 200 / 200 | 🟢 |
+| | `_sdacs` API | 388 항목 | 🟢 |
+| | TypeScript `.d.ts` | 자동 생성 | 🟢 |
+| **검증** | Playwright E2E | 247 / 248 (1 skip) | 🟢 99.6% |
+| | Python 회귀 | 4,140 / 4,140 | 🟢 100% |
+| | JS 구문 (`node --check`) | PASS | 🟢 |
+| | 사본 동기화 md5 | 7 파일 일치 | 🟢 |
+| **빌드** | Linux AppImage | 105 MB | 🟢 |
+| | Win/Mac | 태그 푸시 시 자동 | 🟡 |
+| | ASAR 패키징 | 10 핵심 파일 확인 | 🟢 |
+| **CI** | sim-smoke.yml | 3 job | 🟢 |
+| | desktop-build.yml | v* 태그 트리거 | 🟢 |
+| | deploy-pages.yml | main push 트리거 | 🟢 |
+| **문서** | 마스터 플랜 5종 | 5 / 5 | 🟢 |
+| | API 레퍼런스 | 388 자동 | 🟢 |
+| | CHANGELOG | v1.0-1.5 통합 | 🟢 |
+| | Quick Start | 1줄 실행 | 🟢 |
+| | Phase Matrix HTML | 200 카드 | 🟢 |
+| | SVG 배지 | 3종 | 🟢 |
+| **배포** | README 다운로드 | 5 카테고리 20+ | 🟢 |
+| | GitHub Pages | md5 일치 | 🟢 |
+| | Releases v1.5.0 | 태그 푸시 대기 | 🟡 |
+
+## ⚠️ 알려진 한계
+
+| 항목 | 영향 | 회피 |
+|---|---|---|
+| sandbox tag push 403 | 사용자 로컬 push 필요 | `docs/V1_5_0_RELEASE_INSTRUCTIONS.md` 가이드 |
+| Phase 51+ 일부 mock | 외부 SDK 없음 (Yjs/Cesium ion 등) | 인터페이스 호환, 향후 격상 |
+| Phase 161-200 speculative | 실 물리/철학 미확정 | API 안정 + 호출 안전 |
+| docx2pdf java 부재 | LO 변환 불가 | Word 직접 인쇄 |
+
+## ⏭ 후속 점검 권장 (분기 단위)
+
+1. 분기마다 `SDACS_API.md` 자동 재생성
+2. 새 Phase 추가 시 `phase_matrix.html` 카드 추가
+3. `VERSION.md` 단일 진실 업데이트
+4. CHANGELOG v*.*.0 마다 추가
+5. 사본 동기화 md5 확인
+
+---
+
+## 📜 이전 점검 (2026-06-04)
 
 ## ✅ 1. 소스코드 점검
 

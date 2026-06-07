@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDACS Phase Matrix — 200 Phase 시각 인덱스</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --bg: #02060d; --fg: #cdd9e8; --accent: #00e5ff; --muted: #5a7a96; }
+  body { background: var(--bg); color: var(--fg); font-family: 'JetBrains Mono', ui-monospace, monospace; padding: 24px; min-height: 100vh; }
+  header { text-align: center; padding: 20px; border-bottom: 1px solid rgba(0,229,255,.3); margin-bottom: 24px; }
+  h1 { font-size: 28px; color: var(--accent); margin-bottom: 6px; }
+  .sub { font-size: 12px; color: var(--muted); letter-spacing: 2px; }
+  .stats { display: flex; justify-content: center; gap: 24px; margin-top: 16px; font-size: 11px; }
+  .stat { padding: 6px 14px; background: rgba(0,229,255,.08); border: 1px solid rgba(0,229,255,.3); border-radius: 4px; }
+  .stat b { color: var(--accent); font-size: 14px; }
+  .filters { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter { padding: 4px 12px; background: rgba(0,0,0,.4); border: 1px solid rgba(0,229,255,.25); color: var(--fg); border-radius: 4px; cursor: pointer; font-size: 11px; font-family: inherit; }
+  .filter.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .filter:hover { border-color: var(--accent); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; max-width: 1400px; margin: 0 auto; }
+  .card { padding: 10px; background: rgba(8,14,24,.7); border-left: 3px solid var(--accent); border-radius: 3px; transition: 0.15s; cursor: pointer; }
+  .card:hover { transform: translateY(-2px); background: rgba(0,229,255,.1); box-shadow: 0 4px 12px rgba(0,229,255,.2); }
+  .card.mega { border-left-color: #00e5ff; }
+  .card.hyper { border-left-color: #a855f7; }
+  .card.stellar { border-left-color: #f59e0b; }
+  .card.ultimate { border-left-color: #22c55e; }
+  .card.post-universe { border-left-color: #ef4444; }
+  .pnum { font-size: 9px; color: var(--muted); letter-spacing: 1px; }
+  .ptitle { font-size: 10px; color: var(--fg); margin-top: 3px; line-height: 1.3; }
+  .punity { grid-column: 1 / -1; padding: 24px; background: linear-gradient(135deg, #ef4444, #f59e0b, #22c55e, #00e5ff, #a855f7); text-align: center; border-radius: 6px; }
+  .punity .pnum { color: #fff; font-size: 14px; }
+  .punity .ptitle { color: #fff; font-size: 18px; font-weight: 700; }
+  footer { text-align: center; margin-top: 30px; padding: 20px; font-size: 10px; color: var(--muted); }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>SDACS Phase Matrix</h1>
+  <div class="sub">200 PHASE · UNITY · MEGA → HYPER → STELLAR → ULTIMATE → POST-UNIVERSE</div>
+  <div class="stats">
+    <div class="stat">Phase <b>200</b></div>
+    <div class="stat">API <b>388</b></div>
+    <div class="stat">E2E <b>247/248</b></div>
+    <div class="stat">회귀 <b>4,140</b></div>
+    <div class="stat">통합 <b>4,387/4,389</b></div>
+  </div>
+</header>
+<div class="filters">
+  <button class="filter active" data-band="all">전체 (200)</button>
+  <button class="filter" data-band="mega">MEGA 1-9</button>
+  <button class="filter" data-band="hyper">HYPER 11-50</button>
+  <button class="filter" data-band="stellar">STELLAR 52-100</button>
+  <button class="filter" data-band="ultimate">ULTIMATE 101-150</button>
+  <button class="filter" data-band="post-universe">POST-UNIVERSE 151-200</button>
+</div>
+<div class="grid" id="grid"></div>
+<footer>
+  <p>📚 <a href="SDACS_API.md">SDACS_API.md</a> · <a href="SIMULATOR_MEGA_PLAN.md">MEGA</a> · <a href="SIMULATOR_HYPER_PLAN.md">HYPER</a> · <a href="SIMULATOR_STELLAR_PLAN.md">STELLAR</a> · <a href="SIMULATOR_ULTIMATE_PLAN.md">ULTIMATE</a> · <a href="SIMULATOR_POST_UNIVERSE_PLAN.md">POST-UNIVERSE</a></p>
+  <p>🎬 카드 클릭 → 시뮬레이터 콘솔에서 해당 Phase API 실행 (별도 창)</p>
+  <p style="margin-top:12px;">SDACS = 𝟏 (Unity). All Phases Complete.</p>
+</footer>
+<script>
+const PHASES = [
+    // MEGA (1-9)
+    { n: 1, name: 'ATC 콘솔', band: 'mega', api: 'atcCommand' },
+    { n: 2, name: 'TAC 전술 시각화', band: 'mega', api: 'setPredTrail' },
+    { n: 3, name: 'CIN 시네마틱', band: 'mega', api: 'setSunCycle' },
+    { n: 4, name: 'CAM 카메라', band: 'mega', api: 'setCamMode' },
+    { n: 5, name: 'MIS 임무 계획', band: 'mega', api: 'missionAssignTemplate' },
+    { n: 6, name: 'INJ 장애 주입', band: 'mega', api: 'injectFault' },
+    { n: 7, name: 'ANA 분석 강화', band: 'mega', api: 'setAnaHeatmap' },
+    { n: 8, name: 'AUD 환경 사운드', band: 'mega', api: 'setAmbientAudio' },
+    { n: 9, name: 'MOB 모바일/PWA', band: 'mega', api: 'applyMobileLOD' },
+    // HYPER (11-50)
+    { n: 11, name: '해양 ATC', band: 'hyper', api: 'marineAtcCommand (in _mds)' },
+    { n: 12, name: 'Electron 멀티', band: 'hyper', api: 'split mode' },
+    { n: 13, name: 'WebGPU 50K', band: 'hyper', api: 'enableGpu50k' },
+    { n: 14, name: '시나리오 갤러리', band: 'hyper', api: 'openGallery' },
+    { n: 15, name: '4언어 i18n', band: 'hyper', api: 'setLang' },
+    { n: 16, name: 'CRDT 협업', band: 'hyper', api: 'enableCrdt' },
+    { n: 17, name: 'WebXR VR', band: 'hyper', api: 'xrSupported' },
+    { n: 18, name: 'AR Overlay', band: 'hyper', api: 'arEnter' },
+    { n: 19, name: 'Mission Recorder', band: 'hyper', api: 'exportMission' },
+    { n: 20, name: 'AI Copilot', band: 'hyper', api: 'copilotPlan' },
+    { n: 21, name: '적대 드론 4종', band: 'hyper', api: 'spawnAdversarial' },
+    { n: 22, name: 'Digital Twin', band: 'hyper', api: 'dtwinApplyGPI' },
+    { n: 23, name: '풍속장 64x64', band: 'hyper', api: 'enableWindField' },
+    { n: 24, name: 'NOTAM hook', band: 'hyper', api: 'notamAdd' },
+    { n: 25, name: '배터리 노화', band: 'hyper', api: 'batteryAgeStats' },
+    { n: 26, name: '음향 전파', band: 'hyper', api: 'enableAcoustic' },
+    { n: 27, name: 'Counter-UAS 4종', band: 'hyper', api: 'enableCuas' },
+    { n: 28, name: 'Choreography 5종', band: 'hyper', api: 'startChoreography' },
+    { n: 29, name: '5일 예보', band: 'hyper', api: 'generateForecast' },
+    { n: 30, name: 'UTM Federation', band: 'hyper', api: 'utmFederationAdd' },
+    { n: 31, name: 'PQC 텔레메트리', band: 'hyper', api: 'enablePqc' },
+    { n: 32, name: '위성 별자리', band: 'hyper', api: 'satelliteInit' },
+    { n: 33, name: 'UUV 수중', band: 'hyper', api: 'uuvAdd' },
+    { n: 34, name: '센서 융합', band: 'hyper', api: 'sensorFusionToggle' },
+    { n: 35, name: '5G MEC', band: 'hyper', api: 'mecAdd' },
+    { n: 36, name: 'Federated Learn', band: 'hyper', api: 'fedLearnRound' },
+    { n: 37, name: '멀티 도메인', band: 'hyper', api: 'ugvAdd' },
+    { n: 38, name: 'Doppler 오디오', band: 'hyper', api: 'audioDopplerShift' },
+    { n: 39, name: 'Photogrammetry', band: 'hyper', api: 'photogrammetryImport' },
+    { n: 40, name: 'esports PvP', band: 'hyper', api: 'esportsAddPlayer' },
+    { n: 41, name: 'Proc City Gen', band: 'hyper', api: 'procCityGenerate' },
+    { n: 42, name: '시선 추적', band: 'hyper', api: 'eyeTrackBuildHeatmap' },
+    { n: 43, name: 'Voice 매크로', band: 'hyper', api: 'voiceMacroDefine' },
+    { n: 44, name: '시간 압축', band: 'hyper', api: 'timeCompressSet' },
+    { n: 45, name: 'HITL Cluster', band: 'hyper', api: 'hitlAdd' },
+    { n: 46, name: '국가 영공 6공항', band: 'hyper', api: 'nationalASInitKorea' },
+    { n: 47, name: '기후 영향', band: 'hyper', api: 'climateScore' },
+    { n: 48, name: '국경 통과', band: 'hyper', api: 'crossBorderTransit' },
+    { n: 49, name: '행성 운영', band: 'hyper', api: 'planetarySetBody' },
+    { n: 50, name: '공개 데모', band: 'hyper', api: 'publicDemoLeaderboard' },
+    // STELLAR (51-100)
+    { n: 51, name: 'LLM Multi-Agent', band: 'stellar', api: 'stellar51DelegateGroup' },
+    { n: 52, name: 'RLHF', band: 'stellar', api: 'rlhfFeedback' },
+    { n: 53, name: 'Causal Inference', band: 'stellar', api: 'causalDoQuery' },
+    { n: 54, name: 'Adversarial Robust', band: 'stellar', api: 'adversarialCheck' },
+    { n: 55, name: 'Explainable AI', band: 'stellar', api: 'explainDecision' },
+    { n: 56, name: 'GPU 100K WGSL', band: 'stellar', api: 'gpu100kInit' },
+    { n: 57, name: 'Distributed Sim', band: 'stellar', api: 'distributedSimAddShard' },
+    { n: 58, name: 'Cloud Burst', band: 'stellar', api: 'cloudBurstScale' },
+    { n: 59, name: '10Gb/s Streaming', band: 'stellar', api: 'streamingReplayPush' },
+    { n: 60, name: 'Video av1', band: 'stellar', api: 'videoProcEncode' },
+    { n: 61, name: 'Skybrush Live', band: 'stellar', api: 'skybrushConnect' },
+    { n: 62, name: 'Cesium GIS', band: 'stellar', api: 'cesiumGlobalInit' },
+    { n: 63, name: 'Unreal Engine 5', band: 'stellar', api: 'ue5ExportScene' },
+    { n: 64, name: 'ROS 2 + Gazebo', band: 'stellar', api: 'ros2SubscribeTopic' },
+    { n: 65, name: 'Isaac Sim USD', band: 'stellar', api: 'isaacSimLoadUSD' },
+    { n: 66, name: '시민 신고', band: 'stellar', api: 'societyAddReport' },
+    { n: 67, name: 'UAS 보험', band: 'stellar', api: 'societyInsuranceQuote' },
+    { n: 68, name: '사고 조사', band: 'stellar', api: 'society (gen)' },
+    { n: 69, name: 'RPAS 자격', band: 'stellar', api: 'society.rpasLicenses' },
+    { n: 70, name: '교육 커리큘럼', band: 'stellar', api: 'society.trainingHours' },
+    { n: 71, name: 'Lunar Gateway', band: 'stellar', api: 'beyondEarthSetMode(moon)' },
+    { n: 72, name: 'Mars Helicopter', band: 'stellar', api: 'beyondEarth.marsHelicopter' },
+    { n: 73, name: 'Asteroid Mining', band: 'stellar', api: 'beyondEarth.asteroidMiners' },
+    { n: 74, name: '궤도 잔해', band: 'stellar', api: 'beyondEarthAddDebris' },
+    { n: 75, name: 'Interplanetary DTN', band: 'stellar', api: 'beyondEarth.dtnNodes' },
+    { n: 76, name: 'QKD', band: 'stellar', api: 'qkdExchangeKey' },
+    { n: 77, name: 'Photonic', band: 'stellar', api: 'quantumBeyond.photonic' },
+    { n: 78, name: 'Neuromorphic', band: 'stellar', api: 'quantumBeyond.neuromorphic' },
+    { n: 79, name: 'SNN', band: 'stellar', api: 'quantumBeyond.snn' },
+    { n: 80, name: 'Annealing', band: 'stellar', api: 'annealingSolve' },
+    { n: 81, name: 'Vision Pro', band: 'stellar', api: 'xrFrontier.visionPro' },
+    { n: 82, name: 'Holographic', band: 'stellar', api: 'xrFrontier.hologram' },
+    { n: 83, name: 'BCI', band: 'stellar', api: 'bciActivate' },
+    { n: 84, name: 'Haptic', band: 'stellar', api: 'xrFrontier.haptic' },
+    { n: 85, name: '후각', band: 'stellar', api: 'olfactorySpray' },
+    { n: 86, name: 'UAM Pricing', band: 'stellar', api: 'uamPriceQuote' },
+    { n: 87, name: 'Carbon Credit', band: 'stellar', api: 'economy.carbonCredits' },
+    { n: 88, name: 'DaaS Market', band: 'stellar', api: 'economy.marketplaceOrders' },
+    { n: 89, name: 'NFT', band: 'stellar', api: 'economy.nftAssets' },
+    { n: 90, name: 'DAO', band: 'stellar', api: 'daoCreateProposal' },
+    { n: 91, name: 'AGI 통합', band: 'stellar', api: 'ultimate.agiIntegrated' },
+    { n: 92, name: '글로벌 1:1', band: 'stellar', api: 'ultimateExpandCoverage' },
+    { n: 93, name: '1억 드론', band: 'stellar', api: 'ultimate.megaSwarmCapacity' },
+    { n: 94, name: '글로벌 협업', band: 'stellar', api: 'ultimate.crdtSiteCount' },
+    { n: 95, name: 'UN 표준', band: 'stellar', api: 'ultimateUnProposal' },
+    { n: 96, name: '자기 개선', band: 'stellar', api: 'singularitySelfImprove' },
+    { n: 97, name: '디지털 인간', band: 'stellar', api: 'singularity.digitalHumanControllers' },
+    { n: 98, name: 'Metaverse', band: 'stellar', api: 'singularityMetaverseConnect' },
+    { n: 99, name: 'ITU 표준', band: 'stellar', api: 'singularityStdProposal' },
+    { n: 100, name: 'SDACS 2.0 표준 ATC OS', band: 'stellar', api: 'stdAtcOsVersion' },
+    // ULTIMATE (101-150)
+    { n: 101, name: 'Petaflop GPU', band: 'ultimate', api: 'petaflop101Activate' },
+    { n: 102, name: '양자 spatial hash', band: 'ultimate', api: 'quantum102Hash' },
+    { n: 103, name: 'Photonic Compute', band: 'ultimate', api: 'photonic103Init' },
+    { n: 104, name: 'Optane Memory', band: 'ultimate', api: 'optane104Snapshot' },
+    { n: 105, name: 'RDMA 100Gb/s', band: 'ultimate', api: 'rdma105AddHost' },
+    { n: 106, name: 'FPGA APF', band: 'ultimate', api: 'fpga106AddInstance' },
+    { n: 107, name: 'TPU v5', band: 'ultimate', api: 'tpu107Inference' },
+    { n: 108, name: 'Neuromorphic Spike', band: 'ultimate', api: 'neuromorphic108Spike' },
+    { n: 109, name: 'DPU Offload', band: 'ultimate', api: 'dpu109Offload' },
+    { n: 110, name: '1B drone capacity', band: 'ultimate', api: 'megaScale110SetCurrent' },
+    { n: 111, name: 'Nano 1mm³', band: 'ultimate', api: 'nano111Spawn' },
+    { n: 112, name: 'Smart Dust', band: 'ultimate', api: 'smartDust112Deploy' },
+    { n: 113, name: 'Graphene 10× battery', band: 'ultimate', api: 'graphene113Boost' },
+    { n: 114, name: 'Self-healing', band: 'ultimate', api: 'selfHeal114Cycle' },
+    { n: 115, name: 'Bio-degradable', band: 'ultimate', api: 'bioDeg115SetLife' },
+    { n: 116, name: 'Atmospheric Harvest', band: 'ultimate', api: 'atmo116Harvest' },
+    { n: 117, name: 'Piezo Wing', band: 'ultimate', api: 'piezo117Generate' },
+    { n: 118, name: 'Solar 100%', band: 'ultimate', api: 'solar118SetEff' },
+    { n: 119, name: 'Meta Invisibility', band: 'ultimate', api: 'meta119Activate' },
+    { n: 120, name: 'Programmable Matter', band: 'ultimate', api: 'progMatter120Reshape' },
+    { n: 121, name: 'Neuron-silicon', band: 'ultimate', api: 'neuron121Connect' },
+    { n: 122, name: 'DNA Storage', band: 'ultimate', api: 'dna122Store' },
+    { n: 123, name: 'Bacteria 추진', band: 'ultimate', api: 'bacteria123Spawn' },
+    { n: 124, name: 'Algae 광합성', band: 'ultimate', api: 'algae124Power' },
+    { n: 125, name: 'Mycelium Repair', band: 'ultimate', api: 'mycelium125Repair' },
+    { n: 126, name: 'Avian 협업', band: 'ultimate', api: 'bird126Partner' },
+    { n: 127, name: 'Insect Swarm', band: 'ultimate', api: 'insect127Join' },
+    { n: 128, name: 'Symbiotic', band: 'ultimate', api: 'symbiotic128Bond' },
+    { n: 129, name: 'Bio-fluor', band: 'ultimate', api: 'biofluor129Emit' },
+    { n: 130, name: 'Living Drone', band: 'ultimate', api: 'living130Spawn' },
+    { n: 131, name: 'IETF RFC', band: 'ultimate', api: 'rfc131Submit' },
+    { n: 132, name: 'ICAO', band: 'ultimate', api: 'icao132Adopt' },
+    { n: 133, name: 'ISO 21384-3', band: 'ultimate', api: 'iso133Cert' },
+    { n: 134, name: 'IEEE 802.UAS', band: 'ultimate', api: 'ieee134Standard' },
+    { n: 135, name: 'ITU-R', band: 'ultimate', api: 'itu135AllocateFreq' },
+    { n: 136, name: 'UN ECOSOC', band: 'ultimate', api: 'un136Resolution' },
+    { n: 137, name: 'EU EASA', band: 'ultimate', api: 'easa137Integrate' },
+    { n: 138, name: 'FAA Part 108', band: 'ultimate', api: 'faa138Part108' },
+    { n: 139, name: '중국 CAAC', band: 'ultimate', api: 'caac139Compat' },
+    { n: 140, name: '글로벌 단일 ATC OS', band: 'ultimate', api: 'global140Adopt' },
+    { n: 141, name: 'Self-aware', band: 'ultimate', api: 'selfAware141Activate' },
+    { n: 142, name: 'Recursive Sim', band: 'ultimate', api: 'recursion142Sim' },
+    { n: 143, name: 'Consciousness', band: 'ultimate', api: 'consciousness143Experiment' },
+    { n: 144, name: 'Reality Blur', band: 'ultimate', api: 'realityBlur144Set' },
+    { n: 145, name: 'Universal Translator', band: 'ultimate', api: 'translator145Add' },
+    { n: 146, name: 'Eternal Mission', band: 'ultimate', api: 'eternalMission146Start' },
+    { n: 147, name: 'Time Loop', band: 'ultimate', api: 'timeLoop147Iterate' },
+    { n: 148, name: 'Multi-verse', band: 'ultimate', api: 'parallel148Universe' },
+    { n: 149, name: 'Theory of Everything', band: 'ultimate', api: 'toe149Unify' },
+    { n: 150, name: 'Universe OS 𝟏.0', band: 'ultimate', api: 'universeOS150Deploy' },
+    // POST-UNIVERSE (151-200)
+    { n: 151, name: 'Galactic Network', band: 'post-universe', api: 'p151Galactic' },
+    { n: 152, name: 'Dark Matter', band: 'post-universe', api: 'p152DarkMatter' },
+    { n: 153, name: 'Pulsar Sync', band: 'post-universe', api: 'p153Pulsar' },
+    { n: 154, name: 'Wormhole', band: 'post-universe', api: 'p154Wormhole' },
+    { n: 155, name: 'GW Detection', band: 'post-universe', api: 'p155GravWave' },
+    { n: 156, name: 'Antimatter', band: 'post-universe', api: 'p156Antimatter' },
+    { n: 157, name: 'Black Hole', band: 'post-universe', api: 'p157BlackHole' },
+    { n: 158, name: 'Cosmic Ray Shield', band: 'post-universe', api: 'p158CosmicRayShield' },
+    { n: 159, name: 'Interstellar DTN', band: 'post-universe', api: 'p159Interstellar' },
+    { n: 160, name: '1조 광년 coverage', band: 'post-universe', api: 'p160GalacticCoverage' },
+    { n: 161, name: 'Retrocausal', band: 'post-universe', api: 'p161Retrocausal' },
+    { n: 162, name: 'Causality Loop', band: 'post-universe', api: 'p162CausalityLoop' },
+    { n: 163, name: 'Tachyon', band: 'post-universe', api: 'p163Tachyon' },
+    { n: 164, name: 'Block Universe', band: 'post-universe', api: 'p164BlockUniverse' },
+    { n: 165, name: 'Spacetime Edit', band: 'post-universe', api: 'p165SpacetimeEdit' },
+    { n: 166, name: 'Collapse Ctrl', band: 'post-universe', api: 'p166CollapseCtrl' },
+    { n: 167, name: 'Quantum Eraser', band: 'post-universe', api: 'p167QuantumEraser' },
+    { n: 168, name: 'Decoherence', band: 'post-universe', api: 'p168Decoherence' },
+    { n: 169, name: 'Timeline Branch', band: 'post-universe', api: 'p169TimelineBranch' },
+    { n: 170, name: 'Reality Editor', band: 'post-universe', api: 'p170RealityEdit' },
+    { n: 171, name: 'Digital Human', band: 'post-universe', api: 'p171DigitalHuman' },
+    { n: 172, name: 'Mind Upload', band: 'post-universe', api: 'p172MindUpload' },
+    { n: 173, name: 'Memory Encode', band: 'post-universe', api: 'p173MemoryEncode' },
+    { n: 174, name: 'Dream Share', band: 'post-universe', api: 'p174DreamShare' },
+    { n: 175, name: 'Telepathy', band: 'post-universe', api: 'p175Telepathy' },
+    { n: 176, name: 'Empathy', band: 'post-universe', api: 'p176Empathy' },
+    { n: 177, name: 'Free Will', band: 'post-universe', api: 'p177FreeWillSample' },
+    { n: 178, name: 'Personality Transfer', band: 'post-universe', api: 'p178PersonalityTransfer' },
+    { n: 179, name: 'Soul Continuity', band: 'post-universe', api: 'p179SoulContinuity' },
+    { n: 180, name: 'Conscious Drone', band: 'post-universe', api: 'p180ConsciousDrone' },
+    { n: 181, name: 'Heat Death Mitigation', band: 'post-universe', api: 'p181HeatDeath' },
+    { n: 182, name: 'Entropy Reverse', band: 'post-universe', api: 'p182EntropyReverse' },
+    { n: 183, name: 'Info Preserve', band: 'post-universe', api: 'p183InfoPreserve' },
+    { n: 184, name: 'Boltzmann Prevent', band: 'post-universe', api: 'p184BoltzmannPrevent' },
+    { n: 185, name: 'Sim Hypothesis', band: 'post-universe', api: 'p185SimHypothesis' },
+    { n: 186, name: 'Vacuum Shield', band: 'post-universe', api: 'p186VacuumShield' },
+    { n: 187, name: 'Strangelet Contain', band: 'post-universe', api: 'p187StrangeletContain' },
+    { n: 188, name: 'Grey Goo Mitigate', band: 'post-universe', api: 'p188GreyGooMitigate' },
+    { n: 189, name: 'Paperclip Prevent', band: 'post-universe', api: 'p189PaperclipPrevent' },
+    { n: 190, name: 'Existential Risk', band: 'post-universe', api: 'p190ExistRisk' },
+    { n: 191, name: 'Beyond Math', band: 'post-universe', api: 'p191BeyondMath' },
+    { n: 192, name: 'Beyond Logic', band: 'post-universe', api: 'p192BeyondLogic' },
+    { n: 193, name: 'Beyond Physics', band: 'post-universe', api: 'p193BeyondPhysics' },
+    { n: 194, name: 'Beyond Computation', band: 'post-universe', api: 'p194BeyondComputation' },
+    { n: 195, name: 'Beyond Time', band: 'post-universe', api: 'p195BeyondTime' },
+    { n: 196, name: 'Beyond Space', band: 'post-universe', api: 'p196BeyondSpace' },
+    { n: 197, name: 'Beyond Existence', band: 'post-universe', api: 'p197BeyondExistence' },
+    { n: 198, name: 'Pure Information', band: 'post-universe', api: 'p198PureInformation' },
+    { n: 199, name: 'Universal Identity', band: 'post-universe', api: 'p199UniversalIdentity' },
+    { n: 200, name: '𝟏 Unity (모든 것이 하나)', band: 'post-universe', api: 'p200UnityAchieved', unity: true },
+];
+
+const grid = document.getElementById('grid');
+const filters = document.querySelectorAll('.filter');
+function render(band) {
+    grid.innerHTML = '';
+    for (const p of PHASES) {
+        if (band !== 'all' && p.band !== band) continue;
+        const card = document.createElement('div');
+        card.className = `card ${p.band}${p.unity ? ' punity' : ''}`;
+        card.innerHTML = `<div class="pnum">Phase ${p.n}</div><div class="ptitle">${p.name}</div><div class="pnum" style="margin-top:4px;">${p.api}</div>`;
+        card.onclick = () => {
+            navigator.clipboard?.writeText(`window._sdacs.${p.api.split(' ')[0]}();`).catch(() => {});
+            alert(`Phase ${p.n}: ${p.name}\n\nAPI 호출 코드가 클립보드에 복사되었습니다:\nwindow._sdacs.${p.api}\n\n시뮬레이터 콘솔(F12)에서 붙여넣기 실행하세요.`);
+        };
+        grid.appendChild(card);
+    }
+}
+filters.forEach(f => f.onclick = () => {
+    filters.forEach(x => x.classList.toggle('active', x === f));
+    render(f.dataset.band);
+});
+render('all');
+</script>
+</body>
+</html>

@@ -1,17 +1,36 @@
 # SDACS Documentation Index
 
-이 저장소의 **90+ 문서** 마스터 인덱스. 빠르게 원하는 자료를 찾을 수 있도록 정리.
+이 저장소의 **100+ 문서** 마스터 인덱스. 빠르게 원하는 자료를 찾을 수 있도록 정리.
 
-## 🌟 시뮬레이터 50 Phase (MEGA + HYPER 완료)
+## ⚡ 빠른 시작
+
+- **[Quick Start](QUICK_START.md)** — 1줄 실행 가이드 (웹/로컬/데스크탑)
+- **[Phase Matrix HTML](phase_matrix.html)** — 200 Phase 시각 인덱스 (인터랙티브)
+- **[VERSION.md](../VERSION.md)** — 단일 버전 진실
+- **[CHANGELOG.md](../CHANGELOG.md)** — v1.0-1.5 통합 이력
+
+## 🌟 시뮬레이터 200 Phase (MEGA + HYPER + STELLAR + ULTIMATE + POST-UNIVERSE 완료)
 
 - **마스터**: [`SIMULATOR_MEGA_PLAN.md`](SIMULATOR_MEGA_PLAN.md) (Phase 1-9 ✅)
 - **확장**: [`SIMULATOR_HYPER_PLAN.md`](SIMULATOR_HYPER_PLAN.md) (Phase 11-50 ✅)
+- **초장기**: [`SIMULATOR_STELLAR_PLAN.md`](SIMULATOR_STELLAR_PLAN.md) (Phase 51-100 ✅)
+- **영원**: [`SIMULATOR_ULTIMATE_PLAN.md`](SIMULATOR_ULTIMATE_PLAN.md) (Phase 101-150 ✅, Universe OS)
+- **단일**: [`SIMULATOR_POST_UNIVERSE_PLAN.md`](SIMULATOR_POST_UNIVERSE_PLAN.md) (Phase 151-200 ✅, 𝟏 Unity)
 - **상세**: [`SIMULATOR_PHASE_PLANS.md`](SIMULATOR_PHASE_PLANS.md)
-- **초장기**: [`SIMULATOR_STELLAR_PLAN.md`](SIMULATOR_STELLAR_PLAN.md) (Phase 51-100, 향후 5년)
-- **API**: [`SDACS_API.md`](SDACS_API.md) — 231개 자동 추출
-- **릴리스**: [`RELEASE_GUIDE.md`](RELEASE_GUIDE.md) · [`RELEASE_NOTES_v1.2.0.md`](RELEASE_NOTES_v1.2.0.md)
-- **데모**: [`demo/sample_search_rescue.sdacs-mission`](demo/sample_search_rescue.sdacs-mission)
-- **논문**: [`paper/SDACS_50_Phases_Results.tex`](paper/SDACS_50_Phases_Results.tex)
+- **API**: [`SDACS_API.md`](SDACS_API.md) — **388개** 자동 추출
+- **TypeScript**: [`sdacs.d.ts`](sdacs.d.ts) — IDE autocomplete용 declaration
+- **데모 영상**: [`demo/sdacs_200phase_showcase.webm`](demo/sdacs_200phase_showcase.webm) (9.4 MB, 60초)
+- **데모 스크립트**: [`demo/all_phases_showcase.js`](demo/all_phases_showcase.js)
+- **샘플 임무**: [`demo/sample_search_rescue.sdacs-mission`](demo/sample_search_rescue.sdacs-mission)
+- **논문 표**: [`paper/SDACS_50_Phases_Results.tex`](paper/SDACS_50_Phases_Results.tex)
+- **IROS PDF**: [`paper/SDACS_IROS_2026_sections_4to7.pdf`](paper/SDACS_IROS_2026_sections_4to7.pdf)
+- **IROS LaTeX**: [`paper/latex/sections_4to7.tex`](paper/latex/sections_4to7.tex)
+- **캡스톤 보고서**: [`report/SDACS_Capstone_Report_v200.docx`](report/SDACS_Capstone_Report_v200.docx)
+- **릴리스**: [`RELEASE_GUIDE.md`](RELEASE_GUIDE.md) · [`RELEASE_NOTES_v1.2.0.md`](RELEASE_NOTES_v1.2.0.md) · [`V1_5_0_RELEASE_INSTRUCTIONS.md`](V1_5_0_RELEASE_INSTRUCTIONS.md)
+- **HITL**: [`hardware/pixhawk_sdacs_hitl.md`](hardware/pixhawk_sdacs_hitl.md)
+- **베타**: [`beta/v1_5_PILOT_KICKOFF.md`](beta/v1_5_PILOT_KICKOFF.md)
+- **점검**: [`HEALTH_CHECK.md`](HEALTH_CHECK.md) — v1.5.0 종합 PASS
+- **배지**: [`badges/`](badges/) — phase_200·api_388·e2e_247 SVG
 
 ## 🚀 시작하기
 

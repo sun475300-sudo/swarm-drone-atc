@@ -3,6 +3,25 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased] - 2026-06-07 — 일일 점검: 논문 §4-§7 통합 완료
+
+### 수정 (fix)
+- `docs/paper/latex/main.tex`: §EXPERIMENTS/§RESULTS/§DISCUSSION/§CONCLUSION 빈 TODO 스텁을
+  `\input{sections_4to7}`로 교체 — 작성 완료된 §4-§7 본문이 실제 논문에 통합되지 않던 중단 작업 해결
+- `sections_4to7.tex`: §DISCUSSION 내 중복 `\subsection{Limitations}` 2개 중 두 번째를
+  내용에 맞게 `Implementation Maturity`로 정정
+
+### 추가 (feat)
+- `main.tex` §RELATED WORK: 빈 `\cite{}` 제거 + 5-카테고리(reactive·MAPF·UTM·sim-to-real·RL)
+  narrative 작성 (references.bib 실재 10개 키만 사용, fabrication 없음)
+- `main.tex` §METHOD: APF_PARAMS_WINDY 파라미터 표 추가 (default vs windy, `apf.py` 실제 코드값)
+
+### 검증
+- 전체 회귀 **3,932 passed / 254 skipped / 0 failed** (190s, pytest -n auto)
+- in-paper TODO 0개 · 빈 cite 0개 · 모든 \cite 키 bib 존재 확인
+- 시뮬레이터 사본 md5 일치 (군집 3 + 해양 2) · conflict 마커 0
+- 캡스톤 보고서 생성기 정상 (`SDACS_Capstone_Report_v200.docx` 재생성)
+
 ## [v1.5.0] - 2026-06-05 — POST-UNIVERSE (Phase 151-200) · **𝟏 Unity 도달**
 
 ### 추가 (feat) — Track Ʊ Cosmic (151-160)

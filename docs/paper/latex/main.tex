@@ -73,15 +73,47 @@ This paper presents SDACS, which makes three contributions:
 % =================================================================
 \section{RELATED WORK}
 
-% TODO P707 SP2-end: 30편 인용 분류 narrative 작성 (related_work.md 참조)
-% 카테고리: A. 충돌 회피 / B. MAPF·CBS / C. UTM / D. Sim-to-Real / E. RL
+We organize prior work into five categories: reactive avoidance,
+multi-agent path finding, UAS traffic management, sim-to-real transfer,
+and learning-based separation.
 
-Recent surveys~\cite{} categorize UAV avoidance algorithms into
-reactive (ORCA, VO, HRVO) and planning-based (RRT*, CBS, MILP) families.
-Yoshida and Saito~\cite{yoshida2023apf_wind} extend APF with wind
-disturbance, but lack integration with planning-based methods.
-Kim and Lee~\cite{kim2024urban_apf} propose adaptive APF parameters,
-yet evaluate only on 20-drone scenarios.
+\textbf{Reactive collision avoidance.}
+Velocity-obstacle methods originated with Fiorini and
+Shiller~\cite{fiorini1998vo} and were extended to reciprocal,
+collision-free multi-agent navigation by ORCA~\cite{vandenberg2011orca}.
+These reactive families respond in constant time but are myopic: they
+optimize per-step velocity without a global plan, which can stall in
+dense or adversarial traffic. Artificial potential field (APF) variants
+address smooth avoidance; Yoshida and Saito~\cite{yoshida2023apf_wind}
+extend APF with wind disturbance but do not integrate planning, and Kim
+and Lee~\cite{kim2024urban_apf} propose adaptive APF parameters yet
+evaluate only on 20-drone scenarios.
+
+\textbf{Multi-agent path finding (MAPF).}
+Conflict-Based Search~\cite{sharon2015cbs} computes optimal,
+conflict-free joint paths but scales poorly when invoked at full
+fleet size every control step. SDACS instead triggers CBS re-planning
+only on persistent APF conflicts, combining reactive responsiveness
+with planning optimality.
+
+\textbf{UAS traffic management (UTM).}
+Kopardekar et al.~\cite{kopardekar2017utm} define the NASA UTM concept
+of operations that frames airspace structure and separation services.
+SDACS operationalizes these services with a concrete 5-layer safety net
+aligned to UTM separation assurance.
+
+\textbf{Sim-to-real transfer.}
+Domain randomization~\cite{tobin2017dr} and high-speed autonomous
+flight learned in simulation~\cite{loquercio2021flight} motivate our
+domain-randomized training and digital-twin synchronization layers for
+bridging the simulation-to-hardware gap.
+
+\textbf{Learning-based separation.}
+Brittain and Wei~\cite{brittain2021utm} apply deep reinforcement
+learning to autonomous separation assurance, and PPO~\cite{schulman2017ppo}
+underpins our reinforcement-learning avoidance policy. Unlike pure-RL
+approaches, SDACS retains a deterministic safety net as a verifiable
+fallback around the learned policy.
 
 % =================================================================
 \section{METHOD}
@@ -108,7 +140,31 @@ control into five layers, each with independent failure modes:
 \end{cases}
 \end{equation}
 
-% TODO P707 SP3: APF_PARAMS_WINDY 구체 값 표 추가
+Table~\ref{tab:apf_params} lists the two parameter sets. The windy
+mode raises the inter-drone repulsion gain ($k_{\mathrm{rep,drone}}$)
+by $2.6\times$ and the influence radius ($d_{0,\mathrm{drone}}$) by
+$1.6\times$ for earlier avoidance, while the force ceiling
+($f_{\max}$) increases from $10$ to $22\,\mathrm{m/s^2}$ to counter
+gusts and the altitude gain doubles to handle wind shear.
+
+\begin{table}[t]
+\centering
+\caption{APF parameter sets for default and windy ($v_{\mathrm{wind}} > 10\,\mathrm{m/s}$) modes.}
+\label{tab:apf_params}
+\begin{tabular}{lrr}
+\hline
+Parameter & Default & Windy \\
+\hline
+$k_{\mathrm{att}}$ (attraction gain)          & 1.0  & 1.0  \\
+$k_{\mathrm{rep,drone}}$ (drone repulsion)    & 2.5  & 6.5  \\
+$k_{\mathrm{rep,obs}}$ (obstacle repulsion)   & 5.0  & 7.0  \\
+$d_{0,\mathrm{drone}}$ (drone radius, m)      & 50.0 & 80.0 \\
+$d_{0,\mathrm{obs}}$ (obstacle radius, m)     & 30.0 & 45.0 \\
+$f_{\max}$ (max force, m/s$^2$)               & 10.0 & 22.0 \\
+$k_{\mathrm{alt}}$ (altitude gain)            & 0.5  & 1.0  \\
+\hline
+\end{tabular}
+\end{table}
 
 \subsection{CBS Re-planning Trigger}
 
@@ -130,20 +186,8 @@ control into five layers, each with independent failure modes:
 \end{algorithm}
 
 % =================================================================
-\section{EXPERIMENTS}
-% TODO P707 SP3
-
-% =================================================================
-\section{RESULTS}
-% TODO P707 SP3
-
-% =================================================================
-\section{DISCUSSION}
-% TODO P707 SP3
-
-% =================================================================
-\section{CONCLUSION}
-% TODO P707 SP3
+% §4 EXPERIMENTS · §5 RESULTS · §6 DISCUSSION · §7 CONCLUSION + ACKNOWLEDGMENT
+\input{sections_4to7}
 
 % =================================================================
 \bibliographystyle{ieeeconf}

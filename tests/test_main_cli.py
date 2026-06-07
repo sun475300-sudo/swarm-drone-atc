@@ -67,6 +67,32 @@ def test_simulate_rejects_unknown_flag():
     assert result.returncode != 0
 
 
+def test_simulate_output_writes_json(tmp_path):
+    """`simulate --output <path>` 가 JSON KPI 파일을 쓰고 exit 0 으로 끝나야 한다.
+
+    회귀 방어: 나이틀리 벤치마크 CI(`.github/workflows/ci.yml`)는
+    `python main.py simulate --duration 60 --drones 20 --output results/bench_20.json`
+    를 호출한다. simulate 서브파서에 `--output` 가 없으면 argparse 가
+    'unrecognized arguments' 로 비-제로 종료하여 CI 가 RED 가 된다.
+    """
+    pytest.importorskip("numpy")
+    pytest.importorskip("simpy")
+    out_file = tmp_path / "bench.json"
+    result = _run_help(
+        "simulate", "--duration", "2", "--drones", "5", "--output", str(out_file)
+    )
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    assert out_file.exists(), "simulate --output 가 JSON 파일을 쓰지 않았다"
+
+    import json
+
+    payload = json.loads(out_file.read_text(encoding="utf-8"))
+    # 기계 판독용 KPI 키가 포함되어야 한다
+    assert payload["drones"] == 5
+    assert "collision_count" in payload
+    assert "elapsed_s" in payload
+
+
 def test_main_imports_without_error():
     """main 모듈 자체가 import 단계에서 예외 없이 로드되어야 한다.
 

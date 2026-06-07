@@ -96,7 +96,10 @@ def cmd_simulate(args: argparse.Namespace) -> None:
     print(f"\n📡 통신: sent={cs['sent']}  delivered={cs['delivered']}  dropped={cs['dropped']}")
 
     # 결과 JSON 저장 (나이틀리 벤치마크 CI 등에서 --output 지정 시)
-    if args.output:
+    # getattr 사용: args 가 argparse Namespace 가 아닌 수동 SimpleNamespace
+    # (테스트·외부 호출)일 수 있으므로 output 속성 부재를 안전 허용.
+    output_arg = getattr(args, "output", None)
+    if output_arg:
         import json
         from pathlib import Path
 
@@ -106,7 +109,7 @@ def cmd_simulate(args: argparse.Namespace) -> None:
             "event_counts": event_counts,
             "phase_counts": phase_counts,
         }
-        out_path = Path(args.output)
+        out_path = Path(output_arg)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(record, f, indent=2, sort_keys=True)

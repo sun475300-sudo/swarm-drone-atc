@@ -67,6 +67,27 @@ def test_simulate_rejects_unknown_flag():
     assert result.returncode != 0
 
 
+def test_simulate_output_writes_json(tmp_path):
+    """simulate --output 가 KPI 요약 JSON 파일을 써야 한다.
+
+    나이틀리 벤치마크 CI(`.github/workflows/ci.yml`)가
+    `simulate --duration 60 --drones N --output results/bench_N.json`
+    를 호출하므로, --output 인자 누락 시 CI 가 RED 가 된다.
+    """
+    import json
+
+    out_file = tmp_path / "bench.json"
+    result = _run_help(
+        "simulate", "--duration", "3", "--drones", "10",
+        "--output", str(out_file),
+    )
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    assert out_file.exists(), "output JSON 파일이 생성되지 않았다"
+    data = json.loads(out_file.read_text(encoding="utf-8"))
+    assert data["drones"] == 10
+    assert data["seed"] == 42
+
+
 def test_main_imports_without_error():
     """main 모듈 자체가 import 단계에서 예외 없이 로드되어야 한다.
 

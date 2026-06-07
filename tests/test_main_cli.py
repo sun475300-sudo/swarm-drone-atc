@@ -11,6 +11,7 @@ argparse 구조가 깨지면 simulate / scenario / monte-carlo / visualize 등
 """
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -65,6 +66,38 @@ def test_simulate_rejects_unknown_flag():
     """명백히 잘못된 인자는 비-제로 exit 으로 거부되어야 한다."""
     result = _run_help("simulate", "--this-flag-does-not-exist")
     assert result.returncode != 0
+
+
+def test_simulate_writes_output_json(tmp_path):
+    """simulate --output 가 KPI JSON 을 기록해야 한다.
+
+    나이틀리 벤치마크 CI(.github/workflows/ci.yml)가
+    `python main.py simulate --duration 60 --drones 20 --output results/bench_20.json`
+    형태로 호출하므로, simulate 서브커맨드가 --output 을 수용하고
+    유효한 JSON 결과를 기록하는지 회귀 방어한다.
+    """
+    out_file = tmp_path / "bench.json"
+    result = subprocess.run(
+        [
+            sys.executable, str(_MAIN), "simulate",
+            "--duration", "5", "--drones", "3",
+            "--output", str(out_file),
+        ],
+        cwd=str(_ROOT),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=120,
+    )
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    assert out_file.exists(), "출력 JSON 파일이 생성되지 않음"
+    data = json.loads(out_file.read_text(encoding="utf-8"))
+    # SimulationResult.to_dict() 핵심 KPI 키 존재 확인
+    assert data["n_drones"] == 3
+    assert data["duration_s"] == 5.0
+    assert "collision_count" in data
+    assert "conflict_resolution_rate_pct" in data
 
 
 def test_main_imports_without_error():

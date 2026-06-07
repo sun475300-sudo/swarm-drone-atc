@@ -11,6 +11,7 @@ argparse 구조가 깨지면 simulate / scenario / monte-carlo / visualize 등
 """
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -65,6 +66,27 @@ def test_simulate_rejects_unknown_flag():
     """명백히 잘못된 인자는 비-제로 exit 으로 거부되어야 한다."""
     result = _run_help("simulate", "--this-flag-does-not-exist")
     assert result.returncode != 0
+
+
+def test_simulate_output_writes_json(tmp_path: Path):
+    """simulate --output 가 KPI 요약 JSON 을 생성해야 한다.
+
+    나이틀리 벤치마크 CI(`.github/workflows/ci.yml`)가
+    `python main.py simulate --duration 60 --drones 20 --output results/bench_20.json`
+    를 호출하므로, simulate 서브커맨드는 --output 을 반드시 지원해야 한다.
+    """
+    out_file = tmp_path / "bench.json"
+    result = _run_help(
+        "simulate", "--duration", "2", "--drones", "5", "--output", str(out_file)
+    )
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    assert out_file.exists(), "simulate --output 가 JSON 파일을 생성하지 못함"
+
+    data = json.loads(out_file.read_text(encoding="utf-8"))
+    # SimulationResult.to_dict 핵심 필드 검증
+    assert data["n_drones"] == 5
+    assert "collision_count" in data
+    assert "wall_time_s" in data
 
 
 def test_main_imports_without_error():

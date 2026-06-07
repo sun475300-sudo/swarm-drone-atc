@@ -11,6 +11,7 @@ argparse 구조가 깨지면 simulate / scenario / monte-carlo / visualize 등
 """
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -65,6 +66,26 @@ def test_simulate_rejects_unknown_flag():
     """명백히 잘못된 인자는 비-제로 exit 으로 거부되어야 한다."""
     result = _run_help("simulate", "--this-flag-does-not-exist")
     assert result.returncode != 0
+
+
+def test_simulate_output_writes_kpi_json(tmp_path: Path):
+    """simulate --output 가 KPI JSON 을 기록해야 한다.
+
+    나이틀리 벤치마크 CI(`ci.yml`)가 `simulate --output results/bench_*.json`
+    을 호출한다. --output 미지원 시 argparse 가 비-제로 exit → CI RED.
+    회귀 방어: 플래그 수용 + 유효한 KPI JSON 생성.
+    """
+    out_file = tmp_path / "bench.json"
+    result = _run_help(
+        "simulate", "--duration", "5", "--drones", "5", "--output", str(out_file)
+    )
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    assert out_file.exists(), "output JSON 파일이 생성되지 않음"
+
+    data = json.loads(out_file.read_text(encoding="utf-8"))
+    # SimulationResult.to_dict() 핵심 KPI 필드 존재 확인
+    for key in ("collision_count", "near_miss_count", "n_drones", "runtime_s"):
+        assert key in data, f"KPI 키 누락: {key}"
 
 
 def test_main_imports_without_error():

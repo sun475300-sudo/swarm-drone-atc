@@ -885,6 +885,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-07 10:21 | `9d57835` | fix(cli): cmd_simulate output 접근을 getattr로 복원 — SimpleNamespace 호환 | main.py |
 | 2026-06-07 10:11 | `7abb910` | fix(cli): simulate에 --output JSON 추가 — 나이틀리 벤치마크 CI RED 복구 | main.py, tests/test_main_cli.py |
 | 2026-06-06 21:38 | `77b6a8b` | docs(readme): 배포 파일 다운로드 섹션 추가 (v1.5.0 — 200 Phase Unity) | README.md |
 | 2026-06-06 17:59 | `602537c` | feat: ①②③④⑤ 모두 실행 (sandbox 가능 범위) | docs/paper/SDACS_IROS_2026_sections_4to7.pdf |

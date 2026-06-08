@@ -31,13 +31,13 @@
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
 </div>
 
-> **🆕 최신 업데이트 (2026-06-04 · Phase 1 ATC 콘솔)** — 메인 3D 시뮬레이터에 **ATC 관제사 명령 콘솔**이 추가되었습니다. 드론을 클릭하면 상세 패널에 `HOLD / RTB / REROUTE / ALT± / SPD± / TURN◀▶ / CLEAR` 명령 버튼이 나타나 직접 관제할 수 있고, **한국어 TTS 음성 어드바이저리**(Web Speech API) · **Web Audio 비프 경보** · **시안 발광 링**(수동 제어 중인 드론 식별) · **ATC 명령 로그 패널**(타임스탬프·감사) · **CSV 내보내기에 ATC_Commands 시트 추가** · **외부 API**(`_sdacs.atcCommand(id, cmd)`)가 함께 들어갔습니다. Playwright E2E 10/10 통과, 회귀 4,140/4,140 통과. 상세 로드맵: [`docs/SIMULATOR_ULTRA_PLAN.md`](docs/SIMULATOR_ULTRA_PLAN.md)
+> **🆕 최신 업데이트 (2026-06-08 · MAVLink TX + JWT Revocation)** — `onboard_bridge.py`에 **ATTITUDE 자세 필드**(roll/pitch/yaw) · **SET_POSITION_TARGET_LOCAL_NED** 위치 명령 · **SET_MODE** 모드 전환 · **Lost-Link 상태머신**(NORMAL→HOLDING→RTL→LANDING 3단계 페일세이프) 추가. `auth.py`에 **JWT 토큰 폐기**(in-memory blocklist + `/auth/logout` 엔드포인트) 구현. **TBD placeholder 정리**(DOI/특허번호 → `<TBD-*>` 검색 태그 + 발급 체크리스트). 22개 신규 테스트 PASS.
 >
-> **이전 업데이트** — **원클릭 로컬 실행**(Win/Mac/Linux 더블클릭) · **해양 소형선 감지 시뮬레이터**(레이더 물리·AIS 융합·EO/IR·COLREG·CPA, 8개 시나리오) · 메인 3D **다중 선택·대규모 성능 측정·경로효율·라벨 풀 최적화**.
+> **이전 업데이트 (06-04)** — **ATC 관제사 명령 콘솔**(HOLD/RTB/REROUTE + 한국어 TTS + Web Audio 경보) · **원클릭 로컬 실행**(Win/Mac/Linux) · **해양 소형선 감지 시뮬레이터** · 메인 3D **다중 선택·대규모 성능·경로효율·라벨 풀 최적화**.
 
 ---
 
-## 📊 개발 진척 현황 / Development Progress (2026-06-04)
+## 📊 개발 진척 현황 / Development Progress (2026-06-08)
 
 > 🎉 **본 세션 PR 15개 전부 main 머지 완료** · Phase 691-755 진척률 **92%** (60/65)
 

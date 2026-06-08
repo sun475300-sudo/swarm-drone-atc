@@ -119,7 +119,7 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 
 ---
 
-## Progress Snapshot / 진행 현황 (2026-06-04 기준)
+## Progress Snapshot / 진행 현황 (2026-06-08 기준)
 
 | 트랙 | 완료 | 진행률 | 핵심 산출물 |
 |---|---|---|---|
@@ -235,6 +235,13 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P754** — 후속 캡스톤 멘토링 — `docs/track_f/p754_mentoring.md` 인수인계 자산 + 후속 주제 + 멘토링 일정 + 인수 체크리스트 (2026-06-04)
 - [ ] **P755** — 창업·분사 검토 (별도 PR 진행 예정)
 
+### Enhancements (feat/mavlink-tx, 2026-06-08)
+
+Phase 기반 외 추가 개선:
+- [x] **P692-ext** — MAVLink TX: ATTITUDE 자세 필드 + `send_position_target_local_ned` + `set_mode_message` + `LostLinkStateMachine` (3-phase 페일세이프) (15 tests)
+- [x] **P712-ext** — JWT 토큰 폐기: in-memory blocklist + `/auth/logout` 엔드포인트 (7 tests)
+- [x] **P1-C** — TBD placeholder 정리: DOI/특허번호 → `<TBD-*>` 검색 태그 + 발급 체크리스트
+
 ---
 
 ---
@@ -244,4 +251,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-06-04 — **본 세션 PR 15개 전부 main 머지 완료** (#100·#103 main 복구 + #93·#94·#95·#96·#98·#99·#90·#84·#88·#89·#91·#92·#81). Track A 가이드 100% · Track B 9/10 · Track C 10/10 · Track D 15/15 · Track E 10/10 · Track F 9/10. 잔여 (사용자 환경 의존): Track A 실기 검증, P707 §4-§7 실측 그래프, P709 IROS 2026 실제 투고, P755 창업, P711 React (PR #87). 전체 Phase 691-755 진척률 **92%** (60/65 완료). 핵심 회귀 테스트 93/93 PASS · conflict 마커 0.*
+*Last updated: 2026-06-08 — feat/mavlink-tx: MAVLink TX (ATTITUDE·Position Target·SET_MODE·Lost-Link SM) + JWT token revocation (/auth/logout) + TBD placeholder cleanup. 22개 신규 테스트 PASS. 전체 Phase 691-755 진척률 **92%** (60/65 완료).*

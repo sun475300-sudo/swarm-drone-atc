@@ -38,8 +38,8 @@ class RaftState:
     current_term: int = 0
     voted_for: str | None = None
     log: list[LogEntry] = field(default_factory=list)
-    commit_index: int = 0
-    last_applied: int = 0
+    commit_index: int = -1  # 0-based 로그 인덱스. -1 = 아직 커밋된 엔트리 없음
+    last_applied: int = -1
     leader_id: str | None = None
     last_heartbeat_ts: float = 0.0
 
@@ -70,33 +70,104 @@ class AirspaceControllerHA:
         self.cfg = cfg or RaftConfig()
         self.state = RaftState(node_id=node_id)
         self._running = False
+        # 인메모리 클러스터(`RaftCluster`)가 설정. 없으면 단독 노드로 동작.
+        self._cluster: "RaftCluster | None" = None
 
     def is_leader(self) -> bool:
         """현재 노드가 리더인지."""
         return self.state.role == NodeRole.LEADER
 
+    # ── 클러스터 멤버십 헬퍼 ────────────────────────────────────────────
+    def _cluster_size(self) -> int:
+        """전체 클러스터 노드 수 (자신 포함). quorum 계산 기준."""
+        return len(self.peers) + 1
+
+    def _live_peers(self) -> "list[AirspaceControllerHA]":
+        """현재 살아있는 peer 노드 객체 목록."""
+        if self._cluster is None:
+            return []
+        return self._cluster.live_peer_nodes(self.node_id)
+
+    def _last_log_meta(self) -> tuple[int, int]:
+        """(마지막 로그 인덱스, term). 비어있으면 (-1, 0)."""
+        if not self.state.log:
+            return -1, 0
+        last = self.state.log[-1]
+        return last.index, last.term
+
+    # ── 선거 (Raft §5.2) ────────────────────────────────────────────────
+    def become_candidate(self) -> bool:
+        """선거 시작 — term 증가·자기투표·RequestVote 브로드캐스트.
+
+        과반 득표 시 리더로 승격하고 ``True`` 반환.
+        """
+        self.state.role = NodeRole.CANDIDATE
+        self.state.current_term += 1
+        self.state.voted_for = self.node_id
+        self.state.leader_id = None
+        votes = 1  # self-vote
+        last_index, last_term = self._last_log_meta()
+        for peer in self._live_peers():
+            if peer.on_request_vote(
+                self.node_id, self.state.current_term, last_index, last_term,
+            ):
+                votes += 1
+        if votes > self._cluster_size() // 2:
+            self._become_leader()
+        else:
+            self.state.role = NodeRole.FOLLOWER
+        return self.is_leader()
+
+    def _become_leader(self) -> None:
+        """리더 승격 + 즉시 heartbeat로 권위 확립."""
+        self.state.role = NodeRole.LEADER
+        self.state.leader_id = self.node_id
+        self._send_heartbeat()
+
+    def _send_heartbeat(self) -> None:
+        """살아있는 peer에 빈 AppendEntries(heartbeat) 전송."""
+        prev_index, prev_term = self._last_log_meta()
+        for peer in self._live_peers():
+            peer.on_append_entries(
+                self.node_id, self.state.current_term, [], self.state.commit_index,
+                prev_log_index=prev_index, prev_log_term=prev_term,
+            )
+
     def replicate(self, command: dict) -> bool:
-        """리더만 호출. 명령을 복제 (quorum 합의)."""
+        """리더만 호출. 명령을 로그에 append 후 quorum 복제.
+
+        과반 ack 시 ``commit_index`` 전진 + ``True``, 미달 시 ``False``.
+        """
         if not self.is_leader():
             return False
+        prev_index, prev_term = self._last_log_meta()
         entry = LogEntry(
             term=self.state.current_term,
             index=len(self.state.log),
             command=command,
         )
         self.state.log.append(entry)
-        # TODO: append_entries RPC → peers majority commit
-        self.state.commit_index = entry.index
-        return True
+        acks = 1  # self
+        for peer in self._live_peers():
+            if peer.on_append_entries(
+                self.node_id, self.state.current_term, [entry], self.state.commit_index,
+                prev_log_index=prev_index, prev_log_term=prev_term,
+            ):
+                acks += 1
+        if acks > self._cluster_size() // 2:
+            self.state.commit_index = entry.index
+            return True
+        return False
 
     def start(self) -> None:
-        """Raft 백그라운드 루프 시작."""
+        """노드를 running 상태로 표시.
+
+        합의(선거·heartbeat·복제)는 결정적 인메모리 ``RaftCluster``가
+        in-process로 구동한다. 실제 네트워크 RPC 전송 계층은 본 시뮬레이션
+        범위 밖이며, 운영 배포 시 gRPC/HTTP 어댑터로 대체한다.
+        """
         self._running = True
         self.state.last_heartbeat_ts = time.monotonic()
-        # TODO: asyncio 또는 threading으로:
-        #   - election timeout watchdog
-        #   - heartbeat sender (leader 시)
-        #   - RequestVote/AppendEntries RPC server
 
     def stop(self) -> None:
         """노드 종료."""
@@ -107,6 +178,11 @@ class AirspaceControllerHA:
         # Raft §5.2: vote granted if (term ≥ self.term) ∧ (haven't voted) ∧ (log up-to-date)
         if term < self.state.current_term:
             return False
+        if term > self.state.current_term:
+            # 더 높은 term 발견 → 갱신하고 이전 투표 초기화
+            self.state.current_term = term
+            self.state.voted_for = None
+            self.state.role = NodeRole.FOLLOWER
         if self.state.voted_for is not None and self.state.voted_for != candidate_id:
             return False
         my_last_log = self.state.log[-1] if self.state.log else None
@@ -119,20 +195,93 @@ class AirspaceControllerHA:
         self.state.current_term = term
         return True
 
-    def on_append_entries(self, leader_id: str, term: int, entries: list[LogEntry], commit_index: int) -> bool:
-        """AppendEntries RPC handler — heartbeat + 로그 복제."""
+    def on_append_entries(
+        self,
+        leader_id: str,
+        term: int,
+        entries: list[LogEntry],
+        commit_index: int,
+        *,
+        prev_log_index: int = -1,
+        prev_log_term: int = 0,
+    ) -> bool:
+        """AppendEntries RPC handler — heartbeat + 로그 복제 (Raft §5.3)."""
         if term < self.state.current_term:
             return False
+        # 로그 일관성 검사: prev_log 엔트리가 일치해야 수용
+        if prev_log_index >= 0:
+            if prev_log_index >= len(self.state.log):
+                return False
+            if self.state.log[prev_log_index].term != prev_log_term:
+                return False
+        if term > self.state.current_term:
+            self.state.voted_for = None
         self.state.current_term = term
         self.state.leader_id = leader_id
         self.state.role = NodeRole.FOLLOWER
         self.state.last_heartbeat_ts = time.monotonic()
-        # TODO: 로그 일관성 검사 + entries 추가
         for e in entries:
-            self.state.log.append(e)
+            if e.index < len(self.state.log):
+                self.state.log[e.index] = e  # 충돌 엔트리 덮어쓰기
+            else:
+                self.state.log.append(e)
         if commit_index > self.state.commit_index:
             self.state.commit_index = min(commit_index, len(self.state.log) - 1)
         return True
+
+
+class RaftCluster:
+    """결정적 인메모리 Raft 클러스터.
+
+    노드 간 RPC를 네트워크 대신 직접 메서드 호출로 전달해 선거·복제·
+    페일오버를 타이밍 플레이키니스 없이 재현한다. 테스트·시뮬레이션용.
+    """
+
+    def __init__(self, node_ids: list[str], cfg: RaftConfig | None = None) -> None:
+        """``node_ids`` 로 노드를 생성하고 서로 peer로 연결한다."""
+        self.nodes: dict[str, AirspaceControllerHA] = {}
+        self._failed: set[str] = set()
+        for nid in node_ids:
+            peers = [p for p in node_ids if p != nid]
+            node = AirspaceControllerHA(nid, peers, cfg)
+            node._cluster = self
+            self.nodes[nid] = node
+
+    def live_peer_nodes(self, node_id: str) -> list[AirspaceControllerHA]:
+        """``node_id`` 의 살아있는 peer 노드 객체."""
+        node = self.nodes[node_id]
+        return [
+            self.nodes[p]
+            for p in node.peers
+            if p in self.nodes and p not in self._failed
+        ]
+
+    def fail(self, node_id: str) -> None:
+        """노드를 장애 상태로 표시 (RPC 응답 중단)."""
+        self._failed.add(node_id)
+        node = self.nodes.get(node_id)
+        if node is not None:
+            node.state.role = NodeRole.FOLLOWER
+
+    def recover(self, node_id: str) -> None:
+        """장애 노드를 복구."""
+        self._failed.discard(node_id)
+
+    def leader(self) -> AirspaceControllerHA | None:
+        """현재 살아있는 리더 노드 (없으면 None)."""
+        for nid, node in self.nodes.items():
+            if nid not in self._failed and node.is_leader():
+                return node
+        return None
+
+    def elect_leader(self) -> AirspaceControllerHA | None:
+        """살아있는 노드를 결정적 순서로 후보로 세워 리더 선출."""
+        for nid, node in self.nodes.items():
+            if nid in self._failed:
+                continue
+            if node.become_candidate():
+                return node
+        return None
 
 
 def health_check(node: AirspaceControllerHA) -> dict:

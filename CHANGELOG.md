@@ -3,6 +3,17 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased]
+
+### 변경 (refactor) — P741 Raft 합의 루프 실구현
+- `src/raft/airspace_controller_ha.py`: 스캐폴드(TODO) → 실제 합의 루프 구현
+  - `become_candidate()` 선거(term 증가·자기투표·RequestVote 브로드캐스트·과반 승격)
+  - `replicate()` quorum 기반 복제(과반 ack 시에만 commit_index 전진)
+  - `on_append_entries()` prev_log 일관성 검사(Raft §5.3) + 충돌 엔트리 덮어쓰기
+  - 더 높은 term 수신 시 voted_for 초기화·리더 강등
+  - `RaftCluster` 결정적 인메모리 클러스터(선거·복제·페일오버 재현)
+- 단위 테스트: 11 → 20 (`tests/track_e/test_raft_consensus.py` 신규 9개)
+
 ## [v1.5.0] - 2026-06-05 — POST-UNIVERSE (Phase 151-200) · **𝟏 Unity 도달**
 
 ### 추가 (feat) — Track Ʊ Cosmic (151-160)

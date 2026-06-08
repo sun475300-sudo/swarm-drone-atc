@@ -67,6 +67,44 @@ def test_simulate_rejects_unknown_flag():
     assert result.returncode != 0
 
 
+def test_simulate_help_shows_output_flag():
+    """simulate --help 에 --output 플래그가 노출되어야 한다.
+
+    나이틀리 벤치마크 CI(`ci.yml`)가 `simulate --output results/bench_*.json`
+    을 호출하므로, 이 플래그가 없으면 CI가 RED 가 된다.
+    """
+    result = _run_help("simulate", "--help")
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    assert "--output" in (result.stdout + result.stderr)
+
+
+def test_simulate_output_writes_json(tmp_path: Path):
+    """simulate --output 가 KPI 결과를 유효한 JSON 으로 기록해야 한다."""
+    import json
+
+    out_file = tmp_path / "bench.json"
+    result = subprocess.run(
+        [
+            sys.executable, str(_MAIN), "simulate",
+            "--duration", "5", "--drones", "3",
+            "--output", str(out_file),
+        ],
+        cwd=str(_ROOT),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=120,
+    )
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    assert out_file.exists(), "출력 JSON 파일이 생성되지 않았다"
+    data = json.loads(out_file.read_text(encoding="utf-8"))
+    # SimulationResult.to_dict() 핵심 KPI 키 검증
+    for key in ("collision_count", "conflicts_total", "n_drones", "duration_s"):
+        assert key in data, f"누락된 KPI 키: {key}"
+    assert data["n_drones"] == 3
+
+
 def test_main_imports_without_error():
     """main 모듈 자체가 import 단계에서 예외 없이 로드되어야 한다.
 

@@ -885,6 +885,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-08 21:22 | `26de7d6` | fix(raft): 리뷰 반영 — §5.1 term step-down 순서 수정 + 가드/주석 | src/raft/airspace_controller_ha.py, tests/track_e/test_raft.py, tests/track_e/test_raft_consensus.py |
 | 2026-06-08 21:18 | `6bf60cd` | feat(raft): P741 Raft 합의 루프 실구현 — 선거·quorum 복제·페일오버 | CHANGELOG.md, ROADMAP.md, src/raft/airspace_controller_ha.py, tests/track_e/test_raft_consensus.py |
 | 2026-06-08 15:11 | `da73009` | fix(cli): simulate에 --output JSON 추가 — 나이틀리 벤치마크 CI RED 복구 | main.py, tests/test_main_cli.py |
 | 2026-06-07 15:19 | `38a7b96` | feat: 추가 작업 7종 일괄 — TS .d.ts·Phase Matrix·Quick Start·SVG 배지·VERSION·HEALTH·INDEX | VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md, docs/QUICK_START.md, docs/badges/api_388.svg, docs/badges/e2e_247.svg … |

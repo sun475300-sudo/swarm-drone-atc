@@ -885,6 +885,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-09 02:13 | `e4d7432` | feat(P711): React 공역 관제 대시보드 통합 — 마지막 코드 로드맵 항목 완료 | .gitignore, README.md, ROADMAP.md, frontend/.env.example, frontend/.gitignore, frontend/README.md … |
 | 2026-06-08 17:10 | (pending) | feat(P711): React 공역 관제 대시보드 통합 — 마지막 코드 로드맵 항목 완료 | ROADMAP.md, frontend/index.html, frontend/package.json, frontend/vite.config.js, frontend/src/api.js, frontend/src/App.jsx, frontend/src/components/*.jsx … |
 | 2026-06-08 15:11 | `da73009` | fix(cli): simulate에 --output JSON 추가 — 나이틀리 벤치마크 CI RED 복구 | main.py, tests/test_main_cli.py |
 | 2026-06-07 15:19 | `38a7b96` | feat: 추가 작업 7종 일괄 — TS .d.ts·Phase Matrix·Quick Start·SVG 배지·VERSION·HEALTH·INDEX | VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md, docs/QUICK_START.md, docs/badges/api_388.svg, docs/badges/e2e_247.svg … |

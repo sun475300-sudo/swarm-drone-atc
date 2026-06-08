@@ -55,12 +55,15 @@ PX4-Autopilot/build/
 /gazebo_models/
 node_modules/
 package.json
+# frontend(P711 React MVP) 매니페스트는 추적 필요 — 전역 package.json 무시에서 예외
+!frontend/package.json
 
 # Electron-builder artifacts at repo root (정본은 desktop/main.js, desktop/preload.js)
 # electron-builder 빌드 중 entry point 복사본을 루트에 남기는 부작용 차단
 /main.js
 /preload.js
 package-lock.json
+!frontend/package-lock.json
 .coverage
 
 # Standardized common patterns (added 2026-04-27)

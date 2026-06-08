@@ -114,9 +114,9 @@ def create_token(
 # ---------------------------------------------------------------------------
 # Revocation registry (P1-B enhancement)
 # ---------------------------------------------------------------------------
-# In-memory blocklist of revoked JTIs. For multi-instance deployments swap
-# this for a Redis SET with TTL = token TTL.
-_REVOKED_JTIS: set[str] = set()
+# In-memory blocklist of revoked JTIs (insertion-ordered dict for FIFO eviction).
+# For multi-instance deployments swap this for a Redis SET with per-key TTL.
+_REVOKED_JTIS: dict[str, None] = {}
 _MAX_REVOKED_JTIS = 100_000
 
 
@@ -125,13 +125,16 @@ def revoke_token(jti: str) -> None:
 
     Subsequent ``verify_token`` calls for any token bearing this jti will
     raise HTTPException(401, detail="token revoked"). Idempotent. Empty
-    jti is a no-op.
+    jti is a no-op. Evicts oldest entry when at capacity.
     """
     if not jti:
         return
+    if jti in _REVOKED_JTIS:
+        return
     if len(_REVOKED_JTIS) >= _MAX_REVOKED_JTIS:
-        _REVOKED_JTIS.pop()  # set has no ordering; approximate eviction
-    _REVOKED_JTIS.add(jti)
+        oldest = next(iter(_REVOKED_JTIS))
+        del _REVOKED_JTIS[oldest]
+    _REVOKED_JTIS[jti] = None
 
 
 def is_revoked(jti: str) -> bool:
@@ -356,7 +359,7 @@ async def logout(ctx: AuthContext = Depends(require_auth)) -> dict:
     if ctx.jti:
         revoke_token(ctx.jti)
     _audit(ctx.sub, ctx.role.value, "logout", outcome="ok")
-    return {"success": True, "revoked_jti": ctx.jti}
+    return {"success": True}
 
 
 @auth_router.get("/audit", summary="Audit log (admin only)")

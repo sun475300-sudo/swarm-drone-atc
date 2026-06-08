@@ -175,7 +175,7 @@ async def test_send_position_target_local_ned_writes_to_wire():
 
 
 @pytest.mark.asyncio
-async def test_send_position_target_returns_false_when_not_connected():
+async def test_send_position_target_raises_when_not_connected():
     adapter = MavlinkAdapter("udp:0.0.0.0:14550")
     with pytest.raises(RuntimeError):
         await adapter.send_position_target_local_ned(0, 0, 0)

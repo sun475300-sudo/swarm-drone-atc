@@ -85,11 +85,10 @@ def test_logout_endpoint_revokes_caller_token():
     me_before = client.get("/auth/me", headers=headers)
     assert me_before.status_code == 200
 
-    # /auth/logout returns the revoked jti.
+    # /auth/logout confirms success.
     logout_res = client.post("/auth/logout", headers=headers)
     assert logout_res.status_code == 200
     assert logout_res.json()["success"] is True
-    assert logout_res.json()["revoked_jti"]
 
     # /auth/me now fails with 401 (revoked).
     me_after = client.get("/auth/me", headers=headers)

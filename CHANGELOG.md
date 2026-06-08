@@ -3,6 +3,15 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased]
+
+### 추가 (feat)
+- **P711** React 공역 관리자 대시보드 MVP (`frontend/`) — Vite + React, FastAPI 백엔드(`/auth`·`/api`·`/ws`) 소비. 로그인(JWT/RBAC)·헬스 배지·시나리오 실행·공역 스냅샷·실시간 텔레메트리. vitest 5/5 통과, `npm run build` 성공(gzip 48 KB).
+- **P741** Raft HA 합의 루프 실제 구현 (`src/raft/airspace_controller_ha.py`) — 선거·과반 quorum 복제·페일오버·split-brain 방지. 단위 테스트 11 → 21개.
+
+### 수정 (fix)
+- `frontend/package.json` 누락 복구 — 루트 `.gitignore`의 전역 `package.json` 무시 규칙에 `!frontend/package.json` 예외 추가. 이전에는 프론트엔드가 설치·빌드 불가능한 상태였음.
+
 ## [v1.5.0] - 2026-06-05 — POST-UNIVERSE (Phase 151-200) · **𝟏 Unity 도달**
 
 ### 추가 (feat) — Track Ʊ Cosmic (151-160)

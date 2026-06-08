@@ -113,3 +113,5 @@ def test_raft_state_dataclass_defaults() -> None:
     assert s.current_term == 0
     assert s.log == []
     assert s.voted_for is None
+    assert s.commit_index == -1  # 0-based sentinel: 아직 커밋된 엔트리 없음
+    assert s.last_applied == -1

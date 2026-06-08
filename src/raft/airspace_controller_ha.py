@@ -205,21 +205,28 @@ class AirspaceControllerHA:
         prev_log_index: int = -1,
         prev_log_term: int = 0,
     ) -> bool:
-        """AppendEntries RPC handler — heartbeat + 로그 복제 (Raft §5.3)."""
+        """AppendEntries RPC handler — heartbeat + 로그 복제 (Raft §5.3).
+
+        ``commit_index`` 는 리더의 commit_index(leaderCommit)이며, -1 은
+        "아직 커밋된 엔트리 없음"을 뜻하는 0-based sentinel이다.
+        """
         if term < self.state.current_term:
             return False
-        # 로그 일관성 검사: prev_log 엔트리가 일치해야 수용
-        if prev_log_index >= 0:
-            if prev_log_index >= len(self.state.log):
-                return False
-            if self.state.log[prev_log_index].term != prev_log_term:
-                return False
+        # Raft §5.1: 더 높은(또는 같은) term의 합법적 리더는 무조건 인식한다.
+        # 로그 불일치로 엔트리를 거부하더라도 term 갱신·리더 인식·타이머 리셋은
+        # prev_log 검사보다 먼저 수행해야 한다 (그래야 stale 후보/리더가 강등됨).
         if term > self.state.current_term:
             self.state.voted_for = None
         self.state.current_term = term
         self.state.leader_id = leader_id
         self.state.role = NodeRole.FOLLOWER
         self.state.last_heartbeat_ts = time.monotonic()
+        # 로그 일관성 검사 (Raft §5.3): prev_log 엔트리가 일치해야 엔트리 수용
+        if prev_log_index >= 0:
+            if prev_log_index >= len(self.state.log):
+                return False
+            if self.state.log[prev_log_index].term != prev_log_term:
+                return False
         for e in entries:
             if e.index < len(self.state.log):
                 self.state.log[e.index] = e  # 충돌 엔트리 덮어쓰기
@@ -275,7 +282,14 @@ class RaftCluster:
         return None
 
     def elect_leader(self) -> AirspaceControllerHA | None:
-        """살아있는 노드를 결정적 순서로 후보로 세워 리더 선출."""
+        """살아있는 노드를 결정적 순서로 후보로 세워 리더 선출.
+
+        이미 살아있는 리더가 있으면 불필요한 term 인플레이션을 막기 위해
+        그대로 반환한다.
+        """
+        existing = self.leader()
+        if existing is not None:
+            return existing
         for nid, node in self.nodes.items():
             if nid in self._failed:
                 continue

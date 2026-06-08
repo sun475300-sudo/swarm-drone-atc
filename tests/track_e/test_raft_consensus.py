@@ -110,6 +110,36 @@ def test_failed_node_does_not_vote() -> None:
     assert leader.is_leader()
 
 
+def test_higher_term_steps_down_even_when_log_inconsistent() -> None:
+    """Raft §5.1: prev_log 불일치로 엔트리를 거부해도 더 높은 term이면 강등.
+
+    stale 후보가 로그 갭이 있는 AppendEntries를 받아도 term을 갱신하고
+    FOLLOWER로 전환해야 false split-election을 막는다.
+    """
+    node = AirspaceControllerHA("ctrl-1", peers=["ctrl-2", "ctrl-3"])
+    node.state.role = NodeRole.CANDIDATE
+    node.state.current_term = 2
+    # 빈 로그인데 prev_log_index=5 → 로그 불일치로 엔트리 거부
+    ok = node.on_append_entries(
+        "ctrl-9", term=7, entries=[LogEntry(term=7, index=6, command={})],
+        commit_index=0, prev_log_index=5, prev_log_term=7,
+    )
+    assert ok is False  # 엔트리는 거부
+    assert node.state.current_term == 7  # 그러나 term은 갱신
+    assert node.state.role == NodeRole.FOLLOWER  # 강등
+    assert node.state.leader_id == "ctrl-9"
+
+
+def test_elect_leader_idempotent_when_leader_alive() -> None:
+    """살아있는 리더가 있으면 재선거 호출 시 term 인플레이션 없음."""
+    cluster = RaftCluster(["ctrl-1", "ctrl-2", "ctrl-3"])
+    leader = cluster.elect_leader()
+    term = leader.state.current_term
+    again = cluster.elect_leader()
+    assert again is leader
+    assert again.state.current_term == term
+
+
 def test_stale_leader_steps_down_on_higher_term() -> None:
     """더 높은 term의 AppendEntries 수신 시 리더가 팔로워로 강등."""
     cluster = RaftCluster(["ctrl-1", "ctrl-2", "ctrl-3"])

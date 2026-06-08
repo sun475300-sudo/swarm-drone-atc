@@ -13,6 +13,7 @@ NLB(Network Load Balancer) 뒤에 3-5 인스턴스 배치.
 """
 from __future__ import annotations
 
+import copy
 import hashlib
 import time
 from dataclasses import dataclass, field
@@ -45,7 +46,7 @@ class RaftState:
     current_term: int = 0
     voted_for: str | None = None
     log: list[LogEntry] = field(default_factory=list)
-    commit_index: int = 0
+    commit_index: int = -1  # -1 = 아무것도 커밋 안 됨 (index 0 커밋과 구분)
     last_applied: int = 0
     leader_id: str | None = None
     last_heartbeat_ts: float = 0.0
@@ -98,6 +99,7 @@ class AirspaceControllerHA:
         # in-process 피어 레지스트리 (node_id -> 노드). connect()로 채운다.
         self._peer_nodes: dict[str, AirspaceControllerHA] = {}
         self._election_timeout_ms = _stable_timeout_ms(node_id, self.cfg.election_timeout_ms)
+        self._last_heartbeat_sent_ts = 0.0
 
     # ── 클러스터 연결 ────────────────────────────────────────────────
     def connect(self, nodes: dict[str, AirspaceControllerHA]) -> None:
@@ -167,6 +169,8 @@ class AirspaceControllerHA:
     # ── 선거 ─────────────────────────────────────────────────────────
     def start_election(self) -> None:
         """election timeout 만료 시 호출. 새 term으로 후보가 되어 표를 모은다."""
+        if self.is_leader():
+            return  # 리더는 선거를 시작하지 않는다 (Raft §5.2)
         self.state.current_term += 1
         self.state.role = NodeRole.CANDIDATE
         self.state.voted_for = self.node_id
@@ -217,7 +221,10 @@ class AirspaceControllerHA:
             return
         clock = now if now is not None else time.monotonic()
         if self.state.role == NodeRole.LEADER:
-            self._send_heartbeats()
+            # heartbeat_interval_ms 주기로만 송신 (과도한 RPC 방지)
+            if (clock - self._last_heartbeat_sent_ts) * 1000.0 >= self.cfg.heartbeat_interval_ms:
+                self._send_heartbeats()
+                self._last_heartbeat_sent_ts = clock
             return
         elapsed_ms = (clock - self.state.last_heartbeat_ts) * 1000.0
         if elapsed_ms >= self._election_timeout_ms:
@@ -277,16 +284,17 @@ class AirspaceControllerHA:
         self.state.role = NodeRole.FOLLOWER
         self.state.last_heartbeat_ts = time.monotonic()
 
-        # Raft §5.3: prev 로그 일관성 검사 + 충돌 tail 절단
-        if prev_log_index >= 0:
+        # Raft §5.3: entries를 실어 나르면 항상 일관성 검사 (heartbeat=빈 entries는 skip).
+        # prev_log_index < 0 → entries가 index 0부터 시작함을 의미.
+        if entries:
             if prev_log_index >= len(self.state.log):
-                return False
-            if self.state.log[prev_log_index].term != prev_log_term:
-                return False
-            del self.state.log[prev_log_index + 1:]
-
-        for e in entries:
-            self.state.log.append(e)
+                return False  # gap: 선행 엔트리 누락
+            if prev_log_index >= 0 and self.state.log[prev_log_index].term != prev_log_term:
+                return False  # prev 위치 term 불일치
+            # 충돌 tail 절단 + 새 엔트리 추가 (불변 재구성, deepcopy로 leader와 객체 분리)
+            self.state.log = (
+                self.state.log[: prev_log_index + 1] + [copy.deepcopy(e) for e in entries]
+            )
 
         if self.state.log and commit_index > self.state.commit_index:
             self.state.commit_index = min(commit_index, len(self.state.log) - 1)

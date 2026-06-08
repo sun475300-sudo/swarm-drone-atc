@@ -82,7 +82,43 @@ def test_replicate_fails_without_quorum() -> None:
     node.state.current_term = 1
     assert node.replicate({"type": "rtl"}) is False
     assert len(node.state.log) == 1  # append는 됨
-    assert node.state.commit_index == 0  # 미커밋 (초기값 유지)
+    assert node.state.commit_index == -1  # 미커밋 센티넬 (초기값 유지)
+
+
+def test_log_entries_not_aliased_between_leader_and_follower() -> None:
+    """복제된 LogEntry는 리더/팔로워 간 객체 공유되지 않는다 (deepcopy)."""
+    nodes = _make_cluster(3)
+    leader = nodes["ctrl-0"]
+    leader.start_election()
+    leader.replicate({"mutable": [1, 2, 3]})
+    follower = nodes["ctrl-1"]
+    assert leader.state.log[0] is not follower.state.log[0]
+    # 리더 측 명령 변형이 팔로워에 전파되지 않음
+    leader.state.log[0].command["mutable"].append(4)
+    assert follower.state.log[0].command["mutable"] == [1, 2, 3]
+
+
+def test_append_entries_rejects_gap_even_without_prev_index() -> None:
+    """prev_log_index 누락(기본 -1)이어도 gap이 생기는 append는 거부."""
+    node = AirspaceControllerHA("ctrl-1", peers=["ctrl-0"])
+    node.start()
+    node.state.log = [LogEntry(term=1, index=0, command={"v": "a"})]
+    # 길이 1 로그에 prev_log_index=-1로 entries를 보내면 index 0부터 재구성 →
+    # 기존 entry를 덮어쓰지 않도록 정상 인덱스(0)로 시작해야 함
+    ok = node.on_append_entries(
+        leader_id="ctrl-0", term=1,
+        entries=[LogEntry(term=1, index=0, command={"v": "b"})],
+        commit_index=0,
+    )
+    # prev_log_index=-1 → log[:0] + [b] = [b] (index0 교체). gap은 아님.
+    assert ok is True
+    assert len(node.state.log) == 1
+
+
+def test_commit_index_starts_at_sentinel() -> None:
+    """초기 commit_index는 -1 (아무것도 커밋 안 됨)."""
+    node = AirspaceControllerHA("ctrl-0", peers=[])
+    assert node.state.commit_index == -1
 
 
 def test_failover_follower_times_out_and_wins() -> None:

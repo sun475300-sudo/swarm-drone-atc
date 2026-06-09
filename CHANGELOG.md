@@ -3,6 +3,23 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased]
+
+### 추가 (feat) — P741 Raft HA 합의 루프 실구현
+- `src/raft/airspace_controller_ha.py`: 스텁(TODO)이던 합의 루프를 실제 구현 —
+  논리 시계(`tick`) 기반 선거 타임아웃, RequestVote 전파·과반 집계, 리더 승격,
+  하트비트/로그 복제 단일 경로(`_append_entries_to_peers`), 더 높은 term 발견 시 step-down.
+- `src/raft/raft_cluster.py` (신규): 결정론적 인메모리 클러스터 — 동기 transport 배선,
+  `kill`/`revive` 장애 주입, `run_until_leader` 수렴 구동.
+
+### 수정 (fix) — Raft RPC 핸들러 잠재 결함 2건
+- `on_request_vote`: 더 높은 term 발견 시 `voted_for` 초기화 누락 → 2차 임기 영구 거부(페일오버 데드락) 수정.
+- `on_append_entries`: 빈 로그 하트비트에서 `commit_index`가 -1로 손상되던 문제 → 0으로 클램프.
+
+### 테스트
+- `tests/track_e/test_raft_cluster.py` (신규) 8건: 선거·복제·페일오버·정족수 미달·안정성·재현성.
+- 기존 단위 11건 유지 → Raft 합의 총 19건 PASS.
+
 ## [v1.5.0] - 2026-06-05 — POST-UNIVERSE (Phase 151-200) · **𝟏 Unity 도달**
 
 ### 추가 (feat) — Track Ʊ Cosmic (151-160)

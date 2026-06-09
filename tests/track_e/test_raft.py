@@ -34,6 +34,20 @@ def test_replicate_appends_to_log_when_leader() -> None:
     assert len(node.state.log) == 1
     assert node.state.log[0].command["drone_id"] == "DR-001"
     assert node.state.log[0].term == 5
+    # 단일 노드(peers 없음): 리더 자신이 과반 → 즉시 커밋.
+    assert node.state.commit_index == 0
+
+
+def test_replicate_defers_commit_when_peers_present() -> None:
+    """피어가 있으면 replicate 는 로그만 추가하고 커밋은 클러스터에 위임."""
+    node = AirspaceControllerHA("ctrl-1", peers=["ctrl-2:8001", "ctrl-3:8002"])
+    node.state.role = NodeRole.LEADER
+    node.state.current_term = 5
+    assert node.replicate({"type": "advisory", "drone_id": "DR-002"}) is True
+    assert node.replicate({"type": "advisory", "drone_id": "DR-003"}) is True
+    assert len(node.state.log) == 2
+    # quorum 복제 전이므로 commit_index 가 새 엔트리(index 1)로 진행되지 않는다.
+    assert node.state.commit_index < 1
 
 
 def test_on_request_vote_grants_when_eligible() -> None:

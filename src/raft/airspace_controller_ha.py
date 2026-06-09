@@ -76,7 +76,13 @@ class AirspaceControllerHA:
         return self.state.role == NodeRole.LEADER
 
     def replicate(self, command: dict) -> bool:
-        """리더만 호출. 명령을 복제 (quorum 합의)."""
+        """리더만 호출. 명령을 로컬 로그에 추가한다.
+
+        단일 노드(``peers`` 없음)에서는 리더 자신이 곧 과반이므로 즉시 커밋한다.
+        다중 노드 quorum 복제·커밋은 :class:`~src.raft.cluster.RaftCluster.propose`
+        가 ``on_append_entries`` 라우팅으로 담당하므로, 피어가 있으면 여기서는
+        로그 추가만 하고 ``commit_index`` 갱신은 클러스터에 위임한다.
+        """
         if not self.is_leader():
             return False
         entry = LogEntry(
@@ -85,18 +91,20 @@ class AirspaceControllerHA:
             command=command,
         )
         self.state.log.append(entry)
-        # TODO: append_entries RPC → peers majority commit
-        self.state.commit_index = entry.index
+        # 단일 노드 클러스터에서만 즉시 커밋 (과반 = 자기 자신).
+        if not self.peers:
+            self.state.commit_index = entry.index
         return True
 
     def start(self) -> None:
-        """Raft 백그라운드 루프 시작."""
+        """Raft 노드를 활성화한다.
+
+        선거 타임아웃·하트비트·RPC 라우팅은 :class:`~src.raft.cluster.RaftCluster`
+        의 결정론적 ``tick`` 루프가 인프로세스로 구동한다. 본 메서드는 노드를
+        실행 상태로 표시하고 하트비트 타임스탬프를 초기화하기만 한다.
+        """
         self._running = True
         self.state.last_heartbeat_ts = time.monotonic()
-        # TODO: asyncio 또는 threading으로:
-        #   - election timeout watchdog
-        #   - heartbeat sender (leader 시)
-        #   - RequestVote/AppendEntries RPC server
 
     def stop(self) -> None:
         """노드 종료."""

@@ -92,9 +92,9 @@ class SDACSGymEnv:
         self._seed = seed
         self._rng = np.random.default_rng(seed)
         self._step_count = 0
-        self._positions = np.zeros((n_drones, 3))
-        self._velocities = np.zeros((n_drones, 3))
-        self._goals = np.zeros((n_drones, 3))
+        self._positions: np.ndarray = np.zeros((n_drones, 3))
+        self._velocities: np.ndarray = np.zeros((n_drones, 3))
+        self._goals: np.ndarray = np.zeros((n_drones, 3))
         self._prev_goal_dist = 0.0
         self.episode_near_misses = 0
         self.episode_collisions = 0

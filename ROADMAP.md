@@ -214,7 +214,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 논문·발표 이후 SDACS를 다음 단계 연구 자산으로 확장.
 
-- [x] **P736** — RL 충돌 회피 PoC scaffold — `src/rl/ppo_collision.py` SB3 PPO + `SDACSGymEnv` wrapper (학습은 GPU 환경 필요) (2026-06-04)
+- [x] **P736** — RL 충돌 회피 PoC — `src/rl/ppo_collision.py` SB3 PPO + `SDACSGymEnv` (경량 point-mass 운동학으로 reset/step/observation/reward 완전 구현, GPU 없이 rollout·evaluate 동작) + 12개 단위 테스트 PASS. 학습만 GPU 필요 (2026-06-09)
 - [x] **P737** — 비협조 침입자(UAS-T) 결정 트리 — `src/uast/intruder_response.py` + 9개 단위 테스트 PASS (2026-06-04)
 - [x] **P738** — 도시 LiDAR/Mesh 임포터 — `src/env/nsdi_importer.py` NSDI Web Map Service → NFZ 자동 생성 (API 키 필요) (2026-06-04)
 - [x] **P739** — Sim-to-Real Domain Randomization — `src/training/domain_rand.py` + 7개 단위 테스트 PASS, ADR 곡선 학습 포함 (2026-06-04)

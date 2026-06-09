@@ -65,6 +65,7 @@ package.json
 package-lock.json
 !frontend/package-lock.json
 .coverage
+.coverage.*
 
 # Standardized common patterns (added 2026-04-27)
 *.bak

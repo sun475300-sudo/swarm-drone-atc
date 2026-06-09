@@ -36,6 +36,7 @@ import contextlib
 import importlib
 import json
 import logging
+import math
 import os
 import signal
 import sys
@@ -52,6 +53,10 @@ TELEMETRY_POLL_HZ = 20
 RECONNECT_BACKOFF_S = (0.5, 1.0, 2.0, 5.0, 10.0)
 MAX_RECONNECT_ATTEMPTS = 10
 COMMAND_ACK_TIMEOUT_S = 2.0
+# GLOBAL_POSITION_INT.hdg is centidegrees (0..35999) or UINT16_MAX when the
+# autopilot has no valid heading (e.g. no magnetometer / pre-GPS-lock). In that
+# case we fall back to ATTITUDE.yaw instead of emitting a bogus 655.35 deg.
+HDG_UNKNOWN_CDEG = 65535
 
 
 # --- Value objects ---
@@ -125,6 +130,9 @@ class MavlinkAdapter:
         self._last_heartbeat_mode: str = "UNKNOWN"
         self._last_heartbeat_armed: bool = False
         self._last_gps_fix_type: int = 0
+        # Most recent ATTITUDE.yaw, already converted to [0, 360) degrees. Used
+        # as a heading fallback when GLOBAL_POSITION_INT.hdg is unavailable.
+        self._last_attitude_yaw_deg: float | None = None
 
     async def connect(self) -> None:
         # Deferred import so tests can import this module without pymavlink installed.
@@ -164,6 +172,27 @@ class MavlinkAdapter:
             flags.append(f"custom={custom_mode}")
         return "|".join(flags) if flags else "UNKNOWN"
 
+    @staticmethod
+    def _yaw_rad_to_deg(yaw_rad: float) -> float:
+        """Convert ATTITUDE.yaw ([-pi, pi] radians) to a [0, 360) degree heading."""
+        return math.degrees(yaw_rad) % 360.0
+
+    @staticmethod
+    def _resolve_heading_deg(
+        raw_hdg_cdeg: int, attitude_yaw_deg: float | None
+    ) -> float:
+        """Resolve heading, preferring GLOBAL_POSITION_INT.hdg over ATTITUDE.yaw.
+
+        ``hdg`` is centidegrees (0..35999); UINT16_MAX or any out-of-range value
+        means the heading is unavailable, in which case we use the most recent
+        ATTITUDE yaw, or 0.0 if none has been seen yet.
+        """
+        if raw_hdg_cdeg != HDG_UNKNOWN_CDEG and 0 <= raw_hdg_cdeg < 36000:
+            return raw_hdg_cdeg / 100.0
+        if attitude_yaw_deg is not None:
+            return attitude_yaw_deg
+        return 0.0
+
     async def poll_telemetry(self, drone_id: int) -> TelemetrySnapshot | None:
         """``poll_telemetry`` 동작을 수행한다."""
         if self._connection is None:
@@ -174,7 +203,13 @@ class MavlinkAdapter:
         position_msg = None
         for _ in range(64):
             msg = self._connection.recv_match(
-                type=["GLOBAL_POSITION_INT", "HEARTBEAT", "SYS_STATUS", "GPS_RAW_INT"],
+                type=[
+                    "GLOBAL_POSITION_INT",
+                    "HEARTBEAT",
+                    "SYS_STATUS",
+                    "GPS_RAW_INT",
+                    "ATTITUDE",
+                ],
                 blocking=False,
             )
             if msg is None:
@@ -182,6 +217,10 @@ class MavlinkAdapter:
             mtype = msg.get_type()
             if mtype == "GLOBAL_POSITION_INT":
                 position_msg = msg
+            elif mtype == "ATTITUDE":
+                self._last_attitude_yaw_deg = self._yaw_rad_to_deg(
+                    float(getattr(msg, "yaw", 0.0))
+                )
             elif mtype == "SYS_STATUS":
                 br = getattr(msg, "battery_remaining", -1)
                 self._last_sys_status_battery_pct = float(br) if br >= 0 else -1.0
@@ -207,7 +246,10 @@ class MavlinkAdapter:
             vx_mps=position_msg.vx / 100.0,
             vy_mps=position_msg.vy / 100.0,
             vz_mps=position_msg.vz / 100.0,
-            heading_deg=position_msg.hdg / 100.0,
+            heading_deg=self._resolve_heading_deg(
+                int(getattr(position_msg, "hdg", HDG_UNKNOWN_CDEG)),
+                self._last_attitude_yaw_deg,
+            ),
             battery_pct=self._last_sys_status_battery_pct,
             mode=self._last_heartbeat_mode,
             armed=self._last_heartbeat_armed,

@@ -230,7 +230,7 @@ param set SIM_GPS_DISABLE 1
 
 | 기능 | 상태 | 비고 |
 |------|------|------|
-| ATTITUDE 파싱 (`heading_deg` 보정) | 🔵 스켈레톤 | `onboard_bridge.py` TODO |
+| ATTITUDE 파싱 (`heading_deg` 보정) | ✅ 구현 | `GLOBAL_POSITION_INT.hdg` 미지값(65535) 시 `ATTITUDE.yaw` 폴백 — 단위 테스트 7종 |
 | SET_POSITION_TARGET 어드바이저리 변환 | 🔵 스켈레톤 | Phase 3 테스트 불완전 |
 | SET_MODE RTL/Land | 🔵 스켈레톤 | Phase 3/4 부분만 가능 |
 | Lost-Link Phase 2/3 | 🔵 부분 구현 | Phase 1만 완료 |

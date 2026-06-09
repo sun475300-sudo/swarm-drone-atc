@@ -170,7 +170,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P704** — Reproducibility 패키지 — Dockerfile·Dockerfile.gpu·Dockerfile.reproducible + docker-compose.reproducible.yml (PYTHONHASHSEED=0, seed 고정) 완비 (2026-05-29)
 - [x] **P705** — 평가 메트릭 정형화 — `src/analytics/metrics.py` NMR·MSD·PE·MS·FT·AU·RID_CR·RTF 8종 공식 정의 및 Evaluator 클래스 구현 (2026-05-29)
 - [x] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS) — SDACS W2 APF+CBS 하이브리드 어댑터 완성, NMR·MSD·AU 유의미 개선 확인 (2026-06-01)
-- [x] **P707** — 논문 초안 — `docs/paper/latex/main.tex`(§1-§3) + `sections_4to7.tex`(§4-§7 Experiments/Results/Ablation/Discussion/Conclusion + 결과·ablation 표) (PR #93·본 PR, 실험 그래프 보강 잔여)
+- [x] **P707** — 논문 초안 — `docs/paper/latex/main.tex` §1-§7 완성(§2 RELATED WORK narrative + 10개 인용 검증, §3 `APF_PARAMS_WINDY` 표, §4-§7 `sections_4to7.tex` `\input` 통합) + `sections_4to7.tex`(Experiments/Results/Ablation/Discussion/Conclusion) (PR #93·#205, 실측 실험 그래프 보강만 잔여)
 - [x] **P708** — 내부 리뷰 가이드 `docs/paper/review_checklist.md` (PR #93)
 - [x] **P709** — 투고 가이드 `docs/paper/submission_guide.md` (PR #93, 실제 투고 사용자)
 - [x] **P710** — 발표 자산 — 포스터 `donggang_2026_ko.md` + Marp 슬라이드 15장 + 차트 2종(NMR/MSD bar·Pareto) (PR #90·#95·본 PR)
@@ -214,12 +214,12 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 논문·발표 이후 SDACS를 다음 단계 연구 자산으로 확장.
 
-- [x] **P736** — RL 충돌 회피 PoC scaffold — `src/rl/ppo_collision.py` SB3 PPO + `SDACSGymEnv` wrapper (학습은 GPU 환경 필요) (2026-06-04)
+- [x] **P736** — RL 충돌 회피 PoC — `src/rl/ppo_collision.py` SB3 PPO + `SDACSGymEnv` (경량 point-mass 운동학으로 reset/step/observation/reward 완전 구현, GPU 없이 rollout·evaluate 동작) + 12개 단위 테스트 PASS. 학습만 GPU 필요 (2026-06-09)
 - [x] **P737** — 비협조 침입자(UAS-T) 결정 트리 — `src/uast/intruder_response.py` + 9개 단위 테스트 PASS (2026-06-04)
 - [x] **P738** — 도시 LiDAR/Mesh 임포터 — `src/env/nsdi_importer.py` NSDI Web Map Service → NFZ 자동 생성 (API 키 필요) (2026-06-04)
 - [x] **P739** — Sim-to-Real Domain Randomization — `src/training/domain_rand.py` + 7개 단위 테스트 PASS, ADR 곡선 학습 포함 (2026-06-04)
 - [x] **P740** — 디지털 트윈 동기화 엔진 — `src/digital_twin/sync_engine.py` MAVLink GLOBAL_POSITION_INT 파서 + LatencyStats(p50/p99) + GPS→ENU 변환. 6개 단위 테스트 PASS (2026-06-04)
-- [x] **P741** — 페일오버 클러스터링 (Raft HA) — `src/raft/airspace_controller_ha.py` RPC 핸들러 + `src/raft/cluster.py` 결정론적 인프로세스 합의 루프(실제 선거·하트비트·quorum 복제·페일오버) + 25개 단위 테스트 PASS (2026-06-09)
+- [x] **P741** — 페일오버 클러스터링 (Raft HA) — `src/raft/airspace_controller_ha.py` RPC 핸들러 + `src/raft/cluster.py` 결정론적 인프로세스 합의 루프(실제 선거·하트비트·quorum 복제·페일오버) + Raft §5.3 로그 일관성 검사·팔로워 catch-up(next_index/match_index) + 29개 단위 테스트 PASS (2026-06-09)
 - [x] **P742** — K-UAM Grand Challenge 시나리오 — `config/scenario_params/uam/k_uam_grand_challenge.yaml` 5기 eVTOL × 3 회랑 × 3 vertiport × 30분 + 5계층 안전망 + 비상시나리오 3종 (2026-06-04)
 - [x] **P743** — 양자 안전 통신 PoC — `src/quantum/pqc_telemetry.py` Kyber-768 KEM + Dilithium-3 서명 + AES-256-GCM. `docs/track_e/p743_pqc_overhead.md` 대역폭 33× 증가 분석 (2026-06-04)
 - [x] **P744** — 폐쇄망(MIL/L4) 모드 — `src/closed_net/airgap_mode.py` AirGapPolicy + 외부 도메인 감사 + 군용 정책 프리셋. 8개 단위 테스트 PASS (2026-06-04)
@@ -249,4 +249,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-06-04 — **본 세션 PR 15개 전부 main 머지 완료** (#100·#103 main 복구 + #93·#94·#95·#96·#98·#99·#90·#84·#88·#89·#91·#92·#81). Track A 가이드 100% · Track B 9/10 · Track C 10/10 · Track D 15/15 · Track E 10/10 · Track F 9/10. 잔여 (사용자 환경 의존): Track A 실기 검증, P707 §4-§7 실측 그래프, P709 IROS 2026 실제 투고, P755 창업, P711 React (PR #87). 전체 Phase 691-755 진척률 **92%** (60/65 완료). 핵심 회귀 테스트 93/93 PASS · conflict 마커 0.*
+*Last updated: 2026-06-09 — **일일 점검 + PR 백로그 정리**: 전체 회귀 3,970 pass / 254 skip / 0 fail (GREEN). 코드 내 마지막 실 TODO 4건을 머지로 해소 — #205(P707 논문 §2-§7) main 직접 머지 + #204(onboard yaw)·#206(P736 RL env 실동작)·#207(P741 Raft §5.3 catch-up)을 본 브랜치로 통합(README changelog 충돌만 수동 해소). obsolete PR 17건(CLI `--output` 중복 13 + 빈 diff 3 + P711 구버전 #138) close. 잔여 (사용자 환경 의존): Track A 실기 검증, P707 실측 실험 그래프, P709 IROS 2026 실제 투고, P755 창업. 코드 로드맵 **99.5%** · conflict 마커 0.*

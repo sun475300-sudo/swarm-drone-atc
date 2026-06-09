@@ -885,7 +885,14 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-09 22:29 | `61580f4` | docs: 일일 점검 2026-06-09 — ROADMAP P707/P741/P736 심화 반영 + 통합 요약 | README.md, ROADMAP.md |
+| 2026-06-09 22:40 | (pending) | docs: 일일 점검 — 회귀 3,970 GREEN, ROADMAP P707/P741/P736 심화 반영, #204·#206·#207 통합 + obsolete PR 17건 정리 | ROADMAP.md, README.md |
+| 2026-06-09 22:23 | `e688a21` | Merge remote-tracking branch 'origin/claude/fervent-babbage-o10dsd' into claude/fervent-babbage-v6mpjr | README.md, src/raft/airspace_controller_ha.py, src/raft/cluster.py, tests/track_e/test_raft.py, tests/track_e/test_raft_cluster.py |
+| 2026-06-09 20:20 | `29c88c7` | feat(raft): P741 Raft 로그 일관성 검사(§5.3) + 팔로워 catch-up 완성 | src/raft/airspace_controller_ha.py, src/raft/cluster.py, tests/track_e/test_raft.py, tests/track_e/test_raft_cluster.py |
+| 2026-06-09 18:28 | `296cb32` | fix(rl): ppo_collision mypy — _positions/_goals/_velocities 명시 ndarray 주석 | src/rl/ppo_collision.py |
+| 2026-06-09 18:19 | `858f6f6` | feat(rl): P736 SDACSGymEnv 실동작 구현 — point-mass 운동학 env + 12 테스트 | ROADMAP.md, src/rl/ppo_collision.py, tests/test_ppo_collision_env.py |
 | 2026-06-09 17:10 | `000b7b8` | docs(paper): P707 main.tex §2-§7 완성 — RELATED WORK narrative·APF 파라미터 표·§4-§7 통합 | docs/paper/latex/main.tex, docs/paper/latex/sections_4to7.tex |
+| 2026-06-09 16:11 | `1c8755b` | feat(hardware): onboard_bridge ATTITUDE yaw 헤딩 폴백 구현 | docs/HITL_CHECKLIST.md, src/hardware/onboard_bridge.py, tests/test_onboard_bridge.py |
 | 2026-06-09 15:14 | `ced8481` | feat(P711): React 공역 관제 대시보드 통합 — 마지막 코드 로드맵 항목 완료 | .gitignore, README.md, ROADMAP.md, frontend/.env.example, frontend/.gitignore, frontend/README.md … |
 | 2026-06-09 15:30 | (pending) | feat(P711): React 공역 관제 대시보드 통합 — 마지막 코드 로드맵 항목 완료 | .gitignore, README.md, ROADMAP.md, frontend/ (21 files) |
 | 2026-06-09 14:17 | `b474ffa` | feat(raft): P741 결정론적 Raft 합의 루프 구현 (선거·하트비트·quorum 복제·페일오버) | ROADMAP.md, src/raft/airspace_controller_ha.py, src/raft/cluster.py, tests/track_e/test_raft_cluster.py |

@@ -87,6 +87,54 @@ def test_on_append_entries_appends_log() -> None:
     assert node.state.commit_index == 1
 
 
+def test_on_append_entries_rejects_on_log_gap() -> None:
+    """prev_log_index가 팔로워 로그 범위를 벗어나면 거부 (§5.3 일관성 검사)."""
+    node = AirspaceControllerHA("ctrl-1", peers=[])
+    ok = node.on_append_entries(
+        "ctrl-2",
+        term=1,
+        entries=[LogEntry(term=1, index=3, command={})],
+        commit_index=0,
+        prev_log_index=2,
+        prev_log_term=1,
+    )
+    assert ok is False
+    assert node.state.log == []
+    # 일관성 검사에 실패해도 리더/term 은 인지한다.
+    assert node.state.current_term == 1
+    assert node.state.leader_id == "ctrl-2"
+
+
+def test_on_append_entries_truncates_conflicting_suffix() -> None:
+    """동일 index·상이 term 엔트리는 잘라내고 리더 로그로 정렬한다 (§5.3)."""
+    node = AirspaceControllerHA("ctrl-1", peers=[])
+    node.state.log = [
+        LogEntry(term=1, index=0, command={"type": "old"}),
+        LogEntry(term=1, index=1, command={"type": "stale"}),
+    ]
+    ok = node.on_append_entries(
+        "ctrl-2",
+        term=2,
+        entries=[LogEntry(term=2, index=1, command={"type": "fresh"})],
+        commit_index=1,
+        prev_log_index=0,
+        prev_log_term=1,
+    )
+    assert ok is True
+    assert len(node.state.log) == 2
+    assert node.state.log[1].term == 2
+    assert node.state.log[1].command["type"] == "fresh"
+
+
+def test_on_append_entries_is_idempotent() -> None:
+    """동일 엔트리 재전송(하트비트 재방송)은 로그를 중복 추가하지 않는다."""
+    node = AirspaceControllerHA("ctrl-1", peers=[])
+    entries = [LogEntry(term=1, index=0, command={"type": "advisory"})]
+    assert node.on_append_entries("ctrl-2", term=1, entries=entries, commit_index=0)
+    assert node.on_append_entries("ctrl-2", term=1, entries=entries, commit_index=0)
+    assert len(node.state.log) == 1
+
+
 def test_health_check_returns_expected_fields() -> None:
     """헬스체크 dict 구조."""
     node = AirspaceControllerHA("ctrl-1", peers=["ctrl-2"])

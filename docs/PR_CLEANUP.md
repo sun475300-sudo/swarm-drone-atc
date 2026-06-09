@@ -1,82 +1,75 @@
-# PR 정리 권고 (2026-06-04)
+# PR 정리 권고 (2026-06-09 일일 점검)
 
-총 18개 열린 PR을 카테고리별로 정리 권고. 본 세션 11개 + 다른 세션 7개.
+> 이전 권고(2026-06-04, #77~#96 대상)는 모두 처리 완료되어 본 문서로 갱신함.
 
-## ✅ 머지 권고 (본 세션 11개)
+## 일일 점검 결과 요약
 
-CI 확인 후 차례로 머지.
+| 항목 | 상태 |
+|---|---|
+| 작업 브랜치 | `claude/fervent-babbage-dd443e` (main `e5c8ff6`와 동기) |
+| 회귀 테스트 | **3,902 pass + 250 skip, 실패 0** (샌드박스 누락 의존성 `pandas`/`dash`/`plotly`/`hypothesis` 설치 후 16건 전부 통과 재확인) |
+| ROADMAP 진척 | 코드 로드맵 99.5% 완료. 잔여는 사용자 환경(HW/GPU/API/외부기관) 의존 |
+| 코드 내 실제 TODO | 4건 — 전부 아래 클린 드래프트 PR로 커버됨 |
+| 열린 PR | **30개** (대부분 이미 main 반영된 obsolete 중복) |
 
-| PR | 작업 | 충돌 위험 |
+main HEAD에서 확인:
+- `main.py:487` `simulate --output` 옵션 존재 → "simulate --output JSON" CI 복구 PR 전부 obsolete
+- `frontend/` 디렉터리 존재 (P711 React, 커밋 `ced8481`) → #138 obsolete
+
+---
+
+## ✅ 머지 권고 — 진짜 미완성 TODO를 해소한 클린 드래프트 (2026-06-09, 4건)
+
+코드 내 마지막 4개 실 TODO를 각각 해소한 신규 작업. 충돌 위험 낮음(서로 다른 모듈).
+
+| PR | 작업 | 해소한 TODO |
 |---|---|---|
-| #81 | P730 i18n + P733 LIVE + Track E/F 신설 | low (HTML + ROADMAP) |
-| #84 | P731 layer panel merge | low (HTML 부분) |
-| #88 | P732 CPA 공간 해시 | low (HTML 부분) |
-| #89 | P734 키보드 스크러버 | low (HTML 부분) |
-| #90 | Ultra Plan + P701 + P710 docs | none (신규 docs) |
-| #91 | P734 멀티뷰 cursor | low (HTML 부분) |
-| #92 | P735 EO/IR adapter | low (maritime HTML) |
-| #93 | Track A 10 + B 후반 + C P720 + E PoC + F | none (신규 파일) |
-| #94 | P740/742/743/744/750/751/754 | none (신규 파일) |
-| #95 | STATUS_REPORT + 차트·CI·CHANGELOG | none (신규 파일) |
-| #96 | P707 §4-§7 + P710 슬라이드 + P742 평가기 + README | none (신규 파일) |
+| #204 | onboard_bridge ATTITUDE yaw 헤딩 폴백 | `src/hardware/onboard_bridge.py` HITL yaw |
+| #205 | P707 논문 `main.tex` §2-§7 통합 | 논문 초안 §4-§7 보강 |
+| #206 | P736 `SDACSGymEnv` 실동작 구현 (+12 테스트) | `src/rl/ppo_collision.py` reset/step/obs/reward 스텁 |
+| #207 | P741 Raft 로그 일관성 검사 §5.3 + 팔로워 catch-up | `src/raft/airspace_controller_ha.py` `on_append_entries` 로그 검사 |
 
-**권고 머지 순서**: #93 → #94 → #95 → #96 (docs/코드 우선) → #90 → #84 → #88 → #89 → #91 → #92 → #81 (HTML 충돌 주의)
+→ #206은 `mergeable_state: clean` 확인. 권고 머지 순서: **#205 → #204 → #206 → #207** (docs·독립 모듈 우선).
 
-## ⚠️ 다른 세션 PR — 중복/스테일 판단
+## 🤖 Dependabot (2건) — 보안 패치, 검토 후 머지
 
-### 머지 권고 (1)
-| PR | 이유 |
+| PR | 내용 |
 |---|---|
-| **#87** | Track C P711 React 프론트엔드 MVP — **우리 PR 어디에도 없는 진짜 미구현** ✅ |
+| #202 | esbuild·vite·vitest bump (/frontend) |
+| #203 | vite·@vitejs/plugin-react·vitest bump (/frontend) |
 
-### 중복으로 close 권고 (7)
-| PR | 사유 |
-|---|---|
-| #85 | P733 ws_bridge LIVE — 우리 PR #81의 P733과 중복 (대안 구현) |
-| #86 | P734 멀티뷰 — 우리 PR #89·#91의 P734와 중복 |
-| #77 | P732 (구버전 main `f1ac8ee` 기반, 스테일) |
-| #79 | P732 (구버전 main 기반, 스테일) |
-| #80 | P732 (구버전 main 기반, 스테일) |
-| #82 | P732 (#88 후속 시도, 중복) |
-| #83 | P732 (#88 후속 시도, 중복) |
+→ 동일 패키지군이므로 둘 중 최신(#203) 머지 후 #202 자동 close 가능. `frontend` vitest 5/5 통과 확인 후 진행.
 
-본 세션 #88이 최신 main(`c712bbd`) 기반이고 가장 깔끔하므로 #82/#83 close.
+## ❌ Close 권고 — 이미 main 반영된 obsolete (16건)
+
+### CLI 벤치마크 복구 — `simulate --output`은 이미 main `da73009`에 머지됨 (15건)
+`#120 #121 #125 #126 #130 #131 #132 #133 #134 #135 #136 #137 #139 #140 #141`
+
+→ 모두 동일한 "나이틀리 벤치마크 CI RED 복구" 대안 구현. main에 이미 옵션 존재하므로 전부 중복.
+
+### P711 React — 이미 main `ced8481`에 머지됨 (1건)
+`#138`
+
+## ⚠️ 검토 필요 — main 반영 여부 확인 후 판단 (5건)
+
+`STATUS_REPORT.md`는 200 Phase(STELLAR 51-100·HYPER 전부) 완료를 명시. 아래 PR들은 해당 Phase를 *추가*한다고 주장 → 이미 main에 반영된 대안 구현일 가능성 높음. 머지 전 main과 diff 확인 권고.
+
+| PR | 내용 | 비고 |
+|---|---|---|
+| #127 | STELLAR Phase 51 LLM Multi-Agent | #128에 포함 가능 |
+| #128 | STELLAR Phase 51-55 자율 결정 5종 | STATUS상 완료 표기 |
+| #124 | HYPER Phase 18 AR Overlay | STATUS상 완료 표기 |
+| #123 | _sdacs API 자동 문서 생성기 | main 반영 여부 확인 |
+| #122 | HYPER Phase 12 데스크탑 멀티 윈도우 | main 반영 여부 확인 |
+| #165 | IROS 논문 §4-§7 | #205로 대체 가능성 |
+| #158 | ROADMAP P755 완료 반영 | P755는 사용자 환경 의존 — 실제 완료 여부 확인 |
+| #129 | 일일 점검 2026-06-05 | 스테일 docs |
 
 ## 📋 처리 순서 권고
 
-### Step 1 (즉시)
-1. `#93`(Track A+B+C+E+F docs 일괄) 머지 — 가장 큰 가치, 충돌 없음
-2. `#94`(P740-P754) 머지 — mypy fix 적용됨
-3. `#95`(STATUS_REPORT) 머지 — 메타문서
+1. **머지**: #205 → #204 → #206 → #207 (코드 마지막 TODO 해소)
+2. **Dependabot**: #203 머지 (#202 자동 close)
+3. **Close (obsolete)**: CLI 15건 + #138 = 16건 일괄 close
+4. **검토 후 결정**: #122·#123·#124·#127·#128·#129·#158·#165 (main diff 확인)
 
-### Step 2 (CI 확인 후)
-4. `#96`(P707/P710/P742) 머지
-5. `#90`(Ultra Plan + P701) 머지
-6. `#87`(P711 React) 평가 후 머지
-
-### Step 3 (HTML 충돌 주의)
-7. `#84`(P731) → `#88`(P732) → `#89`(P734) → `#91`(P734 멀티뷰) → `#92`(P735) 순차
-8. `#81`(P730 i18n + P733 LIVE) 마지막 — Track E/F 섹션 추가가 다른 ROADMAP 변경과 충돌 가능
-
-### Step 4 (스테일 정리)
-9. `#77/#79/#80/#82/#83/#85/#86` close
-
-## 🎯 머지 후 상태
-
-- 모든 본 세션 PR 머지: Phase 691-755 진척 **89%** (58/65)
-- 잔여 (사용자 환경): Track A 실기, P707 §4-§7 실험 결과 그래프, IROS 투고, Track F LOI
-
-## 자동화 명령 (참고)
-
-```bash
-# 본 세션 PR 일괄 ready (draft → ready) — 사용자가 GitHub 웹에서
-# Step 1
-gh pr merge 93 --merge --auto
-gh pr merge 94 --merge --auto
-gh pr merge 95 --merge --auto
-
-# Step 4 (정리)
-for n in 77 79 80 82 83 85 86; do
-  gh pr close $n --comment "중복/스테일 — PR #88(P732) 또는 본 세션 PR이 main 기반 최신."
-done
-```
+머지+close 완료 시 열린 PR 30 → 8 이하로 정리, 코드 로드맵 TODO 0건 도달.

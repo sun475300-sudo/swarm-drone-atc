@@ -62,6 +62,9 @@ class RaftCluster:
         self.now_ms: float = 0.0
         self._election_deadline: dict[str, float] = {}
         self._last_heartbeat_ms: float = -1e9
+        # 리더가 추적하는 팔로워별 복제 진행 상태 (Raft §5.3).
+        self.next_index: dict[str, int] = {}
+        self.match_index: dict[str, int] = {}
         for nid in node_ids:
             node = self.nodes[nid]
             node.start()
@@ -177,13 +180,7 @@ class RaftCluster:
         for nid in self.alive_node_ids():
             if nid == leader.node_id:
                 continue
-            ok = self.nodes[nid].on_append_entries(
-                leader_id=leader.node_id,
-                term=leader.state.current_term,
-                entries=[entry],
-                commit_index=entry.index,
-            )
-            if ok:
+            if self._replicate_to(leader, nid):
                 acks += 1
         if acks >= self.majority:
             leader.state.commit_index = entry.index
@@ -220,22 +217,51 @@ class RaftCluster:
         if votes >= self.majority:
             candidate.state.role = NodeRole.LEADER
             candidate.state.leader_id = candidate_id
+            self._init_leader_indices(candidate)
             self._send_heartbeats(candidate)
             self._last_heartbeat_ms = self.now_ms
         # 승리하지 못했으면 데드라인을 새로 잡아 split vote 후 재시도
         self._reset_election_timer(candidate_id)
 
+    def _init_leader_indices(self, leader: AirspaceControllerHA) -> None:
+        """리더 등극 시 팔로워별 next_index/match_index 초기화 (Raft §5.3)."""
+        log_len = len(leader.state.log)
+        for nid in self.nodes:
+            if nid == leader.node_id:
+                continue
+            self.next_index[nid] = log_len
+            self.match_index[nid] = -1
+
+    def _replicate_to(self, leader: AirspaceControllerHA, follower_id: str) -> bool:
+        """리더 로그를 follower에 복제하고 next/match_index를 갱신한다 (catch-up).
+
+        일치 실패 시 ``next_index`` 를 1 감소시켜 다음 tick에 재시도(catch-up)한다.
+        """
+        log = leader.state.log
+        ni = self.next_index.get(follower_id, len(log))
+        prev_index = ni - 1
+        prev_term = log[prev_index].term if 0 <= prev_index < len(log) else 0
+        ok = self.nodes[follower_id].on_append_entries(
+            leader_id=leader.node_id,
+            term=leader.state.current_term,
+            entries=log[ni:],
+            commit_index=leader.state.commit_index,
+            prev_log_index=prev_index,
+            prev_log_term=prev_term,
+        )
+        if ok:
+            self.match_index[follower_id] = len(log) - 1
+            self.next_index[follower_id] = len(log)
+        else:
+            self.next_index[follower_id] = max(0, ni - 1)
+        return ok
+
     def _send_heartbeats(self, leader: AirspaceControllerHA) -> None:
-        """리더 → 살아있는 follower에게 빈 AppendEntries(하트비트) 방송."""
+        """리더 → 살아있는 follower에게 AppendEntries(하트비트 + 로그 catch-up) 방송."""
         for nid in self.alive_node_ids():
             if nid == leader.node_id:
                 continue
-            self.nodes[nid].on_append_entries(
-                leader_id=leader.node_id,
-                term=leader.state.current_term,
-                entries=[],
-                commit_index=leader.state.commit_index,
-            )
+            self._replicate_to(leader, nid)
             self._reset_election_timer(nid)
 
     def _reset_election_timer(self, node_id: str) -> None:

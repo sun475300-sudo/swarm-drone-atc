@@ -144,3 +144,25 @@ def test_custom_config_timing_respected() -> None:
     cluster = RaftCluster(["a", "b", "c"], seed=3, cfg=cfg)
     leader = cluster.run_until_leader()
     assert leader.is_leader()
+
+
+def test_revived_follower_catches_up_missed_entries() -> None:
+    """죽은 동안 놓친 엔트리를 복귀 후 하트비트로 따라잡는다 (Raft §5.3 log matching)."""
+    cluster = _three_node()
+    leader = cluster.run_until_leader()
+    # 팔로워 한 명을 정지시킨 뒤 두 엔트리를 커밋 → 그 팔로워는 둘 다 놓친다.
+    follower_id = next(
+        nid for nid in cluster.alive_node_ids() if nid != leader.node_id
+    )
+    cluster.kill(follower_id)
+    assert cluster.propose({"type": "advisory", "drone_id": "DR-A"}) is True
+    assert cluster.propose({"type": "advisory", "drone_id": "DR-B"}) is True
+    # 복귀 후 하트비트(AppendEntries)로 누락 엔트리를 따라잡아야 한다.
+    cluster.revive(follower_id)
+    for _ in range(20):
+        cluster.tick()
+    revived = cluster.nodes[follower_id]
+    cmds = [e.command.get("drone_id") for e in revived.state.log]
+    assert "DR-A" in cmds
+    assert "DR-B" in cmds
+    assert len(revived.state.log) == len(leader.state.log)

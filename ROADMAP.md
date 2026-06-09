@@ -249,4 +249,4 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-06-09 — **일일 점검 + PR 백로그 정리**: 전체 회귀 3,970 pass / 254 skip / 0 fail (GREEN). 코드 내 마지막 실 TODO 4건을 머지로 해소 — #205(P707 논문 §2-§7) main 직접 머지 + #204(onboard yaw)·#206(P736 RL env 실동작)·#207(P741 Raft §5.3 catch-up)을 본 브랜치로 통합(README changelog 충돌만 수동 해소). obsolete PR 17건(CLI `--output` 중복 13 + 빈 diff 3 + P711 구버전 #138) close. 잔여 (사용자 환경 의존): Track A 실기 검증, P707 실측 실험 그래프, P709 IROS 2026 실제 투고, P755 창업. 코드 로드맵 **99.5%** · conflict 마커 0.*
+*Last updated: 2026-06-10 — **일일 점검 + Raft stale TODO 청산**: 신규 클린 환경에서 옵션 의존성(pytest-asyncio·asyncpg·plotly·dash·hypothesis·websockets) 설치 후 전체 회귀 **3,961 pass / 15 skip / 0 fail (GREEN)** 재확인 — 초기 44 fail은 모두 옵션 의존성 누락(asyncpg) + pytest-asyncio 플러그인 미로드(pytest 9 호환 1.4.0 필요) 아티팩트로 판정(실 회귀 아님). `src/raft/airspace_controller_ha.py` 단일 노드 경로의 stale TODO 2건(`replicate()`·`start()`)을 정확한 docstring으로 교체 — quorum 복제·선거·하트비트는 `RaftCluster`(`src/raft/cluster.py`)가 결정론적 tick으로 구동(P741 완료 반영). **src/ TODO 0건**. 잔여 (사용자 환경 의존): Track A 실기 검증, P707 실측 실험 그래프, P709 IROS 2026 실제 투고, P755 창업. 코드 로드맵 **99.5%** · conflict 마커 0.*

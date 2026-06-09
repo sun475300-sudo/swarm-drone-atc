@@ -124,8 +124,20 @@ class AirspaceControllerHA:
         self.state.current_term = term
         return True
 
-    def on_append_entries(self, leader_id: str, term: int, entries: list[LogEntry], commit_index: int) -> bool:
-        """AppendEntries RPC handler — heartbeat + 로그 복제."""
+    def on_append_entries(
+        self,
+        leader_id: str,
+        term: int,
+        entries: list[LogEntry],
+        commit_index: int,
+        prev_log_index: int = -1,
+        prev_log_term: int = 0,
+    ) -> bool:
+        """AppendEntries RPC handler — heartbeat + 로그 복제 (§5.3 log matching).
+
+        ``prev_log_index``/``prev_log_term`` 은 ``entries`` 직전 엔트리의 위치·term
+        으로, 리더와 팔로워 로그의 연속성을 보장한다 (기본값은 로그 선두 추가).
+        """
         if term < self.state.current_term:
             return False
         # Raft §5.1: 새 term의 리더 발견 시 투표 기록 초기화
@@ -135,9 +147,22 @@ class AirspaceControllerHA:
         self.state.leader_id = leader_id
         self.state.role = NodeRole.FOLLOWER
         self.state.last_heartbeat_ts = time.monotonic()
-        # TODO: 로그 일관성 검사 + entries 추가
-        for e in entries:
-            self.state.log.append(e)
+        # Raft §5.3: 직전 엔트리가 일치하지 않으면 거부 (리더가 next_index 감소 후 재시도).
+        if prev_log_index >= 0:
+            if prev_log_index >= len(self.state.log):
+                return False
+            if self.state.log[prev_log_index].term != prev_log_term:
+                return False
+        # 충돌 엔트리(같은 index·다른 term)는 잘라내고, 신규 엔트리만 추가 (idempotent).
+        insert_at = prev_log_index + 1
+        for offset, e in enumerate(entries):
+            idx = insert_at + offset
+            if idx < len(self.state.log):
+                if self.state.log[idx].term != e.term:
+                    del self.state.log[idx:]
+                    self.state.log.append(e)
+            else:
+                self.state.log.append(e)
         if commit_index > self.state.commit_index:
             self.state.commit_index = min(commit_index, len(self.state.log) - 1)
         return True

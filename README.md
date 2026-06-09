@@ -885,6 +885,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-09 18:19 | `858f6f6` | feat(rl): P736 SDACSGymEnv 실동작 구현 — point-mass 운동학 env + 12 테스트 | ROADMAP.md, src/rl/ppo_collision.py, tests/test_ppo_collision_env.py |
 | 2026-06-09 15:14 | `ced8481` | feat(P711): React 공역 관제 대시보드 통합 — 마지막 코드 로드맵 항목 완료 | .gitignore, README.md, ROADMAP.md, frontend/.env.example, frontend/.gitignore, frontend/README.md … |
 | 2026-06-09 15:30 | (pending) | feat(P711): React 공역 관제 대시보드 통합 — 마지막 코드 로드맵 항목 완료 | .gitignore, README.md, ROADMAP.md, frontend/ (21 files) |
 | 2026-06-09 14:17 | `b474ffa` | feat(raft): P741 결정론적 Raft 합의 루프 구현 (선거·하트비트·quorum 복제·페일오버) | ROADMAP.md, src/raft/airspace_controller_ha.py, src/raft/cluster.py, tests/track_e/test_raft_cluster.py |

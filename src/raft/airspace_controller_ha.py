@@ -107,6 +107,11 @@ class AirspaceControllerHA:
         # Raft §5.2: vote granted if (term ≥ self.term) ∧ (haven't voted) ∧ (log up-to-date)
         if term < self.state.current_term:
             return False
+        # Raft §5.1: 더 높은 term 발견 시 term 갱신 + 투표 기록 초기화 + FOLLOWER 강등
+        if term > self.state.current_term:
+            self.state.current_term = term
+            self.state.voted_for = None
+            self.state.role = NodeRole.FOLLOWER
         if self.state.voted_for is not None and self.state.voted_for != candidate_id:
             return False
         my_last_log = self.state.log[-1] if self.state.log else None
@@ -123,6 +128,9 @@ class AirspaceControllerHA:
         """AppendEntries RPC handler — heartbeat + 로그 복제."""
         if term < self.state.current_term:
             return False
+        # Raft §5.1: 새 term의 리더 발견 시 투표 기록 초기화
+        if term > self.state.current_term:
+            self.state.voted_for = None
         self.state.current_term = term
         self.state.leader_id = leader_id
         self.state.role = NodeRole.FOLLOWER

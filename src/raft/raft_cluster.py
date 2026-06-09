@@ -110,5 +110,6 @@ class InMemoryRaftCluster:
         self._partitioned.discard(node_id)
         node = self.nodes.get(node_id)
         if node is not None:
+            node._running = True  # kill() 강화 시에도 틱 재개 보장 (대칭성)
             node.state.role = NodeRole.FOLLOWER
             node._ticks_since_heartbeat = 0

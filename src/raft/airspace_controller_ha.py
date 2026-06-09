@@ -132,8 +132,10 @@ class AirspaceControllerHA:
     def tick(self) -> None:
         """논리 시계 1틱 진행.
 
-        리더는 매 틱 하트비트를 송신하고, 그 외 노드는 선거 타임아웃을
-        감시하여 만료 시 새 임기 선거를 시작한다.
+        본 모델에서 1틱 = heartbeat 간격(`heartbeat_interval_ms`)이다.
+        선거 타임아웃(`_election_timeout_ticks`)도 heartbeat 간격 단위로 환산되므로
+        (예: 150~300ms / 50ms = 3~6틱), 리더가 매 틱 하트비트를 보내는 것은
+        의도된 동작이다. 그 외 노드는 선거 타임아웃을 감시하여 만료 시 선거를 시작한다.
         """
         if not self._running:
             return
@@ -185,7 +187,8 @@ class AirspaceControllerHA:
                 return
             if resp.get("vote_granted") and resp.get("term") == self.state.current_term:
                 votes += 1
-        if self._has_majority(votes):
+        # step-down으로 CANDIDATE가 아니게 됐을 수 있으므로 불변식 재확인
+        if self.state.role == NodeRole.CANDIDATE and self._has_majority(votes):
             self._become_leader()
 
     def _become_leader(self) -> None:
@@ -265,9 +268,9 @@ class AirspaceControllerHA:
         for e in entries:
             if e.index >= len(self.state.log):  # 멱등 — 중복 하트비트 재전송 방지
                 self.state.log.append(e)
-        if commit_index > self.state.commit_index:
-            # 빈 로그 하트비트(len-1 = -1) 보호 위해 0으로 클램프
-            self.state.commit_index = max(0, min(commit_index, len(self.state.log) - 1))
+        # commit_index는 로그에 엔트리가 있을 때만 전진 (빈 로그 하트비트로 오커밋 방지)
+        if commit_index > self.state.commit_index and self.state.log:
+            self.state.commit_index = min(commit_index, len(self.state.log) - 1)
         return True
 
     # ── RPC 래퍼 (transport용 dict 응답: 호출자가 term을 보고 step-down) ─

@@ -885,6 +885,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-09 22:23 | `e688a21` | Merge remote-tracking branch 'origin/claude/fervent-babbage-o10dsd' into claude/fervent-babbage-v6mpjr | README.md, src/raft/airspace_controller_ha.py, src/raft/cluster.py, tests/track_e/test_raft.py, tests/track_e/test_raft_cluster.py |
 | 2026-06-09 20:20 | `29c88c7` | feat(raft): P741 Raft 로그 일관성 검사(§5.3) + 팔로워 catch-up 완성 | src/raft/airspace_controller_ha.py, src/raft/cluster.py, tests/track_e/test_raft.py, tests/track_e/test_raft_cluster.py |
 | 2026-06-09 18:28 | `296cb32` | fix(rl): ppo_collision mypy — _positions/_goals/_velocities 명시 ndarray 주석 | src/rl/ppo_collision.py |
 | 2026-06-09 18:19 | `858f6f6` | feat(rl): P736 SDACSGymEnv 실동작 구현 — point-mass 운동학 env + 12 테스트 | ROADMAP.md, src/rl/ppo_collision.py, tests/test_ppo_collision_env.py |

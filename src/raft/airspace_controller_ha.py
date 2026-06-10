@@ -85,7 +85,9 @@ class AirspaceControllerHA:
             command=command,
         )
         self.state.log.append(entry)
-        # TODO: append_entries RPC → peers majority commit
+        # 단일 노드 로컬 append 경로. peers 간 quorum 복제·커밋은
+        # ``RaftCluster.propose()`` 가 ``_replicate_to()`` 로 과반 ack를 모아
+        # 구동한다 (src/raft/cluster.py, Raft §5.3).
         self.state.commit_index = entry.index
         return True
 
@@ -93,10 +95,10 @@ class AirspaceControllerHA:
         """Raft 백그라운드 루프 시작."""
         self._running = True
         self.state.last_heartbeat_ts = time.monotonic()
-        # TODO: asyncio 또는 threading으로:
-        #   - election timeout watchdog
-        #   - heartbeat sender (leader 시)
-        #   - RequestVote/AppendEntries RPC server
+        # election timeout watchdog · heartbeat sender · RequestVote/AppendEntries
+        # 라우팅은 ``RaftCluster.tick()`` 가 결정론적 tick 기반(단일 스레드)으로
+        # 구동한다 (src/raft/cluster.py). CLAUDE.md §11 재현성 원칙에 따라
+        # asyncio/threading wall-clock 루프 대신 시뮬레이션 시계를 사용한다.
 
     def stop(self) -> None:
         """노드 종료."""

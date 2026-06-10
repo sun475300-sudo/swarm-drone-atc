@@ -85,7 +85,10 @@ class AirspaceControllerHA:
             command=command,
         )
         self.state.log.append(entry)
-        # TODO: append_entries RPC → peers majority commit
+        # 단일 노드 시점에서는 로컬 커밋만 수행한다. peers 과반 복제(AppendEntries
+        # RPC → quorum commit)는 ``RaftCluster.propose()``(cluster.py)가 인프로세스
+        # 라우팅으로 구동하며, 거기서 next_index/match_index 기반 과반 도달 시
+        # commit_index 를 전진시킨다.
         self.state.commit_index = entry.index
         return True
 
@@ -93,10 +96,10 @@ class AirspaceControllerHA:
         """Raft 백그라운드 루프 시작."""
         self._running = True
         self.state.last_heartbeat_ts = time.monotonic()
-        # TODO: asyncio 또는 threading으로:
-        #   - election timeout watchdog
-        #   - heartbeat sender (leader 시)
-        #   - RequestVote/AppendEntries RPC server
+        # 백그라운드 루프(election timeout watchdog · heartbeat sender · RequestVote/
+        # AppendEntries RPC 처리)는 ``RaftCluster.tick()``(cluster.py)가 결정론적
+        # 인프로세스 스케줄러로 구동한다. 재현성을 위해 asyncio/threading 대신
+        # tick 기반 합의 루프를 사용한다(np.random.default_rng(seed) 로 timeout 고정).
 
     def stop(self) -> None:
         """노드 종료."""

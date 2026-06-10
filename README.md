@@ -885,6 +885,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-11 08:06 | `c20adf6` | fix(raft): airspace_controller_ha stale TODO 2건 정정 | README.md, ROADMAP.md, src/raft/airspace_controller_ha.py |
 | 2026-06-10 | (pending) | fix(raft): airspace_controller_ha stale TODO 2건 정정(실제 quorum 복제·합의 루프는 cluster.py RaftCluster.propose()/tick()) + 일일 점검 — raft/cluster 29 pass GREEN, 중복 PR #227·#233-#238 통합 | src/raft/airspace_controller_ha.py, README.md, ROADMAP.md |
 | 2026-06-09 22:29 | `61580f4` | docs: 일일 점검 2026-06-09 — ROADMAP P707/P741/P736 심화 반영 + 통합 요약 | README.md, ROADMAP.md |
 | 2026-06-09 22:40 | (pending) | docs: 일일 점검 — 회귀 3,970 GREEN, ROADMAP P707/P741/P736 심화 반영, #204·#206·#207 통합 + obsolete PR 17건 정리 | ROADMAP.md, README.md |

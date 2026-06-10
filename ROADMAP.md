@@ -249,4 +249,6 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-06-09 — **일일 점검 + PR 백로그 정리**: 전체 회귀 3,970 pass / 254 skip / 0 fail (GREEN). 코드 내 마지막 실 TODO 4건을 머지로 해소 — #205(P707 논문 §2-§7) main 직접 머지 + #204(onboard yaw)·#206(P736 RL env 실동작)·#207(P741 Raft §5.3 catch-up)을 본 브랜치로 통합(README changelog 충돌만 수동 해소). obsolete PR 17건(CLI `--output` 중복 13 + 빈 diff 3 + P711 구버전 #138) close. 잔여 (사용자 환경 의존): Track A 실기 검증, P707 실측 실험 그래프, P709 IROS 2026 실제 투고, P755 창업. 코드 로드맵 **99.5%** · conflict 마커 0.*
+*Last updated: 2026-06-10 — **일일 점검**: `src/raft/airspace_controller_ha.py` 잔존 stale TODO 2건 정정 — `replicate()`/`start()`의 "미구현" 주석을 실제 구현 위치(`cluster.py RaftCluster.propose()`/`tick()` 인프로세스 quorum 복제·선거 루프)로 명확화. 코드 내 실 TODO 0건. raft+cluster 회귀 29 pass / 0 fail (GREEN). 중복 일일점검 PR 백로그(#227-#238 동일 stale TODO 수정 7건 + docs 4건) 단일 PR로 통합·정리. 잔여 (사용자 환경 의존): Track A 실기 검증, P707 실측 그래프, P709 IROS 투고, P755 창업.*
+
+*2026-06-09 — **일일 점검 + PR 백로그 정리**: 전체 회귀 3,970 pass / 254 skip / 0 fail (GREEN). 코드 내 마지막 실 TODO 4건을 머지로 해소 — #205(P707 논문 §2-§7) main 직접 머지 + #204(onboard yaw)·#206(P736 RL env 실동작)·#207(P741 Raft §5.3 catch-up)을 본 브랜치로 통합(README changelog 충돌만 수동 해소). obsolete PR 17건(CLI `--output` 중복 13 + 빈 diff 3 + P711 구버전 #138) close. 잔여 (사용자 환경 의존): Track A 실기 검증, P707 실측 실험 그래프, P709 IROS 2026 실제 투고, P755 창업. 코드 로드맵 **99.5%** · conflict 마커 0.*

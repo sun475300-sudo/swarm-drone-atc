@@ -885,6 +885,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-10 21:26 | `172e41e` | ci(sim-smoke): pytest-cov 설치 + 해양 C9 스모크 결정론화 | .github/workflows/sim-smoke.yml, tests/e2e/smoke_maritime.mjs |
 | 2026-06-10 21:21 | `3825c88` | ci(sim-smoke): smoke-pytest 잡에 numpy/pyyaml 설치 추가 | .github/workflows/sim-smoke.yml |
 | 2026-06-10 21:19 | `c586167` | feat(simulator): STELLAR Phase 51 시드 완성 — 상태 기반 권고 사이클 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_STELLAR_PLAN.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html … |
 | 2026-06-09 22:29 | `61580f4` | docs: 일일 점검 2026-06-09 — ROADMAP P707/P741/P736 심화 반영 + 통합 요약 | README.md, ROADMAP.md |

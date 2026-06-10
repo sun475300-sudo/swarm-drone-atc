@@ -85,7 +85,9 @@ class AirspaceControllerHA:
             command=command,
         )
         self.state.log.append(entry)
-        # TODO: append_entries RPC → peers majority commit
+        # 단일 노드 primitive: 로컬 로그에만 append 후 commit_index 전진.
+        # 다중 노드 quorum 복제(append_entries RPC → majority commit)는
+        # ``RaftCluster._replicate_to`` (cluster.py)가 인프로세스로 구동한다.
         self.state.commit_index = entry.index
         return True
 
@@ -93,10 +95,9 @@ class AirspaceControllerHA:
         """Raft 백그라운드 루프 시작."""
         self._running = True
         self.state.last_heartbeat_ts = time.monotonic()
-        # TODO: asyncio 또는 threading으로:
-        #   - election timeout watchdog
-        #   - heartbeat sender (leader 시)
-        #   - RequestVote/AppendEntries RPC server
+        # 단일 노드 활성화만 수행. election timeout watchdog · heartbeat sender ·
+        # RequestVote/AppendEntries RPC 라우팅은 ``RaftCluster`` (cluster.py)가
+        # 결정론적 인프로세스 루프로 오케스트레이션한다(실 네트워크 미사용).
 
     def stop(self) -> None:
         """노드 종료."""

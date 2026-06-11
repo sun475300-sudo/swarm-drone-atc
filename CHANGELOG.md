@@ -13,6 +13,10 @@
   (`LogRemoteIDTransport` 폴백 + 테스트로 검증됨)와 테스트 fixture 문자열뿐.
 - 로드맵 **99.5%** 유지. 잔여 4항목 전부 사용자 환경 의존(P755 창업·LOI / Track A 실기 검증 /
   P707 §4-§7 실측 그래프 / P709 IROS 2026 투고)이라 코드 작업거리 없음.
+- **PR 백로그 재정리**: 병렬 세션이 동일 결과를 중복 기록한 일일 점검 PR 2건(#245·#246)을 superseded로 close
+  (둘 다 머지 완료된 #244와 동일한 `4,057 pass` 수치 중복) → 열린 PR 0건 유지.
+- **4차 독립 재현**(신규 컨테이너, `pytest-xdist -n auto`): `pytest tests/` → **4,057 pass / 252 skip / 0 fail**
+  (490s, 커버리지 **83.93%**) — 1·2·3차와 **동일 수치** 재확인(seed 고정 결정성 교차 검증).
 
 ### 수정 (fix) — STELLAR Phase 51 시드 완성 (2026-06-10)
 - `swarm_3d_simulator.html` (4개 군집 사본 md5 동기화): Phase 51 LLM Multi-Agent가

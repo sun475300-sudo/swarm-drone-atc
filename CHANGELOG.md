@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### 점검 (chore) — 일일 점검 2026-06-11 (신규 컨테이너 독립 재현 GREEN)
+- 신규 클론 컨테이너에서 의존성을 새로 설치(`requirements.txt` + `pytest-xdist`·`pytest-cov`)한 뒤
+  전체 회귀를 **독립 재현**: `pytest tests/` → **4,057 pass / 252 skip / 0 fail** (320s, 커버리지 **83.93%** ≥ 80% 게이트 통과).
+- `main` CI 전 워크플로우 success 확인 (CI · Security Audit · Canonical Hash Verification · Simulator Smoke · Pages).
+- 코드 내 실 TODO/FIXME **0건** — 잔여 매치는 추상 베이스 `RemoteIDTransport.emit` `NotImplementedError`
+  (`LogRemoteIDTransport` 폴백 + 테스트로 검증됨)와 테스트 fixture 문자열뿐.
+- 로드맵 **99.5%** 유지. 잔여 4항목 전부 사용자 환경 의존(P755 창업·LOI / Track A 실기 검증 /
+  P707 §4-§7 실측 그래프 / P709 IROS 2026 투고)이라 코드 작업거리 없음.
+
 ### 수정 (fix) — STELLAR Phase 51 시드 완성 (2026-06-10)
 - `swarm_3d_simulator.html` (4개 군집 사본 md5 동기화): Phase 51 LLM Multi-Agent가
   그룹 기록만 하던 **시드 상태**로 중단되어 있던 것을 완성. 상태 기반 결정적 권고

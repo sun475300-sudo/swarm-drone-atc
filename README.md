@@ -885,6 +885,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-11 12:18 | `34a1509` | Merge pull request #241 from sun475300-sudo/claude/fervent-babbage-52izc1 | .github/workflows/sim-smoke.yml, CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_STELLAR_PLAN.md, docs/simulator.html … |
 | 2026-06-11 10:18 | `f244cdd` | Merge remote-tracking branch 'origin/claude/fervent-babbage-yg94ub' into claude/fervent-babbage-52izc1 | .github/workflows/sim-smoke.yml, CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_STELLAR_PLAN.md, docs/simulator.html … |
 | 2026-06-11 | (pending) | docs: 일일 점검 2026-06-11 — #240(raft quorum 수정)·#232(STELLAR P51 시드) 통합, 회귀 4,057 GREEN | README.md, ROADMAP.md |
 | 2026-06-11 09:14 | `74ff61a` | fix(raft): P741 replicate() quorum 인식 정정 + start() TODO 해소 | ROADMAP.md, src/raft/airspace_controller_ha.py, tests/track_e/test_raft.py |

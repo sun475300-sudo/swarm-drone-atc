@@ -9,10 +9,13 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
-[![Phase](https://img.shields.io/badge/Phase-755-gold?style=for-the-badge&logo=rocket)](ROADMAP.md)
+[![Phase](https://img.shields.io/badge/Phase-200%20%E2%9C%93-purple?style=for-the-badge&logo=rocket)](docs/phase_matrix.html)
+[![SDACS Unity](https://img.shields.io/badge/Phase_200-%F0%9D%9F%8F_Unity-ec407a?style=for-the-badge&logo=infinity)](docs/SIMULATOR_POST_UNIVERSE_PLAN.md)
+[![API](https://img.shields.io/badge/__sdacs-388_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
+[![E2E](https://img.shields.io/badge/E2E-247%2F248_pass-22c55e?style=for-the-badge&logo=playwright&logoColor=white)](tests/e2e/)
 [![Roadmap](https://img.shields.io/badge/Roadmap_691--755-92%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
-[![Tests](https://img.shields.io/badge/Tests-4%2C200%2B%20Passed-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
-[![Algorithms](https://img.shields.io/badge/Algorithms-700+-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](#core-algorithms)
+[![Tests](https://img.shields.io/badge/Tests-4%2C387%2F4%2C389_pass-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![v1.5.0](https://img.shields.io/badge/Desktop-v1.5.0_(Win%2FMac%2FLinux)-7c3aed?style=for-the-badge&logo=electron&logoColor=white)](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
 [![Modules](https://img.shields.io/badge/Modules-830+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
 [![LOC](https://img.shields.io/badge/Total-160K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
@@ -22,7 +25,7 @@
 
 **국립 목포대학교 드론기계공학과 캡스톤 디자인**
 
-[**🌐 메인 페이지 (Live Site)**](https://sun475300-sudo.github.io/swarm-drone-atc/) | [**🛰 3D 시뮬레이터**](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [**🚢 해양 소형선 감지**](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html) | [**최종 보고서 v6**](docs/report/SDACS_Final_Report_v6.docx) | [**v7**](docs/report/SDACS_Final_Report_v7_Easy.docx)
+[**⚡ Quick Start (1줄 실행)**](docs/QUICK_START.md) | [**🗺 Phase Matrix (200 카드)**](docs/phase_matrix.html) | [**🌐 Live Site**](https://sun475300-sudo.github.io/swarm-drone-atc/) | [**🛰 3D 시뮬레이터**](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [**🚢 해양 시뮬**](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html) | [**📥 v1.5.0 빌드**](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
 
 > 🔗 **GitHub Pages 라이브 사이트**: <https://sun475300-sudo.github.io/swarm-drone-atc/> — 랜딩 페이지(소개·성과·아키텍처)에서 3D 시뮬레이터·해양 소형선 감지·시나리오 비교·테스트 리포트로 이동할 수 있습니다.
 

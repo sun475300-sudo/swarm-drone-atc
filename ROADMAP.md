@@ -133,10 +133,11 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 | **MEGA Plan** (시뮬 Phase 1-9) | 100% | ████████████ | ATC·TAC·CIN·CAM·MIS·INJ·ANA·AUD·MOB |
 | **HYPER Plan** (시뮬 Phase 10-50) | 100% | ████████████ | 41개 추가 Phase (해양 ATC · VR · AI Copilot · 적대 · C-UAS · 행성 등) |
 
-**총 Phase 691-755 (65개) 중 60개 완료 = 92%** (Phase 1-690 포함 시 전체 750/755 = **99.3%**)
-**+ 시뮬레이터 MEGA 9 + HYPER 41 = 50 Phase 100% 완료** (총 800 Phase 중 795 완료 = **99.4%**)
+**총 Phase 691-755 (65개) 중 61개 완료 = 94%** (Phase 1-690 포함 시 전체 751/755 = **99.5%**)
+**+ 시뮬레이터 MEGA 9 + HYPER 41 = 50 Phase 100% 완료** (총 800 Phase 중 796 완료 = **99.5%**)
 
-**잔여 5항목** (사용자 환경 의존): P755(창업) + Track A 실기 검증 + P707 실측 그래프 + P709 IROS 투고 + P711 React MVP(PR #87)
+**잔여 4항목** (사용자 환경 의존): P755(창업) + Track A 실기 검증 + P707 실측 그래프 + P709 IROS 투고
+(P711 React MVP는 2026-06-09 `frontend/` 통합으로 완료 — 마지막 코드 로드맵 항목 종료)
 
 ## In Progress / 진행 예정
 
@@ -169,7 +170,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P704** — Reproducibility 패키지 — Dockerfile·Dockerfile.gpu·Dockerfile.reproducible + docker-compose.reproducible.yml (PYTHONHASHSEED=0, seed 고정) 완비 (2026-05-29)
 - [x] **P705** — 평가 메트릭 정형화 — `src/analytics/metrics.py` NMR·MSD·PE·MS·FT·AU·RID_CR·RTF 8종 공식 정의 및 Evaluator 클래스 구현 (2026-05-29)
 - [x] **P706** — 기여도 비교 실험 (vs ORCA, vs VO, vs 단일 CBS) — SDACS W2 APF+CBS 하이브리드 어댑터 완성, NMR·MSD·AU 유의미 개선 확인 (2026-06-01)
-- [x] **P707** — 논문 초안 — `docs/paper/latex/main.tex`(§1-§3) + `sections_4to7.tex`(§4-§7 Experiments/Results/Ablation/Discussion/Conclusion + 결과·ablation 표) (PR #93·본 PR, 실험 그래프 보강 잔여)
+- [x] **P707** — 논문 초안 — `docs/paper/latex/main.tex` §1-§7 완성(§2 RELATED WORK narrative + 10개 인용 검증, §3 `APF_PARAMS_WINDY` 표, §4-§7 `sections_4to7.tex` `\input` 통합) + `sections_4to7.tex`(Experiments/Results/Ablation/Discussion/Conclusion) (PR #93·#205, 실측 실험 그래프 보강만 잔여)
 - [x] **P708** — 내부 리뷰 가이드 `docs/paper/review_checklist.md` (PR #93)
 - [x] **P709** — 투고 가이드 `docs/paper/submission_guide.md` (PR #93, 실제 투고 사용자)
 - [x] **P710** — 발표 자산 — 포스터 `donggang_2026_ko.md` + Marp 슬라이드 15장 + 차트 2종(NMR/MSD bar·Pareto) (PR #90·#95·본 PR)
@@ -178,7 +179,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 공역 관리자용 대시보드를 SaaS 수준으로 안정화.
 
-- [~] **P711** — FastAPI 백엔드 완성 (`api/fastapi_server.py` 769줄, 전체 엔드포인트 구현) — React 프론트엔드 미구현
+- [x] **P711** — FastAPI 백엔드 + React 프론트엔드 완성 — `api/fastapi_server.py` 전체 엔드포인트 + `frontend/` Vite+React 18 대시보드(로그인·시나리오 실행·스냅샷·WS 텔레메트리). vitest 5/5 + vite 프로덕션 빌드 통과 (2026-06-09)
 - [x] **P712** — 인증·권한(OAuth2, RBAC) 및 감사 로그 — HS256 JWT + 3계층 RBAC(admin/operator/viewer) + 감사로그 완전 구현, 29개 테스트 통과 (2026-06-01)
 - [x] **P713** — 실시간 WebSocket 채널 — `simulation/ws_bridge.py` 2Hz 스트리밍 + FastAPI `/ws/telemetry` 완비 (2026-05-29)
 - [x] **P714** — PostgreSQL + TimescaleDB 이력 저장, 30일 보존 — `src/storage/timescale.py` asyncpg 클라이언트 + `db/migrations/001_initial_schema.sql` 하이퍼테이블·보존정책 완비, 36개 테스트 통과 (2026-06-03)
@@ -213,12 +214,12 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 논문·발표 이후 SDACS를 다음 단계 연구 자산으로 확장.
 
-- [x] **P736** — RL 충돌 회피 PoC scaffold — `src/rl/ppo_collision.py` SB3 PPO + `SDACSGymEnv` wrapper (학습은 GPU 환경 필요) (2026-06-04)
+- [x] **P736** — RL 충돌 회피 PoC — `src/rl/ppo_collision.py` SB3 PPO + `SDACSGymEnv` (경량 point-mass 운동학으로 reset/step/observation/reward 완전 구현, GPU 없이 rollout·evaluate 동작) + 12개 단위 테스트 PASS. 학습만 GPU 필요 (2026-06-09)
 - [x] **P737** — 비협조 침입자(UAS-T) 결정 트리 — `src/uast/intruder_response.py` + 9개 단위 테스트 PASS (2026-06-04)
 - [x] **P738** — 도시 LiDAR/Mesh 임포터 — `src/env/nsdi_importer.py` NSDI Web Map Service → NFZ 자동 생성 (API 키 필요) (2026-06-04)
 - [x] **P739** — Sim-to-Real Domain Randomization — `src/training/domain_rand.py` + 7개 단위 테스트 PASS, ADR 곡선 학습 포함 (2026-06-04)
 - [x] **P740** — 디지털 트윈 동기화 엔진 — `src/digital_twin/sync_engine.py` MAVLink GLOBAL_POSITION_INT 파서 + LatencyStats(p50/p99) + GPS→ENU 변환. 6개 단위 테스트 PASS (2026-06-04)
-- [x] **P741** — 페일오버 클러스터링 (Raft HA) — `src/raft/airspace_controller_ha.py` + 13개 단위 테스트 PASS (2026-06-04)
+- [x] **P741** — 페일오버 클러스터링 (Raft HA) — `src/raft/airspace_controller_ha.py` RPC 핸들러 + `src/raft/cluster.py` 결정론적 인프로세스 합의 루프(실제 선거·하트비트·quorum 복제·페일오버) + Raft §5.3 로그 일관성 검사·팔로워 catch-up(next_index/match_index) + 29개 단위 테스트 PASS (2026-06-09)
 - [x] **P742** — K-UAM Grand Challenge 시나리오 — `config/scenario_params/uam/k_uam_grand_challenge.yaml` 5기 eVTOL × 3 회랑 × 3 vertiport × 30분 + 5계층 안전망 + 비상시나리오 3종 (2026-06-04)
 - [x] **P743** — 양자 안전 통신 PoC — `src/quantum/pqc_telemetry.py` Kyber-768 KEM + Dilithium-3 서명 + AES-256-GCM. `docs/track_e/p743_pqc_overhead.md` 대역폭 33× 증가 분석 (2026-06-04)
 - [x] **P744** — 폐쇄망(MIL/L4) 모드 — `src/closed_net/airgap_mode.py` AirGapPolicy + 외부 도메인 감사 + 군용 정책 프리셋. 8개 단위 테스트 PASS (2026-06-04)
@@ -248,4 +249,10 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
-*Last updated: 2026-06-04 — **본 세션 PR 15개 전부 main 머지 완료** (#100·#103 main 복구 + #93·#94·#95·#96·#98·#99·#90·#84·#88·#89·#91·#92·#81). Track A 가이드 100% · Track B 9/10 · Track C 10/10 · Track D 15/15 · Track E 10/10 · Track F 9/10. 잔여 (사용자 환경 의존): Track A 실기 검증, P707 §4-§7 실측 그래프, P709 IROS 2026 실제 투고, P755 창업, P711 React (PR #87). 전체 Phase 691-755 진척률 **92%** (60/65 완료). 핵심 회귀 테스트 93/93 PASS · conflict 마커 0.*
+*2026-06-11 (8차 재현) — **일일 점검 (신규 컨테이너 독립 재현 + 중복 점검 PR 정리)**: 신규 컨테이너에서 의존성 신규 설치 후 전체 회귀 **4,057 pass / 252 skip / 0 fail** (531s, 커버리지 83.93%) 독립 재현 GREEN — 직전 재현들과 동일 수치. 환경 함정(PATH의 uv 격리 `pytest 9.0.2`가 conftest import 실패 유발 → `python -m pytest` 8.4.2로 우회)은 CHANGELOG 참조. 같은 날 동일 검증을 기록한 미머지 중복 점검 PR #250(6차)·#251(7차)을 본 점검으로 superseded 정리. main 최신(`bba6815`) CI·Security·Hash·Pages 전 워크플로우 success. 코드 실 TODO·열린 이슈·보조 로드맵 미체크 0건. 로드맵 99.5% 유지 — 잔여 4항목 전부 사용자 환경 의존.*
+
+*2026-06-11 (재점검) — **일일 점검 (신규 컨테이너 독립 재현)**: 신규 클론 컨테이너에서 의존성 신규 설치 후 전체 회귀 **4,057 pass / 252 skip / 0 fail** (커버리지 83.93%) 독립 재현 GREEN. main CI 전 워크플로우 success. 코드 내 실 TODO 0건. 로드맵 99.5% 유지 — 잔여 4항목(P755 창업·Track A 실기·P707 실측 그래프·P709 IROS 투고) 전부 사용자 환경 의존이라 코드 작업거리 없음.*
+
+*Last updated: 2026-06-11 — **일일 점검 + 백로그 통합(#240 + #232)**: 의존성 신규 설치 후 전체 회귀 독립 재현 **GREEN**. 잔여 코드 작업 2건을 단일 브랜치로 통합. (1) **P741 Raft quorum 정정**(#240) — `airspace_controller_ha.py` `replicate()` 를 quorum 인식으로 정정(피어 없는 단일 노드만 즉시 커밋, 피어 존재 시 조기 커밋 방지하고 `RaftCluster.propose` 에 과반 복제 위임) + `start()` TODO를 결정론적 드라이버(`RaftCluster.tick`) 위임 명시로 대체, 회귀 테스트 2건 추가. (2) **STELLAR Phase 51 시드 완성**(#232) — 유일 잔여 시뮬레이터 gap이던 Phase 51을 상태 기반 결정적 권고 사이클(`stellar51Recommend`/`Tick`/`Revoke`/`Groups`)로 완성, 4개 군집 사본 md5 동기화 + E2E 1건. 시뮬레이터 STELLAR Phase 52-100은 canonical 이름으로 main에 이미 구현됨을 확인 → PR #124(AR)·#128(stellar52~55)·#239(raft 주석 only) **superseded**. 잔여(사용자 환경 의존): Track A 실기 검증, P707 실측 그래프, P709 IROS 투고, P755 창업.*
+
+*2026-06-09 — **일일 점검 + PR 백로그 정리**: 전체 회귀 3,970 pass / 254 skip / 0 fail (GREEN). 코드 내 마지막 실 TODO 4건을 머지로 해소 — #205(P707 논문 §2-§7) main 직접 머지 + #204(onboard yaw)·#206(P736 RL env 실동작)·#207(P741 Raft §5.3 catch-up)을 본 브랜치로 통합(README changelog 충돌만 수동 해소). obsolete PR 17건(CLI `--output` 중복 13 + 빈 diff 3 + P711 구버전 #138) close. 잔여 (사용자 환경 의존): Track A 실기 검증, P707 실측 실험 그래프, P709 IROS 2026 실제 투고, P755 창업. 코드 로드맵 **99.5%** · conflict 마커 0.*

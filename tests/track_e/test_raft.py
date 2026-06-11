@@ -36,6 +36,28 @@ def test_replicate_appends_to_log_when_leader() -> None:
     assert node.state.log[0].term == 5
 
 
+def test_replicate_commits_immediately_for_single_node() -> None:
+    """피어가 없는 단일 노드는 과반(=1)이 자명하므로 replicate 시 즉시 커밋."""
+    node = AirspaceControllerHA("ctrl-1", peers=[])
+    node.state.role = NodeRole.LEADER
+    node.replicate({"type": "advisory"})
+    node.replicate({"type": "advisory"})
+    assert node.state.commit_index == 1
+
+
+def test_replicate_does_not_commit_without_quorum_when_peers_exist() -> None:
+    """피어가 있으면 replicate는 로그에만 추가하고 ack 없이 커밋하지 않는다.
+
+    과반 복제·커밋은 RaftCluster.propose 가 구동한다 (조기 커밋 방지).
+    """
+    node = AirspaceControllerHA("ctrl-1", peers=["ctrl-2", "ctrl-3"])
+    node.state.role = NodeRole.LEADER
+    node.replicate({"type": "advisory"})
+    node.replicate({"type": "advisory"})
+    assert len(node.state.log) == 2
+    assert node.state.commit_index == 0  # index 1 엔트리는 커밋되지 않음
+
+
 def test_on_request_vote_grants_when_eligible() -> None:
     """투표 자격 충족 시 vote granted."""
     node = AirspaceControllerHA("ctrl-1", peers=[])
@@ -85,6 +107,54 @@ def test_on_append_entries_appends_log() -> None:
     node.on_append_entries("ctrl-2", term=1, entries=entries, commit_index=1)
     assert len(node.state.log) == 2
     assert node.state.commit_index == 1
+
+
+def test_on_append_entries_rejects_on_log_gap() -> None:
+    """prev_log_index가 팔로워 로그 범위를 벗어나면 거부 (§5.3 일관성 검사)."""
+    node = AirspaceControllerHA("ctrl-1", peers=[])
+    ok = node.on_append_entries(
+        "ctrl-2",
+        term=1,
+        entries=[LogEntry(term=1, index=3, command={})],
+        commit_index=0,
+        prev_log_index=2,
+        prev_log_term=1,
+    )
+    assert ok is False
+    assert node.state.log == []
+    # 일관성 검사에 실패해도 리더/term 은 인지한다.
+    assert node.state.current_term == 1
+    assert node.state.leader_id == "ctrl-2"
+
+
+def test_on_append_entries_truncates_conflicting_suffix() -> None:
+    """동일 index·상이 term 엔트리는 잘라내고 리더 로그로 정렬한다 (§5.3)."""
+    node = AirspaceControllerHA("ctrl-1", peers=[])
+    node.state.log = [
+        LogEntry(term=1, index=0, command={"type": "old"}),
+        LogEntry(term=1, index=1, command={"type": "stale"}),
+    ]
+    ok = node.on_append_entries(
+        "ctrl-2",
+        term=2,
+        entries=[LogEntry(term=2, index=1, command={"type": "fresh"})],
+        commit_index=1,
+        prev_log_index=0,
+        prev_log_term=1,
+    )
+    assert ok is True
+    assert len(node.state.log) == 2
+    assert node.state.log[1].term == 2
+    assert node.state.log[1].command["type"] == "fresh"
+
+
+def test_on_append_entries_is_idempotent() -> None:
+    """동일 엔트리 재전송(하트비트 재방송)은 로그를 중복 추가하지 않는다."""
+    node = AirspaceControllerHA("ctrl-1", peers=[])
+    entries = [LogEntry(term=1, index=0, command={"type": "advisory"})]
+    assert node.on_append_entries("ctrl-2", term=1, entries=entries, commit_index=0)
+    assert node.on_append_entries("ctrl-2", term=1, entries=entries, commit_index=0)
+    assert len(node.state.log) == 1
 
 
 def test_health_check_returns_expected_fields() -> None:

@@ -73,15 +73,37 @@ This paper presents SDACS, which makes three contributions:
 % =================================================================
 \section{RELATED WORK}
 
-% TODO P707 SP2-end: 30편 인용 분류 narrative 작성 (related_work.md 참조)
-% 카테고리: A. 충돌 회피 / B. MAPF·CBS / C. UTM / D. Sim-to-Real / E. RL
+We organize prior work into five categories: reactive collision
+avoidance, multi-agent path finding, UAS traffic management,
+sim-to-real transfer, and reinforcement-learning avoidance.
 
-Recent surveys~\cite{} categorize UAV avoidance algorithms into
-reactive (ORCA, VO, HRVO) and planning-based (RRT*, CBS, MILP) families.
-Yoshida and Saito~\cite{yoshida2023apf_wind} extend APF with wind
-disturbance, but lack integration with planning-based methods.
-Kim and Lee~\cite{kim2024urban_apf} propose adaptive APF parameters,
-yet evaluate only on 20-drone scenarios.
+\textit{Reactive collision avoidance.} ORCA~\cite{vandenberg2011orca}
+and the Velocity Obstacle formulation~\cite{fiorini1998vo} resolve
+conflicts in velocity space with low latency, but their guarantees
+degrade under environmental disturbance.
+Yoshida and Saito~\cite{yoshida2023apf_wind} extend APF with explicit
+wind modeling, yet do not integrate planning-based methods, and
+Kim and Lee~\cite{kim2024urban_apf} propose adaptive APF parameters
+but evaluate only on small (20-drone) urban-canyon scenarios. SDACS
+differs by coupling wind-aware APF with triggered global planning.
+
+\textit{Multi-agent path finding.} Conflict-Based
+Search~\cite{sharon2015cbs} yields optimal multi-agent plans but
+scales poorly in agent count, limiting standalone real-time use.
+We retain CBS only as a medium-horizon re-planning layer invoked on
+persistent reactive conflict, bounding its invocation cost.
+
+\textit{UAS traffic management.} The NASA UTM concept of
+operations~\cite{kopardekar2017utm} frames the airspace-integration
+problem at metropolitan scale, and Brittain and Wei~\cite{brittain2021utm}
+study learned separation assurance within it. SDACS implements the
+UTM integration layer (Layer 5) against K-UTM, ADS-B, and Remote ID.
+
+\textit{Sim-to-real and reinforcement learning.} Domain
+randomization~\cite{tobin2017dr} and high-speed flight
+learning~\cite{loquercio2021flight} address the reality gap, while
+PPO~\cite{schulman2017ppo} provides a stable policy-gradient baseline.
+These inform our planned RL avoidance extension (Section~\ref{sec:disc}).
 
 % =================================================================
 \section{METHOD}
@@ -108,7 +130,33 @@ control into five layers, each with independent failure modes:
 \end{cases}
 \end{equation}
 
-% TODO P707 SP3: APF_PARAMS_WINDY 구체 값 표 추가
+where $\boldsymbol{\theta}_{\mathrm{windy}}$ strengthens repulsion and
+extends the influence radius for earlier avoidance under wind shear
+(Table~\ref{tab:apf}).
+
+\begin{table}[t]
+\caption{APF parameter sets. The windy set is engaged automatically
+when $v_{\mathrm{wind}} > 10$\,m/s.}
+\label{tab:apf}
+\centering
+\begin{tabular}{lcc}
+\hline
+Parameter & Default & Windy \\
+\hline
+$k_{\mathrm{att}}$ (attraction gain)      & 1.0  & 1.0  \\
+$k_{\mathrm{rep,drone}}$ (drone repulsion)& 2.5  & 6.5  \\
+$k_{\mathrm{rep,obs}}$ (obstacle repulsion)& 5.0 & 7.0  \\
+$d_{0,\mathrm{drone}}$ (drone radius, m)  & 50.0 & 80.0 \\
+$d_{0,\mathrm{obs}}$ (obstacle radius, m) & 30.0 & 45.0 \\
+$F_{\max}$ (max force, m/s$^2$)           & 10.0 & 22.0 \\
+$k_{\mathrm{alt}}$ (altitude gain)        & 0.5  & 1.0  \\
+\hline
+\end{tabular}
+\end{table}
+
+To avoid discontinuities at the threshold, SDACS linearly interpolates
+between the two sets across a transition band rather than switching
+abruptly.
 
 \subsection{CBS Re-planning Trigger}
 
@@ -130,20 +178,8 @@ control into five layers, each with independent failure modes:
 \end{algorithm}
 
 % =================================================================
-\section{EXPERIMENTS}
-% TODO P707 SP3
-
-% =================================================================
-\section{RESULTS}
-% TODO P707 SP3
-
-% =================================================================
-\section{DISCUSSION}
-% TODO P707 SP3
-
-% =================================================================
-\section{CONCLUSION}
-% TODO P707 SP3
+% §4 EXPERIMENTS · §5 RESULTS · §6 DISCUSSION · §7 CONCLUSION
+\input{sections_4to7}
 
 % =================================================================
 \bibliographystyle{ieeeconf}

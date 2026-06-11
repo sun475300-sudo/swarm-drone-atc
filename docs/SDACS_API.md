@@ -1,8 +1,8 @@
 # 📚 `window._sdacs` API — Phase 200 (Unity) 완료 시점
 
-*자동 생성: 2026-06-05*
+*자동 생성: 2026-06-05 · 갱신: 2026-06-11 (Phase 51 시드 API 5건 보강)*
 
-**총 388 항목** — MEGA 9 + HYPER 41 + STELLAR 49 + ULTIMATE 50 + POST-UNIVERSE 50 + Phase 51 시드 = **200 Phase**
+**총 392 항목** — MEGA 9 + HYPER 41 + STELLAR 49 + ULTIMATE 50 + POST-UNIVERSE 50 + Phase 51 시드 = **200 Phase**
 
 ---
 
@@ -348,6 +348,11 @@
 | `method` | **`startSim`** | `startSim() { simRunning = true; },` |
 | `get` | **`stats`** | `get stats() { return { ...stats }; },` |
 | `method` | **`stellar51DelegateGroup`** | `stellar51DelegateGroup(droneIds, llmProvider) {` |
+| `property` | **`stellar51DelegatedGroups`** | `stellar51DelegatedGroups: [],` |
+| `get` | **`stellar51Groups`** | `get stellar51Groups() { return window._sdacs.stellar51DelegatedGroups.map(g => ({ ...g, droneIds: g.droneIds.slice() })); },` |
+| `method` | **`stellar51Recommend`** | `stellar51Recommend(droneId) {` |
+| `method` | **`stellar51Revoke`** | `stellar51Revoke(groupId) {` |
+| `method` | **`stellar51Tick`** | `stellar51Tick() {` |
 | `method` | **`stopRecording`** | `stopRecording() { return stopRecording(); },` |
 | `method` | **`stopSim`** | `stopSim() { simRunning = false; },` |
 | `method` | **`streamingReplayPush`** | `streamingReplayPush(frame) { return streamingReplayPush(frame); },` |

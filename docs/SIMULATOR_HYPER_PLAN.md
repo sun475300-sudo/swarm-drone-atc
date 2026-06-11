@@ -31,7 +31,7 @@
 - [x] sim-smoke.yml 3-job 강화
 - [x] RELEASE_GUIDE.md 작성
 - [x] visualization/maritime 사본 동기화
-- [ ] `_sdacs` 전체 API 자동 문서화 (`docs/SDACS_API.md`)
+- [x] `_sdacs` 전체 API 자동 문서화 (`docs/SDACS_API.md`) — 392항목, 2026-06-11 Phase 51 시드 5건 보강
 - [ ] 데모 영상 30초 (Phase 1-9 하이라이트) — MediaRecorder 활용
 
 ### Phase 11 — 해양 시뮬레이터 ATC 동등 이식

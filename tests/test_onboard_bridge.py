@@ -245,6 +245,82 @@ def test_mav_adapter_init_attributes() -> None:
     assert adapter.uri == "udp:localhost:14550"
     assert adapter._connection is None
     assert adapter._last_heartbeat_mode == "UNKNOWN"
+    assert adapter._last_attitude_yaw_deg is None
+
+
+# --- Heading resolution (ATTITUDE fallback for GLOBAL_POSITION_INT.hdg) ---
+
+
+def test_resolve_heading_uses_valid_hdg() -> None:
+    """When hdg is valid centidegrees, it wins over the ATTITUDE fallback."""
+    assert MavlinkAdapter._resolve_heading_deg(9000, 270.0) == pytest.approx(90.0)
+
+
+def test_resolve_heading_falls_back_to_attitude_when_hdg_unknown() -> None:
+    """hdg == 65535 (UINT16_MAX sentinel) → use the last ATTITUDE yaw."""
+    assert MavlinkAdapter._resolve_heading_deg(65535, 137.5) == pytest.approx(137.5)
+
+
+def test_resolve_heading_defaults_to_zero_without_attitude() -> None:
+    """hdg unknown and no ATTITUDE seen yet → 0.0 rather than a bogus 655.35."""
+    assert MavlinkAdapter._resolve_heading_deg(65535, None) == pytest.approx(0.0)
+
+
+def test_resolve_heading_rejects_out_of_range_hdg() -> None:
+    """Out-of-range centidegrees are treated as unknown and fall back."""
+    assert MavlinkAdapter._resolve_heading_deg(40000, 12.0) == pytest.approx(12.0)
+
+
+def test_yaw_rad_to_deg_wraps_negative_into_0_360() -> None:
+    """ATTITUDE.yaw is [-pi, pi] radians; convert and wrap to [0, 360)."""
+    import math
+
+    assert MavlinkAdapter._yaw_rad_to_deg(math.pi / 2) == pytest.approx(90.0)
+    assert MavlinkAdapter._yaw_rad_to_deg(-math.pi / 2) == pytest.approx(270.0)
+
+
+@pytest.mark.asyncio
+async def test_poll_telemetry_uses_attitude_when_hdg_unknown() -> None:
+    """ATTITUDE arrives, then GLOBAL_POSITION_INT with hdg=65535 → attitude yaw used."""
+    import math
+
+    class FakeMsg:
+        def __init__(self, mtype: str, **fields) -> None:
+            self._mtype = mtype
+            self.__dict__.update(fields)
+
+        def get_type(self) -> str:
+            return self._mtype
+
+    messages = [
+        FakeMsg("ATTITUDE", yaw=math.pi),  # 180 deg
+        FakeMsg(
+            "GLOBAL_POSITION_INT",
+            lat=375000000,
+            lon=1270000000,
+            alt=120000,
+            relative_alt=30000,
+            vx=100,
+            vy=0,
+            vz=-10,
+            hdg=65535,  # unknown
+        ),
+    ]
+
+    class FakeConnection:
+        def recv_match(self, type=None, blocking=False):  # noqa: A002
+            while messages:
+                msg = messages.pop(0)
+                if type is None or msg.get_type() in type:
+                    return msg
+            return None
+
+    adapter = MavlinkAdapter("udp:x")
+    adapter._connection = FakeConnection()
+    snap = await adapter.poll_telemetry(drone_id=7)
+
+    assert snap is not None
+    assert snap.heading_deg == pytest.approx(180.0)
 
 
 @pytest.mark.asyncio

@@ -76,7 +76,13 @@ class AirspaceControllerHA:
         return self.state.role == NodeRole.LEADER
 
     def replicate(self, command: dict) -> bool:
-        """리더만 호출. 명령을 복제 (quorum 합의)."""
+        """리더만 호출. 명령을 로그에 추가한다.
+
+        피어가 없는 단일 노드(과반=1)면 자명하게 quorum이 충족되므로 즉시 커밋한다.
+        피어가 있으면 엔트리를 로그에 추가(pending)만 하고, 과반 복제·커밋은
+        :class:`~src.raft.cluster.RaftCluster.propose` 가 구동한다 (ack 없는 조기
+        커밋 방지).
+        """
         if not self.is_leader():
             return False
         entry = LogEntry(
@@ -85,18 +91,20 @@ class AirspaceControllerHA:
             command=command,
         )
         self.state.log.append(entry)
-        # TODO: append_entries RPC → peers majority commit
-        self.state.commit_index = entry.index
+        if not self.peers:
+            self.state.commit_index = entry.index
         return True
 
     def start(self) -> None:
-        """Raft 백그라운드 루프 시작."""
+        """노드 활성화 — 실행 플래그·하트비트 타임스탬프 초기화.
+
+        선거 타임아웃·하트비트·RequestVote/AppendEntries 디스패치는 결정론적
+        인프로세스 드라이버 :class:`~src.raft.cluster.RaftCluster` 의 ``tick``
+        루프가 구동한다 (재현성 보장을 위해 실시간 스레드/asyncio 대신 가상
+        시계 기반 tick 사용).
+        """
         self._running = True
         self.state.last_heartbeat_ts = time.monotonic()
-        # TODO: asyncio 또는 threading으로:
-        #   - election timeout watchdog
-        #   - heartbeat sender (leader 시)
-        #   - RequestVote/AppendEntries RPC server
 
     def stop(self) -> None:
         """노드 종료."""
@@ -107,6 +115,11 @@ class AirspaceControllerHA:
         # Raft §5.2: vote granted if (term ≥ self.term) ∧ (haven't voted) ∧ (log up-to-date)
         if term < self.state.current_term:
             return False
+        # Raft §5.1: 더 높은 term 발견 시 term 갱신 + 투표 기록 초기화 + FOLLOWER 강등
+        if term > self.state.current_term:
+            self.state.current_term = term
+            self.state.voted_for = None
+            self.state.role = NodeRole.FOLLOWER
         if self.state.voted_for is not None and self.state.voted_for != candidate_id:
             return False
         my_last_log = self.state.log[-1] if self.state.log else None
@@ -119,17 +132,45 @@ class AirspaceControllerHA:
         self.state.current_term = term
         return True
 
-    def on_append_entries(self, leader_id: str, term: int, entries: list[LogEntry], commit_index: int) -> bool:
-        """AppendEntries RPC handler — heartbeat + 로그 복제."""
+    def on_append_entries(
+        self,
+        leader_id: str,
+        term: int,
+        entries: list[LogEntry],
+        commit_index: int,
+        prev_log_index: int = -1,
+        prev_log_term: int = 0,
+    ) -> bool:
+        """AppendEntries RPC handler — heartbeat + 로그 복제 (§5.3 log matching).
+
+        ``prev_log_index``/``prev_log_term`` 은 ``entries`` 직전 엔트리의 위치·term
+        으로, 리더와 팔로워 로그의 연속성을 보장한다 (기본값은 로그 선두 추가).
+        """
         if term < self.state.current_term:
             return False
+        # Raft §5.1: 새 term의 리더 발견 시 투표 기록 초기화
+        if term > self.state.current_term:
+            self.state.voted_for = None
         self.state.current_term = term
         self.state.leader_id = leader_id
         self.state.role = NodeRole.FOLLOWER
         self.state.last_heartbeat_ts = time.monotonic()
-        # TODO: 로그 일관성 검사 + entries 추가
-        for e in entries:
-            self.state.log.append(e)
+        # Raft §5.3: 직전 엔트리가 일치하지 않으면 거부 (리더가 next_index 감소 후 재시도).
+        if prev_log_index >= 0:
+            if prev_log_index >= len(self.state.log):
+                return False
+            if self.state.log[prev_log_index].term != prev_log_term:
+                return False
+        # 충돌 엔트리(같은 index·다른 term)는 잘라내고, 신규 엔트리만 추가 (idempotent).
+        insert_at = prev_log_index + 1
+        for offset, e in enumerate(entries):
+            idx = insert_at + offset
+            if idx < len(self.state.log):
+                if self.state.log[idx].term != e.term:
+                    del self.state.log[idx:]
+                    self.state.log.append(e)
+            else:
+                self.state.log.append(e)
         if commit_index > self.state.commit_index:
             self.state.commit_index = min(commit_index, len(self.state.log) - 1)
         return True

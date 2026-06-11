@@ -3,6 +3,64 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased]
+
+### 점검 (chore) — 일일 점검 2026-06-11 (8차 독립 재현 GREEN + 중복 점검 PR 정리)
+- 신규 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
+  `PYTHONHASHSEED=0 python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (531s, 커버리지 **83.93%** ≥ 80% 게이트). 8차 독립 재현 GREEN — 직전 재현들과 **동일 수치** 재확인.
+- **환경 함정 해결**(후속 세션 참고): 신규 컨테이너 PATH의 `pytest`가 uv 격리 도구(`pytest 9.0.2`, numpy 미포함)로 잡혀
+  `conftest.py` import 실패를 유발 → 시스템 인터프리터 기준 `python -m pytest`(pytest 8.4.2, `requirements.txt` 핀)로 실행해야 정상 재현됨.
+  `pip install`은 시스템 debian `blinker` RECORD 부재로 중단되어 `--ignore-installed blinker`로 우회.
+- **중단 작업(중복 점검 PR) 정리**: 같은 날 동일 4,057 검증을 기록한 미머지 드래프트 PR **#250**(6차)·**#251**(7차)이 적체 →
+  본 점검(8차, 동일 수치 + 환경 함정 노트 보강)으로 **superseded** 처리하고 정리.
+- **저장소 상태**: 브랜치 `main`과 완전 동기(rev-list 0/0), main 최신 커밋(`bba6815`) CI·Security Audit·Canonical Hash·Pages **전 워크플로우 success**.
+- **작업거리 재확인**: Python 소스 실 TODO/FIXME **0건**, 열린 이슈 **0건**, 보조 로드맵 미체크 항목 **0건**.
+  로드맵 **99.5%** 유지 — 잔여 4항목(P755 창업·LOI / Track A 실기 검증 / P707 §4-§7 실측 그래프 / P709 IROS 2026 투고) 전부 사용자 환경 의존이라 코드 작업거리 없음.
+
+### 점검 (chore) — 일일 점검 2026-06-11 (신규 세션 독립 재현 + 중단 PR 정리)
+- 신규 컨테이너에서 의존성 신규 설치(`requirements.txt` + `pytest-xdist`) 후 전체 회귀 **독립 재현**:
+  `pytest tests/` → **4,057 pass / 252 skip / 0 fail** (311s, 커버리지 **83.93%** ≥ 80% 게이트). 5차 독립 재현 GREEN.
+- **중단 작업 정리**: 직전 세션이 남긴 열린 PR **#248**(STELLAR Phase 51 시드 API 5건 `docs/SDACS_API.md` 누락 보강,
+  문서 전용) 전제를 재검증 — 시뮬레이터 `_sdacs`에 5개 멤버 존재 / 당시 `main` 문서에는 부재 확인. head CI·Security Audit
+  모두 success 확인 후 **머지**. 머지 후 열린 PR 0건.
+- Python 코드 실 TODO 0건 재확인(`onboard_bridge.py` 2건은 추상 인터페이스 메서드·플랫폼 시그널 핸들러 가드로 오탐).
+  로드맵 **99.5%** 유지 — 잔여 4항목 전부 사용자 환경 의존(P755 창업·LOI / Track A 실기 / P707 실측 그래프 / P709 IROS 투고).
+
+### 문서 (docs) — 일일 점검 2026-06-11 (Phase 51 시드 API 문서 동기화)
+- 신규 컨테이너에서 의존성 재설치 후 전체 회귀 **독립 재현**: `pytest tests/` → **4,057 pass / 252 skip / 0 fail**
+  (398s, 커버리지 **83.93%** ≥ 80% 게이트). 브랜치는 `main`과 완전 동기(0/0), 열린 PR 0건, Python 코드 실 TODO 0건.
+- **중단 작업 발견·완결**: STELLAR Phase 51 시드(#232)가 `swarm_3d_simulator.html` `window._sdacs`에 추가한
+  API 5건(`stellar51DelegatedGroups`·`stellar51Groups`·`stellar51Recommend`·`stellar51Revoke`·`stellar51Tick`)이
+  `docs/SDACS_API.md`(2026-06-05 자동 생성본)에 누락돼 있던 것을 확인. 현재 시뮬레이터 `_sdacs` 멤버를 견고한
+  파서로 전수 추출해 문서와 diff → 누락 5건만 알파벳 위치에 정확히 보강(형 라벨 포함), 총계 표기를 실제
+  테이블 행 수 **392항목**으로 정정(원본 388 → 1건 과대표기였던 것도 함께 교정).
+- `docs/SIMULATOR_HYPER_PLAN.md` "`_sdacs` 전체 API 자동 문서화" 체크박스 `[ ]` → `[x]` (산출물 존재·최신화 반영).
+- 로드맵 **99.5%** 유지. 잔여 4항목 전부 사용자 환경 의존(P755 창업·LOI / Track A 실기 검증 /
+  P707 §4-§7 실측 그래프 / P709 IROS 2026 투고).
+
+### 점검 (chore) — 일일 점검 2026-06-11 (신규 컨테이너 독립 재현 GREEN)
+- 신규 클론 컨테이너에서 의존성을 새로 설치(`requirements.txt` + `pytest-xdist`·`pytest-cov`)한 뒤
+  전체 회귀를 **독립 재현**: `pytest tests/` → **4,057 pass / 252 skip / 0 fail** (320s, 커버리지 **83.93%** ≥ 80% 게이트 통과).
+- `main` CI 전 워크플로우 success 확인 (CI · Security Audit · Canonical Hash Verification · Simulator Smoke · Pages).
+- 코드 내 실 TODO/FIXME **0건** — 잔여 매치는 추상 베이스 `RemoteIDTransport.emit` `NotImplementedError`
+  (`LogRemoteIDTransport` 폴백 + 테스트로 검증됨)와 테스트 fixture 문자열뿐.
+- 로드맵 **99.5%** 유지. 잔여 4항목 전부 사용자 환경 의존(P755 창업·LOI / Track A 실기 검증 /
+  P707 §4-§7 실측 그래프 / P709 IROS 2026 투고)이라 코드 작업거리 없음.
+- **PR 백로그 재정리**: 병렬 세션이 동일 결과를 중복 기록한 일일 점검 PR 2건(#245·#246)을 superseded로 close
+  (둘 다 머지 완료된 #244와 동일한 `4,057 pass` 수치 중복) → 열린 PR 0건 유지.
+- **4차 독립 재현**(신규 컨테이너, `pytest-xdist -n auto`): `pytest tests/` → **4,057 pass / 252 skip / 0 fail**
+  (490s, 커버리지 **83.93%**) — 1·2·3차와 **동일 수치** 재확인(seed 고정 결정성 교차 검증).
+
+### 수정 (fix) — STELLAR Phase 51 시드 완성 (2026-06-10)
+- `swarm_3d_simulator.html` (4개 군집 사본 md5 동기화): Phase 51 LLM Multi-Agent가
+  그룹 기록만 하던 **시드 상태**로 중단되어 있던 것을 완성. 상태 기반 결정적 권고
+  사이클 추가 — `stellar51Recommend(droneId)`(저배터리→RTB·ROGUE→ISOLATE·통신두절→
+  STANDBY·회피→REROUTE·홀딩→RESUME·지상/실패→STANDBY·정상→MAINTAIN·미존재→NOOP) +
+  `stellar51Tick()`(그룹별 권고 1사이클·누적 결정 수) + `stellar51Revoke(groupId)` +
+  `stellar51Groups` 읽기전용 스냅샷. Phase 52-100은 이미 canonical 이름으로 구현 완료.
+- `tests/e2e/test_simulator_stellar.py`: `test_phase51_llm_delegate` E2E 1건 추가.
+- 검증: node 구문 OK + 추출 로직 12 assertion PASS + 전체 회귀 4,055 pass / 251 skip / 0 fail.
+
 ## [v1.5.0] - 2026-06-05 — POST-UNIVERSE (Phase 151-200) · **𝟏 Unity 도달**
 
 ### 추가 (feat) — Track Ʊ Cosmic (151-160)

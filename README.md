@@ -885,6 +885,12 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-11 10:18 | `f244cdd` | Merge remote-tracking branch 'origin/claude/fervent-babbage-yg94ub' into claude/fervent-babbage-52izc1 | .github/workflows/sim-smoke.yml, CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_STELLAR_PLAN.md, docs/simulator.html … |
+| 2026-06-11 | (pending) | docs: 일일 점검 2026-06-11 — #240(raft quorum 수정)·#232(STELLAR P51 시드) 통합, 회귀 4,057 GREEN | README.md, ROADMAP.md |
+| 2026-06-11 09:14 | `74ff61a` | fix(raft): P741 replicate() quorum 인식 정정 + start() TODO 해소 | ROADMAP.md, src/raft/airspace_controller_ha.py, tests/track_e/test_raft.py |
+| 2026-06-10 21:26 | `172e41e` | ci(sim-smoke): pytest-cov 설치 + 해양 C9 스모크 결정론화 | .github/workflows/sim-smoke.yml, tests/e2e/smoke_maritime.mjs |
+| 2026-06-10 21:21 | `3825c88` | ci(sim-smoke): smoke-pytest 잡에 numpy/pyyaml 설치 추가 | .github/workflows/sim-smoke.yml |
+| 2026-06-10 21:19 | `c586167` | feat(simulator): STELLAR Phase 51 시드 완성 — 상태 기반 권고 사이클 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_STELLAR_PLAN.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html … |
 | 2026-06-09 22:29 | `61580f4` | docs: 일일 점검 2026-06-09 — ROADMAP P707/P741/P736 심화 반영 + 통합 요약 | README.md, ROADMAP.md |
 | 2026-06-09 22:40 | (pending) | docs: 일일 점검 — 회귀 3,970 GREEN, ROADMAP P707/P741/P736 심화 반영, #204·#206·#207 통합 + obsolete PR 17건 정리 | ROADMAP.md, README.md |
 | 2026-06-09 22:23 | `e688a21` | Merge remote-tracking branch 'origin/claude/fervent-babbage-o10dsd' into claude/fervent-babbage-v6mpjr | README.md, src/raft/airspace_controller_ha.py, src/raft/cluster.py, tests/track_e/test_raft.py, tests/track_e/test_raft_cluster.py |

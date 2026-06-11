@@ -115,7 +115,10 @@ try {
   // 7e. C9 시나리오별 검증 기록 — 여러 시나리오 전환 후 기록 누적
   await page.evaluate(() => window._mds.start());
   await page.evaluate(() => window._mds.scenario('normal'));
-  await page.waitForTimeout(4000);                       // 탐지 누적
+  // 결정론적: 스냅샷 조건(stats.detected>=1) 충족까지 폴링 — 느린 CI 헤드리스에서
+  // 고정 4000ms로는 탐지 누적이 모자라 0건 기록되던 플레이크 방지 (line 38과 동일 패턴)
+  await page.waitForFunction(() => window._mds.detected > 0, { timeout: 20000 }).catch(() => {});
+  await page.waitForTimeout(3500);                       // 스냅샷 최소 시간(simTime>=3) 보장
   await page.evaluate(() => window._mds.scenario('fog')); // 전환 → normal 스냅샷
   await page.waitForTimeout(500);
   const val = await page.evaluate(() => window._mds.validation);

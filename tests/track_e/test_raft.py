@@ -36,6 +36,28 @@ def test_replicate_appends_to_log_when_leader() -> None:
     assert node.state.log[0].term == 5
 
 
+def test_replicate_commits_immediately_for_single_node() -> None:
+    """피어가 없는 단일 노드는 과반(=1)이 자명하므로 replicate 시 즉시 커밋."""
+    node = AirspaceControllerHA("ctrl-1", peers=[])
+    node.state.role = NodeRole.LEADER
+    node.replicate({"type": "advisory"})
+    node.replicate({"type": "advisory"})
+    assert node.state.commit_index == 1
+
+
+def test_replicate_does_not_commit_without_quorum_when_peers_exist() -> None:
+    """피어가 있으면 replicate는 로그에만 추가하고 ack 없이 커밋하지 않는다.
+
+    과반 복제·커밋은 RaftCluster.propose 가 구동한다 (조기 커밋 방지).
+    """
+    node = AirspaceControllerHA("ctrl-1", peers=["ctrl-2", "ctrl-3"])
+    node.state.role = NodeRole.LEADER
+    node.replicate({"type": "advisory"})
+    node.replicate({"type": "advisory"})
+    assert len(node.state.log) == 2
+    assert node.state.commit_index == 0  # index 1 엔트리는 커밋되지 않음
+
+
 def test_on_request_vote_grants_when_eligible() -> None:
     """투표 자격 충족 시 vote granted."""
     node = AirspaceControllerHA("ctrl-1", peers=[])

@@ -885,6 +885,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-11 (일일 점검) | — | **PR 백로그 정리**: 독립 회귀 4,055 pass / 251 skip / 0 fail (GREEN) 검증 후, 잔여 코드 작업을 통합한 #241(P741 Raft quorum 수정 + STELLAR P51) main 머지, dependabot #203(vite 8 / vitest 4 / plugin-react 6 — 로컬 npm install·vitest 5/5·vite 빌드 GREEN 검증) main 머지. superseded PR 7건 close(#240·#239·#232·#124·#127·#128·#202). **열린 PR 9→0**. 코드 로드맵 99.5% 유지(잔여 4건 사용자 환경 의존). | README.md |
 | 2026-06-11 12:20 | `56e248d` | Merge remote-tracking branch 'origin/main' into claude/fervent-babbage-2lvkht | frontend/package-lock.json, frontend/package.json |
 | 2026-06-11 12:18 | `34a1509` | Merge pull request #241 from sun475300-sudo/claude/fervent-babbage-52izc1 | .github/workflows/sim-smoke.yml, CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_STELLAR_PLAN.md, docs/simulator.html … |
 | 2026-06-11 10:18 | `f244cdd` | Merge remote-tracking branch 'origin/claude/fervent-babbage-yg94ub' into claude/fervent-babbage-52izc1 | .github/workflows/sim-smoke.yml, CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_STELLAR_PLAN.md, docs/simulator.html … |

@@ -249,6 +249,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
 
+*2026-06-11 (7차 독립 재현) — **일일 점검**: 신규 컨테이너에서 의존성 신규 설치 후 전체 회귀 **4,057 pass / 252 skip / 0 fail** (커버리지 83.93%, 342s) 독립 재현 GREEN — 직전 6차(#250)와 동일 수치. 신규 컨테이너 의존성 재현 노트(scipy·matplotlib 누락, 시스템 `blinker` 충돌은 `--ignore-installed`로 우회, pytest 8.x 핀 + xdist 필요)는 CHANGELOG 참조. main CI 전 워크플로우 success. 코드 실 TODO 0건. 로드맵 99.5% 유지 — 잔여 4항목 전부 사용자 환경 의존.*
+
 *2026-06-11 (재점검) — **일일 점검 (신규 컨테이너 독립 재현)**: 신규 클론 컨테이너에서 의존성 신규 설치 후 전체 회귀 **4,057 pass / 252 skip / 0 fail** (커버리지 83.93%) 독립 재현 GREEN. main CI 전 워크플로우 success. 코드 내 실 TODO 0건. 로드맵 99.5% 유지 — 잔여 4항목(P755 창업·Track A 실기·P707 실측 그래프·P709 IROS 투고) 전부 사용자 환경 의존이라 코드 작업거리 없음.*
 
 *Last updated: 2026-06-11 — **일일 점검 + 백로그 통합(#240 + #232)**: 의존성 신규 설치 후 전체 회귀 독립 재현 **GREEN**. 잔여 코드 작업 2건을 단일 브랜치로 통합. (1) **P741 Raft quorum 정정**(#240) — `airspace_controller_ha.py` `replicate()` 를 quorum 인식으로 정정(피어 없는 단일 노드만 즉시 커밋, 피어 존재 시 조기 커밋 방지하고 `RaftCluster.propose` 에 과반 복제 위임) + `start()` TODO를 결정론적 드라이버(`RaftCluster.tick`) 위임 명시로 대체, 회귀 테스트 2건 추가. (2) **STELLAR Phase 51 시드 완성**(#232) — 유일 잔여 시뮬레이터 gap이던 Phase 51을 상태 기반 결정적 권고 사이클(`stellar51Recommend`/`Tick`/`Revoke`/`Groups`)로 완성, 4개 군집 사본 md5 동기화 + E2E 1건. 시뮬레이터 STELLAR Phase 52-100은 canonical 이름으로 main에 이미 구현됨을 확인 → PR #124(AR)·#128(stellar52~55)·#239(raft 주석 only) **superseded**. 잔여(사용자 환경 의존): Track A 실기 검증, P707 실측 그래프, P709 IROS 투고, P755 창업.*

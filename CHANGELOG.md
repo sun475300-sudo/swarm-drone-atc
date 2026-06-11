@@ -5,6 +5,16 @@
 
 ## [Unreleased]
 
+### 점검 (chore) — 일일 점검 2026-06-11 (7차 독립 재현 GREEN)
+- 신규 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
+  `PYTHONHASHSEED=0 pytest tests/` → **4,057 pass / 252 skip / 0 fail** (342s, 커버리지 **83.93%** ≥ 80% 게이트). 7차 독립 재현 GREEN — 직전 6차(#250)와 **동일 수치** 재확인.
+- **환경 재현 노트**(후속 세션 참고): 신규 컨테이너에는 `scipy`·`matplotlib` 등 핵심 의존성이 미설치 상태였고,
+  `pip install`이 시스템 debian `blinker` 패키지 RECORD 부재로 중단되는 이슈 발견 → `--ignore-installed blinker`로 우회.
+  또한 `pyproject.toml`이 `pytest-xdist`(`-n --dist loadfile`)를 전제하므로 `requirements/dev.txt`(pytest 8.x 핀)·`pytest-xdist`까지 설치해야 정상 재현됨.
+- **저장소 상태**: 브랜치 `main`과 완전 동기(rev-list 0/0). main 최신 커밋(`bba6815`) CI·Security Audit·Canonical Hash·Pages **전 워크플로우 success**.
+- **작업거리 재확인**: Python 소스 실 TODO/FIXME **0건**(`onboard_bridge.py` 2건은 추상 인터페이스 `RemoteIDTransport.emit`·플랫폼 시그널 가드로 오탐),
+  보조 로드맵·문서 미체크 항목은 전부 사용자 환경 의존(HW 구매·IROS 투고·발표장 점검·LOI). 로드맵 **99.5%** 유지.
+
 ### 점검 (chore) — 일일 점검 2026-06-11 (신규 세션 독립 재현 + 중단 PR 정리)
 - 신규 컨테이너에서 의존성 신규 설치(`requirements.txt` + `pytest-xdist`) 후 전체 회귀 **독립 재현**:
   `pytest tests/` → **4,057 pass / 252 skip / 0 fail** (311s, 커버리지 **83.93%** ≥ 80% 게이트). 5차 독립 재현 GREEN.

@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### 점검 (chore) — 일일 점검 2026-06-11 (신규 컨테이너 6차 독립 재현 GREEN)
+- 신규 클론 컨테이너에서 의존성 신규 설치(`requirements.txt` + `requirements/dev.txt` + `pytest-xdist`/`pytest-cov`)
+  후 전체 회귀 **독립 재현**: `pytest tests/` → **4,057 pass / 252 skip / 0 fail** (510s, 커버리지 **83.93%** ≥ 80% 게이트). 6차 독립 재현 GREEN.
+- 점검 상태 전수 확인 — 브랜치 `main`과 완전 동기(rev-list 0/0), 열린 PR **0건**, 열린 이슈 **0건**,
+  `main` 최신 커밋(`bba6815`) CI·Security Audit·Canonical Hash·Pages **전 워크플로우 success**.
+- Python 소스 실 TODO/FIXME **0건**, 보조 로드맵(`docs/MASTER_TODO_ATC.md`·`docs/roadmap_public.md`) 미체크 항목 **0건** 재확인.
+- 로드맵 **99.5%** 유지 — 잔여 4항목 전부 사용자 환경 의존(P755 창업·LOI / Track A 실기 검증 /
+  P707 §4-§7 실측 그래프 / P709 IROS 2026 투고). 코드 작업거리 없음 — 검증 전용 점검.
+
 ### 점검 (chore) — 일일 점검 2026-06-11 (신규 세션 독립 재현 + 중단 PR 정리)
 - 신규 컨테이너에서 의존성 신규 설치(`requirements.txt` + `pytest-xdist`) 후 전체 회귀 **독립 재현**:
   `pytest tests/` → **4,057 pass / 252 skip / 0 fail** (311s, 커버리지 **83.93%** ≥ 80% 게이트). 5차 독립 재현 GREEN.

@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### 점검 (chore) — 일일 점검 2026-06-11 (9차 독립 재현 GREEN)
+- 신규 컨테이너에서 의존성 신규 설치(`requirements.txt` + `requirements/dev.txt` + `pytest-xdist`) 후 전체 회귀 **독립 재현**:
+  `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (501.90s, 커버리지 **83.93%** ≥ 80% 게이트). 9차 독립 재현 GREEN — 직전 8차와 **동일 수치** 재확인.
+- **환경 함정 재확인**(직전 기록과 동일): PATH의 `pytest`가 uv 격리 도구(`pytest 9.0.2`)로 잡혀 `conftest.py` import 실패 →
+  시스템 인터프리터 기준 `python -m pytest`(pytest 8.4.2, `requirements.txt` 핀)로 실행해야 정상 재현. `pip install`은 debian `blinker` RECORD 부재로 `--ignore-installed blinker` 우회. `pyproject.toml` addopts의 `-n --dist loadfile` 위해 `pytest-xdist` 별도 설치 필요.
+- **저장소 상태**: 브랜치 `main`과 완전 동기(rev-list 0/0), main 최신 커밋(`255a7c9`) CI·Security Audit·Canonical Hash·Pages **전 워크플로우 success**.
+- **작업거리 재확인**: 열린 PR **0건**, 열린 이슈 **0건**, Python 소스 실 TODO/FIXME **0건**(`onboard_bridge.py` 2건은 추상 인터페이스 메서드·`contextlib.suppress` 가드로 오탐), 보조 로드맵 미체크 `[ ]` 항목은 전부 하드웨어 검증·사업 LOI·릴리스 절차 등 **사용자 환경 의존 체크리스트**.
+  로드맵 **99.5%** 유지 — 잔여 4항목(P755 창업·LOI / Track A 실기 검증 / P707 §4-§7 실측 그래프 / P709 IROS 2026 투고) 전부 사용자 환경 의존이라 코드 작업거리 없음.
+
 ### 점검 (chore) — 일일 점검 2026-06-11 (8차 독립 재현 GREEN + 중복 점검 PR 정리)
 - 신규 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `PYTHONHASHSEED=0 python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (531s, 커버리지 **83.93%** ≥ 80% 게이트). 8차 독립 재현 GREEN — 직전 재현들과 **동일 수치** 재확인.

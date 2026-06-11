@@ -885,6 +885,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-11 15:12 | `b5af5bb` | docs: 일일 점검 2026-06-11 (재점검) — 신규 컨테이너 독립 재현 4,057 pass GREEN | CHANGELOG.md, ROADMAP.md |
 | 2026-06-11 12:21 | `1ebf3fa` | docs: 일일 점검 2026-06-11 — PR 백로그 정리 (9→0), #241·#203 머지 + superseded 7건 close | README.md |
 | 2026-06-11 (일일 점검) | — | **PR 백로그 정리**: 독립 회귀 4,055 pass / 251 skip / 0 fail (GREEN) 검증 후, 잔여 코드 작업을 통합한 #241(P741 Raft quorum 수정 + STELLAR P51) main 머지, dependabot #203(vite 8 / vitest 4 / plugin-react 6 — 로컬 npm install·vitest 5/5·vite 빌드 GREEN 검증) main 머지. superseded PR 7건 close(#240·#239·#232·#124·#127·#128·#202). **열린 PR 9→0**. 코드 로드맵 99.5% 유지(잔여 4건 사용자 환경 의존). | README.md |
 | 2026-06-11 12:20 | `56e248d` | Merge remote-tracking branch 'origin/main' into claude/fervent-babbage-2lvkht | frontend/package-lock.json, frontend/package.json |

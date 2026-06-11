@@ -50,6 +50,26 @@ def page(http_server):
         browser.close()
 
 
+# Track Ω 자율결정 (Phase 51-55)
+def test_phase51_llm_delegate(page):
+    pg, _ = page
+    r = pg.evaluate("""
+        () => {
+            const grp = window._sdacs.stellar51DelegateGroup([0, 1], 'claude-opus-4-8');
+            const n = window._sdacs.stellar51Tick();
+            const groups = window._sdacs.stellar51Groups;
+            const missing = window._sdacs.stellar51Recommend('NOPE');
+            const removed = window._sdacs.stellar51Revoke(grp.id);
+            return { provider: grp.llmProvider, decisions: n, groupCount: groups.length, missing, removed };
+        }
+    """)
+    assert r["provider"] == "claude-opus-4-8"
+    assert r["decisions"] == 2
+    assert r["groupCount"] == 1
+    assert r["missing"] == "NOOP"
+    assert r["removed"] == 1
+
+
 # Track Ω 자율결정 (Phase 52-55)
 def test_phase52_rlhf(page):
     pg, _ = page

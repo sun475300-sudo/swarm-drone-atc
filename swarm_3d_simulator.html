@@ -11475,6 +11475,34 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 if (window._sdacs.stellar51DelegatedGroups.length > 50) window._sdacs.stellar51DelegatedGroups.shift();
                 return grp;
             },
+            // 드론 상태 기반 결정적 권고 (실 LLM 키 없이 오프라인 시연 — Copilot Phase 20과 동일 철학)
+            stellar51Recommend(droneId) {
+                const d = (typeof droneId === 'string') ? drones.find(x => x.id === droneId) : (typeof droneId === 'number' ? drones[droneId] : droneId);
+                if (!d) return 'NOOP';
+                if (d.battery != null && d.battery < 20) return 'RTB';
+                if (d.isRogue) return 'ISOLATE';
+                if (d.commsLost) return 'STANDBY';
+                if (d.phase === 'EVADING' || d.phase === 'EVADE') return 'REROUTE';
+                if (d.phase === 'HOLDING') return 'RESUME';
+                if (d.phase === 'GROUNDED' || d.phase === 'FAILED') return 'STANDBY';
+                return 'MAINTAIN';
+            },
+            // 위임 그룹 1회 권고 사이클 — 각 드론에 권고 1건씩 생성, 누적 결정 수 반환
+            stellar51Tick() {
+                let n = 0;
+                for (const grp of window._sdacs.stellar51DelegatedGroups) {
+                    grp.lastActions = (grp.droneIds || []).map(id => ({ droneId: id, action: window._sdacs.stellar51Recommend(id) }));
+                    grp.decisions += grp.lastActions.length;
+                    n += grp.lastActions.length;
+                }
+                return n;
+            },
+            stellar51Revoke(groupId) {
+                const before = window._sdacs.stellar51DelegatedGroups.length;
+                window._sdacs.stellar51DelegatedGroups = window._sdacs.stellar51DelegatedGroups.filter(g => g.id !== groupId);
+                return before - window._sdacs.stellar51DelegatedGroups.length;
+            },
+            get stellar51Groups() { return window._sdacs.stellar51DelegatedGroups.map(g => ({ ...g, droneIds: g.droneIds.slice() })); },
             // ===== STELLAR Phase 52-55 (Track Ω 자율결정) =====
             rlhfFeedback(decision, rating, notes) { return rlhfFeedback(decision, rating, notes); },
             get rlhfState() { return { feedbackCount: rlhf.feedbacks.length, weights: { ...rlhf.preferenceModel.weights } }; },

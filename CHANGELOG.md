@@ -3,6 +3,18 @@
 이 프로젝트의 모든 주요 변경 사항을 기록합니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 기반으로 합니다.
 
+## [Unreleased]
+
+### 수정 (fix) — STELLAR Phase 51 시드 완성 (2026-06-10)
+- `swarm_3d_simulator.html` (4개 군집 사본 md5 동기화): Phase 51 LLM Multi-Agent가
+  그룹 기록만 하던 **시드 상태**로 중단되어 있던 것을 완성. 상태 기반 결정적 권고
+  사이클 추가 — `stellar51Recommend(droneId)`(저배터리→RTB·ROGUE→ISOLATE·통신두절→
+  STANDBY·회피→REROUTE·홀딩→RESUME·지상/실패→STANDBY·정상→MAINTAIN·미존재→NOOP) +
+  `stellar51Tick()`(그룹별 권고 1사이클·누적 결정 수) + `stellar51Revoke(groupId)` +
+  `stellar51Groups` 읽기전용 스냅샷. Phase 52-100은 이미 canonical 이름으로 구현 완료.
+- `tests/e2e/test_simulator_stellar.py`: `test_phase51_llm_delegate` E2E 1건 추가.
+- 검증: node 구문 OK + 추출 로직 12 assertion PASS + 전체 회귀 4,055 pass / 251 skip / 0 fail.
+
 ## [v1.5.0] - 2026-06-05 — POST-UNIVERSE (Phase 151-200) · **𝟏 Unity 도달**
 
 ### 추가 (feat) — Track Ʊ Cosmic (151-160)

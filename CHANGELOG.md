@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### 점검 (chore) — 일일 점검 2026-06-11 · 신규 컨테이너 독립 재현 GREEN
+- 신규 클론 컨테이너에서 의존성 새로 설치(numpy·simpy·pandas·scipy·fastapi·plotly 등)
+  후 전체 회귀 **독립 재현**: `pytest tests/` → **4,057 pass / 252 skip / 0 fail**.
+- 상황 파악: 브랜치 `claude/fervent-babbage-p7bukd` ↔ `origin/main` 완전 동기화(diff 0),
+  열린 PR 0건, 코드 내 실 TODO/FIXME 0건(잔여 매치는 추상 베이스 `NotImplementedError`·
+  의도된 on-demand 계산·문서화된 fallback stub으로 모두 정상).
+- 로드맵 잔여 4항목은 전부 사용자 환경 의존(P755 창업·Track A 실기 검증·P707 실측
+  그래프·P709 IROS 투고)으로 코드 작업거리 없음 — 코드 로드맵 99.5% 유지.
+
 ### 수정 (fix) — STELLAR Phase 51 시드 완성 (2026-06-10)
 - `swarm_3d_simulator.html` (4개 군집 사본 md5 동기화): Phase 51 LLM Multi-Agent가
   그룹 기록만 하던 **시드 상태**로 중단되어 있던 것을 완성. 상태 기반 결정적 권고

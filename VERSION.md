@@ -45,8 +45,9 @@
 | 버전 | 트리거 | 예상 |
 |---|---|---|
 | v1.5.1 | bug fix only | 미정 |
-| v1.6.0 | 트랙 ② HITL 실 구현 (Phase 22 격상) | 후속 |
-| v2.0.0 | STELLAR Phase 201+ (Post-Unity) | 장기 |
+| v1.6.0 | MASTER_PLAN Track Ⅰ 완료 (시각화 5종 마감) | 2026-07 |
+| v1.7.0 | Track Ⅲ 다중 사용자 실증 | 2026-09 |
+| v2.0.0 | TRANSCENDENCE 격상 + GENESIS 착수 (Phase 301+) | 2026-12 |
 
 ## 🏗 빌드 산출물 (배포 위치)
 

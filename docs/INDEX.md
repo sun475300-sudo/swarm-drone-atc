@@ -17,6 +17,7 @@
 - **영원**: [`SIMULATOR_ULTIMATE_PLAN.md`](SIMULATOR_ULTIMATE_PLAN.md) (Phase 101-150 ✅, Universe OS)
 - **단일**: [`SIMULATOR_POST_UNIVERSE_PLAN.md`](SIMULATOR_POST_UNIVERSE_PLAN.md) (Phase 151-200 ✅, 𝟏 Unity)
 - **초월**: [`SIMULATOR_TRANSCENDENCE_PLAN.md`](SIMULATOR_TRANSCENDENCE_PLAN.md) (Phase 201-300 — 201-207 ✅, 정직성·실측·다중 사용자·HITL·학술)
+- **창세**: [`SIMULATOR_GENESIS_PLAN.md`](SIMULATOR_GENESIS_PLAN.md) (Phase 301-400 — 인증·생태계·실증·차세대 자율·교육 레거시)
 - **2026 H2**: [`MASTER_PLAN_2026H2.md`](MASTER_PLAN_2026H2.md) — 통합 실행 로드맵 (4 실행 트랙 + 거버넌스)
 - **상세**: [`SIMULATOR_PHASE_PLANS.md`](SIMULATOR_PHASE_PLANS.md)
 - **API**: [`SDACS_API.md`](SDACS_API.md) — **402개** 라이브 실측 추출 (maturity 등급 포함)

@@ -134,6 +134,7 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 | **HYPER Plan** (시뮬 Phase 10-50) | 100% | ████████████ | 41개 추가 Phase (해양 ATC · VR · AI Copilot · 적대 · C-UAS · 행성 등) |
 | **STELLAR~POST-UNIVERSE** (시뮬 Phase 51-200) | 100% | ████████████ | Phase 200 = 𝟏 (Unity) · Phase 51 LLM Multi-Agent 격상 (단, 다수 mock/speculative — maturity 공시) |
 | **TRANSCENDENCE** (시뮬 Phase 201-300) | 7% | █░░░░░░░░░░░ | Phase 201-207 Maturity Honesty 완료 (apiMaturity·maturityReport·89/98/110/103 분류) |
+| **GENESIS** (시뮬 Phase 301-400) | 0% | ░░░░░░░░░░░░ | 인증·생태계·실증·차세대 자율·교육 레거시 — 2026-06-12 계획 수립 |
 
 **총 Phase 691-755 (65개) 중 61개 완료 = 94%** (Phase 1-690 포함 시 전체 751/755 = **99.5%**)
 **+ 시뮬레이터 MEGA 9 + HYPER 41 = 50 Phase 100% 완료** (총 800 Phase 중 796 완료 = **99.5%**)
@@ -254,6 +255,16 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [ ] **Phase 241-260** — Multi-User Reality (WS 관제 서버·다중 관제사·TimescaleDB·부하 100명)
 - [ ] **Phase 261-280** — Hardware Loop (Pixhawk HITL·Jetson 엣지·RTK·실 비행 데이터셋) *(사용자 HW 의존)*
 - [ ] **Phase 281-300** — Academic Impact (IROS 투고·Zenodo DOI·Ablation 자동화·K-UTM 표준 제안)
+
+### Track H — 시뮬레이터 GENESIS (Phase 301-400) · 2026-06-12 수립
+
+> 상세: [`docs/SIMULATOR_GENESIS_PLAN.md`](docs/SIMULATOR_GENESIS_PLAN.md) — *"이것은 세상에 남는가"*
+
+- [ ] **Phase 301-320** 🏭 Certification & Compliance — 항공안전법·SORA 자동 계산기·DO-178C 갭 분석·CSAP 자동화
+- [ ] **Phase 321-340** 🌍 Ecosystem & Open Source — 플러그인 SDK·`@sdacs/core` npm·`sdacs-sim` PyPI·v2.0 API 안정화
+- [ ] **Phase 341-360** 🏙 Real Deployment — 목포 해역 실 좌표·전남 도서 의료 배송·90일 파일럿 백서
+- [ ] **Phase 361-380** 🤖 Next-Gen Autonomy — 온보드 RL 추론·APF+RL 하이브리드·양방향 디지털 트윈
+- [ ] **Phase 381-400** 🎓 Education & Legacy — 15주 커리큘럼·졸업 심사 키트·기술 부채 대장·**Phase 400 = Legacy 선언**
 
 ---
 

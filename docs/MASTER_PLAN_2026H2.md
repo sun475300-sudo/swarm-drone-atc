@@ -101,6 +101,7 @@
 ## 📚 관련 문서
 
 - [`SIMULATOR_TRANSCENDENCE_PLAN.md`](SIMULATOR_TRANSCENDENCE_PLAN.md) — Phase 201-300 상세
+- [`SIMULATOR_GENESIS_PLAN.md`](SIMULATOR_GENESIS_PLAN.md) — Phase 301-400 (인증·생태계·실증·자율·레거시 — 다음 지평)
 - [`SIMULATOR_MEGA_PLAN.md`](SIMULATOR_MEGA_PLAN.md) ~ [`SIMULATOR_POST_UNIVERSE_PLAN.md`](SIMULATOR_POST_UNIVERSE_PLAN.md) — Phase 1-200 (완료)
 - [`../ROADMAP.md`](../ROADMAP.md) — Track A-G 전체 현황
 - [`SDACS_API.md`](SDACS_API.md) — 402 API maturity 레퍼런스

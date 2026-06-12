@@ -112,6 +112,7 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 | [📚 SDACS_API.md](docs/SDACS_API.md) | 402 `_sdacs` API 라이브 실측 추출 레퍼런스 (maturity 등급 포함) |
 | [🧭 SIMULATOR_TRANSCENDENCE_PLAN.md](docs/SIMULATOR_TRANSCENDENCE_PLAN.md) | Phase 201-300 — 정직성·실측·다중 사용자·HITL·학술 임팩트 |
 | [🗓 MASTER_PLAN_2026H2.md](docs/MASTER_PLAN_2026H2.md) | 2026 H2 통합 실행 로드맵 — 4 실행 트랙 + 문서 정합성 거버넌스 |
+| [🌱 SIMULATOR_GENESIS_PLAN.md](docs/SIMULATOR_GENESIS_PLAN.md) | Phase 301-400 — 인증·생태계·실증·차세대 자율·교육 레거시 |
 | [🌌 SIMULATOR_MEGA_PLAN.md](docs/SIMULATOR_MEGA_PLAN.md) ~ [POST_UNIVERSE_PLAN](docs/SIMULATOR_POST_UNIVERSE_PLAN.md) | 200 Phase 5단계 로드맵 |
 | [📋 CHANGELOG.md](CHANGELOG.md) | v1.0-1.5 통합 버전 이력 |
 

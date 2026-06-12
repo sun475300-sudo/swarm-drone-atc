@@ -109,7 +109,8 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 | [📋 V1_5_0_RELEASE_INSTRUCTIONS.md](docs/V1_5_0_RELEASE_INSTRUCTIONS.md) | 사용자 1줄 명령으로 3-OS 자동 빌드 트리거 |
 | [🔧 pixhawk_sdacs_hitl.md](docs/hardware/pixhawk_sdacs_hitl.md) | Pixhawk 6X HITL 통합 (Phase 22 격상) |
 | [🚀 v1_5_PILOT_KICKOFF.md](docs/beta/v1_5_PILOT_KICKOFF.md) | KARI · 해수부 · 산림청 베타 (Helm 5단계) |
-| [📚 SDACS_API.md](docs/SDACS_API.md) | 391 `_sdacs` API 자동 추출 레퍼런스 |
+| [📚 SDACS_API.md](docs/SDACS_API.md) | 391 `_sdacs` API 자동 추출 레퍼런스 (maturity 등급 포함) |
+| [🧭 SIMULATOR_TRANSCENDENCE_PLAN.md](docs/SIMULATOR_TRANSCENDENCE_PLAN.md) | Phase 201-300 — 정직성·실측·다중 사용자·HITL·학술 임팩트 |
 | [🌌 SIMULATOR_MEGA_PLAN.md](docs/SIMULATOR_MEGA_PLAN.md) ~ [POST_UNIVERSE_PLAN](docs/SIMULATOR_POST_UNIVERSE_PLAN.md) | 200 Phase 5단계 로드맵 |
 | [📋 CHANGELOG.md](CHANGELOG.md) | v1.0-1.5 통합 버전 이력 |
 
@@ -118,7 +119,7 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 | 항목 | 값 |
 |---|:-:|
 | Phase 완료 | **200 / 200** (Phase 51 LLM Multi-Agent 격상 반영) |
-| 시뮬레이터 코드 | 11,723 line |
+| 시뮬레이터 코드 | 11,836 line |
 | `_sdacs` API | 391 항목 |
 | Playwright E2E | **248 / 249** 통과 (1 skip) |
 | 회귀 pytest | **4,140 / 4,140** 통과 |

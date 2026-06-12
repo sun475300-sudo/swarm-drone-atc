@@ -5,6 +5,16 @@
 
 ## [Unreleased]
 
+### 점검 (chore) — 일일 점검 2026-06-12 (11차 독립 재현 GREEN + 중복 점검 PR #253·#254 정리)
+- 신규 컨테이너에서 의존성 신규 설치(`requirements.txt` + `pytest-xdist`, `--ignore-installed blinker`) 후 전체 회귀 **독립 재현**:
+  `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (340.19s, 커버리지 **83.93%** ≥ 80% 게이트). 8·9·10차와 **동일 수치** — 11차 독립 재현 GREEN.
+- **중단 작업(중복 점검 PR) 정리**: 구버전 main(`255a7c9`) 기반의 문서 전용 일일 점검 드래프트 PR **#253**(9차)·**#254**(10차)가
+  동일 4,057 검증을 기록한 채 적체 → 현재 main(`e1aa87c`) 기반의 본 점검(11차)으로 **superseded** 처리하고 정리.
+- **저장소 상태**: 브랜치는 `main` 최신(`e1aa87c`)과 완전 동기, main 최신 CI·Security Audit·Canonical Hash·Pages **전 워크플로우 success**.
+- **작업거리 재확인**: Python 소스 실 TODO/FIXME **0건**(`onboard_bridge.py:425`는 추상 베이스 `RemoteIDTransport.emit`,
+  `:759`는 시그널 핸들러 가드 오탐), JS/HTML 실 TODO **0건**, 열린 이슈 **0건**.
+  로드맵 **99.5%** 유지 — 잔여 4항목(P755 창업·LOI / Track A 실기 검증 / P707 §4-§7 실측 그래프 / P709 IROS 2026 투고) 전부 사용자 환경 의존.
+
 ### 점검 (chore) — 일일 점검 2026-06-11 (8차 독립 재현 GREEN + 중복 점검 PR 정리)
 - 신규 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `PYTHONHASHSEED=0 python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (531s, 커버리지 **83.93%** ≥ 80% 게이트). 8차 독립 재현 GREEN — 직전 재현들과 **동일 수치** 재확인.

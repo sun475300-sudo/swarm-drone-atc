@@ -888,6 +888,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-12 12:12 | `7813c8f` | chore: 일일 점검 2026-06-12 — 14차 독립 재현 GREEN + 중복 PR #257 정리 | CHANGELOG.md, ROADMAP.md |
 | 2026-06-12 08:42 | `4e35caa` | Merge branch 'main' of http://127.0.0.1:33971/git/sun475300-sudo/swarm-drone-atc | .github/workflows/sim-smoke.yml, .gitignore, CHANGELOG.md, ROADMAP.md, docs/HITL_CHECKLIST.md, docs/SDACS_API.md … |
 | 2026-06-12 08:42 | `c870cf3` | feat: README 배지 v1.5.0 갱신 + Phase Matrix 200 완전 + PROJECT_PITCH 1-pager | README.md, docs/PROJECT_PITCH.md, docs/phase_matrix.html |
 | 2026-06-07 15:19 | `38a7b96` | feat: 추가 작업 7종 일괄 — TS .d.ts·Phase Matrix·Quick Start·SVG 배지·VERSION·HEALTH·INDEX | VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md, docs/QUICK_START.md, docs/badges/api_388.svg, docs/badges/e2e_247.svg … |

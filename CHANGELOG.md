@@ -5,6 +5,24 @@
 
 ## [Unreleased]
 
+### 점검 (chore) — 일일 점검 2026-06-12 (15차 독립 재현 GREEN, main `91a4fcc` 기준)
+- 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
+  `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (503.23s).
+  8~14차와 **동일 수치** 재확인 — 15차 독립 재현 GREEN. 커버리지 **83.93%**(≥ 80% 게이트) 동일 재현.
+- **저장소 상태**: 브랜치 `main`과 완전 동기(rev-list 0/0, HEAD `91a4fcc` — 직전 14차 기준 `e1aa87c`에서
+  PR #258 머지로 전진). main 최신 커밋(`91a4fcc`) CI·Security Audit·Canonical Hash Verification·Pages
+  **전 워크플로우 success** 확인.
+- **작업거리 재확인**: `src/`·`api/` 실 TODO/FIXME **0건**(`onboard_bridge.py`의 `RemoteIDTransport.emit`
+  `NotImplementedError`는 추상 인터페이스 메서드 + `LogRemoteIDTransport` 폴백, 759행은 가드로 오탐),
+  열린 이슈 **0건**, 열린 PR **0건**, 보조 로드맵 미체크 코드 작업거리 **0건**
+  (`SIMULATOR_HYPER_PLAN.md` 데모 영상 30초는 MediaRecorder 녹화 기능이 `swarm_3d_simulator.html` CIN-4에
+  이미 구현됨 → 실제 영상 산출은 브라우저 세션 의존, P755 창업과 함께 사용자 환경 의존 항목).
+- **환경 함정**(후속 세션 참고): 시스템 인터프리터에 `dash`·`pandas` 등 미설치 시 `visualization`/`monte_carlo`
+  계열 16건이 `ModuleNotFoundError`로 실패 → `requirements.txt` 전체 설치(`--ignore-installed blinker` 우회)
+  + `pytest>=8.4,<9`·`pytest-xdist`로 정렬해야 4,057 정상 재현. PATH의 uv 격리 `pytest 9.x`는 사용 금지.
+- 로드맵 **99.5%** 유지 — 잔여 4항목(P755 창업·LOI / Track A 실기 검증 / P707 §4-§7 실측 그래프 /
+  P709 IROS 2026 투고) 전부 사용자 환경 의존이라 코드 작업거리 없음.
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (14차 독립 재현 GREEN + 중복 점검 PR #257 정리)
 - 신규 세션 컨테이너에서 의존성 신규 설치(`pytest`·`pytest-xdist`·`pytest-cov` + `requirements.txt`) 후
   전체 회귀 **독립 재현**: `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (407.63s).

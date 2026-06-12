@@ -16,8 +16,13 @@
 - **초장기**: [`SIMULATOR_STELLAR_PLAN.md`](SIMULATOR_STELLAR_PLAN.md) (Phase 51-100 ✅)
 - **영원**: [`SIMULATOR_ULTIMATE_PLAN.md`](SIMULATOR_ULTIMATE_PLAN.md) (Phase 101-150 ✅, Universe OS)
 - **단일**: [`SIMULATOR_POST_UNIVERSE_PLAN.md`](SIMULATOR_POST_UNIVERSE_PLAN.md) (Phase 151-200 ✅, 𝟏 Unity)
+- **초월**: [`SIMULATOR_TRANSCENDENCE_PLAN.md`](SIMULATOR_TRANSCENDENCE_PLAN.md) (Phase 201-300 — 201-207 ✅, 정직성·실측·다중 사용자·HITL·학술)
+- **창세**: [`SIMULATOR_GENESIS_PLAN.md`](SIMULATOR_GENESIS_PLAN.md) (Phase 301-400 — 302·388 ✅, 인증·생태계·실증·차세대 자율·교육 레거시)
+- **항해**: [`SIMULATOR_ODYSSEY_PLAN.md`](SIMULATOR_ODYSSEY_PLAN.md) (Phase 401-500 — 국제 확장·연합 운영·형식 검증·표준·10년 지속)
+- **부채 대장**: [`TECH_DEBT_LEDGER.md`](TECH_DEBT_LEDGER.md) — mock 110 + speculative 103 정직성 공시 (자동 생성)
+- **2026 H2**: [`MASTER_PLAN_2026H2.md`](MASTER_PLAN_2026H2.md) — 통합 실행 로드맵 (4 실행 트랙 + 거버넌스)
 - **상세**: [`SIMULATOR_PHASE_PLANS.md`](SIMULATOR_PHASE_PLANS.md)
-- **API**: [`SDACS_API.md`](SDACS_API.md) — **388개** 자동 추출
+- **API**: [`SDACS_API.md`](SDACS_API.md) — **404개** 라이브 실측 추출 (maturity 등급 포함)
 - **TypeScript**: [`sdacs.d.ts`](sdacs.d.ts) — IDE autocomplete용 declaration
 - **데모 영상**: [`demo/sdacs_200phase_showcase.webm`](demo/sdacs_200phase_showcase.webm) (9.4 MB, 60초)
 - **데모 스크립트**: [`demo/all_phases_showcase.js`](demo/all_phases_showcase.js)

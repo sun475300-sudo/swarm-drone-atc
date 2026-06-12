@@ -6,13 +6,13 @@
 
 | 카테고리 | 항목 | 값 | 상태 |
 |---|---|:-:|:-:|
-| **시뮬레이터** | 군집 코드 | 11,695 line | 🟢 |
+| **시뮬레이터** | 군집 코드 | 11,836 line | 🟢 |
 | | 해양 코드 | 1,177 line | 🟢 |
 | | Phase 완료 | 200 / 200 | 🟢 |
-| | `_sdacs` API | 388 항목 | 🟢 |
+| | `_sdacs` API | 404 항목 (분류 401 + 헬퍼 3) | 🟢 |
 | | TypeScript `.d.ts` | 자동 생성 | 🟢 |
 | **검증** | Playwright E2E | 247 / 248 (1 skip) | 🟢 99.6% |
-| | Python 회귀 | 4,140 / 4,140 | 🟢 100% |
+| | Python 회귀 | 4,180 pass / 8 skip / 0 fail (2026-06-12) | 🟢 |
 | | JS 구문 (`node --check`) | PASS | 🟢 |
 | | 사본 동기화 md5 | 7 파일 일치 | 🟢 |
 | **빌드** | Linux AppImage | 105 MB | 🟢 |
@@ -22,7 +22,7 @@
 | | desktop-build.yml | v* 태그 트리거 | 🟢 |
 | | deploy-pages.yml | main push 트리거 | 🟢 |
 | **문서** | 마스터 플랜 5종 | 5 / 5 | 🟢 |
-| | API 레퍼런스 | 388 자동 | 🟢 |
+| | API 레퍼런스 | 404 라이브 실측 | 🟢 |
 | | CHANGELOG | v1.0-1.5 통합 | 🟢 |
 | | Quick Start | 1줄 실행 | 🟢 |
 | | Phase Matrix HTML | 200 카드 | 🟢 |

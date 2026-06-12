@@ -14,6 +14,7 @@ on:
       - 'manifest.webmanifest'
       - 'sdacs-sw.js'
       - 'tests/e2e/**'
+      - 'scripts/extract_sdacs_api.py'
       - '.github/workflows/sim-smoke.yml'
   pull_request:
     paths:
@@ -25,6 +26,7 @@ on:
       - 'manifest.webmanifest'
       - 'sdacs-sw.js'
       - 'tests/e2e/**'
+      - 'scripts/extract_sdacs_api.py'
       - '.github/workflows/sim-smoke.yml'
   workflow_dispatch:
 
@@ -117,3 +119,12 @@ jobs:
         run: |
           python -m pytest tests/e2e/ -v --no-cov -n auto \
             --ignore=tests/e2e/test_desktop_phase12.py  # AppImage 빌드 필요, 별도 job
+
+      - name: API 문서 정합성 게이트 (Track G-2 — 실측 vs SDACS_API.md/sdacs.d.ts)
+        run: python scripts/extract_sdacs_api.py --check
+
+      - name: 사본 md5 일치 게이트 (Track G-4)
+        run: |
+          test "$(md5sum swarm_3d_simulator.html visualization/swarm_3d_simulator.html docs/simulator.html docs/swarm_3d_simulator.html | awk '{print $1}' | sort -u | wc -l)" = 1 \
+            && echo "✅ 군집 4 사본 md5 일치" \
+            || { echo "❌ 군집 사본 불일치 — 동기화 필요"; exit 1; }

@@ -145,3 +145,46 @@ def test_maturity_no_js_errors(page):
               "fonts.googleapis", "AudioContext", "xr"]
     blocking = [e for e in errors if not any(m in e for m in benign)]
     assert not blocking, f"JS errors: {blocking}"
+
+
+def test_phase203_mock_detector_warns_and_counts(page):
+    pg, _ = page
+    # Arrange — mock API 1종 + speculative API 1종 호출
+    warns = []
+    pg.on("console", lambda msg: warns.append(msg.text) if msg.type == "warning" else None)
+
+    # Act
+    pg.evaluate("window._sdacs.annealingSolve(4)")
+    pg.evaluate("window._sdacs.annealingSolve(4)")
+    pg.evaluate("window._sdacs.p200UnityAchieved()")
+    pg.wait_for_timeout(100)
+    report = pg.evaluate("window._sdacs.maturityReport()")
+
+    # Assert — 호출 카운트 집계 + 경고는 API당 최초 1회
+    assert report["mockCalls"].get("annealingSolve") == 2
+    assert report["mockCalls"].get("p200UnityAchieved", 0) >= 1
+    maturity_warns = [w for w in warns if "[SDACS maturity]" in w]
+    assert any("annealingSolve" in w for w in maturity_warns)
+    assert sum("annealingSolve" in w for w in maturity_warns) == 1
+
+
+def test_phase206_experimental_namespace(page):
+    pg, _ = page
+    r = pg.evaluate("""(() => {
+        const api = window._sdacs;
+        const rep = api.maturityReport();
+        const specCount = Object.values(rep.byApi).filter(v => v === 'speculative').length;
+        return {
+            specCount,
+            expCount: Object.keys(api.experimental).length,
+            viaExp: api.experimental.p200UnityAchieved().message,
+            direct: api.p200UnityAchieved().message,
+            totalExcludesExp: rep.total,
+        };
+    })()""")
+    # speculative 전수가 experimental.* 로 노출
+    assert r["expCount"] == r["specCount"]
+    # 직접 호출과 experimental 경유가 동일 동작
+    assert r["viaExp"] == r["direct"]
+    # experimental 키 자체는 maturity 분류에서 제외 (total 불변)
+    assert r["totalExcludesExp"] >= 380

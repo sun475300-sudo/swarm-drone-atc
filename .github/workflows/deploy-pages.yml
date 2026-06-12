@@ -34,12 +34,7 @@ jobs:
       - name: Sync simulator into docs/
         run: |
           set -e
-          mkdir -p docs
-          if [ -f "swarm_3d_simulator.html" ]; then
-            cp -f "swarm_3d_simulator.html" "docs/swarm_3d_simulator.html"
-            cp -f "swarm_3d_simulator.html" "docs/simulator.html"
-            echo "Synced swarm_3d_simulator.html (+ simulator.html alias)"
-          fi
+          python3 scripts/build_simulator.py --sync-only
           if [ -f "swarm_3d_simulator_v2.html" ]; then
             cp -f "swarm_3d_simulator_v2.html" "docs/swarm_3d_simulator_v2.html"
             echo "Synced swarm_3d_simulator_v2.html"

@@ -297,11 +297,11 @@ def cmd_visualize(args: argparse.Namespace) -> None:
 # ── visualize-3d ────────────────────────────────────────────
 
 def cmd_visualize_3d(args: argparse.Namespace) -> None:
-    """기본 브라우저로 Three.js 3D 시뮬레이터 HTML 파일 오픈 (visualization/swarm_3d_simulator.html)"""
+    """기본 브라우저로 Three.js 3D 시뮬레이터 정본 HTML 파일을 연다."""
     import webbrowser
     from pathlib import Path
 
-    html_path = Path(__file__).parent / "visualization" / "swarm_3d_simulator.html"
+    html_path = Path(__file__).parent / "swarm_3d_simulator.html"
     if not html_path.exists():
         print("❌ swarm_3d_simulator.html 파일을 찾을 수 없습니다.")
         return

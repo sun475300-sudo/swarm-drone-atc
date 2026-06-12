@@ -25,7 +25,7 @@
 
 **국립 목포대학교 드론기계공학과 캡스톤 디자인**
 
-[**⚡ Quick Start (1줄 실행)**](docs/QUICK_START.md) | [**🗺 Phase Matrix (200 카드)**](docs/phase_matrix.html) | [**🌐 Live Site**](https://sun475300-sudo.github.io/swarm-drone-atc/) | [**🛰 3D 시뮬레이터**](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) | [**🚢 해양 시뮬**](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html) | [**📥 v1.5.0 빌드**](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
+[**⚡ Quick Start (1줄 실행)**](docs/QUICK_START.md) | [**🗺 Phase Matrix (200 카드)**](docs/phase_matrix.html) | [**🌐 Live Site**](https://sun475300-sudo.github.io/swarm-drone-atc/) | [**🛰 3D 시뮬레이터**](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html) | [**🚢 해양 시뮬**](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html) | [**📥 v1.5.0 빌드**](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
 
 > 🔗 **GitHub Pages 라이브 사이트**: <https://sun475300-sudo.github.io/swarm-drone-atc/> — 랜딩 페이지(소개·성과·아키텍처)에서 3D 시뮬레이터·해양 소형선 감지·시나리오 비교·테스트 리포트로 이동할 수 있습니다.
 
@@ -83,7 +83,7 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 ### 🛰 웹 시뮬레이터 (단일 HTML, 즉시 실행)
 | 파일 | 용량 | 다운로드 | 라이브 |
 |---|---|---|---|
-| 군집 드론 ATC (200 Phase) | 540 KB | [📥 swarm_3d_simulator.html](swarm_3d_simulator.html) | [🌐 Live](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html) |
+| 군집 드론 ATC (200 Phase) | 540 KB | [📥 swarm_3d_simulator.html](swarm_3d_simulator.html) | [🌐 Live](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html) |
 | 해양 소형선 감지 (HYPER 11 ATC 포함) | 75 KB | [📥 maritime_detection_simulator.html](maritime_detection_simulator.html) | [🌐 Live](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html) |
 | PWA Manifest | 1.6 KB | [📥 manifest.webmanifest](manifest.webmanifest) | — |
 | Service Worker (오프라인) | 1.4 KB | [📥 sdacs-sw.js](sdacs-sw.js) | — |
@@ -242,6 +242,10 @@ npm run dist:win           # Windows NSIS
 npm run dist:mac           # macOS DMG
 npm run dist:linux         # Linux AppImage
 
+# web simulator only (static artifact + docs/visualization sync)
+npm run build:simulator
+npm run build:simulator:check
+
 # 헤드리스 스모크(시뮬레이터 단독 — Electron 없이)
 npm run test-server &      # 로컬 정적 서버
 npm run smoke              # 군집 시뮬레이터 14/14
@@ -395,7 +399,7 @@ SimPy 기반 이산 이벤트 시뮬레이션 엔진으로, 다양한 환경 조
 ### Layer 4 — User Interface (사용자 인터페이스)
 - **CLI**: `main.py` — `simulate`, `scenario`, `monte-carlo`, `benchmark`, `visualize`, `visualize-3d`, `api`, `ops-report`, `chatbot`
 - **3D Dashboard**: Dash + Plotly 실시간 3D 시각화, 드론 궤적/충돌 경고/편대 표시
-- **[3D Web Simulator (메인 데모)](https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html)**: Three.js 브라우저 기반 인터랙티브 시뮬레이터 (프로젝트 대표 시뮬레이터)
+- **[3D Web Simulator (메인 데모)](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html)**: Three.js 브라우저 기반 인터랙티브 시뮬레이터 (프로젝트 대표 시뮬레이터)
   - **63개 시나리오** — 7대 광역시(서울/부산/인천/대구/광주/대전/울산) 도시환경 + 극한 기상 + 메가 스케일 500대
   - **WebGPU Compute Shader** — APF 힘 계산 GPU 가속 (WGSL 컴퓨트 파이프라인, WebGPU 미지원 시 Web Worker 자동 폴백)
   - **실시간 분석 대시보드** — 배터리/에너지/충돌해결률/위협레벨/관제구역/틱처리시간/비행단계 7종 차트
@@ -881,16 +885,15 @@ SC2 봇 프로젝트 규모: **645단계 개발, 404개 품질 테스트, 797개
 - WebGPU / Web Worker APF 가속, 2×2 분석 뷰, 리플레이·타임라인, PNG/CSV/KPI 내보내기
 - InstancedMesh 기반 1K / 5K / 10K 대규모 군집 시나리오
 - `ws_bridge.py`와 브라우저 `connectWebSocket()` 훅, `_sdacs` 자동화 API, e2e smoke CI
+- `npm run build:simulator` 기반 simulator-only static artifact + `docs/` / `visualization/` 동기화
+- HTML / Markdown 세션 리포트, 충돌/근접 이벤트 마커, 위협 히트맵, 영상 녹화(WebM/MP4)
+- 드론 검색/필터, 카메라 프리셋(FPV/추적/측면 포함), 멀티 선택/그룹 통계, KO/EN/JA/ZH i18n
 
 ### 아직 완료되지 않은 항목 / known gaps
-- HTML / Markdown 세션 리포트 내보내기
-- 초고밀도 군집용 충돌 히트맵 또는 dense CPA 대체 시각화
-- `ws_bridge.py`를 UI에서 데모/실데이터로 전환하는 명시적 제어 패널
-- 메인 시뮬레이터 UX 강화: 검색/필터, 카메라 프리셋, 멀티 선택, 그룹 통계
-- 리플레이의 GIF / 연속 PNG / 비디오 export, 이벤트 마커 오버레이
-- 루트 `swarm_3d_simulator.html` / `visualization/` 사본 / `docs/` 배포본의 simulator-only build 경로와 정본 동기화 규칙 일원화
-- CDN 의존성(Three.js, Google Fonts) 축소 또는 vendoring을 통한 오프라인/폐쇄망 배포 대응
-- 모바일/터치 대응, 시뮬레이터 i18n, Dash/Three.js 문서 통합 정리
+- `ws_bridge.py` LIVE 연동의 수동 재연결 / 데모-실데이터 소스 선택 UI 고도화
+- 리플레이의 GIF / 연속 PNG export
+- Google Fonts CDN 의존성 제거 또는 로컬 폰트 폴백 강화
+- 모바일/터치 회귀 QA, Dash/Three.js 문서 통합 정리
 
 세부 확장 계획은 [ROADMAP.md](ROADMAP.md)에서 관리합니다.
 

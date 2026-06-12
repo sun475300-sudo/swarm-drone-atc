@@ -14,6 +14,8 @@
     "dist:mac": "electron-builder --mac dmg",
     "dist:linux": "electron-builder --linux AppImage",
     "pack": "electron-builder --dir",
+    "build:simulator": "python scripts/build_simulator.py",
+    "build:simulator:check": "python scripts/build_simulator.py --check",
     "smoke": "SIM_URL=http://localhost:8123/swarm_3d_simulator.html node tests/e2e/smoke_sim.mjs",
     "smoke:maritime": "SIM_URL=http://localhost:8123/maritime_detection_simulator.html node tests/e2e/smoke_maritime.mjs",
     "pw:install": "playwright install chromium",

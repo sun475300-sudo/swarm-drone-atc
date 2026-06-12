@@ -5,6 +5,26 @@
 
 ## [Unreleased]
 
+### 점검 (chore) — 일일 점검 2026-06-12 (19차 독립 재현 GREEN, main `09194ae` 기준)
+- 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
+  `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (502.24s).
+  8~18차와 **동일 수치** 재확인 — 19차 독립 재현 GREEN. 커버리지 **83.93%**(≥ 80% 게이트) 동일 재현.
+- **저장소 상태**: 브랜치 `main`과 완전 동기(rev-list 0/0, HEAD `09194ae` — 직전 18차 기준 `843aec9`에서
+  PR #262 머지로 전진). main 최신 커밋(`09194ae`) CI·Security Audit·Canonical Hash Verification·Pages
+  **전 워크플로우 success** 확인(actions API 재조회).
+- **작업거리 재확인**: `src/`·`api/`·`simulation/` 실 TODO/FIXME **0건**(`onboard_bridge.py`의
+  `RemoteIDTransport.emit` `NotImplementedError`는 추상 인터페이스 메서드 + `LogRemoteIDTransport` 폴백,
+  759행은 가드로 오탐), 열린 이슈 **0건**, 열린 PR **0건**, 보조 로드맵(`docs/MASTER_TODO_ATC.md`)
+  미체크 **0건**. `ROADMAP.md`·`docs/ULTRA_PLAN.md`·`presentation_remaining_tasks.md`·
+  `SIMULATOR_HYPER_PLAN.md` 잔여 미체크는 슬라이드 실물 제작·데모 영상(브라우저 MediaRecorder 세션)·
+  실 하드웨어 비교 실험·논문 투고·창업 LOI 등 전부 사용자 환경 의존으로 코드 작업거리 없음.
+- **환경 함정**(후속 세션 참고): Debian 시스템 `blinker` 패키지 RECORD 부재 충돌로 `pip install`이
+  중단 → `pip install --ignore-installed blinker -r requirements.txt` 우회. `pyproject.toml` addopts의
+  `-n auto --dist loadfile`이 `pytest-xdist`를 요구하므로 `requirements/dev.txt`(pytest-xdist·pytest-cov·
+  pytest-asyncio·hypothesis) 설치 필요 — 미설치 시 `unrecognized arguments: -n` 오류.
+- 로드맵 **99.5%** 유지 — 잔여 4항목(P755 창업·LOI / Track A 실기 검증 / P707 §4-§7 실측 그래프 /
+  P709 IROS 2026 투고) 전부 사용자 환경 의존이라 코드 작업거리 없음.
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (388.13s).

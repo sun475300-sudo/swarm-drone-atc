@@ -5,6 +5,22 @@
 
 ## [Unreleased]
 
+### 점검 (chore) — 일일 점검 2026-06-12 (14차 독립 재현 GREEN + 중복 점검 PR #257 정리)
+- 신규 세션 컨테이너에서 의존성 신규 설치(`pytest`·`pytest-xdist`·`pytest-cov` + `requirements.txt`) 후
+  전체 회귀 **독립 재현**: `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (407.63s).
+  8~13차와 **동일 수치** 재확인 — 14차 독립 재현 GREEN. 커버리지는 CI 측정 기준 **83.93%**(≥ 80% 게이트) 유지.
+- **저장소 상태**: 브랜치 `main`과 완전 동기(rev-list 0/0, HEAD `e1aa87c`). main 최신 커밋(`e1aa87c`)
+  CI·Security Audit·Canonical Hash Verification·Pages **전 워크플로우 success** 확인.
+- **작업거리 재확인**: `src/`·`api/` 실 TODO/FIXME **0건**(`onboard_bridge.py`의 `RemoteIDTransport.emit`
+  `NotImplementedError`는 추상 인터페이스 메서드 + `LogRemoteIDTransport` 폴백, 759행은 가드로 오탐),
+  열린 이슈 **0건**, 보조 로드맵(`docs/MASTER_TODO_ATC.md`) 미체크 코드 작업거리 **0건**.
+- **중복 점검 PR 정리**: 같은 날(2026-06-12) 동일 4,057 검증을 기록한 미머지 드래프트 PR **#257**(13차)을
+  본 점검(14차, 동일 수치 + main `e1aa87c` 기준 재현)으로 **superseded** 처리하고 정리.
+- **환경 함정**(후속 세션 참고): 시스템 인터프리터에 `pytest` 미설치 → `pip install pytest pytest-xdist pytest-cov`
+  (`--ignore-installed blinker` 우회) + `requirements.txt` 설치 후 `python -m pytest`로 정상 재현.
+- 로드맵 **99.5%** 유지 — 잔여 4항목(P755 창업·LOI / Track A 실기 검증 / P707 §4-§7 실측 그래프 /
+  P709 IROS 2026 투고) 전부 사용자 환경 의존이라 코드 작업거리 없음.
+
 ### 점검 (chore) — 일일 점검 2026-06-11 (8차 독립 재현 GREEN + 중복 점검 PR 정리)
 - 신규 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `PYTHONHASHSEED=0 python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (531s, 커버리지 **83.93%** ≥ 80% 게이트). 8차 독립 재현 GREEN — 직전 재현들과 **동일 수치** 재확인.

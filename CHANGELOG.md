@@ -5,6 +5,26 @@
 
 ## [Unreleased]
 
+### 점검 (chore) — 일일 점검 2026-06-12 (17차 독립 재현 GREEN, main `c2649ad` 기준)
+- 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
+  `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (309.64s).
+  8~16차와 **동일 수치** 재확인 — 17차 독립 재현 GREEN. 커버리지 **83.93%**(≥ 80% 게이트) 동일 재현.
+- **저장소 상태**: 브랜치 `main`과 완전 동기(rev-list 0/0, HEAD `c2649ad` — 직전 15차 기준 `91a4fcc`에서
+  PR #259 머지로 전진). main 최신 커밋(`c2649ad`) CI·Security Audit·Canonical Hash Verification
+  **전 워크플로우 success** 확인(actions API 재조회).
+- **작업거리 재확인**: `src/`·`api/` 실 TODO/FIXME **0건**(`onboard_bridge.py`의 `RemoteIDTransport.emit`
+  `NotImplementedError`는 추상 인터페이스 메서드 + `LogRemoteIDTransport` 폴백, 759행은 가드로 오탐),
+  열린 이슈 **0건**, 보조 로드맵(`docs/MASTER_TODO_ATC.md`) 미체크 코드 작업거리 **0건**.
+- **중복 점검 PR 정리**: 같은 날(2026-06-12) 동일 main HEAD `c2649ad` 기준 16차 점검을 기록한 미머지
+  드래프트 PR **#260**(16차)을 본 점검(17차, 동일 수치 재현 + 전 워크플로우 success 재확인)으로
+  **superseded** 처리.
+- **환경 함정**(후속 세션 참고): 시스템 인터프리터에 `pytest`·`pytest-xdist`·`pytest-cov` 미설치 +
+  `dash`·`pandas` 미설치 시 실패 → `pip install pytest-xdist pytest-cov pytest-timeout`
+  (`--ignore-installed blinker` 우회) + `requirements.txt` 전체 설치 후 `python -m pytest`로 정상 재현.
+  PATH의 uv 격리 `pytest 9.x`는 사용 금지(`pyproject.toml` addopts `-n auto --dist loadfile` 필요).
+- 로드맵 **99.5%** 유지 — 잔여 4항목(P755 창업·LOI / Track A 실기 검증 / P707 §4-§7 실측 그래프 /
+  P709 IROS 2026 투고) 전부 사용자 환경 의존이라 코드 작업거리 없음.
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (15차 독립 재현 GREEN, main `91a4fcc` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (503.23s).

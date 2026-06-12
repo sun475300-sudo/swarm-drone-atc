@@ -13,9 +13,9 @@
 | 지표 | 값 |
 |---|:-:|
 | 시뮬레이터 코드 (군집) | 11,723 line |
-| `_sdacs` API | 391 항목 |
-| Playwright E2E | 248 / 249 통과 |
-| 회귀 pytest | 4,140 / 4,140 |
+| `_sdacs` API | 402 항목 (분류 400 + 헬퍼 2) |
+| Playwright E2E | 255 / 256 통과 (1 skip) |
+| 회귀 pytest | 4,180 pass / 8 skip / 0 fail |
 | 데스크탑 빌드 | v1.5.0 (Win/Mac/Linux) |
 | Phase 완료 | 200 / 200 (단, 51-200 다수는 mock/stub) |
 
@@ -30,7 +30,7 @@ TRANSCENDENCE는 이 중 **실측 가치가 있는 30~40개를 선별 격상**�
 *가장 높은 실용 가치. 각 Phase에 maturity 등급을 부여.*
 
 - **Phase 201** API Maturity Registry — 각 `_sdacs` API에 `maturity: 'production'|'beta'|'mock'|'speculative'` 메타데이터 부착
-- **Phase 202** `_sdacs.maturityReport()` — 391 API의 성숙도 분포 자동 집계
+- **Phase 202** `_sdacs.maturityReport()` — 402 API의 성숙도 분포 자동 집계 (분류 400)
 - **Phase 203** Mock Detector — E2E 테스트가 mock API 호출 시 콘솔 경고
 - **Phase 204** Production API 핵심 12종 회귀 강화 (ATC/TAC/MIS/INJ)
 - **Phase 205** Beta API 부분 검증 (Copilot/적대/C-UAS)
@@ -126,7 +126,7 @@ TRANSCENDENCE는 이 중 **실측 가치가 있는 30~40개를 선별 격상**�
 
 | 지표 | Phase 200 | Phase 220 | Phase 260 | Phase 300 |
 |---|:-:|:-:|:-:|:-:|
-| `_sdacs` API | 391 | 420 | 480 | 550 |
+| `_sdacs` API | 402 | 420 | 480 | 550 |
 | Production-grade API | ~20 | 50 | 100 | 200 |
 | E2E 케이스 | 248 | 320 | 450 | 600 |
 | 실 사용자 검증 | β | 10 | 100 | 1,000 |

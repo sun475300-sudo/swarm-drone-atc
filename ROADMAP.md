@@ -132,6 +132,8 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 | **Track F** (P746-755, 산학 실증) | 90% | ███████████░ | P746-P754 docs 완비 (P755 창업·LOI는 사용자 환경) |
 | **MEGA Plan** (시뮬 Phase 1-9) | 100% | ████████████ | ATC·TAC·CIN·CAM·MIS·INJ·ANA·AUD·MOB |
 | **HYPER Plan** (시뮬 Phase 10-50) | 100% | ████████████ | 41개 추가 Phase (해양 ATC · VR · AI Copilot · 적대 · C-UAS · 행성 등) |
+| **STELLAR~POST-UNIVERSE** (시뮬 Phase 51-200) | 100% | ████████████ | Phase 200 = 𝟏 (Unity) · Phase 51 LLM Multi-Agent 격상 (단, 다수 mock/speculative — maturity 공시) |
+| **TRANSCENDENCE** (시뮬 Phase 201-300) | 7% | █░░░░░░░░░░░ | Phase 201-207 Maturity Honesty 완료 (apiMaturity·maturityReport·89/98/110/103 분류) |
 
 **총 Phase 691-755 (65개) 중 61개 완료 = 94%** (Phase 1-690 포함 시 전체 751/755 = **99.5%**)
 **+ 시뮬레이터 MEGA 9 + HYPER 41 = 50 Phase 100% 완료** (총 800 Phase 중 796 완료 = **99.5%**)
@@ -240,9 +242,22 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P754** — 후속 캡스톤 멘토링 — `docs/track_f/p754_mentoring.md` 인수인계 자산 + 후속 주제 + 멘토링 일정 + 인수 체크리스트 (2026-06-04)
 - [ ] **P755** — 창업·분사 검토 (별도 PR 진행 예정)
 
----
+### Track G — 시뮬레이터 TRANSCENDENCE (Phase 201-300) · 2026-06-12 신설
+
+> 상세: [`docs/SIMULATOR_TRANSCENDENCE_PLAN.md`](docs/SIMULATOR_TRANSCENDENCE_PLAN.md) · 실행 일정: [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)
+
+- [x] **Phase 201-202** — API Maturity Registry + `maturityReport()` (402 API → production 89·beta 98·mock 110·speculative 103) (2026-06-12)
+- [x] **Phase 207-208** — SDACS_API.md maturity 컬럼 + README maturity 섹션 (2026-06-12)
+- [ ] **Phase 203-206** — Mock Detector·핵심 12종 회귀 강화·beta 부분 검증·experimental 네임스페이스
+- [ ] **Phase 209-220** — Deprecation Policy·SemVer·production 격상 (12 → 30 API)
+- [ ] **Phase 221-240** — Real Validation (WebGPU 실 WGSL·CRDT Yjs·MAVLink SITL·KMA 풍속장)
+- [ ] **Phase 241-260** — Multi-User Reality (WS 관제 서버·다중 관제사·TimescaleDB·부하 100명)
+- [ ] **Phase 261-280** — Hardware Loop (Pixhawk HITL·Jetson 엣지·RTK·실 비행 데이터셋) *(사용자 HW 의존)*
+- [ ] **Phase 281-300** — Academic Impact (IROS 투고·Zenodo DOI·Ablation 자동화·K-UTM 표준 제안)
 
 ---
+
+*2026-06-12 (종합 감사) — **전체 문서·소스 정합성 감사 + Track G 신설**: 라이브 페이지 실측으로 `_sdacs` API **402 항목** 확정(기존 문서 391 과소 표기 정정 — 분류 400 = 89/98/110/103 + 헬퍼 2), `docs/SDACS_API.md` maturity 컬럼 포함 재생성, `docs/sdacs.d.ts` 402 멤버 재생성, README·VERSION.md 수치 동기화(시뮬레이터 11,836 line). 분석 뷰 Q2 동적 NFZ overlay + NFZ 레이어 토글 연동 + sub-km 비행거리 표시(PR #265). TRANSCENDENCE Phase 201-300을 Track G로 로드맵 공식 편입, 2026 H2 마스터플랜(`docs/MASTER_PLAN_2026H2.md`) 수립.*
 
 ## Contributing / 기여
 

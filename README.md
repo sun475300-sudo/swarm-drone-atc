@@ -888,6 +888,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-12 19:12 | `ec859da` | chore: 일일 점검 2026-06-12 — 18차 독립 재현 GREEN (main 843aec9 기준) | CHANGELOG.md, ROADMAP.md |
 | 2026-06-12 17:14 | `2007eed` | chore: 일일 점검 2026-06-12 — 17차 독립 재현 GREEN (main c2649ad 기준) | CHANGELOG.md, ROADMAP.md |
 | 2026-06-12 14:25 | `8822e7b` | chore: 일일 점검 2026-06-12 — 15차 독립 재현 GREEN (main 91a4fcc 기준) | CHANGELOG.md, ROADMAP.md |
 | 2026-06-12 12:12 | `7813c8f` | chore: 일일 점검 2026-06-12 — 14차 독립 재현 GREEN + 중복 PR #257 정리 | CHANGELOG.md, ROADMAP.md |

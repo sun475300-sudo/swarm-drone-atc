@@ -1,17 +1,10 @@
 // SDACS Simulator window._sdacs TypeScript Declaration File
-// 자동 생성: 2026-06-07
-// 총 388개 API — 200 Phase (MEGA + HYPER + STELLAR + ULTIMATE + POST-UNIVERSE)
-//
-// 사용법:
-//   1) tsconfig.json compilerOptions.types 에 본 파일 경로 추가
-//   2) 또는 vanilla JS: /// <reference path="./sdacs.d.ts" />
-//
+// 자동 생성: 2026-06-12
+// 총 394개 API — 200 Phase + TRANSCENDENCE Phase 201-207 (Maturity)
+// 성숙도: window._sdacs.maturityReport() 로 production/beta/mock/speculative 조회
 
 declare global {
-  interface Window {
-    _sdacs: SDACS;
-  }
-
+  interface Window { _sdacs: SDACS; }
   interface SDACS {
     /** [getter] */ readonly stats: any;
     /** [getter] */ readonly simTime: any;
@@ -235,6 +228,10 @@ declare global {
     publicDemoDailyChallenge(): any;
     /** [getter] */ readonly publicDemoLeaderboard: any;
     stellar51DelegateGroup(droneIds?: any, llmProvider?: any): any;
+    stellar51Recommend(droneId?: any): any;
+    stellar51Tick(): any;
+    stellar51Revoke(groupId?: any): any;
+    /** [getter] */ readonly stellar51Groups: any;
     rlhfFeedback(decision?: any, rating?: any, notes?: any): any;
     /** [getter] */ readonly rlhfState: any;
     causalAddEdge(from?: any, to?: any, weight?: any): any;
@@ -401,6 +398,8 @@ declare global {
     /** [getter] */ readonly replay: any;
     replayStep(delta = 1?: any): any;
     captureScreenshot(): any;
+    apiMaturity(name?: any): any;
+    maturityReport(): any;
   }
 }
 

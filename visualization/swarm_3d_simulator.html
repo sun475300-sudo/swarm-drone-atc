@@ -11181,6 +11181,92 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         window._copilotPlan = _copilotPlan;
         window._copilotExecute = _copilotExecute;
 
+        // ===== TRANSCENDENCE Phase 201-207 — API Maturity Honesty =====
+        // 각 _sdacs API의 구현 성숙도를 정직하게 분류한다.
+        //   production : 실측 검증 + 회귀 + 실 알고리즘 (MEGA 코어)
+        //   beta       : 기능 동작 + E2E 검증, 일부 외부 의존 (HYPER)
+        //   mock       : 결정적 mock 구현, 인터페이스만 안정 (STELLAR)
+        //   speculative: 미래 비전 스텁, 호출 안전성만 보장 (ULTIMATE/POST-UNIVERSE)
+        // 명시 리스트에 없는 API는 이름 패턴(접두사/Phase 번호)으로 추론한다.
+        const _MATURITY_PRODUCTION = new Set([
+            // Phase 1 ATC (핵심, 실측 검증 + 회귀)
+            'atcCommand', 'atcLog', 'atcControlled', 'setAtcAudio', 'atcAudio', 'clearAllAtc',
+            // Phase 2 TAC
+            'setPredTrail', 'predTrail', 'setPredHorizon', 'predHorizon', 'setVelArrow', 'velArrow',
+            'setCpaMarker', 'cpaMarker', 'cpaPairsCount',
+            // Phase 3 CIN / 4 CAM
+            'setSunCycle', 'setSunHour', 'setSunAuto', 'sunHour', 'sunEnabled', 'setRain', 'setSnow',
+            'startRecording', 'stopRecording', 'recording', 'setCamMode', 'camMode', 'focusDrone',
+            // Phase 5 MIS / 6 INJ / 7 ANA / 8 AUD / 9 MOB
+            'missionAdd', 'missionTemplate', 'missionAssignTemplate', 'missionClearAll', 'missions',
+            'injectFault', 'injectRogue', 'injectDynamicNFZ', 'injectScenario', 'injClearAll', 'injStats', 'dynamicNfzList',
+            'setAnaHeatmap', 'anaHeatmap', 'anaKpiWindow', 'exportLatexKpi',
+            'setAmbientAudio', 'ambientAudio', 'isMobile', 'mobileLOD', 'applyMobileLOD',
+            // 코어 인프라
+            'stats', 'simTime', 'simRunning', 'droneCount', 'weather', 'airborne', 'failed', 'landed',
+            'startSim', 'stopSim', 'selectDrone', 'deselectDrone', 'getSelected', 'hoverDrone', 'clearHover',
+            'multiSelect', 'clearMulti', 'multiSelection', 'setAnalysisView', 'analysisMode',
+            'megaMode', 'instanceCount', 'visibleInstances', 'megaCull', 'perf', 'replayFrames',
+            'selectScenario', 'setLayer', 'layers', 'lang', 'setLang', 'availableLangs',
+            'exportMission', 'importMission', 'triggerMissionImport',
+            'openGallery', 'closeGallery', 'galleryOpen', 'scenarioCategories', 'reportDataURL',
+        ]);
+        const _MATURITY_BETA = new Set([
+            // Phase 11 해양 ATC는 _mds 측, 여기선 시각화/AI/적대/방어 등
+            'copilotPlan', 'copilotExecute', 'copilotHistory',
+            'spawnAdversarial', 'clearAdversarial', 'adversarialPolicy', 'adversarialDrones',
+            'adversarialSafetyResponse', 'adversarialPolicies', 'adversarialCheck', 'adversarialDetected',
+            'enableCuas', 'setCuasMode', 'cuasEngage', 'cuasDetect', 'cuasEnabled', 'cuasMode',
+            'cuasEngagements', 'cuasLog', 'cuasModes',
+            'enableWindField', 'setWindRegime', 'sampleWindAt', 'windFieldEnabled', 'windRegime', 'windFieldStats',
+            'notamAdd', 'notamImportJson', 'notams', 'notamCount',
+            'batteryAgeStats', 'enableAcoustic', 'acousticAddObserver', 'acousticEnabled',
+            'acousticObservers', 'acousticStats',
+            'startChoreography', 'clearChoreography', 'choreoPattern', 'choreoPatterns',
+            'generateForecast', 'forecastQueryHour', 'forecastFlyableHours', 'forecastData',
+            'utmFederationAdd', 'utmFederationHandoff', 'utmFederationSync', 'utmFederationInstances', 'utmFederationHandoffLog',
+            'enablePqc', 'pqcStats', 'pqcEnabled',
+            'arEnter', 'arExit', 'arAddPin', 'arClearPins', 'arEnabled', 'arPins',
+            'xrSupported', 'xrPresenting',
+            'dtwinDecodeGPI', 'dtwinApplyGPI', 'dtwinSetOrigin', 'enableDtwin', 'dtwinEnabled', 'dtwinStats',
+            'wsConnected', 'wsFrames', 'liveMode', 'goLive', 'replaySeek', 'replayStep', 'replay', 'dni', 'conflictPairs',
+        ]);
+        // STELLAR Phase 51-100 접두사 / 키워드 → mock
+        const _MATURITY_MOCK_PREFIXES = ['stellar51', 'rlhf', 'causal', 'explain', 'gpu100k',
+            'distributedSim', 'cloudBurst', 'streamingReplay', 'videoProc', 'skybrush', 'cesium',
+            'ue5', 'ros2', 'isaacSim', 'society', 'beyondEarth', 'qkd', 'annealing', 'quantum',
+            'bci', 'olfactory', 'xrFrontier', 'uamPrice', 'dao', 'economy', 'ultimate', 'singularity',
+            'satellite', 'uuv', 'sensorFusion', 'mec', 'fedLearn', 'ugv', 'multiDomain', 'audioDoppler',
+            'audioSetListener', 'audioEngine', 'photogrammetry', 'esports', 'procCity', 'eyeTrack',
+            'voiceMacro', 'timeCompress', 'hitl', 'nationalAS', 'climate', 'crossBorder', 'planetary', 'publicDemo'];
+        // ULTIMATE/POST-UNIVERSE Phase 101-200 → speculative (숫자 접미사 패턴 + 키워드)
+        function _classifyMaturity(name) {
+            if (_MATURITY_PRODUCTION.has(name)) return 'production';
+            if (_MATURITY_BETA.has(name)) return 'beta';
+            // ULTIMATE Phase 101-150 패턴: petaflop101/quantum102/... + nano/bio/standard/eternal
+            if (/^(petaflop|quantum1|photonic1|optane|rdma|fpga|tpu|neuromorphic|dpu|megaScale|nano|smartDust|graphene|selfHeal|bioDeg|atmo|piezo|solar|meta1|progMatter|neuron|dna|bacteria|algae|mycelium|bird|insect|symbiotic|biofluor|living|rfc|icao|iso1|ieee1|itu1|un1|easa|faa1|caac|global1|selfAware|recursion|consciousness1|realityBlur|translator1|eternalMission|timeLoop1|parallel1|toe1|universeOS|ultimate10|ultimate11)/.test(name)) return 'speculative';
+            // POST-UNIVERSE Phase 151-200 패턴: p151~p200 + postUniverse
+            if (/^p1[5-9][0-9]|^p200|^postUniverse/.test(name)) return 'speculative';
+            // STELLAR mock 접두사
+            for (const pfx of _MATURITY_MOCK_PREFIXES) {
+                if (name.startsWith(pfx)) return 'mock';
+            }
+            // 미분류 → beta (기본 보수적)
+            return 'beta';
+        }
+        function _maturityReport() {
+            const counts = { production: 0, beta: 0, mock: 0, speculative: 0 };
+            const byApi = {};
+            for (const key of Object.keys(window._sdacs)) {
+                if (key === 'apiMaturity' || key === 'maturityReport' || key === 'experimental') continue;
+                const m = _classifyMaturity(key);
+                counts[m]++;
+                byApi[key] = m;
+            }
+            const total = counts.production + counts.beta + counts.mock + counts.speculative;
+            return { total, counts, byApi };
+        }
+
         // ── 자동 테스트 API (외부 접근용) ──
         window._sdacs = {
             get stats() { return { ...stats }; },
@@ -11716,6 +11802,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             },
             camera, renderer, scene, controls,
             captureScreenshot() { renderer.render(scene, camera); return renderer.domElement.toDataURL('image/png'); },
+            // ===== TRANSCENDENCE Phase 201-207 — API Maturity Honesty =====
+            apiMaturity(name) { return _classifyMaturity(name); },
+            maturityReport() { return _maturityReport(); },
         };
     </script>
 </body>

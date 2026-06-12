@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import importlib
 import json
+import sys
+import types
 
 import pytest
 
@@ -45,6 +47,28 @@ async def test_legacy_api_simulate_uses_constructor_override(monkeypatch: pytest
 def test_fastapi_backend_module_imports_when_dependency_available():
     mod = importlib.import_module("api.fastapi_server")
     assert mod is not None
+
+
+def test_run_dev_server_defaults_to_loopback(monkeypatch: pytest.MonkeyPatch):
+    backend = importlib.import_module("api.fastapi_server")
+    captured: dict[str, object] = {}
+
+    def fake_run(app, host: str, port: int, log_level: str) -> None:
+        captured["app"] = app
+        captured["host"] = host
+        captured["port"] = port
+        captured["log_level"] = log_level
+
+    monkeypatch.setitem(sys.modules, "uvicorn", types.SimpleNamespace(run=fake_run))
+
+    backend.run_dev_server()
+
+    assert captured == {
+        "app": backend.app,
+        "host": "127.0.0.1",
+        "port": 8000,
+        "log_level": "info",
+    }
 
 
 @pytest.mark.asyncio

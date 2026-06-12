@@ -18,7 +18,7 @@ Auth (v1 — stub here):
 
 Quickstart:
     pip install fastapi uvicorn[standard]
-    uvicorn api.fastapi_server:app --reload --host 0.0.0.0 --port 8080
+    uvicorn api.fastapi_server:app --reload --host 127.0.0.1 --port 8080
 """
 
 from __future__ import annotations
@@ -768,7 +768,7 @@ async def ws_telemetry(ws: WebSocket) -> None:
         LOGGER.info("telemetry subscriber disconnected (total=%d)", len(STATE.telemetry_subscribers))
 
 
-def run_dev_server(host: str = "0.0.0.0", port: int = 8000, log_level: str = "info") -> None:
+def run_dev_server(host: str = "127.0.0.1", port: int = 8000, log_level: str = "info") -> None:
     """``run_dev_server`` 동작을 수행한다."""
     import uvicorn
 

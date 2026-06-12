@@ -10,6 +10,7 @@ on:
       - 'swarm_3d_simulator.html'
       - 'swarm_3d_simulator_v2.html'
       - 'maritime_detection_simulator.html'
+      - 'scripts/build_simulator.py'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 

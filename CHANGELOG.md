@@ -5,6 +5,30 @@
 
 ## [Unreleased]
 
+### 점검 (chore) — 일일 점검 2026-06-12 (19차 독립 재현 GREEN, main `93268b7` 기준)
+- 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
+  `python -m pytest tests/` → **4,058 pass / 259 skip / 0 fail** (487.98s).
+  18차(main `843aec9`, 4,057 pass / 252 skip)에서 main이 PR #262(TRANSCENDENCE Phase 201-207) 등으로
+  전진(`93268b7`)함에 따라 수치가 **4,058 / 259**로 소폭 증가 — 신규 테스트 반영분, 19차 독립 재현 GREEN.
+  커버리지 **83.93%**(≥ 80% 게이트) 동일 재현.
+- **저장소 상태**: 브랜치 `main`과 완전 동기(rev-list 0/0, HEAD `93268b7` — 18차 기준 `843aec9`에서
+  PR #262 머지 + `edab7d3`(simulator-only static artifact 워크플로우)·`fd780f4`(취약 dev 의존성 bump)·
+  `93268b7`(FastAPI dev 서버 loopback 바인딩)로 전진). main 최신 커밋(`93268b7`)
+  CI·Security Audit·Canonical Hash Verification·Pages **전 워크플로우 success** 확인(actions API 재조회).
+- **작업거리 재확인**: `src/`·`api/` 실 TODO/FIXME **0건**(`onboard_bridge.py`의 `RemoteIDTransport.emit`
+  `NotImplementedError`는 추상 인터페이스 메서드 + `LogRemoteIDTransport` 폴백, 759행은 가드로 오탐),
+  열린 이슈 **0건**, 보조 로드맵(`docs/MASTER_TODO_ATC.md`) 미체크 코드 작업거리 **0건**.
+- **열린 PR 현황**: 드래프트 PR **#265**(시뮬레이터 Phase 0 폴리시 + `_sdacs` API 402 실측 동기화 +
+  Track G TRANSCENDENCE Phase 201-300 편입 + `scripts/extract_sdacs_api.py` + `docs/MASTER_PLAN_2026H2.md`)
+  1건 열림 — `mergeable_state: clean`(base=현재 main HEAD, 충돌 0)이나 **CI 미트리거(total_count 0)** 상태로
+  머지 결정은 사용자 검토 대기. 본 19차 점검은 main HEAD 기준 독립 재현이므로 PR #265 변경분 미포함.
+- **환경 함정**(후속 세션 참고): 시스템 인터프리터에 `pytest`·`pytest-xdist`·`pytest-cov`·`dash`·`pandas`
+  미설치 시 실패 → `pip install --ignore-installed blinker -r requirements.txt` + `pip install pytest-xdist`
+  후 `python -m pytest`로 정상 재현(Debian `blinker` RECORD 부재 충돌은 `--ignore-installed`로 우회,
+  `pyproject.toml` addopts `-n --dist loadfile`이 `pytest-xdist` 요구. lock은 pytest 9.0.3 고정).
+- 로드맵 **99.5%** 유지 — 잔여 4항목(P755 창업·LOI / Track A 실기 검증 / P707 §4-§7 실측 그래프 /
+  P709 IROS 2026 투고) 전부 사용자 환경 의존이라 코드 작업거리 없음.
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (388.13s).

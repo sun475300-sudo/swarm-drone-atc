@@ -1,4 +1,4 @@
-matplotlib>=3.9
+matplotlib>=3.10.9
 plotly>=5.22
 seaborn>=0.13
 pygame>=2.5

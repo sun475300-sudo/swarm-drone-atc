@@ -35,7 +35,7 @@ TRANSCENDENCE는 이 중 **실측 가치가 있는 30~40개를 선별 격상**�
 - **Phase 204** Production API 핵심 12종 회귀 강화 (ATC/TAC/MIS/INJ)
 - **Phase 205** Beta API 부분 검증 (Copilot/적대/C-UAS)
 - **Phase 206** ✅ Speculative API 격리 — `window._sdacs.experimental.*` 네임스페이스 (직접 호출 호환 유지, speculative 103종 전수 노출) (2026-06-12)
-- **Phase 207** Maturity Badge SVG 자동 생성 (production X / beta Y / mock Z)
+- **Phase 207** ✅ Maturity Badge SVG 자동 생성 — `extract_sdacs_api.py --badge` 가 실측 counts 로 `docs/badges/maturity.svg` 재생성 + `--check` 정합성 게이트에 배지 검증 추가 (prod 89→90 드리프트 정정) (2026-06-12)
 - **Phase 208** README Maturity 섹션 자동 갱신
 - **Phase 209** API Deprecation Policy 문서
 - **Phase 210** Semantic Versioning 적용 (API breaking change 추적)

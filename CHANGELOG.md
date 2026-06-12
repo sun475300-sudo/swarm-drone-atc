@@ -5,6 +5,21 @@
 
 ## [Unreleased]
 
+### 기능 (feat) — TRANSCENDENCE Phase 207 Maturity Badge 자동 생성
+- `scripts/extract_sdacs_api.py` 에 **`--badge` 플래그 + `render_badge()` 순수 함수** 추가 —
+  라이브 실측 `maturityReport().counts` 로부터 `docs/badges/maturity.svg` 를 자동 재생성한다.
+  세그먼트 폭을 counts 자릿수에서 계산하므로 손수 편집 없이 드리프트가 사라진다.
+- **`--check` 정합성 게이트 강화**: 기존 SDACS_API.md·sdacs.d.ts 항목 수 검사에 더해
+  `maturity.svg` `<title>` 의 counts(`production X / beta Y / mock Z / speculative W`)가
+  실측과 일치하는지 검증(불일치 시 exit 1). CI `sim-smoke.yml` 게이트가 배지 드리프트도 차단.
+- **드리프트 정정**: 커밋돼 있던 배지의 `production 89` 가 실측 `90`(SDACS_API.md 정본)과 어긋나 있었음을
+  자동 재생성으로 바로잡음.
+- **테스트**: `tests/test_maturity_badge.py` 5종 PASS — well-formed XML, counts 반영,
+  자릿수에 따른 폭 증가, `badge_title` 헬퍼 일치, **커밋 배지 == 생성기 출력**(회귀 드리프트 가드).
+  playwright/브라우저 불필요(순수 함수 단위 검증).
+- `docs/SIMULATOR_TRANSCENDENCE_PLAN.md` Phase 207 ✅ 표기. Track ✅(Maturity Honesty)
+  201·202·203·206·207 완료.
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (388.13s).

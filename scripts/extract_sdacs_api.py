@@ -227,10 +227,70 @@ def render_ledger(data: dict) -> str:
     return "\n".join(lines)
 
 
+BADGE = ROOT / "docs" / "badges" / "maturity.svg"
+
+# maturity 배지 세그먼트 (단축 라벨, counts 키, 색상) — SDACS_API.md 등급 색과 일치
+_BADGE_SEGMENTS = [
+    ("prod", "production", "#22c55e"),
+    ("beta", "beta", "#3b82f6"),
+    ("mock", "mock", "#f59e0b"),
+    ("spec", "speculative", "#9ca3af"),
+]
+_BADGE_LABEL = "maturity"
+_BADGE_LABEL_W = 74   # 좌측 라벨 세그먼트 폭
+_BADGE_CHAR_W = 6     # font-size 10 대략 글자 폭
+_BADGE_PAD = 14       # 세그먼트 좌우 여백
+
+
+def badge_title(counts: dict) -> str:
+    """배지 <title>/정합성 게이트용 counts 요약 문자열."""
+    return " / ".join(f"{key} {counts[key]}" for _, key, _ in _BADGE_SEGMENTS)
+
+
+def render_badge(data: dict) -> str:
+    """maturityReport().counts → shields 스타일 maturity 배지 SVG (Phase 207).
+
+    실측 counts 로부터 세그먼트 폭을 계산해 docs/badges/maturity.svg 를 재생성한다.
+    순수 함수 — 브라우저/playwright 불필요(단위 테스트 가능).
+    """
+    counts = data["counts"]
+    segs = []
+    x = _BADGE_LABEL_W
+    for short, key, color in _BADGE_SEGMENTS:
+        text = f"{short} {counts[key]}"
+        w = _BADGE_PAD + _BADGE_CHAR_W * len(text)
+        segs.append((x, w, color, text))
+        x += w
+    total = x
+
+    lines = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{total}" height="20" '
+        'role="img" aria-label="API Maturity">',
+        f"  <title>API Maturity: {badge_title(counts)}</title>",
+        '  <linearGradient id="s" x2="0" y2="100%">'
+        '<stop offset="0" stop-color="#bbb" stop-opacity=".1"/>'
+        '<stop offset="1" stop-opacity=".1"/></linearGradient>',
+        f'  <rect rx="3" width="{total}" height="20" fill="#555"/>',
+    ]
+    for x0, w, color, _ in segs:
+        lines.append(f'  <rect x="{x0}" width="{w}" height="20" fill="{color}"/>')
+    lines.append(f'  <rect rx="3" width="{total}" height="20" fill="url(#s)"/>')
+    lines.append(
+        '  <g fill="#fff" text-anchor="middle" '
+        'font-family="DejaVu Sans,Verdana,sans-serif" font-size="10">'
+    )
+    lines.append(f'    <text x="{_BADGE_LABEL_W // 2}" y="14">{_BADGE_LABEL}</text>')
+    for x0, w, _, text in segs:
+        lines.append(f'    <text x="{x0 + w // 2}" y="14">{text}</text>')
+    lines += ["  </g>", "</svg>", ""]
+    return "\n".join(lines)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="문서 불일치 시 exit 1 (재생성 안 함)")
     parser.add_argument("--ledger", action="store_true", help="docs/TECH_DEBT_LEDGER.md 도 재생성")
+    parser.add_argument("--badge", action="store_true", help="docs/badges/maturity.svg 도 재생성")
     args = parser.parse_args()
 
     data = extract_live()
@@ -252,7 +312,11 @@ def main() -> int:
         if f"총 {len(data['apis'])}개 API" not in current_dts:
             print(f"❌ sdacs.d.ts 총 항목 수가 실측({len(data['apis'])})과 불일치")
             ok = False
-        print("✅ 문서-실측 일치" if ok else "⚠️ 재생성 필요: python scripts/extract_sdacs_api.py")
+        current_badge = BADGE.read_text(encoding="utf-8") if BADGE.exists() else ""
+        if badge_title(data["counts"]) not in current_badge:
+            print(f"❌ maturity.svg 배지 counts 가 실측({badge_title(data['counts'])})과 불일치")
+            ok = False
+        print("✅ 문서-실측 일치" if ok else "⚠️ 재생성 필요: python scripts/extract_sdacs_api.py --ledger --badge")
         return 0 if ok else 1
 
     API_MD.write_text(api_md, encoding="utf-8")
@@ -261,6 +325,9 @@ def main() -> int:
     if args.ledger:
         LEDGER.write_text(render_ledger(data), encoding="utf-8")
         print(f"✅ {LEDGER.relative_to(ROOT)} 재생성 완료")
+    if args.badge:
+        BADGE.write_text(render_badge(data), encoding="utf-8")
+        print(f"✅ {BADGE.relative_to(ROOT)} 재생성 완료")
     return 0
 
 

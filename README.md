@@ -916,6 +916,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-13 01:42 | `8765ba4` | docs(genesis): Phase 301-400 GENESIS Plan 신규 수립 + 로드맵 Track H 편입 | README.md, ROADMAP.md, VERSION.md, docs/INDEX.md, docs/MASTER_PLAN_2026H2.md, docs/SIMULATOR_GENESIS_PLAN.md … |
 | 2026-06-13 01:31 | `9f5349c` | docs: 종합 감사 — 402 API 라이브 실측 동기화 + Track G 신설 + 2026 H2 마스터플랜 | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |
 | 2026-06-13 01:13 | `c4e0cc6` | feat(simulator): Phase 0 polish — 동적 NFZ overlay + sub-km 거리 표시 | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-06-12 23:54 | `ec0321a` | Merge branch 'main' of http://127.0.0.1:40031/git/sun475300-sudo/swarm-drone-atc | CHANGELOG.md, ROADMAP.md |

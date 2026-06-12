@@ -11,7 +11,7 @@
 
 [![Phase](https://img.shields.io/badge/Phase-200%20%E2%9C%93-purple?style=for-the-badge&logo=rocket)](docs/phase_matrix.html)
 [![SDACS Unity](https://img.shields.io/badge/Phase_200-%F0%9D%9F%8F_Unity-ec407a?style=for-the-badge&logo=infinity)](docs/SIMULATOR_POST_UNIVERSE_PLAN.md)
-[![API](https://img.shields.io/badge/__sdacs-402_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
+[![API](https://img.shields.io/badge/__sdacs-403_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
 [![E2E](https://img.shields.io/badge/E2E-255%2F256_pass-22c55e?style=for-the-badge&logo=playwright&logoColor=white)](tests/e2e/)
 [![Roadmap](https://img.shields.io/badge/Roadmap_691--755-92%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
 [![Tests](https://img.shields.io/badge/Tests-4%2C435_pass_%C2%B7_0_fail-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
@@ -34,7 +34,7 @@
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
 </div>
 
-> **♾️ 최신 업데이트 (2026-06-12 · 200 Phase 완료 + Phase 51 LLM Multi-Agent 격상 · 402 API 라이브 실측 · v1.5.0 Unity)** — 🎯 **Phase 200 = SDACS = 𝟏 (Unity)** 도달 후 **Phase 51 (LLM Multi-Agent)** 가 시드에서 완전 격상되었습니다: `stellar51DelegateGroup`(드론 그룹 LLM 위임) · `stellar51Recommend`(상태 기반 결정적 권고) · `stellar51Tick`(그룹 사이클 진행) · `stellar51Groups`(위임 그룹 조회) · `stellar51Revoke`(위임 해제). 5단계 통합 — MEGA(1-10) + HYPER(11-50) + STELLAR(51-100) + ULTIMATE(101-150) + POST-UNIVERSE(151-200). Playwright E2E **255/256 통과**(1 skip), 회귀 **4,180 pass / 8 skip / 0 fail**, 종합 **4,435 pass / 9 skip / 0 fail** (2026-06-12 실측). 🌌 [HYPER](docs/SIMULATOR_HYPER_PLAN.md) · [STELLAR](docs/SIMULATOR_STELLAR_PLAN.md) · [ULTIMATE](docs/SIMULATOR_ULTIMATE_PLAN.md) · [POST-UNIVERSE](docs/SIMULATOR_POST_UNIVERSE_PLAN.md) · [API](docs/SDACS_API.md) · [Phase Matrix](docs/phase_matrix.html)
+> **♾️ 최신 업데이트 (2026-06-12 · 200 Phase 완료 + Phase 51 LLM Multi-Agent 격상 · 403 API 라이브 실측 · v1.5.0 Unity)** — 🎯 **Phase 200 = SDACS = 𝟏 (Unity)** 도달 후 **Phase 51 (LLM Multi-Agent)** 가 시드에서 완전 격상되었습니다: `stellar51DelegateGroup`(드론 그룹 LLM 위임) · `stellar51Recommend`(상태 기반 결정적 권고) · `stellar51Tick`(그룹 사이클 진행) · `stellar51Groups`(위임 그룹 조회) · `stellar51Revoke`(위임 해제). 5단계 통합 — MEGA(1-10) + HYPER(11-50) + STELLAR(51-100) + ULTIMATE(101-150) + POST-UNIVERSE(151-200). Playwright E2E **255/256 통과**(1 skip), 회귀 **4,180 pass / 8 skip / 0 fail**, 종합 **4,435 pass / 9 skip / 0 fail** (2026-06-12 실측). 🌌 [HYPER](docs/SIMULATOR_HYPER_PLAN.md) · [STELLAR](docs/SIMULATOR_STELLAR_PLAN.md) · [ULTIMATE](docs/SIMULATOR_ULTIMATE_PLAN.md) · [POST-UNIVERSE](docs/SIMULATOR_POST_UNIVERSE_PLAN.md) · [API](docs/SDACS_API.md) · [Phase Matrix](docs/phase_matrix.html)
 
 > **이전 (Phase 100 완료)** — 🌌 (2026-06-05 · MEGA 9 + HYPER 41 + STELLAR 49 = 99 Phase 통합 · 215/216 E2E · 280+ API)** — 🚀 **본 사이클 STELLAR Phase 52-100 일괄 49종**: Track Ω 자율결정(52 RLHF · 53 Causal Inference · 54 Adversarial Robust · 55 Explainable AI) + Track Σ 초대규모(56 GPU 100K WGSL · 57 Distributed Sim · 58 Cloud Burst · 59 10Gb/s Streaming · 60 Video Proc av1) + Track Φ 물리트윈(61 Skybrush · 62 Cesium · 63 UE5 · 64 ROS2 + Gazebo · 65 Isaac Sim) + Track Ψ 사회(66 시민신고·67 보험·68 사고조사·69 RPAS자격·70 교육) + Track Ξ 지구너머(71 Lunar Gateway · 72 Mars 헬리콥터 · 73 소행성 채굴 · 74 궤도 잔해 · 75 DTN) + Track Δ 양자(76 QKD · 77 Photonic · 78 Neuromorphic · 79 SNN · 80 Annealing) + Track Λ XR(81 Vision Pro · 82 Holographic · 83 BCI · 84 Haptic · 85 후각) + Track Π 경제(86 UAM Pricing · 87 Carbon Credit · 88 DaaS Market · 89 NFT · 90 DAO) + Track Π+ Ultimate(91 AGI · 92 글로벌 1:1 · 93 1억 드론 · 94 글로벌 협업 · 95 UN 표준) + Track Ω+ Singularity(96 자기개선·97 디지털 인간·98 메타버스·99 ITU·100 SDACS 2.0 글로벌 표준 ATC OS). **MEGA 9 + HYPER 41 + STELLAR 49 = 99 Phase + Phase 51 시드 = 100 Phase 완료**. Playwright E2E **215/216 통과**, 회귀 **4,140/4,140 통과**. 🌌 HYPER: [`docs/SIMULATOR_HYPER_PLAN.md`](docs/SIMULATOR_HYPER_PLAN.md) · STELLAR: [`docs/SIMULATOR_STELLAR_PLAN.md`](docs/SIMULATOR_STELLAR_PLAN.md) · API: [`docs/SDACS_API.md`](docs/SDACS_API.md)
 >
@@ -109,7 +109,7 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 | [📋 V1_5_0_RELEASE_INSTRUCTIONS.md](docs/V1_5_0_RELEASE_INSTRUCTIONS.md) | 사용자 1줄 명령으로 3-OS 자동 빌드 트리거 |
 | [🔧 pixhawk_sdacs_hitl.md](docs/hardware/pixhawk_sdacs_hitl.md) | Pixhawk 6X HITL 통합 (Phase 22 격상) |
 | [🚀 v1_5_PILOT_KICKOFF.md](docs/beta/v1_5_PILOT_KICKOFF.md) | KARI · 해수부 · 산림청 베타 (Helm 5단계) |
-| [📚 SDACS_API.md](docs/SDACS_API.md) | 402 `_sdacs` API 라이브 실측 추출 레퍼런스 (maturity 등급 포함) |
+| [📚 SDACS_API.md](docs/SDACS_API.md) | 403 `_sdacs` API 라이브 실측 추출 레퍼런스 (maturity 등급 포함) |
 | [🧭 SIMULATOR_TRANSCENDENCE_PLAN.md](docs/SIMULATOR_TRANSCENDENCE_PLAN.md) | Phase 201-300 — 정직성·실측·다중 사용자·HITL·학술 임팩트 |
 | [🗓 MASTER_PLAN_2026H2.md](docs/MASTER_PLAN_2026H2.md) | 2026 H2 통합 실행 로드맵 — 4 실행 트랙 + 문서 정합성 거버넌스 |
 | [🌱 SIMULATOR_GENESIS_PLAN.md](docs/SIMULATOR_GENESIS_PLAN.md) | Phase 301-400 — 인증·생태계·실증·차세대 자율·교육 레거시 |
@@ -122,7 +122,7 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 |---|:-:|
 | Phase 완료 | **200 / 200** (Phase 51 LLM Multi-Agent 격상 반영) |
 | 시뮬레이터 코드 | 11,836 line |
-| `_sdacs` API | **402 항목** (maturity 분류 400 + 분류 헬퍼 2 — 라이브 실측) |
+| `_sdacs` API | **403 항목** (maturity 분류 400 + 분류 헬퍼 3 — 라이브 실측) |
 | Playwright E2E | **255 / 256** 통과 (1 skip) |
 | 회귀 pytest | **4,180 pass / 8 skip / 0 fail** |
 | 종합 자동 검증 | **4,435 pass / 9 skip / 0 fail** (2026-06-12 실측) |
@@ -145,7 +145,7 @@ window._sdacs.apiMaturity('cesiumGlobalInit'); // → 'mock'
 window._sdacs.maturityReport();            // → { total, counts, byApi }
 ```
 
-> 분류 대상 400 항목 (production 89 + beta 98 + mock 110 + speculative 103) + 분류 헬퍼 2 (`apiMaturity`·`maturityReport`) = **총 402 항목** — 2026-06-12 라이브 페이지 실측.
+> 분류 대상 400 항목 (production 89 + beta 98 + mock 110 + speculative 103) + 분류 헬퍼 2 (`apiMaturity`·`maturityReport`) = **총 403 항목** — 2026-06-12 라이브 페이지 실측.
 
 **핵심 메시지**: SDACS의 *실용 가치*는 89개 production-grade API(드론 관제 핵심)에 있으며, 나머지는 ATC 시뮬레이터의 *가능한 기능 차원*을 정의하는 참조 매트릭스다.
 
@@ -917,7 +917,7 @@ MIT License — Developed for academic and educational purposes.
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
 | 2026-06-13 01:42 | `8765ba4` | docs(genesis): Phase 301-400 GENESIS Plan 신규 수립 + 로드맵 Track H 편입 | README.md, ROADMAP.md, VERSION.md, docs/INDEX.md, docs/MASTER_PLAN_2026H2.md, docs/SIMULATOR_GENESIS_PLAN.md … |
-| 2026-06-13 01:31 | `9f5349c` | docs: 종합 감사 — 402 API 라이브 실측 동기화 + Track G 신설 + 2026 H2 마스터플랜 | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |
+| 2026-06-13 01:31 | `9f5349c` | docs: 종합 감사 — 403 API 라이브 실측 동기화 + Track G 신설 + 2026 H2 마스터플랜 | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |
 | 2026-06-13 01:13 | `c4e0cc6` | feat(simulator): Phase 0 polish — 동적 NFZ overlay + sub-km 거리 표시 | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-06-12 23:54 | `ec0321a` | Merge branch 'main' of http://127.0.0.1:40031/git/sun475300-sudo/swarm-drone-atc | CHANGELOG.md, ROADMAP.md |
 | 2026-06-12 23:53 | `36d2331` | feat(transcendence): Phase 201-207 API Maturity Honesty + README 수치 갱신 + 초대규모 울트라플랜 | README.md, VERSION.md, docs/SIMULATOR_TRANSCENDENCE_PLAN.md, docs/badges/maturity.svg, docs/sdacs.d.ts, docs/simulator.html … |

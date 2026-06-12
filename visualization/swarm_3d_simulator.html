@@ -11278,6 +11278,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // 미분류 → beta (기본 보수적)
             return 'beta';
         }
+        const _mockCallLog = {}; // Phase 203 — mock/speculative API 호출 카운트
         function _maturityReport() {
             const counts = { production: 0, beta: 0, mock: 0, speculative: 0 };
             const byApi = {};
@@ -11288,7 +11289,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 byApi[key] = m;
             }
             const total = counts.production + counts.beta + counts.mock + counts.speculative;
-            return { total, counts, byApi };
+            return { total, counts, byApi, mockCalls: { ..._mockCallLog } };
         }
 
         // ── 자동 테스트 API (외부 접근용) ──
@@ -11830,6 +11831,41 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             apiMaturity(name) { return _classifyMaturity(name); },
             maturityReport() { return _maturityReport(); },
         };
+
+        // ===== TRANSCENDENCE Phase 203 — Mock Detector + Phase 206 — experimental 네임스페이스 =====
+        // 203: mock/speculative 메서드 호출 시 최초 1회 console.warn + 호출 카운트(_mockCallLog)
+        // 206: speculative API를 _sdacs.experimental.* 경유로도 노출 (직접 호출 호환 유지)
+        (function () {
+            const api = window._sdacs;
+            const warned = new Set();
+            const experimental = {};
+            for (const key of Object.keys(api)) {
+                if (key === 'apiMaturity' || key === 'maturityReport') continue;
+                const lvl = _classifyMaturity(key);
+                const desc = Object.getOwnPropertyDescriptor(api, key);
+                if (!desc) continue;
+                if ((lvl === 'mock' || lvl === 'speculative') && typeof desc.value === 'function') {
+                    const orig = desc.value;
+                    api[key] = function (...args) {
+                        _mockCallLog[key] = (_mockCallLog[key] || 0) + 1;
+                        if (!warned.has(key)) {
+                            warned.add(key);
+                            console.warn(`[SDACS maturity] '${key}' 는 ${lvl} API — 결정적 ${lvl === 'mock' ? 'mock' : '스텁'} 동작이며 실측 검증 대상이 아닙니다`);
+                        }
+                        return orig.apply(api, args);
+                    };
+                }
+                if (lvl === 'speculative') {
+                    if (typeof desc.value === 'function' || desc.get) {
+                        Object.defineProperty(experimental, key, {
+                            get() { return desc.get ? desc.get.call(api) : api[key]; },
+                            enumerable: true,
+                        });
+                    }
+                }
+            }
+            api.experimental = experimental;
+        })();
     </script>
 </body>
 

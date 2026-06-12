@@ -69,7 +69,7 @@ window._sdacs.p200UnityAchieved();
 
 | 목적 | 문서 |
 |---|---|
-| 402 API 전체 보기 | [SDACS_API.md](SDACS_API.md) |
+| 403 API 전체 보기 | [SDACS_API.md](SDACS_API.md) |
 | Phase 매트릭스 시각 인덱스 | [phase_matrix.html](phase_matrix.html) |
 | TypeScript 타입 정의 (IDE autocomplete) | [sdacs.d.ts](sdacs.d.ts) |
 | 모든 Phase 단계별 설명 | [SIMULATOR_MEGA_PLAN.md](SIMULATOR_MEGA_PLAN.md) ~ [POST_UNIVERSE_PLAN](SIMULATOR_POST_UNIVERSE_PLAN.md) |

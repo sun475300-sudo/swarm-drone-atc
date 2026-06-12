@@ -12,13 +12,13 @@
 
 | 지표 | 문서 표기 (감사 전) | 실측 값 | 조치 |
 |---|:-:|:-:|---|
-| `_sdacs` API | 391 | **402** (분류 400 + 헬퍼 2) | ✅ README·VERSION·SDACS_API·d.ts 정정 |
+| `_sdacs` API | 391 | **403** (분류 400 + 헬퍼 3) | ✅ README·VERSION·SDACS_API·d.ts 정정 |
 | Maturity 분포 | 89/98/110/103 | **89/98/110/103** (일치) | ✅ 검증 완료 |
 | 시뮬레이터 코드 | 11,695~11,723 line | **11,836 line** | ✅ 정정 |
 | 회귀 pytest (e2e 제외) | 4,140/4,140 | **4,180 pass / 8 skip / 0 fail** | ✅ 정정 |
 | Playwright E2E | 248/249 | 255/256 (본 PR CI 참조) | ✅ 정정 |
-| SDACS_API.md maturity 컬럼 | "포함" 주장, 실제 없음 | **402행 maturity 컬럼 재생성** | ✅ 수정 |
-| sdacs.d.ts | 394~396 멤버 | **402 멤버 재생성** | ✅ 수정 |
+| SDACS_API.md maturity 컬럼 | "포함" 주장, 실제 없음 | **403행 maturity 컬럼 재생성** | ✅ 수정 |
+| sdacs.d.ts | 394~396 멤버 | **403 멤버 재생성** | ✅ 수정 |
 | Electron | 32.3.3 | 32.3.3 (v1.5.0 빌드) / ^39.8.5 (차기) | ✅ VERSION 주석 |
 
 **교훈 → 거버넌스 규칙**: 문서 수치는 손으로 쓰지 않는다. 라이브 페이지 실측 추출(아래 G-1)로 자동화한다.
@@ -43,8 +43,8 @@
 
 | 스프린트 | 작업 | 검증 기준 |
 |---|---|---|
-| Ⅱ-1 | Phase 203 Mock Detector — mock API 호출 시 console.warn | E2E: warn 카운트 assert |
-| Ⅱ-2 | Phase 206 `experimental.*` 네임스페이스 — speculative 103종 격리 (기존 호출 호환 유지) | E2E: 직접 호출 + experimental 경유 동등성 |
+| Ⅱ-1 ✅ | Phase 203 Mock Detector — mock API 호출 시 console.warn + `mockCalls` 카운트 (2026-06-12) | E2E GREEN |
+| Ⅱ-2 ✅ | Phase 206 `experimental.*` 네임스페이스 — speculative 103종 격리 (직접 호출 호환) (2026-06-12) | E2E GREEN |
 | Ⅱ-3 | Phase 204-205 production 핵심 12종 + beta 회귀 강화 | 신규 회귀 30+건 |
 | Ⅱ-4 | Phase 209-210 Deprecation Policy + SemVer 문서 | docs 추가 |
 | Ⅱ-5 | mock → production 격상 1차 (WebGPU WGSL 실 컴파일·CRDT Yjs) | 실측 벤치 수치 |
@@ -75,9 +75,9 @@
 이번 감사에서 발견된 **수치 드리프트 재발 방지**:
 
 - **G-1** `scripts/extract_sdacs_api.py` 신설 — 라이브 페이지에서 API 목록+maturity를 추출해 `SDACS_API.md`·`sdacs.d.ts` 재생성 (이번 감사의 임시 스크립트를 영구화)
-- **G-2** CI 잡 — README의 API 수·line 수가 실측과 다르면 경고 (sim-smoke.yml 확장)
+- **G-2** ✅ CI 게이트 — `extract_sdacs_api.py --check` sim-smoke.yml 연결 (2026-06-12)
 - **G-3** 모든 수치 갱신 PR은 추출 스크립트 산출물 diff 첨부
-- **G-4** 4 사본 md5 일치 검사를 CI gate로 (이미 build_simulator.py --check 존재 → 잡 연결)
+- **G-4** ✅ 4 사본 md5 일치 CI 게이트 — sim-smoke.yml 연결 (2026-06-12)
 
 ---
 
@@ -104,4 +104,4 @@
 - [`SIMULATOR_GENESIS_PLAN.md`](SIMULATOR_GENESIS_PLAN.md) — Phase 301-400 (인증·생태계·실증·자율·레거시 — 다음 지평)
 - [`SIMULATOR_MEGA_PLAN.md`](SIMULATOR_MEGA_PLAN.md) ~ [`SIMULATOR_POST_UNIVERSE_PLAN.md`](SIMULATOR_POST_UNIVERSE_PLAN.md) — Phase 1-200 (완료)
 - [`../ROADMAP.md`](../ROADMAP.md) — Track A-G 전체 현황
-- [`SDACS_API.md`](SDACS_API.md) — 402 API maturity 레퍼런스
+- [`SDACS_API.md`](SDACS_API.md) — 403 API maturity 레퍼런스

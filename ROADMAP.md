@@ -247,9 +247,10 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 > 상세: [`docs/SIMULATOR_TRANSCENDENCE_PLAN.md`](docs/SIMULATOR_TRANSCENDENCE_PLAN.md) · 실행 일정: [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)
 
-- [x] **Phase 201-202** — API Maturity Registry + `maturityReport()` (402 API → production 89·beta 98·mock 110·speculative 103) (2026-06-12)
+- [x] **Phase 201-202** — API Maturity Registry + `maturityReport()` (403 API → production 89·beta 98·mock 110·speculative 103) (2026-06-12)
 - [x] **Phase 207-208** — SDACS_API.md maturity 컬럼 + README maturity 섹션 (2026-06-12)
-- [ ] **Phase 203-206** — Mock Detector·핵심 12종 회귀 강화·beta 부분 검증·experimental 네임스페이스
+- [x] **Phase 203 + 206** — Mock Detector(console.warn + `mockCalls` 카운트) + `experimental.*` 네임스페이스 격리, E2E 2건 + CI 정합성 게이트(G-2·G-4) (2026-06-12)
+- [ ] **Phase 204-205** — Production 핵심 12종 회귀 강화·beta 부분 검증
 - [ ] **Phase 209-220** — Deprecation Policy·SemVer·production 격상 (12 → 30 API)
 - [ ] **Phase 221-240** — Real Validation (WebGPU 실 WGSL·CRDT Yjs·MAVLink SITL·KMA 풍속장)
 - [ ] **Phase 241-260** — Multi-User Reality (WS 관제 서버·다중 관제사·TimescaleDB·부하 100명)
@@ -268,7 +269,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 ---
 
-*2026-06-12 (종합 감사) — **전체 문서·소스 정합성 감사 + Track G 신설**: 라이브 페이지 실측으로 `_sdacs` API **402 항목** 확정(기존 문서 391 과소 표기 정정 — 분류 400 = 89/98/110/103 + 헬퍼 2), `docs/SDACS_API.md` maturity 컬럼 포함 재생성, `docs/sdacs.d.ts` 402 멤버 재생성, README·VERSION.md 수치 동기화(시뮬레이터 11,836 line). 분석 뷰 Q2 동적 NFZ overlay + NFZ 레이어 토글 연동 + sub-km 비행거리 표시(PR #265). TRANSCENDENCE Phase 201-300을 Track G로 로드맵 공식 편입, 2026 H2 마스터플랜(`docs/MASTER_PLAN_2026H2.md`) 수립.*
+*2026-06-12 (종합 감사) — **전체 문서·소스 정합성 감사 + Track G 신설**: 라이브 페이지 실측으로 `_sdacs` API **403 항목** 확정(기존 문서 391 과소 표기 정정 — 분류 400 = 89/98/110/103 + 헬퍼 3), `docs/SDACS_API.md` maturity 컬럼 포함 재생성, `docs/sdacs.d.ts` 403 멤버 재생성, README·VERSION.md 수치 동기화(시뮬레이터 11,836 line). 분석 뷰 Q2 동적 NFZ overlay + NFZ 레이어 토글 연동 + sub-km 비행거리 표시(PR #265). TRANSCENDENCE Phase 201-300을 Track G로 로드맵 공식 편입, 2026 H2 마스터플랜(`docs/MASTER_PLAN_2026H2.md`) 수립.*
 
 ## Contributing / 기여
 

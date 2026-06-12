@@ -14,7 +14,7 @@
 
 | 지표 | 값 | 출처 |
 |---|:-:|---|
-| `_sdacs` API | 402 (분류 400 = 89/98/110/103 + 헬퍼 2) | `scripts/extract_sdacs_api.py` 라이브 실측 |
+| `_sdacs` API | 403 (분류 400 = 89/98/110/103 + 헬퍼 3) | `scripts/extract_sdacs_api.py` 라이브 실측 |
 | 종합 자동 검증 | 4,435 pass / 9 skip / 0 fail | 회귀 4,180 + E2E 255 |
 | 데스크탑 | v1.5.0 (Win/Mac/Linux) | GitHub Releases |
 | 선행 계획 | TRANSCENDENCE 201-300 (7% — 201-207 완료) | [`SIMULATOR_TRANSCENDENCE_PLAN.md`](SIMULATOR_TRANSCENDENCE_PLAN.md) |

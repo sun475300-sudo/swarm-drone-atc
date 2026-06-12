@@ -9,7 +9,7 @@
 | **시뮬레이터** | 군집 코드 | 11,836 line | 🟢 |
 | | 해양 코드 | 1,177 line | 🟢 |
 | | Phase 완료 | 200 / 200 | 🟢 |
-| | `_sdacs` API | 402 항목 (분류 400 + 헬퍼 2) | 🟢 |
+| | `_sdacs` API | 403 항목 (분류 400 + 헬퍼 3) | 🟢 |
 | | TypeScript `.d.ts` | 자동 생성 | 🟢 |
 | **검증** | Playwright E2E | 247 / 248 (1 skip) | 🟢 99.6% |
 | | Python 회귀 | 4,180 pass / 8 skip / 0 fail (2026-06-12) | 🟢 |
@@ -22,7 +22,7 @@
 | | desktop-build.yml | v* 태그 트리거 | 🟢 |
 | | deploy-pages.yml | main push 트리거 | 🟢 |
 | **문서** | 마스터 플랜 5종 | 5 / 5 | 🟢 |
-| | API 레퍼런스 | 402 라이브 실측 | 🟢 |
+| | API 레퍼런스 | 403 라이브 실측 | 🟢 |
 | | CHANGELOG | v1.0-1.5 통합 | 🟢 |
 | | Quick Start | 1줄 실행 | 🟢 |
 | | Phase Matrix HTML | 200 카드 | 🟢 |

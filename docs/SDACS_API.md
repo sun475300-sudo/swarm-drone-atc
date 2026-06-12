@@ -2,7 +2,7 @@
 
 *자동 생성: 2026-06-12 (`scripts/extract_sdacs_api.py` 라이브 실측 추출 · maturity 등급 포함)*
 
-**총 402 항목** (maturity 분류 대상 400 + 분류 헬퍼 2) — MEGA 10 + HYPER 40 + STELLAR 50 + ULTIMATE 50 + POST-UNIVERSE 50 = **200 Phase**
+**총 403 항목** (maturity 분류 대상 400 + 분류 헬퍼 3) — MEGA 10 + HYPER 40 + STELLAR 50 + ULTIMATE 50 + POST-UNIVERSE 50 = **200 Phase**
 
 ## 🎯 성숙도 분포 (Phase 201-207 정직성 공시)
 
@@ -12,7 +12,7 @@
 | 🔵 beta | 98 | 기능 동작 + E2E 검증, 일부 외부 의존 |
 | 🟡 mock | 110 | 결정적 mock, 인터페이스만 안정 |
 | ⚪ speculative | 103 | 미래 비전 스텁, 호출 안전성만 보장 |
-| 🛠 helper | 2 | `apiMaturity` · `maturityReport` 분류기 자체 |
+| 🛠 helper | 3 | `apiMaturity` · `maturityReport` 분류기 자체 |
 
 실시간 조회: `window._sdacs.apiMaturity(name)` · `window._sdacs.maturityReport()`
 
@@ -134,6 +134,7 @@
 | `get` | **`esportsPlayers`** | 🟡 mock |
 | `method` | **`esportsScore`** | 🟡 mock |
 | `method` | **`eternalMission146Start`** | ⚪ speculative |
+| `value` | **`experimental`** | 🛠 (helper) |
 | `method` | **`explainDecision`** | 🟡 mock |
 | `get` | **`explainLastMethod`** | 🟡 mock |
 | `method` | **`exportCSV`** | 🔵 beta |

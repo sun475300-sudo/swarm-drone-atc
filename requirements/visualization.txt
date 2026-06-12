@@ -3,4 +3,4 @@ plotly>=5.22
 seaborn>=0.13
 pygame>=2.5
 dash>=2.17
-kaleido>=0.2
+kaleido>=1.3.0

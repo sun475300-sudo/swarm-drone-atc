@@ -14,8 +14,8 @@
 
 | 지표 | 값 | 출처 |
 |---|:-:|---|
-| `_sdacs` API | 403 (분류 400 = 89/98/110/103 + 헬퍼 3) | `scripts/extract_sdacs_api.py` 라이브 실측 |
-| 종합 자동 검증 | 4,435 pass / 9 skip / 0 fail | 회귀 4,180 + E2E 255 |
+| `_sdacs` API | 404 (분류 401 = 90/98/110/103 + 헬퍼 3) | `scripts/extract_sdacs_api.py` 라이브 실측 |
+| 종합 자동 검증 | 4,443 pass / 9 skip / 0 fail | 회귀 4,180 + E2E 263 |
 | 데스크탑 | v1.5.0 (Win/Mac/Linux) | GitHub Releases |
 | 선행 계획 | TRANSCENDENCE 201-300 (7% — 201-207 완료) | [`SIMULATOR_TRANSCENDENCE_PLAN.md`](SIMULATOR_TRANSCENDENCE_PLAN.md) |
 | 실행 일정 | 2026 H2 마스터플랜 4 트랙 | [`MASTER_PLAN_2026H2.md`](MASTER_PLAN_2026H2.md) |
@@ -32,7 +32,7 @@
 *시뮬레이터/관제 스택을 한국 항공 규제 체계에 정렬. 기존 자산: `src/utm/`(K-UTM·LAANC·ICAO Doc 10019), `docs/track_f/p749_security_audit.md`(KISA CSAP)*
 
 - **Phase 301** 항공안전법·드론활용촉진법 적합성 매트릭스 — 조항 ↔ SDACS 기능 매핑 문서
-- **Phase 302** SORA (Specific Operations Risk Assessment) 자동 계산기 — `_sdacs.soraAssess()` (시나리오→SAIL 등급)
+- **Phase 302** ✅ SORA 자동 계산기 — `_sdacs.soraAssess()` (JARUS 2.0 iGRC/완화/ARC→SAIL 결정적 구현, production 등급, E2E 6건) (2026-06-12)
 - **Phase 303** 비행계획 신고 양식 자동 생성 — Drone One-Stop 신청서 export
 - **Phase 304** KC 전파인증 요건 체크리스트 (통신 모듈별)
 - **Phase 305** DO-178C/ED-12C 소프트웨어 수명주기 갭 분석 — DAL-D 기준 추적성
@@ -114,7 +114,7 @@
 - **Phase 385** 후속 기수 온보딩 자동화 — 환경 구축 1-스크립트 + 아키텍처 투어 노트북
 - **Phase 386** 코드 고고학 가이드 — 200 Phase 히스토리 내비게이션 (커밋 → Phase 매핑)
 - **Phase 387** 졸업 심사 발표 키트 — 시연 시나리오 + 예상 질문 50 + 라이브 데모 체크리스트
-- **Phase 388** 기술 부채 대장 — 알려진 한계·mock 목록·격상 난이도 공시 (maturity 연계)
+- **Phase 388** ✅ 기술 부채 대장 — `docs/TECH_DEBT_LEDGER.md` 자동 생성 (`extract_sdacs_api.py --ledger`, mock 110 + speculative 103 그룹별 난이도) (2026-06-12)
 - **Phase 389** 유지보수 최소 모드 정의 — 1인 유지 가능한 코어 서브셋 명세
 - **Phase 390** 아카이브 전략 — Zenodo 스냅샷 + Software Heritage 등재
 - **Phase 391-395** 고교·일반인 체험판 — 단순화 UI 모드 (v7 쉬운 설명 연계)

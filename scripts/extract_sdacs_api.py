@@ -161,9 +161,76 @@ def render_dts(data: dict) -> str:
     return "\n".join(lines)
 
 
+LEDGER = ROOT / "docs" / "TECH_DEBT_LEDGER.md"
+
+# 격상 난이도 큐레이션 (GENESIS Phase 388) — 접두사 그룹별 수동 평가
+LEDGER_DIFFICULTY = {
+    "stellar51": ("⭐⭐⭐", "실 LLM 연동 필요 — 현재 상태 기반 결정적 권고로 부분 격상됨"),
+    "gpu100k": ("⭐⭐⭐⭐", "WGSL 실 컴파일 + 대규모 버퍼 (TRANSCENDENCE 221)"),
+    "cesium": ("⭐⭐⭐", "Cesium ion 토큰 + 외부 타일셋 의존"),
+    "ros2": ("⭐⭐⭐⭐", "ROS2 브릿지 실 연결 (src/ros2_bridge.py 재사용 가능)"),
+    "qkd": ("⭐⭐⭐⭐⭐", "실 양자 채널 없음 — 영구 mock 후보"),
+    "skybrush": ("⭐⭐⭐", "Skybrush 라이브러리 통합"),
+    "hitl": ("⭐⭐⭐⭐", "실 Pixhawk HW 필요 (TRANSCENDENCE 261-270)"),
+    "satellite": ("⭐⭐⭐⭐⭐", "위성 링크 — 영구 mock 후보"),
+}
+
+
+def render_ledger(data: dict) -> str:
+    today = datetime.date.today().isoformat()
+    mock = sorted(a["name"] for a in data["apis"] if a["maturity"] == "mock")
+    spec = sorted(a["name"] for a in data["apis"] if a["maturity"] == "speculative")
+
+    def group(names: list[str]) -> dict[str, list[str]]:
+        out: dict[str, list[str]] = {}
+        for n in names:
+            m = re.match(r"^[a-z]+", n)
+            key = m.group(0) if m else n
+            out.setdefault(key, []).append(n)
+        return out
+
+    lines = [
+        "# 📒 SDACS 기술 부채 대장 (GENESIS Phase 388)\n",
+        f"*자동 생성: {today} (`scripts/extract_sdacs_api.py --ledger` 라이브 실측)*\n",
+        "> 정직성 공시: 아래 API는 **결정적 mock 또는 speculative 스텁**이다. "
+        "인터페이스는 안정적이나 실측 알고리즘/외부 연동이 없다. "
+        "호출 시 console.warn 1회 + `maturityReport().mockCalls` 카운트 (Phase 203 Mock Detector).\n",
+        f"## 요약 — mock {len(mock)} + speculative {len(spec)} = {len(mock) + len(spec)} 항목\n",
+        "| 구분 | 의미 | 격상 경로 |",
+        "|---|---|---|",
+        f"| 🟡 mock ({len(mock)}) | 결정적 가짜 구현 | TRANSCENDENCE Track 🔬 (221-240) 실측 교체 |",
+        f"| ⚪ speculative ({len(spec)}) | 미래 비전 스텁 | `_sdacs.experimental.*` 격리 (Phase 206) — 격상 비목표 |",
+        "",
+        "## 🟡 mock 그룹별 격상 난이도\n",
+        "| 접두사 그룹 | API 수 | 난이도 | 격상 메모 |",
+        "|---|:-:|:-:|---|",
+    ]
+    for prefix, names in sorted(group(mock).items()):
+        diff, note = LEDGER_DIFFICULTY.get(prefix, ("⭐⭐", "결정적 mock — 실 데이터/라이브러리 연결로 격상 가능"))
+        lines.append(f"| `{prefix}*` | {len(names)} | {diff} | {note} |")
+    lines += [
+        "",
+        "## 🟡 mock 전체 목록\n",
+        "<details><summary>펼치기</summary>\n",
+        "\n".join(f"- `{n}`" for n in mock),
+        "\n</details>\n",
+        "## ⚪ speculative 전체 목록 (experimental.* 경유 접근)\n",
+        "<details><summary>펼치기</summary>\n",
+        "\n".join(f"- `{n}`" for n in spec),
+        "\n</details>\n",
+        "## 🔗 관련",
+        "- [`SDACS_API.md`](SDACS_API.md) — 전체 API maturity 레퍼런스",
+        "- [`SIMULATOR_TRANSCENDENCE_PLAN.md`](SIMULATOR_TRANSCENDENCE_PLAN.md) — 격상 로드맵 (Track 🔬)",
+        "- [`SIMULATOR_GENESIS_PLAN.md`](SIMULATOR_GENESIS_PLAN.md) — Phase 388 본 대장 정의",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="문서 불일치 시 exit 1 (재생성 안 함)")
+    parser.add_argument("--ledger", action="store_true", help="docs/TECH_DEBT_LEDGER.md 도 재생성")
     args = parser.parse_args()
 
     data = extract_live()
@@ -191,6 +258,9 @@ def main() -> int:
     API_MD.write_text(api_md, encoding="utf-8")
     DTS.write_text(dts, encoding="utf-8")
     print(f"✅ {API_MD.relative_to(ROOT)} · {DTS.relative_to(ROOT)} 재생성 완료")
+    if args.ledger:
+        LEDGER.write_text(render_ledger(data), encoding="utf-8")
+        print(f"✅ {LEDGER.relative_to(ROOT)} 재생성 완료")
     return 0
 
 

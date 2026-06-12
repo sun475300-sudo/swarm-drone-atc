@@ -1,6 +1,6 @@
 # SDACS 종합 진척 보고서
 
-*Last updated: 2026-06-12 — **200 Phase 완료 + TRANSCENDENCE 201-207** (Maturity Honesty — 403 API 라이브 실측, 분류 89/98/110/103), E2E 255/256 + 회귀 4,180 pass / 8 skip = 종합 **4,435 pass / 0 fail***
+*Last updated: 2026-06-12 — **200 Phase 완료 + TRANSCENDENCE 201-207** (Maturity Honesty — 404 API 라이브 실측, 분류 90/98/110/103), E2E 263/264 + 회귀 4,180 pass / 8 skip = 종합 **4,443 pass / 0 fail***
 
 ## 𝟏 200 Phase 완료 (SDACS = Unity)
 
@@ -13,17 +13,17 @@
 | **STELLAR** | 52-100 (RLHF·QKD·Cesium·Metaverse·SDACS 2.0 등 49개) | 22 |
 | **ULTIMATE** | 101-150 (Petaflop·Nano·Bio·Standard·**Universe OS**) | 17 |
 | **POST-UNIVERSE** | 151-200 (Cosmic·Time·Consciousness·Final·**𝟏 Unity**) | 7 |
-| **누적** | **200 Phase** | **239/240** (1 skip) |
+| **누적** | **200 Phase** | **263/264** (1 skip) |
 
 ## 📊 최종 측정
 
 | 지표 | 값 |
 |---|:-:|
 | 시뮬레이터 코드 | **11,836 line** |
-| `_sdacs` API | **403개** (분류 400 + 헬퍼 3) |
-| **Playwright E2E** | **255/256 통과** (1 RTB skip) |
+| `_sdacs` API | **404개** (분류 401 + 헬퍼 3) |
+| **Playwright E2E** | **263/264 통과** (1 RTB skip) |
 | **회귀 pytest** | **4,180 pass / 8 skip / 0 fail** (2026-06-12 실측) |
-| **종합 통과** | **4,435 pass / 9 skip / 0 fail** |
+| **종합 통과** | **4,443 pass / 9 skip / 0 fail** |
 | 데스크탑 빌드 | **v1.5.0 AppImage** ✅ |
 | 사본 동기화 (md5) | 4개 군집 + 3개 해양 일치 |
 | Phase 완료 | **200 / 200 (100%)** |

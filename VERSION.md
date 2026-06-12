@@ -20,10 +20,10 @@
 |---|:-:|
 | Phase 완료 | **200 / 200** (100%) |
 | 시뮬레이터 코드 | 11,836 line |
-| `_sdacs` 외부 API | 403 항목 — 분류 400 (production 89·beta 98·mock 110·speculative 103) + 헬퍼 3 |
-| Playwright E2E | 255 / 256 (1 skip) |
+| `_sdacs` 외부 API | 404 항목 — 분류 401 (production 90·beta 98·mock 110·speculative 103) + 헬퍼 3 |
+| Playwright E2E | 263 / 264 (1 skip) |
 | 회귀 pytest | 4,180 pass / 8 skip / 0 fail |
-| **종합 자동 검증** | **4,435 pass / 9 skip / 0 fail** (2026-06-12 실측) |
+| **종합 자동 검증** | **4,443 pass / 9 skip / 0 fail** (2026-06-12 실측) |
 | 사본 동기화 (md5) | 7 파일 일치 (군집 4 + 해양 3) |
 | 데스크탑 AppImage | 105 MB (ELF, ASAR 검증 완료) |
 

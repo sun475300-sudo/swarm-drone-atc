@@ -5,6 +5,18 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — GENESIS Phase 303 비행계획 신고 양식 자동 생성 (2026-06-13)
+- **`src/certification/flight_plan_declaration.py`** 신규 — 시뮬레이션 비행 파라미터를
+  항공안전법 시행규칙 **별지 제122호서식**(무인비행장치 비행승인신청서) 구조로 변환하는
+  결정적 생성기. 드론 원스톱(drone.onestop.go.kr) 제출용 초안.
+  - `assess_approval_requirement()` — 관제권·비행금지구역·고도 150m(AGL) 초과·중량 25kg 초과 →
+    **비행승인** 필요, 야간·비가시권(BVLOS) → **특별비행승인** 필요를 규제 임계값 기준 판정.
+  - `validate_request()` 필수 필드·값 범위 검증, `generate_declaration()` 별지 서식 dict 생성,
+    `render_text()` 결정적 평문 렌더.
+- **`tests/certification/test_flight_plan_declaration.py`** 단위 **15건** PASS
+  (승인 판정 6 · 입력 검증 4 · 신청서 생성 5).
+- `ROADMAP.md` Phase 303 [x] 체크 + GENESIS 인증 트랙 잔여 갱신.
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (388.13s).

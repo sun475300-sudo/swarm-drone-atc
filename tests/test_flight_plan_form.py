@@ -62,6 +62,11 @@ def test_scenario_drone_count_overrides_default(scenario_config):
     assert form.generated_for == "s01_high_density"
 
 
+def test_total_drone_count_key_is_recognized():
+    form = build_flight_plan({"total_drone_count": 240}, "multi_city")
+    assert form.aircraft_count == 240
+
+
 def test_duration_from_seconds_is_converted_to_minutes():
     form = build_flight_plan({"simulation_duration_s": 600}, "comms_loss")
     assert form.flight_duration_min == 10.0
@@ -97,13 +102,14 @@ def test_geobox_corners_bracket_center(default_config):
     box = build_geobox(default_config)
     assert box.sw_lat < box.center_lat < box.ne_lat
     assert box.sw_lon < box.center_lon < box.ne_lon
-    assert box.radius_km == pytest.approx(5.0)
+    # 외접원 반경(half-diagonal) = hypot(10,10)/2 ≈ 7.071 km — 과소신고 방지
+    assert box.radius_km == pytest.approx(7.071, abs=0.01)
 
 
 def test_geobox_defaults_when_missing_airspace():
     box = build_geobox({})
     assert box.center_lat == 35.1595
-    assert box.radius_km == pytest.approx(5.0)
+    assert box.radius_km == pytest.approx(7.071, abs=0.01)
 
 
 # ── 결정성 ───────────────────────────────────────────────────────────
@@ -141,6 +147,49 @@ def test_json_is_valid_and_has_safety_measures(default_config):
     assert any("5계층" in m for m in data["safety_measures"])
 
 
-def test_bvlos_flag_inferred_for_swarm(default_config):
+def test_json_serializes_nested_geobox(default_config):
+    data = json.loads(render_json(build_flight_plan(default_config, "default")))
+    assert data["area"]["center_lat"] == 35.1595
+    assert data["area"]["radius_km"] == pytest.approx(7.071, abs=0.01)
+
+
+def test_bvlos_inferred_for_wide_area(default_config):
+    # ±5km 운영 구역(>0.5km) → BVLOS(특별승인 필요)로 추론
     form = build_flight_plan(default_config, "default")
     assert form.is_bvlos is True
+
+
+def test_bvlos_false_for_small_area():
+    config = {"airspace": {"bounds_km": {"x": [-0.3, 0.3], "y": [-0.3, 0.3]}}}
+    form = build_flight_plan(config, "small")
+    assert form.is_bvlos is False
+
+
+def test_explicit_bvlos_config_overrides_inference():
+    config = {"bvlos": False, "airspace": {"bounds_km": {"x": [-5.0, 5.0], "y": [-5.0, 5.0]}}}
+    form = build_flight_plan(config, "explicit")
+    assert form.is_bvlos is False
+
+
+def test_config_path_outside_root_is_rejected():
+    import argparse
+
+    from scripts.generate_flight_plan import _resolve_input
+
+    args = argparse.Namespace(scenario=None, config="../../../etc/passwd")
+    with pytest.raises(ValueError, match="프로젝트 루트"):
+        _resolve_input(args)
+
+
+def test_scenario_name_with_separators_is_sanitized():
+    import argparse
+
+    from scripts.generate_flight_plan import _resolve_input
+
+    args = argparse.Namespace(scenario="../evil", config=None)
+    # 경로 이탈 시 ValueError, 아니면 sanitize된 이름 반환 — 어느 쪽이든 분리자 미포함
+    try:
+        _path, name = _resolve_input(args)
+    except ValueError:
+        return
+    assert "/" not in name and ".." not in name

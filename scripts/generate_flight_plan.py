@@ -18,6 +18,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
+import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -70,8 +72,8 @@ class FlightPlanForm:
     # 조종자 (수기)
     pilot_name: str
     pilot_license_no: str
-    # 안전대책 (시스템 유도)
-    safety_measures: list[str] = field(default_factory=list)
+    # 안전대책 (시스템 유도, 불변)
+    safety_measures: tuple[str, ...] = field(default_factory=tuple)
     # 보험 (수기)
     insurance_policy_no: str = PII_PLACEHOLDER
 
@@ -100,9 +102,10 @@ def _resolve_duration_min(config: dict) -> float:
 
 
 def _resolve_drone_count(config: dict) -> int:
-    """설정에서 비행장치 대수를 추출한다."""
-    if "drone_count" in config:
-        return int(config["drone_count"])
+    """설정에서 비행장치 대수를 추출한다 (시나리오 키 우선)."""
+    for key in ("drone_count", "total_drone_count"):
+        if key in config:
+            return int(config[key])
     return int(config.get("drones", {}).get("default_count", 1))
 
 
@@ -112,9 +115,17 @@ def _resolve_max_altitude(config: dict) -> float:
     if "max_altitude_m" in drones:
         return float(drones["max_altitude_m"])
     z = config.get("airspace", {}).get("bounds_km", {}).get("z")
-    if z and len(z) == 2:
-        return round(float(z[1]) * 1000.0, 1)
-    return 120.0
+    if z and len(z) == 2 and float(z[1]) > 0:
+        return round(float(z[1]) * 1000.0, 1)  # km → m
+    return 120.0  # 설정에 고도 정보가 없을 때 항공안전법 기본 한계
+
+
+def _area_half_extent_km(config: dict) -> float:
+    """home 기준 운영 구역의 최대 반경 방향 거리(km)를 산정한다."""
+    bounds = config.get("airspace", {}).get("bounds_km", {})
+    x = bounds.get("x", [-0.5, 0.5])
+    y = bounds.get("y", [-0.5, 0.5])
+    return max(max(abs(v) for v in x), max(abs(v) for v in y))
 
 
 def build_geobox(config: dict) -> GeoBox:
@@ -133,14 +144,13 @@ def build_geobox(config: dict) -> GeoBox:
         sw_lon=round(lon0 + x_min / km_per_deg_lon, 6),
         ne_lat=round(lat0 + y_max / KM_PER_DEG_LAT, 6),
         ne_lon=round(lon0 + x_max / km_per_deg_lon, 6),
-        radius_km=round(max(x_max - x_min, y_max - y_min) / 2.0, 3),
+        # 운영 구역을 모두 포함하는 외접원 반경(half-diagonal) — 비행구역 과소신고 방지
+        radius_km=round(math.hypot(x_max - x_min, y_max - y_min) / 2.0, 3),
     )
 
 
 def _cos_deg(deg: float) -> float:
     """math.cos(라디안) 결정적 래퍼."""
-    import math
-
     return math.cos(math.radians(deg))
 
 
@@ -149,7 +159,8 @@ def build_flight_plan(config: dict, name: str) -> FlightPlanForm:
     duration = _resolve_duration_min(config)
     count = _resolve_drone_count(config)
     max_alt = _resolve_max_altitude(config)
-    bvlos = bool(config.get("bvlos", max_alt > 0 and count > 1))
+    # BVLOS 추론: 운영 구역이 home에서 0.5km(육안 식별 한계 근사)를 넘으면 비가시권으로 간주
+    bvlos = bool(config.get("bvlos", _area_half_extent_km(config) > 0.5))
     night = bool(config.get("night", False))
     return FlightPlanForm(
         source=name,
@@ -169,13 +180,13 @@ def build_flight_plan(config: dict, name: str) -> FlightPlanForm:
         area=build_geobox(config),
         pilot_name=PII_PLACEHOLDER,
         pilot_license_no=PII_PLACEHOLDER,
-        safety_measures=[
+        safety_measures=(
             "5계층 안전망(APF·CBS·CPA·ATC·UTM) 상시 활성",
             f"수평 분리 {config.get('separation_standards', {}).get('lateral_min_m', 50.0)}m / "
             f"수직 분리 {config.get('separation_standards', {}).get('vertical_min_m', 15.0)}m 유지",
             "Remote ID 송출(ASTM F3411) 및 비행기록 보존",
             "배터리 임계 시 자동 RTB·비상착륙 프로토콜",
-        ],
+        ),
         insurance_policy_no=PII_PLACEHOLDER,
     )
 
@@ -245,13 +256,27 @@ def render_json(form: FlightPlanForm) -> str:
     return json.dumps(asdict(form), ensure_ascii=False, indent=2, sort_keys=True)
 
 
+def _safe_name(name: str) -> str:
+    """출력 파일명에 쓸 수 있도록 경로 구분자 등 위험 문자를 제거한다."""
+    return re.sub(r"[^A-Za-z0-9_\-]", "_", name)
+
+
+def _ensure_within_root(path: Path) -> Path:
+    """경로가 프로젝트 루트 하위인지 검증한다(경로 이탈 차단)."""
+    resolved = path.resolve()
+    root = ROOT.resolve()
+    if root != resolved and root not in resolved.parents:
+        raise ValueError(f"설정 경로가 프로젝트 루트를 벗어남: {resolved}")
+    return resolved
+
+
 def _resolve_input(args: argparse.Namespace) -> tuple[Path, str]:
-    """CLI 인자 → (설정 경로, 출력 이름)."""
+    """CLI 인자 → (설정 경로, 출력 이름). 경로 이탈을 차단한다."""
     if args.scenario:
-        path = ROOT / "config" / "scenario_params" / f"{args.scenario}.yaml"
-        return path, args.scenario
-    path = ROOT / args.config
-    return path, path.stem
+        path = ROOT / "config" / "scenario_params" / f"{_safe_name(args.scenario)}.yaml"
+        return _ensure_within_root(path), _safe_name(args.scenario)
+    path = _ensure_within_root(ROOT / args.config)
+    return path, _safe_name(path.stem)
 
 
 def main() -> None:

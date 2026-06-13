@@ -257,7 +257,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [ ] **Phase 221-240** — Real Validation (WebGPU 실 WGSL·CRDT Yjs·MAVLink SITL·KMA 풍속장)
 - [ ] **Phase 241-260** — Multi-User Reality (WS 관제 서버·다중 관제사·TimescaleDB·부하 100명)
 - [ ] **Phase 261-280** — Hardware Loop (Pixhawk HITL·Jetson 엣지·RTK·실 비행 데이터셋) *(사용자 HW 의존)*
-- [ ] **Phase 281-300** — Academic Impact (IROS 투고·Zenodo DOI·Ablation 자동화·K-UTM 표준 제안)
+- [x] **Phase 286** 🏆 안전망 Ablation 자동화 — `scripts/ablation_study.py` (APF·CBS 계층 제거 효과 측정, baseline/no_apf/no_cbs/no_apf_no_cbs × N 시드 → 충돌·근접경고·해결률 markdown+JSON), 시뮬레이터·컨트롤러 `ablation.disable_apf/disable_cbs` 토글(기본 미설정 = 전 계층 활성) + 12개 단위 테스트 PASS (2026-06-13)
+- [ ] **Phase 281-285·287-300** — Academic Impact (IROS 투고·Zenodo DOI·K-UTM 표준 제안)
 
 ### Track H — 시뮬레이터 GENESIS (Phase 301-400) · 2026-06-12 수립
 

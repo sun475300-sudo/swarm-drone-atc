@@ -20,7 +20,7 @@
 |---|:-:|
 | Phase 완료 | **200 / 200** (100%) |
 | 시뮬레이터 코드 | 11,836 line |
-| `_sdacs` 외부 API | 404 항목 — 분류 401 (production 90·beta 98·mock 110·speculative 103) + 헬퍼 3 |
+| `_sdacs` 외부 API | 407 항목 — 분류 404 (production 93·beta 98·mock 110·speculative 103) + 헬퍼 3 |
 | Playwright E2E | 263 / 264 (1 skip) |
 | 회귀 pytest | 4,180 pass / 8 skip / 0 fail |
 | **종합 자동 검증** | **4,443 pass / 9 skip / 0 fail** (2026-06-12 실측) |

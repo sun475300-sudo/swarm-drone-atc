@@ -1,6 +1,6 @@
 # SDACS 종합 진척 보고서
 
-*Last updated: 2026-06-12 — **200 Phase 완료 + TRANSCENDENCE 201-207** (Maturity Honesty — 404 API 라이브 실측, 분류 90/98/110/103), E2E 263/264 + 회귀 4,180 pass / 8 skip = 종합 **4,443 pass / 0 fail***
+*Last updated: 2026-06-12 — **200 Phase 완료 + TRANSCENDENCE 201-207** (Maturity Honesty — 407 API 라이브 실측, 분류 93/98/110/103), E2E 263/264 + 회귀 4,180 pass / 8 skip = 종합 **4,443 pass / 0 fail***
 
 ## 𝟏 200 Phase 완료 (SDACS = Unity)
 
@@ -20,7 +20,7 @@
 | 지표 | 값 |
 |---|:-:|
 | 시뮬레이터 코드 | **11,836 line** |
-| `_sdacs` API | **404개** (분류 401 + 헬퍼 3) |
+| `_sdacs` API | **407개** (분류 404 + 헬퍼 3) |
 | **Playwright E2E** | **263/264 통과** (1 RTB skip) |
 | **회귀 pytest** | **4,180 pass / 8 skip / 0 fail** (2026-06-12 실측) |
 | **종합 통과** | **4,443 pass / 9 skip / 0 fail** |

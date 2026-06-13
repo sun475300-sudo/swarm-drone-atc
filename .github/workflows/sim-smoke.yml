@@ -112,7 +112,7 @@ jobs:
           python -m pip install --upgrade pip
           # numpy/pyyaml: 공유 tests/conftest.py가 collection 단계에서 numpy를 import하므로 필수
           # pytest-cov: pyproject.toml addopts의 --cov/--no-cov 인자를 인식시키기 위해 필요
-          pip install pytest pytest-xdist pytest-cov playwright numpy pyyaml
+          pip install pytest pytest-xdist pytest-cov playwright numpy pyyaml hypothesis
           python -m playwright install --with-deps chromium
 
       - name: Run all 200-Phase E2E

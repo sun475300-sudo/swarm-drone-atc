@@ -8812,25 +8812,64 @@
             }
         }
 
-        // --- 조치(어드바이저리) 빌보드 — 단계별 아이콘 점멸 (EVADE/HOLD/RTL) ---
+        // --- 조치(어드바이저리) 빌보드 — 단계별 아이콘 점멸 (5단계: EVADE/HOLD/RTL/CLIMB/DESCEND/TURN) ---
+        // phase 기반(EVADING/HOLDING/RTL) + 동적 신호 기반(CLIMB·DESCEND·TURN) 조합.
+        // 우선순위: EVADE > HOLD > RTL > CLIMB/DESCEND > TURN (한 드론 1 아이콘만 표시).
         const advisoryGroup = new THREE.Group(); scene.add(advisoryGroup);
-        const ADV_ICON = { EVADING: '⚠ 회피', HOLDING: '⏸ 체공', RTL: '↩ 귀환' };
-        const ADV_COLOR = { EVADING: '#ff3d00', HOLDING: '#3b82f6', RTL: '#ec407a' };
-        const _advPools = {}; // phase → {pool:[], idx:0} (텍스트가 텍스처에 구워지므로 단계별 풀 분리)
-        function _adv(phase) {
-            const p = _advPools[phase] || (_advPools[phase] = { pool: [], idx: 0 });
+        const ADV_ICON = {
+            EVADING: '⚠ 회피', HOLDING: '⏸ 체공', RTL: '↩ 귀환',
+            CLIMB: '⬆ 상승', DESCEND: '⬇ 하강', TURN: '↻ 선회',
+        };
+        const ADV_COLOR = {
+            EVADING: '#ff3d00', HOLDING: '#3b82f6', RTL: '#ec407a',
+            CLIMB: '#22c55e', DESCEND: '#a855f7', TURN: '#f59e0b',
+        };
+        const _advPools = {}; // key → {pool:[], idx:0} (텍스트가 텍스처에 구워지므로 단계별 풀 분리)
+        function _adv(key) {
+            const p = _advPools[key] || (_advPools[key] = { pool: [], idx: 0 });
             let s = p.pool[p.idx];
-            if (!s) { s = makeTextSprite(ADV_ICON[phase], ADV_COLOR[phase], 9); s.scale.set(3, 0.9, 1); advisoryGroup.add(s); p.pool.push(s); }
+            if (!s) { s = makeTextSprite(ADV_ICON[key], ADV_COLOR[key], 9); s.scale.set(3, 0.9, 1); advisoryGroup.add(s); p.pool.push(s); }
             p.idx++; return s;
         }
+        // 드론별 분류: 단일 최우선 advisory key 반환(없으면 null).
+        // CLIMB/DESCEND: vy 임계 ±0.7m/s, TURN: 헤딩 변화율 임계 ±15°/s.
+        const ADV_VY_THRESHOLD = 0.7;
+        const ADV_TURN_THRESHOLD = 15; // °/s
+        function _classifyAdvisory(d) {
+            if (d.phase === 'EVADING') return 'EVADING';
+            if (d.phase === 'HOLDING') return 'HOLDING';
+            if (d.phase === 'RTL') return 'RTL';
+            // 동적 신호는 ENROUTE/CRUISE 등 일반 비행 상태에서만 표시
+            if (d.phase === 'GROUNDED' || d.phase === 'FAILED' || d.phase === 'LANDING') return null;
+            const vy = d.vy || 0;
+            if (vy > ADV_VY_THRESHOLD) return 'CLIMB';
+            if (vy < -ADV_VY_THRESHOLD) return 'DESCEND';
+            // 헤딩 변화율 — _prevHeading은 이 함수가 직접 갱신(저빈도 호출, 드론별 ~1Hz)
+            if (typeof d._prevHeading === 'number' && typeof d._prevHeadingT === 'number') {
+                const dh = ((d.heading - d._prevHeading + 540) % 360) - 180; // signed delta
+                const dt = simTime - d._prevHeadingT;
+                if (dt > 0 && Math.abs(dh / dt) > ADV_TURN_THRESHOLD) return 'TURN';
+            }
+            return null;
+        }
+        let _advHeadingTickT = 0;
         function updateAdvisoryOverlay(t) {
             for (const k in _advPools) { const p = _advPools[k]; for (let i = 0; i < p.idx; i++) p.pool[i].visible = false; p.idx = 0; }
             if (!showAdvisory || megaMode) return; // 대규모는 빌보드 생략(성능)
             const pulse = 0.55 + Math.sin(t * 8) * 0.4;
+            // 헤딩 변화율 측정용 ~1Hz 샘플 (TURN 분류 안정화 — 매 프레임이면 노이즈로 오탐)
+            const sampleHeading = simTime - _advHeadingTickT >= 1.0;
+            if (sampleHeading) _advHeadingTickT = simTime;
             let c = 0;
             for (const d of drones) {
-                if (c >= 40 || !ADV_ICON[d.phase]) continue;
-                const s = _adv(d.phase);
+                if (c >= 40) {
+                    if (sampleHeading) { d._prevHeading = d.heading; d._prevHeadingT = simTime; }
+                    continue;
+                }
+                const key = _classifyAdvisory(d);
+                if (sampleHeading) { d._prevHeading = d.heading; d._prevHeadingT = simTime; }
+                if (!key) continue;
+                const s = _adv(key);
                 s.position.set(d.group.position.x, d.group.position.y + 1.3, d.group.position.z);
                 s.material.opacity = pulse;
                 s.visible = true; c++;

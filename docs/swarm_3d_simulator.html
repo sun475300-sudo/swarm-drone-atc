@@ -1906,8 +1906,11 @@
         }
 
         // 특정 위치·고도의 실효 바람 벡터 계산 (정밀 모델)
+        // getWindAt 반환 스크래치: 드론당 매 프레임 호출되므로 객체 재할당 대신 재사용.
+        // 유일 호출부(updateDrone)는 즉시 스칼라로만 소비하고 객체를 보존하지 않음.
+        const _windScratch = { x: 0, z: 0, y: 0 };
         function getWindAt(wx, wy, wz) {
-            if (!windEnabled) return { x: 0, z: 0, y: 0 };
+            if (!windEnabled) { _windScratch.x = 0; _windScratch.z = 0; _windScratch.y = 0; return _windScratch; }
             let wx_ = weather.baseWind.x;
             let wz_ = weather.baseWind.z;
             let wy_ = 0;
@@ -1918,8 +1921,10 @@
             wx_ *= altFactor;
             wz_ *= altFactor;
 
-            // ── 풍속 전단 레이어: 고도별 급격한 풍향 변화 ──
-            weather.windShearLayers.forEach(layer => {
+            // ── 풍속 전단 레이어: 고도별 급격한 풍향 변화 (인덱스 루프: 클로저 할당 제거) ──
+            const shear = weather.windShearLayers;
+            for (let i = 0; i < shear.length; i++) {
+                const layer = shear[i];
                 const altDiff = Math.abs(wy - layer.alt);
                 if (altDiff < 30) {
                     const influence = 1 - altDiff / 30;
@@ -1928,7 +1933,7 @@
                     // 전단 경계에서 난기류 증가
                     wy_ += (Math.random() - 0.5) * influence * 3;
                 }
-            });
+            }
 
             // 돌풍 추가
             wx_ += weather.gustDir.x * weather.gustIntensity;
@@ -1943,7 +1948,9 @@
             }
 
             // ── 마이크로버스트: 급강하풍 + 수평 발산 ──
-            weather.microbursts.forEach(mb => {
+            const microbursts = weather.microbursts;
+            for (let i = 0; i < microbursts.length; i++) {
+                const mb = microbursts[i];
                 const dx = wx - mb.x, dz = wz - mb.z;
                 const d = Math.sqrt(dx * dx + dz * dz);
                 if (d < mb.radius && mb.currentStrength > 0) {
@@ -1962,10 +1969,12 @@
                         wy_ -= mb.currentStrength * ratio * 0.3;
                     }
                 }
-            });
+            }
 
             // ── 이동 폭풍셀: 회전풍 + 난기류 ──
-            weather.stormCells.forEach(sc => {
+            const stormCells = weather.stormCells;
+            for (let i = 0; i < stormCells.length; i++) {
+                const sc = stormCells[i];
                 const dx = wx - sc.x, dz = wz - sc.z;
                 const d = Math.sqrt(dx * dx + dz * dz);
                 if (d < sc.radius) {
@@ -1981,18 +1990,21 @@
                     wx_ += (Math.random() - 0.5) * intensity * 0.8;
                     wz_ += (Math.random() - 0.5) * intensity * 0.8;
                 }
-            });
+            }
 
             // 열 상승기류 구역
-            weather.thermalZones.forEach(tz => {
+            const thermals = weather.thermalZones;
+            for (let i = 0; i < thermals.length; i++) {
+                const tz = thermals[i];
                 const dx = wx - tz.x, dz = wz - tz.z;
                 const d = Math.sqrt(dx * dx + dz * dz);
                 if (d < tz.radius) {
                     wy_ += tz.strength * (1 - d / tz.radius);
                 }
-            });
+            }
 
-            return { x: wx_, z: wz_, y: wy_ };
+            _windScratch.x = wx_; _windScratch.z = wz_; _windScratch.y = wy_;
+            return _windScratch;
         }
 
         // ===== Event Log =====

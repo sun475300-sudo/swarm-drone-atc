@@ -232,17 +232,25 @@ def _uniform_fallback(
 
 
 def is_in_cell(position: np.ndarray, cell: AirspaceCell) -> bool:
-    """드론이 자신의 공역 셀 내에 있는지 확인"""
+    """드론이 자신의 공역 셀 내에 있는지 확인.
+
+    4차 점검 수정: position 차원 가드 — 외부 export 함수라 호출자가 2D 배열을
+    넘기면 position[2] 가 IndexError. 3D 미만은 보수적으로 True 반환(고도 검사 skip).
+    """
+    pos = np.asarray(position)
+    if pos.ndim != 1 or pos.shape[0] < 2:
+        return True  # 위치 정보 부족 — 보수적 안전 응답
     if not cell.vertices:
         return True
-    # 고도 확인
-    alt = position[2]
-    if not (cell.altitude_band[0] <= alt <= cell.altitude_band[1]):
-        return False
+    # 고도 확인 (3D 이상일 때만)
+    if pos.shape[0] >= 3:
+        alt = float(pos[2])
+        if not (cell.altitude_band[0] <= alt <= cell.altitude_band[1]):
+            return False
     # 2D 포인트-인-폴리곤
     try:
         from matplotlib.path import Path
         path = Path(np.array(cell.vertices))
-        return bool(path.contains_point(position[:2]))
+        return bool(path.contains_point(pos[:2]))
     except Exception:
         return True

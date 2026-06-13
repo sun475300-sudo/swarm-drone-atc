@@ -960,6 +960,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-13 16:33 | `ae9e2dc` | feat(viz): CPA TTC 라벨 + 위험도 3단계 색상 + 시각화 자료 자동 갱신 | docs/images/auto/sim_maritime.png, docs/images/auto/sim_swarm_3d.png, docs/images/auto/sim_swarm_analysis.png, docs/images/auto/sim_swarm_nfz_dynamic.png, docs/simulator.html, docs/swarm_3d_simulator.html … |
 | 2026-06-13 16:27 | `28c61eb` | fix(pages): 시뮬레이터 라이브 사이트 깨짐 해결 (vendor 동기화 + getWindAt 할당 제거) | .github/workflows/deploy-pages.yml, docs/simulator.html, docs/swarm_3d_simulator.html, docs/vendor/three/addons/controls/OrbitControls.js, docs/vendor/three/three.module.js, swarm_3d_simulator.html … |
 | 2026-06-13 11:47 | `415bba6` | test(maritime): C9 검증 기록 스모크 플레이크 견고화 (조건 기반 폴링) | tests/e2e/smoke_maritime.mjs |
 | 2026-06-13 11:39 | `dde1d3e` | perf(simulator): 핫루프 프레임당 힙 할당 제거 (wind 이동평균 + APF 공간해시) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |

@@ -960,6 +960,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-14 00:18 | `31975e4` | refactor(genesis): Phase 367 어드바이저 검토 반영 — drone_load 센티넬 + 문서 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_GENESIS_PLAN.md, src/autonomy/swarm_self_healing.py, tests/track_genesis/test_swarm_self_healing.py |
 | 2026-06-14 00:15 | `6b18f85` | feat(genesis): Phase 367 스웜 자가 치유 — 결손 드론 임무 자동 재분배 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_GENESIS_PLAN.md, src/autonomy/__init__.py, src/autonomy/swarm_self_healing.py, tests/track_genesis/__init__.py … |
 | 2026-06-13 11:01 | `5b26e79` | fix(ci): sim-smoke.yml에 hypothesis 추가 + TRANSCENDENCE 205·GENESIS 304·309·ODYSSEY 408 진척 | .github/workflows/sim-smoke.yml, README.md, ROADMAP.md, docs/certification/AIRSPACE_CLASS_MAPPING.md, docs/certification/KC_RADIO_CERTIFICATION.md, docs/certification/PILOT_LICENSE_MAPPING.md … |
 | 2026-06-13 10:55 | `b342a9e` | feat(plans): GENESIS 306·381·389 + ODYSSEY 447·486 + 시뮬레이터 tutorial API | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |

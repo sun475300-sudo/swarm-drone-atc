@@ -31,7 +31,27 @@ from pydantic import BaseModel, Field
 
 LOGGER = logging.getLogger("sdacs.auth")
 
-_JWT_SECRET = os.environ.get("SDACS_JWT_SECRET", "dev-insecure-secret-change-in-prod")
+# 보안: SDACS_PROD=1 (또는 truthy 값) 환경변수 옵트인 시 SDACS_JWT_SECRET 누락을
+# 명시적 RuntimeError 로 거부. 개발(default) 모드에서는 약한 dev 키를 사용하지만
+# 경고를 1회 emit 해 운영 환경에서 누락을 사일런트로 넘어가지 않게 함.
+def _resolve_jwt_secret() -> str:
+    secret = os.environ.get("SDACS_JWT_SECRET")
+    prod = os.environ.get("SDACS_PROD", "").strip().lower() in {"1", "true", "yes", "on"}
+    if secret:
+        return secret
+    if prod:
+        raise RuntimeError(
+            "SDACS_JWT_SECRET 환경변수가 SDACS_PROD 모드에서 필수입니다. "
+            "강한 무작위 비밀(>=32바이트)을 설정하세요."
+        )
+    LOGGER.warning(
+        "⚠ SDACS_JWT_SECRET 미설정 — 개발용 약한 키 사용 중. "
+        "운영 배포 시 SDACS_PROD=1 + 강한 비밀 설정 필수."
+    )
+    return "dev-insecure-secret-change-in-prod"
+
+
+_JWT_SECRET = _resolve_jwt_secret()
 _TOKEN_TTL_S = int(os.environ.get("SDACS_TOKEN_TTL_S", "3600"))
 
 

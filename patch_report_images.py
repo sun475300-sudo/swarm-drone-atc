@@ -134,5 +134,5 @@ if missing:
 with open(path, 'w', encoding='utf-8') as f:
     f.write(src)
 
-print('Patched: %s' % path)
+print(f"Patched: {path}")
 print('Inserted 15 image blocks + helper')

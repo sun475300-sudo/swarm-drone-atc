@@ -30,10 +30,9 @@ class Adapter(OrcaAdapter):
         goals = [self._goal_for(i, s, rng) for i, s in enumerate(spawns)]
 
         # Try the in-repo CBS planner. If unavailable, run straight-line.
-        cbs_planner = None
         try:
             from src.airspace_control.planning import cbs as cbs_mod  # type: ignore
-            cbs_planner = getattr(cbs_mod, "CBSPlanner", None)
+            getattr(cbs_mod, "CBSPlanner", None)
         except ImportError:
             pass
 
@@ -45,7 +44,7 @@ class Adapter(OrcaAdapter):
         # CBS pre-plan stage (single solve, expensive)
         plan_start = time.perf_counter()
         plans: list[list[tuple[float, float, float]]] = []
-        for i, (start, goal) in enumerate(zip(spawns, goals)):
+        for start, goal in zip(spawns, goals, strict=False):
             # Straight-line interpolation as a placeholder for the actual
             # CBS-routed trajectory. Real CBS would produce time-staggered
             # paths to resolve conflicts.

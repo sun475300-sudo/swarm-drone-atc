@@ -264,10 +264,7 @@ def cmd_benchmark(args: argparse.Namespace) -> None:
     }
 
     output_arg = getattr(args, "output", None)
-    if output_arg:
-        out_path = Path(output_arg)
-    else:
-        out_path = Path("results") / scenario / method / f"seed{seed}.json"
+    out_path = Path(output_arg) if output_arg else Path("results") / scenario / method / f"seed{seed}.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2, sort_keys=True)
@@ -523,7 +520,7 @@ def main() -> None:
     p_vis.add_argument("--log-level", default="INFO")
 
     # ── visualize-3d ─────────────────────────────────────────────
-    p_v3d = sub.add_parser("visualize-3d", help="Three.js 3D 시뮬레이터 (브라우저)")
+    sub.add_parser("visualize-3d", help="Three.js 3D 시뮬레이터 (브라우저)")
 
     # ── chatbot ────────────────────────────────────────────────
     p_chat = sub.add_parser("chatbot", help="보세전시장 민원상담 챗봇")

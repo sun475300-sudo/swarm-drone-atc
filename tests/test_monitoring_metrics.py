@@ -36,7 +36,7 @@ def test_grafana_dashboard_exists():
 def test_prometheus_config_valid_yaml():
     """prometheus.yml이 유효한 YAML이어야 한다."""
     import yaml
-    with open(REPO_ROOT / "monitoring" / "prometheus.yml") as f:
+    with open(REPO_ROOT / "monitoring" / "prometheus.yml", encoding="utf-8") as f:
         data = yaml.safe_load(f)
     assert isinstance(data, dict)
     assert "global" in data or "scrape_configs" in data

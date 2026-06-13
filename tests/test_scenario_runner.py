@@ -86,7 +86,13 @@ class TestTranslateScenario:
 
 class TestRunScenario:
     def test_run_high_density_single(self):
-        results = run_scenario("high_density", n_runs=1, seed=42, verbose=False)
+        results = run_scenario(
+            "high_density",
+            n_runs=1,
+            seed=42,
+            verbose=False,
+            duration_override_s=2.0,
+        )
         assert len(results) == 1
         assert "collision_count" in results[0]
         assert results[0]["scenario"] == "high_density"
@@ -96,7 +102,13 @@ class TestRunScenario:
             run_scenario("nonexistent_scenario_xyz", n_runs=1, verbose=False)
 
     def test_run_multiple(self):
-        results = run_scenario("route_conflict", n_runs=2, seed=42, verbose=False)
+        results = run_scenario(
+            "route_conflict",
+            n_runs=2,
+            seed=42,
+            verbose=False,
+            duration_override_s=2.0,
+        )
         assert len(results) == 2
         # 다른 시드로 실행되므로 결과가 다를 수 있음
         assert all("collision_count" in r for r in results)

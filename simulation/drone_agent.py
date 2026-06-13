@@ -205,6 +205,8 @@ class DroneAgent:
                 force = np.zeros(3)
 
             # 6. 비행 단계 상태 머신
+            prev_position = drone.position.copy()
+            phase_before = drone.flight_phase
             self._state_machine(drone, dt, profile, force, wind, t, sim)
 
             # 7. 위치 적분
@@ -225,13 +227,17 @@ class DroneAgent:
                 drone.position[0] = float(np.clip(drone.position[0], -sim.bounds_m, sim.bounds_m))
                 drone.position[1] = float(np.clip(drone.position[1], -sim.bounds_m, sim.bounds_m))
                 drone.position[2] = float(np.clip(drone.position[2], 0.0, 120.0))
-                drone.distance_flown_m += float(np.linalg.norm(drone.velocity * dt))
-
                 geofence_margin = sim.bounds_m * 0.9
                 if abs(drone.position[0]) > geofence_margin or abs(drone.position[1]) > geofence_margin:
                     if drone.flight_phase in (FlightPhase.ENROUTE, FlightPhase.EVADING):
                         drone.flight_phase = FlightPhase.RTL
                         drone.goal = None
+
+            if phase_before not in (FlightPhase.GROUNDED, FlightPhase.FAILED) or drone.flight_phase not in (
+                FlightPhase.GROUNDED,
+                FlightPhase.FAILED,
+            ):
+                drone.distance_flown_m += float(np.linalg.norm(drone.position - prev_position))
 
             if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
                 drone.flight_time_s += dt

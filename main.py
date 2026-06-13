@@ -137,9 +137,15 @@ def cmd_scenario(args: argparse.Namespace) -> None:
     name = args.name
     runs = args.runs
     seed = args.seed
+    duration_override_s = getattr(args, "duration", None)
     print(f"\n시나리오 [{name}] - {runs}회 실행 (seed={seed})\n")
 
-    results = run_scenario(name, n_runs=runs, seed=seed)
+    results = run_scenario(
+        name,
+        n_runs=runs,
+        seed=seed,
+        duration_override_s=duration_override_s,
+    )
 
     for i, row in enumerate(results):
         print(f"-- Run #{i+1} --")
@@ -493,6 +499,7 @@ def main() -> None:
     p_sc.add_argument("--list",  "-l", action="store_true")
     p_sc.add_argument("--runs",  "-n", type=int, default=1, help="반복 횟수")
     p_sc.add_argument("--seed",        type=int, default=42, help="기본 시드")
+    p_sc.add_argument("--duration",    type=float, default=None, help="override scenario duration in seconds")
     p_sc.add_argument("--log-level", default="INFO")
 
     # ── monte-carlo ─────────────────────────────────────────────

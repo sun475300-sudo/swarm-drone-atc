@@ -85,7 +85,7 @@ class SimulationResult:
             ("경로 효율 (평균)",   f"{self.route_efficiency_mean:.3f}"),
             ("경로 효율 (최대)",   f"{self.route_efficiency_max:.3f}"),
             ("허가 승인",          str(self.clearances_approved)),
-            ("총 비행 거리",       f"{self.total_distance_km:.1f} km"),
+            ("총 비행 거리",       f"{self.total_distance_km:.3f} km"),
             ("에너지 효율",        f"{self.energy_efficiency_wh_per_km:.2f} Wh/km"),
             ("고장 주입",          str(self.failures_injected)),
             ("통신 두절 주입",     str(self.comms_losses_injected)),
@@ -151,6 +151,8 @@ class SimulationAnalytics:
         self._dist_actual:  dict[str, float] = {}  # drone_id → actual km
         self._dist_planned: dict[str, float] = {}
         self._flight_time:  dict[str, float] = {}
+        self._battery_initial: dict[str, float] = {}
+        self._battery_last: dict[str, float] = {}
 
         self._cbs_attempts  = 0
         self._cbs_successes = 0
@@ -198,6 +200,7 @@ class SimulationAnalytics:
         t: float,
     ) -> None:
         """`snapshot` 정보를 기록한다."""
+        self._record_rollups(drones)
         if not self._save_traj:
             return
         # 메모리 최적화: 5초 간격 샘플링 (1Hz 전체 → 0.2Hz)
@@ -224,6 +227,15 @@ class SimulationAnalytics:
             # 거리 누적
             self._dist_actual[did] = float(d.distance_flown_m)
             self._flight_time[did] = float(d.flight_time_s)
+
+    def _record_rollups(self, drones: dict[str, DroneState]) -> None:
+        """Track compact per-drone aggregates independent of trajectory logging."""
+        for did, d in drones.items():
+            self._dist_actual[did] = float(d.distance_flown_m)
+            self._flight_time[did] = float(d.flight_time_s)
+            battery_pct = float(d.battery_pct)
+            self._battery_initial.setdefault(did, battery_pct)
+            self._battery_last[did] = battery_pct
 
     def record_planned_distance(self, drone_id: str, dist_m: float) -> None:
         """`planned distance` 정보를 기록한다."""
@@ -287,12 +299,16 @@ class SimulationAnalytics:
         total_flight_s  = sum(self._flight_time.values())
         total_dist_km   = sum(self._dist_actual.values()) / 1000.0
 
-        # 에너지 효율 추정: 평균 50Wh 배터리, 사용 배터리% → Wh/km
-        battery_used_pct = [100.0 - ev.get("bat", 100.0) for ev in self._snapshots
-                           if ev.get("phase") not in ("GROUNDED",)]
-        avg_wh = 50.0  # 기본 배터리 용량 가정
-        energy_wh = sum(max(0, p) * avg_wh / 100.0 for p in battery_used_pct) if battery_used_pct else 0.0
-        energy_eff = energy_wh / max(total_dist_km, 0.01) if total_dist_km > 0 else 0.0
+        # Estimate energy from each drone's net battery drop, not from every
+        # trajectory sample. Summing cumulative sample percentages inflates
+        # short high-density runs by orders of magnitude.
+        avg_wh = 50.0
+        battery_used_pct = [
+            max(0.0, self._battery_initial.get(did, last) - last)
+            for did, last in self._battery_last.items()
+        ]
+        energy_wh = sum(p * avg_wh / 100.0 for p in battery_used_pct)
+        energy_eff = energy_wh / total_dist_km if total_dist_km >= 0.01 else 0.0
 
         # 고장/통신두절 주입 카운트
         fail_injected = sum(1 for ev in self._events if ev["type"] == "FAILURE_INJECTED")

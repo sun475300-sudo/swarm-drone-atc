@@ -308,6 +308,7 @@ class SwarmSimulator:
         goal[1] = float(np.clip(goal[1], -self.bounds_m + 200, self.bounds_m - 200))
         drone.goal = goal
         drone.planned_distance_m = float(np.linalg.norm(goal - drone.position))
+        drone.leg_start_distance_m = drone.distance_flown_m  # 이 구간의 실제거리 기준점
         self.analytics.record_planned_distance(drone.drone_id, drone.planned_distance_m)
 
     def _request_clearance(self, drone: DroneState, t: float) -> None:

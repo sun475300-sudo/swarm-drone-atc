@@ -59,6 +59,7 @@ class DroneState:
     # 성능 추적
     distance_flown_m: float = 0.0
     planned_distance_m: float = 0.0
+    leg_start_distance_m: float = 0.0   # 현재 구간(leg) 시작 시점의 누적 비행거리
     flight_time_s: float = 0.0
 
     # 드론 프로파일 참조

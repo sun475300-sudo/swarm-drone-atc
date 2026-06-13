@@ -113,3 +113,31 @@ class TestSimulationAnalytics:
         analytics.record_snapshot({"D1": d}, t=1.0)
         assert len(analytics.snapshots) == 1
         assert analytics.snapshots[0]["id"] == "D1"
+
+    def test_energy_efficiency_uses_net_battery_drop(self, analytics):
+        from src.airspace_control.agents.drone_state import DroneState, FlightPhase
+
+        d = DroneState("D1", np.array([0.0, 0.0, 60.0]), np.zeros(3), battery_pct=80.0)
+        d.flight_phase = FlightPhase.ENROUTE
+        d.distance_flown_m = 500.0
+        analytics.record_snapshot({"D1": d}, t=1.0)
+
+        d.battery_pct = 78.0
+        d.distance_flown_m = 1000.0
+        analytics.record_snapshot({"D1": d}, t=6.0)
+
+        result = analytics.finalize(n_drones=1)
+        assert result.total_distance_km == pytest.approx(1.0)
+        assert result.energy_efficiency_wh_per_km == pytest.approx(1.0)
+
+    def test_rollups_work_when_trajectory_logging_disabled(self):
+        from src.airspace_control.agents.drone_state import DroneState, FlightPhase
+
+        analytics = SimulationAnalytics({"logging": {"save_trajectory": False}})
+        d = DroneState("D1", np.array([0.0, 0.0, 60.0]), np.zeros(3), battery_pct=90.0)
+        d.flight_phase = FlightPhase.ENROUTE
+        d.distance_flown_m = 1000.0
+        analytics.record_snapshot({"D1": d}, t=1.0)
+
+        result = analytics.finalize(n_drones=1)
+        assert result.total_distance_km == pytest.approx(1.0)

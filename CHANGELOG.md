@@ -5,6 +5,22 @@
 
 ## [Unreleased]
 
+### 기능 (feat) — GENESIS Phase 303·307 인증 양식 자동 생성 (2026-06-13)
+- **GENESIS 303** 비행계획 신고/승인 신청서 자동 생성 — `src/certification/flight_plan_submission.py`.
+  항공안전법 §127 + 시행규칙 §306(Drone One-Stop) 기준. frozen dataclass(`Applicant`/`Aircraft`/
+  `FlightPlan`/`Pilot`) + 입력 검증(좌표·반경·고도·자격 범위). 고도>150m·야간/BVLOS·중량>25kg →
+  `ApprovalRequirement` 결정적 판정. `to_dict()`(JSON 직렬화)/`to_text()`(제출용 평문) 출력.
+- **GENESIS 307** 사고 보고 양식(항철위/ARAIB) 자동 작성 — `src/certification/accident_report.py`.
+  항공안전법 §134 + 사고조사법 기준. INJ Phase 6 장애 주입 로그 → 표준 양식 변환(`from_sim_log()`).
+  심각도 결정적 분류(사고/준사고/경미) + 즉시보고 의무 판정. `to_dict()`/`to_text()` 출력.
+- **테스트**: `tests/test_flight_plan_submission.py`(14) + `tests/test_accident_report.py`(18) =
+  **신규 32 pass**. 베이스라인 회귀 4,071 pass / 280 skip / 0 fail (커버리지 83.94%) 위 추가.
+- **코드 리뷰 반영(어드바이저)**: §134 준사고 즉시보고 의무 누락(HIGH)·좌표 범위 검증 누락·
+  비행 시각 역전 미검증·NFZ 준사고 분류 보강 — 경계값/검증 테스트 7건 추가.
+- **문서**: `docs/certification/FLIGHT_PLAN_SUBMISSION.md`·`ACCIDENT_REPORT_ARAIB.md` 신규 +
+  `AIR_SAFETY_ACT_MATRIX.md` 갱신(§306·§134 production 격상, Gap 2건 해소).
+  `SIMULATOR_GENESIS_PLAN.md` Phase 303·307 ✅ 마킹.
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (388.13s).

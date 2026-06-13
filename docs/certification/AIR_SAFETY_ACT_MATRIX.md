@@ -15,11 +15,12 @@
 | 항공안전법 §129 ⑥ | 비행기록 보존(2년) | `src/storage/timescale.py` (30일 → 외부 백업) | 🔵 beta | TimescaleDB 보존정책 + 외부 아카이브 정책 필요 |
 | 항공안전법 §131 | 자격증명 | GENESIS Phase 309 매핑 (계획) | ⬜ | 1~4종 ↔ 시뮬 교육 모드 |
 | 항공안전법 §131의2 | 안전관리시스템(SMS) | `docs/hardware/fmea_report.md` (P700, 12 failure modes) | 🔵 beta | FMEA + 사고 보고 (GENESIS 307) |
+| 항공안전법 §134 | 사고 보고 의무 (항철위) | `src/certification/accident_report.py` (GENESIS 307) | 🟢 production | 시뮬 로그 → ARAIB 양식 + 사고/준사고/경미 분류 |
 | 드론활용촉진법 §6 | 드론산업기본계획 정렬 | K-드론시스템 고도화 정책 제안 (ODYSSEY 463 계획) | ⬜ | |
 | 드론활용촉진법 §11 | 드론공역 지정·관리 | `airspace_reservation.py` + 9층 고도 레이어 | 🟢 production | |
 | 드론활용촉진법 §15 | 안전기준 (SORA·SAIL) | `_sdacs.soraAssess()` (GENESIS 302) | 🟢 production | iGRC × ARC → SAIL I-VI |
 | 드론활용촉진법 §16 | 보험 가입 | Phase 67 보험 mock → GENESIS 308 격상 계획 | 🟡 mock | 실 보험사 API 스펙화 필요 |
-| 시행규칙 §306 | 비행계획 제출 (Drone One-Stop) | GENESIS Phase 303 (계획) | ⬜ | 신청서 export 자동화 |
+| 시행규칙 §306 | 비행계획 제출 (Drone One-Stop) | `src/certification/flight_plan_submission.py` (GENESIS 303) | 🟢 production | 신청서 양식 생성 + 승인 요건 자동 판정 |
 | 시행규칙 §307 | Remote ID 방송 | `src/utm/remote_id.py` (P693 ASTM F3411 v2.0) | 🟢 production | 한국 RID 법규 정렬 |
 
 ## 2. 격차 분석 (Gap)
@@ -29,7 +30,8 @@
 | 보험 요율 산정 | mock 결정적 응답 | 실 보험사 데이터 미연동 | GENESIS 308 |
 | 비행기록 2년 보존 | TimescaleDB 30일 + 외부 백업 정책 미정 | 장기 아카이브 운영 절차 부재 | GENESIS 345·390 |
 | 자격증명 ↔ 교육 모드 | 교육 모드 미구현 | 자격증 요건 매핑 부재 | GENESIS 309·381 |
-| 사고 보고 자동화 | 시뮬 로그는 있으나 항철위 양식 변환기 없음 | 양식 표준 변환기 부재 | GENESIS 307 |
+| 사고 보고 자동화 | ✅ `accident_report.py` — ARAIB 양식 변환 + 심각도 분류 완료 (GENESIS 307) | 실 항철위 전산 제출 연동 미정 | GENESIS 307 (완료) |
+| 비행계획 제출 자동화 | ✅ `flight_plan_submission.py` — Drone One-Stop 양식 + 승인 요건 판정 완료 (GENESIS 303) | 실 원스톱 전산 제출 연동 미정 | GENESIS 303 (완료) |
 
 ## 3. 운영자 체크리스트 (요약)
 
@@ -44,7 +46,7 @@
 - [ ] 비행기록 수집 (TimescaleDB 또는 백업 파이프라인)
 
 운영 후:
-- [ ] 사고/준사고 발생 시 시뮬 로그 → 항철위 양식 변환 (Phase 307 도구 완성 시)
+- [ ] 사고/준사고 발생 시 시뮬 로그 → 항철위 양식 변환 (`accident_report.from_sim_log()`, Phase 307 완료)
 - [ ] 비행기록 2년 보존 정책 적용
 
 ## 🔗 관련

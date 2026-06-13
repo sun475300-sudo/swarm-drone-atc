@@ -80,9 +80,13 @@
 - [ ] 241-260 다중 사용자 — WS 관제 서버·2-브라우저 협업 E2E·부하 100명
 - [ ] 261-280 HITL (사용자 HW) · 281-300 학술 임팩트 (Ablation 자동화는 sandbox 가능)
 
-**GENESIS·ODYSSEY 잔여 (즉시 착수 가능 후보)**
-- [ ] GENESIS 387 졸업 심사 발표 키트 · 381 교육 모드 튜토리얼 · 306 RTM 5계층 커버리지
-- [ ] ODYSSEY 448 속성 기반 테스트(Hypothesis 1,000케이스) · 447 시나리오 fuzzing · 466 텔레메트리 JSON Schema
+**GENESIS·ODYSSEY 진척 (2026-06-12 추가 완료)**
+- [x] **GENESIS 301** ✅ 항공안전법·드론활용촉진법 적합성 매트릭스 — [`docs/certification/AIR_SAFETY_ACT_MATRIX.md`](docs/certification/AIR_SAFETY_ACT_MATRIX.md) (12 조항 매핑·격차·운영자 체크리스트)
+- [x] **GENESIS 387** ✅ 졸업 심사 발표 키트 — [`docs/presentation/DEFENSE_KIT.md`](docs/presentation/DEFENSE_KIT.md) (10분 데모 시나리오·예상 질문 18개·압박 대응·당일 체크리스트)
+- [x] **TRANSCENDENCE 204** ✅ Production 핵심 12종 회귀 강화 — `tests/e2e/test_simulator_production_core.py` (production getter 전수 + 핵심 메서드 호출 + 90 회귀 방지)
+- [x] **ODYSSEY 448** ✅ 속성 기반 테스트 — `tests/test_property_telemetry.py` (Hypothesis 1,150+ 케이스, 압축 무손실/유계 오차/충돌해결률 불변식)
+- [x] **ODYSSEY 466** ✅ 텔레메트리 JSON Schema 공개 — [`docs/schemas/telemetry.schema.json`](docs/schemas/telemetry.schema.json) (Draft-07) + `tests/test_telemetry_schema.py` (스키마 + 예제 + ws_bridge 정합성)
+- [ ] GENESIS 381 교육 모드 튜토리얼 · 306 RTM 5계층 커버리지 · ODYSSEY 447 시나리오 fuzzing — 다음 차수
 
 **기술 부채 (정직성 공시)**
 - [ ] mock 110종 + speculative 103종 — 전체 목록·격상 난이도: [`docs/TECH_DEBT_LEDGER.md`](docs/TECH_DEBT_LEDGER.md) (자동 생성)

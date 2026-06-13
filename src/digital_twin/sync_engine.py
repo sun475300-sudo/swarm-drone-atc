@@ -9,9 +9,53 @@ MAVLink2 GLOBAL_POSITION_INT, ATTITUDE, VFR_HUD를 파싱하여 SDACS DroneState
 """
 from __future__ import annotations
 
+import math
 import time
 from collections import deque
 from dataclasses import dataclass, field
+
+# WGS84 타원체 상수 (GPS → 로컬 ENU 변환용)
+_WGS84_A = 6_378_137.0          # 장반경 (m)
+_WGS84_E2 = 6.694_379_990_14e-3  # 제1 이심률 제곱
+
+
+def geodetic_to_enu(
+    lat_deg: float,
+    lon_deg: float,
+    alt_m: float,
+    ref_lat_deg: float,
+    ref_lon_deg: float,
+    ref_alt_m: float,
+) -> tuple[float, float, float]:
+    """측지좌표(lat/lon/alt) → 기준점 기반 로컬 ENU (east, north, up) 미터.
+
+    WGS84 타원체 위 ECEF 변환 후 기준점 접평면으로 회전하는 엄밀해.
+    평면 근사와 달리 거리에 무관하게 정확하다(±0.5m 기준 충족, Phase 226).
+    """
+    ex, ey, ez = _geodetic_to_ecef(lat_deg, lon_deg, alt_m)
+    rx, ry, rz = _geodetic_to_ecef(ref_lat_deg, ref_lon_deg, ref_alt_m)
+    dx, dy, dz = ex - rx, ey - ry, ez - rz
+
+    lat = math.radians(ref_lat_deg)
+    lon = math.radians(ref_lon_deg)
+    sin_lat, cos_lat = math.sin(lat), math.cos(lat)
+    sin_lon, cos_lon = math.sin(lon), math.cos(lon)
+
+    east = -sin_lon * dx + cos_lon * dy
+    north = -sin_lat * cos_lon * dx - sin_lat * sin_lon * dy + cos_lat * dz
+    up = cos_lat * cos_lon * dx + cos_lat * sin_lon * dy + sin_lat * dz
+    return east, north, up
+
+
+def _geodetic_to_ecef(lat_deg: float, lon_deg: float, alt_m: float) -> tuple[float, float, float]:
+    """측지좌표 → ECEF (지구중심 고정) 직교좌표."""
+    lat = math.radians(lat_deg)
+    lon = math.radians(lon_deg)
+    n = _WGS84_A / math.sqrt(1.0 - _WGS84_E2 * math.sin(lat) ** 2)
+    x = (n + alt_m) * math.cos(lat) * math.cos(lon)
+    y = (n + alt_m) * math.cos(lat) * math.sin(lon)
+    z = (n * (1.0 - _WGS84_E2) + alt_m) * math.sin(lat)
+    return x, y, z
 
 
 @dataclass(frozen=True)
@@ -123,13 +167,15 @@ class TelemetrySync:
         return self._latest.get(drone_id)
 
     def to_sdacs_state(self, snapshot: TelemetrySnapshot, origin_lat: float, origin_lon: float) -> dict:
-        """GPS → 로컬 ENU (m) 변환 + SDACS DroneState 형식."""
-        # 단순 평면 근사 (소규모 환경, <10km)
-        # 정확: pyproj 사용 권장
-        dlat = snapshot.lat_deg - origin_lat
-        dlon = snapshot.lon_deg - origin_lon
-        x_m = dlon * 111_320 * (1.0)  # cos(lat) 근사 생략 시
-        y_m = dlat * 110_540
+        """GPS → 로컬 ENU (m) 변환 + SDACS DroneState 형식.
+
+        수평 좌표(x=east, y=north)는 WGS84 ECEF→ENU 엄밀해로 변환한다.
+        z는 시뮬레이터 규약에 따라 기체 고도(alt_m)를 그대로 사용한다.
+        """
+        # 수평 변환은 기준점·대상 모두 고도 0의 측지점으로 계산(접평면 곡률 분리)
+        x_m, y_m, _ = geodetic_to_enu(
+            snapshot.lat_deg, snapshot.lon_deg, 0.0, origin_lat, origin_lon, 0.0,
+        )
         return {
             "drone_id": snapshot.drone_id,
             "position": [x_m, y_m, snapshot.alt_m],

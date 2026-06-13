@@ -5,6 +5,16 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — ODYSSEY Phase 445: Monte Carlo 신뢰구간 자동 리포트 (2026-06-13)
+- ✨ `simulation/monte_carlo.py`에 `compute_confidence_intervals()`·`confidence_interval_report()` 추가 —
+  설정 그룹(드론 밀도·면적·장애율·통신손실·풍속)별로 지표(충돌·니어미스·충돌해결률·경로효율)의
+  **Student-t 기반 신뢰구간**(평균·표준편차·표준오차·반폭·CI 상/하한) 산출. 표본 1개·상수 지표는
+  반폭 0.0으로 정규화, `confidence∉(0,1)`은 `ValueError`.
+- ✨ `main.py monte-carlo --ci [--confidence 0.95]` 플래그 — 스윕 후 신뢰구간 리포트 출력.
+- ✅ 회귀 테스트 9건 추가(`tests/test_monte_carlo.py::TestConfidenceIntervals`): 그룹×지표 행 수,
+  구간이 평균을 포함, 신뢰수준↑ → 구간 폭↑, 상수/단일 표본 0폭, 잘못된 신뢰수준 예외, 빈 입력.
+- 일일 점검: 작업 전 전체 회귀 **4,071 pass / 280 skip / 0 fail**(112.99s, xdist) GREEN 베이스라인 확인.
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (388.13s).

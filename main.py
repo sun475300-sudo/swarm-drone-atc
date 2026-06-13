@@ -170,7 +170,11 @@ def cmd_scenario(args: argparse.Namespace) -> None:
 def cmd_monte_carlo(args: argparse.Namespace) -> None:
     """Monte Carlo 파라미터 스윕 (quick/full) 실행 후 설정별 집계 결과를 표로 출력"""
     _setup_logging(getattr(args, "log_level", "INFO"))
-    from simulation.monte_carlo import run_monte_carlo, summarize_results
+    from simulation.monte_carlo import (
+        confidence_interval_report,
+        run_monte_carlo,
+        summarize_results,
+    )
 
     mode = args.mode
     print(f"\n🎲 Monte Carlo [{mode}] 스윕 시작...\n")
@@ -180,6 +184,9 @@ def cmd_monte_carlo(args: argparse.Namespace) -> None:
     print(f"\n총 {len(results)}회 실행 완료\n")
     print(summarize_results(results))
     print()
+    if getattr(args, "ci", False):
+        print(confidence_interval_report(results, confidence=args.confidence))
+        print()
 
 
 # ── visualize ────────────────────────────────────────────────
@@ -502,6 +509,8 @@ def main() -> None:
     # ── monte-carlo ─────────────────────────────────────────────
     p_mc = sub.add_parser("monte-carlo", help="Monte Carlo 파라미터 스윕")
     p_mc.add_argument("--mode",      default="quick", choices=["quick", "full"])
+    p_mc.add_argument("--ci",        action="store_true", help="설정 그룹별 신뢰구간 리포트 출력 (Phase 445)")
+    p_mc.add_argument("--confidence", type=float, default=0.95, help="신뢰수준 (기본 0.95)")
     p_mc.add_argument("--log-level", default="INFO")
 
     p_bench = sub.add_parser("benchmark", help="Reproducible benchmark cell runner")

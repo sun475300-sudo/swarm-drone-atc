@@ -136,6 +136,123 @@ def run_monte_carlo(mode: str = "quick") -> list[dict]:
     return results
 
 
+# 신뢰구간 리포트 기본 대상 지표 (Phase 445)
+CI_DEFAULT_METRICS = (
+    "collision_count",
+    "near_miss_count",
+    "conflict_resolution_rate",
+    "route_efficiency",
+)
+CI_GROUP_COLS = (
+    "drone_density",
+    "area_size_km2",
+    "failure_rate_pct",
+    "comms_loss_rate",
+    "wind_speed_ms",
+)
+
+
+def compute_confidence_intervals(
+    results: list[dict],
+    metrics: tuple[str, ...] = CI_DEFAULT_METRICS,
+    confidence: float = 0.95,
+) -> list[dict]:
+    """
+    Monte Carlo 결과의 설정 그룹별·지표별 신뢰구간 산출 (Phase 445)
+
+    각 설정 조합(drone_density 등)으로 묶은 뒤, 지표마다 표본 평균과
+    Student-t 기반 신뢰구간을 계산한다. 표본이 1개뿐이면 분산을 추정할 수
+    없으므로 반폭(half_width)을 0.0 으로 둔다 (구간 = 점추정).
+
+    Args:
+        results: run_monte_carlo() 가 반환한 실행 결과 리스트
+        metrics: 신뢰구간을 계산할 지표 이름들
+        confidence: 신뢰수준 (0 < confidence < 1, 기본 0.95)
+
+    Returns:
+        그룹×지표별 통계 dict 리스트. 각 항목 키:
+        group(설정값 dict), metric, n, mean, std, sem, half_width, ci_low, ci_high
+    """
+    if not 0.0 < confidence < 1.0:
+        raise ValueError(f"confidence must be in (0, 1), got {confidence}")
+    if not results:
+        return []
+
+    import pandas as pd
+    from scipy import stats
+
+    df = pd.DataFrame(results)
+    group_cols = [c for c in CI_GROUP_COLS if c in df.columns]
+    active_metrics = [m for m in metrics if m in df.columns]
+    if not active_metrics:
+        return []
+
+    # 그룹 컬럼이 없으면 전체를 단일 그룹으로 취급
+    groups = df.groupby(group_cols) if group_cols else [((), df)]
+    alpha = 1.0 - confidence
+
+    rows: list[dict] = []
+    for key, sub in groups:
+        key_tuple = key if isinstance(key, tuple) else (key,)
+        group_label = dict(zip(group_cols, key_tuple, strict=False))
+        for metric in active_metrics:
+            values = sub[metric].to_numpy(dtype=float)
+            # NaN(예: 실패 런)은 통계 왜곡을 피하기 위해 제외
+            values = values[~np.isnan(values)]
+            n = int(len(values))
+            mean = float(np.mean(values)) if n > 0 else 0.0
+            # ddof=1 표본표준편차, n<2 면 nan → 0.0 으로 정규화
+            std = float(np.std(values, ddof=1)) if n > 1 else 0.0
+            sem = std / np.sqrt(n) if n > 0 else 0.0
+            if n > 1 and sem > 0.0:
+                t_crit = float(stats.t.ppf(1.0 - alpha / 2.0, df=n - 1))
+                half_width = t_crit * sem
+            else:
+                half_width = 0.0
+            # 반올림된 값으로 구간을 도출해 ci_high - ci_low == 2*half_width 불변식 유지
+            mean_r = round(mean, 4)
+            half_r = round(half_width, 4)
+            rows.append({
+                "group": group_label,
+                "metric": metric,
+                "n": n,
+                "mean": mean_r,
+                "std": round(std, 4),
+                "sem": round(sem, 4),
+                "half_width": half_r,
+                "ci_low": round(mean_r - half_r, 4),
+                "ci_high": round(mean_r + half_r, 4),
+            })
+    return rows
+
+
+def confidence_interval_report(
+    results: list[dict],
+    metrics: tuple[str, ...] = CI_DEFAULT_METRICS,
+    confidence: float = 0.95,
+) -> str:
+    """compute_confidence_intervals() 결과를 사람이 읽는 표 형태 문자열로 포맷 (Phase 445)"""
+    rows = compute_confidence_intervals(results, metrics=metrics, confidence=confidence)
+    if not rows:
+        return "신뢰구간 리포트: 데이터 없음"
+
+    pct = int(round(confidence * 100))
+    lines = [f"Monte Carlo {pct}% 신뢰구간 리포트 (설정 그룹 × 지표)"]
+    last_group: dict | None = None
+    for row in rows:
+        if row["group"] != last_group:
+            label = ", ".join(f"{k}={v}" for k, v in row["group"].items()) or "(전체)"
+            lines.append(f"\n[{label}]")
+            last_group = row["group"]
+        lines.append(
+            f"  {row['metric']:<26} "
+            f"mean={row['mean']:>10.4f}  "
+            f"{pct}%CI=[{row['ci_low']:>10.4f}, {row['ci_high']:>10.4f}]  "
+            f"±{row['half_width']:<8.4f} (n={row['n']})"
+        )
+    return "\n".join(lines)
+
+
 def summarize_results(results: list[dict]) -> str:
     """Monte Carlo 결과 테이블 요약"""
     import pandas as pd

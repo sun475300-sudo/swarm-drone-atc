@@ -287,7 +287,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [ ] **Phase 421-440** 🛰 Federation Operations — inter-USS 디스커버리·관제권 핸드오버·연합 충돌 해소
 - [x] **Phase 447** 🔬 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` NFZ·ATC·SORA 140케이스 (2026-06-12)
 - [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12)
-- [ ] **Phase 441-446·449-460** 🔬 Formal & Research Frontier — TLA+ 안전망 명세·모델 체킹
+- [x] **Phase 449** 🔬 시뮬-실측 갭 모델 — `src/training/sim_real_gap.py` 실측 텔레메트리 분포로 DR 범위 자동 보정(`SimRealGapCalibrator`) + 갭 정량화(`compute_gap`), 7개 단위 테스트 PASS (2026-06-13)
+- [ ] **Phase 441-446·450-460** 🔬 Formal & Research Frontier — TLA+ 안전망 명세·모델 체킹
 - [x] **Phase 466** 🏛 텔레메트리 JSON Schema 공개 — `docs/schemas/telemetry.schema.json` Draft-07 + ws_bridge 정합 회귀 (2026-06-12)
 - [ ] **Phase 461-465·467-480** 🏛 Standards & Policy — ASTM/ISO 기고·정책 영향 시뮬
 - [x] **Phase 486** ♾️ 독립 재현 자동화 — `scripts/independent_reproduction.sh` (회귀·md5·JS·API 게이트 통합) (2026-06-12)

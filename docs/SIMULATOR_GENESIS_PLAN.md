@@ -94,7 +94,7 @@
 - **Phase 364** V2X 메시지 스펙 — 드론↔드론 직접 교신 (BSM 유사 포맷)
 - **Phase 365** 5G NTN(비지상 네트워크) 링크 모델 — 지연·핸드오버 시뮬
 - **Phase 366** GPS 거부 환경 항법 — VIO/UWB 폴백 모델 (Phase 22 RTK 보완)
-- **Phase 367** 스웜 자가 치유 — 결손 드론 임무 자동 재분배 (CBS 재계획 연계)
+- **Phase 367** ✅ 스웜 자가 치유 — `src/autonomy/swarm_self_healing.py` 결손 드론 임무 자동 재분배(최근접+부하균형 그리디, 우선순위·용량·드롭 처리, 결정적 RNG-free). 11개 단위 테스트 PASS (2026-06-13)
 - **Phase 368** 에너지 인식 임무 계획 — 풍속장 기반 소모 예측 경로 (energy_optimizer 연계)
 - **Phase 369** 적대 환경 강건성 — GPS 스푸핑·재밍 탐지 시나리오 (C-UAS 방어 측)
 - **Phase 370** 군집 이상 탐지 온라인화 — Isolation Forest 실시간 스트림 적용

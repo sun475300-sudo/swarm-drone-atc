@@ -5,6 +5,22 @@
 
 ## [Unreleased]
 
+### 기능 (feat) — GENESIS Phase 367 스웜 자가 치유 (2026-06-13)
+- **`src/autonomy/swarm_self_healing.py` 신설** — 결손(통신 두절·모터 페일·배터리 소진) 드론의
+  진행 중 임무를 가용 건강 드론에게 **결정적으로 재분배**하는 자가 치유 컨트롤러. CBS 재계획의
+  상위 의사결정 계층(어떤 임무를 어느 드론으로 옮길지/드롭할지)을 담당하고, 실제 경로 재계획은
+  하위 계획기에 위임한다.
+- **재분배 전략**: 우선순위 내림차순(동률 task_id 오름차순)으로 임무를 처리하며, 각 임무는
+  (거리 오름차순 → 부하 오름차순 → drone_id 오름차순) 기준으로 수용 드론을 선택. 드론당 최대
+  임무 수(`max_tasks_per_drone`)로 과부하 방지, 수용 후보가 없으면 재계획 큐로 드롭. `np.random`
+  미사용으로 동일 입력 동일 결과(재현성).
+- **API**: `SwarmSelfHealer.add_drone/assign_task/mark_failed/available_drones/drone_load/summary`,
+  `heal_swarm()` 다수 동시 결손 처리, `HealingReport`(healed_count·is_fully_healed) 결과 요약.
+  `mark_failed`는 idempotent(이미 결손·미등록 드론은 빈 리포트).
+- **검증**: `tests/track_genesis/test_swarm_self_healing.py` **11개 단위 테스트 PASS**(최근접 재분배·
+  부하 균형·우선순위 순서·용량 포화 드롭·idempotency·입력 검증). 전체 회귀 **4,082 pass / 280 skip /
+  0 fail**(직전 베이스라인 4,071 + 신규 11), ruff·mypy 통과.
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (388.13s).

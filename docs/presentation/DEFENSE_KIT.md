@@ -11,7 +11,7 @@
 > 충돌을 막는 것이 핵심 문제인데, 저희는 **APF 회피 → CBS 경로계획 → CPA 90초 예측 →
 > ATC 관제 → UTM 연동**의 5계층 안전망으로 해결했습니다. SimPy 이산 사건 시뮬레이션과
 > 브라우저 단독 3D 시뮬레이터로 구현했고, **자동 테스트 4,443건 전부 통과**로 검증했습니다.
-> 특히 404개 외부 API 전부에 구현 성숙도 등급을 공시하는 **정직성 체계**가 차별점입니다."
+> 특히 407개 외부 API 전부에 구현 성숙도 등급을 공시하는 **정직성 체계**가 차별점입니다."
 
 ## 2️⃣ 라이브 데모 시나리오 (10분)
 
@@ -26,7 +26,7 @@
 | 5 | 1분 | 장애 주입 | 콘솔 `_sdacs.injectScenario('EMP')` | GPS 손실 드론 회복 과정 |
 | 6 | 1분 | 동적 NFZ | `_sdacs.injectDynamicNFZ(0,0,200,30)` | 분석 뷰 Q2 원형 NFZ + 잔여 시간 펄스 |
 | 7 | 1분 | 분석 뷰 | `_sdacs.setAnalysisView(true)` | 2×2: 3D + 평면도 + 배터리 + KPI |
-| 8 | 1분 | **정직성 (차별점)** | `_sdacs.maturityReport()` | production 90 / mock 110 공시 |
+| 8 | 1분 | **정직성 (차별점)** | `_sdacs.maturityReport()` | production 93 / mock 110 공시 |
 | 9 | 1분 | SORA 인증 산정 | `_sdacs.soraAssess({populationDensity:'populated'})` | JARUS 2.0 → SAIL II 도출 |
 
 **백업 플랜** (데모 실패 대비):
@@ -53,8 +53,8 @@
 
 6. **테스트 4,443건은 무엇을 검증하나?**
    → 회귀 4,180(단위·통합) + Playwright E2E 263(브라우저 실 구동). 속성 기반(Hypothesis) 1,150케이스 포함. CI에서 Python 3.10/3.11/3.12 매트릭스.
-7. **404개 API 중 실제 동작은 얼마나 되나? (정직성 질문)**
-   → 정면 답변: production 90 + beta 98 = **188종이 실 동작**, mock 110·speculative 103은 인터페이스 안정성만 보장. `maturityReport()`로 실시간 공시하고 mock 호출 시 콘솔 경고. 이 정직성 체계 자체가 기여.
+7. **407개 API 중 실제 동작은 얼마나 되나? (정직성 질문)**
+   → 정면 답변: production 93 + beta 98 = **188종이 실 동작**, mock 110·speculative 103은 인터페이스 안정성만 보장. `maturityReport()`로 실시간 공시하고 mock 호출 시 콘솔 경고. 이 정직성 체계 자체가 기여.
 8. **시뮬레이션 결과를 실제 드론에 신뢰할 수 있나? (Sim-to-Real)**
    → 한계 인정: 현재 실 비행 데이터 0건. Domain Randomization(`src/training/domain_rand.py`)과 Pixhawk HITL 가이드(P691-700)로 격차 축소 경로 마련, TRANSCENDENCE 261-280이 실증 로드맵.
 9. **재현성은?**
@@ -110,7 +110,7 @@
 |---|:-:|---|
 | 안전망 | 5계층 | APF·CBS·CPA·ATC·UTM |
 | 자동 검증 | 4,443 pass / 0 fail | 회귀 4,180 + E2E 263 |
-| API | 404 (production 90) | maturity 공시 |
+| API | 404 (production 93) | maturity 공시 |
 | 충돌 해결률 | `1 - c/(c+f)` | high_density에서 ≈100% |
 | CPA 예측 | 90초 lookahead | 등속 외삽 해석해 |
 | 시뮬 코드 | 11,900줄 / 540KB | 단일 HTML 오프라인 |

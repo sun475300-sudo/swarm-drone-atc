@@ -11,7 +11,7 @@
 
 [![Phase](https://img.shields.io/badge/Phase-200%20%E2%9C%93-purple?style=for-the-badge&logo=rocket)](docs/phase_matrix.html)
 [![SDACS Unity](https://img.shields.io/badge/Phase_200-%F0%9D%9F%8F_Unity-ec407a?style=for-the-badge&logo=infinity)](docs/SIMULATOR_POST_UNIVERSE_PLAN.md)
-[![API](https://img.shields.io/badge/__sdacs-404_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
+[![API](https://img.shields.io/badge/__sdacs-407_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
 [![E2E](https://img.shields.io/badge/E2E-263%2F264_pass-22c55e?style=for-the-badge&logo=playwright&logoColor=white)](tests/e2e/)
 [![Roadmap](https://img.shields.io/badge/Roadmap_691--755-92%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
 [![Tests](https://img.shields.io/badge/Tests-4%2C443_pass_%C2%B7_0_fail-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
@@ -34,7 +34,7 @@
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
 </div>
 
-> **♾️ 최신 업데이트 (2026-06-12 · API Maturity 정직성 체계 가동 + TRANSCENDENCE/GENESIS/ODYSSEY 계획 체계 · 404 API 라이브 실측 · 종합 4,443 pass / 0 fail)** — 🎯 **신규**: `apiMaturity()`/`maturityReport()` 분류(production 90·beta 98·mock 110·speculative 103) · **Mock Detector**(mock 호출 시 console.warn + `mockCalls` 카운트, Phase 203) · **`experimental.*` 네임스페이스**(speculative 103종 격리, Phase 206) · **`soraAssess()`**(JARUS SORA 2.0 결정적 SAIL 산정, GENESIS 302) · **기술 부채 대장** [TECH_DEBT_LEDGER.md](docs/TECH_DEBT_LEDGER.md) 자동 생성(GENESIS 388) · CI에 문서-실측 정합성 + 4 사본 md5 게이트. 계획 체계 3층: [TRANSCENDENCE 201-300](docs/SIMULATOR_TRANSCENDENCE_PLAN.md)(8%) · [GENESIS 301-400](docs/SIMULATOR_GENESIS_PLAN.md)(2%) · [ODYSSEY 401-500](docs/SIMULATOR_ODYSSEY_PLAN.md)(수립) + [2026 H2 실행 일정](docs/MASTER_PLAN_2026H2.md)
+> **♾️ 최신 업데이트 (2026-06-12 · API Maturity 정직성 체계 가동 + TRANSCENDENCE/GENESIS/ODYSSEY 계획 체계 · 407 API 라이브 실측 · 종합 4,443 pass / 0 fail)** — 🎯 **신규**: `apiMaturity()`/`maturityReport()` 분류(production 93·beta 98·mock 110·speculative 103) · **Mock Detector**(mock 호출 시 console.warn + `mockCalls` 카운트, Phase 203) · **`experimental.*` 네임스페이스**(speculative 103종 격리, Phase 206) · **`soraAssess()`**(JARUS SORA 2.0 결정적 SAIL 산정, GENESIS 302) · **기술 부채 대장** [TECH_DEBT_LEDGER.md](docs/TECH_DEBT_LEDGER.md) 자동 생성(GENESIS 388) · CI에 문서-실측 정합성 + 4 사본 md5 게이트. 계획 체계 3층: [TRANSCENDENCE 201-300](docs/SIMULATOR_TRANSCENDENCE_PLAN.md)(8%) · [GENESIS 301-400](docs/SIMULATOR_GENESIS_PLAN.md)(2%) · [ODYSSEY 401-500](docs/SIMULATOR_ODYSSEY_PLAN.md)(수립) + [2026 H2 실행 일정](docs/MASTER_PLAN_2026H2.md)
 >
 > **이전 (200 Phase Unity)** — 🎯 **Phase 200 = SDACS = 𝟏 (Unity)** 도달 후 **Phase 51 (LLM Multi-Agent)** 가 시드에서 완전 격상되었습니다: `stellar51DelegateGroup`(드론 그룹 LLM 위임) · `stellar51Recommend`(상태 기반 결정적 권고) · `stellar51Tick`(그룹 사이클 진행) · `stellar51Groups`(위임 그룹 조회) · `stellar51Revoke`(위임 해제). 5단계 통합 — MEGA(1-10) + HYPER(11-50) + STELLAR(51-100) + ULTIMATE(101-150) + POST-UNIVERSE(151-200). Playwright E2E **263/264 통과**(1 skip), 회귀 **4,180 pass / 8 skip / 0 fail**, 종합 **4,443 pass / 9 skip / 0 fail** (2026-06-12 실측). 🌌 [HYPER](docs/SIMULATOR_HYPER_PLAN.md) · [STELLAR](docs/SIMULATOR_STELLAR_PLAN.md) · [ULTIMATE](docs/SIMULATOR_ULTIMATE_PLAN.md) · [POST-UNIVERSE](docs/SIMULATOR_POST_UNIVERSE_PLAN.md) · [API](docs/SDACS_API.md) · [Phase Matrix](docs/phase_matrix.html)
 
@@ -83,10 +83,15 @@
 **GENESIS·ODYSSEY 진척 (2026-06-12 추가 완료)**
 - [x] **GENESIS 301** ✅ 항공안전법·드론활용촉진법 적합성 매트릭스 — [`docs/certification/AIR_SAFETY_ACT_MATRIX.md`](docs/certification/AIR_SAFETY_ACT_MATRIX.md) (12 조항 매핑·격차·운영자 체크리스트)
 - [x] **GENESIS 387** ✅ 졸업 심사 발표 키트 — [`docs/presentation/DEFENSE_KIT.md`](docs/presentation/DEFENSE_KIT.md) (10분 데모 시나리오·예상 질문 18개·압박 대응·당일 체크리스트)
-- [x] **TRANSCENDENCE 204** ✅ Production 핵심 12종 회귀 강화 — `tests/e2e/test_simulator_production_core.py` (production getter 전수 + 핵심 메서드 호출 + 90 회귀 방지)
+- [x] **TRANSCENDENCE 204** ✅ Production 핵심 12종 회귀 강화 — `tests/e2e/test_simulator_production_core.py` (production getter 전수 + 핵심 메서드 호출 + 93 회귀 방지)
 - [x] **ODYSSEY 448** ✅ 속성 기반 테스트 — `tests/test_property_telemetry.py` (Hypothesis 1,150+ 케이스, 압축 무손실/유계 오차/충돌해결률 불변식)
 - [x] **ODYSSEY 466** ✅ 텔레메트리 JSON Schema 공개 — [`docs/schemas/telemetry.schema.json`](docs/schemas/telemetry.schema.json) (Draft-07) + `tests/test_telemetry_schema.py` (스키마 + 예제 + ws_bridge 정합성)
-- [ ] GENESIS 381 교육 모드 튜토리얼 · 306 RTM 5계층 커버리지 · ODYSSEY 447 시나리오 fuzzing — 다음 차수
+- [x] **GENESIS 381** ✅ 교육 모드 — `_sdacs.tutorialStart/Next/Status()` 5단계 결정적 튜토리얼(ATC→TAC→UTM→APF→Maturity), E2E 2건
+- [x] **GENESIS 306** ✅ RTM 5계층 커버리지 — `docs/certification/RTM_5LAYER_COVERAGE.md` REQ↔DSN↔IMP↔VER 21건 추적
+- [x] **GENESIS 389** ✅ 유지보수 최소 모드 — `docs/MAINTENANCE_MINIMAL_MODE.md` (코어 서브셋·일일/분기/연 워크플로·비상 절차)
+- [x] **ODYSSEY 447** ✅ 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` Hypothesis로 NFZ·ATC·SORA 140케이스 무패닉 검증
+- [x] **ODYSSEY 486** ✅ 독립 재현 자동화 — `scripts/independent_reproduction.sh` (회귀·md5·JS·API 게이트 통합)
+- [ ] 잔여 sandbox 후보: TRANSCENDENCE 205(beta 부분 검증), GENESIS 304(KC 전파인증), GENESIS 309(자격증명 매핑), ODYSSEY 408(공역 클래스)
 
 **기술 부채 (정직성 공시)**
 - [ ] mock 110종 + speculative 103종 — 전체 목록·격상 난이도: [`docs/TECH_DEBT_LEDGER.md`](docs/TECH_DEBT_LEDGER.md) (자동 생성)
@@ -142,7 +147,7 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 | [📋 V1_5_0_RELEASE_INSTRUCTIONS.md](docs/V1_5_0_RELEASE_INSTRUCTIONS.md) | 사용자 1줄 명령으로 3-OS 자동 빌드 트리거 |
 | [🔧 pixhawk_sdacs_hitl.md](docs/hardware/pixhawk_sdacs_hitl.md) | Pixhawk 6X HITL 통합 (Phase 22 격상) |
 | [🚀 v1_5_PILOT_KICKOFF.md](docs/beta/v1_5_PILOT_KICKOFF.md) | KARI · 해수부 · 산림청 베타 (Helm 5단계) |
-| [📚 SDACS_API.md](docs/SDACS_API.md) | 404 `_sdacs` API 라이브 실측 추출 레퍼런스 (maturity 등급 포함) |
+| [📚 SDACS_API.md](docs/SDACS_API.md) | 407 `_sdacs` API 라이브 실측 추출 레퍼런스 (maturity 등급 포함) |
 | [🧭 SIMULATOR_TRANSCENDENCE_PLAN.md](docs/SIMULATOR_TRANSCENDENCE_PLAN.md) | Phase 201-300 — 정직성·실측·다중 사용자·HITL·학술 임팩트 |
 | [🗓 MASTER_PLAN_2026H2.md](docs/MASTER_PLAN_2026H2.md) | 2026 H2 통합 실행 로드맵 — 4 실행 트랙 + 문서 정합성 거버넌스 |
 | [🌱 SIMULATOR_GENESIS_PLAN.md](docs/SIMULATOR_GENESIS_PLAN.md) | Phase 301-400 — 인증·생태계·실증·차세대 자율·교육 레거시 (302·388 ✅) |
@@ -157,7 +162,7 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 |---|:-:|
 | Phase 완료 | **200 / 200** (Phase 51 LLM Multi-Agent 격상 반영) |
 | 시뮬레이터 코드 | 11,836 line |
-| `_sdacs` API | **404 항목** (maturity 분류 401 + 분류 헬퍼 3 — 라이브 실측) |
+| `_sdacs` API | **407 항목** (maturity 분류 404 + 분류 헬퍼 3 — 라이브 실측) |
 | Playwright E2E | **263 / 264** 통과 (1 skip) |
 | 회귀 pytest | **4,180 pass / 8 skip / 0 fail** |
 | 종합 자동 검증 | **4,443 pass / 9 skip / 0 fail** (2026-06-12 실측) |
@@ -168,7 +173,7 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 
 | 등급 | 개수 | 설명 |
 |---|:-:|---|
-| 🟢 **production** | 90 | 실측 검증 + 회귀 + 실 알고리즘 (MEGA 코어 ATC/TAC/MIS/INJ 등) |
+| 🟢 **production** | 93 | 실측 검증 + 회귀 + 실 알고리즘 (MEGA 코어 ATC/TAC/MIS/INJ 등) |
 | 🔵 **beta** | 98 | 기능 동작 + E2E 검증, 일부 외부 의존 (HYPER Copilot/적대/C-UAS/풍속장 등) |
 | 🟡 **mock** | 110 | 결정적 mock 구현, 인터페이스만 안정 (STELLAR RLHF/Cesium/QKD 등) |
 | ⚪ **speculative** | 103 | 미래 비전 스텁, 호출 안전성만 보장 (ULTIMATE/POST-UNIVERSE Universe OS/Unity 등) |
@@ -180,9 +185,9 @@ window._sdacs.apiMaturity('cesiumGlobalInit'); // → 'mock'
 window._sdacs.maturityReport();            // → { total, counts, byApi }
 ```
 
-> 분류 대상 400 항목 (production 90 + beta 98 + mock 110 + speculative 103) + 분류 헬퍼 2 (`apiMaturity`·`maturityReport`) = **총 404 항목** — 2026-06-12 라이브 페이지 실측.
+> 분류 대상 400 항목 (production 93 + beta 98 + mock 110 + speculative 103) + 분류 헬퍼 2 (`apiMaturity`·`maturityReport`) = **총 407 항목** — 2026-06-12 라이브 페이지 실측.
 
-**핵심 메시지**: SDACS의 *실용 가치*는 90개 production-grade API(드론 관제 핵심)에 있으며, 나머지는 ATC 시뮬레이터의 *가능한 기능 차원*을 정의하는 참조 매트릭스다.
+**핵심 메시지**: SDACS의 *실용 가치*는 93개 production-grade API(드론 관제 핵심)에 있으며, 나머지는 ATC 시뮬레이터의 *가능한 기능 차원*을 정의하는 참조 매트릭스다.
 
 ---
 
@@ -882,7 +887,7 @@ SDACS의 핵심 알고리즘은 [StarCraft II 봇 프로젝트](https://github.c
 | 동시다발 적 위협 대응 | → | 다중 표적 추적 및 Anti-Swarm |
 | 불완전 정보 하 의사결정 | → | 베이지안 상황인식 |
 
-SC2 봇 프로젝트 규모: **645단계 개발, 404개 품질 테스트, 797개 프로그램 파일**
+SC2 봇 프로젝트 규모: **645단계 개발, 407개 품질 테스트, 797개 프로그램 파일**
 
 ### 군집 규모별 제어 성능
 
@@ -955,7 +960,7 @@ MIT License — Developed for academic and educational purposes.
 | 2026-06-13 02:12 | `ad001db` | feat(genesis): Phase 302 soraAssess + 388 부채 대장 + ODYSSEY Plan(401-500) + README 현행화·미완료 리스트 | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |
 | 2026-06-13 01:55 | `283fd1a` | feat(transcendence): Phase 203 Mock Detector + Phase 206 experimental 네임스페이스 + CI 정합성 게이트 | .github/workflows/sim-smoke.yml, README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md … |
 | 2026-06-13 01:42 | `8765ba4` | docs(genesis): Phase 301-400 GENESIS Plan 신규 수립 + 로드맵 Track H 편입 | README.md, ROADMAP.md, VERSION.md, docs/INDEX.md, docs/MASTER_PLAN_2026H2.md, docs/SIMULATOR_GENESIS_PLAN.md … |
-| 2026-06-13 01:31 | `9f5349c` | docs: 종합 감사 — 404 API 라이브 실측 동기화 + Track G 신설 + 2026 H2 마스터플랜 | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |
+| 2026-06-13 01:31 | `9f5349c` | docs: 종합 감사 — 407 API 라이브 실측 동기화 + Track G 신설 + 2026 H2 마스터플랜 | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |
 | 2026-06-13 01:13 | `c4e0cc6` | feat(simulator): Phase 0 polish — 동적 NFZ overlay + sub-km 거리 표시 | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-06-12 23:54 | `ec0321a` | Merge branch 'main' of http://127.0.0.1:40031/git/sun475300-sudo/swarm-drone-atc | CHANGELOG.md, ROADMAP.md |
 | 2026-06-12 23:53 | `36d2331` | feat(transcendence): Phase 201-207 API Maturity Honesty + README 수치 갱신 + 초대규모 울트라플랜 | README.md, VERSION.md, docs/SIMULATOR_TRANSCENDENCE_PLAN.md, docs/badges/maturity.svg, docs/sdacs.d.ts, docs/simulator.html … |

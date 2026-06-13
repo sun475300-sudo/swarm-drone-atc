@@ -51,4 +51,4 @@
 - [`../SIMULATOR_GENESIS_PLAN.md`](../SIMULATOR_GENESIS_PLAN.md) — Track 🏭 인증 Phase 301-320
 - [`../track_f/p749_security_audit.md`](../track_f/p749_security_audit.md) — KISA CSAP 96항목
 - [`../hardware/remote_id_broadcast.md`](../hardware/remote_id_broadcast.md) — Remote ID 송출 (P693)
-- [`../SDACS_API.md`](../SDACS_API.md) — 404 API 라이브 실측 (`soraAssess` production)
+- [`../SDACS_API.md`](../SDACS_API.md) — 407 API 라이브 실측 (`soraAssess` production)

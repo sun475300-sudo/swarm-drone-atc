@@ -12,13 +12,13 @@
 
 | 지표 | 문서 표기 (감사 전) | 실측 값 | 조치 |
 |---|:-:|:-:|---|
-| `_sdacs` API | 391 | **404** (분류 401 + 헬퍼 3) | ✅ README·VERSION·SDACS_API·d.ts 정정 |
-| Maturity 분포 | 90/98/110/103 | **90/98/110/103** (일치) | ✅ 검증 완료 |
+| `_sdacs` API | 391 | **407** (분류 404 + 헬퍼 3) | ✅ README·VERSION·SDACS_API·d.ts 정정 |
+| Maturity 분포 | 93/98/110/103 | **93/98/110/103** (일치) | ✅ 검증 완료 |
 | 시뮬레이터 코드 | 11,695~11,723 line | **11,836 line** | ✅ 정정 |
 | 회귀 pytest (e2e 제외) | 4,140/4,140 | **4,180 pass / 8 skip / 0 fail** | ✅ 정정 |
 | Playwright E2E | 248/249 | 263/264 (본 PR CI 참조) | ✅ 정정 |
-| SDACS_API.md maturity 컬럼 | "포함" 주장, 실제 없음 | **404행 maturity 컬럼 재생성** | ✅ 수정 |
-| sdacs.d.ts | 394~396 멤버 | **404 멤버 재생성** | ✅ 수정 |
+| SDACS_API.md maturity 컬럼 | "포함" 주장, 실제 없음 | **407행 maturity 컬럼 재생성** | ✅ 수정 |
+| sdacs.d.ts | 394~396 멤버 | **407 멤버 재생성** | ✅ 수정 |
 | Electron | 32.3.3 | 32.3.3 (v1.5.0 빌드) / ^39.8.5 (차기) | ✅ VERSION 주석 |
 
 **교훈 → 거버넌스 규칙**: 문서 수치는 손으로 쓰지 않는다. 라이브 페이지 실측 추출(아래 G-1)로 자동화한다.
@@ -104,4 +104,4 @@
 - [`SIMULATOR_GENESIS_PLAN.md`](SIMULATOR_GENESIS_PLAN.md) — Phase 301-400 (인증·생태계·실증·자율·레거시 — 다음 지평)
 - [`SIMULATOR_MEGA_PLAN.md`](SIMULATOR_MEGA_PLAN.md) ~ [`SIMULATOR_POST_UNIVERSE_PLAN.md`](SIMULATOR_POST_UNIVERSE_PLAN.md) — Phase 1-200 (완료)
 - [`../ROADMAP.md`](../ROADMAP.md) — Track A-G 전체 현황
-- [`SDACS_API.md`](SDACS_API.md) — 404 API maturity 레퍼런스
+- [`SDACS_API.md`](SDACS_API.md) — 407 API maturity 레퍼런스

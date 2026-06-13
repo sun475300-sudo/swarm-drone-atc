@@ -12,7 +12,7 @@
 
 | 지표 | 값 | 출처 |
 |---|:-:|---|
-| `_sdacs` API | 404 (분류 401 = 90/98/110/103 + 헬퍼 3) | `scripts/extract_sdacs_api.py` 라이브 실측 |
+| `_sdacs` API | 404 (분류 404 = 90/98/110/103 + 헬퍼 3) | `scripts/extract_sdacs_api.py` 라이브 실측 |
 | 종합 자동 검증 | 4,443 pass / 9 skip / 0 fail | 회귀 4,180 + E2E 263 |
 | 선행 계획 | GENESIS 301-400 (2% — 302·388 완료) | [`SIMULATOR_GENESIS_PLAN.md`](SIMULATOR_GENESIS_PLAN.md) |
 | 기술 부채 공시 | mock 110 + speculative 103 = 213 | [`TECH_DEBT_LEDGER.md`](TECH_DEBT_LEDGER.md) |

@@ -1,6 +1,6 @@
 # 📒 SDACS 기술 부채 대장 (GENESIS Phase 388)
 
-*자동 생성: 2026-06-12 (`scripts/extract_sdacs_api.py --ledger` 라이브 실측)*
+*자동 생성: 2026-06-13 (`scripts/extract_sdacs_api.py --ledger` 라이브 실측)*
 
 > 정직성 공시: 아래 API는 **결정적 mock 또는 speculative 스텁**이다. 인터페이스는 안정적이나 실측 알고리즘/외부 연동이 없다. 호출 시 console.warn 1회 + `maturityReport().mockCalls` 카운트 (Phase 203 Mock Detector).
 

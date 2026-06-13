@@ -95,7 +95,8 @@
 - [x] **GENESIS 304** ✅ KC 전파인증 체크리스트 — `docs/certification/KC_RADIO_CERTIFICATION.md` (7 모듈 분류·신청 흐름·자가 점검·갭 분석)
 - [x] **GENESIS 309** ✅ 조종자 자격증명 매핑 — `docs/certification/PILOT_LICENSE_MAPPING.md` (1~4종 과목·실기 항목 ↔ SDACS 모듈, 튜토리얼 5단계 정렬)
 - [x] **ODYSSEY 408** ✅ ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` (9층 ↔ Class G/E/D/B, API 격상 후보)
-- [ ] 추가 sandbox 후보(차기): GENESIS 303(비행계획 양식), GENESIS 307(사고 보고 자동화), ODYSSEY 421(인스턴스 디스커버리 프로토콜 초안)
+- [x] **GENESIS 303** ✅ 비행계획 신고 양식 자동 생성 — `_sdacs.flightPlanExport()` (드론원스톱 별지 제122호서식 매핑·SORA 302 연동·승인 필요 판정, production 등급, E2E 8건)
+- [ ] 추가 sandbox 후보(차기): GENESIS 307(사고 보고 자동화), ODYSSEY 421(인스턴스 디스커버리 프로토콜 초안)
 
 **기술 부채 (정직성 공시)**
 - [ ] mock 110종 + speculative 103종 — 전체 목록·격상 난이도: [`docs/TECH_DEBT_LEDGER.md`](docs/TECH_DEBT_LEDGER.md) (자동 생성)

@@ -11285,6 +11285,63 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             };
         }
 
+        // ===== GENESIS Phase 303 — 비행계획 신고 양식 자동 생성 (Drone One-Stop) =====
+        // 현재 시뮬 상태(시나리오·드론 수·고도·NFZ) + SORA(302) 평가를 결합해
+        // 항공안전법 시행규칙 별지 제122호서식(비행승인신청서)에 대응하는 결정적 양식을 추출한다.
+        const FLIGHT_PLAN_DEFAULTS = {
+            applicantName: 'SDACS 운영자',
+            contact: '000-0000-0000',
+            aircraftType: '무인멀티콥터',
+            centerLat: 37.5665,   // 서울시청 기준점 (결정적 기본값)
+            centerLon: 126.9780,
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+            insurance: '대인배상 영업배상책임보험',
+        };
+        function flightPlanExport(opts) {
+            opts = opts || {};
+            const d = Object.assign({}, FLIGHT_PLAN_DEFAULTS, opts);
+            // 비행목적 ← 현재 선택 시나리오 라벨
+            const scenSel = document.getElementById('scenario-select');
+            const scenKey = scenSel && SCENARIOS[scenSel.value] ? scenSel.value : 'default';
+            const scen = SCENARIOS[scenKey];
+            const purpose = opts.purpose || (scen.label + ' 군집 비행 실증');
+            // SORA(302) 연동 → 비행방식·안전등급·완화
+            const sora = soraAssess({ populationDensity: opts.populationDensity, bvlos: opts.bvlos });
+            const maxAltitudeM = sora.maxAltitudeM || 0;
+            // 비행승인 필요 판정 (항공안전법 §127, 시행규칙 §308)
+            const approvalReasons = [];
+            if (maxAltitudeM >= 150) approvalReasons.push('비행고도 150m(AGL) 이상');
+            if (sora.density === 'populated' || sora.density === 'assembly') {
+                approvalReasons.push('인구밀집지역 상공 비행');
+            }
+            if (layerVisibility.nfz !== false) approvalReasons.push('비행제한구역(NFZ) 인접');
+            const approvalRequired = approvalReasons.length > 0;
+            return {
+                form: '항공안전법 시행규칙 별지 제122호서식 (비행승인신청서)',
+                portal: 'Drone One-Stop (드론원스톱 통합민원)',
+                applicant: { name: d.applicantName, contact: d.contact },
+                aircraft: {
+                    type: d.aircraftType,
+                    weightClass: '최대이륙중량 25kg 이하',
+                    count: drones.length,
+                    purpose,
+                },
+                operationArea: { centerLat: d.centerLat, centerLon: d.centerLon, radiusM: WORLD, scenario: scenKey },
+                altitude: { maxAGLm: maxAltitudeM, ceilingM: MAX_ALT },
+                period: { start: d.startDate, end: d.endDate },
+                flightMethod: sora.bvlos ? 'BVLOS (비가시권)' : 'VLOS (가시권)',
+                safety: {
+                    sail: sora.sail,
+                    safetyNet: '5계층 안전망 (CPA·APF·ATC·NFZ·failsafe)',
+                    mitigations: sora.mitigations,
+                },
+                insurance: d.insurance,
+                approvalRequired, approvalReasons,
+                ref: '드론원스톱 비행승인 자동 양식 (결정적 추출, GENESIS Phase 303)',
+            };
+        }
+
         // ===== TRANSCENDENCE Phase 201-207 — API Maturity Honesty =====
         // 각 _sdacs API의 구현 성숙도를 정직하게 분류한다.
         //   production : 실측 검증 + 회귀 + 실 알고리즘 (MEGA 코어)
@@ -11297,6 +11354,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             'atcCommand', 'atcLog', 'atcControlled', 'setAtcAudio', 'atcAudio', 'clearAllAtc',
             // GENESIS Phase 302 — SORA 결정적 산정 (JARUS 2.0 표 기반 실 알고리즘)
             'soraAssess',
+            // GENESIS Phase 303 — 비행계획 신고 양식 (결정적, 302 연동·실 서식 매핑)
+            'flightPlanExport',
             // GENESIS Phase 381 — 교육 튜토리얼 (결정적 5단계, _sdacs API만 사용)
             'tutorialStart', 'tutorialNext', 'tutorialStatus',
             // Phase 2 TAC
@@ -11916,6 +11975,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             maturityReport() { return _maturityReport(); },
             // ===== GENESIS Phase 302 — SORA 자동 계산기 =====
             soraAssess(opts) { return soraAssess(opts); },
+            // ===== GENESIS Phase 303 — 비행계획 신고 양식 (Drone One-Stop) =====
+            flightPlanExport(opts) { return flightPlanExport(opts); },
             // ===== GENESIS Phase 381 — 교육 모드 (단계별 튜토리얼) =====
             tutorialStart() { return startTutorial(); },
             tutorialNext() { return tutorialNext(); },

@@ -223,13 +223,40 @@ class SwarmSimulator:
         profiles = ["COMMERCIAL_DELIVERY", "SURVEILLANCE", "EMERGENCY", "RECREATIONAL"]
         weights = [0.55, 0.25, 0.10, 0.10]
         pad_list = list(self.LANDING_PADS.values())
+        pad_count = max(1, len(pad_list))
+        slots_per_pad = int(np.ceil(self._n_drones / pad_count))
+        grid_width = max(1, int(np.ceil(np.sqrt(slots_per_pad))))
+        configured_spacing_m = float(self.cfg.get("drones", {}).get("launch_spacing_m", 75.0))
+        grid_center = (grid_width - 1) / 2.0
+        usable_half_extent = max(1.0, self.bounds_m - 300.0)
+        launch_spacing_m = (
+            min(configured_spacing_m, usable_half_extent / grid_center)
+            if grid_center > 0.0
+            else configured_spacing_m
+        )
+        grid_extent_m = grid_center * launch_spacing_m
 
         scenario_drones = self.cfg.get("scenario", {}).get("drones", {})
         n_rogue = int(scenario_drones.get("n_rogue", 0))
 
         for i in range(self._n_drones):
-            pad = pad_list[i % len(pad_list)].copy()
-            jitter = self.rng.uniform(-300, 300, 3) * np.array([1, 1, 0])
+            pad = pad_list[i % pad_count].copy()
+            pad[:2] = np.clip(
+                pad[:2],
+                -self.bounds_m + 300.0 + grid_extent_m,
+                self.bounds_m - 300.0 - grid_extent_m,
+            )
+            slot_idx = i // pad_count
+            row, col = divmod(slot_idx, grid_width)
+            jitter = np.array(
+                [
+                    (col - grid_center) * launch_spacing_m,
+                    (row - grid_center) * launch_spacing_m,
+                    0.0,
+                ],
+                dtype=float,
+            )
+            jitter[:2] += self.rng.uniform(-launch_spacing_m * 0.05, launch_spacing_m * 0.05, 2)
             start = pad + jitter
             start[2] = 0.0
             start[:2] = np.clip(start[:2], -self.bounds_m + 300, self.bounds_m - 300)
@@ -439,8 +466,19 @@ class SwarmSimulator:
 
             for id_a, id_b, dist in sh.query_pairs_with_dist(self._sep_lateral):
                 if dist < 5.0:
-                    self.analytics.record_event("COLLISION", t,
-                                                drone_a=id_a, drone_b=id_b)
+                    da = self._drones[id_a]
+                    db = self._drones[id_b]
+                    self.analytics.record_event(
+                        "COLLISION",
+                        t,
+                        drone_a=id_a,
+                        drone_b=id_b,
+                        dist_m=dist,
+                        phase_a=da.flight_phase.name,
+                        phase_b=db.flight_phase.name,
+                        alt_a_m=float(da.position[2]),
+                        alt_b_m=float(db.position[2]),
+                    )
                 elif dist < self._near_miss_m:
                     self.analytics.record_event("NEAR_MISS", t,
                                                 drone_a=id_a, drone_b=id_b,

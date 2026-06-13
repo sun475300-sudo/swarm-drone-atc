@@ -29,6 +29,7 @@ drones:
   default_count: 100
   max_speed_ms: 15.0
   cruise_speed_ms: 8.0
+  launch_spacing_m: 75.0
   max_altitude_m: 120.0
   min_altitude_m: 30.0
   battery_capacity_wh: 50.0

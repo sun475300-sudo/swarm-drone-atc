@@ -29,8 +29,9 @@ class SimulationResult:
     conflict_resolution_rate_pct: float = 100.0  # 충돌 → 어드바이저리 발령률
 
     # 효율
-    route_efficiency_mean: float = 1.0   # actual/planned 거리 비율
+    route_efficiency_mean: float = 1.0   # 완료 구간 평균 actual/planned 거리 비율 (1.0=직선, 낮을수록 좋음)
     route_efficiency_max:  float = 1.0
+    completed_legs:        int   = 0     # 효율 산정에 포함된 완료 비행 구간 수
     total_flight_time_s:   float = 0.0
     total_distance_km:     float = 0.0
     energy_efficiency_wh_per_km: float = 0.0  # 평균 에너지 소모 (Wh/km)
@@ -82,8 +83,9 @@ class SimulationResult:
             ("충돌 감지 총계",     str(self.conflicts_total)),
             ("어드바이저리 발령",  str(self.advisories_issued)),
             ("충돌 해결률",        f"{self.conflict_resolution_rate_pct:.1f} %"),
-            ("경로 효율 (평균)",   f"{self.route_efficiency_mean:.3f}"),
-            ("경로 효율 (최대)",   f"{self.route_efficiency_max:.3f}"),
+            ("경로 효율 (평균)",   f"{self.route_efficiency_mean:.3f}" if self.completed_legs else "N/A (완료 0)"),
+            ("경로 효율 (최대)",   f"{self.route_efficiency_max:.3f}" if self.completed_legs else "N/A (완료 0)"),
+            ("완료 비행 구간",     str(self.completed_legs)),
             ("허가 승인",          str(self.clearances_approved)),
             ("총 비행 거리",       f"{self.total_distance_km:.3f} km"),
             ("에너지 효율",        f"{self.energy_efficiency_wh_per_km:.2f} Wh/km"),
@@ -150,6 +152,7 @@ class SimulationAnalytics:
 
         self._dist_actual:  dict[str, float] = {}  # drone_id → actual km
         self._dist_planned: dict[str, float] = {}
+        self._leg_efficiencies: list[float] = []   # 완료된 구간별 actual/planned 비율
         self._flight_time:  dict[str, float] = {}
         self._battery_initial: dict[str, float] = {}
         self._battery_last: dict[str, float] = {}
@@ -206,9 +209,6 @@ class SimulationAnalytics:
         # 메모리 최적화: 5초 간격 샘플링 (1Hz 전체 → 0.2Hz)
         if hasattr(self, '_last_snapshot_t') and t - self._last_snapshot_t < 5.0:
             # 거리/시간만 갱신 (경로 효율 계산용)
-            for did, d in drones.items():
-                self._dist_actual[did] = float(d.distance_flown_m)
-                self._flight_time[did] = float(d.flight_time_s)
             return
         self._last_snapshot_t = t
         if len(self._snapshots) >= self.MAX_SNAPSHOTS:
@@ -225,8 +225,6 @@ class SimulationAnalytics:
                 "phase":   d.flight_phase.name,
             })
             # 거리 누적
-            self._dist_actual[did] = float(d.distance_flown_m)
-            self._flight_time[did] = float(d.flight_time_s)
 
     def _record_rollups(self, drones: dict[str, DroneState]) -> None:
         """Track compact per-drone aggregates independent of trajectory logging."""
@@ -240,6 +238,16 @@ class SimulationAnalytics:
     def record_planned_distance(self, drone_id: str, dist_m: float) -> None:
         """`planned distance` 정보를 기록한다."""
         self._dist_planned[drone_id] = dist_m
+
+    def record_completed_leg(self, drone_id: str, actual_m: float, planned_m: float) -> None:
+        """완료된 비행 구간의 경로 효율(actual/planned)을 기록한다.
+
+        경로 효율은 완료된 구간에 대해서만 의미가 있으므로(진행 중 구간은
+        actual<planned로 편향됨), 목표 도달 시점에만 호출한다.
+        planned_m이 너무 작으면(이착륙 잡음) 무시한다.
+        """
+        if planned_m > 10.0 and actual_m > 0.0:
+            self._leg_efficiencies.append(actual_m / planned_m)
 
     def record_controller_stats(
         self,
@@ -274,17 +282,13 @@ class SimulationAnalytics:
         duration_s: float = 0.0,
         n_drones: int = 0,
     ) -> SimulationResult:
-        # 경로 효율 (actual / planned)
         """``finalize`` 동작을 수행한다."""
-        efficiencies = []
-        for did in self._dist_actual:
-            planned = self._dist_planned.get(did, 0.0)
-            actual  = self._dist_actual[did]
-            if planned > 10.0:
-                efficiencies.append(actual / planned)
-
-        eff_mean = float(np.mean(efficiencies))  if efficiencies else 1.0
-        eff_max  = float(np.max(efficiencies))   if efficiencies else 1.0
+        # 경로 효율 (actual/planned) — 완료된 구간만 집계.
+        # 진행 중인 구간은 actual<planned로 편향되므로 제외한다(완료 구간이
+        # 없으면 측정 불가 → 중립값 1.0, completed_legs=0으로 표기).
+        completed_legs = len(self._leg_efficiencies)
+        eff_mean = float(np.mean(self._leg_efficiencies)) if completed_legs else 1.0
+        eff_max  = float(np.max(self._leg_efficiencies))  if completed_legs else 1.0
 
         # 충돌 해결률: 전체 위험 상황 중 충돌 미발생 비율
         # total_events = 충돌예측 + 실제충돌 (예측 없이 발생한 충돌 포함)
@@ -326,6 +330,7 @@ class SimulationAnalytics:
             conflict_resolution_rate_pct=res_rate,
             route_efficiency_mean=eff_mean,
             route_efficiency_max=eff_max,
+            completed_legs=completed_legs,
             total_flight_time_s=total_flight_s,
             total_distance_km=total_dist_km,
             energy_efficiency_wh_per_km=energy_eff,

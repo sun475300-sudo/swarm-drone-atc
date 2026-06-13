@@ -80,11 +80,20 @@ class TestSimulationAnalytics:
         assert result.advisory_latency_p99 >= result.advisory_latency_p50
 
     def test_route_efficiency_calculation(self, analytics):
-        analytics.record_planned_distance("D1", 1000.0)
-        analytics._dist_actual["D1"] = 1100.0
+        # 완료된 구간만 집계: actual=1100, planned=1000 → 효율 1.1
+        analytics.record_completed_leg("D1", 1100.0, 1000.0)
         analytics._flight_time["D1"] = 120.0
         result = analytics.finalize(n_drones=1)
         assert result.route_efficiency_mean == pytest.approx(1.1, rel=1e-3)
+        assert result.completed_legs == 1
+
+    def test_route_efficiency_no_completed_legs(self, analytics):
+        # 완료 구간이 없으면 측정 불가 → 중립값 1.0, completed_legs=0
+        analytics.record_planned_distance("D1", 1000.0)
+        analytics._dist_actual["D1"] = 100.0  # 진행 중(부분 비행)
+        result = analytics.finalize(n_drones=1)
+        assert result.completed_legs == 0
+        assert result.route_efficiency_mean == 1.0
 
     def test_conflict_resolution_rate_no_collision(self, analytics):
         analytics.record_event("CONFLICT", 1.0)

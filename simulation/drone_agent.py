@@ -314,6 +314,12 @@ class DroneAgent:
             diff = target - drone.position
             dist_xy = float(np.linalg.norm(diff[:2]))
             if dist_xy < self.WAYPOINT_TOL:
+                # 구간(leg) 완료 — 실제/계획 거리 기록 (경로 효율 산정용)
+                if sim.analytics is not None:
+                    leg_actual = drone.distance_flown_m - drone.leg_start_distance_m
+                    sim.analytics.record_completed_leg(
+                        drone.drone_id, leg_actual, drone.planned_distance_m
+                    )
                 drone.flight_phase = FlightPhase.LANDING
                 return
             spd = profile.cruise_speed_ms

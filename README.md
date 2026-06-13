@@ -70,8 +70,8 @@
 - [ ] `v1.5.0` 태그 푸시 → 3-OS 자동 빌드 (sandbox push 403 — [1줄 명령 가이드](docs/V1_5_0_RELEASE_INSTRUCTIONS.md))
 
 **시뮬레이터 — MASTER_PLAN Track Ⅰ (시각화 마감, ~2026-07 목표)**
-- [ ] CPA 예측선 고도화 — TTC 라벨·위험도 색상
-- [ ] 어드바이저리 빌보드 (CLIMB/DESCEND/TURN/EVADE/HOLD 점멸)
+- [x] **CPA 예측선 고도화 — TTC 라벨·위험도 3단계 색상** (2026-06-13, 분석 뷰 Q2 + 3D 빌보드)
+- [x] **어드바이저리 빌보드 6단계 — EVADE/HOLD/RTL + CLIMB/DESCEND/TURN** (2026-06-13, phase + 동적 vy·헤딩 변화율 분류)
 - [ ] 리플레이 스크러버-멀티뷰 커서 마감 검증 · 리포트 KPI를 `gen_report` 정의와 1:1 일치 · mega_swarm 1k/5k FPS 실측 표
 
 **TRANSCENDENCE 잔여 (Phase 204-205·209-300)**

@@ -9418,6 +9418,15 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                 if (!Array.isArray(data.frames) || data.frames.length === 0) {
                     throw new Error('frames 비어있음');
                 }
+                // 프레임 shape 검증 — applyFrame 이 f.t (number) 와 f.d (배열의 배열)
+                // 를 가정하므로, 외부 신뢰 없는 JSON 에서 깨진 프레임을 차단.
+                // 각 frame: { t: number, d: [[wx,wy,wz,phase,battery], ...] }
+                for (let i = 0; i < data.frames.length; i++) {
+                    const fr = data.frames[i];
+                    if (!fr || typeof fr.t !== 'number' || !Number.isFinite(fr.t) || !Array.isArray(fr.d)) {
+                        throw new Error(`frame[${i}] 무결성 위반 (t/d 누락)`);
+                    }
+                }
                 // 시나리오 매칭 시도
                 if (data.scenario) {
                     const sel = document.getElementById('scenario-select');
@@ -9462,10 +9471,18 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
 
         function applyFrame(idx) {
             const f = recorder.frames[idx];
-            if (!f) return;
+            // 무결성 가드: 외부 importMission JSON 의 잘못된 프레임 방어
+            // (자체 startRecording 산출물은 항상 올바른 shape).
+            if (!f || !Array.isArray(f.d) || typeof f.t !== 'number') return;
             for (let i = 0; i < drones.length && i < f.d.length; i++) {
                 const dr = drones[i], s = f.d[i];
-                dr.wx = s[0]; dr.wy = s[1]; dr.wz = s[2]; dr.phase = s[3]; dr.battery = s[4];
+                if (!Array.isArray(s) || s.length < 5) continue;
+                const wx = +s[0], wy = +s[1], wz = +s[2];
+                const battery = +s[4];
+                if (!Number.isFinite(wx) || !Number.isFinite(wy) || !Number.isFinite(wz)) continue;
+                dr.wx = wx; dr.wy = wy; dr.wz = wz;
+                dr.phase = (typeof s[3] === 'string') ? s[3] : 'GROUNDED';
+                dr.battery = Number.isFinite(battery) ? battery : 0;
                 dr.group.position.set(dr.wx * SCALE, dr.wy * SCALE * 3, dr.wz * SCALE);
                 const col = (PHASES[dr.phase] || PHASES.GROUNDED).color;
                 if (dr.body) {  // 대규모 모드: 색상은 syncInstances가 phase로 적용
@@ -9474,9 +9491,11 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                     if (dr.rotor) dr.rotor.material.color.setHex(col);
                 }
             }
-            const mm = String(Math.floor(f.t / 60)).padStart(2, '0');
-            const ss = String(Math.floor(f.t % 60)).padStart(2, '0');
-            document.getElementById('replay-time').textContent = mm + ':' + ss;
+            const tSec = Number.isFinite(f.t) ? f.t : 0;
+            const mm = String(Math.floor(tSec / 60)).padStart(2, '0');
+            const ss = String(Math.floor(tSec % 60)).padStart(2, '0');
+            const tEl = document.getElementById('replay-time');
+            if (tEl) tEl.textContent = mm + ':' + ss;
         }
 
         function enterReplay() {

@@ -8453,13 +8453,32 @@
                     ctx.beginPath(); ctx.arc(x, y, r + 3, 0, Math.PI * 2); ctx.stroke();
                 }
             }
-            // CPA 충돌쌍 마커 (예측 최근접점)
+            // CPA 충돌쌍 마커 + TTC/이격거리 라벨 (예측 최근접점, 위험도 3단계 색상)
+            // 위험도: <NEAR_MISS_DIST(8m)·이른 TTC=적색, 중간=주황, 여유=황색
             if (showConflictViz) {
+                ctx.font = '9px JetBrains Mono, monospace';
                 for (const c of _cvLabelData) {
                     const cx = toX(c.x / SCALE), cy = toY(c.z / SCALE);
-                    ctx.strokeStyle = c.cpa < NEAR_MISS_DIST ? '#ff4040' : '#ffaa40';
-                    ctx.lineWidth = 1.2;
-                    ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.stroke();
+                    const ttc = (typeof c.ttc === 'number' && Number.isFinite(c.ttc)) ? c.ttc : -1;
+                    const cpa = (typeof c.cpa === 'number' && Number.isFinite(c.cpa)) ? c.cpa : -1;
+                    // 위험도 등급: 0(critical) / 1(warn) / 2(advisory)
+                    const sev = (cpa >= 0 && cpa < NEAR_MISS_DIST && ttc >= 0 && ttc < 4)
+                        ? 0 : ((cpa >= 0 && cpa < NEAR_MISS_DIST) || (ttc >= 0 && ttc < 6)) ? 1 : 2;
+                    const color = sev === 0 ? '#ff4040' : sev === 1 ? '#ffaa40' : '#ffd450';
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = sev === 0 ? 1.8 : 1.2;
+                    ctx.beginPath(); ctx.arc(cx, cy, sev === 0 ? 6 : 5, 0, Math.PI * 2); ctx.stroke();
+                    // TTC / 이격 라벨 — sev≤1만 (캔버스 혼잡 회피)
+                    if (sev <= 1 && (ttc >= 0 || cpa >= 0)) {
+                        const ttcTxt = ttc >= 0 ? ttc.toFixed(1) + 's' : '?';
+                        const cpaTxt = cpa >= 0 ? Math.round(cpa) + 'm' : '?';
+                        const label = ttcTxt + ' · ' + cpaTxt;
+                        const lw = ctx.measureText(label).width;
+                        ctx.fillStyle = 'rgba(2,5,10,0.7)';
+                        ctx.fillRect(cx + 7, cy - 6, lw + 4, 11);
+                        ctx.fillStyle = color;
+                        ctx.fillText(label, cx + 9, cy + 3);
+                    }
                 }
             }
             // 고도 컬러맵 레전드
@@ -8772,12 +8791,19 @@
                 _cvLabels.push(sp);
             }
             // 필요분 갱신, 초과분 숨김(재사용 위해 dispose하지 않음)
+            // 위험도 3단계 색상: critical(<NEAR_MISS_DIST & TTC<4s) / warn / advisory
             for (let i = 0; i < _cvLabels.length; i++) {
                 const sp = _cvLabels[i];
                 if (i < need) {
                     const c = _cvLabelData[i];
-                    const danger = c.cpa < NEAR_MISS_DIST;
-                    _drawPooledLabel(sp, `${c.ttc.toFixed(1)}s · ${c.cpa.toFixed(0)}m`, danger ? '#ff4040' : '#ffcc40', 7);
+                    const ttcVal = (typeof c.ttc === 'number' && Number.isFinite(c.ttc)) ? c.ttc : -1;
+                    const cpaVal = (typeof c.cpa === 'number' && Number.isFinite(c.cpa)) ? c.cpa : -1;
+                    const isCritical = cpaVal >= 0 && cpaVal < NEAR_MISS_DIST && ttcVal >= 0 && ttcVal < 4;
+                    const isWarn = (cpaVal >= 0 && cpaVal < NEAR_MISS_DIST) || (ttcVal >= 0 && ttcVal < 6);
+                    const color = isCritical ? '#ff4040' : isWarn ? '#ffaa40' : '#ffd450';
+                    const ttcTxt = ttcVal >= 0 ? ttcVal.toFixed(1) + 's' : '?';
+                    const cpaTxt = cpaVal >= 0 ? cpaVal.toFixed(0) + 'm' : '?';
+                    _drawPooledLabel(sp, `${ttcTxt} · ${cpaTxt}`, color, isCritical ? 8 : 7);
                     sp.position.set(c.x, c.y, c.z);
                     sp.visible = true;
                 } else {

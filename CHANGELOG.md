@@ -5,6 +5,16 @@
 
 ## [Unreleased]
 
+### 기능 (feat) — GENESIS 307 + ODYSSEY 467 (사고 보고·사고조사 데이터 표준, 2026-06-13)
+- **GENESIS 307** 사고 보고 양식 자동 작성 — `simulation/incident_report.py` 신설.
+  `extract_incidents`(이벤트 로그 → 충돌=사고/근접=준사고/장애=이벤트 분류·시간순 정렬) +
+  `accident_report`(항철위 양식 마크다운: 발생 개요·사건 일람 표·조치 사항).
+- **ODYSSEY 467** 사고조사 데이터 표준 변환기 — 동일 모듈.
+  `to_investigation_record`/`investigation_dataset`(ICAO ADREP 최소 필드 정렬 `sdacs.incident.v1`
+  스키마, sha1 기반 **결정적** occurrence_id, JSON 직렬화 가능).
+- 검증: 신규 **12 테스트** GREEN. 기존 `SimulationMetrics.event_log` 포맷만 읽고 기존 코드 무변경.
+  계획 문서(GENESIS/ODYSSEY) ✅ 동기화.
+
 ### 기능 (feat) — ODYSSEY 445·446 + GENESIS 305 (통계적 엄정성 + 인증 갭, 2026-06-13)
 - **ODYSSEY 445** 불확실성 정량화 — `simulation/uncertainty.py` 신설.
   `ConfidenceInterval` + `normal_ci`(t-분포)·`bootstrap_ci`(percentile, `np.random.default_rng` 결정적)·

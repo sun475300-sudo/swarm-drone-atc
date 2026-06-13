@@ -962,6 +962,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-13 20:58 | `6ebbf7e` | fix: 2차 정밀 점검에서 실측 검증된 3건 결함 수정 (landing/lookahead/voronoi) | docs/simulator.html, docs/swarm_3d_simulator.html, src/airspace_control/controller/airspace_controller.py, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-06-13 20:51 | `a0cb294` | fix(simulator): stopRecording 에서 MediaStream 트랙 명시적 정지 (리소스 누수) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-06-13 20:43 | `c6f94b4` | feat(perf): mega_swarm 1K/5K FPS·드로우콜·CPU 실측 표 + 회귀 임계 | README.md, docs/PERF_MEGA_SWARM.md |
 | 2026-06-13 20:32 | `f842b6f` | fix: 정밀 점검에서 식별한 3건 잠재 결함 수정 (advisor TURN + APF 쿨다운 + API 게이트) | docs/simulator.html, docs/swarm_3d_simulator.html, scripts/extract_sdacs_api.py, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |

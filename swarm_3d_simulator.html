@@ -11430,7 +11430,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             'stats', 'simTime', 'simRunning', 'droneCount', 'weather', 'airborne', 'failed', 'landed',
             'startSim', 'stopSim', 'selectDrone', 'deselectDrone', 'getSelected', 'hoverDrone', 'clearHover',
             'multiSelect', 'clearMulti', 'multiSelection', 'setAnalysisView', 'analysisMode',
-            'megaMode', 'instanceCount', 'visibleInstances', 'megaCull', 'perf', 'replayFrames',
+            'megaMode', 'instanceCount', 'visibleInstances', 'megaCull', 'perf', 'replayFrames', 'replayState',
             'selectScenario', 'setLayer', 'layers', 'lang', 'setLang', 'availableLangs',
             'exportMission', 'importMission', 'triggerMissionImport',
             'openGallery', 'closeGallery', 'galleryOpen', 'scenarioCategories', 'reportDataURL',
@@ -11453,7 +11453,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             'arEnter', 'arExit', 'arAddPin', 'arClearPins', 'arEnabled', 'arPins',
             'xrSupported', 'xrPresenting',
             'dtwinDecodeGPI', 'dtwinApplyGPI', 'dtwinSetOrigin', 'enableDtwin', 'dtwinEnabled', 'dtwinStats',
-            'wsConnected', 'wsFrames', 'liveMode', 'goLive', 'replaySeek', 'replayStep', 'replay', 'dni', 'conflictPairs',
+            'wsConnected', 'wsFrames', 'liveMode', 'goLive', 'replaySeek', 'replayStep', 'replayState', 'replay', 'dni', 'conflictPairs',
         ]);
         // STELLAR Phase 51-100 접두사 / 키워드 → mock
         const _MATURITY_MOCK_PREFIXES = ['stellar51', 'rlhf', 'causal', 'explain', 'gpu100k',
@@ -11528,6 +11528,19 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             set megaCull(v) { megaCull = !!v; },
             get megaCull() { return megaCull; },
             get replayFrames() { return recorder.frames.length; },
+            // 리플레이 상태 read-only 스냅샷 (멀티뷰 커서 동기 E2E·외부 UI 진단용)
+            get replayState() {
+                const total = recorder.frames.length;
+                const idx = Math.max(0, Math.min(replayIdx, total - 1));
+                const cur = total > 0 ? recorder.frames[idx] : null;
+                const last = total > 0 ? recorder.frames[total - 1] : null;
+                return {
+                    mode: !!replayMode, playing: !!replayPlaying,
+                    idx, total, speed: replaySpeed,
+                    cursorT: replayMode && cur ? cur.t : simTime,  // 멀티뷰 커서 동기 시각
+                    headT: last ? last.t : 0,
+                };
+            },
             get dni() { return { ...dniStats, objects: externalObjs.length }; },
             replaySeek(idx) { enterReplay(); replayIdx = Math.max(0, Math.min(idx, recorder.frames.length - 1)); applyFrame(replayIdx); return replayIdx; },
             goLive,

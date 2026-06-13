@@ -72,7 +72,8 @@
 **시뮬레이터 — MASTER_PLAN Track Ⅰ (시각화 마감, ~2026-07 목표)**
 - [x] **CPA 예측선 고도화 — TTC 라벨·위험도 3단계 색상** (2026-06-13, 분석 뷰 Q2 + 3D 빌보드)
 - [x] **어드바이저리 빌보드 6단계 — EVADE/HOLD/RTL + CLIMB/DESCEND/TURN** (2026-06-13, phase + 동적 vy·헤딩 변화율 분류)
-- [ ] 리플레이 스크러버-멀티뷰 커서 마감 검증 · 리포트 KPI를 `gen_report` 정의와 1:1 일치 · mega_swarm 1k/5k FPS 실측 표
+- [x] **리플레이 스크러버-멀티뷰 커서 마감 검증** (2026-06-13, `_sdacs.replayState` API + E2E 6건)
+- [ ] 리포트 KPI를 `gen_report` 정의와 1:1 일치 · mega_swarm 1k/5k FPS 실측 표
 
 **TRANSCENDENCE 잔여 (Phase 204-205·209-300)**
 - [ ] 204-205 production 핵심 12종 회귀 강화 + beta 부분 검증

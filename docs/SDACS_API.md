@@ -2,13 +2,13 @@
 
 *자동 생성: 2026-06-13 (`scripts/extract_sdacs_api.py` 라이브 실측 추출 · maturity 등급 포함)*
 
-**총 407 항목** (maturity 분류 대상 404 + 분류 헬퍼 3) — MEGA 10 + HYPER 40 + STELLAR 50 + ULTIMATE 50 + POST-UNIVERSE 50 = **200 Phase**
+**총 408 항목** (maturity 분류 대상 405 + 분류 헬퍼 3) — MEGA 10 + HYPER 40 + STELLAR 50 + ULTIMATE 50 + POST-UNIVERSE 50 = **200 Phase**
 
 ## 🎯 성숙도 분포 (Phase 201-207 정직성 공시)
 
 | 등급 | 개수 | 의미 |
 |---|:-:|---|
-| 🟢 production | 93 | 실측 검증 + 회귀 + 실 알고리즘 |
+| 🟢 production | 94 | 실측 검증 + 회귀 + 실 알고리즘 |
 | 🔵 beta | 98 | 기능 동작 + E2E 검증, 일부 외부 의존 |
 | 🟡 mock | 110 | 결정적 mock, 인터페이스만 안정 |
 | ⚪ speculative | 103 | 미래 비전 스텁, 호출 안전성만 보장 |
@@ -307,6 +307,7 @@
 | `get` | **`replay`** | 🔵 beta |
 | `get` | **`replayFrames`** | 🟢 production |
 | `method` | **`replaySeek`** | 🔵 beta |
+| `get` | **`replayState`** | 🟢 production |
 | `method` | **`replayStep`** | 🔵 beta |
 | `method` | **`reportDataURL`** | 🟢 production |
 | `method` | **`rfc131Submit`** | ⚪ speculative |

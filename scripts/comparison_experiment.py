@@ -188,10 +188,7 @@ def significance_tests(
                 better_direction = "higher" if metric_name in HIGHER_IS_BETTER else "lower"
                 ref_mean = float(ref_arr.mean())
                 base_mean = float(base_arr.mean())
-                if better_direction == "higher":
-                    sdacs_wins = ref_mean > base_mean
-                else:
-                    sdacs_wins = ref_mean < base_mean
+                sdacs_wins = ref_mean > base_mean if better_direction == "higher" else ref_mean < base_mean
 
                 results.append({
                     "scenario": scenario,
@@ -302,13 +299,7 @@ def generate_markdown_report(
                     vals.append((float("nan"), "N/A"))
                 else:
                     vals.append((mean, f"{mean:.4f} +/- {std:.4f}"))
-                    if best_val is None:
-                        best_val = mean
-                        best_idx = mi
-                    elif better == "higher" and mean > best_val:
-                        best_val = mean
-                        best_idx = mi
-                    elif better == "lower" and mean < best_val:
+                    if best_val is None or better == "higher" and mean > best_val or better == "lower" and mean < best_val:
                         best_val = mean
                         best_idx = mi
 

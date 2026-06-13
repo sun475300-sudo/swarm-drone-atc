@@ -137,9 +137,15 @@ def cmd_scenario(args: argparse.Namespace) -> None:
     name = args.name
     runs = args.runs
     seed = args.seed
+    duration_override_s = getattr(args, "duration", None)
     print(f"\n시나리오 [{name}] - {runs}회 실행 (seed={seed})\n")
 
-    results = run_scenario(name, n_runs=runs, seed=seed)
+    results = run_scenario(
+        name,
+        n_runs=runs,
+        seed=seed,
+        duration_override_s=duration_override_s,
+    )
 
     for i, row in enumerate(results):
         print(f"-- Run #{i+1} --")
@@ -258,10 +264,7 @@ def cmd_benchmark(args: argparse.Namespace) -> None:
     }
 
     output_arg = getattr(args, "output", None)
-    if output_arg:
-        out_path = Path(output_arg)
-    else:
-        out_path = Path("results") / scenario / method / f"seed{seed}.json"
+    out_path = Path(output_arg) if output_arg else Path("results") / scenario / method / f"seed{seed}.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2, sort_keys=True)
@@ -493,6 +496,7 @@ def main() -> None:
     p_sc.add_argument("--list",  "-l", action="store_true")
     p_sc.add_argument("--runs",  "-n", type=int, default=1, help="반복 횟수")
     p_sc.add_argument("--seed",        type=int, default=42, help="기본 시드")
+    p_sc.add_argument("--duration",    type=float, default=None, help="override scenario duration in seconds")
     p_sc.add_argument("--log-level", default="INFO")
 
     # ── monte-carlo ─────────────────────────────────────────────
@@ -516,7 +520,7 @@ def main() -> None:
     p_vis.add_argument("--log-level", default="INFO")
 
     # ── visualize-3d ─────────────────────────────────────────────
-    p_v3d = sub.add_parser("visualize-3d", help="Three.js 3D 시뮬레이터 (브라우저)")
+    sub.add_parser("visualize-3d", help="Three.js 3D 시뮬레이터 (브라우저)")
 
     # ── chatbot ────────────────────────────────────────────────
     p_chat = sub.add_parser("chatbot", help="보세전시장 민원상담 챗봇")

@@ -7,7 +7,7 @@ Reference: Tobin et al. (IROS 2017), Akkaya et al. (2019 ADR).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import numpy as np
 

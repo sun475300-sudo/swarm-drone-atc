@@ -98,7 +98,7 @@ def _step_gpu(sim: SimState) -> None:
 
         # ── 2. GPU APF 합력 계산 (모든 활성 드론) ──
         wind_spd = float(np.linalg.norm(sim.wind[:2]))
-        wind_speeds = {did: wind_spd for did in drones}
+        wind_speeds = dict.fromkeys(drones, wind_spd)
         forces = engine.compute_all_forces(
             wind_speeds=wind_speeds,
             nfz_obstacles=_NFZ_OBSTACLES,

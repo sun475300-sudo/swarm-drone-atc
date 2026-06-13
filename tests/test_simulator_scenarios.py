@@ -3,6 +3,9 @@
 """
 from __future__ import annotations
 
+from itertools import combinations
+
+import numpy as np
 import pytest
 
 from simulation.analytics import SimulationResult
@@ -45,6 +48,23 @@ class TestBaseScenario:
         sim = SwarmSimulator(config_path=sim_config, scenario_cfg=base_scenario, seed=1)
         result = sim.run(duration_s=10.0)
         assert result.n_drones >= 1
+
+    def test_launch_grid_keeps_initial_spacing(self, sim_config):
+        from simulation.simulator import SwarmSimulator
+
+        sim = SwarmSimulator(
+            config_path=sim_config,
+            scenario_cfg={
+                "drones": {"default_count": 40, "launch_spacing_m": 75.0},
+                "logging": {"save_trajectory": False},
+            },
+            seed=42,
+        )
+        sim._spawn_drones()
+
+        positions = [d.position[:2] for d in sim._drones.values()]
+        min_dist = min(float(np.linalg.norm(a - b)) for a, b in combinations(positions, 2))
+        assert min_dist > 60.0
 
 
 class TestWeatherScenario:

@@ -1,12 +1,12 @@
 """Smoke tests for 0% coverage mission-related modules."""
 import numpy as np
-import pytest
 
 
 class TestMissionSchedulerOptimizer:
     def test_add_and_optimize(self):
-        from simulation.mission_scheduler_optimizer import MissionSchedulerOptimizer, Mission
         import time
+
+        from simulation.mission_scheduler_optimizer import Mission, MissionSchedulerOptimizer
         opt = MissionSchedulerOptimizer()
         m = Mission("m1", time.time() + 1, 10.0, ["d1", "d2"], priority=5)
         opt.add_mission(m)
@@ -15,8 +15,9 @@ class TestMissionSchedulerOptimizer:
         assert "m1_d2" in schedule
 
     def test_priority_ordering(self):
-        from simulation.mission_scheduler_optimizer import MissionSchedulerOptimizer, Mission
         import time
+
+        from simulation.mission_scheduler_optimizer import Mission, MissionSchedulerOptimizer
         opt = MissionSchedulerOptimizer()
         t = time.time()
         opt.add_mission(Mission("low", t, 5.0, ["d1"], priority=1))
@@ -24,8 +25,9 @@ class TestMissionSchedulerOptimizer:
         assert opt.missions[0].priority == 10
 
     def test_reschedule_on_delay(self):
-        from simulation.mission_scheduler_optimizer import MissionSchedulerOptimizer, Mission
         import time
+
+        from simulation.mission_scheduler_optimizer import Mission, MissionSchedulerOptimizer
         opt = MissionSchedulerOptimizer()
         m = Mission("m1", time.time(), 5.0, ["d1"], priority=3)
         opt.add_mission(m)
@@ -83,7 +85,7 @@ class TestMissionPlanningSystem:
 
 class TestFlightValidationSystem:
     def test_valid_plan(self):
-        from simulation.flight_validation_system import FlightValidationSystem, FlightPlan
+        from simulation.flight_validation_system import FlightPlan, FlightValidationSystem
         fvs = FlightValidationSystem()
         plan = FlightPlan(
             drone_id="d1",
@@ -96,7 +98,7 @@ class TestFlightValidationSystem:
         assert len(errors) == 0
 
     def test_altitude_violation(self):
-        from simulation.flight_validation_system import FlightValidationSystem, FlightPlan
+        from simulation.flight_validation_system import FlightPlan, FlightValidationSystem
         fvs = FlightValidationSystem(max_altitude_m=100.0)
         plan = FlightPlan(
             drone_id="d1",
@@ -109,7 +111,7 @@ class TestFlightValidationSystem:
         assert len(errors) == 1
 
     def test_battery_violation(self):
-        from simulation.flight_validation_system import FlightValidationSystem, FlightPlan
+        from simulation.flight_validation_system import FlightPlan, FlightValidationSystem
         fvs = FlightValidationSystem(min_battery_percent=30.0)
         plan = FlightPlan(
             drone_id="d1",
@@ -121,7 +123,7 @@ class TestFlightValidationSystem:
         assert valid is False
 
     def test_collision_risk_detected(self):
-        from simulation.flight_validation_system import FlightValidationSystem, FlightPlan
+        from simulation.flight_validation_system import FlightPlan, FlightValidationSystem
         fvs = FlightValidationSystem()
         wp = np.array([0.0, 0.0, 60.0])
         plan1 = FlightPlan("d1", [wp.copy()], 120.0, 20.0)
@@ -129,7 +131,7 @@ class TestFlightValidationSystem:
         assert fvs.check_collision_risk(plan1, plan2) is True
 
     def test_no_collision_risk(self):
-        from simulation.flight_validation_system import FlightValidationSystem, FlightPlan
+        from simulation.flight_validation_system import FlightPlan, FlightValidationSystem
         fvs = FlightValidationSystem()
         plan1 = FlightPlan("d1", [np.array([0.0, 0.0, 60.0])], 120.0, 20.0)
         plan2 = FlightPlan("d2", [np.array([1000.0, 0.0, 60.0])], 120.0, 20.0)

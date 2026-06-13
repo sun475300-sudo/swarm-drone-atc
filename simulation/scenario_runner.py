@@ -231,6 +231,8 @@ def main() -> None:
     parser.add_argument("--seed",       type=int, default=42)
     parser.add_argument("--output",     default=None,
                         help="결과 JSON 저장 경로 (선택)")
+    parser.add_argument("--duration",   type=float, default=None,
+                        help="override scenario duration in seconds")
     parser.add_argument("--quiet", "-q", action="store_true")
     args = parser.parse_args()
 
@@ -249,6 +251,7 @@ def main() -> None:
         n_runs=args.runs,
         seed=args.seed,
         verbose=not args.quiet,
+        duration_override_s=args.duration,
     )
 
     if args.output:

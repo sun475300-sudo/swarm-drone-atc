@@ -56,7 +56,8 @@ def main():
             pg.wait_for_function("window._sdacs && window._sdacs.droneCount > 0", timeout=15000)
             print("[Showcase] 시뮬 로드 완료")
             # showcase 실행 (수동 트리거)
-            script = open(SHOWCASE).read()
+            with open(SHOWCASE, encoding="utf-8") as f:
+                script = f.read()
             pg.evaluate(script)
             print("[Showcase] 스크립트 주입 완료, 60초 대기")
             pg.wait_for_timeout(60000)

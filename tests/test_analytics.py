@@ -80,11 +80,20 @@ class TestSimulationAnalytics:
         assert result.advisory_latency_p99 >= result.advisory_latency_p50
 
     def test_route_efficiency_calculation(self, analytics):
-        analytics.record_planned_distance("D1", 1000.0)
-        analytics._dist_actual["D1"] = 1100.0
+        # 완료된 구간만 집계: actual=1100, planned=1000 → 효율 1.1
+        analytics.record_completed_leg("D1", 1100.0, 1000.0)
         analytics._flight_time["D1"] = 120.0
         result = analytics.finalize(n_drones=1)
         assert result.route_efficiency_mean == pytest.approx(1.1, rel=1e-3)
+        assert result.completed_legs == 1
+
+    def test_route_efficiency_no_completed_legs(self, analytics):
+        # 완료 구간이 없으면 측정 불가 → 중립값 1.0, completed_legs=0
+        analytics.record_planned_distance("D1", 1000.0)
+        analytics._dist_actual["D1"] = 100.0  # 진행 중(부분 비행)
+        result = analytics.finalize(n_drones=1)
+        assert result.completed_legs == 0
+        assert result.route_efficiency_mean == 1.0
 
     def test_conflict_resolution_rate_no_collision(self, analytics):
         analytics.record_event("CONFLICT", 1.0)
@@ -113,3 +122,31 @@ class TestSimulationAnalytics:
         analytics.record_snapshot({"D1": d}, t=1.0)
         assert len(analytics.snapshots) == 1
         assert analytics.snapshots[0]["id"] == "D1"
+
+    def test_energy_efficiency_uses_net_battery_drop(self, analytics):
+        from src.airspace_control.agents.drone_state import DroneState, FlightPhase
+
+        d = DroneState("D1", np.array([0.0, 0.0, 60.0]), np.zeros(3), battery_pct=80.0)
+        d.flight_phase = FlightPhase.ENROUTE
+        d.distance_flown_m = 500.0
+        analytics.record_snapshot({"D1": d}, t=1.0)
+
+        d.battery_pct = 78.0
+        d.distance_flown_m = 1000.0
+        analytics.record_snapshot({"D1": d}, t=6.0)
+
+        result = analytics.finalize(n_drones=1)
+        assert result.total_distance_km == pytest.approx(1.0)
+        assert result.energy_efficiency_wh_per_km == pytest.approx(1.0)
+
+    def test_rollups_work_when_trajectory_logging_disabled(self):
+        from src.airspace_control.agents.drone_state import DroneState, FlightPhase
+
+        analytics = SimulationAnalytics({"logging": {"save_trajectory": False}})
+        d = DroneState("D1", np.array([0.0, 0.0, 60.0]), np.zeros(3), battery_pct=90.0)
+        d.flight_phase = FlightPhase.ENROUTE
+        d.distance_flown_m = 1000.0
+        analytics.record_snapshot({"D1": d}, t=1.0)
+
+        result = analytics.finalize(n_drones=1)
+        assert result.total_distance_km == pytest.approx(1.0)

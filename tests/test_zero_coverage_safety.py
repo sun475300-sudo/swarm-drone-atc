@@ -1,6 +1,5 @@
 """Smoke tests for 0% coverage safety/coordination modules."""
 import numpy as np
-import pytest
 
 
 class TestAutoLandingSystem:

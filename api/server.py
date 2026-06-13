@@ -21,7 +21,6 @@ from api.fastapi_server import (
     run_scenario,
     scenario_run,
     scenarios,
-    simulate,
     ws_telemetry,
 )
 from simulation.simulator import SwarmSimulator

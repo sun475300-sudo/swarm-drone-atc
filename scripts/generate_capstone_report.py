@@ -5,13 +5,12 @@
 from __future__ import annotations
 
 import re
-import subprocess
 from datetime import date
 from pathlib import Path
 
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.shared import Pt, Cm, RGBColor
+from docx.shared import Pt, RGBColor
 
 ROOT = Path(__file__).resolve().parents[1]
 SIM = ROOT / "swarm_3d_simulator.html"
@@ -26,13 +25,13 @@ def count_api_items() -> int:
     block = m.group(1)
     keys: set[tuple[str, str]] = set()
     for line in block.split("\n"):
-        L = line.strip()
-        if not L or L.startswith("//") or L.startswith("/*"):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("//") or stripped.startswith("/*"):
             continue
         for pat in [r"get\s+(\w+)\s*\(", r"set\s+(\w+)\s*\(",
                     r"async\s+(\w+)\s*\(", r"(\w+)\s*\([^)]*\)\s*\{",
                     r"(\w+),\s*$"]:
-            mm = re.match(pat, L)
+            mm = re.match(pat, stripped)
             if mm and mm.group(1) not in ("if", "for", "else", "return"):
                 keys.add((pat, mm.group(1)))
                 break

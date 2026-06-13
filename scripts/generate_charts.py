@@ -138,7 +138,7 @@ def chart_latency(out: str) -> None:
 def chart_scenario_radar(out: str) -> None:
     """``chart_scenario_radar`` 동작을 수행한다."""
     categories = ["충돌 해결률", "경로 효율\n(역방향)", "어드바이저리\n응답성", "시스템\n처리량", "침입 탐지\n정확도"]
-    N = len(categories)
+    n_categories = len(categories)
 
     # 각 시나리오 점수 (0~1, 높을수록 좋음)
     data = {
@@ -150,13 +150,13 @@ def chart_scenario_radar(out: str) -> None:
     }
     colors = [BLUE, ORANGE, GREEN, RED, GRAY]
 
-    angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
+    angles = np.linspace(0, 2 * np.pi, n_categories, endpoint=False).tolist()
     angles += angles[:1]
 
     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={"polar": True})
     ax.set_facecolor(LIGHT)
 
-    for (name, vals), color in zip(data.items(), colors):
+    for (name, vals), color in zip(data.items(), colors, strict=False):
         vals = vals + vals[:1]
         ax.plot(angles, vals, "o-", linewidth=2, color=color, label=name)
         ax.fill(angles, vals, alpha=0.07, color=color)

@@ -128,8 +128,8 @@ def verify_token(token: str) -> dict[str, Any]:
 
     try:
         payload = json.loads(_b64url_decode(body_b64))
-    except Exception:
-        raise HTTPException(status_code=401, detail="malformed token payload")
+    except Exception as exc:
+        raise HTTPException(status_code=401, detail="malformed token payload") from exc
 
     if int(time.time()) > payload.get("exp", 0):
         raise HTTPException(status_code=401, detail="token expired")
@@ -205,8 +205,8 @@ async def require_auth(token: str = Depends(_extract_token)) -> AuthContext:
     payload = verify_token(token)
     try:
         role = Role(payload["role"])
-    except (KeyError, ValueError):
-        raise HTTPException(status_code=401, detail="invalid role in token")
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=401, detail="invalid role in token") from exc
     ctx = AuthContext(sub=payload["sub"], role=role, jti=payload.get("jti", ""))
     _audit(ctx.sub, ctx.role.value, "authenticate", outcome="ok")
     return ctx
@@ -300,8 +300,8 @@ async def refresh_token(body: RefreshRequest) -> TokenResponse:
     payload = verify_token(body.token)
     try:
         role = Role(payload["role"])
-    except (KeyError, ValueError):
-        raise HTTPException(status_code=401, detail="invalid role")
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=401, detail="invalid role") from exc
     new_token = create_token(payload["sub"], role)
     _audit(payload["sub"], role.value, "refresh", outcome="ok")
     return TokenResponse(access_token=new_token, role=role.value)

@@ -704,7 +704,12 @@ def test_load_remote_id_transport_object_with_emit_attribute(monkeypatch: pytest
 def test_main_function_calls_asyncio_run(monkeypatch: pytest.MonkeyPatch) -> None:
     """main() should parse CLI args and call asyncio.run (lines 706-707)."""
     run_calls: list = []
-    monkeypatch.setattr(_bridge_module.asyncio, "run", lambda coro: run_calls.append(coro))
+
+    def fake_asyncio_run(coro):
+        run_calls.append(coro)
+        coro.close()
+
+    monkeypatch.setattr(_bridge_module.asyncio, "run", fake_asyncio_run)
     monkeypatch.setattr(
         _bridge_module.sys,
         "argv",

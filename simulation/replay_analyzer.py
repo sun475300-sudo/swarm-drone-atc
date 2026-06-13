@@ -140,10 +140,9 @@ class ReplayAnalyzer:
         # 관련 드론의 이전 이벤트 추적
         related_ids = set(incident.drone_ids)
         for ev in self._incidents:
-            if ev.time < incident.time and ev.time >= t_start:
-                if any(d in related_ids for d in ev.drone_ids):
-                    chain_events.append(ev)
-                    related_ids.update(ev.drone_ids)
+            if t_start <= ev.time < incident.time and any(d in related_ids for d in ev.drone_ids):
+                chain_events.append(ev)
+                related_ids.update(ev.drone_ids)
 
         chain_events.sort(key=lambda e: e.time)
 

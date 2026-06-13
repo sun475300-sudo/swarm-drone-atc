@@ -1,6 +1,5 @@
 """Smoke tests for 0% coverage simulation system modules."""
 import numpy as np
-import pytest
 
 
 class TestAlertManagementSystem:
@@ -138,16 +137,18 @@ class TestGeofencingSystem:
 
 class TestPerformanceMonitoringSystem:
     def test_record_metric(self):
-        from simulation.performance_monitoring_system import PerformanceMonitoringSystem, PerformanceMetric
         import time
+
+        from simulation.performance_monitoring_system import PerformanceMetric, PerformanceMonitoringSystem
         pms = PerformanceMonitoringSystem()
         m = PerformanceMetric("d1", 50.0, 40.0, 45.0, time.time())
         pms.record_metric(m)
         assert "d1" in pms.metrics_history
 
     def test_high_cpu_creates_alert(self):
-        from simulation.performance_monitoring_system import PerformanceMonitoringSystem, PerformanceMetric
         import time
+
+        from simulation.performance_monitoring_system import PerformanceMetric, PerformanceMonitoringSystem
         pms = PerformanceMonitoringSystem()
         m = PerformanceMetric("d1", 95.0, 40.0, 45.0, time.time())
         pms.record_metric(m)
@@ -159,8 +160,9 @@ class TestPerformanceMonitoringSystem:
         assert pms.get_average_cpu("unknown_drone") == 0.0
 
     def test_detect_anomaly(self):
-        from simulation.performance_monitoring_system import PerformanceMonitoringSystem, PerformanceMetric
         import time
+
+        from simulation.performance_monitoring_system import PerformanceMetric, PerformanceMonitoringSystem
         pms = PerformanceMonitoringSystem()
         m = PerformanceMetric("d1", 85.0, 40.0, 45.0, time.time())
         pms.record_metric(m)
@@ -232,7 +234,7 @@ class TestObstacleAvoidanceSystem:
         assert np.allclose(result, np.zeros(3))
 
     def test_nearby_obstacle(self):
-        from simulation.obstacle_avoidance_system import ObstacleAvoidanceSystem, Obstacle
+        from simulation.obstacle_avoidance_system import Obstacle, ObstacleAvoidanceSystem
         oas = ObstacleAvoidanceSystem(safety_distance=10.0)
         drone = np.array([5.0, 0.0, 0.0])
         obs = Obstacle(np.zeros(3), radius=1.0)
@@ -240,7 +242,7 @@ class TestObstacleAvoidanceSystem:
         assert np.linalg.norm(result) > 0
 
     def test_far_obstacle_no_avoidance(self):
-        from simulation.obstacle_avoidance_system import ObstacleAvoidanceSystem, Obstacle
+        from simulation.obstacle_avoidance_system import Obstacle, ObstacleAvoidanceSystem
         oas = ObstacleAvoidanceSystem(safety_distance=5.0)
         drone = np.array([100.0, 0.0, 0.0])
         obs = Obstacle(np.zeros(3), radius=1.0)

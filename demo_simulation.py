@@ -174,7 +174,7 @@ def demo_simulation(
         fused_states = {}
         total_confidence = 0.0
 
-        for i, boid in enumerate(boids.boids):
+        for boid in boids.boids:
             # Generate synthetic measurements
             measurements = spawn_random_measurements(
                 position=boid.position,
@@ -198,11 +198,11 @@ def demo_simulation(
         if step % 10 == 0:
             airspace.update_expiry(current_time=t)
 
-            for i, boid in enumerate(boids.boids):
+            for boid in boids.boids:
                 # Assign corridor from current to future position
                 future_pos = boid.position + boid.velocity * 5.0  # 5 seconds ahead
 
-                corridor_id = airspace.assign_corridor(
+                airspace.assign_corridor(
                     drone_id=boid.boid_id,
                     start=boid.position.copy(),
                     end=future_pos,

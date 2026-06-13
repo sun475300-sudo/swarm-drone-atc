@@ -90,9 +90,33 @@ ignore = ["E501", "B008"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
-"archive/**" = ["F401", "F811", "F841", "F821", "E402", "E701", "E702", "B007", "N806", "UP006", "UP035", "UP045", "I001", "E999"]
-"visualization/**" = ["E402", "F401"]
-"tests/**" = ["N806", "B007", "F841"]
+"archive/**" = [
+    "B006", "B007", "B905",
+    "C416",
+    "E402", "E701", "E702", "E731", "E741", "E999",
+    "F401", "F811", "F821", "F841",
+    "I001",
+    "N801", "N803", "N806", "N815",
+    "SIM102", "SIM103", "SIM108", "SIM118",
+    "UP006", "UP035", "UP045",
+]
+"visualization/**" = ["C408", "E402", "F401", "F841", "SIM102", "UP035"]
+"tests/**" = [
+    "B007", "B011", "B017", "B905",
+    "C401", "C408",
+    "E402", "E702", "E731", "E741",
+    "F841",
+    "N806",
+    "SIM102", "SIM105", "SIM108", "SIM115", "SIM222",
+    "W293",
+]
+"gen_presentation_v7.py" = ["E402", "N806", "SIM108"]
+"gen_report_v6.py" = ["E402", "N806"]
+"gen_report_v7_easy.py" = ["E402", "N806"]
+"notebooks/**" = ["E402"]
+"scripts/benchmark_gpu.py" = ["E402"]
+"scripts/comparison_experiment.py" = ["E402"]
+"scripts/generate_charts.py" = ["E402"]
 "simulation/**" = ["N806", "N803", "E741", "E402"]
 "simulation/autoML_pipeline.py" = ["N999"]
 "simulation/faa_laanc.py" = ["N801"]

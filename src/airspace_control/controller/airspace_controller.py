@@ -117,6 +117,7 @@ class AirspaceController:
         cbs_cfg = config.get("cbs_planner", {})
         self._cbs_max_ct_nodes = int(cbs_cfg.get("max_ct_nodes", 1000))
         self._cbs_max_astars = int(cbs_cfg.get("max_astars", 50))
+        self._cbs_max_batch_size = int(cbs_cfg.get("max_batch_size", 6))
         self._cbs_adaptive = bool(cbs_cfg.get("adaptive_timeout", True))
 
         # 텔레메트리/허가 요청 수신 구독
@@ -301,9 +302,11 @@ class AirspaceController:
         if not batch:
             return
 
-        # CBS 멀티에이전트 경로 계획 (3건 이상 동시 요청 시)
+        # CBS is reserved for small simultaneous batches. Large random
+        # takeoff bursts use the cheaper per-drone A* fallback to keep the
+        # online controller within a practical wall-clock budget.
         cbs_waypoints: dict[str, list] = {}
-        if len(batch) >= 3:
+        if 3 <= len(batch) <= self._cbs_max_batch_size:
             self._cbs_attempts += 1
             cbs_waypoints = self._cbs_plan_batch(batch)
             if cbs_waypoints:
@@ -316,6 +319,13 @@ class AirspaceController:
                         t,
                         batch_size=len(batch),
                     )
+        elif len(batch) > self._cbs_max_batch_size and self.analytics:
+            self.analytics.record_event(
+                "CBS_SKIPPED_LARGE_BATCH",
+                t,
+                batch_size=len(batch),
+                max_batch_size=self._cbs_max_batch_size,
+            )
 
         for req in batch:
             route = self.planner.plan_route(
@@ -394,15 +404,17 @@ class AirspaceController:
             starts[req.drone_id] = position_to_grid(req.origin)
             goals[req.drone_id] = position_to_grid(req.destination)
 
-        # 적응형 CBS 타임아웃: 드론 수가 많을수록 CT 노드 예산 증가
+        # Keep CBS bounded: falling back to A* is preferable to spending
+        # multiple wall-clock seconds in the constraint tree.
         ct_budget = self._cbs_max_ct_nodes
         if self._cbs_adaptive and len(batch) > 5:
-            ct_budget = min(ct_budget * 2, 5000)
+            ct_budget = min(ct_budget * 2, 500)
+        astar_budget = max(len(batch), min(self._cbs_max_astars, len(batch) * 3))
 
         try:
             paths = cbs_plan(starts, goals, grid_bounds,
                              max_ct_nodes=ct_budget,
-                             max_astars=self._cbs_max_astars)
+                             max_astars=astar_budget)
         except Exception:
             logger.warning("CBS planning failed for batch of %d drones", len(batch))
             return {}

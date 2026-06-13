@@ -86,10 +86,10 @@ def estimate_eta_min(
 
 def can_meet_sla(req: DeliveryRequest, eta_min: float) -> bool:
     """긴급도 SLA 충족 여부."""
-    SLA_MIN = {
+    sla_min = {
         Urgency.LIFE_THREATENING: 10.0,  # ETA 5min 비현실, 10min 최선
         Urgency.CRITICAL: 20.0,
         Urgency.URGENT: 40.0,
         Urgency.NORMAL: 240.0,
     }
-    return eta_min <= SLA_MIN[req.urgency]
+    return eta_min <= sla_min[req.urgency]

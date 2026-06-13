@@ -15,8 +15,8 @@ from __future__ import annotations
 import csv
 import os
 from collections import defaultdict
+from contextlib import suppress
 from pathlib import Path
-from typing import Any
 
 
 def load_results(csv_path: str) -> dict[str, dict[str, list[float]]]:
@@ -30,10 +30,8 @@ def load_results(csv_path: str) -> dict[str, dict[str, list[float]]]:
             algo = row.get("algorithm", "unknown")
             for metric in ("NMR", "MSD", "AU", "FT", "RTF"):
                 if metric in row:
-                    try:
+                    with suppress(ValueError, TypeError):
                         data[algo][metric].append(float(row[metric]))
-                    except (ValueError, TypeError):
-                        pass
     return data
 
 
@@ -80,13 +78,15 @@ def plot_nmr_msd_bar(data: dict[str, dict[str, list[float]]], out_path: str) -> 
     colors = ["#94a3b8", "#fb923c", "#a855f7", "#00e5ff"]
 
     ax1.bar(x, nmr_m, yerr=nmr_s, color=colors, capsize=4)
-    ax1.set_xticks(x); ax1.set_xticklabels(algos, rotation=15)
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(algos, rotation=15)
     ax1.set_ylabel("Near Miss Rate (NMR) ↓")
     ax1.set_title("Safety: NMR")
     ax1.grid(axis="y", alpha=0.3)
 
     ax2.bar(x, msd_m, yerr=msd_s, color=colors, capsize=4)
-    ax2.set_xticks(x); ax2.set_xticklabels(algos, rotation=15)
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(algos, rotation=15)
     ax2.set_ylabel("Mean Separation Distance (m) ↑")
     ax2.set_title("Separation: MSD")
     ax2.grid(axis="y", alpha=0.3)

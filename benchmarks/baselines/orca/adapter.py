@@ -118,7 +118,7 @@ class Adapter:
             sim = rvo2.PyRVOSimulator(
                 dt, 1.5, 5, time_horizon, time_horizon, radius, max_speed
             )
-            for i, p in enumerate(spawns):
+            for p in spawns:
                 sim.addAgent((p[0], p[1]))
         else:
             sim = None
@@ -196,7 +196,6 @@ class Adapter:
             tick_latencies_ms.append((time.perf_counter() - tick_start) * 1000.0)
 
         wall_total = time.perf_counter() - wall_start
-        seconds = int(round(self.horizon))
 
         return SimulationTrace(
             scenario_id=str(self.manifest.get("id", "unknown")),

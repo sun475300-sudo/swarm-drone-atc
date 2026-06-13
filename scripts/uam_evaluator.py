@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import csv
 import sys
+from contextlib import suppress
 from dataclasses import dataclass
 
 
@@ -47,10 +48,8 @@ def load_kpi_csv(path: str) -> dict[str, list[float]]:
             for key, val in row.items():
                 if key in ("seed", "scenario"):
                     continue
-                try:
+                with suppress(ValueError, TypeError):
                     data.setdefault(key, []).append(float(val))
-                except (ValueError, TypeError):
-                    pass
     return data
 
 
@@ -68,10 +67,7 @@ def evaluate(kpi: dict[str, list[float]], criteria: KUAMCriteria | None = None) 
     ]
 
     for metric, value, target, direction in checks:
-        if direction == "max":
-            passed = value <= target
-        else:
-            passed = value >= target
+        passed = value <= target if direction == "max" else value >= target
         results.append(EvalResult(metric, value, target, direction, passed))
 
     return results

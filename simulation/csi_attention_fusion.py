@@ -26,7 +26,6 @@ swarm_collaborative_perception 모듈에 보조 융합기로 플러그인할 수
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 
@@ -149,8 +148,8 @@ class CsiAttentionFusion:
         self,
         observations: list[LinkObservation],
         drone_positions: dict[str, tuple[float, float, float]],
-        t_now: Optional[float] = None,
-    ) -> Optional[FusedEstimate]:
+        t_now: float | None = None,
+    ) -> FusedEstimate | None:
         """N×(N-1) 어텐션 가중 융합 실행."""
         if not observations:
             return None

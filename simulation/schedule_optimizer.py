@@ -48,10 +48,9 @@ class ScheduleOptimizer:
             best_hour = None
             best_load = float("inf")
             for h in range(m.earliest_hour, m.latest_hour + 1):
-                if hourly_load[h] + m.drones_needed <= self.available_drones:
-                    if hourly_load[h] < best_load:
-                        best_load = hourly_load[h]
-                        best_hour = h
+                if hourly_load[h] + m.drones_needed <= self.available_drones and hourly_load[h] < best_load:
+                    best_load = hourly_load[h]
+                    best_hour = h
 
             if best_hour is not None:
                 m.assigned_hour = best_hour

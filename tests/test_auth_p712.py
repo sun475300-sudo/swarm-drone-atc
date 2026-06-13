@@ -1,27 +1,22 @@
 """P712 — Tests for OAuth2/RBAC auth layer (api/auth.py)."""
 from __future__ import annotations
 
-import time
-
 import pytest
 
 pytest.importorskip("fastapi", reason="fastapi required for P712 auth tests")
 
+from fastapi import HTTPException  # noqa: E402
+
 from api.auth import (  # noqa: E402
-    AuditEntry,
-    AuthContext,
-    Role,
-    TokenRequest,
-    _hash_pw,
     _USERS,
+    Role,
+    _audit,
+    _hash_pw,
     create_token,
     get_audit_log,
     role_gte,
     verify_token,
-    _audit,
 )
-from fastapi import HTTPException  # noqa: E402
-
 
 # ---------------------------------------------------------------------------
 # Role hierarchy
@@ -158,9 +153,10 @@ class TestAuditLog:
 @pytest.fixture
 def client():
     pytest.importorskip("fastapi")
-    from fastapi.testclient import TestClient
-    from api.auth import auth_router
     from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from api.auth import auth_router
 
     app = FastAPI()
     app.include_router(auth_router)

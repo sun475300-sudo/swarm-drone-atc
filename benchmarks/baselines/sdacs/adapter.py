@@ -12,7 +12,6 @@ Differentiation vs baselines:
 """
 from __future__ import annotations
 
-import math
 import time
 from typing import Any
 
@@ -250,7 +249,7 @@ class Adapter:
             col = (pos_arr[:, 0] >= cx).astype(int)
             row = (pos_arr[:, 1] >= cy).astype(int)
             cell_ids = row * 2 + col
-            voronoi_assignments.append(dict(zip(agent_ids, cell_ids.tolist())))
+            voronoi_assignments.append(dict(zip(agent_ids, cell_ids.tolist(), strict=False)))
 
             # CPA scan every 10 steps (vectorized)
             if step % 10 == 0:
@@ -293,7 +292,7 @@ class Adapter:
             for i in range(self.n_agents)
         ]
 
-        rid_seconds = {aid: seconds for aid in agent_ids}
+        rid_seconds = dict.fromkeys(agent_ids, seconds)
         laanc_latencies = [rng.uniform(80.0, 120.0) for _ in range(self.n_agents)]
 
         return SimulationTrace(

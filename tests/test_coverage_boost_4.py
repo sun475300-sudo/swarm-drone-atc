@@ -463,6 +463,7 @@ class TestAdaptiveCommProtocol:
 
 # ── collision_predictor ───────────────────────────────────────────────────
 import importlib as _il
+
 import pytest as _pt
 
 _TORCH_OK = _il.util.find_spec("torch") is not None

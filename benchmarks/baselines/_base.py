@@ -63,7 +63,7 @@ def make_adapter(method: str, manifest: dict[str, Any], seed: int) -> BaselineAd
         "orca": "orca",
         "vo": "vo",
         "cbs": "cbs",
-    }.get(method, None)
+    }.get(method)
     if module_name is None:
         raise ValueError(
             f"Unknown adapter name {method!r}. "

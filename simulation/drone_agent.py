@@ -205,6 +205,8 @@ class DroneAgent:
                 force = np.zeros(3)
 
             # 6. 비행 단계 상태 머신
+            prev_position = drone.position.copy()
+            phase_before = drone.flight_phase
             self._state_machine(drone, dt, profile, force, wind, t, sim)
 
             # 7. 위치 적분
@@ -225,13 +227,19 @@ class DroneAgent:
                 drone.position[0] = float(np.clip(drone.position[0], -sim.bounds_m, sim.bounds_m))
                 drone.position[1] = float(np.clip(drone.position[1], -sim.bounds_m, sim.bounds_m))
                 drone.position[2] = float(np.clip(drone.position[2], 0.0, 120.0))
-                drone.distance_flown_m += float(np.linalg.norm(drone.velocity * dt))
-
                 geofence_margin = sim.bounds_m * 0.9
-                if abs(drone.position[0]) > geofence_margin or abs(drone.position[1]) > geofence_margin:
-                    if drone.flight_phase in (FlightPhase.ENROUTE, FlightPhase.EVADING):
-                        drone.flight_phase = FlightPhase.RTL
-                        drone.goal = None
+                if (
+                    abs(drone.position[0]) > geofence_margin
+                    or abs(drone.position[1]) > geofence_margin
+                ) and drone.flight_phase in (FlightPhase.ENROUTE, FlightPhase.EVADING):
+                    drone.flight_phase = FlightPhase.RTL
+                    drone.goal = None
+
+            if phase_before not in (FlightPhase.GROUNDED, FlightPhase.FAILED) or drone.flight_phase not in (
+                FlightPhase.GROUNDED,
+                FlightPhase.FAILED,
+            ):
+                drone.distance_flown_m += float(np.linalg.norm(drone.position - prev_position))
 
             if drone.flight_phase not in (FlightPhase.GROUNDED, FlightPhase.FAILED):
                 drone.flight_time_s += dt
@@ -308,6 +316,12 @@ class DroneAgent:
             diff = target - drone.position
             dist_xy = float(np.linalg.norm(diff[:2]))
             if dist_xy < self.WAYPOINT_TOL:
+                # 구간(leg) 완료 — 실제/계획 거리 기록 (경로 효율 산정용)
+                if sim.analytics is not None:
+                    leg_actual = drone.distance_flown_m - drone.leg_start_distance_m
+                    sim.analytics.record_completed_leg(
+                        drone.drone_id, leg_actual, drone.planned_distance_m
+                    )
                 drone.flight_phase = FlightPhase.LANDING
                 return
             spd = profile.cruise_speed_ms

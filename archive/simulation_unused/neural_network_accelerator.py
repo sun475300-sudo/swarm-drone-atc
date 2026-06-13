@@ -141,9 +141,7 @@ class NeuralNetworkAccelerator:
             if layer.weights is not None:
                 return input_data @ layer.weights
             return self.rng.standard_normal(layer.output_shape)
-        elif layer.layer_type == LayerType.CONV2D:
-            return self.rng.standard_normal(layer.output_shape)
-        elif layer.layer_type == LayerType.LSTM:
+        elif layer.layer_type == LayerType.CONV2D or layer.layer_type == LayerType.LSTM:
             return self.rng.standard_normal(layer.output_shape)
         elif layer.layer_type == LayerType.ATTENTION:
             return input_data + self.rng.standard_normal(input_data.shape) * 0.01

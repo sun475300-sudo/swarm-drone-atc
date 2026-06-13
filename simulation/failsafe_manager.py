@@ -152,9 +152,8 @@ class FailsafeManager:
             self._transition(state, FailsafeLevel.DISARM, FailsafeTrigger.CRITICAL_BATTERY)
         elif battery_pct <= BATTERY_LAND_PCT:
             self._transition(state, FailsafeLevel.LAND, FailsafeTrigger.CRITICAL_BATTERY)
-        elif battery_pct <= BATTERY_WARN_PCT:
-            if state.level == FailsafeLevel.NORMAL:
-                self._transition(state, FailsafeLevel.WARN, FailsafeTrigger.LOW_BATTERY)
+        elif battery_pct <= BATTERY_WARN_PCT and state.level == FailsafeLevel.NORMAL:
+            self._transition(state, FailsafeLevel.WARN, FailsafeTrigger.LOW_BATTERY)
 
         if self.geofence is not None:
             dist = _haversine_m(lat, lon, self.geofence.center_lat, self.geofence.center_lon)

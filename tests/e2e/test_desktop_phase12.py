@@ -8,7 +8,6 @@
 """
 from __future__ import annotations
 
-import re
 import subprocess
 from pathlib import Path
 
@@ -100,7 +99,8 @@ def test_appimage_includes_phase12_code():
     appimg = ROOT / "dist-desktop" / "SDACS-Simulator-1.1.0-x86_64.AppImage"
     if not appimg.exists():
         pytest.skip("AppImage not built")
-    import tempfile, os
+    import os
+    import tempfile
     with tempfile.TemporaryDirectory() as td:
         os.chdir(td)
         subprocess.run([str(appimg), "--appimage-extract"], capture_output=True, timeout=60)

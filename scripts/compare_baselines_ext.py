@@ -15,8 +15,8 @@ import argparse
 import csv
 import json
 import sys
+from contextlib import suppress
 from pathlib import Path
-from typing import Any
 
 
 def load_csv(path: str) -> dict[str, list[float]]:
@@ -28,10 +28,8 @@ def load_csv(path: str) -> dict[str, list[float]]:
             for k, v in row.items():
                 if k in ("seed", "scenario", "algorithm"):
                     continue
-                try:
+                with suppress(ValueError, TypeError):
                     data.setdefault(k, []).append(float(v))
-                except (ValueError, TypeError):
-                    pass
     return data
 
 

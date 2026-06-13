@@ -1,10 +1,10 @@
 """P719 보안 감사 — 스크립트 존재 및 구조 검증."""
 
+import sys
 from pathlib import Path
 
 import pytest
 import yaml
-
 
 REPO_ROOT = Path(__file__).parent.parent
 
@@ -15,6 +15,10 @@ def test_security_audit_script_exists():
     assert script.exists(), f"보안 감사 스크립트가 없습니다: {script}"
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="Windows는 Unix 실행권한 비트(0o111)를 사용하지 않음",
+)
 def test_security_audit_script_executable():
     """security_audit.sh는 실행 권한이 있어야 한다."""
     script = REPO_ROOT / "scripts" / "security_audit.sh"
@@ -32,7 +36,7 @@ def test_security_workflow_valid_yaml():
     """security.yml은 유효한 YAML이어야 한다."""
     workflow = REPO_ROOT / ".github" / "workflows" / "security.yml"
     assert workflow.exists()
-    with open(workflow) as f:
+    with open(workflow, encoding="utf-8") as f:
         data = yaml.safe_load(f)
     assert isinstance(data, dict)
     assert "jobs" in data
@@ -41,7 +45,7 @@ def test_security_workflow_valid_yaml():
 def test_security_workflow_has_required_jobs():
     """security.yml은 bandit, pip-audit, trivy 잡을 포함해야 한다."""
     workflow = REPO_ROOT / ".github" / "workflows" / "security.yml"
-    with open(workflow) as f:
+    with open(workflow, encoding="utf-8") as f:
         data = yaml.safe_load(f)
     jobs = data.get("jobs", {})
     assert "bandit" in jobs, "bandit 잡이 없습니다"
@@ -55,10 +59,10 @@ def test_security_workflow_triggers():
     yaml.safe_load는 'on' 키를 True로 파싱하는 YAML 특성이 있으므로 두 경우 모두 허용.
     """
     workflow = REPO_ROOT / ".github" / "workflows" / "security.yml"
-    with open(workflow) as f:
+    with open(workflow, encoding="utf-8") as f:
         data = yaml.safe_load(f)
     # 'on' 키가 True로 파싱될 수 있으므로 raw 텍스트에서 트리거 확인
-    with open(workflow) as f:
+    with open(workflow, encoding="utf-8") as f:
         raw = f.read()
     assert "push" in raw
     assert "pull_request" in raw

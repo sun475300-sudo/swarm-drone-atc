@@ -27,11 +27,26 @@ if _ROOT not in sys.path:
 import dash
 from dash import html
 
+# -- 레이아웃 & 콜백 --
+from visualization._callbacks import _mini_chart_layout, register_callbacks
+
 # -- 도메인 --
 from visualization._domain import SimState
 
+# -- 시뮬레이션 엔진 --
+from visualization._embedded_sim import (
+    _assign_goal,
+    _in_nfz,
+    _sim_loop,
+    _step,
+    _update,
+)
+from visualization._layout import make_layout
+
 # -- 공역 상수 & 3D trace builders --
 from visualization._scene_traces import (
+    _NFZ_OBSTACLES,
+    _PAD_LIST,
     ALT_MAX,
     ALT_MIN,
     BOUNDS_M,
@@ -44,8 +59,6 @@ from visualization._scene_traces import (
     NFZ_Z,
     PHASE_COLORS,
     PHASE_KO,
-    _NFZ_OBSTACLES,
-    _PAD_LIST,
     _apf_vector_field,
     _corridor_traces,
     _ground_grid,
@@ -57,19 +70,6 @@ from visualization._scene_traces import (
     _wind_arrow,
     build_figure,
 )
-
-# -- 시뮬레이션 엔진 --
-from visualization._embedded_sim import (
-    _assign_goal,
-    _in_nfz,
-    _sim_loop,
-    _step,
-    _update,
-)
-
-# -- 레이아웃 & 콜백 --
-from visualization._callbacks import _mini_chart_layout, register_callbacks
-from visualization._layout import make_layout
 
 # -- 전역 시뮬레이션 인스턴스 --
 SIM = SimState()

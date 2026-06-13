@@ -6,7 +6,6 @@ import numpy as np
 from src.training.domain_rand import (
     DomainConfig,
     DomainRandomizer,
-    DomainSample,
     adr_curriculum,
 )
 

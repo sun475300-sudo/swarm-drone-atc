@@ -29,6 +29,7 @@ drones:
   default_count: 100
   max_speed_ms: 15.0
   cruise_speed_ms: 8.0
+  launch_spacing_m: 75.0
   max_altitude_m: 120.0
   min_altitude_m: 30.0
   battery_capacity_wh: 50.0
@@ -40,8 +41,9 @@ controller:
   advisory_retry_limit: 3
 
 cbs_planner:
-  max_ct_nodes: 1000          # CBS 트리 최대 노드 수
-  max_astars: 50              # A* 호출 최대 횟수
+  max_ct_nodes: 250           # CBS 트리 최대 노드 수
+  max_astars: 24              # A* 호출 최대 횟수
+  max_batch_size: 6           # larger clearance bursts fall back to per-drone A*
   astar_max_iterations: 10000 # 단일 A* 최대 반복
   astar_max_time: 200         # A* 시간 스텝 한계
   adaptive_timeout: true      # 드론 수에 따른 적응형 타임아웃

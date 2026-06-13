@@ -6623,14 +6623,22 @@
             // 풍속 보상 계수: 강풍일수록 더 적극적으로 보상
             const rawWindSpd = Math.sqrt(w.x * w.x + w.z * w.z);
             // 풍속 이력 저장 (이동평균 → 난기류 감쇠)
-            if (!d._windHistory) d._windHistory = [];
-            d._windHistory.push({ x: w.x, z: w.z, y: w.y });
-            if (d._windHistory.length > 10) d._windHistory.shift();
-            // 이동평균 바람 (난기류 고주파 필터링)
-            const avgWind = d._windHistory.reduce((a, v) => ({ x: a.x + v.x, z: a.z + v.z, y: a.y + v.y }), { x: 0, z: 0, y: 0 });
-            avgWind.x /= d._windHistory.length;
-            avgWind.z /= d._windHistory.length;
-            avgWind.y /= d._windHistory.length;
+            // 링버퍼 + 스칼라 누적: 매 프레임 객체 할당 제거(기존 reduce는 드론당 ~11객체/프레임 생성)
+            // 순서 무관 평균이므로 기존 FIFO 평균과 수치 동일.
+            if (!d._windHist) {
+                d._windHist = { xs: new Float32Array(10), zs: new Float32Array(10), ys: new Float32Array(10), n: 0, idx: 0, avg: { x: 0, z: 0, y: 0 } };
+            }
+            const _wh = d._windHist;
+            _wh.xs[_wh.idx] = w.x; _wh.zs[_wh.idx] = w.z; _wh.ys[_wh.idx] = w.y;
+            _wh.idx = (_wh.idx + 1) % 10;
+            if (_wh.n < 10) _wh.n++;
+            let _whSx = 0, _whSz = 0, _whSy = 0;
+            for (let _wi = 0; _wi < _wh.n; _wi++) { _whSx += _wh.xs[_wi]; _whSz += _wh.zs[_wi]; _whSy += _wh.ys[_wi]; }
+            // 이동평균 바람 (난기류 고주파 필터링) — 재사용 객체
+            const avgWind = _wh.avg;
+            avgWind.x = _whSx / _wh.n;
+            avgWind.z = _whSz / _wh.n;
+            avgWind.y = _whSy / _wh.n;
 
             // 보상된 바람 벡터: 예측 가능한 바람은 사전 상쇄, 난기류만 잔여
             const windCompensation = Math.min(0.7, rawWindSpd * 0.04); // 최대 70% 보상
@@ -7053,7 +7061,14 @@
             let lineCount = 0;
 
             let frameConflicts = 0, frameNear = 0, frameCollisions = 0;
-            const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+            // airborne: 매 프레임 새 배열 할당 대신 정적 버퍼 재사용
+            if (!apfCollisionAvoidance._airborne) apfCollisionAvoidance._airborne = [];
+            const airborne = apfCollisionAvoidance._airborne;
+            airborne.length = 0;
+            for (let _ai = 0; _ai < drones.length; _ai++) {
+                const _ad = drones[_ai];
+                if (_ad.phase !== 'GROUNDED' && _ad.phase !== 'FAILED') airborne.push(_ad);
+            }
 
             // ── 강풍 모드: 풍속에 따라 APF 반발력 증폭 ──
             const windSpd = Math.sqrt(weather.baseWind.x ** 2 + weather.baseWind.z ** 2) + weather.gustIntensity;
@@ -7068,19 +7083,43 @@
             const conflictCooldown = apfCollisionAvoidance._conflictCooldown;
 
             // ─── Spatial Hash: O(N·k) 이웃 탐색 ───
+            // 컨테이너(grid Map·repForce Map·processed Set)·셀 배열·힘 객체를 프레임 간 재사용.
+            // 매 프레임 .clear() 후 재구축하므로 동작은 기존과 동일, GC 할당만 제거.
             const cellSize = EVADE_DIST;
-            const grid = new Map();
+            if (!apfCollisionAvoidance._grid) {
+                apfCollisionAvoidance._grid = new Map();
+                apfCollisionAvoidance._cellPool = [];
+                apfCollisionAvoidance._repForce = new Map();
+                apfCollisionAvoidance._processed = new Set();
+            }
+            const grid = apfCollisionAvoidance._grid;
+            grid.clear();
+            const cellPool = apfCollisionAvoidance._cellPool;
+            let cellPoolIdx = 0;
             airborne.forEach(d => {
                 const cx = Math.floor(d.wx / cellSize), cz = Math.floor(d.wz / cellSize);
                 const key = `${cx},${cz}`;
-                if (!grid.has(key)) grid.set(key, []);
-                grid.get(key).push(d);
+                let cell = grid.get(key);
+                if (!cell) {
+                    cell = cellPool[cellPoolIdx] || (cellPool[cellPoolIdx] = []);
+                    cell.length = 0;
+                    cellPoolIdx++;
+                    grid.set(key, cell);
+                }
+                cell.push(d);
             });
 
-            // 각 드론에 누적 회피 벡터 초기화 (속도 보정용)
-            const repForce = new Map();
-            airborne.forEach(d => repForce.set(d, { fx: 0, fz: 0, fy: 0 }));
-            const processed = new Set(); // 중복 쌍 방지
+            // 각 드론에 누적 회피 벡터 초기화 (속도 보정용) — 힘 객체는 드론에 부착해 재사용
+            const repForce = apfCollisionAvoidance._repForce;
+            repForce.clear();
+            airborne.forEach(d => {
+                let f = d._apfRF;
+                if (!f) f = d._apfRF = { fx: 0, fz: 0, fy: 0 };
+                else { f.fx = 0; f.fz = 0; f.fy = 0; }
+                repForce.set(d, f);
+            });
+            const processed = apfCollisionAvoidance._processed; // 중복 쌍 방지
+            processed.clear();
 
             airborne.forEach(a => {
                 const cx = Math.floor(a.wx / cellSize), cz = Math.floor(a.wz / cellSize);

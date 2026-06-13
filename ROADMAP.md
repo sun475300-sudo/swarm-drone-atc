@@ -270,7 +270,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 309** 🏭 조종자 자격증명 매핑 — `docs/certification/PILOT_LICENSE_MAPPING.md` (2026-06-12)
 - [ ] **Phase 301·303-320** 🏭 Certification & Compliance — 항공안전법 매트릭스·DO-178C 갭 분석·CSAP 자동화
 - [ ] **Phase 321-340** 🌍 Ecosystem & Open Source — 플러그인 SDK·`@sdacs/core` npm·`sdacs-sim` PyPI·v2.0 API 안정화
-- [ ] **Phase 341-360** 🏙 Real Deployment — 목포 해역 실 좌표·전남 도서 의료 배송·90일 파일럿 백서
+- [x] **Phase 342** 🏙 전남 도서(신안·완도) 의료 배송 거점 DB — `src/applications/jeonnam_island_sites.py` 9개 도서 거점 + 2개 거점 병원 근사 좌표 + 최근접 병원·ETA·SLA 표, 7개 단위 테스트 PASS (2026-06-13)
+- [ ] **Phase 341·343-360** 🏙 Real Deployment — 목포 해역 실 좌표·KMA 실풍속·90일 파일럿 백서
 - [ ] **Phase 361-380** 🤖 Next-Gen Autonomy — 온보드 RL 추론·APF+RL 하이브리드·양방향 디지털 트윈
 - [x] **Phase 381** 🎓 교육 모드 — 시뮬레이터 `tutorialStart/Next/Status()` 5단계 (2026-06-12)
 - [x] **Phase 387** 🎓 졸업 심사 발표 키트 — `docs/presentation/DEFENSE_KIT.md` (2026-06-12)
@@ -294,6 +295,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [ ] **Phase 481-485·487-500** ♾️ Continuum — 의존성 장기 추적·승계 규약·**Phase 500 = Centennial 선언**
 
 ---
+
+*2026-06-13 (일일 점검 + GENESIS 342 진척) — **신규 컨테이너 독립 재현 GREEN + 전남 도서 의료 배송 거점 DB**: 의존성 신규 설치 후 전체 회귀 **4,071 pass / 280 skip / 0 fail** (168.96s) 독립 재현 GREEN. 작업 브랜치는 `origin/main`(`02d70b0`)과 완전 동기 상태에서 출발(rev-list 0/0), 열린 이슈 0건. GENESIS Phase 342 신규 구현 — `src/applications/jeonnam_island_sites.py`(신안·완도 9개 도서 + 2개 거점 병원 근사 좌표, 최근접 병원·ETA·SLA 표) + 7개 단위 테스트 PASS. **백로그 관찰**: 열린 PR 30건(직전 세션 드래프트 다수 + Phase 303 중복 6건 + dependabot 11건) — 머지/close는 사용자 판단 필요. 잔여 코드 작업거리는 GENESIS/ODYSSEY/TRANSCENDENCE 미구현 Phase(상당수 사용자 환경·브라우저 의존).*
 
 *2026-06-12 (종합 감사) — **전체 문서·소스 정합성 감사 + Track G 신설**: 라이브 페이지 실측으로 `_sdacs` API **407 항목** 확정(기존 문서 391 과소 표기 정정 — 분류 404 = 93/98/110/103 + 헬퍼 3), `docs/SDACS_API.md` maturity 컬럼 포함 재생성, `docs/sdacs.d.ts` 407 멤버 재생성, README·VERSION.md 수치 동기화(시뮬레이터 11,836 line). 분석 뷰 Q2 동적 NFZ overlay + NFZ 레이어 토글 연동 + sub-km 비행거리 표시(PR #265). TRANSCENDENCE Phase 201-300을 Track G로 로드맵 공식 편입, 2026 H2 마스터플랜(`docs/MASTER_PLAN_2026H2.md`) 수립.*
 

@@ -5,6 +5,32 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — GENESIS Phase 342: 전남 도서(신안·완도) 의료 배송 거점 DB
+- `src/applications/jeonnam_island_sites.py` 신설 — P751 `medical_delivery.py` 일반 모델에
+  **실 지역 거점 좌표**를 입혀 신안·완도 도서 배송 경로를 산출.
+  - `ISLAND_SITES` 9개 도서(신안: 안좌·비금·도초·흑산·홍도 / 완도: 노화·보길·청산·소안) +
+    `BASE_HOSPITALS` 2개 거점 병원(목포한국병원·완도대성병원), **공개 지도 기준 근사 좌표**
+    (maturity honesty — 실측 아님, Phase 341 정밀화 연계 명시).
+  - `nearest_base()` 최근접 병원·거리 / `delivery_request_for()` 요청 생성 /
+    `route_eta_table()` 전 거점 거리·ETA·SLA 충족 표(`medical_delivery` haversine·ETA·SLA 재사용).
+- `tests/track_e/test_jeonnam_island_sites.py` 7개 단위 테스트 PASS(권역 커버리지·위경도 박스·
+  최근접 병원 라우팅·요청 생성·ETA 표·원거리 도서 SLA 미충족).
+- 실측 ETA(60km/h): 안좌도 24.7km/29.7min ~ 홍도 109.6km/114.6min — 원거리 도서가 생명위급
+  10분 SLA를 충족 못 함을 정량 확인(전진 거점·고속기 필요성 근거).
+- ROADMAP Track H GENESIS — Phase 342 `[x]` 반영.
+
+### 점검 (chore) — 일일 점검 2026-06-13 (신규 컨테이너 독립 재현 GREEN)
+- 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
+  `python -m pytest tests/` → **4,071 pass / 280 skip / 0 fail** (168.96s). 0 fail GREEN.
+- **저장소 상태**: 작업 브랜치 `claude/fervent-babbage-z9gph6`는 `origin/main`(`02d70b0`)과 완전 동기
+  (rev-list 0/0) 상태에서 출발. 열린 이슈 **0건**.
+- **백로그 관찰**: 열린 PR **30건** — 대부분 직전 세션들의 드래프트(`claude/fervent-babbage-*`)로
+  동일 Phase 중복(특히 Phase 303 신청서 자동 생성 PR 6건: #284·#288·#294·#296·#297·#298) +
+  dependabot 11건. 머지/close는 사용자 판단 필요(보고서로 상신).
+- **환경 함정**: 시스템 인터프리터 `pytest` 미설치 + `blinker` Debian RECORD 충돌 →
+  `pip install --ignore-installed blinker -r requirements.txt 'pytest<9' pytest-xdist pytest-cov hypothesis`
+  후 `python -m pytest -p no:cov -o addopts=""`로 정상 재현(pytest 9.x는 conftest import 실패).
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (388.13s).

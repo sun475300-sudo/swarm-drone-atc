@@ -1,6 +1,6 @@
 // SDACS Simulator window._sdacs TypeScript Declaration File
 // 자동 생성: 2026-06-13 (scripts/extract_sdacs_api.py 라이브 실측 추출)
-// 총 407개 API — 200 Phase + TRANSCENDENCE Phase 201-207 (Maturity)
+// 총 408개 API — 200 Phase + TRANSCENDENCE Phase 201-207 (Maturity)
 // 성숙도: window._sdacs.maturityReport() 로 production/beta/mock/speculative 조회
 
 declare global {
@@ -409,6 +409,7 @@ declare global {
     /** [(helper)] */ apiMaturity(...args: any[]): any;
     /** [(helper)] */ maturityReport(...args: any[]): any;
     /** [production] */ soraAssess(...args: any[]): any;
+    /** [production] */ flightPlanExport(...args: any[]): any;
     /** [production] */ tutorialStart(...args: any[]): any;
     /** [production] */ tutorialNext(...args: any[]): any;
     /** [production] */ tutorialStatus(...args: any[]): any;

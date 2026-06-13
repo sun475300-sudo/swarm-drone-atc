@@ -947,6 +947,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-13 10:24 | `5f3a897` | test(e2e): C9 해양 검증 기록 플레이크 강화 — .validation 비어있지 않을 때까지 폴링 | tests/e2e/smoke_maritime.mjs |
 | 2026-06-13 10:19 | `ea43f25` | fix(transcendence): Phase 207 maturity 배지 자동 생성·드리프트 해소 | CHANGELOG.md, ROADMAP.md, docs/badges/maturity.svg, scripts/extract_sdacs_api.py, tests/test_maturity_badge.py |
 | 2026-06-13 02:12 | `ad001db` | feat(genesis): Phase 302 soraAssess + 388 부채 대장 + ODYSSEY Plan(401-500) + README 현행화·미완료 리스트 | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |
 | 2026-06-13 01:55 | `283fd1a` | feat(transcendence): Phase 203 Mock Detector + Phase 206 experimental 네임스페이스 + CI 정합성 게이트 | .github/workflows/sim-smoke.yml, README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md … |

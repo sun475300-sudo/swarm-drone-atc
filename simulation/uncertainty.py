@@ -38,7 +38,12 @@ class ConfidenceInterval:
 
     @property
     def margin(self) -> float:
-        """구간 반폭 (point 대칭 가정 시 ± 값)."""
+        """구간 반폭 ``(upper-lower)/2``.
+
+        대칭 구간(normal·bootstrap)에서는 point 로부터의 ± 오차와 같다.
+        Wilson score 같은 비대칭 구간에서는 point 와의 거리와 다를 수 있으므로
+        보고 시 lower/upper 를 직접 사용한다.
+        """
         return (self.upper - self.lower) / 2.0
 
     def contains(self, value: float) -> bool:

@@ -56,6 +56,8 @@ def proportion_power(
 
     효과가 없으면(p0==p1) 검정력은 유의수준 alpha 로 수렴한다.
     """
+    _validate_proportion(p0, "p0")
+    _validate_proportion(p1, "p1")
     if n < 1:
         raise ValueError("n 은 1 이상이어야 합니다")
     if not 0.0 < alpha < 1.0:
@@ -66,7 +68,9 @@ def proportion_power(
         1.0 - alpha
     )
     ncp = abs(h) * math.sqrt(n)  # 비중심 모수
-    # 단측 기각역 확률 (효과 방향). two_sided 에서 반대편 꼬리는 무시 가능 수준.
+    # 양측 검정 기각역 = {Z < -z_crit} ∪ {Z > z_crit}. 두 꼬리 기여항을 모두 더한다.
+    #   효과 방향 꼬리: Φ(ncp - z_crit)
+    #   반대편 꼬리:    Φ(-ncp - z_crit)  — h=0 일 때 power=alpha 를 보장하므로 생략 금지.
     power = float(stats.norm.cdf(ncp - z_crit))
     if two_sided:
         power += float(stats.norm.cdf(-ncp - z_crit))
@@ -85,6 +89,8 @@ def required_sample_size(
 
     ``n = ((z_alpha + z_power) / h)^2`` 의 천장값.
     """
+    _validate_proportion(p0, "p0")
+    _validate_proportion(p1, "p1")
     if not 0.0 < alpha < 1.0:
         raise ValueError(f"alpha 는 (0,1) 범위여야 합니다: {alpha}")
     if not 0.0 < power < 1.0:

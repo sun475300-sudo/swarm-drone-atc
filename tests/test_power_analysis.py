@@ -52,6 +52,12 @@ class TestProportionPower:
         res = proportion_power(p0=0.8, p1=0.9, n=98, alpha=0.05)
         assert res.power == pytest.approx(0.80, abs=0.05)
 
+    def test_invalid_proportion_raises_at_boundary(self):
+        with pytest.raises(ValueError):
+            proportion_power(p0=-0.1, p1=0.9, n=100)
+        with pytest.raises(ValueError):
+            proportion_power(p0=0.8, p1=1.5, n=100)
+
 
 class TestRequiredSampleSize:
     def test_standard_design(self):
@@ -73,6 +79,10 @@ class TestRequiredSampleSize:
     def test_zero_effect_raises(self):
         with pytest.raises(ValueError):
             required_sample_size(p0=0.8, p1=0.8)
+
+    def test_invalid_proportion_raises_at_boundary(self):
+        with pytest.raises(ValueError):
+            required_sample_size(p0=0.8, p1=1.2)
 
 
 class TestResolutionRatePowerReport:

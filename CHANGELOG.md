@@ -9,14 +9,16 @@
 - **Phase 406** 다국 좌표계·시간대 자동 판정 — `simulation/geo_zones.py` 신설. 위·경도를
   UTM 그리드 존/반구/MGRS 위도 밴드/EPSG 코드로 결정적 변환(`utm_zone`, `classify`) +
   경도 기반 공칭 시간대(`timezone_offset`). 노르웨이 32V·스발바르 밴드 X 표준 예외 포함,
-  극지(±80° 밖)·NaN·범위 밖 입력 fail-fast. 외부 의존성 없는 순수 함수. **pytest 30건 통과**
+  극지(±80° 밖)·NaN·범위 밖 입력 fail-fast. 외부 의존성 없는 순수 함수. **pytest 39건 통과**
   (서울 52S/뉴욕 18T/파리 31U/도쿄 54S/시드니 56H 검증). ODYSSEY Phase 401 USSP 갭 분석에서
   "좌표계 일관성" 요건을 충족 처리.
 - **Phase 401** EASA U-space U1-U4 서비스 매핑 — `docs/certification/EASA_USPACE_MAPPING.md` 신설.
   EU Reg 2021/664 필수 4서비스 + SESAR CORUS U1→U4 단계를 SDACS 모듈·성숙도에 매핑하고 USSP
   역할 요건 갭 분석. ODYSSEY 국제 확장(EASA·FAA·ICAO 3대 체계 동시 호환)의 EU 축.
 - 회귀 기준선 재확인: 본 세션 신규 컨테이너에서 `python -m pytest tests/`
-  **4,071 pass / 280 skip / 0 fail**(86.8s) GREEN 위에 +30건 추가.
+  **4,071 pass / 280 skip / 0 fail**(86.8s) GREEN 위에 +39건 추가.
+- 코드 리뷰(어드바이저) 반영: `lon=180.0`(자오선)이 존 1로 wrap되던 HIGH 버그 수정(→ 존 60) +
+  자오선·스발바르 음수 경도·노르웨이 31V 경계·`timezone_offset` NaN/inf 거부 테스트 9건 보강.
 
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:

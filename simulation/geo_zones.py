@@ -57,6 +57,9 @@ def _latitude_band(lat: float) -> str:
 def _zone_number(lat: float, lon: float, band: str) -> int:
     """그리드 존 번호 — 노르웨이(32V)·스발바르 표준 예외 포함."""
     zone = int((lon + 180.0) / 6.0) % 60 + 1
+    # 자오선(lon=180)은 공식이 0으로 wrap → 존 60(중앙 자오선 177°)이 정답.
+    if lon == 180.0:
+        zone = 60
 
     # 노르웨이 예외: 밴드 V(56~64°)에서 존 32가 서쪽(3°E)까지 확장.
     if band == "V" and 3.0 <= lon < 12.0:

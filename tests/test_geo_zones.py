@@ -53,6 +53,22 @@ class TestCentralMeridian:
         assert abs(z.central_meridian - 127.0) <= 3.0
 
 
+class TestAntimeridian:
+    """자오선(lon=±180) 경계 — 공식 wrap 회귀 방지."""
+
+    def test_lon_180_maps_to_zone_60(self):
+        z = utm_zone(0.0, 180.0)
+        assert z.zone == 60
+        assert z.central_meridian == 177.0
+        assert z.epsg == 32660
+
+    def test_lon_minus_180_maps_to_zone_1(self):
+        z = utm_zone(0.0, -180.0)
+        assert z.zone == 1
+        assert z.central_meridian == -177.0
+        assert z.epsg == 32601
+
+
 class TestUtmStandardExceptions:
     """노르웨이(32V)·스발바르 UTM 표준 예외 처리."""
 
@@ -64,6 +80,14 @@ class TestUtmStandardExceptions:
         # 밴드 V(56-64) 밖에서는 예외 미적용 — 5.32E 는 31존
         assert utm_zone(50.0, 5.32).zone == 31
 
+    def test_norway_band_v_west_of_3e_stays_31(self):
+        # 밴드 V 안이지만 3°E 서쪽 — 31V 유지(예외 미적용)
+        assert utm_zone(60.0, 2.0).zone == 31
+
+    def test_norway_band_v_east_boundary_resumes_33(self):
+        # 32V는 12°E에서 끝나고 동쪽은 표준 33존 재개
+        assert utm_zone(60.0, 12.0).zone == 33
+
     @pytest.mark.parametrize(
         "lon, zone",
         [(7.0, 31), (10.0, 33), (25.0, 35), (35.0, 37)],
@@ -71,6 +95,10 @@ class TestUtmStandardExceptions:
     def test_svalbard_widened_zones(self, lon, zone):
         # 스발바르(밴드 X, 72-84N)는 31/33/35/37 존만 사용
         assert utm_zone(78.0, lon).zone == zone
+
+    def test_band_x_negative_longitude_uses_standard_formula(self):
+        # 밴드 X라도 음수 경도(그린란드 등)는 예외 미적용 — 표준 공식
+        assert utm_zone(78.0, -10.0).zone == 29
 
 
 class TestTimezoneOffset:
@@ -93,6 +121,11 @@ class TestTimezoneOffset:
     def test_offset_bounds(self):
         for lon in (-180.0, 180.0):
             assert -12 <= timezone_offset(lon) <= 12
+
+    @pytest.mark.parametrize("lon", [math.nan, math.inf, -181.0, 181.0])
+    def test_invalid_longitude_rejected(self, lon):
+        with pytest.raises(ValueError):
+            timezone_offset(lon)
 
 
 class TestValidation:

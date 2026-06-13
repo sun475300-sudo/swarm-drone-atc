@@ -6540,12 +6540,35 @@
                 return q[0] === drone;
             },
             release(drone) {
-                const padName = drone.goalPad.name;
+                // 안전 수정 (2차 점검 #3): 큐에 없는 드론 release 시 상태 부패 방지.
+                // - goalPad 가 null/변경된 경우 가드
+                // - 큐에서 발견된 경우에만 상태 갱신
+                const padName = drone.goalPad && drone.goalPad.name;
+                if (!padName) {
+                    // 갈 곳 없는 드론 — 큐 미진입이라 release 의미 없음. 상태만 정리.
+                    drone.landingQueued = false;
+                    drone.landingSlot = -1;
+                    return false;
+                }
                 const q = this.queues[padName];
+                if (!q) {
+                    drone.landingQueued = false;
+                    drone.landingSlot = -1;
+                    return false;
+                }
                 const idx = q.indexOf(drone);
-                if (idx >= 0) q.splice(idx, 1);
-                drone.landingQueued = false;
-                drone.landingSlot = -1;
+                if (idx >= 0) {
+                    q.splice(idx, 1);
+                    drone.landingQueued = false;
+                    drone.landingSlot = -1;
+                    return true;
+                }
+                // 큐에 없으면 상태가 이미 동기 — landingQueued 만 안전 정리
+                if (drone.landingQueued) {
+                    drone.landingQueued = false;
+                    drone.landingSlot = -1;
+                }
+                return false;
             },
             clear() { LANDING_PADS.forEach(p => this.queues[p.name] = []); },
         };

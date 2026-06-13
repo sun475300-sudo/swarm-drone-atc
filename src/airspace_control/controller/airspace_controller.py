@@ -524,7 +524,11 @@ class AirspaceController:
                 self.analytics.record_event("NEAR_MISS", t, drone_a=id_a, drone_b=id_b, dist_m=cur_dist)
 
             # 충돌 예측 → 어드바이저리 발령
-            if cpa_dist < self._lat_min and cpa_t < self._lookahead:
+            # 2차 점검 #2: closest_approach 가 adaptive_lookahead 윈도우로 계산했으므로
+            # 의사결정도 동일 윈도우 기준이어야 한다. self._lookahead(90s 고정)을 쓰면
+            # 짧은 윈도우에서 잡힌 cpa_t 가 90s 안에 있다는 자명 참 조건이 되어
+            # 임계가 사실상 무효화 → 거짓 양성 conflict 증가.
+            if cpa_dist < self._lat_min and cpa_t < adaptive_lookahead:
                 if self.analytics:
                     self.analytics.record_event(
                         "CONFLICT", t, drone_a=id_a, drone_b=id_b, cpa_dist_m=cpa_dist, cpa_t_s=cpa_t
@@ -731,8 +735,11 @@ class AirspaceController:
             try:
                 self._voronoi_cells = compute_voronoi_partition(positions, bounds_dict)
                 self._apply_density_based_separation()
-            except Exception:
-                logger.warning("Voronoi partition failed with %d drones", len(positions))
+            except Exception as exc:
+                # 2차 점검 #4: 예외 시 stale Voronoi 셀을 다음 갱신(10s)까지 그대로 사용하면
+                # 드론 위치가 크게 바뀐 뒤 clearance 판정이 부정확해진다. 명시 클리어.
+                logger.warning("Voronoi partition failed with %d drones: %s", len(positions), exc)
+                self._voronoi_cells = {}
 
     def _apply_density_based_separation(self) -> None:
         """

@@ -17,9 +17,11 @@
 - **API**: `SwarmSelfHealer.add_drone/assign_task/mark_failed/available_drones/drone_load/summary`,
   `heal_swarm()` 다수 동시 결손 처리, `HealingReport`(healed_count·is_fully_healed) 결과 요약.
   `mark_failed`는 idempotent(이미 결손·미등록 드론은 빈 리포트).
-- **검증**: `tests/track_genesis/test_swarm_self_healing.py` **11개 단위 테스트 PASS**(최근접 재분배·
-  부하 균형·우선순위 순서·용량 포화 드롭·idempotency·입력 검증). 전체 회귀 **4,082 pass / 280 skip /
-  0 fail**(직전 베이스라인 4,071 + 신규 11), ruff·mypy 통과.
+- **검증**: `tests/track_genesis/test_swarm_self_healing.py` **12개 단위 테스트 PASS**(최근접 재분배·
+  부하 균형·우선순위 순서·용량 포화 드롭·idempotency·drone_load 센티넬·입력 검증). 전체 회귀
+  **4,083 pass / 280 skip / 0 fail**(직전 베이스라인 4,071 + 신규 12), ruff·mypy 통과.
+- **어드바이저 검토**(code-reviewer): APPROVE(CRITICAL/HIGH 0). MEDIUM 2건 반영 — 결손 드론
+  `drone_load`를 유휴(0)와 구분되는 센티넬 -2로 분리(+테스트), tie-break 사전순 명시.
 
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:

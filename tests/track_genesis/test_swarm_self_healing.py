@@ -143,6 +143,17 @@ def test_heal_swarm_handles_multiple_failures_deterministically() -> None:
     assert all(r.is_fully_healed for r in reports)
 
 
+def test_drone_load_sentinels_distinguish_failed_idle_unknown() -> None:
+    """drone_load: 결손 -2, 미등록 -1, 유휴 건강 드론 0."""
+    healer = _healer()
+    assert healer.drone_load("A") == 0  # 유휴 건강
+    assert healer.drone_load("ZZZ") == -1  # 미등록
+    healer.assign_task(Task("t1", (0.0, 0.0, 0.0)), "A")
+    assert healer.drone_load("A") == 1
+    healer.mark_failed("A")
+    assert healer.drone_load("A") == -2  # 결손(유휴 0과 구분)
+
+
 def test_rejects_invalid_capacity() -> None:
     """max_tasks_per_drone < 1 은 거부된다."""
     with pytest.raises(ValueError):

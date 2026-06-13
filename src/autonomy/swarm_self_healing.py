@@ -152,7 +152,8 @@ class SwarmSelfHealer:
         """임무 1건의 수용 드론을 선택한다.
 
         선택 기준(결정적): (1) 거리 오름차순 (2) 현재 부하 오름차순
-        (3) drone_id 오름차순. 여유 용량이 없으면 None.
+        (3) drone_id 오름차순(사전순/lexicographic — 숫자 접미 ID는 자연
+        순서와 다를 수 있음). 여유 용량이 없으면 None.
         """
         candidates = [
             d
@@ -172,9 +173,17 @@ class SwarmSelfHealer:
         return best.drone_id
 
     def drone_load(self, drone_id: str) -> int:
-        """드론의 현재 임무 수. 미등록 시 -1."""
+        """드론의 현재 임무 수. 결손 드론은 -2, 미등록 드론은 -1.
+
+        결손 드론은 `tasks`가 비워지므로 단순 길이만으로는 유휴(0)와
+        구분되지 않는다 → 결손은 별도 센티넬 -2로 구분한다.
+        """
         drone = self._drones.get(drone_id)
-        return len(drone.tasks) if drone is not None else -1
+        if drone is None:
+            return -1
+        if not drone.healthy:
+            return -2
+        return len(drone.tasks)
 
     def summary(self) -> dict:
         """현재 스웜 상태 요약."""

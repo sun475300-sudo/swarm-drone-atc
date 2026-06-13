@@ -10,7 +10,7 @@
 | 시뮬레이터 (군집 ATC) | `v1.5.0` (200 Phase) | 2026-06-05 |
 | 시뮬레이터 (해양 탐지) | `v1.5.0` (HYPER 11 ATC 포함) | 2026-06-05 |
 | `package.json` | `1.5.0` | 2026-06-05 |
-| Electron | `32.3.3` | — |
+| Electron | `32.3.3` (v1.5.0 빌드) → `^39.8.5` (package.json, 차기 빌드) | — |
 | electron-builder | `25.1.8` | — |
 | Three.js | `r162` | — |
 
@@ -19,11 +19,11 @@
 | 항목 | 값 |
 |---|:-:|
 | Phase 완료 | **200 / 200** (100%) |
-| 시뮬레이터 코드 | 11,695 line |
-| `_sdacs` 외부 API | 391 항목 (production 89·beta 98·mock 110·speculative 103) |
-| Playwright E2E | 247 / 248 (99.6%) |
-| 회귀 pytest | 4,140 / 4,140 (100%) |
-| **종합 자동 검증** | **4,387 / 4,389** (99.95%) |
+| 시뮬레이터 코드 | 11,836 line |
+| `_sdacs` 외부 API | 407 항목 — 분류 404 (production 93·beta 98·mock 110·speculative 103) + 헬퍼 3 |
+| Playwright E2E | 263 / 264 (1 skip) |
+| 회귀 pytest | 4,180 pass / 8 skip / 0 fail |
+| **종합 자동 검증** | **4,443 pass / 9 skip / 0 fail** (2026-06-12 실측) |
 | 사본 동기화 (md5) | 7 파일 일치 (군집 4 + 해양 3) |
 | 데스크탑 AppImage | 105 MB (ELF, ASAR 검증 완료) |
 
@@ -45,8 +45,9 @@
 | 버전 | 트리거 | 예상 |
 |---|---|---|
 | v1.5.1 | bug fix only | 미정 |
-| v1.6.0 | 트랙 ② HITL 실 구현 (Phase 22 격상) | 후속 |
-| v2.0.0 | STELLAR Phase 201+ (Post-Unity) | 장기 |
+| v1.6.0 | MASTER_PLAN Track Ⅰ 완료 (시각화 5종 마감) | 2026-07 |
+| v1.7.0 | Track Ⅲ 다중 사용자 실증 | 2026-09 |
+| v2.0.0 | TRANSCENDENCE 격상 + GENESIS 착수 (Phase 301+) | 2026-12 |
 
 ## 🏗 빌드 산출물 (배포 위치)
 

@@ -8350,15 +8350,39 @@
                     ctx.fillRect(ox + cx * cw, oy + cz * ch, cw + 0.6, ch + 0.6);
                 }
             }
-            ctx.strokeStyle = 'rgba(239,68,68,0.6)';
-            ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
-            ctx.strokeRect(
-                toX(-NFZ_HALF_EXTENT),
-                toY(-NFZ_HALF_EXTENT),
-                toX(NFZ_HALF_EXTENT) - toX(-NFZ_HALF_EXTENT),
-                toY(NFZ_HALF_EXTENT) - toY(-NFZ_HALF_EXTENT)
-            );
-            ctx.setLineDash([]);
+            // NFZ — 3D 씬과 동일 토글 적용. 정적 박스 + 동적 원형 zone 모두 표시.
+            if (layerVisibility.nfz !== false) {
+                ctx.strokeStyle = 'rgba(239,68,68,0.6)';
+                ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
+                ctx.strokeRect(
+                    toX(-NFZ_HALF_EXTENT),
+                    toY(-NFZ_HALF_EXTENT),
+                    toX(NFZ_HALF_EXTENT) - toX(-NFZ_HALF_EXTENT),
+                    toY(NFZ_HALF_EXTENT) - toY(-NFZ_HALF_EXTENT)
+                );
+                ctx.setLineDash([]);
+                // 동적 NFZ — injectDynamicNFZ()로 생성된 원형 zone (잔여 시간 펄스)
+                if (_dynNfzList.length) {
+                    const scaleR = (mw / (2 * WORLD));
+                    for (const z of _dynNfzList) {
+                        const cx = toX(z.x), cy = toY(z.z);
+                        const rPix = Math.max(2, z.r * scaleR);
+                        const remain = Math.max(0, z.expireAt - simTime);
+                        const pulse = 0.45 + 0.35 * Math.abs(Math.sin(simTime * 3));
+                        ctx.fillStyle = `rgba(239,68,68,${0.10 + pulse * 0.10})`;
+                        ctx.beginPath(); ctx.arc(cx, cy, rPix, 0, Math.PI * 2); ctx.fill();
+                        ctx.strokeStyle = `rgba(255,80,80,${0.55 + pulse * 0.30})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath(); ctx.arc(cx, cy, rPix, 0, Math.PI * 2); ctx.stroke();
+                        if (rPix >= 14 && remain > 0) {
+                            ctx.fillStyle = 'rgba(255,180,180,0.9)';
+                            ctx.font = '8px JetBrains Mono, monospace';
+                            const lbl = remain.toFixed(0) + 's';
+                            ctx.fillText(lbl, cx - ctx.measureText(lbl).width / 2, cy + 3);
+                        }
+                    }
+                }
+            }
             // 회랑 밴드 (EW/NS 400m)
             if (corridorGroup.visible) {
                 ctx.fillStyle = 'rgba(59,130,246,0.10)';
@@ -8484,7 +8508,7 @@
                 ['어드바이저리', stats.advisories, '#8b5cf6'],
                 ['비행 중', airborne + ' 대', '#22c55e'],
                 ['평균 배터리', avgBat.toFixed(1) + '%', batColor],
-                ['총 비행거리', totalDist.toFixed(1) + ' km', '#00e5ff'],
+                ['총 비행거리', totalDist >= 1 ? totalDist.toFixed(1) + ' km' : (totalDist * 1000).toFixed(0) + ' m', '#00e5ff'],
                 ['시뮬 시간', mm + ':' + ss, '#00e5ff'],
                 ['총 드론', drones.length + ' 대', '#00e5ff'],
             ];
@@ -11181,6 +11205,86 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         window._copilotPlan = _copilotPlan;
         window._copilotExecute = _copilotExecute;
 
+        // ===== GENESIS Phase 381 — 교육 모드 (단계별 튜토리얼) =====
+        // 관제 개념 → 5계층 안전망 5단계 진행. _sdacs API만 사용해 결정적 시연.
+        const TUTORIAL_STEPS = [
+            { id: 1, title: '관제 콘솔 (ATC)', goal: '드론 선택 → HOLD 명령', action: 'api.selectDrone(0); api.atcCommand(api.getSelected().id, "HOLD");', verify: () => !!selectedDrone, hint: '드론 1대를 선택하고 ATC HOLD 명령을 보냅니다 — Layer 4 ATC.' },
+            { id: 2, title: 'CPA 충돌 예측 (TAC)', goal: 'CPA 마커·예측 trail 활성', action: 'api.setPredTrail(true); api.setCpaMarker(true);', verify: () => true, hint: '90초 미래 위치를 외삽해 충돌 시점을 미리 표시 — Layer 3 CPA.' },
+            { id: 3, title: '동적 NFZ (UTM)', goal: '원형 NFZ 30초 주입', action: 'api.injectDynamicNFZ(0, 0, 200, 30);', verify: () => _dynNfzList.length > 0, hint: 'NFZ 안에서 회피·우회 — Layer 5 UTM 지오펜스.' },
+            { id: 4, title: 'APF 회피 (장애 주입)', goal: 'GPS 손실 시나리오로 회피 확인', action: 'api.injectScenario("EMP");', verify: () => true, hint: '드론 30%에 GPS 손실. APF가 잠재력장으로 즉시 회피 — Layer 1 APF.' },
+            { id: 5, title: '정직성 공시 (Maturity)', goal: 'maturityReport() 출력', action: 'console.log(JSON.stringify(api.maturityReport().counts));', verify: () => true, hint: '404 API의 production/beta/mock/speculative 분포 공시.' },
+        ];
+        const tutorial = { active: false, step: 0, log: [] };
+        function startTutorial() {
+            tutorial.active = true; tutorial.step = 0; tutorial.log = [];
+            logEvent('info', `🎓 교육 모드 시작 (총 ${TUTORIAL_STEPS.length}단계)`);
+            return { totalSteps: TUTORIAL_STEPS.length, current: TUTORIAL_STEPS[0] };
+        }
+        function tutorialNext() {
+            if (!tutorial.active) return null;
+            const s = TUTORIAL_STEPS[tutorial.step];
+            if (!s) return null;
+            // Execute the step action — 결정적 _sdacs API 호출만 사용
+            const api = window._sdacs;
+            try {
+                // eslint-disable-next-line no-new-func
+                new Function('api', s.action)(api);
+                tutorial.log.push({ step: s.id, title: s.title, ok: !!s.verify() });
+                logEvent('info', `🎓 단계 ${s.id} 완료: ${s.title}`);
+            } catch (e) {
+                tutorial.log.push({ step: s.id, title: s.title, ok: false, error: e.message });
+                logEvent('fail', `🎓 단계 ${s.id} 실패: ${e.message}`);
+            }
+            tutorial.step++;
+            if (tutorial.step >= TUTORIAL_STEPS.length) {
+                tutorial.active = false;
+                return { done: true, log: tutorial.log.slice() };
+            }
+            return { done: false, current: TUTORIAL_STEPS[tutorial.step] };
+        }
+        function tutorialStatus() {
+            return { active: tutorial.active, step: tutorial.step, total: TUTORIAL_STEPS.length, log: tutorial.log.slice() };
+        }
+
+        // ===== GENESIS Phase 302 — SORA 자동 계산기 (JARUS SORA 2.0 결정적 구현) =====
+        // 시뮬 상태(고도·드론 수·완화 수단)에서 GRC/ARC → SAIL 등급을 산출한다.
+        // 참조: JARUS SORA 2.0 — iGRC 표(소형 ≤1m·≤25kg 클래스), SAIL 결정 표(Table 5)
+        const SORA_IGRC = { controlled: { vlos: 1, bvlos: 2 }, sparse: { vlos: 2, bvlos: 3 }, populated: { vlos: 3, bvlos: 4 }, assembly: { vlos: 7, bvlos: 8 } };
+        const SORA_SAIL_TABLE = { // finalGrc → { arc: SAIL }
+            1: { a: 'I', b: 'II', c: 'IV', d: 'VI' },
+            2: { a: 'I', b: 'II', c: 'IV', d: 'VI' },
+            3: { a: 'II', b: 'II', c: 'IV', d: 'VI' },
+            4: { a: 'III', b: 'III', c: 'IV', d: 'VI' },
+            5: { a: 'IV', b: 'IV', c: 'IV', d: 'VI' },
+            6: { a: 'V', b: 'V', c: 'V', d: 'VI' },
+            7: { a: 'VI', b: 'VI', c: 'VI', d: 'VI' },
+        };
+        function soraAssess(opts) {
+            opts = opts || {};
+            const density = SORA_IGRC[opts.populationDensity] ? opts.populationDensity : 'sparse';
+            const bvlos = opts.bvlos !== false; // 군집 자동 관제 = 기본 BVLOS
+            const iGrc = SORA_IGRC[density][bvlos ? 'bvlos' : 'vlos'];
+            // 완화(M1 전략적 — NFZ 지오펜스 활성, M3 ERP — failsafe·착륙 큐 관리)
+            const mitigations = [];
+            let grc = iGrc;
+            if (layerVisibility.nfz !== false) { grc -= 1; mitigations.push('M1 strategic geofence (NFZ 활성)'); }
+            if (typeof landingManager !== 'undefined') { grc -= 1; mitigations.push('M3 ERP (failsafe + 착륙 시퀀스 관리)'); }
+            grc = Math.max(1, grc);
+            // ARC: <150m AGL 비통제 공역 기준 — 인구밀집 환경은 ARC-c, 그 외 ARC-b
+            const maxAltNow = drones.reduce((m, d) => Math.max(m, d.wy), 0);
+            let arc = (density === 'populated' || density === 'assembly') ? 'c' : 'b';
+            // 전술 완화(TMPR): CPA 90초 예측 + APF 회피 + ATC 1Hz 관제 → 1단계 경감
+            const tactical = 'CPA lookahead + APF + ATC (5계층 안전망)';
+            if (arc === 'c') { arc = 'b'; }
+            const sail = grc > 7 ? 'CERTIFIED' : SORA_SAIL_TABLE[grc][arc];
+            return {
+                iGrc, finalGrc: grc, arc: 'ARC-' + arc, sail: sail === 'CERTIFIED' ? sail : 'SAIL ' + sail,
+                density, bvlos, mitigations, tacticalMitigation: tactical,
+                maxAltitudeM: Math.round(maxAltNow), droneCount: drones.length,
+                ref: 'JARUS SORA 2.0 (iGRC ≤1m/≤25kg class, deterministic)',
+            };
+        }
+
         // ===== TRANSCENDENCE Phase 201-207 — API Maturity Honesty =====
         // 각 _sdacs API의 구현 성숙도를 정직하게 분류한다.
         //   production : 실측 검증 + 회귀 + 실 알고리즘 (MEGA 코어)
@@ -11191,6 +11295,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         const _MATURITY_PRODUCTION = new Set([
             // Phase 1 ATC (핵심, 실측 검증 + 회귀)
             'atcCommand', 'atcLog', 'atcControlled', 'setAtcAudio', 'atcAudio', 'clearAllAtc',
+            // GENESIS Phase 302 — SORA 결정적 산정 (JARUS 2.0 표 기반 실 알고리즘)
+            'soraAssess',
+            // GENESIS Phase 381 — 교육 튜토리얼 (결정적 5단계, _sdacs API만 사용)
+            'tutorialStart', 'tutorialNext', 'tutorialStatus',
             // Phase 2 TAC
             'setPredTrail', 'predTrail', 'setPredHorizon', 'predHorizon', 'setVelArrow', 'velArrow',
             'setCpaMarker', 'cpaMarker', 'cpaPairsCount',
@@ -11254,6 +11362,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // 미분류 → beta (기본 보수적)
             return 'beta';
         }
+        const _mockCallLog = {}; // Phase 203 — mock/speculative API 호출 카운트
         function _maturityReport() {
             const counts = { production: 0, beta: 0, mock: 0, speculative: 0 };
             const byApi = {};
@@ -11264,7 +11373,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 byApi[key] = m;
             }
             const total = counts.production + counts.beta + counts.mock + counts.speculative;
-            return { total, counts, byApi };
+            return { total, counts, byApi, mockCalls: { ..._mockCallLog } };
         }
 
         // ── 자동 테스트 API (외부 접근용) ──
@@ -11805,7 +11914,48 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             // ===== TRANSCENDENCE Phase 201-207 — API Maturity Honesty =====
             apiMaturity(name) { return _classifyMaturity(name); },
             maturityReport() { return _maturityReport(); },
+            // ===== GENESIS Phase 302 — SORA 자동 계산기 =====
+            soraAssess(opts) { return soraAssess(opts); },
+            // ===== GENESIS Phase 381 — 교육 모드 (단계별 튜토리얼) =====
+            tutorialStart() { return startTutorial(); },
+            tutorialNext() { return tutorialNext(); },
+            tutorialStatus() { return tutorialStatus(); },
         };
+
+        // ===== TRANSCENDENCE Phase 203 — Mock Detector + Phase 206 — experimental 네임스페이스 =====
+        // 203: mock/speculative 메서드 호출 시 최초 1회 console.warn + 호출 카운트(_mockCallLog)
+        // 206: speculative API를 _sdacs.experimental.* 경유로도 노출 (직접 호출 호환 유지)
+        (function () {
+            const api = window._sdacs;
+            const warned = new Set();
+            const experimental = {};
+            for (const key of Object.keys(api)) {
+                if (key === 'apiMaturity' || key === 'maturityReport') continue;
+                const lvl = _classifyMaturity(key);
+                const desc = Object.getOwnPropertyDescriptor(api, key);
+                if (!desc) continue;
+                if ((lvl === 'mock' || lvl === 'speculative') && typeof desc.value === 'function') {
+                    const orig = desc.value;
+                    api[key] = function (...args) {
+                        _mockCallLog[key] = (_mockCallLog[key] || 0) + 1;
+                        if (!warned.has(key)) {
+                            warned.add(key);
+                            console.warn(`[SDACS maturity] '${key}' 는 ${lvl} API — 결정적 ${lvl === 'mock' ? 'mock' : '스텁'} 동작이며 실측 검증 대상이 아닙니다`);
+                        }
+                        return orig.apply(api, args);
+                    };
+                }
+                if (lvl === 'speculative') {
+                    if (typeof desc.value === 'function' || desc.get) {
+                        Object.defineProperty(experimental, key, {
+                            get() { return desc.get ? desc.get.call(api) : api[key]; },
+                            enumerable: true,
+                        });
+                    }
+                }
+            }
+            api.experimental = experimental;
+        })();
     </script>
 </body>
 

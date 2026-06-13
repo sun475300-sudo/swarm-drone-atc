@@ -13,9 +13,9 @@
 | 지표 | 값 |
 |---|:-:|
 | 시뮬레이터 코드 (군집) | 11,723 line |
-| `_sdacs` API | 391 항목 |
-| Playwright E2E | 248 / 249 통과 |
-| 회귀 pytest | 4,140 / 4,140 |
+| `_sdacs` API | 407 항목 (분류 404 + 헬퍼 3) |
+| Playwright E2E | 263 / 264 통과 (1 skip) |
+| 회귀 pytest | 4,180 pass / 8 skip / 0 fail |
 | 데스크탑 빌드 | v1.5.0 (Win/Mac/Linux) |
 | Phase 완료 | 200 / 200 (단, 51-200 다수는 mock/stub) |
 
@@ -30,11 +30,11 @@ TRANSCENDENCE는 이 중 **실측 가치가 있는 30~40개를 선별 격상**�
 *가장 높은 실용 가치. 각 Phase에 maturity 등급을 부여.*
 
 - **Phase 201** API Maturity Registry — 각 `_sdacs` API에 `maturity: 'production'|'beta'|'mock'|'speculative'` 메타데이터 부착
-- **Phase 202** `_sdacs.maturityReport()` — 391 API의 성숙도 분포 자동 집계
-- **Phase 203** Mock Detector — E2E 테스트가 mock API 호출 시 콘솔 경고
+- **Phase 202** `_sdacs.maturityReport()` — 407 API의 성숙도 분포 자동 집계 (분류 404)
+- **Phase 203** ✅ Mock Detector — mock/speculative API 호출 시 console.warn 1회 + `maturityReport().mockCalls` 카운트 (2026-06-12)
 - **Phase 204** Production API 핵심 12종 회귀 강화 (ATC/TAC/MIS/INJ)
 - **Phase 205** Beta API 부분 검증 (Copilot/적대/C-UAS)
-- **Phase 206** Speculative API 격리 — `window._sdacs.experimental.*` 네임스페이스 분리
+- **Phase 206** ✅ Speculative API 격리 — `window._sdacs.experimental.*` 네임스페이스 (직접 호출 호환 유지, speculative 103종 전수 노출) (2026-06-12)
 - **Phase 207** Maturity Badge SVG 자동 생성 (production X / beta Y / mock Z)
 - **Phase 208** README Maturity 섹션 자동 갱신
 - **Phase 209** API Deprecation Policy 문서
@@ -126,7 +126,7 @@ TRANSCENDENCE는 이 중 **실측 가치가 있는 30~40개를 선별 격상**�
 
 | 지표 | Phase 200 | Phase 220 | Phase 260 | Phase 300 |
 |---|:-:|:-:|:-:|:-:|
-| `_sdacs` API | 391 | 420 | 480 | 550 |
+| `_sdacs` API | 404 | 420 | 480 | 550 |
 | Production-grade API | ~20 | 50 | 100 | 200 |
 | E2E 케이스 | 248 | 320 | 450 | 600 |
 | 실 사용자 검증 | β | 10 | 100 | 1,000 |
@@ -150,4 +150,6 @@ TRANSCENDENCE는 이 중 **실측 가치가 있는 30~40개를 선별 격상**�
 - [`SIMULATOR_STELLAR_PLAN.md`](SIMULATOR_STELLAR_PLAN.md) — Phase 51-100 (✅, 51 격상)
 - [`SIMULATOR_ULTIMATE_PLAN.md`](SIMULATOR_ULTIMATE_PLAN.md) — Phase 101-150 (✅)
 - [`SIMULATOR_POST_UNIVERSE_PLAN.md`](SIMULATOR_POST_UNIVERSE_PLAN.md) — Phase 151-200 (✅)
+- [`SIMULATOR_GENESIS_PLAN.md`](SIMULATOR_GENESIS_PLAN.md) — Phase 301-400 (다음 지평: 인증·생태계·실증·자율·레거시)
+- [`MASTER_PLAN_2026H2.md`](MASTER_PLAN_2026H2.md) — 2026 H2 통합 실행 일정
 - [`STATUS_REPORT.md`](../STATUS_REPORT.md) · [`CHANGELOG.md`](../CHANGELOG.md)

@@ -132,6 +132,10 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 | **Track F** (P746-755, 산학 실증) | 90% | ███████████░ | P746-P754 docs 완비 (P755 창업·LOI는 사용자 환경) |
 | **MEGA Plan** (시뮬 Phase 1-9) | 100% | ████████████ | ATC·TAC·CIN·CAM·MIS·INJ·ANA·AUD·MOB |
 | **HYPER Plan** (시뮬 Phase 10-50) | 100% | ████████████ | 41개 추가 Phase (해양 ATC · VR · AI Copilot · 적대 · C-UAS · 행성 등) |
+| **STELLAR~POST-UNIVERSE** (시뮬 Phase 51-200) | 100% | ████████████ | Phase 200 = 𝟏 (Unity) · Phase 51 LLM Multi-Agent 격상 (단, 다수 mock/speculative — maturity 공시) |
+| **TRANSCENDENCE** (시뮬 Phase 201-300) | 10% | █░░░░░░░░░░░ | Phase 201-208 Maturity Honesty 완료 (분류·Mock Detector·experimental·beta·production 회귀) |
+| **GENESIS** (시뮬 Phase 301-400) | 9% | █░░░░░░░░░░░ | 301·302·304·306·309·381·387·388·389 완료 — 인증 가이드 4종·교육·레거시 |
+| **ODYSSEY** (시뮬 Phase 401-500) | 5% | █░░░░░░░░░░░ | 408 ICAO 매핑·447 fuzzing·448 property·466 schema·486 재현 완료 |
 
 **총 Phase 691-755 (65개) 중 61개 완료 = 94%** (Phase 1-690 포함 시 전체 751/755 = **99.5%**)
 **+ 시뮬레이터 MEGA 9 + HYPER 41 = 50 Phase 100% 완료** (총 800 Phase 중 796 완료 = **99.5%**)
@@ -240,9 +244,58 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P754** — 후속 캡스톤 멘토링 — `docs/track_f/p754_mentoring.md` 인수인계 자산 + 후속 주제 + 멘토링 일정 + 인수 체크리스트 (2026-06-04)
 - [ ] **P755** — 창업·분사 검토 (별도 PR 진행 예정)
 
----
+### Track G — 시뮬레이터 TRANSCENDENCE (Phase 201-300) · 2026-06-12 신설
+
+> 상세: [`docs/SIMULATOR_TRANSCENDENCE_PLAN.md`](docs/SIMULATOR_TRANSCENDENCE_PLAN.md) · 실행 일정: [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)
+
+- [x] **Phase 201-202** — API Maturity Registry + `maturityReport()` (407 API → production 93·beta 98·mock 110·speculative 103) (2026-06-12)
+- [x] **Phase 207-208** — SDACS_API.md maturity 컬럼 + README maturity 섹션 (2026-06-12)
+- [x] **Phase 203 + 206** — Mock Detector(console.warn + `mockCalls` 카운트) + `experimental.*` 네임스페이스 격리, E2E 2건 + CI 정합성 게이트(G-2·G-4) (2026-06-12)
+- [x] **Phase 204** — Production 핵심 12종 회귀 강화 — `test_simulator_production_core.py` (getter 전수 + 12종 호출 + 93 회귀 방지) (2026-06-12)
+- [x] **Phase 205** — Beta API 부분 검증 — `test_simulator_beta_subset.py` (Copilot·적대·C-UAS·WindField·PQC, 5건) (2026-06-12)
+- [ ] **Phase 209-220** — Deprecation Policy·SemVer·production 격상 (12 → 30 API)
+- [ ] **Phase 221-240** — Real Validation (WebGPU 실 WGSL·CRDT Yjs·MAVLink SITL·KMA 풍속장)
+- [ ] **Phase 241-260** — Multi-User Reality (WS 관제 서버·다중 관제사·TimescaleDB·부하 100명)
+- [ ] **Phase 261-280** — Hardware Loop (Pixhawk HITL·Jetson 엣지·RTK·실 비행 데이터셋) *(사용자 HW 의존)*
+- [ ] **Phase 281-300** — Academic Impact (IROS 투고·Zenodo DOI·Ablation 자동화·K-UTM 표준 제안)
+
+### Track H — 시뮬레이터 GENESIS (Phase 301-400) · 2026-06-12 수립
+
+> 상세: [`docs/SIMULATOR_GENESIS_PLAN.md`](docs/SIMULATOR_GENESIS_PLAN.md) — *"이것은 세상에 남는가"*
+
+- [x] **Phase 301** 🏭 항공안전법·드론활용촉진법 적합성 매트릭스 — `docs/certification/AIR_SAFETY_ACT_MATRIX.md` (2026-06-12)
+- [x] **Phase 302** 🏭 SORA 자동 계산기 — `_sdacs.soraAssess()` JARUS 2.0 결정적 구현, E2E 6건 (2026-06-12)
+- [x] **Phase 304** 🏭 KC 전파인증 체크리스트 — `docs/certification/KC_RADIO_CERTIFICATION.md` (2026-06-12)
+- [x] **Phase 306** 🏭 RTM 5계층 커버리지 — `docs/certification/RTM_5LAYER_COVERAGE.md` 21건 추적 (2026-06-12)
+- [x] **Phase 309** 🏭 조종자 자격증명 매핑 — `docs/certification/PILOT_LICENSE_MAPPING.md` (2026-06-12)
+- [ ] **Phase 301·303-320** 🏭 Certification & Compliance — 항공안전법 매트릭스·DO-178C 갭 분석·CSAP 자동화
+- [ ] **Phase 321-340** 🌍 Ecosystem & Open Source — 플러그인 SDK·`@sdacs/core` npm·`sdacs-sim` PyPI·v2.0 API 안정화
+- [ ] **Phase 341-360** 🏙 Real Deployment — 목포 해역 실 좌표·전남 도서 의료 배송·90일 파일럿 백서
+- [ ] **Phase 361-380** 🤖 Next-Gen Autonomy — 온보드 RL 추론·APF+RL 하이브리드·양방향 디지털 트윈
+- [x] **Phase 381** 🎓 교육 모드 — 시뮬레이터 `tutorialStart/Next/Status()` 5단계 (2026-06-12)
+- [x] **Phase 387** 🎓 졸업 심사 발표 키트 — `docs/presentation/DEFENSE_KIT.md` (2026-06-12)
+- [x] **Phase 389** 🎓 유지보수 최소 모드 — `docs/MAINTENANCE_MINIMAL_MODE.md` (2026-06-12)
+- [x] **Phase 388** 🎓 기술 부채 대장 — `docs/TECH_DEBT_LEDGER.md` 자동 생성 (2026-06-12)
+- [ ] **Phase 381-387·389-400** 🎓 Education & Legacy — 15주 커리큘럼·졸업 심사 키트·**Phase 400 = Legacy 선언**
+
+### Track I — 시뮬레이터 ODYSSEY (Phase 401-500) · 2026-06-12 수립
+
+> 상세: [`docs/SIMULATOR_ODYSSEY_PLAN.md`](docs/SIMULATOR_ODYSSEY_PLAN.md) — *"이것은 국경과 세대를 넘는가"*
+
+- [x] **Phase 408** 🌏 ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` (2026-06-12)
+- [ ] **Phase 401-407·409-420** 🌏 Global Expansion — EASA U-space·FAA UTM 정렬·EN 완역
+- [ ] **Phase 421-440** 🛰 Federation Operations — inter-USS 디스커버리·관제권 핸드오버·연합 충돌 해소
+- [x] **Phase 447** 🔬 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` NFZ·ATC·SORA 140케이스 (2026-06-12)
+- [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12)
+- [ ] **Phase 441-446·449-460** 🔬 Formal & Research Frontier — TLA+ 안전망 명세·모델 체킹
+- [x] **Phase 466** 🏛 텔레메트리 JSON Schema 공개 — `docs/schemas/telemetry.schema.json` Draft-07 + ws_bridge 정합 회귀 (2026-06-12)
+- [ ] **Phase 461-465·467-480** 🏛 Standards & Policy — ASTM/ISO 기고·정책 영향 시뮬
+- [x] **Phase 486** ♾️ 독립 재현 자동화 — `scripts/independent_reproduction.sh` (회귀·md5·JS·API 게이트 통합) (2026-06-12)
+- [ ] **Phase 481-485·487-500** ♾️ Continuum — 의존성 장기 추적·승계 규약·**Phase 500 = Centennial 선언**
 
 ---
+
+*2026-06-12 (종합 감사) — **전체 문서·소스 정합성 감사 + Track G 신설**: 라이브 페이지 실측으로 `_sdacs` API **407 항목** 확정(기존 문서 391 과소 표기 정정 — 분류 404 = 93/98/110/103 + 헬퍼 3), `docs/SDACS_API.md` maturity 컬럼 포함 재생성, `docs/sdacs.d.ts` 407 멤버 재생성, README·VERSION.md 수치 동기화(시뮬레이터 11,836 line). 분석 뷰 Q2 동적 NFZ overlay + NFZ 레이어 토글 연동 + sub-km 비행거리 표시(PR #265). TRANSCENDENCE Phase 201-300을 Track G로 로드맵 공식 편입, 2026 H2 마스터플랜(`docs/MASTER_PLAN_2026H2.md`) 수립.*
 
 ## Contributing / 기여
 

@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sun475300-sudo.github.io/swarm-drone-atc/schemas/telemetry.schema.json",
+  "title": "SDACS Telemetry Snapshot",
+  "description": "ws_bridge.py 2Hz WebSocket 스냅샷 표준 스키마 (ODYSSEY Phase 466). 외부 소비자(웹 시뮬 LIVE 모드, Grafana, 연합 인스턴스)가 이 계약에 의존한다.",
+  "type": "object",
+  "required": ["t", "drones", "stats", "backend"],
+  "properties": {
+    "t": {
+      "type": "number",
+      "minimum": 0,
+      "description": "시뮬레이션 시각 (초, 0.1 해상도)"
+    },
+    "drones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "pos", "vel", "phase", "battery"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "pos": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 3,
+            "maxItems": 3,
+            "description": "ENU 좌표 [x, y, z] (m)"
+          },
+          "vel": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 3,
+            "maxItems": 3,
+            "description": "속도 벡터 [vx, vy, vz] (m/s)"
+          },
+          "phase": {
+            "type": "string",
+            "description": "비행 단계 — simulation.drone_agent.FlightPhase 이름"
+          },
+          "battery": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "배터리 잔량 (%)"
+          }
+        }
+      }
+    },
+    "stats": {
+      "type": "object",
+      "required": ["collisions", "near_misses", "conflicts", "advisories"],
+      "properties": {
+        "collisions": { "type": "integer", "minimum": 0 },
+        "near_misses": { "type": "integer", "minimum": 0 },
+        "conflicts": { "type": "integer", "minimum": 0 },
+        "advisories": { "type": "integer", "minimum": 0 },
+        "cbs_attempts": { "type": "integer", "minimum": 0 },
+        "cbs_successes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "backend": {
+      "type": "string",
+      "description": "연산 백엔드 식별자 (예: cpu, cuda)"
+    }
+  }
+}

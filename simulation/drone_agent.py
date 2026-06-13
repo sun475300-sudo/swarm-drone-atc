@@ -228,10 +228,12 @@ class DroneAgent:
                 drone.position[1] = float(np.clip(drone.position[1], -sim.bounds_m, sim.bounds_m))
                 drone.position[2] = float(np.clip(drone.position[2], 0.0, 120.0))
                 geofence_margin = sim.bounds_m * 0.9
-                if abs(drone.position[0]) > geofence_margin or abs(drone.position[1]) > geofence_margin:
-                    if drone.flight_phase in (FlightPhase.ENROUTE, FlightPhase.EVADING):
-                        drone.flight_phase = FlightPhase.RTL
-                        drone.goal = None
+                if (
+                    abs(drone.position[0]) > geofence_margin
+                    or abs(drone.position[1]) > geofence_margin
+                ) and drone.flight_phase in (FlightPhase.ENROUTE, FlightPhase.EVADING):
+                    drone.flight_phase = FlightPhase.RTL
+                    drone.goal = None
 
             if phase_before not in (FlightPhase.GROUNDED, FlightPhase.FAILED) or drone.flight_phase not in (
                 FlightPhase.GROUNDED,

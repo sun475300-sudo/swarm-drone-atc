@@ -58,7 +58,7 @@ class RaftCluster:
             )
             for nid in node_ids
         }
-        self._alive: dict[str, bool] = {nid: True for nid in node_ids}
+        self._alive: dict[str, bool] = dict.fromkeys(node_ids, True)
         self.now_ms: float = 0.0
         self._election_deadline: dict[str, float] = {}
         self._last_heartbeat_ms: float = -1e9
@@ -118,10 +118,9 @@ class RaftCluster:
         self.now_ms += dt_ms
 
         leader = self.leader()
-        if leader is not None:
-            if self.now_ms - self._last_heartbeat_ms >= self.cfg.heartbeat_interval_ms:
-                self._send_heartbeats(leader)
-                self._last_heartbeat_ms = self.now_ms
+        if leader is not None and self.now_ms - self._last_heartbeat_ms >= self.cfg.heartbeat_interval_ms:
+            self._send_heartbeats(leader)
+            self._last_heartbeat_ms = self.now_ms
 
         # election timeout 검사 (리더 제외, 데드라인이 빠른 순으로 결정론적 처리)
         candidates = [

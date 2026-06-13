@@ -159,7 +159,7 @@ class TestSemanticSegmentationEngine:
         assert result.processing_time_ms == 15.0
 
     def test_get_pedestrian_mask(self):
-        from simulation.semantic_segmentation_engine import SemanticSegmentationEngine, SegmentationClass
+        from simulation.semantic_segmentation_engine import SemanticSegmentationEngine
         engine = SemanticSegmentationEngine()
         class_map = np.array([[1, 2], [3, 1]])
         mask = engine.get_pedestrian_mask(class_map)

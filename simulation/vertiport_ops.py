@@ -142,9 +142,12 @@ class VertiportOps:
             del self.reservations[k]
             # 해당 패드에 남은 예약이 없고 RESERVED 상태이면 AVAILABLE로 복원
             pad = self.pads.get(pad_id)
-            if pad is not None and pad.status == PadStatus.RESERVED:
-                if not any(r.pad_id == pad_id for r in self.reservations.values()):
-                    pad.status = PadStatus.AVAILABLE
+            if (
+                pad is not None
+                and pad.status == PadStatus.RESERVED
+                and not any(r.pad_id == pad_id for r in self.reservations.values())
+            ):
+                pad.status = PadStatus.AVAILABLE
         return len(expired_keys)
 
     def cancel_reservation(self, slot_id: str) -> bool:

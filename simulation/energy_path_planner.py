@@ -109,10 +109,7 @@ class EnergyPathPlanner:
             wind_factor = 1.0
 
         # 고도 변화 비용
-        if dz > 0:
-            p_climb = dz * 25.0  # 상승: 25 W/m
-        else:
-            p_climb = dz * 5.0   # 하강: 회수 5 W/m
+        p_climb = dz * 25.0 if dz > 0 else dz * 5.0
 
         # 고도 보정
         alt_factor = 1.0 + from_pos[2] * 0.00012

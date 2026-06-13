@@ -13,7 +13,6 @@ TelemetryCompressor (Phase 642)의 무손실/유계 손실 속성을 무작위 �
 from __future__ import annotations
 
 import numpy as np
-import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 

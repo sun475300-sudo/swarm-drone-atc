@@ -116,10 +116,7 @@ class DynamicSpectrumAccess:
 
         # Simulate primary user activity
         noise = self._rng.normal(0, 3)  # noise in dB
-        if ch.primary_user_active:
-            energy = -60.0 + noise  # strong primary user signal
-        else:
-            energy = self.NOISE_FLOOR_DBM + noise
+        energy = -60.0 + noise if ch.primary_user_active else self.NOISE_FLOOR_DBM + noise
 
         ch.snr_db = energy - self.NOISE_FLOOR_DBM
         self._sensing_history.setdefault(channel_id, []).append(energy)

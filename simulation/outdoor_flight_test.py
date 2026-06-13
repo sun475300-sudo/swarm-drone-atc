@@ -5,7 +5,6 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
 
 import numpy as np
 
@@ -77,7 +76,7 @@ def _compute_formation_positions(
     positions = []
     if formation == FormationType.LINE:
         offsets = np.linspace(-(count - 1) / 2, (count - 1) / 2, count)
-        for i, off in enumerate(offsets):
+        for off in offsets:
             positions.append((center_lat + off * spacing_m * deg_per_m, center_lon, alt_m))
     elif formation == FormationType.VEE:
         for i in range(count):
@@ -140,7 +139,7 @@ class OutdoorFlightTestRunner:
         log: list[str] = []
         t_start = time.time()
 
-        for did, d in self._drones.items():
+        for d in self._drones.values():
             d.alt_m = TAKEOFF_ALT_M + float(self.rng.normal(0, 0.1))
             d.target_alt_m = TAKEOFF_ALT_M
             d.position_error_m = float(self.rng.uniform(0.05, 0.35))
@@ -171,7 +170,7 @@ class OutdoorFlightTestRunner:
             formation, self.drone_count,
         )
         drone_ids = list(self._drones)
-        for did, (tlat, tlon, talt) in zip(drone_ids, targets):
+        for did, (tlat, tlon, talt) in zip(drone_ids, targets, strict=False):
             d = self._drones[did]
             d.target_lat, d.target_lon, d.target_alt_m = tlat, tlon, talt
             d.lat = tlat + float(self.rng.normal(0, 1e-5))

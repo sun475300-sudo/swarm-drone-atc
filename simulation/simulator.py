@@ -414,33 +414,39 @@ class SwarmSimulator:
                     continue
 
                 # 드론 고장 주입 (매 5초 간격 확률)
-                if self._failure_rate > 0 and drone.failure_type == FailureType.NONE:
-                    if self.rng.random() < self._failure_rate * INJECT_INTERVAL_S / 60.0:
-                        failure = self.rng.choice(self._failure_types_pool)
-                        drone.failure_type = failure
-                        if failure == FailureType.MOTOR_FAILURE:
-                            drone.flight_phase = FlightPhase.FAILED
-                        elif failure == FailureType.BATTERY_CRITICAL:
-                            drone.battery_pct = 3.0
-                            drone.flight_phase = FlightPhase.LANDING
-                        if self.analytics:
-                            self.analytics.record_event(
-                                "FAILURE_INJECTED",
-                                t,
-                                drone_id=drone.drone_id,
-                                failure_type=failure.name,
-                            )
+                if (
+                    self._failure_rate > 0
+                    and drone.failure_type == FailureType.NONE
+                    and self.rng.random() < self._failure_rate * INJECT_INTERVAL_S / 60.0
+                ):
+                    failure = self.rng.choice(self._failure_types_pool)
+                    drone.failure_type = failure
+                    if failure == FailureType.MOTOR_FAILURE:
+                        drone.flight_phase = FlightPhase.FAILED
+                    elif failure == FailureType.BATTERY_CRITICAL:
+                        drone.battery_pct = 3.0
+                        drone.flight_phase = FlightPhase.LANDING
+                    if self.analytics:
+                        self.analytics.record_event(
+                            "FAILURE_INJECTED",
+                            t,
+                            drone_id=drone.drone_id,
+                            failure_type=failure.name,
+                        )
 
                 # 통신 두절 주입
-                if self._comms_loss_rate > 0 and drone.comms_status == CommsStatus.NOMINAL:
-                    if self.rng.random() < self._comms_loss_rate * INJECT_INTERVAL_S / 60.0:
-                        drone.comms_status = CommsStatus.LOST
-                        if self.analytics:
-                            self.analytics.record_event(
-                                "COMMS_LOSS_INJECTED",
-                                t,
-                                drone_id=drone.drone_id,
-                            )
+                if (
+                    self._comms_loss_rate > 0
+                    and drone.comms_status == CommsStatus.NOMINAL
+                    and self.rng.random() < self._comms_loss_rate * INJECT_INTERVAL_S / 60.0
+                ):
+                    drone.comms_status = CommsStatus.LOST
+                    if self.analytics:
+                        self.analytics.record_event(
+                            "COMMS_LOSS_INJECTED",
+                            t,
+                            drone_id=drone.drone_id,
+                        )
 
     def _analytics_loop(self):
         """1 Hz: 전체 드론 스냅샷 + 충돌 감지 (Spatial Hash 기반)"""

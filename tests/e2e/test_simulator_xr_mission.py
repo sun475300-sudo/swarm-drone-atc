@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import http.server
-import json
 import os
 import socketserver
 import threading

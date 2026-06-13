@@ -51,7 +51,7 @@ if _TORCH_AVAILABLE:
                 nn.Sigmoid(),
             )
 
-        def forward(self, x: "torch.Tensor") -> "torch.Tensor":
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
             return self.net(x).squeeze(-1)
 else:
     _CollisionMLP = None  # type: ignore[assignment,misc]

@@ -22,20 +22,15 @@ from simulation.apf_engine.apf import (
     compute_total_force,
     force_to_velocity,
     repulsive_force_drone,
-    repulsive_force_obstacle,
 )
 from simulation.spatial_hash import SpatialHash
 from src.airspace_control.agents.drone_state import DroneState, FailureType, FlightPhase
 from visualization._embedded_sim import _in_nfz
 from visualization._scene_traces import (
     ALT_MAX,
-    ALT_MIN,
     BOUNDS_M,
-    CRUISE_ALT,
     NFZ_X,
-    NFZ_Y,
 )
-
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 1. APF Engine Precision (10 tests)

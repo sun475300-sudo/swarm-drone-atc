@@ -71,6 +71,7 @@ class TestSimulationResultSummaryTable:
             conflict_resolution_rate_pct=100.0,
             route_efficiency_mean=1.05,
             route_efficiency_max=1.12,
+            completed_legs=12,
             total_flight_time_s=3600.0,
             total_distance_km=120.5,
             clearances_approved=50,
@@ -85,7 +86,7 @@ class TestSimulationResultSummaryTable:
         table = r.summary_table()
         assert "100.0 %" in table
         assert "1.050" in table
-        assert "120.5 km" in table
+        assert "120.500 km" in table
         assert "0.45" in table
 
     def test_check_acceptance_passes_good_result(self):

@@ -151,10 +151,12 @@ class DigitalSovereigntyV3:
             if destination not in origin_policy.allowed_destinations:
                 compliant = False
                 issues.append(f"Destination {destination.value} not allowed from {packet.origin_region.value}")
-            if packet.encryption != origin_policy.required_encryption:
-                if packet.classification.value in ("confidential", "top_secret"):
-                    compliant = False
-                    issues.append(f"Encryption mismatch: {packet.encryption.value} vs {origin_policy.required_encryption.value}")
+            if (
+                packet.encryption != origin_policy.required_encryption
+                and packet.classification.value in ("confidential", "top_secret")
+            ):
+                compliant = False
+                issues.append(f"Encryption mismatch: {packet.encryption.value} vs {origin_policy.required_encryption.value}")
             if len(packet.route_log) >= origin_policy.max_hop_count:
                 compliant = False
                 issues.append(f"Max hops exceeded: {len(packet.route_log)} >= {origin_policy.max_hop_count}")

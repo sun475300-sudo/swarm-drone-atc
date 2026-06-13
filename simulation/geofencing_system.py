@@ -31,9 +31,10 @@ class GeofencingSystem:
         violations = []
 
         for zone_id, zone in self.zones.items():
-            if self._point_in_polygon(x, y, zone.boundaries):
-                if z < zone.min_altitude or z > zone.max_altitude:
-                    violations.append(zone_id)
+            if self._point_in_polygon(x, y, zone.boundaries) and (
+                z < zone.min_altitude or z > zone.max_altitude
+            ):
+                violations.append(zone_id)
 
         return violations
 

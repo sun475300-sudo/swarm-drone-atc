@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import logging
 import time
+from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import Any
 
@@ -98,7 +99,7 @@ class GPUTimings:
     sync_download_ms: float = 0.0
 
 
-def _select_device() -> "torch.device":
+def _select_device() -> torch.device:
     """VRAM 최대 GPU 자동 선택. GPU 없으면 CPU."""
     if not torch.cuda.is_available():
         return torch.device("cpu")
@@ -279,7 +280,7 @@ class GPUPhysicsEngine:
         ctx = (
             torch.cuda.stream(self._stream_transfer)
             if self._use_cuda
-            else _nullcontext()
+            else nullcontext()
         )
         with ctx:
             self.positions[:n].copy_(
@@ -335,7 +336,7 @@ class GPUPhysicsEngine:
         ctx = (
             torch.cuda.stream(self._stream_transfer)
             if self._use_cuda
-            else _nullcontext()
+            else nullcontext()
         )
         with ctx:
             pos_cpu = self.positions[:n].cpu().numpy()
@@ -410,7 +411,7 @@ class GPUPhysicsEngine:
         amp_ctx = (
             torch.amp.autocast("cuda", dtype=torch.float16)
             if use_amp
-            else _nullcontext()
+            else nullcontext()
         )
 
         pos = self.positions[:n]
@@ -457,7 +458,7 @@ class GPUPhysicsEngine:
         collision_dist: float = 5.0,
         near_miss_dist: float = 10.0,
         conflict_dist: float = 50.0,
-    ) -> "GPUPhysicsEngine.CollisionResult":
+    ) -> GPUPhysicsEngine.CollisionResult:
         """GPU 쌍별 거리 행렬로 충돌/근접/충돌위험 감지.
 
         자기 자신과의 거리는 텐서 인덱스 마스킹으로 제외 (Python 루프 없음).
@@ -767,17 +768,17 @@ class GPUPhysicsEngine:
 
     def _compute_apf_forces(
         self,
-        pos: "torch.Tensor",
-        vel: "torch.Tensor",
-        goals: "torch.Tensor",
-        has_goal: "torch.Tensor",
-        wind: "torch.Tensor",
-        active: "torch.Tensor",
-        obs_tensor: "torch.Tensor",
-        id_hashes: "torch.Tensor",
+        pos: torch.Tensor,
+        vel: torch.Tensor,
+        goals: torch.Tensor,
+        has_goal: torch.Tensor,
+        wind: torch.Tensor,
+        active: torch.Tensor,
+        obs_tensor: torch.Tensor,
+        id_hashes: torch.Tensor,
         n: int,
         params_override: dict | None,
-    ) -> "torch.Tensor":
+    ) -> torch.Tensor:
         """GPU APF 합력 텐서 연산 (핵심 커널).
 
         apf_gpu.py의 로직을 전체 활성 드론으로 확장.
@@ -948,7 +949,6 @@ class GPUPhysicsEngine:
         stuck = (f_mag < 0.5) & (g_dist > 20.0) & has_goal & active
 
         if stuck.any():
-            stuck_idx = torch.where(stuck)[0]
             goal_dir = goal_diff[stuck] / g_dist[stuck].unsqueeze(1).clamp(min=1e-3)
 
             perp = torch.zeros_like(goal_dir)
@@ -985,9 +985,9 @@ class GPUPhysicsEngine:
 
     def _extract_pairs(
         self,
-        mask: "torch.Tensor",
-        dist_matrix: "torch.Tensor",
-        active_indices: "torch.Tensor",
+        mask: torch.Tensor,
+        dist_matrix: torch.Tensor,
+        active_indices: torch.Tensor,
     ) -> list[tuple[str, str, float]]:
         """마스크에서 (drone_id_a, drone_id_b, distance) 쌍 추출."""
         if not mask.any():
@@ -1060,17 +1060,6 @@ class GPUPhysicsEngine:
 # ─────────────────────────────────────────────────────────────
 # Null context manager (CPU fallback)
 # ─────────────────────────────────────────────────────────────
-
-
-class _nullcontext:
-    """Python 3.7+ contextlib.nullcontext 대체."""
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        pass
-
 
 # ─────────────────────────────────────────────────────────────
 # 모듈 수준 팩토리

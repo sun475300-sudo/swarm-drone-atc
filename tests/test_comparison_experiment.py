@@ -1,20 +1,16 @@
 """Tests for scripts/comparison_experiment.py — P706 comparison runner."""
 from __future__ import annotations
 
-import math
+import sys
 from pathlib import Path
 
 import numpy as np
 import pytest
 
-import sys
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.comparison_experiment import (
-    ALL_METHODS,
-    HEADLINE_METRICS,
     RunResult,
     _is_nan,
     _mann_whitney_u,

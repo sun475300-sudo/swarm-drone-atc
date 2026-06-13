@@ -82,7 +82,7 @@ def check_url(url: str, policy: AirGapPolicy) -> tuple[bool, str]:
 def audit_config(config: dict, policy: AirGapPolicy) -> list[str]:
     """SDACS 설정 파일에서 외부 URL을 감사."""
     violations = []
-    EXTERNAL_DOMAINS = {
+    external_domains = {
         "googleapis.com", "fonts.gstatic.com", "cdn.jsdelivr.net",
         "unpkg.com", "github.io", "raw.githubusercontent.com",
         "pool.ntp.org", "time.google.com",
@@ -100,7 +100,7 @@ def audit_config(config: dict, policy: AirGapPolicy) -> list[str]:
             # CDN·폰트·공개 DNS/NTP 누수만 차단 (airgap 핵심 위협).
             # 운영 API 엔드포인트(예: k-utm.molit.go.kr Layer-5 UTM 연동)는
             # 정당한 인프라이며 실제 폐쇄망 배포 시 env/secret으로 오버라이드되므로 허용.
-            for dom in EXTERNAL_DOMAINS:
+            for dom in external_domains:
                 if dom in obj:
                     violations.append(f"{path}: 외부 도메인 '{dom}' 검출 → {obj}")
 

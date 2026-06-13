@@ -21,7 +21,6 @@ from src.applications.medical_delivery import (
     haversine_km,
 )
 
-
 # ─── Agri ────────────────────────────────────────────
 
 def test_square_field_area_1ha() -> None:

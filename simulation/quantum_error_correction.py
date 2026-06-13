@@ -90,16 +90,20 @@ class SurfaceCode:
         for i, stab in enumerate(self.x_stabilizers):
             parity = 0
             for qi in stab:
-                if qi < len(self.data_qubits):
-                    if self.data_qubits[qi].error in (ErrorType.BIT_FLIP, ErrorType.BOTH):
-                        parity ^= 1
+                if qi < len(self.data_qubits) and self.data_qubits[qi].error in (
+                    ErrorType.BIT_FLIP,
+                    ErrorType.BOTH,
+                ):
+                    parity ^= 1
             syndromes.append(Syndrome(i, parity, stab))
         for i, stab in enumerate(self.z_stabilizers):
             parity = 0
             for qi in stab:
-                if qi < len(self.data_qubits):
-                    if self.data_qubits[qi].error in (ErrorType.PHASE_FLIP, ErrorType.BOTH):
-                        parity ^= 1
+                if qi < len(self.data_qubits) and self.data_qubits[qi].error in (
+                    ErrorType.PHASE_FLIP,
+                    ErrorType.BOTH,
+                ):
+                    parity ^= 1
             syndromes.append(Syndrome(len(self.x_stabilizers) + i, parity, stab))
         return syndromes
 

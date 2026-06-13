@@ -20,8 +20,7 @@ SDACS의 APF/CPA 파라미터에 적용한 환경 인식 자동 재보정.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -57,7 +56,7 @@ class RecalibrationResult:
     reason: str
     new_params: dict[str, float]
     distance_to_cluster: float = 0.0
-    cluster_id: Optional[int] = None
+    cluster_id: int | None = None
 
 
 class MeridianCalibrator:
@@ -91,9 +90,9 @@ class MeridianCalibrator:
         self.rng = np.random.default_rng(seed)
         self._samples: list[EnvironmentSample] = []
         self._clusters: list[CalibrationCluster] = []
-        self._last_calibration_t: Optional[float] = None
-        self._first_observed_t: Optional[float] = None
-        self._last_centroid: Optional[np.ndarray] = None
+        self._last_calibration_t: float | None = None
+        self._first_observed_t: float | None = None
+        self._last_centroid: np.ndarray | None = None
 
     def observe(
         self, wind_speed: float, temp_c: float, density: float, t: float
@@ -108,7 +107,7 @@ class MeridianCalibrator:
         cutoff = t - self.window_s * 3
         self._samples = [s for s in self._samples if s.t >= cutoff]
 
-    def _window_centroid(self, t: float) -> Optional[np.ndarray]:
+    def _window_centroid(self, t: float) -> np.ndarray | None:
         recent = [s for s in self._samples if s.t >= t - self.window_s]
         if len(recent) < MIN_SAMPLES_FOR_CLUSTER:
             return None
@@ -126,7 +125,7 @@ class MeridianCalibrator:
 
     def _find_nearest_cluster(
         self, centroid: np.ndarray
-    ) -> tuple[Optional[int], float]:
+    ) -> tuple[int | None, float]:
         if not self._clusters:
             return None, float("inf")
         distances = [
@@ -173,7 +172,7 @@ class MeridianCalibrator:
     def recalibrate(
         self,
         current_params: dict[str, float],
-        t: Optional[float] = None,
+        t: float | None = None,
     ) -> RecalibrationResult:
         """현재 시각 기준 재보정 시도. 윈도우 미충족 시 패스스루."""
         if t is None:

@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 REPO_ROOT = Path(__file__).parent.parent
 
 
@@ -53,7 +51,6 @@ def test_metrics_module_importable():
 def test_metrics_has_required_functions():
     """metrics.py는 get_metrics_router 또는 메트릭 변수를 노출해야 한다."""
     import importlib.util
-    import sys
 
     spec = importlib.util.spec_from_file_location(
         "metrics_test",

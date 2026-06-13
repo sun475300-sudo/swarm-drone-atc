@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 import time
-from typing import Callable
+from collections.abc import Callable
 
 try:
     from fastapi import APIRouter, Request, Response
@@ -19,7 +19,6 @@ try:
     from prometheus_client import (
         CONTENT_TYPE_LATEST,
         REGISTRY,
-        CollectorRegistry,
         Counter,
         Gauge,
         Histogram,
@@ -70,7 +69,7 @@ if _PROMETHEUS_AVAILABLE:
 else:
     # prometheus_client 미설치 시 더미 객체 — 운영 외 환경 대응
     class _DummyMetric:  # noqa: D101
-        def labels(self, **_: object) -> "_DummyMetric":
+        def labels(self, **_: object) -> _DummyMetric:
             return self
 
         def inc(self, *_: object) -> None: ...
@@ -91,7 +90,7 @@ else:
 def _make_middleware(app_instance: object) -> Callable:
     """요청 수 + 응답 시간을 자동으로 기록하는 ASGI 미들웨어 팩토리."""
 
-    async def prometheus_middleware(request: "Request", call_next: Callable) -> "Response":
+    async def prometheus_middleware(request: Request, call_next: Callable) -> Response:
         start_time = time.perf_counter()
 
         # 요청 처리
@@ -111,7 +110,7 @@ def _make_middleware(app_instance: object) -> Callable:
     return prometheus_middleware
 
 
-def _normalize_path(request: "Request") -> str:
+def _normalize_path(request: Request) -> str:
     """라우트 템플릿 경로 반환 (예: /api/runs/{run_id}). 없으면 원본 경로."""
     if not _PROMETHEUS_AVAILABLE:
         return request.url.path
@@ -142,7 +141,7 @@ def instrument_app(app: object) -> None:
 # /metrics 엔드포인트 라우터
 # ---------------------------------------------------------------------------
 
-def get_metrics_router() -> "APIRouter":
+def get_metrics_router() -> APIRouter:
     """prometheus 스크레이프용 /metrics 엔드포인트 라우터를 반환합니다.
 
     FastAPI app에 include_router()로 등록하세요:
@@ -154,8 +153,8 @@ def get_metrics_router() -> "APIRouter":
         try:
             from fastapi import APIRouter as _APIRouter
             return _APIRouter()
-        except ImportError:
-            raise RuntimeError("FastAPI가 설치되어 있지 않습니다.")
+        except ImportError as exc:
+            raise RuntimeError("FastAPI가 설치되어 있지 않습니다.") from exc
 
     router = APIRouter(tags=["observability"])
 

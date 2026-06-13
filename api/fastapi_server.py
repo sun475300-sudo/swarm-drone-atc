@@ -28,9 +28,10 @@ import json
 import logging
 import time
 import uuid
-from contextlib import asynccontextmanager
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager, suppress
 from dataclasses import asdict, dataclass, field
-from typing import Any, AsyncIterator
+from typing import Any
 
 import numpy as np
 
@@ -39,12 +40,7 @@ try:
     from fastapi.middleware.cors import CORSMiddleware
     from pydantic import BaseModel, Field
 
-    from api.auth import (  # P712 RBAC
-        auth_router,
-        require_operator,
-        require_viewer,
-        AuthContext,
-    )
+    from api.auth import auth_router  # P712 RBAC
 except ImportError as exc:  # pragma: no cover
     raise RuntimeError(
         "FastAPI and pydantic are required. "
@@ -542,10 +538,8 @@ app.add_middleware(
 )
 
 # P712: mount the auth router (/auth/token, /auth/refresh, /auth/me, /auth/audit)
-try:
+with suppress(Exception):  # pragma: no cover
     app.include_router(auth_router)
-except Exception:  # pragma: no cover
-    pass
 
 
 # --- Health ---

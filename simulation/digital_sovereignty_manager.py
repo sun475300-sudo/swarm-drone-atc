@@ -202,9 +202,12 @@ class DigitalSovereigntyManager:
         if policy.encryption != EncryptionLevel.NONE and not record.encrypted:
             issues.append(f"Missing encryption: {policy.encryption.value} required")
 
-        if record.routed_to and record.routed_to not in policy.allowed_regions:
-            if Region.GLOBAL not in policy.allowed_regions:
-                issues.append(f"Region violation: {record.routed_to.value}")
+        if (
+            record.routed_to
+            and record.routed_to not in policy.allowed_regions
+            and Region.GLOBAL not in policy.allowed_regions
+        ):
+            issues.append(f"Region violation: {record.routed_to.value}")
 
         age_days = (time.time() - record.timestamp) / 86400
         if age_days > policy.retention_days:

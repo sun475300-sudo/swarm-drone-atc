@@ -7,38 +7,16 @@ import time
 import numpy as np
 import pytest
 
-from simulation.px4_firmware_validator import (
-    FirmwareStatus,
-    PX4FirmwareValidator,
-    PX4_REQUIRED_PARAMS,
+from simulation.environmental_scenario import (
+    SCENARIO_PRESETS,
+    EnvironmentalScenarioSim,
+    EnvScenario,
 )
-from simulation.onboard_bridge import BridgeMode, BridgeState, OnboardBridge
-from simulation.remote_id_broadcast import (
-    BroadcastMode,
-    MessageType,
-    RemoteIDBroadcaster,
-    _encode_basic_id,
-    _encode_location,
-)
-from simulation.rtk_gps_handler import RTKFixType, RTKGPSHandler
 from simulation.failsafe_manager import (
     FailsafeLevel,
-    FailsafeTrigger,
     FailsafeManager,
+    FailsafeTrigger,
     GeofenceZone,
-)
-from simulation.swarm_time_sync import ClockState, SyncProtocol, SwarmTimeSync
-from simulation.mocap_hitl_bridge import MocapHITLBridge, MocapSystem, HITLState
-from simulation.outdoor_flight_test import (
-    FlightTestPhase,
-    FormationType,
-    OutdoorFlightTestRunner,
-    _compute_formation_positions,
-)
-from simulation.environmental_scenario import (
-    EnvScenario,
-    EnvironmentalScenarioSim,
-    SCENARIO_PRESETS,
 )
 from simulation.hitl_report_generator import (
     Detectability,
@@ -47,7 +25,26 @@ from simulation.hitl_report_generator import (
     Probability,
     Severity,
 )
-
+from simulation.mocap_hitl_bridge import HITLState, MocapHITLBridge, MocapSystem
+from simulation.onboard_bridge import BridgeMode, OnboardBridge
+from simulation.outdoor_flight_test import (
+    FormationType,
+    OutdoorFlightTestRunner,
+    _compute_formation_positions,
+)
+from simulation.px4_firmware_validator import (
+    PX4_REQUIRED_PARAMS,
+    FirmwareStatus,
+    PX4FirmwareValidator,
+)
+from simulation.remote_id_broadcast import (
+    MessageType,
+    RemoteIDBroadcaster,
+    _encode_basic_id,
+    _encode_location,
+)
+from simulation.rtk_gps_handler import RTKFixType, RTKGPSHandler
+from simulation.swarm_time_sync import SwarmTimeSync
 
 # ── P691: PX4 Firmware Validator ──────────────────────────────────────────────
 

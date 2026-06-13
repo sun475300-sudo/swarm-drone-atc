@@ -22,7 +22,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 import numpy as np
 
@@ -148,7 +147,7 @@ class PassiveRFDetector:
 
     def _measure_one(
         self, emitter: RFEmitter, node: RFNode, t: float
-    ) -> Optional[RFDetection]:
+    ) -> RFDetection | None:
         v_radial, r = _radial_velocity_mps(emitter, node)
         if r < 1.0:
             return None
@@ -196,7 +195,7 @@ class PassiveRFDetector:
 
     def _fuse(
         self, emitter_id: str, detections: list[RFDetection], t: float
-    ) -> Optional[RFContact]:
+    ) -> RFContact | None:
         if not detections:
             return None
         emitter = self.emitters[emitter_id]
@@ -261,7 +260,7 @@ class PassiveRFDetector:
         # 2(n_ref - n_i)·p = r_i² - r_ref² - (||n_i||² - ||n_ref||²)
         rows = []
         rhs = []
-        for i, (pos, r) in enumerate(zip(node_positions, ranges)):
+        for i, (pos, r) in enumerate(zip(node_positions, ranges, strict=False)):
             if i == ref_idx:
                 continue
             rows.append(2 * (ref - pos))

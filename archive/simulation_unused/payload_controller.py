@@ -45,7 +45,7 @@ class CargoController:
     def __init__(self, max_kg: float = 10.0):
         self.max_payload = max_kg
         self.current_kg = 0.0
-        self.release Mechanism = False
+        self.release_mechanism = False
 
     def load(self, weight: float) -> bool:
         if self.current_kg + weight <= self.max_payload:

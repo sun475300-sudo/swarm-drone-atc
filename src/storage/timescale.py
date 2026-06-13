@@ -22,7 +22,7 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 try:
     import asyncpg
@@ -58,7 +58,7 @@ class TimescaleStorage:
     def __init__(self, dsn: str = _DEFAULT_DSN) -> None:
         # DSN: postgresql://user:password@host:port/dbname 형식
         self._dsn = dsn
-        self._pool: Optional[Pool] = None
+        self._pool: Pool | None = None
 
     # ------------------------------------------------------------------
     # 연결 관리
@@ -84,7 +84,7 @@ class TimescaleStorage:
             self._pool = None
             LOGGER.info("TimescaleDB 연결 풀 해제 완료")
 
-    async def __aenter__(self) -> "TimescaleStorage":
+    async def __aenter__(self) -> TimescaleStorage:
         await self.connect()
         return self
 
@@ -92,7 +92,7 @@ class TimescaleStorage:
         await self.close()
 
     @classmethod
-    def from_env(cls) -> "TimescaleStorage":
+    def from_env(cls) -> TimescaleStorage:
         """환경변수 DATABASE_URL에서 DSN을 읽어 인스턴스를 생성한다."""
         return cls(dsn=_DEFAULT_DSN)
 
@@ -123,7 +123,7 @@ class TimescaleStorage:
         speed: float,
         battery_pct: int,
         status: str,
-        time: Optional[datetime] = None,
+        time: datetime | None = None,
     ) -> None:
         """드론 원격측정 레코드 1건을 drone_telemetry에 삽입한다.
 
@@ -194,8 +194,8 @@ class TimescaleStorage:
         drone_b_id: str,
         separation_m: float,
         resolved: bool = False,
-        resolution_type: Optional[str] = None,
-        time: Optional[datetime] = None,
+        resolution_type: str | None = None,
+        time: datetime | None = None,
     ) -> int:
         """공역 충돌 이벤트를 conflict_events에 삽입하고 생성된 id를 반환한다.
 
@@ -227,7 +227,7 @@ class TimescaleStorage:
     async def query_conflicts_last_n(
         self,
         n: int = 100,
-        drone_id: Optional[str] = None,
+        drone_id: str | None = None,
     ) -> list[dict[str, Any]]:
         """최근 n개의 충돌 이벤트를 반환한다.
 
@@ -277,8 +277,8 @@ class TimescaleStorage:
         drone_id: str,
         mission_id: str,
         event_type: str,
-        payload: Optional[dict[str, Any]] = None,
-        time: Optional[datetime] = None,
+        payload: dict[str, Any] | None = None,
+        time: datetime | None = None,
     ) -> int:
         """임무 이벤트를 mission_log에 삽입하고 생성된 id를 반환한다.
 

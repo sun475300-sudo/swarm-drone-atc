@@ -3,7 +3,7 @@
 
 시뮬레이터 HTML을 헤드리스 Chromium으로 로드해 window._sdacs의
 실제 키 목록·kind(getter/method)·maturity 등급을 추출하고,
-docs/SDACS_API.md 와 docs/sdacs.d.ts 를 재생성한다.
+docs/SDACS_API.md · docs/sdacs.d.ts · docs/badges/maturity.svg (Phase 207) 를 재생성한다.
 
 사용:
     python scripts/extract_sdacs_api.py            # 두 문서 재생성
@@ -161,6 +161,59 @@ def render_dts(data: dict) -> str:
     return "\n".join(lines)
 
 
+BADGE = ROOT / "docs" / "badges" / "maturity.svg"
+
+# Phase 207 — Maturity Badge SVG 자동 생성 (라이브 counts → 드리프트 방지)
+BADGE_SEGMENTS = [
+    ("prod", "production", "#22c55e"),
+    ("beta", "beta", "#3b82f6"),
+    ("mock", "mock", "#f59e0b"),
+    ("spec", "speculative", "#9ca3af"),
+]
+BADGE_LABEL_W = 74  # 좌측 "maturity" 라벨 폭 (고정)
+
+
+def render_badge_svg(counts: dict) -> str:
+    """maturity counts dict → shields 스타일 SVG 배지 (결정적, 브라우저 불필요).
+
+    각 세그먼트 폭을 라벨 글자 수에서 산출해 카운트 자릿수가 바뀌어도 정렬을 유지한다.
+    """
+    segs = []  # (text, color, width)
+    for short, key, color in BADGE_SEGMENTS:
+        text = f"{short} {counts[key]}"
+        width = len(text) * 7 + 14
+        segs.append((text, color, width))
+    total_w = BADGE_LABEL_W + sum(w for _, _, w in segs)
+
+    rects = [f'  <rect rx="3" width="{total_w}" height="20" fill="#555"/>']
+    texts = [f'    <text x="{BADGE_LABEL_W // 2}"  y="14">maturity</text>']
+    x = BADGE_LABEL_W
+    for text, color, width in segs:
+        rects.append(f'  <rect x="{x}" width="{width}" height="20" fill="{color}"/>')
+        texts.append(f'    <text x="{x + width // 2}" y="14">{text}</text>')
+        x += width
+    rects.append(f'  <rect rx="3" width="{total_w}" height="20" fill="url(#s)"/>')
+
+    title = (
+        f"API Maturity: production {counts['production']} / beta {counts['beta']} / "
+        f"mock {counts['mock']} / speculative {counts['speculative']}"
+    )
+    return "\n".join([
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{total_w}" height="20" '
+        'role="img" aria-label="API Maturity">',
+        f"  <title>{title}</title>",
+        '  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" '
+        'stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>',
+        *rects,
+        '  <g fill="#fff" text-anchor="middle" '
+        'font-family="DejaVu Sans,Verdana,sans-serif" font-size="10">',
+        *texts,
+        "  </g>",
+        "</svg>",
+        "",
+    ])
+
+
 LEDGER = ROOT / "docs" / "TECH_DEBT_LEDGER.md"
 
 # 격상 난이도 큐레이션 (GENESIS Phase 388) — 접두사 그룹별 수동 평가
@@ -252,12 +305,20 @@ def main() -> int:
         if f"총 {len(data['apis'])}개 API" not in current_dts:
             print(f"❌ sdacs.d.ts 총 항목 수가 실측({len(data['apis'])})과 불일치")
             ok = False
+        current_badge = BADGE.read_text(encoding="utf-8") if BADGE.exists() else ""
+        if current_badge != render_badge_svg(data["counts"]):
+            print("❌ maturity.svg 배지가 실측 counts와 불일치")
+            ok = False
         print("✅ 문서-실측 일치" if ok else "⚠️ 재생성 필요: python scripts/extract_sdacs_api.py")
         return 0 if ok else 1
 
     API_MD.write_text(api_md, encoding="utf-8")
     DTS.write_text(dts, encoding="utf-8")
-    print(f"✅ {API_MD.relative_to(ROOT)} · {DTS.relative_to(ROOT)} 재생성 완료")
+    BADGE.write_text(render_badge_svg(data["counts"]), encoding="utf-8")
+    print(
+        f"✅ {API_MD.relative_to(ROOT)} · {DTS.relative_to(ROOT)} · "
+        f"{BADGE.relative_to(ROOT)} 재생성 완료"
+    )
     if args.ledger:
         LEDGER.write_text(render_ledger(data), encoding="utf-8")
         print(f"✅ {LEDGER.relative_to(ROOT)} 재생성 완료")

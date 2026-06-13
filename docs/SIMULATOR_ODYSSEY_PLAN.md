@@ -63,8 +63,8 @@
 - **Phase 442** 모델 체킹 — TLC로 ATC 핸드오프 데드락 부재 증명
 - **Phase 443** APF 수렴성 수학 증명 문서화 (Lyapunov 후보 함수)
 - **Phase 444** CBS 완전성·최적성 조건 정리 (논문 §보강)
-- **Phase 445** 불확실성 정량화 — Monte Carlo 신뢰구간 자동 리포트
-- **Phase 446** 충돌 해결률 공식의 통계적 검정력 분석
+- **Phase 445** ✅ 불확실성 정량화 — `simulation/uncertainty.py` (t-분포·percentile bootstrap·Wilson score CI + `confidence_report` 마크다운, 16 테스트) (2026-06-13)
+- **Phase 446** ✅ 충돌 해결률 공식의 통계적 검정력 분석 — `simulation/power_analysis.py` (Cohen's h·단일비율 z-검정 검정력·최소 런 수, 13 테스트) (2026-06-13)
 - **Phase 447** 적대적 시나리오 fuzzing — 시드 기반 시나리오 변이 생성기
 - **Phase 448** 속성 기반 테스트(Hypothesis) — 시뮬 코어 불변식 1,000케이스
 - **Phase 449** 시뮬-실측 갭 모델 — DR 파라미터 보정 자동화

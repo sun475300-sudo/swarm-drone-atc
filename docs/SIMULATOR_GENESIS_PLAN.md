@@ -35,7 +35,7 @@
 - **Phase 302** ✅ SORA 자동 계산기 — `_sdacs.soraAssess()` (JARUS 2.0 iGRC/완화/ARC→SAIL 결정적 구현, production 등급, E2E 6건) (2026-06-12)
 - **Phase 303** 비행계획 신고 양식 자동 생성 — Drone One-Stop 신청서 export
 - **Phase 304** KC 전파인증 요건 체크리스트 (통신 모듈별)
-- **Phase 305** DO-178C/ED-12C 소프트웨어 수명주기 갭 분석 — DAL-D 기준 추적성
+- **Phase 305** ✅ DO-178C/ED-12C 소프트웨어 수명주기 갭 분석 — `docs/certification/DO178C_GAP_ANALYSIS.md` (DAL-D 26목표 중 22충족/4부분, Annex A 매트릭스·추적성·구조 커버리지) (2026-06-13)
 - **Phase 306** 요구사항 추적 매트릭스(RTM) 자동 생성 격상 — `scripts/generate_rtm.py` → 5계층 안전망 커버리지
 - **Phase 307** 사고 보고 양식 (항철위 표준) 자동 작성 — 시뮬 사고 로그 → 보고서
 - **Phase 308** 보험 요율 산정 인터페이스 (Phase 67 mock 격상 — 실 보험사 API 스펙)

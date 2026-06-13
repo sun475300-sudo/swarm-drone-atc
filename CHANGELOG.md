@@ -5,6 +5,20 @@
 
 ## [Unreleased]
 
+### 기능 (feat) — ODYSSEY 445·446 + GENESIS 305 (통계적 엄정성 + 인증 갭, 2026-06-13)
+- **ODYSSEY 445** 불확실성 정량화 — `simulation/uncertainty.py` 신설.
+  `ConfidenceInterval` + `normal_ci`(t-분포)·`bootstrap_ci`(percentile, `np.random.default_rng` 결정적)·
+  `proportion_ci`(Wilson score)·`summarize_metric_ci`·`confidence_report`(논문 §Results 마크다운 표).
+  Monte Carlo 단일 평균 보고를 통계적 신뢰구간으로 격상. **16 테스트** GREEN.
+- **ODYSSEY 446** 충돌 해결률 통계적 검정력 분석 — `simulation/power_analysis.py` 신설.
+  `cohens_h`(arcsine 효과크기)·`proportion_power`(단일비율 z-검정 검정력)·`required_sample_size`(목표 검정력
+  최소 런 수)·`resolution_rate_power_report`. p0=0.8 vs p1=0.9 설계가 n≈98 에서 검정력 0.8 임을 검증.
+  **13 테스트** GREEN.
+- **GENESIS 305** DO-178C/ED-12C 갭 분석 — `docs/certification/DO178C_GAP_ANALYSIS.md` 신설.
+  DAL-D 26목표 중 22 🟢 충족 / 4 🟡 부분, Annex A Table 매트릭스·추적성(RTM 연계)·구조 커버리지·4 갭 ID.
+- 검증: 신규 **29 테스트** + 회귀 보존(simulation 모듈 추가만, 기존 코드 무변경). 계획 문서
+  (ODYSSEY/GENESIS) ✅ 표기 동기화.
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (388.13s).

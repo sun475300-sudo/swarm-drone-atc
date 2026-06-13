@@ -962,6 +962,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-13 21:47 | `3068ae7` | fix(security): JWT_SECRET prod 모드 강제 + WebSocket 텔레메트리 입력 검증 | api/auth.py, api/fastapi_server.py, tests/test_auth_prod_secret.py |
 | 2026-06-13 21:35 | `f6cc7db` | fix(security): importMission JSON 무결성 검증 + applyFrame 방어적 가드 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-06-13 21:26 | `ab266ea` | fix(security): ws_bridge 기본 loopback 바인딩 + injectFault 미지원 type 진단 + 회귀 강화 | docs/simulator.html, docs/swarm_3d_simulator.html, simulation/ws_bridge.py, swarm_3d_simulator.html, tests/test_ws_bridge.py, visualization/swarm_3d_simulator.html |
 | 2026-06-13 20:58 | `6ebbf7e` | fix: 2차 정밀 점검에서 실측 검증된 3건 결함 수정 (landing/lookahead/voronoi) | docs/simulator.html, docs/swarm_3d_simulator.html, src/airspace_control/controller/airspace_controller.py, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |

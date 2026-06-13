@@ -51,7 +51,7 @@
 *1인 캡스톤 → 커뮤니티 자산. 기존 자산: MIT 라이선스, `docs/track_f/p753_licensing.md`, CONTRIBUTING*
 
 - **Phase 321** 플러그인 SDK v1 — `_sdacs.registerPlugin()` (시나리오·센서·UI 패널 주입 인터페이스)
-- **Phase 322** 시나리오 마켓플레이스 포맷 — `.sdacs-scenario` 스키마 + 검증기
+- **Phase 322** ✅ 시나리오 마켓플레이스 포맷 — `.sdacs-scenario` 스키마(`docs/schemas/sdacs-scenario.schema.json`, draft-07) + 결정적 검증기(`simulation/scenario_schema.py`, 의존성 0, CLI `--all`). flat 시나리오 9종 전부 VALID, 단위 테스트 28건 (2026-06-13)
 - **Phase 323** 외부 시뮬레이터 어댑터 스펙 공개 — BlueSky·U-TRAFMAN 호환 import/export
 - **Phase 324** npm 패키지 `@sdacs/core` 분리 — 충돌 감지(CPA·APF) 순수 JS 모듈 추출
 - **Phase 325** PyPI 패키지 `sdacs-sim` — SwarmSimulator 코어 배포

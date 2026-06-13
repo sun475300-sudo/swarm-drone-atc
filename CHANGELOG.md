@@ -5,6 +5,19 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — GENESIS Phase 322 시나리오 마켓플레이스 포맷 (2026-06-13)
+- **`.sdacs-scenario` 스키마** 신설 — `docs/schemas/sdacs-scenario.schema.json` (draft-07).
+  `scenario_runner._translate_scenario` 가 소비하는 실행형 시나리오 계약을 정식 문서화.
+  플러그인 SDK(Phase 321)·시나리오 마켓플레이스가 외부 시나리오를 공유·검증할 때 의존.
+- **결정적 검증기** 신설 — `simulation/scenario_schema.py`. `validate_scenario(dict)` /
+  `validate_scenario_file(path)` → 불변 `ValidationResult(is_valid, errors, warnings)`.
+  새 의존성 0(jsonschema 미사용, 손수 검증으로 오프라인·결정적 보장). 필수 필드(scenario·
+  description), 시간 택일(min/s), 드론 수 양의 정수, 프로파일 분포 합 1.0(±0.01), 매핑 타입,
+  알 수 없는 키 경고를 점검. CLI `python simulation/scenario_schema.py --all`.
+- **검증**: `config/scenario_params/*.yaml` flat 시나리오 **9종 전부 VALID** (CLI exit 0).
+  단위 테스트 `tests/test_scenario_schema.py` **28건 통과**(실측 회귀 + 경계 케이스).
+- GENESIS 진척: 302·306·321·324·341·362·367·381·387·388 + **322** 완료.
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (388.13s).

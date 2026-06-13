@@ -960,6 +960,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-14 03:20 | `21776ff` | fix: code-reviewer 지적 반영 (검정력 주석·경계 검증·margin 문서화) | simulation/power_analysis.py, simulation/uncertainty.py, tests/test_power_analysis.py |
 | 2026-06-14 03:17 | `33b5663` | feat: ODYSSEY 445·446 통계적 엄정성 + GENESIS 305 DO-178C 갭 분석 | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/certification/DO178C_GAP_ANALYSIS.md, simulation/power_analysis.py, simulation/uncertainty.py … |
 | 2026-06-13 11:01 | `5b26e79` | fix(ci): sim-smoke.yml에 hypothesis 추가 + TRANSCENDENCE 205·GENESIS 304·309·ODYSSEY 408 진척 | .github/workflows/sim-smoke.yml, README.md, ROADMAP.md, docs/certification/AIRSPACE_CLASS_MAPPING.md, docs/certification/KC_RADIO_CERTIFICATION.md, docs/certification/PILOT_LICENSE_MAPPING.md … |
 | 2026-06-13 10:55 | `b342a9e` | feat(plans): GENESIS 306·381·389 + ODYSSEY 447·486 + 시뮬레이터 tutorial API | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |

@@ -2378,6 +2378,13 @@
             cinRecorder.mediaRecorder.stop();
             cinRecorder.recording = false;
             cinRecorder.mediaRecorder = null;
+            // 스트림 트랙을 명시적으로 종료 — captureStream 트랙이 활성 상태로 남으면
+            // 메모리/캡처 리소스 누수. mr.stop() 만으로는 트랙이 자동 정지하지 않음.
+            if (cinRecorder.stream) {
+                try { cinRecorder.stream.getTracks().forEach(t => t.stop()); }
+                catch (e) { /* 트랙 없거나 이미 정지 */ }
+                cinRecorder.stream = null;
+            }
             const ind = document.getElementById('rec-indicator');
             if (ind) ind.classList.remove('rec-active');
             return true;

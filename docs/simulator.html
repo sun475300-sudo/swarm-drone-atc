@@ -2433,6 +2433,11 @@
                     injStats.batteryDrain++;
                     logEvent('fail', `🔋 ${d.id} 배터리 급강하 (${d.batteryDrainRate}%/s, ${dur}s)`);
                     break;
+                default:
+                    // 진단성: 미지원 type 은 silent no-op 대신 명시적 경고 (디버깅 보조).
+                    // 지원 셋: GPS_LOSS · MOTOR_FAIL · COMMS_LOSS · BATTERY_DRAIN
+                    logEvent('info', `⚠ injectFault: 미지원 type '${type}' (지원: GPS_LOSS · MOTOR_FAIL · COMMS_LOSS · BATTERY_DRAIN)`);
+                    return null;
             }
             return d;
         }

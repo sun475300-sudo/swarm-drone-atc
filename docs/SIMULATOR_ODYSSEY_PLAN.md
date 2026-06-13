@@ -27,12 +27,12 @@
 
 *K-UTM 정렬을 넘어 EASA U-space·FAA UTM 3대 체계 동시 호환. 기존 자산: `src/utm/`(LAANC·ICAO), GENESIS 🏭*
 
-- **Phase 401** EASA U-space U1-U4 서비스 매핑 — SDACS 기능 ↔ U-space 서비스 매트릭스
+- **Phase 401** ✅ EASA U-space U1-U4 서비스 매핑 — `docs/certification/EASA_USPACE_MAPPING.md` (EU Reg 2021/664 + CORUS ConOps, U1-U4 서비스 ↔ SDACS 모듈·성숙도 + USSP 갭 분석) (2026-06-13)
 - **Phase 402** FAA UTM ConOps v2 정렬 — USS 역할 요건 갭 분석
 - **Phase 403** `_sdacs.soraAssess()` EASA Open/Specific/Certified 카테고리 판정 확장
 - **Phase 404** README·핵심 문서 EN 완역 (GENESIS 328 연계, 학술 인용 가능 수준)
 - **Phase 405** 국제 벤치마크 제출 — BlueSky·U-TRAFMAN 비교 시나리오 공개
-- **Phase 406** 다국 좌표계·시간대 지원 (UTM zone 자동 판정)
+- **Phase 406** ✅ 다국 좌표계·시간대 지원 — `simulation/geo_zones.py` (위·경도 → UTM 존/반구/MGRS 밴드/EPSG + 노르웨이·스발바르 표준 예외 + 경도 기반 공칭 시간대, 결정적 순수함수, pytest 30건) (2026-06-13)
 - **Phase 407** ICAO UTM Framework Ed.4 적합성 자가 평가
 - **Phase 408** 국제 공역 분류(A-G) 모델 — 현 9층 고도 레이어에 클래스 매핑
 - **Phase 409** 다국 규제 비교 대시보드 (한·미·EU·일 BVLOS 요건)

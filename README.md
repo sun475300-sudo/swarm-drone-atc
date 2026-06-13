@@ -956,6 +956,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-13 10:55 | `b342a9e` | feat(plans): GENESIS 306·381·389 + ODYSSEY 447·486 + 시뮬레이터 tutorial API | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |
 | 2026-06-13 10:34 | `74370fd` | feat(plans): GENESIS 301·387 + TRANSCENDENCE 204 + ODYSSEY 448·466 일괄 진척 | README.md, ROADMAP.md, docs/certification/AIR_SAFETY_ACT_MATRIX.md, docs/presentation/DEFENSE_KIT.md, docs/schemas/telemetry.schema.json, tests/e2e/test_simulator_production_core.py … |
 | 2026-06-13 02:12 | `ad001db` | feat(genesis): Phase 302 soraAssess + 388 부채 대장 + ODYSSEY Plan(401-500) + README 현행화·미완료 리스트 | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |
 | 2026-06-13 01:55 | `283fd1a` | feat(transcendence): Phase 203 Mock Detector + Phase 206 experimental 네임스페이스 + CI 정합성 게이트 | .github/workflows/sim-smoke.yml, README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md … |

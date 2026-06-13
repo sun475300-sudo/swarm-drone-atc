@@ -961,6 +961,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-13 20:15 | `f6acc11` | feat(viz): 리플레이 스크러버-멀티뷰 커서 마감 검증 + replayState API | README.md, docs/SDACS_API.md, docs/sdacs.d.ts, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html … |
 | 2026-06-13 18:59 | `b857e9c` | docs(readme): 시각화 마감 진척 갱신 — CPA TTC 라벨 + 어드바이저리 6단계 완료 | README.md |
 | 2026-06-13 18:59 | `4453795` | feat(viz): 어드바이저리 빌보드 5단계 확장 (CLIMB·DESCEND·TURN 추가) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-06-13 16:33 | `ae9e2dc` | feat(viz): CPA TTC 라벨 + 위험도 3단계 색상 + 시각화 자료 자동 갱신 | docs/images/auto/sim_maritime.png, docs/images/auto/sim_swarm_3d.png, docs/images/auto/sim_swarm_analysis.png, docs/images/auto/sim_swarm_nfz_dynamic.png, docs/simulator.html, docs/swarm_3d_simulator.html … |

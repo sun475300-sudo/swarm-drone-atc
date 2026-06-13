@@ -19,7 +19,7 @@
 | 드론활용촉진법 §11 | 드론공역 지정·관리 | `airspace_reservation.py` + 9층 고도 레이어 | 🟢 production | |
 | 드론활용촉진법 §15 | 안전기준 (SORA·SAIL) | `_sdacs.soraAssess()` (GENESIS 302) | 🟢 production | iGRC × ARC → SAIL I-VI |
 | 드론활용촉진법 §16 | 보험 가입 | Phase 67 보험 mock → GENESIS 308 격상 계획 | 🟡 mock | 실 보험사 API 스펙화 필요 |
-| 시행규칙 §306 | 비행계획 제출 (Drone One-Stop) | GENESIS Phase 303 (계획) | ⬜ | 신청서 export 자동화 |
+| 시행규칙 §306 | 비행계획 제출 (Drone One-Stop) | `scripts/generate_flight_plan.py` (GENESIS 303) | 🟢 production | 별지 제122호서식 초안 자동 생성, 회귀 14건 |
 | 시행규칙 §307 | Remote ID 방송 | `src/utm/remote_id.py` (P693 ASTM F3411 v2.0) | 🟢 production | 한국 RID 법규 정렬 |
 
 ## 2. 격차 분석 (Gap)

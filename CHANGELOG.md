@@ -5,6 +5,19 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — GENESIS Phase 303: 비행승인 신청서 자동 생성 (2026-06-13)
+- **`scripts/generate_flight_plan.py`** 신규 — 시뮬레이션 시나리오/기본 설정(`config/*.yaml`)을
+  항공안전법 시행규칙 §306 **별지 제122호서식(무인비행장치 비행승인신청서)** 초안으로 결정적 변환.
+  대수·비행시간·최대고도·비행구역 좌표(WGS84 평면근사)·BVLOS 추론·안전대책을 자동 채우고,
+  인적사항·신고번호·자격번호·보험은 `(운영자 기입)` placeholder로 분리(PII 최소화). Markdown/JSON 출력.
+  CLI: `--scenario <name>` / `--config <yaml>` / `--format md|json|both`.
+- **`docs/certification/FLIGHT_PLAN_FORM.md`** 신규 — 서식↔설정 필드 매핑·실행법·설계 원칙(결정성·PII 분리·
+  법령 추적성)·격차 분석 문서화.
+- **`tests/test_flight_plan_form.py`** 신규 — 필드 추출·PII placeholder 유지·좌표 산정·결정성·렌더링
+  회귀 **14건** (전부 pass).
+- `ROADMAP.md`·`docs/certification/AIR_SAFETY_ACT_MATRIX.md`(시행규칙 §306 ⬜→🟢)·
+  `docs/SIMULATOR_GENESIS_PLAN.md`(Phase 303 ✅) 동기화.
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (388.13s).

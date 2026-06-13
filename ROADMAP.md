@@ -265,6 +265,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 - [x] **Phase 301** 🏭 항공안전법·드론활용촉진법 적합성 매트릭스 — `docs/certification/AIR_SAFETY_ACT_MATRIX.md` (2026-06-12)
 - [x] **Phase 302** 🏭 SORA 자동 계산기 — `_sdacs.soraAssess()` JARUS 2.0 결정적 구현, E2E 6건 (2026-06-12)
+- [x] **Phase 303** 🏭 비행승인 신청서 자동 생성 — `scripts/generate_flight_plan.py` (Drone One-Stop 별지 제122호서식) + `docs/certification/FLIGHT_PLAN_FORM.md`, 회귀 14건 (2026-06-13)
 - [x] **Phase 304** 🏭 KC 전파인증 체크리스트 — `docs/certification/KC_RADIO_CERTIFICATION.md` (2026-06-12)
 - [x] **Phase 306** 🏭 RTM 5계층 커버리지 — `docs/certification/RTM_5LAYER_COVERAGE.md` 21건 추적 (2026-06-12)
 - [x] **Phase 309** 🏭 조종자 자격증명 매핑 — `docs/certification/PILOT_LICENSE_MAPPING.md` (2026-06-12)

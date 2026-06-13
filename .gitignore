@@ -79,3 +79,7 @@ htmlcov/
 .pytest_cache/
 pytest-cache-files-*/
 scripts/recordings/
+
+# GENESIS 303 비행승인 신청서 생성 산출물 (런타임)
+reports/flight_plan_*.md
+reports/flight_plan_*.json

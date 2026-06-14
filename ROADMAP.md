@@ -284,7 +284,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 - [x] **Phase 408** 🌏 ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` (2026-06-12)
 - [ ] **Phase 401-407·409-420** 🌏 Global Expansion — EASA U-space·FAA UTM 정렬·EN 완역
-- [ ] **Phase 421-440** 🛰 Federation Operations — inter-USS 디스커버리·관제권 핸드오버·연합 충돌 해소
+- [x] **Phase 421** 🛰 인스턴스 간 디스커버리 프로토콜 — `simulation/federation_discovery.py` ASTM F3548 DSS 유사 결정적 모델(4D 볼륨 등록·그리드 셀 인덱스·정밀 교차 디스커버리·동기화 대상), 13건 PASS (2026-06-14)
+- [ ] **Phase 422-440** 🛰 Federation Operations — 운영 의도 4D 교환·관제권 핸드오버·연합 충돌 해소
 - [x] **Phase 447** 🔬 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` NFZ·ATC·SORA 140케이스 (2026-06-12)
 - [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12)
 - [ ] **Phase 441-446·449-460** 🔬 Formal & Research Frontier — TLA+ 안전망 명세·모델 체킹
@@ -294,6 +295,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [ ] **Phase 481-485·487-500** ♾️ Continuum — 의존성 장기 추적·승계 규약·**Phase 500 = Centennial 선언**
 
 ---
+
+*2026-06-14 (일일 점검 + 머지 병목 해소) — **신규 컨테이너 독립 재현 GREEN + 적체 PR 정리**: 신규 세션 컨테이너에서 의존성 설치 후 main(`32cdfd2`) baseline 회귀 **4,089 pass / 280 skip / 0 fail**(83.97%) 재현. 점검 시점 열린 PR **30건**(머지 병목 — Phase 307×5·304×2·445×3·207×2 등 중복 누적)을 정밀 triage. clean·CI green·중복 아닌 Phase 3건을 머지: **#310 ODYSSEY Phase 421**(인스턴스 간 디스커버리, ASTM F3548-21 DSS 결정적 모델)을 main 직접 머지(`8be9a3c`, main CI·Canonical Hash·Security 전부 success), **#309 GENESIS Phase 307**(ARAIB 사고 보고 양식)·**#308 ODYSSEY Phase 467**(ICAO Annex 13 사고 조사 변환기)은 README/CHANGELOG append 충돌만 있어 본 작업 브랜치에 통합·해소. 통합 후 전체 회귀 **4,147 pass / 280 skip / 0 fail**(84.06%, +58 신규). 잔여 적체 PR(중복·dirty·dependabot)은 후속 정리 대상으로 보고.*
 
 *2026-06-12 (종합 감사) — **전체 문서·소스 정합성 감사 + Track G 신설**: 라이브 페이지 실측으로 `_sdacs` API **407 항목** 확정(기존 문서 391 과소 표기 정정 — 분류 404 = 93/98/110/103 + 헬퍼 3), `docs/SDACS_API.md` maturity 컬럼 포함 재생성, `docs/sdacs.d.ts` 407 멤버 재생성, README·VERSION.md 수치 동기화(시뮬레이터 11,836 line). 분석 뷰 Q2 동적 NFZ overlay + NFZ 레이어 토글 연동 + sub-km 비행거리 표시(PR #265). TRANSCENDENCE Phase 201-300을 Track G로 로드맵 공식 편입, 2026 H2 마스터플랜(`docs/MASTER_PLAN_2026H2.md`) 수립.*
 

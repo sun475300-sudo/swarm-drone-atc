@@ -43,7 +43,7 @@
 
 *단일 SDACS → 다중 인스턴스 연합 (inter-USS). 기존 자산: TRANSCENDENCE 241-260 다중 사용자, Raft HA, ws_bridge*
 
-- **Phase 421** 인스턴스 간 디스커버리 프로토콜 — ASTM F3548 DSS 유사 결정적 모델
+- **Phase 421** ✅ 인스턴스 간 디스커버리 프로토콜 — ASTM F3548 DSS 유사 결정적 모델 (`simulation/federation_discovery.py`, 13건 PASS, 2026-06-14)
 - **Phase 422** ✅ 운영 의도(Operational Intent) 교환 포맷 — 4D 볼륨 직렬화 (2026-06-14, `simulation/operational_intent.py` — ASTM F3548-21 정렬 `Volume4D`/`OperationalIntent` frozen dataclass + 라운드트립 직렬화 + 보수적 4D 교차 판정, 단위 24건)
 - **Phase 423** 지역 간 핸드오버 — 드론이 인스턴스 경계 통과 시 관제권 이양
 - **Phase 424** 연합 충돌 해소 — 인스턴스 간 우선순위 협상 (Vickrey 경매 재사용)
@@ -81,7 +81,7 @@
 - **Phase 464** 군집 비행 안전 기준 백서 — 5계층 안전망 사례 연구
 - **Phase 465** 공역 통합 시뮬레이션 표준 시나리오 셋 제안 (10종 공개)
 - **Phase 466** 오픈 데이터 표준 — 텔레메트리 스키마 공개 (JSON Schema + 검증기)
-- **Phase 467** 사고 조사 데이터 표준 — 시뮬 로그 → 표준 양식 변환기
+- **Phase 467** 사고 조사 데이터 표준 — 시뮬 로그 → 표준 양식 변환기 ✅ ([standards/INCIDENT_INVESTIGATION_REPORT.md](standards/INCIDENT_INVESTIGATION_REPORT.md))
 - **Phase 468** 대학 캡스톤 표준 커리큘럼 제안 (GENESIS 383 확장)
 - **Phase 469** 정책 영향 시뮬레이션 — 규제 파라미터(고도 상한·이격 거리) 변경 효과 자동 비교
 - **Phase 470** 표준화 기고 추적 대시보드

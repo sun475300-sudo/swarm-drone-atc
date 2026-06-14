@@ -961,6 +961,11 @@ MIT License — Developed for academic and educational purposes.
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
 | 2026-06-14 09:15 | `072bccd` | feat(odyssey): Phase 422 운영 의도 4D 볼륨 교환 포맷 | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/operational_intent.py, tests/test_operational_intent.py |
+| 2026-06-15 03:17 | `dd022bb` | docs: 일일 점검 2026-06-14 — 머지 병목 triage + Phase 421·307·467 통합 | ROADMAP.md |
+| 2026-06-15 00:10 | `cdcb7b5` | feat(odyssey): Phase 421 인스턴스 간 디스커버리 프로토콜 (DSS 유사 결정적 모델) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_discovery.py, tests/test_federation_discovery.py |
+| 2026-06-14 23:08 | `71eeef2` | feat(genesis): Phase 307 사고 보고 양식 자동 작성 (ARAIB 표준) | docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/ACCIDENT_REPORT.md, simulation/accident_report.py, tests/test_accident_report.py |
+| 2026-06-14 22:12 | `0064488` | feat(odyssey): Phase 467 사고 조사 데이터 표준 변환기 (ICAO Annex 13) | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/INCIDENT_INVESTIGATION_REPORT.md, simulation/incident_investigation_report.py, tests/test_incident_investigation_report.py |
+| 2026-06-14 12:18 | `0f956b9` | feat(genesis): Phase 303 비행계획 신고 양식 자동 생성 (Drone One-Stop) | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/FLIGHT_PLAN_FILING.md, simulation/flight_plan_filing.py, tests/test_flight_plan_filing.py |
 | 2026-06-13 11:01 | `5b26e79` | fix(ci): sim-smoke.yml에 hypothesis 추가 + TRANSCENDENCE 205·GENESIS 304·309·ODYSSEY 408 진척 | .github/workflows/sim-smoke.yml, README.md, ROADMAP.md, docs/certification/AIRSPACE_CLASS_MAPPING.md, docs/certification/KC_RADIO_CERTIFICATION.md, docs/certification/PILOT_LICENSE_MAPPING.md … |
 | 2026-06-13 10:55 | `b342a9e` | feat(plans): GENESIS 306·381·389 + ODYSSEY 447·486 + 시뮬레이터 tutorial API | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |
 | 2026-06-13 10:34 | `74370fd` | feat(plans): GENESIS 301·387 + TRANSCENDENCE 204 + ODYSSEY 448·466 일괄 진척 | README.md, ROADMAP.md, docs/certification/AIR_SAFETY_ACT_MATRIX.md, docs/presentation/DEFENSE_KIT.md, docs/schemas/telemetry.schema.json, tests/e2e/test_simulator_production_core.py … |

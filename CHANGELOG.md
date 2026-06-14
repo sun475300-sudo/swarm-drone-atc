@@ -5,6 +5,16 @@
 
 ## [Unreleased]
 
+### 기능 (feat) — GENESIS Phase 307 사고 보고 양식 자동 작성 (2026-06-14)
+- `simulation/incident_report.py` 신규 — 시뮬레이션 사고 로그(충돌·통제 상실·GPS 상실·통신 두절
+  ·배터리 임계 등)를 입력받아 항공·철도사고조사위원회(ARAIB) 표준 발생 보고서를 결정적으로 생성.
+  인명·기체파괴·물적피해(≥1,000만원)·이벤트 유형·안전망 복구 여부를 종합해 **사고 / 준사고 /
+  항공안전장애** 등급을 분류하고 **의무보고 대상·보고 시한**(즉시/72시간)을 자동 판정. JSON·한국어
+  텍스트 export + `summarize_log()` 로그 등급별 집계. 시스템 경계 입력 검증(`ValueError`).
+- `tests/test_incident_report.py` 신규 — 등급 분류·검증·집계·export·결정성 **19건 PASS**.
+- `docs/certification/INCIDENT_REPORT.md` 신규 — 근거 법령·분류 규칙·API·5계층 안전망(복구→등급) 연계.
+- `docs/SIMULATOR_GENESIS_PLAN.md` Phase 307 ✅ 표시. 비행계획 신고(303)·SORA(302)에 이어 인증 트랙 확장.
+
 ### 기능 (feat) — GENESIS Phase 303 비행계획 신고 양식 자동 생성 (2026-06-14)
 - `simulation/flight_plan_filing.py` 신규 — 드론 원스톱 비행승인 신청서를 시뮬 파라미터로부터
   결정적으로 생성. 관제권(9.3 km)·고도(150 m AGL)·비행금지구역·BVLOS·야간 비행을 종합해

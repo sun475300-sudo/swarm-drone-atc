@@ -39,7 +39,7 @@
 - **Phase 306** 요구사항 추적 매트릭스(RTM) 자동 생성 격상 — `scripts/generate_rtm.py` → 5계층 안전망 커버리지
 - **Phase 307** ✅ 사고 보고 양식 (항철위 표준) 자동 작성 — `simulation/accident_report.py` (ARAIB 사고/준사고/안전장애 결정적 분류·시뮬 로그 변환·안전권고 자동 생성·JSON/텍스트 export, 19건 PASS) (2026-06-14)
 - **Phase 308** 보험 요율 산정 인터페이스 (Phase 67 mock 격상 — 실 보험사 API 스펙)
-- **Phase 309** 조종자 자격(1~4종) 요건 ↔ 시뮬 교육 모드 매핑
+- **Phase 309** ✅ 조종자 자격(1~4종) 요건 ↔ 시뮬 교육 모드 매핑 — `simulation/pilot_certification.py` (MTOW 기준 종별 결정적 분류·종별 교육/시험 요건·조종자 준비도 판정·JSON/텍스트 export, 24건 PASS / 문서 `PILOT_LICENSE_MAPPING.md` §6 격상) (2026-06-15)
 - **Phase 310** 야간·비가시 특별비행승인 요건 시뮬 검증 시나리오
 - **Phase 311-315** KISA CSAP 96항목 자가진단 자동화 (`security_audit.sh` 확장)
 - **Phase 316-320** UAM 운용기준(K-UAM 로드맵 2.0) 정렬 + 감항 인증 준비 문서

@@ -81,7 +81,7 @@
 - **Phase 464** 군집 비행 안전 기준 백서 — 5계층 안전망 사례 연구
 - **Phase 465** 공역 통합 시뮬레이션 표준 시나리오 셋 제안 (10종 공개)
 - **Phase 466** 오픈 데이터 표준 — 텔레메트리 스키마 공개 (JSON Schema + 검증기)
-- **Phase 467** 사고 조사 데이터 표준 — 시뮬 로그 → 표준 양식 변환기
+- **Phase 467** 사고 조사 데이터 표준 — 시뮬 로그 → 표준 양식 변환기 ✅ ([standards/INCIDENT_INVESTIGATION_REPORT.md](standards/INCIDENT_INVESTIGATION_REPORT.md))
 - **Phase 468** 대학 캡스톤 표준 커리큘럼 제안 (GENESIS 383 확장)
 - **Phase 469** 정책 영향 시뮬레이션 — 규제 파라미터(고도 상한·이격 거리) 변경 효과 자동 비교
 - **Phase 470** 표준화 기고 추적 대시보드

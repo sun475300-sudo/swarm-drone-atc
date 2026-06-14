@@ -5,6 +5,19 @@
 
 ## [Unreleased]
 
+### 기능 (feat) — ODYSSEY Phase 421 인스턴스 간 디스커버리 프로토콜 (2026-06-14)
+- `simulation/federation_discovery.py` 신규 — ASTM F3548-21 **DSS**(Discovery and
+  Synchronization Service)를 단순화한 결정적 in-process 모델. 다중 SDACS 인스턴스(USS)가
+  각자 관리하는 **4D 공역 볼륨**(x·y·z 직육면체 + 시간 창)을 등록하면, 공간 그리드 셀
+  인덱스(기본 500 m)로 후보를 좁히고 **정밀 4D AABB 교차**로 인접 인스턴스를 결정적으로
+  발견·동기화한다. `register()`(이웃 발견)·`query()`·`synchronization_targets()`(상호
+  동기화)·`remove()`·`summary()` 제공. 외부 네트워크·랜덤 없이 출력 정렬 보장(재현성),
+  퇴화 볼륨·빈 id·비양수 셀 크기는 `ValueError`/`KeyError` 로 경계 검증.
+- `tests/test_federation_discovery.py` 신규 — 4D 교차 대칭성·경계 접촉 비교차·셀 인덱싱·
+  재등록 갱신·등록 순서 독립성·결정성 **13건 PASS**.
+- `ROADMAP.md` Track I Phase 421 ✅ + `docs/SIMULATOR_ODYSSEY_PLAN.md` 반영. Federation
+  Operations 트랙(421-440)의 첫 결정적 자산 — 운영 의도 교환(422)·관제권 핸드오버(423)의 기반.
+
 ### 기능 (feat) — GENESIS Phase 303 비행계획 신고 양식 자동 생성 (2026-06-14)
 - `simulation/flight_plan_filing.py` 신규 — 드론 원스톱 비행승인 신청서를 시뮬 파라미터로부터
   결정적으로 생성. 관제권(9.3 km)·고도(150 m AGL)·비행금지구역·BVLOS·야간 비행을 종합해

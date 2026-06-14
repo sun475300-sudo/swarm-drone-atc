@@ -68,19 +68,24 @@ ALTITUDE_LAYERS = [0, 30, 60, 90, 120, 150, 180, 210, 240]  // 단위: m AGL
 | Class B/C 진입 차단 | 정적 NFZ로 표현 | 동적 NOTAM 미반영 | GENESIS 303 + Phase 24 NOTAM 격상 |
 | ICAO 표준 보고 양식 | 미지원 | 사고 보고 Class별 차이 | GENESIS 307 사고 보고 격상 시 통합 |
 
-## 6. 차기 격상 제안 (API 신설)
+## 6. API 격상 — 구현 완료 ✅
 
-```typescript
-// 신설 후보 — _sdacs.airspaceClass(altitudeM, lon?, lat?) → 'A'..'G' | 'R'(restricted)
-// 결정 규칙 (sandbox 가능, 한국 특화):
-//   1) altitude > 240m or lon/lat가 공항 NFZ 안 → 'B'
-//   2) altitude in (150, 240] → 'E'
-//   3) altitude in [0, 150] AND not in NFZ → 'G'
-//   4) NFZ 안이지만 비행 가능(특별승인) → 'D'
-//   5) 군 작전 공역 NFZ → 'R'
+**구현:** `simulation/airspace_class.py` · `classify_airspace(altitude_m, lon?, lat?, nfz_zones?, has_special_approval?)`
+→ `AirspaceClassification(icao_class, controlled, approval_required, layer_index, reason, requirements)`
+(결정적·난수 없음, production 등급, 25건 PASS — `tests/test_airspace_class.py`)
+
+```python
+# 결정 규칙 (sandbox, 한국 특화) — 위 순서대로 우선 적용
+#   1) 군 작전 공역(military) NFZ 안            → 'R'
+#   2) 공항 NFZ 안, 특별승인 없음               → 'B' (운영 금지)
+#   3) 공항 NFZ 안, 특별승인 있음               → 'D' (관제권 진입)
+#   4) altitude > 240 m                         → 'B'
+#   5) altitude in (150, 240]                   → 'E'
+#   6) altitude in [0, 150], NFZ 밖             → 'G'
 ```
 
-격상 시 production 등급 부여 (결정적 산정). E2E 테스트 5건 동반 권장.
+> 가정: 문서 §3("180 m+ → D/C")과 §6("(150,240] → E")의 서술 차이는 API 계약인 §6 결정
+> 규칙을 권위 있는 알고리즘으로 채택해 해소했다. Class A·C·F는 운용 고도 영역 밖/한국 미운용이라 제외.
 
 ## 🔗 관련
 - [`AIR_SAFETY_ACT_MATRIX.md`](AIR_SAFETY_ACT_MATRIX.md) — 항공안전법 §127 등 (Phase 301)

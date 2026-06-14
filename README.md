@@ -960,6 +960,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-15 03:17 | `dd022bb` | docs: 일일 점검 2026-06-14 — 머지 병목 triage + Phase 421·307·467 통합 | ROADMAP.md |
 | 2026-06-15 00:10 | `cdcb7b5` | feat(odyssey): Phase 421 인스턴스 간 디스커버리 프로토콜 (DSS 유사 결정적 모델) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_discovery.py, tests/test_federation_discovery.py |
 | 2026-06-14 23:08 | `71eeef2` | feat(genesis): Phase 307 사고 보고 양식 자동 작성 (ARAIB 표준) | docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/ACCIDENT_REPORT.md, simulation/accident_report.py, tests/test_accident_report.py |
 | 2026-06-14 22:12 | `0064488` | feat(odyssey): Phase 467 사고 조사 데이터 표준 변환기 (ICAO Annex 13) | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/INCIDENT_INVESTIGATION_REPORT.md, simulation/incident_investigation_report.py, tests/test_incident_investigation_report.py |

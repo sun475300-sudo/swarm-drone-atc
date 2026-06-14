@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+### 점검 (chore) — 일일 점검 2026-06-14 (20차) 독립 재현 GREEN + 머지 병목 triage
+- 신규 컨테이너 독립 재현: 전체 회귀 **4,089 pass / 280 skip / 0 fail** (134.5s, `-n auto`).
+  main `32cdfd2` CI·Security·Pages·Hash 전부 success, 열린 이슈 0건, 브랜치 ↔ main 동기.
+- **머지 병목 정밀 triage**: 열린 PR 30건(머지 0). 신규 중복 클러스터 — Phase 307(설계 3종
+  비호환 5건)·304(쌍둥이 2건)·207(파일 직접 충돌 2건)에 대한 대표 채택 권장 + 단일 기능 PR
+  13건 + dependabot 6건 정리안. 상세: `docs/daily_check/2026-06-14_check20.md`.
+
 ### 기능 (feat) — GENESIS Phase 303 비행계획 신고 양식 자동 생성 (2026-06-14)
 - `simulation/flight_plan_filing.py` 신규 — 드론 원스톱 비행승인 신청서를 시뮬 파라미터로부터
   결정적으로 생성. 관제권(9.3 km)·고도(150 m AGL)·비행금지구역·BVLOS·야간 비행을 종합해

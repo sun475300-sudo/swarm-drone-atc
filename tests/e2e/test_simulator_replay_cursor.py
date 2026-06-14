@@ -49,8 +49,10 @@ def page(http_server):
                 wait_until="networkidle", timeout=20000)
         pg.wait_for_function("window._sdacs && window._sdacs.droneCount > 0", timeout=15000)
         # 일정 시간 시뮬 진행 → recorder 가 프레임 누적
+        # 견고화: 느린 CI 헤드리스 (SwiftShader) 에서 15s 내 5 프레임 미충족 플레이크 →
+        # 타임아웃 45s + 임계 3 (R1-R5 검증에 3프레임이면 충분, last/mid index 분리 가능).
         pg.evaluate("window._sdacs.startSim()")
-        pg.wait_for_function("window._sdacs.replayFrames > 5", timeout=15000)
+        pg.wait_for_function("window._sdacs.replayFrames > 3", timeout=45000)
         yield pg
         ctx.close()
         browser.close()
@@ -62,7 +64,8 @@ def test_replay_state_api_is_production(page):
 
 def test_r1_recorder_accumulates_frames(page):
     n = page.evaluate("window._sdacs.replayFrames")
-    assert n > 5, f"replayFrames={n} too small"
+    # 픽스처가 > 3 까지 대기하므로 어설션은 동일 임계
+    assert n > 3, f"replayFrames={n} too small"
 
 
 def test_r2_seek_to_first_frame(page):

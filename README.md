@@ -962,6 +962,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-14 09:30 | `9ab42fd` | test(replay): replay_cursor 픽스처 플레이크 견고화 (느린 CI 헤드리스 대응) | tests/e2e/test_simulator_replay_cursor.py |
 | 2026-06-14 09:24 | `5684b00` | fix(security): Dockerfile 비루트 사용자 + Helm image tag latest 경고 | Dockerfile, Dockerfile.gpu, helm/sdacs/values.yaml |
 | 2026-06-13 23:10 | `7c771b4` | fix: 4차 점검 — Voronoi is_in_cell 차원 가드 + maritime scenario 화이트리스트 + docs 사본 동기 | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, simulation/voronoi_airspace/voronoi_partition.py |
 | 2026-06-13 21:47 | `3068ae7` | fix(security): JWT_SECRET prod 모드 강제 + WebSocket 텔레메트리 입력 검증 | api/auth.py, api/fastapi_server.py, tests/test_auth_prod_secret.py |

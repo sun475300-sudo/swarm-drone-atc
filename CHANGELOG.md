@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### 기능 (feat) — GENESIS Phase 303 비행계획 신고 양식 자동 생성 (2026-06-14)
+- `simulation/flight_plan_filing.py` 신규 — 드론 원스톱 비행승인 신청서를 시뮬 파라미터로부터
+  결정적으로 생성. 관제권(9.3 km)·고도(150 m AGL)·비행금지구역·BVLOS·야간 비행을 종합해
+  **비행승인 / 특별비행승인 / 기체신고** 필요 여부를 자동 판정하고 JSON·한국어 텍스트로 export.
+  haversine 거리 기반 구역 진입 판정 + 시스템 경계 입력 검증(`ValueError`).
+- `tests/test_flight_plan_filing.py` 신규 — 판정·검증·export·결정성 **18건 PASS**.
+- `docs/certification/FLIGHT_PLAN_FILING.md` 신규 — 근거 법령·임계값·API·5계층 안전망(Layer 0) 연계.
+- `docs/SIMULATOR_GENESIS_PLAN.md` Phase 303 ✅ 표시. SORA 계산기(302)와 함께 규제 적합 자산 확장.
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (388.13s).

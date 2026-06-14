@@ -5,6 +5,21 @@
 
 ## [Unreleased]
 
+### 점검 (chore) — 일일 점검 2026-06-14 (19차 독립 재현 GREEN, main `02d70b0` 기준)
+- 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
+  `python -m pytest tests/`(addopts 해제·커버리지 게이트 미적용) → **4,071 pass / 280 skip / 0 fail**
+  (169.11s). **0 fail** 불변 재확인 — GREEN. (skip 수치가 8~18차 252와 다른 것은 sandbox
+  인터프리터의 pytest 8.x + `-n`(xdist) 미사용으로 일부 환경 의존 테스트가 skip으로 분류되기
+  때문이며, pass/0-fail 불변량은 동일하다.)
+- **저장소 상태**: 브랜치가 `origin/main`과 완전 동기(rev-list 0/0, main HEAD `02d70b0`).
+  main 최신 커밋(`02d70b0`) `ci.yml` 워크플로우 **success** 확인(actions API).
+- **⚠️ 머지 병목 관측(owner 조치 필요)**: 열린 PR **30건** 누적 — 머지 0건. 구성: dependabot 8건
+  (#272~#279), 본 일일 루틴(`claude/fervent-babbage-*`) 21건, 기타 1건(#283). 특히 **Phase 303
+  비행계획 신고 양식**이 **6중 중복**(#284·#288·#294·#296·#297·#302). 루틴이 매 실행마다 신규
+  브랜치·PR을 생성하나 머지되지 않아 적체 중 → **owner의 일괄 triage(머지/중복 close) 필요**.
+- 로드맵 잔여 미체크는 대부분 사용자 환경 의존(P755 창업·Track A 실기·P707 실측 그래프·P709 IROS
+  투고). 코드 회귀 무결성은 유지됨.
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (388.13s).

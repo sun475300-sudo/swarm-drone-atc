@@ -960,6 +960,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-16 02:19 | `04a629c` | feat(odyssey): Phase 429 연합 감사 로그 — 변조 탐지 해시 체인 + 결정적 CRDT 병합 | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_audit.py, tests/test_federation_audit.py |
 | 2026-06-16 | (이 커밋) | feat(odyssey): 일일 점검 (10차) — Phase 429 연합 감사 로그(변조 탐지 SHA-256 해시 체인 + 결정적 CRDT 병합), 신규 29건 + 인접 federation 회귀 122건 PASS, 어드바이저 CRITICAL 1·HIGH 2 반영 | simulation/federation_audit.py, tests/test_federation_audit.py, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, CHANGELOG.md, README.md |
 | 2026-06-15 23:13 | `64ae2d2` | refactor(odyssey): Phase 424·425·430 code-reviewer 어드바이저 HIGH 3건 반영 | CHANGELOG.md, simulation/federation_conflict_resolution.py, simulation/federation_notam.py, simulation/federation_split_brain.py |
 | 2026-06-15 23:11 | `1f369e8` | chore(odyssey): 일일 점검 (8차) — Federation Operations 3건 통합 (Phase 424·425·430) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_conflict_resolution.py, simulation/federation_notam.py … |

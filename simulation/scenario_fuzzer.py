@@ -169,7 +169,6 @@ def main(argv: list[str] | None = None) -> int:
     import argparse
 
     import yaml
-
     from scenario_schema import validate_scenario  # type: ignore
 
     parser = argparse.ArgumentParser(

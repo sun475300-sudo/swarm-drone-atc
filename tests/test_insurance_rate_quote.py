@@ -14,6 +14,9 @@ from simulation.insurance_rate_quote import (
     quote,
 )
 
+# 마지막 명세 running 과 최종 보험료의 허용 오차(원) — 반올림 단위.
+_ROUND_GUARD = 100
+
 
 def _req(**kw) -> QuoteRequest:
     """기준 요청 — 테스트별로 일부 필드만 덮어쓴다."""
@@ -107,6 +110,12 @@ class TestRiskLoadings:
         bvlos = quote(_req(bvlos_ops=True)).annual_premium_krw
         assert bvlos > night
 
+    def test_night_and_bvlos_stack_multiplicatively(self):
+        plain = quote(_req()).annual_premium_krw
+        both = quote(_req(night_ops=True, bvlos_ops=True)).annual_premium_krw
+        # 두 가산은 곱(1.15×1.30≈1.495)으로 누적 — 더 높은 쪽만 적용되지 않는다.
+        assert both == pytest.approx(plain * 1.15 * 1.30, rel=0.01)
+
 
 class TestCoverageLimit:
     """보상한도가 높을수록 ILF로 보험료가 오른다."""
@@ -171,5 +180,18 @@ class TestValidation:
         with pytest.raises(ValueError, match="unknown operation_type"):
             quote(_req(operation_type="mining"))
 
+    def test_physically_impossible_flight_hours_rejected(self):
+        with pytest.raises(ValueError, match="cannot exceed"):
+            quote(_req(annual_flight_hours=9_000.0))
 
-_ROUND_GUARD = 100
+    def test_max_flight_hours_boundary_accepted(self):
+        # 정확히 1년치(8,760h)는 허용 — 경계값 통과.
+        assert quote(_req(annual_flight_hours=8_760.0)).annual_premium_krw > 0
+
+    def test_fractional_claims_rejected(self):
+        with pytest.raises(TypeError, match="claims_in_3yr must be an int"):
+            quote(_req(claims_in_3yr=0.5))
+
+    def test_bool_claims_rejected(self):
+        with pytest.raises(TypeError, match="claims_in_3yr must be an int"):
+            quote(_req(claims_in_3yr=True))

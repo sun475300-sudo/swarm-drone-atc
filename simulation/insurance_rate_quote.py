@@ -49,6 +49,9 @@ _COVERAGE_ILF: dict[int, float] = {
 # 의무가입 최소 보상한도(원) — 사용사업 대인·대물 합산 기준.
 MANDATORY_MIN_LIMIT_KRW = 150_000_000
 
+# 연간 비행시간 물리 상한 — 단일 기체는 1년(365×24시간)을 넘길 수 없다.
+_MAX_ANNUAL_FLIGHT_HOURS = 8_760.0
+
 # 위험 운용 가산 계수.
 _NIGHT_LOADING = 1.15
 _BVLOS_LOADING = 1.30
@@ -121,8 +124,18 @@ def _validate(req: QuoteRequest) -> tuple[float, bool]:
         raise ValueError(f"mtow_kg must be positive, got {req.mtow_kg}")
     if req.annual_flight_hours < 0:
         raise ValueError("annual_flight_hours must be non-negative")
+    if req.annual_flight_hours > _MAX_ANNUAL_FLIGHT_HOURS:
+        raise ValueError(
+            f"annual_flight_hours cannot exceed {_MAX_ANNUAL_FLIGHT_HOURS} "
+            f"(hours in one year)"
+        )
     if req.pilot_experience_years < 0:
         raise ValueError("pilot_experience_years must be non-negative")
+    # 사고 건수는 이산 정수 — 분수 입력은 NCB/할증 의미를 깨뜨린다 (bool 제외).
+    if not isinstance(req.claims_in_3yr, int) or isinstance(req.claims_in_3yr, bool):
+        raise TypeError(
+            f"claims_in_3yr must be an int, got {type(req.claims_in_3yr).__name__}"
+        )
     if req.claims_in_3yr < 0:
         raise ValueError("claims_in_3yr must be non-negative")
     if req.operation_type not in _OPERATION:
@@ -153,24 +166,26 @@ def quote(req: QuoteRequest) -> Quote:
     op_factor, is_mandatory = _validate(req)
 
     base = _base_premium(req.mtow_kg)
-    running = float(base)
+    # 적용 순서대로의 (라벨, 계수) 단계 — 새 리스트 결합만으로 구성(무변형).
+    steps = (
+        [
+            (f"operation:{req.operation_type}", op_factor),
+            # 비행시간 익스포저: 1,000시간당 1배 가산.
+            ("flight_hours_exposure", 1.0 + req.annual_flight_hours / 1000.0),
+            ("coverage_ilf", _COVERAGE_ILF[req.coverage_limit_krw]),
+            ("experience_discount", _experience_factor(req.pilot_experience_years)),
+            ("claims_history", _claims_factor(req.claims_in_3yr)),
+        ]
+        + ([("night_loading", _NIGHT_LOADING)] if req.night_ops else [])
+        + ([("bvlos_loading", _BVLOS_LOADING)] if req.bvlos_ops else [])
+    )
+
+    # 기본료에서 출발해 단계별 누적 곱 — 매 단계 새 리스트를 만들어 명세 추적.
     lines = [PremiumLine("base_premium", 1.0, base)]
-
-    def apply(label: str, factor: float) -> None:
-        nonlocal running
+    running = float(base)
+    for label, factor in steps:
         running *= factor
-        lines.append(PremiumLine(label, factor, int(round(running))))
-
-    apply(f"operation:{req.operation_type}", op_factor)
-    # 비행시간 익스포저: 1,000시간당 1배 가산.
-    apply("flight_hours_exposure", 1.0 + req.annual_flight_hours / 1000.0)
-    apply("coverage_ilf", _COVERAGE_ILF[req.coverage_limit_krw])
-    apply("experience_discount", _experience_factor(req.pilot_experience_years))
-    apply("claims_history", _claims_factor(req.claims_in_3yr))
-    if req.night_ops:
-        apply("night_loading", _NIGHT_LOADING)
-    if req.bvlos_ops:
-        apply("bvlos_loading", _BVLOS_LOADING)
+        lines = lines + [PremiumLine(label, factor, int(round(running)))]
 
     premium = int(round(running / _ROUND_UNIT)) * _ROUND_UNIT
     return Quote(

@@ -960,6 +960,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-15 14:19 | `ab6618d` | refactor(genesis): Phase 308 code-reviewer 어드바이저 반영 | CHANGELOG.md, ROADMAP.md, simulation/insurance_rate_quote.py, tests/test_insurance_rate_quote.py |
 | 2026-06-15 14:15 | `0e04a31` | feat(genesis): Phase 308 배상책임보험 요율 산정 API (Phase 67 mock 격상) | CHANGELOG.md, ROADMAP.md, simulation/insurance_rate_quote.py, tests/test_insurance_rate_quote.py |
 | 2026-06-15 09:12 | `567e4a6` | docs: 일일 점검 2026-06-15 (2차) — 적체 PR 9건 통합 변경 이력 | CHANGELOG.md |
 | 2026-06-15 05:10 | `c9923b1` | feat: 일일 점검 2026-06-15 — 적체 PR 5건 무충돌 통합 (Phase 322·342·367·401·406·449) | CHANGELOG.md, ROADMAP.md, docs/schemas/sdacs-scenario.schema.json, simulation/geo_zones.py, simulation/scenario_schema.py, src/applications/jeonnam_island_sites.py … |

@@ -46,13 +46,13 @@
 - **Phase 421** ✅ 인스턴스 간 디스커버리 프로토콜 — ASTM F3548 DSS 유사 결정적 모델 (`simulation/federation_discovery.py`, 13건 PASS, 2026-06-14)
 - **Phase 422** ✅ 운영 의도(Operational Intent) 교환 포맷 — 4D 볼륨 직렬화 (2026-06-14, `simulation/operational_intent.py` — ASTM F3548-21 정렬 `Volume4D`/`OperationalIntent` frozen dataclass + 라운드트립 직렬화 + 보수적 4D 교차 판정, 단위 24건)
 - **Phase 423** ✅ 지역 간 핸드오버 — 드론이 인스턴스 경계 통과 시 관제권 이양 (2026-06-15, `simulation/federation_handover.py` — Phase 421 점 커버리지 기반 `HandoverCoordinator`. 위치 표본마다 RETAINED/ACQUIRED/HANDOVER/CONTINGENT 결정, 중첩 구역 이력현상(hysteresis), 반열린 경계 규약, 불변 감사 로그(Phase 429 기반). 단위 16건)
-- **Phase 424** 연합 충돌 해소 — 인스턴스 간 우선순위 협상 (Vickrey 경매 재사용)
-- **Phase 425** 연합 NOTAM 전파 — 동적 NFZ를 인접 인스턴스에 브로드캐스트
+- **Phase 424** ✅ 연합 충돌 해소 — 인스턴스 간 우선순위 협상 (2026-06-15, `simulation/federation_conflict_resolution.py` — Phase 422 `intents_conflict` 로 충돌 탐지 후 Phase 602 `VickreyAuction`(2위 가격제) 재사용. 우선순위→입찰가 결정적 사상(낮은 priority=높은 입찰), 동률은 `sha256(intent_id)` 안정 해시로 분리. `resolve_all` 쌍별 협상 + `apply_resolutions` 패자 CONTINGENT 불변 전환 + 불변 감사 로그. 단위 11건)
+- **Phase 425** ✅ 연합 NOTAM 전파 — 동적 NFZ를 인접 인스턴스에 브로드캐스트 (2026-06-15, `simulation/federation_notam.py` — `FederationNotamBroadcaster`. Phase 421 디스커버리 `query` 로 겹치는 이웃만 선별해 결정적 전파(DELIVERED/DUPLICATE/REVOKED), NFZ 이동 시 더는 겹치지 않는 이웃에서 stale 자동 회수, 멱등 재방송(`rebroadcast`)·철회(`revoke`), 소비측 `active_volumes` 헬퍼, 불변 감사 로그. 단위 19건)
 - **Phase 426** 2-인스턴스 연합 E2E (Playwright 다중 페이지 + ws 브리지 2개)
 - **Phase 427** 연합 시각화 — 인접 공역 고스트 렌더링
 - **Phase 428** 신뢰 모델 — 인스턴스 간 Bayesian 평판 (기존 reputation 재사용)
 - **Phase 429** 연합 감사 로그 — 관제권 이양 불변 기록
-- **Phase 430** 분할 뇌(split-brain) 시나리오 — 연합 단절 시 안전 강하 정책
+- **Phase 430** ✅ 분할 뇌(split-brain) 시나리오 — 연합 단절 시 안전 강하 정책 (2026-06-15, `simulation/federation_split_brain.py` — `PartitionSnapshot` 양방향 링크를 연결 요소로 분해해 과반(majority) 분파 판정 + `SafeDescentPolicy` 4단계 안전 사다리 NOMINAL/HOLD/DESCEND/LAND. 고립·커버리지 상실 지속 시 단계 상승, 정상 복귀 시 이력현상 초기화, 불변 감사 로그. Phase 423이 미룬 안전 강하 책임 구체화. 단위 20건)
 - **Phase 431-440** 3+ 인스턴스 메시 연합 + 글로벌 시계(hybrid logical clock)
 
 ### Track 🔬 — Formal & Research Frontier (Phase 441-460) · 형식 검증·연구 개척

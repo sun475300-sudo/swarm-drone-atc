@@ -5,6 +5,14 @@
 
 ## [Unreleased]
 
+### 통합 (chore) — 일일 점검 2026-06-15 (8차): ODYSSEY Federation Operations 3건 통합 (Phase 424·425·430)
+- 열린 PR 21건(피처 8 + dependabot 13) triage 후, **기존 `.py` 소스 무수정·신규 파일만 추가하는 비경쟁 Phase PR 3건**을 본 작업 브랜치에 통합. 신규 컨테이너에 pytest+core deps 설치 후 신규 모듈 50건 + 인접 federation 회귀(handover 16·discovery 14·operational_intent 24) **104건 PASS** 로컬 검증. 전체 4,713 테스트 수집(hypothesis 미설치 환경 한정 4건 collection 에러는 본 변경 무관·기존 이슈).
+  - **#327 Phase 424** — `simulation/federation_conflict_resolution.py` 연합 충돌 해소. Phase 422 `intents_conflict` 로 충돌 탐지 후 Phase 602 `VickreyAuction`(2위 가격제 봉인입찰) 재사용해 우선순위 협상. 낮은 priority 번호=높은 입찰가 결정적 사상, 동률은 `hashlib.sha256(intent_id)` 안정 해시로 분리(Python `hash()` 솔트 비결정성 회피). `apply_resolutions` 는 패자만 CONTINGENT 로 전환한 새 튜플 반환(원본 불변), 청산가는 Vickrey 차순위로 감사 기록 (11건).
+  - **#328 Phase 425** — `simulation/federation_notam.py` 연합 NOTAM 전파. 동적 NFZ를 Phase 421 디스커버리(`query`)로 발견한 겹치는 인접 인스턴스에만 결정적 전파(DELIVERED/DUPLICATE/REVOKED). NFZ 이동 시 더는 겹치지 않는 이웃에서 stale 자동 회수, 멱등 재방송(`rebroadcast`)·철회(`revoke`), 철회 후 `_origin_of` 영구 보존으로 notam_id 소유권 탈취 차단, `_deliver` 버전 가드 `>=` 로 stale 패킷의 신버전 덮어쓰기 방지, 불변 감사 로그 (19건).
+  - **#329 Phase 430** — `simulation/federation_split_brain.py` 분할 뇌 안전 강하 정책. `PartitionSnapshot` 이 양방향 링크를 연결 요소로 분해해 과반(majority) 분파 판정(2-2 균등 분할 시 무과반). `SafeDescentPolicy` 4단계 안전 사다리(NOMINAL→HOLD→DESCEND→LAND), `hold_limit`/`descend_limit` 초과 지속 시 단계 상승, 정상 복귀 시 카운터 초기화(이력현상). Phase 423 핸드오버가 미룬 안전 강하 책임 구체화, 불변 감사 로그 (20건).
+- 문서는 세 PR이 동일 파일(CHANGELOG·README·ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md`)을 각자 수정해 상호 충돌하므로, **신규 소스/테스트 파일만 가져오고 문서는 본 통합 항목으로 일원화**. ROADMAP Federation Operations 라인을 `Phase 424·425·430` 완료 + 잔여 `Phase 426-429·431-440` 으로 분해 갱신.
+- 후속: #327/#328/#329 원본 PR은 본 통합으로 산출물 반영 완료 → close 권고. 잔여 피처 PR #295/#289/#285(Phase 445·446 — 7차 점검 #326 에 이미 통합)·#280/#283 은 사람 판단 보류, dependabot 13건(#267-#279)은 후속 정리.
+
 ### 통합 (chore) — 일일 점검 2026-06-15 (5차): 신규 코드 PR 3건 통합 + 적체 중복 PR triage
 - 열린 PR 32건(피처 19 + dependabot 13) triage 후, **신규 파일만 추가하는 비경쟁 Phase PR 3건**을 본 작업 브랜치에 통합. 신규 컨테이너에 pytest+core deps 설치 후 baseline **4,361 pass / 280 skip / 0 fail** 재현 → 통합 후 전체 **4,456 pass / 280 skip / 0 fail**(+95건, 회귀 0).
   - **#320 Phase 423·286·226·209-210** (4차 번들) — `simulation/federation_handover.py`·`scripts/ablation_study.py`(+`SwarmSimulator`/`AirspaceController` 가드 토글)·`src/digital_twin/sync_engine.py` WGS84 엄밀해·`docs/API_DEPRECATION_POLICY.md`.

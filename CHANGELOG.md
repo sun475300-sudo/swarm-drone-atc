@@ -5,6 +5,12 @@
 
 ## [Unreleased]
 
+### 통합 (chore) — 일일 점검 2026-06-15 (12차): ODYSSEY Federation Operations 적체 draft PR 4건 통합 (Phase 428·429·431·432)
+- 작업 상황 점검: 8차(Phase 424·425·430)까지 main 머지 완료, 이후 9·10·11차(Phase 428 신뢰·429 감사·431 HLC)와 Phase 432(메시) 작업이 **머지되지 못한 draft PR 4건(#331·#332·#333·#334)으로 적체**된 상태를 확인 → 중단된 Federation Operations 작업을 단일 브랜치로 통합.
+- 통합 대상: PR #333(`federation_trust.py`·`federation_audit.py`·`federation_hybrid_clock.py` = Phase 428·429·431 상위집합) + PR #334(`federation_mesh.py` = Phase 432). 모두 신규 파일 추가 + `federation_discovery.py` 공개 접근자 `volume_of` 1개 추가라 코드 비경쟁 — README/CHANGELOG/ROADMAP/ODYSSEY_PLAN append 충돌만 양측 보존으로 해소.
+- 검증: 신규 federation 단위 **123건 PASS**(trust 30 + audit 29 + hybrid_clock 34 + mesh 30), 인접 federation 회귀(discovery·handover·conflict·notam·split_brain·operational_intent) **104건 PASS** = 합계 **227건 GREEN**. 본 컨테이너는 최소 의존성(pytest·numpy)만 설치 → 나머지 수트는 simpy·scipy·hypothesis 등 미설치로 미수집(환경 의존, CI 전체 수집). PR #331·#332·#333·#334 는 본 통합으로 superseded.
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Federation Operations 라인을 Phase 428·429·430·431·432 완료 + 잔여 `Phase 426-427·433-440` 으로 정리.
+
 ### 추가 (feat) — 일일 점검 2026-06-15 (11차): ODYSSEY Phase 431 하이브리드 논리 시계(HLC) + Phase 428·429 통합
 - **Phase 431** — `simulation/federation_hybrid_clock.py` (신규) 하이브리드 논리 시계(HLC, Kulkarni et al. 2014). 3+ 인스턴스 메시 연합에서 인스턴스마다 벽시계가 어긋나도 물리 시계 동기화 없이 연합 결정(디스커버리·핸드오버·감사)의 **전역 인과 순서**를 결정적으로 매긴다.
   - `HLCTimestamp` (frozen, `order=True`) — `(wall_time, counter, instance_id)` 사전식 **전순서**. `causal_key`/`happened_before` 는 인스턴스 식별자를 제외한 `(wall, counter)` 로 **인과(부분 순서)** 를, `is_concurrent_with` 는 동률(서로 다른 인스턴스의 동시 이벤트) 동시성을 명시한다 — 전순서(정렬용)와 인과(causality)를 의미적으로 분리.

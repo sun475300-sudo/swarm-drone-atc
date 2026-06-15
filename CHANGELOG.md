@@ -5,6 +5,44 @@
 
 ## [Unreleased]
 
+### 통합 (chore) — 일일 점검 2026-06-15 (12차): ODYSSEY Federation Operations 적체 draft PR 4건 통합 (Phase 428·429·431·432)
+- 작업 상황 점검: 8차(Phase 424·425·430)까지 main 머지 완료, 이후 9·10·11차(Phase 428 신뢰·429 감사·431 HLC)와 Phase 432(메시) 작업이 **머지되지 못한 draft PR 4건(#331·#332·#333·#334)으로 적체**된 상태를 확인 → 중단된 Federation Operations 작업을 단일 브랜치로 통합.
+- 통합 대상: PR #333(`federation_trust.py`·`federation_audit.py`·`federation_hybrid_clock.py` = Phase 428·429·431 상위집합) + PR #334(`federation_mesh.py` = Phase 432). 모두 신규 파일 추가 + `federation_discovery.py` 공개 접근자 `volume_of` 1개 추가라 코드 비경쟁 — README/CHANGELOG/ROADMAP/ODYSSEY_PLAN append 충돌만 양측 보존으로 해소.
+- 검증: 신규 federation 단위 **123건 PASS**(trust 30 + audit 29 + hybrid_clock 34 + mesh 30), 인접 federation 회귀(discovery·handover·conflict·notam·split_brain·operational_intent) **104건 PASS** = 합계 **227건 GREEN**. 본 컨테이너는 최소 의존성(pytest·numpy)만 설치 → 나머지 수트는 simpy·scipy·hypothesis 등 미설치로 미수집(환경 의존, CI 전체 수집). PR #331·#332·#333·#334 는 본 통합으로 superseded.
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Federation Operations 라인을 Phase 428·429·430·431·432 완료 + 잔여 `Phase 426-427·433-440` 으로 정리.
+
+### 추가 (feat) — 일일 점검 2026-06-15 (11차): ODYSSEY Phase 431 하이브리드 논리 시계(HLC) + Phase 428·429 통합
+- **Phase 431** — `simulation/federation_hybrid_clock.py` (신규) 하이브리드 논리 시계(HLC, Kulkarni et al. 2014). 3+ 인스턴스 메시 연합에서 인스턴스마다 벽시계가 어긋나도 물리 시계 동기화 없이 연합 결정(디스커버리·핸드오버·감사)의 **전역 인과 순서**를 결정적으로 매긴다.
+  - `HLCTimestamp` (frozen, `order=True`) — `(wall_time, counter, instance_id)` 사전식 **전순서**. `causal_key`/`happened_before` 는 인스턴스 식별자를 제외한 `(wall, counter)` 로 **인과(부분 순서)** 를, `is_concurrent_with` 는 동률(서로 다른 인스턴스의 동시 이벤트) 동시성을 명시한다 — 전순서(정렬용)와 인과(causality)를 의미적으로 분리.
+  - `HybridLogicalClock.local_event(pt)` / `receive_event(pt, remote)` — 표준 HLC 갱신 규칙: 새 `wall` = (지역 고점·원격 wall·물리 시각) 최댓값, `counter` 는 그 최댓값의 출처별 결정(지역·원격 동률 → max(c)+1, 한쪽만 → 그쪽 +1, 물리 시각 신규 최대 → 0). happened-before → 발행 타임스탬프 사전식 엄격 증가를 보장.
+  - 물리 시계 역행을 견디고(논리 고점 유지·counter 증가), cold-start sentinel `-1` 로 갓 만든 시계의 첫 타임스탬프 counter 를 0으로 정규화. 무작위성·시스템 시계 직접 읽기 0 → 같은 이벤트 순서는 항상 같은 타임스탬프 열(재현·독립 검증). 단위 **34건 PASS**.
+- code-reviewer 어드바이저 1회 반영: ① (CRITICAL) fresh 시계 `_wall=0` 이 유효 `t=0` 과 init sentinel 을 혼동해 첫 이벤트가 `counter=1` 이 되던 모호성을 `_wall=-1` sentinel + `current()` 클램프로 해소(첫 타임스탬프 항상 counter 0), ② (HIGH) `happened_before` 가 부분 순서임을 docstring 에 명시 + `is_concurrent_with` 추가해 "not happened_before = 역방향" 오용 차단, ③ (MEDIUM) cold-start receive 경로 테스트 2건 보강(29→34). MEDIUM(private 속성 외부 변형=인접 stateful dataclass 공통 패턴)·LOW 는 컨벤션 일관성·YAGNI 로 보류.
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Federation Operations 라인을 `Phase 431` 완료 + 잔여 `Phase 426-427·432-440` 으로 갱신. 인접 federation 회귀(trust·audit·handover·conflict·notam·split_brain·discovery·operational_intent + hybrid_clock) **197건 PASS**, 전체 수집 **4,942건** 수집 오류 0.
+
+### 추가 (feat) — 일일 점검 2026-06-15 (9차): ODYSSEY Phase 428 인스턴스 간 신뢰 모델
+- **Phase 428** — `simulation/federation_trust.py` 연합 신뢰 모델. Phase 608 `BayesianReputation` 의 Beta-Bernoulli 켤레 사전분포를 인스턴스(USS) 레벨로 재사용해, 한 인스턴스가 상대 인스턴스의 협조 행위 이행 여부를 누적 관찰한 평판을 정량화한다.
+  - `InstanceTrust` frozen dataclass 가 (관찰자→대상) **방향성** Beta(α,β) 믿음을 보유. `updated(success)` 는 원본을 변형하지 않고 α(성공)/β(실패)를 증가시킨 새 인스턴스를 반환(불변). `trust_score` = 사후 평균 `α/(α+β)`, `uncertainty` = Beta 분포 표준편차(관찰 누적 시 0 수렴).
+  - `FederationTrustModel.observe(observer, target, success, kind)` 가 핸드오버(Phase 423)·충돌 협상(Phase 424)·NOTAM 전파(Phase 425) 협조 이벤트를 관찰해 신뢰를 갱신하고 결과 상태를 담은 `TrustEvent` 를 감사 로그에 기록. 신뢰는 비대칭(A→B ≠ B→A)이며 인스턴스는 자기 자신을 평가할 수 없다.
+  - `is_trusted` 는 임계값(기본 0.5)과 **최소 관찰 게이트**(기본 5, Phase 608 `detect_malicious` 와 동일한 증거 요구)를 함께 통과해야 신뢰를 단정 — 사전분포만으로 성급히 신뢰/불신하지 않는다. `untrusted` 는 충분히 관찰된 저신뢰 쌍을 결정적 정렬 순서로 반환.
+  - 무작위성 0(실제 연합 이벤트에서 관찰, 시뮬레이션 아님) → 같은 관찰 순서는 항상 같은 신뢰 상태(재현·감사 가능). 사전분포 α·β 양수 검증, 빈 식별자·자기 평가 거부. 단위 **30건 PASS**.
+- code-reviewer 어드바이저 1회 반영(HIGH 3건): ① `_validate_pair` 가 식별자를 strip 후 키로 사용 — `"uss-a"` vs `"uss-a "` 가 별개 신뢰 슬롯으로 조용히 분기되는 것 방지, ② `InstanceTrust.__post_init__` 불변식 검증(α·β 양수·observations 비음수·observer≠target) 추가 — 잘못 구성된 믿음이 최소 관찰 게이트를 왜곡하지 못하게 함, ③ 모듈 docstring 의 불변성 주장을 "믿음·감사 항목은 불변, 모델 자체는 상태형"으로 범위 명확화. 반영 후 보강 테스트 7건 추가(공백 정규화·`__post_init__` 거부·다중 쌍 결정적 재현+로그 순서·custom prior 게이트·custom threshold) 포함 30건 재검증 GREEN. MEDIUM(kind 허용목록·np/math sqrt)·LOW(timestamp)는 federation_* 공통 패턴·YAGNI·결정성 원칙상 보류.
+- ROADMAP Federation Operations 라인을 `Phase 428` 완료 + 잔여 `Phase 426-427·431-440` 으로 분해 갱신. `docs/SIMULATOR_ODYSSEY_PLAN.md` Phase 428 항목 ✅ 표기.
+
+### 추가 (feat) — 일일 점검 2026-06-15 (10차): ODYSSEY Phase 429 연합 감사 로그
+- **`simulation/federation_audit.py`** (신규) — 인스턴스 경계를 넘는 **변조 탐지(tamper-evident) 연합 감사 원장**. `FederationAuditLog` 은 append-only SHA-256 해시 체인으로, 각 항목(`AuditEntry`, frozen)이 직전 다이제스트를 재료에 포함해 중간 항목의 변조·삭제가 이후 모든 다이제스트를 깨뜨린다 → `verify()` 가 검출. 다이제스트 재료는 **길이 접두(length-prefixed) 직렬화**라 어떤 필드값이 구분자를 포함해도 서로 다른 필드 조합이 같은 재료를 만들 수 없어(주입·충돌 구조적 차단). 인스턴스별 단조 논리시계 강제, 인스턴스/이벤트 종류 쿼리.
+- 두 인스턴스 원장은 결정적 **CRDT 류 `merge`** — 내용 키 `(logical_clock, instance_id, event_type, detail)` 사전식 전순서로 중복 제거 후 재-체인. **교환·결합·흡수 멱등**이라 어느 순서로 몇 번을 합쳐도 같은 head 다이제스트(재현·독립 검증). 분기(fork)된 같은 인스턴스 항목도 보존하며, 병합 경로는 `record()` 의 단조 검증을 우회해 분기 히스토리를 깨지 않는다.
+- 단위 테스트 `tests/test_federation_audit.py` **29건 PASS** — 체인 연결·결정성·변조/삭제 탐지·구분자 위생·단조 시계·쿼리·병합 교환/결합/흡수멱등/중복제거/fork보존·record-after-merge. 인접 federation 회귀(handover·conflict·notam·split_brain·discovery·operational_intent) **122건 PASS**. 기존 `.py` 소스 무수정(순수 추가) → 회귀 무영향.
+- code-reviewer 어드바이저 1회 반영: ① (CRITICAL) 다이제스트 재료를 길이 접두 직렬화로 전환해 `prev_digest` 포함 모든 필드의 구분자 주입·충돌을 구조적으로 차단, ② (HIGH) CRDT 흡수 멱등(`a.merge(b).merge(b)==a.merge(b)`)·`record`-after-`merge` 테스트 2건 보강(27→29), ③ 병합 원장의 비단조 분기 보존 의미를 `record`/`merge` docstring 에 명시. "frozen 으로 전환" HIGH 1건은 인접 `SafeDescentPolicy`(가변 `@dataclass` 누적자)와 동일 패턴이라 컨벤션 일관성 위해 보류. MEDIUM(내용 키 dedup=의도된 CRDT 의미)·LOW(동일 클래스 private 접근=관용)도 보류.
+- ROADMAP Federation Operations 라인을 `Phase 429` 완료 반영. Phase 428(신뢰 모델)과 함께 통합되어 잔여 `Phase 426-427·431-440` 으로 갱신. 서로 다른 신규 파일이라 비경쟁.
+### 추가 (feat) — 일일 점검 2026-06-15: ODYSSEY Phase 432 메시 연합 토폴로지 + 멀티홉 전파
+- 작업 상황 점검 결과 ODYSSEY Federation Operations(421-440) 중 머지 완료는 421-425·430, 열린 draft PR은 428(신뢰)·429(감사 로그)·431(HLC). **머지된 모듈에만 의존하고 열린 PR과 비경쟁(신규 파일만 추가)인 진짜 공백 Phase 432**를 본 브랜치에서 신규 구현.
+- **Phase 432** — `simulation/federation_mesh.py` (신규). Phase 421 디스커버리 등록 상태로 인스턴스 간 **공역 경계 인접 그래프**를 결정적으로 구성하고 그 위에서 멀티홉 전파를 계산한다.
+  - **경계 인접 정의**: 타일형(비중첩) 공역을 위해 수평(x·y)은 `border_tolerance_m`(기본 1.0 m) 이내 접촉을 이웃으로 인식, 수직(z)·시간(t)은 엄격 4D 교차로 분리. Phase 425의 `Volume4D.overlaps`(엄격 교차)는 맞닿은 타일([0,1000)·[1000,2000))을 비이웃으로 보므로 메시 토폴로지용 인접을 별도 정의.
+  - **그래프 질의**: `neighbors`·`adjacency`(대칭·정렬)·`components`(연결 요소)·`is_connected`·`shortest_path`(동률은 정렬 이웃 우선 BFS) — 모두 정렬 출력으로 재현성 보장.
+  - **멀티홉 전파**: Phase 425의 1홉 직접 NOTAM 전파를 메시 전역으로 일반화한 `propagate`(origin→홉 수, TTL 한정 플러딩)와 `relay_table`(목적지→다음 홉 중계 포워딩 테이블). 중간 인스턴스를 경유해야만 닿는 먼 인스턴스 전파를 결정적으로 산정.
+  - 디스커버리에 공개 접근자 `volume_of(instance_id)` 1개만 추가(타일 경계 기하 직접 산정용, 기존 동작 무영향).
+- **검증**: 새 컨테이너에 core deps(numpy·simpy·pandas·scipy·pyyaml·hypothesis) + pytest 설치 후 `tests/test_federation_mesh.py` **25건** 신규 + 인접 federation 회귀(discovery 14·handover 16·notam·conflict·split_brain·operational_intent 등) 합산 **129건 PASS** 로컬 검증. 외부 네트워크·랜덤 0(순수 결정적).
+
 ### 통합 (chore) — 일일 점검 2026-06-15 (8차): ODYSSEY Federation Operations 3건 통합 (Phase 424·425·430)
 - 열린 PR 21건(피처 8 + dependabot 13) triage 후, **기존 `.py` 소스 무수정·신규 파일만 추가하는 비경쟁 Phase PR 3건**을 본 작업 브랜치에 통합. 신규 컨테이너에 pytest+core deps 설치 후 신규 모듈 50건 + 인접 federation 회귀(handover 16·discovery 14·operational_intent 24) **104건 PASS** 로컬 검증. 전체 4,713 테스트 수집(hypothesis 미설치 환경 한정 4건 collection 에러는 본 변경 무관·기존 이슈).
   - **#327 Phase 424** — `simulation/federation_conflict_resolution.py` 연합 충돌 해소. Phase 422 `intents_conflict` 로 충돌 탐지 후 Phase 602 `VickreyAuction`(2위 가격제 봉인입찰) 재사용해 우선순위 협상. 낮은 priority 번호=높은 입찰가 결정적 사상, 동률은 `hashlib.sha256(intent_id)` 안정 해시로 분리(Python `hash()` 솔트 비결정성 회피). `apply_resolutions` 는 패자만 CONTINGENT 로 전환한 새 튜플 반환(원본 불변), 청산가는 Vickrey 차순위로 감사 기록 (11건).

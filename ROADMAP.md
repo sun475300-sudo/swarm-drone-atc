@@ -270,6 +270,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 304** 🏭 KC 전파인증 체크리스트 — `docs/certification/KC_RADIO_CERTIFICATION.md` (2026-06-12)
 - [x] **Phase 306** 🏭 RTM 5계층 커버리지 — `docs/certification/RTM_5LAYER_COVERAGE.md` 21건 추적 (2026-06-12)
 - [x] **Phase 309** 🏭 조종자 자격증명 매핑 — `docs/certification/PILOT_LICENSE_MAPPING.md` (2026-06-12)
+- [x] **Phase 308** 🏭 배상책임보험 요율 산정 API — `simulation/insurance_rate_quote.py` (Phase 67 mock 격상 — 항공사업법 §70 의무보험 스펙, MTOW·운용·ILF·NCB·경력·야간/BVLOS 결정적 산정, 33건 PASS) (2026-06-15)
 - [ ] **Phase 301·303-320** 🏭 Certification & Compliance — 항공안전법 매트릭스·DO-178C 갭 분석·CSAP 자동화
 - [x] **Phase 322** 🌍 `.sdacs-scenario` 스키마 + 검증기 — `simulation/scenario_schema.py` + `docs/schemas/sdacs-scenario.schema.json`, 20건 PASS (2026-06-15)
 - [ ] **Phase 321-340** 🌍 Ecosystem & Open Source — 플러그인 SDK·`@sdacs/core` npm·`sdacs-sim` PyPI·v2.0 API 안정화

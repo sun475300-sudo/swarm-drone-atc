@@ -33,6 +33,16 @@
 - **`docs/certification/PILOT_LICENSE_MAPPING.md`** §6 추가 — 기존 문서-only 매핑(2026-06-12)을 실행 모듈로 격상, MTOW 기준 통일 명시.
 - code-reviewer 어드바이저 1회 반영(150 kg 경계 테스트·exempt 불변 테스트 보강·`completed_sim_modes` 기본값 단순화·경계 "초과" 주석 통일). 시뮬레이터 HTML 무변경.
 
+### 추가 (feat) — ODYSSEY Phase 423 지역 간 관제권 핸드오버 (2026-06-15)
+- **`simulation/federation_handover.py`** (신규) — 드론이 인스턴스(USS) 공역 경계를 통과할 때 관제권을 결정적으로 이양하는 in-process 모델. Phase 421 디스커버리의 점 커버리지(`covering`)를 1차 입력으로 사용.
+  - `HandoverCoordinator` — 위치 표본마다 **RETAINED**(현 관제권 유지)·**ACQUIRED**(최초 획득)·**HANDOVER**(인스턴스 간 이양)·**CONTINGENT**(커버리지 상실) 결정. 외부 네트워크·랜덤 0, 동일 입력 시퀀스 → 동일 로그(재현성).
+  - 중첩(overlap) 구역에서는 현 관제권을 유지하는 **이력현상(hysteresis)** 으로 경계 진동(flapping) 방지. 후보 다수 시 id 사전순 최소로 결정적 선택(우선순위 협상은 Phase 424 범위).
+  - 최초 획득(ACQUIRED)을 HANDOVER 와 구분 기록 — `from_instance=None` 인 위장 이양을 배제해 **Phase 429 불변 감사 로그** 무결성 확보.
+  - `HandoverEvent` frozen dataclass(seq·drone_id·point·decision·from/to·candidates) 순서 보존 감사 로그.
+- **`simulation/federation_discovery.py`** — `Volume4D.contains()`(반열린 구간 [min,max) 4D 점 포함)·`FederationDiscoveryService.covering()`(점을 포함하는 인스턴스 정렬 반환) 2개 프리미티브 추가. 경계 공유 볼륨의 중복 귀속 없음(핸드오버 결정성).
+- **`tests/test_federation_handover.py`** (신규) — 단위 **16건** (RETAINED/ACQUIRED/HANDOVER/CONTINGENT·이력현상·반열린 경계·결정성·감사 로그 순서·검증·점 커버리지).
+- code-reviewer 어드바이저 1회 반영(ACQUIRED 상태 분리로 감사 로그 의미 명확화·`covering` 내부 셋 스냅샷 순회·미배정 드론 CONTINGENT 대칭 테스트 추가). `ROADMAP.md` Phase 423 ✅ + `docs/SIMULATOR_ODYSSEY_PLAN.md` 반영. 시뮬레이터 HTML 무변경.
+
 ### 추가 (feat) — ODYSSEY Phase 422 운영 의도(Operational Intent) 4D 볼륨 교환 포맷 (2026-06-14)
 - **`simulation/operational_intent.py`** (신규) — 연합 인스턴스 간 ASTM F3548-21 정렬 운영 의도 교환 포맷.
   - `Volume4D` frozen dataclass — WGS84 위·경도 외곽선 + 고도 밴드 + 시간 창, 경계 검증(꼭짓점≥3·위경도 범위·고도/시간 역전).

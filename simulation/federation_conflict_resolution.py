@@ -91,6 +91,10 @@ class FederationConflictResolver:
         bid_a = self.priority_bid(a)
         bid_b = self.priority_bid(b)
         outcome = self._auction.run_auction([(a.intent_id, bid_a), (b.intent_id, bid_b)])
+        # run_auction 은 입찰 0건일 때만 None — 여기선 항상 2건이라 발생 불가지만,
+        # 선언된 반환 타입(AuctionResult | None)에 대한 경계 가드를 명시한다.
+        if outcome is None:
+            raise RuntimeError(f"경매 결과 없음 — 의도 {a.intent_id} / {b.intent_id}")
         winner = outcome.winner
         loser = b.intent_id if winner == a.intent_id else a.intent_id
         resolution = ConflictResolution(

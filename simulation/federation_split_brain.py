@@ -78,8 +78,12 @@ class PartitionSnapshot:
     def majority_component(self) -> frozenset[str]:
         """과반 인스턴스를 포함하는 연결 요소 (없으면 빈 frozenset)."""
         n = len(self.instances)
+        seen: set[frozenset[str]] = set()
         for instance in self.instances:
             component = self._component_of(instance)
+            if component in seen:
+                continue  # 같은 요소를 BFS로 재계산하지 않는다.
+            seen.add(component)
             if len(component) * 2 > n:
                 return component
         return frozenset()

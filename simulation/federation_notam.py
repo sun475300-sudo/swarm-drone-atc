@@ -139,8 +139,14 @@ class FederationNotamBroadcaster:
         )
 
     def _withdraw(self, target: str, notam_id: str) -> None:
-        """이웃 인박스에서 NOTAM을 제거하고, 비면 인박스 자체도 정리한다."""
-        inbox = self._inboxes[target]
+        """이웃 인박스에서 NOTAM을 제거하고, 비면 인박스 자체도 정리한다.
+
+        호출부는 항상 `_holders` 로 보유를 확인한 뒤 호출하지만, 멱등 방어를 위해
+        이미 정리된 인박스/항목이면 조용히 무시한다.
+        """
+        inbox = self._inboxes.get(target)
+        if inbox is None or notam_id not in inbox:
+            return
         del inbox[notam_id]
         if not inbox:
             del self._inboxes[target]

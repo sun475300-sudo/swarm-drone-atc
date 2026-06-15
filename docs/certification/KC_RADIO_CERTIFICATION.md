@@ -1,7 +1,12 @@
 # 📡 KC 전파인증 체크리스트 (GENESIS Phase 304)
 
-*Created: 2026-06-12 · 근거: 전파법 §58의2, 방송통신기자재등의 적합성평가에 관한 고시(과기정통부)*
+*Created: 2026-06-12 · Updated: 2026-06-14 (실행 모듈 추가) · 근거: 전파법 §58의2, 방송통신기자재등의 적합성평가에 관한 고시(과기정통부)*
 *면책: 본 문서는 SDACS가 사용·언급하는 통신 모듈별 인증 요건 매핑이며, 실 운영자는 최신 고시·NRRA 공지를 확인해야 한다.*
+
+> **실행 모듈**: 본 체크리스트의 분류 규칙은 [`simulation/kc_certification.py`](../../simulation/kc_certification.py)에
+> 결정적으로 구현되어 있다(테스트 [`tests/test_kc_certification.py`](../../tests/test_kc_certification.py) — **23건 PASS**).
+> 모듈은 주파수·송신여부·공중선전력·종류로부터 적합인증/적합등록을 분류하고 유형별 제출서류를 생성한다.
+> §1 표는 SDACS가 다루는 모듈의 큐레이션 목록이며, 실행 모듈은 대역·전력 기반으로 일반화한다.
 
 ---
 
@@ -12,10 +17,13 @@
 | M1 | Wi-Fi (2.4/5 GHz) | 시뮬레이터 LAN·ws_bridge | 적합등록 |
 | M2 | Bluetooth Low Energy (2.4 GHz) | Drone↔Operator 보조 | 적합등록 |
 | M3 | LTE / 5G NR (LPWA) | 광역 텔레메트리 (Phase 35 MEC) | 사업자 단말 식별 |
-| M4 | 920 MHz ISM (LoRa) | 백업 텔레메트리 | 적합인증 |
+| M4 | 920 MHz ISM (LoRa) | 백업 텔레메트리 | 적합등록¹ |
 | M5 | GPS (1.575 GHz, 수신만) | 위치 측정 | 적합등록 |
-| M6 | RTK GPS 송신 (Base station, 920 MHz) | 정밀 위치 (Phase 22) | 적합인증 |
+| M6 | RTK GPS 송신 (Base station, 920 MHz) | 정밀 위치 (Phase 22) | 적합등록¹ |
 | M7 | Remote ID 송출 (Wi-Fi/BT) | ASTM F3411 v2.0 (P693) | M1·M2와 동일 |
+
+> ¹ 917–923.5 MHz는 한국 비면허 특정소출력(RFID/USN) 대역이므로 공중선전력 한도 이내면
+> **적합등록** 대상이다(한도 초과·면허대역 변형은 적합인증으로 격상 — 실행 모듈이 자동 판정).
 
 ## 2. 인증 흐름 (drone 1대 양산 기준)
 
@@ -43,7 +51,7 @@
 | M1 Wi-Fi | `ws_bridge.py` (운영자 LAN) | 표준 Wi-Fi 칩셋 사용 가정 → 적합등록 충족 |
 | M2 BLE | (현재 미사용) | Remote ID BT 송출 시 M1·M2 둘 다 필요 |
 | M3 LTE | Phase 35 MEC mock | 격상 시 SKT/KT/LGU+ 단말 식별(IMEI) 등록 |
-| M4 LoRa | (현재 미사용, 향후 LPWA 옵션) | 920 MHz ISM 대역 — 적합인증 필요 |
+| M4 LoRa | (현재 미사용, 향후 LPWA 옵션) | 917–923.5 MHz 비면허 대역 — 적합등록 (한도 초과 시 적합인증) |
 | M5 GPS Rx | Phase 22 HITL 시뮬 | 수신만 → 적합등록 |
 | M6 RTK Tx | RTK base station (사용자 HW, P694) | 사용자 환경 — 본 문서 범위 밖 |
 | M7 Remote ID | `src/utm/remote_id.py` (P693) | M1·M2와 동일 (송출 방식 선택) |

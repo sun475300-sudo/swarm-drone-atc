@@ -34,7 +34,7 @@
 - **Phase 301** 항공안전법·드론활용촉진법 적합성 매트릭스 — 조항 ↔ SDACS 기능 매핑 문서
 - **Phase 302** ✅ SORA 자동 계산기 — `_sdacs.soraAssess()` (JARUS 2.0 iGRC/완화/ARC→SAIL 결정적 구현, production 등급, E2E 6건) (2026-06-12)
 - **Phase 303** ✅ 비행계획 신고 양식 자동 생성 — `simulation/flight_plan_filing.py` (Drone One-Stop 비행승인 신청서 결정적 생성·승인필요 판정·JSON/텍스트 export, 18건 PASS) (2026-06-14)
-- **Phase 304** KC 전파인증 요건 체크리스트 (통신 모듈별)
+- **Phase 304** ✅ KC 전파인증 요건 체크리스트 — `simulation/kc_certification.py` (전파법 §58-2 적합성평가 결정적 분류: 셀룰러→적합인증·비면허 특정소출력→적합등록·면허대역/한도초과→적합인증, 모듈별 집계 + 유형별 제출서류 + JSON/텍스트 export, 23건 PASS) (2026-06-14)
 - **Phase 305** DO-178C/ED-12C 소프트웨어 수명주기 갭 분석 — DAL-D 기준 추적성
 - **Phase 306** 요구사항 추적 매트릭스(RTM) 자동 생성 격상 — `scripts/generate_rtm.py` → 5계층 안전망 커버리지
 - **Phase 307** ✅ 사고 보고 양식 (항철위 표준) 자동 작성 — `simulation/accident_report.py` (ARAIB 사고/준사고/안전장애 결정적 분류·시뮬 로그 변환·안전권고 자동 생성·JSON/텍스트 export, 19건 PASS) (2026-06-14)

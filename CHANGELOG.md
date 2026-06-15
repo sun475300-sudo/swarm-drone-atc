@@ -12,7 +12,14 @@
   - `is_trusted` 는 임계값(기본 0.5)과 **최소 관찰 게이트**(기본 5, Phase 608 `detect_malicious` 와 동일한 증거 요구)를 함께 통과해야 신뢰를 단정 — 사전분포만으로 성급히 신뢰/불신하지 않는다. `untrusted` 는 충분히 관찰된 저신뢰 쌍을 결정적 정렬 순서로 반환.
   - 무작위성 0(실제 연합 이벤트에서 관찰, 시뮬레이션 아님) → 같은 관찰 순서는 항상 같은 신뢰 상태(재현·감사 가능). 사전분포 α·β 양수 검증, 빈 식별자·자기 평가 거부. 단위 **30건 PASS**.
 - code-reviewer 어드바이저 1회 반영(HIGH 3건): ① `_validate_pair` 가 식별자를 strip 후 키로 사용 — `"uss-a"` vs `"uss-a "` 가 별개 신뢰 슬롯으로 조용히 분기되는 것 방지, ② `InstanceTrust.__post_init__` 불변식 검증(α·β 양수·observations 비음수·observer≠target) 추가 — 잘못 구성된 믿음이 최소 관찰 게이트를 왜곡하지 못하게 함, ③ 모듈 docstring 의 불변성 주장을 "믿음·감사 항목은 불변, 모델 자체는 상태형"으로 범위 명확화. 반영 후 보강 테스트 7건 추가(공백 정규화·`__post_init__` 거부·다중 쌍 결정적 재현+로그 순서·custom prior 게이트·custom threshold) 포함 30건 재검증 GREEN. MEDIUM(kind 허용목록·np/math sqrt)·LOW(timestamp)는 federation_* 공통 패턴·YAGNI·결정성 원칙상 보류.
-- ROADMAP Federation Operations 라인을 `Phase 428` 완료 + 잔여 `Phase 426-427·429·431-440` 으로 분해 갱신. `docs/SIMULATOR_ODYSSEY_PLAN.md` Phase 428 항목 ✅ 표기.
+- ROADMAP Federation Operations 라인을 `Phase 428` 완료 + 잔여 `Phase 426-427·431-440` 으로 분해 갱신. `docs/SIMULATOR_ODYSSEY_PLAN.md` Phase 428 항목 ✅ 표기.
+
+### 추가 (feat) — 일일 점검 2026-06-15 (10차): ODYSSEY Phase 429 연합 감사 로그
+- **`simulation/federation_audit.py`** (신규) — 인스턴스 경계를 넘는 **변조 탐지(tamper-evident) 연합 감사 원장**. `FederationAuditLog` 은 append-only SHA-256 해시 체인으로, 각 항목(`AuditEntry`, frozen)이 직전 다이제스트를 재료에 포함해 중간 항목의 변조·삭제가 이후 모든 다이제스트를 깨뜨린다 → `verify()` 가 검출. 다이제스트 재료는 **길이 접두(length-prefixed) 직렬화**라 어떤 필드값이 구분자를 포함해도 서로 다른 필드 조합이 같은 재료를 만들 수 없어(주입·충돌 구조적 차단). 인스턴스별 단조 논리시계 강제, 인스턴스/이벤트 종류 쿼리.
+- 두 인스턴스 원장은 결정적 **CRDT 류 `merge`** — 내용 키 `(logical_clock, instance_id, event_type, detail)` 사전식 전순서로 중복 제거 후 재-체인. **교환·결합·흡수 멱등**이라 어느 순서로 몇 번을 합쳐도 같은 head 다이제스트(재현·독립 검증). 분기(fork)된 같은 인스턴스 항목도 보존하며, 병합 경로는 `record()` 의 단조 검증을 우회해 분기 히스토리를 깨지 않는다.
+- 단위 테스트 `tests/test_federation_audit.py` **29건 PASS** — 체인 연결·결정성·변조/삭제 탐지·구분자 위생·단조 시계·쿼리·병합 교환/결합/흡수멱등/중복제거/fork보존·record-after-merge. 인접 federation 회귀(handover·conflict·notam·split_brain·discovery·operational_intent) **122건 PASS**. 기존 `.py` 소스 무수정(순수 추가) → 회귀 무영향.
+- code-reviewer 어드바이저 1회 반영: ① (CRITICAL) 다이제스트 재료를 길이 접두 직렬화로 전환해 `prev_digest` 포함 모든 필드의 구분자 주입·충돌을 구조적으로 차단, ② (HIGH) CRDT 흡수 멱등(`a.merge(b).merge(b)==a.merge(b)`)·`record`-after-`merge` 테스트 2건 보강(27→29), ③ 병합 원장의 비단조 분기 보존 의미를 `record`/`merge` docstring 에 명시. "frozen 으로 전환" HIGH 1건은 인접 `SafeDescentPolicy`(가변 `@dataclass` 누적자)와 동일 패턴이라 컨벤션 일관성 위해 보류. MEDIUM(내용 키 dedup=의도된 CRDT 의미)·LOW(동일 클래스 private 접근=관용)도 보류.
+- ROADMAP Federation Operations 라인을 `Phase 429` 완료 반영. Phase 428(신뢰 모델)과 함께 통합되어 잔여 `Phase 426-427·431-440` 으로 갱신. 서로 다른 신규 파일이라 비경쟁.
 
 ### 통합 (chore) — 일일 점검 2026-06-15 (8차): ODYSSEY Federation Operations 3건 통합 (Phase 424·425·430)
 - 열린 PR 21건(피처 8 + dependabot 13) triage 후, **기존 `.py` 소스 무수정·신규 파일만 추가하는 비경쟁 Phase PR 3건**을 본 작업 브랜치에 통합. 신규 컨테이너에 pytest+core deps 설치 후 신규 모듈 50건 + 인접 federation 회귀(handover 16·discovery 14·operational_intent 24) **104건 PASS** 로컬 검증. 전체 4,713 테스트 수집(hypothesis 미설치 환경 한정 4건 collection 에러는 본 변경 무관·기존 이슈).

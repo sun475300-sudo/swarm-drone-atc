@@ -51,7 +51,7 @@
 - **Phase 426** 2-인스턴스 연합 E2E (Playwright 다중 페이지 + ws 브리지 2개)
 - **Phase 427** 연합 시각화 — 인접 공역 고스트 렌더링
 - **Phase 428** ✅ 신뢰 모델 — 인스턴스 간 Bayesian 평판 (2026-06-15, `simulation/federation_trust.py` — Phase 608 `BayesianReputation` 의 Beta-Bernoulli 켤레 사전분포를 인스턴스 레벨로 재사용. `InstanceTrust` frozen dataclass 가 (관찰자→대상) 방향성 Beta(α,β) 믿음을 보유하고 `updated` 는 원본 불변 갱신본 반환. 핸드오버(Phase 423)·충돌 협상(Phase 424)·NOTAM 전파(Phase 425) 협조 이벤트를 `observe` 로 관찰해 성공→α·실패→β 누적. 사후 평균 `trust_score` + Beta 표준편차 `uncertainty`, `is_trusted` 는 임계값·최소 관찰(Phase 608 과 동일한 증거 게이트) 통과 요구, `untrusted` 는 저신뢰 쌍 결정적 정렬 반환. 무작위성 0·방향 비대칭·불변 감사 로그. code-reviewer 어드바이저 HIGH 3건 반영(식별자 strip 정규화로 공백 중복 슬롯 방지·`InstanceTrust.__post_init__` 불변식 검증·모델 상태성 docstring 명확화). 단위 30건)
-- **Phase 429** 연합 감사 로그 — 관제권 이양 불변 기록
+- **Phase 429** ✅ 연합 감사 로그 — 인스턴스 경계 넘는 변조 탐지 원장 (2026-06-15, `simulation/federation_audit.py` — `FederationAuditLog` append-only SHA-256 해시 체인. 각 항목이 직전 다이제스트를 재료에 포함(길이 접두 직렬화로 구분자 주입·다이제스트 충돌 구조적 차단)해 중간 변조·삭제를 `verify()` 가 검출. 인스턴스별 단조 논리시계, 인스턴스/이벤트 쿼리. 두 인스턴스 원장은 내용 키 `(logical_clock, instance_id, event_type, detail)` 사전식 전순서로 중복 제거 후 재-체인하는 결정적 CRDT 류 `merge` — 교환·결합·흡수 멱등이라 어느 순서로 합쳐도 같은 head 다이제스트. 분기(fork)된 같은 인스턴스 항목도 보존. 단위 29건)
 - **Phase 430** ✅ 분할 뇌(split-brain) 시나리오 — 연합 단절 시 안전 강하 정책 (2026-06-15, `simulation/federation_split_brain.py` — `PartitionSnapshot` 양방향 링크를 연결 요소로 분해해 과반(majority) 분파 판정 + `SafeDescentPolicy` 4단계 안전 사다리 NOMINAL/HOLD/DESCEND/LAND. 고립·커버리지 상실 지속 시 단계 상승, 정상 복귀 시 이력현상 초기화, 불변 감사 로그. Phase 423이 미룬 안전 강하 책임 구체화. 단위 20건)
 - **Phase 431-440** 3+ 인스턴스 메시 연합 + 글로벌 시계(hybrid logical clock)
 

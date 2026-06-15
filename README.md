@@ -960,6 +960,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-15 21:16 | `04e1e1b` | feat(odyssey): Phase 425 연합 NOTAM 전파 — 동적 NFZ 인접 인스턴스 결정적 브로드캐스트 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_notam.py, tests/test_federation_notam.py |
 | 2026-06-15 18:24 | `d61c96b` | fix(ci): maturity 배지 실측 counts(prod 93) 재생성 — #281 stale 배지 드리프트 해소 | docs/badges/maturity.svg |
 | 2026-06-15 18:18 | `9e6808f` | Merge remote-tracking branch 'origin/claude/fervent-babbage-oaig71' into claude/fervent-babbage-xcoksz | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_GENESIS_PLAN.md, src/applications/mokpo_harbor.py, tests/track_e/test_mokpo_harbor.py |
 | 2026-06-15 15:16 | `cdbbc92` | docs: 일일 점검 2026-06-15 (5차) — 신규 PR 3건 통합 검증 + 중복 PR triage 변경 이력 | CHANGELOG.md, README.md |

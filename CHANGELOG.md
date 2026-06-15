@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — 일일 점검 2026-06-15 (9차): ODYSSEY Phase 428 인스턴스 간 신뢰 모델
+- **Phase 428** — `simulation/federation_trust.py` 연합 신뢰 모델. Phase 608 `BayesianReputation` 의 Beta-Bernoulli 켤레 사전분포를 인스턴스(USS) 레벨로 재사용해, 한 인스턴스가 상대 인스턴스의 협조 행위 이행 여부를 누적 관찰한 평판을 정량화한다.
+  - `InstanceTrust` frozen dataclass 가 (관찰자→대상) **방향성** Beta(α,β) 믿음을 보유. `updated(success)` 는 원본을 변형하지 않고 α(성공)/β(실패)를 증가시킨 새 인스턴스를 반환(불변). `trust_score` = 사후 평균 `α/(α+β)`, `uncertainty` = Beta 분포 표준편차(관찰 누적 시 0 수렴).
+  - `FederationTrustModel.observe(observer, target, success, kind)` 가 핸드오버(Phase 423)·충돌 협상(Phase 424)·NOTAM 전파(Phase 425) 협조 이벤트를 관찰해 신뢰를 갱신하고 결과 상태를 담은 `TrustEvent` 를 감사 로그에 기록. 신뢰는 비대칭(A→B ≠ B→A)이며 인스턴스는 자기 자신을 평가할 수 없다.
+  - `is_trusted` 는 임계값(기본 0.5)과 **최소 관찰 게이트**(기본 5, Phase 608 `detect_malicious` 와 동일한 증거 요구)를 함께 통과해야 신뢰를 단정 — 사전분포만으로 성급히 신뢰/불신하지 않는다. `untrusted` 는 충분히 관찰된 저신뢰 쌍을 결정적 정렬 순서로 반환.
+  - 무작위성 0(실제 연합 이벤트에서 관찰, 시뮬레이션 아님) → 같은 관찰 순서는 항상 같은 신뢰 상태(재현·감사 가능). 사전분포 α·β 양수 검증, 빈 식별자·자기 평가 거부. 단위 **30건 PASS**.
+- code-reviewer 어드바이저 1회 반영(HIGH 3건): ① `_validate_pair` 가 식별자를 strip 후 키로 사용 — `"uss-a"` vs `"uss-a "` 가 별개 신뢰 슬롯으로 조용히 분기되는 것 방지, ② `InstanceTrust.__post_init__` 불변식 검증(α·β 양수·observations 비음수·observer≠target) 추가 — 잘못 구성된 믿음이 최소 관찰 게이트를 왜곡하지 못하게 함, ③ 모듈 docstring 의 불변성 주장을 "믿음·감사 항목은 불변, 모델 자체는 상태형"으로 범위 명확화. 반영 후 보강 테스트 7건 추가(공백 정규화·`__post_init__` 거부·다중 쌍 결정적 재현+로그 순서·custom prior 게이트·custom threshold) 포함 30건 재검증 GREEN. MEDIUM(kind 허용목록·np/math sqrt)·LOW(timestamp)는 federation_* 공통 패턴·YAGNI·결정성 원칙상 보류.
+- ROADMAP Federation Operations 라인을 `Phase 428` 완료 + 잔여 `Phase 426-427·429·431-440` 으로 분해 갱신. `docs/SIMULATOR_ODYSSEY_PLAN.md` Phase 428 항목 ✅ 표기.
+
 ### 통합 (chore) — 일일 점검 2026-06-15 (8차): ODYSSEY Federation Operations 3건 통합 (Phase 424·425·430)
 - 열린 PR 21건(피처 8 + dependabot 13) triage 후, **기존 `.py` 소스 무수정·신규 파일만 추가하는 비경쟁 Phase PR 3건**을 본 작업 브랜치에 통합. 신규 컨테이너에 pytest+core deps 설치 후 신규 모듈 50건 + 인접 federation 회귀(handover 16·discovery 14·operational_intent 24) **104건 PASS** 로컬 검증. 전체 4,713 테스트 수집(hypothesis 미설치 환경 한정 4건 collection 에러는 본 변경 무관·기존 이슈).
   - **#327 Phase 424** — `simulation/federation_conflict_resolution.py` 연합 충돌 해소. Phase 422 `intents_conflict` 로 충돌 탐지 후 Phase 602 `VickreyAuction`(2위 가격제 봉인입찰) 재사용해 우선순위 협상. 낮은 priority 번호=높은 입찰가 결정적 사상, 동률은 `hashlib.sha256(intent_id)` 안정 해시로 분리(Python `hash()` 솔트 비결정성 회피). `apply_resolutions` 는 패자만 CONTINGENT 로 전환한 새 튜플 반환(원본 불변), 청산가는 Vickrey 차순위로 감사 기록 (11건).

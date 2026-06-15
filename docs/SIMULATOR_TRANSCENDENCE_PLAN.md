@@ -37,8 +37,8 @@ TRANSCENDENCE는 이 중 **실측 가치가 있는 30~40개를 선별 격상**�
 - **Phase 206** ✅ Speculative API 격리 — `window._sdacs.experimental.*` 네임스페이스 (직접 호출 호환 유지, speculative 103종 전수 노출) (2026-06-12)
 - **Phase 207** Maturity Badge SVG 자동 생성 (production X / beta Y / mock Z)
 - **Phase 208** README Maturity 섹션 자동 갱신
-- **Phase 209** API Deprecation Policy 문서
-- **Phase 210** Semantic Versioning 적용 (API breaking change 추적)
+- **Phase 209** ✅ API Deprecation Policy 문서 — `docs/API_DEPRECATION_POLICY.md` (ACTIVE→DEPRECATED→REMOVED 3단계 + Registry) (2026-06-13)
+- **Phase 210** ✅ Semantic Versioning 적용 (API breaking change 추적) — 同 문서 §2 (MAJOR/MINOR/PATCH ↔ API 영향 + 호환성 불변식) (2026-06-13)
 - **Phase 211-220** 각 트랙별 production-grade 격상 (12 API → 30 API)
 
 ### Track 🔬 — Real Validation (Phase 221-240) · 실측 검증
@@ -49,7 +49,7 @@ TRANSCENDENCE는 이 중 **실측 가치가 있는 30~40개를 선별 격상**�
 - **Phase 223** CRDT 실 Yjs 통합 (Phase 16 mock → Yjs WebRTC P2P)
 - **Phase 224** 2-브라우저 협업 E2E (Playwright 다중 컨텍스트)
 - **Phase 225** MAVLink 실 파서 검증 (Phase 22 — PX4 SITL 연동 E2E)
-- **Phase 226** GPS→ENU 변환 정밀도 검증 (±0.5m 기준)
+- **Phase 226** ✅ GPS→ENU 변환 정밀도 검증 (±0.5m 기준) — `sync_engine.geodetic_to_enu()` WGS84 ECEF→ENU 엄밀해로 격상(기존 cos(lat) 미보정 평면 근사 폐기, 1km 153m→6cm 오차), 운용 범위 ±0.5m 회귀 22건 (2026-06-13)
 - **Phase 227** 풍속장 실 KMA 데이터 import (Phase 23 — 1km grid)
 - **Phase 228** 음향 전파 실측 보정 (Phase 26 — dB 측정 캘리브레이션)
 - **Phase 229** PQC 실 라이브러리 (Phase 31 — Kyber-768 WASM)

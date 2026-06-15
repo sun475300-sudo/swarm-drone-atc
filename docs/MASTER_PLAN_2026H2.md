@@ -46,7 +46,7 @@
 | Ⅱ-1 ✅ | Phase 203 Mock Detector — mock API 호출 시 console.warn + `mockCalls` 카운트 (2026-06-12) | E2E GREEN |
 | Ⅱ-2 ✅ | Phase 206 `experimental.*` 네임스페이스 — speculative 103종 격리 (직접 호출 호환) (2026-06-12) | E2E GREEN |
 | Ⅱ-3 | Phase 204-205 production 핵심 12종 + beta 회귀 강화 | 신규 회귀 30+건 |
-| Ⅱ-4 | Phase 209-210 Deprecation Policy + SemVer 문서 | docs 추가 |
+| Ⅱ-4 ✅ | Phase 209-210 Deprecation Policy + SemVer 문서 — `docs/API_DEPRECATION_POLICY.md` (2026-06-13) | docs 추가 |
 | Ⅱ-5 | mock → production 격상 1차 (WebGPU WGSL 실 컴파일·CRDT Yjs) | 실측 벤치 수치 |
 
 ### Track Ⅲ — 다중 사용자·서비스 실증 (TRANSCENDENCE 241-260) · ~2026-09

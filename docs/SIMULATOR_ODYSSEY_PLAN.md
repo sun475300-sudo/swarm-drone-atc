@@ -45,7 +45,7 @@
 
 - **Phase 421** ✅ 인스턴스 간 디스커버리 프로토콜 — ASTM F3548 DSS 유사 결정적 모델 (`simulation/federation_discovery.py`, 13건 PASS, 2026-06-14)
 - **Phase 422** ✅ 운영 의도(Operational Intent) 교환 포맷 — 4D 볼륨 직렬화 (2026-06-14, `simulation/operational_intent.py` — ASTM F3548-21 정렬 `Volume4D`/`OperationalIntent` frozen dataclass + 라운드트립 직렬화 + 보수적 4D 교차 판정, 단위 24건)
-- **Phase 423** 지역 간 핸드오버 — 드론이 인스턴스 경계 통과 시 관제권 이양
+- **Phase 423** ✅ 지역 간 핸드오버 — 드론이 인스턴스 경계 통과 시 관제권 이양 (2026-06-15, `simulation/federation_handover.py` — Phase 421 점 커버리지 기반 `HandoverCoordinator`. 위치 표본마다 RETAINED/ACQUIRED/HANDOVER/CONTINGENT 결정, 중첩 구역 이력현상(hysteresis), 반열린 경계 규약, 불변 감사 로그(Phase 429 기반). 단위 16건)
 - **Phase 424** 연합 충돌 해소 — 인스턴스 간 우선순위 협상 (Vickrey 경매 재사용)
 - **Phase 425** 연합 NOTAM 전파 — 동적 NFZ를 인접 인스턴스에 브로드캐스트
 - **Phase 426** 2-인스턴스 연합 E2E (Playwright 다중 페이지 + ws 브리지 2개)
@@ -65,7 +65,7 @@
 - **Phase 444** CBS 완전성·최적성 조건 정리 (논문 §보강)
 - **Phase 445** 불확실성 정량화 — Monte Carlo 신뢰구간 자동 리포트
 - **Phase 446** 충돌 해결률 공식의 통계적 검정력 분석
-- **Phase 447** 적대적 시나리오 fuzzing — 시드 기반 시나리오 변이 생성기
+- **Phase 447** ✅ 적대적 시나리오 fuzzing — 시드 기반 시나리오 변이 생성기 (`simulation/scenario_fuzzer.py` — `np.random.default_rng` 결정적 변이 + `adversarial` 부하↑·안전마진↓ 편향 모드, 출력은 `scenario_schema.validate_scenario` 계약 충족, 단위 14건 PASS, 2026-06-15)
 - **Phase 448** 속성 기반 테스트(Hypothesis) — 시뮬 코어 불변식 1,000케이스
 - **Phase 449** 시뮬-실측 갭 모델 — DR 파라미터 보정 자동화
 - **Phase 450** 재현성 10년 보장 — 의존성 핀 + 컨테이너 다이제스트 고정

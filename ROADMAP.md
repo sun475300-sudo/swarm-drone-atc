@@ -253,11 +253,13 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 203 + 206** — Mock Detector(console.warn + `mockCalls` 카운트) + `experimental.*` 네임스페이스 격리, E2E 2건 + CI 정합성 게이트(G-2·G-4) (2026-06-12)
 - [x] **Phase 204** — Production 핵심 12종 회귀 강화 — `test_simulator_production_core.py` (getter 전수 + 12종 호출 + 93 회귀 방지) (2026-06-12)
 - [x] **Phase 205** — Beta API 부분 검증 — `test_simulator_beta_subset.py` (Copilot·적대·C-UAS·WindField·PQC, 5건) (2026-06-12)
-- [ ] **Phase 209-220** — Deprecation Policy·SemVer·production 격상 (12 → 30 API)
+- [x] **Phase 209-210** — API Deprecation Policy + SemVer 규약 — `docs/API_DEPRECATION_POLICY.md` (3단계 폐기 생애주기 + SemVer↔API 영향 정의 + Deprecation Registry) (2026-06-13)
+- [ ] **Phase 211-220** — production 격상 (12 → 30 API)
 - [ ] **Phase 221-240** — Real Validation (WebGPU 실 WGSL·CRDT Yjs·MAVLink SITL·KMA 풍속장)
 - [ ] **Phase 241-260** — Multi-User Reality (WS 관제 서버·다중 관제사·TimescaleDB·부하 100명)
 - [ ] **Phase 261-280** — Hardware Loop (Pixhawk HITL·Jetson 엣지·RTK·실 비행 데이터셋) *(사용자 HW 의존)*
-- [ ] **Phase 281-300** — Academic Impact (IROS 투고·Zenodo DOI·Ablation 자동화·K-UTM 표준 제안)
+- [x] **Phase 286** 🏆 안전망 Ablation 자동화 — `scripts/ablation_study.py` (APF·CBS 계층 제거 효과 측정, baseline/no_apf/no_cbs/no_apf_no_cbs × N 시드 → 충돌·근접경고·해결률 markdown+JSON), 시뮬레이터·컨트롤러 `ablation.disable_apf/disable_cbs` 토글(기본 미설정 = 전 계층 활성) + 12개 단위 테스트 PASS (2026-06-13)
+- [ ] **Phase 281-285·287-300** — Academic Impact (IROS 투고·Zenodo DOI·K-UTM 표준 제안)
 
 ### Track H — 시뮬레이터 GENESIS (Phase 301-400) · 2026-06-12 수립
 
@@ -268,9 +270,11 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 304** 🏭 KC 전파인증 체크리스트 — `docs/certification/KC_RADIO_CERTIFICATION.md` (2026-06-12)
 - [x] **Phase 306** 🏭 RTM 5계층 커버리지 — `docs/certification/RTM_5LAYER_COVERAGE.md` 21건 추적 (2026-06-12)
 - [x] **Phase 309** 🏭 조종자 자격증명 매핑 — `docs/certification/PILOT_LICENSE_MAPPING.md` (2026-06-12)
+- [x] **Phase 308** 🏭 배상책임보험 요율 산정 API — `simulation/insurance_rate_quote.py` (Phase 67 mock 격상 — 항공사업법 §70 의무보험 스펙, MTOW·운용·ILF·NCB·경력·야간/BVLOS 결정적 산정, 33건 PASS) (2026-06-15)
 - [ ] **Phase 301·303-320** 🏭 Certification & Compliance — 항공안전법 매트릭스·DO-178C 갭 분석·CSAP 자동화
 - [x] **Phase 322** 🌍 `.sdacs-scenario` 스키마 + 검증기 — `simulation/scenario_schema.py` + `docs/schemas/sdacs-scenario.schema.json`, 20건 PASS (2026-06-15)
 - [ ] **Phase 321-340** 🌍 Ecosystem & Open Source — 플러그인 SDK·`@sdacs/core` npm·`sdacs-sim` PyPI·v2.0 API 안정화
+- [x] **Phase 341** 🏙 목포 해역 실 좌표계 임포트 — `src/applications/mokpo_harbor.py` 해도 기반 NFZ 4종(부두·대교·지형·정박지)·회랑 3종 결정적 배치 + 레이 캐스팅 NFZ 판정·회랑 충돌 검사, 8건 PASS (2026-06-15)
 - [x] **Phase 342** 🏙 전남 도서(신안·완도) 의료 배송 거점 DB — `src/applications/jeonnam_island_sites.py` 실 좌표·거점·Haversine ETA, 7건 PASS (2026-06-15)
 - [ ] **Phase 341-360** 🏙 Real Deployment — 목포 해역 실 좌표·전남 도서 의료 배송·90일 파일럿 백서
 - [x] **Phase 367** 🤖 스웜 자가 치유 — `src/autonomy/swarm_self_healing.py` 결손 드론 임무 자동 재분배, 12건 PASS (2026-06-15)
@@ -289,7 +293,9 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 401·406** 🌏 다국 좌표계·시간대 자동 판정 — `simulation/geo_zones.py` UTM 그리드 존 결정적 판정 + EASA U-space 매핑, 22건 PASS (2026-06-15)
 - [ ] **Phase 401-407·409-420** 🌏 Global Expansion — EASA U-space·FAA UTM 정렬·EN 완역
 - [x] **Phase 421** 🛰 인스턴스 간 디스커버리 프로토콜 — `simulation/federation_discovery.py` ASTM F3548 DSS 유사 결정적 모델(4D 볼륨 등록·그리드 셀 인덱스·정밀 교차 디스커버리·동기화 대상), 13건 PASS (2026-06-14)
-- [ ] **Phase 422-440** 🛰 Federation Operations — 운영 의도 4D 교환·관제권 핸드오버·연합 충돌 해소
+- [x] **Phase 422** 🛰 운영 의도(Operational Intent) 4D 교환 포맷 — `simulation/operational_intent.py` ASTM F3548-21 정렬 frozen dataclass + 라운드트립 직렬화 + 보수적 4D 교차, 24건 PASS (2026-06-14)
+- [x] **Phase 423** 🛰 지역 간 관제권 핸드오버 — `simulation/federation_handover.py` Phase 421 점 커버리지 기반 결정적 RETAINED/ACQUIRED/HANDOVER/CONTINGENT 결정 + 이력현상(hysteresis) + 감사 로그, 16건 PASS (2026-06-15)
+- [ ] **Phase 424-440** 🛰 Federation Operations — 연합 충돌 해소(우선순위 협상)·연합 NOTAM 전파·핸드오버 시각화·split-brain 안전 강하
 - [x] **Phase 447** 🔬 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` NFZ·ATC·SORA 140케이스 (2026-06-12)
 - [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12)
 - [x] **Phase 449** 🔬 시뮬-실측 갭 모델 — `src/training/sim_real_gap.py` Domain Randomization 파라미터 자동 보정, 7건 PASS (2026-06-15)
@@ -309,6 +315,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 이 프로젝트는 목포대학교 캡스톤 디자인 프로젝트입니다.
 기여를 원하시면 Issue를 통해 제안해 주세요.
+
+*2026-06-13 (일일 점검 + Phase 207 배지 드리프트 해소) — **신규 컨테이너 독립 재현 GREEN**: 의존성 신규 설치 후 전체 회귀 **4,065 pass / 267 skip / 0 fail** (545.46s) 독립 재현 — 본 세션 +7 배지 테스트 포함, 커버리지 게이트(≥80%) 통과. **발견·수정**: Phase 207은 "완료"로 표기됐으나 `docs/badges/maturity.svg`가 수작업 유지라 `prod 89`로 드리프트(라이브 실측·`SDACS_API.md`는 production **90**). `scripts/extract_sdacs_api.py`에 `render_badge_svg()` 결정적 생성기 추가 → 재생성·CI `--check` 게이트에 배지 정합성 편입, 배지 `prod 90` 정정. 잔여 미체크는 사용자 환경 의존(P755 창업·실기 검증·IROS 투고·실측 그래프).*
 
 *2026-06-12 (18차 재현) — **일일 점검 (신규 컨테이너 독립 재현, main `843aec9` 기준)**: 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **4,057 pass / 252 skip / 0 fail** (388.13s, 커버리지 83.93%) 독립 재현 GREEN — 8~17차와 동일 수치. 브랜치 `main` 완전 동기(0/0, HEAD `843aec9` — 17차 기준 `c2649ad`에서 PR #261 머지로 전진), main 최신 커밋 CI·Security·Canonical Hash·Pages 전 워크플로우 success(actions API 재조회). `src/`·`api/` 실 TODO 0건(`onboard_bridge.py` `NotImplementedError`는 추상 인터페이스·가드로 오탐), 열린 이슈·PR 0건, 보조 로드맵(`MASTER_TODO_ATC.md`) 미체크 0건. `ROADMAP.md`·`ULTRA_PLAN.md`·`presentation_remaining_tasks.md` 잔여 미체크는 전부 사용자 환경 의존(P755 창업·슬라이드 실물·브라우저 검증·실 하드웨어 비교). 로드맵 99.5% 유지 — 잔여 4항목 전부 사용자 환경 의존.*
 

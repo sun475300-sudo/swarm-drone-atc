@@ -120,6 +120,10 @@ class AirspaceController:
         self._cbs_max_batch_size = int(cbs_cfg.get("max_batch_size", 6))
         self._cbs_adaptive = bool(cbs_cfg.get("adaptive_timeout", True))
 
+        # Ablation 토글 (Phase 286): CBS 계층 비활성 시 per-drone A* 폴백만 사용.
+        # 미설정 시 기존 동작과 완전 동일.
+        self._disable_cbs = bool(config.get("ablation", {}).get("disable_cbs", False))
+
         # 텔레메트리/허가 요청 수신 구독
         comm_bus.subscribe("CONTROLLER", self._on_message)
 

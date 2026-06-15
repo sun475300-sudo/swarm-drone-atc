@@ -960,6 +960,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-15 23:11 | `1f369e8` | chore(odyssey): 일일 점검 (8차) — Federation Operations 3건 통합 (Phase 424·425·430) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_conflict_resolution.py, simulation/federation_notam.py … |
 | 2026-06-15 22:30 | (통합) | chore: 일일 점검 (8차) — ODYSSEY Federation Operations 3건 통합 (Phase 424 충돌 해소·425 NOTAM 전파·430 split-brain 안전 강하), 신규 50건 + 인접 회귀 104건 PASS | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_conflict_resolution.py, simulation/federation_notam.py, simulation/federation_split_brain.py, tests/test_federation_conflict_resolution.py, tests/test_federation_notam.py, tests/test_federation_split_brain.py |
 | 2026-06-15 18:24 | `d61c96b` | fix(ci): maturity 배지 실측 counts(prod 93) 재생성 — #281 stale 배지 드리프트 해소 | docs/badges/maturity.svg |
 | 2026-06-15 18:18 | `9e6808f` | Merge remote-tracking branch 'origin/claude/fervent-babbage-oaig71' into claude/fervent-babbage-xcoksz | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_GENESIS_PLAN.md, src/applications/mokpo_harbor.py, tests/track_e/test_mokpo_harbor.py |

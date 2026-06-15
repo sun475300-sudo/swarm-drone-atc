@@ -66,6 +66,9 @@ class FederationNotamBroadcaster:
     discovery: FederationDiscoveryService
     _inboxes: dict[str, dict[str, FederatedNotam]] = field(default_factory=dict)
     _latest: dict[str, FederatedNotam] = field(default_factory=dict)
+    # notam_id → 최초 발효 인스턴스. 철회 후에도 보존해 id 소유권을 영구 고정한다
+    # (다른 인스턴스가 같은 id를 탈취하지 못하도록).
+    _origin_of: dict[str, str] = field(default_factory=dict)
     _seq: int = 0
     _log: list[PropagationEvent] = field(default_factory=list)
 
@@ -98,21 +101,23 @@ class FederationNotamBroadcaster:
         if origin not in self.discovery.instances():
             raise ValueError(f"origin 인스턴스 미등록: {origin!r}")
 
-        prev = self._latest.get(notam_id)
-        if prev is not None and prev.origin != origin:
+        owner = self._origin_of.get(notam_id)
+        if owner is not None and owner != origin:
             raise ValueError(
-                f"notam_id {notam_id!r} 의 발효 인스턴스는 {prev.origin!r} 로 고정됨"
+                f"notam_id {notam_id!r} 의 발효 인스턴스는 {owner!r} 로 고정됨"
             )
+        prev = self._latest.get(notam_id)
         version = (prev.version + 1) if prev is not None else 1
         notam = FederatedNotam(notam_id, origin, volume, version)
         self._latest[notam_id] = notam
+        self._origin_of[notam_id] = origin
 
         targets = set(self.discovery.query(volume, exclude=origin))
         events: list[PropagationEvent] = []
 
         # 갱신 전 보유했으나 새 볼륨과 겹치지 않게 된 이웃에서 회수.
         for target in sorted(self._holders(notam_id) - targets):
-            del self._inboxes[target][notam_id]
+            self._withdraw(target, notam_id)
             events.append(self._emit(notam_id, origin, target, version, REVOKED))
 
         for target in sorted(targets):
@@ -122,7 +127,9 @@ class FederationNotamBroadcaster:
     def _deliver(self, notam: FederatedNotam, target: str) -> PropagationEvent:
         inbox = self._inboxes.setdefault(target, {})
         held = inbox.get(notam.notam_id)
-        if held is not None and held.version == notam.version:
+        # 보유 버전이 같거나 더 높으면 멱등 무시 — stale 패킷이 신버전을 덮어쓰지
+        # 못하게 한다(외부 릴레이/가십 유입 대비).
+        if held is not None and held.version >= notam.version:
             return self._emit(
                 notam.notam_id, notam.origin, target, notam.version, DUPLICATE
             )
@@ -130,6 +137,13 @@ class FederationNotamBroadcaster:
         return self._emit(
             notam.notam_id, notam.origin, target, notam.version, DELIVERED
         )
+
+    def _withdraw(self, target: str, notam_id: str) -> None:
+        """이웃 인박스에서 NOTAM을 제거하고, 비면 인박스 자체도 정리한다."""
+        inbox = self._inboxes[target]
+        del inbox[notam_id]
+        if not inbox:
+            del self._inboxes[target]
 
     def rebroadcast(self, notam_id: str) -> tuple[PropagationEvent, ...]:
         """현재 개정을 다시 전파한다(멱등 재방송/가십).
@@ -141,7 +155,7 @@ class FederationNotamBroadcaster:
         targets = set(self.discovery.query(notam.volume, exclude=notam.origin))
         events: list[PropagationEvent] = []
         for target in sorted(self._holders(notam_id) - targets):
-            del self._inboxes[target][notam_id]
+            self._withdraw(target, notam_id)
             events.append(
                 self._emit(notam_id, notam.origin, target, notam.version, REVOKED)
             )
@@ -157,7 +171,7 @@ class FederationNotamBroadcaster:
         notam = self._latest.pop(notam_id)
         events: list[PropagationEvent] = []
         for target in sorted(self._holders(notam_id)):
-            del self._inboxes[target][notam_id]
+            self._withdraw(target, notam_id)
             events.append(
                 self._emit(notam_id, notam.origin, target, notam.version, REVOKED)
             )

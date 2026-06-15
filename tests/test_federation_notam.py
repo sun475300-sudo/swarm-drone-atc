@@ -134,8 +134,9 @@ def test_nfz_moving_out_of_neighbor_revokes_stale() -> None:
     # Act — NFZ가 WEST 내부 [100,300)로 이동 → MID와 더는 겹치지 않음.
     events = bc.issue("WEST", "N1", _nfz(100, 300))
 
-    # Assert — MID 인박스에서 회수, 결정은 REVOKED.
-    assert REVOKED in [e.decision for e in events]
+    # Assert — MID 인박스에서 회수, 결정은 정확히 REVOKED 하나(잘못된 DELIVERED 혼입 차단).
+    assert [e.decision for e in events] == [REVOKED]
+    assert events[0].target == "MID"
     assert bc.inbox("MID") == ()
 
 
@@ -179,6 +180,32 @@ def test_revoke_unknown_notam_raises() -> None:
         bc.revoke("NOPE")
 
 
+def test_origin_ownership_persists_after_revoke() -> None:
+    # Arrange — WEST가 N1 발효 후 철회.
+    bc = FederationNotamBroadcaster(_three_instance_service())
+    bc.issue("WEST", "N1", _nfz(900, 1100))
+    bc.revoke("N1")
+
+    # Act / Assert — 철회 뒤에도 다른 인스턴스가 같은 id를 탈취하지 못한다.
+    with pytest.raises(ValueError):
+        bc.issue("EAST", "N1", _nfz(2400, 2600))
+
+
+def test_original_origin_may_reissue_after_revoke() -> None:
+    # Arrange — WEST가 N1 발효 후 철회.
+    bc = FederationNotamBroadcaster(_three_instance_service())
+    bc.issue("WEST", "N1", _nfz(900, 1100))
+    bc.revoke("N1")
+
+    # Act — 동일 발효 인스턴스는 재발효 가능(새 NOTAM, 버전 1부터).
+    events = bc.issue("WEST", "N1", _nfz(900, 1100))
+
+    # Assert
+    assert [e.decision for e in events] == [DELIVERED]
+    assert events[0].version == 1
+    assert [n.notam_id for n in bc.inbox("MID")] == ["N1"]
+
+
 # --- 소비측 헬퍼 active_volumes --------------------------------------------
 
 
@@ -209,6 +236,19 @@ def test_audit_log_is_ordered_and_sequential() -> None:
 
     # Assert — seq가 1부터 빈틈없이 증가.
     assert [e.seq for e in log] == list(range(1, len(log) + 1))
+
+
+def test_revoke_prunes_empty_inboxes() -> None:
+    # Arrange — WEST·EAST 둘 다 보유.
+    bc = FederationNotamBroadcaster(_three_instance_service())
+    bc.issue("MID", "N1", _nfz(500, 2500))
+
+    # Act
+    bc.revoke("N1")
+
+    # Assert — 회수 후 빈 인박스 dict가 남지 않는다(장기 실행 메모리 누수 방지).
+    assert bc._inboxes == {}
+    assert bc.summary()["holder_instances"] == 0
 
 
 def test_summary_counts_are_deterministic() -> None:

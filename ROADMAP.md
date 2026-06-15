@@ -295,7 +295,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 421** 🛰 인스턴스 간 디스커버리 프로토콜 — `simulation/federation_discovery.py` ASTM F3548 DSS 유사 결정적 모델(4D 볼륨 등록·그리드 셀 인덱스·정밀 교차 디스커버리·동기화 대상), 13건 PASS (2026-06-14)
 - [x] **Phase 422** 🛰 운영 의도(Operational Intent) 4D 교환 포맷 — `simulation/operational_intent.py` ASTM F3548-21 정렬 frozen dataclass + 라운드트립 직렬화 + 보수적 4D 교차, 24건 PASS (2026-06-14)
 - [x] **Phase 423** 🛰 지역 간 관제권 핸드오버 — `simulation/federation_handover.py` Phase 421 점 커버리지 기반 결정적 RETAINED/ACQUIRED/HANDOVER/CONTINGENT 결정 + 이력현상(hysteresis) + 감사 로그, 16건 PASS (2026-06-15)
-- [x] **Phase 425** 🛰 연합 NOTAM 전파 — `simulation/federation_notam.py` 동적 NFZ를 Phase 421 디스커버리로 발견한 겹치는 인접 인스턴스에만 결정적 브로드캐스트(DELIVERED/DUPLICATE/REVOKED) + NFZ 이동 시 stale 회수 + 멱등 재방송 + 불변 감사 로그, 16건 PASS (2026-06-15)
+- [x] **Phase 425** 🛰 연합 NOTAM 전파 — `simulation/federation_notam.py` 동적 NFZ를 Phase 421 디스커버리로 발견한 겹치는 인접 인스턴스에만 결정적 브로드캐스트(DELIVERED/DUPLICATE/REVOKED) + NFZ 이동 시 stale 회수 + 멱등 재방송 + 철회 후 origin 소유권 영구 고정 + 불변 감사 로그, 19건 PASS (2026-06-15)
 - [ ] **Phase 424·426-440** 🛰 Federation Operations — 연합 충돌 해소(우선순위 협상)·핸드오버 시각화·split-brain 안전 강하
 - [x] **Phase 447** 🔬 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` NFZ·ATC·SORA 140케이스 (2026-06-12)
 - [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12)

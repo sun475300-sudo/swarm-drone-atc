@@ -285,7 +285,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 > 상세: [`docs/SIMULATOR_ODYSSEY_PLAN.md`](docs/SIMULATOR_ODYSSEY_PLAN.md) — *"이것은 국경과 세대를 넘는가"*
 
-- [x] **Phase 408** 🌏 ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` (2026-06-12)
+- [x] **Phase 408** 🌏 ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` + `simulation/airspace_class.py` `classify_airspace()` API 격상 (결정적, 25건 PASS) (2026-06-12, API 2026-06-14)
 - [x] **Phase 401·406** 🌏 다국 좌표계·시간대 자동 판정 — `simulation/geo_zones.py` UTM 그리드 존 결정적 판정 + EASA U-space 매핑, 22건 PASS (2026-06-15)
 - [ ] **Phase 401-407·409-420** 🌏 Global Expansion — EASA U-space·FAA UTM 정렬·EN 완역
 - [x] **Phase 421** 🛰 인스턴스 간 디스커버리 프로토콜 — `simulation/federation_discovery.py` ASTM F3548 DSS 유사 결정적 모델(4D 볼륨 등록·그리드 셀 인덱스·정밀 교차 디스커버리·동기화 대상), 13건 PASS (2026-06-14)

@@ -52,7 +52,7 @@
 - **Phase 427** 연합 시각화 — 인접 공역 고스트 렌더링
 - **Phase 428** 신뢰 모델 — 인스턴스 간 Bayesian 평판 (기존 reputation 재사용)
 - **Phase 429** 연합 감사 로그 — 관제권 이양 불변 기록
-- **Phase 430** 분할 뇌(split-brain) 시나리오 — 연합 단절 시 안전 강하 정책
+- **Phase 430** ✅ 분할 뇌(split-brain) 시나리오 — 연합 단절 시 안전 강하 정책 (2026-06-15, `simulation/federation_split_brain.py` — `PartitionSnapshot` 양방향 링크를 연결 요소로 분해해 과반(majority) 분파 판정 + `SafeDescentPolicy` 4단계 안전 사다리 NOMINAL/HOLD/DESCEND/LAND. 고립·커버리지 상실 지속 시 단계 상승, 정상 복귀 시 이력현상 초기화, 불변 감사 로그. Phase 423이 미룬 안전 강하 책임 구체화. 단위 20건)
 - **Phase 431-440** 3+ 인스턴스 메시 연합 + 글로벌 시계(hybrid logical clock)
 
 ### Track 🔬 — Formal & Research Frontier (Phase 441-460) · 형식 검증·연구 개척

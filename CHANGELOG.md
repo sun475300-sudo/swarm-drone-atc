@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — 일일 점검 2026-06-15 (9차): ODYSSEY Phase 430 분할 뇌(split-brain) 안전 강하 정책
+- **`simulation/federation_split_brain.py`** (신규) — 연합(다중 SDACS 인스턴스) 네트워크 분할 시 드론을 결정적으로 안전 상태로 유도하는 정책. `PartitionSnapshot`이 인스턴스 간 양방향 링크를 연결 요소(connected component)로 분해해 **과반(majority) 분파**(전체의 절반 초과 포함)를 판정한다. 과반이 없으면(2-2 균등 분할) 어떤 분파도 단독 관제 권위를 주장하지 못한다.
+- `SafeDescentPolicy` 4단계 안전 사다리: **NOMINAL**(과반 관제·커버) → **HOLD**(소수/무과반 분파 고립 → 위치 유지) → **DESCEND**(커버리지 상실 또는 고립 지속) → **LAND**(관제권 부재 또는 강하 지속). `hold_limit`/`descend_limit` 초과 지속 시 단계 상승, 정상 복귀 시 누적 카운터 초기화(이력현상으로 일시 단절의 과잉 강하 방지). 모든 결정은 불변 `SafetyDecision`으로 기록.
+- Phase 423 핸드오버가 커버리지 상실 시 `CONTINGENT`로만 표시하고 미룬 **안전 강하 책임**을 구체화(forward-reference 해소).
+- **`tests/test_federation_split_brain.py`** (신규) — 단위 **20건 PASS**(단일/완전연결/2-1/균등분할 과반 판정·자기링크·미등록 거부·NOMINAL/HOLD/DESCEND/LAND 기본 결정·고립→강하·강하→착륙 에스컬레이션·복귀 카운터 초기화·감사 로그 seq 연속성·action_counts·완전 재현성). 인접 `test_federation_handover` 16 + `test_federation_discovery` 14 동반 GREEN(합계 50/50). 기존 `.py` 소스 무수정(순수 추가) → 회귀 무영향.
+- 점검 상황: 신규 컨테이너에서 의존성 설치 후 federation 트랙 baseline GREEN 확인. 8차 점검 산출물 **#327 Phase 424**(연합 충돌 해소)·**#328 Phase 425**(연합 NOTAM 전파)는 둘 다 `mergeable_state: clean` + CI(CI·Security·Canonical Hash) 전부 success로 머지 준비 완료 — 본 Phase 430과 비경쟁(별개 신규 파일).
+
 ### 통합 (chore) — 일일 점검 2026-06-15 (5차): 신규 코드 PR 3건 통합 + 적체 중복 PR triage
 - 열린 PR 32건(피처 19 + dependabot 13) triage 후, **신규 파일만 추가하는 비경쟁 Phase PR 3건**을 본 작업 브랜치에 통합. 신규 컨테이너에 pytest+core deps 설치 후 baseline **4,361 pass / 280 skip / 0 fail** 재현 → 통합 후 전체 **4,456 pass / 280 skip / 0 fail**(+95건, 회귀 0).
   - **#320 Phase 423·286·226·209-210** (4차 번들) — `simulation/federation_handover.py`·`scripts/ablation_study.py`(+`SwarmSimulator`/`AirspaceController` 가드 토글)·`src/digital_twin/sync_engine.py` WGS84 엄밀해·`docs/API_DEPRECATION_POLICY.md`.

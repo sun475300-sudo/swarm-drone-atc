@@ -40,7 +40,7 @@
 - **Phase 307** ✅ 사고 보고 양식 (항철위 표준) 자동 작성 — `simulation/accident_report.py` (ARAIB 사고/준사고/안전장애 결정적 분류·시뮬 로그 변환·안전권고 자동 생성·JSON/텍스트 export, 19건 PASS) (2026-06-14)
 - **Phase 308** 보험 요율 산정 인터페이스 (Phase 67 mock 격상 — 실 보험사 API 스펙)
 - **Phase 309** 조종자 자격(1~4종) 요건 ↔ 시뮬 교육 모드 매핑
-- **Phase 310** 야간·비가시 특별비행승인 요건 시뮬 검증 시나리오
+- **Phase 310** ✅ 야간·비가시 특별비행승인 안전기준 검증 — `simulation/special_flight_approval.py` (특별비행 안전기준 고시 기준 공통·야간·비가시 항목별 결정적 적합 판정·승인 가능 판정·JSON/텍스트 export, 25건 PASS) (2026-06-14)
 - **Phase 311-315** KISA CSAP 96항목 자가진단 자동화 (`security_audit.sh` 확장)
 - **Phase 316-320** UAM 운용기준(K-UAM 로드맵 2.0) 정렬 + 감항 인증 준비 문서
 

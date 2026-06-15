@@ -960,6 +960,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-15 13:15 | `7f16311` | style: scenario_fuzzer main() 임포트 정렬 (ruff I001 CI fix) | simulation/scenario_fuzzer.py |
 | 2026-06-15 13:12 | `8dae438` | feat(odyssey): Phase 447 적대적 시나리오 퍼저 — 시드 기반 결정적 변이 생성기 | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/scenario_fuzzer.py, tests/test_scenario_fuzzer.py |
 | 2026-06-15 09:12 | `567e4a6` | docs: 일일 점검 2026-06-15 (2차) — 적체 PR 9건 통합 변경 이력 | CHANGELOG.md |
 | 2026-06-15 05:10 | `c9923b1` | feat: 일일 점검 2026-06-15 — 적체 PR 5건 무충돌 통합 (Phase 322·342·367·401·406·449) | CHANGELOG.md, ROADMAP.md, docs/schemas/sdacs-scenario.schema.json, simulation/geo_zones.py, simulation/scenario_schema.py, src/applications/jeonnam_island_sites.py … |

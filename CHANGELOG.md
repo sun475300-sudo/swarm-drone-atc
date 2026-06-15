@@ -5,6 +5,10 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — 일일 점검 2026-06-15 (3차): GENESIS Phase 308 배상책임보험 요율 산정 API
+- **Phase 308** — `simulation/insurance_rate_quote.py` 신규. 시뮬레이터 STELLAR Phase 67 `societyInsuranceQuote` mock(role·hours·history toy 공식)을 **실 보험사 요율 스펙**으로 격상. 항공사업법 §70 의무 배상책임보험 근거로 MTOW 등급 기본료 × 운용형태 × 비행시간 익스포저 × 보상한도 ILF × 경력 할인 × 무사고(NCB)/사고 할증 × 야간·BVLOS 가산을 결정적 누적 곱으로 산정하고 명세(`PremiumLine`)로 추적. 사용사업 의무가입·최소한도(1.5억원) 검증 포함.
+- 단위 테스트 `tests/test_insurance_rate_quote.py` **28건 PASS** — 결정성·단조성(MTOW·사고·경력·한도)·NCB·위험 가산·의무가입 한도·명세 정합·입력 검증. 기존 `.py` 소스 무수정(순수 추가) → 회귀 무영향(baseline 4,361 pass / 280 skip / 0 fail, 84.24% 재현).
+
 ### 통합 (chore) — 일일 점검 2026-06-15 (2차): 적체 PR 9건 무충돌 통합 (머지 병목 해소)
 - 열린 PR 30건(피처 20 + dependabot 10) triage 후, **기존 코드 무수정·순수 추가형** Phase PR 9건을 단일 통합 브랜치로 합류. 신규 모듈 9개 + 단위 테스트 **190건 전부 PASS**, 기존 `.py` 소스 무수정(문서·신규 파일만) → 회귀 무영향.
   - **#313** (5건 누적): Phase 322 `scenario_schema.py` · 342 `jeonnam_island_sites.py` · 367 `swarm_self_healing.py` · 401·406 `geo_zones.py` · 449 `sim_real_gap.py`.

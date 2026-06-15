@@ -5,6 +5,12 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — 일일 점검 2026-06-15 (8차): ODYSSEY Phase 425 연합 NOTAM 전파
+- **신규 컨테이너 독립 재현**: 의존성 신규 설치 후 main(`394e4c1`) baseline 전체 회귀 **4,522 pass / 280 skip / 0 fail**(149s) 재현 GREEN. main CI 최신(`394e4c1`) success 확인.
+- **Phase 425** — `simulation/federation_notam.py` 신규. 한 SDACS 인스턴스가 발효한 동적 NFZ를 Phase 421 디스커버리(`FederationDiscoveryService.query`, 그리드 셀 후보 → 정밀 4D 교차)로 발견한 **겹치는 인접 인스턴스에만** 결정적으로 전파한다. 전파 결정 3종 — DELIVERED(신규/상위 버전)·DUPLICATE(동일 `(id, version)` 멱등 재방송)·REVOKED(철회 또는 NFZ 이동으로 더는 겹치지 않는 이웃에서 stale 자동 회수). 재발효(`issue`)는 버전 +1, 멱등 재방송(`rebroadcast`)·철회(`revoke`)·소비측 `active_volumes` 헬퍼·불변 감사 로그(`PropagationEvent`, seq 1부터 빈틈없이 증가) 제공. 외부 네트워크·랜덤 0 → 동일 입력 시퀀스는 동일 로그(재현성).
+- **`tests/test_federation_notam.py`** (신규) — 단위 **16건 PASS**. 겹치는 이웃만 전달·대상 사전순 정렬·미등록 origin/빈 id/origin 충돌 검증·재방송 DUPLICATE·재발효 버전 증가·NFZ 이동 시 stale REVOKED 회수 및 신규 이웃 DELIVERED·전체 철회·`active_volumes` 노출·감사 로그 seq 연속성·완전 재현성. 기존 `.py` 소스 무수정(순수 추가) → 회귀 무영향, 통합 후 **4,538 pass**.
+- 참고: ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Phase 425 체크. Phase 424(우선순위 협상)는 별도 진행 중 PR(#327)이라 비경쟁 산출물.
+
 ### 통합 (chore) — 일일 점검 2026-06-15 (5차): 신규 코드 PR 3건 통합 + 적체 중복 PR triage
 - 열린 PR 32건(피처 19 + dependabot 13) triage 후, **신규 파일만 추가하는 비경쟁 Phase PR 3건**을 본 작업 브랜치에 통합. 신규 컨테이너에 pytest+core deps 설치 후 baseline **4,361 pass / 280 skip / 0 fail** 재현 → 통합 후 전체 **4,456 pass / 280 skip / 0 fail**(+95건, 회귀 0).
   - **#320 Phase 423·286·226·209-210** (4차 번들) — `simulation/federation_handover.py`·`scripts/ablation_study.py`(+`SwarmSimulator`/`AirspaceController` 가드 토글)·`src/digital_twin/sync_engine.py` WGS84 엄밀해·`docs/API_DEPRECATION_POLICY.md`.

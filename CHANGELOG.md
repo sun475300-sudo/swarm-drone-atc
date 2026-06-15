@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — 일일 점검 2026-06-15: ODYSSEY Phase 447 적대적 시나리오 퍼저
+- **`simulation/scenario_fuzzer.py`** (신규) — 시드 기반 결정적 시나리오 변이 생성기. `np.random.default_rng(seed)`로 동일 시드 → 동일 변이(재현성), 입력 dict 불변(새 객체 반환). `FuzzConfig(adversarial=True)`는 부하 필드(드론 수·도착률)를 위로, 안전 마진 필드(공역 면적·최소 분리거리)를 아래로 편향해 안전망에 스트레스를 가한다. `success_criteria`(합격 임계값)는 보존.
+- 생성된 모든 변이는 기존 `scenario_schema.validate_scenario` 계약을 충족 — 9개 실 시나리오 × 40변이 = **360건 전부 VALID** 확인. `scenario_runner`·시나리오 마켓플레이스에서 그대로 실행 가능.
+- **`tests/test_scenario_fuzzer.py`** (신규) — 단위 **14건 PASS** (재현성·불변성·스키마 적합·클램핑·분포 재정규화·거리 순서·적대적 편향). 인접 `test_scenario_schema.py` 28건 회귀 GREEN.
+- code-reviewer 어드바이저 1회 반영: 미사용 `_FROZEN_KEYS` 죽은 코드 제거 + `drone_count` 정수 캐스트 강화.
+- 참고: 본 Phase 447은 ODYSSEY 백엔드 트랙(시나리오 설정 퍼징)으로, ROADMAP의 기존 Phase 447(웹 시뮬레이터 e2e SORA fuzz, `tests/e2e/test_simulator_fuzz.py`)과는 별개 산출물(번호 병행 트랙).
+
 ### 통합 (chore) — 일일 점검 2026-06-15 (2차): 적체 PR 9건 무충돌 통합 (머지 병목 해소)
 - 열린 PR 30건(피처 20 + dependabot 10) triage 후, **기존 코드 무수정·순수 추가형** Phase PR 9건을 단일 통합 브랜치로 합류. 신규 모듈 9개 + 단위 테스트 **190건 전부 PASS**, 기존 `.py` 소스 무수정(문서·신규 파일만) → 회귀 무영향.
   - **#313** (5건 누적): Phase 322 `scenario_schema.py` · 342 `jeonnam_island_sites.py` · 367 `swarm_self_healing.py` · 401·406 `geo_zones.py` · 449 `sim_real_gap.py`.

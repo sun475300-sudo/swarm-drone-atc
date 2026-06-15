@@ -65,7 +65,7 @@
 - **Phase 444** CBS 완전성·최적성 조건 정리 (논문 §보강)
 - **Phase 445** 불확실성 정량화 — Monte Carlo 신뢰구간 자동 리포트
 - **Phase 446** 충돌 해결률 공식의 통계적 검정력 분석
-- **Phase 447** 적대적 시나리오 fuzzing — 시드 기반 시나리오 변이 생성기
+- **Phase 447** ✅ 적대적 시나리오 fuzzing — 시드 기반 시나리오 변이 생성기 (`simulation/scenario_fuzzer.py` — `np.random.default_rng` 결정적 변이 + `adversarial` 부하↑·안전마진↓ 편향 모드, 출력은 `scenario_schema.validate_scenario` 계약 충족, 단위 14건 PASS, 2026-06-15)
 - **Phase 448** 속성 기반 테스트(Hypothesis) — 시뮬 코어 불변식 1,000케이스
 - **Phase 449** 시뮬-실측 갭 모델 — DR 파라미터 보정 자동화
 - **Phase 450** 재현성 10년 보장 — 의존성 핀 + 컨테이너 다이제스트 고정

@@ -5,6 +5,14 @@
 
 ## [Unreleased]
 
+### 통합 (chore) — 일일 점검 2026-06-15 (4차): 적체 PR 4건 무충돌 통합 (Phase 423·286·226·209-210)
+- 열린 PR 29건 triage 후, **기존 코드 무수정·추가형 또는 가드된 토글·정밀도 버그픽스**인 비경쟁 Phase PR 4건을 본 작업 브랜치에 통합. 신규 컨테이너에 pytest+core deps 설치 후 통합 모듈·인접 회귀 **132건 PASS**(신규 68 + 시뮬레이터/컨트롤러 회귀 64) 로컬 검증.
+  - **#318 Phase 423** — `simulation/federation_handover.py` 지역 간 관제권 핸드오버(RETAINED/ACQUIRED/HANDOVER/CONTINGENT + 이력현상) + `federation_discovery.py` `covering()`/`contains()` 프리미티브 (16건).
+  - **#290 Phase 286** — `scripts/ablation_study.py` 안전망(APF·CBS) Ablation 자동화 + `SwarmSimulator`/`AirspaceController` `ablation.disable_apf/disable_cbs` 토글(기본 미설정 = 전 계층 활성, 회귀 무영향) (12건).
+  - **#299 Phase 226** — `src/digital_twin/sync_engine.py` GPS→ENU 변환을 WGS84 ECEF→ENU 엄밀해로 격상(1km 평면근사 오차 153m→6cm, ±0.5m 충족) (22건).
+  - **#286 Phase 209·210** — `docs/API_DEPRECATION_POLICY.md` API 폐기 생애주기 + SemVer 규약 (문서 전용).
+- 보류(사람 판단 필요): **#295/#285/#289**(Phase 445·446 통계 검정 경쟁 구현)·**#280/#281**(Phase 207 배지 쌍)·**#283**(핫루프 힙 할당 제거 — 기존 perf 코드 수정형, 별도 검증)·dependabot 13건(#267–#279). 이미 main 통합 완료로 중복화된 **#298/#300/#292/#291/#293**(Phase 322·342·367·401·406·449)은 정리 대상.
+
 ### 통합 (chore) — 일일 점검 2026-06-15 (2차): 적체 PR 9건 무충돌 통합 (머지 병목 해소)
 - 열린 PR 30건(피처 20 + dependabot 10) triage 후, **기존 코드 무수정·순수 추가형** Phase PR 9건을 단일 통합 브랜치로 합류. 신규 모듈 9개 + 단위 테스트 **190건 전부 PASS**, 기존 `.py` 소스 무수정(문서·신규 파일만) → 회귀 무영향.
   - **#313** (5건 누적): Phase 322 `scenario_schema.py` · 342 `jeonnam_island_sites.py` · 367 `swarm_self_healing.py` · 401·406 `geo_zones.py` · 449 `sim_real_gap.py`.

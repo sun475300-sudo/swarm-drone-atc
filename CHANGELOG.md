@@ -37,6 +37,8 @@
   - `Status` 4종(이행/부분이행/미이행/해당없음) — 부분이행 0.5, 해당없음은 분모 제외하는 결정적 점수화. 응답 누락 항목은 보수적으로 미이행 처리.
   - `assess_csap()` — 분야별 `DomainScore`(이행률) + 종합 이행률 + 준비도 판정(95% 신청 권장 / 80% 보완 후 신청 / 미만 준비 부족) + 종합 이하 약화 분야 식별.
   - `build_responses()`·`build_report()`·`export_json()`·`export_text()` — `ControlResult` 변환 + 결정적 JSON/한국어 텍스트 export. **20건 PASS**, 기존 소스 무수정(순수 추가형).
+### 추가 (feat) — GENESIS Phase 341: 목포 해역 실 좌표계 임포트 (해도 기반 NFZ·회랑)
+- **#TBD Phase 341** — `src/applications/mokpo_harbor.py` 신규 모듈. 목포항 해역에 해도 기반 비행금지구역(NFZ) 4종(본항 부두·목포대교·유달산/삼학도 지형·남항 정박지)과 운항 회랑 3종(항만 진입·신안 도서 연계·의료 배송)을 결정적 좌표로 배치. 레이 캐스팅 `point_in_nfz()` NFZ 판정 + `corridor_nfz_conflicts()` 회랑-NFZ 충돌 검사 + `corridor_length_km()`(Haversine 재사용) + `harbor_summary()`. Phase 342 `jeonnam_island_sites.py`(목포한국병원 거점) 및 P747 해수부 항만 시범과 좌표 연계. 좌표는 공개 지도 근사값(maturity honesty 명시), 실증 전 해도 갱신 필요. 단위 테스트 8건 PASS, 기존 `.py` 소스 무수정(순수 추가) → 회귀 무영향(baseline 4,361 pass / 280 skip / 0 fail 재현 → +8).
 
 ### 통합 (chore) — 일일 점검 2026-06-15 (2차): 적체 PR 9건 무충돌 통합 (머지 병목 해소)
 - 열린 PR 30건(피처 20 + dependabot 10) triage 후, **기존 코드 무수정·순수 추가형** Phase PR 9건을 단일 통합 브랜치로 합류. 신규 모듈 9개 + 단위 테스트 **190건 전부 PASS**, 기존 `.py` 소스 무수정(문서·신규 파일만) → 회귀 무영향.

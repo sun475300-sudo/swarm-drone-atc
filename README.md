@@ -968,6 +968,7 @@ MIT License — Developed for academic and educational purposes.
 | 2026-06-15 13:12 | `8dae438` | feat(odyssey): Phase 447 적대적 시나리오 퍼저 — 시드 기반 결정적 변이 생성기 | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/scenario_fuzzer.py, tests/test_scenario_fuzzer.py |
 | 2026-06-15 12:12 | `791e611` | chore: 일일 점검 2026-06-15 (4차) — 적체 PR 4건 통합 (Phase 423·286·226·209-210) | CHANGELOG.md, README.md |
 | 2026-06-15 16:11 | `9e1f9bf` | feat(genesis): Phase 311 KISA CSAP 클라우드 보안인증 자가진단 자동화 | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, simulation/csap_self_assessment.py, tests/test_csap_self_assessment.py |
+| 2026-06-15 17:10 | `bce5079` | feat(genesis): Phase 341 목포 해역 실 좌표계 임포트 — 해도 기반 NFZ·회랑 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_GENESIS_PLAN.md, src/applications/mokpo_harbor.py, tests/track_e/test_mokpo_harbor.py |
 | 2026-06-15 09:12 | `567e4a6` | docs: 일일 점검 2026-06-15 (2차) — 적체 PR 9건 통합 변경 이력 | CHANGELOG.md |
 | 2026-06-15 05:10 | `c9923b1` | feat: 일일 점검 2026-06-15 — 적체 PR 5건 무충돌 통합 (Phase 322·342·367·401·406·449) | CHANGELOG.md, ROADMAP.md, docs/schemas/sdacs-scenario.schema.json, simulation/geo_zones.py, simulation/scenario_schema.py, src/applications/jeonnam_island_sites.py … |
 | 2026-06-15 08:07 | `ed3f334` | feat(genesis): Phase 310 야간·비가시 특별비행승인 안전기준 검증 | docs/SIMULATOR_GENESIS_PLAN.md, simulation/special_flight_approval.py, tests/test_special_flight_approval.py |

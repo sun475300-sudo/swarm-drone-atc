@@ -5,6 +5,14 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — 일일 점검 2026-06-15 (11차): ODYSSEY Phase 431 하이브리드 논리 시계(HLC) + Phase 428·429 통합
+- **Phase 431** — `simulation/federation_hybrid_clock.py` (신규) 하이브리드 논리 시계(HLC, Kulkarni et al. 2014). 3+ 인스턴스 메시 연합에서 인스턴스마다 벽시계가 어긋나도 물리 시계 동기화 없이 연합 결정(디스커버리·핸드오버·감사)의 **전역 인과 순서**를 결정적으로 매긴다.
+  - `HLCTimestamp` (frozen, `order=True`) — `(wall_time, counter, instance_id)` 사전식 **전순서**. `causal_key`/`happened_before` 는 인스턴스 식별자를 제외한 `(wall, counter)` 로 **인과(부분 순서)** 를, `is_concurrent_with` 는 동률(서로 다른 인스턴스의 동시 이벤트) 동시성을 명시한다 — 전순서(정렬용)와 인과(causality)를 의미적으로 분리.
+  - `HybridLogicalClock.local_event(pt)` / `receive_event(pt, remote)` — 표준 HLC 갱신 규칙: 새 `wall` = (지역 고점·원격 wall·물리 시각) 최댓값, `counter` 는 그 최댓값의 출처별 결정(지역·원격 동률 → max(c)+1, 한쪽만 → 그쪽 +1, 물리 시각 신규 최대 → 0). happened-before → 발행 타임스탬프 사전식 엄격 증가를 보장.
+  - 물리 시계 역행을 견디고(논리 고점 유지·counter 증가), cold-start sentinel `-1` 로 갓 만든 시계의 첫 타임스탬프 counter 를 0으로 정규화. 무작위성·시스템 시계 직접 읽기 0 → 같은 이벤트 순서는 항상 같은 타임스탬프 열(재현·독립 검증). 단위 **34건 PASS**.
+- code-reviewer 어드바이저 1회 반영: ① (CRITICAL) fresh 시계 `_wall=0` 이 유효 `t=0` 과 init sentinel 을 혼동해 첫 이벤트가 `counter=1` 이 되던 모호성을 `_wall=-1` sentinel + `current()` 클램프로 해소(첫 타임스탬프 항상 counter 0), ② (HIGH) `happened_before` 가 부분 순서임을 docstring 에 명시 + `is_concurrent_with` 추가해 "not happened_before = 역방향" 오용 차단, ③ (MEDIUM) cold-start receive 경로 테스트 2건 보강(29→34). MEDIUM(private 속성 외부 변형=인접 stateful dataclass 공통 패턴)·LOW 는 컨벤션 일관성·YAGNI 로 보류.
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Federation Operations 라인을 `Phase 431` 완료 + 잔여 `Phase 426-427·432-440` 으로 갱신. 인접 federation 회귀(trust·audit·handover·conflict·notam·split_brain·discovery·operational_intent + hybrid_clock) **197건 PASS**, 전체 수집 **4,942건** 수집 오류 0.
+
 ### 추가 (feat) — 일일 점검 2026-06-15 (9차): ODYSSEY Phase 428 인스턴스 간 신뢰 모델
 - **Phase 428** — `simulation/federation_trust.py` 연합 신뢰 모델. Phase 608 `BayesianReputation` 의 Beta-Bernoulli 켤레 사전분포를 인스턴스(USS) 레벨로 재사용해, 한 인스턴스가 상대 인스턴스의 협조 행위 이행 여부를 누적 관찰한 평판을 정량화한다.
   - `InstanceTrust` frozen dataclass 가 (관찰자→대상) **방향성** Beta(α,β) 믿음을 보유. `updated(success)` 는 원본을 변형하지 않고 α(성공)/β(실패)를 증가시킨 새 인스턴스를 반환(불변). `trust_score` = 사후 평균 `α/(α+β)`, `uncertainty` = Beta 분포 표준편차(관찰 누적 시 0 수렴).

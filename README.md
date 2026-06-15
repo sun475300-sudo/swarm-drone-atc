@@ -960,7 +960,8 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
-| 2026-06-16 03:00 | (이 커밋) | chore(odyssey): 일일 점검 (11차) — Phase 428 신뢰 모델 + Phase 429 연합 감사 로그 통합 | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust.py, simulation/federation_audit.py |
+| 2026-06-16 03:10 | (이 커밋) | feat(odyssey): 일일 점검 (11차) — Phase 431 하이브리드 논리 시계(HLC) 신규 + Phase 428·429 통합, 어드바이저 CRITICAL 1·HIGH 1·MEDIUM 1 반영, 신규 34건 + 인접 federation 197건 PASS | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_hybrid_clock.py, tests/test_federation_hybrid_clock.py |
+| 2026-06-16 03:00 | (통합) | chore(odyssey): 일일 점검 (11차) — Phase 428 신뢰 모델 + Phase 429 연합 감사 로그 통합 | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust.py, simulation/federation_audit.py |
 | 2026-06-16 02:19 | `04a629c` | feat(odyssey): Phase 429 연합 감사 로그 — 변조 탐지 해시 체인 + 결정적 CRDT 병합 | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_audit.py, tests/test_federation_audit.py |
 | 2026-06-16 01:16 | `826686b` | feat(odyssey): Phase 428 인스턴스 간 신뢰 모델 — 일일 점검 (9차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust.py, tests/test_federation_trust.py |
 | 2026-06-15 23:13 | `64ae2d2` | refactor(odyssey): Phase 424·425·430 code-reviewer 어드바이저 HIGH 3건 반영 | CHANGELOG.md, simulation/federation_conflict_resolution.py, simulation/federation_notam.py, simulation/federation_split_brain.py |

@@ -300,7 +300,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 429** 🛰 연합 감사 로그 — `simulation/federation_audit.py` 변조 탐지 SHA-256 해시 체인(append-only·길이 접두 직렬화로 주입·충돌 차단) + 인스턴스 경계 넘는 결정적 CRDT 류 병합(내용 키 사전식 전순서·중복 제거·교환·결합·흡수 멱등) + `verify()` 무결성 검증(변조·삭제 탐지) + 인스턴스/이벤트 쿼리, 29건 PASS (2026-06-15)
 - [x] **Phase 430** 🛰 분할 뇌(split-brain) 안전 강하 — `simulation/federation_split_brain.py` 연결 요소 과반 분파 판정 + 4단계 안전 사다리(NOMINAL/HOLD/DESCEND/LAND) 결정적 에스컬레이션 + 이력현상 + 불변 감사 로그, 20건 PASS (2026-06-15)
 - [x] **Phase 428** 🛰 인스턴스 간 신뢰 모델 — `simulation/federation_trust.py` Phase 608 Beta-Bernoulli 평판을 인스턴스 레벨로 재사용. 방향성 (관찰자→대상) Beta(α,β) 믿음, 핸드오버·충돌·NOTAM 협조 이벤트 관찰로 갱신, 사후 평균 신뢰 점수 + 불확실성, 임계값·최소 관찰 게이트 신뢰 판정, 불변 감사 로그, 30건 PASS (2026-06-15)
-- [ ] **Phase 426-427·431-440** 🛰 Federation Operations — 2-인스턴스 연합 E2E·핸드오버 시각화·3+ 메시 연합·글로벌 시계
+- [x] **Phase 431** 🛰 하이브리드 논리 시계(HLC) — `simulation/federation_hybrid_clock.py` Kulkarni et al. 2014 표준 HLC. `HLCTimestamp`(frozen·전순서) + `HybridLogicalClock` local/receive 이벤트 결정적 갱신. 물리 시각에 가까운 `wall_time` + 논리 `counter` 로 물리 시계 동기화 없이 3+ 메시 연합의 전역 인과 순서 보장(happened-before → 사전식 증가), 물리 시계 역행 견딤, cold-start sentinel(-1), `is_concurrent_with` 동시성 명시, 34건 PASS (2026-06-15)
+- [ ] **Phase 426-427·432-440** 🛰 Federation Operations — 2-인스턴스 연합 E2E·핸드오버 시각화·3+ 메시 연합 운용
 - [x] **Phase 447** 🔬 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` NFZ·ATC·SORA 140케이스 (2026-06-12)
 - [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12)
 - [x] **Phase 449** 🔬 시뮬-실측 갭 모델 — `src/training/sim_real_gap.py` Domain Randomization 파라미터 자동 보정, 7건 PASS (2026-06-15)

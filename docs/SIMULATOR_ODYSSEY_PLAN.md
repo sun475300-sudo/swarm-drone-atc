@@ -51,7 +51,7 @@
 - **Phase 426** 2-인스턴스 연합 E2E (Playwright 다중 페이지 + ws 브리지 2개)
 - **Phase 427** 연합 시각화 — 인접 공역 고스트 렌더링
 - **Phase 428** 신뢰 모델 — 인스턴스 간 Bayesian 평판 (기존 reputation 재사용)
-- **Phase 429** 연합 감사 로그 — 관제권 이양 불변 기록
+- **Phase 429** ✅ 연합 감사 로그 — 인스턴스 경계 넘는 변조 탐지 원장 (2026-06-15, `simulation/federation_audit.py` — `FederationAuditLog` append-only SHA-256 해시 체인. 각 항목이 직전 다이제스트를 재료에 포함(길이 접두 직렬화로 구분자 주입·다이제스트 충돌 구조적 차단)해 중간 변조·삭제를 `verify()` 가 검출. 인스턴스별 단조 논리시계, 인스턴스/이벤트 쿼리. 두 인스턴스 원장은 내용 키 `(logical_clock, instance_id, event_type, detail)` 사전식 전순서로 중복 제거 후 재-체인하는 결정적 CRDT 류 `merge` — 교환·결합·흡수 멱등이라 어느 순서로 합쳐도 같은 head 다이제스트. 분기(fork)된 같은 인스턴스 항목도 보존. 단위 29건)
 - **Phase 430** ✅ 분할 뇌(split-brain) 시나리오 — 연합 단절 시 안전 강하 정책 (2026-06-15, `simulation/federation_split_brain.py` — `PartitionSnapshot` 양방향 링크를 연결 요소로 분해해 과반(majority) 분파 판정 + `SafeDescentPolicy` 4단계 안전 사다리 NOMINAL/HOLD/DESCEND/LAND. 고립·커버리지 상실 지속 시 단계 상승, 정상 복귀 시 이력현상 초기화, 불변 감사 로그. Phase 423이 미룬 안전 강하 책임 구체화. 단위 20건)
 - **Phase 431-440** 3+ 인스턴스 메시 연합 + 글로벌 시계(hybrid logical clock)
 

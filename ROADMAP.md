@@ -297,8 +297,9 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 423** 🛰 지역 간 관제권 핸드오버 — `simulation/federation_handover.py` Phase 421 점 커버리지 기반 결정적 RETAINED/ACQUIRED/HANDOVER/CONTINGENT 결정 + 이력현상(hysteresis) + 감사 로그, 16건 PASS (2026-06-15)
 - [x] **Phase 424** 🛰 연합 충돌 해소 — `simulation/federation_conflict_resolution.py` Phase 422 `intents_conflict` 충돌 탐지 + Phase 602 `VickreyAuction`(2위 가격제) 재사용한 우선순위 협상(낮은 priority=높은 입찰, 동률 `sha256(intent_id)` 안정 해시 분리) + 패자 CONTINGENT 불변 전환 + 불변 감사 로그, 11건 PASS (2026-06-15)
 - [x] **Phase 425** 🛰 연합 NOTAM 전파 — `simulation/federation_notam.py` 동적 NFZ를 Phase 421 디스커버리로 발견한 겹치는 인접 인스턴스에만 결정적 브로드캐스트(DELIVERED/DUPLICATE/REVOKED) + NFZ 이동 시 stale 회수 + 멱등 재방송 + 철회 후 origin 소유권 영구 고정 + 불변 감사 로그, 19건 PASS (2026-06-15)
+- [x] **Phase 429** 🛰 연합 감사 로그 — `simulation/federation_audit.py` 변조 탐지 SHA-256 해시 체인(append-only·길이 접두 직렬화로 주입·충돌 차단) + 인스턴스 경계 넘는 결정적 CRDT 류 병합(내용 키 사전식 전순서·중복 제거·교환·결합·흡수 멱등) + `verify()` 무결성 검증(변조·삭제 탐지) + 인스턴스/이벤트 쿼리, 29건 PASS (2026-06-15)
 - [x] **Phase 430** 🛰 분할 뇌(split-brain) 안전 강하 — `simulation/federation_split_brain.py` 연결 요소 과반 분파 판정 + 4단계 안전 사다리(NOMINAL/HOLD/DESCEND/LAND) 결정적 에스컬레이션 + 이력현상 + 불변 감사 로그, 20건 PASS (2026-06-15)
-- [ ] **Phase 426-429·431-440** 🛰 Federation Operations — 2-인스턴스 연합 E2E·핸드오버 시각화·인스턴스 간 신뢰 모델·3+ 메시 연합·글로벌 시계
+- [ ] **Phase 426-428·431-440** 🛰 Federation Operations — 2-인스턴스 연합 E2E·핸드오버 시각화·인스턴스 간 신뢰 모델·3+ 메시 연합·글로벌 시계
 - [x] **Phase 447** 🔬 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` NFZ·ATC·SORA 140케이스 (2026-06-12)
 - [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12)
 - [x] **Phase 449** 🔬 시뮬-실측 갭 모델 — `src/training/sim_real_gap.py` Domain Randomization 파라미터 자동 보정, 7건 PASS (2026-06-15)

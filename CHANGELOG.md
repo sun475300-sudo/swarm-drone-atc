@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — 일일 점검 2026-06-15 (10차): ODYSSEY Phase 429 연합 감사 로그
+- **`simulation/federation_audit.py`** (신규) — 인스턴스 경계를 넘는 **변조 탐지(tamper-evident) 연합 감사 원장**. `FederationAuditLog` 은 append-only SHA-256 해시 체인으로, 각 항목(`AuditEntry`, frozen)이 직전 다이제스트를 재료에 포함해 중간 항목의 변조·삭제가 이후 모든 다이제스트를 깨뜨린다 → `verify()` 가 검출. 다이제스트 재료는 **길이 접두(length-prefixed) 직렬화**라 어떤 필드값이 구분자를 포함해도 서로 다른 필드 조합이 같은 재료를 만들 수 없어(주입·충돌 구조적 차단). 인스턴스별 단조 논리시계 강제, 인스턴스/이벤트 종류 쿼리.
+- 두 인스턴스 원장은 결정적 **CRDT 류 `merge`** — 내용 키 `(logical_clock, instance_id, event_type, detail)` 사전식 전순서로 중복 제거 후 재-체인. **교환·결합·흡수 멱등**이라 어느 순서로 몇 번을 합쳐도 같은 head 다이제스트(재현·독립 검증). 분기(fork)된 같은 인스턴스 항목도 보존하며, 병합 경로는 `record()` 의 단조 검증을 우회해 분기 히스토리를 깨지 않는다.
+- 단위 테스트 `tests/test_federation_audit.py` **29건 PASS** — 체인 연결·결정성·변조/삭제 탐지·구분자 위생·단조 시계·쿼리·병합 교환/결합/흡수멱등/중복제거/fork보존·record-after-merge. 인접 federation 회귀(handover·conflict·notam·split_brain·discovery·operational_intent) **122건 PASS**. 기존 `.py` 소스 무수정(순수 추가) → 회귀 무영향.
+- code-reviewer 어드바이저 1회 반영: ① (CRITICAL) 다이제스트 재료를 길이 접두 직렬화로 전환해 `prev_digest` 포함 모든 필드의 구분자 주입·충돌을 구조적으로 차단, ② (HIGH) CRDT 흡수 멱등(`a.merge(b).merge(b)==a.merge(b)`)·`record`-after-`merge` 테스트 2건 보강(27→29), ③ 병합 원장의 비단조 분기 보존 의미를 `record`/`merge` docstring 에 명시. "frozen 으로 전환" HIGH 1건은 인접 `SafeDescentPolicy`(가변 `@dataclass` 누적자)와 동일 패턴이라 컨벤션 일관성 위해 보류. MEDIUM(내용 키 dedup=의도된 CRDT 의미)·LOW(동일 클래스 private 접근=관용)도 보류.
+- ROADMAP Federation Operations 라인을 `Phase 429` 완료 반영 + 잔여 `Phase 426-428·431-440` 으로 갱신. PR #331(Phase 428 신뢰 모델, 별도 브랜치 draft)과 비경쟁(서로 다른 신규 파일).
+
 ### 통합 (chore) — 일일 점검 2026-06-15 (8차): ODYSSEY Federation Operations 3건 통합 (Phase 424·425·430)
 - 열린 PR 21건(피처 8 + dependabot 13) triage 후, **기존 `.py` 소스 무수정·신규 파일만 추가하는 비경쟁 Phase PR 3건**을 본 작업 브랜치에 통합. 신규 컨테이너에 pytest+core deps 설치 후 신규 모듈 50건 + 인접 federation 회귀(handover 16·discovery 14·operational_intent 24) **104건 PASS** 로컬 검증. 전체 4,713 테스트 수집(hypothesis 미설치 환경 한정 4건 collection 에러는 본 변경 무관·기존 이슈).
   - **#327 Phase 424** — `simulation/federation_conflict_resolution.py` 연합 충돌 해소. Phase 422 `intents_conflict` 로 충돌 탐지 후 Phase 602 `VickreyAuction`(2위 가격제 봉인입찰) 재사용해 우선순위 협상. 낮은 priority 번호=높은 입찰가 결정적 사상, 동률은 `hashlib.sha256(intent_id)` 안정 해시로 분리(Python `hash()` 솔트 비결정성 회피). `apply_resolutions` 는 패자만 CONTINGENT 로 전환한 새 튜플 반환(원본 불변), 청산가는 Vickrey 차순위로 감사 기록 (11건).

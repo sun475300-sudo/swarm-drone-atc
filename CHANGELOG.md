@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — GENESIS Phase 311 KISA CSAP 클라우드 보안인증 자가진단 자동화 (2026-06-15)
+- **`simulation/csap_self_assessment.py`** (신규) — 과학기술정보통신부·KISA 「클라우드 보안인증제(CSAP)」 정보보호 기준의 14개 통제분야에 정렬한 자가진단 도구. 외부 호출 없이 이행 상태로부터 영역별 이행률·종합 준비도를 결정적으로 산출.
+  - `DEFAULT_CATALOG` — CSAP 정보보호 기준 14개 통제분야(정책·인적·자산·공급망·침해사고·위험·대책·접근통제·암호화·개발·운영·서비스·물리·재해복구) × 대표 통제항목 카탈로그(운영자 교체·확장 가능).
+  - `Status` 4종(이행/부분이행/미이행/해당없음) — 부분이행 0.5, 해당없음은 분모 제외하는 결정적 점수화. 응답 누락 항목은 보수적으로 미이행 처리.
+  - `assess_csap()` — 분야별 `DomainScore`(이행률) + 종합 이행률 + 준비도 판정(95% 신청 권장 / 80% 보완 후 신청 / 미만 준비 부족) + 종합 이하 약화 분야 식별.
+  - `build_responses()`·`build_report()`·`export_json()`·`export_text()` — `ControlResult` 변환 + 결정적 JSON/한국어 텍스트 export. **20건 PASS**, 기존 소스 무수정(순수 추가형).
+
 ### 통합 (chore) — 일일 점검 2026-06-15 (2차): 적체 PR 9건 무충돌 통합 (머지 병목 해소)
 - 열린 PR 30건(피처 20 + dependabot 10) triage 후, **기존 코드 무수정·순수 추가형** Phase PR 9건을 단일 통합 브랜치로 합류. 신규 모듈 9개 + 단위 테스트 **190건 전부 PASS**, 기존 `.py` 소스 무수정(문서·신규 파일만) → 회귀 무영향.
   - **#313** (5건 누적): Phase 322 `scenario_schema.py` · 342 `jeonnam_island_sites.py` · 367 `swarm_self_healing.py` · 401·406 `geo_zones.py` · 449 `sim_real_gap.py`.

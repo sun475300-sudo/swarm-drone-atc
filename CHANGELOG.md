@@ -28,6 +28,14 @@
 - 단위 테스트 `tests/test_federation_audit.py` **29건 PASS** — 체인 연결·결정성·변조/삭제 탐지·구분자 위생·단조 시계·쿼리·병합 교환/결합/흡수멱등/중복제거/fork보존·record-after-merge. 인접 federation 회귀(handover·conflict·notam·split_brain·discovery·operational_intent) **122건 PASS**. 기존 `.py` 소스 무수정(순수 추가) → 회귀 무영향.
 - code-reviewer 어드바이저 1회 반영: ① (CRITICAL) 다이제스트 재료를 길이 접두 직렬화로 전환해 `prev_digest` 포함 모든 필드의 구분자 주입·충돌을 구조적으로 차단, ② (HIGH) CRDT 흡수 멱등(`a.merge(b).merge(b)==a.merge(b)`)·`record`-after-`merge` 테스트 2건 보강(27→29), ③ 병합 원장의 비단조 분기 보존 의미를 `record`/`merge` docstring 에 명시. "frozen 으로 전환" HIGH 1건은 인접 `SafeDescentPolicy`(가변 `@dataclass` 누적자)와 동일 패턴이라 컨벤션 일관성 위해 보류. MEDIUM(내용 키 dedup=의도된 CRDT 의미)·LOW(동일 클래스 private 접근=관용)도 보류.
 - ROADMAP Federation Operations 라인을 `Phase 429` 완료 반영. Phase 428(신뢰 모델)과 함께 통합되어 잔여 `Phase 426-427·431-440` 으로 갱신. 서로 다른 신규 파일이라 비경쟁.
+### 추가 (feat) — 일일 점검 2026-06-15: ODYSSEY Phase 432 메시 연합 토폴로지 + 멀티홉 전파
+- 작업 상황 점검 결과 ODYSSEY Federation Operations(421-440) 중 머지 완료는 421-425·430, 열린 draft PR은 428(신뢰)·429(감사 로그)·431(HLC). **머지된 모듈에만 의존하고 열린 PR과 비경쟁(신규 파일만 추가)인 진짜 공백 Phase 432**를 본 브랜치에서 신규 구현.
+- **Phase 432** — `simulation/federation_mesh.py` (신규). Phase 421 디스커버리 등록 상태로 인스턴스 간 **공역 경계 인접 그래프**를 결정적으로 구성하고 그 위에서 멀티홉 전파를 계산한다.
+  - **경계 인접 정의**: 타일형(비중첩) 공역을 위해 수평(x·y)은 `border_tolerance_m`(기본 1.0 m) 이내 접촉을 이웃으로 인식, 수직(z)·시간(t)은 엄격 4D 교차로 분리. Phase 425의 `Volume4D.overlaps`(엄격 교차)는 맞닿은 타일([0,1000)·[1000,2000))을 비이웃으로 보므로 메시 토폴로지용 인접을 별도 정의.
+  - **그래프 질의**: `neighbors`·`adjacency`(대칭·정렬)·`components`(연결 요소)·`is_connected`·`shortest_path`(동률은 정렬 이웃 우선 BFS) — 모두 정렬 출력으로 재현성 보장.
+  - **멀티홉 전파**: Phase 425의 1홉 직접 NOTAM 전파를 메시 전역으로 일반화한 `propagate`(origin→홉 수, TTL 한정 플러딩)와 `relay_table`(목적지→다음 홉 중계 포워딩 테이블). 중간 인스턴스를 경유해야만 닿는 먼 인스턴스 전파를 결정적으로 산정.
+  - 디스커버리에 공개 접근자 `volume_of(instance_id)` 1개만 추가(타일 경계 기하 직접 산정용, 기존 동작 무영향).
+- **검증**: 새 컨테이너에 core deps(numpy·simpy·pandas·scipy·pyyaml·hypothesis) + pytest 설치 후 `tests/test_federation_mesh.py` **25건** 신규 + 인접 federation 회귀(discovery 14·handover 16·notam·conflict·split_brain·operational_intent 등) 합산 **129건 PASS** 로컬 검증. 외부 네트워크·랜덤 0(순수 결정적).
 
 ### 통합 (chore) — 일일 점검 2026-06-15 (8차): ODYSSEY Federation Operations 3건 통합 (Phase 424·425·430)
 - 열린 PR 21건(피처 8 + dependabot 13) triage 후, **기존 `.py` 소스 무수정·신규 파일만 추가하는 비경쟁 Phase PR 3건**을 본 작업 브랜치에 통합. 신규 컨테이너에 pytest+core deps 설치 후 신규 모듈 50건 + 인접 federation 회귀(handover 16·discovery 14·operational_intent 24) **104건 PASS** 로컬 검증. 전체 4,713 테스트 수집(hypothesis 미설치 환경 한정 4건 collection 에러는 본 변경 무관·기존 이슈).

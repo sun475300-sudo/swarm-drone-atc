@@ -200,6 +200,14 @@ class FederationDiscoveryService:
         """현재 등록된 모든 인스턴스 id를 정렬해 반환한다."""
         return tuple(sorted(self._entities))
 
+    def volume_of(self, instance_id: str) -> Volume4D:
+        """등록된 인스턴스의 관리 볼륨(불변 ``Volume4D``)을 반환한다.
+
+        메시 토폴로지(Phase 432)가 타일형(비중첩) 인스턴스 간 경계 인접을
+        직접 계산하려면 볼륨 기하가 필요하다. 미등록 인스턴스면 ``KeyError``.
+        """
+        return self._entities[instance_id].volume
+
     def summary(self) -> dict[str, int]:
         """결정적 상태 요약 — 인스턴스 수·점유 셀 수·현재 버전."""
         return {

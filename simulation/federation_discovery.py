@@ -58,6 +58,19 @@ class Volume4D:
             and other.t_start < self.t_end
         )
 
+    def contains(self, x: float, y: float, z: float, t: float) -> bool:
+        """4D 점 (x, y, z, t)이 볼륨 내부에 있으면 True (반열린 구간 [min, max)).
+
+        상한 경계는 제외한다(overlaps의 엄격 부등식과 일관). 인접 볼륨이 경계를
+        공유할 때 한 점이 양쪽에 동시 귀속되지 않도록 보장한다(핸드오버 결정성).
+        """
+        return (
+            self.x_min <= x < self.x_max
+            and self.y_min <= y < self.y_max
+            and self.z_min <= z < self.z_max
+            and self.t_start <= t < self.t_end
+        )
+
 
 @dataclass(frozen=True)
 class Subscription:
@@ -155,6 +168,23 @@ class FederationDiscoveryService:
             iid
             for iid in candidates
             if iid != exclude and self._entities[iid].volume.overlaps(volume)
+        ]
+        return tuple(sorted(matched))
+
+    def covering(self, x: float, y: float, z: float, t: float) -> tuple[str, ...]:
+        """4D 점을 포함하는 인스턴스 id를 정렬해 반환한다 (관제권 결정의 1차 입력).
+
+        점이 닿는 그리드 셀의 후보만 정밀 ``Volume4D.contains`` 로 확정한다.
+        경계 공유 볼륨은 반열린 구간 규약으로 중복 귀속이 없다.
+        """
+        ix = math.floor(x / self.cell_size_m)
+        iy = math.floor(y / self.cell_size_m)
+        # query()와 동일하게 내부 셋의 스냅샷을 떠서 순회한다(반복 중 변경 방지).
+        candidates = set(self._cell_index.get((ix, iy), ()))
+        matched = [
+            iid
+            for iid in candidates
+            if self._entities[iid].volume.contains(x, y, z, t)
         ]
         return tuple(sorted(matched))
 

@@ -134,8 +134,8 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 | **HYPER Plan** (시뮬 Phase 10-50) | 100% | ████████████ | 41개 추가 Phase (해양 ATC · VR · AI Copilot · 적대 · C-UAS · 행성 등) |
 | **STELLAR~POST-UNIVERSE** (시뮬 Phase 51-200) | 100% | ████████████ | Phase 200 = 𝟏 (Unity) · Phase 51 LLM Multi-Agent 격상 (단, 다수 mock/speculative — maturity 공시) |
 | **TRANSCENDENCE** (시뮬 Phase 201-300) | 10% | █░░░░░░░░░░░ | Phase 201-208 Maturity Honesty 완료 (분류·Mock Detector·experimental·beta·production 회귀) |
-| **GENESIS** (시뮬 Phase 301-400) | 9% | █░░░░░░░░░░░ | 301·302·304·306·309·381·387·388·389 완료 — 인증 가이드 4종·교육·레거시 |
-| **ODYSSEY** (시뮬 Phase 401-500) | 5% | █░░░░░░░░░░░ | 408 ICAO 매핑·447 fuzzing·448 property·466 schema·486 재현 완료 |
+| **GENESIS** (시뮬 Phase 301-400) | 11% | █░░░░░░░░░░░ | 301·302·304·306·309·310·322·342·367·381·387·388·389 완료 — 인증·생태계·배포·자율 모듈 |
+| **ODYSSEY** (시뮬 Phase 401-500) | 8% | █░░░░░░░░░░░ | 401·406 좌표계·408 ICAO 매핑·421 디스커버리·447 fuzzing·448 property·449 갭 모델·466 schema·486 재현 완료 |
 
 **총 Phase 691-755 (65개) 중 61개 완료 = 94%** (Phase 1-690 포함 시 전체 751/755 = **99.5%**)
 **+ 시뮬레이터 MEGA 9 + HYPER 41 = 50 Phase 100% 완료** (총 800 Phase 중 796 완료 = **99.5%**)
@@ -265,9 +265,10 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 - [x] **Phase 301** 🏭 항공안전법·드론활용촉진법 적합성 매트릭스 — `docs/certification/AIR_SAFETY_ACT_MATRIX.md` (2026-06-12)
 - [x] **Phase 302** 🏭 SORA 자동 계산기 — `_sdacs.soraAssess()` JARUS 2.0 결정적 구현, E2E 6건 (2026-06-12)
-- [x] **Phase 304** 🏭 KC 전파인증 체크리스트 — `docs/certification/KC_RADIO_CERTIFICATION.md` (2026-06-12)
+- [x] **Phase 304** 🏭 KC 전파인증 체크리스트 — `docs/certification/KC_RADIO_CERTIFICATION.md` + `simulation/kc_certification.py` 통신 모듈별 적합성평가, 23건 PASS (2026-06-12, 모듈 2026-06-15)
 - [x] **Phase 306** 🏭 RTM 5계층 커버리지 — `docs/certification/RTM_5LAYER_COVERAGE.md` 21건 추적 (2026-06-12)
-- [x] **Phase 309** 🏭 조종자 자격증명 매핑 — `docs/certification/PILOT_LICENSE_MAPPING.md` (2026-06-12)
+- [x] **Phase 309** 🏭 조종자 자격증명 매핑 — `docs/certification/PILOT_LICENSE_MAPPING.md` + `simulation/pilot_certification.py` 1~4종 ↔ 시뮬 교육 모드, 24건 PASS (2026-06-12, 모듈 2026-06-15)
+- [x] **Phase 310** 🏭 야간·비가시(BVLOS) 특별비행승인 안전기준 검증 — `simulation/special_flight_approval.py` 결정적 체크, 25건 PASS (2026-06-15)
 - [ ] **Phase 301·303-320** 🏭 Certification & Compliance — 항공안전법 매트릭스·DO-178C 갭 분석·CSAP 자동화
 - [x] **Phase 322** 🌍 `.sdacs-scenario` 스키마 + 검증기 — `simulation/scenario_schema.py` + `docs/schemas/sdacs-scenario.schema.json`, 20건 PASS (2026-06-15)
 - [ ] **Phase 321-340** 🌍 Ecosystem & Open Source — 플러그인 SDK·`@sdacs/core` npm·`sdacs-sim` PyPI·v2.0 API 안정화
@@ -300,6 +301,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [ ] **Phase 481-485·487-500** ♾️ Continuum — 의존성 장기 추적·승계 규약·**Phase 500 = Centennial 선언**
 
 ---
+
+*2026-06-15 (일일 점검 3차 — 머지 병목 추가 해소) — **적체 통합 PR #317 머지 + 중복 PR 6건 정리**: 신규 세션 컨테이너에서 의존성 설치 후 핵심 회귀 green 확인. 점검 시점 열린 PR **35건**(피처 ~14 + dependabot 10 + 통합 1) triage. 통합 PR **#317**(일일 점검 2차 — clean·CI green[CI·Canonical Hash·Security 3종 success]·기존 소스 무수정 순수 추가 9개 Phase 모듈)을 main 머지(`caf4f2b`): Phase 304(KC 전파인증)·309(조종자 자격)·310(BVLOS 특별승인)·322(시나리오 스키마)·342(전남 도서 의료거점)·367(스웜 자가치유)·401·406(다국 좌표계·EASA U-space)·408(공역 클래스)·449(시뮬-실측 갭). 머지 후 9개 모듈 단위 테스트 **190 PASS** 재검증. #317에 의해 통합·대체된 원본 PR **#313·#316·#314·#315·#307** 및 경쟁 중복 **#306**(Phase 304 대안)을 closed 정리. 잔여 적체(경쟁 구현 #295/#285/#289[445·446]·#280/#281[207 배지]·perf #283·dependabot 10건)는 사람 판단/후속 대상으로 보고.*
 
 *2026-06-14 (일일 점검 + 머지 병목 해소) — **신규 컨테이너 독립 재현 GREEN + 적체 PR 정리**: 신규 세션 컨테이너에서 의존성 설치 후 main(`32cdfd2`) baseline 회귀 **4,089 pass / 280 skip / 0 fail**(83.97%) 재현. 점검 시점 열린 PR **30건**(머지 병목 — Phase 307×5·304×2·445×3·207×2 등 중복 누적)을 정밀 triage. clean·CI green·중복 아닌 Phase 3건을 머지: **#310 ODYSSEY Phase 421**(인스턴스 간 디스커버리, ASTM F3548-21 DSS 결정적 모델)을 main 직접 머지(`8be9a3c`, main CI·Canonical Hash·Security 전부 success), **#309 GENESIS Phase 307**(ARAIB 사고 보고 양식)·**#308 ODYSSEY Phase 467**(ICAO Annex 13 사고 조사 변환기)은 README/CHANGELOG append 충돌만 있어 본 작업 브랜치에 통합·해소. 통합 후 전체 회귀 **4,147 pass / 280 skip / 0 fail**(84.06%, +58 신규). 잔여 적체 PR(중복·dirty·dependabot)은 후속 정리 대상으로 보고.*
 

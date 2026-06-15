@@ -144,6 +144,23 @@
 - **검증**: `tests/test_ablation_study.py` 12개 단위 테스트 PASS(해결률 공식·집계·토글 plumbing·
   통합 스모크). 샘플 실행(25드론·90s·2시드)에서 APF 제거 시 충돌 1.00→2.50, 해결률 98.25%→94.50%로
   악화 — 안전망 효과를 정량 확인. 전체 회귀 기준선 **4,071 pass / 280 skip / 0 fail**(83.87%) 영향 없음.
+### 수정 (fix) — Phase 207 Maturity Badge 자동 생성·드리프트 해소 (2026-06-13)
+- **드리프트 발견**: 수작업 유지되던 `docs/badges/maturity.svg`가 `prod 89`로 표기되어
+  라이브 실측(`maturityReport()`)·자동 생성 `docs/SDACS_API.md`의 **production 90**과 불일치.
+  Phase 207은 "완료"로 표기되어 있었으나 배지가 코드 생성물이 아니라 수작업이라 무방비로 어긋남.
+- **해소**: `scripts/extract_sdacs_api.py`에 `render_badge_svg(counts)` 순수 함수 추가 —
+  라이브 maturity counts에서 배지 SVG를 **결정적으로 생성**(세그먼트 폭을 카운트 자릿수에서 산출).
+  재생성 시 `maturity.svg`도 함께 출력하고, `--check` 게이트(CI `sim-smoke.yml`)에 배지-실측
+  정합성 검사를 편입해 향후 드리프트를 차단. 배지를 `prod 90`으로 정정.
+- **테스트**: `tests/test_maturity_badge.py` 신규 7건 (counts 포함·title 일치·SVG 구조·폭 산출·
+  결정성·자릿수 변화·저장 배지=생성기 출력 게이트). 브라우저 없이 순수 함수만 검증.
+
+### 점검 (chore) — 일일 점검 2026-06-13 (신규 컨테이너 독립 재현 GREEN)
+- 신규 세션 컨테이너에서 의존성 신규 설치(`blinker` RECORD 충돌은 `--ignore-installed`,
+  `pytest-xdist`·`pytest-timeout`·`hypothesis` 추가 설치) 후 전체 회귀 **독립 재현**:
+  `python -m pytest tests/` → **4,065 pass / 267 skip / 0 fail** (545.46s) — 본 세션 +7 배지 테스트 포함.
+  커버리지 게이트(≥ 80%) 통과.
+- **저장소 상태**: 열린 이슈 0건. main 직전 머지 PR #265(Maturity 정직성·SORA·계획 3층) 기준 동기.
 
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:

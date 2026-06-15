@@ -962,6 +962,7 @@ MIT License — Developed for academic and educational purposes.
 | --- | --- | --- | --- |
 | 2026-06-15 05:10 | `c9923b1` | feat: 일일 점검 2026-06-15 — 적체 PR 5건 무충돌 통합 (Phase 322·342·367·401·406·449) | CHANGELOG.md, ROADMAP.md, docs/schemas/sdacs-scenario.schema.json, simulation/geo_zones.py, simulation/scenario_schema.py, src/applications/jeonnam_island_sites.py … |
 | 2026-06-15 08:07 | `ed3f334` | feat(genesis): Phase 310 야간·비가시 특별비행승인 안전기준 검증 | docs/SIMULATOR_GENESIS_PLAN.md, simulation/special_flight_approval.py, tests/test_special_flight_approval.py |
+| 2026-06-15 06:11 | `ddf58ea` | feat(genesis): Phase 309 조종자 자격(1~4종) ↔ 시뮬 교육 모드 매핑 | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/PILOT_LICENSE_MAPPING.md, simulation/pilot_certification.py, tests/test_pilot_certification.py |
 | 2026-06-14 09:15 | `072bccd` | feat(odyssey): Phase 422 운영 의도 4D 볼륨 교환 포맷 | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/operational_intent.py, tests/test_operational_intent.py |
 | 2026-06-15 03:17 | `dd022bb` | docs: 일일 점검 2026-06-14 — 머지 병목 triage + Phase 421·307·467 통합 | ROADMAP.md |
 | 2026-06-15 00:10 | `cdcb7b5` | feat(odyssey): Phase 421 인스턴스 간 디스커버리 프로토콜 (DSS 유사 결정적 모델) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_discovery.py, tests/test_federation_discovery.py |

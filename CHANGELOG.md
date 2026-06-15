@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — 일일 점검 2026-06-15 (8차): ODYSSEY Phase 424 연합 충돌 해소
+- **`simulation/federation_conflict_resolution.py`** (신규) — 인스턴스 간 우선순위 협상. 서로 다른 SDACS 인스턴스가 같은 4D 공역을 점유하려 할 때 Phase 422 `intents_conflict` 로 충돌을 탐지하고, Phase 602 `VickreyAuction`(2위 가격제 봉인입찰)을 재사용해 점유 의도(승자)와 양보 의도(패자)를 결정한다. 우선순위→입찰가는 결정적 선형 사상(낮은 priority 번호=높은 입찰가), 동률 우선순위는 `hashlib.sha256(intent_id)` 안정 해시로 분리(Python `hash()` 솔트 비결정성 회피). 청산가는 Vickrey 차순위 입찰가로 감사 기록.
+- 불변성 준수 — `apply_resolutions` 는 원본 의도를 변형하지 않고 패자만 `CONTINGENT` 로 전환한 새 튜플 반환. 감사 로그는 `frozen` `ConflictResolution` 튜플로 노출(외부 변형 불가).
+- **`tests/test_federation_conflict_resolution.py`** (신규) — 단위 **11건 PASS** (충돌 없음→None·고우선순위 승리·Vickrey 2위 가격·동률 결정성·ENDED 비충돌·감사 로그 불변·쌍별 resolve_all·패자 CONTINGENT 불변 전환·용량 초과 priority 거부·max_priority<2 거부·CONTINGENT 재경합 방지). 인접 federation/operational/auction 회귀 GREEN.
+- code-reviewer 어드바이저 1회 반영: ① 미사용 `RETAINED` 상수 죽은 코드 제거, ② `resolve_all` 이 이미 CONTINGENT 인 의도를 재경합에서 제외(apply_resolutions 결과 재투입 시 양보 의도가 승자를 뒤집지 않도록), ③ `max_priority<2`(priority>=1 불변식상 사용 불가 resolver) 생성 시 거부, ④ 청산가 테스트를 승자/패자 입찰가 양쪽 검증으로 강화.
+- 기존 `.py` 소스 무수정(순수 추가, `operational_intent`·`drone_auction_market` 임포트만) → 회귀 무영향. Federation Operations 트랙 Phase 421·422·423 위 연속 구현.
+
 ### 통합 (chore) — 일일 점검 2026-06-15 (5차): 신규 코드 PR 3건 통합 + 적체 중복 PR triage
 - 열린 PR 32건(피처 19 + dependabot 13) triage 후, **신규 파일만 추가하는 비경쟁 Phase PR 3건**을 본 작업 브랜치에 통합. 신규 컨테이너에 pytest+core deps 설치 후 baseline **4,361 pass / 280 skip / 0 fail** 재현 → 통합 후 전체 **4,456 pass / 280 skip / 0 fail**(+95건, 회귀 0).
   - **#320 Phase 423·286·226·209-210** (4차 번들) — `simulation/federation_handover.py`·`scripts/ablation_study.py`(+`SwarmSimulator`/`AirspaceController` 가드 토글)·`src/digital_twin/sync_engine.py` WGS84 엄밀해·`docs/API_DEPRECATION_POLICY.md`.

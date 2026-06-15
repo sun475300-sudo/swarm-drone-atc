@@ -87,6 +87,14 @@
 - `docs/certification/FLIGHT_PLAN_FILING.md` 신규 — 근거 법령·임계값·API·5계층 안전망(Layer 0) 연계.
 - `docs/SIMULATOR_GENESIS_PLAN.md` Phase 303 ✅ 표시. SORA 계산기(302)와 함께 규제 적합 자산 확장.
 
+### 추가 (docs) — TRANSCENDENCE Phase 209·210: API Deprecation Policy + SemVer 규약 (2026-06-13)
+- `docs/API_DEPRECATION_POLICY.md` 신설 — `window._sdacs` 외부 404 API의 **버전 관리·폐기 규약**을 단일 기준으로 확정:
+  - **Phase 210 (SemVer)**: MAJOR/MINOR/PATCH ↔ API 영향 정의 + 4개 호환성 불변식 + maturity 격상(speculative→mock→beta→production)을 MINOR로 취급.
+  - **Phase 209 (Deprecation)**: ACTIVE → DEPRECATED(≥1 MINOR, `console.warn` 1회) → REMOVED(MAJOR 경계) 3단계 생애주기 + maturity별 폐기 보수성 차등(production 최장 유지) + Deprecation Registry 표(현재 0건) + `experimental.*` 면책 규정.
+  - 변경 절차 체크리스트(VERSION.md 증가·E2E 동반·`extract_sdacs_api.py --check` G-2·md5 G-4·CHANGELOG 표기)로 기존 거버넌스 게이트와 연결.
+- 근거: `docs/MASTER_PLAN_2026H2.md` Track Ⅱ-4 (Phase 209-210 Deprecation Policy + SemVer 문서) — 명시된 차기 스프린트 항목 완료.
+- 영향: 핵심 시뮬레이터 코드·테스트 무변경(문서 전용), 4 사본 md5 불변. 베이스라인 회귀 **4,071 pass / 280 skip / 0 fail** GREEN 독립 재현 확인(신규 컨테이너, `pytest -n auto`, 103s).
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (388.13s).

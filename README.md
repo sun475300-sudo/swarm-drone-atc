@@ -966,6 +966,7 @@ MIT License — Developed for academic and educational purposes.
 | 2026-06-15 06:11 | `ddf58ea` | feat(genesis): Phase 309 조종자 자격(1~4종) ↔ 시뮬 교육 모드 매핑 | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/PILOT_LICENSE_MAPPING.md, simulation/pilot_certification.py, tests/test_pilot_certification.py |
 | 2026-06-15 07:09 | `a5f4d9d` | feat(odyssey): Phase 408 공역 클래스 A-G 자동 매핑 API 격상 | README.md, ROADMAP.md, docs/certification/AIRSPACE_CLASS_MAPPING.md, simulation/airspace_class.py, tests/test_airspace_class.py |
 | 2026-06-14 09:15 | `072bccd` | feat(odyssey): Phase 422 운영 의도 4D 볼륨 교환 포맷 | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/operational_intent.py, tests/test_operational_intent.py |
+| 2026-06-13 18:10 | `532e0eb` | docs: TRANSCENDENCE Phase 209·210 — API Deprecation Policy + SemVer 규약 | CHANGELOG.md, ROADMAP.md, docs/API_DEPRECATION_POLICY.md, docs/MASTER_PLAN_2026H2.md, docs/SIMULATOR_TRANSCENDENCE_PLAN.md |
 | 2026-06-15 03:17 | `dd022bb` | docs: 일일 점검 2026-06-14 — 머지 병목 triage + Phase 421·307·467 통합 | ROADMAP.md |
 | 2026-06-15 00:10 | `cdcb7b5` | feat(odyssey): Phase 421 인스턴스 간 디스커버리 프로토콜 (DSS 유사 결정적 모델) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_discovery.py, tests/test_federation_discovery.py |
 | 2026-06-14 23:08 | `71eeef2` | feat(genesis): Phase 307 사고 보고 양식 자동 작성 (ARAIB 표준) | docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/ACCIDENT_REPORT.md, simulation/accident_report.py, tests/test_accident_report.py |

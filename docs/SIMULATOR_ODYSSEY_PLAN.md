@@ -53,7 +53,8 @@
 - **Phase 428** 신뢰 모델 — 인스턴스 간 Bayesian 평판 (기존 reputation 재사용)
 - **Phase 429** 연합 감사 로그 — 관제권 이양 불변 기록
 - **Phase 430** ✅ 분할 뇌(split-brain) 시나리오 — 연합 단절 시 안전 강하 정책 (2026-06-15, `simulation/federation_split_brain.py` — `PartitionSnapshot` 양방향 링크를 연결 요소로 분해해 과반(majority) 분파 판정 + `SafeDescentPolicy` 4단계 안전 사다리 NOMINAL/HOLD/DESCEND/LAND. 고립·커버리지 상실 지속 시 단계 상승, 정상 복귀 시 이력현상 초기화, 불변 감사 로그. Phase 423이 미룬 안전 강하 책임 구체화. 단위 20건)
-- **Phase 431-440** 3+ 인스턴스 메시 연합 + 글로벌 시계(hybrid logical clock)
+- **Phase 432** ✅ 메시 연합 토폴로지 + 멀티홉 전파 (2026-06-15, `simulation/federation_mesh.py` — Phase 421 디스커버리 등록 상태로 공역 경계 인접 그래프를 결정적으로 구성. 타일형(비중첩) 공역도 수평(x·y) `border_tolerance_m` 이내 접촉을 이웃으로 인식하고 수직(z)·시간(t)은 엄격 4D 교차로 분리 — Phase 425 `overlaps`(엄격)가 맞닿은 타일을 비이웃으로 보는 한계 보완. 연결 요소(`components`)·연결성(`is_connected`)·동률을 정렬 이웃으로 분리하는 BFS 최단 경로(`shortest_path`) + Phase 425의 1홉 직접 전파를 메시 전역으로 일반화한 TTL 한정 멀티홉 전파(`propagate`)·중계 포워딩 테이블(`relay_table`). 디스커버리에 공개 접근자 `volume_of` 1개 추가(타일 경계 기하 직접 산정용). 단위 25건)
+- **Phase 431·433-440** 3+ 인스턴스 메시 연합 라우팅 확장 + 글로벌 시계(hybrid logical clock)
 
 ### Track 🔬 — Formal & Research Frontier (Phase 441-460) · 형식 검증·연구 개척
 

@@ -41,7 +41,8 @@
 - **Phase 308** 보험 요율 산정 인터페이스 (Phase 67 mock 격상 — 실 보험사 API 스펙)
 - **Phase 309** ✅ 조종자 자격(1~4종) 요건 ↔ 시뮬 교육 모드 매핑 — `simulation/pilot_certification.py` (MTOW 기준 종별 결정적 분류·종별 교육/시험 요건·조종자 준비도 판정·JSON/텍스트 export, 24건 PASS / 문서 `PILOT_LICENSE_MAPPING.md` §6 격상) (2026-06-15)
 - **Phase 310** ✅ 야간·비가시 특별비행승인 안전기준 검증 — `simulation/special_flight_approval.py` (특별비행 안전기준 고시 기준 공통·야간·비가시 항목별 결정적 적합 판정·승인 가능 판정·JSON/텍스트 export, 25건 PASS) (2026-06-14)
-- **Phase 311-315** KISA CSAP 96항목 자가진단 자동화 (`security_audit.sh` 확장)
+- **Phase 311** ✅ KISA CSAP 자가진단 자동화 — `simulation/csap_self_assessment.py` (CSAP 정보보호 기준 14개 통제분야 정렬·이행 상태 4종 결정적 점수화·영역별 이행률·종합 준비도 판정·JSON/텍스트 export, 20건 PASS) (2026-06-15)
+- **Phase 312-315** KISA CSAP 통제항목 카탈로그 확장 (`security_audit.sh` 연계 자동 수집)
 - **Phase 316-320** UAM 운용기준(K-UAM 로드맵 2.0) 정렬 + 감항 인증 준비 문서
 
 **산출물**: `docs/certification/` 디렉터리 + `_sdacs.soraAssess()` production API

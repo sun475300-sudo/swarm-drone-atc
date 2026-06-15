@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sun475300-sudo.github.io/swarm-drone-atc/schemas/sdacs-scenario.schema.json",
+  "title": "SDACS Scenario (.sdacs-scenario)",
+  "description": "config/scenario_params/*.yaml 실행형 시나리오 표준 계약 (GENESIS Phase 322). scenario_runner._translate_scenario 가 소비하는 필드를 정의한다. 시나리오 마켓플레이스·플러그인 SDK(Phase 321)가 외부 시나리오를 공유·검증할 때 이 계약에 의존한다. UAM 디렉터리(config/scenario_params/uam/*.yaml)는 별도의 풍부한 포맷으로 본 스키마 대상이 아니다.",
+  "type": "object",
+  "required": ["scenario", "description"],
+  "anyOf": [
+    { "required": ["simulation_duration_min"] },
+    { "required": ["simulation_duration_s"] }
+  ],
+  "properties": {
+    "scenario": {
+      "type": "string",
+      "minLength": 1,
+      "description": "시나리오 고유 식별자 (예: s01_normal_high_density)"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "사람이 읽는 시나리오 설명"
+    },
+    "simulation_duration_min": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "시뮬레이션 시간 (분). simulation_duration_s 와 택일."
+    },
+    "simulation_duration_s": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "시뮬레이션 시간 (초). simulation_duration_min 와 택일."
+    },
+    "drone_count": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "description": "초기 드론 수"
+    },
+    "base_drone_count": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "description": "기준 드론 수 (drone_count 대체 키)"
+    },
+    "total_drone_count": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "description": "다도시 시나리오 전체 드론 수"
+    },
+    "arrival_rate_per_min": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Poisson 도착률 (대/분)"
+    },
+    "area_km2": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "공역 면적 (km^2)"
+    },
+    "drone_profile_distribution": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "description": "드론 프로파일별 비율. 합이 1.0(±0.01) 이어야 한다."
+    },
+    "route_generation": {
+      "type": "object",
+      "description": "경로 생성 방식 설정"
+    },
+    "success_criteria": {
+      "type": "object",
+      "description": "시나리오 합격 기준 (collision_count, conflict_resolution_rate_min 등)"
+    },
+    "weather": { "type": "object" },
+    "intrusion": { "type": "object" },
+    "comms_loss": { "type": "object" },
+    "lost_link_protocol": { "type": "object" },
+    "failure_injection": { "type": "object" },
+    "separation_standards": { "type": "object" }
+  }
+}

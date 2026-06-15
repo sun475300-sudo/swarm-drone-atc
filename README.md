@@ -94,7 +94,7 @@
 - [x] **TRANSCENDENCE 205** ✅ Beta API 부분 검증 — `tests/e2e/test_simulator_beta_subset.py` (Copilot·적대·C-UAS·WindField·PQC 인터페이스 안정·라이프사이클·분류 회귀, 5건)
 - [x] **GENESIS 304** ✅ KC 전파인증 체크리스트 — `docs/certification/KC_RADIO_CERTIFICATION.md` (7 모듈 분류·신청 흐름·자가 점검·갭 분석)
 - [x] **GENESIS 309** ✅ 조종자 자격증명 매핑 — `docs/certification/PILOT_LICENSE_MAPPING.md` (1~4종 과목·실기 항목 ↔ SDACS 모듈, 튜토리얼 5단계 정렬)
-- [x] **ODYSSEY 408** ✅ ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` (9층 ↔ Class G/E/D/B, API 격상 후보)
+- [x] **ODYSSEY 408** ✅ ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` + `simulation/airspace_class.py` (`classify_airspace()` API 격상, 결정적 산정, 25건 PASS)
 - [ ] 추가 sandbox 후보(차기): GENESIS 303(비행계획 양식), GENESIS 307(사고 보고 자동화), ODYSSEY 421(인스턴스 디스커버리 프로토콜 초안)
 
 **기술 부채 (정직성 공시)**
@@ -960,11 +960,17 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-15 09:12 | `567e4a6` | docs: 일일 점검 2026-06-15 (2차) — 적체 PR 9건 통합 변경 이력 | CHANGELOG.md |
+| 2026-06-15 05:10 | `c9923b1` | feat: 일일 점검 2026-06-15 — 적체 PR 5건 무충돌 통합 (Phase 322·342·367·401·406·449) | CHANGELOG.md, ROADMAP.md, docs/schemas/sdacs-scenario.schema.json, simulation/geo_zones.py, simulation/scenario_schema.py, src/applications/jeonnam_island_sites.py … |
+| 2026-06-15 08:07 | `ed3f334` | feat(genesis): Phase 310 야간·비가시 특별비행승인 안전기준 검증 | docs/SIMULATOR_GENESIS_PLAN.md, simulation/special_flight_approval.py, tests/test_special_flight_approval.py |
+| 2026-06-15 06:11 | `ddf58ea` | feat(genesis): Phase 309 조종자 자격(1~4종) ↔ 시뮬 교육 모드 매핑 | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/PILOT_LICENSE_MAPPING.md, simulation/pilot_certification.py, tests/test_pilot_certification.py |
+| 2026-06-15 07:09 | `a5f4d9d` | feat(odyssey): Phase 408 공역 클래스 A-G 자동 매핑 API 격상 | README.md, ROADMAP.md, docs/certification/AIRSPACE_CLASS_MAPPING.md, simulation/airspace_class.py, tests/test_airspace_class.py |
 | 2026-06-14 09:15 | `072bccd` | feat(odyssey): Phase 422 운영 의도 4D 볼륨 교환 포맷 | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/operational_intent.py, tests/test_operational_intent.py |
 | 2026-06-15 03:17 | `dd022bb` | docs: 일일 점검 2026-06-14 — 머지 병목 triage + Phase 421·307·467 통합 | ROADMAP.md |
 | 2026-06-15 00:10 | `cdcb7b5` | feat(odyssey): Phase 421 인스턴스 간 디스커버리 프로토콜 (DSS 유사 결정적 모델) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_discovery.py, tests/test_federation_discovery.py |
 | 2026-06-14 23:08 | `71eeef2` | feat(genesis): Phase 307 사고 보고 양식 자동 작성 (ARAIB 표준) | docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/ACCIDENT_REPORT.md, simulation/accident_report.py, tests/test_accident_report.py |
 | 2026-06-14 22:12 | `0064488` | feat(odyssey): Phase 467 사고 조사 데이터 표준 변환기 (ICAO Annex 13) | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/INCIDENT_INVESTIGATION_REPORT.md, simulation/incident_investigation_report.py, tests/test_incident_investigation_report.py |
+| 2026-06-14 21:15 | `f3e7852` | feat(genesis): Phase 304 KC 전파인증 요건 체크리스트 (통신 모듈별 적합성평가) | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/KC_RADIO_CERTIFICATION.md, simulation/kc_certification.py, tests/test_kc_certification.py |
 | 2026-06-14 12:18 | `0f956b9` | feat(genesis): Phase 303 비행계획 신고 양식 자동 생성 (Drone One-Stop) | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/FLIGHT_PLAN_FILING.md, simulation/flight_plan_filing.py, tests/test_flight_plan_filing.py |
 | 2026-06-13 11:01 | `5b26e79` | fix(ci): sim-smoke.yml에 hypothesis 추가 + TRANSCENDENCE 205·GENESIS 304·309·ODYSSEY 408 진척 | .github/workflows/sim-smoke.yml, README.md, ROADMAP.md, docs/certification/AIRSPACE_CLASS_MAPPING.md, docs/certification/KC_RADIO_CERTIFICATION.md, docs/certification/PILOT_LICENSE_MAPPING.md … |
 | 2026-06-13 10:55 | `b342a9e` | feat(plans): GENESIS 306·381·389 + ODYSSEY 447·486 + 시뮬레이터 tutorial API | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |

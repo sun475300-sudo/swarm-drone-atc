@@ -5,6 +5,34 @@
 
 ## [Unreleased]
 
+### 통합 (chore) — 일일 점검 2026-06-15 (2차): 적체 PR 9건 무충돌 통합 (머지 병목 해소)
+- 열린 PR 30건(피처 20 + dependabot 10) triage 후, **기존 코드 무수정·순수 추가형** Phase PR 9건을 단일 통합 브랜치로 합류. 신규 모듈 9개 + 단위 테스트 **190건 전부 PASS**, 기존 `.py` 소스 무수정(문서·신규 파일만) → 회귀 무영향.
+  - **#313** (5건 누적): Phase 322 `scenario_schema.py` · 342 `jeonnam_island_sites.py` · 367 `swarm_self_healing.py` · 401·406 `geo_zones.py` · 449 `sim_real_gap.py`.
+  - **#316 Phase 310** — `simulation/special_flight_approval.py` 야간·비가시 특별비행승인 안전기준 검증 (25건).
+  - **#314 Phase 309** — `simulation/pilot_certification.py` 조종자 자격(1~4종) ↔ 시뮬 교육 모드 매핑 (24건).
+  - **#315 Phase 408** — `simulation/airspace_class.py` ICAO 공역 클래스 A-G `classify_airspace()` API 격상 (25건).
+  - **#307 Phase 304** — `simulation/kc_certification.py` KC 전파인증(전파법 §58-2) 적합성평가 분류 (23건).
+- **#306**(Phase 304 `kc_radio_certification.py`)은 #307과 동일 Phase 경쟁 구현이라 **제외**(#307 채택). 보류: #295/#285/#289(Phase 445·446 경쟁 구현)·#280/#281(Phase 207 배지 쌍)·dependabot 10건은 사람 판단/후속.
+
+### 통합 (chore) — 일일 점검 2026-06-15: 적체 PR 5건 무충돌 통합 (Phase 322·342·367·401·406·449)
+- 머지 병목 triage 후 **기존 코드 무수정·순수 추가형** Phase PR 5건을 본 작업 브랜치에 통합. 통합 전 baseline 회귀 **4,171 pass / 280 skip / 0 fail** 재현, 통합 후 신규 **93건** 전부 PASS.
+  - **#298 Phase 322** — `simulation/scenario_schema.py` + `docs/schemas/sdacs-scenario.schema.json` `.sdacs-scenario` 스키마 검증기 (20건).
+  - **#300 Phase 342** — `src/applications/jeonnam_island_sites.py` 전남 도서(신안·완도) 의료 배송 거점 DB·실 좌표·Haversine ETA (7건).
+  - **#292 Phase 367** — `src/autonomy/swarm_self_healing.py` 결손 드론 임무 자동 재분배 (12건).
+  - **#291 Phase 401·406** — `simulation/geo_zones.py` UTM 그리드 존 결정적 판정 + EASA U-space 매핑 (22건).
+  - **#293 Phase 449** — `src/training/sim_real_gap.py` 시뮬-실측 갭 Domain Randomization 자동 보정 (7건).
+- 보류: **#295/#285/#289**(Phase 445·446) — 다중 경쟁 구현(`uncertainty.py`·`power_analysis.py`·`resolution_rate_power.py`·monte_carlo CI)으로 중복, 사람 판단 필요. **#295**의 `incident_report.py`(307·467)는 이미 통합된 `accident_report.py`/`incident_investigation_report.py`와 중복. **#306/#307**(Phase 304 KC)·**#280/#281**(Phase 207 배지)은 상호 중복. dependabot 13건은 후속 정리 대상.
+
+### 추가 (feat) — GENESIS Phase 309 조종자 자격(1~4종) ↔ 시뮬 교육 모드 매핑 (2026-06-15)
+- **`simulation/pilot_certification.py`** (신규) — 「항공안전법 시행규칙」 제306조 무인멀티콥터 조종자 증명 종별을 결정적으로 구현.
+  - `classify_grade(mtow_kg)` — 최대이륙중량 기준 1~4종 분류(경계 모두 "초과" 규칙) + 250 g 이하 증명 불요 + 0 이하·초경량 상한(150 kg) 초과 `ValueError`.
+  - `TrainingRequirement` frozen dataclass — 종별 온라인 학과/학과시험/비행경력/실기시험/실기평가/최소연령 + **시뮬 교육 모드**(상위 종이 하위 종 모드 포함).
+  - `assess_pilot(mtow_kg, PilotProfile)` — 연령·비행경력·미이수 시뮬 모드로 조종자 준비도 결정적 판정.
+  - `build_report`/`export_json`/`export_text` — 외부 의존성 0, `sort_keys` 안정 직렬화.
+- **`tests/test_pilot_certification.py`** (신규) — 단위 **24건** (경계 분류·요건·준비도·exempt 불변·결정성·export).
+- **`docs/certification/PILOT_LICENSE_MAPPING.md`** §6 추가 — 기존 문서-only 매핑(2026-06-12)을 실행 모듈로 격상, MTOW 기준 통일 명시.
+- code-reviewer 어드바이저 1회 반영(150 kg 경계 테스트·exempt 불변 테스트 보강·`completed_sim_modes` 기본값 단순화·경계 "초과" 주석 통일). 시뮬레이터 HTML 무변경.
+
 ### 추가 (feat) — ODYSSEY Phase 422 운영 의도(Operational Intent) 4D 볼륨 교환 포맷 (2026-06-14)
 - **`simulation/operational_intent.py`** (신규) — 연합 인스턴스 간 ASTM F3548-21 정렬 운영 의도 교환 포맷.
   - `Volume4D` frozen dataclass — WGS84 위·경도 외곽선 + 고도 밴드 + 시간 창, 경계 검증(꼭짓점≥3·위경도 범위·고도/시간 역전).
@@ -38,6 +66,17 @@
 - `docs/standards/INCIDENT_INVESTIGATION_REPORT.md` 신규 — 근거 표준(ICAO Annex 13/ADREP)·
   등급 정의·5계층 안전망 사후 분석 계층 연계. Phase 466(텔레메트리 표준)의 조사 단계 후속.
 - `docs/SIMULATOR_ODYSSEY_PLAN.md` Phase 467 ✅ 표시. Track 🏛 표준·정책 자산 확장.
+
+### 기능 (feat) — GENESIS Phase 304 KC 전파인증 요건 체크리스트 (2026-06-14)
+- `simulation/kc_certification.py` 신규 — 드론 탑재 통신 모듈(RC·텔레메트리·영상·셀룰러·GNSS)에 대해
+  「전파법」 §58-2 적합성평가 유형을 결정적으로 분류. **셀룰러→적합인증**, **비면허 특정소출력 대역 +
+  공중선전력 한도 이내→적합등록**, **면허대역/한도 초과→적합인증**, **수신전용→적합등록(자기시험)**.
+  제품 단위로 가장 엄격한 유형을 집계하고 유형별 제출서류 + KC 식별부호 표기 안내를 JSON·텍스트로 export.
+  시스템 경계 입력 검증(`ValueError`).
+- `tests/test_kc_certification.py` 신규 — 분류·집계·검증·export·결정성 **23건 PASS** (전 대역 parametrize 포함).
+- `docs/certification/KC_RADIO_CERTIFICATION.md` 갱신 — 실행 모듈 링크 + 917–923.5 MHz(비면허 특정소출력)
+  분류를 적합등록으로 정정(기존 문서 M4/M6 적합인증 표기와 코드 일치화).
+- `docs/SIMULATOR_GENESIS_PLAN.md` Phase 304 ✅ 표시. SORA(302)·비행계획 신고(303)에 이어 규제 적합 자산 확장.
 
 ### 기능 (feat) — GENESIS Phase 303 비행계획 신고 양식 자동 생성 (2026-06-14)
 - `simulation/flight_plan_filing.py` 신규 — 드론 원스톱 비행승인 신청서를 시뮬 파라미터로부터

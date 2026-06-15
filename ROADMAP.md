@@ -269,8 +269,11 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 306** 🏭 RTM 5계층 커버리지 — `docs/certification/RTM_5LAYER_COVERAGE.md` 21건 추적 (2026-06-12)
 - [x] **Phase 309** 🏭 조종자 자격증명 매핑 — `docs/certification/PILOT_LICENSE_MAPPING.md` (2026-06-12)
 - [ ] **Phase 301·303-320** 🏭 Certification & Compliance — 항공안전법 매트릭스·DO-178C 갭 분석·CSAP 자동화
+- [x] **Phase 322** 🌍 `.sdacs-scenario` 스키마 + 검증기 — `simulation/scenario_schema.py` + `docs/schemas/sdacs-scenario.schema.json`, 20건 PASS (2026-06-15)
 - [ ] **Phase 321-340** 🌍 Ecosystem & Open Source — 플러그인 SDK·`@sdacs/core` npm·`sdacs-sim` PyPI·v2.0 API 안정화
+- [x] **Phase 342** 🏙 전남 도서(신안·완도) 의료 배송 거점 DB — `src/applications/jeonnam_island_sites.py` 실 좌표·거점·Haversine ETA, 7건 PASS (2026-06-15)
 - [ ] **Phase 341-360** 🏙 Real Deployment — 목포 해역 실 좌표·전남 도서 의료 배송·90일 파일럿 백서
+- [x] **Phase 367** 🤖 스웜 자가 치유 — `src/autonomy/swarm_self_healing.py` 결손 드론 임무 자동 재분배, 12건 PASS (2026-06-15)
 - [ ] **Phase 361-380** 🤖 Next-Gen Autonomy — 온보드 RL 추론·APF+RL 하이브리드·양방향 디지털 트윈
 - [x] **Phase 381** 🎓 교육 모드 — 시뮬레이터 `tutorialStart/Next/Status()` 5단계 (2026-06-12)
 - [x] **Phase 387** 🎓 졸업 심사 발표 키트 — `docs/presentation/DEFENSE_KIT.md` (2026-06-12)
@@ -282,12 +285,14 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 > 상세: [`docs/SIMULATOR_ODYSSEY_PLAN.md`](docs/SIMULATOR_ODYSSEY_PLAN.md) — *"이것은 국경과 세대를 넘는가"*
 
-- [x] **Phase 408** 🌏 ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` (2026-06-12)
+- [x] **Phase 408** 🌏 ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` + `simulation/airspace_class.py` `classify_airspace()` API 격상 (결정적, 25건 PASS) (2026-06-12, API 2026-06-14)
+- [x] **Phase 401·406** 🌏 다국 좌표계·시간대 자동 판정 — `simulation/geo_zones.py` UTM 그리드 존 결정적 판정 + EASA U-space 매핑, 22건 PASS (2026-06-15)
 - [ ] **Phase 401-407·409-420** 🌏 Global Expansion — EASA U-space·FAA UTM 정렬·EN 완역
 - [x] **Phase 421** 🛰 인스턴스 간 디스커버리 프로토콜 — `simulation/federation_discovery.py` ASTM F3548 DSS 유사 결정적 모델(4D 볼륨 등록·그리드 셀 인덱스·정밀 교차 디스커버리·동기화 대상), 13건 PASS (2026-06-14)
 - [ ] **Phase 422-440** 🛰 Federation Operations — 운영 의도 4D 교환·관제권 핸드오버·연합 충돌 해소
 - [x] **Phase 447** 🔬 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` NFZ·ATC·SORA 140케이스 (2026-06-12)
 - [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12)
+- [x] **Phase 449** 🔬 시뮬-실측 갭 모델 — `src/training/sim_real_gap.py` Domain Randomization 파라미터 자동 보정, 7건 PASS (2026-06-15)
 - [ ] **Phase 441-446·449-460** 🔬 Formal & Research Frontier — TLA+ 안전망 명세·모델 체킹
 - [x] **Phase 466** 🏛 텔레메트리 JSON Schema 공개 — `docs/schemas/telemetry.schema.json` Draft-07 + ws_bridge 정합 회귀 (2026-06-12)
 - [ ] **Phase 461-465·467-480** 🏛 Standards & Policy — ASTM/ISO 기고·정책 영향 시뮬

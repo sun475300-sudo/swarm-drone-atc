@@ -34,13 +34,13 @@
 - **Phase 301** 항공안전법·드론활용촉진법 적합성 매트릭스 — 조항 ↔ SDACS 기능 매핑 문서
 - **Phase 302** ✅ SORA 자동 계산기 — `_sdacs.soraAssess()` (JARUS 2.0 iGRC/완화/ARC→SAIL 결정적 구현, production 등급, E2E 6건) (2026-06-12)
 - **Phase 303** ✅ 비행계획 신고 양식 자동 생성 — `simulation/flight_plan_filing.py` (Drone One-Stop 비행승인 신청서 결정적 생성·승인필요 판정·JSON/텍스트 export, 18건 PASS) (2026-06-14)
-- **Phase 304** KC 전파인증 요건 체크리스트 (통신 모듈별)
+- **Phase 304** ✅ KC 전파인증 요건 체크리스트 — `simulation/kc_certification.py` (전파법 §58-2 적합성평가 결정적 분류: 셀룰러→적합인증·비면허 특정소출력→적합등록·면허대역/한도초과→적합인증, 모듈별 집계 + 유형별 제출서류 + JSON/텍스트 export, 23건 PASS) (2026-06-14)
 - **Phase 305** DO-178C/ED-12C 소프트웨어 수명주기 갭 분석 — DAL-D 기준 추적성
 - **Phase 306** 요구사항 추적 매트릭스(RTM) 자동 생성 격상 — `scripts/generate_rtm.py` → 5계층 안전망 커버리지
 - **Phase 307** ✅ 사고 보고 양식 (항철위 표준) 자동 작성 — `simulation/accident_report.py` (ARAIB 사고/준사고/안전장애 결정적 분류·시뮬 로그 변환·안전권고 자동 생성·JSON/텍스트 export, 19건 PASS) (2026-06-14)
 - **Phase 308** 보험 요율 산정 인터페이스 (Phase 67 mock 격상 — 실 보험사 API 스펙)
-- **Phase 309** 조종자 자격(1~4종) 요건 ↔ 시뮬 교육 모드 매핑
-- **Phase 310** 야간·비가시 특별비행승인 요건 시뮬 검증 시나리오
+- **Phase 309** ✅ 조종자 자격(1~4종) 요건 ↔ 시뮬 교육 모드 매핑 — `simulation/pilot_certification.py` (MTOW 기준 종별 결정적 분류·종별 교육/시험 요건·조종자 준비도 판정·JSON/텍스트 export, 24건 PASS / 문서 `PILOT_LICENSE_MAPPING.md` §6 격상) (2026-06-15)
+- **Phase 310** ✅ 야간·비가시 특별비행승인 안전기준 검증 — `simulation/special_flight_approval.py` (특별비행 안전기준 고시 기준 공통·야간·비가시 항목별 결정적 적합 판정·승인 가능 판정·JSON/텍스트 export, 25건 PASS) (2026-06-14)
 - **Phase 311-315** KISA CSAP 96항목 자가진단 자동화 (`security_audit.sh` 확장)
 - **Phase 316-320** UAM 운용기준(K-UAM 로드맵 2.0) 정렬 + 감항 인증 준비 문서
 

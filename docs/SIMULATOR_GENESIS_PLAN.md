@@ -69,7 +69,7 @@
 
 *목포·전남 실증. 기존 자산: `docs/track_f/p747_marine.md`(해수부)·`p748_forest.md`(산림청), `src/applications/`(농업 방제·의료 배송), helm 차트*
 
-- **Phase 341** 목포 해역 실 좌표계 임포트 — 해도 기반 NFZ·회랑 실측 배치
+- **Phase 341** ✅ 목포 해역 실 좌표계 임포트 — `src/applications/mokpo_harbor.py` (해도 기반 NFZ 4종·회랑 3종 결정적 배치 + 레이 캐스팅 NFZ 판정·회랑 충돌 검사·요약, 8건 PASS) (2026-06-15)
 - **Phase 342** 전남 도서지역(신안·완도) 의료 배송 경로 DB — `medical_delivery.py` 실 거점 적용
 - **Phase 343** 실 기상 연동 운영 모드 — KMA API 실시간 풍속장 (TRANSCENDENCE 227 연계)
 - **Phase 344** 지자체 관제 대시보드 화이트라벨 — 로고·권한·지역 설정 패키지

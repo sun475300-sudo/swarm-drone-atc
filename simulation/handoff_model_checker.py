@@ -40,7 +40,10 @@ from typing import Callable, Hashable
 AUTH_A = "A"  # 현재(원) 관제 인스턴스
 AUTH_B = "B"  # 대상(목적) 관제 인스턴스
 AUTH_NONE = "NONE"  # 관제 공백 — 불변식 위반(드론 고아)
-AUTH_BOTH = "AB"  # 이중 관제 — 불변식 위반(모순 명령 위험)
+# AUTH_BOTH 는 이중 관제(모순 명령 위험)를 나타내는 *센티넬* 로, single_controller_invariant
+# 가 거부하는 불법 값이다. 현재 네 모델 중 이 값을 *생성하는* 전이는 없다 — orphan 류
+# 버그가 NONE 만 만들기 때문. 이중 관제 버그 모델을 추가할 때 쓰도록 정의만 둔다.
+AUTH_BOTH = "AB"
 
 LEGAL_AUTH: frozenset[str] = frozenset({AUTH_A, AUTH_B})
 
@@ -241,10 +244,12 @@ def verify_handoff_safe(
     transitions: Transitions = handoff_transitions,
     initial: HandoffState | None = None,
 ) -> CheckResult:
-    """관제 공백 부재(상호 배제) 안전 성질을 검증한다.
+    """관제 공백 부재(상호 배제) + 교착 부재를 한 번의 BFS 로 함께 검증한다.
 
-    먼저 안전 불변식(단일 관제권)을 확인하고, 통과 시 교착 부재까지 함께 검증한
-    결과를 반환한다(불변식 위반이 있으면 그 반례를 우선 반환).
+    안전 불변식(단일 관제권)과 교착 부재를 동시에 건다. 둘 다 위반이 존재하면
+    *BFS 도달 순서상 먼저 만난* 위반의 반례를 반환한다(불변식 우선이 아니라 깊이
+    우선) — 둘을 분리해 우선순위를 두고 싶으면 :func:`verify_handoff_deadlock_free`
+    와 불변식 전용 :func:`check_model` 호출을 따로 쓰라.
     """
     return check_model(
         initial if initial is not None else HandoffState(),

@@ -272,8 +272,6 @@ def test_check_result_counterexample_empty_when_holds():
 
 
 def test_msg_ack_constant_used_in_lossy_path():
-    # 유실되는 메시지는 ACK 다 — 상수 정합성 회귀 가드.
-    stuck = verify_handoff_deadlock_free(lossy_model).counterexample[-1]
-    # 교착 직전 경로에 ACK 채널 상태가 등장해야 한다.
+    # 유실되는 메시지는 ACK 다 — 교착에 이르는 경로에 ACK 채널 상태가 반드시 등장.
     trace = verify_handoff_deadlock_free(lossy_model).counterexample
-    assert any(s.msg == MSG_ACK for s in trace) or stuck.b_ready
+    assert any(s.msg == MSG_ACK for s in trace)

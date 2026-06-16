@@ -5,6 +5,14 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test) — 일일 점검 2026-06-16 (26차): ODYSSEY Track 🔬 Phase 442 ATC 핸드오프 데드락 부재 모델 체킹
+- **작업 상황 점검**: 23차(PR #350, `6034308`)로 Phase 443·448 이 main 통합된 클린 베이스에서 **🔬 Formal & Research Frontier(441-460)** 트랙을 점검. 445(`uncertainty.py`)·446(`power_analysis.py`)·449(`sim_real_gap.py`)는 *이미 main 에 코드 존재*하나 ROADMAP/PLAN 추적만 미갱신(드래프트 #351 이 정정 중), 441(#352)·444(#351)는 드래프트 적체 중 — 이들 중복을 피하고 **TLA/TLC 툴체인 없이도 가능한 순수 파이썬 형식 검증** Phase 442 를 신규 구현.
+- **Phase 442** — `simulation/handoff_model_checker.py` (신규) ATC 핸드오프 데드락 부재 모델 체킹. 환경에 TLC/TLA 가 없어, 표준 TLC 핵심 능력(도달 상태 공간 BFS 전수 탐색 + 불변식 위반·교착 반례 추적)을 결정적 순수 파이썬 체커 `check_model` 로 구현.
+  - Phase 423 `HandoverCoordinator` 인스턴스 간 관제권 이양을 2단계 prepare→ack→commit 프로토콜로 모델링하고, 어떤 메시지 인터리빙에서도 ①**관제 공백 부재**(도달 전 상태 `auth∈{A,B}` — A 가 ACK 수신 순간 A→B 직접 이양해 NONE 중간틈 없음) ②**교착 부재**(모든 도달 상태가 완결 종료이거나 활성 전이 보유)를 전수 증명(올바른 모델 6 도달 상태).
+  - 체커 타당성 대조용 3변형 동봉: `orphan_bug_model`(A 가 ACK 전 권위 선행 해제 → NONE 도달 불변식 반례 검출)·`lossy_model`(ACK 재전송 없는 유실 → "B 준비됐으나 A 영영 이양 못함" 교착 반례 검출, 7 상태 중 1 교착)·`timeout_model`(B 타임아웃 재전송으로 교착 부재 복원, 단 적대적 무한 유실 하 무조건 liveness 아님 명시). 반례는 후속 정렬로 결정적(동일 모델→동일 반례).
+  - `federation_handover.py` 무수정 순수 추가, 무작위성 0. code-reviewer 어드바이저 **APPROVE**(CRITICAL 0·HIGH 0·MEDIUM 2·LOW 2) 반영: MEDIUM ① `verify_handoff_safe` docstring 이 "불변식 우선 반환" 으로 과장 → "BFS 도달 순서상 먼저 만난 위반 반환" 으로 정정, ② `AUTH_BOTH` 가 어떤 모델도 생성 못하는 센티넬임을 주석 명시. LOW 유실경로 테스트 단언을 `b_ready` 무조건참 분기 제거로 강화. 단위 **30건 PASS**.
+- 검증: 신규 `test_handoff_model_checker.py` **30건 PASS**(0.06s). 기존 `.py` 무수정(순수 추가) → 회귀 무영향. ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Phase 442 ✅ 갱신.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-16 (23차): ODYSSEY Track 🔬 Phase 443·448 통합 (드래프트 PR #347·#348·#349 일원화)
 - **작업 상황 점검 — 머지 병목 중복 재발**: 20차(PR #346, `a42f6ff`)에서 🛰 Federation Operations(421-440) 완료 후 main 통합 확인(`origin/main == HEAD` 클린 베이스). 다음 트랙 **🔬 Formal & Research Frontier(441-460)** 로 전진하던 중, 세 병행 점검(21·22차)이 각각 draft PR 로 적체된 것을 발견: **#347**(Phase 448 — 시나리오 퍼저 6개 속성)·**#348**(Phase 448 — 4D 충돌 감지 코어 9개 속성, 같은 번호·다른 코어)·**#349**(Phase 443 — APF Lyapunov). 세 PR 은 *코드 비경쟁*(서로 다른 신규 파일만 추가)이며 오직 ROADMAP/CHANGELOG/README/PLAN append 라인만 상호 충돌 → 순차 머지 불가. 20차 "일원화" 패턴대로 **세 작업을 모두 본 브랜치로 통합**하고 Phase 448 의 두 속성 수트(퍼저+충돌감지)를 한 항목으로 합쳐 번호 중복을 해소한다.
 - **Phase 443** — `simulation/apf_lyapunov.py` + `docs/APF_CONVERGENCE_PROOF.md` (PR #349 흡수) APF 수렴성 수학 증명. APF 힘 법칙이 보존 포텐셜의 음의 기울기 `F = -∇U`(인력 piecewise 이차/원뿔 C¹ + FIRAS 척력 `(k/2)(1/d−1/d0)²`)임을 명시하고, `total_potential`·`conservative_force`·`lyapunov_derivative` 로 양정치·radially unbounded Lyapunov 후보의 과감쇠 흐름 `dU/dt = −‖∇U‖² ≤ 0` + LaSalle 전역 수렴(콤팩트 레벨집합)을 형식 문서화. 국소 최소·속도 증폭 비보존항 한계, 상위 계층(CBS·교착 탈출) 완화 명시. `apf.py` 무수정 순수 추가, 무작위성 0. code-reviewer 어드바이저 HIGH 2건 반영(속도 증폭 비보존성 → "하강 무보증" 정정·엔진 0.1m 인력 데드밴드 정합). 단위 **16건 PASS**.

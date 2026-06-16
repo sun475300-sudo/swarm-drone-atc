@@ -5,6 +5,12 @@
 
 ## [Unreleased]
 
+### 통합 (chore) — 일일 점검 2026-06-16 (17차): ODYSSEY Federation Operations 적체 draft PR 통합 (Phase 433·434·435·436)
+- 작업 상황 점검: 12차(`c8ee6c1`, PR #335)까지 Federation Operations(Phase 428·429·431·432) main 통합 완료. 이후 13·14·15차(Phase 433 신뢰 가중·434 HLC 인과-안정 배달·435 메시 복원력)는 **통합 PR #339(clean)** 로, 16차(Phase 436 분산 경로-벡터 라우팅)는 **PR #340(clean)** 로 머지되지 못하고 적체된 상태를 확인 → 두 적체분을 본 일일 점검 브랜치로 단일 통합.
+- 통합 대상: PR #339(`federation_trust_routing.py`·`federation_causal_delivery.py`·`federation_resilient_routing.py` = Phase 433·434·435) + PR #340(`federation_path_vector.py` = Phase 436). 모두 신규 파일 추가(기존 `.py` 무수정)라 코드 비경쟁 — README/CHANGELOG/ROADMAP/ODYSSEY_PLAN append 충돌만 양측 보존으로 해소.
+- 검증: 신규 federation 단위(path_vector 23 + trust_routing 37 + causal_delivery 36 + resilient_routing 31) + 인접 회귀(mesh·hybrid_clock·trust·audit·split_brain) 합산 **270건 PASS**(0.69s). 본 컨테이너 최소 의존성(pytest·numpy)만 설치 → simpy·scipy·hypothesis 의존 수트는 CI 전체 수집. PR #336·#337·#338·#339·#340 은 본 통합으로 superseded.
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Federation Operations 라인을 Phase 433·434·435·436 완료 + 잔여 `Phase 426-427·437-440` 으로 정리.
+
 ### 통합 (chore) — 일일 점검 2026-06-16 (15차): ODYSSEY Federation Operations 적체 draft PR 3건 통합 (Phase 433·434·435)
 - 작업 상황 점검: 12차(`c8ee6c1`, PR #335)로 Federation Operations 적체(Phase 428·429·431·432)가 main 통합 완료된 이후, 13·14차(Phase 433 신뢰 가중 라우팅·434 HLC 통합 인과-안정 배달)와 Phase 435(메시 복원력 라우팅)가 **머지되지 못한 draft PR 3건(#336·#337·#338)으로 적체**된 상태를 확인 → 중단된 Federation Operations 작업을 본 일일 점검 브랜치로 통합.
 - 통합 대상: PR #336(`federation_trust_routing.py` = Phase 433) + PR #337(`federation_causal_delivery.py` = Phase 434) + PR #338(`federation_resilient_routing.py` = Phase 435). 모두 신규 파일 추가(기존 `.py` 무수정)라 코드 비경쟁 — README/CHANGELOG/ROADMAP/ODYSSEY_PLAN append 충돌만 양측 보존으로 해소.

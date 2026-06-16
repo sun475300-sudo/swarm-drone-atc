@@ -315,7 +315,11 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 447** 🔬 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` NFZ·ATC·SORA 140케이스 (2026-06-12)
 - [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12) · **시뮬 코어 불변식 확장(2026-06-16)**: `tests/test_property_deconflict.py` 4D 경로 충돌 감지 코어 `PathDeconflict` 9개 불변식(결정성·삽입순서 무관·보간 볼록성/클램프·충돌 술어 일관·시각 정렬·수직 분리·단일/동일 경로, 1,170+케이스) + `tests/test_scenario_fuzzer_property.py` Phase 447 적대적 퍼저 6개 불변식(스키마 보존·입력 불변성·시드 결정성·분포 재정규화·route 순서·adversarial 단방향 편향, 1,350케이스). code-reviewer 어드바이저 반영, 15건 PASS
 - [x] **Phase 449** 🔬 시뮬-실측 갭 모델 — `src/training/sim_real_gap.py` Domain Randomization 파라미터 자동 보정, 7건 PASS (2026-06-15)
-- [ ] **Phase 441·442·444·445·446·450-460** 🔬 Formal & Research Frontier — TLA+ 안전망 명세·TLC 모델 체킹(툴체인 의존)·CBS 완전성 정리·MC 신뢰구간·검정력 분석
+- [x] **Phase 441** 🔬 5계층 안전망 TLA+ 명세 — `specs/SafetyNetPriority.tla` + `simulation/safety_net_invariant.py` + `docs/SAFETY_NET_TLA_SPEC.md`. `failsafe_manager.py` 이산 Failsafe 사다리를 유한 상태 전이계로 형식화하고, 우선순위 비역전 불변식(레벨 ≥ worst-hazard 요구 레벨)을 동형 Python 유한 모델 검사기로 도달 가능 전 상태 BFS 전수 검증. 약화 컨트롤러 음성 테스트로 검사기 건전성 보강. `failsafe_manager.py` 무수정. code-reviewer 어드바이저 HIGH 2건 반영(양성 검사 비자명화·DFS→BFS 최단 반례), 20건 PASS (2026-06-17)
+- [x] **Phase 444** 🔬 CBS 완전성·최적성 — `simulation/cbs_optimality.py` + `docs/CBS_COMPLETENESS_OPTIMALITY.md`. Conflict-Based Search 최적성·완전성 조건 형식화 + 본 구현 완화점 정직 공시(R1 swap 근사·R2 anytime bounded·R3 비결정 타이브레이크). `cbs.py` 무수정, 15건 PASS (2026-06-16)
+- [x] **Phase 445** 🔬 불확실성 정량화 — `simulation/uncertainty.py` t-분포/percentile bootstrap/Wilson score 신뢰구간
+- [x] **Phase 446** 🔬 검정력 분석 — `simulation/power_analysis.py` 단일 비율 z-검정·Cohen's h
+- [ ] **Phase 442·450-460** 🔬 Formal & Research Frontier — TLC 모델 체킹(툴체인 의존)·재현성 핀·RL 일반화·인증 가능 ML 조사
 - [x] **Phase 466** 🏛 텔레메트리 JSON Schema 공개 — `docs/schemas/telemetry.schema.json` Draft-07 + ws_bridge 정합 회귀 (2026-06-12)
 - [ ] **Phase 461-465·467-480** 🏛 Standards & Policy — ASTM/ISO 기고·정책 영향 시뮬
 - [x] **Phase 486** ♾️ 독립 재현 자동화 — `scripts/independent_reproduction.sh` (회귀·md5·JS·API 게이트 통합) (2026-06-12)

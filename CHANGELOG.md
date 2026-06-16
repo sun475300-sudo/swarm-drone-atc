@@ -5,6 +5,17 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test/docs) — 일일 점검 2026-06-17 (25차): ODYSSEY Track 🔬 Phase 441 5계층 안전망 우선순위 불변식 형식 명세 + 24차(PR #351) 일원화
+- **작업 상황 점검 — 머지 병목 재발 → 일원화**: 23차(PR #350, `6034308`)가 main 통합된 클린 베이스 위에서, **24차 점검(PR #351, 별도 브랜치 `claude/fervent-babbage-3be3tq`, Phase 444 + 445·446 추적 정정)이 draft 로 적체**되어 아직 main 미머지인 것을 확인 — changelog 가 누차 경고한 머지 병목의 재발. 19·20·23차의 "일원화" 패턴대로 **PR #351 을 본 브랜치(`claude/fervent-babbage-cq6raz`)로 fast-forward 통합·검증**(cbs_optimality 15 + power_analysis + uncertainty + cbs 합산 **54건 PASS**)한 뒤, 그 위에서 진짜 다음 갭 **Phase 441** 을 전진 구현해 두 점검을 단일 브랜치로 합친다.
+- **Phase 441** — `specs/SafetyNetPriority.tla` + `simulation/safety_net_invariant.py` + `docs/SAFETY_NET_TLA_SPEC.md` (신규) 5계층 안전망 충돌 회피 우선순위 불변식 형식 명세. Phase 443(APF Lyapunov)·444(CBS)의 "형식 명세 + 실행 검증 + 정직한 완화점 공시" 패턴 계승. `failsafe_manager.py` **무수정** 순수 추가.
+  - `failsafe_manager.py` 이산 Failsafe 사다리(NORMAL<WARN<LAND<RTL<DISARM<EMERGENCY)를 유한 상태 전이계로 형식화. 위험 차원(comm/battery/geofence/collision) 심각도 → 요구 레벨 매핑은 실제 임계값(>2s/>5s/>30s·≤25%/≤15%/≤5%·breach·충돌)에 정렬, `RequiredLevel`=worst-hazard-wins(`_transition` 래칫 대응).
+  - 핵심: **환경 위험 변화와 컨트롤러 반응을 *별개* 전이로 모델링** → 위험이 막 오른 직후의 *과도 상태*가 도달 가능. 불변식 **RECOVERABLE**(컨트롤러 1스텝이면 SAFE 회복 `is_safe(controller_step(s))`) + **NECESSARY**(컨트롤러 없으면 SAFE 위반 도달 가능 — 비공허성) + **MONOTONE**(래칫). `check_invariant` 가 도달 가능 전 상태를 진정한 BFS(`deque.popleft`)로 전수 탐색, 위반 시 *최단* 반례 경로 반환.
+  - 검사기 건전성 **음성 테스트**: collision 위험을 무시하는 약화 컨트롤러를 넘기면 검사기가 최단 반례(초기→충돌 임박, 2상태)를 실제 검출.
+  - **정직한 완화점 공시**: 정상 컨트롤러의 양성 SAFE 결과는 `max(level,R)≥R` 산술적 귀결 → 검사의 본 가치는 컨트롤러/복귀 *로직 버그*의 차등 검출. collision→EMERGENCY 는 *지향* 매핑(`failsafe_manager` 가 EMERGENCY=5 를 예약했으나 `update()` 에 충돌 트리거 미배선 — 미래 정합 대상). TLC 미실행이라 `.tla`↔Python 동치성은 수동 검토(Phase 442 기계 검증 예정)·이산 추상화 갭·단일 드론 범위 명시.
+  - code-reviewer 어드바이저 1회 반영(CRITICAL 0·HIGH 2·MEDIUM 3·LOW 2): **HIGH-1** 양성 검사가 자명한 항진명제(`max(a,b)≥b`)이던 것을 — 환경·컨트롤러 별개 전이로 과도 상태를 도달 가능하게 만들고 *복원 가능성*+*비공허성*(`controller_necessary`)으로 비자명화. **HIGH-2** DFS(`list.pop`)를 BFS(`deque.popleft`)로 교정해 *최단* 반례 보장(음성 테스트가 2상태 최단 반례를 단언). MEDIUM TLA THEOREM 이 TypeOK 만 단언하던 것을 SafeAfterControl·Monotone·RestoreSafe 액션 불변식까지 단언·dead `StepDim` 제거·collision 지향성 문서 명시. LOW restore_step 중복 조건 정리·BFS/DFS 문구 정정. 단위 **20건 PASS**.
+- 검증: 신규 safety_net_invariant **20건** + 24차 흡수분(cbs_optimality 15·power_analysis·uncertainty·cbs) 합산 **74건 PASS**(1.3s). 본 컨테이너 최소 의존성(pytest·numpy·scipy·simpy·hypothesis·pyyaml) 설치 → 전체 4,400+ 수트는 CI 수집. 기존 `.py` 무수정(순수 추가) → 회귀 무영향. PR #351 은 본 통합으로 superseded(머지 후 close).
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Track 🔬 를 Phase 441·444·445·446 완료로 갱신, 잔여 442·450-460.
+
 ### 추가 (feat/test/docs) — 일일 점검 2026-06-16 (24차): ODYSSEY Track 🔬 Phase 444 CBS 완전성·최적성 + Phase 445·446 추적 정정
 - **작업 상황 점검 — 클린 베이스 확인**: 23차(PR #350, `6034308`)에서 Phase 443·448 통합 후 `origin/main == HEAD` 클린 베이스 확인(직전 누적 머지 병목이 23차까지 main 통합으로 해소된 상태). 다음 미구현 갭을 **🔬 Formal & Research Frontier(441-460)** 에서 탐색: 441·442(TLA+/TLC)는 외부 모델체커 의존으로 sandbox 부적합, 444·445·446 이 순수 Python 후보. 점검 중 **Phase 445·446 이 이미 구현(`simulation/uncertainty.py`·`power_analysis.py`, 커밋 `093dc99`)됐으나 ODYSSEY 플랜에 ✅ 미표시**된 추적 불일치를 발견 → 정정. 신규로 **Phase 444** 전진 구현.
 - **Phase 444** — `simulation/cbs_optimality.py` + `docs/CBS_COMPLETENESS_OPTIMALITY.md` (신규) CBS 완전성·최적성 조건 정리(논문 §보강). 직전 Phase 443(APF Lyapunov)의 "증명 문서 + 수치 검증 모듈 + 정직한 완화점 공시" 패턴을 계승.

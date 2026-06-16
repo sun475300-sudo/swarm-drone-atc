@@ -960,6 +960,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-17 09:30 | `(이 커밋)` | feat/test(odyssey): Track 🔬 Phase 441 5계층 안전망 우선순위 불변식 형식 명세(TLA+ + 유한 모델 검사기) + 24차(PR #351) 일원화 — 일일 점검 2026-06-17 (25차), 어드바이저 HIGH 2 반영, 20건 PASS | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/SAFETY_NET_TLA_SPEC.md, specs/SafetyNetPriority.tla, simulation/safety_net_invariant.py, tests/test_safety_net_invariant.py |
 | 2026-06-17 00:18 | `48e9eaf` | feat(odyssey): Phase 444 CBS 완전성·최적성 조건 정리 + Phase 445·446 추적 정정 | CHANGELOG.md, docs/CBS_COMPLETENESS_OPTIMALITY.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/cbs_optimality.py, tests/test_cbs_optimality.py |
 | 2026-06-16 23:09 | `87ecf8e` | feat(odyssey): Phase 443·448 통합 — APF Lyapunov 수렴 증명 + 시뮬 코어 속성 테스트 (드래프트 PR #347·#348·#349 일원화) | CHANGELOG.md, README.md, ROADMAP.md, docs/APF_CONVERGENCE_PROOF.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/apf_lyapunov.py … |
 | 2026-06-16 23:10 | `(이 커밋)` | feat/test(odyssey): Track 🔬 Phase 443·448 통합 — APF Lyapunov 수렴 증명 + 시뮬 코어 속성 테스트(충돌감지 9 + 퍼저 6) (드래프트 PR #347·#348·#349 일원화) — 일일 점검 2026-06-16 (23차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/apf_lyapunov.py, docs/APF_CONVERGENCE_PROOF.md, tests/test_apf_lyapunov.py, tests/test_property_deconflict.py, tests/test_scenario_fuzzer_property.py |

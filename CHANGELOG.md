@@ -5,6 +5,16 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — 일일 점검 2026-06-16: ODYSSEY Phase 435 메시 복원력 라우팅
+- 작업 상황 점검: ODYSSEY Federation Operations(421-440) 중 머지 완료는 421-425·428-432, 열린 draft PR은 Phase 433(신뢰 가중 메시 라우팅 #336)·434(HLC 통합 인과-안정 배달 #337). **머지된 모듈에만 의존하고 열린 PR과 비경쟁(신규 파일만 추가)인 다음 공백 Phase 435**를 본 브랜치에서 신규 구현.
+- **Phase 435** — `simulation/federation_resilient_routing.py` (신규). Phase 432 `FederationMesh` 스냅샷 위에서 인스턴스(USS) 장애 내성을 구조적으로 분석한다. Phase 430(분할 뇌)이 *분단 발생 후* 안전 강하를 다룬다면, 본 모듈은 *분단을 일으킬 구조적 취약점을 사전에* 드러낸다.
+  - `articulation_points()`·`bridges()` — Hopcroft-Tarjan `disc`/`low` **반복** DFS(재귀 한계 회피, 정렬 순회로 결정성) 1회로 절단점(제거 시 연결 요소가 늘어나는 단일 장애점)과 브리지(제거 시 단절되는 단일 링크 인접)를 동시 식별. `is_single_point_of_failure(id)` 는 절단점 여부 질의.
+  - `backup_path(src, dst)` — 메시 주 최단 경로의 *내부 노드·연속 간선*을 제거한 뒤 재-BFS 해, 주 경로의 어떤 중계가 죽어도 영향 없는(엔드포인트만 공유) 이중화 경로 존재 여부를 답한다. 노드·간선 동시 분리.
+  - `surviving_reach(origin, failed)` — 임의 장애 인스턴스 집합 제거 후 origin에서 여전히 닿는 인스턴스·홉 수를 BFS로 계산.
+  - 무작위성 0·정렬 출력·읽기 전용(생성 시점 인접 스냅샷에서만 분석). 단위 **31건 PASS**, 인접 federation 회귀(mesh·discovery·handover·notam·conflict·split_brain) 합산 **141건 GREEN**.
+- code-reviewer 어드바이저 1회 반영: ① (HIGH) `backup_path` 가 주 경로만 live `mesh.shortest_path` 로 산정해 나머지 메서드(스냅샷 `self._adj` 기반)와 불일치 — 메시가 생성 후 rebuild되면 백업이 옛 주 경로를 "분리 백업"으로 잘못 반환하던 결함을, 주 경로도 스냅샷 BFS(`self._bfs`)로 일원화해 해소(메시 참조 제거). ② (MEDIUM) 불변 그래프에 매 호출 Tarjan 재계산 → `_tarjan_cache` 지연 캐시로 1회만 계산. ③ (MEDIUM) 백업 경로 간선 분리·메시 mutation 후 백업 일관성·2-노드 브리지 테스트 3건 보강(29→31). LOW(`surviving_reach` 미등록 노드 무검증·관용)는 결정성·YAGNI 로 보류. 알고리즘 정확성(반복 Tarjan low-link·루트 특수처리·역방향 간선)은 advisor 검증 통과.
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Federation Operations 라인을 `Phase 435` 완료 + 잔여 `Phase 426-427·433-434·436-440` 으로 갱신. 기존 `.py` 소스 무수정(순수 추가) → 회귀 무영향.
+
 ### 통합 (chore) — 일일 점검 2026-06-15 (12차): ODYSSEY Federation Operations 적체 draft PR 4건 통합 (Phase 428·429·431·432)
 - 작업 상황 점검: 8차(Phase 424·425·430)까지 main 머지 완료, 이후 9·10·11차(Phase 428 신뢰·429 감사·431 HLC)와 Phase 432(메시) 작업이 **머지되지 못한 draft PR 4건(#331·#332·#333·#334)으로 적체**된 상태를 확인 → 중단된 Federation Operations 작업을 단일 브랜치로 통합.
 - 통합 대상: PR #333(`federation_trust.py`·`federation_audit.py`·`federation_hybrid_clock.py` = Phase 428·429·431 상위집합) + PR #334(`federation_mesh.py` = Phase 432). 모두 신규 파일 추가 + `federation_discovery.py` 공개 접근자 `volume_of` 1개 추가라 코드 비경쟁 — README/CHANGELOG/ROADMAP/ODYSSEY_PLAN append 충돌만 양측 보존으로 해소.

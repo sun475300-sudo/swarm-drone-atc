@@ -260,6 +260,36 @@ docker compose run --rm sdacs python main.py monte-carlo --mode quick
 
 > `docker compose down` 후에도 `./results/` 디렉터리의 산출물은 호스트에 그대로 남습니다. 설정은 읽기 전용으로 마운트되므로 컨테이너가 호스트 파일을 덮어쓰지 않습니다.
 
+### 운영 환경변수 / Production Environment Variables
+
+운영 배포(특히 FastAPI 백엔드 + WebSocket 텔레메트리 + JWT 인증) 시 필수·권장 환경변수입니다. 미설정 시 동작과 보안 의미를 함께 명시합니다.
+
+| 변수 | 필수 | 기본값 | 동작 |
+|---|:-:|---|---|
+| `SDACS_PROD` | ⚠ 운영시 | `""` (dev) | `1`/`true`/`yes`/`on` 중 하나면 운영 모드 — `SDACS_JWT_SECRET` 미설정 시 즉시 `RuntimeError`로 기동 거부 |
+| `SDACS_JWT_SECRET` | ✅ 운영 | (없음) | JWT 서명 비밀키. 미설정 + `SDACS_PROD=1` → 기동 실패. 미설정 + dev → 경고 후 `dev-insecure-secret-change-in-prod` 폴백 |
+| `SDACS_WS_HOST` | 옵션 | `127.0.0.1` | `simulation/ws_bridge.py` WebSocket 텔레메트리 바인드 주소. 기본은 loopback(보안). 컨테이너/원격 노출이 필요할 때만 `0.0.0.0` 등으로 변경 |
+| `DEFAULT_DRONE_COUNT` | 옵션 | `20` | 시뮬레이션 기본 드론 수 (Helm `env.DEFAULT_DRONE_COUNT`와 정합) |
+| `WIND_THRESHOLD` | 옵션 | `10.0` | APF 강풍 모드 임계 (m/s). 초과 시 `APF_PARAMS_WINDY` 자동 전환 |
+| `LOG_LEVEL` | 옵션 | `INFO` | Python logging 레벨 (`DEBUG`/`INFO`/`WARNING`/`ERROR`) |
+| `API_PORT` / `DASH_PORT` | 옵션 | `8080` / `8050` | FastAPI / Dash 대시보드 포트 |
+
+#### 운영 배포 체크리스트
+
+```bash
+# 1) 운영 모드 활성화 + 강한 시크릿 주입
+export SDACS_PROD=1
+export SDACS_JWT_SECRET="$(openssl rand -hex 32)"
+
+# 2) WebSocket 외부 노출이 필요한 경우만 (기본은 127.0.0.1 — 보안)
+# export SDACS_WS_HOST=0.0.0.0
+
+# 3) 기동 — 시크릿 미설정이면 즉시 RuntimeError 로 안전하게 기동 거부
+docker compose up -d
+```
+
+> Helm 배포는 `helm/sdacs/values.yaml` 의 `env.*` 블록에 동일 키를 설정합니다 (Secret 으로 주입 권장: `--set-string env.SDACS_JWT_SECRET=...` 대신 `kubectl create secret generic sdacs-jwt --from-literal=secret=...`).
+
 ---
 ## 🖥 데스크탑 앱 — 더블클릭으로 실행 / Desktop App
 

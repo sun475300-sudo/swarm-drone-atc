@@ -52,7 +52,20 @@ def page(http_server):
         # 견고화: 느린 CI 헤드리스 (SwiftShader) 에서 15s 내 5 프레임 미충족 플레이크 →
         # 타임아웃 45s + 임계 3 (R1-R5 검증에 3프레임이면 충분, last/mid index 분리 가능).
         pg.evaluate("window._sdacs.startSim()")
-        pg.wait_for_function("window._sdacs.replayFrames > 3", timeout=45000)
+        try:
+            pg.wait_for_function("window._sdacs.replayFrames > 3", timeout=45000)
+        except Exception:
+            # 타임아웃 시 진단 정보 출력 — 향후 플레이크 root cause 즉시 식별 (frames/simTime/perf)
+            diag = pg.evaluate(
+                "({ frames: window._sdacs && window._sdacs.replayFrames, "
+                "simTime: window._sdacs && window._sdacs.simTime, "
+                "fps: window._sdacs && window._sdacs.perf && window._sdacs.perf.fps, "
+                "cpuMs: window._sdacs && window._sdacs.perf && window._sdacs.perf.cpuMs, "
+                "drones: window._sdacs && window._sdacs.droneCount, "
+                "airborne: window._sdacs && window._sdacs.airborne })"
+            )
+            print(f"\n[replay_cursor fixture timeout] {diag}", flush=True)
+            raise
         yield pg
         ctx.close()
         browser.close()

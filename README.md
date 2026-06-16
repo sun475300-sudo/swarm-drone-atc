@@ -960,6 +960,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-16 14:20 | `96231ef` | feat(odyssey): Phase 437 신뢰 인지 분산 경로-벡터 라우팅 — 일일 점검 2026-06-16 (18차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust_path_vector.py, tests/test_federation_trust_path_vector.py |
 | 2026-06-16 13:08 | `4522258` | chore(odyssey): 일일 점검 (17차) — Federation Operations 적체 통합 (Phase 433·434·435·436) | CHANGELOG.md, README.md |
 | 2026-06-16 13:00 | (통합) | chore(odyssey): 일일 점검 (17차) — Federation Operations 적체 통합 (Phase 433·434·435·436), 신규+인접 270건 PASS, PR #339·#340 superseded | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md |
 | 2026-06-16 12:14 | `d9552f5` | feat(odyssey): Phase 436 분산 경로-벡터 라우팅 — 일일 점검 (16차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_path_vector.py, tests/test_federation_path_vector.py |

@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — 일일 점검 2026-06-16 (18차): ODYSSEY Phase 437 신뢰 인지 분산 경로-벡터 라우팅 + 적체 흡수
+- 작업 상황 점검: 12차(`c8ee6c1`, PR #335)까지 main 통합 완료. 이후 Phase 433·434·435·436 작업이 **머지되지 못한 draft PR 6건(#336·#337·#338·#339·#340·#341)으로 적체**된 상태 확인 — 최신 통합본 **PR #341(17차, clean, base=main, 12파일/2097줄)** 이 Phase 433-436 전체를 깔끔히 담고 있으나 main 으로 머지되지 못해 누적. **머지 병목이 근본 원인**(매 점검이 통합 PR을 새로 만들지만 main 머지가 안 됨). 본 점검은 PR #341 상태를 작업 브랜치로 흡수하고, 그 위에서 진짜 다음 갭 **Phase 437** 을 전진 구현해 6건 적체 + 신규 1건을 **단일 브랜치로 일원화**한다.
+- **Phase 437** — `simulation/federation_trust_path_vector.py` (신규) 신뢰 인지 분산 경로-벡터 라우팅. Phase 436 분산 경로-벡터(홉만)와 Phase 433 중앙 신뢰 Dijkstra(전역 토폴로지)의 공백을 메운다: Phase 432 메시 인접 위에서 *분산* 수렴하되, 각 노드가 광고된 경로를 고를 때 *자신이 직접 관찰한 다음 홉 이웃의 신뢰도*(Phase 428)를 1순위 선호로 적용한다(BGP LOCAL_PREF).
+  - `TrustPathVectorRouting(mesh, trust_model, untrust_weight=1.0)` — 선호 키 `(untrust_penalty(node→next_hop), 홉 수, 경로 튜플)`. 1순위가 다음 홉 신뢰이므로 더 신뢰하는 이웃을 거치면 홉이 늘어도 그 경로를 택한다(Phase 433과 같은 안전 논거를 분산 환경에 적용). 경로 나머지 신뢰는 그 구간을 고른 하류 노드들이 각자의 로컬 신뢰로 반영 → 신뢰 결정이 홉마다 분산 합성(중앙식 433과의 핵심 차이).
+  - 핵심 불변식: 신뢰 동률(관찰 0 → 모든 이웃 균일 0.5)이면 키가 (상수,홉,경로)로 환원되어 **Phase 436과 정확히 동일한 경로**(테스트로 교차검증). 신뢰는 후보를 재배열만 할 뿐 제거하지 않아 도달성은 메시(Phase 432)와 동일. path-vector 루프 방지(BGP AS-PATH)·Jacobi 동기 갱신·next-hop local-pref(BGP 류 진동 없음)·무작위성 0. 공개 API(`converge`·`routes`·`best_path`·`hop_count`·`next_hop`·`forwarding_table`)는 Phase 436 과 동일 계약. 단위 **19건 PASS**.
+- code-reviewer 어드바이저 1회 반영(HIGH 2건, CRITICAL 0): ① 수렴 라운드 상한(노드 수)을 "정리"가 아닌 *방어적 종결 캡*으로 정확히 기술 — 신뢰가 더 긴 경로를 선호할 수 있어 수렴 라운드가 지름보다 클 수 있음을 명시, ② float 동률 분리가 정수 prior(Beta(1,1)) 가정에 의존함을 Phase 433 처럼 명시(재현성 자체는 어떤 prior 에서도 보장). MEDIUM(키 이중 계산=Phase 436 동일 패턴, 컨벤션 일관성)·LOW 는 YAGNI·인접 모듈 일관성으로 보류. 어드바이저가 루프-프리·Jacobi 결정성·도달성 보존·API 패리티·무작위성 0 을 명시 검증.
+- 검증: 신규 trust_path_vector **19건** + 인접 federation 회귀(path_vector·trust_routing·causal_delivery·resilient_routing·mesh·discovery·hybrid_clock·trust·audit·split_brain) 합산 **303건 PASS**(0.42s). 본 컨테이너 최소 의존성(pytest·numpy)만 설치 → simpy·scipy·hypothesis 의존 수트는 CI 전체 수집. 기존 `.py` 무수정(순수 추가) → 회귀 무영향. PR #336~#341 은 본 브랜치로 superseded(머지 후 close 권장).
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Federation Operations 라인을 Phase 437 완료 + 잔여 `Phase 426-427·438-440` 으로 갱신.
+
 ### 통합 (chore) — 일일 점검 2026-06-16 (17차): ODYSSEY Federation Operations 적체 draft PR 통합 (Phase 433·434·435·436)
 - 작업 상황 점검: 12차(`c8ee6c1`, PR #335)까지 Federation Operations(Phase 428·429·431·432) main 통합 완료. 이후 13·14·15차(Phase 433 신뢰 가중·434 HLC 인과-안정 배달·435 메시 복원력)는 **통합 PR #339(clean)** 로, 16차(Phase 436 분산 경로-벡터 라우팅)는 **PR #340(clean)** 로 머지되지 못하고 적체된 상태를 확인 → 두 적체분을 본 일일 점검 브랜치로 단일 통합.
 - 통합 대상: PR #339(`federation_trust_routing.py`·`federation_causal_delivery.py`·`federation_resilient_routing.py` = Phase 433·434·435) + PR #340(`federation_path_vector.py` = Phase 436). 모두 신규 파일 추가(기존 `.py` 무수정)라 코드 비경쟁 — README/CHANGELOG/ROADMAP/ODYSSEY_PLAN append 충돌만 양측 보존으로 해소.

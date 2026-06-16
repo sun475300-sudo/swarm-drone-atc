@@ -70,7 +70,7 @@
 
 - **Phase 441** 5계층 안전망 TLA+ 명세 — 충돌 회피 우선순위 불변식
 - **Phase 442** 모델 체킹 — TLC로 ATC 핸드오프 데드락 부재 증명
-- **Phase 443** APF 수렴성 수학 증명 문서화 (Lyapunov 후보 함수)
+- **Phase 443** ✅ APF 수렴성 수학 증명 문서화 (Lyapunov 후보 함수) — `simulation/apf_lyapunov.py` + `docs/APF_CONVERGENCE_PROOF.md`. APF 힘 법칙 `F = -∇U`(인력 piecewise 이차·원뿔 + FIRAS 척력) 보존 포텐셜 구조 명시 + Lyapunov 조건(양정치·C¹·radially unbounded) 증명. 과감쇠 흐름 `dU/dt = -‖∇U‖² ≤ 0` → 장애물 없으면 전역 수렴·있으면 임계점 단조 수렴(국소 최소는 상위 계층 완화). 포텐셜 음의 기울기 = 실제 엔진 힘 중심차분 일치 핀 고정, `apf.py` 무수정 순수 추가. 단위 16건 (2026-06-16)
 - **Phase 444** CBS 완전성·최적성 조건 정리 (논문 §보강)
 - **Phase 445** 불확실성 정량화 — Monte Carlo 신뢰구간 자동 리포트
 - **Phase 446** 충돌 해결률 공식의 통계적 검정력 분석

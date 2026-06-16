@@ -314,7 +314,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 447** 🔬 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` NFZ·ATC·SORA 140케이스 (2026-06-12)
 - [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12)
 - [x] **Phase 449** 🔬 시뮬-실측 갭 모델 — `src/training/sim_real_gap.py` Domain Randomization 파라미터 자동 보정, 7건 PASS (2026-06-15)
-- [ ] **Phase 441-446·449-460** 🔬 Formal & Research Frontier — TLA+ 안전망 명세·모델 체킹
+- [x] **Phase 443** 🔬 APF 수렴성 Lyapunov 분석 — `simulation/apf_lyapunov.py` + `docs/APF_CONVERGENCE_PROOF.md`. APF 힘 법칙이 보존 포텐셜의 음의 기울기(인력 piecewise 이차·원뿔 + FIRAS 척력)임을 명시하고, 그 포텐셜이 Lyapunov 함수(양정치·C¹·radially unbounded)임을 증명. 과감쇠 흐름에서 `dU/dt = -‖∇U‖² ≤ 0` → 장애물 없으면 목표 전역 수렴, 있으면 임계점 단조 수렴(국소 최소는 CBS·교착 탈출 섭동 상위 계층이 완화). `apf.py` 무수정 순수 추가, 포텐셜 음의 기울기 = 실제 엔진 힘 일치를 중심 차분으로 핀 고정, 16건 PASS (2026-06-16)
+- [ ] **Phase 441-442·444-446·450-460** 🔬 Formal & Research Frontier — TLA+ 안전망 명세·TLC 모델 체킹·CBS 완전성 정리 (445 불확실성 정량화·446 검정력 분석은 `simulation/uncertainty.py`·`simulation/power_analysis.py` 로 선행 구현됨)
 - [x] **Phase 466** 🏛 텔레메트리 JSON Schema 공개 — `docs/schemas/telemetry.schema.json` Draft-07 + ws_bridge 정합 회귀 (2026-06-12)
 - [ ] **Phase 461-465·467-480** 🏛 Standards & Policy — ASTM/ISO 기고·정책 영향 시뮬
 - [x] **Phase 486** ♾️ 독립 재현 자동화 — `scripts/independent_reproduction.sh` (회귀·md5·JS·API 게이트 통합) (2026-06-12)

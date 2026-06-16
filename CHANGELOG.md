@@ -15,6 +15,15 @@
 - 검증: 신규 `tests/test_federation_trust_routing.py` **37건** + 인접 federation 회귀(mesh 25·trust 30·discovery·handover·conflict·notam·split_brain·audit·hybrid_clock) 합산 **240건 GREEN** 로컬 검증. 본 컨테이너는 최소 의존성(pytest·numpy)만 설치 → 나머지 수트는 simpy·scipy·hypothesis 등 미설치로 미수집(환경 의존, CI 전체 수집).
 - ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Federation Operations 라인을 Phase 433 완료 + 잔여 `Phase 426-427·434-440` 으로 갱신.
 
+### 추가 (feat) — 일일 점검 2026-06-16 (14차): ODYSSEY Phase 434 HLC 통합 인과-안정 배달
+- 작업 상황 점검: 12차(PR #335)로 Federation Operations 적체(Phase 428·429·431·432)가 main 통합 완료, 13차는 Phase 433 신뢰 가중 라우팅이 **draft PR #336 으로 진행 중**(미머지)임을 확인. **머지된 모듈(mesh·hybrid_clock)에만 의존하고 열린 PR #336(trust_routing)과 비경쟁(신규 파일만 추가)인 진짜 공백 Phase 434** 를 신규 구현.
+- **Phase 434** — `simulation/federation_causal_delivery.py` (신규). Phase 432 메시 토폴로지는 origin 사건을 멀티홉 *전파* 하지만 각 수신 인스턴스의 처리(배달) **순서** 는 규정하지 않는다 — 플러딩 중복·타 origin 사건 혼입으로 순진한 도착순 처리는 인스턴스마다 순서가 어긋나 연합 결정이 불일치. 본 모듈은 Phase 431 HLC 를 결합한 **워터마크(low-water-mark) 안정 배달** 로 이를 해소.
+  - 알고리즘: 각 출처가 FIFO 로 단조 증가하는 HLC 를 발행하므로, 알려진 모든 출처 고점의 최소(워터마크) 이하 사건은 **안정** — 그보다 앞선 사건이 미래에 도착 불가(CockroachDB closed-timestamp 와 동일 발상). 안정 사건만 HLC **전순서** 로 배달 → 모든 인스턴스가 동일한 결정적 순서로 처리.
+  - `FederationEvent`(HLC 타임스탬프 + 불투명 페이로드, source=발행 인스턴스)·`CausalDeliveryBuffer`(출처별 FIFO 고점으로 멀티홉 중복·stale 멱등 무시 / 예상 출처 집합이면 모두 보고까지 보수적 보류, 없으면 관측 출처 best-effort / `deliverable`·`flush`·`pending`·`buffer_size`)·`FederationDeliveryCoordinator`(메시 `propagate` 로 origin 사건을 도달 가능한 모든 인스턴스 버퍼에 멱등 fan-out, TTL 한정, 스냅샷 모델). 무작위성 0·결정적. 단위 **36건 PASS**.
+- code-reviewer 어드바이저 1회 반영: ① (HIGH) `flush` 의 `id(e)` 기반 제거가 구조적 동일 사본/리팩토링에 취약 → **워터마크 직접 분할** 로 교체(객체 식별자 무의존, dict 등 비해시 페이로드도 안전, 구조적 중복 재배달 차단). ② (HIGH) `deliverable`/`pending` 이 모두 빌 때 빔 vs 워터마크 보류를 구분할 `buffer_size()` 접근자 추가. ③ (MEDIUM) `FederationDeliveryCoordinator` 스냅샷 의미 docstring 명시(이후 `mesh.rebuild()` 시 새 코디네이터 필요). 어드바이저가 권한 monotonic 단정은 프로젝트 가이드("발생 불가 시나리오 에러 처리 금지")에 따라 보류.
+- 검증: 신규 단위 **36건 PASS**, 인접 federation 회귀(mesh·hybrid_clock·discovery·trust·audit·split_brain·notam·handover·conflict) 포함 **237건 GREEN**. 본 컨테이너는 최소 의존성(pytest·numpy)만 설치 → simpy·scipy·hypothesis 등 미설치 수트는 CI 전체 수집. 기존 모듈 **무수정** 순수 추가.
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Federation 라인을 `Phase 434` 완료 + `Phase 433`(진행 중, PR #336) + 잔여 `Phase 426-427·435-440` 으로 갱신.
+
 ### 통합 (chore) — 일일 점검 2026-06-15 (12차): ODYSSEY Federation Operations 적체 draft PR 4건 통합 (Phase 428·429·431·432)
 - 작업 상황 점검: 8차(Phase 424·425·430)까지 main 머지 완료, 이후 9·10·11차(Phase 428 신뢰·429 감사·431 HLC)와 Phase 432(메시) 작업이 **머지되지 못한 draft PR 4건(#331·#332·#333·#334)으로 적체**된 상태를 확인 → 중단된 Federation Operations 작업을 단일 브랜치로 통합.
 - 통합 대상: PR #333(`federation_trust.py`·`federation_audit.py`·`federation_hybrid_clock.py` = Phase 428·429·431 상위집합) + PR #334(`federation_mesh.py` = Phase 432). 모두 신규 파일 추가 + `federation_discovery.py` 공개 접근자 `volume_of` 1개 추가라 코드 비경쟁 — README/CHANGELOG/ROADMAP/ODYSSEY_PLAN append 충돌만 양측 보존으로 해소.

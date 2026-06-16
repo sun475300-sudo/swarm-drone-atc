@@ -960,6 +960,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-16 11:00 | (통합) | chore(odyssey): 일일 점검 (15차) — Federation Operations 적체 draft PR 3건 통합 (Phase 433·434·435), 신규 104건 + 인접 회귀 = 331건 PASS, PR #336·#337·#338 superseded | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust_routing.py, simulation/federation_causal_delivery.py, simulation/federation_resilient_routing.py |
 | 2026-06-16 10:15 | `3371b1f` | feat(odyssey): Phase 435 메시 복원력 라우팅 — 절단점·브리지 + 백업 경로 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_resilient_routing.py, tests/test_federation_resilient_routing.py |
 | 2026-06-16 09:15 | `3a7555e` | feat(odyssey): Phase 434 HLC 통합 인과-안정 배달 — 일일 점검 (14차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_causal_delivery.py, tests/test_federation_causal_delivery.py |
 | 2026-06-16 08:13 | `f7c1dd6` | feat(odyssey): Phase 433 신뢰 가중 메시 라우팅 — 일일 점검 (13차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust_routing.py, tests/test_federation_trust_routing.py |

@@ -5,6 +5,12 @@
 
 ## [Unreleased]
 
+### 통합 (chore) — 일일 점검 2026-06-16 (15차): ODYSSEY Federation Operations 적체 draft PR 3건 통합 (Phase 433·434·435)
+- 작업 상황 점검: 12차(`c8ee6c1`, PR #335)로 Federation Operations 적체(Phase 428·429·431·432)가 main 통합 완료된 이후, 13·14차(Phase 433 신뢰 가중 라우팅·434 HLC 통합 인과-안정 배달)와 Phase 435(메시 복원력 라우팅)가 **머지되지 못한 draft PR 3건(#336·#337·#338)으로 적체**된 상태를 확인 → 중단된 Federation Operations 작업을 본 일일 점검 브랜치로 통합.
+- 통합 대상: PR #336(`federation_trust_routing.py` = Phase 433) + PR #337(`federation_causal_delivery.py` = Phase 434) + PR #338(`federation_resilient_routing.py` = Phase 435). 모두 신규 파일 추가(기존 `.py` 무수정)라 코드 비경쟁 — README/CHANGELOG/ROADMAP/ODYSSEY_PLAN append 충돌만 양측 보존으로 해소.
+- 검증: 신규 federation 단위 **104건 PASS**(trust_routing 37 + causal_delivery 36 + resilient_routing 31), 인접 federation 회귀(discovery·handover·conflict·notam·split_brain·trust·audit·hybrid_clock·mesh·operational_intent) 포함 **331건 GREEN**. 본 컨테이너는 최소 의존성(pytest·numpy)만 설치 → 나머지 수트는 simpy·scipy·hypothesis 등 미설치로 미수집(환경 의존, CI 전체 수집). PR #336·#337·#338 은 본 통합으로 superseded.
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Federation Operations 라인을 Phase 433·434·435 완료 + 잔여 `Phase 426-427·436-440` 으로 정리.
+
 ### 추가 (feat) — 일일 점검 2026-06-16 (13차): ODYSSEY Phase 433 신뢰 가중 메시 라우팅
 - 작업 상황 점검: 12차(`c8ee6c1`, PR #335)로 Federation Operations 적체(Phase 428·429·431·432)가 main 통합 완료됨을 확인. 열린 PR 15건(피처 #283 핫루프·#280 Phase 207 draft + dependabot 13)은 이전 점검들에서 사람 판단/후속 정리로 보류된 상태 유지. **머지된 모듈에만 의존하고 열린 PR과 비경쟁(신규 파일만 추가)인 진짜 공백 Phase 433**(메시 라우팅 확장의 첫 단계)을 본 브랜치에서 신규 구현. 잔여 공백 Phase 426·427(2-인스턴스 E2E·고스트 렌더링)은 HTML 시뮬레이터 + Playwright 브라우저 의존이라 본 최소 컨테이너에서 보류.
 - **Phase 433** — `simulation/federation_trust_routing.py` (신규) 신뢰 가중 메시 라우팅. Phase 432 메시 토폴로지(`FederationMesh`)는 모든 인스턴스를 동등하게 보고 홉 수만으로 최단 경로를 계산하지만, Phase 428 신뢰 모델(`FederationTrustModel`)은 어떤 인스턴스가 협조 행위를 신뢰성 있게 이행하는지 정량화한다. 본 모듈은 라우팅하는 인스턴스(origin) **자신의** 신뢰 믿음으로 각 중계 후보 비용을 가중해 신뢰하는 이웃을 우선하는 결정적 최소 비용 경로를 계산한다.

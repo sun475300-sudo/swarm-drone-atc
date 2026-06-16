@@ -75,7 +75,7 @@
 - **Phase 445** 불확실성 정량화 — Monte Carlo 신뢰구간 자동 리포트
 - **Phase 446** 충돌 해결률 공식의 통계적 검정력 분석
 - **Phase 447** ✅ 적대적 시나리오 fuzzing — 시드 기반 시나리오 변이 생성기 (`simulation/scenario_fuzzer.py` — `np.random.default_rng` 결정적 변이 + `adversarial` 부하↑·안전마진↓ 편향 모드, 출력은 `scenario_schema.validate_scenario` 계약 충족, 단위 14건 PASS, 2026-06-15)
-- **Phase 448** 속성 기반 테스트(Hypothesis) — 시뮬 코어 불변식 1,000케이스
+- **Phase 448** ✅ 속성 기반 테스트(Hypothesis) — 시뮬 코어 불변식 1,000+케이스 (`tests/test_property_deconflict.py` — 4D 경로 충돌 감지 코어 `PathDeconflict` 의 9개 불변식: 결정성·삽입순서 무관·보간 볼록성/클램프·충돌 술어 일관·시각 정렬·수직 분리 보장·단일경로/동일경로. 기존 APF(`test_apf_property.py`)·텔레메트리 압축(`test_property_telemetry.py`) property 자산이 안 다루던 충돌 감지 코어를 덮음. 9속성×130예제=1,170+케이스, 9건 PASS, code-reviewer 어드바이저 반영, 2026-06-16)
 - **Phase 449** 시뮬-실측 갭 모델 — DR 파라미터 보정 자동화
 - **Phase 450** 재현성 10년 보장 — 의존성 핀 + 컨테이너 다이제스트 고정
 - **Phase 451-460** RL 일반화 연구 (미학습 시나리오 전이) + 인증 가능 ML 조사 (EASA AI Roadmap)

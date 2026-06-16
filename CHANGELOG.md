@@ -5,6 +5,16 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — 일일 점검 2026-06-16 (21차): ODYSSEY Phase 448 속성 기반 테스트 — 충돌 감지 코어 불변식
+- **작업 상황 점검**: 20차(PR #346, `a42f6ff`)까지 🛰 Federation Operations(421-440) 트랙 완료. 다음 우선순위 매트릭스(Top 8)의 권장 즉시 착수 항목 **Phase 448(속성 기반 테스트)** 을 전진. 점검 중 Phase 448 이 부분 구현 상태(`tests/test_property_telemetry.py` = TelemetryCompressor 압축 속성만)임을 확인 — 계획의 핵심인 **"시뮬 코어 불변식"** 은 미충족이라, 4D 충돌 감지 코어를 덮어 갭을 메운다.
+- **Phase 448** — `tests/test_property_deconflict.py` (신규) 4D 경로 탈충돌 코어 `simulation/path_deconflict.py::PathDeconflict` 의 Hypothesis 속성 기반 회귀. 기존 example 기반(`test_phase60_67.py::TestPathDeconflict`)이 못 잡는 경계 조건을 무작위 입력으로 검증.
+  - 9개 불변식: P1 결정성(반복 호출 동일)·P2 삽입 순서 무관(충돌 개수)·P3 보간 볼록성(경계상자 내)·P4 보간 클램프(외삽 금지)·P5 충돌 술어 일관(h<sep_h ∧ v<sep_v, 거리 유한·비음수)·P6 충돌 시각 오름차순·P7 수직 분리 보장(고도차≥sep_v→충돌 0)·P8 단일 경로 충돌 0·P9 동일 경로 쌍 충돌 ≥1.
+  - 기존 property 자산(`test_apf_property.py` = APF 힘장, `test_property_telemetry.py` = 텔레메트리 압축)이 다루지 않던 **충돌 감지 코어**를 덮어 Phase 448 "1,000케이스" 목표 충족: 9속성 × 130예제 = **1,170+케이스**. 대상 `.py` 무수정(테스트 순수 추가).
+- code-reviewer 어드바이저 1회 반영(CRITICAL 0·HIGH 2): ① P3 `interpolate_position` None 반환 시 진단 메시지 보강, ② P9 단일 웨이포인트 모호성 제거 위해 `min_pts=2` 로 강화(동일 *경로* 쌍 의미 명확화). 어드바이저가 P1·P5·P6·P7·P8 을 거짓 양성/음성 없는 정확한 불변식으로, 시간 스캔 루프 유계성·전략 커버리지·프로젝트 스타일 정합성을 명시 검증. P7 수직 분리는 부동소수점 경계 아티팩트(z2−z1 이 sep_v 미세 하회) 회피 위해 gap≥12 마진 적용.
+- 검증: 신규 deconflict property **9건 PASS**(3.4s) + 인접 회귀(`test_phase60_67`·`test_apf_property`·`test_property_telemetry`) 합산 **87건 PASS**. 전체 수트 **5,117건 수집**(직전 5,108 + 9). `hypothesis` 는 이미 문서화된 의존성(`requirements.txt`).
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Formal & Research Frontier 라인을 **Phase 448 완료**로 갱신.
+- ⚠️ **근본 원인 지속(사람 판단 필요)**: 13~21차 누적 머지 병목 — `origin/main` 이 2026-06-05(`19ef86d`) 이후 미전진, 작업이 `claude/fervent-babbage-*` 브랜치 체인(main 대비 ~250 커밋 선행)에만 적체. 매 점검이 직전 결과를 main 에서 못 봐 중복 위험. **메인 통합 전략 결정 필요**(브랜치 PR 일괄 머지 또는 main 재정렬).
+
 ### 추가 (feat) — 일일 점검 2026-06-16 (20차): ODYSSEY Phase 439·440 통합 (중복 PR #344·#345 일원화 → Federation Operations 트랙 421-440 완료)
 - **작업 상황 점검 — 중복 PR 발견(머지 병목의 증상)**: 19차(PR #343, `6bc06d4`)까지 Phase 438 이 통합된 뒤, **두 병행 점검(20차)이 각각 "Phase 439" 로 서로 다른 모듈을 구현해 draft PR #344·#345 로 적체**된 상태를 확인. 두 PR 은 *코드 비경쟁*(서로 다른 신규 파일만 추가)이며 오직 "Phase 439" 라벨과 README/CHANGELOG/ROADMAP/PLAN append 라인만 충돌 — 머지 병목으로 직전 작업이 main 에 안 보여 다음 점검이 같은 번호로 중복 구현한 전형. 본 점검은 **두 모듈을 모두 본 브랜치로 일원화**하고 번호 충돌을 Phase 439(토폴로지 뷰)·440(신뢰 페일오버)으로 분리 해소해, 작업 손실 없이 **🛰 Federation Operations(421-440) 트랙을 완료**한다.
 - **Phase 439** — `simulation/federation_topology_view.py` (PR #344 흡수) 신뢰 한정 도달성 통합 토폴로지 `FederationTopologyView`. Phase 432 메시 *연결성* + Phase 428 *신뢰* 를 합쳐 한 origin 관점에서 연합 목적지를 5개 도달성 품질(SELF·DIRECT·RELAYED_TRUSTED·RELAYED_RISKY·UNREACHABLE)로 분류하는 읽기 전용 관측 뷰. Phase 433 `TrustWeightedRouter` 가 *최소 비용 경로 하나* 를 고른다면 본 모듈은 **신뢰 중계만 거치는 경로의 존재성**(≠ 최소 비용)을 답한다 — 3+ 인스턴스 중계에서만 의미. `avoid_untrusted_route`(알려진 불신만 회피)보다 엄격히 각 중계가 *적극 신뢰*여야 하는 상보적 포스처. `reachability_class`·`classify`·`trusted_path`·`trusted_reach`·`risky_reach`·`summary`. 무작위성 0·순수 추가. code-reviewer 어드바이저 HIGH 3건 반영(원 PR). 단위 **27건 PASS**.

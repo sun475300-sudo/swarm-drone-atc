@@ -70,12 +70,12 @@
 
 - **Phase 441** 5계층 안전망 TLA+ 명세 — 충돌 회피 우선순위 불변식
 - **Phase 442** 모델 체킹 — TLC로 ATC 핸드오프 데드락 부재 증명
-- **Phase 443** APF 수렴성 수학 증명 문서화 (Lyapunov 후보 함수)
+- **Phase 443** ✅ APF 수렴성 수학 증명 문서화 (Lyapunov 후보 함수) (2026-06-16, `simulation/apf_lyapunov.py` + `docs/APF_CONVERGENCE_PROOF.md` — APF 힘 법칙이 보존 포텐셜의 음의 기울기 `F = -∇U` 임을 명시: 인력 포텐셜 `V_att`(piecewise 이차/원뿔, C¹)·FIRAS 척력 `(k/2)(1/d−1/d0)²`, `total_potential`·`conservative_force`·`lyapunov_derivative`. 형식 증명: 양정치·C¹·radially unbounded, 과감쇠 흐름 `dU/dt = −‖∇U‖² ≤ 0`, LaSalle 전역 수렴(콤팩트 레벨집합), 국소 최소·속도 증폭 비보존항 한계와 상위 계층(CBS·교착 탈출) 완화 명시. `apf.py` 무수정 순수 추가, 무작위성 0. code-reviewer 어드바이저 HIGH 2건 반영(속도 증폭 비보존성으로 "하강 무보증" 정정·엔진 0.1m 인력 데드밴드 정합). 단위 16건)
 - **Phase 444** CBS 완전성·최적성 조건 정리 (논문 §보강)
 - **Phase 445** 불확실성 정량화 — Monte Carlo 신뢰구간 자동 리포트
 - **Phase 446** 충돌 해결률 공식의 통계적 검정력 분석
 - **Phase 447** ✅ 적대적 시나리오 fuzzing — 시드 기반 시나리오 변이 생성기 (`simulation/scenario_fuzzer.py` — `np.random.default_rng` 결정적 변이 + `adversarial` 부하↑·안전마진↓ 편향 모드, 출력은 `scenario_schema.validate_scenario` 계약 충족, 단위 14건 PASS, 2026-06-15)
-- **Phase 448** 속성 기반 테스트(Hypothesis) — 시뮬 코어 불변식 1,000케이스
+- **Phase 448** ✅ 속성 기반 테스트(Hypothesis) — 시뮬 코어 불변식 1,000+케이스 (2026-06-16, 두 코어 동시 커버 — `tests/test_property_deconflict.py`: 4D 경로 충돌 감지 코어 `PathDeconflict` 의 9개 불변식(결정성·삽입순서 무관·보간 볼록성/클램프·충돌 술어 일관·시각 정렬·수직 분리 보장·단일/동일 경로, 9속성×130예제=1,170+케이스) + `tests/test_scenario_fuzzer_property.py`: Phase 447 적대적 퍼저 계약을 "고정 시나리오 통과"에서 "근방 시나리오 공간 전역 통과"로 격상하는 6개 불변식(스키마 보존·입력 불변성·시드 결정성·분포 재정규화·route 순서·adversarial 단방향 편향, max_examples 합 1,350케이스). 기존 APF(`test_apf_property.py`)·텔레메트리 압축(`test_property_telemetry.py`) property 자산이 안 다루던 충돌 감지·퍼저 코어를 덮음. 대상 `.py` 무수정(테스트 순수 추가), code-reviewer 어드바이저 반영, 15건 PASS)
 - **Phase 449** 시뮬-실측 갭 모델 — DR 파라미터 보정 자동화
 - **Phase 450** 재현성 10년 보장 — 의존성 핀 + 컨테이너 다이제스트 고정
 - **Phase 451-460** RL 일반화 연구 (미학습 시나리오 전이) + 인증 가능 ML 조사 (EASA AI Roadmap)

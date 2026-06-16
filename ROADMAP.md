@@ -304,7 +304,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 432** 🛰 메시 연합 토폴로지 + 멀티홉 전파 — `simulation/federation_mesh.py` Phase 421 디스커버리 등록 상태로 공역 경계 인접 그래프 구성(타일형 비중첩 공역도 수평 허용오차로 이웃 인식, 수직·시간은 엄격 교차). 연결 요소·연결성·결정적 BFS 최단 경로 + Phase 425 1홉 전파를 메시 전역 멀티홉으로 일반화한 TTL 한정 전파(`propagate`)·중계 포워딩 테이블(`relay_table`), 25건 PASS (2026-06-15)
 - [x] **Phase 433** 🛰 신뢰 가중 메시 라우팅 — `simulation/federation_trust_routing.py` Phase 432 메시 토폴로지 위에서 Phase 428 신뢰 모델로 중계 후보 비용을 가중하는 결정적 최소 비용 라우터 `TrustWeightedRouter`. 간선 비용 `hop_cost + untrust_weight*(1 - trust(origin→node))`, origin 자신의 신뢰 믿음으로 결정(중앙 신뢰 권위 없음). `route`(사전식 동률 분리 Dijkstra)·`route_cost`·`avoid_untrusted_route`·`forwarding_table`·`relay_trust`, 37건 PASS (2026-06-16)
 - [x] **Phase 434** 🛰 HLC 통합 인과-안정 배달 — `simulation/federation_causal_delivery.py` Phase 432 메시 전파 위에 Phase 431 HLC 결합. 워터마크(각 출처 FIFO 단조 HLC → 모든 출처 고점 최소 이하 안정, CockroachDB closed-timestamp 발상) 안정 배달로 멀티홉 중복·인스턴스별 사건 순서 불일치 해소. `FederationEvent`·`CausalDeliveryBuffer`(출처별 FIFO 멱등 중복 무시·예상/관측 워터마크·HLC 전순서 배달)·`FederationDeliveryCoordinator`(메시 propagate fan-out), 36건 PASS (2026-06-16)
-- [ ] **Phase 426-427·435-440** 🛰 Federation Operations — 2-인스턴스 연합 E2E·핸드오버 시각화·메시 라우팅 확장
+- [x] **Phase 435** 🛰 메시 복원력 라우팅 — `simulation/federation_resilient_routing.py` Phase 432 메시 스냅샷 위 구조적 복원력 분석. Hopcroft-Tarjan 반복 DFS로 절단점(단일 장애점)·브리지(단일 링크) 식별 + 주 최단 경로와 내부 노드·간선 분리 백업 경로(`backup_path`)·생존 도달성(`surviving_reach`). 결정적·읽기 전용, 31건 PASS (2026-06-16)
+- [ ] **Phase 426-427·436-440** 🛰 Federation Operations — 2-인스턴스 연합 E2E·핸드오버 시각화·메시 라우팅 확장
 - [x] **Phase 447** 🔬 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` NFZ·ATC·SORA 140케이스 (2026-06-12)
 - [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12)
 - [x] **Phase 449** 🔬 시뮬-실측 갭 모델 — `src/training/sim_real_gap.py` Domain Randomization 파라미터 자동 보정, 7건 PASS (2026-06-15)

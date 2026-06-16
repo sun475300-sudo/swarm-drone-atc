@@ -5,6 +5,16 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — 일일 점검 2026-06-16 (16차): ODYSSEY Phase 436 분산 경로-벡터 라우팅
+- 작업 상황 점검: ODYSSEY Federation Operations(Phase 421-440)에서 12차(Phase 428·429·431·432)까지 main 머지 완료, 이후 13·14·15차(Phase 433 신뢰 가중·434 HLC 인과-안정 배달·435 메시 복원력)가 **머지되지 못한 draft PR(#336·#337·#338)과 통합 PR #339(clean)로 적체**된 상태를 확인 → 적체와 독립적으로 다음 메시 라우팅 Phase를 진행.
+- **Phase 436** — `simulation/federation_path_vector.py` (신규) 분산 경로-벡터 라우팅. Phase 432(`shortest_path`)·Phase 433(`TrustWeightedRouter`)이 **전역 메시 스냅샷**을 한 노드가 통째로 보고 BFS·Dijkstra로 계산하는 반면, 실제 inter-USS 연합에서는 어떤 인스턴스도 전체 토폴로지를 모른다 — 본 모듈은 각 인스턴스가 *직접 이웃*만 알고 도달성을 광고·교환해 먼 목적지 경로를 분산 학습하는 경로-벡터 라우팅을 시뮬레이션한다.
+  - `PathVectorRouting.converge()` — Jacobi(동기) 라운드. 매 라운드 모든 갱신이 *직전 라운드 스냅샷*만 참조하므로 노드 순회 순서와 무관하게 결정적, 수렴 라운드 수 = 메시 지름(diameter). 광고 경로 앞에 자신을 붙여 후보를 만들되 **경로에 자신이 이미 있으면 거부**(path-vector 루프 방지, BGP AS-PATH 발상)해 루프 프리를 보장. 동률(같은 홉)은 사전식 작은 경로 튜플로 분리.
+  - `best_path`/`hop_count`/`next_hop`/`routes`/`forwarding_table` 조회 API + `is_converged`/`rounds_to_converge`. 조회 시 미수렴이면 자동 수렴. 미등록 노드는 `KeyError`, 음수 `max_rounds` 는 `ValueError`, 라운드 상한 미달 시 부분 결과 보존(`rounds_to_converge=None`).
+  - 핵심 불변식 검증: 분산 수렴 경로의 홉 거리가 Phase 432 중앙 BFS(`shortest_path`)와 **항상 일치**(직선·3×3/2×3 격자 전수). 경로 유효성(연속 노드 인접·루프 없음·끝점), 분단 메시 도달 불가 처리, 결정성(동일 입력 동일 테이블), king-move 대각 1홉, 빈 메시·재호출 멱등. 단위 **23건 PASS**.
+- 무작위성·외부 네트워크 0(순수 결정적), 모든 출력 정렬. 인접 federation 회귀(discovery·mesh·trust·audit·split_brain·hybrid_clock·handover·conflict·notam·operational_intent + path_vector) **250건 PASS**. 본 컨테이너 최소 의존성(pytest·numpy)만 설치 → simpy·scipy·hypothesis 의존 수트는 CI 전체 수집.
+- code-reviewer 어드바이저 1회 반영: 핵심 알고리즘(Jacobi 고정점·path-vector 루프 방지·결정성·수렴 라운드·분단 처리) 정확성 확인. ① (HIGH) `max_rounds` 부분 수렴 조회가 "자동 수렴" docstring 과 모순되던 점을 YAGNI 원칙대로 **`max_rounds` 파라미터 제거**로 해소(부분 검사 기능은 요청 없는 추측성 → 삭제, 라운드 상한은 노드 수로 내부 보장), ② (LOW) Jacobi 라운드를 직전 스냅샷 읽기·신규 테이블 쓰기로 재구성해 프로젝트 불변성 규약 충족, ③ 빈 메시·`converge()` 멱등 테스트 보강.
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Federation Operations 라인을 `Phase 436` 완료 + 잔여 `Phase 426-427·433-435·437-440` 으로 갱신.
+
 ### 통합 (chore) — 일일 점검 2026-06-15 (12차): ODYSSEY Federation Operations 적체 draft PR 4건 통합 (Phase 428·429·431·432)
 - 작업 상황 점검: 8차(Phase 424·425·430)까지 main 머지 완료, 이후 9·10·11차(Phase 428 신뢰·429 감사·431 HLC)와 Phase 432(메시) 작업이 **머지되지 못한 draft PR 4건(#331·#332·#333·#334)으로 적체**된 상태를 확인 → 중단된 Federation Operations 작업을 단일 브랜치로 통합.
 - 통합 대상: PR #333(`federation_trust.py`·`federation_audit.py`·`federation_hybrid_clock.py` = Phase 428·429·431 상위집합) + PR #334(`federation_mesh.py` = Phase 432). 모두 신규 파일 추가 + `federation_discovery.py` 공개 접근자 `volume_of` 1개 추가라 코드 비경쟁 — README/CHANGELOG/ROADMAP/ODYSSEY_PLAN append 충돌만 양측 보존으로 해소.

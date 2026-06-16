@@ -5,6 +5,218 @@
 
 ## [Unreleased]
 
+### 통합 (chore) — 일일 점검 2026-06-15 (12차): ODYSSEY Federation Operations 적체 draft PR 4건 통합 (Phase 428·429·431·432)
+- 작업 상황 점검: 8차(Phase 424·425·430)까지 main 머지 완료, 이후 9·10·11차(Phase 428 신뢰·429 감사·431 HLC)와 Phase 432(메시) 작업이 **머지되지 못한 draft PR 4건(#331·#332·#333·#334)으로 적체**된 상태를 확인 → 중단된 Federation Operations 작업을 단일 브랜치로 통합.
+- 통합 대상: PR #333(`federation_trust.py`·`federation_audit.py`·`federation_hybrid_clock.py` = Phase 428·429·431 상위집합) + PR #334(`federation_mesh.py` = Phase 432). 모두 신규 파일 추가 + `federation_discovery.py` 공개 접근자 `volume_of` 1개 추가라 코드 비경쟁 — README/CHANGELOG/ROADMAP/ODYSSEY_PLAN append 충돌만 양측 보존으로 해소.
+- 검증: 신규 federation 단위 **123건 PASS**(trust 30 + audit 29 + hybrid_clock 34 + mesh 30), 인접 federation 회귀(discovery·handover·conflict·notam·split_brain·operational_intent) **104건 PASS** = 합계 **227건 GREEN**. 본 컨테이너는 최소 의존성(pytest·numpy)만 설치 → 나머지 수트는 simpy·scipy·hypothesis 등 미설치로 미수집(환경 의존, CI 전체 수집). PR #331·#332·#333·#334 는 본 통합으로 superseded.
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Federation Operations 라인을 Phase 428·429·430·431·432 완료 + 잔여 `Phase 426-427·433-440` 으로 정리.
+
+### 추가 (feat) — 일일 점검 2026-06-15 (11차): ODYSSEY Phase 431 하이브리드 논리 시계(HLC) + Phase 428·429 통합
+- **Phase 431** — `simulation/federation_hybrid_clock.py` (신규) 하이브리드 논리 시계(HLC, Kulkarni et al. 2014). 3+ 인스턴스 메시 연합에서 인스턴스마다 벽시계가 어긋나도 물리 시계 동기화 없이 연합 결정(디스커버리·핸드오버·감사)의 **전역 인과 순서**를 결정적으로 매긴다.
+  - `HLCTimestamp` (frozen, `order=True`) — `(wall_time, counter, instance_id)` 사전식 **전순서**. `causal_key`/`happened_before` 는 인스턴스 식별자를 제외한 `(wall, counter)` 로 **인과(부분 순서)** 를, `is_concurrent_with` 는 동률(서로 다른 인스턴스의 동시 이벤트) 동시성을 명시한다 — 전순서(정렬용)와 인과(causality)를 의미적으로 분리.
+  - `HybridLogicalClock.local_event(pt)` / `receive_event(pt, remote)` — 표준 HLC 갱신 규칙: 새 `wall` = (지역 고점·원격 wall·물리 시각) 최댓값, `counter` 는 그 최댓값의 출처별 결정(지역·원격 동률 → max(c)+1, 한쪽만 → 그쪽 +1, 물리 시각 신규 최대 → 0). happened-before → 발행 타임스탬프 사전식 엄격 증가를 보장.
+  - 물리 시계 역행을 견디고(논리 고점 유지·counter 증가), cold-start sentinel `-1` 로 갓 만든 시계의 첫 타임스탬프 counter 를 0으로 정규화. 무작위성·시스템 시계 직접 읽기 0 → 같은 이벤트 순서는 항상 같은 타임스탬프 열(재현·독립 검증). 단위 **34건 PASS**.
+- code-reviewer 어드바이저 1회 반영: ① (CRITICAL) fresh 시계 `_wall=0` 이 유효 `t=0` 과 init sentinel 을 혼동해 첫 이벤트가 `counter=1` 이 되던 모호성을 `_wall=-1` sentinel + `current()` 클램프로 해소(첫 타임스탬프 항상 counter 0), ② (HIGH) `happened_before` 가 부분 순서임을 docstring 에 명시 + `is_concurrent_with` 추가해 "not happened_before = 역방향" 오용 차단, ③ (MEDIUM) cold-start receive 경로 테스트 2건 보강(29→34). MEDIUM(private 속성 외부 변형=인접 stateful dataclass 공통 패턴)·LOW 는 컨벤션 일관성·YAGNI 로 보류.
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Federation Operations 라인을 `Phase 431` 완료 + 잔여 `Phase 426-427·432-440` 으로 갱신. 인접 federation 회귀(trust·audit·handover·conflict·notam·split_brain·discovery·operational_intent + hybrid_clock) **197건 PASS**, 전체 수집 **4,942건** 수집 오류 0.
+
+### 추가 (feat) — 일일 점검 2026-06-15 (9차): ODYSSEY Phase 428 인스턴스 간 신뢰 모델
+- **Phase 428** — `simulation/federation_trust.py` 연합 신뢰 모델. Phase 608 `BayesianReputation` 의 Beta-Bernoulli 켤레 사전분포를 인스턴스(USS) 레벨로 재사용해, 한 인스턴스가 상대 인스턴스의 협조 행위 이행 여부를 누적 관찰한 평판을 정량화한다.
+  - `InstanceTrust` frozen dataclass 가 (관찰자→대상) **방향성** Beta(α,β) 믿음을 보유. `updated(success)` 는 원본을 변형하지 않고 α(성공)/β(실패)를 증가시킨 새 인스턴스를 반환(불변). `trust_score` = 사후 평균 `α/(α+β)`, `uncertainty` = Beta 분포 표준편차(관찰 누적 시 0 수렴).
+  - `FederationTrustModel.observe(observer, target, success, kind)` 가 핸드오버(Phase 423)·충돌 협상(Phase 424)·NOTAM 전파(Phase 425) 협조 이벤트를 관찰해 신뢰를 갱신하고 결과 상태를 담은 `TrustEvent` 를 감사 로그에 기록. 신뢰는 비대칭(A→B ≠ B→A)이며 인스턴스는 자기 자신을 평가할 수 없다.
+  - `is_trusted` 는 임계값(기본 0.5)과 **최소 관찰 게이트**(기본 5, Phase 608 `detect_malicious` 와 동일한 증거 요구)를 함께 통과해야 신뢰를 단정 — 사전분포만으로 성급히 신뢰/불신하지 않는다. `untrusted` 는 충분히 관찰된 저신뢰 쌍을 결정적 정렬 순서로 반환.
+  - 무작위성 0(실제 연합 이벤트에서 관찰, 시뮬레이션 아님) → 같은 관찰 순서는 항상 같은 신뢰 상태(재현·감사 가능). 사전분포 α·β 양수 검증, 빈 식별자·자기 평가 거부. 단위 **30건 PASS**.
+- code-reviewer 어드바이저 1회 반영(HIGH 3건): ① `_validate_pair` 가 식별자를 strip 후 키로 사용 — `"uss-a"` vs `"uss-a "` 가 별개 신뢰 슬롯으로 조용히 분기되는 것 방지, ② `InstanceTrust.__post_init__` 불변식 검증(α·β 양수·observations 비음수·observer≠target) 추가 — 잘못 구성된 믿음이 최소 관찰 게이트를 왜곡하지 못하게 함, ③ 모듈 docstring 의 불변성 주장을 "믿음·감사 항목은 불변, 모델 자체는 상태형"으로 범위 명확화. 반영 후 보강 테스트 7건 추가(공백 정규화·`__post_init__` 거부·다중 쌍 결정적 재현+로그 순서·custom prior 게이트·custom threshold) 포함 30건 재검증 GREEN. MEDIUM(kind 허용목록·np/math sqrt)·LOW(timestamp)는 federation_* 공통 패턴·YAGNI·결정성 원칙상 보류.
+- ROADMAP Federation Operations 라인을 `Phase 428` 완료 + 잔여 `Phase 426-427·431-440` 으로 분해 갱신. `docs/SIMULATOR_ODYSSEY_PLAN.md` Phase 428 항목 ✅ 표기.
+
+### 추가 (feat) — 일일 점검 2026-06-15 (10차): ODYSSEY Phase 429 연합 감사 로그
+- **`simulation/federation_audit.py`** (신규) — 인스턴스 경계를 넘는 **변조 탐지(tamper-evident) 연합 감사 원장**. `FederationAuditLog` 은 append-only SHA-256 해시 체인으로, 각 항목(`AuditEntry`, frozen)이 직전 다이제스트를 재료에 포함해 중간 항목의 변조·삭제가 이후 모든 다이제스트를 깨뜨린다 → `verify()` 가 검출. 다이제스트 재료는 **길이 접두(length-prefixed) 직렬화**라 어떤 필드값이 구분자를 포함해도 서로 다른 필드 조합이 같은 재료를 만들 수 없어(주입·충돌 구조적 차단). 인스턴스별 단조 논리시계 강제, 인스턴스/이벤트 종류 쿼리.
+- 두 인스턴스 원장은 결정적 **CRDT 류 `merge`** — 내용 키 `(logical_clock, instance_id, event_type, detail)` 사전식 전순서로 중복 제거 후 재-체인. **교환·결합·흡수 멱등**이라 어느 순서로 몇 번을 합쳐도 같은 head 다이제스트(재현·독립 검증). 분기(fork)된 같은 인스턴스 항목도 보존하며, 병합 경로는 `record()` 의 단조 검증을 우회해 분기 히스토리를 깨지 않는다.
+- 단위 테스트 `tests/test_federation_audit.py` **29건 PASS** — 체인 연결·결정성·변조/삭제 탐지·구분자 위생·단조 시계·쿼리·병합 교환/결합/흡수멱등/중복제거/fork보존·record-after-merge. 인접 federation 회귀(handover·conflict·notam·split_brain·discovery·operational_intent) **122건 PASS**. 기존 `.py` 소스 무수정(순수 추가) → 회귀 무영향.
+- code-reviewer 어드바이저 1회 반영: ① (CRITICAL) 다이제스트 재료를 길이 접두 직렬화로 전환해 `prev_digest` 포함 모든 필드의 구분자 주입·충돌을 구조적으로 차단, ② (HIGH) CRDT 흡수 멱등(`a.merge(b).merge(b)==a.merge(b)`)·`record`-after-`merge` 테스트 2건 보강(27→29), ③ 병합 원장의 비단조 분기 보존 의미를 `record`/`merge` docstring 에 명시. "frozen 으로 전환" HIGH 1건은 인접 `SafeDescentPolicy`(가변 `@dataclass` 누적자)와 동일 패턴이라 컨벤션 일관성 위해 보류. MEDIUM(내용 키 dedup=의도된 CRDT 의미)·LOW(동일 클래스 private 접근=관용)도 보류.
+- ROADMAP Federation Operations 라인을 `Phase 429` 완료 반영. Phase 428(신뢰 모델)과 함께 통합되어 잔여 `Phase 426-427·431-440` 으로 갱신. 서로 다른 신규 파일이라 비경쟁.
+### 추가 (feat) — 일일 점검 2026-06-15: ODYSSEY Phase 432 메시 연합 토폴로지 + 멀티홉 전파
+- 작업 상황 점검 결과 ODYSSEY Federation Operations(421-440) 중 머지 완료는 421-425·430, 열린 draft PR은 428(신뢰)·429(감사 로그)·431(HLC). **머지된 모듈에만 의존하고 열린 PR과 비경쟁(신규 파일만 추가)인 진짜 공백 Phase 432**를 본 브랜치에서 신규 구현.
+- **Phase 432** — `simulation/federation_mesh.py` (신규). Phase 421 디스커버리 등록 상태로 인스턴스 간 **공역 경계 인접 그래프**를 결정적으로 구성하고 그 위에서 멀티홉 전파를 계산한다.
+  - **경계 인접 정의**: 타일형(비중첩) 공역을 위해 수평(x·y)은 `border_tolerance_m`(기본 1.0 m) 이내 접촉을 이웃으로 인식, 수직(z)·시간(t)은 엄격 4D 교차로 분리. Phase 425의 `Volume4D.overlaps`(엄격 교차)는 맞닿은 타일([0,1000)·[1000,2000))을 비이웃으로 보므로 메시 토폴로지용 인접을 별도 정의.
+  - **그래프 질의**: `neighbors`·`adjacency`(대칭·정렬)·`components`(연결 요소)·`is_connected`·`shortest_path`(동률은 정렬 이웃 우선 BFS) — 모두 정렬 출력으로 재현성 보장.
+  - **멀티홉 전파**: Phase 425의 1홉 직접 NOTAM 전파를 메시 전역으로 일반화한 `propagate`(origin→홉 수, TTL 한정 플러딩)와 `relay_table`(목적지→다음 홉 중계 포워딩 테이블). 중간 인스턴스를 경유해야만 닿는 먼 인스턴스 전파를 결정적으로 산정.
+  - 디스커버리에 공개 접근자 `volume_of(instance_id)` 1개만 추가(타일 경계 기하 직접 산정용, 기존 동작 무영향).
+- **검증**: 새 컨테이너에 core deps(numpy·simpy·pandas·scipy·pyyaml·hypothesis) + pytest 설치 후 `tests/test_federation_mesh.py` **25건** 신규 + 인접 federation 회귀(discovery 14·handover 16·notam·conflict·split_brain·operational_intent 등) 합산 **129건 PASS** 로컬 검증. 외부 네트워크·랜덤 0(순수 결정적).
+
+### 통합 (chore) — 일일 점검 2026-06-15 (8차): ODYSSEY Federation Operations 3건 통합 (Phase 424·425·430)
+- 열린 PR 21건(피처 8 + dependabot 13) triage 후, **기존 `.py` 소스 무수정·신규 파일만 추가하는 비경쟁 Phase PR 3건**을 본 작업 브랜치에 통합. 신규 컨테이너에 pytest+core deps 설치 후 신규 모듈 50건 + 인접 federation 회귀(handover 16·discovery 14·operational_intent 24) **104건 PASS** 로컬 검증. 전체 4,713 테스트 수집(hypothesis 미설치 환경 한정 4건 collection 에러는 본 변경 무관·기존 이슈).
+  - **#327 Phase 424** — `simulation/federation_conflict_resolution.py` 연합 충돌 해소. Phase 422 `intents_conflict` 로 충돌 탐지 후 Phase 602 `VickreyAuction`(2위 가격제 봉인입찰) 재사용해 우선순위 협상. 낮은 priority 번호=높은 입찰가 결정적 사상, 동률은 `hashlib.sha256(intent_id)` 안정 해시로 분리(Python `hash()` 솔트 비결정성 회피). `apply_resolutions` 는 패자만 CONTINGENT 로 전환한 새 튜플 반환(원본 불변), 청산가는 Vickrey 차순위로 감사 기록 (11건).
+  - **#328 Phase 425** — `simulation/federation_notam.py` 연합 NOTAM 전파. 동적 NFZ를 Phase 421 디스커버리(`query`)로 발견한 겹치는 인접 인스턴스에만 결정적 전파(DELIVERED/DUPLICATE/REVOKED). NFZ 이동 시 더는 겹치지 않는 이웃에서 stale 자동 회수, 멱등 재방송(`rebroadcast`)·철회(`revoke`), 철회 후 `_origin_of` 영구 보존으로 notam_id 소유권 탈취 차단, `_deliver` 버전 가드 `>=` 로 stale 패킷의 신버전 덮어쓰기 방지, 불변 감사 로그 (19건).
+  - **#329 Phase 430** — `simulation/federation_split_brain.py` 분할 뇌 안전 강하 정책. `PartitionSnapshot` 이 양방향 링크를 연결 요소로 분해해 과반(majority) 분파 판정(2-2 균등 분할 시 무과반). `SafeDescentPolicy` 4단계 안전 사다리(NOMINAL→HOLD→DESCEND→LAND), `hold_limit`/`descend_limit` 초과 지속 시 단계 상승, 정상 복귀 시 카운터 초기화(이력현상). Phase 423 핸드오버가 미룬 안전 강하 책임 구체화, 불변 감사 로그 (20건).
+- code-reviewer 어드바이저 1회 반영(HIGH 3건): ① `federation_conflict_resolution` `run_auction` 의 `AuctionResult | None` 반환에 대한 경계 가드 추가(발생 불가 상황이나 계약 명시), ② `federation_notam._withdraw` 멱등 방어(`.get()` + 미보유 시 조용히 무시), ③ `federation_split_brain.majority_component` 같은 연결 요소 BFS 재계산 제거(출력 불변, 중복 단락). 반영 후 104건 재검증 GREEN. MEDIUM(감사 로그 무한 누적·dataclass 가변 필드) 2건과 LOW(생성자 예외 타입)는 운영 노트로 보류(테스트 계약 보존).
+- 문서는 세 PR이 동일 파일(CHANGELOG·README·ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md`)을 각자 수정해 상호 충돌하므로, **신규 소스/테스트 파일만 가져오고 문서는 본 통합 항목으로 일원화**. ROADMAP Federation Operations 라인을 `Phase 424·425·430` 완료 + 잔여 `Phase 426-429·431-440` 으로 분해 갱신.
+- 후속: #327/#328/#329 원본 PR은 본 통합으로 산출물 반영 완료 → close 권고. 잔여 피처 PR #295/#289/#285(Phase 445·446 — 7차 점검 #326 에 이미 통합)·#280/#283 은 사람 판단 보류, dependabot 13건(#267-#279)은 후속 정리.
+
+### 통합 (chore) — 일일 점검 2026-06-15 (5차): 신규 코드 PR 3건 통합 + 적체 중복 PR triage
+- 열린 PR 32건(피처 19 + dependabot 13) triage 후, **신규 파일만 추가하는 비경쟁 Phase PR 3건**을 본 작업 브랜치에 통합. 신규 컨테이너에 pytest+core deps 설치 후 baseline **4,361 pass / 280 skip / 0 fail** 재현 → 통합 후 전체 **4,456 pass / 280 skip / 0 fail**(+95건, 회귀 0).
+  - **#320 Phase 423·286·226·209-210** (4차 번들) — `simulation/federation_handover.py`·`scripts/ablation_study.py`(+`SwarmSimulator`/`AirspaceController` 가드 토글)·`src/digital_twin/sync_engine.py` WGS84 엄밀해·`docs/API_DEPRECATION_POLICY.md`.
+  - **#322 Phase 308** — `simulation/insurance_rate_quote.py` 배상책임보험 요율 산정 API(33건).
+  - **#321 Phase 447** — `simulation/scenario_fuzzer.py` 적대적 시나리오 퍼저(시드 결정적 변이, 14건).
+- **정리 대상 확인**: #298·#300·#292·#291·#293(Phase 322·342·367·401·406·449)은 1차 점검(`c9923b1`)으로 **이미 main 통합 완료** — `scenario_schema.py`·`jeonnam_island_sites.py`·`swarm_self_healing.py`·`geo_zones.py`·`sim_real_gap.py` 5파일 origin/main 존재 재확인. 중복이므로 close 권고.
+- **사람 판단 보류**: #295/#285/#289(Phase 445·446 통계 검정 경쟁 구현)·#280/#281(Phase 207 배지 쌍)·#283(핫루프 perf — 기존 코드 수정형). dependabot 13건(#267–#279)은 후속 정리.
+
+### 추가 (feat) — 일일 점검 2026-06-15 (3차): GENESIS Phase 308 배상책임보험 요율 산정 API
+- **Phase 308** — `simulation/insurance_rate_quote.py` 신규. 시뮬레이터 STELLAR Phase 67 `societyInsuranceQuote` mock(role·hours·history toy 공식)을 **실 보험사 요율 스펙**으로 격상. 항공사업법 §70 의무 배상책임보험 근거로 MTOW 등급 기본료 × 운용형태 × 비행시간 익스포저 × 보상한도 ILF × 경력 할인 × 무사고(NCB)/사고 할증 × 야간·BVLOS 가산을 결정적 누적 곱으로 산정하고 명세(`PremiumLine`)로 추적. 사용사업 의무가입·최소한도(1.5억원) 검증 포함.
+- 단위 테스트 `tests/test_insurance_rate_quote.py` **33건 PASS** — 결정성·단조성(MTOW·사고·경력·한도)·NCB·위험 가산·의무가입 한도·명세 정합·입력 검증. 기존 `.py` 소스 무수정(순수 추가) → 회귀 무영향(baseline 4,361 pass / 280 skip / 0 fail, 84.24% 재현).
+
+### 추가 (feat) — 일일 점검 2026-06-15: ODYSSEY Phase 447 적대적 시나리오 퍼저
+- **`simulation/scenario_fuzzer.py`** (신규) — 시드 기반 결정적 시나리오 변이 생성기. `np.random.default_rng(seed)`로 동일 시드 → 동일 변이(재현성), 입력 dict 불변(새 객체 반환). `FuzzConfig(adversarial=True)`는 부하 필드(드론 수·도착률)를 위로, 안전 마진 필드(공역 면적·최소 분리거리)를 아래로 편향해 안전망에 스트레스를 가한다. `success_criteria`(합격 임계값)는 보존.
+- 생성된 모든 변이는 기존 `scenario_schema.validate_scenario` 계약을 충족 — 9개 실 시나리오 × 40변이 = **360건 전부 VALID** 확인. `scenario_runner`·시나리오 마켓플레이스에서 그대로 실행 가능.
+- **`tests/test_scenario_fuzzer.py`** (신규) — 단위 **14건 PASS** (재현성·불변성·스키마 적합·클램핑·분포 재정규화·거리 순서·적대적 편향). 인접 `test_scenario_schema.py` 28건 회귀 GREEN.
+- code-reviewer 어드바이저 1회 반영: 미사용 `_FROZEN_KEYS` 죽은 코드 제거 + `drone_count` 정수 캐스트 강화.
+- 참고: 본 Phase 447은 ODYSSEY 백엔드 트랙(시나리오 설정 퍼징)으로, ROADMAP의 기존 Phase 447(웹 시뮬레이터 e2e SORA fuzz, `tests/e2e/test_simulator_fuzz.py`)과는 별개 산출물(번호 병행 트랙).
+
+### 통합 (chore) — 일일 점검 2026-06-15 (4차): 적체 PR 4건 무충돌 통합 (Phase 423·286·226·209-210)
+- 열린 PR 29건 triage 후, **기존 코드 무수정·추가형 또는 가드된 토글·정밀도 버그픽스**인 비경쟁 Phase PR 4건을 본 작업 브랜치에 통합. 신규 컨테이너에 pytest+core deps 설치 후 통합 모듈·인접 회귀 **132건 PASS**(신규 68 + 시뮬레이터/컨트롤러 회귀 64) 로컬 검증.
+  - **#318 Phase 423** — `simulation/federation_handover.py` 지역 간 관제권 핸드오버(RETAINED/ACQUIRED/HANDOVER/CONTINGENT + 이력현상) + `federation_discovery.py` `covering()`/`contains()` 프리미티브 (16건).
+  - **#290 Phase 286** — `scripts/ablation_study.py` 안전망(APF·CBS) Ablation 자동화 + `SwarmSimulator`/`AirspaceController` `ablation.disable_apf/disable_cbs` 토글(기본 미설정 = 전 계층 활성, 회귀 무영향) (12건).
+  - **#299 Phase 226** — `src/digital_twin/sync_engine.py` GPS→ENU 변환을 WGS84 ECEF→ENU 엄밀해로 격상(1km 평면근사 오차 153m→6cm, ±0.5m 충족) (22건).
+  - **#286 Phase 209·210** — `docs/API_DEPRECATION_POLICY.md` API 폐기 생애주기 + SemVer 규약 (문서 전용).
+- 보류(사람 판단 필요): **#295/#285/#289**(Phase 445·446 통계 검정 경쟁 구현)·**#280/#281**(Phase 207 배지 쌍)·**#283**(핫루프 힙 할당 제거 — 기존 perf 코드 수정형, 별도 검증)·dependabot 13건(#267–#279). 이미 main 통합 완료로 중복화된 **#298/#300/#292/#291/#293**(Phase 322·342·367·401·406·449)은 정리 대상.
+### 추가 (feat) — GENESIS Phase 311 KISA CSAP 클라우드 보안인증 자가진단 자동화 (2026-06-15)
+- **`simulation/csap_self_assessment.py`** (신규) — 과학기술정보통신부·KISA 「클라우드 보안인증제(CSAP)」 정보보호 기준의 14개 통제분야에 정렬한 자가진단 도구. 외부 호출 없이 이행 상태로부터 영역별 이행률·종합 준비도를 결정적으로 산출.
+  - `DEFAULT_CATALOG` — CSAP 정보보호 기준 14개 통제분야(정책·인적·자산·공급망·침해사고·위험·대책·접근통제·암호화·개발·운영·서비스·물리·재해복구) × 대표 통제항목 카탈로그(운영자 교체·확장 가능).
+  - `Status` 4종(이행/부분이행/미이행/해당없음) — 부분이행 0.5, 해당없음은 분모 제외하는 결정적 점수화. 응답 누락 항목은 보수적으로 미이행 처리.
+  - `assess_csap()` — 분야별 `DomainScore`(이행률) + 종합 이행률 + 준비도 판정(95% 신청 권장 / 80% 보완 후 신청 / 미만 준비 부족) + 종합 이하 약화 분야 식별.
+  - `build_responses()`·`build_report()`·`export_json()`·`export_text()` — `ControlResult` 변환 + 결정적 JSON/한국어 텍스트 export. **20건 PASS**, 기존 소스 무수정(순수 추가형).
+### 추가 (feat) — GENESIS Phase 341: 목포 해역 실 좌표계 임포트 (해도 기반 NFZ·회랑)
+- **#TBD Phase 341** — `src/applications/mokpo_harbor.py` 신규 모듈. 목포항 해역에 해도 기반 비행금지구역(NFZ) 4종(본항 부두·목포대교·유달산/삼학도 지형·남항 정박지)과 운항 회랑 3종(항만 진입·신안 도서 연계·의료 배송)을 결정적 좌표로 배치. 레이 캐스팅 `point_in_nfz()` NFZ 판정 + `corridor_nfz_conflicts()` 회랑-NFZ 충돌 검사 + `corridor_length_km()`(Haversine 재사용) + `harbor_summary()`. Phase 342 `jeonnam_island_sites.py`(목포한국병원 거점) 및 P747 해수부 항만 시범과 좌표 연계. 좌표는 공개 지도 근사값(maturity honesty 명시), 실증 전 해도 갱신 필요. 단위 테스트 8건 PASS, 기존 `.py` 소스 무수정(순수 추가) → 회귀 무영향(baseline 4,361 pass / 280 skip / 0 fail 재현 → +8).
+
+### 통합 (chore) — 일일 점검 2026-06-15 (2차): 적체 PR 9건 무충돌 통합 (머지 병목 해소)
+- 열린 PR 30건(피처 20 + dependabot 10) triage 후, **기존 코드 무수정·순수 추가형** Phase PR 9건을 단일 통합 브랜치로 합류. 신규 모듈 9개 + 단위 테스트 **190건 전부 PASS**, 기존 `.py` 소스 무수정(문서·신규 파일만) → 회귀 무영향.
+  - **#313** (5건 누적): Phase 322 `scenario_schema.py` · 342 `jeonnam_island_sites.py` · 367 `swarm_self_healing.py` · 401·406 `geo_zones.py` · 449 `sim_real_gap.py`.
+  - **#316 Phase 310** — `simulation/special_flight_approval.py` 야간·비가시 특별비행승인 안전기준 검증 (25건).
+  - **#314 Phase 309** — `simulation/pilot_certification.py` 조종자 자격(1~4종) ↔ 시뮬 교육 모드 매핑 (24건).
+  - **#315 Phase 408** — `simulation/airspace_class.py` ICAO 공역 클래스 A-G `classify_airspace()` API 격상 (25건).
+  - **#307 Phase 304** — `simulation/kc_certification.py` KC 전파인증(전파법 §58-2) 적합성평가 분류 (23건).
+- **#306**(Phase 304 `kc_radio_certification.py`)은 #307과 동일 Phase 경쟁 구현이라 **제외**(#307 채택). 보류: #295/#285/#289(Phase 445·446 경쟁 구현)·#280/#281(Phase 207 배지 쌍)·dependabot 10건은 사람 판단/후속.
+
+### 통합 (chore) — 일일 점검 2026-06-15: 적체 PR 5건 무충돌 통합 (Phase 322·342·367·401·406·449)
+- 머지 병목 triage 후 **기존 코드 무수정·순수 추가형** Phase PR 5건을 본 작업 브랜치에 통합. 통합 전 baseline 회귀 **4,171 pass / 280 skip / 0 fail** 재현, 통합 후 신규 **93건** 전부 PASS.
+  - **#298 Phase 322** — `simulation/scenario_schema.py` + `docs/schemas/sdacs-scenario.schema.json` `.sdacs-scenario` 스키마 검증기 (20건).
+  - **#300 Phase 342** — `src/applications/jeonnam_island_sites.py` 전남 도서(신안·완도) 의료 배송 거점 DB·실 좌표·Haversine ETA (7건).
+  - **#292 Phase 367** — `src/autonomy/swarm_self_healing.py` 결손 드론 임무 자동 재분배 (12건).
+  - **#291 Phase 401·406** — `simulation/geo_zones.py` UTM 그리드 존 결정적 판정 + EASA U-space 매핑 (22건).
+  - **#293 Phase 449** — `src/training/sim_real_gap.py` 시뮬-실측 갭 Domain Randomization 자동 보정 (7건).
+- 보류: **#295/#285/#289**(Phase 445·446) — 다중 경쟁 구현(`uncertainty.py`·`power_analysis.py`·`resolution_rate_power.py`·monte_carlo CI)으로 중복, 사람 판단 필요. **#295**의 `incident_report.py`(307·467)는 이미 통합된 `accident_report.py`/`incident_investigation_report.py`와 중복. **#306/#307**(Phase 304 KC)·**#280/#281**(Phase 207 배지)은 상호 중복. dependabot 13건은 후속 정리 대상.
+
+### 추가 (feat) — GENESIS Phase 309 조종자 자격(1~4종) ↔ 시뮬 교육 모드 매핑 (2026-06-15)
+- **`simulation/pilot_certification.py`** (신규) — 「항공안전법 시행규칙」 제306조 무인멀티콥터 조종자 증명 종별을 결정적으로 구현.
+  - `classify_grade(mtow_kg)` — 최대이륙중량 기준 1~4종 분류(경계 모두 "초과" 규칙) + 250 g 이하 증명 불요 + 0 이하·초경량 상한(150 kg) 초과 `ValueError`.
+  - `TrainingRequirement` frozen dataclass — 종별 온라인 학과/학과시험/비행경력/실기시험/실기평가/최소연령 + **시뮬 교육 모드**(상위 종이 하위 종 모드 포함).
+  - `assess_pilot(mtow_kg, PilotProfile)` — 연령·비행경력·미이수 시뮬 모드로 조종자 준비도 결정적 판정.
+  - `build_report`/`export_json`/`export_text` — 외부 의존성 0, `sort_keys` 안정 직렬화.
+- **`tests/test_pilot_certification.py`** (신규) — 단위 **24건** (경계 분류·요건·준비도·exempt 불변·결정성·export).
+- **`docs/certification/PILOT_LICENSE_MAPPING.md`** §6 추가 — 기존 문서-only 매핑(2026-06-12)을 실행 모듈로 격상, MTOW 기준 통일 명시.
+- code-reviewer 어드바이저 1회 반영(150 kg 경계 테스트·exempt 불변 테스트 보강·`completed_sim_modes` 기본값 단순화·경계 "초과" 주석 통일). 시뮬레이터 HTML 무변경.
+
+### 추가 (feat) — ODYSSEY Phase 423 지역 간 관제권 핸드오버 (2026-06-15)
+- **`simulation/federation_handover.py`** (신규) — 드론이 인스턴스(USS) 공역 경계를 통과할 때 관제권을 결정적으로 이양하는 in-process 모델. Phase 421 디스커버리의 점 커버리지(`covering`)를 1차 입력으로 사용.
+  - `HandoverCoordinator` — 위치 표본마다 **RETAINED**(현 관제권 유지)·**ACQUIRED**(최초 획득)·**HANDOVER**(인스턴스 간 이양)·**CONTINGENT**(커버리지 상실) 결정. 외부 네트워크·랜덤 0, 동일 입력 시퀀스 → 동일 로그(재현성).
+  - 중첩(overlap) 구역에서는 현 관제권을 유지하는 **이력현상(hysteresis)** 으로 경계 진동(flapping) 방지. 후보 다수 시 id 사전순 최소로 결정적 선택(우선순위 협상은 Phase 424 범위).
+  - 최초 획득(ACQUIRED)을 HANDOVER 와 구분 기록 — `from_instance=None` 인 위장 이양을 배제해 **Phase 429 불변 감사 로그** 무결성 확보.
+  - `HandoverEvent` frozen dataclass(seq·drone_id·point·decision·from/to·candidates) 순서 보존 감사 로그.
+- **`simulation/federation_discovery.py`** — `Volume4D.contains()`(반열린 구간 [min,max) 4D 점 포함)·`FederationDiscoveryService.covering()`(점을 포함하는 인스턴스 정렬 반환) 2개 프리미티브 추가. 경계 공유 볼륨의 중복 귀속 없음(핸드오버 결정성).
+- **`tests/test_federation_handover.py`** (신규) — 단위 **16건** (RETAINED/ACQUIRED/HANDOVER/CONTINGENT·이력현상·반열린 경계·결정성·감사 로그 순서·검증·점 커버리지).
+- code-reviewer 어드바이저 1회 반영(ACQUIRED 상태 분리로 감사 로그 의미 명확화·`covering` 내부 셋 스냅샷 순회·미배정 드론 CONTINGENT 대칭 테스트 추가). `ROADMAP.md` Phase 423 ✅ + `docs/SIMULATOR_ODYSSEY_PLAN.md` 반영. 시뮬레이터 HTML 무변경.
+
+### 추가 (feat) — ODYSSEY Phase 422 운영 의도(Operational Intent) 4D 볼륨 교환 포맷 (2026-06-14)
+- **`simulation/operational_intent.py`** (신규) — 연합 인스턴스 간 ASTM F3548-21 정렬 운영 의도 교환 포맷.
+  - `Volume4D` frozen dataclass — WGS84 위·경도 외곽선 + 고도 밴드 + 시간 창, 경계 검증(꼭짓점≥3·위경도 범위·고도/시간 역전).
+  - `OperationalIntent` frozen dataclass — `intent_id`·상태(ACCEPTED/ACTIVATED/NONCONFORMING/CONTINGENT/ENDED)·우선순위·볼륨 다수.
+  - `to_dict`/`from_dict` 결정적 라운드트립 직렬화 (외부 의존성 0, JSON 직렬화 가능).
+  - `volumes_intersect`/`intents_conflict` — 시간·고도·지리(경계상자) 3축 보수적 4D 교차 판정(거짓 음성 없음, 협상 전 1차 필터).
+- **`tests/test_operational_intent.py`** (신규) — 단위 **24건** (검증·라운드트립·4D 교차·대칭성·ENDED 제외).
+- `airspace_reservation.py`(내부 그리드 예약)와 상보적 — 인스턴스 간 교환 포맷 담당. 시뮬레이터 HTML 무변경.
+- code-reviewer 어드바이저 1회 반영(필수 볼륨 API 명확화·역직렬화 ValueError 일관 래핑·고도 반열린 구간 주석·대칭성/중복 볼륨 테스트 보강).
+### 기능 (feat) — ODYSSEY Phase 421 인스턴스 간 디스커버리 프로토콜 (2026-06-14)
+- `simulation/federation_discovery.py` 신규 — ASTM F3548-21 **DSS**(Discovery and
+  Synchronization Service)를 단순화한 결정적 in-process 모델. 다중 SDACS 인스턴스(USS)가
+  각자 관리하는 **4D 공역 볼륨**(x·y·z 직육면체 + 시간 창)을 등록하면, 공간 그리드 셀
+  인덱스(기본 500 m)로 후보를 좁히고 **정밀 4D AABB 교차**로 인접 인스턴스를 결정적으로
+  발견·동기화한다. `register()`(이웃 발견)·`query()`·`synchronization_targets()`(상호
+  동기화)·`remove()`·`summary()` 제공. 외부 네트워크·랜덤 없이 출력 정렬 보장(재현성),
+  퇴화 볼륨·빈 id·비양수 셀 크기는 `ValueError`/`KeyError` 로 경계 검증.
+- `tests/test_federation_discovery.py` 신규 — 4D 교차 대칭성·경계 접촉 비교차·셀 인덱싱·
+  재등록 갱신·등록 순서 독립성·결정성 **13건 PASS**.
+- `ROADMAP.md` Track I Phase 421 ✅ + `docs/SIMULATOR_ODYSSEY_PLAN.md` 반영. Federation
+  Operations 트랙(421-440)의 첫 결정적 자산 — 운영 의도 교환(422)·관제권 핸드오버(423)의 기반.
+
+### 기능 (feat) — ODYSSEY Phase 467 사고 조사 데이터 표준 변환기 (2026-06-14)
+- `simulation/incident_investigation_report.py` 신규 — 시뮬레이션 안전 사건 로그(충돌·근접·
+  충돌징후·추진/항법계 고장·공역 침범)를 **ICAO Annex 13** 구조의 표준 사고 조사 양식으로
+  결정적으로 변환. ADREP 발생 분류 코드(MAC·SCF-PP·SCF-NP·AIRSPACE) 매핑 + 사건 등급
+  (Accident/Serious Incident/Incident) 자동 판정. 근접 사건은 이격거리 임계값(5 m)으로
+  준사고/이상 자동 조정. 시간순 사실 정보 + 등급·코드별 집계 분석 + 결정적 안전 권고를
+  JSON·한국어 텍스트로 export. 입력 검증(`ValueError`).
+- `tests/test_incident_investigation_report.py` 신규 — 분류·집계·검증·export·결정성 **25건 PASS**.
+- `docs/standards/INCIDENT_INVESTIGATION_REPORT.md` 신규 — 근거 표준(ICAO Annex 13/ADREP)·
+  등급 정의·5계층 안전망 사후 분석 계층 연계. Phase 466(텔레메트리 표준)의 조사 단계 후속.
+- `docs/SIMULATOR_ODYSSEY_PLAN.md` Phase 467 ✅ 표시. Track 🏛 표준·정책 자산 확장.
+
+### 기능 (feat) — GENESIS Phase 304 KC 전파인증 요건 체크리스트 (2026-06-14)
+- `simulation/kc_certification.py` 신규 — 드론 탑재 통신 모듈(RC·텔레메트리·영상·셀룰러·GNSS)에 대해
+  「전파법」 §58-2 적합성평가 유형을 결정적으로 분류. **셀룰러→적합인증**, **비면허 특정소출력 대역 +
+  공중선전력 한도 이내→적합등록**, **면허대역/한도 초과→적합인증**, **수신전용→적합등록(자기시험)**.
+  제품 단위로 가장 엄격한 유형을 집계하고 유형별 제출서류 + KC 식별부호 표기 안내를 JSON·텍스트로 export.
+  시스템 경계 입력 검증(`ValueError`).
+- `tests/test_kc_certification.py` 신규 — 분류·집계·검증·export·결정성 **23건 PASS** (전 대역 parametrize 포함).
+- `docs/certification/KC_RADIO_CERTIFICATION.md` 갱신 — 실행 모듈 링크 + 917–923.5 MHz(비면허 특정소출력)
+  분류를 적합등록으로 정정(기존 문서 M4/M6 적합인증 표기와 코드 일치화).
+- `docs/SIMULATOR_GENESIS_PLAN.md` Phase 304 ✅ 표시. SORA(302)·비행계획 신고(303)에 이어 규제 적합 자산 확장.
+
+### 기능 (feat) — GENESIS Phase 303 비행계획 신고 양식 자동 생성 (2026-06-14)
+- `simulation/flight_plan_filing.py` 신규 — 드론 원스톱 비행승인 신청서를 시뮬 파라미터로부터
+  결정적으로 생성. 관제권(9.3 km)·고도(150 m AGL)·비행금지구역·BVLOS·야간 비행을 종합해
+  **비행승인 / 특별비행승인 / 기체신고** 필요 여부를 자동 판정하고 JSON·한국어 텍스트로 export.
+  haversine 거리 기반 구역 진입 판정 + 시스템 경계 입력 검증(`ValueError`).
+- `tests/test_flight_plan_filing.py` 신규 — 판정·검증·export·결정성 **18건 PASS**.
+- `docs/certification/FLIGHT_PLAN_FILING.md` 신규 — 근거 법령·임계값·API·5계층 안전망(Layer 0) 연계.
+- `docs/SIMULATOR_GENESIS_PLAN.md` Phase 303 ✅ 표시. SORA 계산기(302)와 함께 규제 적합 자산 확장.
+
+### 추가 (docs) — TRANSCENDENCE Phase 209·210: API Deprecation Policy + SemVer 규약 (2026-06-13)
+- `docs/API_DEPRECATION_POLICY.md` 신설 — `window._sdacs` 외부 404 API의 **버전 관리·폐기 규약**을 단일 기준으로 확정:
+  - **Phase 210 (SemVer)**: MAJOR/MINOR/PATCH ↔ API 영향 정의 + 4개 호환성 불변식 + maturity 격상(speculative→mock→beta→production)을 MINOR로 취급.
+  - **Phase 209 (Deprecation)**: ACTIVE → DEPRECATED(≥1 MINOR, `console.warn` 1회) → REMOVED(MAJOR 경계) 3단계 생애주기 + maturity별 폐기 보수성 차등(production 최장 유지) + Deprecation Registry 표(현재 0건) + `experimental.*` 면책 규정.
+  - 변경 절차 체크리스트(VERSION.md 증가·E2E 동반·`extract_sdacs_api.py --check` G-2·md5 G-4·CHANGELOG 표기)로 기존 거버넌스 게이트와 연결.
+- 근거: `docs/MASTER_PLAN_2026H2.md` Track Ⅱ-4 (Phase 209-210 Deprecation Policy + SemVer 문서) — 명시된 차기 스프린트 항목 완료.
+- 영향: 핵심 시뮬레이터 코드·테스트 무변경(문서 전용), 4 사본 md5 불변. 베이스라인 회귀 **4,071 pass / 280 skip / 0 fail** GREEN 독립 재현 확인(신규 컨테이너, `pytest -n auto`, 103s).
+
+### 기능 (feat) — TRANSCENDENCE Phase 286: 안전망 Ablation 자동화 (2026-06-13)
+- **`scripts/ablation_study.py` 신설** — 안전망 계층(APF 회피·CBS 다중 에이전트 계획)을 선택적으로
+  제거하고 충돌·근접경고·충돌 해결률에 미치는 영향을 정량화. `baseline`/`no_apf`/`no_cbs`/
+  `no_apf_no_cbs` × N 시드를 실행해 시드 평균을 markdown(논문 §Ablation 삽입용)+JSON으로 출력.
+  충돌 해결률은 CLAUDE.md 공식 `1 − collisions/(conflicts + collisions)` 사용.
+- **시뮬레이터·컨트롤러 ablation 토글 추가** — `SwarmSimulator`가 `ablation.disable_apf`를,
+  `AirspaceController`가 `ablation.disable_cbs`를 읽음. **둘 다 기본 미설정 시 전 계층 활성**으로
+  기존 동작과 완전 동일(additive, 회귀 무영향). `disable_apf`는 `_apf_batch_loop`에서 회피 힘
+  계산을 건너뛰고, `disable_cbs`는 CBS 배치 계획을 건너뛰어 per-drone A* 폴백만 사용.
+- **검증**: `tests/test_ablation_study.py` 12개 단위 테스트 PASS(해결률 공식·집계·토글 plumbing·
+  통합 스모크). 샘플 실행(25드론·90s·2시드)에서 APF 제거 시 충돌 1.00→2.50, 해결률 98.25%→94.50%로
+  악화 — 안전망 효과를 정량 확인. 전체 회귀 기준선 **4,071 pass / 280 skip / 0 fail**(83.87%) 영향 없음.
+### 수정 (fix) — Phase 207 Maturity Badge 자동 생성·드리프트 해소 (2026-06-13)
+- **드리프트 발견**: 수작업 유지되던 `docs/badges/maturity.svg`가 `prod 89`로 표기되어
+  라이브 실측(`maturityReport()`)·자동 생성 `docs/SDACS_API.md`의 **production 90**과 불일치.
+  Phase 207은 "완료"로 표기되어 있었으나 배지가 코드 생성물이 아니라 수작업이라 무방비로 어긋남.
+- **해소**: `scripts/extract_sdacs_api.py`에 `render_badge_svg(counts)` 순수 함수 추가 —
+  라이브 maturity counts에서 배지 SVG를 **결정적으로 생성**(세그먼트 폭을 카운트 자릿수에서 산출).
+  재생성 시 `maturity.svg`도 함께 출력하고, `--check` 게이트(CI `sim-smoke.yml`)에 배지-실측
+  정합성 검사를 편입해 향후 드리프트를 차단. 배지를 `prod 90`으로 정정.
+- **테스트**: `tests/test_maturity_badge.py` 신규 7건 (counts 포함·title 일치·SVG 구조·폭 산출·
+  결정성·자릿수 변화·저장 배지=생성기 출력 게이트). 브라우저 없이 순수 함수만 검증.
+
+### 점검 (chore) — 일일 점검 2026-06-13 (신규 컨테이너 독립 재현 GREEN)
+- 신규 세션 컨테이너에서 의존성 신규 설치(`blinker` RECORD 충돌은 `--ignore-installed`,
+  `pytest-xdist`·`pytest-timeout`·`hypothesis` 추가 설치) 후 전체 회귀 **독립 재현**:
+  `python -m pytest tests/` → **4,065 pass / 267 skip / 0 fail** (545.46s) — 본 세션 +7 배지 테스트 포함.
+  커버리지 게이트(≥ 80%) 통과.
+- **저장소 상태**: 열린 이슈 0건. main 직전 머지 PR #265(Maturity 정직성·SORA·계획 3층) 기준 동기.
+
 ### 점검 (chore) — 일일 점검 2026-06-12 (18차 독립 재현 GREEN, main `843aec9` 기준)
 - 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **독립 재현**:
   `python -m pytest tests/` → **4,057 pass / 252 skip / 0 fail** (388.13s).

@@ -1,6 +1,6 @@
 # 📚 `window._sdacs` API — Phase 200 (Unity) 완료 시점
 
-*자동 생성: 2026-06-13 (`scripts/extract_sdacs_api.py` 라이브 실측 추출 · maturity 등급 포함)*
+*자동 생성: 2026-06-16 (`scripts/extract_sdacs_api.py` 라이브 실측 추출 · maturity 등급 포함)*
 
 **총 408 항목** (maturity 분류 대상 405 + 분류 헬퍼 3) — MEGA 10 + HYPER 40 + STELLAR 50 + ULTIMATE 50 + POST-UNIVERSE 50 = **200 Phase**
 

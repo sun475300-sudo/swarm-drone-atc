@@ -80,6 +80,54 @@
 4. 운영하려는 시나리오에 `_sdacs.soraAssess({populationDensity: <상황>, bvlos: <상황>})` 적용
 5. SAIL 등급 ≤ 본인 자격 보유 권한 — 부합 시 운영 / 미부합 시 특별승인 절차
 
+## 6. 실행 모듈 (Phase 309 격상 — 2026-06-15)
+
+§1~§5의 매핑 표를 **결정적 실행 모듈**로 격상했다. 기체 중량을 입력하면 필요 종별을
+자동 분류하고, 조종자 현황(연령·비행경력·이수 시뮬 모드)으로 준비도를 판정한다.
+
+구현: [`simulation/pilot_certification.py`](../../simulation/pilot_certification.py)
+테스트: [`tests/test_pilot_certification.py`](../../tests/test_pilot_certification.py) — **24건 PASS**
+
+### 분류 기준 (모듈 상수)
+
+분류는 「항공안전법 시행규칙」 제306조 별표에 따라 **최대이륙중량(MTOW)** 기준으로 한다
+(§1 표의 "자체중량" 표기는 현행 시행규칙의 MTOW 기준으로 통일). 경계값은 모두 "초과"
+(strictly greater) 규칙이다.
+
+| 종별 | MTOW 범위 | 모듈 상수 |
+|:-:|---|---|
+| 1종 | 25 kg 초과 (≤ 150 kg) | `GRADE1_MIN_MTOW_KG = 25.0` |
+| 2종 | 7 kg 초과 ~ 25 kg 이하 | `GRADE2_MIN_MTOW_KG = 7.0` |
+| 3종 | 2 kg 초과 ~ 7 kg 이하 | `GRADE3_MIN_MTOW_KG = 2.0` |
+| 4종 | 250 g 초과 ~ 2 kg 이하 | `GRADE4_MIN_MTOW_KG = 0.25` |
+| 증명 불요 | 250 g 이하 | `GRADE_EXEMPT = 0` |
+
+### 종별 ↔ 시뮬 교육 모드 매핑 (상위 종 = 하위 모드 포함)
+
+| 종별 | 비행경력 | 학과시험 | 실기 | 최소연령 | 시뮬 교육 모드 |
+|:-:|:-:|:-:|:-:|:-:|---|
+| 1종 | 20 h | ✔ | 실기시험 | 14 | basics·manual·emergency·bvlos·swarm |
+| 2종 | 10 h | ✔ | 실기평가 | 14 | basics·manual·emergency·bvlos |
+| 3종 | 6 h | ✔ | — | 14 | basics·manual·emergency |
+| 4종 | — | — | — | 10 | basics |
+
+### API
+
+```python
+from simulation.pilot_certification import classify_grade, assess_pilot, PilotProfile, build_report, export_text
+
+grade = classify_grade(30.0)              # → 1 (1종)
+profile = PilotProfile(name="홍길동", age=25, logged_flight_hours=20.0,
+                       completed_sim_modes=("tutorial_basics", "manual_flight",
+                                            "emergency_response", "bvlos_ops",
+                                            "swarm_supervision"))
+result = assess_pilot(30.0, profile)      # → AssessmentResult(is_ready=True, ...)
+print(export_text(build_report(30.0, profile)))
+```
+
+> 본 모듈은 **사전 학습·자격 준비 가이드**용 결정적 판정기이며, 실 자격 취득은 외부
+> 절차(한국교통안전공단)를 따른다. 비행경력은 §4와 같이 실 비행만 인정된다.
+
 ## 🔗 관련
 - [`AIR_SAFETY_ACT_MATRIX.md`](AIR_SAFETY_ACT_MATRIX.md) — 법령 12조항 매핑
 - [`KC_RADIO_CERTIFICATION.md`](KC_RADIO_CERTIFICATION.md) — 전파인증 가이드

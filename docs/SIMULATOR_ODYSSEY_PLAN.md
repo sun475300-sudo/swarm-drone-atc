@@ -43,17 +43,19 @@
 
 *단일 SDACS → 다중 인스턴스 연합 (inter-USS). 기존 자산: TRANSCENDENCE 241-260 다중 사용자, Raft HA, ws_bridge*
 
-- **Phase 421** 인스턴스 간 디스커버리 프로토콜 — ASTM F3548 DSS 유사 결정적 모델
-- **Phase 422** 운영 의도(Operational Intent) 교환 포맷 — 4D 볼륨 직렬화
-- **Phase 423** 지역 간 핸드오버 — 드론이 인스턴스 경계 통과 시 관제권 이양
-- **Phase 424** 연합 충돌 해소 — 인스턴스 간 우선순위 협상 (Vickrey 경매 재사용)
-- **Phase 425** 연합 NOTAM 전파 — 동적 NFZ를 인접 인스턴스에 브로드캐스트
+- **Phase 421** ✅ 인스턴스 간 디스커버리 프로토콜 — ASTM F3548 DSS 유사 결정적 모델 (`simulation/federation_discovery.py`, 13건 PASS, 2026-06-14)
+- **Phase 422** ✅ 운영 의도(Operational Intent) 교환 포맷 — 4D 볼륨 직렬화 (2026-06-14, `simulation/operational_intent.py` — ASTM F3548-21 정렬 `Volume4D`/`OperationalIntent` frozen dataclass + 라운드트립 직렬화 + 보수적 4D 교차 판정, 단위 24건)
+- **Phase 423** ✅ 지역 간 핸드오버 — 드론이 인스턴스 경계 통과 시 관제권 이양 (2026-06-15, `simulation/federation_handover.py` — Phase 421 점 커버리지 기반 `HandoverCoordinator`. 위치 표본마다 RETAINED/ACQUIRED/HANDOVER/CONTINGENT 결정, 중첩 구역 이력현상(hysteresis), 반열린 경계 규약, 불변 감사 로그(Phase 429 기반). 단위 16건)
+- **Phase 424** ✅ 연합 충돌 해소 — 인스턴스 간 우선순위 협상 (2026-06-15, `simulation/federation_conflict_resolution.py` — Phase 422 `intents_conflict` 로 충돌 탐지 후 Phase 602 `VickreyAuction`(2위 가격제) 재사용. 우선순위→입찰가 결정적 사상(낮은 priority=높은 입찰), 동률은 `sha256(intent_id)` 안정 해시로 분리. `resolve_all` 쌍별 협상 + `apply_resolutions` 패자 CONTINGENT 불변 전환 + 불변 감사 로그. 단위 11건)
+- **Phase 425** ✅ 연합 NOTAM 전파 — 동적 NFZ를 인접 인스턴스에 브로드캐스트 (2026-06-15, `simulation/federation_notam.py` — `FederationNotamBroadcaster`. Phase 421 디스커버리 `query` 로 겹치는 이웃만 선별해 결정적 전파(DELIVERED/DUPLICATE/REVOKED), NFZ 이동 시 더는 겹치지 않는 이웃에서 stale 자동 회수, 멱등 재방송(`rebroadcast`)·철회(`revoke`), 소비측 `active_volumes` 헬퍼, 불변 감사 로그. 단위 19건)
 - **Phase 426** 2-인스턴스 연합 E2E (Playwright 다중 페이지 + ws 브리지 2개)
 - **Phase 427** 연합 시각화 — 인접 공역 고스트 렌더링
-- **Phase 428** 신뢰 모델 — 인스턴스 간 Bayesian 평판 (기존 reputation 재사용)
-- **Phase 429** 연합 감사 로그 — 관제권 이양 불변 기록
-- **Phase 430** 분할 뇌(split-brain) 시나리오 — 연합 단절 시 안전 강하 정책
-- **Phase 431-440** 3+ 인스턴스 메시 연합 + 글로벌 시계(hybrid logical clock)
+- **Phase 428** ✅ 신뢰 모델 — 인스턴스 간 Bayesian 평판 (2026-06-15, `simulation/federation_trust.py` — Phase 608 `BayesianReputation` 의 Beta-Bernoulli 켤레 사전분포를 인스턴스 레벨로 재사용. `InstanceTrust` frozen dataclass 가 (관찰자→대상) 방향성 Beta(α,β) 믿음을 보유하고 `updated` 는 원본 불변 갱신본 반환. 핸드오버(Phase 423)·충돌 협상(Phase 424)·NOTAM 전파(Phase 425) 협조 이벤트를 `observe` 로 관찰해 성공→α·실패→β 누적. 사후 평균 `trust_score` + Beta 표준편차 `uncertainty`, `is_trusted` 는 임계값·최소 관찰(Phase 608 과 동일한 증거 게이트) 통과 요구, `untrusted` 는 저신뢰 쌍 결정적 정렬 반환. 무작위성 0·방향 비대칭·불변 감사 로그. code-reviewer 어드바이저 HIGH 3건 반영(식별자 strip 정규화로 공백 중복 슬롯 방지·`InstanceTrust.__post_init__` 불변식 검증·모델 상태성 docstring 명확화). 단위 30건)
+- **Phase 429** ✅ 연합 감사 로그 — 인스턴스 경계 넘는 변조 탐지 원장 (2026-06-15, `simulation/federation_audit.py` — `FederationAuditLog` append-only SHA-256 해시 체인. 각 항목이 직전 다이제스트를 재료에 포함(길이 접두 직렬화로 구분자 주입·다이제스트 충돌 구조적 차단)해 중간 변조·삭제를 `verify()` 가 검출. 인스턴스별 단조 논리시계, 인스턴스/이벤트 쿼리. 두 인스턴스 원장은 내용 키 `(logical_clock, instance_id, event_type, detail)` 사전식 전순서로 중복 제거 후 재-체인하는 결정적 CRDT 류 `merge` — 교환·결합·흡수 멱등이라 어느 순서로 합쳐도 같은 head 다이제스트. 분기(fork)된 같은 인스턴스 항목도 보존. 단위 29건)
+- **Phase 430** ✅ 분할 뇌(split-brain) 시나리오 — 연합 단절 시 안전 강하 정책 (2026-06-15, `simulation/federation_split_brain.py` — `PartitionSnapshot` 양방향 링크를 연결 요소로 분해해 과반(majority) 분파 판정 + `SafeDescentPolicy` 4단계 안전 사다리 NOMINAL/HOLD/DESCEND/LAND. 고립·커버리지 상실 지속 시 단계 상승, 정상 복귀 시 이력현상 초기화, 불변 감사 로그. Phase 423이 미룬 안전 강하 책임 구체화. 단위 20건)
+- **Phase 431** ✅ 하이브리드 논리 시계(HLC) — 글로벌 시계 (2026-06-15, `simulation/federation_hybrid_clock.py` — Kulkarni et al. 2014 표준 HLC. `HLCTimestamp`(frozen, `order=True` 전순서)는 `(wall_time, counter, instance_id)` 로 결정적 정렬되고 `causal_key`·`happened_before`·`is_concurrent_with` 로 인과/동시성을 명시한다. `HybridLogicalClock.local_event`/`receive_event` 가 표준 HLC 갱신 규칙(물리 시각·지역 고점·원격 wall 의 최댓값 + 출처별 counter 결정)을 적용해, 물리 시계 동기화 없이 happened-before → 사전식 증가를 보장한다. 물리 시계 역행을 견디고(논리 고점 유지·counter 증가), cold-start sentinel(-1)로 첫 타임스탬프 counter 를 0으로 정규화. code-reviewer 어드바이저 반영(CRITICAL cold-start 모호성 -1 sentinel 해소·HIGH happened_before 부분순서/동시성 문서화 + `is_concurrent_with` 추가·cold-start receive 테스트 보강). 무작위성 0·결정적. 단위 34건)
+- **Phase 432** ✅ 메시 연합 토폴로지 + 멀티홉 전파 (2026-06-15, `simulation/federation_mesh.py` — Phase 421 디스커버리 등록 상태로 공역 경계 인접 그래프를 결정적으로 구성. 타일형(비중첩) 공역도 수평(x·y) `border_tolerance_m` 이내 접촉을 이웃으로 인식하고 수직(z)·시간(t)은 엄격 4D 교차로 분리 — Phase 425 `overlaps`(엄격)가 맞닿은 타일을 비이웃으로 보는 한계 보완. 연결 요소(`components`)·연결성(`is_connected`)·동률을 정렬 이웃으로 분리하는 BFS 최단 경로(`shortest_path`) + Phase 425의 1홉 직접 전파를 메시 전역으로 일반화한 TTL 한정 멀티홉 전파(`propagate`)·중계 포워딩 테이블(`relay_table`). 디스커버리에 공개 접근자 `volume_of` 1개 추가(타일 경계 기하 직접 산정용). 단위 25건)
+- **Phase 433-440** 3+ 인스턴스 메시 연합 라우팅 확장 (디스커버리·트러스트·HLC 통합 토폴로지)
 
 ### Track 🔬 — Formal & Research Frontier (Phase 441-460) · 형식 검증·연구 개척
 
@@ -65,7 +67,7 @@
 - **Phase 444** CBS 완전성·최적성 조건 정리 (논문 §보강)
 - **Phase 445** 불확실성 정량화 — Monte Carlo 신뢰구간 자동 리포트
 - **Phase 446** 충돌 해결률 공식의 통계적 검정력 분석
-- **Phase 447** 적대적 시나리오 fuzzing — 시드 기반 시나리오 변이 생성기
+- **Phase 447** ✅ 적대적 시나리오 fuzzing — 시드 기반 시나리오 변이 생성기 (`simulation/scenario_fuzzer.py` — `np.random.default_rng` 결정적 변이 + `adversarial` 부하↑·안전마진↓ 편향 모드, 출력은 `scenario_schema.validate_scenario` 계약 충족, 단위 14건 PASS, 2026-06-15)
 - **Phase 448** 속성 기반 테스트(Hypothesis) — 시뮬 코어 불변식 1,000케이스
 - **Phase 449** 시뮬-실측 갭 모델 — DR 파라미터 보정 자동화
 - **Phase 450** 재현성 10년 보장 — 의존성 핀 + 컨테이너 다이제스트 고정
@@ -81,7 +83,7 @@
 - **Phase 464** 군집 비행 안전 기준 백서 — 5계층 안전망 사례 연구
 - **Phase 465** 공역 통합 시뮬레이션 표준 시나리오 셋 제안 (10종 공개)
 - **Phase 466** 오픈 데이터 표준 — 텔레메트리 스키마 공개 (JSON Schema + 검증기)
-- **Phase 467** 사고 조사 데이터 표준 — 시뮬 로그 → 표준 양식 변환기
+- **Phase 467** 사고 조사 데이터 표준 — 시뮬 로그 → 표준 양식 변환기 ✅ ([standards/INCIDENT_INVESTIGATION_REPORT.md](standards/INCIDENT_INVESTIGATION_REPORT.md))
 - **Phase 468** 대학 캡스톤 표준 커리큘럼 제안 (GENESIS 383 확장)
 - **Phase 469** 정책 영향 시뮬레이션 — 규제 파라미터(고도 상한·이격 거리) 변경 효과 자동 비교
 - **Phase 470** 표준화 기고 추적 대시보드
@@ -118,6 +120,7 @@
 | 469 정책 영향 시뮬 | 🏛 | 🔥🔥🔥🔥🔥 | ⭐⭐⭐ | ✅ |
 | 486 독립 재현 자동화 | ♾️ | 🔥🔥🔥🔥 | ⭐⭐ | ✅ |
 | 421 디스커버리 프로토콜 | 🛰 | 🔥🔥🔥🔥 | ⭐⭐⭐ | ✅ |
+| 422 운영의도 4D 볼륨 직렬화 | 🛰 | 🔥🔥🔥🔥 | ⭐⭐ | ✅ (2026-06-14) |
 
 **권장 즉시 착수**: Phase 448(속성 기반 테스트)·447(fuzzing) — 기존 4,443 검증 자산을 증명 수준으로 격상, 전부 sandbox 가능.
 

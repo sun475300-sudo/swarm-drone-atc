@@ -115,11 +115,12 @@ try {
   // 7e. C9 시나리오별 검증 기록 — 여러 시나리오 전환 후 기록 누적
   await page.evaluate(() => window._mds.start());
   await page.evaluate(() => window._mds.scenario('normal'));
-  // 조건 기반 폴링(견고화): _mds.validation getter가 snapshotValidation()을 자체 트리거하며
-  // 내부 조건은 detected>=1 && simTime>=3. 고정 sleep(3500ms)은 느린 CI 헤드리스에서
-  // 모자라 0건 기록되는 플레이크를 유발했으므로, asserted 조건(기록 누적)을 직접 폴링한다.
-  await page.waitForFunction(() => window._mds.detected > 0, { timeout: 25000 }).catch(() => {});
-  await page.waitForFunction(() => window._mds.validation.length > 0, { timeout: 25000 }).catch(() => {});
+  // 결정론적: 스냅샷 전제조건(detected>=1 && simTime>=3)이 충족되면 `.validation` getter가
+  // 기록을 push 하므로, 고정 대기 대신 `.validation`이 실제로 비어있지 않을 때까지 폴링한다.
+  // 느린 CI 헤드리스(fps 저하)에서 탐지 누적이 모자라 0건 기록되던 플레이크 방지 — budget 45s.
+  await page.waitForFunction(() => window._mds.validation.length > 0, { timeout: 45000 }).catch(() => {});
+  await page.evaluate(() => window._mds.scenario('fog')); // 전환 → normal 스냅샷 확정
+  await page.waitForTimeout(300);
   const val = await page.evaluate(() => window._mds.validation);
   const vOK = Array.isArray(val) && val.length > 0 && val.every(r => typeof r.scen === 'string' && Number.isFinite(r.acc) && r.acc >= 0 && r.acc <= 100);
   ok(vOK, `C9 검증 기록 (${val.length}개 시나리오, 예: ${val[0]?.scen} acc=${val[0]?.acc?.toFixed(0)}%)`);

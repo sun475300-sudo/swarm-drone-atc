@@ -5,6 +5,16 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — 일일 점검 2026-06-16 (20차): ODYSSEY Phase 439 신뢰 한정 도달성 통합 토폴로지 (3+ 인스턴스)
+- **작업 상황 점검**: 19차(PR #343, `6bc06d4`)까지 Phase 438 분산 경로-벡터 장애 우회 수렴이 main 통합 완료, 작업 브랜치는 main 과 동기(0/0) 상태 확인 — *적체 없음*(19차에서 머지 병목 해소 후 정상화 유지). Federation Operations 잔여는 `Phase 426-427`(E2E·시각화, 사용자 환경 의존)·`439-440`. 본 점검은 즉시 sandbox 가능한 진짜 다음 갭 **Phase 439** 를 전진 구현.
+- **Phase 439** — `simulation/federation_topology_view.py` (신규) 신뢰 한정 도달성 통합 토폴로지. Phase 432 메시 *연결성* 과 Phase 428 *신뢰* 를 합쳐, 한 origin 관점에서 연합 내 모든 목적지를 도달성 *품질* 로 분류하는 읽기 전용 관측(observability) 뷰 `FederationTopologyView`.
+  - 5개 분류: `SELF`·`DIRECT`(직접 이웃, 중계 없음)·`RELAYED_TRUSTED`(다중 홉, 모든 중계가 origin 의 적극 신뢰인 경로 존재)·`RELAYED_RISKY`(도달 가능하나 완전-신뢰 경로 없음)·`UNREACHABLE`.
+  - 갭: Phase 433 `TrustWeightedRouter` 가 *가장 싼 신뢰 가중 경로 하나* 를 고른다면, 본 모듈은 **신뢰할 수 있는 중계만 거치는 경로가 존재하는가** (존재성 ≠ 최소 비용) 를 답한다 — 중계가 끼어드는 **3+ 인스턴스에서만 의미가 생기는** 질문(2-인스턴스 직결엔 중계 없음). Phase 433 `avoid_untrusted_route` 가 *알려진 불신* 만 회피(미검증 중계 통과=무죄 추정)하는 반면, 본 모듈의 `trusted_path` 는 각 중계가 *적극 신뢰*(`is_trusted` 증거 게이트 통과)여야 하는 **더 엄격한 포스처** — 둘은 상보적(테스트로 대조 검증).
+  - 신뢰는 방향성(Phase 428)이라 경로 판정은 항상 origin 자신의 믿음으로만(Phase 433 동일 철학, 연합엔 중앙 신뢰 권위 없음). 공개 API: `reachability_class`·`classify`·`trusted_path`(목적지 종단점 허용·정렬 이웃 동률 분리 BFS)·`trusted_reach`·`risky_reach`·`summary`(전 순서쌍 분류 분포, 모든 라벨 키 0 이상 보장). 무작위성 0·정렬 출력·경계 입력 검증(미등록 KeyError·threshold (0,1)·min_observations ≥ 0). 기존 `.py` 무수정(순수 추가). 단위 **27건 PASS**.
+- code-reviewer 어드바이저 1회 반영(CRITICAL 0·HIGH 3·MEDIUM 2·LOW 3): HIGH ① `trusted_reach` 를 `risky_reach` 와 동일하게 단일 분류 경로 `classify` 에 위임 → 라벨 정의와 항상 일치(브리틀 제거), ② `_require_registered` 를 `neighbors()` 부수효과 탐침 대신 명시적 멤버십 집합 검증으로 교체(Phase 433 규약 정렬). MEDIUM `REACHABILITY_CLASSES` 의 `CLASS_SELF` 의도적 제외를 상수 주석으로 문서화. HIGH ③(reachability_class 이중 BFS)는 *UNREACHABLE 과 RELAYED_RISKY 구분에 메시 도달성 검사가 본질적으로 필요* 하므로 비-중복 — 인스턴스 수 N 이 작아 보류. 집계-분류 교차검증 테스트 1건 추가(+1).
+- 검증: 신규 topology_view **27건** + 전체 federation 회귀(421~439) 합산 **397건 PASS**(0.50s). 본 컨테이너 최소 의존성(pytest·numpy)만 설치 → simpy·scipy·hypothesis 의존 수트는 CI 전체 수집(로컬 미설치 모듈은 수집 단계 에러로 분리 확인, 본 변경과 무관). 기존 `.py` 무수정(순수 추가) → 회귀 무영향.
+- `docs/SIMULATOR_ODYSSEY_PLAN.md` Federation Operations 라인을 Phase 439 완료 + 잔여 `Phase 426-427·440` 으로 갱신.
+
 ### 추가 (feat) — 일일 점검 2026-06-16 (19차): ODYSSEY 적체 병목 해소(PR #342 main 머지) + Phase 438 분산 경로-벡터 장애 우회 수렴
 - **작업 상황 점검 — 머지 병목 해소(근본 원인 처리)**: 12차(PR #335)까지 main 통합 후 Phase 433~437 작업이 **머지되지 못한 draft PR 7건(#336~#342)으로 적체**된 상태를 확인. 18차 PR #342(clean, base=main, Phase 433-437 전체 + 신규 437 흡수)가 적체를 단일 브랜치로 일원화하고 있었으나 **main 머지가 안 되어 누적만 반복**되는 것이 근본 원인. 본 점검에서 PR #342 브랜치를 로컬 검증(Phase 433-437 단위 **146건 PASS**) 후 **main 으로 머지**(`a463330`)해 병목을 해소하고, superseded 된 PR #336·#337·#338·#339·#340·#341 **6건을 close**.
 - **Phase 438** — `simulation/federation_path_vector_failover.py` (신규) 분산 경로-벡터 장애 우회 수렴. Phase 436/437(고정 메시 1회 수렴)·Phase 435(중앙 구조 분석)의 공백인 *인스턴스(USS) 장애 후 분산 재수렴*을 모사하는 `PathVectorFailover`.

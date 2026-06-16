@@ -5,6 +5,19 @@
 
 ## [Unreleased]
 
+### 추가 (test) — 일일 점검 2026-06-16 (21차): ODYSSEY Phase 448 속성 기반 테스트 (Hypothesis) — Track 🔬 형식 검증·연구 개척 착수
+- **작업 상황 점검**: 20차(PR #346, `a42f6ff`)에서 🛰 Federation Operations(421-440) 트랙 완료 + main 통합 확인(머지 병목 해소). `origin/main == HEAD`(클린 베이스). 다음 트랙 **🔬 Formal & Research Frontier(441-460)** 로 전진 — ODYSSEY 우선순위 매트릭스 권장 즉시 착수 항목인 **Phase 448(속성 기반 테스트)** 을 선택(Phase 447 fuzzing 위에 직접 적층, sandbox 가능, hypothesis 는 이미 dev 의존성).
+- **Phase 448** — `tests/test_scenario_fuzzer_property.py` (신규) Hypothesis 속성 기반 테스트. Phase 447 적대적 퍼저(`simulation/scenario_fuzzer.py`)의 계약을 example 기반 14건(`test_scenario_fuzzer.py`)에서 **근방 시나리오 공간 전역**으로 격상. 무작위로 생성한 *유효* 베이스 시나리오 × 임의 시드·인덱스·`FuzzConfig`(jitter·adversarial·bias·perturb)에 대해 6개 불변식 검증:
+  - ①**스키마 보존**: 유효 베이스의 모든 변이는 `scenario_schema.validate_scenario` 통과(max_examples 400) — "고정 시나리오 통과"를 "근방 공간 전역 통과"로 증명 격상.
+  - ②**입력 불변성**: `mutate` 는 입력 dict 무변형(deepcopy 반환, 200).
+  - ③**시드 결정성**: 동일 시드·설정 → 동일 변이 집합(150).
+  - ④**분포 재정규화**: 출력 `drone_profile_distribution` 합 = 1.0±0.01(200).
+  - ⑤**route 순서**: 출력 min_distance_km < max_distance_km 항상 성립(200).
+  - ⑥**adversarial 단방향 편향**: 부하 필드(drone_count·arrival_rate)↑, 마진 필드(area_km2)↓ — `round(.,3)`/`max()` 클램프 오차(±1e-3)만 허용하는 honest 경계(200).
+  - 베이스 시나리오 strategy 는 construction 으로 항상 유효(분포 정규화·route min<max·양수 필드) → 전제 단언이 퍼저 책임만 격리. 무작위성은 Hypothesis 가 관리하되 시드 결정성 자체를 불변식으로 검증.
+- 검증: 신규 속성 테스트 **6건 / max_examples 합 1,350 케이스 PASS**(3.1s, ODYSSEY KPI "Phase 440 속성 테스트 1,000" 초과 달성). 기존 example 기반 `test_scenario_fuzzer.py` 14건 회귀 무영향. 순수 테스트 추가(프로덕션 `.py` 무수정). code-reviewer 어드바이저 검토.
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Phase 448 ✅ 갱신(잔여 441-446·449-460).
+
 ### 추가 (feat) — 일일 점검 2026-06-16 (20차): ODYSSEY Phase 439·440 통합 (중복 PR #344·#345 일원화 → Federation Operations 트랙 421-440 완료)
 - **작업 상황 점검 — 중복 PR 발견(머지 병목의 증상)**: 19차(PR #343, `6bc06d4`)까지 Phase 438 이 통합된 뒤, **두 병행 점검(20차)이 각각 "Phase 439" 로 서로 다른 모듈을 구현해 draft PR #344·#345 로 적체**된 상태를 확인. 두 PR 은 *코드 비경쟁*(서로 다른 신규 파일만 추가)이며 오직 "Phase 439" 라벨과 README/CHANGELOG/ROADMAP/PLAN append 라인만 충돌 — 머지 병목으로 직전 작업이 main 에 안 보여 다음 점검이 같은 번호로 중복 구현한 전형. 본 점검은 **두 모듈을 모두 본 브랜치로 일원화**하고 번호 충돌을 Phase 439(토폴로지 뷰)·440(신뢰 페일오버)으로 분리 해소해, 작업 손실 없이 **🛰 Federation Operations(421-440) 트랙을 완료**한다.
 - **Phase 439** — `simulation/federation_topology_view.py` (PR #344 흡수) 신뢰 한정 도달성 통합 토폴로지 `FederationTopologyView`. Phase 432 메시 *연결성* + Phase 428 *신뢰* 를 합쳐 한 origin 관점에서 연합 목적지를 5개 도달성 품질(SELF·DIRECT·RELAYED_TRUSTED·RELAYED_RISKY·UNREACHABLE)로 분류하는 읽기 전용 관측 뷰. Phase 433 `TrustWeightedRouter` 가 *최소 비용 경로 하나* 를 고른다면 본 모듈은 **신뢰 중계만 거치는 경로의 존재성**(≠ 최소 비용)을 답한다 — 3+ 인스턴스 중계에서만 의미. `avoid_untrusted_route`(알려진 불신만 회피)보다 엄격히 각 중계가 *적극 신뢰*여야 하는 상보적 포스처. `reachability_class`·`classify`·`trusted_path`·`trusted_reach`·`risky_reach`·`summary`. 무작위성 0·순수 추가. code-reviewer 어드바이저 HIGH 3건 반영(원 PR). 단위 **27건 PASS**.

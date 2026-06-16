@@ -312,7 +312,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 440** 🛰 신뢰 인지 분산 경로-벡터 장애 우회 수렴 — `simulation/federation_trust_path_vector_failover.py` 연합 라우팅 2×2 격자(홉만/신뢰 인지 × 고정 메시/장애 후 재수렴)의 마지막 빈 칸을 메우는 `TrustPathVectorFailover`. Phase 438(홉만 장애 우회)과 Phase 437(신뢰 인지 고정 메시)을 결합해, 장애 집합을 제거한 살아남은 인접 위에서 Phase 437 신뢰 인지 경로-벡터를 다시 수렴시켜 장애 전후 *신뢰 가중* 경로를 비교: `rerouted`·`lost_routes`·`is_reroutable`·`surviving_path`·`reconvergence_rounds`·`summary`. 핵심 불변식: 무관찰(균일 0.5)이면 Phase 438 장애 분석과 정확히 동일(2×2 격자 모서리), 도달성은 신뢰 무관·Phase 438 동일(신뢰는 *어느 우회로*만 가름). Phase 435 교차 검증·콜드스타트 등가성, 무작위성 0·순수 추가, code-reviewer 어드바이저 HIGH 1건 반영, 27건 PASS (2026-06-16) — **🛰 Federation Operations(421-440) 트랙 완료**
 - [ ] **Phase 426-427** 🛰 Federation Operations 잔여 — 2-인스턴스 연합 E2E(Playwright 다중 페이지)·인접 공역 고스트 렌더링(HTML 시뮬레이터 의존, 사용자 환경) / HLC 통합 글로벌 순서 토폴로지는 차기 트랙 후보로 이월
 - [x] **Phase 447** 🔬 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` NFZ·ATC·SORA 140케이스 (2026-06-12)
-- [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12)
+- [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12) · **퍼저 계약 확장** `tests/test_scenario_fuzzer_property.py` Phase 447 적대적 퍼저의 6개 불변식(스키마 보존·입력 불변성·시드 결정성·분포 재정규화·route 순서·adversarial 단방향 편향)을 무작위 유효 베이스 × 임의 시드·설정 1,350 케이스로 검증, code-reviewer APPROVE (2026-06-16)
 - [x] **Phase 449** 🔬 시뮬-실측 갭 모델 — `src/training/sim_real_gap.py` Domain Randomization 파라미터 자동 보정, 7건 PASS (2026-06-15)
 - [ ] **Phase 441-446·449-460** 🔬 Formal & Research Frontier — TLA+ 안전망 명세·모델 체킹
 - [x] **Phase 466** 🏛 텔레메트리 JSON Schema 공개 — `docs/schemas/telemetry.schema.json` Draft-07 + ws_bridge 정합 회귀 (2026-06-12)

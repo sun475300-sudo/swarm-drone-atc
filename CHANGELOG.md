@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — 일일 점검 2026-06-16 (19차): ODYSSEY 적체 병목 해소(PR #342 main 머지) + Phase 438 분산 경로-벡터 장애 우회 수렴
+- **작업 상황 점검 — 머지 병목 해소(근본 원인 처리)**: 12차(PR #335)까지 main 통합 후 Phase 433~437 작업이 **머지되지 못한 draft PR 7건(#336~#342)으로 적체**된 상태를 확인. 18차 PR #342(clean, base=main, Phase 433-437 전체 + 신규 437 흡수)가 적체를 단일 브랜치로 일원화하고 있었으나 **main 머지가 안 되어 누적만 반복**되는 것이 근본 원인. 본 점검에서 PR #342 브랜치를 로컬 검증(Phase 433-437 단위 **146건 PASS**) 후 **main 으로 머지**(`a463330`)해 병목을 해소하고, superseded 된 PR #336·#337·#338·#339·#340·#341 **6건을 close**.
+- **Phase 438** — `simulation/federation_path_vector_failover.py` (신규) 분산 경로-벡터 장애 우회 수렴. Phase 436/437(고정 메시 1회 수렴)·Phase 435(중앙 구조 분석)의 공백인 *인스턴스(USS) 장애 후 분산 재수렴*을 모사하는 `PathVectorFailover`.
+  - 장애 집합을 메시에서 제거한 살아남은 인접 위에서 Phase 436 `PathVectorRouting` 수렴을 **인접 어댑터로 무수정 재사용**(죽은 노드 경유 광고 소멸 → 이웃 대체 경로 재광고를 모사)해 장애 전후를 비교: `rerouted`(전후 모두 도달하나 경로 변경)·`lost_routes`(전엔 닿았으나 후엔 단절)·`is_reroutable`·`surviving_path`·`reconvergence_rounds`·`summary`.
+  - 핵심 불변식: 경로-벡터는 전체 경로 광고(BGP AS-PATH)라 거리-벡터 count-to-infinity 가 없어 **재수렴 결과 = 살아남은 메시 콜드스타트 고정점**(테스트로 등가성 검증). Phase 435 와 교차 검증 — 백업 경로 존재 ⇒ 주 경로 내부 중계 전멸에도 우회 생존, 절단점 장애 ⇒ 일부 쌍 단절. 무작위성 0·정렬 출력·경계 입력 검증(미등록 장애/origin KeyError). 단위 **22건 PASS**.
+- code-reviewer 어드바이저 1회 반영(CRITICAL 0·HIGH 2·MEDIUM 4·LOW 4): HIGH ① `summary()` `lost_pairs` 가 죽은 origin 의 단절을 누락하던 것을 전 origin 순회로 바로잡아 총 영향 과소계상 제거(순서 있는 쌍 의미 docstring 명시), ② `is_reroutable(x,x)` 가 자기 경로에 True 반환하던 것을 `rerouted` 와 일관되게 False 가드 추가. MEDIUM 교차검증 테스트의 경로 *동일성* 단언을 도달성·죽은노드 미사용·길이로 완화(조밀 토폴로지 거짓 실패 방지)·`type: ignore`→`assert` 로 교체. 자기경로·죽은 목적지 엣지 케이스 테스트 2건 추가(+2).
+- 검증: 신규 path_vector_failover **22건** + 전체 federation 회귀(421~438) 합산 **371건 PASS**(0.50s). 본 컨테이너 최소 의존성(pytest·numpy)만 설치 → simpy·scipy·hypothesis 의존 수트는 CI 전체 수집. 기존 `.py` 무수정(순수 추가) → 회귀 무영향.
+- ROADMAP·`docs/SIMULATOR_ODYSSEY_PLAN.md` Federation Operations 라인을 Phase 438 완료 + 잔여 `Phase 426-427·439-440` 으로 갱신.
+
 ### 추가 (feat) — 일일 점검 2026-06-16 (18차): ODYSSEY Phase 437 신뢰 인지 분산 경로-벡터 라우팅 + 적체 흡수
 - 작업 상황 점검: 12차(`c8ee6c1`, PR #335)까지 main 통합 완료. 이후 Phase 433·434·435·436 작업이 **머지되지 못한 draft PR 6건(#336·#337·#338·#339·#340·#341)으로 적체**된 상태 확인 — 최신 통합본 **PR #341(17차, clean, base=main, 12파일/2097줄)** 이 Phase 433-436 전체를 깔끔히 담고 있으나 main 으로 머지되지 못해 누적. **머지 병목이 근본 원인**(매 점검이 통합 PR을 새로 만들지만 main 머지가 안 됨). 본 점검은 PR #341 상태를 작업 브랜치로 흡수하고, 그 위에서 진짜 다음 갭 **Phase 437** 을 전진 구현해 6건 적체 + 신규 1건을 **단일 브랜치로 일원화**한다.
 - **Phase 437** — `simulation/federation_trust_path_vector.py` (신규) 신뢰 인지 분산 경로-벡터 라우팅. Phase 436 분산 경로-벡터(홉만)와 Phase 433 중앙 신뢰 Dijkstra(전역 토폴로지)의 공백을 메운다: Phase 432 메시 인접 위에서 *분산* 수렴하되, 각 노드가 광고된 경로를 고를 때 *자신이 직접 관찰한 다음 홉 이웃의 신뢰도*(Phase 428)를 1순위 선호로 적용한다(BGP LOCAL_PREF).

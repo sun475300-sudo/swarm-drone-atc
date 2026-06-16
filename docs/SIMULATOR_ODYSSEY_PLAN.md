@@ -69,7 +69,7 @@
 *테스트를 넘어 증명으로. 기존 자산: OCaml 타입 체커, Rust safety verifier, Prolog 규칙*
 
 - **Phase 441** 5계층 안전망 TLA+ 명세 — 충돌 회피 우선순위 불변식
-- **Phase 442** 모델 체킹 — TLC로 ATC 핸드오프 데드락 부재 증명
+- **Phase 442** ✅ 모델 체킹 — ATC 핸드오프 데드락 부재 증명 (2026-06-16, `simulation/handoff_model_checker.py` — TLC/TLA 툴체인이 없는 환경이라 표준 TLC 핵심 능력(도달 상태 공간 BFS 전수 탐색 + 불변식 위반·교착 반례 추적)을 순수 파이썬 결정적 체커 `check_model` 로 구현. Phase 423 `HandoverCoordinator` 의 인스턴스 간 관제권 이양을 2단계 prepare→ack→commit 프로토콜로 모델링하고, 어떤 메시지 인터리빙에서도 ①**관제 공백 부재**(도달 전 상태에서 권위는 정확히 한 인스턴스 보유, `auth∈{A,B}` — A 가 ACK 수신 순간 A→B 직접 이양해 NONE 중간틈 없음)와 ②**교착 부재**(모든 도달 상태가 완결 종료이거나 활성 전이 보유)를 전수 증명. 체커 타당성 대조용 3변형 동봉: `orphan_bug_model`(A 가 ACK 전 권위 선행 해제 → NONE 도달 불변식 반례 검출)·`lossy_model`(ACK 재전송 없는 유실 → "B 준비됐으나 A 영영 이양 못함" 교착 반례 검출)·`timeout_model`(B 타임아웃 재전송으로 교착 부재 복원, 단 무조건 liveness 아님 명시). 반례는 후속 정렬로 결정적(동일 모델→동일 반례). `federation_handover.py` 무수정 순수 추가, 무작위성 0. code-reviewer 어드바이저 반영. 단위 30건)
 - **Phase 443** ✅ APF 수렴성 수학 증명 문서화 (Lyapunov 후보 함수) (2026-06-16, `simulation/apf_lyapunov.py` + `docs/APF_CONVERGENCE_PROOF.md` — APF 힘 법칙이 보존 포텐셜의 음의 기울기 `F = -∇U` 임을 명시: 인력 포텐셜 `V_att`(piecewise 이차/원뿔, C¹)·FIRAS 척력 `(k/2)(1/d−1/d0)²`, `total_potential`·`conservative_force`·`lyapunov_derivative`. 형식 증명: 양정치·C¹·radially unbounded, 과감쇠 흐름 `dU/dt = −‖∇U‖² ≤ 0`, LaSalle 전역 수렴(콤팩트 레벨집합), 국소 최소·속도 증폭 비보존항 한계와 상위 계층(CBS·교착 탈출) 완화 명시. `apf.py` 무수정 순수 추가, 무작위성 0. code-reviewer 어드바이저 HIGH 2건 반영(속도 증폭 비보존성으로 "하강 무보증" 정정·엔진 0.1m 인력 데드밴드 정합). 단위 16건)
 - **Phase 444** CBS 완전성·최적성 조건 정리 (논문 §보강)
 - **Phase 445** 불확실성 정량화 — Monte Carlo 신뢰구간 자동 리포트

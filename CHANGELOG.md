@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### 추가 (feat) — 일일 점검 2026-06-16 (20차): ODYSSEY Phase 439 신뢰 인지 분산 경로-벡터 장애 우회 수렴
+- 작업 상황 점검: 19차(PR #343, `6bc06d4`)까지 main 통합 완료 — 작업 브랜치 `claude/fervent-babbage-z6hyxp` 가 main 과 동기(0/0), 워킹 트리 clean, 적체 draft PR 없음(병목 해소 상태 유지). Federation Operations 트랙(421~438) 연속 구현 흐름의 다음 갭을 전진.
+- **Phase 439** — `simulation/federation_trust_path_vector_failover.py` (신규) 신뢰 인지 분산 경로-벡터 장애 우회 수렴 `TrustPathVectorFailover`. 연합 라우팅 **2×2 격자**(홉만/신뢰 인지 × 고정 메시/장애 후 재수렴)의 마지막 빈 칸을 메운다 — Phase 438(홉만 장애 우회)과 Phase 437(신뢰 인지 고정 메시)의 결합.
+  - 장애 집합을 메시에서 제거한 살아남은 인접 위에서 Phase 437 `TrustPathVectorRouting`(BGP LOCAL_PREF 다음 홉 신뢰 선호) 수렴을 **인접 어댑터로 무수정 재사용**해 장애 전후 *신뢰 가중* 경로를 비교: `rerouted`·`lost_routes`·`is_reroutable`·`surviving_path`·`reconvergence_rounds`·`summary`. 신뢰 모델은 그대로 재사용(살아남은 노드 신뢰는 장애와 무관, 죽은 이웃은 인접에서 빠져 조회 대상 아님).
+  - 핵심 불변식(테스트 고정): ① 빈 장애 → Phase 437 항등, ② 무관찰(균일 0.5)이면 선호 키가 (상수,홉,경로)로 환원되어 **Phase 438 장애 분석과 정확히 동일**(2×2 격자 두 칸이 그 모서리에서 만남), ③ 도달성(단절·우회 가능)은 신뢰와 무관하게 Phase 438 과 동일 — 신뢰는 *어느 우회로를 고르는가* 만 바꾼다(kite 토폴로지로 검증: P 사망 후 S 의 다음 홉 신뢰가 A 경유 vs Z 경유 우회를 가름). Phase 435 교차 검증·콜드스타트 등가성. 무작위성 0·정렬 출력·경계 입력 검증(미등록 장애/origin KeyError·음수 untrust_weight ValueError). 단위 **27건 PASS**.
+- code-reviewer 어드바이저 1회 반영(CRITICAL 0·HIGH 1·MEDIUM 2): HIGH 서로 다른 수렴 엔진(436 vs 437)의 `reconvergence_rounds` 를 cross-engine `summary()` 동일성 단언에서 제외(보장된 불변식 아님). MEDIUM ① `untrust_weight` 음수 검증을 의존 라우터 전이 위임이 아닌 *본 경계*에서 fail-fast(CLAUDE.md "시스템 경계에서 검증"), ② 무신뢰 직선 등가 테스트의 실패 노드 `T2` 를 항상 내부 노드가 되도록 `n∈{4,6,8}` 로 조정해 분단 케이스 강화.
+- 검증: 신규 27건 + 전체 federation 회귀(421~439) 합산 **398건 PASS**(0.66s). 본 컨테이너 최소 의존성(pytest·numpy)만 설치 → simpy·scipy·hypothesis 의존 수트는 CI 전체 수집. 기존 `.py` 무수정(순수 추가) → 회귀 무영향.
+- `docs/SIMULATOR_ODYSSEY_PLAN.md` Federation Operations 라인을 Phase 439 완료 + 잔여 `Phase 426-427·440` 으로 갱신.
+
 ### 추가 (feat) — 일일 점검 2026-06-16 (19차): ODYSSEY 적체 병목 해소(PR #342 main 머지) + Phase 438 분산 경로-벡터 장애 우회 수렴
 - **작업 상황 점검 — 머지 병목 해소(근본 원인 처리)**: 12차(PR #335)까지 main 통합 후 Phase 433~437 작업이 **머지되지 못한 draft PR 7건(#336~#342)으로 적체**된 상태를 확인. 18차 PR #342(clean, base=main, Phase 433-437 전체 + 신규 437 흡수)가 적체를 단일 브랜치로 일원화하고 있었으나 **main 머지가 안 되어 누적만 반복**되는 것이 근본 원인. 본 점검에서 PR #342 브랜치를 로컬 검증(Phase 433-437 단위 **146건 PASS**) 후 **main 으로 머지**(`a463330`)해 병목을 해소하고, superseded 된 PR #336·#337·#338·#339·#340·#341 **6건을 close**.
 - **Phase 438** — `simulation/federation_path_vector_failover.py` (신규) 분산 경로-벡터 장애 우회 수렴. Phase 436/437(고정 메시 1회 수렴)·Phase 435(중앙 구조 분석)의 공백인 *인스턴스(USS) 장애 후 분산 재수렴*을 모사하는 `PathVectorFailover`.

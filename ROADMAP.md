@@ -302,7 +302,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 428** 🛰 인스턴스 간 신뢰 모델 — `simulation/federation_trust.py` Phase 608 Beta-Bernoulli 평판을 인스턴스 레벨로 재사용. 방향성 (관찰자→대상) Beta(α,β) 믿음, 핸드오버·충돌·NOTAM 협조 이벤트 관찰로 갱신, 사후 평균 신뢰 점수 + 불확실성, 임계값·최소 관찰 게이트 신뢰 판정, 불변 감사 로그, 30건 PASS (2026-06-15)
 - [x] **Phase 431** 🛰 하이브리드 논리 시계(HLC) — `simulation/federation_hybrid_clock.py` Kulkarni et al. 2014 표준 HLC. `HLCTimestamp`(frozen·전순서) + `HybridLogicalClock` local/receive 이벤트 결정적 갱신. 물리 시각에 가까운 `wall_time` + 논리 `counter` 로 물리 시계 동기화 없이 3+ 메시 연합의 전역 인과 순서 보장(happened-before → 사전식 증가), 물리 시계 역행 견딤, cold-start sentinel(-1), `is_concurrent_with` 동시성 명시, 34건 PASS (2026-06-15)
 - [x] **Phase 432** 🛰 메시 연합 토폴로지 + 멀티홉 전파 — `simulation/federation_mesh.py` Phase 421 디스커버리 등록 상태로 공역 경계 인접 그래프 구성(타일형 비중첩 공역도 수평 허용오차로 이웃 인식, 수직·시간은 엄격 교차). 연결 요소·연결성·결정적 BFS 최단 경로 + Phase 425 1홉 전파를 메시 전역 멀티홉으로 일반화한 TTL 한정 전파(`propagate`)·중계 포워딩 테이블(`relay_table`), 25건 PASS (2026-06-15)
-- [ ] **Phase 426-427·433-440** 🛰 Federation Operations — 2-인스턴스 연합 E2E·핸드오버 시각화·메시 라우팅 확장
+- [x] **Phase 434** 🛰 HLC 통합 인과-안정 배달 — `simulation/federation_causal_delivery.py` Phase 432 메시 전파 위에 Phase 431 HLC 결합. 워터마크(각 출처 FIFO 단조 HLC → 모든 출처 고점 최소 이하 안정, CockroachDB closed-timestamp 발상) 안정 배달로 멀티홉 중복·인스턴스별 사건 순서 불일치 해소. `FederationEvent`·`CausalDeliveryBuffer`(출처별 FIFO 멱등 중복 무시·예상/관측 워터마크·HLC 전순서 배달)·`FederationDeliveryCoordinator`(메시 propagate fan-out), 36건 PASS (2026-06-16)
+- [ ] **Phase 426-427·433·435-440** 🛰 Federation Operations — 2-인스턴스 연합 E2E·핸드오버 시각화·신뢰 가중 라우팅(433, PR #336 진행 중)·메시 라우팅 확장
 - [x] **Phase 447** 🔬 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` NFZ·ATC·SORA 140케이스 (2026-06-12)
 - [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12)
 - [x] **Phase 449** 🔬 시뮬-실측 갭 모델 — `src/training/sim_real_gap.py` Domain Randomization 파라미터 자동 보정, 7건 PASS (2026-06-15)

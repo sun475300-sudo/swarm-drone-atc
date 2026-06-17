@@ -72,12 +72,12 @@
 - **Phase 442** ✅ 모델 체킹 — ATC 핸드오프 데드락 부재 증명 (2026-06-17, `simulation/handoff_model_checker.py` — 인스턴스 간 관제권 핸드오프 프로토콜을 유한 상태 기계로 모델링하고 도달 가능 전 상태를 BFS 전수 탐색해 ①단일 관제권(공백·이중 금지) 불변식과 ②교착 부재(후속 없는 비종료 상태 부재)를 증명. `HandoffState`(order=True 결정적 확장)·`check_model`(불변식/교착 반례 최단 경로)·`verify_handoff_safe`/`verify_handoff_deadlock_free`. 무작위성 0·결정적 반례. 통합 점검 시 PR #353 흡수. code-reviewer 어드바이저 반영(이중 속성 단일 BFS 계약 명시))
 - **Phase 443** ✅ APF 수렴성 수학 증명 문서화 (Lyapunov 후보 함수) (2026-06-16, `simulation/apf_lyapunov.py` + `docs/APF_CONVERGENCE_PROOF.md` — APF 힘 법칙이 보존 포텐셜의 음의 기울기 `F = -∇U` 임을 명시: 인력 포텐셜 `V_att`(piecewise 이차/원뿔, C¹)·FIRAS 척력 `(k/2)(1/d−1/d0)²`, `total_potential`·`conservative_force`·`lyapunov_derivative`. 형식 증명: 양정치·C¹·radially unbounded, 과감쇠 흐름 `dU/dt = −‖∇U‖² ≤ 0`, LaSalle 전역 수렴(콤팩트 레벨집합), 국소 최소·속도 증폭 비보존항 한계와 상위 계층(CBS·교착 탈출) 완화 명시. `apf.py` 무수정 순수 추가, 무작위성 0. code-reviewer 어드바이저 HIGH 2건 반영(속도 증폭 비보존성으로 "하강 무보증" 정정·엔진 0.1m 인력 데드밴드 정합). 단위 16건)
 - **Phase 444** ✅ CBS 완전성·최적성 조건 정리 (논문 §보강) (2026-06-17, `simulation/cbs_optimality.py` + `docs/CBS_COMPLETENESS_OPTIMALITY.md` — CBS 의 완전성·최적성 보장 조건(허용 휴리스틱·정점 분기 건전성·저수준 A* 비용 최적성)을 독립 BFS 기준해로 표본 검증하고, `cbs.py` 실제 구현이 충족/완화하는 보장을 정직 공시(`audit_sdacs_cbs`: 간선 충돌 정점 제약 한계·노드/A* 상한·tiebreak). `reference_optimal_steps`(BFS 최단)·`heuristic_is_admissible`·`low_level_is_optimal`·`vertex_branching_is_sound`. 무작위성 0. 통합 점검 시 PR #351·#352 흡수. code-reviewer 어드바이저 HIGH 2건 반영(BFS 목표 반환 전 t=0 forbidden 검사로 위양성 차단·A* 타임아웃 vs 도달불가 미구별 한계 공시) + 회귀 테스트 1건 추가)
-- **Phase 445** 불확실성 정량화 — Monte Carlo 신뢰구간 자동 리포트
-- **Phase 446** 충돌 해결률 공식의 통계적 검정력 분석
+- **Phase 445** ✅ 불확실성 정량화 — Monte Carlo 신뢰구간 자동 리포트 (`simulation/uncertainty.py` — 부트스트랩/정규근사 신뢰구간 자동 산출. 코드·테스트 main 적재 완료, 추적 정정 시 16건 PASS 재검증, 2026-06-17)
+- **Phase 446** ✅ 충돌 해결률 공식의 통계적 검정력 분석 (`simulation/power_analysis.py` — 충돌 해결률 차이 검정의 검정력·표본수 산출. 코드·테스트 main 적재 완료, 추적 정정 시 15건 PASS 재검증, 2026-06-17)
 - **Phase 447** ✅ 적대적 시나리오 fuzzing — 시드 기반 시나리오 변이 생성기 (`simulation/scenario_fuzzer.py` — `np.random.default_rng` 결정적 변이 + `adversarial` 부하↑·안전마진↓ 편향 모드, 출력은 `scenario_schema.validate_scenario` 계약 충족, 단위 14건 PASS, 2026-06-15)
 - **Phase 448** ✅ 속성 기반 테스트(Hypothesis) — 시뮬 코어 불변식 1,000+케이스 (2026-06-16, 두 코어 동시 커버 — `tests/test_property_deconflict.py`: 4D 경로 충돌 감지 코어 `PathDeconflict` 의 9개 불변식(결정성·삽입순서 무관·보간 볼록성/클램프·충돌 술어 일관·시각 정렬·수직 분리 보장·단일/동일 경로, 9속성×130예제=1,170+케이스) + `tests/test_scenario_fuzzer_property.py`: Phase 447 적대적 퍼저 계약을 "고정 시나리오 통과"에서 "근방 시나리오 공간 전역 통과"로 격상하는 6개 불변식(스키마 보존·입력 불변성·시드 결정성·분포 재정규화·route 순서·adversarial 단방향 편향, max_examples 합 1,350케이스). 기존 APF(`test_apf_property.py`)·텔레메트리 압축(`test_property_telemetry.py`) property 자산이 안 다루던 충돌 감지·퍼저 코어를 덮음. 대상 `.py` 무수정(테스트 순수 추가), code-reviewer 어드바이저 반영, 15건 PASS)
-- **Phase 449** 시뮬-실측 갭 모델 — DR 파라미터 보정 자동화
-- **Phase 450** 재현성 10년 보장 — 의존성 핀 + 컨테이너 다이제스트 고정
+- **Phase 449** ✅ 시뮬-실측 갭 모델 — DR 파라미터 보정 자동화 (`src/training/sim_real_gap.py`·`domain_rand.py` — Domain Randomization 파라미터 자동 보정. 코드·테스트 main 적재 완료, 추적 정정 시 7건 PASS 재검증, 2026-06-17)
+- **Phase 450** ✅ 재현성 10년 보장 — 의존성 핀 + 컨테이너 다이제스트 고정 (`requirements.lock.txt`·`Dockerfile.reproducible`·`scripts/independent_reproduction.sh`·`docs/REPRODUCIBILITY.md` — 의존성 핀 + 컨테이너 다이제스트 고정 인프라 main 적재 완비, 2026-06-17)
 - **Phase 451-460** RL 일반화 연구 (미학습 시나리오 전이) + 인증 가능 ML 조사 (EASA AI Roadmap)
 
 ### Track 🏛 — Standards & Policy (Phase 461-480) · 표준·정책 기여
@@ -92,7 +92,7 @@
 - **Phase 466** 오픈 데이터 표준 — 텔레메트리 스키마 공개 (JSON Schema + 검증기)
 - **Phase 467** 사고 조사 데이터 표준 — 시뮬 로그 → 표준 양식 변환기 ✅ ([standards/INCIDENT_INVESTIGATION_REPORT.md](standards/INCIDENT_INVESTIGATION_REPORT.md))
 - **Phase 468** 대학 캡스톤 표준 커리큘럼 제안 (GENESIS 383 확장)
-- **Phase 469** 정책 영향 시뮬레이션 — 규제 파라미터(고도 상한·이격 거리) 변경 효과 자동 비교
+- **Phase 469** ✅ 정책 영향 시뮬레이션 — 규제 파라미터(고도 상한·이격 거리) 변경 효과 자동 비교 (2026-06-17, `simulation/policy_impact.py` — 결정적 해석 용량 모델. 공역을 수직 분리 고도층의 적층으로 보고 `layers = floor(band/vertical_min_m)+1`, 층당 수평 용량은 이격 `s` 의 육각 최밀 충전 셀 면적 `(√3/2)s²` 로 `floor(area/cell)`, `capacity = layers × per_layer`. `PolicyConfig`(frozen, `__post_init__` 양수·고도 상하한·면적≥단일셀 불변식 검증)·`PolicyConfig.from_config`(`config/default_simulation.yaml` 적재 — 고도 바닥은 z[0] 과 drones.min_altitude_m 중 제약적인 쪽으로 과대계상 방지)·`compare_policies`(baseline vs proposed 의 `capacity_delta`·`capacity_pct_change`·`utilization`·`is_oversaturated`·`summary`). 이격 50→70m 강화 시 용량 −49%(≈50²/70²) 정량화. *정적 기하 용량 상한* 임을 정직 공시(동역학 미포함 → 절대값은 낙관적, 가치는 동일 모델 하 두 정책의 *상대 변화*). 무작위성 0·기존 모듈 무수정 순수 추가. code-reviewer 어드바이저 HIGH 2·MEDIUM 3·LOW 3 반영. 단위 33건 PASS)
 - **Phase 470** 표준화 기고 추적 대시보드
 - **Phase 471-480** 국내 표준(KS) 제안 1건 + 국제 워킹그룹 의견서 3건
 

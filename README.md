@@ -1012,6 +1012,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-17 12:39 | `11e9ed0` | docs(readme): 현행화 — 408 API·5,106 수집·Federation/Genesis 진척·보안 6차 반영 | README.md |
 | 2026-06-17 12:10 | `e36d2c9` | feat(boost): 6차 정밀점검 — CSP·JWT alg·wind cache 가드·pre-commit hook 4종 보강 | .githooks/pre-commit, README.md, api/auth.py, docs/maritime_detection_simulator.html, docs/simulator.html, docs/swarm_3d_simulator.html … |
 | 2026-06-16 13:57 | `a8a57f9` | feat(boost): 보강 3건 — replay 진단·mega_swarm 회귀 임계·운영 환경변수 표 | README.md, tests/e2e/smoke_sim.mjs, tests/e2e/test_simulator_replay_cursor.py |
 | 2026-06-14 09:30 | `9ab42fd` | test(replay): replay_cursor 픽스처 플레이크 견고화 (느린 CI 헤드리스 대응) | tests/e2e/test_simulator_replay_cursor.py |

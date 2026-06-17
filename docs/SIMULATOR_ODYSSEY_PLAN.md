@@ -27,14 +27,14 @@
 
 *K-UTM 정렬을 넘어 EASA U-space·FAA UTM 3대 체계 동시 호환. 기존 자산: `src/utm/`(LAANC·ICAO), GENESIS 🏭*
 
-- **Phase 401** EASA U-space U1-U4 서비스 매핑 — SDACS 기능 ↔ U-space 서비스 매트릭스
+- **Phase 401** ✅ EASA U-space U1-U4 서비스 매핑 — SDACS 기능 ↔ U-space 서비스 매트릭스 (2026-06-17, `simulation/uspace_service_map.py` — EASA U-space 서비스(EU 2021/664 + CORUS ConOps U1-U4)를 SDACS 기능에 결정적으로 대응시키는 정합성 매트릭스. `USpaceService` frozen dataclass 14종 카탈로그가 각 서비스의 도입 레벨(U1-U4)·EU 의무 여부·**실재하는 리포 모듈 경로**(`sdacs_module`)를 보유 — 대응 모듈이 없는 U4 유인 항공 통합은 `None` 으로 **갭** 을 정직 표면화(`test_cited_modules_exist_on_disk` 가 12개 인용 경로의 디스크 실재를 강제). EU 2021/664 의무 4종(network identification·geo-awareness·UAS flight authorisation·traffic information)은 100% 충족(4/4)임을 `coverage_report()` 가 결정적 집계. 조회 API `services_by_level`·`mandatory_services`·`gaps`·`service_matrix`(도구 간 교환용 JSON 행)·`find_service`, `CoverageReport`(frozen, `__post_init__` 카운트 불변식 검증·`by_level` MappingProxyType 읽기 전용). 무작위성 0·기존 모듈 무수정 순수 추가. CLI(`--matrix`·`--coverage`·`--level`·`--gaps`·`--mandatory`). code-reviewer 어드바이저 HIGH 2(by_level 가변 dict→MappingProxyType·CoverageReport 무검증 생성자→불변식)·MEDIUM 3(is_mandatory_complete 공허참·service_id 패딩·summary 빈문자) 반영. 단위 37건 PASS)
 - **Phase 402** FAA UTM ConOps v2 정렬 — USS 역할 요건 갭 분석
 - **Phase 403** `_sdacs.soraAssess()` EASA Open/Specific/Certified 카테고리 판정 확장
 - **Phase 404** README·핵심 문서 EN 완역 (GENESIS 328 연계, 학술 인용 가능 수준)
 - **Phase 405** 국제 벤치마크 제출 — BlueSky·U-TRAFMAN 비교 시나리오 공개
-- **Phase 406** 다국 좌표계·시간대 지원 (UTM zone 자동 판정)
+- **Phase 406** ✅ 다국 좌표계·시간대 지원 (UTM zone 자동 판정) (`simulation/geo_zones.py` — 전 세계 위·경도를 UTM 그리드 존(존 번호·MGRS 위도 밴드·EPSG·공칭 시간대)으로 결정적 변환. 극지(±80° 밖) 거부, Norway/Svalbard 특례 처리. 코드·테스트 main 적재 완료(추적 정정 시 39건 PASS 재검증), 2026-06-17)
 - **Phase 407** ICAO UTM Framework Ed.4 적합성 자가 평가
-- **Phase 408** 국제 공역 분류(A-G) 모델 — 현 9층 고도 레이어에 클래스 매핑
+- **Phase 408** ✅ 국제 공역 분류(A-G) 모델 — 현 9층 고도 레이어에 클래스 매핑 (`simulation/airspace_class.py` + `docs/certification/AIRSPACE_CLASS_MAPPING.md` — 고도(m AGL)와 선택적 좌표·NFZ 로부터 ICAO 공역 클래스(B·D·E·G·R)를 결정적으로 산정하는 `classify_airspace` API. SDACS 9층 고도 레이어(0~240m) 매핑 + 군 작전/공항 NFZ 판정(haversine)·특별승인 분기·클래스별 SDACS 충족 요건. `AirspaceClassification`·`NoFlyZone` frozen dataclass, 무작위성 0. 코드·테스트 main 적재 완료(추적 정정 시 25건 PASS 재검증), 2026-06-17)
 - **Phase 409** 다국 규제 비교 대시보드 (한·미·EU·일 BVLOS 요건)
 - **Phase 410** GUTMA 회원 활동 시나리오 — 글로벌 UTM 커뮤니티 기고
 - **Phase 411-420** 해외 파일럿 제안서 3종 (아세안 도서 배송·EU U-space 데모·미국 대학 연구 협력)

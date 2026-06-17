@@ -68,10 +68,10 @@
 
 *테스트를 넘어 증명으로. 기존 자산: OCaml 타입 체커, Rust safety verifier, Prolog 규칙*
 
-- **Phase 441** 5계층 안전망 TLA+ 명세 — 충돌 회피 우선순위 불변식
-- **Phase 442** 모델 체킹 — TLC로 ATC 핸드오프 데드락 부재 증명
+- **Phase 441** ✅ 5계층 안전망 TLA+ 명세 — 충돌 회피 우선순위 불변식 (2026-06-17, `specs/SafetyNetPriority.tla` + `docs/SAFETY_NET_TLA_SPEC.md` + `simulation/safety_net_invariant.py` — 5계층 안전망(L1 분리예측·L2 APF·L3 CBS·L4 컨트롤러·L5 강하)의 *우선순위 단조성* 불변식을 TLA+ 로 명세하고, 그 핵심 안전 속성을 Python 유한 모델 검사기로 재현. `SafetyState` frozen dataclass(severity→required_level 사상 검증)·`reachable_states` BFS·`check_invariant`(위반 시 초기→반례 최단 경로) — 위협 심각도가 오르면 활성 안전 계층도 단조 상승, 컨트롤러 미개입 시 위반 상태 도달 가능성을 반례로 제시. 무작위성 0·결정적. 통합 점검 시 PR #352 흡수)
+- **Phase 442** ✅ 모델 체킹 — ATC 핸드오프 데드락 부재 증명 (2026-06-17, `simulation/handoff_model_checker.py` — 인스턴스 간 관제권 핸드오프 프로토콜을 유한 상태 기계로 모델링하고 도달 가능 전 상태를 BFS 전수 탐색해 ①단일 관제권(공백·이중 금지) 불변식과 ②교착 부재(후속 없는 비종료 상태 부재)를 증명. `HandoffState`(order=True 결정적 확장)·`check_model`(불변식/교착 반례 최단 경로)·`verify_handoff_safe`/`verify_handoff_deadlock_free`. 무작위성 0·결정적 반례. 통합 점검 시 PR #353 흡수. code-reviewer 어드바이저 반영(이중 속성 단일 BFS 계약 명시))
 - **Phase 443** ✅ APF 수렴성 수학 증명 문서화 (Lyapunov 후보 함수) (2026-06-16, `simulation/apf_lyapunov.py` + `docs/APF_CONVERGENCE_PROOF.md` — APF 힘 법칙이 보존 포텐셜의 음의 기울기 `F = -∇U` 임을 명시: 인력 포텐셜 `V_att`(piecewise 이차/원뿔, C¹)·FIRAS 척력 `(k/2)(1/d−1/d0)²`, `total_potential`·`conservative_force`·`lyapunov_derivative`. 형식 증명: 양정치·C¹·radially unbounded, 과감쇠 흐름 `dU/dt = −‖∇U‖² ≤ 0`, LaSalle 전역 수렴(콤팩트 레벨집합), 국소 최소·속도 증폭 비보존항 한계와 상위 계층(CBS·교착 탈출) 완화 명시. `apf.py` 무수정 순수 추가, 무작위성 0. code-reviewer 어드바이저 HIGH 2건 반영(속도 증폭 비보존성으로 "하강 무보증" 정정·엔진 0.1m 인력 데드밴드 정합). 단위 16건)
-- **Phase 444** CBS 완전성·최적성 조건 정리 (논문 §보강)
+- **Phase 444** ✅ CBS 완전성·최적성 조건 정리 (논문 §보강) (2026-06-17, `simulation/cbs_optimality.py` + `docs/CBS_COMPLETENESS_OPTIMALITY.md` — CBS 의 완전성·최적성 보장 조건(허용 휴리스틱·정점 분기 건전성·저수준 A* 비용 최적성)을 독립 BFS 기준해로 표본 검증하고, `cbs.py` 실제 구현이 충족/완화하는 보장을 정직 공시(`audit_sdacs_cbs`: 간선 충돌 정점 제약 한계·노드/A* 상한·tiebreak). `reference_optimal_steps`(BFS 최단)·`heuristic_is_admissible`·`low_level_is_optimal`·`vertex_branching_is_sound`. 무작위성 0. 통합 점검 시 PR #351·#352 흡수. code-reviewer 어드바이저 HIGH 2건 반영(BFS 목표 반환 전 t=0 forbidden 검사로 위양성 차단·A* 타임아웃 vs 도달불가 미구별 한계 공시) + 회귀 테스트 1건 추가)
 - **Phase 445** 불확실성 정량화 — Monte Carlo 신뢰구간 자동 리포트
 - **Phase 446** 충돌 해결률 공식의 통계적 검정력 분석
 - **Phase 447** ✅ 적대적 시나리오 fuzzing — 시드 기반 시나리오 변이 생성기 (`simulation/scenario_fuzzer.py` — `np.random.default_rng` 결정적 변이 + `adversarial` 부하↑·안전마진↓ 편향 모드, 출력은 `scenario_schema.validate_scenario` 계약 충족, 단위 14건 PASS, 2026-06-15)

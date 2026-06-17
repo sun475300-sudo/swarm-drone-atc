@@ -92,7 +92,7 @@
 - **Phase 466** 오픈 데이터 표준 — 텔레메트리 스키마 공개 (JSON Schema + 검증기)
 - **Phase 467** 사고 조사 데이터 표준 — 시뮬 로그 → 표준 양식 변환기 ✅ ([standards/INCIDENT_INVESTIGATION_REPORT.md](standards/INCIDENT_INVESTIGATION_REPORT.md))
 - **Phase 468** 대학 캡스톤 표준 커리큘럼 제안 (GENESIS 383 확장)
-- **Phase 469** 정책 영향 시뮬레이션 — 규제 파라미터(고도 상한·이격 거리) 변경 효과 자동 비교
+- **Phase 469** ✅ 정책 영향 시뮬레이션 — 규제 파라미터(고도 상한·이격 거리) 변경 효과 자동 비교 (2026-06-17, `simulation/policy_impact.py` — 결정적 해석 용량 모델. 공역을 수직 분리 고도층의 적층으로 보고 `layers = floor(band/vertical_min_m)+1`, 층당 수평 용량은 이격 `s` 의 육각 최밀 충전 셀 면적 `(√3/2)s²` 로 `floor(area/cell)`, `capacity = layers × per_layer`. `PolicyConfig`(frozen, `__post_init__` 양수·고도 상하한 불변식 검증)·`PolicyConfig.from_config`(`config/default_simulation.yaml` 적재 — 고도 바닥은 z[0] 과 drones.min_altitude_m 중 제약적인 쪽으로 과대계상 방지)·`compare_policies`(baseline vs proposed 의 `capacity_delta`·`capacity_pct_change`·`utilization`·`is_oversaturated`·`summary`). 이격 50→70m 강화 시 용량 −49%(≈50²/70²) 정량화. *정적 기하 용량 상한* 임을 정직 공시(동역학 미포함 → 절대값은 낙관적, 가치는 동일 모델 하 두 정책의 *상대 변화*). 무작위성 0·기존 모듈 무수정 순수 추가. 단위 27건)
 - **Phase 470** 표준화 기고 추적 대시보드
 - **Phase 471-480** 국내 표준(KS) 제안 1건 + 국제 워킹그룹 의견서 3건
 

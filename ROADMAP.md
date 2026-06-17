@@ -320,7 +320,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 444** 🔬 CBS 완전성·최적성 조건 정리 — `simulation/cbs_optimality.py` + `docs/CBS_COMPLETENESS_OPTIMALITY.md`. 허용 휴리스틱·분기 건전성·A* 비용 최적성을 독립 BFS 기준해로 검증 + `cbs.py` 보장/완화 정직 공시. code-reviewer 어드바이저 HIGH 2건 반영(BFS forbidden 검사·타임아웃 한계 공시) + 회귀 1건. 무작위성 0 (2026-06-17, PR #351·#352 흡수)
 - [ ] **Phase 445·446·450-460** 🔬 Formal & Research Frontier 잔여 — MC 신뢰구간·검정력 분석(`power_analysis.py`·`uncertainty.py` 부분 구현 존재)·재현성 10년 보장·RL 일반화 연구
 - [x] **Phase 466** 🏛 텔레메트리 JSON Schema 공개 — `docs/schemas/telemetry.schema.json` Draft-07 + ws_bridge 정합 회귀 (2026-06-12)
-- [ ] **Phase 461-465·467-480** 🏛 Standards & Policy — ASTM/ISO 기고·정책 영향 시뮬
+- [x] **Phase 469** 🏛 정책 영향 시뮬레이션 — `simulation/policy_impact.py`. 규제 파라미터(이격·고도 상한) 변경의 공역 용량 영향을 결정적 해석 모델(육각 충전 × 고도층)로 정량화·자동 비교(`compare_policies`). 이격 50→70m = 용량 −49%. 정적 기하 용량 상한임 정직 공시. code-reviewer 어드바이저 HIGH 2·MEDIUM 3 반영. 33건 PASS (2026-06-17)
+- [ ] **Phase 461-465·467-468·470-480** 🏛 Standards & Policy — ASTM/ISO 기고·표준 시나리오 셋·정책 추적 대시보드
 - [x] **Phase 486** ♾️ 독립 재현 자동화 — `scripts/independent_reproduction.sh` (회귀·md5·JS·API 게이트 통합) (2026-06-12)
 - [ ] **Phase 481-485·487-500** ♾️ Continuum — 의존성 장기 추적·승계 규약·**Phase 500 = Centennial 선언**
 

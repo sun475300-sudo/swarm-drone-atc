@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test) — 일일 점검 2026-06-17 (30차): ODYSSEY Track 🏛 Phase 469 정책 영향 시뮬레이션
+
+- **작업 상황 점검 — 머지 병목 "오보" 확정**: 28차(PR #356, `9fe5335`) main 머지 후 `git fetch origin main` 결과 **`origin/main == HEAD`(클린 베이스)** 재확인 — 직전 점검들이 반복한 "origin/main 미전진" 주장은 fetch 전 stale 로컬 ref 오인(local `origin/main` 이 `19ef86d` 2026-06-05 에 고정)이었음을 다시 확정. Track 🔬 핵심(441-450)은 코드·테스트 main 적재 완료(445·446·449·450 은 추적 정정 드래프트 #357·#358 대기). 본 점검은 다음 미구현 고임팩트 항목 **Track 🏛 Phase 469** 를 신규 구현.
+- **Phase 469** — `simulation/policy_impact.py` (신규) 정책 영향 시뮬레이션. 규제 파라미터(수평·수직 이격, 고도 상한) 변경의 공역 용량 영향을 결정적 해석 모델로 정량화·자동 비교한다. 공역을 수직 분리 고도층 적층으로 보고 `layers = floor(band/vertical_min_m)+1`, 층당 용량은 이격 `s` 의 육각 최밀 충전 셀 `(√3/2)s²` 로 `floor(area/cell)`, `capacity = layers × per_layer`. `PolicyConfig`(frozen, 양수·고도 상하한·면적≥단일셀 불변식 검증)·`PolicyConfig.from_config`(`default_simulation.yaml` 의 airspace·separation_standards·drones 적재, 고도 바닥은 z[0]·drones.min_altitude_m 중 제약적인 쪽)·`compare_policies`(`capacity_delta`·`capacity_pct_change`·`utilization`·`is_oversaturated`·`summary`). 이격 50→70m 강화 시 용량 −49%(≈50²/70²) 정량화. **정직 공시**: 동역학 미포함 *정적 기하 용량 상한* 이라 절대값은 낙관적, 가치는 동일 모델 하 두 정책의 *상대 변화* 에 있음(CLAUDE.md "레포 데이터 불일치 수치 금지" 준수). 무작위성 0·기존 모듈 무수정 순수 추가.
+- **code-reviewer 어드바이저 반영** (CRITICAL 0·HIGH 2·MEDIUM 3·LOW 3): HIGH ①음수 `min_altitude_m` 가 고도 band 를 부풀려 용량 과대계상 → `min_altitude_m ≥ 0`(AGL) 검증 추가, ②면적이 단일 드론 셀보다 작으면 용량 0 → `compare_policies` 의 불투명 `ValueError` 대신 `__post_init__` 에서 `area_m2 ≥ 셀면적` fail-fast. MEDIUM ①`from_config` 가 z[0]=0 만 읽어 운용 바닥(drones.min_altitude_m=30) 무시 → 고도층 9→7 정정(절대 용량 ~22% 과대 제거), ②CLI `or` 패턴이 명시적 `0.0` 인자를 삼킴 → `is not None`, ③`summary()` 가 무변동 정책에 "+0.0% 증가" 표기 → "변동없음" 분기. LOW 경계 테스트(0대 활용률·없는 config 경로) 보강.
+- 검증: `tests/test_policy_impact.py` **33건 PASS**(어드바이저 반영 전 27 → 6건 추가). 인접 회귀(`test_power_analysis`·`test_uncertainty`) 31건 PASS. 대상 기존 `.py` 무수정 순수 추가 → 회귀 무영향. 본 컨테이너 최소 의존성(pytest·numpy·scipy·pyyaml) 설치 → 전체 수트는 CI 수집.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-17 (28차): ODYSSEY Track 🔬 Phase 441·442·444 통합 (적체 드래프트 PR #351·#352·#353 일원화)
 
 - **작업 상황 점검 — 머지 병목 재발 해소**: 23차(PR #350, `6034308`)에서 Phase 443·448 통합 후 main 클린 베이스 확인. 이후 25·26차 병행 점검이 Track 🔬 Formal & Research(441-460) 진행분을 각각 draft PR 로 적체: **#352**(Phase 441 안전망 TLA+ + 444 CBS)·**#353**(Phase 442 핸드오프 모델 체킹)·**#351**(Phase 444 CBS — #352 의 부분집합)·**#354/#355**(문서 추적 정정 중복본). 세 코드 PR 은 *서로 다른 신규 파일만 추가*(비경쟁)이고 오직 ROADMAP/CHANGELOG/PLAN append 라인만 충돌 → 순차 머지 불가. 기존 "일원화" 패턴대로 Phase 441·442·444 를 본 브랜치로 통합해 단일 PR 로 머지하고, #351 은 #352 에 흡수되므로 close 권고.

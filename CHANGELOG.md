@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### 정정 (docs) — 일일 점검 2026-06-17: ODYSSEY Track 🔬 추적 정정 (Phase 445·446·449·450 ✅ 반영) + 머지 병목 보고
+- **작업 상황 점검 — 구현됐으나 미표시된 phase 발견(머지 병목의 추적 증상)**: 23차(PR #350, `6034308`) 이후 Track 🔬 다음 갭을 찾던 중, **Phase 445·446·449·450 이 이미 코드·테스트로 구현·통과 중이나 본 플랜에 ✅ 미표시**임을 확인. 신규 구현을 시도했다가 두 번(445→`monte_carlo_uncertainty.py`, 449→`simulation/sim_real_gap.py`) 기존 자산과의 *중복* 임을 발견하고 폐기 → 코드 추가 없이 **플랜 추적만 실제 구현 기준으로 정정**한다(CLAUDE.md §11 문서·레포 데이터 일치 규칙).
+  - **Phase 445** ✅ `simulation/uncertainty.py` — t-분포 `normal_ci`·percentile `bootstrap_ci`(`np.random.default_rng` 재현)·Wilson `proportion_ci` 세 신뢰구간 + `summarize_metric_ci`·`confidence_report`. 단위 **16건 PASS**.
+  - **Phase 446** ✅ `simulation/power_analysis.py` — 단일 비율 z-검정·Cohen's h 검정력(`proportion_power`)·최소 런 수(`required_sample_size`)·`resolution_rate_power_report`. 충돌 해결률 공식 정합. 단위 **15건 PASS**.
+  - **Phase 449** ✅ `src/training/sim_real_gap.py` + `domain_rand.py` — `compute_gap`(관측 표본의 DR 범위 out-of-range 정량화)·`SimRealGapCalibrator`(관측 극단 포괄 DR 범위 결정적 보정). Sim-to-Real reality gap 모델. 단위 **7건 PASS**.
+  - **Phase 450** ✅ `requirements.lock.txt`(전량 핀) + `Dockerfile.reproducible`(베이스 이미지 SHA-256 다이제스트 핀) + `scripts/reproduce/`(`verify_canonical_hashes.py` 등) + `docs/REPRODUCIBILITY.md`. 의존성 핀 + 컨테이너 다이제스트 고정 완비.
+- 검증: 정정 대상 4 phase 의 기존 테스트 합산 **38건 PASS**(uncertainty 16 + power_analysis 15 + sim_real_gap 7, 0.8s). 코드 무수정(플랜·CHANGELOG·README 문서만 갱신) → 회귀 무영향.
+- ⚠️ **근본 원인(사람 판단 필요) — 머지 병목 심화**: `origin/main` 이 2026-06-05(`19ef86d`) 이후 전진하지 않아, ① 작업이 `claude/fervent-babbage-*` 브랜치 체인(main 대비 ~250 커밋 선행)에만 쌓이고 ② 매 점검이 직전 결과·플랜 상태를 정확히 못 봐 **중복 구현/추적 불일치가 반복**된다. 현재 **오픈 PR 18건**: 기능 draft 3건(**#351** Phase 444 CBS + 445·446 정정 · **#352** Phase 441 TLA+ · **#353** Phase 442 TLC)과 **dependabot 15건**(electron/playwright/pydantic/matplotlib 등)이 전부 미머지 적체. → main 통합 전략(브랜치 체인 → main 머지 또는 default branch 재지정)과 dependabot 배치 머지 결정이 필요하다.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-16 (23차): ODYSSEY Track 🔬 Phase 443·448 통합 (드래프트 PR #347·#348·#349 일원화)
 - **작업 상황 점검 — 머지 병목 중복 재발**: 20차(PR #346, `a42f6ff`)에서 🛰 Federation Operations(421-440) 완료 후 main 통합 확인(`origin/main == HEAD` 클린 베이스). 다음 트랙 **🔬 Formal & Research Frontier(441-460)** 로 전진하던 중, 세 병행 점검(21·22차)이 각각 draft PR 로 적체된 것을 발견: **#347**(Phase 448 — 시나리오 퍼저 6개 속성)·**#348**(Phase 448 — 4D 충돌 감지 코어 9개 속성, 같은 번호·다른 코어)·**#349**(Phase 443 — APF Lyapunov). 세 PR 은 *코드 비경쟁*(서로 다른 신규 파일만 추가)이며 오직 ROADMAP/CHANGELOG/README/PLAN append 라인만 상호 충돌 → 순차 머지 불가. 20차 "일원화" 패턴대로 **세 작업을 모두 본 브랜치로 통합**하고 Phase 448 의 두 속성 수트(퍼저+충돌감지)를 한 항목으로 합쳐 번호 중복을 해소한다.
 - **Phase 443** — `simulation/apf_lyapunov.py` + `docs/APF_CONVERGENCE_PROOF.md` (PR #349 흡수) APF 수렴성 수학 증명. APF 힘 법칙이 보존 포텐셜의 음의 기울기 `F = -∇U`(인력 piecewise 이차/원뿔 C¹ + FIRAS 척력 `(k/2)(1/d−1/d0)²`)임을 명시하고, `total_potential`·`conservative_force`·`lyapunov_derivative` 로 양정치·radially unbounded Lyapunov 후보의 과감쇠 흐름 `dU/dt = −‖∇U‖² ≤ 0` + LaSalle 전역 수렴(콤팩트 레벨집합)을 형식 문서화. 국소 최소·속도 증폭 비보존항 한계, 상위 계층(CBS·교착 탈출) 완화 명시. `apf.py` 무수정 순수 추가, 무작위성 0. code-reviewer 어드바이저 HIGH 2건 반영(속도 증폭 비보존성 → "하강 무보증" 정정·엔진 0.1m 인력 데드밴드 정합). 단위 **16건 PASS**.

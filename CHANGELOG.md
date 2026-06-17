@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test) — 일일 점검 2026-06-17 (34차): ODYSSEY Track 🏛 Phase 465 표준 벤치마크 스위트 (10종 공개)
+
+- **작업 상황 점검**: 33차(PR #363, `cd44ba6`) main 머지 후 `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 확인. 적체 드래프트 없음. Track 🏛 Standards & Policy(461-480)에서 다음 sandbox 가능 항목인 **Phase 465**(공역 통합 시뮬레이션 표준 시나리오 셋 — 10종 공개)를 신규 착수.
+- **Phase 465** (Track 🏛, 신규 코드) — `simulation/standard_scenarios.py` (신규) 도구 간 교차 벤치마크용 **공개 표준 스위트** `SDACS-SBS-10` 큐레이션. Phase 405(BlueSky·U-TRAFMAN 비교)·410(GUTMA 기고)이 전제하는 "같은 10개 시나리오를 같은 정의로 돌려 비교한다" 는 공통 기준선을 제공. **중복 없는 큐레이션 계층**: 시나리오 *정의* 는 기존 `config/scenario_params/*.yaml` 이 유일 출처(SSoT)이며 본 모듈은 정의를 복제하지 않고 통제 축(axis)·범주·표제 KPI 메타데이터만 덧붙여 YAML 을 가리킨다(`BenchmarkScenario` frozen dataclass). 10개 항목 B01..B10 은 서로 다른 운용 차원 하나씩 통제(밀도·장애·이륙 서지·경로 충돌·통신 두절·기상·침입·다지역·자율 편대·공칭 기준선) — 통제 축 상호 배타. 검증되는 핵심 9종(s01-s09)에 더해 다른 9종 지표를 정규화하는 *대조(control)* 케이스인 신규 10번째 `config/scenario_params/nominal_baseline.yaml`(s10 공칭 저밀도) 추가. `validate_suite()` 가 10종 전부 `scenario_schema.validate_scenario`(GENESIS 322) 계약 충족(러너 호환)을 결정적 재검증, `benchmark_manifest()` 가 도구 간 교환용 JSON 매니페스트 생성. 공개 제안 문서 `docs/standards/SDACS_BENCHMARK_SUITE.md` 동반. 무작위성 0·기존 모듈 무수정 순수 추가. CLI(`--list`·`--validate`·`--manifest`).
+- **code-reviewer 어드바이저 반영** (CRITICAL 0·HIGH 3·MEDIUM 2·LOW 2): HIGH ①10종 중 5종(B03·B04·B05·B06·B08)의 표제 KPI 가 소스 YAML `success_criteria` 에 실제 키로 없는 괴리(런너 파생 지표)를 매니페스트에 `primary_kpi_in_criteria` 플래그로 **기계 판독 가능하게** 노출 → 자동화 소비자가 `primary_kpi` 를 `success_criteria` 키로 오판하지 않게 함, ②`load_config` 가 `yaml.YAMLError` 미처리 → `validate_scenario_file` 과 대칭으로 `ValueError` 명시 변환, ③오류 처리 비대칭 완화. LOW 테스트에 `primary_kpi` 존재·괴리 플래그 정합 단언 2건 추가. 문서 KPI 표 각주 + B05 `*_range` 필드 런너 무시(고정 `comms_loss_rate=0.05`) 공시 추가.
+- **검증**: `tests/test_standard_scenarios.py` **18건 PASS**(스위트 형상·스키마 적합·조회·결정성·매니페스트). 기존 `tests/test_scenario_schema.py` 회귀 클린. 대상 기존 `.py`·시나리오 정의 무수정 순수 추가 → 회귀 무영향. 매니페스트 플래그 실측: B03·B04·B05·B06·B08 = `primary_kpi_in_criteria: false`(어드바이저 지적과 일치). 본 컨테이너 최소 의존성(pytest·numpy·pyyaml) 설치 → 전체 수트는 CI 수집.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-17 (32차): ODYSSEY Track 🏛 Phase 466 검증기 완성 + 31차 적체 일원화
 
 - **작업 상황 점검**: 28차(PR #356, `9fe5335`) main 머지 후 `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 확인. 직전 31차 작업이 코드 PR 1건(#359 Phase 469) + 중복 문서 PR 2건(#357·#358 Track 🔬 추적 정정)으로 적체된 것을 발견 — 기존 일원화 패턴대로 #360(consolidation, qyobg9)을 본 브랜치로 통합(fast-forward, Phase 469 `policy_impact.py` + 33건 검증 자산 + Track 🔬 445·446·449·450 ✅ 정정 포함)하고 그 위에 신규 Phase 466 검증기를 적층.

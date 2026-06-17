@@ -326,8 +326,9 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 469** 🏛 정책 영향 시뮬레이션 — `simulation/policy_impact.py`. 규제 파라미터(이격·고도 상한) 변경의 공역 용량 영향을 결정적 해석 모델(육각 충전 × 고도층)로 정량화·자동 비교(`compare_policies`). 이격 50→70m = 용량 −49%. 정적 기하 용량 상한임 정직 공시. code-reviewer 어드바이저 HIGH 2·MEDIUM 3 반영. 33건 PASS (2026-06-17)
 - [x] **Phase 465** 🏛 공역 통합 시뮬레이션 표준 시나리오 셋 (10종 공개) — `simulation/standard_scenarios.py` + `config/scenario_params/nominal_baseline.yaml` + `docs/standards/SDACS_BENCHMARK_SUITE.md`. 도구 간 교차 벤치마크용 공개 표준 스위트 `SDACS-SBS-10` 큐레이션(통제 축 10종 상호 배타, 정의는 기존 YAML SSoT 무복제). 10종 전부 `scenario_schema` 적합 결정적 재검증 + JSON 매니페스트(`primary_kpi_in_criteria` 괴리 플래그). code-reviewer 어드바이저 HIGH 3 반영. 18건 PASS (2026-06-17)
 - [ ] **Phase 461-464·467-468·470-480** 🏛 Standards & Policy — ASTM/ISO 기고·정책 추적 대시보드
+- [x] **Phase 485** ♾️ 데이터 마이그레이션 도구 — `simulation/scenario_migration.py`. 시나리오 포맷의 역사적 변종(`*_min`/`*_s`·`total_drone_count`/`base_drone_count`/`base_traffic`)을 canonical v2.0(초·단일 `drone_count`·`schema_version` 스탬프)으로 정규화하는 결정적·멱등 버전 변환기. `multi_city` 의 러너 미인식 `total_drone_count` 를 `drone_count` 로 복원. 출력은 `scenario_schema` 계약 경고 없이 충족. code-reviewer 어드바이저 HIGH 3 반영. 33건 PASS (2026-06-17)
 - [x] **Phase 486** ♾️ 독립 재현 자동화 — `scripts/independent_reproduction.sh` (회귀·md5·JS·API 게이트 통합) (2026-06-12)
-- [ ] **Phase 481-485·487-500** ♾️ Continuum — 의존성 장기 추적·승계 규약·**Phase 500 = Centennial 선언**
+- [ ] **Phase 481-484·487-500** ♾️ Continuum — 의존성 장기 추적·승계 규약·**Phase 500 = Centennial 선언**
 
 ---
 

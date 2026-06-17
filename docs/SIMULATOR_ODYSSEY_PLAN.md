@@ -104,7 +104,7 @@
 - **Phase 482** 브라우저 API 폐기 감시 — WebGPU/WebXR 스펙 변경 카나리 테스트
 - **Phase 483** Three.js 메이저 업그레이드 리허설 (r162 → 최신) + 호환 셰임
 - **Phase 484** Electron LTS 추적 정책 (현 32→39 교훈 문서화)
-- **Phase 485** 데이터 마이그레이션 도구 — 시나리오/미션 포맷 버전 변환기
+- **Phase 485** ✅ 데이터 마이그레이션 도구 — 시나리오/미션 포맷 버전 변환기 (2026-06-17, `simulation/scenario_migration.py` — 시나리오 포맷의 역사적 변종을 단일 canonical v2.0 으로 정규화하는 결정적 버전 변환기. 실측 분기: 러너 `_translate_scenario` 가 관용하는 `simulation_duration_min`/`_s`(리포 5:5 혼재)·`drone_count`/`base_drone_count`/`base_traffic.drone_count` 에 더해, 스키마는 유효로 보나 *러너가 읽지 않는* `total_drone_count`(예: `multi_city.yaml`)가 잠재 불일치. canonical v2.0: 시간은 초(`simulation_duration_s`)·드론 수는 단일 `drone_count`·`schema_version: "2.0"` 명시 스탬프로 통일. `detect_version`(미스탬프=레거시 1.0)·`migrate_scenario`(멱등·원본 무변형·결정적, 모든 잉여 키 제거를 `changes`/`migrated` 에 표면화)·`migrate_file`(YAML 라운드트립). 정규화 결과는 항상 `scenario_schema.validate_scenario`(GENESIS 322) 계약을 경고 없이 충족 — 이를 위해 `_KNOWN_KEYS` 에 `schema_version` 1키 추가(수술적). **multi_city 의 `total_drone_count → drone_count` 정규화로 러너가 드론 수를 읽을 수 있게 복원**(실제 가치). 미션 포맷은 영속 버전 YAML 이 없어(코드 내 처리) 대상 외, `uam/` 하위는 별도 풍부 포맷이라 범위 외임 명시. 무작위성 0·CLI(`--detect`·`--all` dry-run·`--migrate -o`). code-reviewer 어드바이저 HIGH 3(잉여 키 무음 삭제 changes 미반영·float count 무음 절삭·테스트 갭)·MEDIUM 4·LOW 2 반영. 단위 33건 PASS)
 - **Phase 486** 연 1회 건전성 리허설 자동화 — 신규 컨테이너 독립 재현 스크립트
 - **Phase 487** 거버넌스 문서 — 유지보수자 승계 규약 (BDFL → 위원회)
 - **Phase 488** 보안 장기 지원 — CVE 대응 SLA + 핀 갱신 절차

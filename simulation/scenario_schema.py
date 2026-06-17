@@ -27,6 +27,7 @@ _DISTRIBUTION_SUM_TOL = 0.01
 # 알려진 최상위 키 (이 외의 키는 경고로 표면화)
 _KNOWN_KEYS = frozenset({
     "scenario", "description",
+    "schema_version",  # ODYSSEY Phase 485 포맷 버전 스탬프
     "simulation_duration_min", "simulation_duration_s",
     "drone_count", "base_drone_count", "total_drone_count",
     "arrival_rate_per_min", "area_km2",

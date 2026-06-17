@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### 변경 (docs) — 일일 점검 2026-06-17 (27차): ODYSSEY Track 🔬 추적 정정 — Phase 445·446·449·450 ✅ + 머지 병목 오보 정정
+- **작업 상황 점검**: 23차(PR #350, `6034308`) main 통합 후 Track 🔬(Formal & Research, 441-460)에서 다음 갭을 찾던 중, **Phase 445·446·449·450 구현이 이미 `main`에 적재돼 통과 중이나 ODYSSEY 플랜에 ✅ 미표시**임을 확인. 신규 코드 없이 **플랜 추적만 실제 구현 기준으로 정정**(CLAUDE.md §11 — 레포 데이터와 불일치 수치 금지).
+  - **Phase 445** — `simulation/uncertainty.py`(t-분포 `normal_ci`·percentile `bootstrap_ci`·Wilson `proportion_ci`), 단위 **16건 PASS**.
+  - **Phase 446** — `simulation/power_analysis.py`(비율 z-검정·Cohen's h·`required_sample_size`), 단위 **15건 PASS**.
+  - **Phase 449** — `src/training/sim_real_gap.py` + `domain_rand.py`(`compute_gap`·`SimRealGapCalibrator`), 단위 **7건 PASS**.
+  - **Phase 450** — `requirements.lock.txt` + `Dockerfile.reproducible`(SHA-256 다이제스트 핀) + `scripts/reproduce/`(make_lock·run_all·verify_canonical_hashes 등) + `docs/REPRODUCIBILITY.md`, 인프라 완비.
+  - 검증: 정정 4 phase 중 테스트 자산 3건 합산 **38건 PASS**(코드 무수정 → 회귀 무영향). 우선순위 매트릭스의 "즉시 착수 권장"이 이미 완료된 447·448 을 가리키던 stale 라인도 잔여 작업(441·442·444 드래프트 / 451-460 미착수)으로 정정.
+- ✅ **머지 병목 오보 정정(사람 판단 사항 갱신)**: 20·23차 등 직전 CHANGELOG 항목이 반복한 *"`origin/main` 이 2026-06-05(`19ef86d`) 이후 미전진"* 주장은 **사실과 다름** — 검증 결과 `origin/main` HEAD 는 **2026-06-16 23:25 `6034308`(PR #350 머지)**까지 전진했고, 병목은 통합 PR(#317·#326·#342·#346·#350)로 계속 해소돼 왔다. Phase 445·446 코드도 이미 PR #326(`394e4c1`)으로 main 적재 완료. **남은 실제 적체**는 미머지 오픈 PR 19건: 기능 draft 4건(**#351** Phase 444 CBS·**#352** Phase 441 TLA+·**#353** Phase 442 TLC·**#354** 본 추적 정정의 선행 중복분) + dependabot 15건. 결정 필요: 드래프트 4건 머지/일원화 + dependabot 배치 머지.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-16 (23차): ODYSSEY Track 🔬 Phase 443·448 통합 (드래프트 PR #347·#348·#349 일원화)
 - **작업 상황 점검 — 머지 병목 중복 재발**: 20차(PR #346, `a42f6ff`)에서 🛰 Federation Operations(421-440) 완료 후 main 통합 확인(`origin/main == HEAD` 클린 베이스). 다음 트랙 **🔬 Formal & Research Frontier(441-460)** 로 전진하던 중, 세 병행 점검(21·22차)이 각각 draft PR 로 적체된 것을 발견: **#347**(Phase 448 — 시나리오 퍼저 6개 속성)·**#348**(Phase 448 — 4D 충돌 감지 코어 9개 속성, 같은 번호·다른 코어)·**#349**(Phase 443 — APF Lyapunov). 세 PR 은 *코드 비경쟁*(서로 다른 신규 파일만 추가)이며 오직 ROADMAP/CHANGELOG/README/PLAN append 라인만 상호 충돌 → 순차 머지 불가. 20차 "일원화" 패턴대로 **세 작업을 모두 본 브랜치로 통합**하고 Phase 448 의 두 속성 수트(퍼저+충돌감지)를 한 항목으로 합쳐 번호 중복을 해소한다.
 - **Phase 443** — `simulation/apf_lyapunov.py` + `docs/APF_CONVERGENCE_PROOF.md` (PR #349 흡수) APF 수렴성 수학 증명. APF 힘 법칙이 보존 포텐셜의 음의 기울기 `F = -∇U`(인력 piecewise 이차/원뿔 C¹ + FIRAS 척력 `(k/2)(1/d−1/d0)²`)임을 명시하고, `total_potential`·`conservative_force`·`lyapunov_derivative` 로 양정치·radially unbounded Lyapunov 후보의 과감쇠 흐름 `dU/dt = −‖∇U‖² ≤ 0` + LaSalle 전역 수렴(콤팩트 레벨집합)을 형식 문서화. 국소 최소·속도 증폭 비보존항 한계, 상위 계층(CBS·교착 탈출) 완화 명시. `apf.py` 무수정 순수 추가, 무작위성 0. code-reviewer 어드바이저 HIGH 2건 반영(속도 증폭 비보존성 → "하강 무보증" 정정·엔진 0.1m 인력 데드밴드 정합). 단위 **16건 PASS**.

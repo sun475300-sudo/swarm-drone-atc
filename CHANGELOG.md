@@ -5,6 +5,19 @@
 
 ## [Unreleased]
 
+### 점검·정리 — 일일 점검 2026-06-17 (29차): 적체 드래프트 일괄 정리 + Track 🔬 추적 정정 (PR #356 main 머지)
+
+- **작업 상황 점검 — 6건 적체 드래프트 일원화 완료**: 오늘 기준 ODYSSEY Track 🔬(441-460) 관련 드래프트 6건(#351~#356)이 main 머지 없이 적체. 28차 PR **#356**(branch `claude/fervent-babbage-kj8hf0`)이 Phase 441·442·444 코드를 일원화(`mergeable_state: clean`)한 것을 확인하고, 로컬 worktree 에서 신규 3개 수트(`test_safety_net_invariant`·`test_cbs_optimality`·`test_handoff_model_checker`) **66건 PASS** 재검증 후 **main 으로 머지**(`9fe5335`). 이로써 Phase 441·442·444 가 main 에 적재됨.
+- **머지 병목 "오보" 확정**: 20·23차 CHANGELOG 및 드래프트 #354 가 반복한 *"origin/main 이 2026-06-05(`19ef86d`) 이후 미전진"* 주장은 **사실과 다름**. 직접 검증 결과 `git fetch origin main` 후 `origin/main == HEAD == 6034308`(PR #350 머지, 2026-06-16) 으로 정상 전진 중이었음 — 이전 점검이 fetch 전 stale 로컬 ref 를 본 것이 오보 원인. 실제 문제는 *main 정체* 가 아니라 **병행 세션의 미머지 드래프트 적체 + 플랜 추적 지연**. 본 점검은 main 머지로 적체를 해소한다.
+- **Track 🔬 추적 정정 (코드 무수정, 문서만 — #355 내용 흡수)**: Phase **445·446·449·450** 구현이 이미 main 에 적재·통과 중이나 ODYSSEY 플랜에 ✅ 미표시였던 추적 불일치를 정정(CLAUDE.md §11 — 레포 데이터와 불일치 금지). 본 컨테이너에서 `test_uncertainty`(16)·`test_power_analysis`(15)·`test_sim_real_gap`(7) **38건 PASS** 재실행으로 구현 실재 확인 후 ✅ 반영:
+  - **445** 불확실성 정량화 — `simulation/uncertainty.py`(t-분포/percentile/Wilson CI)
+  - **446** 검정력 분석 — `simulation/power_analysis.py`(비율 z-검정·Cohen's h)
+  - **449** 시뮬-실측 갭 — `src/training/sim_real_gap.py`·`domain_rand.py`
+  - **450** 재현성 10년 — `requirements.lock.txt`·`Dockerfile.reproducible`(SHA-256 핀)·`docs/REPRODUCIBILITY.md`
+  - 우선순위 매트릭스의 stale "즉시 착수 권장"(완료된 447·448 지목)도 잔여(451-460 / Track 🏛·♾️ 후보)로 갱신.
+- **드래프트 정리**: #356 머지로 superseded 된 #351·#352·#353(코드, #356 에 흡수)·#354·#355(문서 추적 정정, 본 점검에 흡수) **5건 close**.
+- **Track 🔬 핵심(441-450) 전부 완료.** 잔여 신규 = Phase 451-460(RL 일반화·인증 가능 ML 조사) 또는 Track 🏛(461-480)·♾️(481-500). dependabot 15건(#267~#279)은 별도 배치 머지 대상으로 잔존.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-17 (28차): ODYSSEY Track 🔬 Phase 441·442·444 통합 (적체 드래프트 PR #351·#352·#353 일원화)
 
 - **작업 상황 점검 — 머지 병목 재발 해소**: 23차(PR #350, `6034308`)에서 Phase 443·448 통합 후 main 클린 베이스 확인. 이후 25·26차 병행 점검이 Track 🔬 Formal & Research(441-460) 진행분을 각각 draft PR 로 적체: **#352**(Phase 441 안전망 TLA+ + 444 CBS)·**#353**(Phase 442 핸드오프 모델 체킹)·**#351**(Phase 444 CBS — #352 의 부분집합)·**#354/#355**(문서 추적 정정 중복본). 세 코드 PR 은 *서로 다른 신규 파일만 추가*(비경쟁)이고 오직 ROADMAP/CHANGELOG/PLAN append 라인만 충돌 → 순차 머지 불가. 기존 "일원화" 패턴대로 Phase 441·442·444 를 본 브랜치로 통합해 단일 PR 로 머지하고, #351 은 #352 에 흡수되므로 close 권고.

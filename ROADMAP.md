@@ -134,8 +134,8 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 | **HYPER Plan** (시뮬 Phase 10-50) | 100% | ████████████ | 41개 추가 Phase (해양 ATC · VR · AI Copilot · 적대 · C-UAS · 행성 등) |
 | **STELLAR~POST-UNIVERSE** (시뮬 Phase 51-200) | 100% | ████████████ | Phase 200 = 𝟏 (Unity) · Phase 51 LLM Multi-Agent 격상 (단, 다수 mock/speculative — maturity 공시) |
 | **TRANSCENDENCE** (시뮬 Phase 201-300) | 10% | █░░░░░░░░░░░ | Phase 201-208 Maturity Honesty 완료 (분류·Mock Detector·experimental·beta·production 회귀) |
-| **GENESIS** (시뮬 Phase 301-400) | 9% | █░░░░░░░░░░░ | 301·302·304·306·309·381·387·388·389 완료 — 인증 가이드 4종·교육·레거시 |
-| **ODYSSEY** (시뮬 Phase 401-500) | 5% | █░░░░░░░░░░░ | 408 ICAO 매핑·447 fuzzing·448 property·466 schema·486 재현 완료 |
+| **GENESIS** (시뮬 Phase 301-400) | 12% | █▌░░░░░░░░░░ | 301·302·303·304·305·306·307·309·381·387·388·389 완료 (12/100) — 인증 7종·교육·레거시 |
+| **ODYSSEY** (시뮬 Phase 401-500) | 6% | █░░░░░░░░░░░ | 408·421·447·448·466·486 완료 (6/100) — ICAO 매핑·디스커버리·fuzzing·property·schema·재현 |
 
 **총 Phase 691-755 (65개) 중 61개 완료 = 94%** (Phase 1-690 포함 시 전체 751/755 = **99.5%**)
 **+ 시뮬레이터 MEGA 9 + HYPER 41 = 50 Phase 100% 완료** (총 800 Phase 중 796 완료 = **99.5%**)

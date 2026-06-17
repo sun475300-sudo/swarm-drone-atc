@@ -33,11 +33,11 @@
 
 - **Phase 301** 항공안전법·드론활용촉진법 적합성 매트릭스 — 조항 ↔ SDACS 기능 매핑 문서
 - **Phase 302** ✅ SORA 자동 계산기 — `_sdacs.soraAssess()` (JARUS 2.0 iGRC/완화/ARC→SAIL 결정적 구현, production 등급, E2E 6건) (2026-06-12)
-- **Phase 303** 비행계획 신고 양식 자동 생성 — Drone One-Stop 신청서 export
+- **Phase 303** ✅ 비행계획 신고 양식 자동 생성 — `docs/certification/FLIGHT_PLAN_FORM.md` (드론원스톱 10필드 매핑·JSON Schema·SORA 연동) (2026-06-17)
 - **Phase 304** KC 전파인증 요건 체크리스트 (통신 모듈별)
-- **Phase 305** DO-178C/ED-12C 소프트웨어 수명주기 갭 분석 — DAL-D 기준 추적성
+- **Phase 305** ✅ DO-178C/ED-12C 소프트웨어 수명주기 갭 분석 — `docs/certification/DO178C_GAP_ANALYSIS.md` (DAL-D 31 objectives·14 Fulfilled/13 Partial/2 Gap·격상 계획) (2026-06-17)
 - **Phase 306** 요구사항 추적 매트릭스(RTM) 자동 생성 격상 — `scripts/generate_rtm.py` → 5계층 안전망 커버리지
-- **Phase 307** 사고 보고 양식 (항철위 표준) 자동 작성 — 시뮬 사고 로그 → 보고서
+- **Phase 307** ✅ 사고 보고 양식 (항철위 표준) 자동 작성 — `docs/certification/ACCIDENT_REPORT_FORM.md` (ARAIB 10필드 매핑·5단계 파이프라인·72h/96h 시한) (2026-06-17)
 - **Phase 308** 보험 요율 산정 인터페이스 (Phase 67 mock 격상 — 실 보험사 API 스펙)
 - **Phase 309** 조종자 자격(1~4종) 요건 ↔ 시뮬 교육 모드 매핑
 - **Phase 310** 야간·비가시 특별비행승인 요건 시뮬 검증 시나리오

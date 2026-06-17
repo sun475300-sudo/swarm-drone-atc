@@ -34,7 +34,9 @@
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
 </div>
 
-> **♾️ 최신 업데이트 (2026-06-12 · API Maturity 정직성 체계 가동 + TRANSCENDENCE/GENESIS/ODYSSEY 계획 체계 · 407 API 라이브 실측 · 종합 4,443 pass / 0 fail)** — 🎯 **신규**: `apiMaturity()`/`maturityReport()` 분류(production 93·beta 98·mock 110·speculative 103) · **Mock Detector**(mock 호출 시 console.warn + `mockCalls` 카운트, Phase 203) · **`experimental.*` 네임스페이스**(speculative 103종 격리, Phase 206) · **`soraAssess()`**(JARUS SORA 2.0 결정적 SAIL 산정, GENESIS 302) · **기술 부채 대장** [TECH_DEBT_LEDGER.md](docs/TECH_DEBT_LEDGER.md) 자동 생성(GENESIS 388) · CI에 문서-실측 정합성 + 4 사본 md5 게이트. 계획 체계 3층: [TRANSCENDENCE 201-300](docs/SIMULATOR_TRANSCENDENCE_PLAN.md)(8%) · [GENESIS 301-400](docs/SIMULATOR_GENESIS_PLAN.md)(2%) · [ODYSSEY 401-500](docs/SIMULATOR_ODYSSEY_PLAN.md)(수립) + [2026 H2 실행 일정](docs/MASTER_PLAN_2026H2.md)
+> **♾️ 최신 업데이트 (2026-06-17 · GENESIS 인증 문서 3종 + ODYSSEY 디스커버리 프로토콜 추가 · 종합 4,462+ pass / 0 fail)** — 🎯 **신규**: GENESIS 303 비행계획 양식(드론원스톱 10필드·SORA) · GENESIS 305 DO-178C 갭 분석(DAL-D 31 objectives) · GENESIS 307 사고 보고(항철위 ARAIB·72h/96h 시한) · ODYSSEY 421 인스턴스 디스커버리(ASTM F3548 DSS·8 메시지·핸드오버). GENESIS 12% · ODYSSEY 6% · 인증 문서 10종 (`docs/certification/`)
+>
+> **이전 (2026-06-12 · API Maturity 정직성 체계 가동)** — `apiMaturity()`/`maturityReport()` 분류(production 93·beta 98·mock 110·speculative 103) · **Mock Detector**(mock 호출 시 console.warn + `mockCalls` 카운트, Phase 203) · **`experimental.*` 네임스페이스**(speculative 103종 격리, Phase 206) · **`soraAssess()`**(JARUS SORA 2.0 결정적 SAIL 산정, GENESIS 302) · **기술 부채 대장** [TECH_DEBT_LEDGER.md](docs/TECH_DEBT_LEDGER.md) 자동 생성(GENESIS 388) · CI에 문서-실측 정합성 + 4 사본 md5 게이트. 계획 체계 3층: [TRANSCENDENCE 201-300](docs/SIMULATOR_TRANSCENDENCE_PLAN.md)(8%) · [GENESIS 301-400](docs/SIMULATOR_GENESIS_PLAN.md)(12%) · [ODYSSEY 401-500](docs/SIMULATOR_ODYSSEY_PLAN.md)(6%) + [2026 H2 실행 일정](docs/MASTER_PLAN_2026H2.md)
 >
 > **이전 (200 Phase Unity)** — 🎯 **Phase 200 = SDACS = 𝟏 (Unity)** 도달 후 **Phase 51 (LLM Multi-Agent)** 가 시드에서 완전 격상되었습니다: `stellar51DelegateGroup`(드론 그룹 LLM 위임) · `stellar51Recommend`(상태 기반 결정적 권고) · `stellar51Tick`(그룹 사이클 진행) · `stellar51Groups`(위임 그룹 조회) · `stellar51Revoke`(위임 해제). 5단계 통합 — MEGA(1-10) + HYPER(11-50) + STELLAR(51-100) + ULTIMATE(101-150) + POST-UNIVERSE(151-200). Playwright E2E **263/264 통과**(1 skip), 회귀 **4,180 pass / 8 skip / 0 fail**, 종합 **4,443 pass / 9 skip / 0 fail** (2026-06-12 실측). 🌌 [HYPER](docs/SIMULATOR_HYPER_PLAN.md) · [STELLAR](docs/SIMULATOR_STELLAR_PLAN.md) · [ULTIMATE](docs/SIMULATOR_ULTIMATE_PLAN.md) · [POST-UNIVERSE](docs/SIMULATOR_POST_UNIVERSE_PLAN.md) · [API](docs/SDACS_API.md) · [Phase Matrix](docs/phase_matrix.html)
 
@@ -44,7 +46,7 @@
 
 ---
 
-## 📊 개발 진척 현황 / Development Progress (2026-06-12)
+## 📊 개발 진척 현황 / Development Progress (2026-06-17)
 
 | 트랙 | 범위 | 진척 | 핵심 산출물 |
 |---|---|---|---|
@@ -56,12 +58,12 @@
 | **E** 확장 연구 | P736-745 | ✅ 100% | RL PoC·UAS-T·LiDAR·DR·디지털트윈·Raft HA·UAM·양자·폐쇄망·LLM |
 | **F** 산학·사업화 | P746-755 | 🟢 90% | K-UAM·해수부·산림청·KISA·라이선싱·창업 docs (P755·LOI는 사용자 환경) |
 | **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 8% | Maturity 정직성 가동 — 201-203·206-208 완료 (분류·Mock Detector·experimental·CI 게이트) |
-| **H** GENESIS | 시뮬 301-400 | 🟡 2% | 302 `soraAssess()` + 388 부채 대장 완료 — 인증·생태계·실증·자율·레거시 |
-| **I** ODYSSEY | 시뮬 401-500 | ⬜ 계획 | 국제 확장·연합 운영·형식 검증·표준 기고·10년 지속 (2026-06-12 수립) |
+| **H** GENESIS | 시뮬 301-400 | 🟡 12% | 301·302·303·304·305·306·307·309·381·387·388·389 완료 (12/100) — 인증 7종·교육·레거시 |
+| **I** ODYSSEY | 시뮬 401-500 | 🟡 6% | 408·421·447·448·466·486 완료 (6/100) — ICAO 매핑·디스커버리·fuzzing·property·schema·재현 |
 
 > 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)(실행 일정)
 
-### 🚧 미완료 작업 / Open Work Items (정직성 리스트, 2026-06-12 기준)
+### 🚧 미완료 작업 / Open Work Items (정직성 리스트, 2026-06-17 기준)
 
 **사용자 환경 의존 (코드 작업 불가, 4건)**
 - [ ] P755 창업·분사 결정 + 외부 기관 LOI 체결
@@ -95,7 +97,10 @@
 - [x] **GENESIS 304** ✅ KC 전파인증 체크리스트 — `docs/certification/KC_RADIO_CERTIFICATION.md` (7 모듈 분류·신청 흐름·자가 점검·갭 분석)
 - [x] **GENESIS 309** ✅ 조종자 자격증명 매핑 — `docs/certification/PILOT_LICENSE_MAPPING.md` (1~4종 과목·실기 항목 ↔ SDACS 모듈, 튜토리얼 5단계 정렬)
 - [x] **ODYSSEY 408** ✅ ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` (9층 ↔ Class G/E/D/B, API 격상 후보)
-- [ ] 추가 sandbox 후보(차기): GENESIS 303(비행계획 양식), GENESIS 307(사고 보고 자동화), ODYSSEY 421(인스턴스 디스커버리 프로토콜 초안)
+- [x] **GENESIS 303** ✅ 비행계획 신고 양식 자동 생성 — [`docs/certification/FLIGHT_PLAN_FORM.md`](docs/certification/FLIGHT_PLAN_FORM.md) (드론원스톱 10필드 매핑·JSON Schema·SORA 연동)
+- [x] **GENESIS 305** ✅ DO-178C 소프트웨어 수명주기 갭 분석 — [`docs/certification/DO178C_GAP_ANALYSIS.md`](docs/certification/DO178C_GAP_ANALYSIS.md) (DAL-D 31 objectives·14 Fulfilled/13 Partial/2 Gap·격상 계획)
+- [x] **GENESIS 307** ✅ 사고 보고 양식 자동 작성 — [`docs/certification/ACCIDENT_REPORT_FORM.md`](docs/certification/ACCIDENT_REPORT_FORM.md) (항철위 ARAIB 10필드 매핑·5단계 파이프라인·72h/96h 시한)
+- [x] **ODYSSEY 421** ✅ 인스턴스 디스커버리 프로토콜 — [`docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md`](docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md) (ASTM F3548 DSS·8 메시지 유형·핸드오버·mTLS+JWT)
 
 **기술 부채 (정직성 공시)**
 - [ ] mock 110종 + speculative 103종 — 전체 목록·격상 난이도: [`docs/TECH_DEBT_LEDGER.md`](docs/TECH_DEBT_LEDGER.md) (자동 생성)

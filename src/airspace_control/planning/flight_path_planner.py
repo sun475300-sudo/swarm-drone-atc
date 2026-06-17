@@ -136,7 +136,9 @@ class FlightPathPlanner:
     def _heuristic(self, a: GridNode, b: GridNode) -> float:
         return math.hypot(a.x - b.x, a.y - b.y)
 
-    def _neighbors_2d(self, node: GridNode) -> list[GridNode]:
+    def _neighbors_2d(
+        self, node: GridNode, blocked: frozenset[tuple[int, int]]
+    ) -> list[GridNode]:
         bx = self.bounds.get('x', [-5000, 5000])
         by = self.bounds.get('y', [-5000, 5000])
         ix_min = int(bx[0] / self.grid_res)
@@ -147,7 +149,7 @@ class FlightPathPlanner:
         result = []
         for dx, dy in [(1,0),(-1,0),(0,1),(0,-1),(1,1),(1,-1),(-1,1),(-1,-1)]:
             nx, ny = node.x + dx, node.y + dy
-            if ix_min <= nx <= ix_max and iy_min <= ny <= iy_max and not self._is_blocked(nx, ny):
+            if ix_min <= nx <= ix_max and iy_min <= ny <= iy_max and (nx, ny) not in blocked:
                 result.append(GridNode(nx, ny, z))
         return result
 
@@ -156,6 +158,8 @@ class FlightPathPlanner:
         start_n = _Node(f=self._heuristic(start, goal), g=0.0, node=start)
         heapq.heappush(open_heap, start_n)
         visited: dict[tuple, float] = {}
+        # 차단 노드 집합은 탐색 동안 불변 → 1회만 계산(이웃 확장마다 재계산 방지).
+        blocked = self._build_blocked()
 
         while open_heap:
             cur = heapq.heappop(open_heap)
@@ -172,7 +176,7 @@ class FlightPathPlanner:
                     n = n.parent
                 return list(reversed(path))
 
-            for nb in self._neighbors_2d(cur.node):
+            for nb in self._neighbors_2d(cur.node, blocked):
                 # 대각선 이동 비용
                 is_diag = (nb.x != cur.node.x and nb.y != cur.node.y)
                 move_cost = math.sqrt(2) if is_diag else 1.0

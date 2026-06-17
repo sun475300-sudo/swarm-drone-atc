@@ -130,6 +130,11 @@ class DroneAgent:
         drone = self.drone
 
         if isinstance(payload, ResolutionAdvisory):
+            # 어드바이저리 종단 전달 지연(컨트롤러 발신→드론 수신) 기록.
+            if self.sim.analytics is not None:
+                self.sim.analytics.record_advisory_latency(
+                    max(0.0, float(self.env.now) - float(msg.sent_time))
+                )
             if drone.flight_phase in (FlightPhase.ENROUTE, FlightPhase.HOLDING, FlightPhase.EVADING):
                 t_now = float(self.env.now)
                 if payload.advisory_type in ("EVADE_APF", "CLIMB", "DESCEND", "TURN_LEFT", "TURN_RIGHT"):
@@ -299,23 +304,21 @@ class DroneAgent:
                     sim.analytics.record_event("ENROUTE_NO_GOAL_LANDING", t, drone_id=drone.drone_id)
                 drone.flight_phase = FlightPhase.LANDING
                 return
+            # 웨이포인트 추종: 이미 도달한 웨이포인트(이륙 구간의 출발점 중복 포함)는
+            # 한 틱에 모두 건너뛴다. 동일좌표 waypoint로 인한 leg 조기완료를 방지.
             target = drone.goal
-            if drone.waypoints and drone.current_waypoint_idx < len(drone.waypoints):
-                wp = drone.waypoints[drone.current_waypoint_idx]
-                if not isinstance(wp, np.ndarray):
-                    wp = np.array(wp, dtype=float)
-                wp_dist = float(np.linalg.norm(wp[:2] - drone.position[:2]))
-                if wp_dist < self.WAYPOINT_TOL:
-                    drone.current_waypoint_idx += 1
-                    if drone.current_waypoint_idx >= len(drone.waypoints):
-                        target = drone.goal
+            if drone.waypoints:
+                while drone.current_waypoint_idx < len(drone.waypoints):
+                    wp = np.asarray(drone.waypoints[drone.current_waypoint_idx], dtype=float)
+                    if float(np.linalg.norm(wp[:2] - drone.position[:2])) < self.WAYPOINT_TOL:
+                        drone.current_waypoint_idx += 1
                     else:
-                        target = np.array(drone.waypoints[drone.current_waypoint_idx], dtype=float)
-                else:
-                    target = wp
-            diff = target - drone.position
-            dist_xy = float(np.linalg.norm(diff[:2]))
-            if dist_xy < self.WAYPOINT_TOL:
+                        target = wp
+                        break
+            # leg 완료 판정은 '목표(goal) 도달' 기준으로만 한다.
+            # (중간/동일좌표 waypoint 도달을 leg 완료로 오인하지 않도록)
+            dist_goal_xy = float(np.linalg.norm((drone.goal - drone.position)[:2]))
+            if dist_goal_xy < self.WAYPOINT_TOL:
                 # 구간(leg) 완료 — 실제/계획 거리 기록 (경로 효율 산정용)
                 if sim.analytics is not None:
                     leg_actual = drone.distance_flown_m - drone.leg_start_distance_m
@@ -324,6 +327,7 @@ class DroneAgent:
                     )
                 drone.flight_phase = FlightPhase.LANDING
                 return
+            diff = target - drone.position
             spd = profile.cruise_speed_ms
             norm = np.linalg.norm(diff) + 1e-6
             drone.velocity = diff / norm * spd
@@ -405,5 +409,5 @@ class DroneAgent:
             drone.velocity = np.zeros(3)
 
 
-# 하위 호환 별칭 — 기존 코드가 _DroneAgent를 직접 import하는 경우를 위해
+# 하위 호환 별칭 — 기존 코드가 _DroneAgent를 직접 import하는 경우를 위해 (compat alias)
 _DroneAgent = DroneAgent

@@ -318,7 +318,10 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 441** 🔬 5계층 안전망 TLA+ 명세 — `specs/SafetyNetPriority.tla` + `docs/SAFETY_NET_TLA_SPEC.md` + `simulation/safety_net_invariant.py`. 안전 계층 우선순위 단조성 불변식을 TLA+ 명세 + Python 유한 모델 검사기로 재현(위반 시 반례 최단 경로). 무작위성 0 (2026-06-17, PR #352 흡수)
 - [x] **Phase 442** 🔬 ATC 핸드오프 데드락 부재 모델 체킹 — `simulation/handoff_model_checker.py`. 관제권 핸드오프 FSM 도달 상태 BFS 전수 탐색으로 단일 관제권 불변식 + 교착 부재 증명. code-reviewer 어드바이저 반영. 무작위성 0 (2026-06-17, PR #353 흡수)
 - [x] **Phase 444** 🔬 CBS 완전성·최적성 조건 정리 — `simulation/cbs_optimality.py` + `docs/CBS_COMPLETENESS_OPTIMALITY.md`. 허용 휴리스틱·분기 건전성·A* 비용 최적성을 독립 BFS 기준해로 검증 + `cbs.py` 보장/완화 정직 공시. code-reviewer 어드바이저 HIGH 2건 반영(BFS forbidden 검사·타임아웃 한계 공시) + 회귀 1건. 무작위성 0 (2026-06-17, PR #351·#352 흡수)
-- [ ] **Phase 445·446·450-460** 🔬 Formal & Research Frontier 잔여 — MC 신뢰구간·검정력 분석(`power_analysis.py`·`uncertainty.py` 부분 구현 존재)·재현성 10년 보장·RL 일반화 연구
+- [x] **Phase 445** 🔬 불확실성 정량화 — `simulation/uncertainty.py` t-분포 `normal_ci`·bootstrap `bootstrap_ci`(시드 재현)·Wilson `proportion_ci` + `confidence_report`. MC 점추정 구간 부여. 16건 PASS (2026-06-17 추적 정정)
+- [x] **Phase 446** 🔬 충돌 해결률 통계 검정력 — `simulation/power_analysis.py` 비율 z-검정·Cohen's h·`required_sample_size`·`resolution_rate_power_report`. 15건 PASS (2026-06-17 추적 정정)
+- [x] **Phase 450** 🔬 재현성 10년 보장 — `requirements.lock.txt` 핀 + `Dockerfile.reproducible`(SHA-256 다이제스트) + `scripts/reproduce/` + `docs/REPRODUCIBILITY.md` (2026-06-17 추적 정정)
+- [ ] **Phase 451-460** 🔬 Formal & Research Frontier 잔여 — RL 일반화 연구(미학습 시나리오 전이)·인증 가능 ML 조사(EASA AI Roadmap)
 - [x] **Phase 466** 🏛 텔레메트리 JSON Schema 공개 — `docs/schemas/telemetry.schema.json` Draft-07 + ws_bridge 정합 회귀 (2026-06-12)
 - [ ] **Phase 461-465·467-480** 🏛 Standards & Policy — ASTM/ISO 기고·정책 영향 시뮬
 - [x] **Phase 486** ♾️ 독립 재현 자동화 — `scripts/independent_reproduction.sh` (회귀·md5·JS·API 게이트 통합) (2026-06-12)

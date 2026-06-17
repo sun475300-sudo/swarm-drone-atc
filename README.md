@@ -290,6 +290,24 @@ docker compose up -d
 
 > Helm 배포는 `helm/sdacs/values.yaml` 의 `env.*` 블록에 동일 키를 설정합니다 (Secret 으로 주입 권장: `--set-string env.SDACS_JWT_SECRET=...` 대신 `kubectl create secret generic sdacs-jwt --from-literal=secret=...`).
 
+### 개발자 가이드 — pre-commit hook 활성화
+
+레포에 포함된 `.githooks/pre-commit` 은 **CLAUDE.md 원칙 자동 가드** 입니다. 1회 활성화 후 모든 커밋 자동 검사:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+차단 규칙 (3건, root cause 수정 후 재시도):
+
+| # | 패턴 | 사유 |
+|---|---|---|
+| 1 | `simulation/*.py` 에서 `random.(random\|randint\|choice\|uniform\|gauss)(` | 재현성 — `np.random.default_rng(seed)` 사용 (CLAUDE.md §11) |
+| 2 | `claude-(opus\|sonnet\|haiku\|fable)-\d+` 패턴 | 모델 식별자는 chat 답신 전용, 커밋/PR/코드 누출 금지 |
+| 3 | `engine_legacy.py` 재생성 | `SwarmSimulator` 로 일원화 완료 (CLAUDE.md §11) |
+
+비상 우회 (권장 X): `git commit --no-verify`.
+
 ---
 ## 🖥 데스크탑 앱 — 더블클릭으로 실행 / Desktop App
 

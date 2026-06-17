@@ -189,7 +189,9 @@ class DroneAgent:
 
             # 4. 바람 (tick 캐시: 동일 tick에서 재계산 방지)
             cache_key = round(t, 1)
-            if not hasattr(sim, "_wind_cache") or sim._wind_cache_tick != cache_key:
+            # defensive: _wind_cache_tick getattr 폴백 — 향후 외부에서 _wind_cache 만 설정하는 경로가
+            # 생기더라도 AttributeError 방지 (현재 코드 경로엔 둘 다 함께 설정되지만 견고화 가치 ↑).
+            if getattr(sim, "_wind_cache_tick", None) != cache_key:
                 sim._wind_cache = sum(
                     (m.get_wind_vector(np.zeros(3), t) for m in sim.wind_models),
                     np.zeros(3),

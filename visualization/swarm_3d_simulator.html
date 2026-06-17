@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <!-- CSP: 시뮬레이터는 vendor three.js (local) + 인라인 모듈 스크립트 + Google Fonts + Web Worker(blob) + MediaRecorder(blob) + ws_bridge(ws://) 사용.
+         'unsafe-inline'/'unsafe-eval' 은 인라인 스크립트와 WebGPU 셰이더 컴파일을 위해 필수. object-src 'none' + frame-ancestors 'none' 으로 XSS/clickjacking 표면 축소. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' ws: wss:; worker-src 'self' blob:; object-src 'none'; base-uri 'self';">
     <meta name="theme-color" content="#03050a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">

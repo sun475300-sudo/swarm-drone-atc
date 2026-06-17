@@ -142,6 +142,16 @@ def verify_token(token: str) -> dict[str, Any]:
         raise HTTPException(status_code=401, detail="malformed token")
 
     header_b64, body_b64, sig_b64 = parts
+    # 알고리즘 명시 검증 (defense in depth) — alg=none / alg=RS256 등 변조 차단.
+    # 자체 _sign 이 항상 HS256 이라 잘못된 alg 는 서명 mismatch 로 자동 차단되지만,
+    # 명시 검증으로 향후 다른 sign 경로가 추가되어도 안전 유지.
+    try:
+        header = json.loads(_b64url_decode(header_b64))
+    except Exception as exc:
+        raise HTTPException(status_code=401, detail="malformed token header") from exc
+    if header.get("alg") != "HS256":
+        raise HTTPException(status_code=401, detail="unsupported token algorithm")
+
     expected_sig = _sign(header_b64, body_b64, _JWT_SECRET)
     if not hmac.compare_digest(sig_b64, expected_sig):
         raise HTTPException(status_code=401, detail="invalid token signature")

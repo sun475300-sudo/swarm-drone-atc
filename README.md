@@ -960,6 +960,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-17 16:10 | `78cd5be` | docs(odyssey): Track 🔬 추적 불일치 정정 — Phase 445·446·449·450 ✅ (적체 문서 PR #354·#355 흡수) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md |
 | 2026-06-17 15:12 | `b82ac0e` | feat(odyssey): Phase 441·442·444 통합 — 형식 검증 트랙 (적체 드래프트 PR #351·#352·#353 일원화) | CHANGELOG.md, ROADMAP.md, docs/CBS_COMPLETENESS_OPTIMALITY.md, docs/SAFETY_NET_TLA_SPEC.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/cbs_optimality.py … |
 | 2026-06-16 23:09 | `87ecf8e` | feat(odyssey): Phase 443·448 통합 — APF Lyapunov 수렴 증명 + 시뮬 코어 속성 테스트 (드래프트 PR #347·#348·#349 일원화) | CHANGELOG.md, README.md, ROADMAP.md, docs/APF_CONVERGENCE_PROOF.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/apf_lyapunov.py … |
 | 2026-06-16 23:10 | `(이 커밋)` | feat/test(odyssey): Track 🔬 Phase 443·448 통합 — APF Lyapunov 수렴 증명 + 시뮬 코어 속성 테스트(충돌감지 9 + 퍼저 6) (드래프트 PR #347·#348·#349 일원화) — 일일 점검 2026-06-16 (23차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/apf_lyapunov.py, docs/APF_CONVERGENCE_PROOF.md, tests/test_apf_lyapunov.py, tests/test_property_deconflict.py, tests/test_scenario_fuzzer_property.py |

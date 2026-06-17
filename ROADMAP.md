@@ -133,9 +133,9 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 | **MEGA Plan** (시뮬 Phase 1-9) | 100% | ████████████ | ATC·TAC·CIN·CAM·MIS·INJ·ANA·AUD·MOB |
 | **HYPER Plan** (시뮬 Phase 10-50) | 100% | ████████████ | 41개 추가 Phase (해양 ATC · VR · AI Copilot · 적대 · C-UAS · 행성 등) |
 | **STELLAR~POST-UNIVERSE** (시뮬 Phase 51-200) | 100% | ████████████ | Phase 200 = 𝟏 (Unity) · Phase 51 LLM Multi-Agent 격상 (단, 다수 mock/speculative — maturity 공시) |
-| **TRANSCENDENCE** (시뮬 Phase 201-300) | 10% | █░░░░░░░░░░░ | Phase 201-208 Maturity Honesty 완료 (분류·Mock Detector·experimental·beta·production 회귀) |
-| **GENESIS** (시뮬 Phase 301-400) | 12% | █▌░░░░░░░░░░ | 301·302·303·304·305·306·307·309·381·387·388·389 완료 (12/100) — 인증 7종·교육·레거시 |
-| **ODYSSEY** (시뮬 Phase 401-500) | 6% | █░░░░░░░░░░░ | 408·421·447·448·466·486 완료 (6/100) — ICAO 매핑·디스커버리·fuzzing·property·schema·재현 |
+| **TRANSCENDENCE** (시뮬 Phase 201-300) | 10% | █░░░░░░░░░░░ | Phase 201-210 완료 (분류·Mock Detector·experimental·beta·production 회귀·Deprecation Policy·SemVer) |
+| **GENESIS** (시뮬 Phase 301-400) | 14% | █▋░░░░░░░░░░ | 301·302·303·304·305·306·307·308·309·310·381·387·388·389 완료 (14/100) — 인증 9종·교육·레거시 |
+| **ODYSSEY** (시뮬 Phase 401-500) | 7% | █░░░░░░░░░░░ | 408·421·422·447·448·466·486 완료 (7/100) — ICAO 매핑·디스커버리·Operational Intent·fuzzing·property·schema·재현 |
 
 **총 Phase 691-755 (65개) 중 61개 완료 = 94%** (Phase 1-690 포함 시 전체 751/755 = **99.5%**)
 **+ 시뮬레이터 MEGA 9 + HYPER 41 = 50 Phase 100% 완료** (총 800 Phase 중 796 완료 = **99.5%**)
@@ -253,7 +253,9 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 203 + 206** — Mock Detector(console.warn + `mockCalls` 카운트) + `experimental.*` 네임스페이스 격리, E2E 2건 + CI 정합성 게이트(G-2·G-4) (2026-06-12)
 - [x] **Phase 204** — Production 핵심 12종 회귀 강화 — `test_simulator_production_core.py` (getter 전수 + 12종 호출 + 93 회귀 방지) (2026-06-12)
 - [x] **Phase 205** — Beta API 부분 검증 — `test_simulator_beta_subset.py` (Copilot·적대·C-UAS·WindField·PQC, 5건) (2026-06-12)
-- [ ] **Phase 209-220** — Deprecation Policy·SemVer·production 격상 (12 → 30 API)
+- [x] **Phase 209** — API Deprecation Policy — `docs/API_DEPRECATION_POLICY.md` (6단계 성숙도 수명주기·production 12mo/beta 6mo 유예·긴급 보안 폐기) (2026-06-18)
+- [x] **Phase 210** — Semantic Versioning 정책 — `docs/API_SEMVER_POLICY.md` (SemVer 2.0.0·성숙도 티어별 규칙·CI 게이트·프리릴리스) (2026-06-18)
+- [ ] **Phase 211-220** — production 격상 (12 → 30 API)
 - [ ] **Phase 221-240** — Real Validation (WebGPU 실 WGSL·CRDT Yjs·MAVLink SITL·KMA 풍속장)
 - [ ] **Phase 241-260** — Multi-User Reality (WS 관제 서버·다중 관제사·TimescaleDB·부하 100명)
 - [ ] **Phase 261-280** — Hardware Loop (Pixhawk HITL·Jetson 엣지·RTK·실 비행 데이터셋) *(사용자 HW 의존)*
@@ -268,7 +270,12 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 304** 🏭 KC 전파인증 체크리스트 — `docs/certification/KC_RADIO_CERTIFICATION.md` (2026-06-12)
 - [x] **Phase 306** 🏭 RTM 5계층 커버리지 — `docs/certification/RTM_5LAYER_COVERAGE.md` 21건 추적 (2026-06-12)
 - [x] **Phase 309** 🏭 조종자 자격증명 매핑 — `docs/certification/PILOT_LICENSE_MAPPING.md` (2026-06-12)
-- [ ] **Phase 301·303-320** 🏭 Certification & Compliance — 항공안전법 매트릭스·DO-178C 갭 분석·CSAP 자동화
+- [x] **Phase 303** 🏭 비행계획 신고 양식 — [`docs/certification/FLIGHT_PLAN_FORM.md`](docs/certification/FLIGHT_PLAN_FORM.md) (2026-06-17)
+- [x] **Phase 305** 🏭 DO-178C 갭 분석 — [`docs/certification/DO178C_GAP_ANALYSIS.md`](docs/certification/DO178C_GAP_ANALYSIS.md) (2026-06-17)
+- [x] **Phase 307** 🏭 사고 보고 양식 — [`docs/certification/ACCIDENT_REPORT_FORM.md`](docs/certification/ACCIDENT_REPORT_FORM.md) (2026-06-17)
+- [x] **Phase 308** 🏭 보험 요율 산정 인터페이스 — [`docs/certification/INSURANCE_API_SPEC.md`](docs/certification/INSURANCE_API_SPEC.md) (RESTful 4 엔드포인트·리스크 점수·항공사업법 제70조) (2026-06-18)
+- [x] **Phase 310** 🏭 야간·BVLOS 특별비행승인 — [`docs/certification/NIGHT_BVLOS_APPROVAL.md`](docs/certification/NIGHT_BVLOS_APPROVAL.md) (야간 10종·BVLOS 10종·체크리스트 40항목) (2026-06-18)
+- [ ] **Phase 311-320** 🏭 Certification & Compliance — CSAP 자동화·K-UAM 감항
 - [ ] **Phase 321-340** 🌍 Ecosystem & Open Source — 플러그인 SDK·`@sdacs/core` npm·`sdacs-sim` PyPI·v2.0 API 안정화
 - [ ] **Phase 341-360** 🏙 Real Deployment — 목포 해역 실 좌표·전남 도서 의료 배송·90일 파일럿 백서
 - [ ] **Phase 361-380** 🤖 Next-Gen Autonomy — 온보드 RL 추론·APF+RL 하이브리드·양방향 디지털 트윈
@@ -284,7 +291,9 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 - [x] **Phase 408** 🌏 ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` (2026-06-12)
 - [ ] **Phase 401-407·409-420** 🌏 Global Expansion — EASA U-space·FAA UTM 정렬·EN 완역
-- [ ] **Phase 421-440** 🛰 Federation Operations — inter-USS 디스커버리·관제권 핸드오버·연합 충돌 해소
+- [x] **Phase 421** 🛰 인스턴스 디스커버리 — [`docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md`](docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md) (2026-06-17)
+- [x] **Phase 422** 🛰 운영 의도 교환 포맷 — [`docs/certification/OPERATIONAL_INTENT_FORMAT.md`](docs/certification/OPERATIONAL_INTENT_FORMAT.md) (4D 볼륨 JSON Schema·상태 머신·ASTM F3548-21) (2026-06-18)
+- [ ] **Phase 423-440** 🛰 Federation Operations — 관제권 핸드오버·연합 충돌 해소·NOTAM 전파
 - [x] **Phase 447** 🔬 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` NFZ·ATC·SORA 140케이스 (2026-06-12)
 - [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12)
 - [ ] **Phase 441-446·449-460** 🔬 Formal & Research Frontier — TLA+ 안전망 명세·모델 체킹

@@ -34,7 +34,7 @@
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
 </div>
 
-> **♾️ 최신 업데이트 (2026-06-17 · GENESIS 인증 문서 3종 + ODYSSEY 디스커버리 프로토콜 추가 · 종합 4,462+ pass / 0 fail)** — 🎯 **신규**: GENESIS 303 비행계획 양식(드론원스톱 10필드·SORA) · GENESIS 305 DO-178C 갭 분석(DAL-D 31 objectives) · GENESIS 307 사고 보고(항철위 ARAIB·72h/96h 시한) · ODYSSEY 421 인스턴스 디스커버리(ASTM F3548 DSS·8 메시지·핸드오버). GENESIS 12% · ODYSSEY 6% · 인증 문서 10종 (`docs/certification/`)
+> **♾️ 최신 업데이트 (2026-06-18 · GENESIS 308·310 + TRANSCENDENCE 209·210 + ODYSSEY 422 추가 · 종합 4,489+ pass / 0 fail)** — 🎯 **신규**: GENESIS 308 보험 요율 산정 인터페이스(RESTful 4 엔드포인트·리스크 점수·항공사업법 제70조) · GENESIS 310 야간·BVLOS 특별비행승인(야간 10종·BVLOS 10종·체크리스트 40항목) · TRANSCENDENCE 209 API Deprecation Policy(6단계 성숙도 수명주기) · TRANSCENDENCE 210 SemVer 정책(CI 게이트·프리릴리스) · ODYSSEY 422 운영 의도 교환 포맷(4D 볼륨·ASTM F3548-21). GENESIS 14% · TRANSCENDENCE 10% · ODYSSEY 7% · 인증 문서 12종 (`docs/certification/`)
 >
 > **이전 (2026-06-12 · API Maturity 정직성 체계 가동)** — `apiMaturity()`/`maturityReport()` 분류(production 93·beta 98·mock 110·speculative 103) · **Mock Detector**(mock 호출 시 console.warn + `mockCalls` 카운트, Phase 203) · **`experimental.*` 네임스페이스**(speculative 103종 격리, Phase 206) · **`soraAssess()`**(JARUS SORA 2.0 결정적 SAIL 산정, GENESIS 302) · **기술 부채 대장** [TECH_DEBT_LEDGER.md](docs/TECH_DEBT_LEDGER.md) 자동 생성(GENESIS 388) · CI에 문서-실측 정합성 + 4 사본 md5 게이트. 계획 체계 3층: [TRANSCENDENCE 201-300](docs/SIMULATOR_TRANSCENDENCE_PLAN.md)(8%) · [GENESIS 301-400](docs/SIMULATOR_GENESIS_PLAN.md)(12%) · [ODYSSEY 401-500](docs/SIMULATOR_ODYSSEY_PLAN.md)(6%) + [2026 H2 실행 일정](docs/MASTER_PLAN_2026H2.md)
 >
@@ -46,7 +46,7 @@
 
 ---
 
-## 📊 개발 진척 현황 / Development Progress (2026-06-17)
+## 📊 개발 진척 현황 / Development Progress (2026-06-18)
 
 | 트랙 | 범위 | 진척 | 핵심 산출물 |
 |---|---|---|---|
@@ -57,9 +57,9 @@
 | **D** 웹 시뮬 | P721-735 | ✅ 100% | 군집·해양 3D + Electron 3-OS + i18n + LIVE + CPA 공간해시 + 멀티뷰 + EO/IR + **ATC 명령 콘솔** |
 | **E** 확장 연구 | P736-745 | ✅ 100% | RL PoC·UAS-T·LiDAR·DR·디지털트윈·Raft HA·UAM·양자·폐쇄망·LLM |
 | **F** 산학·사업화 | P746-755 | 🟢 90% | K-UAM·해수부·산림청·KISA·라이선싱·창업 docs (P755·LOI는 사용자 환경) |
-| **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 8% | Maturity 정직성 가동 — 201-203·206-208 완료 (분류·Mock Detector·experimental·CI 게이트) |
-| **H** GENESIS | 시뮬 301-400 | 🟡 12% | 301·302·303·304·305·306·307·309·381·387·388·389 완료 (12/100) — 인증 7종·교육·레거시 |
-| **I** ODYSSEY | 시뮬 401-500 | 🟡 6% | 408·421·447·448·466·486 완료 (6/100) — ICAO 매핑·디스커버리·fuzzing·property·schema·재현 |
+| **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 10% | Maturity 정직성 가동 — 201-210 완료 (분류·Mock Detector·experimental·CI 게이트·Deprecation Policy·SemVer) |
+| **H** GENESIS | 시뮬 301-400 | 🟡 14% | 301·302·303·304·305·306·307·308·309·310·381·387·388·389 완료 (14/100) — 인증 9종·교육·레거시 |
+| **I** ODYSSEY | 시뮬 401-500 | 🟡 7% | 408·421·422·447·448·466·486 완료 (7/100) — ICAO 매핑·디스커버리·Operational Intent·fuzzing·property·schema·재현 |
 
 > 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)(실행 일정)
 
@@ -101,6 +101,11 @@
 - [x] **GENESIS 305** ✅ DO-178C 소프트웨어 수명주기 갭 분석 — [`docs/certification/DO178C_GAP_ANALYSIS.md`](docs/certification/DO178C_GAP_ANALYSIS.md) (DAL-D 31 objectives·14 Fulfilled/13 Partial/2 Gap·격상 계획)
 - [x] **GENESIS 307** ✅ 사고 보고 양식 자동 작성 — [`docs/certification/ACCIDENT_REPORT_FORM.md`](docs/certification/ACCIDENT_REPORT_FORM.md) (항철위 ARAIB 10필드 매핑·5단계 파이프라인·72h/96h 시한)
 - [x] **ODYSSEY 421** ✅ 인스턴스 디스커버리 프로토콜 — [`docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md`](docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md) (ASTM F3548 DSS·8 메시지 유형·핸드오버·mTLS+JWT)
+- [x] **GENESIS 308** ✅ 보험 요율 산정 인터페이스 — [`docs/certification/INSURANCE_API_SPEC.md`](docs/certification/INSURANCE_API_SPEC.md) (RESTful 4 엔드포인트·리스크 점수 공식·항공사업법 제70조·3 티어 보장)
+- [x] **GENESIS 310** ✅ 야간·BVLOS 특별비행승인 검증 시나리오 — [`docs/certification/NIGHT_BVLOS_APPROVAL.md`](docs/certification/NIGHT_BVLOS_APPROVAL.md) (야간 10종·BVLOS 10종·체크리스트 40항목·항공안전법 시행규칙 제310조)
+- [x] **TRANSCENDENCE 209** ✅ API Deprecation Policy — [`docs/API_DEPRECATION_POLICY.md`](docs/API_DEPRECATION_POLICY.md) (6단계 성숙도 수명주기·production 12mo/beta 6mo 유예·긴급 보안 폐기)
+- [x] **TRANSCENDENCE 210** ✅ Semantic Versioning 정책 — [`docs/API_SEMVER_POLICY.md`](docs/API_SEMVER_POLICY.md) (SemVer 2.0.0·SDACS 성숙도 티어별 규칙·CI 게이트·프리릴리스)
+- [x] **ODYSSEY 422** ✅ 운영 의도 교환 포맷 — [`docs/certification/OPERATIONAL_INTENT_FORMAT.md`](docs/certification/OPERATIONAL_INTENT_FORMAT.md) (4D 볼륨 JSON Schema·상태 머신 5종·8 메시지 유형·ASTM F3548-21)
 
 **기술 부채 (정직성 공시)**
 - [ ] mock 110종 + speculative 103종 — 전체 목록·격상 난이도: [`docs/TECH_DEBT_LEDGER.md`](docs/TECH_DEBT_LEDGER.md) (자동 생성)

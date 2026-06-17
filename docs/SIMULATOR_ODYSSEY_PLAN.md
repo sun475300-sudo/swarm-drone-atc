@@ -44,7 +44,7 @@
 *단일 SDACS → 다중 인스턴스 연합 (inter-USS). 기존 자산: TRANSCENDENCE 241-260 다중 사용자, Raft HA, ws_bridge*
 
 - **Phase 421** ✅ 인스턴스 간 디스커버리 프로토콜 — `docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md` (ASTM F3548 DSS·8 메시지 유형·핸드오버·mTLS+JWT) (2026-06-17)
-- **Phase 422** 운영 의도(Operational Intent) 교환 포맷 — 4D 볼륨 직렬화
+- **Phase 422** ✅ 운영 의도(Operational Intent) 교환 포맷 — `docs/certification/OPERATIONAL_INTENT_FORMAT.md` (4D 볼륨 JSON Schema·상태 머신 5종·8 메시지 유형·충돌 감지 알고리즘·ASTM F3548-21) (2026-06-18)
 - **Phase 423** 지역 간 핸드오버 — 드론이 인스턴스 경계 통과 시 관제권 이양
 - **Phase 424** 연합 충돌 해소 — 인스턴스 간 우선순위 협상 (Vickrey 경매 재사용)
 - **Phase 425** 연합 NOTAM 전파 — 동적 NFZ를 인접 인스턴스에 브로드캐스트

@@ -38,9 +38,9 @@
 - **Phase 305** ✅ DO-178C/ED-12C 소프트웨어 수명주기 갭 분석 — `docs/certification/DO178C_GAP_ANALYSIS.md` (DAL-D 31 objectives·14 Fulfilled/13 Partial/2 Gap·격상 계획) (2026-06-17)
 - **Phase 306** 요구사항 추적 매트릭스(RTM) 자동 생성 격상 — `scripts/generate_rtm.py` → 5계층 안전망 커버리지
 - **Phase 307** ✅ 사고 보고 양식 (항철위 표준) 자동 작성 — `docs/certification/ACCIDENT_REPORT_FORM.md` (ARAIB 10필드 매핑·5단계 파이프라인·72h/96h 시한) (2026-06-17)
-- **Phase 308** 보험 요율 산정 인터페이스 (Phase 67 mock 격상 — 실 보험사 API 스펙)
+- **Phase 308** ✅ 보험 요율 산정 인터페이스 — `docs/certification/INSURANCE_API_SPEC.md` (RESTful 4 엔드포인트·리스크 점수 공식·항공사업법 제70조 매핑·3 티어 보장) (2026-06-18)
 - **Phase 309** 조종자 자격(1~4종) 요건 ↔ 시뮬 교육 모드 매핑
-- **Phase 310** 야간·비가시 특별비행승인 요건 시뮬 검증 시나리오
+- **Phase 310** ✅ 야간·비가시권(BVLOS) 특별비행승인 검증 시나리오 — `docs/certification/NIGHT_BVLOS_APPROVAL.md` (야간 10종·BVLOS 10종·체크리스트 40항목·항공안전법 시행규칙 제310조) (2026-06-18)
 - **Phase 311-315** KISA CSAP 96항목 자가진단 자동화 (`security_audit.sh` 확장)
 - **Phase 316-320** UAM 운용기준(K-UAM 로드맵 2.0) 정렬 + 감항 인증 준비 문서
 

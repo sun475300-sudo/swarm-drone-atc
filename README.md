@@ -960,6 +960,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-17 23:22 | `88cf5f5` | test: 시나리오 회귀 카운트 9→10 갱신 (Phase 465 baseline 반영) | tests/test_hard_precision.py |
 | 2026-06-17 23:14 | `7ae5b95` | feat(odyssey): Phase 465 표준 벤치마크 스위트 (10종 공개) — 일일 점검 2026-06-17 (34차) | CHANGELOG.md, ROADMAP.md, config/scenario_params/nominal_baseline.yaml, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/SDACS_BENCHMARK_SUITE.md, simulation/standard_scenarios.py … |
 | 2026-06-17 21:08 | `d4bc003` | feat(odyssey): Phase 466·469 통합 + Track 🔬 445·446·449·450 추적 정정 — 일일 점검 2026-06-17 (33차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/policy_impact.py, simulation/telemetry_validator.py … |
 | 2026-06-17 19:10 | `066748f` | feat(odyssey): Phase 466 텔레메트리 스키마 검증기 완성 — 일일 점검 2026-06-17 (32차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/telemetry_validator.py, tests/test_telemetry_validator.py |

@@ -960,6 +960,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-17 19:00 | `(이 커밋)` | feat(odyssey): Phase 466 텔레메트리 스키마 검증기 완성 + 31차 적체 일원화 — 일일 점검 2026-06-17 (32차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/telemetry_validator.py, tests/test_telemetry_validator.py |
 | 2026-06-17 18:08 | `668bf72` | feat(odyssey): Phase 469 정책 영향 시뮬 + Track 🔬 추적 정정 일원화 (31차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/policy_impact.py, tests/test_policy_impact.py |
 | 2026-06-17 18:30 | `(이 커밋)` | feat(odyssey): Phase 469 정책 영향 시뮬 + Track 🔬 추적 정정(445·446·449·450) 일원화 — 일일 점검 2026-06-17 (31차, 적체 드래프트 #357·#358·#359 흡수) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/policy_impact.py, tests/test_policy_impact.py |
 | 2026-06-17 15:12 | `b82ac0e` | feat(odyssey): Phase 441·442·444 통합 — 형식 검증 트랙 (적체 드래프트 PR #351·#352·#353 일원화) | CHANGELOG.md, ROADMAP.md, docs/CBS_COMPLETENESS_OPTIMALITY.md, docs/SAFETY_NET_TLA_SPEC.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/cbs_optimality.py … |

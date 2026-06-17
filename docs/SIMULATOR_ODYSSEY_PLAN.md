@@ -89,7 +89,7 @@
 - **Phase 463** K-드론 시스템 고도화 정책 제안서 (국토부 제출 형식)
 - **Phase 464** 군집 비행 안전 기준 백서 — 5계층 안전망 사례 연구
 - **Phase 465** 공역 통합 시뮬레이션 표준 시나리오 셋 제안 (10종 공개)
-- **Phase 466** 오픈 데이터 표준 — 텔레메트리 스키마 공개 (JSON Schema + 검증기)
+- **Phase 466** ✅ 오픈 데이터 표준 — 텔레메트리 스키마 공개 (JSON Schema + 검증기) (2026-06-17, JSON Schema `docs/schemas/telemetry.schema.json`(draft-07, 2026-06-12 적재)에 더해 **검증기** `simulation/telemetry_validator.py` 신규: 임의 스냅샷이 표준 계약을 충족하는지 `validate_telemetry`/`validate_telemetry_file` 로 검사. `jsonschema` 설치 시 `Draft7Validator` 정본 검증, 미설치 시 스키마 제약(필수 키·길이 3 pos/vel·battery 0~100·stats 0 이상 정수·bool 배제)을 직접 구현한 순수 파이썬 폴백 — 두 경로 동일 판정. `simulation/scenario_schema.py`(GENESIS 322) `ValidationResult` 규약 준수, `CANONICAL_EXAMPLE` 표준 예제 + CLI(`--example`·파일 인자). 무작위성 0·기존 모듈 무수정 순수 추가. 단위 37건 PASS)
 - **Phase 467** 사고 조사 데이터 표준 — 시뮬 로그 → 표준 양식 변환기 ✅ ([standards/INCIDENT_INVESTIGATION_REPORT.md](standards/INCIDENT_INVESTIGATION_REPORT.md))
 - **Phase 468** 대학 캡스톤 표준 커리큘럼 제안 (GENESIS 383 확장)
 - **Phase 469** ✅ 정책 영향 시뮬레이션 — 규제 파라미터(고도 상한·이격 거리) 변경 효과 자동 비교 (2026-06-17, `simulation/policy_impact.py` — 결정적 해석 용량 모델. 공역을 수직 분리 고도층의 적층으로 보고 `layers = floor(band/vertical_min_m)+1`, 층당 수평 용량은 이격 `s` 의 육각 최밀 충전 셀 면적 `(√3/2)s²` 로 `floor(area/cell)`, `capacity = layers × per_layer`. `PolicyConfig`(frozen, `__post_init__` 양수·고도 상하한·면적≥단일셀 불변식 검증)·`PolicyConfig.from_config`(`config/default_simulation.yaml` 적재 — 고도 바닥은 z[0] 과 drones.min_altitude_m 중 제약적인 쪽으로 과대계상 방지)·`compare_policies`(baseline vs proposed 의 `capacity_delta`·`capacity_pct_change`·`utilization`·`is_oversaturated`·`summary`). 이격 50→70m 강화 시 용량 −49%(≈50²/70²) 정량화. *정적 기하 용량 상한* 임을 정직 공시(동역학 미포함 → 절대값은 낙관적, 가치는 동일 모델 하 두 정책의 *상대 변화*). 무작위성 0·기존 모듈 무수정 순수 추가. code-reviewer 어드바이저 HIGH 2·MEDIUM 3·LOW 3 반영. 단위 33건 PASS)

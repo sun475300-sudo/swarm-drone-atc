@@ -5,6 +5,12 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test) — 일일 점검 2026-06-17 (32차): ODYSSEY Track 🏛 Phase 466 검증기 완성 + 31차 적체 일원화
+
+- **작업 상황 점검**: 28차(PR #356, `9fe5335`) main 머지 후 `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 확인. 직전 31차 작업이 코드 PR 1건(#359 Phase 469) + 중복 문서 PR 2건(#357·#358 Track 🔬 추적 정정)으로 적체된 것을 발견 — 기존 일원화 패턴대로 #360(consolidation, qyobg9)을 본 브랜치로 통합(fast-forward, Phase 469 `policy_impact.py` + 33건 검증 자산 + Track 🔬 445·446·449·450 ✅ 정정 포함)하고 그 위에 신규 Phase 466 검증기를 적층.
+- **Phase 466** (Track 🏛, 신규 코드) — `simulation/telemetry_validator.py` (신규) 텔레메트리 표준 스키마 **검증기**. Phase 466 의 JSON Schema(`docs/schemas/telemetry.schema.json`, draft-07)는 2026-06-12 적재됐으나 phase 정의의 "검증기" 절반은 미구현이었던 것을 완성한다(ODYSSEY PLAN 92행 ✅ 미표시 → 정정). `validate_telemetry(payload)`·`validate_telemetry_file(path)` 가 임의 스냅샷의 표준 계약 충족 여부를 검사: `jsonschema` 설치 시 `Draft7Validator` 정본 검증, 미설치 시 스키마 제약(필수 키·길이 3 `pos`/`vel`·`battery` 0~100·`stats` 0 이상 정수·bool 카운터 배제)을 직접 구현한 순수 파이썬 폴백 — `jsonschema` 를 필수 의존성으로 끌어들이지 않으며 두 경로 동일 판정 확인. `simulation/scenario_schema.py`(GENESIS 322) `ValidationResult` 규약 준수, `CANONICAL_EXAMPLE` 표준 예제 + CLI(`--example`·파일 인자). 무작위성 0·기존 모듈 무수정 순수 추가.
+- **검증**: `tests/test_telemetry_validator.py` **37건 PASS**(폴백 경로 직접 검사 + 공개 API 정본/폴백 동치). 기존 `tests/test_telemetry_schema.py` 3건 + 신규 37건 = 40건 클린. 대상 기존 `.py`·스키마 무수정 순수 추가 → 회귀 무영향. 본 컨테이너 최소 의존성(pytest·numpy·pyyaml·jsonschema) 설치 → 전체 수트는 CI 수집.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-17 (31차): ODYSSEY Track 🏛 Phase 469 + Track 🔬 추적 정정 일원화 (적체 드래프트 PR #357·#358·#359 일원화)
 
 - **작업 상황 점검 — 적체 드래프트 3건 일원화**: 28차(PR #356, `9fe5335`) main 머지 후 `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 재확인. 직전 점검들이 반복한 "origin/main 미전진" 주장은 fetch 전 stale 로컬 ref 오인(local `main` 이 `19ef86d` 2026-06-05 에 고정)이었음을 다시 확정 — 실제 main 은 정상 전진 중. 병행 세션이 동일 클린 베이스 위에 draft 3건을 적체: **#359**(Phase 469 신규 코드)·**#357**(29차 추적 정정)·**#358**(28차 추적 정정 — #357 과 동일 Phase 445·446·449·450 ✅ 중복본). 코드 PR 1건 + 중복 문서 PR 2건이 모두 ROADMAP/CHANGELOG/PLAN append 라인만 충돌 → 순차 머지 불가. 기존 "일원화" 패턴대로 본 브랜치로 통합해 단일 PR 로 머지하고 #357·#358·#359 는 흡수 후 close 권고.

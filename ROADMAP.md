@@ -322,7 +322,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 446** 🔬 충돌 해결률 검정력 분석 — `simulation/power_analysis.py` 충돌 해결률 차이 검정의 검정력·표본수 산출. 15건 PASS 재검증 (2026-06-17)
 - [x] **Phase 450** 🔬 재현성 10년 보장 — `requirements.lock.txt`·`Dockerfile.reproducible`·`scripts/independent_reproduction.sh`·`docs/REPRODUCIBILITY.md` 의존성 핀 + 컨테이너 다이제스트 고정 인프라 완비 (2026-06-17)
 - [ ] **Phase 451-460** 🔬 Formal & Research Frontier 잔여 — RL 일반화 연구·인증 가능 ML 조사
-- [x] **Phase 466** 🏛 텔레메트리 JSON Schema 공개 — `docs/schemas/telemetry.schema.json` Draft-07 + ws_bridge 정합 회귀 (2026-06-12)
+- [x] **Phase 466** 🏛 텔레메트리 JSON Schema 공개 + 검증기 — `docs/schemas/telemetry.schema.json` Draft-07 + ws_bridge 정합 회귀 (2026-06-12), **검증기** `simulation/telemetry_validator.py`(`validate_telemetry`, jsonschema 정본/순수 파이썬 폴백 이중 경로 동일 판정, CLI `--example`, 37건 PASS) 추가 완료 (2026-06-17)
 - [x] **Phase 469** 🏛 정책 영향 시뮬레이션 — `simulation/policy_impact.py`. 규제 파라미터(이격·고도 상한) 변경의 공역 용량 영향을 결정적 해석 모델(육각 충전 × 고도층)로 정량화·자동 비교(`compare_policies`). 이격 50→70m = 용량 −49%. 정적 기하 용량 상한임 정직 공시. code-reviewer 어드바이저 HIGH 2·MEDIUM 3 반영. 33건 PASS (2026-06-17)
 - [ ] **Phase 461-465·467-468·470-480** 🏛 Standards & Policy — ASTM/ISO 기고·표준 시나리오 셋·정책 추적 대시보드
 - [x] **Phase 486** ♾️ 독립 재현 자동화 — `scripts/independent_reproduction.sh` (회귀·md5·JS·API 게이트 통합) (2026-06-12)

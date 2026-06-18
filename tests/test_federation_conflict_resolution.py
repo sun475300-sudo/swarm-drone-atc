@@ -9,12 +9,12 @@ from __future__ import annotations
 
 import pytest
 
-from simulation.operational_intent import OperationalIntent, Volume4D
 from simulation.federation_conflict_resolution import (
     CONTINGENT,
     ConflictResolution,
     FederationConflictResolver,
 )
+from simulation.operational_intent import OperationalIntent, Volume4D
 
 
 def _vol(t0: float = 0.0, t1: float = 60.0) -> Volume4D:

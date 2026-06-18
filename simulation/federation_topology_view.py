@@ -201,8 +201,8 @@ class FederationTopologyView:
         ``REACHABILITY_CLASSES`` 의 모든 라벨을 키로 0 이상 보장. SELF 는 origin==dst
         만 해당하므로 순서쌍 집계에서 제외된다. 값은 *순서 있는 쌍* 수다.
         """
-        counts: dict[str, int] = {label: 0 for label in REACHABILITY_CLASSES}
+        counts: dict[str, int] = dict.fromkeys(REACHABILITY_CLASSES, 0)
         for origin in sorted(self._known):  # 생성 시점 스냅샷(`classify` 와 동일 집합)
-            for dst, label in self.classify(origin).items():
+            for _dst, label in self.classify(origin).items():
                 counts[label] += 1
         return counts

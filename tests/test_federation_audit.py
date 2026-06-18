@@ -11,7 +11,6 @@ from simulation.federation_audit import (
     FederationAuditLog,
 )
 
-
 # --- record / 기본 체인 ---------------------------------------------------
 
 

@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from typing import Optional
 
 # SDACS 9층 고도 레이어 (단위: m AGL) — AIRSPACE_CLASS_MAPPING.md §2
 ALTITUDE_LAYERS = (0, 30, 60, 90, 120, 150, 180, 210, 240)
@@ -89,7 +88,7 @@ class AirspaceClassification:
     icao_class: str  # 'B' | 'D' | 'E' | 'G' | 'R'
     controlled: bool  # 관제 공역 여부
     approval_required: bool  # 비행승인/특별승인 필요 여부
-    layer_index: Optional[int]  # SDACS 9층 레이어 인덱스 (0..8), 상한 초과 시 None
+    layer_index: int | None  # SDACS 9층 레이어 인덱스 (0..8), 상한 초과 시 None
     reason: str  # 산정 근거 (한국어)
     requirements: tuple[str, ...] = field(default_factory=tuple)
 
@@ -104,7 +103,7 @@ def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return 2 * earth_radius_m * math.asin(math.sqrt(a))
 
 
-def sdacs_layer_index(altitude_m: float) -> Optional[int]:
+def sdacs_layer_index(altitude_m: float) -> int | None:
     """고도(m AGL)를 포함하는 SDACS 레이어 인덱스를 반환한다.
 
     레이어 경계 [L_i, L_{i+1}) 구간으로 판정하며, 상한(240 m) 이상은 None.
@@ -121,7 +120,7 @@ def sdacs_layer_index(altitude_m: float) -> Optional[int]:
 
 def _zone_containing(
     lon: float, lat: float, nfz_zones: tuple[NoFlyZone, ...], kind: str
-) -> Optional[NoFlyZone]:
+) -> NoFlyZone | None:
     """주어진 좌표를 포함하는 첫 번째 NFZ(kind 일치)를 반환한다."""
     for zone in nfz_zones:
         if zone.kind != kind:
@@ -133,9 +132,9 @@ def _zone_containing(
 
 def classify_airspace(
     altitude_m: float,
-    lon: Optional[float] = None,
-    lat: Optional[float] = None,
-    nfz_zones: Optional[tuple[NoFlyZone, ...]] = None,
+    lon: float | None = None,
+    lat: float | None = None,
+    nfz_zones: tuple[NoFlyZone, ...] | None = None,
     has_special_approval: bool = False,
 ) -> AirspaceClassification:
     """고도와 (선택적) 좌표로부터 ICAO 공역 클래스를 결정적으로 산정한다.
@@ -183,7 +182,7 @@ def classify_airspace(
     return _result("G", layer, f"고도 {altitude_m:.0f} m — 비통제 공역 (Class G)")
 
 
-def _result(icao_class: str, layer: Optional[int], reason: str) -> AirspaceClassification:
+def _result(icao_class: str, layer: int | None, reason: str) -> AirspaceClassification:
     """클래스 메타데이터를 조합해 결과 객체를 생성한다."""
     controlled = icao_class in ("B", "C", "D", "E", "R")
     approval_required = icao_class != "G"

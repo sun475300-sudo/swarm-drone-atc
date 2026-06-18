@@ -5,7 +5,6 @@ from dataclasses import replace
 import pytest
 
 from simulation.policy_impact import (
-    PolicyComparison,
     PolicyConfig,
     airspace_capacity,
     altitude_layers,

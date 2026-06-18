@@ -158,7 +158,7 @@ class FederationAuditLog:
             and (event_type is None or e.event_type == event_type)
         )
 
-    def merge(self, other: "FederationAuditLog") -> "FederationAuditLog":
+    def merge(self, other: FederationAuditLog) -> FederationAuditLog:
         """두 원장을 결정적으로 병합한 새 원장을 반환한다(원본 둘 다 불변).
 
         내용 키(:meth:`AuditEntry.content_key`)가 같은 항목은 동일 이벤트로 보고 한

@@ -125,7 +125,7 @@ def corridor_length_km(corridor: Corridor) -> float:
     """회랑 경유점 누적 거리(km)."""
     total = 0.0
     pts = corridor.waypoints
-    for a, b in zip(pts, pts[1:]):
+    for a, b in zip(pts, pts[1:], strict=False):
         total += haversine_km(a.lat, a.lon, b.lat, b.lon)
     return total
 

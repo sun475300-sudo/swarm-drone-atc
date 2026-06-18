@@ -30,8 +30,8 @@ import numpy as np
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from simulation.analytics import SimulationResult
-from simulation.simulator import SwarmSimulator
+from simulation.analytics import SimulationResult  # noqa: E402
+from simulation.simulator import SwarmSimulator  # noqa: E402
 
 # 제거 대상 안전망 계층. baseline = 모든 계층 활성.
 ABLATIONS: dict[str, dict] = {

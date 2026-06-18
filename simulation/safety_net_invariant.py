@@ -35,8 +35,8 @@
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from typing import Callable, Iterable
 
 # ── Failsafe 레벨 (failsafe_manager.FailsafeLevel 값과 동일) ──────────────────
 NORMAL, WARN, LAND, RTL, DISARM, EMERGENCY = range(6)
@@ -83,7 +83,7 @@ class SafetyState:
             raise ValueError(f"level out of range: {self.level}")
         if len(self.severities) != len(HAZARD_DIMENSIONS):
             raise ValueError("severities arity mismatch")
-        for sev, (name, levels) in zip(self.severities, HAZARD_DIMENSIONS):
+        for sev, (name, levels) in zip(self.severities, HAZARD_DIMENSIONS, strict=True):
             if not 0 <= sev < len(levels):
                 raise ValueError(f"{name} severity out of range: {sev}")
 
@@ -95,7 +95,7 @@ def required_level(severities: tuple[int, ...]) -> int:
     레벨로 래칫하는 동작의 추상화 — "worst active hazard wins".
     """
     return max(
-        (levels[sev] for sev, (_, levels) in zip(severities, HAZARD_DIMENSIONS)),
+        (levels[sev] for sev, (_, levels) in zip(severities, HAZARD_DIMENSIONS, strict=False)),
         default=NORMAL,
     )
 

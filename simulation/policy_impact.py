@@ -88,7 +88,7 @@ class PolicyConfig:
         return self.max_altitude_m - self.min_altitude_m
 
     @classmethod
-    def from_config(cls, path: Path | str | None = None) -> "PolicyConfig":
+    def from_config(cls, path: Path | str | None = None) -> PolicyConfig:
         """``config/default_simulation.yaml`` 에서 정책 파라미터를 적재한다.
 
         고도 상한은 airspace.bounds_km.z[1] 에서, 고도 하한은 *운용 실제 바닥*

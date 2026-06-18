@@ -14,7 +14,7 @@
 [![API](https://img.shields.io/badge/__sdacs-407_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
 [![E2E](https://img.shields.io/badge/E2E-263%2F264_pass-22c55e?style=for-the-badge&logo=playwright&logoColor=white)](tests/e2e/)
 [![Roadmap](https://img.shields.io/badge/Roadmap_691--755-92%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
-[![Tests](https://img.shields.io/badge/Tests-4%2C443_pass_%C2%B7_0_fail-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Python_tests-5%2C444_pass_%C2%B7_270_skip-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![v1.5.0](https://img.shields.io/badge/Desktop-v1.5.0_(Win%2FMac%2FLinux)-7c3aed?style=for-the-badge&logo=electron&logoColor=white)](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
 [![Modules](https://img.shields.io/badge/Modules-830+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
@@ -34,7 +34,18 @@
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
 </div>
 
-> **♾️ 최신 업데이트 (2026-06-12 · API Maturity 정직성 체계 가동 + TRANSCENDENCE/GENESIS/ODYSSEY 계획 체계 · 407 API 라이브 실측 · 종합 4,443 pass / 0 fail)** — 🎯 **신규**: `apiMaturity()`/`maturityReport()` 분류(production 93·beta 98·mock 110·speculative 103) · **Mock Detector**(mock 호출 시 console.warn + `mockCalls` 카운트, Phase 203) · **`experimental.*` 네임스페이스**(speculative 103종 격리, Phase 206) · **`soraAssess()`**(JARUS SORA 2.0 결정적 SAIL 산정, GENESIS 302) · **기술 부채 대장** [TECH_DEBT_LEDGER.md](docs/TECH_DEBT_LEDGER.md) 자동 생성(GENESIS 388) · CI에 문서-실측 정합성 + 4 사본 md5 게이트. 계획 체계 3층: [TRANSCENDENCE 201-300](docs/SIMULATOR_TRANSCENDENCE_PLAN.md)(8%) · [GENESIS 301-400](docs/SIMULATOR_GENESIS_PLAN.md)(2%) · [ODYSSEY 401-500](docs/SIMULATOR_ODYSSEY_PLAN.md)(수립) + [2026 H2 실행 일정](docs/MASTER_PLAN_2026H2.md)
+## 📣 공개 프로젝트 설명 자료 / Public Project Materials (2026-06-18)
+
+| 자료 | 대상 | 다운로드 |
+|---|---|---|
+| **공개 프로젝트 설명 보고서** (DOCX, 5페이지) | 일반 대중 · 학생 · 심사위원 · 공공기관 | [📥 SDACS_Public_Project_Report_2026.docx](docs/report/SDACS_Public_Project_Report_2026.docx) |
+| **공개 프로젝트 소개 발표자료** (PPTX, 10장) | 발표 · 수업 · 프로젝트 소개 | [📥 SDACS_Public_Project_Overview_2026.pptx](docs/presentation/SDACS_Public_Project_Overview_2026.pptx) |
+
+> **2026-06-18 로컬 재검증:** `ruff` 통과 · Python 테스트 **5,444 pass / 270 skip / 0 fail**. 대표 실행 `100 drones / 60s / seed 42`에서는 **45 collisions · 87 near misses · 95.9% conflict resolution**이 측정되었습니다. 현재 결과는 안전 인증이 아니라 연구용 시뮬레이터의 개선 기준선입니다.
+
+> **최신 업데이트 (2026-06-18)** — 공개 설명 보고서와 10장 발표자료를 추가하고, 검증 수치와 현재 안전 한계를 동일한 기준으로 동기화했습니다.
+>
+> **♾️ 이전 업데이트 (2026-06-12 · API Maturity 정직성 체계 가동 + TRANSCENDENCE/GENESIS/ODYSSEY 계획 체계 · 407 API 라이브 실측 · 종합 4,443 pass / 0 fail)** — 🎯 **신규**: `apiMaturity()`/`maturityReport()` 분류(production 93·beta 98·mock 110·speculative 103) · **Mock Detector**(mock 호출 시 console.warn + `mockCalls` 카운트, Phase 203) · **`experimental.*` 네임스페이스**(speculative 103종 격리, Phase 206) · **`soraAssess()`**(JARUS SORA 2.0 결정적 SAIL 산정, GENESIS 302) · **기술 부채 대장** [TECH_DEBT_LEDGER.md](docs/TECH_DEBT_LEDGER.md) 자동 생성(GENESIS 388) · CI에 문서-실측 정합성 + 4 사본 md5 게이트. 계획 체계 3층: [TRANSCENDENCE 201-300](docs/SIMULATOR_TRANSCENDENCE_PLAN.md)(8%) · [GENESIS 301-400](docs/SIMULATOR_GENESIS_PLAN.md)(2%) · [ODYSSEY 401-500](docs/SIMULATOR_ODYSSEY_PLAN.md)(수립) + [2026 H2 실행 일정](docs/MASTER_PLAN_2026H2.md)
 >
 > **이전 (200 Phase Unity)** — 🎯 **Phase 200 = SDACS = 𝟏 (Unity)** 도달 후 **Phase 51 (LLM Multi-Agent)** 가 시드에서 완전 격상되었습니다: `stellar51DelegateGroup`(드론 그룹 LLM 위임) · `stellar51Recommend`(상태 기반 결정적 권고) · `stellar51Tick`(그룹 사이클 진행) · `stellar51Groups`(위임 그룹 조회) · `stellar51Revoke`(위임 해제). 5단계 통합 — MEGA(1-10) + HYPER(11-50) + STELLAR(51-100) + ULTIMATE(101-150) + POST-UNIVERSE(151-200). Playwright E2E **263/264 통과**(1 skip), 회귀 **4,180 pass / 8 skip / 0 fail**, 종합 **4,443 pass / 9 skip / 0 fail** (2026-06-12 실측). 🌌 [HYPER](docs/SIMULATOR_HYPER_PLAN.md) · [STELLAR](docs/SIMULATOR_STELLAR_PLAN.md) · [ULTIMATE](docs/SIMULATOR_ULTIMATE_PLAN.md) · [POST-UNIVERSE](docs/SIMULATOR_POST_UNIVERSE_PLAN.md) · [API](docs/SDACS_API.md) · [Phase Matrix](docs/phase_matrix.html)
 
@@ -44,7 +55,7 @@
 
 ---
 
-## 📊 개발 진척 현황 / Development Progress (2026-06-12)
+## 📊 개발 진척 현황 / Development Progress (2026-06-18)
 
 | 트랙 | 범위 | 진척 | 핵심 산출물 |
 |---|---|---|---|
@@ -55,13 +66,13 @@
 | **D** 웹 시뮬 | P721-735 | ✅ 100% | 군집·해양 3D + Electron 3-OS + i18n + LIVE + CPA 공간해시 + 멀티뷰 + EO/IR + **ATC 명령 콘솔** |
 | **E** 확장 연구 | P736-745 | ✅ 100% | RL PoC·UAS-T·LiDAR·DR·디지털트윈·Raft HA·UAM·양자·폐쇄망·LLM |
 | **F** 산학·사업화 | P746-755 | 🟢 90% | K-UAM·해수부·산림청·KISA·라이선싱·창업 docs (P755·LOI는 사용자 환경) |
-| **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 8% | Maturity 정직성 가동 — 201-203·206-208 완료 (분류·Mock Detector·experimental·CI 게이트) |
-| **H** GENESIS | 시뮬 301-400 | 🟡 2% | 302 `soraAssess()` + 388 부채 대장 완료 — 인증·생태계·실증·자율·레거시 |
-| **I** ODYSSEY | 시뮬 401-500 | ⬜ 계획 | 국제 확장·연합 운영·형식 검증·표준 기고·10년 지속 (2026-06-12 수립) |
+| **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 11% | 201-210·226 완료 — 성숙도 정직성·API 수명주기·GPS→ENU 정밀 검증 |
+| **H** GENESIS | 시뮬 301-400 | 🟡 16% | 인증·규제 301-311 중심 + 목포 실좌표·교육·발표·부채·유지보수 자산 완료 |
+| **I** ODYSSEY | 시뮬 401-500 | 🟡 37% | U-space·연합 운영·형식 검증·표준 시나리오·정책 분석·마이그레이션 자산 완료 |
 
 > 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)(실행 일정)
 
-### 🚧 미완료 작업 / Open Work Items (정직성 리스트, 2026-06-12 기준)
+### 🚧 미완료 작업 / Open Work Items (정직성 리스트, 2026-06-18 기준)
 
 **사용자 환경 의존 (코드 작업 불가, 4건)**
 - [ ] P755 창업·분사 결정 + 외부 기관 LOI 체결
@@ -74,13 +85,21 @@
 - [ ] 어드바이저리 빌보드 (CLIMB/DESCEND/TURN/EVADE/HOLD 점멸)
 - [ ] 리플레이 스크러버-멀티뷰 커서 마감 검증 · 리포트 KPI를 `gen_report` 정의와 1:1 일치 · mega_swarm 1k/5k FPS 실측 표
 
-**TRANSCENDENCE 잔여 (Phase 204-205·209-300)**
-- [ ] 204-205 production 핵심 12종 회귀 강화 + beta 부분 검증
-- [ ] 221-240 실측 격상 — WebGPU 실 WGSL·CRDT Yjs·MAVLink SITL·KMA 풍속장
+**TRANSCENDENCE 잔여 (Phase 211-300, Phase 226 완료)**
+- [ ] 211-220 production-grade API 확대 — production 12종에서 30종으로 격상
+- [ ] 221-240 실측 격상 — WebGPU 실 WGSL·CRDT Yjs·MAVLink SITL·KMA 풍속장 (226 GPS→ENU 정밀 검증 완료)
 - [ ] 241-260 다중 사용자 — WS 관제 서버·2-브라우저 협업 E2E·부하 100명
 - [ ] 261-280 HITL (사용자 HW) · 281-300 학술 임팩트 (Ablation 자동화는 sandbox 가능)
 
-**GENESIS·ODYSSEY 진척 (2026-06-12 추가 완료)**
+**GENESIS·ODYSSEY 잔여**
+- [ ] GENESIS 312-340 — CSAP 통제 확장·플러그인 SDK·시나리오 마켓·패키지 배포·영문 문서
+- [ ] GENESIS 342-380 — 지역 실증·24시간 운영·온보드 RL·V2X·GPS 거부 환경·자가 치유
+- [ ] GENESIS 382-400 — 교육 과제·강의 자산·온보딩·아카이브·Phase 400 레거시 선언
+- [ ] ODYSSEY 402-420 — FAA/EASA/ICAO 정렬·국제 벤치마크·해외 파일럿 제안
+- [ ] ODYSSEY 426-427 — 2-인스턴스 연합 E2E·인접 공역 고스트 렌더링
+- [ ] ODYSSEY 451-500 — RL 일반화·표준 기고·장기 운영·거버넌스·아카이브
+
+**GENESIS·ODYSSEY 진척 (2026-06-18 확인)**
 - [x] **GENESIS 301** ✅ 항공안전법·드론활용촉진법 적합성 매트릭스 — [`docs/certification/AIR_SAFETY_ACT_MATRIX.md`](docs/certification/AIR_SAFETY_ACT_MATRIX.md) (12 조항 매핑·격차·운영자 체크리스트)
 - [x] **GENESIS 387** ✅ 졸업 심사 발표 키트 — [`docs/presentation/DEFENSE_KIT.md`](docs/presentation/DEFENSE_KIT.md) (10분 데모 시나리오·예상 질문 18개·압박 대응·당일 체크리스트)
 - [x] **TRANSCENDENCE 204** ✅ Production 핵심 12종 회귀 강화 — `tests/e2e/test_simulator_production_core.py` (production getter 전수 + 핵심 메서드 호출 + 93 회귀 방지)
@@ -102,6 +121,11 @@
 - [x] **GENESIS 310** ✅ 야간·BVLOS 특별비행승인 — `simulation/special_flight_approval.py` + [`docs/certification/NIGHT_BVLOS_APPROVAL.md`](docs/certification/NIGHT_BVLOS_APPROVAL.md)
 - [x] **TRANSCENDENCE 209-210** ✅ API 폐기·SemVer 정책 — [`docs/API_DEPRECATION_POLICY.md`](docs/API_DEPRECATION_POLICY.md) + [`docs/API_SEMVER_POLICY.md`](docs/API_SEMVER_POLICY.md)
 - [x] **ODYSSEY 421-422** ✅ 인스턴스 디스커버리·운영 의도 교환 — `simulation/federation_discovery.py`, `simulation/operational_intent.py` + [`docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md`](docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md), [`docs/certification/OPERATIONAL_INTENT_FORMAT.md`](docs/certification/OPERATIONAL_INTENT_FORMAT.md)
+
+**GitHub 운영**
+- [ ] `main` branch protection 활성화 — 직접 push 차단 + CI·Security·Canonical Hash required checks 지정
+- [ ] 열린 PR 15건 검토·병합/종료 — 2026-06-18 확인 기준 draft 1건, 충돌 2건(PR #280·#283)
+- [ ] 저장소 루트 `LICENSE` 추가 — README의 MIT 배지 링크는 현재 대상 파일이 없어 깨진 상태
 
 **기술 부채 (정직성 공시)**
 - [ ] mock 110종 + speculative 103종 — 전체 목록·격상 난이도: [`docs/TECH_DEBT_LEDGER.md`](docs/TECH_DEBT_LEDGER.md) (자동 생성)
@@ -139,6 +163,7 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 ### 🎬 데모 자료
 | 파일 | 용량 | 다운로드 |
 |---|---|---|
+| 공개 프로젝트 소개 발표자료 (PPTX, 10장) | 57 KB | [📥 SDACS_Public_Project_Overview_2026.pptx](docs/presentation/SDACS_Public_Project_Overview_2026.pptx) |
 | 200 Phase 자동 Showcase 영상 (WebM, 60s) | 9.4 MB | [📥 sdacs_200phase_showcase.webm](docs/demo/sdacs_200phase_showcase.webm) |
 | 200 Phase 자동 시연 JS | 7.4 KB | [📥 all_phases_showcase.js](docs/demo/all_phases_showcase.js) |
 | 검색·구조 임무 샘플 (`_sdacs.importMission` 로드) | 12.5 KB | [📥 sample_search_rescue.sdacs-mission](docs/demo/sample_search_rescue.sdacs-mission) |
@@ -146,6 +171,7 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 ### 📄 논문·보고서
 | 파일 | 용량 | 다운로드 |
 |---|---|---|
+| **공개 프로젝트 설명 보고서 2026** (DOCX, 5페이지) | 42 KB | [📥 SDACS_Public_Project_Report_2026.docx](docs/report/SDACS_Public_Project_Report_2026.docx) |
 | **캡스톤 보고서 v200** (DOCX, 졸업 심사용) | 42 KB | [📥 SDACS_Capstone_Report_v200.docx](docs/report/SDACS_Capstone_Report_v200.docx) |
 | **IROS 2026 §4-§7** (PDF, 3페이지) | 132 KB | [📥 SDACS_IROS_2026_sections_4to7.pdf](docs/paper/SDACS_IROS_2026_sections_4to7.pdf) |
 | IROS LaTeX 원본 (IEEEtran 재컴파일용) | 6 KB | [📥 sections_4to7.tex](docs/paper/latex/sections_4to7.tex) |
@@ -205,6 +231,7 @@ window._sdacs.maturityReport();            // → { total, counts, byApi }
 
 | 버전 | 대상 독자 | 특징 | 용량 | 다운로드 |
 |------|----------|------|------|----------|
+| **2026 공개 설명 보고서** | 일반 대중 · 학생 · 심사위원 · 공공기관 | 최신 로컬 검증 수치, 시스템 흐름, 활용 시나리오, 현재 한계와 재현 명령 | 42 KB | [📥 SDACS_Public_Project_Report_2026.docx](docs/report/SDACS_Public_Project_Report_2026.docx) |
 | **v6 — 기술 보고서** | 개발자 · 심사위원 · 공학 전문가 | 알고리즘 수식, 아키텍처 다이어그램, 특허 분석, 성능 벤치마크 | 1.6 MB | [📥 SDACS_Final_Report_v6.docx](docs/report/SDACS_Final_Report_v6.docx) |
 | **v7 — 일반인용 보고서** | 비전공자 · 일반 청중 · 발표 대상 | 쉬운 말 설명, 한 줄 요약 박스, 용어 사전, 일상 비유 (자석·신호등·카풀앱) | 1.6 MB | [📥 SDACS_Final_Report_v7_Easy.docx](docs/report/SDACS_Final_Report_v7_Easy.docx) |
 

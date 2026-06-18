@@ -62,10 +62,7 @@ class ValidationResult:
 
     def summary(self) -> str:
         """사람이 읽는 한 줄 요약을 반환한다."""
-        if self.is_valid:
-            base = "VALID"
-        else:
-            base = f"INVALID ({len(self.errors)} error)"
+        base = "VALID" if self.is_valid else f"INVALID ({len(self.errors)} error)"
         if self.warnings:
             base += f" / {len(self.warnings)} warning"
         return base

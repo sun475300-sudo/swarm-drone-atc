@@ -13,7 +13,6 @@ from simulation.standard_scenarios import (
     BENCHMARK_SET,
     SUITE_ID,
     SUITE_VERSION,
-    BenchmarkScenario,
     all_scenarios,
     benchmark_manifest,
     get_scenario,

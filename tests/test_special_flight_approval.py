@@ -110,7 +110,7 @@ def test_missing_common_equipment_blocks_approval(field):
     equip = SafetyEquipment(**{**equip.__dict__, field: False})
     result = assess_special_flight(_full_night_plan(), equip)
     assert result.approvable is False
-    assert any("공통" == r.category and not r.satisfied for r in result.requirements)
+    assert any(r.category == "공통" and not r.satisfied for r in result.requirements)
 
 
 def test_missing_certification_or_insurance_blocks_approval():

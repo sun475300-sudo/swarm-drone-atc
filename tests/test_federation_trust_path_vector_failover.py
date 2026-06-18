@@ -21,7 +21,6 @@ from simulation.federation_trust import FederationTrustModel
 from simulation.federation_trust_path_vector import TrustPathVectorRouting
 from simulation.federation_trust_path_vector_failover import TrustPathVectorFailover
 
-
 # --- 토폴로지 픽스처 (기하 메시) -------------------------------------------
 
 

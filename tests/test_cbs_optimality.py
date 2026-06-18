@@ -10,7 +10,6 @@
 """
 from __future__ import annotations
 
-from simulation.cbs_planner.cbs import Conflict, Constraint, GridNode, cbs_plan, detect_conflict
 from simulation.cbs_optimality import (
     audit_sdacs_cbs,
     child_constraints,
@@ -21,6 +20,7 @@ from simulation.cbs_optimality import (
     reference_optimal_steps,
     vertex_branching_is_sound,
 )
+from simulation.cbs_planner.cbs import Conflict, Constraint, GridNode, cbs_plan, detect_conflict
 
 BOUNDS = {"x": [0, 6], "y": [0, 6], "z": [0, 2]}
 

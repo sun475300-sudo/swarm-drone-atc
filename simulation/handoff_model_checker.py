@@ -33,8 +33,8 @@ TLA+/TLC 가 없는 환경에서도 동작하도록, 표준 TLC 의 핵심 능�
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass, replace
-from typing import Callable, Hashable
 
 # ── 관제 권위 보유자 도메인 ──────────────────────────────────────────────
 AUTH_A = "A"  # 현재(원) 관제 인스턴스

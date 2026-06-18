@@ -45,7 +45,7 @@ class Volume4D:
         if not (self.t_end > self.t_start):
             raise ValueError("t_end는 t_start보다 커야 함")
 
-    def overlaps(self, other: "Volume4D") -> bool:
+    def overlaps(self, other: Volume4D) -> bool:
         """다른 볼륨과 4개 축(x·y·z·t) 모두에서 교차하면 True (경계 접촉은 비교차)."""
         return (
             self.x_min < other.x_max

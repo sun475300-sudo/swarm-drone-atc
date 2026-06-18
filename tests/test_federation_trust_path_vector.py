@@ -18,7 +18,6 @@ from simulation.federation_path_vector import PathVectorRouting
 from simulation.federation_trust import FederationTrustModel
 from simulation.federation_trust_path_vector import TrustPathVectorRouting
 
-
 # --- 토폴로지 픽스처 --------------------------------------------------------
 
 

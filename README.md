@@ -34,9 +34,7 @@
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
 </div>
 
-> **♾️ 최신 업데이트 (2026-06-18 · GENESIS 308·310 + TRANSCENDENCE 209·210 + ODYSSEY 422 추가 · 종합 4,489+ pass / 0 fail)** — 🎯 **신규**: GENESIS 308 보험 요율 산정 인터페이스(RESTful 4 엔드포인트·리스크 점수·항공사업법 제70조) · GENESIS 310 야간·BVLOS 특별비행승인(야간 10종·BVLOS 10종·체크리스트 40항목) · TRANSCENDENCE 209 API Deprecation Policy(6단계 성숙도 수명주기) · TRANSCENDENCE 210 SemVer 정책(CI 게이트·프리릴리스) · ODYSSEY 422 운영 의도 교환 포맷(4D 볼륨·ASTM F3548-21). GENESIS 14% · TRANSCENDENCE 10% · ODYSSEY 7% · 인증 문서 12종 (`docs/certification/`)
->
-> **이전 (2026-06-12 · API Maturity 정직성 체계 가동)** — `apiMaturity()`/`maturityReport()` 분류(production 93·beta 98·mock 110·speculative 103) · **Mock Detector**(mock 호출 시 console.warn + `mockCalls` 카운트, Phase 203) · **`experimental.*` 네임스페이스**(speculative 103종 격리, Phase 206) · **`soraAssess()`**(JARUS SORA 2.0 결정적 SAIL 산정, GENESIS 302) · **기술 부채 대장** [TECH_DEBT_LEDGER.md](docs/TECH_DEBT_LEDGER.md) 자동 생성(GENESIS 388) · CI에 문서-실측 정합성 + 4 사본 md5 게이트. 계획 체계 3층: [TRANSCENDENCE 201-300](docs/SIMULATOR_TRANSCENDENCE_PLAN.md)(8%) · [GENESIS 301-400](docs/SIMULATOR_GENESIS_PLAN.md)(12%) · [ODYSSEY 401-500](docs/SIMULATOR_ODYSSEY_PLAN.md)(6%) + [2026 H2 실행 일정](docs/MASTER_PLAN_2026H2.md)
+> **♾️ 최신 업데이트 (2026-06-12 · API Maturity 정직성 체계 가동 + TRANSCENDENCE/GENESIS/ODYSSEY 계획 체계 · 407 API 라이브 실측 · 종합 4,443 pass / 0 fail)** — 🎯 **신규**: `apiMaturity()`/`maturityReport()` 분류(production 93·beta 98·mock 110·speculative 103) · **Mock Detector**(mock 호출 시 console.warn + `mockCalls` 카운트, Phase 203) · **`experimental.*` 네임스페이스**(speculative 103종 격리, Phase 206) · **`soraAssess()`**(JARUS SORA 2.0 결정적 SAIL 산정, GENESIS 302) · **기술 부채 대장** [TECH_DEBT_LEDGER.md](docs/TECH_DEBT_LEDGER.md) 자동 생성(GENESIS 388) · CI에 문서-실측 정합성 + 4 사본 md5 게이트. 계획 체계 3층: [TRANSCENDENCE 201-300](docs/SIMULATOR_TRANSCENDENCE_PLAN.md)(8%) · [GENESIS 301-400](docs/SIMULATOR_GENESIS_PLAN.md)(2%) · [ODYSSEY 401-500](docs/SIMULATOR_ODYSSEY_PLAN.md)(수립) + [2026 H2 실행 일정](docs/MASTER_PLAN_2026H2.md)
 >
 > **이전 (200 Phase Unity)** — 🎯 **Phase 200 = SDACS = 𝟏 (Unity)** 도달 후 **Phase 51 (LLM Multi-Agent)** 가 시드에서 완전 격상되었습니다: `stellar51DelegateGroup`(드론 그룹 LLM 위임) · `stellar51Recommend`(상태 기반 결정적 권고) · `stellar51Tick`(그룹 사이클 진행) · `stellar51Groups`(위임 그룹 조회) · `stellar51Revoke`(위임 해제). 5단계 통합 — MEGA(1-10) + HYPER(11-50) + STELLAR(51-100) + ULTIMATE(101-150) + POST-UNIVERSE(151-200). Playwright E2E **263/264 통과**(1 skip), 회귀 **4,180 pass / 8 skip / 0 fail**, 종합 **4,443 pass / 9 skip / 0 fail** (2026-06-12 실측). 🌌 [HYPER](docs/SIMULATOR_HYPER_PLAN.md) · [STELLAR](docs/SIMULATOR_STELLAR_PLAN.md) · [ULTIMATE](docs/SIMULATOR_ULTIMATE_PLAN.md) · [POST-UNIVERSE](docs/SIMULATOR_POST_UNIVERSE_PLAN.md) · [API](docs/SDACS_API.md) · [Phase Matrix](docs/phase_matrix.html)
 
@@ -46,7 +44,7 @@
 
 ---
 
-## 📊 개발 진척 현황 / Development Progress (2026-06-18)
+## 📊 개발 진척 현황 / Development Progress (2026-06-12)
 
 | 트랙 | 범위 | 진척 | 핵심 산출물 |
 |---|---|---|---|
@@ -57,13 +55,13 @@
 | **D** 웹 시뮬 | P721-735 | ✅ 100% | 군집·해양 3D + Electron 3-OS + i18n + LIVE + CPA 공간해시 + 멀티뷰 + EO/IR + **ATC 명령 콘솔** |
 | **E** 확장 연구 | P736-745 | ✅ 100% | RL PoC·UAS-T·LiDAR·DR·디지털트윈·Raft HA·UAM·양자·폐쇄망·LLM |
 | **F** 산학·사업화 | P746-755 | 🟢 90% | K-UAM·해수부·산림청·KISA·라이선싱·창업 docs (P755·LOI는 사용자 환경) |
-| **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 10% | Maturity 정직성 가동 — 201-210 완료 (분류·Mock Detector·experimental·CI 게이트·Deprecation Policy·SemVer) |
-| **H** GENESIS | 시뮬 301-400 | 🟡 14% | 301·302·303·304·305·306·307·308·309·310·381·387·388·389 완료 (14/100) — 인증 9종·교육·레거시 |
-| **I** ODYSSEY | 시뮬 401-500 | 🟡 7% | 408·421·422·447·448·466·486 완료 (7/100) — ICAO 매핑·디스커버리·Operational Intent·fuzzing·property·schema·재현 |
+| **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 8% | Maturity 정직성 가동 — 201-203·206-208 완료 (분류·Mock Detector·experimental·CI 게이트) |
+| **H** GENESIS | 시뮬 301-400 | 🟡 2% | 302 `soraAssess()` + 388 부채 대장 완료 — 인증·생태계·실증·자율·레거시 |
+| **I** ODYSSEY | 시뮬 401-500 | ⬜ 계획 | 국제 확장·연합 운영·형식 검증·표준 기고·10년 지속 (2026-06-12 수립) |
 
 > 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)(실행 일정)
 
-### 🚧 미완료 작업 / Open Work Items (정직성 리스트, 2026-06-17 기준)
+### 🚧 미완료 작업 / Open Work Items (정직성 리스트, 2026-06-12 기준)
 
 **사용자 환경 의존 (코드 작업 불가, 4건)**
 - [ ] P755 창업·분사 결정 + 외부 기관 LOI 체결
@@ -96,16 +94,14 @@
 - [x] **TRANSCENDENCE 205** ✅ Beta API 부분 검증 — `tests/e2e/test_simulator_beta_subset.py` (Copilot·적대·C-UAS·WindField·PQC 인터페이스 안정·라이프사이클·분류 회귀, 5건)
 - [x] **GENESIS 304** ✅ KC 전파인증 체크리스트 — `docs/certification/KC_RADIO_CERTIFICATION.md` (7 모듈 분류·신청 흐름·자가 점검·갭 분석)
 - [x] **GENESIS 309** ✅ 조종자 자격증명 매핑 — `docs/certification/PILOT_LICENSE_MAPPING.md` (1~4종 과목·실기 항목 ↔ SDACS 모듈, 튜토리얼 5단계 정렬)
-- [x] **ODYSSEY 408** ✅ ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` (9층 ↔ Class G/E/D/B, API 격상 후보)
-- [x] **GENESIS 303** ✅ 비행계획 신고 양식 자동 생성 — [`docs/certification/FLIGHT_PLAN_FORM.md`](docs/certification/FLIGHT_PLAN_FORM.md) (드론원스톱 10필드 매핑·JSON Schema·SORA 연동)
-- [x] **GENESIS 305** ✅ DO-178C 소프트웨어 수명주기 갭 분석 — [`docs/certification/DO178C_GAP_ANALYSIS.md`](docs/certification/DO178C_GAP_ANALYSIS.md) (DAL-D 31 objectives·14 Fulfilled/13 Partial/2 Gap·격상 계획)
-- [x] **GENESIS 307** ✅ 사고 보고 양식 자동 작성 — [`docs/certification/ACCIDENT_REPORT_FORM.md`](docs/certification/ACCIDENT_REPORT_FORM.md) (항철위 ARAIB 10필드 매핑·5단계 파이프라인·72h/96h 시한)
-- [x] **ODYSSEY 421** ✅ 인스턴스 디스커버리 프로토콜 — [`docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md`](docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md) (ASTM F3548 DSS·8 메시지 유형·핸드오버·mTLS+JWT)
-- [x] **GENESIS 308** ✅ 보험 요율 산정 인터페이스 — [`docs/certification/INSURANCE_API_SPEC.md`](docs/certification/INSURANCE_API_SPEC.md) (RESTful 4 엔드포인트·리스크 점수 공식·항공사업법 제70조·3 티어 보장)
-- [x] **GENESIS 310** ✅ 야간·BVLOS 특별비행승인 검증 시나리오 — [`docs/certification/NIGHT_BVLOS_APPROVAL.md`](docs/certification/NIGHT_BVLOS_APPROVAL.md) (야간 10종·BVLOS 10종·체크리스트 40항목·항공안전법 시행규칙 제310조)
-- [x] **TRANSCENDENCE 209** ✅ API Deprecation Policy — [`docs/API_DEPRECATION_POLICY.md`](docs/API_DEPRECATION_POLICY.md) (6단계 성숙도 수명주기·production 12mo/beta 6mo 유예·긴급 보안 폐기)
-- [x] **TRANSCENDENCE 210** ✅ Semantic Versioning 정책 — [`docs/API_SEMVER_POLICY.md`](docs/API_SEMVER_POLICY.md) (SemVer 2.0.0·SDACS 성숙도 티어별 규칙·CI 게이트·프리릴리스)
-- [x] **ODYSSEY 422** ✅ 운영 의도 교환 포맷 — [`docs/certification/OPERATIONAL_INTENT_FORMAT.md`](docs/certification/OPERATIONAL_INTENT_FORMAT.md) (4D 볼륨 JSON Schema·상태 머신 5종·8 메시지 유형·ASTM F3548-21)
+- [x] **ODYSSEY 408** ✅ ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` + `simulation/airspace_class.py` (`classify_airspace()` API 격상, 결정적 산정, 25건 PASS)
+- [x] **GENESIS 303** ✅ 비행계획 신고 양식 — `simulation/flight_plan_filing.py` + [`docs/certification/FLIGHT_PLAN_FORM.md`](docs/certification/FLIGHT_PLAN_FORM.md)
+- [x] **GENESIS 305** ✅ DO-178C 갭 분석 — [`docs/certification/DO178C_GAP_ANALYSIS.md`](docs/certification/DO178C_GAP_ANALYSIS.md)
+- [x] **GENESIS 307** ✅ 사고 보고 양식 — `simulation/accident_report.py` + [`docs/certification/ACCIDENT_REPORT_FORM.md`](docs/certification/ACCIDENT_REPORT_FORM.md)
+- [x] **GENESIS 308** ✅ 보험 요율 산정 — `simulation/insurance_rate_quote.py` + [`docs/certification/INSURANCE_API_SPEC.md`](docs/certification/INSURANCE_API_SPEC.md)
+- [x] **GENESIS 310** ✅ 야간·BVLOS 특별비행승인 — `simulation/special_flight_approval.py` + [`docs/certification/NIGHT_BVLOS_APPROVAL.md`](docs/certification/NIGHT_BVLOS_APPROVAL.md)
+- [x] **TRANSCENDENCE 209-210** ✅ API 폐기·SemVer 정책 — [`docs/API_DEPRECATION_POLICY.md`](docs/API_DEPRECATION_POLICY.md) + [`docs/API_SEMVER_POLICY.md`](docs/API_SEMVER_POLICY.md)
+- [x] **ODYSSEY 421-422** ✅ 인스턴스 디스커버리·운영 의도 교환 — `simulation/federation_discovery.py`, `simulation/operational_intent.py` + [`docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md`](docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md), [`docs/certification/OPERATIONAL_INTENT_FORMAT.md`](docs/certification/OPERATIONAL_INTENT_FORMAT.md)
 
 **기술 부채 (정직성 공시)**
 - [ ] mock 110종 + speculative 103종 — 전체 목록·격상 난이도: [`docs/TECH_DEBT_LEDGER.md`](docs/TECH_DEBT_LEDGER.md) (자동 생성)
@@ -970,9 +966,72 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-18 01:14 | `7e00688` | feat(odyssey): Phase 401 EASA U-space 서비스 매핑 + 406·408 추적 정정 — 일일 점검 2026-06-17 (36차) | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/uspace_service_map.py, tests/test_uspace_service_map.py |
+| 2026-06-18 00:18 | `8580e73` | feat(odyssey): Phase 485 시나리오 포맷 버전 마이그레이션 도구 — 일일 점검 2026-06-17 (35차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/scenario_migration.py, simulation/scenario_schema.py, tests/test_scenario_migration.py |
+| 2026-06-17 23:22 | `88cf5f5` | test: 시나리오 회귀 카운트 9→10 갱신 (Phase 465 baseline 반영) | tests/test_hard_precision.py |
+| 2026-06-17 23:14 | `7ae5b95` | feat(odyssey): Phase 465 표준 벤치마크 스위트 (10종 공개) — 일일 점검 2026-06-17 (34차) | CHANGELOG.md, ROADMAP.md, config/scenario_params/nominal_baseline.yaml, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/SDACS_BENCHMARK_SUITE.md, simulation/standard_scenarios.py … |
+| 2026-06-17 21:08 | `d4bc003` | feat(odyssey): Phase 466·469 통합 + Track 🔬 445·446·449·450 추적 정정 — 일일 점검 2026-06-17 (33차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/policy_impact.py, simulation/telemetry_validator.py … |
+| 2026-06-17 19:10 | `066748f` | feat(odyssey): Phase 466 텔레메트리 스키마 검증기 완성 — 일일 점검 2026-06-17 (32차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/telemetry_validator.py, tests/test_telemetry_validator.py |
+| 2026-06-17 19:00 | `(이 커밋)` | feat(odyssey): Phase 466 텔레메트리 스키마 검증기 완성 + 31차 적체 일원화 — 일일 점검 2026-06-17 (32차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/telemetry_validator.py, tests/test_telemetry_validator.py |
+| 2026-06-17 18:08 | `668bf72` | feat(odyssey): Phase 469 정책 영향 시뮬 + Track 🔬 추적 정정 일원화 (31차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/policy_impact.py, tests/test_policy_impact.py |
+| 2026-06-17 18:30 | `(이 커밋)` | feat(odyssey): Phase 469 정책 영향 시뮬 + Track 🔬 추적 정정(445·446·449·450) 일원화 — 일일 점검 2026-06-17 (31차, 적체 드래프트 #357·#358·#359 흡수) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/policy_impact.py, tests/test_policy_impact.py |
+| 2026-06-17 15:12 | `b82ac0e` | feat(odyssey): Phase 441·442·444 통합 — 형식 검증 트랙 (적체 드래프트 PR #351·#352·#353 일원화) | CHANGELOG.md, ROADMAP.md, docs/CBS_COMPLETENESS_OPTIMALITY.md, docs/SAFETY_NET_TLA_SPEC.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/cbs_optimality.py … |
+| 2026-06-16 23:09 | `87ecf8e` | feat(odyssey): Phase 443·448 통합 — APF Lyapunov 수렴 증명 + 시뮬 코어 속성 테스트 (드래프트 PR #347·#348·#349 일원화) | CHANGELOG.md, README.md, ROADMAP.md, docs/APF_CONVERGENCE_PROOF.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/apf_lyapunov.py … |
+| 2026-06-16 23:10 | `(이 커밋)` | feat/test(odyssey): Track 🔬 Phase 443·448 통합 — APF Lyapunov 수렴 증명 + 시뮬 코어 속성 테스트(충돌감지 9 + 퍼저 6) (드래프트 PR #347·#348·#349 일원화) — 일일 점검 2026-06-16 (23차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/apf_lyapunov.py, docs/APF_CONVERGENCE_PROOF.md, tests/test_apf_lyapunov.py, tests/test_property_deconflict.py, tests/test_scenario_fuzzer_property.py |
+| 2026-06-16 18:20 | `8b7c557` | feat(odyssey): Phase 439·440 통합 — Federation Operations 트랙 421-440 완료 (중복 PR #344·#345 일원화) — 일일 점검 2026-06-16 (20차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_topology_view.py, tests/test_federation_topology_view.py, simulation/federation_trust_path_vector_failover.py, tests/test_federation_trust_path_vector_failover.py |
+| 2026-06-16 15:16 | `805da03` | feat(odyssey): Phase 438 분산 경로-벡터 장애 우회 수렴 — 일일 점검 2026-06-16 (19차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_path_vector_failover.py, tests/test_federation_path_vector_failover.py |
+| 2026-06-16 14:20 | `96231ef` | feat(odyssey): Phase 437 신뢰 인지 분산 경로-벡터 라우팅 — 일일 점검 2026-06-16 (18차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust_path_vector.py, tests/test_federation_trust_path_vector.py |
+| 2026-06-16 13:08 | `4522258` | chore(odyssey): 일일 점검 (17차) — Federation Operations 적체 통합 (Phase 433·434·435·436) | CHANGELOG.md, README.md |
+| 2026-06-16 13:00 | (통합) | chore(odyssey): 일일 점검 (17차) — Federation Operations 적체 통합 (Phase 433·434·435·436), 신규+인접 270건 PASS, PR #339·#340 superseded | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md |
+| 2026-06-16 12:14 | `d9552f5` | feat(odyssey): Phase 436 분산 경로-벡터 라우팅 — 일일 점검 (16차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_path_vector.py, tests/test_federation_path_vector.py |
+| 2026-06-16 11:13 | `b62f63b` | chore(odyssey): 일일 점검 (15차) — Federation Operations 적체 draft PR 3건 통합 (Phase 433·434·435) | CHANGELOG.md, README.md |
+| 2026-06-16 11:00 | (통합) | chore(odyssey): 일일 점검 (15차) — Federation Operations 적체 draft PR 3건 통합 (Phase 433·434·435), 신규 104건 + 인접 회귀 = 331건 PASS, PR #336·#337·#338 superseded | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust_routing.py, simulation/federation_causal_delivery.py, simulation/federation_resilient_routing.py |
+| 2026-06-16 10:15 | `3371b1f` | feat(odyssey): Phase 435 메시 복원력 라우팅 — 절단점·브리지 + 백업 경로 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_resilient_routing.py, tests/test_federation_resilient_routing.py |
+| 2026-06-16 09:15 | `3a7555e` | feat(odyssey): Phase 434 HLC 통합 인과-안정 배달 — 일일 점검 (14차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_causal_delivery.py, tests/test_federation_causal_delivery.py |
+| 2026-06-16 08:13 | `f7c1dd6` | feat(odyssey): Phase 433 신뢰 가중 메시 라우팅 — 일일 점검 (13차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust_routing.py, tests/test_federation_trust_routing.py |
+| 2026-06-16 06:08 | `6f9859f` | chore(odyssey): 일일 점검 (12차) — Federation Operations 적체 draft PR 4건 통합 (Phase 428·429·431·432) | CHANGELOG.md, README.md |
+| 2026-06-16 06:30 | (통합) | chore(odyssey): 일일 점검 (12차) — Federation Operations 적체 draft PR 4건 통합 (Phase 428·429·431·432), 신규 federation 123건 + 인접 104건 = 227건 PASS, PR #331·#332·#333·#334 superseded | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust.py, simulation/federation_audit.py, simulation/federation_hybrid_clock.py, simulation/federation_mesh.py, simulation/federation_discovery.py |
+| 2026-06-16 04:17 | `204d000` | feat(odyssey): Phase 431 하이브리드 논리 시계(HLC) — 연합 전역 인과 순서 | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_hybrid_clock.py, tests/test_federation_hybrid_clock.py |
+| 2026-06-16 03:10 | (이 커밋) | feat(odyssey): 일일 점검 (11차) — Phase 431 하이브리드 논리 시계(HLC) 신규 + Phase 428·429 통합, 어드바이저 CRITICAL 1·HIGH 1·MEDIUM 1 반영, 신규 34건 + 인접 federation 197건 PASS | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_hybrid_clock.py, tests/test_federation_hybrid_clock.py |
+| 2026-06-16 03:00 | (통합) | chore(odyssey): 일일 점검 (11차) — Phase 428 신뢰 모델 + Phase 429 연합 감사 로그 통합 | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust.py, simulation/federation_audit.py |
+| 2026-06-16 02:19 | `04a629c` | feat(odyssey): Phase 429 연합 감사 로그 — 변조 탐지 해시 체인 + 결정적 CRDT 병합 | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_audit.py, tests/test_federation_audit.py |
+| 2026-06-16 01:16 | `826686b` | feat(odyssey): Phase 428 인스턴스 간 신뢰 모델 — 일일 점검 (9차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust.py, tests/test_federation_trust.py |
+| 2026-06-16 05:17 | `61b7f22` | feat(odyssey): Phase 432 메시 연합 토폴로지 + 멀티홉 전파 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_discovery.py, simulation/federation_mesh.py, tests/test_federation_mesh.py |
+| 2026-06-15 23:13 | `64ae2d2` | refactor(odyssey): Phase 424·425·430 code-reviewer 어드바이저 HIGH 3건 반영 | CHANGELOG.md, simulation/federation_conflict_resolution.py, simulation/federation_notam.py, simulation/federation_split_brain.py |
+| 2026-06-15 23:11 | `1f369e8` | chore(odyssey): 일일 점검 (8차) — Federation Operations 3건 통합 (Phase 424·425·430) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_conflict_resolution.py, simulation/federation_notam.py … |
+| 2026-06-15 22:30 | (통합) | chore: 일일 점검 (8차) — ODYSSEY Federation Operations 3건 통합 (Phase 424 충돌 해소·425 NOTAM 전파·430 split-brain 안전 강하), 신규 50건 + 인접 회귀 104건 PASS | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_conflict_resolution.py, simulation/federation_notam.py, simulation/federation_split_brain.py, tests/test_federation_conflict_resolution.py, tests/test_federation_notam.py, tests/test_federation_split_brain.py |
+| 2026-06-15 18:24 | `d61c96b` | fix(ci): maturity 배지 실측 counts(prod 93) 재생성 — #281 stale 배지 드리프트 해소 | docs/badges/maturity.svg |
+| 2026-06-15 18:18 | `9e6808f` | Merge remote-tracking branch 'origin/claude/fervent-babbage-oaig71' into claude/fervent-babbage-xcoksz | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_GENESIS_PLAN.md, src/applications/mokpo_harbor.py, tests/track_e/test_mokpo_harbor.py |
+| 2026-06-15 15:16 | `cdbbc92` | docs: 일일 점검 2026-06-15 (5차) — 신규 PR 3건 통합 검증 + 중복 PR triage 변경 이력 | CHANGELOG.md, README.md |
+| 2026-06-15 15:30 | (이 커밋) | chore: 일일 점검 2026-06-15 (5차) — 신규 PR 3건 통합 (Phase 308·423·286·226·209-210·447, 로컬 4,456 pass) + 중복 PR triage | CHANGELOG.md, README.md |
+| 2026-06-15 14:19 | `ab6618d` | refactor(genesis): Phase 308 code-reviewer 어드바이저 반영 | CHANGELOG.md, ROADMAP.md, simulation/insurance_rate_quote.py, tests/test_insurance_rate_quote.py |
+| 2026-06-15 14:15 | `0e04a31` | feat(genesis): Phase 308 배상책임보험 요율 산정 API (Phase 67 mock 격상) | CHANGELOG.md, ROADMAP.md, simulation/insurance_rate_quote.py, tests/test_insurance_rate_quote.py |
+| 2026-06-15 13:15 | `7f16311` | style: scenario_fuzzer main() 임포트 정렬 (ruff I001 CI fix) | simulation/scenario_fuzzer.py |
+| 2026-06-15 13:12 | `8dae438` | feat(odyssey): Phase 447 적대적 시나리오 퍼저 — 시드 기반 결정적 변이 생성기 | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/scenario_fuzzer.py, tests/test_scenario_fuzzer.py |
+| 2026-06-15 12:12 | `791e611` | chore: 일일 점검 2026-06-15 (4차) — 적체 PR 4건 통합 (Phase 423·286·226·209-210) | CHANGELOG.md, README.md |
+| 2026-06-15 16:11 | `9e1f9bf` | feat(genesis): Phase 311 KISA CSAP 클라우드 보안인증 자가진단 자동화 | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, simulation/csap_self_assessment.py, tests/test_csap_self_assessment.py |
+| 2026-06-15 17:10 | `bce5079` | feat(genesis): Phase 341 목포 해역 실 좌표계 임포트 — 해도 기반 NFZ·회랑 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_GENESIS_PLAN.md, src/applications/mokpo_harbor.py, tests/track_e/test_mokpo_harbor.py |
+| 2026-06-15 09:12 | `567e4a6` | docs: 일일 점검 2026-06-15 (2차) — 적체 PR 9건 통합 변경 이력 | CHANGELOG.md |
+| 2026-06-15 05:10 | `c9923b1` | feat: 일일 점검 2026-06-15 — 적체 PR 5건 무충돌 통합 (Phase 322·342·367·401·406·449) | CHANGELOG.md, ROADMAP.md, docs/schemas/sdacs-scenario.schema.json, simulation/geo_zones.py, simulation/scenario_schema.py, src/applications/jeonnam_island_sites.py … |
+| 2026-06-15 08:07 | `ed3f334` | feat(genesis): Phase 310 야간·비가시 특별비행승인 안전기준 검증 | docs/SIMULATOR_GENESIS_PLAN.md, simulation/special_flight_approval.py, tests/test_special_flight_approval.py |
+| 2026-06-15 06:11 | `ddf58ea` | feat(genesis): Phase 309 조종자 자격(1~4종) ↔ 시뮬 교육 모드 매핑 | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/PILOT_LICENSE_MAPPING.md, simulation/pilot_certification.py, tests/test_pilot_certification.py |
+| 2026-06-15 07:09 | `a5f4d9d` | feat(odyssey): Phase 408 공역 클래스 A-G 자동 매핑 API 격상 | README.md, ROADMAP.md, docs/certification/AIRSPACE_CLASS_MAPPING.md, simulation/airspace_class.py, tests/test_airspace_class.py |
+| 2026-06-15 10:10 | `971c847` | feat(odyssey): Phase 423 지역 간 관제권 핸드오버 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_discovery.py, simulation/federation_handover.py, tests/test_federation_handover.py |
+| 2026-06-14 09:15 | `072bccd` | feat(odyssey): Phase 422 운영 의도 4D 볼륨 교환 포맷 | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/operational_intent.py, tests/test_operational_intent.py |
+| 2026-06-13 18:10 | `532e0eb` | docs: TRANSCENDENCE Phase 209·210 — API Deprecation Policy + SemVer 규약 | CHANGELOG.md, ROADMAP.md, docs/API_DEPRECATION_POLICY.md, docs/MASTER_PLAN_2026H2.md, docs/SIMULATOR_TRANSCENDENCE_PLAN.md |
+| 2026-06-15 03:17 | `dd022bb` | docs: 일일 점검 2026-06-14 — 머지 병목 triage + Phase 421·307·467 통합 | ROADMAP.md |
+| 2026-06-15 00:10 | `cdcb7b5` | feat(odyssey): Phase 421 인스턴스 간 디스커버리 프로토콜 (DSS 유사 결정적 모델) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_discovery.py, tests/test_federation_discovery.py |
+| 2026-06-14 23:08 | `71eeef2` | feat(genesis): Phase 307 사고 보고 양식 자동 작성 (ARAIB 표준) | docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/ACCIDENT_REPORT.md, simulation/accident_report.py, tests/test_accident_report.py |
+| 2026-06-14 22:12 | `0064488` | feat(odyssey): Phase 467 사고 조사 데이터 표준 변환기 (ICAO Annex 13) | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/INCIDENT_INVESTIGATION_REPORT.md, simulation/incident_investigation_report.py, tests/test_incident_investigation_report.py |
+| 2026-06-14 21:15 | `f3e7852` | feat(genesis): Phase 304 KC 전파인증 요건 체크리스트 (통신 모듈별 적합성평가) | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/KC_RADIO_CERTIFICATION.md, simulation/kc_certification.py, tests/test_kc_certification.py |
+| 2026-06-14 12:18 | `0f956b9` | feat(genesis): Phase 303 비행계획 신고 양식 자동 생성 (Drone One-Stop) | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/FLIGHT_PLAN_FILING.md, simulation/flight_plan_filing.py, tests/test_flight_plan_filing.py |
+| 2026-06-14 07:15 | `be54397` | fix(digital-twin): TRANSCENDENCE 226 — GPS→ENU 변환 WGS84 엄밀해로 격상 | docs/SIMULATOR_TRANSCENDENCE_PLAN.md, src/digital_twin/sync_engine.py, tests/track_e/test_digital_twin.py |
+| 2026-06-13 22:12 | `50002f2` | feat(transcendence): Phase 286 안전망 Ablation 자동화 | CHANGELOG.md, ROADMAP.md, results/ablation/ablation_report.md, results/ablation/ablation_results.json, scripts/ablation_study.py, simulation/simulator.py … |
 | 2026-06-13 11:01 | `5b26e79` | fix(ci): sim-smoke.yml에 hypothesis 추가 + TRANSCENDENCE 205·GENESIS 304·309·ODYSSEY 408 진척 | .github/workflows/sim-smoke.yml, README.md, ROADMAP.md, docs/certification/AIRSPACE_CLASS_MAPPING.md, docs/certification/KC_RADIO_CERTIFICATION.md, docs/certification/PILOT_LICENSE_MAPPING.md … |
 | 2026-06-13 10:55 | `b342a9e` | feat(plans): GENESIS 306·381·389 + ODYSSEY 447·486 + 시뮬레이터 tutorial API | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |
 | 2026-06-13 10:34 | `74370fd` | feat(plans): GENESIS 301·387 + TRANSCENDENCE 204 + ODYSSEY 448·466 일괄 진척 | README.md, ROADMAP.md, docs/certification/AIR_SAFETY_ACT_MATRIX.md, docs/presentation/DEFENSE_KIT.md, docs/schemas/telemetry.schema.json, tests/e2e/test_simulator_production_core.py … |
+| 2026-06-13 10:24 | `5f3a897` | test(e2e): C9 해양 검증 기록 플레이크 강화 — .validation 비어있지 않을 때까지 폴링 | tests/e2e/smoke_maritime.mjs |
+| 2026-06-13 10:19 | `ea43f25` | fix(transcendence): Phase 207 maturity 배지 자동 생성·드리프트 해소 | CHANGELOG.md, ROADMAP.md, docs/badges/maturity.svg, scripts/extract_sdacs_api.py, tests/test_maturity_badge.py |
 | 2026-06-13 02:12 | `ad001db` | feat(genesis): Phase 302 soraAssess + 388 부채 대장 + ODYSSEY Plan(401-500) + README 현행화·미완료 리스트 | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |
 | 2026-06-13 01:55 | `283fd1a` | feat(transcendence): Phase 203 Mock Detector + Phase 206 experimental 네임스페이스 + CI 정합성 게이트 | .github/workflows/sim-smoke.yml, README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md … |
 | 2026-06-13 01:42 | `8765ba4` | docs(genesis): Phase 301-400 GENESIS Plan 신규 수립 + 로드맵 Track H 편입 | README.md, ROADMAP.md, VERSION.md, docs/INDEX.md, docs/MASTER_PLAN_2026H2.md, docs/SIMULATOR_GENESIS_PLAN.md … |

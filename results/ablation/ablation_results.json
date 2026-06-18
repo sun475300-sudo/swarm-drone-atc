@@ -1,0 +1,107 @@
+{
+  "meta": {
+    "seeds": 2,
+    "drones": 25,
+    "duration_s": 90.0
+  },
+  "runs": [
+    {
+      "ablation": "baseline",
+      "seed": 0,
+      "collision_count": 0,
+      "near_miss_count": 1,
+      "conflicts_total": 21,
+      "conflict_resolution_rate_pct": 100.0
+    },
+    {
+      "ablation": "baseline",
+      "seed": 1,
+      "collision_count": 2,
+      "near_miss_count": 4,
+      "conflicts_total": 55,
+      "conflict_resolution_rate_pct": 96.49122807017544
+    },
+    {
+      "ablation": "no_apf",
+      "seed": 0,
+      "collision_count": 1,
+      "near_miss_count": 1,
+      "conflicts_total": 21,
+      "conflict_resolution_rate_pct": 95.45454545454545
+    },
+    {
+      "ablation": "no_apf",
+      "seed": 1,
+      "collision_count": 4,
+      "near_miss_count": 2,
+      "conflicts_total": 58,
+      "conflict_resolution_rate_pct": 93.5483870967742
+    },
+    {
+      "ablation": "no_cbs",
+      "seed": 0,
+      "collision_count": 0,
+      "near_miss_count": 1,
+      "conflicts_total": 21,
+      "conflict_resolution_rate_pct": 100.0
+    },
+    {
+      "ablation": "no_cbs",
+      "seed": 1,
+      "collision_count": 2,
+      "near_miss_count": 4,
+      "conflicts_total": 55,
+      "conflict_resolution_rate_pct": 96.49122807017544
+    },
+    {
+      "ablation": "no_apf_no_cbs",
+      "seed": 0,
+      "collision_count": 1,
+      "near_miss_count": 1,
+      "conflicts_total": 21,
+      "conflict_resolution_rate_pct": 95.45454545454545
+    },
+    {
+      "ablation": "no_apf_no_cbs",
+      "seed": 1,
+      "collision_count": 4,
+      "near_miss_count": 2,
+      "conflicts_total": 58,
+      "conflict_resolution_rate_pct": 93.5483870967742
+    }
+  ],
+  "summaries": [
+    {
+      "ablation": "baseline",
+      "n_runs": 2,
+      "collision_count_mean": 1.0,
+      "near_miss_count_mean": 2.5,
+      "conflicts_total_mean": 38.0,
+      "resolution_rate_mean": 98.24561403508773
+    },
+    {
+      "ablation": "no_apf",
+      "n_runs": 2,
+      "collision_count_mean": 2.5,
+      "near_miss_count_mean": 1.5,
+      "conflicts_total_mean": 39.5,
+      "resolution_rate_mean": 94.50146627565982
+    },
+    {
+      "ablation": "no_cbs",
+      "n_runs": 2,
+      "collision_count_mean": 1.0,
+      "near_miss_count_mean": 2.5,
+      "conflicts_total_mean": 38.0,
+      "resolution_rate_mean": 98.24561403508773
+    },
+    {
+      "ablation": "no_apf_no_cbs",
+      "n_runs": 2,
+      "collision_count_mean": 2.5,
+      "near_miss_count_mean": 1.5,
+      "conflicts_total_mean": 39.5,
+      "resolution_rate_mean": 94.50146627565982
+    }
+  ]
+}

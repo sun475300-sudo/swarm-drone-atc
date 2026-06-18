@@ -175,6 +175,11 @@ class SwarmSimulator:
         self._comms_loss_rate: float = float(fi.get("comms_loss_rate", 0.0))
         self._failure_types_pool = [FailureType.MOTOR_FAILURE, FailureType.BATTERY_CRITICAL, FailureType.GPS_LOSS]
 
+        # Ablation 토글 (Phase 286): 안전망 계층을 선택적으로 비활성화.
+        # 미설정 시 모든 계층 활성 — 기존 동작과 완전 동일.
+        abl = self.cfg.get("ablation", {})
+        self._ablate_apf: bool = bool(abl.get("disable_apf", False))
+
         # 드론 관리
         self._drones: dict[str, DroneState] = {}
         self._n_drones = int(self.cfg.get("drones", {}).get("default_count", 30))
@@ -366,6 +371,10 @@ class SwarmSimulator:
         nfz_centers = [n["center"] for n in self.NFZ]
         while True:
             yield self.env.timeout(dt)
+            # Ablation: APF 계층 비활성 시 회피 힘을 계산하지 않음
+            if self._ablate_apf:
+                self.apf_forces = {}
+                continue
             # L-3: RTL 드론도 APF 회피 대상에 포함
             evading = [
                 d

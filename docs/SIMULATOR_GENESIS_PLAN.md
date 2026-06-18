@@ -33,15 +33,16 @@
 
 - **Phase 301** 항공안전법·드론활용촉진법 적합성 매트릭스 — 조항 ↔ SDACS 기능 매핑 문서
 - **Phase 302** ✅ SORA 자동 계산기 — `_sdacs.soraAssess()` (JARUS 2.0 iGRC/완화/ARC→SAIL 결정적 구현, production 등급, E2E 6건) (2026-06-12)
-- **Phase 303** ✅ 비행계획 신고 양식 자동 생성 — `docs/certification/FLIGHT_PLAN_FORM.md` (드론원스톱 10필드 매핑·JSON Schema·SORA 연동) (2026-06-17)
-- **Phase 304** KC 전파인증 요건 체크리스트 (통신 모듈별)
-- **Phase 305** ✅ DO-178C/ED-12C 소프트웨어 수명주기 갭 분석 — `docs/certification/DO178C_GAP_ANALYSIS.md` (DAL-D 31 objectives·14 Fulfilled/13 Partial/2 Gap·격상 계획) (2026-06-17)
+- **Phase 303** ✅ 비행계획 신고 양식 자동 생성 — `simulation/flight_plan_filing.py` + `docs/certification/FLIGHT_PLAN_FORM.md` (Drone One-Stop 비행승인 신청서 결정적 생성·승인필요 판정·JSON/텍스트 export, 18건 PASS) (2026-06-18)
+- **Phase 304** ✅ KC 전파인증 요건 체크리스트 — `simulation/kc_certification.py` (전파법 §58-2 적합성평가 결정적 분류: 셀룰러→적합인증·비면허 특정소출력→적합등록·면허대역/한도초과→적합인증, 모듈별 집계 + 유형별 제출서류 + JSON/텍스트 export, 23건 PASS) (2026-06-14)
+- **Phase 305** ✅ DO-178C/ED-12C 소프트웨어 수명주기 갭 분석 — `docs/certification/DO178C_GAP_ANALYSIS.md` (DAL-D 목표·추적성·격상 로드맵) (2026-06-18)
 - **Phase 306** 요구사항 추적 매트릭스(RTM) 자동 생성 격상 — `scripts/generate_rtm.py` → 5계층 안전망 커버리지
-- **Phase 307** ✅ 사고 보고 양식 (항철위 표준) 자동 작성 — `docs/certification/ACCIDENT_REPORT_FORM.md` (ARAIB 10필드 매핑·5단계 파이프라인·72h/96h 시한) (2026-06-17)
-- **Phase 308** ✅ 보험 요율 산정 인터페이스 — `docs/certification/INSURANCE_API_SPEC.md` (RESTful 4 엔드포인트·리스크 점수 공식·항공사업법 제70조 매핑·3 티어 보장) (2026-06-18)
-- **Phase 309** 조종자 자격(1~4종) 요건 ↔ 시뮬 교육 모드 매핑
-- **Phase 310** ✅ 야간·비가시권(BVLOS) 특별비행승인 검증 시나리오 — `docs/certification/NIGHT_BVLOS_APPROVAL.md` (야간 10종·BVLOS 10종·체크리스트 40항목·항공안전법 시행규칙 제310조) (2026-06-18)
-- **Phase 311-315** KISA CSAP 96항목 자가진단 자동화 (`security_audit.sh` 확장)
+- **Phase 307** ✅ 사고 보고 양식 (항철위 표준) 자동 작성 — `simulation/accident_report.py` + `docs/certification/ACCIDENT_REPORT_FORM.md` (ARAIB 사고/준사고/안전장애 결정적 분류·시뮬 로그 변환·안전권고 자동 생성·JSON/텍스트 export, 19건 PASS) (2026-06-18)
+- **Phase 308** ✅ 보험 요율 산정 인터페이스 — `simulation/insurance_rate_quote.py` + `docs/certification/INSURANCE_API_SPEC.md` (항공사업법 §70 스펙·결정적 요율 산정, 33건 PASS) (2026-06-18)
+- **Phase 309** ✅ 조종자 자격(1~4종) 요건 ↔ 시뮬 교육 모드 매핑 — `simulation/pilot_certification.py` (MTOW 기준 종별 결정적 분류·종별 교육/시험 요건·조종자 준비도 판정·JSON/텍스트 export, 24건 PASS / 문서 `PILOT_LICENSE_MAPPING.md` §6 격상) (2026-06-15)
+- **Phase 310** ✅ 야간·비가시 특별비행승인 안전기준 검증 — `simulation/special_flight_approval.py` + `docs/certification/NIGHT_BVLOS_APPROVAL.md` (특별비행 안전기준 고시 기준 공통·야간·비가시 항목별 결정적 적합 판정·승인 가능 판정·JSON/텍스트 export, 25건 PASS) (2026-06-18)
+- **Phase 311** ✅ KISA CSAP 자가진단 자동화 — `simulation/csap_self_assessment.py` (CSAP 정보보호 기준 14개 통제분야 정렬·이행 상태 4종 결정적 점수화·영역별 이행률·종합 준비도 판정·JSON/텍스트 export, 20건 PASS) (2026-06-15)
+- **Phase 312-315** KISA CSAP 통제항목 카탈로그 확장 (`security_audit.sh` 연계 자동 수집)
 - **Phase 316-320** UAM 운용기준(K-UAM 로드맵 2.0) 정렬 + 감항 인증 준비 문서
 
 **산출물**: `docs/certification/` 디렉터리 + `_sdacs.soraAssess()` production API
@@ -69,7 +70,7 @@
 
 *목포·전남 실증. 기존 자산: `docs/track_f/p747_marine.md`(해수부)·`p748_forest.md`(산림청), `src/applications/`(농업 방제·의료 배송), helm 차트*
 
-- **Phase 341** 목포 해역 실 좌표계 임포트 — 해도 기반 NFZ·회랑 실측 배치
+- **Phase 341** ✅ 목포 해역 실 좌표계 임포트 — `src/applications/mokpo_harbor.py` (해도 기반 NFZ 4종·회랑 3종 결정적 배치 + 레이 캐스팅 NFZ 판정·회랑 충돌 검사·요약, 8건 PASS) (2026-06-15)
 - **Phase 342** 전남 도서지역(신안·완도) 의료 배송 경로 DB — `medical_delivery.py` 실 거점 적용
 - **Phase 343** 실 기상 연동 운영 모드 — KMA API 실시간 풍속장 (TRANSCENDENCE 227 연계)
 - **Phase 344** 지자체 관제 대시보드 화이트라벨 — 로고·권한·지역 설정 패키지

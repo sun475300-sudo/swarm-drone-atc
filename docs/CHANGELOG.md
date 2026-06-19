@@ -1,5 +1,26 @@
 # SDACS Changelog
 
+## 2026-06-19 — ODYSSEY Continuum Phase 486 신규 + 드래프트 #388 일원화 (일일 점검 49차)
+
+신규 컨테이너에서 의존성 신규 설치 후 적체 드래프트 #388(Phase 484·487·490,
+#386·#387 흡수)을 통합하고 전체 회귀 **5,840 pass / 280 skip / 0 fail**
+(177.83s, 84.98% cov) 독립 재현 GREEN. 이어 Continuum 비브라우저 잔여 1칸 신규:
+
+- **Phase 486** ✅ 연 1회 건전성 리허설 자동화 — `simulation/rehearsal_cadence.py` +
+  `docs/standards/HEALTH_REHEARSAL_CADENCE_POLICY.md`. 신규 컨테이너 독립 재현
+  하니스(`scripts/independent_reproduction.sh`)가 *언제 다시 필요한가*(연 1회
+  365일 + 예고 30일 + 유예 30일)와 *온전한가*(4개 하니스 자산 실재)를 결정적
+  정책으로 판정(Phase 481/484/488/489 자매편, 부수효과 0). `assess` 우선순위:
+  하니스 손상→REVIEW·기록 없음→RUN_NOW·미래→REVIEW·비-PASS→RUN_NOW·그 외
+  케이던스 등급. `LAST_REHEARSAL` 스냅샷(2026-06-19=PASS) → `WITHIN_CADENCE`
+  정직 공시. code-reviewer HIGH 2·MEDIUM 2·LOW 2 반영. 41건 PASS.
+- 통합 시 발견한 문서 불일치 정정 — ODYSSEY 플랜에서 모듈 실재에도 미표시였던
+  Phase 487·490 을 ✅ 로 동기화.
+
+점검 발견(사용자 검토): 열린 PR 18건 적체 지속(Dependabot 13 + #283 perf +
+#280 draft Phase 207 + 일원화 대상 #386·#387·#388) · GitHub 보고 취약점 4건
+(2 high·2 low) 미해소 — 머지·triage 는 사용자 승인 필요.
+
 ## 2026-06-19 — ODYSSEY Continuum 3칸 일원화 (일일 점검 48차)
 
 신규 컨테이너 baseline 회귀 **5,747 pass / 280 skip / 0 fail**(84.92% cov) 독립

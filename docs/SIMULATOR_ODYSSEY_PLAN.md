@@ -85,7 +85,7 @@
 *사용자에서 기여자로. 기존 자산: K-UTM 모듈, GENESIS 인증 트랙, IROS 논문*
 
 - **Phase 461** ASTM F38 위원회 기고 초안 — 군집 관제 시험 방법 제안
-- **Phase 462** ISO/TC 20/SC 16 (UAS) 표준 동향 추적 매트릭스
+- **Phase 462** ✅ ISO/TC 20/SC 16 (UAS) 표준 동향 추적 매트릭스 (2026-06-19, `simulation/iso_tc20_sc16_tracker.py` — ISO/TC 20/SC 16(*Unmanned aircraft systems*)이 발행·개발 중인 *외부* UAS 국제 표준 9종(21384-1/-2/-3/-4·23629-5/-7/-8/-9/-12)의 현황을 결정적으로 추적하고 표준별 SDACS 정렬을 표면화. Phase 407(`icao_utm_conformance`)이 ICAO 단일 조화 문서 역량 자가 평가, Phase 470(`standardization_tracker`)이 SDACS 가 *발신하는* 기고 추적인 반면 본 모듈은 *외부 ISO 표준 문서 자체* 발행 동향을 추적. `IsoStandard` frozen dataclass(series 온전 접두 강제·`alignment` `none` ⟺ `sdacs_module is None` 정직성 결속·발행 표준 `:YYYY` 강제), `TrackerReport`(`by_series` MappingProxyType 읽기 전용·단계/정렬 합 교차검증). 인용 6개 모듈 디스크 실재 강제. 정렬 점수 44%(정렬 2·부분 4·미정렬 3)·발행 78%(7/9). 조회 API `find_standard`·`standards_by_series`·`standards_by_stage`·`published_standards`·`gaps`·`tracking_matrix`. 무작위성 0·기존 모듈 무수정 순수 추가. CLI(`--matrix`·`--report`·`--series`·`--published`·`--gaps`). 경쟁 구현 4건(#376·#379·#380·#381) 중 #379 채택(close 권고: #376·#380·#381). code-reviewer 어드바이저 HIGH 2·MEDIUM 1·LOW 2 반영. 단위 59건 PASS)
 - **Phase 463** K-드론 시스템 고도화 정책 제안서 (국토부 제출 형식)
 - **Phase 464** 군집 비행 안전 기준 백서 — 5계층 안전망 사례 연구
 - **Phase 465** ✅ 공역 통합 시뮬레이션 표준 시나리오 셋 제안 (10종 공개) (2026-06-17, `simulation/standard_scenarios.py` + `config/scenario_params/nominal_baseline.yaml` + `docs/standards/SDACS_BENCHMARK_SUITE.md` — 도구 간 교차 벤치마크용 **공개 표준 스위트** `SDACS-SBS-10` 큐레이션. Phase 405(BlueSky·U-TRAFMAN 비교)·410(GUTMA 기고)이 전제하는 "같은 10개 시나리오를 같은 정의로 돌려 비교한다" 는 공통 기준선 제공. 핵심 설계: 시나리오 *정의* 는 기존 `config/scenario_params/*.yaml` 이 유일 출처(SSoT)이며 본 모듈은 정의를 복제하지 않고 통제 축(axis)·범주·표제 KPI 메타데이터만 덧붙여 YAML 을 가리킨다(`BenchmarkScenario` frozen dataclass). 10개 항목 B01..B10 은 서로 다른 운용 차원 하나씩을 통제(밀도·장애·이륙 서지·경로 충돌·통신 두절·기상·침입·다지역·자율 편대·공칭 기준선) — 통제 축 상호 배타. 검증되는 핵심 9종(s01-s09)에 더해 다른 9종 지표를 정규화하는 *대조(control)* 케이스인 신규 10번째 `nominal_baseline.yaml`(s10 공칭 저밀도) 추가. `validate_suite()` 가 10종 전부 `scenario_schema.validate_scenario` 계약 충족(러너 호환)을 결정적 재검증, `benchmark_manifest()` 가 도구 간 교환용 JSON 매니페스트 생성. 무작위성 0·기존 모듈 무수정 순수 추가. CLI(`--list`·`--validate`·`--manifest`). 단위 17건 PASS)
@@ -100,7 +100,7 @@
 
 *졸업 후 10년. 기존 자산: GENESIS 🎓 레거시 트랙, 재현성 패키지*
 
-- **Phase 481** 의존성 자동 갱신 파이프라인 — Dependabot + 회귀 게이트 자동 머지 정책
+- **Phase 481** ✅ 의존성 자동 갱신 회귀 게이트 정책 (2026-06-19, `simulation/dependency_gate.py` + `docs/standards/DEPENDENCY_AUTOMERGE_POLICY.md` — Continuum 트랙 첫 칸. 리포 적체 Dependabot 갱신 PR(pip·npm·github-actions)을 "회귀 통과 시 자동 머지 vs 사람 리뷰 vs 차단"으로 가르는 판단을 **결정적 정책**으로 명문화. `SemVer`(정규식 파싱·선행 0/불완전 하이픈 거부 → UNKNOWN)·`classify_bump`·`RegressionGate`(게이트 GREEN = 자동 머지 필요조건)·`evaluate`(8단계 우선순위: 게이트 RED·다운그레이드 → BLOCK, UNKNOWN/NONE/커버리지 미달 → REVIEW, PATCH 전분류·MINOR dev/ci → AUTO_MERGE, MAJOR·runtime MINOR → REVIEW). **자문이지 집행 아님**(부수효과 0). `POLICY_MATRIX` 9칸을 테스트가 `evaluate` 와 정확 일치 강제. 무작위성 0·기존 모듈 무수정 순수 추가. CLI(`--policy`·`--demo`·`--manifest`). code-reviewer 어드바이저 HIGH 2·MEDIUM 4·LOW 3 반영. 단위 44건 PASS)
 - **Phase 482** 브라우저 API 폐기 감시 — WebGPU/WebXR 스펙 변경 카나리 테스트
 - **Phase 483** Three.js 메이저 업그레이드 리허설 (r162 → 최신) + 호환 셰임
 - **Phase 484** Electron LTS 추적 정책 (현 32→39 교훈 문서화)

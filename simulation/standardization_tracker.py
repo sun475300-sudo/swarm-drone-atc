@@ -110,7 +110,7 @@ REGISTRY: tuple[Contribution, ...] = (
     ),
     Contribution(
         "STD-05", "ISO/TC 20/SC 16", "UAS 표준 동향 추적 매트릭스",
-        "ODYSSEY-462", "PLANNED", None,
+        "ODYSSEY-462", "DRAFTING", "simulation/iso_uas_standards_matrix.py",
     ),
     Contribution(
         "STD-06", "국토부 (K-드론)", "K-드론 시스템 고도화 정책 제안서",

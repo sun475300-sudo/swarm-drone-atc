@@ -5,6 +5,17 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test) — 일일 점검 2026-06-19 (41차): 적체 드래프트 PR 7건 일원화 — ODYSSEY Phase 402·403·407·409·470 통합
+
+- **작업 상황 점검 — 머지 병목 누적 해소**: 36차(PR #366, `6c525d2`) 머지 후 `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 확인. 그러나 37–40차 병행 점검이 동일 클린 베이스 위에 **draft PR 7건(#368·#369·#370·#371·#372·#373·#374)** 을 적체 — 36차 이후 main 에 머지된 일일 점검 없음. 각 PR 은 *서로 다른 신규 `simulation/*.py` + `tests/test_*.py` 만 추가*(코드 비경쟁)하고 오직 `CHANGELOG`/`README`/`ROADMAP`/`SIMULATOR_ODYSSEY_PLAN` append 라인에서만 상호 충돌 → 순차 머지 불가. **중복 2쌍 발견**: #368(`faa_uss_roles.py`)·#369(`faa_utm_conops.py`)가 동일 **Phase 402**(FAA UTM USS 역할 갭) 경쟁 구현, #373·#374 가 동일 **Phase 409**(BVLOS 비교) 경쟁 구현. 기존 "일원화" 패턴대로 각 중복쌍에서 더 포괄적인 구현을 채택(#368·#373)하고 고유 Phase 5종을 본 브랜치로 통합해 단일 PR 로 머지, 흡수된 #369·#374 와 통합된 #368·#370·#371·#372·#373 은 머지 후 close 권고.
+- **Phase 402** (Track 🌏, #368 흡수) — `simulation/faa_uss_roles.py` FAA UTM ConOps v2.0 USS 역할 17종 ↔ SDACS 적합성 매트릭스. 핵심 USS Network 역할 7/7·전체 15/17(88%), 갭(운영자 자격 검증·공공안전 데이터)을 `None` 으로 정직 표면화(`test_cited_modules_exist_on_disk` 디스크 실재 강제). `ConformanceReport` frozen 불변식·`MappingProxyType` 읽기 전용 행. 단위 **46건 PASS**.
+- **Phase 403** (Track 🌏, #371 흡수) — `simulation/sora_category.py` + `docs/certification/EU_OPERATIONAL_CATEGORY.md` EASA EU 2019/947 운영 카테고리(Open A1/A2/A3·Specific·Certified) 결정적 판정. `SORA_IGRC`/`SORA_SAIL_TABLE` 은 `swarm_3d_simulator.html` JS 와 동일 복제(수치 불일치 금지). 단위 **51건 PASS**.
+- **Phase 407** (Track 🌏, #372 흡수) — `simulation/icao_utm_conformance.py` ICAO UTM Framework Ed.4 운영자 여정 10단계 축 자가 평가. 3값 status(`conformant`/`partial`/`gap`)·정직성 결속(`gap ⟺ sdacs_module is None`) 강제, 가중 점수 83%·핵심 12/14. 단위 **56건 PASS**.
+- **Phase 409** (Track 🌏, #373 흡수) — `simulation/bvlos_regulation_compare.py` + `docs/standards/BVLOS_REGULATION_COMPARISON.md` 한·미·EU·일 BVLOS 규제를 6개 비교 축으로 대조. 각 요건 권위 출처 인용(항공안전법 §129·14 CFR 107/108·EU 2019/947·改正航空法 Level 4)·`as_of` 스냅샷. 지원 3/4(일본 갭). 단위 **40건 PASS**.
+- **Phase 470** (Track 🏛, #370 흡수) — `simulation/standardization_tracker.py` 표준화 기고 단일 SSoT 추적. 단조 상태 모델(PLANNED→ADOPTED)·`progress()` 22.5%·`validate_registry` 가 PUBLISHED 산출물 디스크 실재 강제. 단위 **31건 PASS**.
+- **어드바이저**: 5개 모듈 모두 원 작성 세션에서 code-reviewer 어드바이저 반영분 포함(각 ODYSSEY PLAN 항목에 HIGH/MEDIUM/LOW 반영 내역 기재). 본 일원화는 채택 구현의 산출물을 무수정 통합.
+- **검증**: 통합 5개 수트 합산 `pytest tests/test_faa_uss_roles.py tests/test_sora_category.py tests/test_icao_utm_conformance.py tests/test_bvlos_regulation_compare.py tests/test_standardization_tracker.py` **224건 PASS**(46+51+56+40+31). 대상 기존 `.py` 무수정 순수 추가 → 회귀 무영향. 본 컨테이너 최소 의존성(pytest·numpy·pyyaml·jsonschema) 설치 → 전체 수트는 CI 수집.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-17 (36차): ODYSSEY Track 🌏 Phase 401 EASA U-space 서비스 매핑 + 406·408 추적 정정
 
 - **작업 상황 점검**: 35차(PR #365, `7940543`) 머지 후 브랜치 클린 베이스 확인. 로드맵 미구현부 탐색 중 Track 🌏 International Standards(401-420)에서 **406(좌표계·UTM zone)·408(공역 클래스 A-G) 두 phase 가 이미 코드·테스트·문서로 적재 완료(각 39·25건 PASS 재검증)됐으나 ODYSSEY PLAN 에 ✅ 미표시** 인 추적 갭을 발견 — 기존 "추적 정정" 패턴으로 반영. 동시에 다음 sandbox 가능 항목인 **Phase 401**(EASA U-space U1-U4 서비스 매핑)을 신규 착수.

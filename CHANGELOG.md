@@ -5,6 +5,11 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test) — 일일 점검 2026-06-19 (50차): ODYSSEY Phase 483 — Three.js 메이저 업그레이드 리허설 감사
+
+- **작업 상황 점검**: 45차(PR #385, `40d8673`) 머지 후 브랜치 클린. ODYSSEY Continuum 트랙(481-500) 중 481·485·488·489 완료, 적체 draft PR #386-390 가 482·484·486·487·490 을 별도 브랜치에서 보유. **Phase 483(Three.js 업그레이드 리허설)은 모듈·draft PR 모두 없는 유일한 미구현 칸** 으로 식별 → 본 칸 구현. 신규 모듈 단위 **18건 PASS** + 자매 모듈 `test_archive_redundancy.py` 50건 동반 통과 재확인.
+- **Phase 483** (Track ♾️ Continuum) — `simulation/threejs_upgrade_audit.py` + `tests/test_threejs_upgrade_audit.py`. 웹 시뮬레이터(`swarm_3d_simulator.html`)가 의존하는 벤더 Three.js(현 `vendor/three/three.module.js` **REVISION 162**)를 다음 메이저로 올릴 때 *어떤 심볼이 사라져 조용히 깨지는지* 를 사람이 매번 직관으로 점검하지 않도록 업그레이드 리허설을 **결정적 감사**로 명문화(같은 입력=같은 판정). **빌드가 진실의 근원**: 가장 단단한 보증은 시뮬레이터가 쓰는 모든 `THREE.<심볼>` 이 *실제로 벤더 빌드의 export 인가* — export 목록을 `three.module.js` 의 `export { ... }` 블록에서 직접 파싱(추측 0, `as` 별칭은 노출명 해석). 새 빌드를 떨어뜨리고 본 감사를 재실행하면 사라진 심볼이 즉시 `MISSING` → `BREAK` 로 표면화되는 것이 "리허설" 의 기계적 본체. 판정 우선순위 `BREAK`(쓰지만 export 부재, 깨짐 확정) > `REVIEW`(워치리스트 심볼 사용, 사람 확인) > `GREEN`(전부 일치). **워치리스트 정직성 게이트**: Three.js 역사에서 제거·이전된 API(레거시 `Geometry`·`Face3`·이전된 `Font`·`sRGBEncoding`/`LinearEncoding` 컬러스페이스 대체·`VertexColors` 불리언 대체)는 각 항목이 *현 벤더 빌드 export 에 실재하지 않음* 을 테스트(`test_watchlist_symbols_absent_from_real_build`)가 강제 → 빌드와 어긋난 추측 항목이 워치리스트에 끼는 것을 차단, 권위 근거는 항상 공식 `three.js/MIGRATION.md`. **자문이지 집행 아님**(부수효과 0)·무작위성 0·기존 파일 무수정 순수 추가. CLI(`--status`·`--watchlist`·`--manifest`). **현 리포 판정 GREEN**: 시뮬레이터가 쓰는 **47개** `THREE.*` 심볼 전부 r162 빌드 export 로 확인 + `three/addons/controls/OrbitControls.js` 임포트 검증 → 회귀 시 즉시 BREAK/REVIEW 로 표면화. code-reviewer 어드바이저 반영. 단위 **18건 PASS**.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-19 (45차): 적체 드래프트 일원화 — ODYSSEY Phase 488(CVE 대응 SLA) + 489(아카이브 이중화)
 
 - **작업 상황 점검 — 적체 드래프트 일원화 머지**: 42차(PR #382, `c435335`) 머지 후 `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 확인. 그러나 동일 클린 베이스 위에 금일 병행 점검이 draft PR 2건을 적체: **#383**(43차, ODYSSEY Phase 488 CVE 대응 SLA)·**#384**(44차, ODYSSEY Phase 489 아카이브 이중화). 두 작업은 **서로 다른 모듈을 추가하는 비충돌 순수 추가**(489 는 488 진행을 인지해 다음 미구현 칸을 골랐음)이므로, 기존 "일원화" 패턴에 따라 본 브랜치로 통합해 단일 PR 로 머지하고 흡수된 #383·#384 는 머지 후 close 권고. 두 신규 모듈 단위 **95건 PASS**(488 45 + 489 50, 489 는 일원화 검토 어드바이저 반영으로 47→50) + 자매 모듈 `test_dependency_gate.py` 44건 동반 통과 재확인.

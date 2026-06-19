@@ -334,7 +334,10 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [ ] **Phase 461-464·467-468·470-480** 🏛 Standards & Policy — ASTM/ISO 기고·정책 추적 대시보드
 - [x] **Phase 485** ♾️ 데이터 마이그레이션 도구 — `simulation/scenario_migration.py`. 시나리오 포맷의 역사적 변종(`*_min`/`*_s`·`total_drone_count`/`base_drone_count`/`base_traffic`)을 canonical v2.0(초·단일 `drone_count`·`schema_version` 스탬프)으로 정규화하는 결정적·멱등 버전 변환기. `multi_city` 의 러너 미인식 `total_drone_count` 를 `drone_count` 로 복원. 출력은 `scenario_schema` 계약 경고 없이 충족. code-reviewer 어드바이저 HIGH 3 반영. 33건 PASS (2026-06-17)
 - [x] **Phase 486** ♾️ 독립 재현 자동화 — `scripts/independent_reproduction.sh` (회귀·md5·JS·API 게이트 통합) (2026-06-12)
-- [ ] **Phase 481-484·487-500** ♾️ Continuum — 의존성 장기 추적·승계 규약·**Phase 500 = Centennial 선언**
+- [x] **Phase 481** ♾️ 의존성 자동 갱신 회귀 게이트 정책 — `simulation/dependency_gate.py`. 적체 Dependabot 갱신 PR 을 회귀 통과 시 자동 머지/리뷰/차단으로 가르는 결정적 정책(자문, 부수효과 0). 44건 PASS (2026-06-19)
+- [x] **Phase 488** ♾️ 보안 장기 지원 — `simulation/cve_response_policy.py` + `docs/standards/CVE_RESPONSE_SLA_POLICY.md`. CVE 한 건의 대응 긴급도·SLA·핀 갱신 필요를 결정적 정책으로 명문화(Phase 481 자매편). CVSS v3.1 정성 등급·SECURITY.md 기준선(HIGH ack 3/해결 14일) 준수·dev 노출 1단계 강등·`pin_refresh_required` 정직성 결속. 자문, 부수효과 0. code-reviewer 어드바이저 HIGH 3 반영. 45건 PASS (2026-06-19)
+- [x] **Phase 489** ♾️ 아카이브 이중화 — `simulation/archive_redundancy.py` + `docs/standards/ARCHIVE_REDUNDANCY_POLICY.md`. "단일 실패점 없이 충분한가"를 결정적 정책으로 명문화. 보관처별 식별자 형식 검증·위치자 없는 예치 주장 VERIFIED 불인정·독립성 custodian 단위 집계(독립 ≥2곳+양차원→REDUNDANT). `shipped_registry()` 는 DOI 미발급 현 상태를 `AT_RISK` 로 정직 공시. 자문, 부수효과 0. code-reviewer 어드바이저 HIGH 1 반영(+일원화 검토 DOI 핸들 오인 정밀화). 50건 PASS (2026-06-19)
+- [ ] **Phase 482-484·487·490-500** ♾️ Continuum — 브라우저 API 폐기 감시·승계 규약·**Phase 500 = Centennial 선언**
 
 ---
 

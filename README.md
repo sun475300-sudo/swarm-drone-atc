@@ -993,6 +993,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-19 09:18 | `6a1eede` | feat(odyssey): Phase 470 표준화 기고 추적 대시보드 — 일일 점검 2026-06-19 (37차) | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/standardization_tracker.py, tests/test_standardization_tracker.py |
 | 2026-06-18 01:14 | `7e00688` | feat(odyssey): Phase 401 EASA U-space 서비스 매핑 + 406·408 추적 정정 — 일일 점검 2026-06-17 (36차) | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/uspace_service_map.py, tests/test_uspace_service_map.py |
 | 2026-06-18 00:18 | `8580e73` | feat(odyssey): Phase 485 시나리오 포맷 버전 마이그레이션 도구 — 일일 점검 2026-06-17 (35차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/scenario_migration.py, simulation/scenario_schema.py, tests/test_scenario_migration.py |
 | 2026-06-17 23:22 | `88cf5f5` | test: 시나리오 회귀 카운트 9→10 갱신 (Phase 465 baseline 반영) | tests/test_hard_precision.py |

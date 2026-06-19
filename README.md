@@ -993,6 +993,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-19 17:15 | `da89884` | feat(odyssey): Phase 481 의존성 자동 갱신 회귀 게이트 정책 | docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/DEPENDENCY_AUTOMERGE_POLICY.md, simulation/dependency_gate.py, tests/test_dependency_gate.py |
 | 2026-06-19 15:10 | `dc1b170` | feat(odyssey): 적체 드래프트 PR 7건 일원화 — Phase 402·403·407·409·470 통합 | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/certification/EU_OPERATIONAL_CATEGORY.md, docs/standards/BVLOS_REGULATION_COMPARISON.md … |
 | 2026-06-19 07:30 | `(이 커밋)` | feat(odyssey): 적체 드래프트 PR 7건 일원화 — Phase 402·403·407·409·470 통합 — 일일 점검 2026-06-19 (41차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/faa_uss_roles.py, simulation/sora_category.py, simulation/icao_utm_conformance.py, simulation/bvlos_regulation_compare.py, simulation/standardization_tracker.py … |
 | 2026-06-18 01:14 | `7e00688` | feat(odyssey): Phase 401 EASA U-space 서비스 매핑 + 406·408 추적 정정 — 일일 점검 2026-06-17 (36차) | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/uspace_service_map.py, tests/test_uspace_service_map.py |

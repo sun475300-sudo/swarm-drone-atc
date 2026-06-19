@@ -292,7 +292,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 - [x] **Phase 408** 🌏 ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` + `simulation/airspace_class.py` `classify_airspace()` API 격상 (결정적, 25건 PASS) (2026-06-12, API 2026-06-14)
 - [x] **Phase 401·406** 🌏 다국 좌표계·시간대 자동 판정 — `simulation/geo_zones.py` UTM 그리드 존 결정적 판정 + EASA U-space 매핑, 22건 PASS (2026-06-15)
-- [ ] **Phase 401-407·409-420** 🌏 Global Expansion — EASA U-space·FAA UTM 정렬·EN 완역
+- [x] **Phase 407** 🌏 ICAO UTM Framework Ed.4 적합성 자가 평가 — `simulation/icao_utm_conformance.py` ICAO 운영자 여정 10단계(manage·register·plan·coordinate·authorise·monitor·inform·adapt·report·investigate)를 분류 축으로 SDACS 23개 UTM 역량을 3값(conformant·partial·gap) 결정적 평가. 정직성 결속(gap ⟺ 모듈 없음·충족/부분은 실재 모듈 인용 강제) + 가중 점수 83%(충족 17·부분 4·갭 2) + 핵심 역량 12/14, 갭 2종(전자등록·사고조사) 정직 표면화. Phase 401 자매편. code-reviewer 어드바이저 MEDIUM 3(by_phase 동결·단계합 교차검증·`has_core_incomplete` 명명)·LOW 2 반영, 56건 PASS (2026-06-19)
+- [ ] **Phase 401-405·409-420** 🌏 Global Expansion — EASA U-space·FAA UTM 정렬·EN 완역
 - [x] **Phase 421** 🛰 인스턴스 간 디스커버리 프로토콜 — `simulation/federation_discovery.py` + `docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md`, ASTM F3548 DSS 유사 결정적 모델, 13건 PASS (2026-06-18)
 - [x] **Phase 422** 🛰 운영 의도(Operational Intent) 4D 교환 포맷 — `simulation/operational_intent.py` + `docs/certification/OPERATIONAL_INTENT_FORMAT.md`, ASTM F3548-21 정렬 frozen dataclass + 라운드트립 직렬화 + 보수적 4D 교차, 24건 PASS (2026-06-18)
 - [x] **Phase 423** 🛰 지역 간 관제권 핸드오버 — `simulation/federation_handover.py` Phase 421 점 커버리지 기반 결정적 RETAINED/ACQUIRED/HANDOVER/CONTINGENT 결정 + 이력현상(hysteresis) + 감사 로그, 16건 PASS (2026-06-15)

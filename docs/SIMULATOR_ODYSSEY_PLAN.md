@@ -35,7 +35,7 @@
 - **Phase 406** ✅ 다국 좌표계·시간대 지원 (UTM zone 자동 판정) (`simulation/geo_zones.py` — 전 세계 위·경도를 UTM 그리드 존(존 번호·MGRS 위도 밴드·EPSG·공칭 시간대)으로 결정적 변환. 극지(±80° 밖) 거부, Norway/Svalbard 특례 처리. 코드·테스트 main 적재 완료(추적 정정 시 39건 PASS 재검증), 2026-06-17)
 - **Phase 407** ICAO UTM Framework Ed.4 적합성 자가 평가
 - **Phase 408** ✅ 국제 공역 분류(A-G) 모델 — 현 9층 고도 레이어에 클래스 매핑 (`simulation/airspace_class.py` + `docs/certification/AIRSPACE_CLASS_MAPPING.md` — 고도(m AGL)와 선택적 좌표·NFZ 로부터 ICAO 공역 클래스(B·D·E·G·R)를 결정적으로 산정하는 `classify_airspace` API. SDACS 9층 고도 레이어(0~240m) 매핑 + 군 작전/공항 NFZ 판정(haversine)·특별승인 분기·클래스별 SDACS 충족 요건. `AirspaceClassification`·`NoFlyZone` frozen dataclass, 무작위성 0. 코드·테스트 main 적재 완료(추적 정정 시 25건 PASS 재검증), 2026-06-17)
-- **Phase 409** 다국 규제 비교 대시보드 (한·미·EU·일 BVLOS 요건)
+- **Phase 409** ✅ 다국 규제 비교 대시보드 (한·미·EU·일 BVLOS 요건) — `simulation/bvlos_regulation_compare.py` + `docs/certification/BVLOS_REGULATION_COMPARISON.md` (2026-06-19, GENESIS 302 SORA·408 공역클래스·`faa_laanc`·`icao_doc10019` 가 *단일 관할권* 적합성을 다룬 반면 본 Phase 는 KR/US/EU/JP 4개 관할권 BVLOS 운영 요건을 **횡단 비교**. 각 관할권을 `BvlosRegulation` frozen dataclass 로 모델링 — 규제 프레임워크(KR 항공안전법 §129·US Part 107/108·EU 2019/947 SORA·JP 改正航空法 Level 4)·승인방식·조종자/기체 인증·Remote ID·DAA·보험·기본 고도상한·사람 위 비행 9개 비교 필드. `compare_field`·`comparison_matrix`(결정적·삽입순서 보존)·`assess_conformance(profile, code)`/`assess_all`(SDACS `OperationProfile` ↔ 관할권 요건 갭 산정, 관할권 차이 반영 — 예: 보험 미가입은 KR/EU/JP 갭·US 적합, 고도 130m 는 EU/US 초과·KR/JP 적합)·`to_markdown_table`(대시보드 피드)·`to_dict`(JSON export). 난수·외부호출 0, 교육·시뮬레이션용 스냅샷 모델 면책 명시. code-reviewer 어드바이저 반영, 단위 19건 PASS)
 - **Phase 410** GUTMA 회원 활동 시나리오 — 글로벌 UTM 커뮤니티 기고
 - **Phase 411-420** 해외 파일럿 제안서 3종 (아세안 도서 배송·EU U-space 데모·미국 대학 연구 협력)
 

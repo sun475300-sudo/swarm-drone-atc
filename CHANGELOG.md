@@ -5,6 +5,12 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test) — 일일 점검 2026-06-19 (44차): ODYSSEY Phase 489 아카이브 이중화 정책
+
+- **작업 상황 점검**: 42차(PR #382, `c435335`) 머지 후 `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 확인. 43차(PR #383, draft)가 별도 브랜치에서 ODYSSEY **Phase 488**(CVE 대응 SLA)을 진행 중 — 중복 회피 위해 Continuum 트랙(481-500)의 다음 미구현 칸인 **Phase 489**(아카이브 이중화)에 착수.
+- **Phase 489** (Track ♾️ Continuum) — `simulation/archive_redundancy.py` + `docs/standards/ARCHIVE_REDUNDANCY_POLICY.md`. "현 아카이브 이중화가 **단일 실패점(single point of failure) 없이** 충분한가"를 **결정적 정책**으로 명문화. 보관처별 영구 식별자 형식을 정규식으로 검증(Zenodo DOI `10.5281/zenodo.<d>`·Software Heritage SWHID core `swh:1:(cnt|dir|rev|rel|snp):<40hex>`·기관 Handle `<prefix>/<suffix>`), **위치자 없는 예치 주장은 VERIFIED 불인정**(정직성). `deposit_state`(planned→PENDING·식별자 무효/누락→INVALID·유효→VERIFIED) → `assess_redundancy`(VERIFIED 만 내구 사본으로 집계, 독립성은 *custodian* 단위: Zenodo=CERN·SWH=Inria, 같은 기관 둘=하나). 판정: 독립 custodian ≥2곳 + 코드·데이터 양차원 → `REDUNDANT`, 1곳/차원 누락 → `PARTIAL`, 검증 사본 0 → `AT_RISK`. `POLICY_MATRIX` 6칸을 테스트가 `assess_redundancy` 와 정확 일치 강제(중복 로직 없음). **정직 공시**: `shipped_registry()` 는 `.zenodo.json`·`CITATION.cff` 메타데이터는 준비됐으나 첫 릴리스 태그 전이라 **DOI 미발급**인 리포 현 상태를 그대로 반영 → `--status` 판정 `AT_RISK`(메타데이터 준비를 예치 완료로 포장 안 함). `preservation_prerequisites` 가 보존 메타데이터 3종 디스크 실재를 검증. 자문이지 집행 아님(부수효과 0)·무작위성 0·기존 모듈 무수정 순수 추가. CLI(`--policy`·`--demo`·`--status`·`--manifest`). code-reviewer 어드바이저 **HIGH 1**(`_HANDLE` 정규식 `\S+/\S+` 가 URL·다중경로를 핸들로 오인 → `[^\s/]+/[^\s/]+` 로 정밀화, URL 거부 테스트 추가)·**MEDIUM 2**(rule 3/4 docstring 명료화·demo institutional 항목 `STATUS_VERIFIED` 정정)·**LOW 2**(대문자 SWHID 거부 테스트·strip 관용성 문서화) 반영. 단위 **47건 PASS**.
+- **검증**: `pytest tests/test_archive_redundancy.py -o addopts=""` **47건 PASS**(0.12s) + 자매 모듈 `test_dependency_gate.py` 44건 동반 통과(88/88). 대상 기존 `.py` 무수정 순수 추가 → 회귀 무영향.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-19 (42차): 적체 드래프트 PR 일원화 — ODYSSEY 462·481 + GENESIS 364 통합
 
 - **작업 상황 점검 — 머지 병목 재발**: 41차(PR #375, `65a42c7`) 머지 후 `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 확인. 그러나 동일 클린 베이스 위에 금일 병행 점검이 **draft PR 6건(#376·#377·#378·#379·#380·#381)** 을 적체. 분석 결과 **고유 작업 3종**으로 정리됨: ODYSSEY **Phase 462**(ISO/TC 20/SC 16 표준 추적, **경쟁 구현 4건** #376·#379·#380·#381)·ODYSSEY **Phase 481**(의존성 게이트, #377 단독)·GENESIS **Phase 364**(V2X 와이어 스펙, #378 단독). 기존 "일원화" 패턴(더 포괄적 구현 채택)에 따라 본 브랜치로 통합해 단일 PR 로 머지, 흡수·중복 PR 은 머지 후 close 권고.

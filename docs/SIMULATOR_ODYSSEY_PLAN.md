@@ -108,7 +108,7 @@
 - **Phase 486** 연 1회 건전성 리허설 자동화 — 신규 컨테이너 독립 재현 스크립트
 - **Phase 487** 거버넌스 문서 — 유지보수자 승계 규약 (BDFL → 위원회)
 - **Phase 488** 보안 장기 지원 — CVE 대응 SLA + 핀 갱신 절차
-- **Phase 489** 아카이브 이중화 — Zenodo + Software Heritage + 대학 리포지터리
+- **Phase 489** ✅ 아카이브 이중화 — Zenodo + Software Heritage + 대학 리포지터리 (2026-06-19, `simulation/archive_redundancy.py` + `docs/standards/ARCHIVE_REDUNDANCY_POLICY.md` — "현 아카이브 이중화가 단일 실패점 없이 충분한가"를 **결정적 정책**으로 명문화. 보관처별 식별자 형식(Zenodo DOI `10.5281/zenodo.<d>`·SWHID core `swh:1:(cnt|dir|rev|rel|snp):<40hex>`·Handle `<p>/<s>`)을 정규식으로 검증, **위치자 없는 예치 주장은 VERIFIED 불인정**(정직성). `deposit_state`(planned→PENDING·식별자 무효→INVALID·유효→VERIFIED) → `assess_redundancy`(VERIFIED 만 집계, 독립성은 *custodian* 으로 셈: 같은 기관 둘=하나). 판정: 독립 custodian ≥2곳 + 코드·데이터 양차원 → `REDUNDANT`, 1곳/차원 누락 → `PARTIAL`, 검증 사본 0 → `AT_RISK`. `POLICY_MATRIX` 6칸을 테스트가 `assess` 와 정확 일치 강제. **정직 공시**: `shipped_registry()` 는 메타데이터(`.zenodo.json`·`CITATION.cff`)는 준비됐으나 DOI 미발급인 리포 현 상태를 그대로 반영해 `AT_RISK` 판정(메타데이터 준비를 예치 완료로 포장 안 함). 자문이지 집행 아님(부수효과 0)·무작위성 0·기존 모듈 무수정 순수 추가. CLI(`--policy`·`--demo`·`--status`·`--manifest`). code-reviewer 어드바이저 HIGH 1(`_HANDLE` 정규식이 URL·다중경로를 핸들로 오인 → `[^\s/]+/[^\s/]+` 로 정밀화)·MEDIUM 2·LOW 2 반영. 단위 47건 PASS)
 - **Phase 490** 디지털 유산 선언 — 10년 후 재현 가능성 체크리스트
 - **Phase 491-499** 차세대(2027+ 기수) 주도 신규 트랙 공모·선정·이양
 - **Phase 500** **= SDACS Centennial 선언** — Phase 1-500 통합 회고 + 영구 아카이브 동결

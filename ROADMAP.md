@@ -292,6 +292,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 - [x] **Phase 408** 🌏 ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` + `simulation/airspace_class.py` `classify_airspace()` API 격상 (결정적, 25건 PASS) (2026-06-12, API 2026-06-14)
 - [x] **Phase 401·406** 🌏 다국 좌표계·시간대 자동 판정 — `simulation/geo_zones.py` UTM 그리드 존 결정적 판정 + EASA U-space 매핑, 22건 PASS (2026-06-15)
+- [x] **Phase 403** 🌏 EASA EU 2019/947 운영 카테고리(Open/Specific/Certified) 판정 — `simulation/sora_category.py` + `docs/certification/EU_OPERATIONAL_CATEGORY.md`. GENESIS 302 `soraAssess`(SAIL 만 산정) 위에 세 운영 카테고리 + Open 하위분류(A1/A2/A3)를 결정적으로 얹는다. Certified 강제 트리거(인원 수송·고위험 위험물·군중 상공+치수≥3m) → Open 적격(MTOM<25kg·VLOS·≤120m·유효 하위분류) → Specific(SORA 산정, GRC>7 시 Certified 격상) 우선순위. `SORA_IGRC`·`SORA_SAIL_TABLE` 은 `swarm_3d_simulator.html` JS 와 동일 복제(수치 불일치 금지). C-class 는 EU 2019/945 질량 게이트 파생(명시 우선). 무작위성 0·기존 모듈 무수정 순수 추가, code-reviewer 어드바이저 반영, 49건 PASS (2026-06-19)
 - [ ] **Phase 401-407·409-420** 🌏 Global Expansion — EASA U-space·FAA UTM 정렬·EN 완역
 - [x] **Phase 421** 🛰 인스턴스 간 디스커버리 프로토콜 — `simulation/federation_discovery.py` + `docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md`, ASTM F3548 DSS 유사 결정적 모델, 13건 PASS (2026-06-18)
 - [x] **Phase 422** 🛰 운영 의도(Operational Intent) 4D 교환 포맷 — `simulation/operational_intent.py` + `docs/certification/OPERATIONAL_INTENT_FORMAT.md`, ASTM F3548-21 정렬 frozen dataclass + 라운드트립 직렬화 + 보수적 4D 교차, 24건 PASS (2026-06-18)

@@ -8,6 +8,7 @@ import pytest
 from simulation.iso_tc20_sc16_tracker import (
     ALIGNMENTS,
     ISO_STANDARDS,
+    SERIES,
     STAGES,
     IsoStandard,
     TrackerReport,
@@ -199,6 +200,8 @@ def test_find_standard_found():
     std = find_standard("ISO-23629-8")
     assert std.designation == "ISO 23629-8:2023"
     assert std.alignment == "aligned"
+    assert std.series == "23629"
+    assert std.stage == "PUBLISHED"
 
 
 def test_find_standard_unknown_raises():
@@ -219,8 +222,10 @@ def test_standards_by_series_21384():
     assert len(series) == 4
 
 
-def test_standards_by_series_unknown_empty():
-    assert standards_by_series("99999") == ()
+def test_standards_by_series_unknown_raises():
+    # 오타 시리즈는 조용한 빈 결과가 아니라 ValueError (standards_by_stage 와 대칭).
+    with pytest.raises(ValueError):
+        standards_by_series("99999")
 
 
 def test_standards_by_stage_published():
@@ -232,6 +237,11 @@ def test_standards_by_stage_published():
 def test_standards_by_stage_invalid_raises():
     with pytest.raises(ValueError):
         standards_by_stage("DRAFT")
+
+
+def test_standards_by_stage_withdrawn_empty():
+    # 현 레지스트리에는 폐기 표준이 없다 — 유효 단계지만 결과는 빈 튜플.
+    assert standards_by_stage("WITHDRAWN") == ()
 
 
 def test_published_standards_matches_stage():
@@ -313,6 +323,19 @@ def test_report_rejects_by_series_mismatch():
         )
 
 
+def test_report_rejects_empty_by_series_when_total_positive():
+    # total>0 인데 by_series 가 비면 불완전 투영 — 거부돼야 한다.
+    with pytest.raises(ValueError):
+        TrackerReport(
+            total=2, published=2, under_development=0, withdrawn=0,
+            aligned=2, partial=0, none=0, by_series={},
+        )
+
+
+def test_series_constant_matches_registry():
+    assert set(SERIES) == {s.series for s in ISO_STANDARDS}
+
+
 def test_report_freezes_plain_by_series():
     # 직접 생성 시 평범한 dict 도 읽기 전용으로 동결돼야 한다.
     r = TrackerReport(
@@ -380,4 +403,5 @@ def test_cli_published(capsys):
 def test_cli_gaps(capsys):
     assert main(["--gaps"]) == 0
     out = capsys.readouterr().out
-    assert "갭" in out or "미정렬" in out
+    # 알려진 갭 표준(용어 Part 4)이 갭 출력에 반드시 나타나야 한다.
+    assert "ISO 21384-4:2025" in out

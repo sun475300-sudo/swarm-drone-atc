@@ -63,7 +63,8 @@ ALIGNMENTS: tuple[str, ...] = ("aligned", "partial", "none")
 _ALIGNMENT_WEIGHT: dict[str, float] = {"aligned": 1.0, "partial": 0.5, "none": 0.0}
 
 # 발행 표준 지정명에 포함돼야 하는 발행 연도(:YYYY) 패턴.
-_PUBLISHED_YEAR = re.compile(r":\d{4}\b")
+# 정확히 4자리(5자리 연속 거부) — `\b` 대신 음수 lookahead 로 의도를 직접 표현.
+_PUBLISHED_YEAR = re.compile(r":\d{4}(?!\d)")
 
 
 @dataclass(frozen=True)
@@ -192,6 +193,9 @@ ISO_STANDARDS: tuple[IsoStandard, ...] = (
 _REGISTRY_IDS = [s.standard_id for s in ISO_STANDARDS]
 assert len(_REGISTRY_IDS) == len(set(_REGISTRY_IDS)), "duplicate standard_id in ISO_STANDARDS"
 
+# 레지스트리에 실재하는 시리즈 번호 (정렬). 조회 검증의 정본 집합.
+SERIES: tuple[str, ...] = tuple(sorted({s.series for s in ISO_STANDARDS}))
+
 
 @dataclass(frozen=True)
 class TrackerReport:
@@ -225,7 +229,9 @@ class TrackerReport:
                 f"aligned ({self.aligned}) + partial ({self.partial}) + "
                 f"none ({self.none}) != total ({self.total})"
             )
-        if self.by_series and sum(self.by_series.values()) != self.total:
+        # total>0 이면 by_series 는 반드시 합이 total 과 일치하는 완전한 투영이어야
+        # 한다 — 빈 dict 도 거부(total==0 인 빈 리포트만 면제).
+        if self.total > 0 and sum(self.by_series.values()) != self.total:
             raise ValueError(
                 f"by_series sum ({sum(self.by_series.values())}) != total ({self.total})"
             )
@@ -255,7 +261,13 @@ def find_standard(standard_id: str) -> IsoStandard:
 
 
 def standards_by_series(series: str) -> tuple[IsoStandard, ...]:
-    """시리즈 번호에 속한 표준을 식별자 정렬로 반환한다."""
+    """시리즈 번호에 속한 표준을 식별자 정렬로 반환한다.
+
+    오타로 인한 위양성 빈 결과를 막기 위해, 알 수 없는 시리즈는 조용히 빈
+    튜플을 반환하지 않고 ValueError 를 던진다(``standards_by_stage`` 와 대칭).
+    """
+    if series not in SERIES:
+        raise ValueError(f"series must be one of {SERIES}, got {series!r}")
     return tuple(
         sorted((s for s in ISO_STANDARDS if s.series == series),
                key=lambda s: s.standard_id)
@@ -361,7 +373,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--matrix", action="store_true", help="전체 추적 매트릭스 출력")
     parser.add_argument("--report", action="store_true", help="동향·정렬 요약 출력")
-    parser.add_argument("--series", help="시리즈별 표준 출력 (예: 23629)")
+    parser.add_argument("--series", choices=SERIES, help="시리즈별 표준 출력 (예: 23629)")
     parser.add_argument("--published", action="store_true", help="발행된 표준만 출력")
     parser.add_argument("--gaps", action="store_true", help="미정렬(none) 표준 출력")
     args = parser.parse_args(argv)

@@ -135,7 +135,7 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 | **STELLAR~POST-UNIVERSE** (시뮬 Phase 51-200) | 100% | ████████████ | Phase 200 = 𝟏 (Unity) · Phase 51 LLM Multi-Agent 격상 (단, 다수 mock/speculative — maturity 공시) |
 | **TRANSCENDENCE** (시뮬 Phase 201-300) | 10% | █░░░░░░░░░░░ | Phase 201-208 Maturity Honesty 완료 (분류·Mock Detector·experimental·beta·production 회귀) |
 | **GENESIS** (시뮬 Phase 301-400) | 9% | █░░░░░░░░░░░ | 301·302·304·306·309·381·387·388·389 완료 — 인증 가이드 4종·교육·레거시 |
-| **ODYSSEY** (시뮬 Phase 401-500) | 5% | █░░░░░░░░░░░ | 408 ICAO 매핑·447 fuzzing·448 property·466 schema·486 재현 완료 |
+| **ODYSSEY** (시뮬 Phase 401-500) | 5% | █░░░░░░░░░░░ | 408 ICAO 매핑·447 fuzzing·448 property·462 ISO SC16 추적·466 schema·470 기고 대시보드·486 재현 완료 |
 
 **총 Phase 691-755 (65개) 중 61개 완료 = 94%** (Phase 1-690 포함 시 전체 751/755 = **99.5%**)
 **+ 시뮬레이터 MEGA 9 + HYPER 41 = 50 Phase 100% 완료** (총 800 Phase 중 796 완료 = **99.5%**)
@@ -331,7 +331,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 466** 🏛 텔레메트리 JSON Schema 공개 + 검증기 — `docs/schemas/telemetry.schema.json` Draft-07 + ws_bridge 정합 회귀 (2026-06-12), **검증기** `simulation/telemetry_validator.py`(`validate_telemetry`, jsonschema 정본/순수 파이썬 폴백 이중 경로 동일 판정, CLI `--example`, 37건 PASS) 추가 완료 (2026-06-17)
 - [x] **Phase 469** 🏛 정책 영향 시뮬레이션 — `simulation/policy_impact.py`. 규제 파라미터(이격·고도 상한) 변경의 공역 용량 영향을 결정적 해석 모델(육각 충전 × 고도층)로 정량화·자동 비교(`compare_policies`). 이격 50→70m = 용량 −49%. 정적 기하 용량 상한임 정직 공시. code-reviewer 어드바이저 HIGH 2·MEDIUM 3 반영. 33건 PASS (2026-06-17)
 - [x] **Phase 465** 🏛 공역 통합 시뮬레이션 표준 시나리오 셋 (10종 공개) — `simulation/standard_scenarios.py` + `config/scenario_params/nominal_baseline.yaml` + `docs/standards/SDACS_BENCHMARK_SUITE.md`. 도구 간 교차 벤치마크용 공개 표준 스위트 `SDACS-SBS-10` 큐레이션(통제 축 10종 상호 배타, 정의는 기존 YAML SSoT 무복제). 10종 전부 `scenario_schema` 적합 결정적 재검증 + JSON 매니페스트(`primary_kpi_in_criteria` 괴리 플래그). code-reviewer 어드바이저 HIGH 3 반영. 18건 PASS (2026-06-17)
-- [ ] **Phase 461-464·467-468·470-480** 🏛 Standards & Policy — ASTM/ISO 기고·정책 추적 대시보드
+- [x] **Phase 462** 🏛 ISO/TC 20/SC 16 (UAS) 표준 동향 추적 매트릭스 — `simulation/iso_uas_standards.py` + `docs/standards/ISO_TC20_SC16_TRACKING.md`. ISO TC 20/SC 16 UAS 표준군(21384 시리즈·23629 UTM 시리즈)을 추적하고 각 표준의 *주제* 를 SDACS 모듈로 결정적 대응시키는 커버리지 매트릭스. Phase 470(내보내는 자체 기고)의 반대 방향 — *마주하는* 외부 ISO 표준 지형 추적. Phase 407(ICAO 운영자 여정 축)과 달리 ISO 표준 문서 축으로 재조명. 정직성 결속(`coverage` `none` ⟺ `sdacs_module` None·full/partial 은 디스크 실재 모듈 강제) + `AS_OF` 스냅샷 정직 공시(지정번호·성숙도는 ISO 카탈로그로 검증 필요)·*주제 정렬*≠인증. 커버리지 35.7%(완전 1·부분 3·gap 3). 가중 점수·범주/커버리지 집계·JSON 매니페스트·Markdown 대시보드·CLI. 무작위성 0·기존 모듈 무수정 순수 추가. Phase 470 STD-05 PUBLISHED 격상 연동. 단위 46건 PASS (2026-06-19)
+- [ ] **Phase 461·463-464·467-468·471-480** 🏛 Standards & Policy 잔여 — ASTM F38 기고·K-드론 정책 제안서·안전 기준 백서·캡스톤 커리큘럼·KS 제안
 - [x] **Phase 485** ♾️ 데이터 마이그레이션 도구 — `simulation/scenario_migration.py`. 시나리오 포맷의 역사적 변종(`*_min`/`*_s`·`total_drone_count`/`base_drone_count`/`base_traffic`)을 canonical v2.0(초·단일 `drone_count`·`schema_version` 스탬프)으로 정규화하는 결정적·멱등 버전 변환기. `multi_city` 의 러너 미인식 `total_drone_count` 를 `drone_count` 로 복원. 출력은 `scenario_schema` 계약 경고 없이 충족. code-reviewer 어드바이저 HIGH 3 반영. 33건 PASS (2026-06-17)
 - [x] **Phase 486** ♾️ 독립 재현 자동화 — `scripts/independent_reproduction.sh` (회귀·md5·JS·API 게이트 통합) (2026-06-12)
 - [ ] **Phase 481-484·487-500** ♾️ Continuum — 의존성 장기 추적·승계 규약·**Phase 500 = Centennial 선언**

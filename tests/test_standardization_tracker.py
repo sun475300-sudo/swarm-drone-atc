@@ -146,7 +146,8 @@ class TestProgress:
 
     def test_shipped_registry_progress_is_pinned(self):
         # 레지스트리 상태가 조용히 바뀌면(예: PLANNED→SUBMITTED) 감지하는 회귀 핀.
-        assert progress() == pytest.approx(0.225)
+        # STD-05(ODYSSEY-462) PUBLISHED 격상 반영: 4건 PUBLISHED → 12/40 = 0.30.
+        assert progress() == pytest.approx(0.30)
 
     def test_empty_registry_is_zero(self):
         assert progress(()) == 0.0

@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test) — 일일 점검 2026-06-19 (44차): GENESIS Phase 364 V2X 메시지 와이어 스펙 (BSM 유사 포맷)
+
+- **작업 상황 점검**: `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 확인(41차 PR #375 머지 반영). 금일 병행 점검으로 draft PR **#376(42차, ODYSSEY 462 표준 동향 문서)·#377(43차, ODYSSEY 481 의존성 게이트 문서)** 이 이미 적체 중 — 두 건 모두 *문서* 트랙이라 **코드 트랙 신규 Phase** 를 선택해 충돌 회피. ODYSSEY 우선순위 매트릭스 Top 8 은 전부 완료(403·408·447·448·466·469·421·486 중 486 외 ✅), Federation Operations(421-440) 트랙 완료 → 코드 적합 미구현 갭을 GENESIS(301-400, 다수 미착수)에서 선정.
+- **Phase 364** (Track GENESIS) — `simulation/v2x_message_spec.py`. 기존 `v2x_communication.py` 는 V2X *시스템/채널* 계층(전달률·지연·브로드캐스트)과 메모리 내 `V2XMessage` 만 다루고 **인스턴스/구현 간 상호운용 정규 와이어 포맷** 은 없었음 → 그 공백을 메우는 순수 추가 코덱. SAE J2735 BSM 의 고정소수점·고정 길이(36 B) 프레임을 군집 드론 로컬 ENU 좌표에 차용: 위치 1 cm(int32)·속도 0.02 m/s(int16)·기수 0.0125°(uint16) 양자화로 플랫폼 의존 부동소수 비트를 제거해 **바이트 동일 직렬화** 보장, `magic(0x5344)+version+CRC-32` 트레일러로 전방 비호환·변조 검출. `BsmMessage`(frozen·생성 시 양자화 1회 캐시·범위 fail-fast)·`encode`/`decode`·`to_canonical_dict`(키 순서 고정)·`from_v2x_message` 어댑터(해당 모듈 *읽기 전용*). 무작위성 0·결정적.
+- **어드바이저(code-reviewer)**: HIGH 3(기수 uint16 범위 주석 정정·`int` 정수필드 타입 가드로 float 가 struct 직전 불투명 오류로 터지는 것 차단·`_encode_fields` 중복 호출을 frozen 캐시로 단일화) + MEDIUM 3(비BSM `msg_type` 어댑터 매핑 검증·CRC 트레일러 변조 테스트·`vz_ms` 오차 한계 테스트) 반영. (검토자 산술 오차 1건 — 본문 30 B 추정 → 실측 32 B/FRAME_SIZE 36 — 은 테스트 실행으로 교정.)
+- **검증**: `pytest tests/test_v2x_message_spec.py` **23건 PASS**(왕복 항등·양자화 오차 ≤ ½해상도·인코딩 결정성·CRC 단일비트 변조 검출·범위 fail-fast·magic/version 거부·어댑터 위치 보존). 대상 `v2x_communication.py` 무수정 순수 추가 → 회귀 무영향.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-19 (41차): 적체 드래프트 PR 7건 일원화 — ODYSSEY Phase 402·403·407·409·470 통합
 
 - **작업 상황 점검 — 머지 병목 누적 해소**: 36차(PR #366, `6c525d2`) 머지 후 `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 확인. 그러나 37–40차 병행 점검이 동일 클린 베이스 위에 **draft PR 7건(#368·#369·#370·#371·#372·#373·#374)** 을 적체 — 36차 이후 main 에 머지된 일일 점검 없음. 각 PR 은 *서로 다른 신규 `simulation/*.py` + `tests/test_*.py` 만 추가*(코드 비경쟁)하고 오직 `CHANGELOG`/`README`/`ROADMAP`/`SIMULATOR_ODYSSEY_PLAN` append 라인에서만 상호 충돌 → 순차 머지 불가. **중복 2쌍 발견**: #368(`faa_uss_roles.py`)·#369(`faa_utm_conops.py`)가 동일 **Phase 402**(FAA UTM USS 역할 갭) 경쟁 구현, #373·#374 가 동일 **Phase 409**(BVLOS 비교) 경쟁 구현. 기존 "일원화" 패턴대로 각 중복쌍에서 더 포괄적인 구현을 채택(#368·#373)하고 고유 Phase 5종을 본 브랜치로 통합해 단일 PR 로 머지, 흡수된 #369·#374 와 통합된 #368·#370·#371·#372·#373 은 머지 후 close 권고.

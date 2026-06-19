@@ -23,11 +23,14 @@ from simulation.threejs_upgrade_audit import (
     audit,
     audit_repo,
     detect_revision,
+    main,
     parse_addon_imports,
     parse_exports,
     parse_used_symbols,
     policy_manifest,
 )
+
+_GEOMETRY_WATCH = (WatchEntry("Geometry", "removed", "BufferGeometry", "테스트용"),)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -111,9 +114,9 @@ def test_audit_break_when_symbol_absent_from_build():
 
 def test_audit_review_when_watchlist_symbol_used():
     html = "<script>const g = new THREE.Geometry();</script>"
-    module = "const REVISION='162';\nexport { Geometry };\n"
     # Geometry 를 일부러 export 에 넣어 BREAK 가 아닌 REVIEW 경로만 격리.
-    report = audit(html, module)
+    module = "const REVISION='162';\nexport { Geometry };\n"
+    report = audit(html, module, watchlist=_GEOMETRY_WATCH)
     assert report.verdict == VERDICT_REVIEW
     assert "Geometry" in report.watch_hits
 
@@ -122,9 +125,38 @@ def test_break_outranks_review():
     # 워치 심볼(Geometry)을 쓰되 빌드에 없음 → BREAK 가 REVIEW 보다 우선.
     html = "<script>new THREE.Geometry(); new THREE.Mesh();</script>"
     module = "const REVISION='162';\nexport { Mesh };\n"
-    report = audit(html, module)
+    report = audit(html, module, watchlist=_GEOMETRY_WATCH)
     assert report.verdict == VERDICT_BREAK
     assert "Geometry" in report.missing
+
+
+def test_empty_build_is_break_never_green():
+    # 빌드 export 0개(벤더 빌드 부재/형식 오류) → 감사 불가, 절대 GREEN 아님.
+    report = audit(_MINI_HTML, "", watchlist=())
+    assert report.verdict == VERDICT_BREAK
+    assert not report.is_clean()
+
+
+def test_comment_three_usage_ignored():
+    # 주석 안의 THREE.Geometry 는 실제 사용이 아니므로 워치 적중 0(거짓 REVIEW 방지).
+    html = (
+        "<script>\n"
+        "// THREE.Geometry was removed — use THREE.BufferGeometry instead\n"
+        "/* legacy: THREE.Face3 */\n"
+        "const m = new THREE.Mesh();\n"
+        "const url = 'https://example.com/three';\n"
+        "</script>"
+    )
+    used = parse_used_symbols(html)
+    assert "Mesh" in used
+    assert "Geometry" not in used        # 라인 주석 무시
+    assert "Face3" not in used           # 블록 주석 무시
+
+
+def test_line_comment_strip_preserves_url_lines():
+    # `://` 룩비하인드 배제로 URL 뒤 같은 줄의 코드가 잘리지 않는다.
+    html = "<script>fetch('http://x'); new THREE.Mesh();</script>"
+    assert "Mesh" in parse_used_symbols(html)
 
 
 # --- 워치리스트 정직성 -------------------------------------------------------
@@ -183,3 +215,31 @@ def test_repo_audit_is_green():
 def test_repo_audit_uses_real_paths():
     assert (REPO_ROOT / SIMULATOR_HTML).is_file()
     assert (REPO_ROOT / VENDOR_MODULE).is_file()
+
+
+def test_audit_repo_missing_files_is_not_clean(tmp_path):
+    """감사 대상 파일이 없으면 *조용히 GREEN* 이 아니라 BREAK 여야 한다.
+
+    "감사 안 한 것을 통과로 포장하지 않는다" 는 정직성 계약의 기계 검증.
+    """
+    report = audit_repo(tmp_path)
+    assert report.verdict == VERDICT_BREAK
+    assert not report.is_clean()
+    assert any("부재" in r for r in report.reasons)
+
+
+# --- CLI -------------------------------------------------------------------
+def test_cli_manifest_exit_zero(capsys):
+    code = main(["--manifest"])
+    assert code == 0
+    out = capsys.readouterr().out
+    assert json.loads(out)["schema"] == "sdacs-threejs-upgrade-audit"
+
+
+def test_cli_unknown_arg_exit_two():
+    assert main(["--bogus"]) == 2
+
+
+def test_cli_status_and_watchlist_exit_zero(capsys):
+    assert main(["--watchlist"]) == 0
+    assert main(["--status"]) == 0

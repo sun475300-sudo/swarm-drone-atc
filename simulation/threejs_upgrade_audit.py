@@ -49,16 +49,22 @@ VERDICT_REVIEW = "REVIEW"  # 워치리스트 심볼 사용 — 사람 확인 필
 VERDICT_BREAK = "BREAK"    # 쓰는 심볼이 빌드 export 에 없음 — 깨짐 확정
 
 # --- 파싱 정규식(결정적) ---------------------------------------------------
-# REVISION = '162'  (작은/큰따옴표 모두 허용)
-_REVISION = re.compile(r"REVISION\s*=\s*['\"]([0-9]+)['\"]")
-# export { A, B, C };  (모듈에 단일 블록) — 중괄호 안을 통째로 캡처
+# REVISION = '162'  (작은/큰따옴표 모두 허용). \b 로 APP_REVISION 등 오매칭 방지.
+_REVISION = re.compile(r"\bREVISION\s*=\s*['\"]([0-9]+)['\"]")
+# export { A, B, C };  — 번들된 단일 파일 three.module.js 의 집계/재export 블록을
+# 통째로 캡처(분할 빌드 형식은 대상 외). 재export(`{ X } from './m'`)도 X 는
+# 유효 export 이므로 수집이 맞다.
 _EXPORT_BLOCK = re.compile(r"export\s*\{([^}]*)\}")
-# THREE.<Symbol> — 숫자 포함(Vector3·Matrix4·FogExp2 등)
-_THREE_USE = re.compile(r"\bTHREE\.([A-Za-z_][A-Za-z0-9_]*)")
-# three/addons/... 임포트 경로
-_ADDON_USE = re.compile(r"['\"](three/addons/[A-Za-z0-9_./-]+)['\"]")
+# THREE.<Symbol> — 숫자·$ 포함(Vector3·Matrix4·FogExp2 등). $ 는 _IDENT 와 대칭.
+_THREE_USE = re.compile(r"\bTHREE\.([A-Za-z_$][A-Za-z0-9_$]*)")
+# three/addons/... 임포트 경로(따옴표 짝 일치 — 역참조)
+_ADDON_USE = re.compile(r"(['\"])(three/addons/[A-Za-z0-9_./-]+)\1")
 # 유효 JS 식별자(export 항목 필터)
 _IDENT = re.compile(r"^[A-Za-z_$][A-Za-z0-9_$]*$")
+# JS 주석 제거용 — 주석 안의 THREE.* 가 사용으로 오집계되는 것을 막는다.
+# 라인 주석은 `://`(http·ws·file 등 URL) 오인을 피하려 앞 `:` 를 룩비하인드로 배제.
+_BLOCK_COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
+_LINE_COMMENT = re.compile(r"(?<!:)//[^\n]*")
 
 
 def detect_revision(module_source: str) -> str | None:
@@ -91,13 +97,20 @@ def parse_exports(module_source: str) -> frozenset[str]:
 
 
 def parse_used_symbols(html_source: str) -> frozenset[str]:
-    """시뮬레이터 HTML 에서 쓰이는 고유 ``THREE.<심볼>`` 이름을 파싱한다."""
-    return frozenset(_THREE_USE.findall(html_source))
+    """시뮬레이터 HTML 에서 쓰이는 고유 ``THREE.<심볼>`` 이름을 파싱한다.
+
+    JS 주석(``//``·``/* */``) 안의 ``THREE.*`` 는 *실제 사용이 아니므로* 먼저
+    제거한다 — 마이그레이션 메모가 오탐(거짓 REVIEW/BREAK)을 일으키는 것을
+    방지한다. 문자열 리터럴 내부는 범위 외(자문 도구 한도, 실 HTML 무해).
+    """
+    stripped = _BLOCK_COMMENT.sub(" ", html_source)
+    stripped = _LINE_COMMENT.sub(" ", stripped)
+    return frozenset(_THREE_USE.findall(stripped))
 
 
 def parse_addon_imports(html_source: str) -> frozenset[str]:
     """시뮬레이터 HTML 에서 임포트하는 ``three/addons/...`` 경로를 파싱한다."""
-    return frozenset(_ADDON_USE.findall(html_source))
+    return frozenset(m.group(2) for m in _ADDON_USE.finditer(html_source))
 
 
 @dataclass(frozen=True)
@@ -203,11 +216,16 @@ def audit(
     missing = tuple(sorted(s for s in used if s not in exports))
     watch_hits = tuple(sorted(s for s in used if s in watch_names))
 
-    verdict = _verdict_for(missing, watch_hits)
+    # 빌드 export 를 하나도 파싱 못 하면(벤더 빌드 부재/형식 오류) 감사 불가 →
+    # 절대 GREEN 으로 가지 않는다(정직성: 감사 안 한 것을 통과로 포장 금지).
+    if not exports:
+        verdict = VERDICT_BREAK
+    else:
+        verdict = _verdict_for(missing, watch_hits)
 
     reasons: list[str] = []
     if not exports:
-        reasons.append("빌드 export 파싱 실패 — 벤더 형식 확인 필요")
+        reasons.append("빌드 export 파싱 실패 또는 벤더 빌드 부재 — 감사 불가(BREAK)")
     reasons.append(
         f"사용 심볼 {len(used)}개 중 {len(present)}개 빌드 export 로 확인"
     )
@@ -239,15 +257,26 @@ def _repo_root() -> Path:
 def audit_repo(repo_root: str | Path | None = None) -> UpgradeAuditReport:
     """리포의 *현 실제 파일* 로 감사를 수행한다(정직 공시).
 
-    시뮬레이터 HTML 또는 벤더 빌드가 없으면 그 사실을 판정 사유로 표면화한다.
+    시뮬레이터 HTML 또는 벤더 빌드가 없으면 *감사 불가* → ``BREAK`` 로
+    표면화한다(없는 파일을 조용히 GREEN 으로 통과시키지 않는다 — 정직성).
     """
     root = Path(repo_root) if repo_root is not None else _repo_root()
     html_path = root / SIMULATOR_HTML
     module_path = root / VENDOR_MODULE
-    html_source = html_path.read_text(encoding="utf-8") if html_path.is_file() else ""
-    module_source = (
-        module_path.read_text(encoding="utf-8") if module_path.is_file() else ""
-    )
+    absent = [p.name for p in (html_path, module_path) if not p.is_file()]
+    if absent:
+        return UpgradeAuditReport(
+            revision=None,
+            used_symbols=(),
+            present=(),
+            missing=(),
+            addon_imports=(),
+            watch_hits=(),
+            verdict=VERDICT_BREAK,
+            reasons=(f"감사 대상 파일 부재: {', '.join(absent)} — 감사 불가",),
+        )
+    html_source = html_path.read_text(encoding="utf-8")
+    module_source = module_path.read_text(encoding="utf-8")
     return audit(html_source, module_source)
 
 

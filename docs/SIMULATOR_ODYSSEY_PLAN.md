@@ -100,7 +100,7 @@
 
 *졸업 후 10년. 기존 자산: GENESIS 🎓 레거시 트랙, 재현성 패키지*
 
-- **Phase 481** 의존성 자동 갱신 파이프라인 — Dependabot + 회귀 게이트 자동 머지 정책
+- **Phase 481** ✅ 의존성 자동 갱신 회귀 게이트 정책 (2026-06-19, `simulation/dependency_gate.py` + `docs/standards/DEPENDENCY_AUTOMERGE_POLICY.md` — Continuum 트랙 첫 칸. 리포에 적체된 Dependabot 갱신 PR(pip·npm·github-actions)을 "회귀 테스트만 통과하면 자동 머지 vs 사람 리뷰 vs 차단" 으로 가르는 판단을 **결정적 정책**으로 명문화. `SemVer`(정규식 기반 1~3성분 파싱 — prerelease/build 꼬리는 완전 3성분에만 허용·선행 0·불완전 하이픈 `1-2-3` 거부 → UNKNOWN)·`classify_bump`(MAJOR/MINOR/PATCH/NONE/DOWNGRADE/UNKNOWN)·`RegressionGate`(tests_passed·coverage_ok·has_conflicts, GREEN = 자동 머지 필요조건)·`evaluate`(8단계 우선순위 결정: 게이트 RED·다운그레이드 → BLOCK, UNKNOWN/NONE/커버리지 미달 → REVIEW, PATCH 전분류·MINOR dev/ci → AUTO_MERGE, MAJOR·runtime MINOR → REVIEW). `POLICY_MATRIX` 는 `evaluate` 의 사람용 투영이며 테스트가 9칸 정확 일치·완전성 강제. **자문이지 집행 아님**(부수효과 0, PR 머지 안 함). 무작위성 0·기존 모듈 무수정 순수 추가. CLI(`--policy`·`--demo`·`--manifest`, 미지 인자 exit 2). code-reviewer 어드바이저 반영(HIGH 2: SemVer 하이픈 모호성→정규식 견고화·선행 0 거부; MEDIUM 4: else→elif 명시·미지 플래그 거부·매트릭스 완전성 단언; LOW 3 테스트 보강). 단위 44건 PASS)
 - **Phase 482** 브라우저 API 폐기 감시 — WebGPU/WebXR 스펙 변경 카나리 테스트
 - **Phase 483** Three.js 메이저 업그레이드 리허설 (r162 → 최신) + 호환 셰임
 - **Phase 484** Electron LTS 추적 정책 (현 32→39 교훈 문서화)

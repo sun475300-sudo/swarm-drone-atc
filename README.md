@@ -993,6 +993,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-20 08:10 | `(이 커밋)` | feat(odyssey): Phase 482 브라우저 API 폐기 감시 정책 (신규) + 적체 드래프트 #389 일원화(484·486·487·490) — 일일 점검 2026-06-19 | ROADMAP.md, README.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/BROWSER_API_DEPRECATION_WATCH.md, simulation/browser_api_watch.py, tests/test_browser_api_watch.py (+ #389 흡수) |
 | 2026-06-20 06:22 | `6b0e55a` | feat(odyssey): Phase 486 연 1회 건전성 리허설 자동화 정책 + 플랜 동기화 | ROADMAP.md, docs/CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/HEALTH_REHEARSAL_CADENCE_POLICY.md, simulation/rehearsal_cadence.py, tests/test_rehearsal_cadence.py |
 | 2026-06-20 05:23 | `680fcbf` | feat(odyssey): Continuum 3칸 일원화 — Phase 484(Electron LTS) + 487(승계 규약) + 490(디지털 유산) | ROADMAP.md, docs/CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/DIGITAL_LEGACY_CHECKLIST.md, docs/standards/ELECTRON_LTS_TRACKING_POLICY.md, docs/standards/MAINTAINER_SUCCESSION_PROTOCOL.md … |
 | 2026-06-20 02:09 | `4b480ea` | feat(odyssey): 적체 드래프트 일원화 — Phase 488(CVE 대응 SLA) + 489(아카이브 이중화) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/ARCHIVE_REDUNDANCY_POLICY.md, docs/standards/CVE_RESPONSE_SLA_POLICY.md … |

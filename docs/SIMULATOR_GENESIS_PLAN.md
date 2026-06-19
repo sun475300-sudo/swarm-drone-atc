@@ -92,7 +92,7 @@
 - **Phase 361** 온보드 RL 추론 — PPO 정책 ONNX export → Jetson 실 추론 벤치
 - **Phase 362** 충돌 회피 하이브리드 모드 — APF(규칙) + RL(학습) 가중 블렌딩, 규칙 우선 안전 보장
 - **Phase 363** LLM 관제 보조 production 격상 — `voice_atc.py` 스트리밍 + 명령 확인 2단계
-- **Phase 364** V2X 메시지 스펙 — 드론↔드론 직접 교신 (BSM 유사 포맷)
+- **Phase 364** ✅ V2X 메시지 스펙 — 드론↔드론 직접 교신 (BSM 유사 포맷) (2026-06-19, `simulation/v2x_message_spec.py` — 기존 `v2x_communication.py` 의 메모리 내 `V2XMessage`·채널 모델 위에 **인스턴스/구현 간 상호운용 정규 와이어 포맷** 추가. SAE J2735 BSM 의 고정소수점·고정 길이(36 B) 프레임을 드론 로컬 ENU 에 차용 — 위치 1 cm(int32)·속도 0.02 m/s(int16)·기수 0.0125°(uint16) 양자화로 *바이트 동일* 직렬화 보장, magic+version+CRC-32 트레일러로 전방 비호환·변조 검출. `BsmMessage`(frozen·양자화 캐시·범위 fail-fast)·`encode`/`decode`·`to_canonical_dict`·`from_v2x_message` 어댑터(`v2x_communication` 읽기 전용). 핵심 불변식: 왕복 항등·양자화 오차 ≤ ½해상도·인코딩 결정성·CRC 단일비트 변조 검출. 무작위성 0·결정적. code-reviewer 어드바이저 HIGH 3·MEDIUM 3 반영. 단위 23건 PASS)
 - **Phase 365** 5G NTN(비지상 네트워크) 링크 모델 — 지연·핸드오버 시뮬
 - **Phase 366** GPS 거부 환경 항법 — VIO/UWB 폴백 모델 (Phase 22 RTK 보완)
 - **Phase 367** 스웜 자가 치유 — 결손 드론 임무 자동 재분배 (CBS 재계획 연계)

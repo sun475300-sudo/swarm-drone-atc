@@ -993,6 +993,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-20 08:14 | `69d8448` | feat(odyssey): Phase 483 Three.js 업그레이드 리허설 감사 — 일일 점검 2026-06-19 (50차) | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/threejs_upgrade_audit.py, tests/test_threejs_upgrade_audit.py |
 | 2026-06-20 02:09 | `4b480ea` | feat(odyssey): 적체 드래프트 일원화 — Phase 488(CVE 대응 SLA) + 489(아카이브 이중화) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/ARCHIVE_REDUNDANCY_POLICY.md, docs/standards/CVE_RESPONSE_SLA_POLICY.md … |
 | 2026-06-20 01:40 | `(이 커밋)` | feat(odyssey): 적체 드래프트 일원화 — Phase 488(CVE 대응 SLA) + 489(아카이브 이중화) — 일일 점검 2026-06-19 (45차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/CVE_RESPONSE_SLA_POLICY.md, docs/standards/ARCHIVE_REDUNDANCY_POLICY.md, simulation/cve_response_policy.py, simulation/archive_redundancy.py, tests/test_cve_response_policy.py, tests/test_archive_redundancy.py |
 | 2026-06-19 23:08 | `3d38083` | feat: 적체 드래프트 PR 일원화 — ODYSSEY 462·481 + GENESIS 364 통합 | CHANGELOG.md, README.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/DEPENDENCY_AUTOMERGE_POLICY.md, simulation/dependency_gate.py … |

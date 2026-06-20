@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test) — 일일 점검 2026-06-20 (54차): ODYSSEY Continuum 세대 이양 구간 진입 — Phase 491 일원화 + Phase 492 신규
+
+- **작업 상황 점검**: 51차(PR #392, `a4510ef`)로 Phase 481-490 완결된 클린 베이스 위에서 Continuum 차세대 이양 구간(491-499)에 진입. 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **5,958 pass / 280 skip / 0 fail**(201s, 85.09% cov) 독립 재현 GREEN.
+- **Phase 491** (Track ♾️ Continuum) — `simulation/track_handover_policy.py` + `docs/standards/GENERATIONAL_HANDOVER_POLICY.md`. ODYSSEY 거버넌스 게이트 #4("491+ 신규 트랙은 차세대 주도, 현 세대는 리뷰만")를 **결정적 정책**으로 명문화. 차세대(2027+ 기수) 제출 신규 트랙 제안의 이양 수용 여부를 `assess_handover`(서로소 4단계 우선순위: 차세대 소유자 부재→REJECT 구조적 결격·현 세대 리뷰 미완→DEFER·보완형 결함(헌장·범위 중복·sandbox)→REVISE·그 외→ACCEPT)로 판정. **소유자가 사람을 대체 못함**(헌장·리뷰 충족여도 소유자 없으면 우선 REJECT). `POLICY_MATRIX`(소유자×리뷰×결함없음 8칸) 테스트 전수 일치 강제. `shipped_proposals()` 정직 공시: 2027+ 기수 미형성 → 제안 0건 `AWAITING_PROPOSALS`. 자문·부수효과 0·무작위성 0. code-reviewer 어드바이저 HIGH 2·MEDIUM 2·LOW 2 반영. **34건 PASS** — 미머지 적체 draft PR **#394**(52차)를 동일 베이스(`a4510ef`)라 충돌 없이 작업 브랜치로 일원화.
+- **Phase 492** (Track ♾️ Continuum) — `simulation/track_handoff_readiness.py` + `docs/standards/NEXTGEN_TRACK_HANDOFF_POLICY.md`. Phase 491 이양 게이트의 다음 단계. *공모 전체에서 적격 제안을 가려 하나를 선정* 하는 문제를 결정적 정책으로 명문화(491 = 개별 제안 이양 수용 가능성, 492 = 적격 제안 간 우선순위 — 독립 기준·중복 로직 0). `assess_proposal`(주체 지정 × 범위 버킷(≥10 Phase 트랙 케이던스) × 필수 기준: 트랙 헌장·검증 가능한 성공 기준·**원저자 독립성**(Phase 487 bus factor 정합)·선행 의존성 → ELIGIBLE/NEEDS_WORK/REJECTED) + `select_track`(적격 제안을 부가 강점 점수 → `sha256(proposal_id)` 안정 해시 동률 분리로 결정적 선정 → HANDOFF_READY/NO_ELIGIBLE/AWAITING_PROPOSALS). `POLICY_MATRIX` 12칸 일치 강제. 자문·부수효과 0·무작위성 0. code-reviewer 어드바이저 HIGH 1·MEDIUM 2·LOW 1 반영(score 단일 산출·이유 문자열 공백·`dataclasses.replace`·ELIGIBLE 이유 검증). **48건 PASS**.
+- **점검 발견(사용자 검토 필요)**: 열린 PR 19건 적체(Dependabot 13건 #267-279 + #283 perf 핫루프 + #280 draft Phase 207 + 일일점검 draft #393·#394·#395) · GitHub 보고 취약점 4건(2 high·2 low) 미해소 — 머지·triage·취약점 패치는 사용자 승인 필요. 일원화된 **#394** 는 본 PR 머지 후 close 권고.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-20 (51차): ODYSSEY Continuum 적체 드래프트 6칸 전면 일원화 — Phase 481-490 완결
 
 - **작업 상황 점검 — 적체 드래프트 일원화**: 45차(PR #385, `40d8673`) 머지 후 작업 브랜치 클린 베이스 확인. ODYSSEY Continuum 트랙(481-500)에서 481·485·488·489 는 main 에 완료돼 있었으나, 나머지 비-이양 칸(482·483·484·486·487·490)이 **미머지 적체 draft PR 6건(#386-391)** 에 흩어져 있었음. PR **#390** 이 482·484·486·487·490 을 누적 스택으로, PR **#391** 이 483 을 별도로 보유 — 둘의 코드/테스트/표준문서(서로소 파일)를 단일 작업 브랜치로 통합해 **Phase 481-490 완결**(491-500 = 차세대 이양·Centennial 만 잔여). 6개 신규 모듈 단위 **241건 PASS**(browser_api_watch 41 + electron_lts_policy 56 + governance_succession 48 + legacy_readiness 30 + rehearsal_cadence 41 + threejs_upgrade_audit 25). 전부 결정적 정책·자문·부수효과 0·기존 파일 무수정 순수 추가. 흡수된 #386-391 은 본 PR 머지 후 close 권고.

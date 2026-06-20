@@ -5,6 +5,12 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test) — 일일 점검 2026-06-20 (52차): ODYSSEY Continuum Phase 491 — 세대 이양 검토 게이트
+
+- **작업 상황 점검**: 51차(PR #392, `a4510ef`) 머지로 **Phase 481-490 완결**(Continuum 비-이양 칸 전부 일원화) 확인. 잔여 프런티어는 491-499(차세대 이양)·500(Centennial)뿐. 우선순위 매트릭스 Top 8(403·408·447·448·466·469·486·421)은 전부 ✅ 완료 상태 재확인. 따라서 다음 미구현 칸인 **Phase 491**(세대 이양)을 동일한 Continuum 패턴(결정적 자문 정책·부수효과 0·기존 모듈 무수정 순수 추가)으로 신규 구현. Continuum 8개 자매 스위트 동반 통과 재확인(**348건 PASS**).
+- **Phase 491** (Track ♾️ Continuum) — `simulation/track_handover_policy.py` + `docs/standards/GENERATIONAL_HANDOVER_POLICY.md`. ODYSSEY 거버넌스 게이트 #4("491+ 신규 트랙은 차세대 주도, 현 세대는 리뷰만")를 **결정적 정책**으로 명문화 — 현 세대(원저자)는 새 트랙을 만들지 않고 차세대(2027+ 기수)가 제출한 신규 트랙 제안을 *리뷰만* 하여 이양 여부를 판정. `TrackProposal` frozen dataclass(`__post_init__` 빈 식별자/제목 거부)·`is_clean`(헌장 명문화·기존 5트랙과 범위 비중복·sandbox 재현 3요건)·`assess_handover` 결정 우선순위(서로소 4단계: **차세대 소유자 부재→REJECT**(구조적 결격: 소유자 없으면 현 세대가 떠안아야 굴러가 세대 이양 정의 위반, 헌장·리뷰 충족과 무관 우선 반려)·**리뷰 미완→DEFER**(게이트#4 절차)·**보완형 결함→REVISE**·**그 외→ACCEPT**). `POLICY_MATRIX`(소유자×리뷰×결함없음 8칸)를 테스트가 `assess` 와 전수 일치 강제. **정직 공시**: `shipped_proposals()` 는 2027+ 차세대 기수 미형성으로 등록 제안 0건 → `AWAITING_PROPOSALS`(첫 제안 등록 시 회귀 핀 의도적 파손). 자문이지 집행 아님(부수효과 0)·무작위성 0·기존 모듈 무수정 순수 추가. CLI(`--policy`·`--demo`·`--status`·`--manifest`). **code-reviewer 어드바이저 HIGH 2 반영**: (1) `_cmd_status` 가 `current_gen_reviewed=False` 를 하드코딩해 제안 등록 시 전부 거짓 DEFER 출력하는 silent bug → 리뷰 상태 단정 제거하고 구조적 결함(blockers)만 표면화, (2) Q4 데모가 판정과 무관한 `scope_overlaps_existing=True` 를 달아 범위 중복이 구조적 반려 원인인 양 오해 유발 → 제거; MEDIUM 2(frozen 테스트 `FrozenInstanceError` 정밀화·매니페스트 전체 트랙명 검증)·LOW 2 반영. 단위 **34건 PASS**.
+- **검증 한계(정직 공시)**: 본 컨테이너는 `plotly` 미설치로 시각화 의존 테스트 `tests/test_hard_precision.py` 가 수집 단계에서 ImportError(사전 존재 환경 제약, 본 변경과 무관 — 순수 추가). 신규 모듈 34건 + Continuum 8개 자매 스위트 348건은 전부 PASS.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-20 (51차): ODYSSEY Continuum 적체 드래프트 6칸 전면 일원화 — Phase 481-490 완결
 
 - **작업 상황 점검 — 적체 드래프트 일원화**: 45차(PR #385, `40d8673`) 머지 후 작업 브랜치 클린 베이스 확인. ODYSSEY Continuum 트랙(481-500)에서 481·485·488·489 는 main 에 완료돼 있었으나, 나머지 비-이양 칸(482·483·484·486·487·490)이 **미머지 적체 draft PR 6건(#386-391)** 에 흩어져 있었음. PR **#390** 이 482·484·486·487·490 을 누적 스택으로, PR **#391** 이 483 을 별도로 보유 — 둘의 코드/테스트/표준문서(서로소 파일)를 단일 작업 브랜치로 통합해 **Phase 481-490 완결**(491-500 = 차세대 이양·Centennial 만 잔여). 6개 신규 모듈 단위 **241건 PASS**(browser_api_watch 41 + electron_lts_policy 56 + governance_succession 48 + legacy_readiness 30 + rehearsal_cadence 41 + threejs_upgrade_audit 25). 전부 결정적 정책·자문·부수효과 0·기존 파일 무수정 순수 추가. 흡수된 #386-391 은 본 PR 머지 후 close 권고.

@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+### 점검 (chore/docs) — 일일 점검 2026-06-20: 적체 PR 트리아지 — Phase 481 `dependency_gate` 정책 실측 적용
+
+- **작업 상황 점검 — 머지 병목 정량화**: 45차(PR #385, `40d8673`) 머지 후 클린 베이스 확인. 금일 ODYSSEY Continuum 6칸(482·483·484·486·487·490)은 이미 **PR #392** 에 일원화(`mergeable_state: clean`)되어 있어 **중복 드래프트를 만들지 않고**, 대신 **적체된 열린 PR 23건**(일일 점검 드래프트 7 + Dependabot 13 + perf #283 + Phase 207 #280)을 사용자가 한 번에 정리할 수 있도록 결정 근거를 제공. 핵심 병목은 신규 코드 부족이 아니라 **머지/트리아지 결정 적체**(매일 클린 베이스 위 draft 누적, `main` 머지는 사용자 승인 필요).
+- **PR #392 독립 검증**: `origin/claude/fervent-babbage-poqp2b` 를 별도 worktree 로 체크아웃, 6개 신규 테스트 스위트 직접 실행 → **241 passed (0.51s)**. #392 머지 준비 완료, 흡수된 #386–391 은 머지 후 close 권고.
+- **Dependabot 13건 트리아지 — Phase 481 정책 실측**: `simulation/dependency_gate.py` 는 적체 Dependabot PR 분류용으로 제작됐으나 실제 열린 PR 에 적용된 적 없었음. 회귀 게이트 GREEN 가정 하 `evaluate()` 결과 — **AUTO_MERGE 2건**(#278 playwright MINOR·dev, #272 pyyaml PATCH·runtime), 나머지 11건 REVIEW_REQUIRED(MAJOR 또는 runtime MINOR). 상세 표: [`docs/daily_checks/2026-06-20-triage.md`](docs/daily_checks/2026-06-20-triage.md).
+- **사용자 조치 권고**: ①#392 머지(Phase 481–490 완결)→#386–391 close, ②CI GREEN 시 #278·#272 자동 머지, ③보안 취약점 4건(2 high·2 low) 패치(Phase 488 SLA 기준 HIGH ack 3일·해결 14일), ④Dependabot 나머지 11건 일괄 리뷰. **본 점검은 신규 기능 코드 무추가·자동 머지/패치 미실행**(전부 사용자 승인 사항).
+
 ### 추가 (feat/test) — 일일 점검 2026-06-19 (45차): 적체 드래프트 일원화 — ODYSSEY Phase 488(CVE 대응 SLA) + 489(아카이브 이중화)
 
 - **작업 상황 점검 — 적체 드래프트 일원화 머지**: 42차(PR #382, `c435335`) 머지 후 `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 확인. 그러나 동일 클린 베이스 위에 금일 병행 점검이 draft PR 2건을 적체: **#383**(43차, ODYSSEY Phase 488 CVE 대응 SLA)·**#384**(44차, ODYSSEY Phase 489 아카이브 이중화). 두 작업은 **서로 다른 모듈을 추가하는 비충돌 순수 추가**(489 는 488 진행을 인지해 다음 미구현 칸을 골랐음)이므로, 기존 "일원화" 패턴에 따라 본 브랜치로 통합해 단일 PR 로 머지하고 흡수된 #383·#384 는 머지 후 close 권고. 두 신규 모듈 단위 **95건 PASS**(488 45 + 489 50, 489 는 일원화 검토 어드바이저 반영으로 47→50) + 자매 모듈 `test_dependency_gate.py` 44건 동반 통과 재확인.

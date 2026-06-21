@@ -5,6 +5,12 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test) — 일일 점검 2026-06-21: Standards & Policy 트랙 Phase 468 신규 (대학 캡스톤 표준 커리큘럼 제안 적합성 게이트)
+
+- **작업 상황 점검 + 적체 일원화**: 신규 세션 컨테이너에서 의존성 신규 설치 후, 금일 병행 세션이 생성한 미머지 적체 draft **PR #415**(`claude/fervent-babbage-mm7dwq`, Phase 461·463·464·491·492·500 6칸 일원화, `main` 기준 0-behind clean)을 작업 브랜치로 fast-forward 일원화. 그 위에 Standards & Policy 트랙(461-480)에서 *유일하게 남은 코드화 가능 칸* **Phase 468** 을 자매 패턴으로 신규 구현 → 461-470 트랙 전부 완료(471-480 = KS/국제 의견서 잔여).
+- **Phase 468** (Track 🏛 Standards & Policy) — `simulation/capstone_curriculum_standard.py` + `docs/standards/CAPSTONE_CURRICULUM_STANDARD.md`. SDACS 를 *워크드 예제* 로 삼는 15주 학부 캡스톤 디자인 표준 커리큘럼 제안서가 (1) 주차별 강의 자료 완비도 **와** (2) 한국공학교육인증원(ABEEK KEC2015) 프로그램 학습성과 커버리지를 동시 충족했는가를 **결정적 자문 게이트**로 판정. GENESIS 383(강의 슬라이드 산출물)을 *재사용 가능한 표준 교과* 로 묶는다. 자매 463(단일 정책 제안서 섹션 완비도 — 단일 차원)과 달리 **두 차원 교차 검증**: 모든 단원이 작성돼도 필수 학습성과(PO1·PO2·PO4·PO5·PO6) 하나가 어느 단원에도 매핑 안 되면 `NOT_READY`(463 에 없는 *교차 불변식*). **정직성 결속**: `DRAFTED` 단원은 반드시 실재 강의 자산 인용·`MISSING` 은 인용 금지·증거 부재 DRAFTED 는 학습성과 커버 불인정(거짓 커버 금지). *표준 제안 준비도*(`READY_FOR_PROPOSAL`/`PARTIAL`/`NOT_READY`)와 *실제 채택 상태*(`adoption_status`)는 **독립** — 전 단원 작성돼도 외부 대학·ABEEK 채택 전까지 현 상태 `NOT_PROPOSED` 정직 공시. 현 리포 판정 `PARTIAL (95%)`·15/15주 커버·필수 학습성과 5/5 커버(U09 논문 단원만 `OUTLINED` — 실측 그래프 의존, 기존 잔여 P707 §4-§7 과 정합). 자문, 부수효과 0·무작위성 0·기존 파일 무수정 순수 추가. CLI(`--matrix`·`--report`·`--gaps`·`--coverage`·`--adoption`). **code-reviewer 어드바이저 반영**. **59건 PASS**.
+- **점검 발견(사용자 결정 필요)**: ① 금일 병행 세션 적체 draft **PR #410·411·412·413·414·415** — 본 작업 브랜치가 #415(491·492·500+461·463·464) + Phase 468 을 단일 브랜치로 일원화 → 본 PR 머지 후 #410-415 close 권고. ② **Dependabot 14건 적체**(#267-279·#367) — Phase 484 가 현 electron 핀(`^39`) **EOL** 공시(#277 `39→42` 우선 검토). ③ **GitHub 보고 취약점 4건**(2 high·2 low) 미해소 — 전부 사용자 승인 필요.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-21: Standards & Policy 트랙 Phase 463 신규 (K-드론 정책 제안서 적합성 게이트)
 
 - **작업 상황 점검 — baseline GREEN**: 신규 세션 컨테이너에서 의존성(simpy·scipy·plotly 등) 신규 설치 후 전체 수집 **6,149 tests · 0 collection error**, 자매 Standards 모듈 회귀(iso_tc20·standardization·policy_impact·cve·governance) **216건 PASS** 독립 재현 GREEN. ODYSSEY Continuum(481-500)은 491·492·500 종착까지 금일 병행 세션 PR #413 이 일원화(CI GREEN), Standards & Policy(461-480)에서 코드화 가능한 잔여 칸 **Phase 463** 을 자매 패턴으로 신규 구현.

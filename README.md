@@ -993,6 +993,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-21 14:09 | `0ab12cf` | refactor(odyssey): Phase 491·492 code-reviewer 어드바이저 MEDIUM 2건 반영 | simulation/track_handoff_readiness.py, simulation/track_handover_policy.py |
 | 2026-06-21 12:05 | `0e8f42d` | Merge Phase 491·492·500 (ODYSSEY Continuum 세대 이양 + Centennial 선언) — 적체 draft #405 일원화 | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/CENTENNIAL_DECLARATION_POLICY.md, docs/standards/GENERATIONAL_HANDOVER_POLICY.md … |
 | 2026-06-21 11:20 | `70ee3c6` | style(odyssey): Phase 500 import 정렬 — ruff isort(I001) CI 게이트 통과 | simulation/centennial_declaration.py |
 | 2026-06-21 11:16 | `ad486a7` | feat(odyssey): Continuum 종착 — Phase 500 Centennial 선언 (프로그램 캡스톤) | CHANGELOG.md, ROADMAP.md, docs/standards/CENTENNIAL_DECLARATION_POLICY.md, simulation/centennial_declaration.py, tests/test_centennial_declaration.py |

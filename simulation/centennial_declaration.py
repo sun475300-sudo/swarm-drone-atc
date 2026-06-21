@@ -42,6 +42,8 @@ from typing import Any
 
 from simulation.archive_redundancy import (
     assess_redundancy,
+)
+from simulation.archive_redundancy import (
     shipped_registry as archive_shipped_registry,
 )
 from simulation.governance_succession import (

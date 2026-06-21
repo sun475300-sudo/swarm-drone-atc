@@ -993,6 +993,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-22 04:14 | `6ef47d1` | feat(odyssey): Phase 451 — EASA 신뢰 가능 AI(Learning Assurance) 적합성 자가 평가 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/EASA_AI_CONFORMANCE.md, simulation/easa_ai_conformance.py, tests/test_easa_ai_conformance.py |
 | 2026-06-22 03:08 | `7640b22` | Merge remote-tracking branch 'origin/claude/fervent-babbage-weazi4' into claude/fervent-babbage-mvd3bv | README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/INTL_WG_OPINION_GATE.md, simulation/intl_wg_opinion_gate.py, tests/test_intl_wg_opinion_gate.py |
 | 2026-06-22 02:13 | `266db5d` | feat(odyssey): Phase 472 — 국제 워킹그룹 의견서 적합성 게이트 | ROADMAP.md, docs/standards/INTL_WG_OPINION_GATE.md, simulation/intl_wg_opinion_gate.py, tests/test_intl_wg_opinion_gate.py |
 | 2026-06-22 01:13 | `ee91df0` | refactor(odyssey): Phase 471 code-reviewer 어드바이저 반영 | simulation/ks_standard_proposal.py, tests/test_ks_standard_proposal.py |

@@ -5,6 +5,12 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test) — 일일 점검 2026-06-21: ODYSSEY Phase 461 (ASTM F38 군집 관제 시험 방법) + 점검 보고
+
+- **작업 상황 점검**: `git fetch origin main` → 작업 브랜치 클린 베이스(`a4510ef` = Phase 481-490 완결) 확인. 금일 병행 점검이 **PR #410**(`claude/fervent-babbage-ut5057`)에 ODYSSEY Continuum 종착 3칸(491·492·500)을 일원화 — 본 컨테이너 실측으로 109건 PASS·ruff clean·`mergeable_state: clean` **검증 완료**(머지 시 ODYSSEY 구현 가능 로드맵 종료, 493-499 는 2027+ 차세대 기수 외부 의존). 중복을 피해 본 세션은 *비충돌 미구현 칸* Standards & Policy 트랙 Phase 461 을 신규 구현.
+- **점검 발견(사용자 결정 필요)**: ① **머지 병목** — 열린 PR 17건(#410 이 491/492/500 일원화). ② **Dependabot 14건 적체**(#267-279·#367) — Phase 481 `dependency_gate` 정책상 patch/dev-minor 는 AUTO_MERGE 후보, MAJOR 는 REVIEW. 특히 Phase 484 가 현 electron 핀을 **EOL(보안 백포트 종료)** 로 공시 → **#277(electron 39→42) 우선 검토** 권고. ③ #283(perf, ready)·#280(Phase 207 draft) 별도 평가 권장.
+- **Phase 461** (Track 🏛 Standards & Policy) — `simulation/swarm_test_method.py` + `docs/standards/ASTM_F38_SWARM_TEST_METHOD.md`. ASTM Committee F38(*Unmanned Aircraft Systems*)에 기고할 **군집 공역 관제 시험 방법 7종**(SM-TM-01~07: 충돌 해결률·무충돌·수평/수직 분리·RTB 성공률·해소 지연·결정적 재현성)을 결정적 명세로 인코딩. ASTM 표준 시험방법 구조 중 *기계 검증 가능* 부분(측정 지표 + 합격 기준)만 코드로 굳혀 같은 KPI 에 같은 판정. Phase 465(시나리오)·466(텔레메트리 스키마)와 3축(무엇을 돌릴지·어떻게 기록할지·**무엇을 합격으로 볼지**) 완성. **정직 공시**: 임계는 모두 `proposed=True`(ASTM 채택 전), 측정값 부재는 PASS 아닌 INCONCLUSIVE(거짓 적합 차단). `evaluate_suite` all-or-nothing 적합. 무작위성 0·기존 모듈 무수정 순수 추가. CLI(`--list`·`--validate`·`--evaluate`·`--manifest`·`--markdown`). code-reviewer 어드바이저 HIGH 2(무한대 threshold 거부·테스트 거짓 정렬 불변식 제거)·MEDIUM 3(proposed=False error 격상·`SuiteResult` 집계 일치 강제·frozen 테스트 정밀화) 반영. 단위 **35건 PASS**.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-20 (51차): ODYSSEY Continuum 적체 드래프트 6칸 전면 일원화 — Phase 481-490 완결
 
 - **작업 상황 점검 — 적체 드래프트 일원화**: 45차(PR #385, `40d8673`) 머지 후 작업 브랜치 클린 베이스 확인. ODYSSEY Continuum 트랙(481-500)에서 481·485·488·489 는 main 에 완료돼 있었으나, 나머지 비-이양 칸(482·483·484·486·487·490)이 **미머지 적체 draft PR 6건(#386-391)** 에 흩어져 있었음. PR **#390** 이 482·484·486·487·490 을 누적 스택으로, PR **#391** 이 483 을 별도로 보유 — 둘의 코드/테스트/표준문서(서로소 파일)를 단일 작업 브랜치로 통합해 **Phase 481-490 완결**(491-500 = 차세대 이양·Centennial 만 잔여). 6개 신규 모듈 단위 **241건 PASS**(browser_api_watch 41 + electron_lts_policy 56 + governance_succession 48 + legacy_readiness 30 + rehearsal_cadence 41 + threejs_upgrade_audit 25). 전부 결정적 정책·자문·부수효과 0·기존 파일 무수정 순수 추가. 흡수된 #386-391 은 본 PR 머지 후 close 권고.

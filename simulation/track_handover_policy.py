@@ -171,16 +171,12 @@ def assess_handover(
         reasons.append("차세대 소유자 부재 — 현 세대가 떠안아야 굴러감(세대 이양 정의 위반)")
     elif verdict == VERDICT_DEFER:
         reasons.append("현 세대 리뷰 미완 — 게이트 #4 절차 미통과")
-        # 미검토 단계에서도 보이는 결함은 미리 알려 재제출 비용을 줄인다.
-        fixable = [b for b in blockers if b != "차세대 소유자 미지정"]
-        if fixable:
-            reasons.append("리뷰 전 표면화된 보완 사항: " + ", ".join(fixable))
+        # DEFER·REVISE 는 우선순위 규칙상 소유자 보유(owner=True)일 때만 도달하므로
+        # blockers 에 "차세대 소유자 미지정" 이 실릴 수 없다 — 보완 사항을 그대로 표면화.
+        if blockers:
+            reasons.append("리뷰 전 표면화된 보완 사항: " + ", ".join(blockers))
     elif verdict == VERDICT_REVISE:
-        reasons.append(
-            "보완 요청: " + ", ".join(
-                b for b in blockers if b != "차세대 소유자 미지정"
-            )
-        )
+        reasons.append("보완 요청: " + ", ".join(blockers))
     else:  # ACCEPT
         reasons.append("차세대 주도 트랙 이양 수용 — 헌장·범위·sandbox 충족·리뷰 완료")
 

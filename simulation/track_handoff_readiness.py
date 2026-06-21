@@ -120,6 +120,20 @@ def _musts_complete(proposal: TrackProposal) -> bool:
     )
 
 
+def _missing_musts(proposal: TrackProposal) -> list[str]:
+    """미충족 필수 기준의 사람이 읽을 수 있는 라벨 목록(결정적 순서)."""
+    missing: list[str] = []
+    if not proposal.has_charter:
+        missing.append("트랙 헌장")
+    if not proposal.has_success_criteria:
+        missing.append("검증 가능한 성공 기준")
+    if not proposal.independent_of_principal:
+        missing.append("원저자 독립성")
+    if not proposal.prerequisites_met:
+        missing.append("선행 의존성")
+    return missing
+
+
 def readiness_score(proposal: TrackProposal) -> int:
     """적격 제안의 *부가 강점* 점수(0..2) — 선정 1순위 정렬 키.
 
@@ -182,17 +196,13 @@ def assess_proposal(proposal: TrackProposal) -> ProposalAssessment:
             f"트랙 규모 미달({proposal.estimated_phases} < "
             f"{MIN_TRACK_PHASES} Phase) — 단일 기여이지 트랙 이양 아님"
         )
+        # 규모 미달과 별개로 필수 기준 결함도 독립 결함이므로 함께 표면화한다
+        # (규모만 고치고 재제출하면 두 번째 NEEDS_WORK 를 받는 낭비 방지).
+        missing = _missing_musts(proposal)
+        if missing:
+            reasons.append("필수 기준 미충족: " + ", ".join(missing))
     elif not musts:
-        missing: list[str] = []
-        if not proposal.has_charter:
-            missing.append("트랙 헌장")
-        if not proposal.has_success_criteria:
-            missing.append("검증 가능한 성공 기준")
-        if not proposal.independent_of_principal:
-            missing.append("원저자 독립성")
-        if not proposal.prerequisites_met:
-            missing.append("선행 의존성")
-        reasons.append("필수 기준 미충족: " + ", ".join(missing))
+        reasons.append("필수 기준 미충족: " + ", ".join(_missing_musts(proposal)))
     else:
         reasons.append(
             f"적격 — 필수 기준 완비 · 부가 강점 {score}/2"

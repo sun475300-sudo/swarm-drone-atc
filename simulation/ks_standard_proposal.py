@@ -19,11 +19,14 @@ Standards & Policy 트랙(Phase 461-480)의 "국내 표준(KS) 제안 1건" 칸.
 
 판정 우선순위(``assess``)
 ------------------------
-1. 미지(unknown) 상태가 하나라도 있으면 → ``REVIEW``
-2. CRITICAL 기준이 하나라도 UNMET → ``NOT_READY``
-3. CRITICAL 기준이 하나라도 PARTIAL → ``NEEDS_WORK``
-4. (비-CRITICAL 포함) UNMET 또는 PARTIAL 이 남으면 → ``NEEDS_WORK``
-5. 그 외(전부 MET 또는 N/A) → ``READY_TO_PROPOSE``
+1. CRITICAL 기준이 하나라도 UNMET → ``NOT_READY``
+2. CRITICAL 기준이 하나라도 PARTIAL → ``NEEDS_WORK``
+3. (비-CRITICAL 포함) UNMET 또는 PARTIAL 이 남으면 → ``NEEDS_WORK``
+4. 그 외(전부 MET 또는 N/A) → ``READY_TO_PROPOSE``
+
+알 수 없는 상태 값은 ``REVIEW`` 같은 sentinel 로 흡수하지 않고 ``assess`` 가
+``ValueError`` 로 즉시 거부한다(결정성·정직성 우선). 미지 상태를 만들 수 없으므로
+판정 결과는 위 4개로 닫혀 있다.
 
 무작위성 0 · 결정적. 기존 모듈 무수정 순수 추가.
 
@@ -65,7 +68,6 @@ _KNOWN_STATES: frozenset[str] = frozenset(
 VERDICT_READY = "READY_TO_PROPOSE"
 VERDICT_NEEDS_WORK = "NEEDS_WORK"
 VERDICT_NOT_READY = "NOT_READY"
-VERDICT_REVIEW = "REVIEW"
 
 
 @dataclass(frozen=True)
@@ -136,6 +138,8 @@ class KsAssessment:
     verdict: str
     score: float
     state_by_criterion: Mapping[str, str]
+    # NOT_READY 의 경우 CRITICAL UNMET 항목만 포함됨(비-CRITICAL 미완 항목은
+    # state_by_criterion 에서 확인).
     blocking: tuple[str, ...]   # NOT_READY/NEEDS_WORK 를 유발한 기준 id
     notes: tuple[str, ...]
 
@@ -194,7 +198,8 @@ def assess(states: Mapping[str, str]) -> KsAssessment:
     """
     normalized = _normalize(states)
 
-    # 점수: N/A 제외, 가중 평균. 평가 대상이 0이면 0.0.
+    # 점수: N/A 제외, 가중 평균. 평가 대상이 0이면(전부 N/A) 적용 요건이 전부
+    # 만족된 공허참(vacuous truth)이므로 1.0 — verdict(READY)와 정합.
     weighted = 0.0
     denom = 0
     for cid, state in normalized.items():
@@ -202,7 +207,7 @@ def assess(states: Mapping[str, str]) -> KsAssessment:
             continue
         denom += 1
         weighted += _STATE_WEIGHT[state]
-    score = weighted / denom if denom else 0.0
+    score = weighted / denom if denom else 1.0
 
     critical_unmet: list[str] = []
     critical_partial: list[str] = []
@@ -249,6 +254,8 @@ def assess(states: Mapping[str, str]) -> KsAssessment:
 # --- 결정 매트릭스(테스트가 assess 와 일치를 강제) -------------------------
 # (worst_critical_state, has_other_incomplete) → verdict.
 # worst_critical_state 는 CRITICAL 기준 중 최악(UNMET > PARTIAL > MET/N/A 순).
+# CRITICAL 기준이 모두 N/A 인 경우 worst_critical_state 를 MET 와 동일하게
+# 취급한다(별도 행 없음, 암묵적 처리).
 POLICY_MATRIX: tuple[tuple[str, bool, str], ...] = (
     (STATE_UNMET, True, VERDICT_NOT_READY),
     (STATE_UNMET, False, VERDICT_NOT_READY),
@@ -335,8 +342,16 @@ def _cmd_policy() -> None:
         print(f"  ({worst:<8}, other={str(other):<5}) → {verdict}")
 
 
+_KNOWN_FLAGS: tuple[str, ...] = ("--criteria", "--status", "--policy", "--manifest")
+
+
 def main(argv: list[str] | None = None) -> int:
     args = sys.argv[1:] if argv is None else argv
+    unknown = [a for a in args if a not in _KNOWN_FLAGS]
+    if unknown:
+        print(f"알 수 없는 인자: {' '.join(unknown)}", file=sys.stderr)
+        print(f"사용법: {' | '.join(_KNOWN_FLAGS)}", file=sys.stderr)
+        return 2
     if "--criteria" in args:
         _cmd_criteria()
         return 0

@@ -25,6 +25,7 @@ from simulation.ks_standard_proposal import (
     all_criteria,
     assess,
     get_criterion,
+    main,
     manifest,
     shipped_proposal,
 )
@@ -158,6 +159,9 @@ def test_partial_counts_as_half():
     a = assess(states)
     expected = (len(CRITERIA) - 0.5) / len(CRITERIA)
     assert a.score == pytest.approx(round(expected, 4))
+    # 비-CRITICAL PARTIAL 만 남으면 NEEDS_WORK (회귀 가드).
+    assert a.verdict == VERDICT_NEEDS_WORK
+    assert _NONCRITICAL_IDS[0] in a.blocking
 
 
 def test_not_applicable_excluded_from_score_denominator():
@@ -170,11 +174,11 @@ def test_not_applicable_excluded_from_score_denominator():
     assert a.verdict == VERDICT_READY
 
 
-def test_all_not_applicable_score_is_zero():
+def test_all_not_applicable_is_vacuously_ready():
     states = {c.criterion_id: STATE_NOT_APPLICABLE for c in CRITERIA}
     a = assess(states)
-    assert a.score == pytest.approx(0.0)
-    # 평가 대상이 없으면 미완 항목도 없으므로 READY.
+    # 적용 요건이 전부 만족된 공허참 → 점수 1.0, verdict 와 정합.
+    assert a.score == pytest.approx(1.0)
     assert a.verdict == VERDICT_READY
 
 
@@ -241,3 +245,13 @@ def test_shipped_summary_is_human_readable():
     s = a.summary()
     assert a.verdict in s
     assert "%" in s
+
+
+# --- CLI ------------------------------------------------------------------
+def test_main_known_flags_return_zero():
+    for flag in ("--criteria", "--status", "--policy", "--manifest"):
+        assert main([flag]) == 0
+
+
+def test_main_unknown_flag_returns_two():
+    assert main(["--nope"]) == 2

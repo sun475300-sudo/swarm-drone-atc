@@ -5,6 +5,12 @@
 
 ## [Unreleased]
 
+### 점검 (chore) — 일일 점검 2026-06-21 (59차): 신규 컨테이너 독립 재현 GREEN + Continuum Phase 491·492 작업 브랜치 일원화
+
+- **작업 상황 점검**: 54차(`a4510ef` 베이스)의 Continuum 세대 이양 구간 작업을 신규 세션 컨테이너에서 독립 재현. 의존성 신규 설치(`requirements.txt` + `requirements/dev.txt`, `pytest<9` 핀) 후 전체 회귀 **5,954 pass / 282 skip / 0 fail**(157.47s) 독립 재현 GREEN — 54차 기록(5,958/280)과 ±2 skip(환경 의존 선택 의존성) 동치·0 fail 일치. main(`a4510ef`) CI·Pages·Canonical Hash·Security Audit 전 워크플로우 success 재확인.
+- **일원화**: Continuum 차세대 이양 구간(491-499)의 비-이양 코드 작업거리는 Phase 491(이양 게이트)·492(공모·선정)뿐이며 둘 다 미머지 적체 draft PR(#394·#396·#403)에 정체 중임을 확인 — 가장 완전한 작업(#403 = #396 상위집합)을 본 작업 브랜치 `claude/fervent-babbage-wldc1a` 로 일원화(491 34건 + 492 48건 = 신규 **82건 PASS**, Continuum 자매 스위트 223건 PASS 동반 확인). 두 CLI `--status` 정직 공시(`AWAITING_PROPOSALS` — 2027+ 차세대 기수 미형성) 동작 확인.
+- **점검 발견(사용자 검토 필요)**: 열린 PR 22건 적체(Dependabot 13건 #267-279 + #367 starlette + #283 perf 핫루프 + #280 draft Phase 207 + 일일점검 draft #394·#396·#400·#401·#402·#403) · GitHub 보고 취약점 4건(2 high·2 low) 미해소 — 머지·triage·취약점 패치는 사용자 승인 필요. 일원화된 **#394·#396·#403** 은 본 PR 머지 후 close 권고. 잔여 코드 프런티어: Phase 493-499(차세대 실 공모·선정·이양 — 2027+ 기수 의존)·Phase 500(Centennial 선언).
+
 ### 추가 (feat/test) — 일일 점검 2026-06-20 (54차): ODYSSEY Continuum 세대 이양 구간 진입 — Phase 491 일원화 + Phase 492 신규
 
 - **작업 상황 점검**: 51차(PR #392, `a4510ef`)로 Phase 481-490 완결된 클린 베이스 위에서 Continuum 차세대 이양 구간(491-499)에 진입. 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 **5,958 pass / 280 skip / 0 fail**(201s, 85.09% cov) 독립 재현 GREEN.

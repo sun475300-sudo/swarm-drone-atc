@@ -993,6 +993,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-21 18:12 | `41e1d3b` | feat(odyssey): Phase 461 — ASTM F38 군집 관제 시험 방법 기고 초안 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/ASTM_F38_SWARM_TEST_METHOD.md, simulation/swarm_test_method.py, tests/test_swarm_test_method.py |
 | 2026-06-21 16:09 | `bd6ca2c` | style(odyssey): Phase 491·500 테스트 ruff auto-fix (C420 dict.fromkeys · F401 미사용 import) | tests/test_centennial_declaration.py, tests/test_track_handover_policy.py |
 | 2026-06-21 16:05 | `a8e4eb6` | feat(odyssey): Continuum 종착 일원화 — Phase 491·492·500 (세대 이양 게이트 + 공모·선정 + Centennial 선언) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/CENTENNIAL_DECLARATION_POLICY.md, docs/standards/GENERATIONAL_HANDOVER_POLICY.md … |
 | 2026-06-21 14:09 | `0ab12cf` | refactor(odyssey): Phase 491·492 code-reviewer 어드바이저 MEDIUM 2건 반영 | simulation/track_handoff_readiness.py, simulation/track_handover_policy.py |

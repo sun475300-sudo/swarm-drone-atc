@@ -27,7 +27,7 @@ from simulation.centennial_declaration import (
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ALL_PILLAR_IDS = (PILLAR_LEGACY, PILLAR_ARCHIVE, PILLAR_GOVERNANCE, PILLAR_HANDOVER)
-ALL_SATISFIED = {pid: True for pid in ALL_PILLAR_IDS}
+ALL_SATISFIED = dict.fromkeys(ALL_PILLAR_IDS, True)
 
 
 # --- 레지스트리 무결성 -----------------------------------------------------
@@ -83,7 +83,7 @@ def test_any_single_unmet_pillar_blocks_declaration(missing):
 
 
 def test_no_pillar_satisfied_yields_zero_progress():
-    overrides = {pid: False for pid in ALL_PILLAR_IDS}
+    overrides = dict.fromkeys(ALL_PILLAR_IDS, False)
 
     result = assess_centennial(REPO_ROOT, gate_overrides=overrides)
 

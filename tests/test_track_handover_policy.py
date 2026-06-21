@@ -22,7 +22,6 @@ from simulation.track_handover_policy import (
     VERDICT_DEFER,
     VERDICT_REJECT,
     VERDICT_REVISE,
-    HandoverAssessment,
     TrackProposal,
     assess_handover,
     is_clean,

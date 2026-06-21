@@ -993,6 +993,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-21 22:11 | `e84ff1b` | docs: ODYSSEY plan Phase 463·500 체크마크 정합 (일원화 반영) | docs/SIMULATOR_ODYSSEY_PLAN.md |
 | 2026-06-21 21:16 | `557018d` | feat(standards): ODYSSEY Phase 463 — K-드론 정책 제안서 적합성 게이트 | CHANGELOG.md, ROADMAP.md, docs/standards/K_DRONE_POLICY_PROPOSAL.md, simulation/k_drone_policy_proposal.py, tests/test_k_drone_policy_proposal.py |
 | 2026-06-21 20:09 | `e3a5e55` | merge: ODYSSEY Standards Phase 464 군집 비행 안전 기준 백서 (PR #412 일원화) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/SWARM_SAFETY_STANDARD_WHITEPAPER.md, simulation/swarm_safety_standard.py … |
 | 2026-06-21 19:16 | `17d10da` | feat(odyssey): Phase 464 군집 비행 안전 기준 백서 — 5계층 안전망 사례 연구 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/SWARM_SAFETY_STANDARD_WHITEPAPER.md, simulation/swarm_safety_standard.py, tests/test_swarm_safety_standard.py |

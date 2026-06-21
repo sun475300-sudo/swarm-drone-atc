@@ -993,6 +993,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-22 01:13 | `ee91df0` | refactor(odyssey): Phase 471 code-reviewer 어드바이저 반영 | simulation/ks_standard_proposal.py, tests/test_ks_standard_proposal.py |
 | 2026-06-21 23:17 | `1bc6b66` | feat(odyssey): Phase 468 대학 캡스톤 표준 커리큘럼 제안 적합성 게이트 + #415 적체 일원화 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/CAPSTONE_CURRICULUM_STANDARD.md, simulation/capstone_curriculum_standard.py, tests/test_capstone_curriculum_standard.py |
 | 2026-06-21 22:11 | `e84ff1b` | docs: ODYSSEY plan Phase 463·500 체크마크 정합 (일원화 반영) | docs/SIMULATOR_ODYSSEY_PLAN.md |
 | 2026-06-21 21:16 | `557018d` | feat(standards): ODYSSEY Phase 463 — K-드론 정책 제안서 적합성 게이트 | CHANGELOG.md, ROADMAP.md, docs/standards/K_DRONE_POLICY_PROPOSAL.md, simulation/k_drone_policy_proposal.py, tests/test_k_drone_policy_proposal.py |

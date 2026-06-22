@@ -995,6 +995,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-22 16:13 | `6d6bd7f` | Merge remote-tracking branch 'origin/claude/fervent-babbage-569eir' into claude/fervent-babbage-2urqrr | README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/RL_ADVISORY_BOUNDARY.md, simulation/rl_advisory_boundary.py, tests/test_rl_advisory_boundary.py |
 | 2026-06-22 15:25 | `e1144d1` | fix(odyssey): Phase 453 code-reviewer 어드바이저 HIGH 3·MEDIUM 2·LOW 2 반영 | docs/standards/RL_ADVISORY_BOUNDARY.md, simulation/rl_advisory_boundary.py, tests/test_rl_advisory_boundary.py |
 | 2026-06-22 15:20 | `c8d52d0` | feat(odyssey): Phase 453 — RL 자문 경계(advisory boundary) 정합성 게이트 | ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/RL_ADVISORY_BOUNDARY.md, simulation/rl_advisory_boundary.py, tests/test_rl_advisory_boundary.py |
 | 2026-06-22 14:14 | `3a05890` | feat(odyssey): Phase 473 — 국제 WG 의견서 포트폴리오 추적기 | docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/WG_OPINION_PORTFOLIO.md, simulation/wg_opinion_portfolio.py, tests/test_wg_opinion_portfolio.py |

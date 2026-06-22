@@ -993,6 +993,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-22 14:14 | `3a05890` | feat(odyssey): Phase 473 — 국제 WG 의견서 포트폴리오 추적기 | docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/WG_OPINION_PORTFOLIO.md, simulation/wg_opinion_portfolio.py, tests/test_wg_opinion_portfolio.py |
 | 2026-06-22 07:28 | `1696ca8` | ci: set mypy python_version 3.10→3.12 to accept numpy cp312 PEP 695 stubs | pyproject.toml |
 | 2026-06-22 07:18 | `e9de1d6` | ci: bump mypy floor 1.10→1.18 to handle numpy PEP 695 type-statement stubs | pyproject.toml |
 | 2026-06-22 07:07 | `6ad0e7e` | merge: ODYSSEY Phase 410 GUTMA 회원 기고 적합성 (PR #422 흡수) | README.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/GUTMA_CONTRIBUTION.md, simulation/gutma_contribution.py, tests/test_gutma_contribution.py |

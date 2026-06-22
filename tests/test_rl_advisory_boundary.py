@@ -98,6 +98,10 @@ class TestInvariantValidation:
         with pytest.raises(ValueError):
             BoundaryInvariant("a\tb", "n", "critical", "upheld", "x.py", "s")
 
+    def test_rejects_non_lowercase_id(self):
+        with pytest.raises(ValueError):
+            BoundaryInvariant("camelCase", "n", "critical", "upheld", "x.py", "s")
+
     def test_rejects_empty_name(self):
         with pytest.raises(ValueError):
             BoundaryInvariant("x", "  ", "critical", "upheld", "x.py", "s")
@@ -192,6 +196,60 @@ class TestLiveImportAudit:
         for token in ("rl_path_selector", "deep_rl_controller", "ppo_collision"):
             assert token in ML_IMPORT_TOKENS
 
+    def test_audit_detects_multiline_parenthesized_import(self, tmp_path, monkeypatch):
+        """괄호 다중 줄 임포트의 연속 줄 RL 이름도 ast 로 탐지한다(위음성 차단)."""
+        fake_root = tmp_path
+        mod_dir = fake_root / "simulation"
+        mod_dir.mkdir()
+        offending = mod_dir / "fake_multi.py"
+        offending.write_text(
+            "from simulation.rl_path_selector import (\n"
+            "    RLPathSelector,\n"
+            "    Episode,\n"
+            ")\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setattr(mod, "_REPO_ROOT", fake_root)
+        monkeypatch.setattr(mod, "ACTIVE_LOOP_MODULES", ("simulation/fake_multi.py",))
+        violations = audit_active_loop_imports()
+        assert violations and "rl_path_selector" in violations[0][1]
+
+    def test_audit_detects_aliased_import(self, tmp_path, monkeypatch):
+        """`import ... as` 별칭 임포트도 탐지한다."""
+        fake_root = tmp_path
+        mod_dir = fake_root / "simulation"
+        mod_dir.mkdir()
+        offending = mod_dir / "fake_alias.py"
+        offending.write_text("import simulation.deep_rl_controller as ctrl\n", encoding="utf-8")
+        monkeypatch.setattr(mod, "_REPO_ROOT", fake_root)
+        monkeypatch.setattr(mod, "ACTIVE_LOOP_MODULES", ("simulation/fake_alias.py",))
+        assert any("deep_rl_controller" in v[1] for v in audit_active_loop_imports())
+
+    def test_audit_ignores_inline_comment_token(self, tmp_path, monkeypatch):
+        """진짜 임포트 줄의 인라인 주석 속 토큰은 위반이 아니다(위양성 차단)."""
+        fake_root = tmp_path
+        mod_dir = fake_root / "simulation"
+        mod_dir.mkdir()
+        clean = mod_dir / "fake_inline.py"
+        clean.write_text(
+            "import numpy as np  # previously replaced rl_path_selector\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setattr(mod, "_REPO_ROOT", fake_root)
+        monkeypatch.setattr(mod, "ACTIVE_LOOP_MODULES", ("simulation/fake_inline.py",))
+        assert audit_active_loop_imports() == ()
+
+    def test_audit_flags_unparseable_module(self, tmp_path, monkeypatch):
+        """파싱 불가 파일은 조용히 통과하지 않고 위반으로 표면화한다."""
+        fake_root = tmp_path
+        mod_dir = fake_root / "simulation"
+        mod_dir.mkdir()
+        broken = mod_dir / "fake_broken.py"
+        broken.write_text("def (:\n", encoding="utf-8")
+        monkeypatch.setattr(mod, "_REPO_ROOT", fake_root)
+        monkeypatch.setattr(mod, "ACTIVE_LOOP_MODULES", ("simulation/fake_broken.py",))
+        assert audit_active_loop_imports() == (("simulation/fake_broken.py", "<unparseable>"),)
+
 
 # --- 판정 (verdict) -----------------------------------------------------------
 
@@ -264,6 +322,14 @@ class TestVerdictPriority:
         invs = (self._inv("critical", "unverified"), self._inv("critical", "partial"))
         assert mod._verdict_for(invs) == VERDICT_NOT_ENFORCED
 
+    def test_no_critical_invariants_not_enforced(self):
+        """임계 불변식이 없으면 공허한 ENFORCED 가 아니라 NOT_ENFORCED."""
+        invs = (self._inv("recommended", "upheld"),)
+        assert mod._verdict_for(invs) == VERDICT_NOT_ENFORCED
+
+    def test_empty_invariants_not_enforced(self):
+        assert mod._verdict_for(()) == VERDICT_NOT_ENFORCED
+
 
 # --- 격리 위반 시 강등 (assess_boundary 의 정직성) ----------------------------
 
@@ -280,6 +346,27 @@ class TestIsolationDowngrade:
         r = assess_boundary()
         assert r.verdict == VERDICT_AT_RISK
         assert not r.is_enforced
+
+    def test_unverified_isolation_plus_violation_does_not_crash(self, tmp_path, monkeypatch):
+        """격리 불변식이 unverified(근거 None)인데 감사도 위반이면 강등이 정직성
+        결속을 깨지 않고(크래시 없이) NOT_ENFORCED 를 반환한다(HIGH#1 회귀)."""
+        # 격리 불변식을 unverified 로 교체한 카탈로그를 주입.
+        patched = tuple(
+            BoundaryInvariant(inv.invariant_id, inv.name, inv.criticality,
+                              "unverified", None, inv.summary)
+            if inv.invariant_id == "ml_isolated_from_active_loop" else inv
+            for inv in BOUNDARY_INVARIANTS
+        )
+        fake_root = tmp_path
+        mod_dir = fake_root / "simulation"
+        mod_dir.mkdir()
+        (mod_dir / "fake_ctrl.py").write_text(
+            "import simulation.rl_path_selector\n", encoding="utf-8")
+        monkeypatch.setattr(mod, "BOUNDARY_INVARIANTS", patched)
+        monkeypatch.setattr(mod, "_REPO_ROOT", fake_root)
+        monkeypatch.setattr(mod, "ACTIVE_LOOP_MODULES", ("simulation/fake_ctrl.py",))
+        r = assess_boundary()  # must not raise
+        assert r.verdict == VERDICT_NOT_ENFORCED
 
 
 # --- BoundaryReport 검증 ------------------------------------------------------
@@ -321,6 +408,11 @@ class TestReportValidation:
     def test_empty_total_score_zero(self):
         r = BoundaryReport(VERDICT_NOT_ENFORCED, 0, 0, 0, 0, 0, 0, {})
         assert r.weighted_score_pct == 0.0
+
+    def test_empty_by_criticality_with_nonzero_counts_rejected(self):
+        """빈 by_criticality 가 비-0 카운트와 공존하면 거부(MEDIUM#1 구멍 차단)."""
+        with pytest.raises(ValueError):
+            BoundaryReport(VERDICT_ENFORCED, 2, 1, 1, 0, 1, 1, {})
 
 
 # --- 조회 API -----------------------------------------------------------------

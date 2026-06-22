@@ -52,6 +52,7 @@ CLI:
 from __future__ import annotations
 
 import argparse
+import ast
 import pathlib
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -115,6 +116,8 @@ class BoundaryInvariant:
             raise ValueError("invariant_id must be non-empty and unpadded")
         if " " in self.invariant_id or "\t" in self.invariant_id or "\n" in self.invariant_id:
             raise ValueError("invariant_id must be snake_case (no whitespace)")
+        if self.invariant_id != self.invariant_id.lower():
+            raise ValueError("invariant_id must be lowercase snake_case")
         if not self.name or not self.name.strip():
             raise ValueError("name must be a non-empty string")
         if not self.summary or not self.summary.strip():
@@ -224,10 +227,13 @@ assert len(_CATALOG_IDS) == len(set(_CATALOG_IDS)), "duplicate invariant_id in c
 def audit_active_loop_imports() -> tuple[tuple[str, str], ...]:
     """활성 루프 모듈 소스를 스캔해 RL/ML 임포트 위반을 (모듈, 토큰) 정렬로 반환한다.
 
-    `import` 또는 `from` 으로 시작하는 줄만 검사해 주석·문서 문자열의 토큰 언급은
-    오탐하지 않는다. 위반이 없으면 빈 튜플 — 이것이 ``ml_isolated_from_active_loop``
-    불변식의 라이브 근거다. 파일 부재는 *조용히 통과하지 않고* 위반으로 표면화한다
-    (감사 표면이 사라지면 경계 주장도 거짓이 되므로).
+    `ast` 로 임포트 노드(`import`·`from ... import`)만 검사하므로 주석·문서 문자열의
+    토큰 언급은 오탐하지 않고, 괄호 다중 줄 임포트·별칭(`as`)·연속 줄의 임포트 이름도
+    누락 없이 탐지한다(문자열 라인 스캔의 위양성/위음성 제거). 모듈 경로(`from X`)와
+    임포트되는 이름(`import a, b` / `from X import a, b`)을 모두 토큰 대조한다.
+    위반이 없으면 빈 튜플 — 이것이 ``ml_isolated_from_active_loop`` 불변식의 라이브
+    근거다. 파일 부재·파싱 실패는 *조용히 통과하지 않고* 위반으로 표면화한다(감사
+    표면이 사라지면 경계 주장도 거짓이 되므로).
     """
     violations: list[tuple[str, str]] = []
     for rel in ACTIVE_LOOP_MODULES:
@@ -235,12 +241,23 @@ def audit_active_loop_imports() -> tuple[tuple[str, str], ...]:
         if not path.is_file():
             violations.append((rel, "<missing-module>"))
             continue
-        for raw in path.read_text(encoding="utf-8").splitlines():
-            line = raw.strip()
-            if not (line.startswith("import ") or line.startswith("from ")):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except SyntaxError:
+            violations.append((rel, "<unparseable>"))
+            continue
+        for node in ast.walk(tree):
+            targets: list[str] = []
+            if isinstance(node, ast.Import):
+                targets.extend(alias.name for alias in node.names)
+            elif isinstance(node, ast.ImportFrom):
+                if node.module:
+                    targets.append(node.module)
+                targets.extend(alias.name for alias in node.names)
+            else:
                 continue
             for token in ML_IMPORT_TOKENS:
-                if token in line:
+                if any(token in target for target in targets):
                     violations.append((rel, token))
     return tuple(sorted(set(violations)))
 
@@ -285,18 +302,19 @@ class BoundaryReport:
             raise ValueError("critical_upheld cannot exceed critical_total")
         if self.verdict not in (VERDICT_NOT_ENFORCED, VERDICT_AT_RISK, VERDICT_ENFORCED):
             raise ValueError(f"invalid verdict: {self.verdict!r}")
-        if self.by_criticality:
-            invalid = set(self.by_criticality.keys()) - set(CRITICALITIES)
-            if invalid:
-                raise ValueError(f"by_criticality has unknown keys: {sorted(invalid)}")
-            u = sum(v[0] for v in self.by_criticality.values())
-            p = sum(v[1] for v in self.by_criticality.values())
-            n = sum(v[2] for v in self.by_criticality.values())
-            if (u, p, n) != (self.upheld, self.partial, self.unverified):
-                raise ValueError(
-                    f"by_criticality sums ({u},{p},{n}) != "
-                    f"({self.upheld},{self.partial},{self.unverified})"
-                )
+        # 빈 by_criticality 도 교차검증한다 — total=0(전부 0) 만 정합하고, 비-0 카운트와
+        # 빈 맵의 불일치는 거부한다(빈 dict 가 검증을 건너뛰던 구멍 차단).
+        invalid = set(self.by_criticality.keys()) - set(CRITICALITIES)
+        if invalid:
+            raise ValueError(f"by_criticality has unknown keys: {sorted(invalid)}")
+        u = sum(v[0] for v in self.by_criticality.values())
+        p = sum(v[1] for v in self.by_criticality.values())
+        n = sum(v[2] for v in self.by_criticality.values())
+        if (u, p, n) != (self.upheld, self.partial, self.unverified):
+            raise ValueError(
+                f"by_criticality sums ({u},{p},{n}) != "
+                f"({self.upheld},{self.partial},{self.unverified})"
+            )
 
     @property
     def weighted_score_pct(self) -> float:
@@ -319,6 +337,9 @@ def _verdict_for(invariants: tuple[BoundaryInvariant, ...]) -> str:
     임계 전부 성립 → ENFORCED. 권장 불변식은 판정을 게이트하지 않는다.
     """
     critical = [inv for inv in invariants if inv.is_critical]
+    if not critical:
+        # 임계 불변식이 하나도 없으면 경계를 주장할 근거가 없다(공허한 ENFORCED 차단).
+        return VERDICT_NOT_ENFORCED
     if any(inv.status == "unverified" for inv in critical):
         return VERDICT_NOT_ENFORCED
     if any(inv.status == "partial" for inv in critical):
@@ -336,8 +357,15 @@ def assess_boundary() -> BoundaryReport:
     isolation_violated = not isolation_holds()
     effective: list[BoundaryInvariant] = []
     for inv in BOUNDARY_INVARIANTS:
-        if inv.invariant_id == "ml_isolated_from_active_loop" and isolation_violated:
-            # 라이브 감사가 위반 → 정적 선언 강등(정직성). 근거는 보존하되 부분으로.
+        # 라이브 감사가 위반인데 정적 선언이 충족(upheld) 이면 정직성을 위해 강등한다.
+        # 이미 partial/unverified 면 더 낙관적이지 않으므로 그대로 둔다 — 특히
+        # unverified(근거 None)를 partial 로 바꾸면 정직성 결속을 깨므로 강등 금지.
+        if (
+            inv.invariant_id == "ml_isolated_from_active_loop"
+            and isolation_violated
+            and inv.status == "upheld"
+        ):
+            # 근거는 보존하되 충족 → 부분으로 강등(BOUNDARY_AT_RISK 유발).
             effective.append(
                 BoundaryInvariant(
                     inv.invariant_id, inv.name, inv.criticality,
@@ -431,7 +459,7 @@ def _format_matrix() -> str:
         mark = _STATUS_MARK[str(row["status"])]
         kind = "임계" if row["criticality"] == "critical" else "권장"
         evidence = row["evidence"] or "—"
-        lines.append(f"[{kind}] {mark:9} {row['invariant_id']}: {row['name']}")
+        lines.append(f"[{kind}] {mark} {row['invariant_id']}: {row['name']}")
         lines.append(f"      → {evidence}")
     return "\n".join(lines)
 

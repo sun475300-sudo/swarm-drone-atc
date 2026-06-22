@@ -58,10 +58,12 @@ SDACS 의 RL/ML 자산은 다음과 같이 **연구 코드로 격리**되어 있
 ### 3.1 라이브 감사가 핵심 불변식을 집행한다
 
 `ml_isolated_from_active_loop` 는 정적 선언이 아니라 **라이브 감사**
-(`audit_active_loop_imports`)로 뒷받침된다. 이 함수는 활성 루프 모듈 소스의 `import`/`from`
-줄을 스캔해 RL/ML 토큰(`rl_path_selector`·`deep_rl_controller`·`ppo_collision`·
-`stable_baselines3` 등)이 임포트되면 위반으로 표면화한다. 누군가 RL 을 활성 루프에
-배선하면:
+(`audit_active_loop_imports`)로 뒷받침된다. 이 함수는 활성 루프 모듈 소스를 `ast` 로
+파싱해 임포트 노드(`import`·`from ... import`)의 모듈 경로·임포트 이름·별칭을 RL/ML
+토큰(`rl_path_selector`·`deep_rl_controller`·`ppo_collision`·`stable_baselines3` 등)과
+대조한다 — 주석·문서 문자열은 오탐하지 않고, 괄호 다중 줄 임포트·`as` 별칭·연속 줄
+임포트 이름도 누락 없이 탐지한다(문자열 라인 스캔의 위양성/위음성 제거). 누군가 RL 을
+활성 루프에 배선하면:
 
 1. `audit_active_loop_imports()` 가 위반을 반환하고,
 2. `assess_boundary()` 가 정적 `upheld` 선언을 `partial` 로 **강등** 해 판정을

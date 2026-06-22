@@ -82,6 +82,16 @@ def test_criterion_rejects_unknown_severity():
         PilotCriterion("X", "TYPO", "desc", "rationale")
 
 
+def test_criterion_rejects_empty_description():
+    with pytest.raises(ValueError, match="description"):
+        PilotCriterion("X", SEVERITY_CRITICAL, "", "rationale")
+
+
+def test_criterion_rejects_empty_rationale():
+    with pytest.raises(ValueError, match="rationale"):
+        PilotCriterion("X", SEVERITY_CRITICAL, "desc", "")
+
+
 # --- 입력 검증 -------------------------------------------------------------
 def test_missing_criterion_rejected():
     statuses = dict.fromkeys(_CRITERION_IDS, STATUS_MET)
@@ -256,6 +266,26 @@ def test_all_shipped_proposals_not_ready():
 def test_shipped_proposals_include_all_criteria():
     for proposal in shipped_proposals():
         assert set(proposal.statuses) == set(_CRITERION_IDS)
+
+
+def test_asean_proposal_has_two_critical_unmet():
+    # 아세안은 PP-03(현지 파트너) + PP-04(영문 산출물) 이중 CRITICAL 결격 — 정직성.
+    a = assess(find_proposal("asean_island_delivery"))
+    assert a.unmet_critical == ("PP-03", "PP-04")
+    assert a.score == 0.3
+
+
+@pytest.mark.parametrize(
+    "pid,expected_score",
+    [
+        ("asean_island_delivery", 0.3),
+        ("eu_uspace_demo", 0.55),
+        ("us_university_research", 0.5),
+    ],
+)
+def test_shipped_proposal_scores(pid, expected_score):
+    # ROADMAP 자가 공시 점수와 정확 일치(상태 무단 격상 회귀 방지).
+    assert assess(find_proposal(pid)).score == expected_score
 
 
 def test_shipped_module_refs_exist_on_disk():

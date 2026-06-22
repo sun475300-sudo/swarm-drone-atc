@@ -229,6 +229,11 @@ def _verdict_for(has_critical_unmet: bool, has_any_incomplete: bool) -> str:
 
     우선순위: CRITICAL UNMET → NOT_READY > 그 외 미완(CRITICAL PARTIAL 또는
     권장 PARTIAL/UNMET) → NEEDS_WORK > 전부 MET → READY_TO_PROPOSE.
+
+    CRITICAL PARTIAL 은 정책상 권장 미완과 동일 판정(NEEDS_WORK)을 내므로 별도
+    인자로 가르지 않는다. ``POLICY_MATRIX`` 가 ``critical_partial`` 플래그를 별도
+    칸으로 유지하는 것은 *실현 가능한 상태 공간*을 정직히 드러내기 위함이며 판정
+    가중은 ``has_any_incomplete`` 에 흡수된다.
     """
     if has_critical_unmet:
         return VERDICT_NOT_READY
@@ -328,8 +333,8 @@ def shipped_proposals() -> tuple[PilotProposal, ...]:
 
     아세안 도서 배송·EU U-space 데모·미국 대학 연구 협력. 세 후보 모두 현지
     호스트/파트너(PP-03) 미확보가 공통 CRITICAL 결격이라 격상 없이 NOT_READY 로
-    드러낸다(해외 실증의 실제 병목). 기능 커버리지(PP-02)는 리포에 실재하는
-    모듈을 인용해 결속한다.
+    드러낸다(해외 실증의 실제 병목, 아세안은 PP-04 영문 산출물 추가 결격).
+    기능 커버리지(PP-02)는 리포에 실재하는 모듈을 인용해 결속한다.
     """
     return (
         PilotProposal(
@@ -448,8 +453,8 @@ def criteria_manifest() -> dict[str, Any]:
                 "id": p.proposal_id,
                 "target": p.target,
                 "jurisdiction": p.jurisdiction,
-                "verdict": assess(p).verdict,
-                "score": assess(p).score,
+                "verdict": (a := assess(p)).verdict,
+                "score": a.score,
             }
             for p in shipped_proposals()
         ],

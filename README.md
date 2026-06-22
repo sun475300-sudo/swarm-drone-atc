@@ -995,6 +995,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-22 11:11 | `2eecc61` | merge: ODYSSEY Phase 404·405 일원화 (PR #425·#424 흡수) | README.en.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/benchmark_comparison.py, tests/test_benchmark_comparison.py |
 | 2026-06-22 | (본 점검) | merge: ODYSSEY Phase 404 EN 완역(#425) + Phase 405 국제 벤치마크 비교(#424) 일원화 | README.en.md, README.md, simulation/benchmark_comparison.py, tests/test_benchmark_comparison.py, docs/SIMULATOR_ODYSSEY_PLAN.md |
 | 2026-06-22 07:28 | `1696ca8` | ci: set mypy python_version 3.10→3.12 to accept numpy cp312 PEP 695 stubs | pyproject.toml |
 | 2026-06-22 07:18 | `e9de1d6` | ci: bump mypy floor 1.10→1.18 to handle numpy PEP 695 type-statement stubs | pyproject.toml |

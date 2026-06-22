@@ -995,6 +995,8 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-22 13:16 | `3b3447a` | refactor(odyssey): Phase 411 code-reviewer 어드바이저 반영 | ROADMAP.md, simulation/overseas_pilot_proposal.py, tests/test_overseas_pilot_proposal.py |
+| 2026-06-22 13:14 | `8808b77` | feat(odyssey): Phase 411 — 해외 파일럿 제안서 적합성 게이트 | ROADMAP.md, docs/standards/OVERSEAS_PILOT_PROPOSAL_GATE.md, simulation/overseas_pilot_proposal.py, tests/test_overseas_pilot_proposal.py |
 | 2026-06-22 12:26 | `190f5e4` | feat(odyssey): Phase 452 — RL 일반화 평가 프로토콜 적합성 게이트 | ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/RL_GENERALIZATION_PROTOCOL.md, simulation/rl_generalization_protocol.py, tests/test_rl_generalization_protocol.py |
 | 2026-06-22 11:11 | `2eecc61` | merge: ODYSSEY Phase 404·405 일원화 (PR #425·#424 흡수) | README.en.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/benchmark_comparison.py, tests/test_benchmark_comparison.py |
 | 2026-06-22 07:28 | `1696ca8` | ci: set mypy python_version 3.10→3.12 to accept numpy cp312 PEP 695 stubs | pyproject.toml |

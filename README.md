@@ -29,6 +29,8 @@
 
 > 🔗 **GitHub Pages 라이브 사이트**: <https://sun475300-sudo.github.io/swarm-drone-atc/> — 랜딩 페이지(소개·성과·아키텍처)에서 3D 시뮬레이터·해양 소형선 감지·시나리오 비교·테스트 리포트로 이동할 수 있습니다.
 
+🌐 **Language / 언어:** **한국어** · [English](README.en.md)
+
 </div>
 <div align="center">
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
@@ -993,6 +995,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-22 | (본 점검) | merge: ODYSSEY Phase 404 EN 완역(#425) + Phase 405 국제 벤치마크 비교(#424) 일원화 | README.en.md, README.md, simulation/benchmark_comparison.py, tests/test_benchmark_comparison.py, docs/SIMULATOR_ODYSSEY_PLAN.md |
 | 2026-06-22 07:28 | `1696ca8` | ci: set mypy python_version 3.10→3.12 to accept numpy cp312 PEP 695 stubs | pyproject.toml |
 | 2026-06-22 07:18 | `e9de1d6` | ci: bump mypy floor 1.10→1.18 to handle numpy PEP 695 type-statement stubs | pyproject.toml |
 | 2026-06-22 07:07 | `6ad0e7e` | merge: ODYSSEY Phase 410 GUTMA 회원 기고 적합성 (PR #422 흡수) | README.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/GUTMA_CONTRIBUTION.md, simulation/gutma_contribution.py, tests/test_gutma_contribution.py |

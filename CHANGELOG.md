@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+### 추가 (fix/test/docs) — 일일 점검 2026-06-25 (39차): 7차 정밀점검 (airspace_controller NaN 가드) + README 최적화
+
+- **7차 정밀점검 — agent 2 병렬 + 직접 검증**: 이전 1-6차에서 안 본 영역 (`src/airspace_control/comms·planning·agents/`, `src/digital_twin/`, `src/autonomy/`, `src/rl/`, `src/training/`, `src/applications/`, `visualization/`, `simulation/monte_carlo.py`) 정밀 점검. Explore agent 2 병렬 launch + 보고 5건 직접 검증. **4건 거짓 양성 차단** (WGS84 ε 5.75e-14 차이 → 직접 계산 결과 현 상수 `6.69437999014e-3` 가 정확·agent 주장 `6.694379990197508e-3` 가 틀림 / communication_bus `delivered` 카운팅 → 의도(수신자 단위) 합리적 / numpy Generator.random() → 정상 메서드, agent 주장 거짓 / A* origin 차원 → 현 코드 safe). **진짜 결함 1건 수정**: `src/airspace_control/controller/airspace_controller.py` `_update_drone_state` 가 외부 TelemetryMessage 의 position/velocity 를 검증 없이 `np.array(...)` → NaN/None 이 들어오면 silent 전파 → 거리 계산·CPA·CBS 휴리스틱 silent failure. fastapi WS 진입은 별도 가드(_normalize_live_telemetry, 3068ae7) — 내부 CommBus 직접 호출 경로(ws_bridge·SITL 통합) 는 미가드였음. **defense in depth 가드 추가**: None 거부·np.asarray(dtype=float)·shape ≥ 3·np.all(np.isfinite) 검증. 가드 실패 시 메시지 silent drop (기존 동작과 호환). 기존 등록 드론은 잘못된 텔레메트리로 인해 변경되지 않음.
+- **회귀 테스트 신규** — `tests/test_airspace_controller_nan_guard.py` 9 케이스: 정상 텔레메트리 등록(기준선)·position None 거부·velocity None 거부·position NaN 거부·velocity NaN 거부·position Inf 거부·short position(2D) 거부·기존 드론 NaN 무시 시 원본 position 보존·velocity 부분 NaN 거부.
+- **README 최적화 — 변경 이력 압축**: 1,321 라인 → **1,064 라인 (-257)**. 변경 이력 테이블 274 entries 중 최근 15건만 유지 + 나머지 259 entries 는 `CHANGELOG.md` (Keep a Changelog 형식 + Phase 별 상세) 참조 1줄로 압축. git log / git show 로 history 조회 가능 명시.
+- **검증**: Python py_compile OK · 4 사본 md5 불변 (b924df34, 시뮬레이터 무수정) · 회귀 9 케이스 자체 검증 통과. ROADMAP 새 항목 없음 (정밀점검은 ROADMAP 외 maintenance).
+
 ### 추가 (feat/test/docs) — 일일 점검 2026-06-24 (38차): ROADMAP 3종 추가 (Phase 451·464·482)
 
 - **작업 범위**: 37차 (Phase 461·462·481·487 + HUD 캐싱) 머지 후 ROADMAP 미완료 잔여 중 draft PR(#430·#433 phase 452/453) 회피하면서 sandbox 가능 + 충돌 위험 0 인 ODYSSEY 3종을 단일 PR 로 통합. 37차와 동일 패턴(문서 + 결정적 회귀).

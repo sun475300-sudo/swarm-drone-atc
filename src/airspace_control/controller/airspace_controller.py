@@ -265,20 +265,30 @@ class AirspaceController:
 
     def _update_drone_state(self, tm: TelemetryMessage) -> None:
         """텔레메트리 메시지로 드론 상태 갱신 — 신규 드론은 자동 등록, 오래된 타임스탬프는 무시"""
+        # defense in depth: 외부 입력(ws_bridge·실 텔레메트리·SITL 통합) NaN/None 가드.
+        # fastapi WS 진입 검증은 별도 경로(_normalize_live_telemetry) — 내부 CommBus 직접 호출
+        # 경로도 동일 가드. 내부 SimPy DroneAgent 는 정상 텔레메트리만 보내지만 외부 통합 시
+        # NaN 전파 → 거리 계산·CPA·CBS 휴리스틱 silent failure 위험.
+        if tm.position is None or tm.velocity is None:
+            return
+        pos = np.asarray(tm.position, dtype=float)
+        vel = np.asarray(tm.velocity, dtype=float)
+        if pos.size < 3 or vel.size < 3 or not (np.all(np.isfinite(pos)) and np.all(np.isfinite(vel))):
+            return
         drone = self._active_drones.get(tm.drone_id)
         if drone is None:
             drone = DroneState(
                 drone_id=tm.drone_id,
-                position=np.array(tm.position, dtype=float),
-                velocity=np.array(tm.velocity, dtype=float),
+                position=pos,
+                velocity=vel,
             )
             self._active_drones[tm.drone_id] = drone
         else:
             # 타임스탬프 단조성 검증: 오래된 텔레메트리 무시
             if tm.timestamp_s < drone.last_update_s:
                 return
-            drone.position = np.array(tm.position, dtype=float)
-            drone.velocity = np.array(tm.velocity, dtype=float)
+            drone.position = pos
+            drone.velocity = vel
             drone.battery_pct = float(tm.battery_pct)
         drone.last_update_s = float(tm.timestamp_s)
         try:

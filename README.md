@@ -57,7 +57,7 @@
 
 ---
 
-## 📊 개발 진척 현황 / Development Progress (2026-06-18)
+## 📊 개발 진척 현황 / Development Progress (2026-06-24)
 
 | 트랙 | 범위 | 진척 | 핵심 산출물 |
 |---|---|---|---|
@@ -74,7 +74,7 @@
 
 > 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)(실행 일정)
 
-### 🚧 미완료 작업 / Open Work Items (정직성 리스트, 2026-06-18 기준)
+### 🚧 미완료 작업 / Open Work Items (정직성 리스트, 2026-06-24 기준)
 
 **사용자 환경 의존 (코드 작업 불가, 4건)**
 - [ ] P755 창업·분사 결정 + 외부 기관 LOI 체결

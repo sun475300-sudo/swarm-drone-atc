@@ -326,10 +326,14 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 466** 🏛 텔레메트리 JSON Schema 공개 + 검증기 — `docs/schemas/telemetry.schema.json` Draft-07 + ws_bridge 정합 회귀 (2026-06-12), **검증기** `simulation/telemetry_validator.py`(`validate_telemetry`, jsonschema 정본/순수 파이썬 폴백 이중 경로 동일 판정, CLI `--example`, 37건 PASS) 추가 완료 (2026-06-17)
 - [x] **Phase 469** 🏛 정책 영향 시뮬레이션 — `simulation/policy_impact.py`. 규제 파라미터(이격·고도 상한) 변경의 공역 용량 영향을 결정적 해석 모델(육각 충전 × 고도층)로 정량화·자동 비교(`compare_policies`). 이격 50→70m = 용량 −49%. 정적 기하 용량 상한임 정직 공시. code-reviewer 어드바이저 HIGH 2·MEDIUM 3 반영. 33건 PASS (2026-06-17)
 - [x] **Phase 465** 🏛 공역 통합 시뮬레이션 표준 시나리오 셋 (10종 공개) — `simulation/standard_scenarios.py` + `config/scenario_params/nominal_baseline.yaml` + `docs/standards/SDACS_BENCHMARK_SUITE.md`. 도구 간 교차 벤치마크용 공개 표준 스위트 `SDACS-SBS-10` 큐레이션(통제 축 10종 상호 배타, 정의는 기존 YAML SSoT 무복제). 10종 전부 `scenario_schema` 적합 결정적 재검증 + JSON 매니페스트(`primary_kpi_in_criteria` 괴리 플래그). code-reviewer 어드바이저 HIGH 3 반영. 18건 PASS (2026-06-17)
-- [ ] **Phase 461-464·467-468·470-480** 🏛 Standards & Policy — ASTM/ISO 기고·정책 추적 대시보드
+- [x] **Phase 461** 🏛 ASTM F38 위원회 기고 초안 — `docs/standards/SDACS_ASTM_F38_PROPOSAL.md`. F3548-21·F3411·F3478·F3196 5종 표준에 대한 SDACS 정렬 매트릭스 + 3개 시험 방법(SDACS-TM-1 군집 충돌 해결률·TM-2 USS 연합 상호운용·TM-3 Detect & Avoid). 기존 federation 9 모듈(421-432) + operational_intent + safety_net_invariant 자산 재사용, 결정적 합격 기준 명시. 5건 회귀 PASS (2026-06-24)
+- [x] **Phase 462** 🏛 ISO/TC 20/SC 16 표준 동향 추적 매트릭스 — `docs/standards/SDACS_ISO_TC20_SC16_TRACKER.md`. ISO 21384-1/2/3/4·21895·23629-5/7/8/12·24355 발간 10종 + CD/WD 5종 추적, SDACS 정렬·격차 분석 3 카테고리(강한 정합·부분 정합·미정합), 기고 우선순위 3종(ISO 23629-5/7/CD 5491). 5건 회귀 PASS (2026-06-24)
+- [ ] **Phase 463-464·467-468·470-480** 🏛 Standards & Policy 잔여 — 정책 추적 대시보드·국제 WG 의견서 외
 - [x] **Phase 485** ♾️ 데이터 마이그레이션 도구 — `simulation/scenario_migration.py`. 시나리오 포맷의 역사적 변종(`*_min`/`*_s`·`total_drone_count`/`base_drone_count`/`base_traffic`)을 canonical v2.0(초·단일 `drone_count`·`schema_version` 스탬프)으로 정규화하는 결정적·멱등 버전 변환기. `multi_city` 의 러너 미인식 `total_drone_count` 를 `drone_count` 로 복원. 출력은 `scenario_schema` 계약 경고 없이 충족. code-reviewer 어드바이저 HIGH 3 반영. 33건 PASS (2026-06-17)
 - [x] **Phase 486** ♾️ 독립 재현 자동화 — `scripts/independent_reproduction.sh` (회귀·md5·JS·API 게이트 통합) (2026-06-12)
-- [ ] **Phase 481-484·487-500** ♾️ Continuum — 의존성 장기 추적·승계 규약·**Phase 500 = Centennial 선언**
+- [x] **Phase 481** ♾️ Dependabot 자동 갱신 정책 — `docs/CONTINUUM_DEPENDABOT_POLICY.md`. 3-Tier 자동 머지 정책(Tier 1 patch+devDeps→auto-merge·Tier 2 minor→manual·Tier 3 major/security→cautious) + CVSS 매핑 SLO(CRITICAL 24h·HIGH 72h) + 9 CI 게이트 명시. 기존 `.github/dependabot.yml` (github-actions·npm weekly) 기반. 적체 14건(PR #267-#279·#367·#426-#427) 처리 절차 동봉. 4건 회귀 PASS (2026-06-24)
+- [x] **Phase 487** ♾️ 유지보수자 승계 규약 — `docs/CONTINUUM_SUCCESSION_PROTOCOL.md`. 3-Stage 전환(BDFL→Steward→Tri-Maintainer→Committee) + 자격 매트릭스(누적 PR 10+·12mo 활동) + 선출/해임 절차 + 머지 권한 매트릭스(LGTM 등급) + 비상 절차(BDFL 부재 24h/30d/90d) + 키 관리 + 라이선스 MIT 보호. 5건 회귀 PASS (2026-06-24)
+- [ ] **Phase 482-484·488-500** ♾️ Continuum 잔여 — 의존성 SBOM·기여자 자동 인식·**Phase 500 = Centennial 선언**
 
 ---
 

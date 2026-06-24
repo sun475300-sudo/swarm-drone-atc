@@ -7390,18 +7390,35 @@
         }
 
         // ===== UI Updates =====
+        // HUD DOM 참조 캐시 (lazy init) — updateStatsUI 매 틱 호출되며 8개 getElementById 반복 → 1회 lookup 후 재사용.
+        // 마이크로 최적화이지만 매 프레임 핫경로의 트리 워크를 제거 (대규모 군집·저사양 기기에서 누적 가치).
+        let _hudEls = null;
         function updateStatsUI() {
+            if (!_hudEls) {
+                _hudEls = {
+                    active: document.getElementById('stat-active'),
+                    conflicts: document.getElementById('stat-conflicts'),
+                    near: document.getElementById('stat-near'),
+                    collisions: document.getElementById('stat-collisions'),
+                    advisories: document.getElementById('stat-advisories'),
+                    battery: document.getElementById('stat-battery'),
+                    wind: document.getElementById('stat-wind'),
+                    simTime: document.getElementById('sim-time'),
+                    roleStats: document.getElementById('role-stats'),
+                    roleLegend: document.getElementById('role-legend'),
+                };
+            }
             const airborne = drones.filter(d => d.phase !== 'GROUNDED');
-            document.getElementById('stat-active').textContent = airborne.length;
-            document.getElementById('stat-conflicts').textContent = stats.conflicts;
-            document.getElementById('stat-near').textContent = stats.nearMisses;
-            document.getElementById('stat-collisions').textContent = stats.collisions;
-            document.getElementById('stat-advisories').textContent = stats.advisories;
+            _hudEls.active.textContent = airborne.length;
+            _hudEls.conflicts.textContent = stats.conflicts;
+            _hudEls.near.textContent = stats.nearMisses;
+            _hudEls.collisions.textContent = stats.collisions;
+            _hudEls.advisories.textContent = stats.advisories;
             const avgBat = drones.length ? (drones.reduce((s, d) => s + d.battery, 0) / drones.length) : 0;
-            document.getElementById('stat-battery').textContent = Math.round(avgBat) + '%';
+            _hudEls.battery.textContent = Math.round(avgBat) + '%';
             // 풍속 표시 (마이크로버스트·결빙 상태 포함)
             const windSpd = Math.sqrt(weather.baseWind.x ** 2 + weather.baseWind.z ** 2) + weather.gustIntensity;
-            const windEl = document.getElementById('stat-wind');
+            const windEl = _hudEls.wind;
             if (windEl) {
                 let windText = windEnabled ? windSpd.toFixed(1) : '—';
                 if (weather.microbursts.length > 0) windText += ' MB' + weather.microbursts.length;
@@ -7412,10 +7429,10 @@
                 windEl.style.fontSize = windSpd > 8 ? '13px' : '15px'; // 데이터 많으면 축소
             }
             const m = Math.floor(simTime / 60), s = Math.floor(simTime % 60);
-            document.getElementById('sim-time').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            _hudEls.simTime.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
             // 직군별 현황
-            const roleEl = document.getElementById('role-stats');
+            const roleEl = _hudEls.roleStats;
             if (roleEl) {
                 const counts = {};
                 DRONE_ROLES.forEach(r => counts[r.id] = { total: 0, flying: 0, role: r });
@@ -7433,7 +7450,7 @@
                 }).join('');
 
                 // 직군 범례 (사이드패널)
-                const legendEl = document.getElementById('role-legend');
+                const legendEl = _hudEls.roleLegend;
                 if (legendEl && !legendEl.dataset.init) {
                     legendEl.dataset.init = '1';
                     legendEl.innerHTML = DRONE_ROLES.map(r => {

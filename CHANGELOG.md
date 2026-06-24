@@ -5,6 +5,17 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test/perf) — 일일 점검 2026-06-24 (37차): ROADMAP 4종 일괄 (Phase 461·462·481·487) + HUD 캐싱 최적화
+
+- **작업 범위**: ROADMAP.md 미완료 16건 중 draft PR(#429-#434, phase 404·405·411·452·453·473) 회피하면서 sandbox 가능 + 충돌 위험 0 인 ODYSSEY 4종을 단일 PR 로 통합. 동시에 시뮬레이터 HUD 핫경로 마이크로 최적화 1건 추가.
+- **Phase 461** (Track 🏛, 신규 문서) — `docs/standards/SDACS_ASTM_F38_PROPOSAL.md`. ASTM F38 (Unmanned Aircraft Systems) 위원회 기고 초안. F3548-21 USS Interoperability·F3411 Remote ID·F3478 Detect & Avoid·F3196 BVLOS 등 5종 표준에 대한 SDACS 자산 정렬 매트릭스 + 3개 시험 방법 제안(**SDACS-TM-1** 군집 충돌 해결률·**SDACS-TM-2** USS 연합 상호운용·**SDACS-TM-3** Detect & Avoid). 기존 federation 9 모듈(421-432)·operational_intent·safety_net_invariant 자산 재사용, 결정적 합격 기준(resolution rate ≥95%·min CPA ≥10m·APF latency p95 ≤100ms) 명시. 기고 일정 5단계(2026-Q3~2027-Q4).
+- **Phase 462** (Track 🏛, 신규 문서) — `docs/standards/SDACS_ISO_TC20_SC16_TRACKER.md`. ISO/TC 20/SC 16 (UAS) 표준 동향 추적 매트릭스. 발간 10종(ISO 21384-1/2/3/4·21895·23629-5/7/8/12·24355) + 작업 중 5종(WD/CD/AWI) 추적, 격차 분석 3 카테고리(강한 정합·부분 정합·미정합), 기고 우선순위 3종(ISO 23629-5 UTM 구조·23629-7 데이터 모델·CD 5491 Geofencing). 분기별 갱신 절차 + 게이트(`pytest tests/test_operational_intent` 등) 명시.
+- **Phase 481** (Track ♾️, 신규 문서) — `docs/CONTINUUM_DEPENDABOT_POLICY.md`. Dependabot 자동 갱신 정책 3-Tier: **Tier 1** semver patch+devDeps→auto-merge (CI green+md5 일치+API 게이트 조건), **Tier 2** minor→manual 1주 SLO, **Tier 3** major/security→cautious 2주 SLO + CVSS 매핑(CRITICAL 24h·HIGH 72h·MEDIUM 1w·LOW 정기). 9 CI 게이트 명시(Python 회귀·E2E·Node 스모크·API 정합성·4 사본 md5·Trivy·Bandit·pip-audit·canonical-hash). 적체 14건(PR #267-#279·#367·#426-#427) 처리 절차 동봉. 기존 `.github/dependabot.yml`(github-actions+npm weekly) 기반.
+- **Phase 487** (Track ♾️, 신규 문서) — `docs/CONTINUUM_SUCCESSION_PROTOCOL.md`. 유지보수자 승계 규약 3-Stage 전환: **Stage 1** BDFL+Steward(현재→2027-Q1)·**Stage 2** Tri-Maintainer(2027-Q2→2028)·**Stage 3** Committee(2029+). 자격 매트릭스(누적 PR 10+·12mo 활동·GPG 키 등록), 선출 절차(추천→자격 검증→RFC→2/3 의결), 머지 권한 매트릭스(문서 1 LGTM·코드 1 LGTM+CI·보안 2 LGTM·API breaking 만장일치·릴리스 위원회 과반), 비상 절차(BDFL 부재 24h·30d·90d), 키 관리, MIT 라이선스/DCO 보호. Phase 500 Centennial 선언 전제 조건.
+- **HUD 캐싱 최적화** (시뮬레이터 핫경로) — `updateStatsUI()` 매 틱 호출되며 8개 `getElementById` 반복 lookup 을 lazy init 캐시(`_hudEls` 객체) 로 통합. 마이크로 최적화이나 매 프레임 DOM 트리 워크 제거 → 저사양 기기·대규모 군집(1K+)에서 누적 가치. CSP 영향 없음(DOM 접근 패턴만 변경), behavior-identical. 4 사본 동기화 완료(md5 `b924df34bf37c6250798674d7e70ef50`).
+- **회귀 테스트** — `tests/test_continuum_and_standards_docs.py` (신규) 24건 케이스: Phase 461 5건(file/header/ASTM 표준 4종/TM 3개/합격 기준), 462 5건(file/header/ISO 표준 3종/격차 분석/기고 우선순위), 481 4건(file/header/3-Tier/CVSS 매핑/dependabot.yml 참조), 487 5건(file/header/3-Stage/자격/머지 권한 매트릭스/MIT), Dependabot YAML 3건. **24/24 PASS** (로컬 직접 실행, 본 컨테이너 pytest 미설치라 importlib 경로). CI 에서 표준 수트 통합.
+- **검증**: JS 구문(node --check) OK·4 사본 md5 일치·API 정합성 게이트는 playwright 미설치 환경이라 CI 위임. 기존 모듈 무수정 순수 추가 → 회귀 무영향. ROADMAP.md 라인 329(Standards & Policy)·332(Continuum) 갱신: 461/462/481/487 ✅ + 잔여 라인 splitting.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-17 (36차): ODYSSEY Track 🌏 Phase 401 EASA U-space 서비스 매핑 + 406·408 추적 정정
 
 - **작업 상황 점검**: 35차(PR #365, `7940543`) 머지 후 브랜치 클린 베이스 확인. 로드맵 미구현부 탐색 중 Track 🌏 International Standards(401-420)에서 **406(좌표계·UTM zone)·408(공역 클래스 A-G) 두 phase 가 이미 코드·테스트·문서로 적재 완료(각 39·25건 PASS 재검증)됐으나 ODYSSEY PLAN 에 ✅ 미표시** 인 추적 갭을 발견 — 기존 "추적 정정" 패턴으로 반영. 동시에 다음 sandbox 가능 항목인 **Phase 401**(EASA U-space U1-U4 서비스 매핑)을 신규 착수.

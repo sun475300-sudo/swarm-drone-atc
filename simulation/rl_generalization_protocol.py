@@ -221,9 +221,9 @@ PROTOCOL_REQUIREMENTS: tuple[ProtocolRequirement, ...] = (
 
 # 로드 시점 무결성 게이트 — 중복 식별자를 임포트 시 즉시 차단(테스트보다 이른 단계).
 _CATALOG_IDS = [r.requirement_id for r in PROTOCOL_REQUIREMENTS]
-assert len(_CATALOG_IDS) == len(set(_CATALOG_IDS)), (
-    "duplicate requirement_id in PROTOCOL_REQUIREMENTS"
-)
+# `assert` 는 `python -O` 에서 비활성화되므로 명시적 raise 로 집행한다.
+if len(_CATALOG_IDS) != len(set(_CATALOG_IDS)):
+    raise RuntimeError("duplicate requirement_id in PROTOCOL_REQUIREMENTS")
 
 
 @dataclass(frozen=True)

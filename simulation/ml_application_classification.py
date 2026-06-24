@@ -220,12 +220,15 @@ ML_CONSTITUENTS: tuple[MLConstituent, ...] = (
 
 # 로드 시점 무결성 게이트 — 임포트 시 즉시 차단.
 _CATALOG_IDS = [c.constituent_id for c in ML_CONSTITUENTS]
-assert len(_CATALOG_IDS) == len(set(_CATALOG_IDS)), "duplicate constituent_id"
-assert set(POLICY_MATRIX.keys()) == {
-    (a, h) for a in TASK_ALLOCATIONS for h in HUMAN_AUTHORITY
-}, "POLICY_MATRIX must cover every (allocation, authority) combination"
-assert set(POLICY_MATRIX.values()) <= set(EASA_LEVELS), "POLICY_MATRIX yields unknown level"
-assert set(LEVEL_FAMILY.keys()) == set(EASA_LEVELS), "LEVEL_FAMILY must cover every level"
+# `assert` 는 `python -O` 에서 비활성화되므로 명시적 raise 로 집행한다.
+if len(_CATALOG_IDS) != len(set(_CATALOG_IDS)):
+    raise RuntimeError("duplicate constituent_id")
+if set(POLICY_MATRIX.keys()) != {(a, h) for a in TASK_ALLOCATIONS for h in HUMAN_AUTHORITY}:
+    raise RuntimeError("POLICY_MATRIX must cover every (allocation, authority) combination")
+if not set(POLICY_MATRIX.values()) <= set(EASA_LEVELS):
+    raise RuntimeError("POLICY_MATRIX yields unknown level")
+if set(LEVEL_FAMILY.keys()) != set(EASA_LEVELS):
+    raise RuntimeError("LEVEL_FAMILY must cover every level")
 
 
 @dataclass(frozen=True)

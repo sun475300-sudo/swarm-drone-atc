@@ -221,7 +221,9 @@ BOUNDARY_INVARIANTS: tuple[BoundaryInvariant, ...] = (
 
 # 로드 시점 무결성 게이트 — 중복 식별자를 임포트 시 즉시 차단.
 _CATALOG_IDS = [inv.invariant_id for inv in BOUNDARY_INVARIANTS]
-assert len(_CATALOG_IDS) == len(set(_CATALOG_IDS)), "duplicate invariant_id in catalog"
+# `assert` 는 `python -O` 에서 비활성화되므로 명시적 raise 로 집행한다.
+if len(_CATALOG_IDS) != len(set(_CATALOG_IDS)):
+    raise RuntimeError("duplicate invariant_id in catalog")
 
 
 def audit_active_loop_imports() -> tuple[tuple[str, str], ...]:

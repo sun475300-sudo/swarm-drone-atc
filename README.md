@@ -29,6 +29,8 @@
 
 > 🔗 **GitHub Pages 라이브 사이트**: <https://sun475300-sudo.github.io/swarm-drone-atc/> — 랜딩 페이지(소개·성과·아키텍처)에서 3D 시뮬레이터·해양 소형선 감지·시나리오 비교·테스트 리포트로 이동할 수 있습니다.
 
+🌐 **Language / 언어:** **한국어** · [English](README.en.md)
+
 </div>
 <div align="center">
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
@@ -1012,6 +1014,14 @@ License metadata is declared as **MIT** in [`pyproject.toml`](pyproject.toml). A
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-22 16:13 | `6d6bd7f` | Merge remote-tracking branch 'origin/claude/fervent-babbage-569eir' into claude/fervent-babbage-2urqrr | README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/RL_ADVISORY_BOUNDARY.md, simulation/rl_advisory_boundary.py, tests/test_rl_advisory_boundary.py |
+| 2026-06-22 15:25 | `e1144d1` | fix(odyssey): Phase 453 code-reviewer 어드바이저 HIGH 3·MEDIUM 2·LOW 2 반영 | docs/standards/RL_ADVISORY_BOUNDARY.md, simulation/rl_advisory_boundary.py, tests/test_rl_advisory_boundary.py |
+| 2026-06-22 15:20 | `c8d52d0` | feat(odyssey): Phase 453 — RL 자문 경계(advisory boundary) 정합성 게이트 | ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/RL_ADVISORY_BOUNDARY.md, simulation/rl_advisory_boundary.py, tests/test_rl_advisory_boundary.py |
+| 2026-06-22 14:14 | `3a05890` | feat(odyssey): Phase 473 — 국제 WG 의견서 포트폴리오 추적기 | docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/WG_OPINION_PORTFOLIO.md, simulation/wg_opinion_portfolio.py, tests/test_wg_opinion_portfolio.py |
+| 2026-06-22 13:16 | `3b3447a` | refactor(odyssey): Phase 411 code-reviewer 어드바이저 반영 | ROADMAP.md, simulation/overseas_pilot_proposal.py, tests/test_overseas_pilot_proposal.py |
+| 2026-06-22 13:14 | `8808b77` | feat(odyssey): Phase 411 — 해외 파일럿 제안서 적합성 게이트 | ROADMAP.md, docs/standards/OVERSEAS_PILOT_PROPOSAL_GATE.md, simulation/overseas_pilot_proposal.py, tests/test_overseas_pilot_proposal.py |
+| 2026-06-22 12:26 | `190f5e4` | feat(odyssey): Phase 452 — RL 일반화 평가 프로토콜 적합성 게이트 | ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/RL_GENERALIZATION_PROTOCOL.md, simulation/rl_generalization_protocol.py, tests/test_rl_generalization_protocol.py |
+| 2026-06-22 11:11 | `2eecc61` | merge: ODYSSEY Phase 404·405 일원화 (PR #425·#424 흡수) | README.en.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/benchmark_comparison.py, tests/test_benchmark_comparison.py |
 | 2026-06-22 07:28 | `1696ca8` | ci: set mypy python_version 3.10→3.12 to accept numpy cp312 PEP 695 stubs | pyproject.toml |
 | 2026-06-22 07:18 | `e9de1d6` | ci: bump mypy floor 1.10→1.18 to handle numpy PEP 695 type-statement stubs | pyproject.toml |
 | 2026-06-22 07:07 | `6ad0e7e` | merge: ODYSSEY Phase 410 GUTMA 회원 기고 적합성 (PR #422 흡수) | README.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/GUTMA_CONTRIBUTION.md, simulation/gutma_contribution.py, tests/test_gutma_contribution.py |

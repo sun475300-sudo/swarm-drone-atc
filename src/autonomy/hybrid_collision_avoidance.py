@@ -185,7 +185,7 @@ class HybridCollisionAvoidance:
         # 모드 결정 및 블렌딩
         if rl_action is None:
             mode = "apf_only"
-            rl_force = np.zeros(3)
+            rl_force: np.ndarray = np.zeros(3)
             blend_ratio = 1.0
             total = apf_force.copy()
         elif min_dist < self._config.safety_override_dist_m:

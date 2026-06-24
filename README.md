@@ -1045,6 +1045,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-25 08:08 | `41c3c29` | feat(odyssey): ROADMAP 3종 추가 (Phase 451 RL 조사·464 안전 백서·482 브라우저 카나리) | CHANGELOG.md, ROADMAP.md, docs/research/RL_GENERALIZATION_SURVEY.md, docs/standards/SDACS_SWARM_SAFETY_WHITEPAPER.md, scripts/browser_api_canary.py, tests/test_phase_482_451_464_docs.py |
 | 2026-06-25 00:30 | `6401d07` | feat(odyssey): ROADMAP 4종 일괄 (Phase 461·462·481·487) + HUD 캐싱 최적화 | CHANGELOG.md, README.md, ROADMAP.md, docs/CONTINUUM_DEPENDABOT_POLICY.md, docs/CONTINUUM_SUCCESSION_PROTOCOL.md, docs/simulator.html … |
 | 2026-06-24 23:17 | `240ee10` | chore: origin/main 머지 — 적체 진행 통합 (06-17·06-18 작업 흡수) | CHANGELOG.md, README.md, ROADMAP.md, config/scenario_params/nominal_baseline.yaml, docs/APF_CONVERGENCE_PROOF.md, docs/API_DEPRECATION_POLICY.md … |
 | 2026-06-17 12:39 | `11e9ed0` | docs(readme): 현행화 — 408 API·5,106 수집·Federation/Genesis 진척·보안 6차 반영 | README.md |

@@ -1012,6 +1012,7 @@ License metadata is declared as **MIT** in [`pyproject.toml`](pyproject.toml). A
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-25 07:27 | `7304328` | fix(autonomy): rl_force 명시 타입으로 numpy stub shape mypy 오류 해소 | src/autonomy/hybrid_collision_avoidance.py |
 | 2026-06-25 07:14 | `ebd1495` | feat(odyssey): Phase 405 — BlueSky·U-TRAFMAN 벤치마크 구조 비교 | ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/EXTERNAL_BENCHMARK_COMPARISON.md, simulation/benchmark_external_compare.py, tests/test_benchmark_external_compare.py |
 | 2026-06-25 07:06 | `aa21f94` | fix: resolve committed merge conflict markers in ROADMAP.md (Phase 402 union) | ROADMAP.md |
 | 2026-06-22 07:28 | `1696ca8` | ci: set mypy python_version 3.10→3.12 to accept numpy cp312 PEP 695 stubs | pyproject.toml |

@@ -185,7 +185,9 @@ class HybridCollisionAvoidance:
         # 모드 결정 및 블렌딩
         if rl_action is None:
             mode = "apf_only"
-            rl_force = np.zeros(3)
+            # 명시 annotation: 후속 분기에서 np.clip 결과(임의 차원 shape)를 재할당하므로
+            # 첫 할당의 좁은 shape 추론을 shape-무관 np.ndarray 로 넓혀 mypy 불일치 방지.
+            rl_force: np.ndarray = np.zeros(3)
             blend_ratio = 1.0
             total = apf_force.copy()
         elif min_dist < self._config.safety_override_dist_m:

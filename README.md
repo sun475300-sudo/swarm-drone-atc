@@ -1014,6 +1014,7 @@ License metadata is declared as **MIT** in [`pyproject.toml`](pyproject.toml). A
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-24 23:22 | `c81e3f1` | fix(mypy): hybrid_collision_avoidance rl_force 형변환 타입 호환 | src/autonomy/hybrid_collision_avoidance.py |
 | 2026-06-24 23:12 | `14f911e` | merge: 일일 점검 2026-06-24 — ODYSSEY 적체 드래프트 일원화 (Phase 404·405·411·452·453·473) | README.en.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/OVERSEAS_PILOT_PROPOSAL_GATE.md, docs/standards/RL_ADVISORY_BOUNDARY.md … |
 | 2026-06-22 16:13 | `6d6bd7f` | Merge remote-tracking branch 'origin/claude/fervent-babbage-569eir' into claude/fervent-babbage-2urqrr | README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/RL_ADVISORY_BOUNDARY.md, simulation/rl_advisory_boundary.py, tests/test_rl_advisory_boundary.py |
 | 2026-06-22 15:25 | `e1144d1` | fix(odyssey): Phase 453 code-reviewer 어드바이저 HIGH 3·MEDIUM 2·LOW 2 반영 | docs/standards/RL_ADVISORY_BOUNDARY.md, simulation/rl_advisory_boundary.py, tests/test_rl_advisory_boundary.py |

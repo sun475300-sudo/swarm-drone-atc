@@ -1014,6 +1014,7 @@ License metadata is declared as **MIT** in [`pyproject.toml`](pyproject.toml). A
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-25 06:15 | `e3165c4` | feat(odyssey): Phase 455 — ML 데이터 관리(Data Management) 적합성 게이트 | CHANGELOG.md, ROADMAP.md, docs/standards/ML_DATA_MANAGEMENT.md, simulation/ml_data_management.py, tests/test_ml_data_management.py |
 | 2026-06-25 03:15 | `ac4c4d4` | refactor(odyssey): code-reviewer 어드바이저 HIGH 3건 반영 | simulation/rl_advisory_boundary.py, simulation/rl_generalization_protocol.py, simulation/wg_opinion_portfolio.py |
 | 2026-06-25 02:17 | `cb220fd` | fix(odyssey): -O-safe integrity guards in 3 ODYSSEY gate modules | simulation/ml_application_classification.py, simulation/rl_advisory_boundary.py, simulation/rl_generalization_protocol.py |
 | 2026-06-25 00:30 | `e837f9b` | ci(mypy): annotate rl_force as np.ndarray to fix shape-generic narrowing | src/autonomy/hybrid_collision_avoidance.py |

@@ -279,7 +279,9 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 342** 🏙 전남 도서(신안·완도) 의료 배송 거점 DB — `src/applications/jeonnam_island_sites.py` 실 좌표·거점·Haversine ETA, 7건 PASS (2026-06-15)
 - [ ] **Phase 341-360** 🏙 Real Deployment — 목포 해역 실 좌표·전남 도서 의료 배송·90일 파일럿 백서
 - [x] **Phase 367** 🤖 스웜 자가 치유 — `src/autonomy/swarm_self_healing.py` 결손 드론 임무 자동 재분배, 12건 PASS (2026-06-15)
-- [ ] **Phase 361-380** 🤖 Next-Gen Autonomy — 온보드 RL 추론·APF+RL 하이브리드·양방향 디지털 트윈
+- [x] **Phase 362** 🤖 APF+RL 하이브리드 충돌 회피 — `src/autonomy/hybrid_collision_avoidance.py` FIRAS APF(0.7)+PPO RL(0.3) 가중 결합, 안전 우선 오버라이드(5m 이내 APF 전용), frozen dataclass 구성, 에피소드 평가 CLI, 27건 PASS (2026-06-20)
+- [x] **Phase 364** 🤖 V2X 드론 간 통신 메시지 규격 — `simulation/v2x_message.py` SAE J2735 BSM 적응 UAS 메시지(DroneBasicSafetyMessage 192B·EmergencyAlert 162B), JSON+바이너리 라운드트립 코덱, 범위 필터링·결정적 패킷 손실 채널, 22건 PASS (2026-06-20)
+- [ ] **Phase 361-380** 🤖 Next-Gen Autonomy 잔여 — 온보드 RL 추론·양방향 디지털 트윈
 - [x] **Phase 381** 🎓 교육 모드 — 시뮬레이터 `tutorialStart/Next/Status()` 5단계 (2026-06-12)
 - [x] **Phase 387** 🎓 졸업 심사 발표 키트 — `docs/presentation/DEFENSE_KIT.md` (2026-06-12)
 - [x] **Phase 389** 🎓 유지보수 최소 모드 — `docs/MAINTENANCE_MINIMAL_MODE.md` (2026-06-12)
@@ -292,7 +294,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 - [x] **Phase 408** 🌏 ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` + `simulation/airspace_class.py` `classify_airspace()` API 격상 (결정적, 25건 PASS) (2026-06-12, API 2026-06-14)
 - [x] **Phase 401·406** 🌏 다국 좌표계·시간대 자동 판정 — `simulation/geo_zones.py` UTM 그리드 존 결정적 판정 + EASA U-space 매핑, 22건 PASS (2026-06-15)
-- [ ] **Phase 401-407·409-420** 🌏 Global Expansion — EASA U-space·FAA UTM 정렬·EN 완역
+- [x] **Phase 402** 🌏 FAA UTM ConOps v2 USS 역할 갭 분석 — `simulation/faa_utm_gap.py` + `docs/certification/FAA_UTM_GAP_ANALYSIS.md` 21개 USS 요구사항(8 카테고리), 9 full·11 partial·1 gap = 69.05% 준수율, frozen dataclass + MappingProxyType, CLI(--report/--gaps/--json/--category), 42건 PASS (2026-06-20)
+- [ ] **Phase 401-407·409-420** 🌏 Global Expansion 잔여 — EASA U-space·FAA UTM 정렬·EN 완역
 - [x] **Phase 421** 🛰 인스턴스 간 디스커버리 프로토콜 — `simulation/federation_discovery.py` + `docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md`, ASTM F3548 DSS 유사 결정적 모델, 13건 PASS (2026-06-18)
 - [x] **Phase 422** 🛰 운영 의도(Operational Intent) 4D 교환 포맷 — `simulation/operational_intent.py` + `docs/certification/OPERATIONAL_INTENT_FORMAT.md`, ASTM F3548-21 정렬 frozen dataclass + 라운드트립 직렬화 + 보수적 4D 교차, 24건 PASS (2026-06-18)
 - [x] **Phase 423** 🛰 지역 간 관제권 핸드오버 — `simulation/federation_handover.py` Phase 421 점 커버리지 기반 결정적 RETAINED/ACQUIRED/HANDOVER/CONTINGENT 결정 + 이력현상(hysteresis) + 감사 로그, 16건 PASS (2026-06-15)

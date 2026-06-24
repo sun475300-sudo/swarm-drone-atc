@@ -14,18 +14,18 @@
 [![API](https://img.shields.io/badge/__sdacs-407_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
 [![E2E](https://img.shields.io/badge/E2E-263%2F264_pass-22c55e?style=for-the-badge&logo=playwright&logoColor=white)](tests/e2e/)
 [![Roadmap](https://img.shields.io/badge/Roadmap_691--755-92%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
-[![Tests](https://img.shields.io/badge/Python_tests-5%2C444_pass_%C2%B7_270_skip-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Python_tests-5%2C536_pass_%C2%B7_270_skip-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![v1.5.0](https://img.shields.io/badge/Desktop-v1.5.0_(Win%2FMac%2FLinux)-7c3aed?style=for-the-badge&logo=electron&logoColor=white)](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
 [![Modules](https://img.shields.io/badge/Modules-830+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
 [![LOC](https://img.shields.io/badge/Total-160K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](#license)
 
 **Mokpo National University, Dept. of Drone Mechanical Engineering — Capstone Design (2026)**
 
 **국립 목포대학교 드론기계공학과 캡스톤 디자인**
 
-[**⚡ Quick Start (1줄 실행)**](docs/QUICK_START.md) | [**🗺 Phase Matrix (200 카드)**](docs/phase_matrix.html) | [**🌐 Live Site**](https://sun475300-sudo.github.io/swarm-drone-atc/) | [**🛰 3D 시뮬레이터**](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html) | [**🚢 해양 시뮬**](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html) | [**📥 v1.5.0 빌드**](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
+[**⚡ Quick Start**](docs/QUICK_START.md) | [**📄 공개 보고서**](docs/report/SDACS_Public_Project_Report_2026.docx) | [**🎤 소개 PPTX**](docs/presentation/SDACS_Public_Project_Overview_2026.pptx) | [**🌐 Live Site**](https://sun475300-sudo.github.io/swarm-drone-atc/) | [**🛰 3D 시뮬레이터**](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html) | [**🚢 해양 시뮬**](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html) | [**📥 v1.5.0 빌드**](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
 
 > 🔗 **GitHub Pages 라이브 사이트**: <https://sun475300-sudo.github.io/swarm-drone-atc/> — 랜딩 페이지(소개·성과·아키텍처)에서 3D 시뮬레이터·해양 소형선 감지·시나리오 비교·테스트 리포트로 이동할 수 있습니다.
 
@@ -41,9 +41,11 @@
 | **공개 프로젝트 설명 보고서** (DOCX, 5페이지) | 일반 대중 · 학생 · 심사위원 · 공공기관 | [📥 SDACS_Public_Project_Report_2026.docx](docs/report/SDACS_Public_Project_Report_2026.docx) |
 | **공개 프로젝트 소개 발표자료** (PPTX, 10장) | 발표 · 수업 · 프로젝트 소개 | [📥 SDACS_Public_Project_Overview_2026.pptx](docs/presentation/SDACS_Public_Project_Overview_2026.pptx) |
 
-> **2026-06-18 로컬 재검증:** `ruff` 통과 · Python 테스트 **5,444 pass / 270 skip / 0 fail**. 대표 실행 `100 drones / 60s / seed 42`에서는 **45 collisions · 87 near misses · 95.9% conflict resolution**이 측정되었습니다. 현재 결과는 안전 인증이 아니라 연구용 시뮬레이터의 개선 기준선입니다.
+> **2026-06-24 로컬 재검증:** `ruff` 통과 · Python 테스트 **5,536 pass / 270 skip / 25 fail**. AIM 정밀검사 9회 완료 (242 테스트). 대표 실행 `100 drones / 60s / seed 42`에서는 **45 collisions · 87 near misses · 95.9% conflict resolution**이 측정되었습니다. 현재 결과는 안전 인증이 아니라 연구용 시뮬레이터의 개선 기준선입니다.
 
-> **최신 업데이트 (2026-06-18)** — 공개 설명 보고서와 10장 발표자료를 추가하고, 검증 수치와 현재 안전 한계를 동일한 기준으로 동기화했습니다.
+> **최신 업데이트 (2026-06-24)** — Phase 691-700 AIM 모듈 정밀검사 9라운드 완료 (Round 4–12). NaN/Inf 바이패스 차단(`math.isfinite` 가드), CAVOK 위양성 NO-GO 수정, 캡슐화 누수 방지(`copy.copy`), fail-closed 안전 설계, 방어적 복사, 중복 거부 패턴 적용. 10개 소스 파일 강화, **242개 정밀검사 전용 테스트** 추가.
+>
+> **이전 업데이트 (2026-06-18)** — 공개 설명 보고서와 10장 발표자료 추가 · 전체 Python 테스트 **5,444 pass / 270 skip** · Ruff 전 저장소 통과 · 대표 100대 시뮬레이션의 잔여 충돌을 개선 기준선으로 공개했습니다.
 >
 > **♾️ 이전 업데이트 (2026-06-12 · API Maturity 정직성 체계 가동 + TRANSCENDENCE/GENESIS/ODYSSEY 계획 체계 · 407 API 라이브 실측 · 종합 4,443 pass / 0 fail)** — 🎯 **신규**: `apiMaturity()`/`maturityReport()` 분류(production 93·beta 98·mock 110·speculative 103) · **Mock Detector**(mock 호출 시 console.warn + `mockCalls` 카운트, Phase 203) · **`experimental.*` 네임스페이스**(speculative 103종 격리, Phase 206) · **`soraAssess()`**(JARUS SORA 2.0 결정적 SAIL 산정, GENESIS 302) · **기술 부채 대장** [TECH_DEBT_LEDGER.md](docs/TECH_DEBT_LEDGER.md) 자동 생성(GENESIS 388) · CI에 문서-실측 정합성 + 4 사본 md5 게이트. 계획 체계 3층: [TRANSCENDENCE 201-300](docs/SIMULATOR_TRANSCENDENCE_PLAN.md)(8%) · [GENESIS 301-400](docs/SIMULATOR_GENESIS_PLAN.md)(2%) · [ODYSSEY 401-500](docs/SIMULATOR_ODYSSEY_PLAN.md)(수립) + [2026 H2 실행 일정](docs/MASTER_PLAN_2026H2.md)
 >
@@ -55,24 +57,24 @@
 
 ---
 
-## 📊 개발 진척 현황 / Development Progress (2026-06-18)
+## 📊 개발 진척 현황 / Development Progress (2026-06-24)
 
 | 트랙 | 범위 | 진척 | 핵심 산출물 |
 |---|---|---|---|
 | **Core** | Phase 1-690 | ✅ 100% | 시뮬·이론·AI·HW·UTM·AIM (690 phase) |
-| **A** 실기 드론 | P691-700 | ✅ 100% | Pixhawk·Jetson·RTK·MoCap·FMEA 가이드 10종 (실기 검증은 사용자 HW) |
+| **A** 실기 드론 | P691-700 | ✅ 100% | Pixhawk·Jetson·RTK·MoCap·FMEA 가이드 10종 + **AIM 정밀검사 9회 완료** (242 테스트, 실기 검증은 사용자 HW) |
 | **B** 논문화 | P701-710 | ✅ 100% | 30편 서베이·LaTeX §1-§7·포스터·Marp 슬라이드·투고 가이드 (IROS 2026 투고 준비) |
 | **C** 서비스화 | P711-720 | ✅ 100% | FastAPI+JWT/RBAC·TimescaleDB·K8s·관측성·베타 + React MVP(`frontend/`) |
 | **D** 웹 시뮬 | P721-735 | ✅ 100% | 군집·해양 3D + Electron 3-OS + i18n + LIVE + CPA 공간해시 + 멀티뷰 + EO/IR + **ATC 명령 콘솔** |
 | **E** 확장 연구 | P736-745 | ✅ 100% | RL PoC·UAS-T·LiDAR·DR·디지털트윈·Raft HA·UAM·양자·폐쇄망·LLM |
 | **F** 산학·사업화 | P746-755 | 🟢 90% | K-UAM·해수부·산림청·KISA·라이선싱·창업 docs (P755·LOI는 사용자 환경) |
 | **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 11% | 201-210·226 완료 — 성숙도 정직성·API 수명주기·GPS→ENU 정밀 검증 |
-| **H** GENESIS | 시뮬 301-400 | 🟡 16% | 인증·규제 301-311 중심 + 목포 실좌표·교육·발표·부채·유지보수 자산 완료 |
-| **I** ODYSSEY | 시뮬 401-500 | 🟡 37% | U-space·연합 운영·형식 검증·표준 시나리오·정책 분석·마이그레이션 자산 완료 |
+| **H** GENESIS | 시뮬 301-400 | 🟡 20% | 인증·규제 301-311 + APF+RL 하이브리드·V2X 메시지·목포 실좌표·교육·발표 자산 완료 |
+| **I** ODYSSEY | 시뮬 401-500 | 🟡 38% | FAA UTM 갭 분석·U-space·연합 운영·형식 검증·표준 시나리오·정책 분석·마이그레이션 자산 완료 |
 
 > 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)(실행 일정)
 
-### 🚧 미완료 작업 / Open Work Items (정직성 리스트, 2026-06-18 기준)
+### 🚧 미완료 작업 / Open Work Items (정직성 리스트, 2026-06-24 기준)
 
 **사용자 환경 의존 (코드 작업 불가, 4건)**
 - [ ] P755 창업·분사 결정 + 외부 기관 LOI 체결
@@ -98,6 +100,9 @@
 - [ ] ODYSSEY 402-420 — FAA/EASA/ICAO 정렬·국제 벤치마크·해외 파일럿 제안
 - [ ] ODYSSEY 426-427 — 2-인스턴스 연합 E2E·인접 공역 고스트 렌더링
 - [ ] ODYSSEY 451-500 — RL 일반화·표준 기고·장기 운영·거버넌스·아카이브
+
+**AIM 정밀검사 (Phase 691-700, 2026-06-24 완료)**
+- [x] **Round 4–12** ✅ AIM 모듈 정밀 강화 9라운드 — `tests/test_phase691_700_aim.py` (242 테스트). 대상: `notam_manager`, `tfr_handler`, `vertiport_ops`, `metar_parser`, `aim_briefing`, `flight_following`, `cross_border_coord`, `post_flight_report`, `aero_charts`, `insurance_risk`. NaN/Inf 바이패스 차단·CAVOK VFR 인식·캡슐화 강화·fail-closed 안전·방어적 복사·중복 거부
 
 **GENESIS·ODYSSEY 진척 (2026-06-18 확인)**
 - [x] **GENESIS 301** ✅ 항공안전법·드론활용촉진법 적합성 매트릭스 — [`docs/certification/AIR_SAFETY_ACT_MATRIX.md`](docs/certification/AIR_SAFETY_ACT_MATRIX.md) (12 조항 매핑·격차·운영자 체크리스트)
@@ -192,7 +197,22 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 | [🌌 SIMULATOR_MEGA_PLAN.md](docs/SIMULATOR_MEGA_PLAN.md) ~ [POST_UNIVERSE_PLAN](docs/SIMULATOR_POST_UNIVERSE_PLAN.md) | 200 Phase 5단계 로드맵 |
 | [📋 CHANGELOG.md](CHANGELOG.md) | v1.0-1.5 통합 버전 이력 |
 
-### 📊 v1.5.0 검증 통계
+### ✅ 현재 로컬 검증 / Current Local Validation (2026-06-24)
+
+| 항목 | 결과 |
+|---|---|
+| Ruff 정적 검사 | **전체 통과** |
+| Python 테스트 | **5,831 collected · 5,536 pass · 270 skip · 25 fail** |
+| AIM 정밀검사 | **242 pass** (Phase 691-700, 9 rounds) |
+| 대표 시뮬레이션 | **100 drones · 60s · seed 42** |
+| 안전 KPI | **45 collisions · 87 near misses · 95.9% conflict resolution** |
+| 통신 KPI | **12,278 sent · 12,278 delivered · 0 dropped** |
+
+> 25건 실패는 GPU 연산(`test_hard_precision`) 및 CLI 출력(`test_main_cli`) 관련 기존 이슈로, AIM 정밀검사와 무관합니다.
+
+> 대표 시뮬레이션 결과는 안전 인증 수치가 아니라 현재 알고리즘의 개선 기준선입니다. 재현 명령은 아래 [Testing](#testing--테스트) 섹션에 있습니다.
+
+### 📊 v1.5.0 릴리스 당시 검증 기록 (2026-06-12)
 
 | 항목 | 값 |
 |---|:-:|
@@ -819,24 +839,23 @@ SDACS는 700개 Phase를 거치며 점진적으로 확장되었습니다.
 ---
 ## Testing / 테스트
 ```bash
-# 전체 테스트 실행
-pytest tests/ -v
-# 특정 Phase 테스트
-pytest tests/test_phase641_660.py -v    # Phase 641-660 (55 tests)
-pytest tests/test_phase631_640.py -v    # Phase 631-640 (15 tests)
-pytest tests/test_phase601_610.py -v    # Phase 601-610 (50 tests)
-pytest tests/test_phase571_600.py -v    # Phase 571-600 (111 tests)
+# 정적 검사
+python -m ruff check .
+
+# 전체 Python 테스트 (단일 프로세스, 커버리지 제외 재현 기준)
+python -m pytest -q -n 0 --no-cov
+
+# 공개 자료에 사용한 대표 시뮬레이션
+python main.py simulate --duration 60 --drones 100 --seed 42
 ```
 
-### Test Categories
-| Category | Count | Scope |
-|----------|-------|-------|
-| Unit tests (simulation modules) | 1,600+ | Individual algorithm correctness |
-| Integration tests (controller) | 250+ | Multi-component interaction |
-| Scenario tests | 150+ | End-to-end scenario validation |
-| Multi-language file tests | 350+ | File existence + syntax verification |
-| Performance benchmarks | 50+ | Throughput, latency, scalability |
-| Regression tests | 250+ | Previously fixed bugs |
+### Latest Verified Result
+| Scope | Result |
+|---|---|
+| Test files | **202** `test_*.py` files |
+| Full Python suite | **5,831 collected · 5,536 pass · 270 skip · 25 fail** |
+| Static analysis | **Ruff all checks passed** |
+| Representative simulation | **45 collisions · 87 near misses · 95.9% conflict resolution** |
 
 ---
 ## Performance Analysis / 성능 분석
@@ -981,13 +1000,13 @@ SC2 봇 프로젝트 규모: **645단계 개발, 407개 품질 테스트, 797개
 
 ---
 ## License
-MIT License — Developed for academic and educational purposes.
+License metadata is declared as **MIT** in [`pyproject.toml`](pyproject.toml). A standalone root `LICENSE` file remains an open repository task.
 
 ---
 <div align="center">
 **Made with dedication by Sunwoo Jang**
 **장선우 · 국립 목포대학교 드론기계공학과**
-**Phase 700 · 830+ modules · 5,500+ Tests Collected · 50+ Languages · 157K+ LOC**
+**Phase 700 · 830+ modules · 5,831 Tests Collected · 50+ Languages · 160K+ LOC**
 </div>
 
 ## 변경 이력 (Changelog)

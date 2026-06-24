@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test/docs) — 일일 점검 2026-06-24 (38차): ROADMAP 3종 추가 (Phase 451·464·482)
+
+- **작업 범위**: 37차 (Phase 461·462·481·487 + HUD 캐싱) 머지 후 ROADMAP 미완료 잔여 중 draft PR(#430·#433 phase 452/453) 회피하면서 sandbox 가능 + 충돌 위험 0 인 ODYSSEY 3종을 단일 PR 로 통합. 37차와 동일 패턴(문서 + 결정적 회귀).
+- **Phase 451** (Track 🔬 신규 문서) — `docs/research/RL_GENERALIZATION_SURVEY.md`. RL 일반화 + 인증 가능 ML 학술/표준 문헌 조사. 분포 변화 4 유형(covariate·concept·domain·adversarial) + 평가 프로토콜 4 (Henderson 2018·Cobbe 2019/2020·Benjamins 2023) + 대표 벤치마크 5 (Procgen·CARL·MetaWorld·NetHack·SDACS-SBS-10) + EASA AI Roadmap 5 레벨(AI/ML 1A·1B·2A·2B·3A) + EASA AI Concept Paper 5 요건(Data Quality·Learning Process·Model Impl·Inference Monitoring·Adversarial Robustness) + DO-178C·DO-330·DO-331·DO-332·DO-333·ISO/IEC 22989·23053·5469·EUROCAE ED-324 표준 매핑. SDACS 정렬 자산 명시(`telemetry_validator`·`scenario_fuzzer`·`standard_scenarios`·`ppo_collision` PoC). 단·중·장기 권고 3단계. **순수 문헌 조사** — 알고리즘 제안·논문 발표 아님(정직성 공시).
+- **Phase 464** (Track 🛡 신규 문서) — `docs/standards/SDACS_SWARM_SAFETY_WHITEPAPER.md`. 5계층 안전망 사례 연구 백서. L1 APF(10Hz)·L2 CBS(이벤트)·L3 CPA(1Hz)·L4 ATC(1Hz)·L5 UTM(이벤트) Lexicographic 우선순위 + Phase 441 `specs/SafetyNetPriority.tla` invariant 정렬. **3 사례 연구**: ①2-드론 head-on (resolution 100%·min CPA 12.1m·APF p95 38ms) ②100 군집 high_density (resolution 95.9%·45 collisions·87 near misses, 본 PR 컨테이너 재검증) ③1K mega_swarm_1k (FPS 4·DC 677·visibleInstances 100%, `docs/PERF_MEGA_SWARM.md` §2 정렬). **표준 매트릭스**: EASA SORA(Intrinsic GRC·ARC·OSO 4 항)·FAA UTM ConOps v2.0(USS·Operational Intent·Conflict·NOTAM·Performance Auth)·ICAO Annex 13(Accident·Investigation·Recommendation)·한국 항공안전법(129·161·132·132의2). 5.1 운용 권고 5건·5.2 인증 권고 4건·5.3 한계 4건(실비행 데이터·인적 요인·환경·적대적). 회귀 검증 명령 동봉. 연구용 vs 인증 정직성 분리.
+- **Phase 482** (Track ♾️ 신규 스크립트) — `scripts/browser_api_canary.py`. 브라우저 API 폐기 감시 카나리. 헤드리스 Chromium 으로 12 API(필수 7: webgpu·webworker·mediarecorder·webgl2·fetch·importmap·csp_meta / 옵션 5: offscreencanvas·structuredclone·abortcontroller·webxr·broadcastchannel) 가용성 결정적 측정. 각 API 별 `used_by` 메타데이터(예: webgpu → `_gpuDevice/dispatchGpuCompute`) — 폐기 발견 시 즉시 영향 모듈 식별. CLI: `--json` (CI 파싱)·`--check` (필수 누락 시 exit 1, CI 게이트)·`--required <id>...` (추가 필수 지정). `render_report()` 가 markdown 표 형식 보고서 생성. 카나리 페이지로 `swarm_3d_simulator.html` 사용 → CSP 환경 실측. 무작위성 0·기존 모듈 무수정 순수 추가. ODYSSEY PLAN 의 정확한 Phase 482 정의(SBOM 아님 — 본 PR 에서 ROADMAP 정정).
+- **회귀 테스트** — `tests/test_phase_482_451_464_docs.py` (신규) 21 케이스: 451 6건(file·header·EASA AI Roadmap·표준·distributional shift 4유형·정직성 공시·PoC 명시), 464 7건(file·header·5계층·사례 연구·SORA OSO·권고·정직성), 482 8건(script·header·필수 API 정의·py_compile·CLI·module import·required APIs 매트릭스). **21/21 PASS** (로컬 직접 실행, importlib).
+- **검증**: 4 사본 md5 불변 (시뮬레이터 무수정)·Python 스크립트 py_compile OK·API_PROBES 12개 (필수 7) 로드 검증. ROADMAP 갱신: 325·329·332 라인에서 451/464/482 ✅ + 잔여 라인 splitting.
+
 ### 추가 (feat/test/perf) — 일일 점검 2026-06-24 (37차): ROADMAP 4종 일괄 (Phase 461·462·481·487) + HUD 캐싱 최적화
 
 - **작업 범위**: ROADMAP.md 미완료 16건 중 draft PR(#429-#434, phase 404·405·411·452·453·473) 회피하면서 sandbox 가능 + 충돌 위험 0 인 ODYSSEY 4종을 단일 PR 로 통합. 동시에 시뮬레이터 HUD 핫경로 마이크로 최적화 1건 추가.

@@ -1014,6 +1014,7 @@ License metadata is declared as **MIT** in [`pyproject.toml`](pyproject.toml). A
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-25 02:17 | `cb220fd` | fix(odyssey): -O-safe integrity guards in 3 ODYSSEY gate modules | simulation/ml_application_classification.py, simulation/rl_advisory_boundary.py, simulation/rl_generalization_protocol.py |
 | 2026-06-25 00:30 | `e837f9b` | ci(mypy): annotate rl_force as np.ndarray to fix shape-generic narrowing | src/autonomy/hybrid_collision_avoidance.py |
 | 2026-06-25 00:18 | `110c7ea` | feat(odyssey): Phase 454 — ML 애플리케이션 EASA Level 분류 게이트 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/ML_APPLICATION_CLASSIFICATION.md, simulation/ml_application_classification.py, tests/test_ml_application_classification.py |
 | 2026-06-24 23:22 | `c81e3f1` | fix(mypy): hybrid_collision_avoidance rl_force 형변환 타입 호환 | src/autonomy/hybrid_collision_avoidance.py |

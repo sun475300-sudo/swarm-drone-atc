@@ -12,7 +12,6 @@ from pathlib import Path
 import pytest
 
 from simulation.scenario_schema import (
-    ValidationResult,
     validate_scenario,
     validate_scenario_file,
 )

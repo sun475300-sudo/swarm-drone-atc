@@ -358,12 +358,16 @@ class TestScenarioRegression:
     def _scenario_names(self) -> list[str]:
         return sorted(p.stem for p in self.SCENARIO_DIR.glob("*.yaml"))
 
-    def test_all_9_scenarios_complete(self):
-        """9개 시나리오가 모두 예외 없이 실행되는지 검증."""
+    def test_all_10_scenarios_complete(self):
+        """10개 시나리오가 모두 예외 없이 실행되는지 검증.
+
+        ODYSSEY Phase 465 표준 벤치마크 스위트(SDACS-SBS-10)의 10번째
+        대조 케이스 `nominal_baseline.yaml` 추가로 9 → 10 갱신.
+        """
         from simulation.scenario_runner import run_scenario
 
         names = self._scenario_names()
-        assert len(names) == 9, f"시나리오 수: {len(names)} (기대: 9)"
+        assert len(names) == 10, f"시나리오 수: {len(names)} (기대: 10)"
         for name in names:
             results = run_scenario(
                 name, n_runs=1, seed=42, verbose=False, duration_override_s=2.0,
@@ -397,9 +401,9 @@ class TestScenarioRegression:
         assert rate >= 1.0 - 1e-9, f"해결률: {rate:.4f} (기대: 1.0)"
 
     def test_scenario_yamls_parse(self):
-        """9개 YAML 파일이 모두 올바르게 파싱되는지 검증."""
+        """10개 YAML 파일이 모두 올바르게 파싱되는지 검증 (Phase 465 baseline 포함)."""
         yamls = sorted(self.SCENARIO_DIR.glob("*.yaml"))
-        assert len(yamls) == 9, f"YAML 파일 수: {len(yamls)} (기대: 9)"
+        assert len(yamls) == 10, f"YAML 파일 수: {len(yamls)} (기대: 10)"
         for yf in yamls:
             with open(yf, encoding="utf-8") as f:
                 data = yaml.safe_load(f)

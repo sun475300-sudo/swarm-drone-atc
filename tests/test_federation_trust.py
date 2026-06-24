@@ -17,7 +17,6 @@ from simulation.federation_trust import (
     TrustEvent,
 )
 
-
 # --- InstanceTrust 믿음 ----------------------------------------------------
 
 

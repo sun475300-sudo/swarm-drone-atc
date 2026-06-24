@@ -37,8 +37,8 @@ TRANSCENDENCE는 이 중 **실측 가치가 있는 30~40개를 선별 격상**�
 - **Phase 206** ✅ Speculative API 격리 — `window._sdacs.experimental.*` 네임스페이스 (직접 호출 호환 유지, speculative 103종 전수 노출) (2026-06-12)
 - **Phase 207** Maturity Badge SVG 자동 생성 (production X / beta Y / mock Z)
 - **Phase 208** README Maturity 섹션 자동 갱신
-- **Phase 209** ✅ API Deprecation Policy 문서 — `docs/API_DEPRECATION_POLICY.md` (ACTIVE→DEPRECATED→REMOVED 3단계 + Registry) (2026-06-13)
-- **Phase 210** ✅ Semantic Versioning 적용 (API breaking change 추적) — 同 문서 §2 (MAJOR/MINOR/PATCH ↔ API 영향 + 호환성 불변식) (2026-06-13)
+- **Phase 209** ✅ API Deprecation Policy 문서 — `docs/API_DEPRECATION_POLICY.md` (6단계 성숙도 수명주기·등급별 유예 기간·긴급 보안 폐기) (2026-06-18)
+- **Phase 210** ✅ Semantic Versioning 적용 — `docs/API_SEMVER_POLICY.md` (MAJOR/MINOR/PATCH ↔ API 영향·호환성 불변식·CI 게이트) (2026-06-18)
 - **Phase 211-220** 각 트랙별 production-grade 격상 (12 API → 30 API)
 
 ### Track 🔬 — Real Validation (Phase 221-240) · 실측 검증

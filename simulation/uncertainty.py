@@ -14,8 +14,8 @@ Monte Carlo 스윕 결과의 점추정에 신뢰구간을 부여한다. 논문 �
 """
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from typing import Callable, Sequence
 
 import numpy as np
 from scipy import stats

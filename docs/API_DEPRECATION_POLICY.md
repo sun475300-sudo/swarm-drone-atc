@@ -1,152 +1,336 @@
-# 📐 `window._sdacs` API Deprecation Policy & Semantic Versioning
+# SDACS API Deprecation Policy / API 폐기 정책
 
-*Created: 2026-06-13 · 근거: TRANSCENDENCE Phase 209-210 (Track Ⅱ-4) · `docs/MASTER_PLAN_2026H2.md`*
-*용도: `_sdacs` 외부 API의 변경·폐기·버전 관리 규약 단일 기준*
-
-> SDACS의 차별점은 **404개 외부 API 전부에 구현 성숙도(maturity)를 공시하는 정직성 체계**입니다.
-> 본 문서는 그 정직성을 **시간축(버전 변경·폐기)** 으로 확장하여, API가 어떻게 도입·격상·폐기되는지를
-> 규약화합니다. maturity가 "지금 이 API가 얼마나 믿을 만한가"라면, 본 정책은 "이 API가 다음 버전에서
-> 어떻게 바뀌는가"를 규정합니다.
+**Phase 209 — TRANSCENDENCE**
+**Version**: 1.0.0
+**Date**: 2026-06-18
+**Applies to**: All `window._sdacs.*` public APIs (407 endpoints as of Phase 200)
 
 ---
 
-## 1. 적용 범위
+## 1. Purpose and Scope / 목적 및 적용 범위
 
-| 대상 | 적용 |
-|---|:-:|
-| `window._sdacs.*` 외부 API (분류 404 + 헬퍼 3 = 407) | ✅ 본 정책 |
-| `window._sdacs.experimental.*` (speculative 103종 격리) | ⚠️ 안정성 보장 제외 (아래 §6) |
-| 시뮬레이터 내부 함수 (`_` prefix, 비노출) | ❌ 정책 외 (자유 변경) |
-| Python `src/`·`simulation/`·`api/` 모듈 | ❌ 별도 (PEP·SemVer 패키지 단위) |
+### English
 
-API 목록의 단일 출처는 [`SDACS_API.md`](SDACS_API.md)이며, `scripts/extract_sdacs_api.py`가 라이브
-페이지에서 실측 추출합니다. 본 정책의 모든 "API"는 그 추출 결과에 존재하는 항목을 의미합니다.
+This document defines the lifecycle, deprecation process, and removal policy for all public APIs exposed under `window._sdacs`. It ensures consumers have predictable timelines and migration paths when APIs change.
+
+**Scope**: Every property, method, and getter registered in `window._sdacs` — including those enumerated by `_sdacs.apiMaturity()` and `_sdacs.maturityReport()`. Internal helper APIs (`apiMaturity`, `maturityReport`, `maturityStats`) are exempt from deprecation timelines but follow the same communication standards.
+
+### 한국어
+
+본 문서는 `window._sdacs`에 등록된 모든 공개 API의 수명주기, 폐기 절차, 제거 정책을 정의합니다. API 변경 시 소비자에게 예측 가능한 일정과 마이그레이션 경로를 보장하는 것이 목적입니다.
+
+**적용 범위**: `window._sdacs`에 등록된 모든 프로퍼티, 메서드, getter를 포함합니다. `_sdacs.apiMaturity()` 및 `_sdacs.maturityReport()`로 열거되는 모든 항목이 해당됩니다. 내부 헬퍼 API(`apiMaturity`, `maturityReport`, `maturityStats`)는 폐기 일정 적용 대상에서 제외되지만, 동일한 공지 기준을 따릅니다.
 
 ---
 
-## 2. Semantic Versioning 규약 (Phase 210)
+## 2. Maturity Lifecycle / 성숙도 수명주기
 
-시뮬레이터 버전은 [SemVer 2.0.0](https://semver.org/lang/ko/) `MAJOR.MINOR.PATCH`를 따릅니다.
-현재 단일 출처는 [`VERSION.md`](VERSION.md)입니다 (예: `v1.5.0`).
+Each API progresses through the following stages. Transitions are unidirectional under normal circumstances.
 
-| 변경 종류 | 증가 | API 영향 정의 |
-|---|:-:|---|
-| **MAJOR** (`X`.0.0) | 호환 불가 | 기존 API **시그니처 변경**·**제거**·**반환 의미 변경** |
-| **MINOR** (1.`Y`.0) | 호환 가능 | 신규 API 추가·기존 API **maturity 격상**·**deprecated 표시** |
-| **PATCH** (1.5.`Z`) | 버그 수정 | 동작 정정(반환 스키마·시그니처 불변) |
-
-### 2.1 API 호환성 불변식
-
-다음은 **MINOR/PATCH에서 보존**되어야 하는 계약입니다 (위반 시 MAJOR):
-
-1. 기존 API 이름은 제거되지 않는다 (폐기 절차 §3을 거치기 전까지).
-2. getter는 동일 키 집합 이상을 반환한다 (필드 제거 금지, 추가 허용).
-3. method의 필수 인자 수는 늘어나지 않는다 (선택 인자 추가만 허용).
-4. 반환 타입은 좁아지지 않는다 (`number → number|null` 같은 확대만 허용).
-
-### 2.2 maturity 격상과 버전
-
-maturity 등급 변경은 **MINOR**로 취급합니다 (호환성은 유지되나 신뢰 수준이 변하므로 기록 대상).
+각 API는 아래의 단계를 순차적으로 거칩니다. 일반적인 상황에서 단계 전환은 단방향입니다.
 
 ```
-speculative ──▶ mock ──▶ beta ──▶ production
-   ⚪            🟡         🔵          🟢
+speculative → mock → beta → production → deprecated → removed
 ```
 
-- 격상(좌→우)에는 **실측 근거**(회귀 테스트·E2E·외부 데이터 벤치)가 필수입니다 (거버넌스 게이트, `MASTER_PLAN_2026H2.md` §거버넌스 5).
-- 강등(우→좌)은 결함 발견 시에만 허용하며, CHANGELOG에 사유를 명시합니다.
+| Stage / 단계 | Symbol | Meaning / 의미 |
+|---|---|---|
+| **speculative** | ⚪ | Future-vision stub. Call-safety only — no behavioral guarantees. / 미래 비전 스텁. 호출 안전성만 보장합니다. |
+| **mock** | 🟡 | Deterministic mock. Interface is stable; implementation returns synthetic data. / 결정적 mock. 인터페이스는 안정적이며 합성 데이터를 반환합니다. |
+| **beta** | 🔵 | Functional with E2E verification. Some external dependencies may change. / E2E 검증 완료. 일부 외부 의존성이 변경될 수 있습니다. |
+| **production** | 🟢 | Measured, regression-tested, real algorithm. Stability guaranteed. / 실측 검증 + 회귀 테스트 + 실제 알고리즘. 안정성을 보장합니다. |
+| **deprecated** | 🔴 | Scheduled for removal. Still functional but emits warnings. / 제거 예정. 동작하지만 경고를 출력합니다. |
+| **removed** | ❌ | No longer available. Calls throw or return undefined. / 더 이상 사용할 수 없습니다. 호출 시 예외 발생 또는 undefined 반환. |
+
+### Runtime Query / 런타임 조회
+
+```javascript
+// Check individual API maturity
+window._sdacs.apiMaturity('atcCommand');  // → "production"
+
+// Full maturity report
+window._sdacs.maturityReport();  // → { production: [...], beta: [...], mock: [...], speculative: [...], deprecated: [...] }
+```
 
 ---
 
-## 3. Deprecation 생애주기 (Phase 209)
+## 3. Deprecation Timeline Rules / 폐기 일정 규칙
 
-API 폐기는 **3단계·최소 2 MINOR 버전**에 걸쳐 진행하며, 사용자에게 마이그레이션 시간을 보장합니다.
+Grace periods are measured from the date the API is officially marked `deprecated` in `DEPRECATION_LOG.md`.
 
-| 단계 | 상태 | 사용자 영향 | 최소 유지 기간 |
-|---|---|---|---|
-| **1. ACTIVE** | 정상 | 정상 동작 | — |
-| **2. DEPRECATED** | 폐기 예고 | **동작 유지** + 호출 시 `console.warn` 1회 | ≥ 1 MINOR |
-| **3. REMOVED** | 제거 | 호출 시 `undefined` (getter) / no-op (method) | MAJOR에서만 |
+유예 기간은 API가 `DEPRECATION_LOG.md`에 공식적으로 `deprecated` 표기된 날짜로부터 측정합니다.
 
-### 3.1 단계 전이 규칙
+| Current Maturity / 현재 성숙도 | Grace Period / 유예 기간 | Rationale / 근거 |
+|---|---|---|
+| 🟢 **production** | **12 months** | Consumers depend on stable behavior. Ample migration time required. / 소비자가 안정적 동작에 의존합니다. 충분한 마이그레이션 시간이 필요합니다. |
+| 🔵 **beta** | **6 months** | Functional but explicitly labeled as evolving. / 동작하지만 변경 가능성이 명시되어 있습니다. |
+| 🟡 **mock** | **1 month** | Interface-only contract. Can be replaced or removed with short notice. / 인터페이스 계약만 존재합니다. 짧은 공지로 대체 또는 제거 가능합니다. |
+| ⚪ **speculative** | **None (즉시)** | Experimental stubs carry no stability promise. Can be removed without notice. / 실험적 스텁으로 안정성 보장이 없습니다. 사전 공지 없이 제거할 수 있습니다. |
 
-1. **ACTIVE → DEPRECATED**: MINOR 버전에서만 표시. 대체 API(`replacedBy`)와 제거 예정 버전(`removeIn`)을 §5 레지스트리에 등재.
-2. **DEPRECATED → REMOVED**: 반드시 **MAJOR 버전 경계**에서만 수행. DEPRECATED를 최소 1개의 MINOR 사이클 이상 거친 뒤에만 제거.
-3. 대체 API가 없는 폐기(순수 제거)는 MAJOR + 릴리스 노트 상단 **Breaking Changes** 명시를 동반.
+**Key rule**: An API's grace period is locked at the time of deprecation. If a beta API is deprecated today, its 6-month clock starts today — even if it would have been promoted to production next week.
 
-### 3.2 폐기 경고 패턴 (권장 구현)
+**핵심 규칙**: 유예 기간은 폐기 시점의 성숙도에 의해 결정됩니다. 오늘 beta API가 폐기되면 6개월 시계가 오늘부터 시작됩니다. 다음 주에 production 승격 예정이었더라도 변경되지 않습니다.
 
-DEPRECATED API는 호출 시 1회 경고를 출력합니다 (Phase 203 Mock Detector와 동일 패턴 — 반복 스팸 금지):
+---
 
-```js
-// 예시: 폐기된 getter
-get oldMetric() {
-  _sdacsDeprecate('oldMetric', { replacedBy: 'newMetric', removeIn: 'v2.0.0' });
-  return this.newMetric;            // 동작은 그대로 유지
+## 4. Deprecation Process / 폐기 절차
+
+### Step 1: Code Annotation / 코드 주석 처리
+
+Mark the API with `@deprecated` JSDoc and emit a console warning on the first invocation per session.
+
+API에 `@deprecated` JSDoc을 추가하고, 세션당 첫 호출 시 콘솔 경고를 출력합니다.
+
+```javascript
+/**
+ * @deprecated Since v1.5.0. Use `_sdacs.atcCommandV2()` instead.
+ *             Removal scheduled: 2027-06-18 (production 12-month grace).
+ */
+get exampleApi() {
+  if (!this._warned_exampleApi) {
+    console.warn(
+      '[SDACS Deprecation] exampleApi is deprecated and will be removed in v2.0.0. ' +
+      'Use exampleApiV2() instead. See docs/DEPRECATION_LOG.md for details.'
+    );
+    this._warned_exampleApi = true;
+  }
+  return this._exampleApiImpl();
 }
 ```
 
-`_sdacsDeprecate(name, meta)`는 이름당 최초 1회만 `console.warn`을 발생시키고,
-`maturityReport().deprecatedCalls`에 카운트를 누적하도록 설계합니다 (구현은 차기 시뮬레이터 PR — 본 문서는 정책 확정이 목적).
+### Step 2: Log Entry / 로그 기록
 
----
+Add an entry to `docs/DEPRECATION_LOG.md` with the following fields.
 
-## 4. maturity ↔ deprecation 상호작용
+아래 필드를 포함하여 `docs/DEPRECATION_LOG.md`에 항목을 추가합니다.
 
-| maturity | 폐기 정책 |
+| Field / 필드 | Description / 설명 |
 |---|---|
-| 🟢 production | 가장 엄격 — DEPRECATED 최소 2 MINOR 유지 후 MAJOR 제거 |
-| 🔵 beta | DEPRECATED 최소 1 MINOR 유지 후 MAJOR 제거 |
-| 🟡 mock | 즉시 DEPRECATED 가능, 다음 MAJOR 제거 (인터페이스만 안정 보장이므로) |
-| ⚪ speculative (`experimental.*`) | 정책 외 — **사전 경고 없이 변경/제거 가능** (§6) |
+| **API Name** | Full `_sdacs.*` identifier |
+| **Deprecated Date** | ISO 8601 date (YYYY-MM-DD) |
+| **Maturity at Deprecation** | production / beta / mock / speculative |
+| **Removal Target Date** | Calculated from grace period |
+| **Removal Target Version** | Next major version after grace period expires |
+| **Reason** | Why the API is being deprecated |
+| **Replacement** | New API name, or "None" if functionality is removed |
+| **Migration Guide** | Link to migration section or inline instructions |
 
-> 원칙: **신뢰를 더 약속한 API일수록 폐기를 더 천천히 한다.** production은 사용자가 의존하므로 가장 보수적으로, speculative는 비전 스텁이므로 자유롭게.
+### Step 3: Update maturityReport() / maturityReport() 갱신
 
----
+Update the maturity classification so `_sdacs.maturityReport()` lists the API under a `deprecated` category. The API must appear in the deprecated list, not its former maturity tier.
 
-## 5. Deprecation Registry (현재)
+성숙도 분류를 갱신하여 `_sdacs.maturityReport()`에서 해당 API가 `deprecated` 범주에 나타나도록 합니다. 기존 성숙도 등급이 아닌 deprecated 목록에 표시되어야 합니다.
 
-> 폐기 예고된 API의 단일 추적 표. 신규 폐기 시 본 표에 행을 추가합니다.
+```javascript
+window._sdacs.apiMaturity('exampleApi');  // → "deprecated"
+```
 
-| API | maturity | 상태 | 대체 (`replacedBy`) | 제거 예정 (`removeIn`) | 예고 버전 |
-|---|---|---|---|---|---|
-| _(없음)_ | — | — | — | — | — |
+### Step 4: Removal / 제거
 
-현재 폐기 예고된 외부 API는 **0건**입니다 (v1.5.0 기준). 404개 API 전부 ACTIVE.
+Remove the API after **both** conditions are met:
 
----
+다음 **두 조건이 모두** 충족된 후 API를 제거합니다:
 
-## 6. `experimental.*` 네임스페이스 면책 (Phase 206 연계)
+1. The grace period has elapsed. / 유예 기간이 경과하였습니다.
+2. A major version bump occurs (aligned with Phase 210 SemVer). / 메이저 버전 범프가 발생합니다 (Phase 210 SemVer와 연동).
 
-speculative 103종은 `window._sdacs.experimental.*`로 격리되어 있습니다 (Phase 206).
-이 네임스페이스의 API는:
+Upon removal:
+- The API entry is moved from `deprecated` to `removed` in `DEPRECATION_LOG.md`.
+- The corresponding code is deleted from the codebase.
+- `maturityReport()` no longer lists the API.
 
-- **SemVer 호환성 보장 대상이 아닙니다** — MINOR/PATCH에서도 시그니처·동작이 바뀔 수 있습니다.
-- 폐기 시 **DEPRECATED 단계를 건너뛰고** 즉시 변경/제거될 수 있습니다.
-- 프로덕션 의존 금지. PoC·데모·미래 비전 탐색 용도로만 사용합니다.
-
-직접 호출 호환성(`_sdacs.<name>`)은 Phase 206에서 유지되나, 이는 **편의이지 안정성 약속이 아닙니다.**
-
----
-
-## 7. 변경 절차 체크리스트
-
-API를 추가·격상·폐기하는 PR은 다음을 만족해야 합니다:
-
-- [ ] `VERSION.md`의 버전을 SemVer 규칙(§2)대로 증가
-- [ ] 신규/격상 API는 E2E 1건 이상 동반 (거버넌스 게이트)
-- [ ] maturity 변경은 `apiMaturity()` 레지스트리 + `SDACS_API.md` 동시 갱신
-- [ ] 폐기는 §5 레지스트리에 행 추가 + `removeIn`/`replacedBy` 명시
-- [ ] `scripts/extract_sdacs_api.py --check` 통과 (문서-실측 일치, CI 게이트 G-2)
-- [ ] 4 사본 md5 일치 보존 (CI 게이트 G-4)
-- [ ] CHANGELOG.md에 변경 종류(MAJOR/MINOR/PATCH) 표기
+제거 시:
+- `DEPRECATION_LOG.md`에서 해당 항목을 `deprecated`에서 `removed`로 이동합니다.
+- 코드베이스에서 해당 코드를 삭제합니다.
+- `maturityReport()`에서 해당 API가 더 이상 표시되지 않습니다.
 
 ---
 
-## 8. 관련 문서
+## 5. Breaking vs. Non-Breaking Changes / 호환성 파괴 vs. 비파괴 변경
 
-- [`SDACS_API.md`](SDACS_API.md) — 404 API maturity 레퍼런스 (단일 출처)
-- [`VERSION.md`](VERSION.md) — 버전 단일 출처
-- [`MASTER_PLAN_2026H2.md`](MASTER_PLAN_2026H2.md) — Track Ⅱ-4 (본 문서의 상위 계획)
-- [`SIMULATOR_TRANSCENDENCE_PLAN.md`](SIMULATOR_TRANSCENDENCE_PLAN.md) — Phase 209·210 정의
-- [`TECH_DEBT_LEDGER.md`](TECH_DEBT_LEDGER.md) — mock/speculative 부채 공시
+### Breaking Changes (호환성 파괴 변경)
+
+The following changes are considered breaking and **require** the full deprecation process:
+
+아래 변경 사항은 호환성 파괴 변경으로 간주하며, **반드시** 전체 폐기 절차를 따라야 합니다:
+
+- Removing an API (method, property, or getter)
+- Changing the return type of an existing API
+- Changing required parameter count or types
+- Renaming an API without preserving the old name as an alias
+- Changing the semantic meaning of a return value (e.g., meters to feet)
+- Changing error behavior (previously non-throwing API now throws)
+- Removing a field from a returned object
+
+### Non-Breaking Changes (비파괴 변경)
+
+The following changes are non-breaking and do **not** require the deprecation process:
+
+아래 변경 사항은 비파괴 변경으로 폐기 절차가 **불필요**합니다:
+
+- Adding a new API
+- Adding optional parameters with default values to existing APIs
+- Adding new fields to returned objects
+- Improving performance without changing behavior
+- Fixing a bug to match documented behavior
+- Promoting an API to a higher maturity tier (e.g., mock → beta)
+- Adding `console.warn` for usage guidance (not deprecation)
+
+---
+
+## 6. Communication Channels / 공지 채널
+
+Deprecation announcements are published through the following channels. All three must be updated for every deprecation.
+
+폐기 공지는 아래 채널을 통해 게시합니다. 모든 폐기에 대해 세 채널 모두 갱신해야 합니다.
+
+| Channel / 채널 | Content / 내용 | Timing / 시점 |
+|---|---|---|
+| **`docs/DEPRECATION_LOG.md`** | Canonical record with full details, migration guide | At deprecation and at removal / 폐기 시 및 제거 시 |
+| **GitHub Releases Changelog** | Summary entry in release notes for the version that introduces the deprecation | At release / 릴리스 시 |
+| **`README.md`** | "Deprecation Notices" section with active deprecations and their removal dates | At deprecation; remove entry after removal / 폐기 시 추가, 제거 후 삭제 |
+
+### Console Runtime Notice / 콘솔 런타임 알림
+
+In addition to written documentation, deprecated APIs emit a `console.warn` on first invocation per browser session (see Step 1). This ensures developers who test against the live simulator are notified directly.
+
+문서 공지 외에, 폐기된 API는 브라우저 세션당 첫 호출 시 `console.warn`을 출력합니다 (Step 1 참조). 이를 통해 라이브 시뮬레이터를 대상으로 테스트하는 개발자에게 직접 알림이 전달됩니다.
+
+---
+
+## 7. Emergency Security Deprecation / 긴급 보안 폐기
+
+When a security vulnerability is identified in an API, the standard grace periods may be bypassed.
+
+API에서 보안 취약점이 식별된 경우, 표준 유예 기간을 우회할 수 있습니다.
+
+### Criteria / 기준
+
+Emergency deprecation applies when:
+- The API exposes user data or session tokens
+- The API enables cross-origin exploitation
+- The API allows unauthorized control of simulator state
+- A CVE or equivalent advisory is published
+
+긴급 폐기는 다음의 경우에 적용됩니다:
+- API가 사용자 데이터 또는 세션 토큰을 노출하는 경우
+- API가 교차 출처(cross-origin) 악용을 허용하는 경우
+- API가 시뮬레이터 상태의 무단 제어를 허용하는 경우
+- CVE 또는 동등한 보안 권고가 발행된 경우
+
+### Process / 절차
+
+1. **Immediate disable**: API is disabled (returns error or no-op) within 24 hours. / **즉시 비활성화**: API를 24시간 이내에 비활성화합니다 (에러 반환 또는 no-op).
+2. **Hotfix release**: A patch version is released with the API disabled and a security notice. / **긴급 패치 릴리스**: API를 비활성화하고 보안 공지를 포함한 패치 버전을 릴리스합니다.
+3. **Post-incident log**: Entry added to `DEPRECATION_LOG.md` with reason `SECURITY` and reference to the advisory. / **사후 기록**: `DEPRECATION_LOG.md`에 `SECURITY` 사유와 권고 참조를 포함한 항목을 추가합니다.
+4. **Migration support**: If a safe replacement exists, migration guide is published within 7 days. / **마이그레이션 지원**: 안전한 대체 API가 존재하는 경우, 7일 이내에 마이그레이션 가이드를 게시합니다.
+
+Emergency deprecations are exempt from all grace periods regardless of the API's maturity at the time of the incident.
+
+긴급 폐기는 사고 시점의 API 성숙도와 관계없이 모든 유예 기간에서 면제됩니다.
+
+---
+
+## 8. Migration Guide Template / 마이그레이션 가이드 템플릿
+
+Every deprecated API with a replacement must include a migration guide. Use the following template.
+
+대체 API가 존재하는 모든 폐기 API에 대해 마이그레이션 가이드를 작성해야 합니다. 아래 템플릿을 사용합니다.
+
+```markdown
+### Migration: `oldApiName` → `newApiName`
+
+**Deprecated**: YYYY-MM-DD | **Removal target**: YYYY-MM-DD (vX.0.0)
+
+#### What changed / 변경 사항
+Brief description of why the old API is being replaced.
+
+#### Before (deprecated) / 변경 전 (폐기됨)
+```javascript
+const result = window._sdacs.oldApiName(param1, param2);
+```
+
+#### After (recommended) / 변경 후 (권장)
+```javascript
+const result = window._sdacs.newApiName({ key1: param1, key2: param2 });
+```
+
+#### Key differences / 주요 차이점
+- Difference 1
+- Difference 2
+
+#### Edge cases / 예외 상황
+Notes on any behavioral differences that may affect existing usage.
+```
+
+---
+
+## 9. Versioning Alignment / 버전 관리 연동
+
+This policy aligns with the Semantic Versioning (SemVer) scheme introduced in Phase 210.
+
+본 정책은 Phase 210에서 도입되는 유의적 버전 관리(SemVer)와 연동됩니다.
+
+| Version Component / 버전 구성 | API Policy Implication / API 정책 영향 |
+|---|---|
+| **Major** (X.0.0) | Deprecated APIs may be removed. All removals happen in major releases only. / 폐기된 API를 제거할 수 있습니다. 모든 제거는 메이저 릴리스에서만 수행합니다. |
+| **Minor** (0.X.0) | New APIs may be added. Existing APIs may be marked deprecated. Maturity promotions occur here. / 새 API를 추가할 수 있습니다. 기존 API를 폐기 표기할 수 있습니다. 성숙도 승격이 이 단계에서 발생합니다. |
+| **Patch** (0.0.X) | Bug fixes only. No deprecations or removals — except emergency security deprecations (Section 7). / 버그 수정만 수행합니다. 폐기 또는 제거 없음 — 긴급 보안 폐기(섹션 7)는 예외입니다. |
+
+### Deprecation-to-Removal Timeline Example / 폐기-제거 일정 예시
+
+```
+v1.5.0 (2026-07)  — atcCommand marked deprecated (production, 12-month grace)
+v1.6.0 (2026-10)  — Minor release, atcCommand still functional with warnings
+v1.7.0 (2027-01)  — Minor release, atcCommand still functional with warnings
+v2.0.0 (2027-07+) — Major release after grace period: atcCommand removed
+```
+
+---
+
+## 10. Current API Distribution / 현재 API 분포
+
+As of Phase 200 (Unity), the `window._sdacs` namespace contains:
+
+Phase 200 (Unity) 기준, `window._sdacs` 네임스페이스의 구성:
+
+| Maturity / 성숙도 | Count / 개수 | Deprecation Notice / 폐기 공지 |
+|---|---|---|
+| 🟢 production | 93 | 12 months required / 12개월 사전 공지 필요 |
+| 🔵 beta | 98 | 6 months required / 6개월 사전 공지 필요 |
+| 🟡 mock | 110 | 1 month required / 1개월 사전 공지 필요 |
+| ⚪ speculative | 103 | No notice required / 사전 공지 불필요 |
+| 🛠 helper | 3 | Exempt / 면제 |
+| **Total** | **407** | |
+
+---
+
+## Appendix A: DEPRECATION_LOG.md Format / 부록 A: DEPRECATION_LOG.md 형식
+
+The canonical deprecation log (`docs/DEPRECATION_LOG.md`) uses the following table format:
+
+정식 폐기 로그(`docs/DEPRECATION_LOG.md`)는 아래 표 형식을 사용합니다:
+
+```markdown
+# SDACS API Deprecation Log
+
+| API | Deprecated | Maturity | Removal Target | Version | Reason | Replacement | Status |
+|-----|-----------|----------|---------------|---------|--------|-------------|--------|
+| exampleApi | 2026-07-01 | production | 2027-07-01 | v2.0.0 | Replaced by V2 with options object | exampleApiV2 | deprecated |
+```
+
+**Status values**: `deprecated` (active, within grace period), `removed` (deleted from codebase).
+
+**상태 값**: `deprecated` (활성, 유예 기간 내), `removed` (코드베이스에서 삭제됨).
+
+---
+
+## Appendix B: Policy Revision / 부록 B: 정책 개정
+
+This policy itself follows SemVer. Changes to grace periods or the deprecation process constitute a major policy revision and require a 3-month notice period before taking effect.
+
+본 정책 자체도 SemVer를 따릅니다. 유예 기간 또는 폐기 절차의 변경은 주요 정책 개정으로 간주하며, 시행 전 3개월의 공지 기간이 필요합니다.
+
+| Policy Version / 정책 버전 | Date / 날짜 | Change / 변경 사항 |
+|---|---|---|
+| 1.0.0 | 2026-06-18 | Initial release (Phase 209 TRANSCENDENCE) / 초기 릴리스 |

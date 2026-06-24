@@ -5,6 +5,8 @@
 ## ⚡ 빠른 시작
 
 - **[Quick Start](QUICK_START.md)** — 1줄 실행 가이드 (웹/로컬/데스크탑)
+- **[공개 프로젝트 설명 보고서](report/SDACS_Public_Project_Report_2026.docx)** — 일반 대중용 5페이지 DOCX
+- **[공개 프로젝트 소개 발표자료](presentation/SDACS_Public_Project_Overview_2026.pptx)** — 10장 PPTX
 - **[Phase Matrix HTML](phase_matrix.html)** — 200 Phase 시각 인덱스 (인터랙티브)
 - **[VERSION.md](../VERSION.md)** — 단일 버전 진실
 - **[CHANGELOG.md](../CHANGELOG.md)** — v1.0-1.5 통합 이력
@@ -80,6 +82,8 @@
 
 | 문서 | 내용 |
 |---|---|
+| [presentation/SDACS_Public_Project_Overview_2026.pptx](presentation/SDACS_Public_Project_Overview_2026.pptx) | 2026-06-18 최신 검증 수치를 반영한 공개 프로젝트 소개 10장 |
+| [report/SDACS_Public_Project_Report_2026.docx](report/SDACS_Public_Project_Report_2026.docx) | 시스템 개요·검증 결과·현재 한계·재현 명령을 정리한 공개 설명 보고서 |
 | [poster/README.md](poster/README.md) | 포스터 자산 가이드 |
 | [poster/donggang_2026_ko.md](poster/donggang_2026_ko.md) | 동강대 4/23 한국어 포스터 |
 | [poster/assets/results_nmr_msd_bar.png](poster/assets/results_nmr_msd_bar.png) | NMR·MSD 차트 |

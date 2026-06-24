@@ -75,7 +75,9 @@ _STAGE_NAMES: dict[str, str] = {
 PROTOCOL_STATUSES: tuple[str, ...] = ("satisfied", "partial", "absent")
 
 # 가중 점수: 완전 1.0, 부분 0.5, 미충족 0.0.
-_STATUS_WEIGHT: dict[str, float] = {"satisfied": 1.0, "partial": 0.5, "absent": 0.0}
+_STATUS_WEIGHT: Mapping[str, float] = MappingProxyType(
+    {"satisfied": 1.0, "partial": 0.5, "absent": 0.0}
+)
 
 # 종합 판정값. 임계 요건 미충족이 하나라도 있으면 일반화 주장 자격 없음.
 VERDICTS: tuple[str, ...] = ("ESTABLISHED", "PARTIAL", "NOT_ESTABLISHED")

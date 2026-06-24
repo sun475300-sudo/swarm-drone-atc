@@ -202,8 +202,10 @@ def assess_portfolio(
             ready.append(entry.label)
         elif verdict == VERDICT_NEEDS_WORK:
             needs_work.append(entry.label)
-        else:  # VERDICT_NOT_READY
+        elif verdict == VERDICT_NOT_READY:
             not_ready.append(entry.label)
+        else:  # 상위 게이트가 새 판정값을 추가하면 조용히 NOT_READY 로 흡수하지 않고 즉시 실패
+            raise ValueError(f"unexpected verdict from assess(): {verdict!r}")
     return PortfolioReport(
         target=target,
         ready=tuple(sorted(ready)),

@@ -89,7 +89,9 @@ ML_IMPORT_TOKENS: tuple[str, ...] = (
 INVARIANT_STATUSES: tuple[str, ...] = ("upheld", "partial", "unverified")
 
 # 가중 점수: 성립 1.0, 부분 0.5, 미검증 0.0.
-_STATUS_WEIGHT: dict[str, float] = {"upheld": 1.0, "partial": 0.5, "unverified": 0.0}
+_STATUS_WEIGHT: Mapping[str, float] = MappingProxyType(
+    {"upheld": 1.0, "partial": 0.5, "unverified": 0.0}
+)
 
 # 중요도 (2값). critical=경계 판정을 게이트, recommended=점수에만 반영.
 CRITICALITIES: tuple[str, ...] = ("critical", "recommended")

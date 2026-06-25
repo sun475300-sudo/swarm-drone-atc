@@ -5,6 +5,12 @@
 
 ## [Unreleased]
 
+### 수정 (fix) — 일일 점검 2026-06-25: main Canonical Hash CI RED 회복 — pydantic-core 락파일 충돌 해소
+
+- **점검 발견**: main HEAD(`e1964c2`, dependabot PR #276 머지) 의 **Canonical Hash Verification 워크플로우 FAIL**. 원인은 코드가 아니라 `requirements.lock.txt` 의존성 충돌 — dependabot 이 전이 의존성 `pydantic-core` 를 `2.47.0` 으로 단독 범프했으나, 고정된 `pydantic==2.13.4` 는 `pydantic-core==2.46.4` 를 요구. `pip install -r requirements.lock.txt` 가 `ResolutionImpossible` 로 실패해 락파일 기반 모든 잡(Canonical Hash) 차단. main `CI` 잡은 `.[dev]` 경로라 영향 없어 GREEN 으로 통과 → 탐지 사각.
+- **수정**: `requirements.lock.txt` `pydantic-core` 핀을 `2.47.0` → **`2.46.4`** 로 정정(고정 `pydantic 2.13.4` 가 요구하는 정확한 버전). `pip install --dry-run -r requirements.lock.txt` 전체 해소 GREEN 재현 검증(pydantic_core-2.46.4 설치). 수술적 1라인 변경, 동작 영향 0.
+- **근본 원인 보고(사용자 검토 필요)**: `pydantic-core` 는 `pydantic` 의 전이 의존성이므로 부모보다 앞서 단독 핀하면 안 됨. dependabot 이 재차 동일 범프를 시도할 수 있어, dependabot 설정에서 `pydantic-core` 단독 업데이트 무시(부모 `pydantic` 범프에 종속) 가 권장 — 설정 변경은 사용자 승인 필요.
+
 ### 정리·최적화 — 2026-06-25: 메인 브랜치 정리 + A* 결정적 최적화 + xdist 수집 안정화
 
 - **AIM 정밀검사 기록(소급)**: Phase 691-700 AIM 10개 모듈 정밀검사 9라운드(Round 4–12) 완료 — `tests/test_phase691_700_aim.py` **242 테스트**. NaN/Inf 바이패스 차단(`math.isfinite`), CAVOK 위양성 NO-GO 수정, 캡슐화 누수 방지, fail-closed 안전, 방어적 복사, 중복 거부. 대상: notam_manager·tfr_handler·vertiport_ops·metar_parser·aim_briefing·flight_following·cross_border_coord·post_flight_report·aero_charts·insurance_risk.

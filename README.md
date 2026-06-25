@@ -1047,6 +1047,7 @@ MIT License — Developed for academic and educational purposes.
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-25 13:23 | `35bdf8d2` | feat(odyssey): 42차 ROADMAP 3종 (Phase 468 캡스톤·483 Three.js·490 디지털 유산) + README 최신화 | CHANGELOG.md, README.md, ROADMAP.md, docs/CONTINUUM_DIGITAL_LEGACY.md, docs/curriculum/CAPSTONE_STANDARD.md, docs/maintenance/THREEJS_UPGRADE_PLAN.md … |
 | 2026-06-25 11:44 | `71c03e9a` | feat(odyssey): ROADMAP 3종 추가 (Phase 463 K-드론 정책·470 표준 대시보드·489 아카이브) | CHANGELOG.md, ROADMAP.md, docs/CONTINUUM_ARCHIVE_REDUNDANCY.md, docs/standards/SDACS_KDRONE_POLICY_PROPOSAL.md, docs/standards/SDACS_STANDARDS_CONTRIBUTION_DASHBOARD.md, tests/test_phase_463_470_489_docs.py |
 | 2026-06-25 11:39 | `1b77cf27` | feat(odyssey): ROADMAP 2종 (Phase 484 Electron LTS·488 보안 SLA) + 원격 브랜치 정리 가이드 | CHANGELOG.md, ROADMAP.md, docs/CONTINUUM_ELECTRON_LTS_TRACKING.md, docs/CONTINUUM_SECURITY_SLA.md, docs/maintenance/STALE_BRANCHES_CLEANUP.md, scripts/cleanup_stale_branches.sh … |
 | 2026-06-25 08:23 | `60e9d524` | fix(controller): 7차 정밀점검 — TelemetryMessage NaN/None 가드 + README 변경 이력 압축 | CHANGELOG.md, README.md, src/airspace_control/controller/airspace_controller.py, tests/test_airspace_controller_nan_guard.py |

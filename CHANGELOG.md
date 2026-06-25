@@ -5,6 +5,10 @@
 
 ## [Unreleased]
 
+### docs — 2026-06-25: README 로드맵 전수 감사 (stale `[ ]` 마커 정직 재분류)
+
+- README "미완료 작업" 전수 감사 — 기존 `[ ]` 항목 다수가 **이미 구현된 stale 마커**임을 코드 1:1 대조로 확인. ① 환경 의존(코드 불가) ② 코드 완료(실재 모듈) ③ 잔여 코드 작업으로 재분류. 확인된 실재 구현: Ablation(`ablation_study.py`+테스트 12 PASS)·Phase 400 레거시 선언(`legacy_declaration.py` 등 7모듈)·V2X(3)·디지털트윈(5)·federation(19)·표준/Continuum(`standardization_tracker`·`centennial_declaration` 등). 진척표 H 43→48%·I 38→46% 갱신. **남은 진짜 미완은 거의 전부 환경 의존**(실 HW·외부 기관·실 배포·차세대 기수) + 소수 doable(시뮬레이터 Track Ⅰ 시각화 마감·다중사용자 WS 인프라·연합 E2E).
+
 ### test(genesis) — 2026-06-25: Phase 319 테스트 절차서 검증 추가 (커버리지 0%→충족)
 
 - **GENESIS Phase 319** — 기존 `simulation/test_procedures.py`(DO-178C §6 테스트 절차서 감사, 커버리지 0% = 무테스트)에 `tests/test_test_procedures.py` **23건** 신규 추가. 감사 실행·15 점검항목·준수율/판정·단계별 보고·`_detect_status`(MET/PARTIAL/NOT_MET) 상태 판정·`_glob_any` 안전성(__pycache__ 제외·상위경로 탈출 거부)·직렬화 검증. 실 리포 감사는 모듈 스코프 fixture 1회로 제한(반복 glob 방지, 5.8s). ruff clean. **참고**: 직전 시도에서 만든 `change_control_board.py` 는 기존 `ccb_change_control.py`(Phase 318)의 중복이라 제거하고 기존 모듈로 일원화함.

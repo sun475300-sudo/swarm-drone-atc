@@ -49,7 +49,7 @@
 
 ---
 
-## 📊 개발 진척 현황 / Development Progress (2026-06-24)
+## 📊 개발 진척 현황 / Development Progress (2026-06-25)
 
 | 트랙 | 범위 | 진척 | 핵심 산출물 |
 |---|---|---|---|
@@ -61,37 +61,43 @@
 | **E** 확장 연구 | P736-745 | ✅ 100% | RL PoC·UAS-T·LiDAR·DR·디지털트윈·Raft HA·UAM·양자·폐쇄망·LLM |
 | **F** 산학·사업화 | P746-755 | 🟢 90% | K-UAM·해수부·산림청·KISA·라이선싱·창업 docs (P755·LOI는 사용자 환경) |
 | **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 11% | 201-210·226 완료 — 성숙도 정직성·API 수명주기·GPS→ENU 정밀 검증 |
-| **H** GENESIS | 시뮬 301-400 | 🟡 43% | 인증·규제 301-317 + 자율·교육·실증·아카이브·체험판·성과요약·성숙도·인수인계·교육자산·종합보고·자생력·공개준비·통합게이트·**Phase 400 Legacy 선언** 완료 |
-| **I** ODYSSEY | 시뮬 401-500 | 🟡 38% | FAA UTM 갭 분석·U-space·연합 운영·형식 검증·표준 시나리오·정책 분석·마이그레이션 자산 완료 |
+| **H** GENESIS | 시뮬 301-400 | 🟡 48% | 인증·규제 301-320(CCB·테스트절차서 DO-178C §6/§7)·교육·발표(381-389)·**Phase 400 Legacy 선언**·V2X·디지털트윈·자가치유 완료 — 실 지역 실증·온보드 RL만 잔여(실 HW) |
+| **I** ODYSSEY | 시뮬 401-500 | 🟡 46% | FAA/EASA/ICAO 정렬(402-411)·RL/EASA AI(452-457)·연합 운영(`federation_*` 19모듈)·표준/Continuum(461-500)·**#449 10 Phase 안착** 완료 — GUTMA·해외 제출·차세대 기수만 잔여(외부) |
 
 > 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)(실행 일정)
 
-### 🚧 미완료 작업 / Open Work Items (정직성 리스트, 2026-06-25 기준)
+### 🚧 미완료 작업 / Open Work Items (2026-06-25 코드베이스 전수 감사)
 
-**사용자 환경 의존 (코드 작업 불가, 4건)**
-- [ ] P755 창업·분사 결정 + 외부 기관 LOI 체결
-- [ ] Track A 실기 검증 — Pixhawk·Jetson·RTK 실 하드웨어 비행 (가이드 10종은 완비)
-- [ ] P707 논문 실측 실험 그래프 → P709 IROS 2026 실제 투고
-- [ ] `v1.5.0` 태그 푸시 → 3-OS 자동 빌드 (sandbox push 403 — [1줄 명령 가이드](docs/V1_5_0_RELEASE_INSTRUCTIONS.md))
+> **전수 감사 결과**: 기존 `[ ]` 항목 다수가 실제로는 **이미 구현된 stale 마커**였습니다. 코드와 1:1 대조해 ① 환경 의존(코드 불가) ② 코드 완료(실재 모듈 확인) ③ 잔여 코드 작업으로 정직 재분류했습니다.
 
-**시뮬레이터 — MASTER_PLAN Track Ⅰ (시각화 마감, ~2026-07 목표)**
-- [ ] CPA 예측선 고도화 — TTC 라벨·위험도 색상
-- [ ] 어드바이저리 빌보드 (CLIMB/DESCEND/TURN/EVADE/HOLD 점멸)
-- [ ] 리플레이 스크러버-멀티뷰 커서 마감 검증 · 리포트 KPI를 `gen_report` 정의와 1:1 일치 · mega_swarm 1k/5k FPS 실측 표
+#### 🔒 환경 의존 — 코드로 완료 불가 (사용자 HW · 외부 기관 · 실 배포 · 차세대 기수)
+- [ ] P755 창업·분사 + 외부 기관 LOI 체결
+- [ ] Track A 실기 검증 — Pixhawk·Jetson·RTK 실 하드웨어 비행 (가이드 10종 완비)
+- [ ] P707 논문 실측 실험 → P709 IROS 2026 투고 · Zenodo DOI 발급
+- [ ] `v1.5.0` 태그 푸시 → 3-OS 릴리스 빌드 (로컬 Windows NSIS 빌드는 검증 완료, [가이드](docs/V1_5_0_RELEASE_INSTRUCTIONS.md))
+- [ ] TRANSCENDENCE 221-240 — 실 GPU WGSL · MAVLink SITL · CRDT Yjs · KMA 실시간 풍속장 (외부 시스템)
+- [ ] TRANSCENDENCE 261-280 — HITL Pixhawk/Jetson 실 루프 (사용자 HW)
+- [ ] GENESIS 341-360 — 목포 해역 실 파일럿·90일 운영·24h 무중단 · 온보드 RL 추론·GPS 거부 실환경 (실 배포/HW)
+- [ ] GENESIS 321-340 — 플러그인 SDK npm/PyPI 실 퍼블리싱 (외부 레지스트리 계정)
+- [ ] ODYSSEY 410·412-420 — GUTMA 기고·해외 파일럿 실제 제출 (외부 기관)
+- [ ] ODYSSEY 493-499 — 차세대 트랙 실 공모·선정 (2027+ 차세대 기수)
 
-**TRANSCENDENCE 잔여 (Phase 211-300, Phase 226 완료)**
-- [ ] 211-220 production-grade API 확대 — production 12종에서 30종으로 격상
-- [ ] 221-240 실측 격상 — WebGPU 실 WGSL·CRDT Yjs·MAVLink SITL·KMA 풍속장 (226 GPS→ENU 정밀 검증 완료)
-- [ ] 241-260 다중 사용자 — WS 관제 서버·2-브라우저 협업 E2E·부하 100명
-- [ ] 261-280 HITL (사용자 HW) · 281-300 학술 임팩트 (Ablation 자동화는 sandbox 가능)
+#### ✅ 코드 완료 (stale `[ ]` → 실재 모듈 확인, 2026-06-25 감사)
+- [x] **TRANSCENDENCE 281-300** Ablation 자동화 — `simulation/ablation_study.py` + `tests/test_ablation_study.py` (12 PASS)
+- [x] **GENESIS 318-319** CCB·테스트절차서 (DO-178C §6/§7) — `ccb_change_control.py`·`test_procedures.py` (37+23 PASS)
+- [x] **GENESIS 342-380 (SW)** V2X·양방향 디지털트윈·자가치유 — `v2x_*.py`(3)·`digital_twin_*.py`(5)·`swarm_self_healing`(`tests/track_genesis/`)
+- [x] **GENESIS 395-400** Phase 400 레거시 선언 — `legacy_declaration.py`·`legacy_readiness.py`·`maturity_assessment.py`·`handover_checklist.py`·`archive_redundancy/strategy.py`·`ecosystem_sustainability.py`
+- [x] **ODYSSEY 402-409·411·452-457·473** — #449 안착 (519 테스트 PASS)
+- [x] **ODYSSEY 421-430 연합 운영** — `federation_*.py` 19 모듈 (discovery·handover·split-brain·trust·mesh·NOTAM 등)
+- [x] **ODYSSEY 461-492·500 표준/Continuum** — `standardization_tracker`·`ks_standard_proposal`·`wg_opinion_portfolio`·`track_handover_policy`·`centennial_declaration`
 
-**GENESIS·ODYSSEY 잔여**
-- [x] **GENESIS 318-319** ✅ CCB 변경통제·테스트 절차서 (DO-178C §6/§7, `ccb_change_control.py`·`test_procedures.py` · 37+23 테스트 PASS) · [ ] 320-340 잔여 — 4대계획서·플러그인 SDK·npm/PyPI 배포(🔒 외부 퍼블리싱 의존)
-- [ ] GENESIS 342-380 — 지역 실증·24시간 운영·온보드 RL·V2X·GPS 거부 환경·자가 치유
-- [ ] GENESIS 395-400 — Phase 400 레거시 선언 (383-386·390-394 완료)
-- [x] **ODYSSEY 402-409·411** ✅ (FAA UTM·USS·EASA·ICAO 정렬·국제 벤치마크·해외 파일럿 — #449 안착 2026-06-25) · [ ] 410·412-420 잔여 (GUTMA 기고·실제 제출은 외부 기관 의존)
-- [ ] ODYSSEY 426-427 — 2-인스턴스 연합 E2E·인접 공역 고스트 렌더링
-- [x] **ODYSSEY 452-457·473** ✅ (RL 일반화·자문 경계·EASA AI Level/데이터/설명가능성/운영 모니터링·WG 포트폴리오 — #449 안착, 519 테스트 PASS) · [ ] 458-469·474-500 잔여 (장기 운영·거버넌스·아카이브)
+#### 🔨 잔여 코드 작업 (doable — 시각화 폴리시·인프라)
+- [ ] 시뮬레이터 Track Ⅰ — CPA TTC 라벨·위험도 색상·어드바이저리 빌보드 점멸 (기반 advisory/ttc/replay는 HTML 구현됨, **고도화·마감 검증** 잔여)
+- [ ] TRANSCENDENCE 211-220 — production API 12→30 격상 (시뮬레이터 성숙도)
+- [ ] TRANSCENDENCE 241-260 — 다중 사용자 WS 관제 서버·부하 100명 (런타임 인프라)
+- [ ] ODYSSEY 426-427 — 2-인스턴스 연합 E2E·고스트 렌더링 (federation 백엔드 19모듈 완비, Playwright 다중페이지 E2E만 잔여)
+- [ ] GENESIS 320 — 4대 SW계획서 실제 문서 (존재·준비도 점검은 Phase 314 완비)
+- [ ] `main` branch protection — required checks 지정 (직접 push 차단은 워크플로 영향 → 사용자 확인)
 
 **AIM 정밀검사 (Phase 691-700, 2026-06-24 완료)**
 - [x] **Round 4–12** ✅ AIM 모듈 정밀 강화 9라운드 — `tests/test_phase691_700_aim.py` (242 테스트). 대상: `notam_manager`, `tfr_handler`, `vertiport_ops`, `metar_parser`, `aim_briefing`, `flight_following`, `cross_border_coord`, `post_flight_report`, `aero_charts`, `insurance_risk`. NaN/Inf 바이패스 차단·CAVOK VFR 인식·캡슐화 강화·fail-closed 안전·방어적 복사·중복 거부

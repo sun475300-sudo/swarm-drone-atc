@@ -13,8 +13,8 @@
 [![SDACS Unity](https://img.shields.io/badge/Phase_200-%F0%9D%9F%8F_Unity-ec407a?style=for-the-badge&logo=infinity)](docs/SIMULATOR_POST_UNIVERSE_PLAN.md)
 [![API](https://img.shields.io/badge/__sdacs-407_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
 [![E2E](https://img.shields.io/badge/E2E-263%2F264_pass-22c55e?style=for-the-badge&logo=playwright&logoColor=white)](tests/e2e/)
-[![Roadmap](https://img.shields.io/badge/Roadmap_691--755-92%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
-[![Tests](https://img.shields.io/badge/Python_tests-6%2C733_pass_%C2%B7_270_skip-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Roadmap](https://img.shields.io/badge/Roadmap_691--755-94%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
+[![Tests](https://img.shields.io/badge/Python_tests-8%2C365_pass_%C2%B7_228_skip-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![v1.5.0](https://img.shields.io/badge/Desktop-v1.5.0_(Win%2FMac%2FLinux)-7c3aed?style=for-the-badge&logo=electron&logoColor=white)](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
 [![Modules](https://img.shields.io/badge/Modules-830+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
@@ -49,7 +49,7 @@
 
 ---
 
-## 📊 개발 진척 현황 / Development Progress (2026-06-25)
+## 📊 개발 진척 현황 / Development Progress (2026-06-26)
 
 | 트랙 | 범위 | 진척 | 핵심 산출물 |
 |---|---|---|---|
@@ -61,7 +61,7 @@
 | **E** 확장 연구 | P736-745 | ✅ 100% | RL PoC·UAS-T·LiDAR·DR·디지털트윈·Raft HA·UAM·양자·폐쇄망·LLM |
 | **F** 산학·사업화 | P746-755 | 🟢 90% | K-UAM·해수부·산림청·KISA·라이선싱·창업 docs (P755·LOI는 사용자 환경) |
 | **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 11% | 201-210·226 완료 — 성숙도 정직성·API 수명주기·GPS→ENU 정밀 검증 |
-| **H** GENESIS | 시뮬 301-400 | 🟡 48% | 인증·규제 301-320(CCB·테스트절차서 DO-178C §6/§7)·교육·발표(381-389)·**Phase 400 Legacy 선언**·V2X·디지털트윈·자가치유 완료 — 실 지역 실증·온보드 RL만 잔여(실 HW) |
+| **H** GENESIS | 시뮬 301-400 | 🟢 50% | 인증 301-319·플러그인SDK(321)·CITATION(330)·교육(381-389)·**Phase 400 Legacy 선언**·V2X·자가치유·**RL벤치·LLM관제·5G NTN·GPS거부·에너지계획**(361-368) 완료 — 실 지역 실증·양방향 디지털트윈만 잔여(실 HW) |
 | **I** ODYSSEY | 시뮬 401-500 | 🟡 46% | FAA/EASA/ICAO 정렬(402-411)·RL/EASA AI(452-457)·연합 운영(`federation_*` 19모듈)·표준/Continuum(461-500)·**#449 10 Phase 안착** 완료 — GUTMA·해외 제출·차세대 기수만 잔여(외부) |
 
 > 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)(실행 일정)
@@ -129,6 +129,14 @@
 - [x] **GENESIS 310** ✅ 야간·BVLOS 특별비행승인 — `simulation/special_flight_approval.py` + [`docs/certification/NIGHT_BVLOS_APPROVAL.md`](docs/certification/NIGHT_BVLOS_APPROVAL.md)
 - [x] **TRANSCENDENCE 209-210** ✅ API 폐기·SemVer 정책 — [`docs/API_DEPRECATION_POLICY.md`](docs/API_DEPRECATION_POLICY.md) + [`docs/API_SEMVER_POLICY.md`](docs/API_SEMVER_POLICY.md)
 - [x] **ODYSSEY 421-422** ✅ 인스턴스 디스커버리·운영 의도 교환 — `simulation/federation_discovery.py`, `simulation/operational_intent.py` + [`docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md`](docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md), [`docs/certification/OPERATIONAL_INTENT_FORMAT.md`](docs/certification/OPERATIONAL_INTENT_FORMAT.md)
+- [x] **GENESIS 306** ✅ RTM 자동 생성기 — `simulation/rtm_generator.py` 5계층 안전망 REQ↔DSN↔IMP↔VER 자동 추적·커버리지 분석·HTML/CSV 내보내기, 60건 PASS
+- [x] **GENESIS 321** ✅ 플러그인 SDK v1 — `simulation/plugin_sdk.py` PluginType 5종·PluginMeta·PluginRegistry·라이프사이클·의존성 해결·버전 호환, 50건 PASS
+- [x] **GENESIS 330** ✅ CITATION.cff + 인용 검증기 — `CITATION.cff` (CFF 1.2.0) + `simulation/citation_validator.py` BibTeX/APA 생성·스키마 검증, 43건 PASS
+- [x] **GENESIS 361** ✅ 온보드 RL 추론 벤치 — `simulation/onboard_rl_bench.py` 하드웨어 프로파일 7종·추론 벤치마크·배터리 영향·최적 모델 선택, 40건 PASS
+- [x] **GENESIS 363** ✅ LLM 관제 보조 production — `simulation/llm_atc_production.py` ATC 명령 파싱·검증·2단계 확인·안전 제약 게이트, 61건 PASS
+- [x] **GENESIS 365** ✅ 5G NTN 링크 모델 — `simulation/ntn_link_model.py` LEO/MEO/GEO 궤도·링크 버짓·도플러·핸드오버·가용성, 57건 PASS
+- [x] **GENESIS 366** ✅ GPS 거부 환경 항법 — `simulation/gps_denied_nav.py` 7 NavSource 융합·IMU/비전/UWB/자기장·EKF 신뢰도 산정, 49건 PASS
+- [x] **GENESIS 368** ✅ 에너지 인식 임무 계획 — `simulation/energy_aware_planner.py` 배터리 모델·에너지 비용·귀환점 산정·최적 경로·충전 스케줄, 48건 PASS
 
 **GitHub 운영**
 - [x] **열린 PR 정리 (2026-06-25)** ✅ — 일일점검 중복 draft 23건 close(ODYSSEY 작업은 #449로 일원화) + dependabot 8건 병합(GitHub Actions 5 + pyyaml·matplotlib·pydantic-core) + 로컬 브랜치 1개(`main`)로 축소. **#449(ODYSSEY 10개 Phase) main 안착 완료** → 잔여 열린 PR 9건(메이저 의존성 4 + 리베이스 중 2 + #283 perf + 기타)

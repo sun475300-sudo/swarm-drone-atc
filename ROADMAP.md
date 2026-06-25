@@ -119,7 +119,7 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 
 ---
 
-## Progress Snapshot / 진행 현황 (2026-06-04 기준)
+## Progress Snapshot / 진행 현황 (2026-06-26 기준)
 
 | 트랙 | 완료 | 진행률 | 핵심 산출물 |
 |---|---|---|---|
@@ -134,8 +134,8 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 | **HYPER Plan** (시뮬 Phase 10-50) | 100% | ████████████ | 41개 추가 Phase (해양 ATC · VR · AI Copilot · 적대 · C-UAS · 행성 등) |
 | **STELLAR~POST-UNIVERSE** (시뮬 Phase 51-200) | 100% | ████████████ | Phase 200 = 𝟏 (Unity) · Phase 51 LLM Multi-Agent 격상 (단, 다수 mock/speculative — maturity 공시) |
 | **TRANSCENDENCE** (시뮬 Phase 201-300) | 10% | █░░░░░░░░░░░ | Phase 201-208 Maturity Honesty 완료 (분류·Mock Detector·experimental·beta·production 회귀) |
-| **GENESIS** (시뮬 Phase 301-400) | 43% | █████░░░░░░░ | 301-317·322·341·342·362·364·367·381-400 완료 — 인증·CSAP카탈로그·UAM운용기준·감항인증·도구자격TQL5·빌드환경사양·SQA감사·자율·교육·실증·아카이브·체험판·성과요약·성숙도·인수인계·교육자산·종합보고·자생력·공개준비·통합게이트·Legacy선언 |
-| **ODYSSEY** (시뮬 Phase 401-500) | 5% | █░░░░░░░░░░░ | 408 ICAO 매핑·447 fuzzing·448 property·466 schema·486 재현 완료 |
+| **GENESIS** (시뮬 Phase 301-400) | 50% | ██████░░░░░░ | 301-319·321-322·330·341-342·361-368·381-400 완료 — 인증·CSAP·감항·플러그인SDK·CITATION·RTM자동생성·RL벤치·LLM관제·NTN링크·GPS거부·에너지계획·V2X·자가치유·교육·레거시선언 |
+| **ODYSSEY** (시뮬 Phase 401-500) | 46% | ██████░░░░░░ | 402-411·447-448·452-457·461-500 완료 — FAA/EASA/ICAO·RL/AI·연합운영·표준·Continuum (#449 안착) |
 
 **총 Phase 691-755 (65개) 중 61개 완료 = 94%** (Phase 1-690 포함 시 전체 751/755 = **99.5%**)
 **+ 시뮬레이터 MEGA 9 + HYPER 41 = 50 Phase 100% 완료** (총 800 Phase 중 796 완료 = **99.5%**)
@@ -268,7 +268,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 301** 🏭 항공안전법·드론활용촉진법 적합성 매트릭스 — `docs/certification/AIR_SAFETY_ACT_MATRIX.md` (2026-06-12)
 - [x] **Phase 302** 🏭 SORA 자동 계산기 — `_sdacs.soraAssess()` JARUS 2.0 결정적 구현, E2E 6건 (2026-06-12)
 - [x] **Phase 304** 🏭 KC 전파인증 체크리스트 — `docs/certification/KC_RADIO_CERTIFICATION.md` (2026-06-12)
-- [x] **Phase 306** 🏭 RTM 5계층 커버리지 — `docs/certification/RTM_5LAYER_COVERAGE.md` 21건 추적 (2026-06-12)
+- [x] **Phase 306** 🏭 RTM 5계층 커버리지 — `docs/certification/RTM_5LAYER_COVERAGE.md` 21건 추적 (2026-06-12) + `simulation/rtm_generator.py` RTM 자동 생성기(5계층 REQ→DSN→IMP→VER 추적성·커버리지 산정·갭 분석), 60건 PASS (2026-06-26)
 - [x] **Phase 309** 🏭 조종자 자격증명 매핑 — `docs/certification/PILOT_LICENSE_MAPPING.md` (2026-06-12)
 - [x] **Phase 308** 🏭 배상책임보험 요율 산정 API — `simulation/insurance_rate_quote.py` (Phase 67 mock 격상 — 항공사업법 §70 의무보험 스펙, MTOW·운용·ILF·NCB·경력·야간/BVLOS 결정적 산정, 33건 PASS) (2026-06-15)
 - [x] **Phase 303·305·307·310** 🏭 인증 문서 세트 — `FLIGHT_PLAN_FORM.md`, `DO178C_GAP_ANALYSIS.md`, `ACCIDENT_REPORT_FORM.md`, `NIGHT_BVLOS_APPROVAL.md` (2026-06-18)
@@ -283,14 +283,21 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 319** 🏭 테스트 절차서 (DO-178C §6) — `simulation/test_procedures.py` 검증 5단계×15 점검항목 파일시스템 증거 자동 점검 + `tests/test_test_procedures.py` 신규 검증 23건 PASS (커버리지 0%→충족, 2026-06-25)
 - [ ] **Phase 320** 🏭 4대 SW계획서(SDP/SVP/SCMP/SQAP) — *존재·준비도 점검은 Phase 314 `airworthiness_checklist.py` PLANNING 영역(AW-001~003)이 이미 수행. 잔여는 실제 계획서 문서 작성(문서 작업)*
 - [x] **Phase 322** 🌍 `.sdacs-scenario` 스키마 + 검증기 — `simulation/scenario_schema.py` + `docs/schemas/sdacs-scenario.schema.json`, 20건 PASS (2026-06-15)
-- [ ] **Phase 321-340** 🌍 Ecosystem & Open Source — 플러그인 SDK·`@sdacs/core` npm·`sdacs-sim` PyPI·v2.0 API 안정화
+- [x] **Phase 321** 🌍 플러그인 SDK v1 — `simulation/plugin_sdk.py` PluginType 7종 enum·PluginMeta frozen dataclass·PluginRegistry 등록/해제/의존 해결/실행 파이프라인, MappingProxyType 불변 레지스트리, CLI --list/--register/--resolve/--json, 50건 PASS (2026-06-26)
+- [x] **Phase 330** 🌍 CITATION.cff + 인용 검증 — `CITATION.cff` CFF 1.2.0 + `simulation/citation_validator.py` CFF 파서·BibTeX/APA 변환·필수필드 검증, CLI --validate/--bibtex/--apa/--json, 43건 PASS (2026-06-26)
+- [ ] **Phase 322-340** 🌍 Ecosystem & Open Source 잔여 — `@sdacs/core` npm·`sdacs-sim` PyPI 실 퍼블리싱·v2.0 API 안정화
 - [x] **Phase 341** 🏙 목포 해역 실 좌표계 임포트 — `src/applications/mokpo_harbor.py` 해도 기반 NFZ 4종(부두·대교·지형·정박지)·회랑 3종 결정적 배치 + 레이 캐스팅 NFZ 판정·회랑 충돌 검사, 8건 PASS (2026-06-15)
 - [x] **Phase 342** 🏙 전남 도서(신안·완도) 의료 배송 거점 DB — `src/applications/jeonnam_island_sites.py` 실 좌표·거점·Haversine ETA, 7건 PASS (2026-06-15)
 - [ ] **Phase 341-360** 🏙 Real Deployment — 목포 해역 실 좌표·전남 도서 의료 배송·90일 파일럿 백서
 - [x] **Phase 367** 🤖 스웜 자가 치유 — `src/autonomy/swarm_self_healing.py` 결손 드론 임무 자동 재분배, 12건 PASS (2026-06-15)
 - [x] **Phase 362** 🤖 APF+RL 하이브리드 충돌 회피 — `src/autonomy/hybrid_collision_avoidance.py` FIRAS APF(0.7)+PPO RL(0.3) 가중 결합, 안전 우선 오버라이드(5m 이내 APF 전용), frozen dataclass 구성, 에피소드 평가 CLI, 27건 PASS (2026-06-20)
 - [x] **Phase 364** 🤖 V2X 드론 간 통신 메시지 규격 — `simulation/v2x_message.py` SAE J2735 BSM 적응 UAS 메시지(DroneBasicSafetyMessage 192B·EmergencyAlert 162B), JSON+바이너리 라운드트립 코덱, 범위 필터링·결정적 패킷 손실 채널, 22건 PASS (2026-06-20)
-- [ ] **Phase 361-380** 🤖 Next-Gen Autonomy 잔여 — 온보드 RL 추론·양방향 디지털 트윈
+- [x] **Phase 361** 🤖 온보드 RL 추론 벤치마크 — `simulation/onboard_rl_bench.py` DeviceSpec·ModelSpec·InferenceBenchmark frozen dataclass, 5종 디바이스 카탈로그(Jetson Nano/Xavier/Orin·RPi5·x86), FLOP 기반 분석적 추론 지연·전력·메모리 추정, PPO 정책 ONNX 사양, CLI --bench/--device/--recommend/--json, 40건 PASS (2026-06-26)
+- [x] **Phase 363** 🤖 LLM 관제 보조 production 격상 — `simulation/llm_atc_production.py` ATCCommand·ParsedCommand·ConfirmStep frozen dataclass, 명령 파서(고도·속도·방향·대기·착륙 5종)·검증기(범위·충돌)·2단계 확인 프로토콜, CLI --parse/--validate/--confirm/--json, 61건 PASS (2026-06-26)
+- [x] **Phase 365** 🤖 5G NTN 링크 모델 — `simulation/ntn_link_model.py` SatelliteType(LEO/MEO/GEO/HAPS) enum·NTNLink·LinkBudget·HandoverEvent frozen dataclass, FSPL·대기/강우 감쇠·Shannon 용량·핸드오버 시뮬레이션·ATC 적합성 평가, CLI --simulate/--budget/--handover/--assess/--json, 57건 PASS (2026-06-26)
+- [x] **Phase 366** 🤖 GPS 거부 환경 항법 — `simulation/gps_denied_nav.py` NavSource 7종(IMU·Barometer·Magnetometer·Optical Flow·Visual Odometry·UWB·Terrain Match)·FusedPosition frozen dataclass, 가중 센서 퓨전·시나리오별 가용 소스 자동 선택, CLI --sources/--fuse/--scenario/--json, 49건 PASS (2026-06-26)
+- [x] **Phase 368** 🤖 에너지 인식 임무 계획 — `simulation/energy_aware_planner.py` DroneEnergyProfile·WindCondition·Waypoint·LegEnergy·MissionPlan frozen dataclass, 3종 프로파일(small/medium/heavy), 바람(정풍/배풍) 에너지 효과·레그별 에너지 분석·실현가능성 판정·감축 제안, CLI --plan/--profile/--wind/--feasibility/--json, 48건 PASS (2026-06-26)
+- [ ] **Phase 361-380** 🤖 Next-Gen Autonomy 잔여 — 양방향 디지털 트윈(실 HW)
 - [x] **Phase 381** 🎓 교육 모드 — 시뮬레이터 `tutorialStart/Next/Status()` 5단계 (2026-06-12)
 - [x] **Phase 382** 🎓 실습 과제 10종 — `simulation/practice_assignments.py` 학부 수업용 시나리오·채점 기준·검증 스크립트 (입문~고급 14주 배치, frozen dataclass, 결정적 채점, CLI --list/--detail/--rubric, 44건 PASS) (2026-06-25)
 - [x] **Phase 384** 🎓 조종자 자격 이론 연계 문제은행 — `simulation/pilot_exam_bank.py` 1~4종 자격증명 이론시험 유형 ↔ SDACS 시뮬 상황 매핑 40문항(종별 10문항, 4과목: 항공법규·비행이론·기상학·안전관리), frozen dataclass·MappingProxyType, 채점(grade_exam)·과목별 분석·합격 판정(70%), CLI --list/--grade/--question/--subject/--stats/--json, 49건 PASS (2026-06-25)

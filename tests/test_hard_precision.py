@@ -358,11 +358,14 @@ class TestScenarioRegression:
     def _scenario_names(self) -> list[str]:
         return sorted(p.stem for p in self.SCENARIO_DIR.glob("*.yaml"))
 
+    @pytest.mark.slow
     def test_all_10_scenarios_complete(self):
         """10개 시나리오가 모두 예외 없이 실행되는지 검증.
 
         ODYSSEY Phase 465 표준 벤치마크 스위트(SDACS-SBS-10)의 10번째
         대조 케이스 `nominal_baseline.yaml` 추가로 9 → 10 갱신.
+
+        H-01 fix (2026-06-19): 10 시나리오 직렬 실행 = >4s. CI fast 레인 제외.
         """
         from simulation.scenario_runner import run_scenario
 
@@ -492,3 +495,4 @@ class TestGPUEngine:
         forces = engine.compute_all_forces()
         has_nonzero = any(np.linalg.norm(f) > 1e-6 for f in forces.values())
         assert has_nonzero, "활성 드론에 대해 0이 아닌 힘이 계산되어야 함"
+

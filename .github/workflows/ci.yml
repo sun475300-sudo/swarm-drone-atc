@@ -18,6 +18,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # 전체 히스토리 필요: test_code_archaeology 가 git log 에서 Phase 커밋을
+          # 파싱하므로 기본 얕은 클론(depth 1)이면 HEAD 1커밋만 보여 0건 → RED.
+          fetch-depth: 0
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5

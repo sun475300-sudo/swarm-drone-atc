@@ -5,7 +5,11 @@
 
 ## [Unreleased]
 
-### 추가 (feat/test) — 일일 점검 2026-06-21 (52차): ODYSSEY Track 🔬 Phase 451 — EASA 신뢰 가능 AI(Learning Assurance) 적합성 자가 평가
+### 수정 (fix/ci) — 일일 점검 2026-06-25: main CI RED 회복 — CI 체크아웃 `fetch-depth: 0`
+
+- **작업 상황 점검**: `git fetch origin main` → `origin/main == HEAD`(`f3e61f7`) 클린 베이스. 단, **main 최신 커밋의 CI 가 RED**(run `28161248405`, test 3.10/3.11/3.12 전부 실패). 직전 `9ec0d72`(PR #447 머지)는 GREEN — 머지 커밋 `f3e61f7`("Merge branch 'main'")가 회귀 유발.
+- **근본 원인**: 단일 실패 테스트 `tests/test_code_archaeology.py::TestParsePhaseCommits::test_non_empty_in_this_repo`(`assert 0 > 0`). `parse_phase_commits()` 가 `git log --all` 에서 "Phase NNN" 커밋을 파싱하는데, `actions/checkout@v4` 기본 **얕은 클론(fetch-depth 1)** 이면 HEAD 머지 커밋 1개만 보이고 그 메시지에 Phase 언급이 없어 0건 → RED. 로컬(전체 히스토리)에서는 110건 파싱·50/50 PASS 로 원인이 클론 깊이임을 검증.
+- **수정**: `.github/workflows/ci.yml` test job 체크아웃에 `fetch-depth: 0` 추가(전체 히스토리 페치). 수술적 1스텝 변경, 테스트 의미 보존. 7,686 pass / 1 fail → 0 fail 회복 예상.
 
 - **작업 상황 점검**: 51차(PR #392, `a4510ef`) 머지 후 `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 확인. ODYSSEY Track 🔬 Formal & Research Frontier(451-460, "RL 일반화 연구 + 인증 가능 ML 조사")는 그간 미착수(450 까지 완료·451-460 범위 미세분). 금일 병행 점검이 적체시킨 열린 draft PR 들(#417·#418·#419·#420 — Standards/Continuum 트랙 461·463·464·468·471·472·491·492·500 중복 일원화)과 **서로소 트랙**을 골라 충돌·중복 없이 진행하기 위해, 451-460 의 sandbox 가능 착수 칸인 **Phase 451**(EASA AI 인증 조사)을 신규 구현.
 - **점검 발견(사용자 검토 필요)**: 열린 PR **20건** 적체 — Dependabot 13건(#267-279) + perf #283(핫루프 힙 할당 제거) + Transcendence Phase 207 draft #280 + 금일 일일 점검 draft 4건(#417·#418·#419·#420, 상호 중복 일원화). #417·#420 은 동일 트랙(461·463·464·468·491·492)을 경쟁 일원화 중. 머지·triage·중복 close·취약점 패치는 **사용자 승인 필요**.

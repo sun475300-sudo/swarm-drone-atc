@@ -89,9 +89,9 @@
 - [ ] GENESIS 318-340 — CCB 변경통제·플러그인 SDK·시나리오 마켓·패키지 배포·영문 문서
 - [ ] GENESIS 342-380 — 지역 실증·24시간 운영·온보드 RL·V2X·GPS 거부 환경·자가 치유
 - [ ] GENESIS 395-400 — Phase 400 레거시 선언 (383-386·390-394 완료)
-- [ ] ODYSSEY 402-420 — FAA/EASA/ICAO 정렬·국제 벤치마크·해외 파일럿 제안
+- [x] **ODYSSEY 402-409·411** ✅ (FAA UTM·USS·EASA·ICAO 정렬·국제 벤치마크·해외 파일럿 — #449 안착 2026-06-25) · [ ] 410·412-420 잔여 (GUTMA 기고·실제 제출은 외부 기관 의존)
 - [ ] ODYSSEY 426-427 — 2-인스턴스 연합 E2E·인접 공역 고스트 렌더링
-- [ ] ODYSSEY 451-500 — RL 일반화·표준 기고·장기 운영·거버넌스·아카이브
+- [x] **ODYSSEY 452-457·473** ✅ (RL 일반화·자문 경계·EASA AI Level/데이터/설명가능성/운영 모니터링·WG 포트폴리오 — #449 안착, 519 테스트 PASS) · [ ] 458-469·474-500 잔여 (장기 운영·거버넌스·아카이브)
 
 **AIM 정밀검사 (Phase 691-700, 2026-06-24 완료)**
 - [x] **Round 4–12** ✅ AIM 모듈 정밀 강화 9라운드 — `tests/test_phase691_700_aim.py` (242 테스트). 대상: `notam_manager`, `tfr_handler`, `vertiport_ops`, `metar_parser`, `aim_briefing`, `flight_following`, `cross_border_coord`, `post_flight_report`, `aero_charts`, `insurance_risk`. NaN/Inf 바이패스 차단·CAVOK VFR 인식·캡슐화 강화·fail-closed 안전·방어적 복사·중복 거부
@@ -125,7 +125,7 @@
 - [x] **ODYSSEY 421-422** ✅ 인스턴스 디스커버리·운영 의도 교환 — `simulation/federation_discovery.py`, `simulation/operational_intent.py` + [`docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md`](docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md), [`docs/certification/OPERATIONAL_INTENT_FORMAT.md`](docs/certification/OPERATIONAL_INTENT_FORMAT.md)
 
 **GitHub 운영**
-- [x] **열린 PR 정리 (2026-06-25)** ✅ — 일일점검 중복 draft 23건 close(ODYSSEY 작업은 #449로 일원화) + dependabot 8건 병합(GitHub Actions 5 + pyyaml·matplotlib·pydantic-core) + 로컬 브랜치 1개(`main`)로 축소. 잔여 열린 PR 10건(메이저 의존성 4 + 리베이스 중 2 + #449 ODYSSEY 일원화 + #283 perf)
+- [x] **열린 PR 정리 (2026-06-25)** ✅ — 일일점검 중복 draft 23건 close(ODYSSEY 작업은 #449로 일원화) + dependabot 8건 병합(GitHub Actions 5 + pyyaml·matplotlib·pydantic-core) + 로컬 브랜치 1개(`main`)로 축소. **#449(ODYSSEY 10개 Phase) main 안착 완료** → 잔여 열린 PR 9건(메이저 의존성 4 + 리베이스 중 2 + #283 perf + 기타)
 - [x] **저장소 루트 `LICENSE` 추가 (2026-06-25)** ✅ — MIT 라이선스 파일 생성, README 배지 링크 정상화
 - [x] **main CI RED 회복 (2026-06-25)** ✅ — `ci.yml` checkout `fetch-depth: 0`(code_archaeology 전체 이력 파싱) → CI GREEN 실측
 - [ ] `main` branch protection 활성화 — required checks 지정 (직접 push 차단은 현 작업 워크플로에 영향 → 사용자 확인 필요)

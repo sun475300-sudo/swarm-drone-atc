@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test/docs) — 일일 점검 2026-06-25 (41차): ROADMAP 3종 추가 (Phase 463·470·489)
+
+- **사용자 요청**: "로드맵에 써져있는 모든 작업 시작해" → 40차 머지 후 즉시 다음 라운드. draft PR(#430·#433 phase 452/453) 회피하면서 sandbox 가능 + 충돌 위험 0 인 3종 일괄.
+- **Phase 463** (Track 🇰🇷 신규 문서) — `docs/standards/SDACS_KDRONE_POLICY_PROPOSAL.md`. K-드론 시스템 정책 제안서, 국토교통부 제출 형식. 6 제안: ①결정적 시험 환경 표준화(SDACS-SBS-10 채택)·②5계층 안전망 통합(항공안전법 시행규칙 권고)·③다중 인스턴스 연합 운영 ConOps(F3548 호환·SDACS Federation 9 모듈 참조 구현·split-brain 4단계 사다리 의무화)·④인증 가능 ML 단계적 도입(EASA AI/ML 1A→1B→2A)·⑤사고 조사 표준 변환기(Phase 467 KARI/KOTI 공유)·⑥교육 자산 표준화(15주 커리큘럼·1-4종 매핑). 6단계 일정(2026-Q4 정책 협의 → 2028-Q1 운영 매뉴얼 배포). 정책 제출 template + 첨부 4종 명시. 한계 정직 공시: 학술 연구 산출물 기반 *권고 초안*.
+- **Phase 470** (Track 🏛 신규 문서) — `docs/standards/SDACS_STANDARDS_CONTRIBUTION_DASHBOARD.md`. 표준화 기고 추적 대시보드. 18 표준 정합 매트릭스(ASTM F38·F3548/F3411/F3478/F3196 · ISO/TC 20/SC 16 23629-5/7·21895·CD 5491 · 국토부 K-UTM · 항공안전법 129·132·161 · ICAO Annex 13 · EASA SORA·AI Roadmap · FAA UTM · JARUS · GUTMA) 🟢🟡🔴 분류. 산출물 9종 인벤토리(Phase 451·461·462·463·464·465·466·467·470). 통합 일정 11건(2026-Q3 ASTM 멤버십 → 2028-Q4 시행규칙 개정). 회의·컨퍼런스 6건(KSAS·IROS·F38·GUTMA·ICRA·ISO). 분기 갱신 절차.
+- **Phase 489** (Track ♾️ 신규 문서) — `docs/CONTINUUM_ARCHIVE_REDUNDANCY.md`. 3중 이중화 아카이브 정책 (Zenodo CERN DOI · Software Heritage 자동 크롤링 SWHID · 목포대 학술정보관). 단일 점 실패(SPOF) 제거 — GitHub 정책 변경·기업 인수·서비스 종료 위험 차단. Zenodo 등록 4단계 + DOI 정책(concept vs version) + `.zenodo.json` 메타데이터 + `CITATION.cff` 표준. SWH 자동/수동 저장 + SWHID 영구 식별자. 대학 리포지터리 4 자료. 보존 무결성 3중 일치 검증(git SHA ↔ Zenodo DOI ↔ SWH revision). Phase 500 Centennial 선언 전제 5 체크리스트 (코드 영구 보존·DOI 인용·MIT 라이센스·의존성 재현·문서 영구). 한계 정직 공시.
+- **회귀 테스트** — `tests/test_phase_463_470_489_docs.py` (신규) 18 케이스: 463 5건(file·header·국토부·6 제안·Phase 464 백서 참조·정직성), 470 4건(file·header·5 표준 기관·9 인벤토리·분기 갱신), 489 6건(file·header·3중 이중화·DOI 정책·CITATION.cff·무결성·Phase 500 참조). **18/18 PASS** (직접 실행).
+- **검증**: Python py_compile OK · 4 사본 md5 불변 (시뮬레이터 무수정). ROADMAP 라인 갱신: 331(Standards 잔여 — 463/470 ✅)·334(Continuum 잔여 — 489 ✅) + 잔여 라인 splitting.
+
 ### 추가 (feat/test/docs) — 일일 점검 2026-06-25 (40차): ROADMAP 2종 (Phase 484·488) + 원격 브랜치 정리 가이드
 
 - **Phase 484** (Track ♾️ 신규 문서) — `docs/CONTINUUM_ELECTRON_LTS_TRACKING.md`. Electron LTS 추적 정책. 8주 메이저 사이클·동시 active 3·LTS 부재 모델 명시. v32.3.3 (v1.5.0 빌드) → v39+/v42(Dependabot #426) 마이그레이션 교훈 5건(`getAllDisplays` reflection·`setMenuBarVisibility` deprecation·macOS userData permissions·Chromium 130→135 WebGPU 안정화·`webContents.executeJavaScript` 동기 변형 제거). 5단계 업그레이드 점검(CHANGELOG·3-OS 빌드·회귀·보안·사용자 영향) + 4단계 일정. 호환 셰임 패턴 예시. Phase 481 dependabot Tier 3 정책 정렬.

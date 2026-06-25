@@ -96,7 +96,7 @@
 - [ ] TRANSCENDENCE 211-220 — production API 12→30 격상 (시뮬레이터 성숙도)
 - [ ] TRANSCENDENCE 241-260 — 다중 사용자 WS 관제 서버·부하 100명 (런타임 인프라)
 - [ ] ODYSSEY 426-427 — 2-인스턴스 연합 E2E·고스트 렌더링 (federation 백엔드 19모듈 완비, Playwright 다중페이지 E2E만 잔여)
-- [ ] GENESIS 320 — 4대 SW계획서 실제 문서 (존재·준비도 점검은 Phase 314 완비)
+- [x] **GENESIS 320** ✅ 4대 SW계획서 — `docs/certification/SOFTWARE_PLANS.md` (SDP/SVP/SCMP/SQAP, DO-178C §4.3, 실제 프로세스 근거)
 - [ ] `main` branch protection — required checks 지정 (직접 push 차단은 워크플로 영향 → 사용자 확인)
 
 **AIM 정밀검사 (Phase 691-700, 2026-06-24 완료)**

@@ -281,7 +281,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 317** 🏭 SQA 감사 로그 — `simulation/sqa_audit.py` (DO-178C §8 SQA 5개 목표×15개 점검 항목 파일시스템 스캔, MET/PARTIAL/NOT_MET 결정적 판정, SqaFinding/SqaReport frozen dataclass, run_sqa_audit/get_objective_report/list_objectives, CLI --audit/--objective/--objectives/--json, 37건 PASS) (2026-06-25)
 - [x] **Phase 318** 🏭 CCB 변경통제 (DO-178C §7) — `simulation/ccb_change_control.py` 형상관리 5영역(BASELINE/CHANGE_REQUEST/VERSION_CONTROL/BUILD_RELEASE/AUDIT_TRACE)×15 점검항목 파일시스템 증거 자동 점검, 37건 PASS
 - [x] **Phase 319** 🏭 테스트 절차서 (DO-178C §6) — `simulation/test_procedures.py` 검증 5단계×15 점검항목 파일시스템 증거 자동 점검 + `tests/test_test_procedures.py` 신규 검증 23건 PASS (커버리지 0%→충족, 2026-06-25)
-- [ ] **Phase 320** 🏭 4대 SW계획서(SDP/SVP/SCMP/SQAP) — *존재·준비도 점검은 Phase 314 `airworthiness_checklist.py` PLANNING 영역(AW-001~003)이 이미 수행. 잔여는 실제 계획서 문서 작성(문서 작업)*
+- [x] **Phase 320** 🏭 4대 SW계획서(SDP/SVP/SCMP/SQAP) — `docs/certification/SOFTWARE_PLANS.md` (DO-178C §4.3, SDACS 실제 개발·검증·형상·QA 프로세스 근거 명문화; 존재 점검은 Phase 314 PLANNING 영역)
 - [x] **Phase 322** 🌍 `.sdacs-scenario` 스키마 + 검증기 — `simulation/scenario_schema.py` + `docs/schemas/sdacs-scenario.schema.json`, 20건 PASS (2026-06-15)
 - [x] **Phase 321** 🌍 플러그인 SDK v1 — `simulation/plugin_sdk.py` PluginType 7종 enum·PluginMeta frozen dataclass·PluginRegistry 등록/해제/의존 해결/실행 파이프라인, MappingProxyType 불변 레지스트리, CLI --list/--register/--resolve/--json, 50건 PASS (2026-06-26)
 - [x] **Phase 330** 🌍 CITATION.cff + 인용 검증 — `CITATION.cff` CFF 1.2.0 + `simulation/citation_validator.py` CFF 파서·BibTeX/APA 변환·필수필드 검증, CLI --validate/--bibtex/--apa/--json, 43건 PASS (2026-06-26)

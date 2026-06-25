@@ -1024,6 +1024,7 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-26 08:16 | `85833b2` | feat(standards): Phase 474 — EUROCAE WG-105 군집 ConOps 의견서 작성 완료 | ROADMAP.md, docs/standards/EUROCAE_WG105_SWARM_CONOPS_OPINION.md, simulation/eurocae_wg105_opinion.py, simulation/wg_opinion_portfolio.py, tests/test_eurocae_wg105_opinion.py, tests/test_wg_opinion_portfolio.py |
 | 2026-06-25 14:11 | `a304e69` | chore(odyssey): 적체 드래프트 10건 단일 일원화 + ROADMAP 머지충돌 마커 제거 | CHANGELOG.md, README.en.md, ROADMAP.md, docs/standards/EASA_OPERATIONAL_MONITORING.md, docs/standards/EXPLAINABILITY_CONFORMANCE.md, docs/standards/ML_APPLICATION_CLASSIFICATION.md … |
 | 2026-06-25 12:05 | `5361042` | fix(ci): main CI RED 회복 — hybrid_collision_avoidance rl_force 타입 주석 | src/autonomy/hybrid_collision_avoidance.py |
 | 2026-06-22 07:28 | `1696ca8` | ci: set mypy python_version 3.10→3.12 to accept numpy cp312 PEP 695 stubs | pyproject.toml |

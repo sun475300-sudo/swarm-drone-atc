@@ -84,19 +84,14 @@ def heuristic(node: GridNode, goal: GridNode) -> float:
     return abs(node.x - goal.x) + abs(node.y - goal.y) + abs(node.z - goal.z)
 
 
+# 6방향 이동 + 정지(wait). 호출마다 재생성하지 않도록 모듈 상수로 1회만 생성(순서 보존).
+_CBS_MOVES_3D = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1), (0, 0, 0))
+
+
 def get_neighbors(node: GridNode, bounds: dict) -> list[GridNode]:
     """6방향 이웃 + 정지(wait) 포함"""
-    moves = [
-        (1, 0, 0),
-        (-1, 0, 0),
-        (0, 1, 0),
-        (0, -1, 0),
-        (0, 0, 1),
-        (0, 0, -1),
-        (0, 0, 0),  # 대기
-    ]
     neighbors = []
-    for dx, dy, dz in moves:
+    for dx, dy, dz in _CBS_MOVES_3D:
         nx, ny, nz = node.x + dx, node.y + dy, node.z + dz
         if (
             bounds["x"][0] <= nx <= bounds["x"][1]

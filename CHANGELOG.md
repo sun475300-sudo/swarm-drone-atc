@@ -5,6 +5,14 @@
 
 ## [Unreleased]
 
+### 정리·최적화 — 2026-06-25: 메인 브랜치 정리 + A* 결정적 최적화 + xdist 수집 안정화
+
+- **AIM 정밀검사 기록(소급)**: Phase 691-700 AIM 10개 모듈 정밀검사 9라운드(Round 4–12) 완료 — `tests/test_phase691_700_aim.py` **242 테스트**. NaN/Inf 바이패스 차단(`math.isfinite`), CAVOK 위양성 NO-GO 수정, 캡슐화 누수 방지, fail-closed 안전, 방어적 복사, 중복 거부. 대상: notam_manager·tfr_handler·vertiport_ops·metar_parser·aim_briefing·flight_following·cross_border_coord·post_flight_report·aero_charts·insurance_risk.
+- **README/ROADMAP 정확화**: 모순되던 테스트 수치(5,444/5,536/5,714/5,831) → 검증값 **6,733 pass / 270 skip / 0 fail**(단일 프로세스 `pytest -n 0`, 7,003 collected)로 통일. ROADMAP `main` 커밋에 남아 있던 git merge conflict 마커 해소(Phase 402 `faa_uss_roles` + `faa_utm_gap` 병합). maritime 스모크 17/17·18/18 모순 → 실제 19/19. README 중복 이력 내러티브 제거(CHANGELOG로 위임).
+- **xdist 수집 안정화**: torch 의존 테스트 5개 파일(`test_coverage_boost_2/4/5`·`test_deep_gpu_physics_equivalence`·`test_phase661_670_ai`)의 `pytest.importorskip("torch")`(ImportError만 포착)를 `try/except + skipif`(OSError WinError 1455 등 모든 로드 실패 포착)로 교체 — pytest-xdist 다중 워커 동시 torch DLL 로드 실패로 인한 "Different tests were collected" 수집 불일치 제거.
+- **A* 경로계획 최적화(결정적 동치)**: `flight_path_planner._neighbors_2d`/`_astar_2d`·`cbs.get_neighbors`에서 호출마다 재생성되던 이웃 오프셋 리스트·격자 경계·`math.sqrt(2)`를 모듈 상수/캐시로 호이스트. 대표 시뮬(100기/60s/seed 42) KPI **바이트 동일**(45 collisions·87 near misses·95.9% 유지) 검증 — 재현성 무손상. 대표 실행 ~7.7s→~7.5s. `test_deep_planner_equivalence` 등 회귀 통과.
+- **브랜치 정리**: 로컬 브랜치 4개 → `main` 1개(삭제분 커밋은 origin 보존).
+
 ### 추가 (feat/test) — 일일 점검 2026-06-21 (52차): ODYSSEY Track 🔬 Phase 451 — EASA 신뢰 가능 AI(Learning Assurance) 적합성 자가 평가
 
 - **작업 상황 점검**: 51차(PR #392, `a4510ef`) 머지 후 `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 확인. ODYSSEY Track 🔬 Formal & Research Frontier(451-460, "RL 일반화 연구 + 인증 가능 ML 조사")는 그간 미착수(450 까지 완료·451-460 범위 미세분). 금일 병행 점검이 적체시킨 열린 draft PR 들(#417·#418·#419·#420 — Standards/Continuum 트랙 461·463·464·468·471·472·491·492·500 중복 일원화)과 **서로소 트랙**을 골라 충돌·중복 없이 진행하기 위해, 451-460 의 sandbox 가능 착수 칸인 **Phase 451**(EASA AI 인증 조사)을 신규 구현.

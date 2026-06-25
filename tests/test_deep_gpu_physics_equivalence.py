@@ -11,7 +11,14 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-torch = pytest.importorskip("torch")  # torch 없으면 모듈 전체 스킵
+# torch DLL 로드 실패(OSError WinError 1455 등)는 importorskip이 못 잡으므로
+# 모든 예외를 흡수해 모듈 전체를 결정적으로 스킵 — xdist 워커 간 수집 불일치 방지.
+try:
+    import torch  # noqa: F401
+except Exception:
+    torch = None
+if torch is None:
+    pytest.skip("torch unavailable (import failed)", allow_module_level=True)
 
 from simulation.apf_engine.apf import (  # noqa: E402
     APF_PARAMS,
@@ -49,7 +56,7 @@ def _gpu_forces(ds):
     eng = GPUPhysicsEngine(max_drones=max(64, len(ds)), device=CPU)
     eng.sync_from_cpu(ds)
     return eng.compute_all_forces(
-        wind_speeds={k: 0.0 for k in ds}, nfz_obstacles=[], params=APF_PARAMS
+        wind_speeds=dict.fromkeys(ds, 0.0), nfz_obstacles=[], params=APF_PARAMS
     )
 
 
@@ -61,7 +68,7 @@ def _numpy_forces(ds):
     goals = {d.drone_id: d.goal.copy() for d in ds.values()}
     return batch_compute_forces(
         states, goals, [], params=APF_PARAMS,
-        wind_speeds={k: 0.0 for k in ds}, neighbor_states=states,
+        wind_speeds=dict.fromkeys(ds, 0.0), neighbor_states=states,
     )
 
 

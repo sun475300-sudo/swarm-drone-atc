@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+### 수정 (fix/docs) — 일일 점검 2026-06-25: main ROADMAP 머지충돌 마커 회복 + 적체 draft PR 점검
+
+- **작업 상황 점검**: `git fetch origin main` → `origin/main == HEAD`(`9ec0d72`) 클린 베이스 확인. main HEAD 의 `ROADMAP.md` Track I(ODYSSEY 401-500) 영역에 **미해소 머지충돌 마커**(`<<<<<<< HEAD`/`=======`/`>>>>>>> d9f1067`, 297-308행)가 커밋된 채 잔존 발견 — CI 는 `.md` 를 테스트하지 않아 GREEN 이었으나 문서 무결성 손상. 사용자 커밋 `e7f4bc6`/`1efadc8`("1") 머지 과정에서 유입 추정(STATUS_REPORT 가 기록한 과거 "main 파국적 손상" 패턴 재발).
+- **충돌 해소**: 두 분기 중 **`d9f1067` 측이 정정본**(Phase 402·403·407·409·470·472 를 완료로 표기, 인용 모듈 `faa_uss_roles.py`·`sora_category.py`·`icao_utm_conformance.py`·`bvlos_regulation_compare.py`·`standardization_tracker.py`·`intl_wg_opinion_gate.py` 전부 디스크 실재 검증)이고, HEAD 측은 구버전(403·407·409 를 미완으로 오기·Phase 402 를 비정본 `faa_utm_gap.py` 로 표기)임을 파일 실재 대조로 확정 → 정정본 채택, Phase 402 정본 라인에 자매 갭분석 `faa_utm_gap.py` 병존 1줄로 정보 보존(파일 무삭제, CLAUDE.md §3 수술적 변경 준수). 마커 3종 0건 잔존 확인(`git grep` 전수).
+- **검증**: 충돌 영역 직접 관련 회귀 `test_faa_uss_roles`·`test_icao_utm_conformance`·`test_bvlos_regulation_compare`·`test_intl_wg_opinion_gate`·`test_standardization_tracker` **205건 PASS**. 변경은 `ROADMAP.md`(문서)만 — 코드 무영향. (본 컨테이너는 최소 의존성만 설치되어 전체 수트 일부는 scipy/hypothesis 미설치로 수집 불가 — CI 가 전체 수집·검증.)
+- **점검 발견(사용자 결정 필요)**: ① **일일 점검 draft PR 약 20건 적체**(#429-#450) — 동일 ODYSSEY 칸(Phase 404·405·411·452-457·473)을 세션마다 경쟁적으로 재구현·재일원화 중이며 어느 것도 main 머지 안 됨. 중복 누적의 근본 원인은 *머지 미실행* → 사용자 1건 선정 머지 + 나머지 close 권고. ② **Dependabot 다수 적체**(#367·#426·#427 등) — Phase 484 가 electron 핀 EOL 공시(#426 `39→42` 우선). ③ **GitHub 보고 취약점 미해소** — 사용자 승인 필요.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-21 (52차): ODYSSEY Track 🔬 Phase 451 — EASA 신뢰 가능 AI(Learning Assurance) 적합성 자가 평가
 
 - **작업 상황 점검**: 51차(PR #392, `a4510ef`) 머지 후 `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 확인. ODYSSEY Track 🔬 Formal & Research Frontier(451-460, "RL 일반화 연구 + 인증 가능 ML 조사")는 그간 미착수(450 까지 완료·451-460 범위 미세분). 금일 병행 점검이 적체시킨 열린 draft PR 들(#417·#418·#419·#420 — Standards/Continuum 트랙 461·463·464·468·471·472·491·492·500 중복 일원화)과 **서로소 트랙**을 골라 충돌·중복 없이 진행하기 위해, 451-460 의 sandbox 가능 착수 칸인 **Phase 451**(EASA AI 인증 조사)을 신규 구현.

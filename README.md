@@ -1012,6 +1012,7 @@ License metadata is declared as **MIT** in [`pyproject.toml`](pyproject.toml). A
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-25 15:11 | `98304f3` | fix(docs): ROADMAP.md 커밋된 머지 충돌 마커 3개 해소 (Phase 402 합집합 보존) | ROADMAP.md |
 | 2026-06-25 12:05 | `5361042` | fix(ci): main CI RED 회복 — hybrid_collision_avoidance rl_force 타입 주석 | src/autonomy/hybrid_collision_avoidance.py |
 | 2026-06-22 07:28 | `1696ca8` | ci: set mypy python_version 3.10→3.12 to accept numpy cp312 PEP 695 stubs | pyproject.toml |
 | 2026-06-22 07:18 | `e9de1d6` | ci: bump mypy floor 1.10→1.18 to handle numpy PEP 695 type-statement stubs | pyproject.toml |

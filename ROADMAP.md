@@ -294,18 +294,13 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 - [x] **Phase 408** 🌏 ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` + `simulation/airspace_class.py` `classify_airspace()` API 격상 (결정적, 25건 PASS) (2026-06-12, API 2026-06-14)
 - [x] **Phase 401·406** 🌏 다국 좌표계·시간대 자동 판정 — `simulation/geo_zones.py` UTM 그리드 존 결정적 판정 + EASA U-space 매핑, 22건 PASS (2026-06-15)
-<<<<<<< HEAD
-- [x] **Phase 402** 🌏 FAA UTM ConOps v2 USS 역할 갭 분석 — `simulation/faa_utm_gap.py` + `docs/certification/FAA_UTM_GAP_ANALYSIS.md` 21개 USS 요구사항(8 카테고리), 9 full·11 partial·1 gap = 69.05% 준수율, frozen dataclass + MappingProxyType, CLI(--report/--gaps/--json/--category), 42건 PASS (2026-06-20)
-- [ ] **Phase 401-407·409-420** 🌏 Global Expansion 잔여 — EASA U-space·FAA UTM 정렬·EN 완역
-=======
-- [x] **Phase 402** 🌏 FAA UTM ConOps v2.0 정렬 — `simulation/faa_uss_roles.py` USS 역할 17종↔SDACS 모듈 결정적 적합성 매트릭스(핵심 7/7·전체 15/17, 운영자 자격·공공안전 접근 갭 정직 표면화, 인용 모듈 디스크 실재 강제), 46건 PASS (2026-06-18)
+- [x] **Phase 402** 🌏 FAA UTM ConOps v2.0 정렬 + USS 역할 갭 분석 — `simulation/faa_uss_roles.py` USS 역할 17종↔SDACS 모듈 결정적 적합성 매트릭스(핵심 7/7·전체 15/17, 운영자 자격·공공안전 접근 갭 정직 표면화, 46건 PASS, 2026-06-18) + `simulation/faa_utm_gap.py` + `docs/certification/FAA_UTM_GAP_ANALYSIS.md`(21개 USS 요구사항 8 카테고리, 9 full·11 partial·1 gap = 69.05% 준수율, frozen dataclass + MappingProxyType, CLI --report/--gaps/--json/--category, 42건 PASS, 2026-06-20)
 - [x] **Phase 403** 🌏 EASA EU 2019/947 운영 카테고리(Open/Specific/Certified) 판정 — `simulation/sora_category.py` + `docs/certification/EU_OPERATIONAL_CATEGORY.md`. GENESIS 302 `soraAssess`(SAIL) 위에 세 운영 카테고리 + Open 하위분류(A1/A2/A3) 결정적 산정. `SORA_IGRC`·`SORA_SAIL_TABLE` JS 동일 복제(수치 불일치 금지), 51건 PASS (2026-06-19)
 - [x] **Phase 407** 🌏 ICAO UTM Framework Ed.4 적합성 자가 평가 — `simulation/icao_utm_conformance.py` 운영자 여정 10단계 축 + 3값 status(conformant/partial/gap)·정직성 결속(gap⟺module None) 강제, 가중 83%·핵심 12/14, 56건 PASS (2026-06-19)
 - [x] **Phase 409** 🌏 다국 BVLOS 규제 비교 — `simulation/bvlos_regulation_compare.py` + `docs/standards/BVLOS_REGULATION_COMPARISON.md` 한·미·EU·일 4개 관할 6개 비교 축 대조(권위 출처 인용·`as_of` 스냅샷·지원 3/4 일본 갭), 40건 PASS (2026-06-19)
 - [ ] **Phase 404·405·410-420** 🌏 Global Expansion 잔여 — EN 완역·국제 벤치마크 제출(BlueSky·U-TRAFMAN)·GUTMA 기고·해외 파일럿 제안서
 - [x] **Phase 470** 🏛 표준화 기고 추적 대시보드 — `simulation/standardization_tracker.py` 표준화 기고 단일 SSoT(단조 상태 PLANNED→ADOPTED·`progress()` 22.5%·`validate_registry` PUBLISHED 산출물 디스크 실재 강제), 31건 PASS (2026-06-19)
 - [x] **Phase 472** 🏛 국제 워킹그룹 의견서 적합성 게이트 — `simulation/intl_wg_opinion_gate.py` + `docs/standards/INTL_WG_OPINION_GATE.md`. 밴드 471-480("국내 KS 제안 1건 + 국제 워킹그룹 의견서 3건") 중 국제 의견서 칸. JARUS·EUROCAE WG-105·ISO/TC 20/SC 16 초안에 다는 개별 의견이 *채택 처리될* 형식·근거를 갖췄는지 결정적 게이트로 판정. 요건 6종(필수 4·권장 2)을 ISO/IEC Directives Part 1 comment template(대상 절/줄·제안 변경·유형 ge/te/ed)·JARUS/EUROCAE RoP(문서 버전·소속 공개)에서 도출하고 명문 근거 결속. `assess` 우선순위 CRITICAL UNMET→NOT_READY > CRITICAL PARTIAL→NEEDS_WORK > 잔여 미완→NEEDS_WORK > 전부 MET→READY_TO_SUBMIT, `POLICY_MATRIX` 5칸을 테스트가 정확 일치 강제(모순 조합 제외). Phase 470 기고 *상태* 추적·Phase 471 *국내* KS 제정과 평가 대상이 서로 다름(중복 0). 현 후보 JARUS SORA 군집 보완 의견을 격상 없이 `NEEDS_WORK (80.0%)` 정직 공시(WG-02 제안 변경 redline 미완·WG-06 NB 채널 미확인). 자문, 부수효과 0·무작위성 0·기존 모듈 무수정 순수 추가. 단위 29건 PASS (2026-06-21)
->>>>>>> d9f10678ebcc4bb568390fff69816fd6253cbdcf
 - [x] **Phase 421** 🛰 인스턴스 간 디스커버리 프로토콜 — `simulation/federation_discovery.py` + `docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md`, ASTM F3548 DSS 유사 결정적 모델, 13건 PASS (2026-06-18)
 - [x] **Phase 422** 🛰 운영 의도(Operational Intent) 4D 교환 포맷 — `simulation/operational_intent.py` + `docs/certification/OPERATIONAL_INTENT_FORMAT.md`, ASTM F3548-21 정렬 frozen dataclass + 라운드트립 직렬화 + 보수적 4D 교차, 24건 PASS (2026-06-18)
 - [x] **Phase 423** 🛰 지역 간 관제권 핸드오버 — `simulation/federation_handover.py` Phase 421 점 커버리지 기반 결정적 RETAINED/ACQUIRED/HANDOVER/CONTINGENT 결정 + 이력현상(hysteresis) + 감사 로그, 16건 PASS (2026-06-15)

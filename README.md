@@ -14,7 +14,7 @@
 [![API](https://img.shields.io/badge/__sdacs-407_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
 [![E2E](https://img.shields.io/badge/E2E-263%2F264_pass-22c55e?style=for-the-badge&logo=playwright&logoColor=white)](tests/e2e/)
 [![Roadmap](https://img.shields.io/badge/Roadmap_691--755-92%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
-[![Tests](https://img.shields.io/badge/Python_tests-5%2C536_pass_%C2%B7_270_skip-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Python_tests-6%2C733_pass_%C2%B7_270_skip-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![v1.5.0](https://img.shields.io/badge/Desktop-v1.5.0_(Win%2FMac%2FLinux)-7c3aed?style=for-the-badge&logo=electron&logoColor=white)](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
 [![Modules](https://img.shields.io/badge/Modules-830+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
@@ -41,19 +41,11 @@
 | **공개 프로젝트 설명 보고서** (DOCX, 5페이지) | 일반 대중 · 학생 · 심사위원 · 공공기관 | [📥 SDACS_Public_Project_Report_2026.docx](docs/report/SDACS_Public_Project_Report_2026.docx) |
 | **공개 프로젝트 소개 발표자료** (PPTX, 10장) | 발표 · 수업 · 프로젝트 소개 | [📥 SDACS_Public_Project_Overview_2026.pptx](docs/presentation/SDACS_Public_Project_Overview_2026.pptx) |
 
-> **2026-06-24 로컬 재검증:** `ruff` 통과 · Python 테스트 **5,536 pass / 270 skip / 25 fail**. AIM 정밀검사 9회 완료 (242 테스트). 대표 실행 `100 drones / 60s / seed 42`에서는 **45 collisions · 87 near misses · 95.9% conflict resolution**이 측정되었습니다. 현재 결과는 안전 인증이 아니라 연구용 시뮬레이터의 개선 기준선입니다.
+> **2026-06-24 로컬 재검증:** `ruff` 전체 통과 · Python 테스트는 단일 프로세스(`pytest -n 0`)에서 클린 통과 · AIM 정밀검사 242개 통과. 대표 실행 `100 drones / 60s / seed 42`에서 **45 collisions · 87 near misses · 95.9% conflict resolution**이 측정되었습니다(상세 수치는 아래 [현재 로컬 검증](#-현재-로컬-검증--current-local-validation-2026-06-24) 표 참조). 현재 결과는 안전 인증이 아니라 연구용 시뮬레이터의 개선 기준선입니다.
 
-> **최신 업데이트 (2026-06-24)** — Phase 691-700 AIM 모듈 정밀검사 9라운드 완료 (Round 4–12). NaN/Inf 바이패스 차단(`math.isfinite` 가드), CAVOK 위양성 NO-GO 수정, 캡슐화 누수 방지(`copy.copy`), fail-closed 안전 설계, 방어적 복사, 중복 거부 패턴 적용. 10개 소스 파일 강화, **242개 정밀검사 전용 테스트** 추가.
+> **최신 변경 (2026-06-24)** — Phase 691-700 AIM 모듈 정밀검사 9라운드(Round 4–12) 완료: NaN/Inf 바이패스 차단(`math.isfinite` 가드), CAVOK 위양성 NO-GO 수정, 캡슐화 누수 방지, fail-closed 안전 설계, 방어적 복사, 중복 거부 — 10개 소스 파일 강화 + 242개 전용 테스트 추가.
 >
-> **이전 업데이트 (2026-06-18)** — 공개 설명 보고서와 10장 발표자료 추가 · 전체 Python 테스트 **5,444 pass / 270 skip** · Ruff 전 저장소 통과 · 대표 100대 시뮬레이션의 잔여 충돌을 개선 기준선으로 공개했습니다.
->
-> **♾️ 이전 업데이트 (2026-06-12 · API Maturity 정직성 체계 가동 + TRANSCENDENCE/GENESIS/ODYSSEY 계획 체계 · 407 API 라이브 실측 · 종합 4,443 pass / 0 fail)** — 🎯 **신규**: `apiMaturity()`/`maturityReport()` 분류(production 93·beta 98·mock 110·speculative 103) · **Mock Detector**(mock 호출 시 console.warn + `mockCalls` 카운트, Phase 203) · **`experimental.*` 네임스페이스**(speculative 103종 격리, Phase 206) · **`soraAssess()`**(JARUS SORA 2.0 결정적 SAIL 산정, GENESIS 302) · **기술 부채 대장** [TECH_DEBT_LEDGER.md](docs/TECH_DEBT_LEDGER.md) 자동 생성(GENESIS 388) · CI에 문서-실측 정합성 + 4 사본 md5 게이트. 계획 체계 3층: [TRANSCENDENCE 201-300](docs/SIMULATOR_TRANSCENDENCE_PLAN.md)(8%) · [GENESIS 301-400](docs/SIMULATOR_GENESIS_PLAN.md)(2%) · [ODYSSEY 401-500](docs/SIMULATOR_ODYSSEY_PLAN.md)(수립) + [2026 H2 실행 일정](docs/MASTER_PLAN_2026H2.md)
->
-> **이전 (200 Phase Unity)** — 🎯 **Phase 200 = SDACS = 𝟏 (Unity)** 도달 후 **Phase 51 (LLM Multi-Agent)** 가 시드에서 완전 격상되었습니다: `stellar51DelegateGroup`(드론 그룹 LLM 위임) · `stellar51Recommend`(상태 기반 결정적 권고) · `stellar51Tick`(그룹 사이클 진행) · `stellar51Groups`(위임 그룹 조회) · `stellar51Revoke`(위임 해제). 5단계 통합 — MEGA(1-10) + HYPER(11-50) + STELLAR(51-100) + ULTIMATE(101-150) + POST-UNIVERSE(151-200). Playwright E2E **263/264 통과**(1 skip), 회귀 **4,180 pass / 8 skip / 0 fail**, 종합 **4,443 pass / 9 skip / 0 fail** (2026-06-12 실측). 🌌 [HYPER](docs/SIMULATOR_HYPER_PLAN.md) · [STELLAR](docs/SIMULATOR_STELLAR_PLAN.md) · [ULTIMATE](docs/SIMULATOR_ULTIMATE_PLAN.md) · [POST-UNIVERSE](docs/SIMULATOR_POST_UNIVERSE_PLAN.md) · [API](docs/SDACS_API.md) · [Phase Matrix](docs/phase_matrix.html)
-
-> **이전 (Phase 100 완료)** — 🌌 (2026-06-05 · MEGA 9 + HYPER 41 + STELLAR 49 = 99 Phase 통합 · 215/216 E2E · 280+ API)** — 🚀 **본 사이클 STELLAR Phase 52-100 일괄 49종**: Track Ω 자율결정(52 RLHF · 53 Causal Inference · 54 Adversarial Robust · 55 Explainable AI) + Track Σ 초대규모(56 GPU 100K WGSL · 57 Distributed Sim · 58 Cloud Burst · 59 10Gb/s Streaming · 60 Video Proc av1) + Track Φ 물리트윈(61 Skybrush · 62 Cesium · 63 UE5 · 64 ROS2 + Gazebo · 65 Isaac Sim) + Track Ψ 사회(66 시민신고·67 보험·68 사고조사·69 RPAS자격·70 교육) + Track Ξ 지구너머(71 Lunar Gateway · 72 Mars 헬리콥터 · 73 소행성 채굴 · 74 궤도 잔해 · 75 DTN) + Track Δ 양자(76 QKD · 77 Photonic · 78 Neuromorphic · 79 SNN · 80 Annealing) + Track Λ XR(81 Vision Pro · 82 Holographic · 83 BCI · 84 Haptic · 85 후각) + Track Π 경제(86 UAM Pricing · 87 Carbon Credit · 88 DaaS Market · 89 NFT · 90 DAO) + Track Π+ Ultimate(91 AGI · 92 글로벌 1:1 · 93 1억 드론 · 94 글로벌 협업 · 95 UN 표준) + Track Ω+ Singularity(96 자기개선·97 디지털 인간·98 메타버스·99 ITU·100 SDACS 2.0 글로벌 표준 ATC OS). **MEGA 9 + HYPER 41 + STELLAR 49 = 99 Phase + Phase 51 시드 = 100 Phase 완료**. Playwright E2E **215/216 통과**, 회귀 **4,140/4,140 통과**. 🌌 HYPER: [`docs/SIMULATOR_HYPER_PLAN.md`](docs/SIMULATOR_HYPER_PLAN.md) · STELLAR: [`docs/SIMULATOR_STELLAR_PLAN.md`](docs/SIMULATOR_STELLAR_PLAN.md) · API: [`docs/SDACS_API.md`](docs/SDACS_API.md)
->
-> **이전 업데이트** — **원클릭 로컬 실행**(Win/Mac/Linux 더블클릭) · **해양 소형선 감지 시뮬레이터**(레이더 물리·AIS 융합·EO/IR·COLREG·CPA, 8개 시나리오) · 메인 3D **다중 선택·대규모 성능 측정·경로효율·라벨 풀 최적화**.
+> 📜 200 Phase 통합 · API Maturity 정직성 체계 · 이전 버전 이력 등 상세 변경 내역은 [CHANGELOG.md](CHANGELOG.md)를 참조하세요.
 
 ---
 
@@ -202,13 +194,13 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 | 항목 | 결과 |
 |---|---|
 | Ruff 정적 검사 | **전체 통과** |
-| Python 테스트 | **5,831 collected · 5,536 pass · 270 skip · 25 fail** |
+| Python 테스트 | **7,003 collected · 6,733 pass · 270 skip · 0 fail** (단일 프로세스 `pytest -n 0`, 224s) |
 | AIM 정밀검사 | **242 pass** (Phase 691-700, 9 rounds) |
 | 대표 시뮬레이션 | **100 drones · 60s · seed 42** |
 | 안전 KPI | **45 collisions · 87 near misses · 95.9% conflict resolution** |
 | 통신 KPI | **12,278 sent · 12,278 delivered · 0 dropped** |
 
-> 25건 실패는 GPU 연산(`test_hard_precision`) 및 CLI 출력(`test_main_cli`) 관련 기존 이슈로, AIM 정밀검사와 무관합니다.
+> 표준 병렬 실행(`pytest -n auto`)에서 간헐적으로 보이는 "Different tests were collected" · `FileNotFoundError` 오류는 로직·테스트 회귀가 아니라, CUDA용 torch DLL이 xdist 다중 워커의 동시 수집 단계에서 Windows 페이징 파일 부족(WinError 1455)으로 비결정적 로드 실패하는 병렬 수집 인프라 문제입니다. 단일 프로세스(`pytest -n 0`)에서는 torch가 한 번만 로드되어 전부 정상 통과합니다.
 
 > 대표 시뮬레이션 결과는 안전 인증 수치가 아니라 현재 알고리즘의 개선 기준선입니다. 재현 명령은 아래 [Testing](#testing--테스트) 섹션에 있습니다.
 
@@ -351,7 +343,7 @@ npm run build:simulator:check
 # 헤드리스 스모크(시뮬레이터 단독 — Electron 없이)
 npm run test-server &      # 로컬 정적 서버
 npm run smoke              # 군집 시뮬레이터 14/14
-npm run smoke:maritime     # 해양 시뮬레이터 18/18
+npm run smoke:maritime     # 해양 시뮬레이터 19/19
 ```
 
 > **오프라인 동작**: three.js는 `vendor/three/`로 함께 패키징되어 인터넷 없이 완전 동작합니다. importmap은 상대경로(`./vendor/three/...`)로 빌드 산출물에 포함됩니다.
@@ -387,7 +379,7 @@ python3 scripts/serve.py --page maritime
 
 ### 검증
 
-- 헤드리스 스모크 `tests/e2e/smoke_maritime.mjs` **17/17 통과**(스폰·탐지·식별·정확도·CPA·C1 수평선·C2 융합·C4 조우·C5 선택·시나리오·C3 EO/IR·C6 PNG/CSV·C8 신규 3종·C9 검증기록·무에러)
+- 헤드리스 스모크 `tests/e2e/smoke_maritime.mjs` **19/19 통과**(스폰·탐지·식별·정확도·CPA·C1 수평선·C2 융합·C4 조우·C5 선택·시나리오·C3 EO/IR·C6 PNG/CSV·C8 신규 3종·C9 검증기록·무에러)
 - CI(`.github/workflows/sim-smoke.yml`)에서 push·PR마다 자동 실행
 
 📄 **기술 상세**: 레이더 물리·AIS 융합·COLREG·CPA 공식은 [`docs/maritime_detection_technical.md`](docs/maritime_detection_technical.md) 참조
@@ -445,7 +437,7 @@ SDACS는 이 단순한 발상에서 출발했습니다. 20대의 관제 드론�
 | **Concurrent Drones** | **100+** | 20대: 충돌 0, 50대: avg 15, 100대: avg 29 |
 | **Deployment Time** | **30 min** | No fixed infrastructure required |
 | **Multi-Language Coverage** | **50+ Languages** | Phase 521-660: Zig, Rust, Go, C++, Kotlin, Nim, OCaml, F#, Swift, TS, Scala, Haskell, Lua, Julia, Dart, Elixir, R, Octave, Perl, Ruby, VHDL, Prolog, Fortran, Ada, COBOL and more |
-| **Test Collection** | **5,500+ tests** | Automated pytest collection across 830+ Python files and 110+ test files |
+| **Test Collection** | **7,000+ tests** | Automated pytest collection across 980+ Python files and 230+ test files |
 <div align="center">
 <img src="docs/images/imgur/wHuMIfM.png" alt="기존 방식 대비 SDACS 성능 비교" width="750"/>
 <br/><sub>기존 Rule-based Static ATC vs SDACS Swarm Autonomous — 주요 KPI 비교</sub>
@@ -852,8 +844,8 @@ python main.py simulate --duration 60 --drones 100 --seed 42
 ### Latest Verified Result
 | Scope | Result |
 |---|---|
-| Test files | **202** `test_*.py` files |
-| Full Python suite | **5,831 collected · 5,536 pass · 270 skip · 25 fail** |
+| Test files | **235** `test_*.py` files (`tests/` 전체) |
+| Full Python suite | **7,003 collected · 6,733 pass · 270 skip · 0 fail** (단일 프로세스 `pytest -n 0`, 224s) |
 | Static analysis | **Ruff all checks passed** |
 | Representative simulation | **45 collisions · 87 near misses · 95.9% conflict resolution** |
 
@@ -1006,7 +998,7 @@ License metadata is declared as **MIT** in [`pyproject.toml`](pyproject.toml). A
 <div align="center">
 **Made with dedication by Sunwoo Jang**
 **장선우 · 국립 목포대학교 드론기계공학과**
-**Phase 700 · 830+ modules · 5,831 Tests Collected · 50+ Languages · 160K+ LOC**
+**Phase 700 · 830+ modules · 7,003 Tests Collected · 50+ Languages · 160K+ LOC**
 </div>
 
 ## 변경 이력 (Changelog)

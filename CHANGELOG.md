@@ -13,6 +13,15 @@
 - **A* 경로계획 최적화(결정적 동치)**: `flight_path_planner._neighbors_2d`/`_astar_2d`·`cbs.get_neighbors`에서 호출마다 재생성되던 이웃 오프셋 리스트·격자 경계·`math.sqrt(2)`를 모듈 상수/캐시로 호이스트. 대표 시뮬(100기/60s/seed 42) KPI **바이트 동일**(45 collisions·87 near misses·95.9% 유지) 검증 — 재현성 무손상. 대표 실행 ~7.7s→~7.5s. `test_deep_planner_equivalence` 등 회귀 통과.
 - **브랜치 정리**: 로컬 브랜치 4개 → `main` 1개(삭제분 커밋은 origin 보존).
 
+### feat(odyssey) — 2026-06-25: ODYSSEY 10개 Phase 단일 일원화 안착 (#449 머지: Phase 404·405·411·452·453·454·455·456·457·473)
+
+- **작업 상황 점검**: `git fetch origin main` → main `9ec0d72`(PR #447 CI 회복 머지) **CI GREEN** 확인. 점검 중 **근본 문제 식별** — ODYSSEY 트랙 10개 Phase(404·405·411·452·453·454·455·456·457·473)가 매일 재생성되는 "일일 점검" 드래프트 PR 약 16건(#429–448)에 흩어져 구현·어드바이저 검수·테스트까지 끝났으나 **main 에 한 번도 안착되지 못함**. 적체 근본 원인은 코드 부재가 아니라 **머지 결정 부재**(열린 PR 30건: ODYSSEY 드래프트 16 + Dependabot 11 + perf/기타 3).
+- **조치 — 단일 일원화**: 현재 green main(`9ec0d72`) 위에 10개 Phase 의 **순수 추가 파일 27개**(모듈 9 + 표준 문서 9 + 테스트 9 + `README.en.md`)를 단일 브랜치로 통합. 가장 검수가 진척된 #444(404·405·411·452·453·454·473) + #441(455) + #445(456) + #448(457) 의 추가 파일만 선별 흡수(기존 코드 무수정).
+- **버그 수정**: `ROADMAP.md` 에 잔존하던 **미해소 머지충돌 마커**(`<<<<<<< HEAD`/`=======`/`>>>>>>>` 라인 297·300·308) 제거 — 양측 [x] Phase 엔트리 union 으로 정합 해소.
+- **신규 안착 Phase**: 404(EN 완역 `README.en.md`)·405(`benchmark_comparison.py` 국제 벤치마크)·411(`overseas_pilot_proposal.py` 해외 파일럿)·452(`rl_generalization_protocol.py` RL 일반화)·453(`rl_advisory_boundary.py` RL 자문 경계)·454(`ml_application_classification.py` EASA Level 분류)·455(`ml_data_management.py` ML 데이터 관리)·456(`explainability_conformance.py` 설명가능성)·457(`easa_operational_monitoring.py` 운영 모니터링·드리프트 대응)·473(`wg_opinion_portfolio.py` WG 의견서 포트폴리오).
+- **검증**: 신규 27파일 단위 테스트 **519건 PASS**(addopts 격리 실행), ruff clean, `-O` 최적화 임포트 9모듈 정상. 기존 파일 무수정 → 회귀 무영향.
+- **점검 발견(사용자 결정 필요)**: ① 본 PR 머지 후 중복 ODYSSEY 드래프트 **#429–448 일괄 close 권고**(본 PR 이 상위집합). ② **Dependabot 11건**(electron `39→42` #426 EOL 우선·playwright #427·starlette #367 등) triage. ③ perf #283·Phase 207 #280 별도 검토. 본 일원화 PR(#449)을 main에 안착시켜 적체를 해소했고, 중복 ODYSSEY 드래프트 #429–448은 별도로 close 완료(2026-06-25).
+
 ### 추가 (feat/test) — 일일 점검 2026-06-21 (52차): ODYSSEY Track 🔬 Phase 451 — EASA 신뢰 가능 AI(Learning Assurance) 적합성 자가 평가
 
 - **작업 상황 점검**: 51차(PR #392, `a4510ef`) 머지 후 `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 확인. ODYSSEY Track 🔬 Formal & Research Frontier(451-460, "RL 일반화 연구 + 인증 가능 ML 조사")는 그간 미착수(450 까지 완료·451-460 범위 미세분). 금일 병행 점검이 적체시킨 열린 draft PR 들(#417·#418·#419·#420 — Standards/Continuum 트랙 461·463·464·468·471·472·491·492·500 중복 일원화)과 **서로소 트랙**을 골라 충돌·중복 없이 진행하기 위해, 451-460 의 sandbox 가능 착수 칸인 **Phase 451**(EASA AI 인증 조사)을 신규 구현.

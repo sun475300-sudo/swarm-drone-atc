@@ -5,6 +5,14 @@
 
 ## [Unreleased]
 
+### 수정 (fix/ci) — 일일 점검 2026-06-25: main CI RED 회복 — mypy numpy shape 타입 불일치 정정
+
+- **작업 상황 점검**: 신규 컨테이너에서 의존성 설치 후 점검. `main` HEAD `e7f4bc6`(2026-06-24 적체 draft 일괄 머지 커밋, 메시지 "1")에서 **CI workflow `failure`** 확인 — 직전 커밋 `d9f1067` 은 success 였으므로 해당 머지가 회귀 유발. 다른 워크플로우(Security·Canonical Hash·Pages)는 success.
+- **근본 원인**: CI 실패는 테스트가 아니라 **mypy 타입 체크 단계**. pytest 는 `6685 passed / 275 skipped`(커버리지 89.17%) 전부 GREEN. 회귀 머지가 추가한 `src/autonomy/hybrid_collision_avoidance.py` 의 `rl_force` 가 `np.zeros(3)`(추론 shape `tuple[int]`)로 먼저 바인딩된 뒤 `np.clip(...) * scale`(numpy 신규 스텁에서 일반 shape `tuple[int, ...]`)로 재대입되어 `error: Incompatible types in assignment` 2건(L194·L202). numpy 스텁 버전 의존이라 로컬 numpy 에선 재현 안 됨 — 일반 shape 반환 스텁을 격리 재현해 동일 에러 확인 후 수정 검증.
+- **수정**: `rl_force: np.ndarray = np.zeros(3)` 명시 주석 1줄 추가(파일 전반의 `np.ndarray` 관례 일치). 선언 타입을 광의 `np.ndarray`(=`ndarray[Any, dtype[Any]]`)로 넓혀 `tuple[int]`·`tuple[int, ...]` 양쪽 shape 모두 대입 가능 → 어떤 numpy 스텁 변종에서도 통과. 타입 주석이므로 런타임 영향 0.
+- **검증**: `mypy src/ --error-summary` → `Success: no issues found in 61 source files`. `tests/test_hybrid_collision_avoidance.py` **27 PASS**. 격리 재현 스크립트로 CI 동일 에러 발생→수정 후 소거 양방향 확인. 본 컨테이너 최소 의존성(pandas·websockets·torch 등 미설치)이라 전체 수트 일부는 수집 불가 — 해당 실패는 환경 의존이며 본 수정과 무관(타입 주석은 런타임 무영향).
+- **점검 발견(사용자 결정 필요)**: 열린 PR **30건** 적체 — 일일 점검 중복 draft 약 18건(#429-445·#280, 동일 ODYSSEY 451-456/404/405/411/473 경쟁 일원화) + Dependabot 11건(#270-279·#367·#426·#427, electron `39→42` EOL #426 우선) + perf ready #283(핫루프 힙 할당 제거). 머지·중복 close·취약점 triage 는 사용자 승인 영역. 적체 원인은 코드 부재가 아니라 머지 미진행(이슈 #409 와 동일 진단) — 본 회차는 중복 draft 를 늘리지 않고 CI 회복 1건만 진행.
+
 ### 추가 (feat/test) — 일일 점검 2026-06-21 (52차): ODYSSEY Track 🔬 Phase 451 — EASA 신뢰 가능 AI(Learning Assurance) 적합성 자가 평가
 
 - **작업 상황 점검**: 51차(PR #392, `a4510ef`) 머지 후 `git fetch origin main` → **`origin/main == HEAD`(클린 베이스)** 확인. ODYSSEY Track 🔬 Formal & Research Frontier(451-460, "RL 일반화 연구 + 인증 가능 ML 조사")는 그간 미착수(450 까지 완료·451-460 범위 미세분). 금일 병행 점검이 적체시킨 열린 draft PR 들(#417·#418·#419·#420 — Standards/Continuum 트랙 461·463·464·468·471·472·491·492·500 중복 일원화)과 **서로소 트랙**을 골라 충돌·중복 없이 진행하기 위해, 451-460 의 sandbox 가능 착수 칸인 **Phase 451**(EASA AI 인증 조사)을 신규 구현.

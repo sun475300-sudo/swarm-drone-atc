@@ -1,5 +1,19 @@
 # SDACS Changelog
 
+## 2026-06-25 — ODYSSEY Phase 457 (EASA AI 운영 모니터링) + main CI RED 회복 (일일 점검)
+
+- **main CI RED 회복** ✅ — PR #447 머지로 `main` GREEN 복구(`9ec0d72`). 원인은
+  mypy(`src/autonomy/hybrid_collision_avoidance.py`) numpy 스텁 shape 추론
+  (`tuple[int]` vs `tuple[int,...]`), 1줄 타입 주석으로 해소. 중복 PR #446 close.
+- **Phase 457** ✅ EASA AI 운영 모니터링·드리프트 대응 적합성 게이트 —
+  `simulation/easa_operational_monitoring.py` + `docs/standards/EASA_OPERATIONAL_MONITORING.md`.
+  Phase 451(설계시점 러닝 어슈어런스)의 *운영 시점* 자매편 — 추론 모델이 배포 후 ODD 를
+  벗어날 때의 모니터링·폴백을 5개 카테고리(ODD 모니터링·드리프트 탐지·신뢰도 게이팅·
+  out-of-ODD 폴백·운영 기록)로 평가. 가중 56%(충족 5·부분 9·갭 3/17), fallback 3/3 충족
+  (SDACS 강점), 온라인 드리프트 탐지는 정직한 갭. `gap` ⟺ `sdacs_module is None` 결속,
+  인용 경로 디스크 실재 강제, 무작위성 0·기존 코드 무수정. code-reviewer 어드바이저
+  APPROVE(CRITICAL/HIGH 0)·MEDIUM 2·LOW 3 반영. 단위 **61건 PASS**.
+
 ## 2026-06-20 — ODYSSEY Continuum 적체 드래프트 6칸 전면 일원화 — Phase 481-490 완결 (일일 점검 51차)
 
 적체 draft PR #386-391 의 코드/테스트/표준문서를 단일 브랜치로 통합해 Continuum

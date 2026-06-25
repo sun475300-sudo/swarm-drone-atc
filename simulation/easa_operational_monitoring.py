@@ -282,18 +282,19 @@ class MonitoringReport:
             raise ValueError("foundational_conformant cannot exceed foundational_total")
         if self.foundational_total > self.total:
             raise ValueError("foundational_total cannot exceed total")
-        if self.by_category:
-            invalid = set(self.by_category.keys()) - set(MONITORING_CATEGORIES)
-            if invalid:
-                raise ValueError(f"by_category contains unknown categories: {sorted(invalid)}")
-            c = sum(v[0] for v in self.by_category.values())
-            p = sum(v[1] for v in self.by_category.values())
-            g = sum(v[2] for v in self.by_category.values())
-            if (c, p, g) != (self.conformant, self.partial, self.gap):
-                raise ValueError(
-                    f"by_category sums ({c},{p},{g}) != "
-                    f"({self.conformant},{self.partial},{self.gap})"
-                )
+        # by_category 불변식은 항상 강제한다(빈 dict 우회 없음 — 어드바이저 MEDIUM 반영).
+        # 빈 dict 는 합 (0,0,0) 이므로 conformant/partial/gap 이 모두 0 일 때만 유효하다.
+        invalid = set(self.by_category.keys()) - set(MONITORING_CATEGORIES)
+        if invalid:
+            raise ValueError(f"by_category contains unknown categories: {sorted(invalid)}")
+        c = sum(v[0] for v in self.by_category.values())
+        p = sum(v[1] for v in self.by_category.values())
+        g = sum(v[2] for v in self.by_category.values())
+        if (c, p, g) != (self.conformant, self.partial, self.gap):
+            raise ValueError(
+                f"by_category sums ({c},{p},{g}) != "
+                f"({self.conformant},{self.partial},{self.gap})"
+            )
 
     @property
     def weighted_score_pct(self) -> float:

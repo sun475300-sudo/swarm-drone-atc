@@ -1012,6 +1012,7 @@ License metadata is declared as **MIT** in [`pyproject.toml`](pyproject.toml). A
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-06-25 14:10 | `19362e9` | feat(odyssey): Phase 457 — EASA AI 운영 모니터링·드리프트 대응 적합성 게이트 (운영시점 ODD/폴백, 61 PASS) | simulation/easa_operational_monitoring.py, tests/test_easa_operational_monitoring.py, docs/standards/EASA_OPERATIONAL_MONITORING.md, docs/SIMULATOR_ODYSSEY_PLAN.md |
 | 2026-06-25 13:18 | `9ec0d72` | Merge PR #447: fix(ci) main CI RED 회복 — hybrid_collision_avoidance rl_force 타입 주석 | README.md, src/autonomy/hybrid_collision_avoidance.py |
 | 2026-06-25 12:05 | `5361042` | fix(ci): main CI RED 회복 — hybrid_collision_avoidance rl_force 타입 주석 | src/autonomy/hybrid_collision_avoidance.py |
 | 2026-06-22 07:28 | `1696ca8` | ci: set mypy python_version 3.10→3.12 to accept numpy cp312 PEP 695 stubs | pyproject.toml |

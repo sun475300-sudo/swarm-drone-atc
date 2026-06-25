@@ -260,7 +260,12 @@ def test_report_weighted_score_in_range():
 
 
 def test_report_weighted_score_is_conservative():
-    """연구 수준 ML — 가중 점수는 정직하게 낮아야 한다(<60%)."""
+    """연구 수준 ML — 가중 점수는 정직하게 낮아야 한다(<60%).
+
+    근거(어드바이저 LOW): SDACS 의 ML 은 연구 수준이므로 충족(conformant)은 폴백
+    카테고리 중심의 소수에 한정된다. 60% 초과는 근거 없는 충족 주장 위험을 뜻하므로
+    임계로 둔다(현 점수 ≈56%).
+    """
     r = monitoring_report()
     assert r.weighted_score_pct < 60.0
 
@@ -321,12 +326,22 @@ def test_report_rejects_unknown_by_category_key():
 
 
 def test_report_foundational_pct_zero_when_no_foundational():
+    # 빈 by_category 는 합 (0,0,0) 이므로 conformant/partial/gap·total 모두 0 이어야 한다.
     r = MonitoringReport(
-        total=1, conformant=1, partial=0, gap=0,
+        total=0, conformant=0, partial=0, gap=0,
         foundational_total=0, foundational_conformant=0, by_category={},
     )
     assert r.foundational_conformant_pct == 0.0
     assert r.has_foundational_incomplete is False
+
+
+def test_report_empty_by_category_requires_zero_counts():
+    """빈 by_category 우회 불가(어드바이저 MEDIUM): 합 불일치 시 거부."""
+    with pytest.raises(ValueError):
+        MonitoringReport(
+            total=1, conformant=1, partial=0, gap=0,
+            foundational_total=0, foundational_conformant=0, by_category={},
+        )
 
 
 # --- 매트릭스 / 결정성 -----------------------------------------------------
@@ -341,6 +356,14 @@ def test_monitoring_matrix_category_grouped():
     rows = monitoring_matrix()
     seen_index = [MONITORING_CATEGORIES.index(str(r["category"])) for r in rows]
     assert seen_index == sorted(seen_index)
+
+
+def test_monitoring_matrix_intra_category_sorted():
+    """카테고리 내부는 objective_id 알파벳 정렬이어야 한다(어드바이저 LOW)."""
+    rows = monitoring_matrix()
+    for cat in MONITORING_CATEGORIES:
+        ids = [str(r["objective_id"]) for r in rows if r["category"] == cat]
+        assert ids == sorted(ids)
 
 
 def test_monitoring_matrix_rows_self_describing():
@@ -383,14 +406,17 @@ def test_cli_matrix_runs(capsys):
 
 def test_cli_gaps_runs(capsys):
     assert main(["--gaps"]) == 0
+    assert capsys.readouterr().out  # 갭 목록 비어있지 않음(어드바이저 LOW)
 
 
 def test_cli_category_runs(capsys):
     assert main(["--category", "fallback"]) == 0
+    assert capsys.readouterr().out
 
 
 def test_cli_foundational_runs(capsys):
     assert main(["--foundational"]) == 0
+    assert capsys.readouterr().out
 
 
 def test_cli_default_is_report(capsys):

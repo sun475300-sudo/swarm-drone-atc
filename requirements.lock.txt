@@ -37,7 +37,7 @@ pytest-asyncio==1.4.0
 # ── API (P711/P712) ───────────────────────────────────────────────────────
 fastapi==0.136.3
 pydantic==2.13.4
-pydantic-core==2.46.4
+pydantic-core==2.47.0
 starlette==1.2.1
 anyio==4.13.0
 httpx==0.28.1

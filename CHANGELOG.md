@@ -5,6 +5,16 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test/docs) — 일일 점검 2026-06-25 (43차): ROADMAP 4종 + 🌟 **Phase 500 SDACS Centennial 선언**
+
+- **사용자 요청**: 42차 머지 후 "계속 진행해" + Ultracode 활성. ODYSSEY Track 마지막 4건 일괄 — Standards & Policy (471·472) + Continuum (491·500) 완료. 본 세션의 **정점**.
+- **Phase 471** (Track 🇰🇷 신규 문서) — `docs/standards/SDACS_KS_PROPOSAL_UAS_CR.md`. KSA 경유 KS X 표준 제안서. 무인이동체 군집 충돌 해결 시험 방법(KS X UAS-CR-1). 11 용어 정의 + SDACS-SBS-10 채택(B01-B10) + 5 측정 지표(95% resolution·10m 분리·100ms p95·60 events·0 NFZ 위반). 7단계 제안 일정 (2026-Q4 KSA → 2028-Q1 ISO 기고). 5 부속 자료 + 시험 보고서 양식.
+- **Phase 472** (Track 🌐 신규 문서) — `docs/standards/SDACS_ICAO_RPASP_OPINION.md`. ICAO RPASP (Remotely Piloted Aircraft Systems Panel) 의견서. 4 행동 권고: ①DAA 시험 방법 표준화 (ASTM F3478 + ISO 23629-5 + SBS-10)·②결정적 시뮬레이션 의무화·③5계층 안전망 권고·④공개 참조 구현(MIT). 5계층 정의 + 결정성 + SBS-10 + 실측 결과 (100/1K/5K). 단·중·장기 표준화 권고 (2026 → 2029+). 한국 정부 대표단 → KAIA → ICAO 4단계 제출 절차.
+- **Phase 491-499** (Track ♾️ 신규 문서, 통합) — `docs/CONTINUUM_NEXT_GENERATION.md`. 차세대 트랙 공모·선정·이양 절차. 공모 4 대상(목포대 후속·항공대·서울대·KAIST·국제 contributor) + 8 제안서 필수 항목 + 평가 rubric 100점(학술 25·SDACS 정합 25·실행 20·거버넌스 15·개방성 15) + 70점 위원회 만장일치 게이트. 7단계 인계 (Phase 492 기술 → 493 launch → 494 점진 이양 → 495 Steward 임명 → 496 BDFL 후보 → 497 리허설 → 498 권한 이양 → 499 신시대). 미선정 4 처우 (archive·재제안·fork·공개 회신). 2027-Q1 공모 시작 일정.
+- **Phase 500** (Track 🌟 신규 문서, **본 PR 정점**) — `docs/CONTINUUM_CENTENNIAL_DECLARATION.md`. **SDACS Centennial 선언** — Phase 1-500 통합 회고 + 영구 아카이브 동결 + 100년 비전. 0. 선언문 (2026-06-25 Phase 500 도달). 1. 영역별 성과 매트릭스 (Core·A-F 7 트랙 + G-I 3 ODYSSEY 트랙 = 10 영역). 1.2 본 세션 누적 표 (37차 → 43차, ODYSSEY 19 phase 완료 - **`451·461·462·463·464·468·470·471·472·481·482·483·484·487·488·489·490·491·500`**). 1.3 측정 (5,500+ pass·283 E2E·408 API·12K LOC·477 모듈·9 federation·18 표준·6 사본). 2. 3중 영구 아카이브 (Zenodo + SWH + 대학). 3. 효과 (즉시·1년·10년·100년). 4. NOT 의미 (개발 종료/인증/우선권/호환성 약속 아님 — 정직성). 5. 미래 기수에게 메시지 + 5 원칙 (결정성·5계층·정직성·수술적·단순함). 6. BibTeX 인용 양식 (sdacs2026centennial). 11 참조.
+- **회귀 테스트** — `tests/test_phase_471_472_491_500_docs.py` (신규) 27 케이스: 471 6건(file·header·KS X·인용·SBS-10·합격 기준·KSA), 472 4건(file·header·ICAO RPASP·4 권고·정부 대표), 491 5건(file·phase 범위·공모·rubric·7 단계·승계 참조), 500 8건(file·header·선언문·회고 표·세션 누적·아카이브·인증 아님·BibTeX·후속 메시지). **27/27 PASS** (직접 실행).
+- **검증**: Python py_compile OK · 4 사본 md5 불변. ROADMAP 갱신: line 332(471·472 ✅) · line 335(491·500 ✅) + Continuum 라인 종결.
+
 ### 추가 (feat/test/docs) — 일일 점검 2026-06-25 (42차): ROADMAP 3종 추가 (Phase 468·483·490) + README 최신화
 
 - **사용자 요청**: 41차 머지 후 "진행" → 즉시 다음 라운드. 마지막 단계로 README 최신화.

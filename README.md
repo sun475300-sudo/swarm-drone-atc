@@ -19,7 +19,7 @@
 [![Modules](https://img.shields.io/badge/Modules-830+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
 [![LOC](https://img.shields.io/badge/Total-160K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](#license)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 **Mokpo National University, Dept. of Drone Mechanical Engineering — Capstone Design (2026)**
 
@@ -125,13 +125,14 @@
 - [x] **ODYSSEY 421-422** ✅ 인스턴스 디스커버리·운영 의도 교환 — `simulation/federation_discovery.py`, `simulation/operational_intent.py` + [`docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md`](docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md), [`docs/certification/OPERATIONAL_INTENT_FORMAT.md`](docs/certification/OPERATIONAL_INTENT_FORMAT.md)
 
 **GitHub 운영**
-- [ ] `main` branch protection 활성화 — 직접 push 차단 + CI·Security·Canonical Hash required checks 지정
-- [ ] 열린 PR 15건 검토·병합/종료 — 2026-06-18 확인 기준 draft 1건, 충돌 2건(PR #280·#283)
-- [ ] 저장소 루트 `LICENSE` 추가 — README의 MIT 배지 링크는 현재 대상 파일이 없어 깨진 상태
+- [x] **열린 PR 정리 (2026-06-25)** ✅ — 일일점검 중복 draft 23건 close(ODYSSEY 작업은 #449로 일원화) + dependabot 8건 병합(GitHub Actions 5 + pyyaml·matplotlib·pydantic-core) + 로컬 브랜치 1개(`main`)로 축소. 잔여 열린 PR 10건(메이저 의존성 4 + 리베이스 중 2 + #449 ODYSSEY 일원화 + #283 perf)
+- [x] **저장소 루트 `LICENSE` 추가 (2026-06-25)** ✅ — MIT 라이선스 파일 생성, README 배지 링크 정상화
+- [x] **main CI RED 회복 (2026-06-25)** ✅ — `ci.yml` checkout `fetch-depth: 0`(code_archaeology 전체 이력 파싱) → CI GREEN 실측
+- [ ] `main` branch protection 활성화 — required checks 지정 (직접 push 차단은 현 작업 워크플로에 영향 → 사용자 확인 필요)
 
 **기술 부채 (정직성 공시)**
 - [ ] mock 110종 + speculative 103종 — 전체 목록·격상 난이도: [`docs/TECH_DEBT_LEDGER.md`](docs/TECH_DEBT_LEDGER.md) (자동 생성)
-- [ ] Electron 차기 빌드 `^39.8.5` 적용 (v1.5.0은 32.3.3 빌드 — 보안 bump 반영은 다음 릴리스)
+- [x] **Electron `^39.8.5` 빌드 (2026-06-25)** ✅ — 로컬 Windows NSIS 빌드 검증(electron 39.8.10 · `dist-desktop/SDACS-Simulator-1.5.0-Setup.exe` 92 MB). dependabot #426(electron 42 메이저)은 검토 대기
 
 ---
 
@@ -997,7 +998,7 @@ SC2 봇 프로젝트 규모: **645단계 개발, 407개 품질 테스트, 797개
 
 ---
 ## License
-License metadata is declared as **MIT** in [`pyproject.toml`](pyproject.toml). A standalone root `LICENSE` file remains an open repository task.
+MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproject.toml)·[`package.json`](package.json)에도 **MIT**로 선언되어 있습니다.
 
 ---
 <div align="center">

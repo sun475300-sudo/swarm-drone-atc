@@ -187,25 +187,21 @@ class PluginRegistry:
             return None
         if self.has_circular_deps(name):
             return None
-        order: list[str] = []
         visited: set[str] = set()
-        self._topo_visit(name, visited, order)
-        return tuple(order)
+        order: list[str] = []
 
-    def _topo_visit(
-        self,
-        name: str,
-        visited: set[str],
-        order: list[str],
-    ) -> None:
-        if name in visited:
-            return
-        visited.add(name)
-        meta = self._plugins.get(name)
-        if meta is not None:
-            for dep in meta.dependencies:
-                self._topo_visit(dep, visited, order)
-        order.append(name)
+        def _visit(n: str) -> None:
+            if n in visited:
+                return
+            visited.add(n)
+            meta = self._plugins.get(n)
+            if meta is not None:
+                for dep in meta.dependencies:
+                    _visit(dep)
+            order.append(n)
+
+        _visit(name)
+        return tuple(order)
 
 
 def _print_list(

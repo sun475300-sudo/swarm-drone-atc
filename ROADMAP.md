@@ -134,7 +134,7 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 | **HYPER Plan** (시뮬 Phase 10-50) | 100% | ████████████ | 41개 추가 Phase (해양 ATC · VR · AI Copilot · 적대 · C-UAS · 행성 등) |
 | **STELLAR~POST-UNIVERSE** (시뮬 Phase 51-200) | 100% | ████████████ | Phase 200 = 𝟏 (Unity) · Phase 51 LLM Multi-Agent 격상 (단, 다수 mock/speculative — maturity 공시) |
 | **TRANSCENDENCE** (시뮬 Phase 201-300) | 10% | █░░░░░░░░░░░ | Phase 201-208 Maturity Honesty 완료 (분류·Mock Detector·experimental·beta·production 회귀) |
-| **GENESIS** (시뮬 Phase 301-400) | 9% | █░░░░░░░░░░░ | 301·302·304·306·309·381·387·388·389 완료 — 인증 가이드 4종·교육·레거시 |
+| **GENESIS** (시뮬 Phase 301-400) | 43% | █████░░░░░░░ | 301-317·322·341·342·362·364·367·381-400 완료 — 인증·CSAP카탈로그·UAM운용기준·감항인증·도구자격TQL5·빌드환경사양·SQA감사·자율·교육·실증·아카이브·체험판·성과요약·성숙도·인수인계·교육자산·종합보고·자생력·공개준비·통합게이트·Legacy선언 |
 | **ODYSSEY** (시뮬 Phase 401-500) | 5% | █░░░░░░░░░░░ | 408 ICAO 매핑·447 fuzzing·448 property·466 schema·486 재현 완료 |
 
 **총 Phase 691-755 (65개) 중 61개 완료 = 94%** (Phase 1-690 포함 시 전체 751/755 = **99.5%**)
@@ -272,7 +272,14 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 309** 🏭 조종자 자격증명 매핑 — `docs/certification/PILOT_LICENSE_MAPPING.md` (2026-06-12)
 - [x] **Phase 308** 🏭 배상책임보험 요율 산정 API — `simulation/insurance_rate_quote.py` (Phase 67 mock 격상 — 항공사업법 §70 의무보험 스펙, MTOW·운용·ILF·NCB·경력·야간/BVLOS 결정적 산정, 33건 PASS) (2026-06-15)
 - [x] **Phase 303·305·307·310** 🏭 인증 문서 세트 — `FLIGHT_PLAN_FORM.md`, `DO178C_GAP_ANALYSIS.md`, `ACCIDENT_REPORT_FORM.md`, `NIGHT_BVLOS_APPROVAL.md` (2026-06-18)
-- [ ] **Phase 301·304·306·309·311-320** 🏭 Certification & Compliance 잔여 — 항공안전법 매트릭스·RTM·CSAP 자동화 확장
+- [x] **Phase 311** 🏭 KISA CSAP 자가진단 자동화 — `simulation/csap_self_assessment.py` (CSAP 정보보호 기준 14개 통제분야 정렬·이행 상태 4종 결정적 점수화·영역별 이행률·종합 준비도 판정·JSON/텍스트 export, 20건 PASS) (2026-06-15)
+- [x] **Phase 312** 🏭 CSAP 통제항목 카탈로그 확장 — `simulation/csap_catalog_extension.py` (Phase 311 확장: 35개 SCAN_RULES 기반 파일시스템 자동 스캔, 14개 통제분야×2~3항목 glob 패턴 매칭, ScanResult/CatalogScanReport frozen dataclass, scan_catalog/get_domain_scan/list_domains, CLI --scan/--domain/--domains/--json, 37건 PASS) (2026-06-25)
+- [x] **Phase 313** 🏭 UAM 운용기준 정렬 점검 — `simulation/uam_operating_standards.py` (한국 UAM ConOps 10개 기준영역×23항목 파일시스템 스캔, ALIGNED/PARTIAL/NOT_ALIGNED 결정적 판정, _EXCLUDE_DIRS 비소스 디렉토리 제외, ComplianceResult/ComplianceReport frozen dataclass, check_standards/get_category_report/list_categories, CLI --check/--category/--categories/--json, 38건 PASS) (2026-06-25)
+- [x] **Phase 314** 🏭 감항 인증 준비 체크리스트 — `simulation/airworthiness_checklist.py` (DO-178C DAL-D 수준 6개 프로세스 영역×20개 항목 파일시스템 스캔, COMPLIANT/PARTIAL/NON_COMPLIANT 결정적 판정, AirworthinessResult/AirworthinessReport frozen dataclass, check_airworthiness/get_process_report/list_processes, CLI --check/--category/--categories/--json, 38건 PASS) (2026-06-25)
+- [x] **Phase 315** 🏭 DO-178C 도구 자격 평가 (TQL-5) — `simulation/tool_qualification.py` (DO-178C §12.2 기준 4개 카테고리×12개 도구 설치/설정 증거 파일시스템 스캔, QUALIFIED/PARTIAL/NOT_QUALIFIED 결정적 판정, ToolQualResult/ToolQualReport frozen dataclass, assess_tools/get_category_report/list_categories, CLI --assess/--category/--categories/--json, 38건 PASS) (2026-06-25)
+- [x] **Phase 316** 🏭 빌드 환경 사양서 자동 수집 — `simulation/build_env_spec.py` (DO-178C §11.6 기준 5개 카테고리×15개 항목 런타임/파일 존재 검사, DOCUMENTED/PARTIAL/UNDOCUMENTED 결정적 판정, EnvItem/EnvReport frozen dataclass, collect_env/get_category_report/list_categories, CLI --collect/--category/--categories/--json, 37건 PASS) (2026-06-25)
+- [x] **Phase 317** 🏭 SQA 감사 로그 — `simulation/sqa_audit.py` (DO-178C §8 SQA 5개 목표×15개 점검 항목 파일시스템 스캔, MET/PARTIAL/NOT_MET 결정적 판정, SqaFinding/SqaReport frozen dataclass, run_sqa_audit/get_objective_report/list_objectives, CLI --audit/--objective/--objectives/--json, 37건 PASS) (2026-06-25)
+- [ ] **Phase 318-320** 🏭 Certification & Compliance 잔여 — CCB 변경통제·테스트절차서·4대계획서
 - [x] **Phase 322** 🌍 `.sdacs-scenario` 스키마 + 검증기 — `simulation/scenario_schema.py` + `docs/schemas/sdacs-scenario.schema.json`, 20건 PASS (2026-06-15)
 - [ ] **Phase 321-340** 🌍 Ecosystem & Open Source — 플러그인 SDK·`@sdacs/core` npm·`sdacs-sim` PyPI·v2.0 API 안정화
 - [x] **Phase 341** 🏙 목포 해역 실 좌표계 임포트 — `src/applications/mokpo_harbor.py` 해도 기반 NFZ 4종(부두·대교·지형·정박지)·회랑 3종 결정적 배치 + 레이 캐스팅 NFZ 판정·회랑 충돌 검사, 8건 PASS (2026-06-15)
@@ -283,10 +290,25 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 364** 🤖 V2X 드론 간 통신 메시지 규격 — `simulation/v2x_message.py` SAE J2735 BSM 적응 UAS 메시지(DroneBasicSafetyMessage 192B·EmergencyAlert 162B), JSON+바이너리 라운드트립 코덱, 범위 필터링·결정적 패킷 손실 채널, 22건 PASS (2026-06-20)
 - [ ] **Phase 361-380** 🤖 Next-Gen Autonomy 잔여 — 온보드 RL 추론·양방향 디지털 트윈
 - [x] **Phase 381** 🎓 교육 모드 — 시뮬레이터 `tutorialStart/Next/Status()` 5단계 (2026-06-12)
+- [x] **Phase 382** 🎓 실습 과제 10종 — `simulation/practice_assignments.py` 학부 수업용 시나리오·채점 기준·검증 스크립트 (입문~고급 14주 배치, frozen dataclass, 결정적 채점, CLI --list/--detail/--rubric, 44건 PASS) (2026-06-25)
+- [x] **Phase 384** 🎓 조종자 자격 이론 연계 문제은행 — `simulation/pilot_exam_bank.py` 1~4종 자격증명 이론시험 유형 ↔ SDACS 시뮬 상황 매핑 40문항(종별 10문항, 4과목: 항공법규·비행이론·기상학·안전관리), frozen dataclass·MappingProxyType, 채점(grade_exam)·과목별 분석·합격 판정(70%), CLI --list/--grade/--question/--subject/--stats/--json, 49건 PASS (2026-06-25)
+- [x] **Phase 385** 🎓 후속 기수 온보딩 자동화 — `simulation/onboarding_automation.py` 환경 점검 19항목(Python·패키지·디렉토리·설정) + 아키텍처 투어 18 스톱(4계층+안전·인증·교육·국제·배포) + 온보딩 리포트·환경 구축 힌트, frozen dataclass, CLI --check/--tour/--tour-stop/--report/--setup-hint/--json, 52건 PASS (2026-06-25)
+- [x] **Phase 386** 🎓 코드 고고학 가이드 — `simulation/code_archaeology.py` 200+ Phase 히스토리 내비게이션(커밋→Phase 매핑), git log 파싱·ROADMAP.md Phase 추출·인덱스 구축·키워드 검색·통계·타임라인, frozen dataclass, CLI --phases/--phase/--timeline/--stats/--search/--json, 50건 PASS (2026-06-25)
 - [x] **Phase 387** 🎓 졸업 심사 발표 키트 — `docs/presentation/DEFENSE_KIT.md` (2026-06-12)
 - [x] **Phase 389** 🎓 유지보수 최소 모드 — `docs/MAINTENANCE_MINIMAL_MODE.md` (2026-06-12)
 - [x] **Phase 388** 🎓 기술 부채 대장 — `docs/TECH_DEBT_LEDGER.md` 자동 생성 (2026-06-12)
-- [ ] **Phase 381-387·389-400** 🎓 Education & Legacy — 15주 커리큘럼·졸업 심사 키트·**Phase 400 = Legacy 선언**
+- [x] **Phase 383** 🎓 강의 슬라이드 패키지 — `simulation/curriculum_slide_package.py` 15주 '드론 관제 시스템 설계' 캡스톤 커리큘럼(기초 3주·핵심 4주·중간 1주·심화 4주·프로젝트 3주), 주차별 학습 목표·SDACS 모듈 매핑·실습·슬라이드 개요, frozen dataclass·MappingProxyType, CLI --weeks/--week/--category/--syllabus/--stats/--json, 50건 PASS (2026-06-25)
+- [x] **Phase 390** 🎓 아카이브 전략 — `simulation/archive_strategy.py` Zenodo 메타데이터 검증(필수 7·권장 4 필드)·Software Heritage save-now 요청 정보·졸업 아카이브 체크리스트 12항목(7필수·5권장, 기존 파일 자동 감지)·전체 전략 보고서(readiness_pct), frozen dataclass, CLI --validate/--swh/--checklist/--report/--json, 45건 PASS (2026-06-25)
+- [x] **Phase 391** 🎓 고교·일반인 체험판 — `simulation/demo_experience.py` 비전문가용 단순화 모드: 난이도 프리셋 3종(쉬움 5대·보통 20대·어려움 50대), 전문 용어 쉬운 사전 12개(APF·CPA·CBS·Geofence·Voronoi 등), 가이드 시나리오 5종(25단계), 단순화 결과 지표 6종, frozen dataclass·MappingProxyType, CLI --presets/--glossary/--search/--scenarios/--metrics/--explain/--package/--stats/--json, 74건 PASS (2026-06-25)
+- [x] **Phase 392** 🎓 성과 요약 — `simulation/achievement_summary.py` 프로젝트 전체 성과 정량 집계: 트랙 10개 진척 현황(TrackProgress, progress_pct), 마일스톤 8개(Phase 1~755), ROADMAP.md 완료 Phase 자동 카운트(regex), 시뮬레이션 모듈·테스트 파일 수 glob 집계, frozen dataclass, CLI --summary/--tracks/--milestones/--json, 46건 PASS (2026-06-25)
+- [x] **Phase 393** 🎓 성숙도 자가 평가 — `simulation/maturity_assessment.py` 7차원(문서화·테스트·CI/CD·보안·코드품질·커뮤니티·배포) 30개 체크항목 파일시스템 자동 판정, 가중 점수 산정(A~F 등급), frozen dataclass, CLI --assess/--dimension/--dimensions/--json, 42건 PASS (2026-06-25)
+- [x] **Phase 394** 🎓 인수인계 체크리스트 — `simulation/handover_checklist.py` 5개 카테고리(환경·문서·계정·데이터·지식전수) 25개 항목 파일시스템 자동 판정, 준비도 산정(준비완료/거의완료/진행중/미준비), frozen dataclass, CLI --check/--category/--categories/--json, 39건 PASS (2026-06-25)
+- [x] **Phase 395** 🎓 교육 자산 레지스트리 — `simulation/education_asset_registry.py` GENESIS 트랙 교육·인수인계 자산 16종 체계적 목록화, 3개 유형(module/document/data) 분류, 파일시스템 기반 존재 검증(verify_assets), 커버리지 보고서(RegistryReport), frozen dataclass, CLI --list/--asset/--by-type/--verify/--json, 45건 PASS (2026-06-25)
+- [x] **Phase 396** 🎓 GENESIS 종합 보고서 — `simulation/genesis_report.py` Phase 393(성숙도)+394(인수인계)+395(교육자산) 3개 하위시스템 통합, 카테고리별(인증·생태계·실증·자율·교육·레거시) 진척 집계, 종합 등급(A~F) 산정, Legacy 준비 판정, frozen dataclass, CLI --report/--status/--json, 31건 PASS (2026-06-25)
+- [x] **Phase 397** 🎓 생태계 자생력 평가 — `simulation/ecosystem_sustainability.py` 원저자 부재 시 프로젝트 독립 유지·발전 가능성 6차원(문서·테스트·의존성·빌드·커뮤니티·교육) 24개 체크 항목 파일시스템 자동 판정, 차원별 점수·종합 등급(A~F)·자생 가능 판정(SUSTAINABILITY_THRESHOLD 70%), frozen dataclass, CLI --assess/--dimension/--dimensions/--json, 42건 PASS (2026-06-25)
+- [x] **Phase 398** 🎓 교육 자산 공개 준비 체크리스트 — `simulation/asset_publication_checklist.py` 외부 공개(오픈소스·교재 배포) 준비 5개 카테고리(라이선스·민감정보·문서화·재현성·접근성) 20개 항목 파일시스템 자동 판정, 종합 등급·공개 가능 판정(PUBLICATION_THRESHOLD 80%), frozen dataclass, CLI --check/--category/--categories/--json, 42건 PASS (2026-06-25)
+- [x] **Phase 399** 🎓 최종 통합 게이트 — `simulation/integration_gate.py` Phase 393-398 6개 하위시스템(성숙도·인수인계·교육자산·종합보고·자생력·공개준비) 통합 점검, 전체 게이트 통과 판정(GATE_THRESHOLD 60%), frozen dataclass, CLI --gate/--summary/--json, 25건 PASS (2026-06-25)
+- [x] **Phase 400** 🎓 **SDACS Legacy 선언** — `simulation/legacy_declaration.py` GENESIS 트랙(Phase 301-400) 정점: Phase 399 통합 게이트 결과 기반 Legacy 선언문 생성, 조건부/완전 Legacy 구분, 6개 하위시스템 요약(SubsystemSummary), 인증서(generate_certificate), 선언문 텍스트 렌더링(render_declaration), frozen dataclass, CLI --declare/--certificate/--json, 44건 PASS (2026-06-25)
 
 ### Track I — 시뮬레이터 ODYSSEY (Phase 401-500) · 2026-06-12 수립
 

@@ -61,12 +61,12 @@
 | **E** 확장 연구 | P736-745 | ✅ 100% | RL PoC·UAS-T·LiDAR·DR·디지털트윈·Raft HA·UAM·양자·폐쇄망·LLM |
 | **F** 산학·사업화 | P746-755 | 🟢 90% | K-UAM·해수부·산림청·KISA·라이선싱·창업 docs (P755·LOI는 사용자 환경) |
 | **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 11% | 201-210·226 완료 — 성숙도 정직성·API 수명주기·GPS→ENU 정밀 검증 |
-| **H** GENESIS | 시뮬 301-400 | 🟡 20% | 인증·규제 301-311 + APF+RL 하이브리드·V2X 메시지·목포 실좌표·교육·발표 자산 완료 |
+| **H** GENESIS | 시뮬 301-400 | 🟡 43% | 인증·규제 301-317 + 자율·교육·실증·아카이브·체험판·성과요약·성숙도·인수인계·교육자산·종합보고·자생력·공개준비·통합게이트·**Phase 400 Legacy 선언** 완료 |
 | **I** ODYSSEY | 시뮬 401-500 | 🟡 38% | FAA UTM 갭 분석·U-space·연합 운영·형식 검증·표준 시나리오·정책 분석·마이그레이션 자산 완료 |
 
 > 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)(실행 일정)
 
-### 🚧 미완료 작업 / Open Work Items (정직성 리스트, 2026-06-24 기준)
+### 🚧 미완료 작업 / Open Work Items (정직성 리스트, 2026-06-25 기준)
 
 **사용자 환경 의존 (코드 작업 불가, 4건)**
 - [ ] P755 창업·분사 결정 + 외부 기관 LOI 체결
@@ -86,9 +86,9 @@
 - [ ] 261-280 HITL (사용자 HW) · 281-300 학술 임팩트 (Ablation 자동화는 sandbox 가능)
 
 **GENESIS·ODYSSEY 잔여**
-- [ ] GENESIS 312-340 — CSAP 통제 확장·플러그인 SDK·시나리오 마켓·패키지 배포·영문 문서
+- [ ] GENESIS 318-340 — CCB 변경통제·플러그인 SDK·시나리오 마켓·패키지 배포·영문 문서
 - [ ] GENESIS 342-380 — 지역 실증·24시간 운영·온보드 RL·V2X·GPS 거부 환경·자가 치유
-- [ ] GENESIS 382-400 — 교육 과제·강의 자산·온보딩·아카이브·Phase 400 레거시 선언
+- [ ] GENESIS 395-400 — Phase 400 레거시 선언 (383-386·390-394 완료)
 - [ ] ODYSSEY 402-420 — FAA/EASA/ICAO 정렬·국제 벤치마크·해외 파일럿 제안
 - [ ] ODYSSEY 426-427 — 2-인스턴스 연합 E2E·인접 공역 고스트 렌더링
 - [ ] ODYSSEY 451-500 — RL 일반화·표준 기고·장기 운영·거버넌스·아카이브
@@ -103,6 +103,11 @@
 - [x] **ODYSSEY 448** ✅ 속성 기반 테스트 — `tests/test_property_telemetry.py` (Hypothesis 1,150+ 케이스, 압축 무손실/유계 오차/충돌해결률 불변식)
 - [x] **ODYSSEY 466** ✅ 텔레메트리 JSON Schema 공개 — [`docs/schemas/telemetry.schema.json`](docs/schemas/telemetry.schema.json) (Draft-07) + `tests/test_telemetry_schema.py` (스키마 + 예제 + ws_bridge 정합성)
 - [x] **GENESIS 381** ✅ 교육 모드 — `_sdacs.tutorialStart/Next/Status()` 5단계 결정적 튜토리얼(ATC→TAC→UTM→APF→Maturity), E2E 2건
+- [x] **GENESIS 382** ✅ 실습 과제 10종 — `simulation/practice_assignments.py` 학부 수업용 시나리오·채점 기준·검증 스크립트 (입문~고급 14주 배치, frozen dataclass, 결정적 채점, CLI --list/--detail/--rubric, 44건 PASS)
+- [x] **GENESIS 384** ✅ 조종자 자격 이론 문제은행 — `simulation/pilot_exam_bank.py` 1~4종 이론시험 ↔ SDACS 시뮬 매핑 40문항(종별 10, 4과목), 채점·과목별 분석·합격 판정(70%), CLI --list/--grade/--question/--subject/--stats/--json, 49건 PASS
+- [x] **GENESIS 385** ✅ 후속 기수 온보딩 자동화 — `simulation/onboarding_automation.py` 환경 점검 19항목 + 아키텍처 투어 18 스톱 + 온보딩 리포트·환경 구축 힌트, CLI --check/--tour/--report/--json, 52건 PASS
+- [x] **GENESIS 383** ✅ 강의 슬라이드 패키지 — `simulation/curriculum_slide_package.py` 15주 캡스톤 커리큘럼(기초·핵심·중간·심화·프로젝트), 주차별 학습 목표·SDACS 모듈·실습·슬라이드 개요, CLI --weeks/--week/--category/--syllabus/--stats/--json, 50건 PASS
+- [x] **GENESIS 386** ✅ 코드 고고학 가이드 — `simulation/code_archaeology.py` 200+ Phase 커밋→Phase 매핑·검색·통계·타임라인, CLI --phases/--phase/--stats/--search/--json, 50건 PASS
 - [x] **GENESIS 306** ✅ RTM 5계층 커버리지 — `docs/certification/RTM_5LAYER_COVERAGE.md` REQ↔DSN↔IMP↔VER 21건 추적
 - [x] **GENESIS 389** ✅ 유지보수 최소 모드 — `docs/MAINTENANCE_MINIMAL_MODE.md` (코어 서브셋·일일/분기/연 워크플로·비상 절차)
 - [x] **ODYSSEY 447** ✅ 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` Hypothesis로 NFZ·ATC·SORA 140케이스 무패닉 검증

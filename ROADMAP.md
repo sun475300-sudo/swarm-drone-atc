@@ -294,10 +294,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 
 - [x] **Phase 408** 🌏 ICAO 공역 클래스 A-G 매핑 — `docs/certification/AIRSPACE_CLASS_MAPPING.md` + `simulation/airspace_class.py` `classify_airspace()` API 격상 (결정적, 25건 PASS) (2026-06-12, API 2026-06-14)
 - [x] **Phase 401·406** 🌏 다국 좌표계·시간대 자동 판정 — `simulation/geo_zones.py` UTM 그리드 존 결정적 판정 + EASA U-space 매핑, 22건 PASS (2026-06-15)
-<<<<<<< HEAD
 - [x] **Phase 402** 🌏 FAA UTM ConOps v2 USS 역할 갭 분석 — `simulation/faa_utm_gap.py` + `docs/certification/FAA_UTM_GAP_ANALYSIS.md` 21개 USS 요구사항(8 카테고리), 9 full·11 partial·1 gap = 69.05% 준수율, frozen dataclass + MappingProxyType, CLI(--report/--gaps/--json/--category), 42건 PASS (2026-06-20)
-- [ ] **Phase 401-407·409-420** 🌏 Global Expansion 잔여 — EASA U-space·FAA UTM 정렬·EN 완역
-=======
 - [x] **Phase 402** 🌏 FAA UTM ConOps v2.0 정렬 — `simulation/faa_uss_roles.py` USS 역할 17종↔SDACS 모듈 결정적 적합성 매트릭스(핵심 7/7·전체 15/17, 운영자 자격·공공안전 접근 갭 정직 표면화, 인용 모듈 디스크 실재 강제), 46건 PASS (2026-06-18)
 - [x] **Phase 403** 🌏 EASA EU 2019/947 운영 카테고리(Open/Specific/Certified) 판정 — `simulation/sora_category.py` + `docs/certification/EU_OPERATIONAL_CATEGORY.md`. GENESIS 302 `soraAssess`(SAIL) 위에 세 운영 카테고리 + Open 하위분류(A1/A2/A3) 결정적 산정. `SORA_IGRC`·`SORA_SAIL_TABLE` JS 동일 복제(수치 불일치 금지), 51건 PASS (2026-06-19)
 - [x] **Phase 407** 🌏 ICAO UTM Framework Ed.4 적합성 자가 평가 — `simulation/icao_utm_conformance.py` 운영자 여정 10단계 축 + 3값 status(conformant/partial/gap)·정직성 결속(gap⟺module None) 강제, 가중 83%·핵심 12/14, 56건 PASS (2026-06-19)
@@ -305,7 +302,6 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [ ] **Phase 404·405·410-420** 🌏 Global Expansion 잔여 — EN 완역·국제 벤치마크 제출(BlueSky·U-TRAFMAN)·GUTMA 기고·해외 파일럿 제안서
 - [x] **Phase 470** 🏛 표준화 기고 추적 대시보드 — `simulation/standardization_tracker.py` 표준화 기고 단일 SSoT(단조 상태 PLANNED→ADOPTED·`progress()` 22.5%·`validate_registry` PUBLISHED 산출물 디스크 실재 강제), 31건 PASS (2026-06-19)
 - [x] **Phase 472** 🏛 국제 워킹그룹 의견서 적합성 게이트 — `simulation/intl_wg_opinion_gate.py` + `docs/standards/INTL_WG_OPINION_GATE.md`. 밴드 471-480("국내 KS 제안 1건 + 국제 워킹그룹 의견서 3건") 중 국제 의견서 칸. JARUS·EUROCAE WG-105·ISO/TC 20/SC 16 초안에 다는 개별 의견이 *채택 처리될* 형식·근거를 갖췄는지 결정적 게이트로 판정. 요건 6종(필수 4·권장 2)을 ISO/IEC Directives Part 1 comment template(대상 절/줄·제안 변경·유형 ge/te/ed)·JARUS/EUROCAE RoP(문서 버전·소속 공개)에서 도출하고 명문 근거 결속. `assess` 우선순위 CRITICAL UNMET→NOT_READY > CRITICAL PARTIAL→NEEDS_WORK > 잔여 미완→NEEDS_WORK > 전부 MET→READY_TO_SUBMIT, `POLICY_MATRIX` 5칸을 테스트가 정확 일치 강제(모순 조합 제외). Phase 470 기고 *상태* 추적·Phase 471 *국내* KS 제정과 평가 대상이 서로 다름(중복 0). 현 후보 JARUS SORA 군집 보완 의견을 격상 없이 `NEEDS_WORK (80.0%)` 정직 공시(WG-02 제안 변경 redline 미완·WG-06 NB 채널 미확인). 자문, 부수효과 0·무작위성 0·기존 모듈 무수정 순수 추가. 단위 29건 PASS (2026-06-21)
->>>>>>> d9f10678ebcc4bb568390fff69816fd6253cbdcf
 - [x] **Phase 421** 🛰 인스턴스 간 디스커버리 프로토콜 — `simulation/federation_discovery.py` + `docs/certification/INSTANCE_DISCOVERY_PROTOCOL.md`, ASTM F3548 DSS 유사 결정적 모델, 13건 PASS (2026-06-18)
 - [x] **Phase 422** 🛰 운영 의도(Operational Intent) 4D 교환 포맷 — `simulation/operational_intent.py` + `docs/certification/OPERATIONAL_INTENT_FORMAT.md`, ASTM F3548-21 정렬 frozen dataclass + 라운드트립 직렬화 + 보수적 4D 교차, 24건 PASS (2026-06-18)
 - [x] **Phase 423** 🛰 지역 간 관제권 핸드오버 — `simulation/federation_handover.py` Phase 421 점 커버리지 기반 결정적 RETAINED/ACQUIRED/HANDOVER/CONTINGENT 결정 + 이력현상(hysteresis) + 감사 로그, 16건 PASS (2026-06-15)
@@ -360,6 +356,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [ ] **Phase 493-499** ♾️ Continuum 잔여 — 차세대 트랙 실 공모·선정·이양 실행 *(2027+ 차세대 기수 의존)*
 
 ---
+
+*2026-06-25 (일일 점검 — main 머지 충돌 마커 회복) — **ROADMAP.md 커밋된 충돌 마커 3개 해소**: 신규 세션 컨테이너에서 의존성 신규 설치 후 전체 회귀 독립 재현 **6,506 pass / 280 skip / 0 fail** (139.83s) GREEN. main 최신 커밋(`9ec0d72`, PR #447 머지) CI success 재확인. **점검 발견·수정**: Global Expansion 트랙(Phase 401-420) 섹션에 미해소 git 충돌 마커(`<<<<<<< HEAD`·`=======`·`>>>>>>>`)가 main(`9ec0d72`)에 커밋된 채 잔존 — 직전 일원화 머지에서 Phase 402 두 갈래(`faa_utm_gap.py` 갭분석 2026-06-20 vs `faa_uss_roles.py` 역할정렬 2026-06-18)가 충돌 상태로 봉합됨. 두 모듈·테스트 모두 디스크 실재(298건 PASS 재확인) → 합집합 보존으로 해소(Phase 402 두 항목 + 403·407·409·470·472 유지, 스테일 "401-407·409-420 잔여" 라인 제거하고 진행된 "404·405·410-420 잔여" 채택). 코드 무수정·문서 충돌 정합만. **점검 발견(사용자 결정 필요)**: 열린 PR 30건 적체 — ODYSSEY 일일점검 일원화 draft 다수(#429-449 상호 supersede)·Dependabot 9건(#272-279·#367·#426·#427)·#283 perf — 머지·triage 사용자 승인 필요.*
 
 *2026-06-21 (일일 점검 + 적체 드래프트 일원화) — **ODYSSEY Continuum 종착(491·492·500) + Standards 트랙(461·463·464) 6 Phase 일원화**: 신규 세션 컨테이너에서 의존성 신규 설치 후 독립 재현 GREEN. 금일 병행 세션이 작업 브랜치(`a4510ef`)와 동일 베이스로 만든 미머지 적체 draft PR #410·411·412·413·414 를 발견 — #413(Phase 491·492·500 Continuum 종착 + 461 ASTM F38 + 464 안전 백서)은 작업 브랜치의 클린 fast-forward 상위집합이라 충돌 없이 일원화하고, #414(Phase 463 K-드론 정책 제안서 게이트)를 그 위에 병합(문서 충돌만 수동 정합). 6 Phase 전부 결정적 정책·자문·부수효과 0·무작위성 0·기존 파일 무수정 순수 추가, 각 code-reviewer 어드바이저 반영. **이로써 ODYSSEY Continuum(481-500) 코드화 가능 칸 전부 종착**(493-499 는 2027+ 차세대 기수 의존). **점검 발견(사용자 결정 필요)**: ① 일원화 완료된 draft PR #410·411·412·413·414 는 본 통합 후 close 권고. ② **Dependabot 14건 적체**(#267-279·#367) — Phase 484 가 현 electron 핀을 EOL 공시(#277 우선). ③ **GitHub 보고 취약점 4건**(2 high·2 low) 미해소 — 전부 사용자 승인 필요.*
 

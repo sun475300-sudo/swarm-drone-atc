@@ -281,7 +281,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 317** 🏭 SQA 감사 로그 — `simulation/sqa_audit.py` (DO-178C §8 SQA 5개 목표×15개 점검 항목 파일시스템 스캔, MET/PARTIAL/NOT_MET 결정적 판정, SqaFinding/SqaReport frozen dataclass, run_sqa_audit/get_objective_report/list_objectives, CLI --audit/--objective/--objectives/--json, 37건 PASS) (2026-06-25)
 - [x] **Phase 318** 🏭 CCB 변경통제 (DO-178C §7) — `simulation/ccb_change_control.py` 형상관리 5영역(BASELINE/CHANGE_REQUEST/VERSION_CONTROL/BUILD_RELEASE/AUDIT_TRACE)×15 점검항목 파일시스템 증거 자동 점검, 37건 PASS
 - [x] **Phase 319** 🏭 테스트 절차서 (DO-178C §6) — `simulation/test_procedures.py` 검증 5단계×15 점검항목 파일시스템 증거 자동 점검 + `tests/test_test_procedures.py` 신규 검증 23건 PASS (커버리지 0%→충족, 2026-06-25)
-- [ ] **Phase 320** 🏭 Certification & Compliance 잔여 — 4대계획서(SDP/SVP/SCMP/SQAP)
+- [ ] **Phase 320** 🏭 4대 SW계획서(SDP/SVP/SCMP/SQAP) — *존재·준비도 점검은 Phase 314 `airworthiness_checklist.py` PLANNING 영역(AW-001~003)이 이미 수행. 잔여는 실제 계획서 문서 작성(문서 작업)*
 - [x] **Phase 322** 🌍 `.sdacs-scenario` 스키마 + 검증기 — `simulation/scenario_schema.py` + `docs/schemas/sdacs-scenario.schema.json`, 20건 PASS (2026-06-15)
 - [ ] **Phase 321-340** 🌍 Ecosystem & Open Source — 플러그인 SDK·`@sdacs/core` npm·`sdacs-sim` PyPI·v2.0 API 안정화
 - [x] **Phase 341** 🏙 목포 해역 실 좌표계 임포트 — `src/applications/mokpo_harbor.py` 해도 기반 NFZ 4종(부두·대교·지형·정박지)·회랑 3종 결정적 배치 + 레이 캐스팅 NFZ 판정·회랑 충돌 검사, 8건 PASS (2026-06-15)

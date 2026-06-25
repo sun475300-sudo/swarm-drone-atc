@@ -5,6 +5,10 @@
 
 ## [Unreleased]
 
+### feat(genesis) — 2026-06-25: Phase 318 CCB 변경통제 적합성 게이트
+
+- **GENESIS Phase 318** — `simulation/change_control_board.py` + `docs/certification/CCB_CHANGE_CONTROL.md`. SDACS 의 실제 변경 관리 절차(GitHub PR·CI 게이트·canonical hash·RTM·CHANGELOG)가 형상관리 표준(ISO 10007·DO-178C §7 SCM·SCMP)의 **변경통제위원회(CCB)** 요건을 어디까지 충족하는지 결정적 자가 평가. 8 기준(CR 단일채널·영향분석·승인게이트·베이스라인·추적성·회귀게이트·긴급변경·감사로그). **정직성 결속**: MET/PARTIAL 기준은 실재 증거 산출물 인용 강제(`verify_evidence_on_disk` 디스크 실재 테스트), UNMET 은 증거 인용 금지. 격상 없이 **부분 적합 75%** 정직 공시(전담 CCB 조직·형식 영향분석·긴급변경 절차 부재). frozen dataclass·무작위성 0·기존 모듈 무수정 순수 추가. CLI(--matrix/--report/--gaps/--json). **27건 PASS**, ruff clean.
+
 ### 정리·최적화 — 2026-06-25: 메인 브랜치 정리 + A* 결정적 최적화 + xdist 수집 안정화
 
 - **AIM 정밀검사 기록(소급)**: Phase 691-700 AIM 10개 모듈 정밀검사 9라운드(Round 4–12) 완료 — `tests/test_phase691_700_aim.py` **242 테스트**. NaN/Inf 바이패스 차단(`math.isfinite`), CAVOK 위양성 NO-GO 수정, 캡슐화 누수 방지, fail-closed 안전, 방어적 복사, 중복 거부. 대상: notam_manager·tfr_handler·vertiport_ops·metar_parser·aim_briefing·flight_following·cross_border_coord·post_flight_report·aero_charts·insurance_risk.

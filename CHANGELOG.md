@@ -5,6 +5,14 @@
 
 ## [Unreleased]
 
+### 점검 (chore) — 일일 점검 2026-06-25: ODYSSEY 적체 드래프트 7건 일원화 검증 + 어드바이저 재심 + main 머지 권고
+
+- **작업 상황 점검**: 신규 컨테이너에서 의존성 신규 설치(`requirements.txt` + `pytest-xdist`) 후 `origin/main`(`e7f4bc6`) 기준선 전체 회귀 **6,497 pass / 12 skip / 0 fail**(85.8s) GREEN. 작업 브랜치 `claude/fervent-babbage-1hc9qn` 은 `origin/main` 과 0/0 완전 동기 상태에서 출발.
+- **중단된 작업 식별 + 일원화**: 메인 레포 단일 확인 결과 **열린 PR 30건 적체**(직전 점검 23건 → 30건으로 악화). 이 중 ODYSSEY "일일 점검" 드래프트 **15건(#429–443)** 이 main 에 한 번도 안착되지 못하고 매일 재생성만 반복 중. 가장 포괄적인 최신 일원화 브랜치 **PR #439**(`claude/fervent-babbage-8l35k2`, Phase 404·405·411·452·453·454·473 7건, `mergeable_state: clean`, 현 main HEAD 기반, +5,636/23파일)를 작업 브랜치로 fast-forward 흡수 → #429–438 supersede.
+- **검증**: 흡수 후 전체 회귀 **6,820 pass / 12 skip / 0 fail**(78.0s) GREEN(기준선 6,497 + 신규 6모듈 323). 신규 6모듈(`benchmark_comparison`·`ml_application_classification`·`overseas_pilot_proposal`·`rl_advisory_boundary`·`rl_generalization_protocol`·`wg_opinion_portfolio`) 단독 **323 pass**, `-O` 최적화 임포트 정상.
+- **code-reviewer 어드바이저 재심(흡수 전 #439 의 HIGH 3 위에 2차 심사)**: HIGH 2건 보고 → **둘 다 비실행 판정**. ① `ml_application_classification.py` `by_family` 음수 미검증 주장 = **거짓양성**(실증: `by_family` 는 `by_level`(비음수 검증)에서 파생된 `derived` 와 정확히 일치 강제·zero-filter 적용 → 음수 값 구조적 불가, `ValueError` 로 원천 차단). ② `rl_advisory_boundary.py` `ML_IMPORT_TOKENS` 동기화 갭 = **문서화된 설계 한계**, 제안 수정(임포트시 파일시스템 열거)은 모듈의 순수성·부수효과 0 규약과 CLAUDE.md §2 단순성 원칙에 위배되어 기각. **코드 변경 불필요**.
+- **점검 발견(사용자 결정 필요)**: ① **열린 PR 30건 적체 — 근본 원인은 추가 코드 부재가 아니라 머지 결정 부재**. ODYSSEY 드래프트 15건(#429–443)은 본 PR(=#439 일원화)이 상위집합 → 본 PR 머지 후 #429–443 일괄 close 권고. ② **Dependabot 12건**(#268–279·#367·#426·#427 — electron `39→42`·playwright·matplotlib 등) triage 필요. ③ perf #283(핫루프 힙 할당 제거)·#280(Phase 207) 별도 검토. ④ **GitHub 보고 취약점 미해소** — 전부 사용자 승인 필요. 적체 해소의 유일한 차단요인은 **main 머지 권한 행사**(또는 auto-merge 활성화).
+
 ### 추가 (feat/test) — 일일 점검 2026-06-24: ODYSSEY Track 🔬 Phase 454 — ML 애플리케이션 EASA Level 분류 게이트
 
 - **작업 상황 점검**: 작업 브랜치 `claude/fervent-babbage-eom1kp` HEAD `e7f4bc6`(Phase 451 EASA AI 적합성 + Standards/Continuum 다수 일원화 적재). 메인 레포 단일 확인 결과 **열린 PR 23건 적체**(직전 점검 issue #409 기준 15건 → 23건으로 증가) — 그 중 최신 draft **#435**(2026-06-24)가 Phase 452(`rl_generalization_protocol`)·453(`rl_advisory_boundary`)·404·405·411·473 일원화 중. ODYSSEY Track 🔬 Formal & Research Frontier(451-460)에서 Phase 451 이 *가장 큰 갭* 으로 지목한 `ml_application_classification`("EASA Level 1A/1B/2/3 분류 기록 없음, 인증 경로 진입 전제 미충족")이 **어느 열린 PR 도 다루지 않는 미구현 갭** 임을 확인 → #435 의 452·453(일반화 검증·자문 경계)과 **서로 다른 갭**을 골라 충돌·중복 없이 신규 구현(번호는 #435 의 452·453 과 비충돌하도록 **454** 채택).

@@ -5,6 +5,16 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test/docs) — 일일 점검 2026-06-25 (42차): ROADMAP 3종 추가 (Phase 468·483·490) + README 최신화
+
+- **사용자 요청**: 41차 머지 후 "진행" → 즉시 다음 라운드. 마지막 단계로 README 최신화.
+- **Phase 468** (Track 🎓 신규 문서) — `docs/curriculum/CAPSTONE_STANDARD.md`. 대학 캡스톤 표준 커리큘럼. GENESIS 383(15주 강의 슬라이드) 확장. 학부 4학년 1학기 3학점(이론 1+실습 2)·15주(Part I 기초 1-5주·Part II 핵심 6-10주·Part III 응용 11-15주). CLO 7종. 팀 프로젝트 8 주제(🟢🟡🔴 난이도). 평가 rubric(중간 20·기말 40·산출물 30·참여 10 = 100). 다른 대학 채택 5단계(fork·로컬화·지도교수·장비·결과 보고). MIT 라이센스 자유 사용 명시.
+- **Phase 483** (Track 🎨 신규 문서) — `docs/maintenance/THREEJS_UPGRADE_PLAN.md`. Three.js r162 → r170 메이저 업그레이드 리허설. 4 마이너 단계(r164·r166·r168·r170) 절차 + 호환 셰임 패턴(`useLegacyLights`·`ColorManagement`·`outputColorSpace`). 7 회귀 게이트(JS·md5·헤드리스·replay_cursor·smoke_sim·mega_swarm·canary). WebGPURenderer 마이그레이션 카나리 (r170+ 안정화 시 옵트인). 6단계 일정(2026-Q4 r164 → 2027-Q3 r170 조건부). 롤백 절차(`git revert` + 4 사본 md5 재계산).
+- **Phase 490** (Track 🏛 신규 문서) — `docs/CONTINUUM_DIGITAL_LEGACY.md`. 디지털 유산 선언 — 2036년 재현 가능성 체크리스트. 6 카테고리(✅코드 영구 보존·📦의존성 재현·📚문서·🧪회귀·🔐보안·♾️거버넌스). 의존성 6 영역(Python·Node·OS·Three.js·Playwright·CUDA) 핀 정책. 2036년 재현 시나리오 5단계(git clone·docker compose·pytest·시뮬·게이트). 예상 이슈 7건 + 우회(GitHub 종료·Python EOL·WebGPU·Three.js 메이저·CUDA·정책·yank). "영원히 변하지 않는 자산" 6 항목. 분기 검증 절차. "미래 연구자(Future-2036)에게" 메시지. Phase 500 Centennial 선언 전제 완성.
+- **README 최신화** — 진척 현황 날짜 06-24→06-25 / 미완료 기준 06-25 / I ODYSSEY 진척률 37%→**42%** / 최신 업데이트 배너 신규 (본 세션 ODYSSEY 15 phase + 7차 점검 + Three.js/Electron LTS + HUD 캐싱 + CSP·JWT·hooks + 411 브랜치 정리 가이드 종합).
+- **회귀 테스트** — `tests/test_phase_468_483_490_docs.py` (신규) 22 케이스: 468 6건(file·header·GENESIS 383·15주·CLO 7종·rubric·MIT), 483 6건(file·header·r162·버전 경로·호환 셰임·회귀 매트릭스·롤백), 490 7건(file·header·2036·체크리스트·핀·재현 명령·미래 메시지·Phase 489 참조). **22/22 PASS** (직접 실행).
+- **검증**: Python py_compile OK · 4 사본 md5 불변 (시뮬레이터 무수정). ROADMAP 갱신: line 332(468 ✅) · line 335(483·490 ✅) + 잔여 splitting (491-500).
+
 ### 추가 (feat/test/docs) — 일일 점검 2026-06-25 (41차): ROADMAP 3종 추가 (Phase 463·470·489)
 
 - **사용자 요청**: "로드맵에 써져있는 모든 작업 시작해" → 40차 머지 후 즉시 다음 라운드. draft PR(#430·#433 phase 452/453) 회피하면서 sandbox 가능 + 충돌 위험 0 인 3종 일괄.

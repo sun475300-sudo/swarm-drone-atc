@@ -231,14 +231,15 @@ class TestLiveRepoHonesty:
     def _repo_root(self) -> Path:
         return Path(__file__).resolve().parent.parent
 
-    def test_live_repo_not_ready_until_license_and_archive(self):
-        """현 리포는 LICENSE 파일·내구 아카이브 미비 → 정직하게 NOT_READY.
+    def test_live_repo_not_ready_until_archive(self):
+        """LICENSE 파일은 추가되어 충족(license-file satisfied, 2026-06-25).
+        내구 아카이브(DOI/Zenodo) 미비로 여전히 정직하게 NOT_READY.
 
-        상태 개선(LICENSE 추가·DOI 발급) 시 *의도적으로* 깨지는 정직성 가드.
+        아카이브 발급 등 상태 개선 시 *의도적으로* 깨지는 정직성 가드.
         """
         result = assess_legacy_readiness(self._repo_root())
         assert result.verdict == VERDICT_NOT_READY
-        assert "license-file" in result.unmet_critical
+        assert "license-file" in result.satisfied
         assert "archival-durable" in result.unmet_critical
 
     def test_live_repro_and_docs_satisfied(self):

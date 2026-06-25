@@ -45,7 +45,7 @@ jobs:
             || true  # 결과 있어도 step 실패 방지 (SARIF 업로드 후 판단)
 
       - name: SARIF 결과 GitHub Security 탭에 업로드
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: bandit-results.sarif
@@ -122,7 +122,7 @@ jobs:
           exit-code: "0"  # SARIF 업로드 후 별도 판단
 
       - name: SARIF 결과 GitHub Security 탭에 업로드
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: trivy-results.sarif

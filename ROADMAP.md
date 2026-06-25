@@ -279,7 +279,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 315** 🏭 DO-178C 도구 자격 평가 (TQL-5) — `simulation/tool_qualification.py` (DO-178C §12.2 기준 4개 카테고리×12개 도구 설치/설정 증거 파일시스템 스캔, QUALIFIED/PARTIAL/NOT_QUALIFIED 결정적 판정, ToolQualResult/ToolQualReport frozen dataclass, assess_tools/get_category_report/list_categories, CLI --assess/--category/--categories/--json, 38건 PASS) (2026-06-25)
 - [x] **Phase 316** 🏭 빌드 환경 사양서 자동 수집 — `simulation/build_env_spec.py` (DO-178C §11.6 기준 5개 카테고리×15개 항목 런타임/파일 존재 검사, DOCUMENTED/PARTIAL/UNDOCUMENTED 결정적 판정, EnvItem/EnvReport frozen dataclass, collect_env/get_category_report/list_categories, CLI --collect/--category/--categories/--json, 37건 PASS) (2026-06-25)
 - [x] **Phase 317** 🏭 SQA 감사 로그 — `simulation/sqa_audit.py` (DO-178C §8 SQA 5개 목표×15개 점검 항목 파일시스템 스캔, MET/PARTIAL/NOT_MET 결정적 판정, SqaFinding/SqaReport frozen dataclass, run_sqa_audit/get_objective_report/list_objectives, CLI --audit/--objective/--objectives/--json, 37건 PASS) (2026-06-25)
-- [x] **Phase 318** 🏭 CCB 변경통제 적합성 게이트 — `simulation/change_control_board.py` + `docs/certification/CCB_CHANGE_CONTROL.md` (8 기준·정직성 결속·인용 증거 디스크 실재 강제, 부분 적합 75%, 27건 PASS, 2026-06-25)
+- [x] **Phase 318** 🏭 CCB 변경통제 (DO-178C §7) — `simulation/ccb_change_control.py` 형상관리 5영역(BASELINE/CHANGE_REQUEST/VERSION_CONTROL/BUILD_RELEASE/AUDIT_TRACE)×15 점검항목 파일시스템 증거 자동 점검, 37건 PASS
 - [ ] **Phase 319-320** 🏭 Certification & Compliance 잔여 — 테스트절차서·4대계획서(SDP/SVP/SCMP/SQAP)
 - [x] **Phase 322** 🌍 `.sdacs-scenario` 스키마 + 검증기 — `simulation/scenario_schema.py` + `docs/schemas/sdacs-scenario.schema.json`, 20건 PASS (2026-06-15)
 - [ ] **Phase 321-340** 🌍 Ecosystem & Open Source — 플러그인 SDK·`@sdacs/core` npm·`sdacs-sim` PyPI·v2.0 API 안정화

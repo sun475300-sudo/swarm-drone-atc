@@ -86,7 +86,7 @@
 - [ ] 261-280 HITL (사용자 HW) · 281-300 학술 임팩트 (Ablation 자동화는 sandbox 가능)
 
 **GENESIS·ODYSSEY 잔여**
-- [x] **GENESIS 318** ✅ CCB 변경통제 (DO-178C §7, `simulation/ccb_change_control.py` · 37 테스트 PASS) · [ ] 319-340 잔여 — 테스트절차서·4대계획서·플러그인 SDK·npm/PyPI 배포(🔒 외부 퍼블리싱 의존)
+- [x] **GENESIS 318-319** ✅ CCB 변경통제·테스트 절차서 (DO-178C §6/§7, `ccb_change_control.py`·`test_procedures.py` · 37+23 테스트 PASS) · [ ] 320-340 잔여 — 4대계획서·플러그인 SDK·npm/PyPI 배포(🔒 외부 퍼블리싱 의존)
 - [ ] GENESIS 342-380 — 지역 실증·24시간 운영·온보드 RL·V2X·GPS 거부 환경·자가 치유
 - [ ] GENESIS 395-400 — Phase 400 레거시 선언 (383-386·390-394 완료)
 - [x] **ODYSSEY 402-409·411** ✅ (FAA UTM·USS·EASA·ICAO 정렬·국제 벤치마크·해외 파일럿 — #449 안착 2026-06-25) · [ ] 410·412-420 잔여 (GUTMA 기고·실제 제출은 외부 기관 의존)

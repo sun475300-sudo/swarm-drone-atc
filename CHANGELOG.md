@@ -5,6 +5,10 @@
 
 ## [Unreleased]
 
+### test(genesis) — 2026-06-25: Phase 319 테스트 절차서 검증 추가 (커버리지 0%→충족)
+
+- **GENESIS Phase 319** — 기존 `simulation/test_procedures.py`(DO-178C §6 테스트 절차서 감사, 커버리지 0% = 무테스트)에 `tests/test_test_procedures.py` **23건** 신규 추가. 감사 실행·15 점검항목·준수율/판정·단계별 보고·`_detect_status`(MET/PARTIAL/NOT_MET) 상태 판정·`_glob_any` 안전성(__pycache__ 제외·상위경로 탈출 거부)·직렬화 검증. 실 리포 감사는 모듈 스코프 fixture 1회로 제한(반복 glob 방지, 5.8s). ruff clean. **참고**: 직전 시도에서 만든 `change_control_board.py` 는 기존 `ccb_change_control.py`(Phase 318)의 중복이라 제거하고 기존 모듈로 일원화함.
+
 ### 정리·최적화 — 2026-06-25: 메인 브랜치 정리 + A* 결정적 최적화 + xdist 수집 안정화
 
 - **AIM 정밀검사 기록(소급)**: Phase 691-700 AIM 10개 모듈 정밀검사 9라운드(Round 4–12) 완료 — `tests/test_phase691_700_aim.py` **242 테스트**. NaN/Inf 바이패스 차단(`math.isfinite`), CAVOK 위양성 NO-GO 수정, 캡슐화 누수 방지, fail-closed 안전, 방어적 복사, 중복 거부. 대상: notam_manager·tfr_handler·vertiport_ops·metar_parser·aim_briefing·flight_following·cross_border_coord·post_flight_report·aero_charts·insurance_risk.

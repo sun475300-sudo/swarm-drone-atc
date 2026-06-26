@@ -185,6 +185,24 @@ def test_bluesky_import_aircraft_without_dest_uses_origin():
     assert ac.dest_lon == pytest.approx(ac.lon)
 
 
+def test_bluesky_import_skips_malformed_coordinate_lines():
+    scn = (
+        "00:00:00.00>CRE BAD,MULTIROTOR,not_a_number,126.3,0,328,29\n"
+        "00:00:00.00>CRE OK,MULTIROTOR,34.8,126.4,0,328,29\n"
+    )
+    ex = bluesky_to_exchange(scn)
+    assert [ac.acid for ac in ex.aircraft] == ["OK"]
+
+
+def test_bluesky_import_skips_short_cre_lines():
+    scn = (
+        "00:00:00.00>CRE SHORT,MULTIROTOR,34.8,126.4\n"  # 4 필드 < 7
+        "00:00:00.00>CRE FULL,MULTIROTOR,34.8,126.4,0,328,29\n"
+    )
+    ex = bluesky_to_exchange(scn)
+    assert [ac.acid for ac in ex.aircraft] == ["FULL"]
+
+
 # ── U-TRAFMAN export/import ─────────────────────────────────────────────────
 def test_utrafman_export_one_plan_per_aircraft():
     ex = sdacs_to_exchange(_sample_scenario(), seed=0)
@@ -207,6 +225,31 @@ def test_utrafman_roundtrip_preserves_reference_origin():
     back = utrafman_to_exchange(exchange_to_utrafman(ex))
     assert back.ref_lat == pytest.approx(ex.ref_lat)
     assert back.ref_lon == pytest.approx(ex.ref_lon)
+
+
+def test_utrafman_import_missing_destination_raises():
+    doc = {"flight_plans": [{"flight_id": "X", "origin": [34.8, 126.4]}]}
+    with pytest.raises(ValueError, match="missing origin/destination"):
+        utrafman_to_exchange(doc)
+
+
+def test_utrafman_import_without_reference_origin_uses_default():
+    doc = {
+        "flight_plans": [
+            {"flight_id": "X", "origin": [34.8, 126.4], "destination": [34.81, 126.41]}
+        ]
+    }
+    ex = utrafman_to_exchange(doc)
+    assert ex.ref_lat == pytest.approx(DEFAULT_REF_LAT)
+    assert ex.ref_lon == pytest.approx(DEFAULT_REF_LON)
+
+
+# ── 경계: 빈 교환 ───────────────────────────────────────────────────────────
+def test_exchange_to_sdacs_rejects_empty_aircraft():
+    empty = bluesky_to_exchange("# comments only\n")
+    assert empty.aircraft == ()
+    with pytest.raises(ValueError, match="empty exchange"):
+        exchange_to_sdacs(empty)
 
 
 # ── 실 시나리오 파일 통합 (오프라인) ────────────────────────────────────────

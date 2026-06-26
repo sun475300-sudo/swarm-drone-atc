@@ -215,7 +215,13 @@ def _materialize_types(dist: dict[str, float], count: int, rng: np.random.Genera
 # IR → SDACS 시나리오 (스키마 호환 dict)
 # ──────────────────────────────────────────────────────────────────────────
 def exchange_to_sdacs(ex: ScenarioExchange) -> dict[str, Any]:
-    """IR → SDACS 시나리오 dict (``scenario_schema.validate_scenario`` 계약 만족)."""
+    """IR → SDACS 시나리오 dict (``scenario_schema.validate_scenario`` 계약 만족).
+
+    스키마는 양수 ``drone_count`` 를 요구한다. 항공기 0대 IR 은 유효 시나리오를
+    만들 수 없으므로 잘못된 출력을 내보내는 대신 명시적으로 거부한다.
+    """
+    if not ex.aircraft:
+        raise ValueError("cannot build a valid SDACS scenario from an empty exchange (0 aircraft)")
     scenario: dict[str, Any] = {
         "scenario": ex.name,
         "description": ex.description or f"imported from external simulator ({len(ex.aircraft)} aircraft)",
@@ -244,6 +250,8 @@ def exchange_to_bluesky(ex: ScenarioExchange) -> str:
         f"# {ex.description}",
         f"# ref_origin={ex.ref_lat:.5f},{ex.ref_lon:.5f} area_km2={ex.area_km2:g} aircraft={len(ex.aircraft)}",
     ]
+    # 정밀도 안내: 고도 .1f(ft)·속도 .2f(kt) 직렬화는 왕복 시 미세 드리프트를
+    # 남긴다(100 m→100.005 m, 15 m/s→15.001 m/s). 포맷 호환 우선의 의도된 손실.
     for ac in ex.aircraft:
         alt_ft = ac.alt_m * _M_TO_FT
         spd_kt = ac.spd_ms * _MS_TO_KT
@@ -278,18 +286,21 @@ def bluesky_to_exchange(
             continue
         cmd, args = parts[0].upper(), parts[1]
         fields = [f.strip() for f in args.split(",")]
-        if cmd == "CRE" and len(fields) >= 7:
-            acid = fields[0]
-            cres[acid] = {
-                "type_code": fields[1],
-                "lat": float(fields[2]),
-                "lon": float(fields[3]),
-                "hdg_deg": float(fields[4]),
-                "alt_m": float(fields[5]) / _M_TO_FT,
-                "spd_ms": float(fields[6]) / _MS_TO_KT,
-            }
-        elif cmd == "DEST" and len(fields) >= 3:
-            dests[fields[0]] = (float(fields[1]), float(fields[2]))
+        # 외부/손상 파일 방어 — 숫자 파싱 실패 라인은 조용히 건너뛴다(경계 검증).
+        try:
+            if cmd == "CRE" and len(fields) >= 7:
+                cres[fields[0]] = {
+                    "type_code": fields[1],
+                    "lat": float(fields[2]),
+                    "lon": float(fields[3]),
+                    "hdg_deg": float(fields[4]),
+                    "alt_m": float(fields[5]) / _M_TO_FT,
+                    "spd_ms": float(fields[6]) / _MS_TO_KT,
+                }
+            elif cmd == "DEST" and len(fields) >= 3:
+                dests[fields[0]] = (float(fields[1]), float(fields[2]))
+        except ValueError:
+            continue
 
     aircraft: list[ExchangeAircraft] = []
     for acid in cres:  # CRE 등장 순서 보존
@@ -358,6 +369,11 @@ def utrafman_to_exchange(doc: dict[str, Any]) -> ScenarioExchange:
     ref_lat, ref_lon = float(ref[0]), float(ref[1])
     aircraft: list[ExchangeAircraft] = []
     for fp in doc.get("flight_plans", []):
+        # 외부 비행계획 경계 검증 — 출발/목적지 누락은 명시적 오류로 표면화.
+        if "origin" not in fp or "destination" not in fp:
+            raise ValueError(
+                f"flight plan {fp.get('flight_id', '?')} missing origin/destination"
+            )
         o = fp["origin"]
         d = fp["destination"]
         ox, oy = latlon_to_local_km(float(o[0]), float(o[1]), ref_lat, ref_lon)

@@ -276,3 +276,49 @@ def test_high_density_roundtrip_recovers_drone_count():
     ex = sdacs_to_exchange(scenario, seed=0)
     back = bluesky_to_exchange(exchange_to_bluesky(ex))
     assert len(back.aircraft) == scenario["drone_count"]
+
+
+# ── 경계 강화: 손상된 외부 입력 (code-reviewer HIGH/MEDIUM 반영) ─────────────
+def test_utrafman_import_short_origin_raises():
+    """origin 이 2원소 미만이면 IndexError 대신 명시적 ValueError."""
+    doc = {
+        "reference_origin": [DEFAULT_REF_LAT, DEFAULT_REF_LON],
+        "flight_plans": [{"flight_id": "S", "origin": [34.8], "destination": [34.9, 126.4]}],
+    }
+    with pytest.raises(ValueError, match="origin"):
+        utrafman_to_exchange(doc)
+
+
+def test_utrafman_import_short_destination_raises():
+    doc = {
+        "reference_origin": [DEFAULT_REF_LAT, DEFAULT_REF_LON],
+        "flight_plans": [{"flight_id": "S", "origin": [34.8, 126.4], "destination": []}],
+    }
+    with pytest.raises(ValueError, match="destination"):
+        utrafman_to_exchange(doc)
+
+
+def test_utrafman_import_short_reference_origin_raises():
+    doc = {
+        "reference_origin": [34.8],
+        "flight_plans": [{"flight_id": "S", "origin": [34.8, 126.4], "destination": [34.9, 126.4]}],
+    }
+    with pytest.raises(ValueError, match="reference_origin"):
+        utrafman_to_exchange(doc)
+
+
+def test_bluesky_import_duplicate_acid_raises():
+    """동일 ACID CRE 2회 → 조용한 항공기 유실 대신 명시적 ValueError."""
+    scn = (
+        "00:00:00.00>CRE DUP,M600,34.8,126.4,90,100,15\n"
+        "00:00:00.00>CRE DUP,M600,34.9,126.5,90,100,15\n"
+    )
+    with pytest.raises(ValueError, match="duplicate ACID"):
+        bluesky_to_exchange(scn)
+
+
+def test_sdacs_negative_drone_count_falls_through():
+    """음수 drone_count 는 채택하지 않고 다음 관용 키/기본값으로 폴스루."""
+    scenario = {"drone_count": -5, "base_traffic": {"drone_count": 4}}
+    ex = sdacs_to_exchange(scenario, seed=0)
+    assert len(ex.aircraft) == 4

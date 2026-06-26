@@ -285,7 +285,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 322** 🌍 `.sdacs-scenario` 스키마 + 검증기 — `simulation/scenario_schema.py` + `docs/schemas/sdacs-scenario.schema.json`, 20건 PASS (2026-06-15)
 - [x] **Phase 321** 🌍 플러그인 SDK v1 — `simulation/plugin_sdk.py` PluginType 7종 enum·PluginMeta frozen dataclass·PluginRegistry 등록/해제/의존 해결/실행 파이프라인, MappingProxyType 불변 레지스트리, CLI --list/--register/--resolve/--json, 50건 PASS (2026-06-26)
 - [x] **Phase 330** 🌍 CITATION.cff + 인용 검증 — `CITATION.cff` CFF 1.2.0 + `simulation/citation_validator.py` CFF 파서·BibTeX/APA 변환·필수필드 검증, CLI --validate/--bibtex/--apa/--json, 43건 PASS (2026-06-26)
-- [ ] **Phase 322-340** 🌍 Ecosystem & Open Source 잔여 — `@sdacs/core` npm·`sdacs-sim` PyPI 실 퍼블리싱·v2.0 API 안정화
+- [x] **Phase 323** 🌍 외부 시뮬레이터 어댑터 — `simulation/external_sim_adapter.py` + `docs/standards/EXTERNAL_SIM_ADAPTER_SPEC.md` BlueSky `.scn`·U-TRAFMAN JSON 호환 import/export, 중립 교환 모델 IR·등거리 투영·결정적 물질화·import 경계 검증, CLI 3종, 30건 PASS (2026-06-26)
+- [ ] **Phase 322-340** 🌍 Ecosystem & Open Source 잔여 — `@sdacs/core` npm·`sdacs-sim` PyPI 실 퍼블리싱·v2.0 API 안정화 *(어댑터 스펙 공개는 Phase 323 ✅ 안착)*
 - [x] **Phase 341** 🏙 목포 해역 실 좌표계 임포트 — `src/applications/mokpo_harbor.py` 해도 기반 NFZ 4종(부두·대교·지형·정박지)·회랑 3종 결정적 배치 + 레이 캐스팅 NFZ 판정·회랑 충돌 검사, 8건 PASS (2026-06-15)
 - [x] **Phase 342** 🏙 전남 도서(신안·완도) 의료 배송 거점 DB — `src/applications/jeonnam_island_sites.py` 실 좌표·거점·Haversine ETA, 7건 PASS (2026-06-15)
 - [ ] **Phase 341-360** 🏙 Real Deployment — 목포 해역 실 좌표·전남 도서 의료 배송·90일 파일럿 백서

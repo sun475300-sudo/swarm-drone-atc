@@ -130,7 +130,9 @@ def _read_drone_count(scenario: dict[str, Any]) -> int:
     """러너 관용 키에서 드론 수 추출 (scenario_migration 규약과 정렬)."""
     for key in ("drone_count", "base_drone_count", "total_drone_count"):
         if key in scenario and scenario[key]:
-            return int(scenario[key])
+            val = int(scenario[key])
+            if val > 0:
+                return val
     base = scenario.get("base_traffic")
     if isinstance(base, dict) and base.get("drone_count"):
         return int(base["drone_count"])
@@ -289,7 +291,7 @@ def bluesky_to_exchange(
         # 외부/손상 파일 방어 — 숫자 파싱 실패 라인은 조용히 건너뛴다(경계 검증).
         try:
             if cmd == "CRE" and len(fields) >= 7:
-                cres[fields[0]] = {
+                entry = {
                     "type_code": fields[1],
                     "lat": float(fields[2]),
                     "lon": float(fields[3]),
@@ -299,8 +301,15 @@ def bluesky_to_exchange(
                 }
             elif cmd == "DEST" and len(fields) >= 3:
                 dests[fields[0]] = (float(fields[1]), float(fields[2]))
+                continue
+            else:
+                continue
         except ValueError:
             continue
+        # 파싱 성공한 CRE 만 도달 — 중복 ACID 는 조용한 항공기 유실 방지를 위해 명시적 오류.
+        if fields[0] in cres:
+            raise ValueError(f"duplicate ACID '{fields[0]}' in .scn file")
+        cres[fields[0]] = entry
 
     aircraft: list[ExchangeAircraft] = []
     for acid in cres:  # CRE 등장 순서 보존
@@ -363,10 +372,17 @@ def exchange_to_utrafman(ex: ScenarioExchange) -> dict[str, Any]:
     }
 
 
+def _require_coord(value: Any, label: str) -> tuple[float, float]:
+    """외부 좌표 경계 검증 — 2원소 [lat, lon] 리스트만 허용(IndexError 차단)."""
+    if not isinstance(value, (list, tuple)) or len(value) < 2:
+        raise ValueError(f"{label} must be a 2-element [lat, lon] list, got: {value!r}")
+    return float(value[0]), float(value[1])
+
+
 def utrafman_to_exchange(doc: dict[str, Any]) -> ScenarioExchange:
     """U-TRAFMAN 비행계획 JSON(dict) → IR."""
     ref = doc.get("reference_origin", [DEFAULT_REF_LAT, DEFAULT_REF_LON])
-    ref_lat, ref_lon = float(ref[0]), float(ref[1])
+    ref_lat, ref_lon = _require_coord(ref, "reference_origin")
     aircraft: list[ExchangeAircraft] = []
     for fp in doc.get("flight_plans", []):
         # 외부 비행계획 경계 검증 — 출발/목적지 누락은 명시적 오류로 표면화.
@@ -374,8 +390,9 @@ def utrafman_to_exchange(doc: dict[str, Any]) -> ScenarioExchange:
             raise ValueError(
                 f"flight plan {fp.get('flight_id', '?')} missing origin/destination"
             )
-        o = fp["origin"]
-        d = fp["destination"]
+        fid = fp.get("flight_id", "?")
+        o = _require_coord(fp["origin"], f"flight plan {fid} origin")
+        d = _require_coord(fp["destination"], f"flight plan {fid} destination")
         ox, oy = latlon_to_local_km(float(o[0]), float(o[1]), ref_lat, ref_lon)
         dx, dy = latlon_to_local_km(float(d[0]), float(d[1]), ref_lat, ref_lon)
         aircraft.append(

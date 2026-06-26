@@ -254,7 +254,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 204** — Production 핵심 12종 회귀 강화 — `test_simulator_production_core.py` (getter 전수 + 12종 호출 + 93 회귀 방지) (2026-06-12)
 - [x] **Phase 205** — Beta API 부분 검증 — `test_simulator_beta_subset.py` (Copilot·적대·C-UAS·WindField·PQC, 5건) (2026-06-12)
 - [x] **Phase 209-210** — API Deprecation Policy + SemVer 규약 — `docs/API_DEPRECATION_POLICY.md`, `docs/API_SEMVER_POLICY.md` (성숙도별 유예 기간 + SemVer↔API 영향 + 긴급 보안 폐기 + CI 규칙) (2026-06-18)
-- [ ] **Phase 211-220** — production 격상 (12 → 30 API)
+- [x] **Phase 211-220** — production 격상 (12 → 30 API) — `test_simulator_production_core_30.py` (핵심 30종 실 호출 set→get 왕복·구조화 반환 검증 + 30종 production 등급 게이트, E2E 2건) (2026-06-26)
 - [ ] **Phase 221-240** — Real Validation (WebGPU 실 WGSL·CRDT Yjs·MAVLink SITL·KMA 풍속장)
 - [ ] **Phase 241-260** — Multi-User Reality (WS 관제 서버·다중 관제사·TimescaleDB·부하 100명)
 - [ ] **Phase 261-280** — Hardware Loop (Pixhawk HITL·Jetson 엣지·RTK·실 비행 데이터셋) *(사용자 HW 의존)*

@@ -60,7 +60,7 @@
 | **D** 웹 시뮬 | P721-735 | ✅ 100% | 군집·해양 3D + Electron 3-OS + i18n + LIVE + CPA 공간해시 + 멀티뷰 + EO/IR + **ATC 명령 콘솔** |
 | **E** 확장 연구 | P736-745 | ✅ 100% | RL PoC·UAS-T·LiDAR·DR·디지털트윈·Raft HA·UAM·양자·폐쇄망·LLM |
 | **F** 산학·사업화 | P746-755 | 🟢 90% | K-UAM·해수부·산림청·KISA·라이선싱·창업 docs (P755·LOI는 사용자 환경) |
-| **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 11% | 201-210·226 완료 — 성숙도 정직성·API 수명주기·GPS→ENU 정밀 검증 |
+| **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 21% | 201-220·226 완료 — 성숙도 정직성·API 수명주기·**production 코어 30종 회귀**·GPS→ENU 정밀 검증 |
 | **H** GENESIS | 시뮬 301-400 | 🟢 50% | 인증 301-319·플러그인SDK(321)·CITATION(330)·교육(381-389)·**Phase 400 Legacy 선언**·V2X·자가치유·**RL벤치·LLM관제·5G NTN·GPS거부·에너지계획**(361-368) 완료 — 실 지역 실증·양방향 디지털트윈만 잔여(실 HW) |
 | **I** ODYSSEY | 시뮬 401-500 | 🟡 46% | FAA/EASA/ICAO 정렬(402-411)·RL/EASA AI(452-457)·연합 운영(`federation_*` 19모듈)·표준/Continuum(461-500)·**#449 10 Phase 안착** 완료 — GUTMA·해외 제출·차세대 기수만 잔여(외부) |
 
@@ -93,7 +93,7 @@
 
 #### 🔨 잔여 코드 작업 (doable — 시각화 폴리시·인프라)
 - [ ] 시뮬레이터 Track Ⅰ — CPA TTC 라벨·위험도 색상·어드바이저리 빌보드 점멸 (기반 advisory/ttc/replay는 HTML 구현됨, **고도화·마감 검증** 잔여)
-- [ ] TRANSCENDENCE 211-220 — production API 12→30 격상 (시뮬레이터 성숙도)
+- [x] **TRANSCENDENCE 211-220** ✅ production API 12→30 격상 — `tests/e2e/test_simulator_production_core_30.py` (핵심 30종 실 호출 set→get 왕복·구조화 반환 검증 + 30종 production 등급 게이트, E2E 2건) (2026-06-26)
 - [ ] TRANSCENDENCE 241-260 — 다중 사용자 WS 관제 서버·부하 100명 (런타임 인프라)
 - [ ] ODYSSEY 426-427 — 2-인스턴스 연합 E2E·고스트 렌더링 (federation 백엔드 19모듈 완비, Playwright 다중페이지 E2E만 잔여)
 - [x] **GENESIS 320** ✅ 4대 SW계획서 — `docs/certification/SOFTWARE_PLANS.md` (SDP/SVP/SCMP/SQAP, DO-178C §4.3, 실제 프로세스 근거)

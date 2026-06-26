@@ -53,7 +53,7 @@
 
 - **Phase 321** 플러그인 SDK v1 — `_sdacs.registerPlugin()` (시나리오·센서·UI 패널 주입 인터페이스)
 - **Phase 322** 시나리오 마켓플레이스 포맷 — `.sdacs-scenario` 스키마 + 검증기
-- **Phase 323** 외부 시뮬레이터 어댑터 스펙 공개 — BlueSky·U-TRAFMAN 호환 import/export
+- **Phase 323** ✅ 외부 시뮬레이터 어댑터 스펙 공개 — BlueSky·U-TRAFMAN 호환 import/export — `simulation/external_sim_adapter.py` + `docs/standards/EXTERNAL_SIM_ADAPTER.md` (측지/SI 정규형 ↔ BlueSky `.scn`(CRE/ADDWPT, ft/kt) ↔ U-TRAFMAN-호환 JSON 결정적 왕복 + WGS84 ENU 브리지(Bowring 역해, 고극 sin 분기), code-reviewer 어드바이저 HIGH 3·MEDIUM 3 반영, 59건 PASS) (2026-06-26)
 - **Phase 324** npm 패키지 `@sdacs/core` 분리 — 충돌 감지(CPA·APF) 순수 JS 모듈 추출
 - **Phase 325** PyPI 패키지 `sdacs-sim` — SwarmSimulator 코어 배포
 - **Phase 326** GitHub Discussions 운영 체계 + 이슈 템플릿 정비

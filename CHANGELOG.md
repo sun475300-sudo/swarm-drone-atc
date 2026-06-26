@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test/docs) — 일일 점검 2026-06-25 (45차): Standards WG 의견서 3종 (Phase 475·476·477)
+
+- **Phase 475** (Track 🇺🇸 신규 문서) — `docs/standards/SDACS_FAA_UTM_OPINION.md`. FAA UTM ConOps v2.0 의견서 (Phase 472·474 자매). UTM 5 기능 (SCM·TCR·NIS·CM·USS) → SDACS Federation 9 모듈 매핑. 4 권고 (SDACS-SBS-10·5계층·USS interop·공개 자료실). Federal Register 의견 수렴 + RTCA SC-228 경유.
+- **Phase 476** (Track 🌍 신규 문서) — `docs/standards/SDACS_JARUS_WG105_OPINION.md`. JARUS WG-105 SORA v2.5 의견서. SORA v2.0→v2.5 격차 매트릭스 6 (GRC·ARC·OSO #07/#18/#24·Mitigation). 5 권고 (sora_assess 자동화·OSO #07 5계층·OSO #18 split-brain·OSO #24 강풍·공개 참조). 한국 대표(국토부) 경유.
+- **Phase 477** (Track ✈ 신규 문서) — `docs/standards/SDACS_IFALPA_RPAS_OPINION.md`. IFALPA RPAS Subcommittee 의견서. 유인-무인 통합 공역 관점. 격차 정렬 5 (분리·ATC·사고 보고·자격·공역). IFALPA Position 4 항목 정합. KAPA(한국민간항공조종사협회) 경유.
+- **Phase 470 dashboard 갱신** — Phase 471·472·474·475·476·477 6 신규 문서 인벤토리 추가 (분기 갱신 절차 정합).
+- **회귀 테스트** — `tests/test_phase_475_476_477_opinions.py` (신규) 27 케이스. 공통 베이스 클래스 (`_OpinionPaperBase`) — 모든 의견서 정직성·자매 참조·target_org 등 7 공통 + phase별 특수 검증. **27/27 PASS**.
+- **검증**: 4 사본 md5 불변 · Python py_compile OK. ROADMAP 338 갱신: 475·476·477 ✅ + 잔여 splitting (478-480).
+
 ### 추가 (feat/test/docs) — 일일 점검 2026-06-25 (44차): Phase 474 GUTMA Harmony WG 의견서
 
 - **Phase 474** (Track 🌐 신규 문서) — `docs/standards/SDACS_GUTMA_HARMONY_OPINION.md`. GUTMA (Global UTM Association) Harmony Working Group 의견서. Phase 472 ICAO RPASP 자매. **5 행동 권고**: ①USS 상호운용성 시험 자동화(Federation 9 모듈 참조 구현)·②결정적 시뮬 SLA(동일 시드→bit-exact)·③HLC 글로벌 인과 순서 표준(Phase 431)·④split-brain 4단계 사다리 ConOps(Phase 430)·⑤SHA-256 해시 체인 변조 탐지(Phase 429). Federation 9 모듈(421·422·423·424·425·428·429·430·431·432) 각 모듈을 GUTMA 격차에 매핑. 5단계 표준화 일정(2026-Q4 GUTMA 회원 등록 → 2027-Q4 recommended practice 등록). draft PR #432·#434 (phase 473) 회피 — 474 부터 진행.

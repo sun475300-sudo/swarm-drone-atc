@@ -49,6 +49,12 @@ SDACS 가 정합·기여 가능한 국내외 표준의 **추적 상태** 를 단
 | 사고 조사 표준 | `docs/standards/INCIDENT_INVESTIGATION_REPORT.md` | 467 | ✅ 작성 |
 | 인증 가능 ML 조사 | `docs/research/RL_GENERALIZATION_SURVEY.md` | 451 | ✅ 작성 |
 | 본 대시보드 | `docs/standards/SDACS_STANDARDS_CONTRIBUTION_DASHBOARD.md` | 470 | ✅ 작성 |
+| KS X UAS-CR-1 표준 제안 | `docs/standards/SDACS_KS_PROPOSAL_UAS_CR.md` | 471 | ✅ 작성 |
+| ICAO RPASP 의견서 | `docs/standards/SDACS_ICAO_RPASP_OPINION.md` | 472 | ✅ 작성 |
+| GUTMA Harmony 의견서 | `docs/standards/SDACS_GUTMA_HARMONY_OPINION.md` | 474 | ✅ 작성 |
+| FAA UTM ConOps 의견서 | `docs/standards/SDACS_FAA_UTM_OPINION.md` | 475 | ✅ 작성 |
+| JARUS WG-105 SORA v2.5 의견서 | `docs/standards/SDACS_JARUS_WG105_OPINION.md` | 476 | ✅ 작성 |
+| IFALPA RPAS 의견서 | `docs/standards/SDACS_IFALPA_RPAS_OPINION.md` | 477 | ✅ 작성 |
 
 ### 2.3 기고 일정 통합 (제안)
 

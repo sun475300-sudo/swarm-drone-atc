@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test/docs) — 일일 점검 2026-06-26 (46차): Standards 정책 추적 도구 3종 (Phase 478·479·480) — Standards Track 종결
+
+- **Phase 478** (Track 🛡 신규 스크립트) — `scripts/standards_conformance_check.py`. 표준 산출물(Phase 461-477) 메타 일관성 자동 점검. 4 검증: ①파일·헤더 존재 ②WG 의견서 정직성+MIT 강제 ③Phase 470 dashboard §2.2 인벤토리 드리프트 자동 탐지 ④WG 의견서→dashboard cross-link 무결성. CLI `--json` (CI 파싱) + `--check` (위반 exit 1). **실 산출물 12건 정합성 통과** — 작성 직후 IFALPA MIT 누락 1건 자동 발견 → 보강 (정직성 공시 확장). CI 게이트 통합 가능.
+- **Phase 479** (Track 📡 신규 문서) — `docs/standards/STANDARDS_WATCH_PROCEDURE.md`. 표준 변경 모니터링 절차. 10 표준 기관 알림 채널(ASTM·ISO·EASA·FAA·ICAO·JARUS·GUTMA·IFALPA·KAIA·국토부) + 5 트리거 이벤트(신규 발간·개정·Public Comment·WG 회의·신규 권고) + 분기 4단계 점검(1주차 채널 점검·2-4주 산출물 검토·마감 보고서·dashboard 갱신). RSS 폴러·GHA cron·Slack/Discord 웹훅·LLM 영향 평가 자동화 후속 후보 명시.
+- **Phase 480** (Track 📊 신규 템플릿) — `docs/standards/SDACS_STANDARDS_QUARTERLY_REPORT_TEMPLATE.md`. 분기 보고서 표준 템플릿 9 섹션 (보고 정보·요약·변경 사항·신규 의견서·회의 참석·SDACS 갱신·정합성 점검 결과·다음 분기 계획·한계+누락 정직성). 파일명 규약 `YYYY-QN`. Phase 478 명령 자동 첨부.
+- **IFALPA 의견서 보강** — `docs/standards/SDACS_IFALPA_RPAS_OPINION.md` Limitations 섹션에 MIT 라이센스 명시 추가 (Phase 478 점검 발견).
+- **회귀 테스트** — `tests/test_phase_478_479_480_standards_tools.py` (신규) 20 케이스. 478 6건(file·executable·header·imports·phase coverage·actual pass·exit code), 479 5건(file·header·10 organizations·triggers·quarterly·references), 480 5건(file·header·9 sections·conformance command·filename·honesty), live conformance 1건(전 산출물 정합성 통과). **20/20 PASS** + 실 정합성 라이브 게이트 통과.
+- **검증**: 4 사본 md5 불변 · Bash syntax OK · Python py_compile OK. ROADMAP 338 갱신: 478·479·480 ✅ — **Standards & Policy Track (Phase 461-480) 전면 종결** (draft 473 제외 17 phase 완료).
+
 ### 추가 (feat/test/docs) — 일일 점검 2026-06-25 (45차): Standards WG 의견서 3종 (Phase 475·476·477)
 
 - **Phase 475** (Track 🇺🇸 신규 문서) — `docs/standards/SDACS_FAA_UTM_OPINION.md`. FAA UTM ConOps v2.0 의견서 (Phase 472·474 자매). UTM 5 기능 (SCM·TCR·NIS·CM·USS) → SDACS Federation 9 모듈 매핑. 4 권고 (SDACS-SBS-10·5계층·USS interop·공개 자료실). Federal Register 의견 수렴 + RTCA SC-228 경유.

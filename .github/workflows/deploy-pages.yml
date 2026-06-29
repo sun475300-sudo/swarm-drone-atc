@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Mirror root-level simulator files into docs/ so the live site always
       # ships the freshest build without requiring a manual copy.

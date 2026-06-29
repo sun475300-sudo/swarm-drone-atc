@@ -17,7 +17,7 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # code_archaeology phase 파싱 테스트는 전체 git 이력이 필요하다.
           # 기본 shallow clone(fetch-depth:1)에서는 0 commit → test_non_empty_in_this_repo 실패.
@@ -70,7 +70,7 @@ jobs:
     needs: test
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v6

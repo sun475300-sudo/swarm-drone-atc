@@ -5,6 +5,14 @@
 
 ## [Unreleased]
 
+### 보안 (fix/security) — 2026-06-30 (47차): starlette CVE-2026-54283(높음)·54282(낮음) 대응
+
+- **트리거**: GitHub Dependabot 주간 보안 알림 (2026-06-23 ~ 06-30, 사용자 스크린샷 공유). `starlette` 의존성 2 CVE — CVE-2026-54282(낮음, `<1.3.0`) + **CVE-2026-54283(높음, `<1.3.1`)**.
+- **대응** (Phase 488 보안 SLA §2.1 — HIGH 72h 시한 → T+0 즉시 패치): `requirements.lock.txt` `starlette==1.2.1 → 1.3.1` (두 CVE 취약 범위 모두 벗어난 최소 버전). `requirements.txt` 에 `starlette>=1.3.1` 명시 보안 가드 추가 (transitive → explicit). Dependabot PR #367 제안과 일치 (본 브랜치 직접 해소 → #367 superseded).
+- **영향 평가**: FastAPI 백엔드(`api/fastapi_server.py` P711/P712)만 영향, 시뮬레이션 코어·시뮬레이터 HTML 무관. SDACS 별도 방어층(JWT alg 검증·WS 입력 검증·CSP 헤더) 존재.
+- **감사 기록** (Phase 488 §4.1 형식, dogfooding): `docs/security/CVE-2026-54283.md` 신규 — CVE 정보·영향 평가·대응 타임라인·패치 상세·검증 게이트·롤백 절차·후속.
+- **검증**: fastapi 0.136.3 ↔ starlette 1.3.1 호환성은 CI `pip install` + `test (3.10/3.11/3.12)` + `pip-audit` 위임 (본 sandbox 미설치). CI 실패 시 감사 기록 §6 롤백 절차.
+
 ### 추가 (feat/test/docs) — 일일 점검 2026-06-26 (46차): Standards 정책 추적 도구 3종 (Phase 478·479·480) — Standards Track 종결
 
 - **Phase 478** (Track 🛡 신규 스크립트) — `scripts/standards_conformance_check.py`. 표준 산출물(Phase 461-477) 메타 일관성 자동 점검. 4 검증: ①파일·헤더 존재 ②WG 의견서 정직성+MIT 강제 ③Phase 470 dashboard §2.2 인벤토리 드리프트 자동 탐지 ④WG 의견서→dashboard cross-link 무결성. CLI `--json` (CI 파싱) + `--check` (위반 exit 1). **실 산출물 12건 정합성 통과** — 작성 직후 IFALPA MIT 누락 1건 자동 발견 → 보강 (정직성 공시 확장). CI 게이트 통합 가능.

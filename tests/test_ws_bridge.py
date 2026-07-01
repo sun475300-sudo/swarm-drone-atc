@@ -103,35 +103,60 @@ def _make_fake_websockets():
 
 
 def test_main_parses_default_args(monkeypatch: pytest.MonkeyPatch) -> None:
-    """main() should use default drones=50 seed=42 port=8765."""
+    """main() should use default drones=50 seed=42 port=8765 host=127.0.0.1.
+
+    보안: host 기본값은 loopback (127.0.0.1) 이어야 한다.
+    """
     captured: list[tuple] = []
 
-    async def fake_run(drones, seed, port):
-        captured.append((drones, seed, port))
+    async def fake_run(drones, seed, port, host):
+        captured.append((drones, seed, port, host))
 
     monkeypatch.setattr(ws_bridge, "_run_simulation", fake_run)
     monkeypatch.setattr(sys, "argv", ["ws_bridge"])
+    monkeypatch.delenv("SDACS_WS_HOST", raising=False)
 
     with patch("asyncio.run", _run_coro_in_new_loop):
         main()
 
-    assert captured == [(50, 42, 8765)]
+    assert captured == [(50, 42, 8765, "127.0.0.1")]
 
 
 def test_main_parses_custom_args(monkeypatch: pytest.MonkeyPatch) -> None:
-    """main() should forward custom CLI args to _run_simulation."""
+    """main() should forward custom CLI args to _run_simulation (host 포함)."""
     captured: list[tuple] = []
 
-    async def fake_run(drones, seed, port):
-        captured.append((drones, seed, port))
+    async def fake_run(drones, seed, port, host):
+        captured.append((drones, seed, port, host))
 
     monkeypatch.setattr(ws_bridge, "_run_simulation", fake_run)
-    monkeypatch.setattr(sys, "argv", ["ws_bridge", "--drones", "100", "--seed", "7", "--port", "9000"])
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["ws_bridge", "--drones", "100", "--seed", "7", "--port", "9000", "--host", "0.0.0.0"],
+    )
 
     with patch("asyncio.run", _run_coro_in_new_loop):
         main()
 
-    assert captured == [(100, 7, 9000)]
+    assert captured == [(100, 7, 9000, "0.0.0.0")]
+
+
+def test_main_uses_env_var_for_host(monkeypatch: pytest.MonkeyPatch) -> None:
+    """SDACS_WS_HOST 환경변수가 CLI 미지정 시 host 기본값을 덮어쓴다."""
+    captured: list[tuple] = []
+
+    async def fake_run(drones, seed, port, host):
+        captured.append((drones, seed, port, host))
+
+    monkeypatch.setattr(ws_bridge, "_run_simulation", fake_run)
+    monkeypatch.setattr(sys, "argv", ["ws_bridge"])
+    monkeypatch.setenv("SDACS_WS_HOST", "0.0.0.0")
+
+    with patch("asyncio.run", _run_coro_in_new_loop):
+        main()
+
+    assert captured == [(50, 42, 8765, "0.0.0.0")]
 
 
 # ---------------------------------------------------------------------------

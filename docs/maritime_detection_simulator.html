@@ -3,7 +3,28 @@
 
 <head>
     <meta charset="UTF-8" />
+    <!-- file:// 직접 열기 감지 안내 — ES module(three.js)은 CORS 상 file:// 로드 불가. http 서버 필요. -->
+    <script>
+      if (location.protocol === 'file:') {
+        window.addEventListener('DOMContentLoaded', function () {
+          var o = document.createElement('div');
+          o.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#02060d;color:#e2e8f0;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif;padding:24px;';
+          o.innerHTML = '<div style="max-width:600px;text-align:center;line-height:1.7;">'
+            + '<div style="font-size:44px;margin-bottom:12px;">🚢</div>'
+            + '<h2 style="color:#38bdf8;margin:0 0 12px;">로컬 서버가 필요합니다</h2>'
+            + '<p style="color:#94a3b8;margin:0 0 18px;">이 시뮬레이터는 Three.js ES 모듈을 사용하므로 파일을 직접 더블클릭(<code style="color:#fbbf24;">file://</code>)하면 브라우저 보안 정책(CORS)으로 실행되지 않습니다.</p>'
+            + '<div style="background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:16px;text-align:left;font-family:monospace;font-size:13px;color:#cbd5e1;">'
+            + '# 이 폴더에서 로컬 서버 실행 후 접속:<br>python3 -m http.server 8000<br><span style="color:#22c55e;"># → http://localhost:8000/maritime_detection_simulator.html</span></div>'
+            + '<p style="margin:18px 0 0;"><a href="https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html" style="color:#38bdf8;">또는 온라인 라이브 사이트에서 바로 실행 →</a></p>'
+            + '</div>';
+          document.body.appendChild(o);
+        });
+      }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <!-- CSP: 해양 시뮬레이터는 vendor three.js (local) + 인라인 모듈 스크립트 + Google Fonts 사용.
+         시뮬레이터 본체와 동일 정책 — object-src 'none' + base-uri 'self' 로 XSS 표면 축소. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' ws: wss:; worker-src 'self' blob:; object-src 'none'; base-uri 'self';">
     <meta name="theme-color" content="#02060d">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1107,7 +1128,19 @@
             },
             get selectedId() { return selected ? selected.id : null; },
             start() { running = true; }, stop() { running = false; },
-            scenario(n) { document.getElementById('scenario').value = n; initScenario(n); },
+            scenario(n) {
+                // 4차 점검: 알려진 시나리오 키 화이트리스트로 거부 — 임의 문자열이
+                // curScenName 에 저장되어 validation/CSV 에 오염되는 것 방지.
+                if (typeof n !== 'string' || !Object.prototype.hasOwnProperty.call(SCEN, n)) {
+                    console.warn('[SDACS maritime] 알 수 없는 scenario 키:', n,
+                        '— 지원:', Object.keys(SCEN).join(', '));
+                    return false;
+                }
+                const el = document.getElementById('scenario');
+                if (el) el.value = n;
+                initScenario(n);
+                return true;
+            },
             lang(l) { if (l) applyLang(l); return _lang; },                                    // B5 i18n
             get titleText() { return document.querySelector('[data-i18n="title"]').textContent; },
             camera, scene, renderer,

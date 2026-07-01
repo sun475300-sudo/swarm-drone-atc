@@ -3,6 +3,26 @@
 
 <head>
     <meta charset="UTF-8">
+    <!-- file:// 직접 열기(더블클릭) 감지 안내 — ES module(three.js)은 브라우저 보안(CORS)상
+         file:// 에서 로드 불가. http 서버 또는 GitHub Pages 라이브 사이트 필요.
+         non-module 인라인 스크립트라 module import 실패와 무관하게 항상 실행됨. -->
+    <script>
+      if (location.protocol === 'file:') {
+        window.addEventListener('DOMContentLoaded', function () {
+          var o = document.createElement('div');
+          o.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#03050a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif;padding:24px;';
+          o.innerHTML = '<div style="max-width:600px;text-align:center;line-height:1.7;">'
+            + '<div style="font-size:44px;margin-bottom:12px;">🛰</div>'
+            + '<h2 style="color:#60a5fa;margin:0 0 12px;">로컬 서버가 필요합니다</h2>'
+            + '<p style="color:#94a3b8;margin:0 0 18px;">이 시뮬레이터는 Three.js ES 모듈을 사용하므로 파일을 직접 더블클릭(<code style="color:#fbbf24;">file://</code>)하면 브라우저 보안 정책(CORS)으로 실행되지 않습니다.</p>'
+            + '<div style="background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:16px;text-align:left;font-family:monospace;font-size:13px;color:#cbd5e1;">'
+            + '# 이 폴더에서 로컬 서버 실행 후 접속:<br>python3 -m http.server 8000<br><span style="color:#22c55e;"># → http://localhost:8000/swarm_3d_simulator.html</span></div>'
+            + '<p style="margin:18px 0 0;"><a href="https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html" style="color:#60a5fa;">또는 온라인 라이브 사이트에서 바로 실행 →</a></p>'
+            + '</div>';
+          document.body.appendChild(o);
+        });
+      }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <!-- CSP: 시뮬레이터는 vendor three.js (local) + 인라인 모듈 스크립트 + Google Fonts + Web Worker(blob) + MediaRecorder(blob) + ws_bridge(ws://) 사용.
          'unsafe-inline'/'unsafe-eval' 은 인라인 스크립트와 WebGPU 셰이더 컴파일을 위해 필수. object-src 'none' + frame-ancestors 'none' 으로 XSS/clickjacking 표면 축소. -->

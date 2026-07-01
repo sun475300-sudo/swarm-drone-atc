@@ -16,10 +16,10 @@
     "pack": "electron-builder --dir",
     "build:simulator": "python scripts/build_simulator.py",
     "build:simulator:check": "python scripts/build_simulator.py --check",
-    "smoke": "SIM_URL=http://localhost:8123/swarm_3d_simulator.html node tests/e2e/smoke_sim.mjs",
-    "smoke:maritime": "SIM_URL=http://localhost:8123/maritime_detection_simulator.html node tests/e2e/smoke_maritime.mjs",
+    "smoke": "node tests/e2e/smoke_sim.mjs",
+    "smoke:maritime": "node tests/e2e/smoke_maritime.mjs",
     "pw:install": "playwright install chromium",
-    "test-server": "python3 -m http.server 8123"
+    "test-server": "python -m http.server 8123"
   },
   "devDependencies": {
     "electron": "^39.8.5",

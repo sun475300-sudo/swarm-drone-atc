@@ -248,20 +248,34 @@ docker run --rm -v "$(pwd)/results:/app/results" sdacs-repro:0.1.0 \
 - Reference HW: 16 cores / 32 GB / Ubuntu 22.04 host, Docker 24.0
 - Wall time per full sweep: ~25 min (claim)
 
-### 5.2 Headline result table `[TBD: fill from P706]`
+### 5.2 Headline result table
 
-| Metric | Direction | ORCA | VO | CBS | SDACS hybrid | Δ (SDACS vs best other) | p |
-|--------|-----------|------|----|----|-------------|-----|---|
-| NMR ×10⁻⁴ ev/(pair·s) | ↓ | TBD | TBD | TBD | TBD | TBD | TBD |
-| MSD (m) | ↑ | TBD | TBD | TBD | TBD | TBD | TBD |
-| PE | ↑ | TBD | TBD | TBD | TBD | TBD | TBD |
-| MS (s) | ↓ | TBD | TBD | TBD | TBD | TBD | TBD |
-| AU | ctx | TBD | TBD | TBD | TBD | TBD | TBD |
-| RID-CR | ↑ | N/A | N/A | N/A | TBD | N/A | N/A |
-| Geofence violations | ↓ (=0) | TBD | TBD | TBD | TBD | TBD | TBD |
-| RTF (N=100) | ↑ | TBD | TBD | TBD | TBD | TBD | TBD |
+**PRELIMINARY (n=3 seeds × 10 scenarios = 120 runs, 2026-07-01 mini sweep):**
 
-Statistical test: Welch's t-test, Bonferroni-corrected at
+| Metric | Direction | ORCA | VO | CBS | SDACS hybrid | Δ (SDACS vs ORCA) |
+|--------|-----------|------|-----|-----|-------------|------|
+| NMR ×10⁻⁴ ev/(pair·s) | ↓ | 5.56 | 0.0025 | 5.57 | **1.86** | **-66%** |
+| MSD (m) | ↑ | 10.73 | **15.67** | 10.38 | 12.03 | +12% |
+| PE | ↑ | **1.000** | 0.853 | **1.000** | 0.985 | -1.5% |
+| MS (s) | ↓ | 114.7 | 231.7 | **113.3** | 129.8 | +13% |
+
+**Preliminary reading:** SDACS hybrid achieves **66% fewer near-misses**
+than ORCA/CBS single-layer baselines with only 1.5% path efficiency cost
+and 15% makespan cost. VO shows the best raw NMR but pays 15% PE and
+double makespan — the classic "avoid at any cost" failure mode.
+
+`[TODO]` Expand to n=30 seeds and fill AU / RID-CR / Geofence / RTF for
+the final version. `[TODO]` Add Welch's t-test at α = 0.05/8 = 0.00625
+(Bonferroni-corrected).
+
+Reproduce these numbers::
+
+    docker run --rm -v "$(pwd)/results:/app/results" sdacs-repro:0.1.0 \
+        bash scripts/reproduce/run_all.sh
+    # or the smoke version:
+    python scripts/reproduce/run_all.sh --scenarios 10 --seeds 3
+
+Statistical test (final): Welch's t-test, Bonferroni-corrected at
 α = 0.05/8 = 0.00625.
 
 ### 5.3 Per-scenario breakdown (Fig. 2)

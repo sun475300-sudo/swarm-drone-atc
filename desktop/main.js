@@ -18,6 +18,11 @@ function _wpOpts(extra) {
     contextIsolation: true,
     nodeIntegration: false,
     sandbox: true,
+    // 시뮬레이터 HTML은 ES 모듈(import * as THREE from 'three')을 사용한다.
+    // file:// 로 로드하면 브라우저(Chromium)가 모듈 import 를 CORS 로 차단해
+    // 3D 가 렌더링되지 않는다(빈 화면). 이 앱은 로컬 파일만 로드하고 외부
+    // 링크는 shell.openExternal 로 여므로, 로컬 모듈 로드를 허용한다.
+    webSecurity: false,
   }, extra || {});
 }
 

@@ -34,6 +34,41 @@
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
 </div>
 
+## 📑 목차 / Table of Contents
+
+<details>
+<summary><b>25개 섹션 바로가기 — 클릭하여 펼치기 / Jump to section (click to expand)</b></summary>
+
+- [📣 공개 프로젝트 설명 자료 / Public Project Materials](#-공개-프로젝트-설명-자료--public-project-materials-2026-06-18)
+- [📊 개발 진척 현황 / Development Progress](#-개발-진척-현황--development-progress-2026-07-01)
+- [📦 배포 파일 다운로드 / Distribution Files](#-배포-파일-다운로드--distribution-files-v150--200-phase-unity)
+- [📄 최종 보고서 다운로드 / Final Report Downloads](#-최종-보고서-다운로드--final-report-downloads)
+- [🐳 Docker로 실행하기 / Run with Docker](#-docker로-실행하기--run-with-docker)
+- [🖥 데스크탑 앱 / Desktop App](#-데스크탑-앱--더블클릭으로-실행--desktop-app)
+- [🚢 해양 소형선 감지 시뮬레이터 / Maritime Detection](#-해양-소형선-감지-시뮬레이터--maritime-small-vessel-detection)
+- [What is SDACS? / SDACS란?](#what-is-sdacs--sdacs란)
+- [Key Results / 핵심 성과](#key-results--핵심-성과)
+- [System Architecture / 시스템 아키텍처](#system-architecture--시스템-아키텍처)
+- [5겹 안전망 (비전공자용)](#5겹-안전망--어떻게-충돌을-막는가-비전공자용)
+- [Core Algorithms / 핵심 알고리즘](#core-algorithms--핵심-알고리즘-기술-상세)
+- [How It Works / 작동 원리](#how-it-works--작동-원리)
+- [Multi-Language Architecture / 다중 언어](#multi-language-architecture--다중-언어-아키텍처)
+- [Development Phases / 개발 단계](#development-phases--개발-단계)
+- [Testing / 테스트](#testing--테스트)
+- [Performance Analysis / 성능 분석](#performance-analysis--성능-분석)
+- [GPU 가속 / GPU Acceleration](#gpu-가속--gpu-acceleration)
+- [Team / 팀](#team--팀)
+- [References / 참고 문헌](#references--참고-문헌)
+- [연구 프레임워크 — 왜 스타크래프트인가](#연구-프레임워크--왜-스타크래프트인가)
+- [광주시 테스트베드 전략 및 로드맵](#광주시-테스트베드-전략-및-개발-로드맵)
+- [Roadmap / 향후 계획](#roadmap--향후-계획)
+- [License](#license)
+- [변경 이력 (Changelog)](#변경-이력-changelog)
+
+</details>
+
+---
+
 ## 📣 공개 프로젝트 설명 자료 / Public Project Materials (2026-06-18)
 
 | 자료 | 대상 | 다운로드 |
@@ -49,7 +84,7 @@
 
 ---
 
-## 📊 개발 진척 현황 / Development Progress (2026-06-26)
+## 📊 개발 진척 현황 / Development Progress (2026-07-01)
 
 | 트랙 | 범위 | 진척 | 핵심 산출물 |
 |---|---|---|---|
@@ -62,7 +97,7 @@
 | **F** 산학·사업화 | P746-755 | 🟢 90% | K-UAM·해수부·산림청·KISA·라이선싱·창업 docs (P755·LOI는 사용자 환경) |
 | **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 11% | 201-210·226 완료 — 성숙도 정직성·API 수명주기·GPS→ENU 정밀 검증 |
 | **H** GENESIS | 시뮬 301-400 | 🟢 50% | 인증 301-319·플러그인SDK(321)·CITATION(330)·교육(381-389)·**Phase 400 Legacy 선언**·V2X·자가치유·**RL벤치·LLM관제·5G NTN·GPS거부·에너지계획**(361-368) 완료 — 실 지역 실증·양방향 디지털트윈만 잔여(실 HW) |
-| **I** ODYSSEY | 시뮬 401-500 | 🟡 46% | FAA/EASA/ICAO 정렬(402-411)·RL/EASA AI(452-457)·연합 운영(`federation_*` 19모듈)·표준/Continuum(461-500)·**#449 10 Phase 안착** 완료 — GUTMA·해외 제출·차세대 기수만 잔여(외부) |
+| **I** ODYSSEY | 시뮬 401-500 | 🟡 49% | FAA/EASA/ICAO 정렬(402-411)·RL/EASA AI(452-460, V&V·SafetyCase·Lifecycle)·연합 운영(`federation_*` 19모듈)·표준/Continuum(461-500)·**#449 10 Phase 안착** 완료 — GUTMA·해외 제출·차세대 기수만 잔여(외부) |
 
 > 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)(실행 일정)
 
@@ -87,7 +122,7 @@
 - [x] **GENESIS 318-319** CCB·테스트절차서 (DO-178C §6/§7) — `ccb_change_control.py`·`test_procedures.py` (37+23 PASS)
 - [x] **GENESIS 342-380 (SW)** V2X·양방향 디지털트윈·자가치유 — `v2x_*.py`(3)·`digital_twin_*.py`(5)·`swarm_self_healing`(`tests/track_genesis/`)
 - [x] **GENESIS 395-400** Phase 400 레거시 선언 — `legacy_declaration.py`·`legacy_readiness.py`·`maturity_assessment.py`·`handover_checklist.py`·`archive_redundancy/strategy.py`·`ecosystem_sustainability.py`
-- [x] **ODYSSEY 402-409·411·452-457·473** — #449 안착 (519 테스트 PASS)
+- [x] **ODYSSEY 402-409·411·452-460·473** — #449 안착 + ML V&V(458)·Safety Case(459)·Lifecycle Governance(460) 적합성 게이트 (215 테스트 PASS)
 - [x] **ODYSSEY 421-430 연합 운영** — `federation_*.py` 19 모듈 (discovery·handover·split-brain·trust·mesh·NOTAM 등)
 - [x] **ODYSSEY 461-492·500 표준/Continuum** — `standardization_tracker`·`ks_standard_proposal`·`wg_opinion_portfolio`·`track_handover_policy`·`centennial_declaration`
 

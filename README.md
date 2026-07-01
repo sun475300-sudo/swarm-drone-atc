@@ -1074,6 +1074,7 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-07-01 20:55 | `6273075c` | fix(simulator): file:// 직접 열기 감지 안내 배너 — "실행 안 됨" 해결 | docs/maritime_detection_simulator.html, docs/simulator.html, docs/swarm_3d_simulator.html, maritime_detection_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-07-01 20:44 | `f68ab051` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | outputs/EXECUTION_LOG_2026-06-19.md, outputs/REMAINING_ISSUES_2026-06-19.md, simulation/energy_aware_planner.py, simulation/llm_atc_production.py, simulation/onboard_rl_bench.py, simulation/plugin_sdk.py |
 | 2026-07-01 16:30 | `07d6aac4` | test(maritime): 탐지·식별 스모크 timeout 20s → 45s (느린 CI 헤드리스 플레이크) | tests/e2e/smoke_maritime.mjs |
 | 2026-07-01 16:24 | `38d3a46c` | fix(test): airspace_controller NaN 가드 픽스처 시그니처 수정 (CI RED 회복) | tests/test_airspace_controller_nan_guard.py |

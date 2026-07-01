@@ -114,6 +114,7 @@ DEFAULT_AIRSPACE_CEILING_M: float = 150.0
 DEFAULT_MIN_ALTITUDE_M: float = 10.0
 DEFAULT_PRIORITY: int = 5
 DEFAULT_TIMESTAMP_S: float = 0.0
+MAX_ATC_TEXT_LEN: int = 512
 MIN_SEPARATION_M: float = 30.0
 
 # Regex patterns for ATC phraseology
@@ -164,8 +165,12 @@ class ATCCommandParser:
     ) -> ATCCommand | None:
         """자연어 ATC 명령을 ATCCommand로 파싱. 인식 불가 시 None."""
         text = text.strip()
-        if not text:
+        if not text or len(text) > MAX_ATC_TEXT_LEN:
             return None
+        if priority < 0:
+            raise ValueError(f"priority must be >= 0, got {priority}")
+        if timestamp_s < 0:
+            raise ValueError(f"timestamp_s must be >= 0, got {timestamp_s}")
 
         result = self._try_climb(text)
         if result is None:

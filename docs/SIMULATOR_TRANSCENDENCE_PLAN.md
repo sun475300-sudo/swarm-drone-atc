@@ -2,6 +2,62 @@
 
 *Created: 2026-06-12 — Phase 200 (𝟏 Unity) 도달 + Phase 51 LLM Multi-Agent 격상 직후*
 
+---
+
+## 🔍 2026-07-01 감사 결과 — 실제 완료 상태 재정리
+
+*본 계획서에는 5개 phase(203·206·209·210·226)만 ✅ 표기되어 있었으나, 저장소 감사 결과 다수가 추가로 완료·미표기되어 있었다. 정직성 트랙 방침에 따라 실측 증거(파일 경로)와 함께 기록한다.*
+
+### 신규 완료 확인 (증거 파일 존재)
+
+| Phase | 항목 | 증거 파일 |
+|---|---|---|
+| **201·202** | API Maturity Registry / maturityReport() | `simulation/maturity_assessment.py` |
+| **207** | Maturity Badge SVG 자동 생성 | CHANGELOG 2026-06-13 (수작업 → 자동 생성물 격상) |
+| **228** | 음향 전파 실측/보정 | `simulation/aero_acoustic_v2.py`, `simulation/drone_acoustic_localization.py`, `simulation/acoustic_sensing.py` |
+| **229** | PQC Kyber-768 | `src/quantum/pqc_telemetry.py` |
+| **230** | Battery Aging LiPo 실 곡선 | `simulation/battery_degradation.py`, `battery_predictor.py`, `battery_management_system.py` |
+| **241** | WebSocket 관제 서버 | `api/fastapi_server.py` |
+| **242** | JWT 다중 관제사 세션 | `api/auth.py` |
+| **244** | TimescaleDB 텔레메트리 영속 | `src/storage/timescale.py`, `tests/test_timescale.py` |
+| **245** | Grafana 실 대시보드 | `deployment/monitoring/grafana-dashboard.json`, `monitoring/grafana/` |
+| **246** | 부하 테스트 100 동시 사용자 | `scripts/load_test.py` |
+| **247** | Helm K8s 실 배포 | `helm/sdacs/{Chart.yaml,values.yaml,templates}`, `deployment/k8s/{deployment,ingress,service}.yaml` |
+| **261** | Pixhawk 6X SITL 매핑 | `simulation/px4_sitl_bridge.py`, `docs/hardware/pixhawk_sdacs_hitl.md`, `docs/hardware/pixhawk_setup.md` |
+| **264** | MAVLink COMMAND_LONG 역명령 | `tests/e2e/test_onboard_bridge_mavlink_tx.py` |
+| **265** | Jetson Orin 엣지 통합 (부분) | `docs/hardware/jetson_mavlink.md` |
+| **266** | RTK-GPS 정밀 | `simulation/rtk_gps_handler.py`, `docs/hardware/rtk_gps.md` |
+| **267** | Failsafe 시나리오 | `simulation/failsafe_manager.py`, `docs/hardware/failsafe_logic.md` |
+| **269** | FMEA 실 데이터 | `docs/hardware/fmea_report.md` |
+| **270** | Remote ID (ASTM F3411) | `simulation/remote_id.py`, `simulation/remote_id_broadcast.py`, `docs/hardware/remote_id_broadcast.md` |
+| **283** | Zenodo DOI 데이터셋 | `.zenodo.json` |
+| **284** | Reproducibility 컨테이너 | `scripts/reproduce/{run_all.sh,run_one.sh,make_lock.sh,verify_canonical_hashes.py}`, `scripts/independent_reproduction.sh` |
+| **285** | ORCA/VO/CBS 비교 실험 (부분) | `scripts/compare_baselines.py`, `scripts/compare_baselines_ext.py`, `scripts/comparison_experiment.py` |
+| **286** | Ablation study 자동화 | `scripts/ablation_study.py` (CHANGELOG 2026-06-13, #290) |
+
+### 여전히 미확인 (증거 부재)
+
+- **정직성**: 204(Production 12종 회귀 강화), 205(Beta 부분 검증), 208(README Maturity 섹션 자동 갱신)
+- **검증**: 221(WebGPU 실 구현), 222(Spatial Hash GPU 벤치), 223(Yjs CRDT), 224(2-브라우저 E2E), 225(MAVLink 파서 SITL E2E), 227(KMA 실 데이터)
+- **다중**: 243(실 동시 편집 충돌 검증), 248(NPS 파이프라인), 249(A/B 통계), 250(게스트 ATC), 251-260
+- **하드웨어**: 262(10Hz 텔레메트리 p99), 263(5드론 클러스터 HITL), 268(야외 비행 매트릭스), 271-280(실 비행 데이터셋)
+- **학술**: 281(IROS 투고 패키지 완성), 282(arXiv 익명화), 287(Sim-to-Real gap 정량화), 288-290, 291-300(K-UTM/LOI)
+
+### 진행률 (감사 후)
+
+- 명시적 ✅ (본 계획 원문): 5개 (203·206·209·210·226)
+- 감사로 추가 확인: **22개** (201·202·207·228·229·230·241·242·244·245·246·247·261·264·265·266·267·269·270·283·284·285·286)
+- **누적 완료 추정: 27 / 100 phase (27%)** — 원표기 5% 대비 5.4배 상향
+- 나머지 73개는 대체로 실 데이터·실 하드웨어·학술 산출물 트랙으로, 시간과 외부 자원 의존
+
+### 감사 메모
+
+- 본 감사는 파일 존재 기반 정적 점검. 각 파일의 **실행 성숙도(maturity)** 는 별도로 `simulation/maturity_assessment.py` 리포트에서 판별 필요.
+- 원 계획서 라인은 이력 보존 목적으로 원본 유지 (아래). 새 ✅ 표기 대신 본 감사 결과 표로 관리.
+
+---
+
+
 > **철학 전환**: Phase 1-200은 *"무엇을 할 수 있는가"* 의 한계를 정의했다(능력 매트릭스).
 > Phase 201-300 TRANSCENDENCE 단계는 *"무엇을 실제로 검증·실증·확산할 수 있는가"* 로 무게중심을 옮긴다.
 > 즉, 추상적 스텁(stub)을 **실측 가능한 구현**으로 격상하고, 단일 인스턴스 검증을 **다중 사용자·다중 기관·실 하드웨어** 검증으로 확장한다.

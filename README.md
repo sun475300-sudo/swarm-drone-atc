@@ -204,13 +204,22 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 >
 > 📦 빌드 산출물은 `.gitignore`의 `dist-desktop/` 로 인해 main 브랜치에 포함되지 않음 — Releases에서만 배포
 
-### 🛰 웹 시뮬레이터 (단일 HTML, 즉시 실행)
+### 🛰 웹 시뮬레이터 (로컬 서버 또는 온라인으로 실행)
 | 파일 | 용량 | 다운로드 | 라이브 |
 |---|---|---|---|
 | 군집 드론 ATC (200 Phase) | 540 KB | [📥 swarm_3d_simulator.html](swarm_3d_simulator.html) | [🌐 Live](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html) |
 | 해양 소형선 감지 (HYPER 11 ATC 포함) | 75 KB | [📥 maritime_detection_simulator.html](maritime_detection_simulator.html) | [🌐 Live](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html) |
 | PWA Manifest | 1.6 KB | [📥 manifest.webmanifest](manifest.webmanifest) | — |
 | Service Worker (오프라인) | 1.4 KB | [📥 sdacs-sw.js](sdacs-sw.js) | — |
+
+> ⚠️ **HTML 파일을 더블클릭(`file://`)으로 열지 마세요.** 이 시뮬레이터는 three.js를 ES 모듈로 로드하기 때문에, 파일을 직접 열면 브라우저 CORS 정책에 막혀 **화면이 뜨지 않습니다.** 아래 방법 중 하나로 실행하세요.
+>
+> | 방법 | 실행 | 비고 |
+> |---|---|---|
+> | **① 더블클릭 (Windows)** | 저장소 루트의 **`RUN_SIMULATOR.bat`** 더블클릭 | 로컬 서버 자동 기동 + 브라우저 자동 열림 |
+> | **② CLI (모든 OS)** | `python scripts/serve.py` (군집) · `python scripts/serve.py --page maritime` (해양) | `http://localhost:8123` 자동 열림 |
+> | **③ 데스크톱 앱** | [v1.5.0 설치 파일](#-데스크탑-앱-electron-3-os) 실행 | 서버 불필요, Electron 내장 |
+> | **④ 온라인** | 위 표의 **🌐 Live** 링크 (GitHub Pages) | 설치 없이 즉시 실행 |
 
 ### 🎬 데모 자료
 | 파일 | 용량 | 다운로드 |

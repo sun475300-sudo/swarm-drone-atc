@@ -46,6 +46,13 @@
     "asarUnpack": [
       "vendor/three/**/*"
     ],
+    "extraResources": [
+      {
+        "from": "dist-python/sdacs-backend",
+        "to": "sdacs-backend",
+        "filter": ["**/*"]
+      }
+    ],
     "win": {
       "target": [{ "target": "nsis", "arch": ["x64"] }],
       "artifactName": "SDACS-Simulator-${version}-Setup.${ext}"

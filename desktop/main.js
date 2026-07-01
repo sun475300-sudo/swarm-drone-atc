@@ -4,6 +4,7 @@
 // - 분할 모드: 군집 + 해양 동시 표시, IPC 브로드캐스트로 sim time 동기
 const { app, BrowserWindow, Menu, shell, ipcMain, screen } = require('electron');
 const path = require('node:path');
+const bridge = require('./backend_bridge');
 
 const isDev = !app.isPackaged;
 const repoRoot = isDev ? path.join(__dirname, '..') : path.join(process.resourcesPath, 'app');
@@ -11,6 +12,9 @@ const repoRoot = isDev ? path.join(__dirname, '..') : path.join(process.resource
 let mainWin = null;
 let secondaryWin = null;     // HYPER Phase 12: 분할 모드용
 const allWins = new Set();   // IPC 브로드캐스트 대상
+
+// 백엔드 상태 — splash.html / home.html 이 backendInfo() 로 조회
+let backendState = { ok: false, port: bridge.DEFAULT_PORT, reason: 'not-started' };
 
 function _wpOpts(extra) {
   return Object.assign({
@@ -137,6 +141,18 @@ ipcMain.on('atc-broadcast', (event, payload) => {
 // 윈도우 개수 query
 ipcMain.handle('windows-count', () => allWins.size);
 
+// 백엔드 정보 조회 (splash.html / home.html 등이 호출)
+ipcMain.handle('backend-info', () => ({ ...backendState }));
+
+// 백엔드 상태를 모든 창에 브로드캐스트
+function _broadcastBackendStatus(text, level) {
+  for (const w of allWins) {
+    if (w && !w.isDestroyed()) {
+      try { w.webContents.send('backend-status', { text, level: level || 'info' }); } catch (e) {}
+    }
+  }
+}
+
 function buildMenu() {
   return Menu.buildFromTemplate([
     {
@@ -177,9 +193,37 @@ function buildMenu() {
   ]);
 }
 
-function createMainWindow() {
-  mainWin = createWindow({ title: 'SDACS Simulator' });
+async function createMainWindow() {
+  // 1) 스플래시부터 표시 — Python 백엔드 부팅 대기 UX
+  mainWin = createWindow({
+    title: 'SDACS Simulator',
+    file: path.join(__dirname, 'splash.html'),
+  });
   Menu.setApplicationMenu(buildMenu());
+
+  // 2) Python 백엔드 spawn (병렬)
+  _broadcastBackendStatus('Python 시뮬레이션 엔진 부팅 중… (최대 30초)');
+  const result = await bridge.startBackend({
+    isPackaged: !isDev,
+    repoRoot,
+    port: bridge.DEFAULT_PORT,
+  });
+  backendState = { ...result };
+
+  if (result.ok) {
+    _broadcastBackendStatus(`백엔드 준비 완료 (port ${result.port})`);
+    // 3) 홈으로 전환
+    if (mainWin && !mainWin.isDestroyed()) mainWin.loadFile(path.join(__dirname, 'home.html'));
+  } else {
+    // 폴백: HTML-only 홈. 홈이 backendInfo() 로 상태를 확인해 안내 표시.
+    console.warn('[main] backend failed:', result.reason);
+    _broadcastBackendStatus(`백엔드 부팅 실패(${result.reason}). HTML-only 모드로 진행합니다.`, 'error');
+    if (mainWin && !mainWin.isDestroyed()) {
+      setTimeout(() => {
+        if (mainWin && !mainWin.isDestroyed()) mainWin.loadFile(path.join(__dirname, 'home.html'));
+      }, 1500);
+    }
+  }
 }
 
 const gotLock = app.requestSingleInstanceLock();
@@ -190,6 +234,18 @@ if (!gotLock) {
   app.whenReady().then(createMainWindow);
   app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createMainWindow(); });
+
+  // 종료 훅: Python 자식 프로세스 정리 (좀비 방지)
+  let cleaningUp = false;
+  app.on('before-quit', async (event) => {
+    if (cleaningUp) return;
+    if (bridge.isBackendRunning()) {
+      cleaningUp = true;
+      event.preventDefault();
+      try { await bridge.stopBackend(); } catch (e) { console.warn('[main] stopBackend 실패:', e && e.message); }
+      app.exit(0);
+    }
+  });
 }
 
 // 노출용 (테스트 및 외부 디버깅)

@@ -1,6 +1,6 @@
 // SDACS Simulator window._sdacs TypeScript Declaration File
-// 자동 생성: 2026-06-13 (scripts/extract_sdacs_api.py 라이브 실측 추출)
-// 총 407개 API — 200 Phase + TRANSCENDENCE Phase 201-207 (Maturity)
+// 자동 생성: 2026-06-16 (scripts/extract_sdacs_api.py 라이브 실측 추출)
+// 총 408개 API — 200 Phase + TRANSCENDENCE Phase 201-207 (Maturity)
 // 성숙도: window._sdacs.maturityReport() 로 production/beta/mock/speculative 조회
 
 declare global {
@@ -42,6 +42,7 @@ declare global {
     /** [getter · production] */ readonly perf: any;
     /** [accessor · production] */ megaCull: any;
     /** [getter · production] */ readonly replayFrames: any;
+    /** [getter · production] */ readonly replayState: any;
     /** [getter · beta] */ readonly dni: any;
     /** [beta] */ replaySeek(...args: any[]): any;
     /** [beta] */ goLive(...args: any[]): any;

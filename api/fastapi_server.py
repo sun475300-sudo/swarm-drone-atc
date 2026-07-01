@@ -48,7 +48,7 @@ except ImportError as exc:  # pragma: no cover
     ) from exc
 
 LOGGER = logging.getLogger("sdacs.fastapi")
-API_VERSION = "1.1.0"
+API_VERSION = "1.5.0"
 
 
 # --- In-memory state (replace with Redis/Postgres in P714) ---

@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Python 3.11 설정
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -45,7 +45,7 @@ jobs:
             || true  # 결과 있어도 step 실패 방지 (SARIF 업로드 후 판단)
 
       - name: SARIF 결과 GitHub Security 탭에 업로드
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: bandit-results.sarif
@@ -70,7 +70,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Python 3.11 설정
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -122,7 +122,7 @@ jobs:
           exit-code: "0"  # SARIF 업로드 후 별도 판단
 
       - name: SARIF 결과 GitHub Security 탭에 업로드
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: trivy-results.sarif

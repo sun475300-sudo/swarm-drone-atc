@@ -9,7 +9,14 @@ import time
 import numpy as np
 import pytest
 
-torch = pytest.importorskip("torch")
+# torch DLL 로드 실패(OSError WinError 1455 등)는 importorskip이 못 잡으므로
+# 모든 예외를 흡수해 모듈 전체를 결정적으로 스킵 — xdist 워커 간 수집 불일치 방지.
+try:
+    import torch  # noqa: F401
+except Exception:
+    torch = None
+if torch is None:
+    pytest.skip("torch unavailable (import failed)", allow_module_level=True)
 
 # ── advanced_path_planner ─────────────────────────────────────────────────
 from simulation.advanced_path_planner import (

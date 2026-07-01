@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "swarm-drone-atc"
-version = "0.1.0"
+version = "1.5.0"
 description = "군집드론 공역통제 자동화 시스템 (SDACS)"
 authors = [
     {name = "jangsunwoo", email = "sun475300@gmail.com"}
@@ -31,7 +31,7 @@ dev = [
     "pytest-cov>=7.0",
     "pytest-timeout>=2.3",
     "pytest-xdist>=3.5",
-    "mypy>=1.10",
+    "mypy>=1.18",
     "ruff>=0.4",
     "hypothesis>=6.100",
 ]
@@ -67,7 +67,7 @@ where = ["src"]
 "" = "src"
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.12"
 warn_return_any = false
 warn_unused_configs = true
 disallow_untyped_defs = false

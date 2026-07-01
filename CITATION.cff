@@ -14,8 +14,8 @@ authors:
     alternate-name: "장선우"
     email: "sun475300@gmail.com"
     affiliation: "Mokpo National University"
-date-released: "2026-04"
-version: "1.0.0"
+date-released: "2026-06-26"
+version: "1.5.0"
 repository-code: "https://github.com/sun475300-sudo/swarm-drone-atc"
 url: "https://sun475300-sudo.github.io/swarm-drone-atc/"
 license: "MIT"
@@ -40,4 +40,5 @@ preferred-citation:
       given-names: "Sunwoo"
       affiliation: "Mokpo National University"
   year: 2026
+  version: "1.5.0"
   url: "https://sun475300-sudo.github.io/swarm-drone-atc/"

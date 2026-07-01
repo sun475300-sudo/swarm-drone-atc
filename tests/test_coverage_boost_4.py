@@ -468,6 +468,15 @@ import pytest as _pt
 
 _TORCH_OK = _il.util.find_spec("torch") is not None
 
+# collision_predictor가 collection 시점에 torch를 import하므로, DLL 로드 실패
+# (OSError WinError 1455 등)를 흡수해 모듈을 결정적으로 스킵 — xdist 수집 불일치 방지.
+try:
+    import torch as _torch_probe  # noqa: F401
+except Exception:
+    _torch_probe = None
+if _torch_probe is None:
+    _pt.skip("torch unavailable (import failed)", allow_module_level=True)
+
 from simulation.apf_engine.apf import APFState
 from simulation.collision_predictor import generate_training_data
 

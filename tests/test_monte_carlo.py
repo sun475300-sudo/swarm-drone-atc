@@ -7,7 +7,7 @@ import pytest
 
 from simulation.monte_carlo import _load_mc_config, _run_single, summarize_results
 
-pytestmark = pytest.mark.e2e
+pytestmark = [pytest.mark.e2e, pytest.mark.slow]
 
 
 class TestLoadConfig:

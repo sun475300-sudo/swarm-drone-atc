@@ -18,14 +18,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # code_archaeology phase 파싱 테스트는 전체 git 이력이 필요하다.
+          # 기본 shallow clone(fetch-depth:1)에서는 0 commit → test_non_empty_in_this_repo 실패.
+          fetch-depth: 0
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Cache pip
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
@@ -69,7 +73,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 

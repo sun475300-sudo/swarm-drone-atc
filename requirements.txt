@@ -8,7 +8,7 @@ joblib>=1.4
 tqdm>=4.66
 
 # Visualization
-matplotlib>=3.9
+matplotlib>=3.10.9
 plotly>=5.22
 seaborn>=0.13
 dash>=2.17

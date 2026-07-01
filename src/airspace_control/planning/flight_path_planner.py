@@ -15,6 +15,11 @@ import numpy as np
 from simulation.cbs_planner.cbs import GRID_RESOLUTION, GridNode
 from src.airspace_control.planning.waypoint import Route, RouteCost, Waypoint
 
+# A* 격자 이웃 오프셋(상하좌우 + 대각). 탐색 동안 불변이므로 모듈 상수로 1회만 생성한다.
+# 순서는 기존 동작과 동일해야 한다 — 타이브레이크·경로 동치성 보존.
+_NEIGHBOR_OFFSETS_2D = ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1))
+_SQRT2 = math.sqrt(2)
+
 
 @dataclass(order=True)
 class _Node:
@@ -136,19 +141,27 @@ class FlightPathPlanner:
     def _heuristic(self, a: GridNode, b: GridNode) -> float:
         return math.hypot(a.x - b.x, a.y - b.y)
 
+    def _int_bounds_2d(self) -> tuple[int, int, int, int]:
+        """격자 경계의 정수 인덱스. bounds/grid_res가 바뀌면만 재계산(이웃 확장마다 재계산 방지)."""
+        res = self.grid_res
+        bx = self.bounds.get('x', [-5000, 5000])
+        by = self.bounds.get('y', [-5000, 5000])
+        key = (bx[0], bx[1], by[0], by[1], res)
+        cached = getattr(self, "_int_bounds_cache", None)
+        if cached is None or cached[0] != key:
+            ib = (int(bx[0] / res), int(bx[1] / res), int(by[0] / res), int(by[1] / res))
+            self._int_bounds_cache = (key, ib)
+            return ib
+        return cached[1]
+
     def _neighbors_2d(
         self, node: GridNode, blocked: frozenset[tuple[int, int]]
     ) -> list[GridNode]:
-        bx = self.bounds.get('x', [-5000, 5000])
-        by = self.bounds.get('y', [-5000, 5000])
-        ix_min = int(bx[0] / self.grid_res)
-        ix_max = int(bx[1] / self.grid_res)
-        iy_min = int(by[0] / self.grid_res)
-        iy_max = int(by[1] / self.grid_res)
-        z = node.z
+        ix_min, ix_max, iy_min, iy_max = self._int_bounds_2d()
+        nx0, ny0, z = node.x, node.y, node.z
         result = []
-        for dx, dy in [(1,0),(-1,0),(0,1),(0,-1),(1,1),(1,-1),(-1,1),(-1,-1)]:
-            nx, ny = node.x + dx, node.y + dy
+        for dx, dy in _NEIGHBOR_OFFSETS_2D:
+            nx, ny = nx0 + dx, ny0 + dy
             if ix_min <= nx <= ix_max and iy_min <= ny <= iy_max and (nx, ny) not in blocked:
                 result.append(GridNode(nx, ny, z))
         return result
@@ -179,7 +192,7 @@ class FlightPathPlanner:
             for nb in self._neighbors_2d(cur.node, blocked):
                 # 대각선 이동 비용
                 is_diag = (nb.x != cur.node.x and nb.y != cur.node.y)
-                move_cost = math.sqrt(2) if is_diag else 1.0
+                move_cost = _SQRT2 if is_diag else 1.0
                 g_new = cur.g + move_cost
                 nb_key = (nb.x, nb.y)
                 if nb_key not in visited or visited[nb_key] > g_new:

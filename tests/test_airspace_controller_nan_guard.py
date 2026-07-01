@@ -7,26 +7,49 @@ defense in depth: ws_bridge·SITL·외부 텔레메트리 통합 시 NaN/None po
 
 from __future__ import annotations
 
-import dataclasses
 import math
-from unittest.mock import MagicMock
 
 import numpy as np
-import pytest
+import simpy
 
+from src.airspace_control.avoidance.resolution_advisory import AdvisoryGenerator
 from src.airspace_control.comms.communication_bus import CommunicationBus
 from src.airspace_control.comms.message_types import TelemetryMessage
 from src.airspace_control.controller.airspace_controller import AirspaceController
+from src.airspace_control.controller.priority_queue import FlightPriorityQueue
+from src.airspace_control.planning.flight_path_planner import FlightPathPlanner
 
 
 def _make_controller() -> AirspaceController:
-    """최소 controller (실제 SimPy/CommBus 미사용)."""
-    env = MagicMock()
-    env.now = 0.0
-    bus = MagicMock(spec=CommunicationBus)
-    bus.subscribe = MagicMock()
-    ctrl = AirspaceController(env=env, comm_bus=bus, control_period_s=1.0)
-    return ctrl
+    """실제 AirspaceController (test_airspace_controller.py 픽스처와 동일 구성)."""
+    env = simpy.Environment()
+    bus = CommunicationBus(
+        env, rng=np.random.default_rng(42), latency_ms_mean=0.0, latency_ms_std=0.0
+    )
+    planner = FlightPathPlanner(
+        airspace_bounds={"x": [-2000, 2000], "y": [-2000, 2000], "z": [0, 200]},
+        no_fly_zones=[],
+        grid_resolution_m=50.0,
+        cruise_altitude_m=60.0,
+    )
+    cfg = {
+        "separation_standards": {
+            "lateral_min_m": 50.0,
+            "vertical_min_m": 15.0,
+            "near_miss_lateral_m": 10.0,
+            "conflict_lookahead_s": 90.0,
+        },
+        "controller": {"max_concurrent_clearances": 10},
+        "airspace": {"bounds_km": {"x": [-2, 2]}},
+    }
+    return AirspaceController(
+        env=env,
+        comm_bus=bus,
+        planner=planner,
+        advisory_gen=AdvisoryGenerator(),
+        priority_queue=FlightPriorityQueue(),
+        config=cfg,
+    )
 
 
 def _tm(drone_id: str, position, velocity, timestamp: float = 0.5) -> TelemetryMessage:

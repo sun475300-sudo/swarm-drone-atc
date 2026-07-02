@@ -44,6 +44,7 @@ import sys
 from dataclasses import dataclass
 from typing import Any
 
+from simulation.eurocae_wg105_opinion import authored_letter as _eurocae_authored
 from simulation.intl_wg_opinion_gate import (
     CRITERIA,
     STATUS_MET,
@@ -131,23 +132,15 @@ class PortfolioReport:
 
 
 def _eurocae_wg105_letter() -> OpinionLetter:
-    """잔여 후보 ①: EUROCAE WG-105 SORA 부속 군집 ConOps 의견(초안).
+    """잔여 후보 ①: EUROCAE WG-105 SORA 부속 군집 ConOps 의견.
 
-    대상 문서·절·기술 근거·유형 분류는 갖췄으나 실행 가능한 제안 변경(WG-02)이
-    아직 redline 미완(PARTIAL), 공식 NB 채널·기한(WG-06)도 미확인(UNMET) —
-    격상 없이 NEEDS_WORK 로 드러낸다.
+    Phase 474(`eurocae_wg105_opinion`)가 동봉 의견서 문서를 실제로 작성해
+    실행 가능한 redline(WG-02)까지 완성했다. 본 함수는 그 작성 결과를 *위임만*
+    하며(DRY — 상태 하드코딩 복제 0) 디스크 증거로부터 도출한다: WG-01~WG-05
+    MET, WG-06 은 회람 기한 외부 의존으로 PARTIAL 상한 → NEEDS_WORK(점수 0.95).
+    redline 완성으로 초안(0.8) 대비 정직하게 격상되었다.
     """
-    return OpinionLetter(
-        target="EUROCAE WG-105 — 군집 ConOps 부속 의견",
-        statuses={
-            "WG-01": STATUS_MET,      # 대상 문서·버전·절 지정 완료
-            "WG-02": STATUS_PARTIAL,  # 제안 변경 redline 미완
-            "WG-03": STATUS_MET,      # SDACS 시뮬 데이터 결속
-            "WG-04": STATUS_MET,      # te 분류
-            "WG-05": STATUS_MET,      # 소속 공개
-            "WG-06": STATUS_UNMET,    # NB 채널·기한 미확인
-        },
-    )
+    return _eurocae_authored()
 
 
 def _iso_tc20_letter() -> OpinionLetter:

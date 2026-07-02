@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# SDACS pre-commit hook — CLAUDE.md 원칙 자동 가드.
+#
+# 활성화:
+#   git config core.hooksPath .githooks
+#
+# 차단 규칙 (3건):
+#   1. simulation/ 디렉토리에서 random.random() / random.randint() / random.choice() 사용
+#      → np.random.default_rng(seed) 사용 (재현성 원칙)
+#   2. Claude 모델 식별자(claude-(opus|sonnet|haiku|fable)-\d) 누출
+#      → chat 답신만 허용, 커밋 메시지/PR/코드 절대 금지
+#   3. engine_legacy.py 재생성 (SwarmSimulator 로 일원화 완료)
+#
+# 우회 (필요 시): git commit --no-verify  (권장하지 않음 — root cause 수정 후 재시도)
+
+set -u
+
+# 스테이징된 파일만 검사 (전체 트리 X)
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
+if [ -z "$STAGED" ]; then
+    exit 0
+fi
+
+FAIL=0
+
+# Rule 1: simulation/ 에서 random.random|randint|choice 사용 차단
+SIM_FILES=$(echo "$STAGED" | grep -E '^simulation/.*\.py$' || true)
+if [ -n "$SIM_FILES" ]; then
+    # 스테이징된 내용만 검사 (커밋 직전 상태)
+    for f in $SIM_FILES; do
+        if git diff --cached "$f" | grep -E '^\+' | grep -Eq '\brandom\.(random|randint|choice|uniform|gauss)\s*\('; then
+            echo "❌ [pre-commit] $f — random.* 사용 발견. np.random.default_rng(seed) 로 교체하세요 (재현성 원칙, CLAUDE.md §11)."
+            FAIL=1
+        fi
+    done
+fi
+
+# Rule 2: Claude 모델 식별자 누출 차단 (코드/문서/커밋 메시지 어디든)
+for f in $STAGED; do
+    # 바이너리/이미지 스킵
+    case "$f" in
+        *.png|*.jpg|*.jpeg|*.gif|*.pdf|*.webm|*.mp4|*.docx|*.pptx|*.svg|*.zip) continue ;;
+    esac
+    if [ -f "$f" ] && git diff --cached "$f" | grep -E '^\+' | grep -Eq 'claude-(opus|sonnet|haiku|fable)-[0-9]+'; then
+        echo "❌ [pre-commit] $f — Claude 모델 식별자(claude-*-N) 누출. chat 답신에만 허용, 커밋/PR/코드 금지."
+        FAIL=1
+    fi
+done
+
+# Rule 3: engine_legacy 재생성 차단
+if echo "$STAGED" | grep -Eq '(^|/)engine_legacy(\.py|/)'; then
+    echo "❌ [pre-commit] engine_legacy 재생성 시도. SwarmSimulator 로 일원화 완료 — CLAUDE.md §11."
+    FAIL=1
+fi
+
+if [ "$FAIL" -ne 0 ]; then
+    echo ""
+    echo "커밋 차단. root cause 수정 후 재시도하세요."
+    echo "비상 우회: git commit --no-verify (권장 X)"
+    exit 1
+fi
+
+exit 0

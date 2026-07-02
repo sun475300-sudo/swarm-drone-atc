@@ -300,18 +300,50 @@ def cmd_visualize(args: argparse.Namespace) -> None:
 # ── visualize-3d ────────────────────────────────────────────
 
 def cmd_visualize_3d(args: argparse.Namespace) -> None:
-    """기본 브라우저로 Three.js 3D 시뮬레이터 정본 HTML 파일을 연다."""
+    """로컬 HTTP 서버로 Three.js 3D 시뮬레이터를 연다.
+
+    시뮬레이터 HTML은 ES 모듈(`import * as THREE from 'three'`)을 사용한다.
+    브라우저는 file://에서 모듈 import를 CORS 정책으로 차단하므로, 파일을 직접
+    더블클릭하거나 file:// URL로 열면 3D가 렌더링되지 않는다(빈 화면 = '무반응').
+    반드시 HTTP로 서빙해야 하므로 경량 로컬 서버를 띄운다.
+    """
+    import http.server
+    import socketserver
+    import threading
     import webbrowser
+    from functools import partial
     from pathlib import Path
 
-    html_path = Path(__file__).parent / "swarm_3d_simulator.html"
-    if not html_path.exists():
+    root = Path(__file__).parent
+    if not (root / "swarm_3d_simulator.html").exists():
         print("❌ swarm_3d_simulator.html 파일을 찾을 수 없습니다.")
         return
 
-    url = html_path.as_uri()
-    print(f"\n🌐 Three.js 3D 시뮬레이터 열기: {url}\n")
+    start_port = int(getattr(args, "port", 0) or 8123)
+    handler = partial(http.server.SimpleHTTPRequestHandler, directory=str(root))
+    httpd = None
+    port = start_port
+    for candidate in range(start_port, start_port + 20):
+        try:
+            httpd = socketserver.TCPServer(("127.0.0.1", candidate), handler)
+            port = candidate
+            break
+        except OSError:
+            continue
+    if httpd is None:
+        print(f"❌ 사용 가능한 포트를 찾지 못했습니다 ({start_port}-{start_port + 19}).")
+        return
+
+    url = f"http://127.0.0.1:{port}/swarm_3d_simulator.html"
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    print(f"\n🌐 Three.js 3D 시뮬레이터: {url}")
+    print("   브라우저가 자동으로 열립니다. 종료하려면 Ctrl+C 를 누르세요.\n")
     webbrowser.open(url)
+    try:
+        threading.Event().wait()
+    except KeyboardInterrupt:
+        print("\n서버를 종료합니다.")
+        httpd.shutdown()
 
 
 # ── chatbot ────────────────────────────────────────────────

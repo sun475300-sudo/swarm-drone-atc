@@ -80,7 +80,7 @@
 [0006] 종래 기술의 네 번째 문제점은 **기상 적응성 부재**이다. 고정 파라미터 APF 방식은 강풍·돌풍 등 외란에 취약하여 회피 경로가 진동(oscillation)하거나 목표 지점에 수렴하지 못하는 현상이 발생한다.
 
 [선행기술문헌]
-- 특허문헌 1: KR 10-20XX-XXXXXXX "드론 비행 경로 설정 방법"
+- 특허문헌 1: KR 10-<TBD-PATENT-KR> "드론 비행 경로 설정 방법"
 - 특허문헌 2: US 10,XXX,XXX "Centralized UAV Traffic Management"
 - 비특허문헌 1: Khatib, O. (1986), "Real-time obstacle avoidance for manipulators and mobile robots", Int. J. Robotics Research
 - 비특허문헌 2: Kuchar, J.K. & Yang, L.C. (2000), "A review of conflict detection and resolution modeling methods", IEEE T-ITS

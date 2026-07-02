@@ -296,10 +296,23 @@ def main() -> int:
     dts = render_dts(data)
 
     if args.check:
+        # 강화: 카운트만이 아니라 API 이름 집합 동치까지 검증 (에이전트 보고 #5).
+        # 카운트만 비교하면 추가/제거가 우연히 상쇄될 때(예: 한 개 추가 + 한 개 제거)
+        # 게이트가 통과하는 오탐 가능. 이름 집합을 직접 추출해 비교한다.
         ok = True
+        live_names = {a["name"] for a in data["apis"]}
         current_md = API_MD.read_text(encoding="utf-8") if API_MD.exists() else ""
         if f"**총 {len(data['apis'])} 항목**" not in current_md:
             print(f"❌ SDACS_API.md 총 항목 수가 실측({len(data['apis'])})과 불일치")
+            ok = False
+        md_names = set(re.findall(r"\*\*`([A-Za-z_][A-Za-z0-9_]*)`\*\*", current_md))
+        if md_names and md_names != live_names:
+            missing = sorted(live_names - md_names)
+            extra = sorted(md_names - live_names)
+            if missing:
+                print(f"❌ SDACS_API.md 누락 API: {missing[:5]}{'...' if len(missing)>5 else ''}")
+            if extra:
+                print(f"❌ SDACS_API.md 잉여 API: {extra[:5]}{'...' if len(extra)>5 else ''}")
             ok = False
         current_dts = DTS.read_text(encoding="utf-8") if DTS.exists() else ""
         if f"총 {len(data['apis'])}개 API" not in current_dts:
@@ -308,6 +321,19 @@ def main() -> int:
         current_badge = BADGE.read_text(encoding="utf-8") if BADGE.exists() else ""
         if current_badge != render_badge_svg(data["counts"]):
             print("❌ maturity.svg 배지가 실측 counts와 불일치")
+            ok = False
+        # d.ts 의 멤버 이름 추출: '    /** ... */ [readonly ]name(' 또는 'name:' 패턴
+        dts_names = set(re.findall(
+            r"\*/\s+(?:readonly\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*[\(:]",
+            current_dts,
+        ))
+        if dts_names and dts_names != live_names:
+            missing = sorted(live_names - dts_names)
+            extra = sorted(dts_names - live_names)
+            if missing:
+                print(f"❌ sdacs.d.ts 누락 API: {missing[:5]}{'...' if len(missing)>5 else ''}")
+            if extra:
+                print(f"❌ sdacs.d.ts 잉여 API: {extra[:5]}{'...' if len(extra)>5 else ''}")
             ok = False
         print("✅ 문서-실측 일치" if ok else "⚠️ 재생성 필요: python scripts/extract_sdacs_api.py")
         return 0 if ok else 1

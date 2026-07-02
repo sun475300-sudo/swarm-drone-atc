@@ -7,6 +7,9 @@ __pycache__/
 *.egg-info/
 dist/
 dist-desktop/
+# PyInstaller Python 백엔드 번들 산출물 (GitHub 100MB 파일 한도 초과 — 커밋 금지)
+dist-python/
+build-python/
 *.AppImage
 *.dmg
 *.exe

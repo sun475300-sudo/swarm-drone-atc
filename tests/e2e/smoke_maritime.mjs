@@ -34,13 +34,15 @@ try {
   ok(total > 0, `소형선 스폰 (${total}척)`);
 
   // 2. 레이더/AIS 탐지 — 애니메이션 루프가 돌며 탐지 누적
+  // 견고화: 탐지는 레이더 스윕 주기 + 애니메이션 FPS 의존 → 저FPS CI(SwiftShader)에서
+  // 20s 내 미충족 플레이크 (로컬 8s=5척, CI 20s=0척). timeout 45s 로 상향.
   await page.evaluate(() => window._mds.start());
-  await page.waitForFunction(() => window._mds.detected > 0, { timeout: 20000 }).catch(() => {});
+  await page.waitForFunction(() => window._mds.detected > 0, { timeout: 45000 }).catch(() => {});
   const detected = await page.evaluate(() => window._mds.detected);
   ok(detected > 0, `탐지 (${detected}척 탐지)`);
 
   // 3. 식별 (AIS 협조 즉시 + 비협조 분류)
-  await page.waitForFunction(() => window._mds.identified > 0, { timeout: 20000 }).catch(() => {});
+  await page.waitForFunction(() => window._mds.identified > 0, { timeout: 45000 }).catch(() => {});
   const identified = await page.evaluate(() => window._mds.identified);
   ok(identified > 0, `식별 (${identified}척 식별)`);
 

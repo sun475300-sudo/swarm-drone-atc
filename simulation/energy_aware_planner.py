@@ -209,6 +209,9 @@ def compute_leg_energy(
     wp1: Waypoint,
     wp2: Waypoint,
     wind: WindCondition,
+    *,
+    from_wp: int = 0,
+    to_wp: int = 0,
 ) -> LegEnergy:
     """두 웨이포인트 간 에너지 소비를 분석적으로 계산한다."""
     dx = wp2.x - wp1.x
@@ -246,8 +249,8 @@ def compute_leg_energy(
         time_s += wp2.required_loiter_s
 
     return LegEnergy(
-        from_wp=0,
-        to_wp=0,
+        from_wp=from_wp,
+        to_wp=to_wp,
         distance_m=dist_3d,
         energy_wh=energy_wh,
         time_s=time_s,
@@ -275,14 +278,9 @@ def plan_mission(
 
     legs: list[LegEnergy] = []
     for i in range(len(waypoints) - 1):
-        raw = compute_leg_energy(profile, waypoints[i], waypoints[i + 1], wind)
-        legs.append(LegEnergy(
-            from_wp=i,
-            to_wp=i + 1,
-            distance_m=raw.distance_m,
-            energy_wh=raw.energy_wh,
-            time_s=raw.time_s,
-            headwind_component_ms=raw.headwind_component_ms,
+        legs.append(compute_leg_energy(
+            profile, waypoints[i], waypoints[i + 1], wind,
+            from_wp=i, to_wp=i + 1,
         ))
 
     total_energy = sum(leg.energy_wh for leg in legs)
@@ -400,9 +398,18 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def _parse_wind(wind_str: str) -> WindCondition:
     parts = wind_str.split(",")
-    speed = float(parts[0])
-    direction = float(parts[1]) if len(parts) > 1 else 0.0
-    gust = float(parts[2]) if len(parts) > 2 else 0.0
+    if not parts or not parts[0].strip():
+        raise ValueError(f"Invalid wind format: {wind_str!r} (expected: speed[,direction[,gust]])")
+    try:
+        speed = float(parts[0])
+        direction = float(parts[1]) if len(parts) > 1 else 0.0
+        gust = float(parts[2]) if len(parts) > 2 else 0.0
+    except ValueError as exc:
+        raise ValueError(
+            f"Invalid wind format: {wind_str!r} (expected numeric values)",
+        ) from exc
+    if speed < 0:
+        raise ValueError(f"Wind speed must be >= 0, got {speed}")
     return WindCondition(speed_ms=speed, direction_deg=direction, gust_ms=gust)
 
 

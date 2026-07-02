@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>SDACS Simulator — 부팅 중</title>
+<style>
+  :root { --bg: #02060d; --fg: #e6f0ff; --accent: #3ea6ff; --muted: #6a7d99; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--fg);
+    font-family: 'Segoe UI', 'Noto Sans KR', system-ui, sans-serif;
+    overflow: hidden; user-select: none;
+  }
+  .wrap {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%;
+  }
+  .brand { font-size: 42px; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+  .bar {
+    width: 320px; height: 4px; background: rgba(62,166,255,0.12); border-radius: 2px; overflow: hidden;
+  }
+  .bar span {
+    display: block; height: 100%; width: 40%; background: var(--accent);
+    animation: slide 1.4s ease-in-out infinite;
+  }
+  @keyframes slide {
+    0%   { transform: translateX(-100%); }
+    50%  { transform: translateX(220%); }
+    100% { transform: translateX(220%); }
+  }
+  .status { margin-top: 20px; font-size: 13px; color: var(--muted); min-height: 1.2em; }
+  .err { color: #ff6b6b; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">🛸 SDACS</div>
+    <div class="sub">Swarm Drone Airspace Control System</div>
+    <div class="bar"><span></span></div>
+    <div id="status" class="status">Python 시뮬레이션 엔진 부팅 중…</div>
+  </div>
+
+  <script>
+    // main.js 가 preload.js 를 통해 window.sdacs 를 노출한다.
+    // splash.html 은 backend 상태 업데이트를 표시한다.
+    const statusEl = document.getElementById('status');
+    if (window.sdacs && typeof window.sdacs.onBackendStatus === 'function') {
+      window.sdacs.onBackendStatus((msg) => {
+        statusEl.textContent = msg.text || '';
+        statusEl.classList.toggle('err', msg.level === 'error');
+      });
+    }
+  </script>
+</body>
+</html>

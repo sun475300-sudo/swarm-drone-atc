@@ -2,31 +2,76 @@
 
 *MEGA + HYPER + STELLAR + ULTIMATE + POST-UNIVERSE = 200 Phase 통합 (v1.5.0)*
 
+## 목차 (Contents)
+
+- [🚀 즉시 실행 (3 가지 방법)](#-즉시-실행-3-가지-방법)
+- [🎬 200 Phase 자동 데모 (60초)](#-200-phase-자동-데모-60초)
+- [🎮 핵심 5 명령 (초보자)](#-핵심-5-명령-초보자)
+- [🎯 Phase 200 = Unity 도달](#-phase-200--unity-도달)
+- [📚 다음 단계](#-다음-단계)
+- [❓ 트러블슈팅](#-트러블슈팅)
+
+---
+
 ## 🚀 즉시 실행 (3 가지 방법)
+
+| 방법 | 설치 | 인터넷 | 실행 |
+|---|---|---|---|
+| **A) 웹** | 불필요 | 필요 | GitHub Pages Live 링크 접속 |
+| **B) 로컬 서버** | Python | 불필요 | `RUN_SIMULATOR.bat` 또는 `python scripts/serve.py` |
+| **C) 데스크탑 앱** | 설치 파일 | 불필요 | OS별 설치 후 실행 |
+
+> ⚠️ **더블클릭 주의:** 3D 웹 시뮬레이터(`swarm_3d_simulator.html` / `maritime_detection_simulator.html`)는 Three.js를 ES module로 로드합니다. HTML을 `file://` 로 더블클릭하면 브라우저 CORS 정책에 막혀 **흰 화면**만 뜹니다. 아래 A/B/C 방법 중 하나로 여세요.
 
 ### A) 웹 (가장 빠름, 설치 불필요)
 
-브라우저로 바로 접속:
+브라우저로 GitHub Pages Live 링크에 바로 접속합니다:
+
 ```
 https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html
 ```
 
-### B) 로컬 단독 HTML (오프라인 가능)
+### B) 로컬 서버 (오프라인 가능)
 
-1. [`swarm_3d_simulator.html`](../swarm_3d_simulator.html) 다운로드
-2. 더블 클릭 → 기본 브라우저에서 즉시 실행
-3. 인터넷 연결 시 Three.js CDN 자동 로드
+로컬 HTTP 서버를 띄운 뒤 브라우저로 여는 방식입니다. `file://` 더블클릭 대신 아래 런처를 사용하세요.
+
+**Windows (더블클릭):**
+
+```
+RUN_SIMULATOR.bat
+```
+
+저장소 루트의 `RUN_SIMULATOR.bat` 을 더블클릭하면 로컬 서버가 뜨고 브라우저가 자동으로 열립니다.
+
+**CLI (모든 OS):**
+
+```bash
+python scripts/serve.py                    # 군집 드론 시뮬레이터
+python scripts/serve.py --page maritime    # 해양 소형선 감지 시뮬레이터
+```
+
+**Dash 3D 대시보드:**
+
+```bash
+python main.py visualize
+```
+
+→ 브라우저에서 `http://localhost:8050` 접속.
 
 ### C) 데스크탑 앱 (Win/Mac/Linux)
 
 [GitHub Releases v1.5.0](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/v1.5.0) 에서 OS별 파일 다운로드:
-- Windows: `SDACS-Simulator-1.5.0-Setup.exe`
-- macOS: `SDACS-Simulator-1.5.0-x64.dmg` 또는 `*-arm64.dmg`
-- Linux: `SDACS-Simulator-1.5.0-x86_64.AppImage`
+
+| OS | 파일 |
+|---|---|
+| Windows | `SDACS-Simulator-1.5.0-Setup.exe` |
+| macOS | `SDACS-Simulator-1.5.0-x64.dmg` 또는 `*-arm64.dmg` |
+| Linux | `SDACS-Simulator-1.5.0-x86_64.AppImage` |
 
 ## 🎬 200 Phase 자동 데모 (60초)
 
-브라우저로 시뮬레이터 연 뒤 콘솔(F12) 열고 한 줄:
+브라우저로 시뮬레이터 연 뒤 콘솔(F12) 열고 한 줄 입력:
+
 ```javascript
 fetch('https://raw.githubusercontent.com/sun475300-sudo/swarm-drone-atc/main/docs/demo/all_phases_showcase.js').then(r=>r.text()).then(eval);
 ```
@@ -79,10 +124,12 @@ window._sdacs.p200UnityAchieved();
 
 ## ❓ 트러블슈팅
 
-- **흰 화면**: 인터넷 연결 없음 → 로컬 HTTP 서버 사용 (`python -m http.server 8000`)
-- **WebGL 안 됨**: 브라우저 hardware acceleration 활성화
-- **콘솔 명령 안 먹음**: `window._sdacs` 가 `undefined` 라면 시뮬 초기화 완료 대기 (2-3초)
-- **VR 모드 안 보임**: WebXR 미지원 브라우저 → Chrome/Edge + HTTPS 환경 필요
+| 증상 | 원인 → 해결 |
+|---|---|
+| **흰 화면** | HTML을 `file://` 로 더블클릭했거나 인터넷 연결 없음 → 로컬 서버로 실행 (`RUN_SIMULATOR.bat` 또는 `python scripts/serve.py`) |
+| **WebGL 안 됨** | 브라우저 hardware acceleration 활성화 |
+| **콘솔 명령 안 먹음** | `window._sdacs` 가 `undefined` 라면 시뮬 초기화 완료 대기 (2-3초) |
+| **VR 모드 안 보임** | WebXR 미지원 브라우저 → Chrome/Edge + HTTPS 환경 필요 |
 
 ---
 

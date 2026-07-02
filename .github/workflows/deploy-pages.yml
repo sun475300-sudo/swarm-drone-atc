@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Mirror root-level simulator files into docs/ so the live site always
       # ships the freshest build without requiring a manual copy.
@@ -45,8 +45,26 @@ jobs:
             echo "Synced maritime_detection_simulator.html"
           fi
 
+      # Pages 시뮬레이터(군집/해양) importmap 이 './vendor/three/three.module.js' 를
+      # 참조하므로 vendor/ 트리를 docs/ 로 복사. 누락 시 라이브 사이트에서 3D/해양
+      # 시뮬이 Three.js 404 로 백지가 됨 (사용자 보고 2026-06-13).
+      - name: Sync Three.js vendor into docs/
+        run: |
+          set -e
+          if [ ! -d "vendor/three" ]; then
+            echo "❌ vendor/three 가 리포지터리에 없습니다."
+            exit 1
+          fi
+          mkdir -p docs/vendor
+          rm -rf docs/vendor/three
+          cp -R vendor/three docs/vendor/three
+          # 핵심 파일 사후 검증
+          test -f docs/vendor/three/three.module.js
+          test -f docs/vendor/three/addons/controls/OrbitControls.js
+          echo "✅ docs/vendor/three 동기화 완료"
+
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

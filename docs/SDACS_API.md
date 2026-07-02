@@ -1,6 +1,6 @@
 # 📚 `window._sdacs` API — Phase 200 (Unity) 완료 시점
 
-*자동 생성: 2026-06-16 (`scripts/extract_sdacs_api.py` 라이브 실측 추출 · maturity 등급 포함)*
+*자동 생성: 2026-07-02 (`scripts/extract_sdacs_api.py` 라이브 실측 추출 · maturity 등급 포함)*
 
 **총 408 항목** (maturity 분류 대상 405 + 분류 헬퍼 3) — MEGA 10 + HYPER 40 + STELLAR 50 + ULTIMATE 50 + POST-UNIVERSE 50 = **200 Phase**
 
@@ -8,8 +8,8 @@
 
 | 등급 | 개수 | 의미 |
 |---|:-:|---|
-| 🟢 production | 94 | 실측 검증 + 회귀 + 실 알고리즘 |
-| 🔵 beta | 98 | 기능 동작 + E2E 검증, 일부 외부 의존 |
+| 🟢 production | 112 | 실측 검증 + 회귀 + 실 알고리즘 |
+| 🔵 beta | 80 | 기능 동작 + E2E 검증, 일부 외부 의존 |
 | 🟡 mock | 110 | 결정적 mock, 인터페이스만 안정 |
 | ⚪ speculative | 103 | 미래 비전 스텁, 호출 안전성만 보장 |
 | 🛠 helper | 3 | `apiMaturity` · `maturityReport` 분류기 자체 |
@@ -72,11 +72,11 @@
 | `method` | **`causalDoQuery`** | 🟡 mock |
 | `method` | **`cesiumGlobalInit`** | 🟡 mock |
 | `get` | **`cesiumGlobalState`** | 🟡 mock |
-| `get` | **`choreoPattern`** | 🔵 beta |
-| `get` | **`choreoPatterns`** | 🔵 beta |
+| `get` | **`choreoPattern`** | 🟢 production |
+| `get` | **`choreoPatterns`** | 🟢 production |
 | `method` | **`clearAdversarial`** | 🔵 beta |
 | `method` | **`clearAllAtc`** | 🟢 production |
-| `method` | **`clearChoreography`** | 🔵 beta |
+| `method` | **`clearChoreography`** | 🟢 production |
 | `method` | **`clearHover`** | 🟢 production |
 | `method` | **`clearMulti`** | 🟢 production |
 | `get` | **`climateScore`** | 🟡 mock |
@@ -129,7 +129,7 @@
 | `method` | **`enableDtwin`** | 🔵 beta |
 | `method` | **`enableGpu50k`** | 🔵 beta |
 | `method` | **`enablePqc`** | 🔵 beta |
-| `method` | **`enableWindField`** | 🔵 beta |
+| `method` | **`enableWindField`** | 🟢 production |
 | `method` | **`esportsAddPlayer`** | 🟡 mock |
 | `get` | **`esportsPlayers`** | 🟡 mock |
 | `method` | **`esportsScore`** | 🟡 mock |
@@ -152,12 +152,12 @@
 | `method` | **`fedLearnRound`** | 🟡 mock |
 | `get` | **`fedLearnState`** | 🟡 mock |
 | `method` | **`focusDrone`** | 🟢 production |
-| `get` | **`forecastData`** | 🔵 beta |
-| `method` | **`forecastFlyableHours`** | 🔵 beta |
-| `method` | **`forecastQueryHour`** | 🔵 beta |
+| `get` | **`forecastData`** | 🟢 production |
+| `method` | **`forecastFlyableHours`** | 🟢 production |
+| `method` | **`forecastQueryHour`** | 🟢 production |
 | `method` | **`fpga106AddInstance`** | ⚪ speculative |
 | `get` | **`galleryOpen`** | 🟢 production |
-| `method` | **`generateForecast`** | 🔵 beta |
+| `method` | **`generateForecast`** | 🟢 production |
 | `method` | **`getSelected`** | 🟢 production |
 | `method` | **`global140Adopt`** | ⚪ speculative |
 | `method` | **`goLive`** | 🔵 beta |
@@ -219,10 +219,10 @@
 | `method` | **`nationalASInitKorea`** | 🟡 mock |
 | `method` | **`neuromorphic108Spike`** | ⚪ speculative |
 | `method` | **`neuron121Connect`** | ⚪ speculative |
-| `method` | **`notamAdd`** | 🔵 beta |
-| `get` | **`notamCount`** | 🔵 beta |
-| `method` | **`notamImportJson`** | 🔵 beta |
-| `get` | **`notams`** | 🔵 beta |
+| `method` | **`notamAdd`** | 🟢 production |
+| `get` | **`notamCount`** | 🟢 production |
+| `method` | **`notamImportJson`** | 🟢 production |
+| `get` | **`notams`** | 🟢 production |
 | `method` | **`olfactorySpray`** | 🟡 mock |
 | `method` | **`openGallery`** | 🟢 production |
 | `method` | **`optane104Snapshot`** | ⚪ speculative |
@@ -315,7 +315,7 @@
 | `get` | **`rlhfState`** | 🟡 mock |
 | `method` | **`ros2SubscribeTopic`** | 🟡 mock |
 | `get` | **`ros2Topics`** | 🟡 mock |
-| `method` | **`sampleWindAt`** | 🔵 beta |
+| `method` | **`sampleWindAt`** | 🟢 production |
 | `get` | **`satelliteConstellation`** | 🟡 mock |
 | `get` | **`satelliteCount`** | 🟡 mock |
 | `method` | **`satelliteHandoff`** | 🟡 mock |
@@ -348,7 +348,7 @@
 | `method` | **`setSunCycle`** | 🟢 production |
 | `method` | **`setSunHour`** | 🟢 production |
 | `method` | **`setVelArrow`** | 🟢 production |
-| `method` | **`setWindRegime`** | 🔵 beta |
+| `method` | **`setWindRegime`** | 🟢 production |
 | `get` | **`simRunning`** | 🟢 production |
 | `get` | **`simTime`** | 🟢 production |
 | `method` | **`singularityMetaverseConnect`** | 🟡 mock |
@@ -365,7 +365,7 @@
 | `method` | **`solar118SetEff`** | ⚪ speculative |
 | `method` | **`soraAssess`** | 🟢 production |
 | `method` | **`spawnAdversarial`** | 🔵 beta |
-| `method` | **`startChoreography`** | 🔵 beta |
+| `method` | **`startChoreography`** | 🟢 production |
 | `method` | **`startRecording`** | 🟢 production |
 | `method` | **`startSim`** | 🟢 production |
 | `get` | **`stats`** | 🟢 production |
@@ -420,9 +420,9 @@
 | `method` | **`voiceMacroExecute`** | 🟡 mock |
 | `get` | **`voiceMacros`** | 🟡 mock |
 | `get` | **`weather`** | 🟢 production |
-| `get` | **`windFieldEnabled`** | 🔵 beta |
-| `get` | **`windFieldStats`** | 🔵 beta |
-| `get` | **`windRegime`** | 🔵 beta |
+| `get` | **`windFieldEnabled`** | 🟢 production |
+| `get` | **`windFieldStats`** | 🟢 production |
+| `get` | **`windRegime`** | 🟢 production |
 | `get` | **`wsConnected`** | 🔵 beta |
 | `get` | **`wsFrames`** | 🔵 beta |
 | `get` | **`xrFrontierState`** | 🟡 mock |

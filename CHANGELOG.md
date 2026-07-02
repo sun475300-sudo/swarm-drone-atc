@@ -5,6 +5,19 @@
 
 ## [Unreleased]
 
+### 추가 (feat/test) — 2026-07-02: TRANSCENDENCE Phase 211-260 3개 트랙 sandbox 가능분 일괄
+
+- **Phase 211-220 production 격상 (+18)**: beta 18종(NOTAM 4·WindField 6·Choreography 4·Forecast 4)을 **검증 후 격상** 패턴으로 이동 — 신규 E2E `tests/e2e/test_simulator_production_promotion.py` 10건(동작 9 + 분류 게이트 1)이 실 계약(sampleWindAt→{u,v}·setWindRegime 화이트리스트 mild|sheared|turbulent·generateForecast→count·forecastData 5개 미리보기 slice) 검증 통과 후 `_MATURITY_BETA`→`_MATURITY_PRODUCTION` 이동. **production 94→112·beta 98→80** (계획 "12→30"의 +18 정합). API 게이트(SDACS_API.md·sdacs.d.ts·maturity.svg) 재생성 GREEN, 4 사본 md5 동기.
+- **Phase 241-243 다중 관제사 WS 관제** — `simulation/atc_multiuser_session.py` (신규): `/ws/atc` FastAPI 라우터 팩토리(기존 `fastapi_server.py` 무수정 옵트인 — `app.include_router(create_atc_router())` 1줄 통합), JWT 검증은 `api.auth.verify_token` 위임(중복 구현 0). SessionRegistry(role·하트비트 TTL 120s·주입식 시계 — 테스트 결정성), 명령 검증 5단 거부 우선순위(NO_SESSION→EXPIRED→FORBIDDEN viewer→UNSUPPORTED→INVALID_DRONE_ID), seq 단조성(재전송 거부), **결정적 3단 충돌 해결**(role rank→timestamp→sha256(controller_id) — 입력 순서 무관 동일 승자). 회귀 25건.
+- **Phase 246 부하 100 동시 사용자** — `simulation/ws_load_harness.py` (신규): 결정적 부하 계획(build_plan — 램프업 균등 분배·frozen·무작위성 0)과 asyncio 실행기 분리. **실증: ws_bridge(20드론) 대상 100 동시 클라이언트·500 메시지 — 접속 실패 0·수신 500·p50 98ms·p95 101ms·pass=true**. CLI `python -m simulation.ws_load_harness`. 회귀 8건.
+- **Phase 225 MAVLink 브리지 회귀** — `tests/test_px4_sitl_bridge.py` (신규 9건): 기존 `px4_sitl_bridge.py` 의 회귀 부재 갭 해소 — 연결 상태 머신·fail-closed(미연결 arm/command 거부)·시드 재현성 계약. 실 PX4 SITL 연동은 외부 시스템 잔여 (정직 공시).
+- **Phase 227 KMA 풍속장** — `simulation/kma_wind_field.py` (신규): 기상청 초단기실황 items 결정적 파서(UUU/VVV 우선·WSD/VEC 폴백·-999 결측 폐기 — silent NaN 금지), 1km 격자 이중선형 보간(결측 이웃 최근접 폴백 결정적), `get_wind_vector(pos,t)` 어댑터로 `SwarmSimulator.wind_models` 직결 가능. 실 API 호출은 공공데이터포털 서비스 키 외부 의존 — 미호출 (정직 공시). 회귀 13건.
+- **Phase 230 LiPo 노화 모델** — `simulation/battery_aging.py` (신규): 8점 방전 곡선(3.30~4.20V 평탄 구간 포함 단조 테이블)·사이클 용량 감퇴(300cyc 90%·500cyc 80% 문헌 앵커)·전압 컷오프 SoC 이진 탐색(결정적). `endurance_scale()` 로 기존 `_estimate_power_w` 경로 무수정 통합 가능 (수술적). 계수는 문헌 대표값 — 실 팩 캘리브레이션은 Track A (정직 공시). 회귀 8건.
+- **Phase 221 추적 정정** — WGSL 은 이미 실구현(`APF_COMPUTE_SHADER` WGSL + `createShaderModule` 컴파일) — ROADMAP 문구 정정.
+- **검증**: 신규 회귀 54 + E2E 10 + maturity 배지 7 = **71 PASS** · API 게이트 GREEN(112/80/110/103) · 4 사본 md5 동기 · JS 구문 OK · 부하 실증 100/100.
+- **잔여 (외부 의존, 정직 공시)**: 223 CRDT Yjs·229 PQC WASM(외부 라이브러리)·244 TimescaleDB·245 Grafana·247 kind(외부 인프라)·SITL 실 연동(HW).
+
+
 ### 보안 (fix/security) — 2026-06-30 (47차): starlette CVE-2026-54283(높음)·54282(낮음) 대응
 
 - **트리거**: GitHub Dependabot 주간 보안 알림 (2026-06-23 ~ 06-30, 사용자 스크린샷 공유). `starlette` 의존성 2 CVE — CVE-2026-54282(낮음, `<1.3.0`) + **CVE-2026-54283(높음, `<1.3.1`)**.

@@ -254,9 +254,9 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 204** — Production 핵심 12종 회귀 강화 — `test_simulator_production_core.py` (getter 전수 + 12종 호출 + 93 회귀 방지) (2026-06-12)
 - [x] **Phase 205** — Beta API 부분 검증 — `test_simulator_beta_subset.py` (Copilot·적대·C-UAS·WindField·PQC, 5건) (2026-06-12)
 - [x] **Phase 209-210** — API Deprecation Policy + SemVer 규약 — `docs/API_DEPRECATION_POLICY.md`, `docs/API_SEMVER_POLICY.md` (성숙도별 유예 기간 + SemVer↔API 영향 + 긴급 보안 폐기 + CI 규칙) (2026-06-18)
-- [ ] **Phase 211-220** — production 격상 (12 → 30 API)
-- [ ] **Phase 221-240** — Real Validation (WebGPU 실 WGSL·CRDT Yjs·MAVLink SITL·KMA 풍속장)
-- [ ] **Phase 241-260** — Multi-User Reality (WS 관제 서버·다중 관제사·TimescaleDB·부하 100명)
+- [x] **Phase 211-220** — production 격상 완료 — beta 18종(NOTAM 4·WindField 6·Choreography 4·Forecast 4)을 E2E 검증 후 production 이동 (`tests/e2e/test_simulator_production_promotion.py` 10건 — 동작 9 + 분류 게이트 1). **production 94 → 112** (계획 12→30 의 +18 정합). API 게이트 재생성 GREEN (2026-07-02)
+- [x] **Phase 221-240** — Real Validation sandbox 가능분 완료 — 221 WGSL 은 이미 실구현(`APF_COMPUTE_SHADER` + `createShaderModule` 추적 정정)·225 `tests/test_px4_sitl_bridge.py` MAVLink 브리지 결정적 회귀 9건(기존 회귀 부재 갭 해소)·227 `simulation/kma_wind_field.py` KMA 격자 파서+이중선형 보간+wind 모델 어댑터(실 API 호출은 서비스 키 외부 의존 — 파서·보간만, 정직 공시) 13건·230 `simulation/battery_aging.py` LiPo 방전 곡선 8점+사이클 노화(300cyc 90%·500cyc 80% 문헌 결속) 8건. 223 CRDT Yjs·229 PQC WASM 은 외부 라이브러리 의존 잔여 (2026-07-02)
+- [x] **Phase 241-260** — Multi-User sandbox 가능분 완료 — 241 `simulation/atc_multiuser_session.py` `/ws/atc` FastAPI 라우터 팩토리(기존 서버 무수정 옵트인)·242 SessionRegistry(JWT role·하트비트 TTL·주입식 시계)·243 결정적 3단 충돌 해결(role rank→timestamp→sha256, 입력 순서 무관) 25건 회귀·246 `simulation/ws_load_harness.py` 부하 하니스 — **실증: ws_bridge 대상 100 동시 클라이언트·500 메시지·접속 실패 0·p95 101ms PASS**. 244 TimescaleDB 실 DB·245 Grafana·247 kind 클러스터는 외부 인프라 잔여 (2026-07-02)
 - [ ] **Phase 261-280** — Hardware Loop (Pixhawk HITL·Jetson 엣지·RTK·실 비행 데이터셋) *(사용자 HW 의존)*
 - [x] **Phase 286** 🏆 안전망 Ablation 자동화 — `scripts/ablation_study.py` (APF·CBS 계층 제거 효과 측정, baseline/no_apf/no_cbs/no_apf_no_cbs × N 시드 → 충돌·근접경고·해결률 markdown+JSON), 시뮬레이터·컨트롤러 `ablation.disable_apf/disable_cbs` 토글(기본 미설정 = 전 계층 활성) + 12개 단위 테스트 PASS (2026-06-13)
 - [ ] **Phase 281-285·287-300** — Academic Impact (IROS 투고·Zenodo DOI·K-UTM 표준 제안)

@@ -17,6 +17,12 @@ updates:
       time: "09:15"
       timezone: "Asia/Seoul"
     open-pull-requests-limit: 5
+    ignore:
+      # electron 런타임 핀(^39.8.5)은 정책 잠금 — tests/test_electron_lts_policy.py가
+      # 검증하며, major 자동 범프는 2026-07-02 main CI를 깨뜨린 전례가 있음.
+      # electron major 갱신은 정책 핀 수동 결정으로만 진행.
+      - dependency-name: "electron"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "pip"
     directory: "/"

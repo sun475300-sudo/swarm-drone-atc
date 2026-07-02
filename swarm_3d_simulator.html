@@ -11507,6 +11507,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         //   speculative: 미래 비전 스텁, 호출 안전성만 보장 (ULTIMATE/POST-UNIVERSE)
         // 명시 리스트에 없는 API는 이름 패턴(접두사/Phase 번호)으로 추론한다.
         const _MATURITY_PRODUCTION = new Set([
+            // TRANSCENDENCE Phase 211-220 격상 (2026-07-02) — E2E test_simulator_production_promotion.py 9건 검증 후 beta→production
+            'notamAdd', 'notamImportJson', 'notams', 'notamCount',
+            'enableWindField', 'setWindRegime', 'sampleWindAt', 'windFieldEnabled', 'windRegime', 'windFieldStats',
+            'startChoreography', 'clearChoreography', 'choreoPattern', 'choreoPatterns',
+            'generateForecast', 'forecastQueryHour', 'forecastFlyableHours', 'forecastData',
             // Phase 1 ATC (핵심, 실측 검증 + 회귀)
             'atcCommand', 'atcLog', 'atcControlled', 'setAtcAudio', 'atcAudio', 'clearAllAtc',
             // GENESIS Phase 302 — SORA 결정적 산정 (JARUS 2.0 표 기반 실 알고리즘)
@@ -11540,12 +11545,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             'adversarialSafetyResponse', 'adversarialPolicies', 'adversarialCheck', 'adversarialDetected',
             'enableCuas', 'setCuasMode', 'cuasEngage', 'cuasDetect', 'cuasEnabled', 'cuasMode',
             'cuasEngagements', 'cuasLog', 'cuasModes',
-            'enableWindField', 'setWindRegime', 'sampleWindAt', 'windFieldEnabled', 'windRegime', 'windFieldStats',
-            'notamAdd', 'notamImportJson', 'notams', 'notamCount',
             'batteryAgeStats', 'enableAcoustic', 'acousticAddObserver', 'acousticEnabled',
             'acousticObservers', 'acousticStats',
-            'startChoreography', 'clearChoreography', 'choreoPattern', 'choreoPatterns',
-            'generateForecast', 'forecastQueryHour', 'forecastFlyableHours', 'forecastData',
             'utmFederationAdd', 'utmFederationHandoff', 'utmFederationSync', 'utmFederationInstances', 'utmFederationHandoffLog',
             'enablePqc', 'pqcStats', 'pqcEnabled',
             'arEnter', 'arExit', 'arAddPin', 'arClearPins', 'arEnabled', 'arPins',

@@ -2,6 +2,8 @@
 
 *Created: 2026-06-21 · Track I (ODYSSEY) Standards & Policy (461-480)*
 *기계 검증 골격: [`simulation/swarm_safety_standard.py`](../../simulation/swarm_safety_standard.py)*
+> **자매 산출물 (Phase 464 이중 트랙)**: 본 문서는 *기계 검증 게이트 트랙* (`simulation/swarm_safety_standard.py` 정합). 제출용 산문 트랙은 [`SDACS_SWARM_SAFETY_WHITEPAPER.md`](SDACS_SWARM_SAFETY_WHITEPAPER.md) — 두 트랙은 상보적이며 서로 대체하지 않는다.
+
 
 > **목적.** 군집(swarm) 무인기 공역 운용의 안전 기준을 SDACS 의 **5계층 안전망**을
 > 사례로 제안한다. 본 백서는 산문(이 문서)이 *유일 출처(SSoT)* 이고, 동반 모듈은

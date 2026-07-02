@@ -1,17 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="340" height="20" role="img" aria-label="API Maturity">
-  <title>API Maturity: production 94 / beta 98 / mock 110 / speculative 103</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="347" height="20" role="img" aria-label="API Maturity">
+  <title>API Maturity: production 112 / beta 80 / mock 110 / speculative 103</title>
   <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
-  <rect rx="3" width="340" height="20" fill="#555"/>
-  <rect x="74" width="63" height="20" fill="#22c55e"/>
-  <rect x="137" width="63" height="20" fill="#3b82f6"/>
-  <rect x="200" width="70" height="20" fill="#f59e0b"/>
-  <rect x="270" width="70" height="20" fill="#9ca3af"/>
-  <rect rx="3" width="340" height="20" fill="url(#s)"/>
+  <rect rx="3" width="347" height="20" fill="#555"/>
+  <rect x="74" width="70" height="20" fill="#22c55e"/>
+  <rect x="144" width="63" height="20" fill="#3b82f6"/>
+  <rect x="207" width="70" height="20" fill="#f59e0b"/>
+  <rect x="277" width="70" height="20" fill="#9ca3af"/>
+  <rect rx="3" width="347" height="20" fill="url(#s)"/>
   <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,sans-serif" font-size="10">
     <text x="37"  y="14">maturity</text>
-    <text x="105" y="14">prod 94</text>
-    <text x="168" y="14">beta 98</text>
-    <text x="235" y="14">mock 110</text>
-    <text x="305" y="14">spec 103</text>
+    <text x="109" y="14">prod 112</text>
+    <text x="175" y="14">beta 80</text>
+    <text x="242" y="14">mock 110</text>
+    <text x="312" y="14">spec 103</text>
   </g>
 </svg>

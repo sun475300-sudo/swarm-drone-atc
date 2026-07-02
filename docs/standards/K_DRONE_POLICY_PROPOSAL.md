@@ -1,5 +1,7 @@
 # K-드론 시스템 고도화 정책 제안서 (국토교통부 제출 형식)
 
+> **자매 산출물 (Phase 463 이중 트랙)**: 본 문서는 *기계 검증 게이트 트랙* (`simulation/k_drone_policy_proposal.py` 정합). 제출용 산문 트랙은 [`SDACS_KDRONE_POLICY_PROPOSAL.md`](SDACS_KDRONE_POLICY_PROPOSAL.md) — 두 트랙은 상보적이며 서로 대체하지 않는다.
+
 > **ODYSSEY Phase 463** · Standards & Policy 트랙
 > 근거: 「드론 활용의 촉진 및 기반 조성에 관한 법률」 §6 (드론산업기본계획)
 > 적합성 게이트: [`simulation/k_drone_policy_proposal.py`](../../simulation/k_drone_policy_proposal.py)

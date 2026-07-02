@@ -77,15 +77,17 @@ def test_maturity_production_classification(page):
 
 def test_maturity_beta_classification(page):
     pg, _ = page
+    # enableWindField 는 Phase 211-220 격상 (2026-07-02) 으로 production —
+    # beta 대표 표본을 잔류 beta API (utmFederationAdd) 로 교체
     r = pg.evaluate("""({
         copilot: window._sdacs.apiMaturity('copilotPlan'),
         cuas: window._sdacs.apiMaturity('enableCuas'),
-        wind: window._sdacs.apiMaturity('enableWindField'),
+        utm: window._sdacs.apiMaturity('utmFederationAdd'),
         pqc: window._sdacs.apiMaturity('enablePqc'),
     })""")
     assert r["copilot"] == "beta"
     assert r["cuas"] == "beta"
-    assert r["wind"] == "beta"
+    assert r["utm"] == "beta"
     assert r["pqc"] == "beta"
 
 

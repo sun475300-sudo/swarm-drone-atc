@@ -105,11 +105,13 @@ def test_beta_wind_field_toggle(page):
 
 def test_beta_apis_all_classified_beta(page):
     """검증 대상 5종이 실제 beta 분류인지 확인 (회귀 방지)."""
+    # enableWindField 는 Phase 211-220 격상 (2026-07-02) 으로 production —
+    # beta 표본을 잔류 beta API (utmFederationAdd) 로 교체
     r = page.evaluate("""(() => ({
         copilot: window._sdacs.apiMaturity('copilotPlan'),
         adv: window._sdacs.apiMaturity('spawnAdversarial'),
         cuas: window._sdacs.apiMaturity('enableCuas'),
-        wind: window._sdacs.apiMaturity('enableWindField'),
+        utm: window._sdacs.apiMaturity('utmFederationAdd'),
         pqc: window._sdacs.apiMaturity('enablePqc'),
     }))()""")
     for name, level in r.items():

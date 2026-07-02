@@ -2,6 +2,8 @@
 
 *ODYSSEY Track 🏛 Standards & Policy — Phase 464 산출물*
 *Created: 2026-06-24*
+> **자매 산출물 (Phase 464 이중 트랙)**: 본 문서는 *제출용 산문 트랙*. 기계 검증 게이트 트랙은 [`SWARM_SAFETY_STANDARD_WHITEPAPER.md`](SWARM_SAFETY_STANDARD_WHITEPAPER.md) + `simulation/swarm_safety_standard.py` (결정적 준비도 판정·회귀 테스트 포함) — 두 트랙은 상보적이며 서로 대체하지 않는다.
+
 
 ## 1. 목적
 

@@ -14,12 +14,12 @@
 
 [![Phase](https://img.shields.io/badge/Phase-200%20%E2%9C%93-purple?style=for-the-badge&logo=rocket)](docs/phase_matrix.html)
 [![SDACS Unity](https://img.shields.io/badge/Phase_200-%F0%9D%9F%8F_Unity-ec407a?style=for-the-badge&logo=infinity)](docs/SIMULATOR_POST_UNIVERSE_PLAN.md)
-[![API](https://img.shields.io/badge/__sdacs-407_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
-[![E2E](https://img.shields.io/badge/E2E-263%2F264_pass-22c55e?style=for-the-badge&logo=playwright&logoColor=white)](tests/e2e/)
+[![API](https://img.shields.io/badge/__sdacs-408_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
+[![E2E](https://img.shields.io/badge/E2E-283_collected-22c55e?style=for-the-badge&logo=playwright&logoColor=white)](tests/e2e/)
 [![Roadmap](https://img.shields.io/badge/Roadmap_691--755-94%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
-[![Tests](https://img.shields.io/badge/Python_tests-8%2C365_pass_%C2%B7_228_skip-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Python_tests-8%2C962_collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![v1.5.0](https://img.shields.io/badge/Desktop-v1.5.0_(Win%2FMac%2FLinux)-7c3aed?style=for-the-badge&logo=electron&logoColor=white)](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
-[![Modules](https://img.shields.io/badge/Modules-950+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
+[![Modules](https://img.shields.io/badge/Modules-1%2C094--9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
 [![LOC](https://img.shields.io/badge/Total-160K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
 
@@ -105,7 +105,7 @@
 | **F** 산학·사업화 | P746-755 | 🟢 90% | K-UAM·해수부·산림청·KISA·라이선싱·창업 docs (P755·LOI는 사용자 환경) |
 | **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 21% | 201-220·226 완료 — 성숙도 정직성·API 수명주기·**production 코어 30종 회귀**·GPS→ENU 정밀 검증 |
 | **H** GENESIS | 시뮬 301-400 | 🟢 50% | 인증 301-319·플러그인SDK(321)·CITATION(330)·교육(381-389)·**Phase 400 Legacy 선언**·V2X·자가치유·**RL벤치·LLM관제·5G NTN·GPS거부·에너지계획**(361-368) 완료 — 실 지역 실증·양방향 디지털트윈만 잔여(실 HW) |
-| **I** ODYSSEY | 시뮬 401-500 | 🟡 49% | FAA/EASA/ICAO 정렬(402-411)·RL/EASA AI(452-460, V&V·SafetyCase·Lifecycle)·연합 운영(`federation_*` 19모듈)·표준/Continuum(461-500)·**#449 10 Phase 안착** 완료 — GUTMA·해외 제출·차세대 기수만 잔여(외부) |
+| **I** ODYSSEY | 시뮬 401-500 | 🟡 49% | FAA/EASA/ICAO 정렬(402-411)·RL/EASA AI(452-460, V&V·SafetyCase·Lifecycle)·연합 운영(`federation_*` 17모듈)·표준/Continuum(461-500)·**#449 10 Phase 안착** 완료 — GUTMA·해외 제출·차세대 기수만 잔여(외부) |
 
 > 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)(실행 일정)
 
@@ -141,7 +141,7 @@
 - [ ] 시뮬레이터 Track Ⅰ — CPA TTC 라벨·위험도 색상·어드바이저리 빌보드 점멸 (기반 advisory/ttc/replay는 HTML 구현됨, **고도화·마감 검증** 잔여)
 - [x] **TRANSCENDENCE 211-220** ✅ production API 12→30 격상 — `tests/e2e/test_simulator_production_core_30.py` (핵심 30종 실 호출 set→get 왕복·구조화 반환 검증 + 30종 production 등급 게이트, E2E 2건) (2026-06-26)
 - [ ] TRANSCENDENCE 241-260 — 다중 사용자 WS 관제 서버·부하 100명 (런타임 인프라)
-- [ ] ODYSSEY 426-427 — 2-인스턴스 연합 E2E·고스트 렌더링 (federation 백엔드 19모듈 완비, Playwright 다중페이지 E2E만 잔여)
+- [ ] ODYSSEY 426-427 — 2-인스턴스 연합 E2E·고스트 렌더링 (federation 백엔드 17모듈 완비, Playwright 다중페이지 E2E만 잔여)
 - [x] **GENESIS 320** ✅ 4대 SW계획서 — `docs/certification/SOFTWARE_PLANS.md` (SDP/SVP/SCMP/SQAP, DO-178C §4.3, 실제 프로세스 근거)
 - [ ] `main` branch protection — required checks 지정 (직접 push 차단은 워크플로 영향 → 사용자 확인)
 
@@ -1139,6 +1139,9 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 | 2026-07-02 18:39 | (pending) | feat(genesis): Phase 323 외부 시뮬레이터 어댑터 안착 — BlueSky·U-TRAFMAN 호환 import/export (드래프트 #463·#465·#469 통합, #469 코어 채택) | simulation/external_sim_adapter.py, tests/test_external_sim_adapter.py, docs/standards/EXTERNAL_SIM_ADAPTER_SPEC.md, ROADMAP.md, docs/SIMULATOR_GENESIS_PLAN.md |
 | 2026-07-02 18:22 | `b1608182` | Merge remote-tracking branch 'origin/main' into tmp/pr464-sync | .githooks/pre-commit, .github/workflows/airgap-audit.yml, .github/workflows/canonical_hash.yml, .github/workflows/ci.yml, .github/workflows/deploy-pages.yml, .github/workflows/desktop-build.yml … |
 | 2026-07-02 17:13 | `9b7e9d03` | fix(ci): restore MAVLink TX code dropped in merge + fastapi test guard | src/hardware/onboard_bridge.py, tests/test_auth_revocation.py |
+| 2026-07-02 12:21 | `a0e8a876` | test(e2e): 격상 후속 — maturity 회귀 2건의 beta 표본 교체 (CI RED 회복) | tests/e2e/test_simulator_beta_subset.py, tests/e2e/test_simulator_maturity.py |
+| 2026-07-02 12:14 | `bb539e10` | feat(transcendence): Phase 211-260 3개 트랙 sandbox 가능분 — production +18·다중 관제사 WS·부하 100 실증 | CHANGELOG.md, ROADMAP.md, docs/SDACS_API.md, docs/badges/maturity.svg, docs/sdacs.d.ts, docs/simulator.html … |
+| 2026-07-02 11:48 | `6e3c3967` | chore: 종합 감사 6차원 — README 수치 동기·중복 문서 상호참조·INDEX 전수·위생·actions v5 | .github/workflows/airgap-audit.yml, .github/workflows/canonical_hash.yml, .github/workflows/ci.yml, .github/workflows/deploy-pages.yml, .github/workflows/desktop-build.yml, .github/workflows/security.yml … |
 | 2026-07-02 11:41 | `97e46c35` | Merge remote-tracking branch 'origin/dependabot/npm_and_yarn/playwright-1.61.1' | package.json |
 | 2026-07-01 20:55 | `6273075c` | fix(simulator): file:// 직접 열기 감지 안내 배너 — "실행 안 됨" 해결 | docs/maritime_detection_simulator.html, docs/simulator.html, docs/swarm_3d_simulator.html, maritime_detection_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-07-01 20:44 | `f68ab051` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | outputs/EXECUTION_LOG_2026-06-19.md, outputs/REMAINING_ISSUES_2026-06-19.md, simulation/energy_aware_planner.py, simulation/llm_atc_production.py, simulation/onboard_rl_bench.py, simulation/plugin_sdk.py |

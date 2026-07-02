@@ -1,5 +1,5 @@
 // SDACS Simulator window._sdacs TypeScript Declaration File
-// 자동 생성: 2026-06-16 (scripts/extract_sdacs_api.py 라이브 실측 추출)
+// 자동 생성: 2026-07-02 (scripts/extract_sdacs_api.py 라이브 실측 추출)
 // 총 408개 API — 200 Phase + TRANSCENDENCE Phase 201-207 (Maturity)
 // 성숙도: window._sdacs.maturityReport() 로 production/beta/mock/speculative 조회
 
@@ -111,10 +111,10 @@ declare global {
     /** [getter · beta] */ readonly adversarialDrones: any;
     /** [getter · beta] */ readonly adversarialSafetyResponse: any;
     /** [getter · beta] */ readonly adversarialPolicies: any;
-    /** [beta] */ startChoreography(...args: any[]): any;
-    /** [beta] */ clearChoreography(...args: any[]): any;
-    /** [getter · beta] */ readonly choreoPattern: any;
-    /** [getter · beta] */ readonly choreoPatterns: any;
+    /** [production] */ startChoreography(...args: any[]): any;
+    /** [production] */ clearChoreography(...args: any[]): any;
+    /** [getter · production] */ readonly choreoPattern: any;
+    /** [getter · production] */ readonly choreoPatterns: any;
     /** [beta] */ enableCuas(...args: any[]): any;
     /** [beta] */ setCuasMode(...args: any[]): any;
     /** [beta] */ cuasEngage(...args: any[]): any;
@@ -124,12 +124,12 @@ declare global {
     /** [getter · beta] */ readonly cuasEngagements: any;
     /** [getter · beta] */ readonly cuasLog: any;
     /** [getter · beta] */ readonly cuasModes: any;
-    /** [beta] */ enableWindField(...args: any[]): any;
-    /** [beta] */ setWindRegime(...args: any[]): any;
-    /** [beta] */ sampleWindAt(...args: any[]): any;
-    /** [getter · beta] */ readonly windFieldEnabled: any;
-    /** [getter · beta] */ readonly windRegime: any;
-    /** [getter · beta] */ readonly windFieldStats: any;
+    /** [production] */ enableWindField(...args: any[]): any;
+    /** [production] */ setWindRegime(...args: any[]): any;
+    /** [production] */ sampleWindAt(...args: any[]): any;
+    /** [getter · production] */ readonly windFieldEnabled: any;
+    /** [getter · production] */ readonly windRegime: any;
+    /** [getter · production] */ readonly windFieldStats: any;
     /** [beta] */ enableGpu50k(...args: any[]): any;
     /** [beta] */ gpu50kBuild(...args: any[]): any;
     /** [beta] */ gpu50kQuery(...args: any[]): any;
@@ -147,10 +147,10 @@ declare global {
     /** [beta] */ dtwinSetOrigin(...args: any[]): any;
     /** [getter · beta] */ readonly dtwinEnabled: any;
     /** [getter · beta] */ readonly dtwinStats: any;
-    /** [beta] */ notamAdd(...args: any[]): any;
-    /** [beta] */ notamImportJson(...args: any[]): any;
-    /** [getter · beta] */ readonly notams: any;
-    /** [getter · beta] */ readonly notamCount: any;
+    /** [production] */ notamAdd(...args: any[]): any;
+    /** [production] */ notamImportJson(...args: any[]): any;
+    /** [getter · production] */ readonly notams: any;
+    /** [getter · production] */ readonly notamCount: any;
     /** [getter · beta] */ readonly batteryAgeStats: any;
     /** [beta] */ arEnter(...args: any[]): any;
     /** [beta] */ arExit(...args: any[]): any;
@@ -163,10 +163,10 @@ declare global {
     /** [getter · beta] */ readonly acousticEnabled: any;
     /** [getter · beta] */ readonly acousticObservers: any;
     /** [getter · beta] */ readonly acousticStats: any;
-    /** [beta] */ generateForecast(...args: any[]): any;
-    /** [beta] */ forecastQueryHour(...args: any[]): any;
-    /** [beta] */ forecastFlyableHours(...args: any[]): any;
-    /** [getter · beta] */ readonly forecastData: any;
+    /** [production] */ generateForecast(...args: any[]): any;
+    /** [production] */ forecastQueryHour(...args: any[]): any;
+    /** [production] */ forecastFlyableHours(...args: any[]): any;
+    /** [getter · production] */ readonly forecastData: any;
     /** [beta] */ utmFederationAdd(...args: any[]): any;
     /** [beta] */ utmFederationHandoff(...args: any[]): any;
     /** [beta] */ utmFederationSync(...args: any[]): any;

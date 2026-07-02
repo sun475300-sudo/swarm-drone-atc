@@ -2,6 +2,9 @@
 
 ## Completed / 완료
 
+<details>
+<summary><b>✅ 완료 Phase 1-700 전체 목록 펼치기 (클릭)</b></summary>
+
 ### Phase 1-470: Core System (완료)
 - SimPy 이산 이벤트 시뮬레이션 엔진
 - AirspaceController 1Hz 충돌 감지/해결
@@ -116,6 +119,8 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 - [x] 비행 추적 서비스 (`flight_following.py`)
 - [x] 통합 AIM 브리핑 서비스 (`aim_briefing.py`)
 - [x] 후-비행 보고서 통합기 (`post_flight_report.py`)
+
+</details>
 
 ---
 
@@ -254,7 +259,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 204** — Production 핵심 12종 회귀 강화 — `test_simulator_production_core.py` (getter 전수 + 12종 호출 + 93 회귀 방지) (2026-06-12)
 - [x] **Phase 205** — Beta API 부분 검증 — `test_simulator_beta_subset.py` (Copilot·적대·C-UAS·WindField·PQC, 5건) (2026-06-12)
 - [x] **Phase 209-210** — API Deprecation Policy + SemVer 규약 — `docs/API_DEPRECATION_POLICY.md`, `docs/API_SEMVER_POLICY.md` (성숙도별 유예 기간 + SemVer↔API 영향 + 긴급 보안 폐기 + CI 규칙) (2026-06-18)
-- [x] **Phase 211-220** — production 격상 완료 — beta 18종(NOTAM 4·WindField 6·Choreography 4·Forecast 4)을 E2E 검증 후 production 이동 (`tests/e2e/test_simulator_production_promotion.py` 10건 — 동작 9 + 분류 게이트 1). **production 94 → 112** (계획 12→30 의 +18 정합). API 게이트 재생성 GREEN (2026-07-02)
+- [x] **Phase 211-220** — production 격상 (12 → 30 API) — `test_simulator_production_core_30.py` (핵심 30종 실 호출 set→get 왕복·구조화 반환 검증 + 30종 production 등급 게이트, E2E 2건) (2026-06-26)
+- [x] **Phase 211-220 후속** — production 격상 완료 — beta 18종(NOTAM 4·WindField 6·Choreography 4·Forecast 4)을 E2E 검증 후 production 이동 (`tests/e2e/test_simulator_production_promotion.py` 10건 — 동작 9 + 분류 게이트 1). **production 94 → 112** (계획 12→30 의 +18 정합). API 게이트 재생성 GREEN (2026-07-02)
 - [x] **Phase 221-240** — Real Validation sandbox 가능분 완료 — 221 WGSL 은 이미 실구현(`APF_COMPUTE_SHADER` + `createShaderModule` 추적 정정)·225 `tests/test_px4_sitl_bridge.py` MAVLink 브리지 결정적 회귀 9건(기존 회귀 부재 갭 해소)·227 `simulation/kma_wind_field.py` KMA 격자 파서+이중선형 보간+wind 모델 어댑터(실 API 호출은 서비스 키 외부 의존 — 파서·보간만, 정직 공시) 13건·230 `simulation/battery_aging.py` LiPo 방전 곡선 8점+사이클 노화(300cyc 90%·500cyc 80% 문헌 결속) 8건. 223 CRDT Yjs·229 PQC WASM 은 외부 라이브러리 의존 잔여 (2026-07-02)
 - [x] **Phase 241-260** — Multi-User sandbox 가능분 완료 — 241 `simulation/atc_multiuser_session.py` `/ws/atc` FastAPI 라우터 팩토리(기존 서버 무수정 옵트인)·242 SessionRegistry(JWT role·하트비트 TTL·주입식 시계)·243 결정적 3단 충돌 해결(role rank→timestamp→sha256, 입력 순서 무관) 25건 회귀·246 `simulation/ws_load_harness.py` 부하 하니스 — **실증: ws_bridge 대상 100 동시 클라이언트·500 메시지·접속 실패 0·p95 101ms PASS**. 244 TimescaleDB 실 DB·245 Grafana·247 kind 클러스터는 외부 인프라 잔여 (2026-07-02)
 - [ ] **Phase 261-280** — Hardware Loop (Pixhawk HITL·Jetson 엣지·RTK·실 비행 데이터셋) *(사용자 HW 의존)*
@@ -285,7 +291,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 322** 🌍 `.sdacs-scenario` 스키마 + 검증기 — `simulation/scenario_schema.py` + `docs/schemas/sdacs-scenario.schema.json`, 20건 PASS (2026-06-15)
 - [x] **Phase 321** 🌍 플러그인 SDK v1 — `simulation/plugin_sdk.py` PluginType 7종 enum·PluginMeta frozen dataclass·PluginRegistry 등록/해제/의존 해결/실행 파이프라인, MappingProxyType 불변 레지스트리, CLI --list/--register/--resolve/--json, 50건 PASS (2026-06-26)
 - [x] **Phase 330** 🌍 CITATION.cff + 인용 검증 — `CITATION.cff` CFF 1.2.0 + `simulation/citation_validator.py` CFF 파서·BibTeX/APA 변환·필수필드 검증, CLI --validate/--bibtex/--apa/--json, 43건 PASS (2026-06-26)
-- [ ] **Phase 322-340** 🌍 Ecosystem & Open Source 잔여 — `@sdacs/core` npm·`sdacs-sim` PyPI 실 퍼블리싱·v2.0 API 안정화
+- [x] **Phase 323** 🌍 외부 시뮬레이터 어댑터 — `simulation/external_sim_adapter.py` + `docs/standards/EXTERNAL_SIM_ADAPTER_SPEC.md` BlueSky `.scn`·U-TRAFMAN JSON 호환 import/export, 중립 교환 모델 IR·등거리 투영·결정적 물질화·import 경계 검증, CLI 3종, 35건 PASS (2026-06-26)
+- [ ] **Phase 322·324-340** 🌍 Ecosystem & Open Source 잔여 — `@sdacs/core` npm·`sdacs-sim` PyPI 실 퍼블리싱·v2.0 API 안정화 *(어댑터 스펙 공개는 Phase 323 ✅ 안착)*
 - [x] **Phase 341** 🏙 목포 해역 실 좌표계 임포트 — `src/applications/mokpo_harbor.py` 해도 기반 NFZ 4종(부두·대교·지형·정박지)·회랑 3종 결정적 배치 + 레이 캐스팅 NFZ 판정·회랑 충돌 검사, 8건 PASS (2026-06-15)
 - [x] **Phase 342** 🏙 전남 도서(신안·완도) 의료 배송 거점 DB — `src/applications/jeonnam_island_sites.py` 실 좌표·거점·Haversine ETA, 7건 PASS (2026-06-15)
 - [ ] **Phase 341-360** 🏙 Real Deployment — 목포 해역 실 좌표·전남 도서 의료 배송·90일 파일럿 백서
@@ -374,6 +381,8 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 468** 🏛 대학 캡스톤 표준 커리큘럼 제안 (GENESIS 383 확장) — `simulation/capstone_curriculum_standard.py` + `docs/standards/CAPSTONE_CURRICULUM_STANDARD.md`. SDACS 를 워크드 예제로 삼는 15주 학부 캡스톤 표준 커리큘럼 제안서가 (1) 주차별 강의 자료 완비도 **와** (2) 한국공학교육인증원(ABEEK KEC2015) 프로그램 학습성과 커버리지를 동시 충족했는가를 결정적으로 판정하는 자문 게이트. 자매 463(단일 정책 제안서 섹션 완비도, 단일 차원)과 달리 *두 차원 교차 검증* — 모든 단원이 작성돼도 필수 학습성과(PO1·2·4·5·6) 하나가 어느 단원에도 매핑 안 되면 NOT_READY(교차 불변식, 463 에 없음). 정직성 결속: `DRAFTED` 단원은 실재 강의 자산 인용·`MISSING` 은 인용 금지, 거짓 커버 금지(증거 부재 DRAFTED 는 커버 불인정). *준비도*(표준 제안)와 *채택 상태*(외부 대학·ABEEK)는 **독립** — 전 단원 작성돼도 현 상태 `adoption_status = NOT_PROPOSED` 정직 공시. 현 리포 판정 `PARTIAL (95%)`(U09 논문 단원 OUTLINED — 실측 그래프 의존, 기존 P707 잔여와 정합)·15/15주 커버·필수 학습성과 5/5 커버. 자문, 부수효과 0·무작위성 0·기존 파일 무수정 순수 추가. CLI(`--matrix`·`--report`·`--gaps`·`--coverage`·`--adoption`). code-reviewer 어드바이저 반영. 59건 PASS (2026-06-21)
 - [x] **Phase 471** 🏛 KS 국가표준 제안 적합성 게이트 — `simulation/ks_standard_proposal.py` + `docs/standards/KS_STANDARD_PROPOSAL_GATE.md`. KS 제안 1건이 KATS 접수에 필요한 제안 요건 6종(산업표준화법 시행령·WTO/TBT §2.4·KS 운영요령 근거) 충족을 결정적 게이트로 판정. 판정 우선순위(CRITICAL UNMET→NOT_READY)·`POLICY_MATRIX` 6칸 테스트 일치 강제·자문(부수효과 0)·무작위성 0. 현 후보 `NOT_READY (50.0%)` 정직 공시(KS-04 중복성 검토 결격). 27건 PASS (2026-06-21)
 - [x] **Phase 474-480** 🏛 Standards & Policy — 국제 워킹그룹 의견서 + 정책 추적 도구 (461-473 ✅ 코드 구현; 474-477 ✅ 의견서 문서 GUTMA·FAA·JARUS·IFALPA `docs/standards/SDACS_*_OPINION.md`; 478 ✅ `scripts/standards_conformance_check.py` 정합성 자동 점검(12 산출물); 479 ✅ `docs/standards/STANDARDS_WATCH_PROCEDURE.md` 모니터링; 480 ✅ `docs/standards/SDACS_STANDARDS_QUARTERLY_REPORT_TEMPLATE.md` 분기 보고 템플릿 — 2026-06-25~26 문서 트랙, 회귀 test_phase_474~480 63건 PASS)
+- [x] **EUROCAE WG-105 군집 ConOps 의견서 (Standards 추가 의견서)** 🏛 — `simulation/eurocae_wg105_opinion.py` + `docs/standards/EUROCAE_WG105_SWARM_CONOPS_OPINION.md`. 실행 가능한 redline(Before→After 제안 변경)까지 완성. 동봉 문서의 절별 디스크 증거로부터 WG-01~WG-06 상태를 결정적 도출하고 판정은 Phase 472 `assess` 에 위임(DRY — 복제 0). redline 완성으로 WG-02 PARTIAL→MET 격상(초안 점수 0.8→0.95), WG-06 은 회람 기한 외부 의존으로 PARTIAL 상한 고정 → `NEEDS_WORK` 정직 공시(준비도 ≠ 제출, READY_TO_SUBMIT 은 외부 기한 확정 후에만). Phase 473 포트폴리오는 본 작성 결과를 위임 재사용(하드코딩 스냅샷 제거). 자문·부수효과 0(읽기 전용)·무작위성 0. code-reviewer 어드바이저 반영. 20건 PASS (2026-06-25)
+- [ ] **Standards 잔여** 🏛 국제 워킹그룹 의견서 잔여 1건 — ISO/TC 20/SC 16 23629 시리즈 (절/줄 지정·제안 변경 작성 필요, 회람 기한 외부 의존)
 - [x] **Phase 485** ♾️ 데이터 마이그레이션 도구 — `simulation/scenario_migration.py`. 시나리오 포맷의 역사적 변종(`*_min`/`*_s`·`total_drone_count`/`base_drone_count`/`base_traffic`)을 canonical v2.0(초·단일 `drone_count`·`schema_version` 스탬프)으로 정규화하는 결정적·멱등 버전 변환기. `multi_city` 의 러너 미인식 `total_drone_count` 를 `drone_count` 로 복원. 출력은 `scenario_schema` 계약 경고 없이 충족. code-reviewer 어드바이저 HIGH 3 반영. 33건 PASS (2026-06-17)
 - [x] **Phase 486** ♾️ 연 1회 건전성 리허설 자동화 — `scripts/independent_reproduction.sh` (회귀·md5·JS·API 게이트 통합, 2026-06-12) + `simulation/rehearsal_cadence.py` + `docs/standards/HEALTH_REHEARSAL_CADENCE_POLICY.md` (2026-06-19). 신규 컨테이너 독립 재현 하니스가 *언제 다시 필요한가*(연 1회 365일 + 예고 30일 + 유예 30일 케이던스)와 *온전한가*(4개 하니스 자산 실재)를 결정적 정책으로 명문화(Phase 481/484/488/489 자매 패턴). `assess` 우선순위: 하니스 손상→REVIEW·기록 없음→RUN_NOW·미래 날짜→REVIEW·비-PASS→RUN_NOW·그 외 케이던스 등급. `LAST_REHEARSAL` 스냅샷(2026-06-19 일일 점검 = PASS)으로 현 상태 `WITHIN_CADENCE` 정직 공시(일일 점검이 연 1회보다 잦음 반영). 자문, 부수효과 0·무작위성 0. `POLICY_MATRIX` 8칸 일치 강제. code-reviewer 어드바이저 HIGH 2·MEDIUM 2·LOW 2 반영. 41건 PASS
 - [x] **Phase 481** ♾️ 의존성 자동 갱신 회귀 게이트 정책 — `simulation/dependency_gate.py`. 적체 Dependabot 갱신 PR 을 회귀 통과 시 자동 머지/리뷰/차단으로 가르는 결정적 정책(자문, 부수효과 0). 44건 PASS (2026-06-19)

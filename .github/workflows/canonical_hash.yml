@@ -32,7 +32,7 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v6
@@ -66,7 +66,7 @@ jobs:
       # outputs so a human can decide whether the change was intentional.
       - name: Upload mismatched outputs
         if: failure() && steps.verify.conclusion == 'failure'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: canonical-mismatch-results
           path: results/**

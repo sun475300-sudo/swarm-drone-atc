@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       # Mirror root-level simulator files into docs/ so the live site always
       # ships the freshest build without requiring a manual copy.
@@ -64,7 +64,7 @@ jobs:
           echo "✅ docs/vendor/three 동기화 완료"
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

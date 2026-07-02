@@ -9,6 +9,9 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
+<details>
+<summary><b>📊 프로젝트 상태 배지 10종 — 펼치기 (Phase · API · E2E · Tests · Modules · Tracks · LOC …)</b></summary>
+
 [![Phase](https://img.shields.io/badge/Phase-200%20%E2%9C%93-purple?style=for-the-badge&logo=rocket)](docs/phase_matrix.html)
 [![SDACS Unity](https://img.shields.io/badge/Phase_200-%F0%9D%9F%8F_Unity-ec407a?style=for-the-badge&logo=infinity)](docs/SIMULATOR_POST_UNIVERSE_PLAN.md)
 [![API](https://img.shields.io/badge/__sdacs-408_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
@@ -19,6 +22,9 @@
 [![Modules](https://img.shields.io/badge/Modules-1%2C094--9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
 [![LOC](https://img.shields.io/badge/Total-160K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
+
+</details>
+
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 **Mokpo National University, Dept. of Drone Mechanical Engineering — Capstone Design (2026)**
@@ -40,7 +46,7 @@
 <summary><b>25개 섹션 바로가기 — 클릭하여 펼치기 / Jump to section (click to expand)</b></summary>
 
 - [📣 공개 프로젝트 설명 자료 / Public Project Materials](#-공개-프로젝트-설명-자료--public-project-materials-2026-06-18)
-- [📊 개발 진척 현황 / Development Progress](#-개발-진척-현황--development-progress-2026-07-01)
+- [📊 개발 진척 현황 / Development Progress](#-개발-진척-현황--development-progress-2026-07-02)
 - [📦 배포 파일 다운로드 / Distribution Files](#-배포-파일-다운로드--distribution-files-v150--200-phase-unity)
 - [📄 최종 보고서 다운로드 / Final Report Downloads](#-최종-보고서-다운로드--final-report-downloads)
 - [🐳 Docker로 실행하기 / Run with Docker](#-docker로-실행하기--run-with-docker)
@@ -80,13 +86,13 @@
 
 > **2026-06-24 로컬 재검증:** `ruff` 전체 통과 · Python 테스트는 단일 프로세스(`pytest -n 0`)에서 클린 통과 · AIM 정밀검사 242개 통과. 대표 실행 `100 drones / 60s / seed 42`에서 **45 collisions · 87 near misses · 95.9% conflict resolution**이 측정되었습니다(상세 수치는 아래 [현재 로컬 검증](#-현재-로컬-검증--current-local-validation-2026-06-24) 표 참조). 현재 결과는 안전 인증이 아니라 연구용 시뮬레이터의 개선 기준선입니다.
 
-> **최신 변경 (2026-06-24)** — Phase 691-700 AIM 모듈 정밀검사 9라운드(Round 4–12) 완료: NaN/Inf 바이패스 차단(`math.isfinite` 가드), CAVOK 위양성 NO-GO 수정, 캡슐화 누수 방지, fail-closed 안전 설계, 방어적 복사, 중복 거부 — 10개 소스 파일 강화 + 242개 전용 테스트 추가.
+> **최신 점검 (2026-07-02 12:32 KST)** — `main`은 `origin/main`과 일치(`a9259053`)하며 Pages·Canonical Hash·Security Audit는 GREEN입니다. 단, 최신 GitHub Actions `CI`는 Python 3.10/3.11/3.12 테스트 잡에서 RED입니다: `fastapi` 설치 누락, `LostLinkConfig` import 불일치, Electron LTS 정책 테스트가 repo pin `43` vs 기대값 `39`로 실패합니다.
 >
 > 📜 200 Phase 통합 · API Maturity 정직성 체계 · 이전 버전 이력 등 상세 변경 내역은 [CHANGELOG.md](CHANGELOG.md)를 참조하세요.
 
 ---
 
-## 📊 개발 진척 현황 / Development Progress (2026-07-01)
+## 📊 개발 진척 현황 / Development Progress (2026-07-02)
 
 | 트랙 | 범위 | 진척 | 핵심 산출물 |
 |---|---|---|---|
@@ -97,13 +103,16 @@
 | **D** 웹 시뮬 | P721-735 | ✅ 100% | 군집·해양 3D + Electron 3-OS + i18n + LIVE + CPA 공간해시 + 멀티뷰 + EO/IR + **ATC 명령 콘솔** |
 | **E** 확장 연구 | P736-745 | ✅ 100% | RL PoC·UAS-T·LiDAR·DR·디지털트윈·Raft HA·UAM·양자·폐쇄망·LLM |
 | **F** 산학·사업화 | P746-755 | 🟢 90% | K-UAM·해수부·산림청·KISA·라이선싱·창업 docs (P755·LOI는 사용자 환경) |
-| **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 11% | 201-210·226 완료 — 성숙도 정직성·API 수명주기·GPS→ENU 정밀 검증 |
+| **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 21% | 201-220·226 완료 — 성숙도 정직성·API 수명주기·**production 코어 30종 회귀**·GPS→ENU 정밀 검증 |
 | **H** GENESIS | 시뮬 301-400 | 🟢 50% | 인증 301-319·플러그인SDK(321)·CITATION(330)·교육(381-389)·**Phase 400 Legacy 선언**·V2X·자가치유·**RL벤치·LLM관제·5G NTN·GPS거부·에너지계획**(361-368) 완료 — 실 지역 실증·양방향 디지털트윈만 잔여(실 HW) |
 | **I** ODYSSEY | 시뮬 401-500 | 🟡 49% | FAA/EASA/ICAO 정렬(402-411)·RL/EASA AI(452-460, V&V·SafetyCase·Lifecycle)·연합 운영(`federation_*` 17모듈)·표준/Continuum(461-500)·**#449 10 Phase 안착** 완료 — GUTMA·해외 제출·차세대 기수만 잔여(외부) |
 
 > 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)(실행 일정)
 
-### 🚧 미완료 작업 / Open Work Items (2026-06-25 코드베이스 전수 감사)
+### 🚧 미완료 작업 / Open Work Items (2026-07-02 GitHub·CI 재점검)
+
+<details>
+<summary><b>📋 전수 감사 상세 펼치기 — 환경의존 / 코드완료 / 잔여 작업 (클릭)</b></summary>
 
 > **전수 감사 결과**: 기존 `[ ]` 항목 다수가 실제로는 **이미 구현된 stale 마커**였습니다. 코드와 1:1 대조해 ① 환경 의존(코드 불가) ② 코드 완료(실재 모듈 확인) ③ 잔여 코드 작업으로 정직 재분류했습니다.
 
@@ -130,7 +139,7 @@
 
 #### 🔨 잔여 코드 작업 (doable — 시각화 폴리시·인프라)
 - [ ] 시뮬레이터 Track Ⅰ — CPA TTC 라벨·위험도 색상·어드바이저리 빌보드 점멸 (기반 advisory/ttc/replay는 HTML 구현됨, **고도화·마감 검증** 잔여)
-- [ ] TRANSCENDENCE 211-220 — production API 12→30 격상 (시뮬레이터 성숙도)
+- [x] **TRANSCENDENCE 211-220** ✅ production API 12→30 격상 — `tests/e2e/test_simulator_production_core_30.py` (핵심 30종 실 호출 set→get 왕복·구조화 반환 검증 + 30종 production 등급 게이트, E2E 2건) (2026-06-26)
 - [ ] TRANSCENDENCE 241-260 — 다중 사용자 WS 관제 서버·부하 100명 (런타임 인프라)
 - [ ] ODYSSEY 426-427 — 2-인스턴스 연합 E2E·고스트 렌더링 (federation 백엔드 17모듈 완비, Playwright 다중페이지 E2E만 잔여)
 - [x] **GENESIS 320** ✅ 4대 SW계획서 — `docs/certification/SOFTWARE_PLANS.md` (SDP/SVP/SCMP/SQAP, DO-178C §4.3, 실제 프로세스 근거)
@@ -176,14 +185,18 @@
 - [x] **GENESIS 368** ✅ 에너지 인식 임무 계획 — `simulation/energy_aware_planner.py` 배터리 모델·에너지 비용·귀환점 산정·최적 경로·충전 스케줄, 48건 PASS
 
 **GitHub 운영**
-- [x] **열린 PR 정리 (2026-06-25)** ✅ — 일일점검 중복 draft 23건 close(ODYSSEY 작업은 #449로 일원화) + dependabot 8건 병합(GitHub Actions 5 + pyyaml·matplotlib·pydantic-core) + 로컬 브랜치 1개(`main`)로 축소. **#449(ODYSSEY 10개 Phase) main 안착 완료** → 잔여 열린 PR 9건(메이저 의존성 4 + 리베이스 중 2 + #283 perf + 기타)
+- [x] **열린 PR 정리 (2026-06-25)** ✅ — 일일점검 중복 draft 23건 close(ODYSSEY 작업은 #449로 일원화) + dependabot 8건 병합(GitHub Actions 5 + pyyaml·matplotlib·pydantic-core) + 로컬 브랜치 1개(`main`)로 축소. **#449(ODYSSEY 10개 Phase) main 안착 완료**
+- [ ] **열린 PR 재점검 (2026-07-02)** — 열린 PR 8건 모두 draft. 충돌/dirty 7건: #457, #461, #462, #463, #464, #465, #480. #469는 `UNSTABLE` 상태이므로 병합 전 리베이스·CI 재검증 필요
 - [x] **저장소 루트 `LICENSE` 추가 (2026-06-25)** ✅ — MIT 라이선스 파일 생성, README 배지 링크 정상화
-- [x] **main CI RED 회복 (2026-06-25)** ✅ — `ci.yml` checkout `fetch-depth: 0`(code_archaeology 전체 이력 파싱) → CI GREEN 실측
+- [x] **main CI RED 회복 (2026-06-25)** ✅ — `ci.yml` checkout `fetch-depth: 0`(code_archaeology 전체 이력 파싱) → 당시 CI GREEN 실측
+- [ ] **main CI RED 재발 (2026-07-02)** — 최신 run `28563001397` 실패: `fastapi` 누락, `LostLinkConfig` export/API 불일치, Electron LTS 테스트 기대값(39)과 repo pin(43) 불일치. Pages·Canonical Hash·Security Audit는 GREEN
 - [ ] `main` branch protection 활성화 — required checks 지정 (직접 push 차단은 현 작업 워크플로에 영향 → 사용자 확인 필요)
 
 **기술 부채 (정직성 공시)**
 - [ ] mock 110종 + speculative 103종 — 전체 목록·격상 난이도: [`docs/TECH_DEBT_LEDGER.md`](docs/TECH_DEBT_LEDGER.md) (자동 생성)
 - [x] **Electron `^39.8.5` 빌드 (2026-06-25)** ✅ — 로컬 Windows NSIS 빌드 검증(electron 39.8.10 · `dist-desktop/SDACS-Simulator-1.5.0-Setup.exe` 92 MB). dependabot #426(electron 42 메이저)은 검토 대기
+
+</details>
 
 ---
 
@@ -255,12 +268,17 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 | [🌌 SIMULATOR_MEGA_PLAN.md](docs/SIMULATOR_MEGA_PLAN.md) ~ [POST_UNIVERSE_PLAN](docs/SIMULATOR_POST_UNIVERSE_PLAN.md) | 200 Phase 5단계 로드맵 |
 | [📋 CHANGELOG.md](CHANGELOG.md) | v1.0-1.5 통합 버전 이력 |
 
-### ✅ 현재 로컬 검증 / Current Local Validation (2026-06-24)
+### ✅ 현재 검증 스냅샷 / Current Validation Snapshot (2026-07-02)
 
 | 항목 | 결과 |
 |---|---|
+| GitHub main 동기화 | **로컬 `main` = `origin/main` = `a9259053`** |
+| Pages / Canonical Hash / Security Audit | **GREEN** (2026-07-02 12:21 KST push 기준) |
+| GitHub Actions CI | **RED** — 3개 Python 잡(3.10/3.11/3.12) 모두 실패 |
+| CI 실패 요약 | `fastapi` 미설치, `src.hardware.onboard_bridge.LostLinkConfig` import 불일치, Electron LTS 정책 테스트가 pin `43` vs 기대 `39`로 실패 |
+| CI 테스트 진행도 | **9,063 pass · 282 skip · 4 fail · 2 collection errors** (coverage 87.71%, 실패 전 집계) |
 | Ruff 정적 검사 | **전체 통과** |
-| Python 테스트 | **7,003 collected · 6,733 pass · 270 skip · 0 fail** (단일 프로세스 `pytest -n 0`, 224s) |
+| 마지막 로컬 단일 프로세스 Python 테스트 | **7,003 collected · 6,733 pass · 270 skip · 0 fail** (2026-06-24, `pytest -n 0`, 224s) |
 | AIM 정밀검사 | **242 pass** (Phase 691-700, 9 rounds) |
 | 대표 시뮬레이션 | **100 drones · 60s · seed 42** |
 | 안전 KPI | **45 collisions · 87 near misses · 95.9% conflict resolution** |
@@ -551,7 +569,7 @@ SDACS는 이 단순한 발상에서 출발했습니다. 20대의 관제 드론�
 | **Concurrent Drones** | **100+** | 20대: 충돌 0, 50대: avg 15, 100대: avg 29 |
 | **Deployment Time** | **30 min** | No fixed infrastructure required |
 | **Multi-Language Coverage** | **50+ Languages** | Phase 521-660: Zig, Rust, Go, C++, Kotlin, Nim, OCaml, F#, Swift, TS, Scala, Haskell, Lua, Julia, Dart, Elixir, R, Octave, Perl, Ruby, VHDL, Prolog, Fortran, Ada, COBOL and more |
-| **Test Collection** | **7,000+ tests** | Automated pytest collection across 980+ Python files and 230+ test files |
+| **Test Collection** | **7,000+ tests** | Automated pytest collection across 980+ Python files and 290+ test files |
 <div align="center">
 <img src="docs/images/imgur/wHuMIfM.png" alt="기존 방식 대비 SDACS 성능 비교" width="750"/>
 <br/><sub>기존 Rule-based Static ATC vs SDACS Swarm Autonomous — 주요 KPI 비교</sub>
@@ -777,7 +795,7 @@ swarm-drone-atc/
 ├── api/                             # FastAPI server skeleton / API glue
 ├── chatbot/                         # chatbot and simulation adapters
 ├── benchmarks/                      # reproducible benchmark scenarios
-├── tests/                           # 105 test files + e2e smoke
+├── tests/                           # 290+ test files + e2e smoke
 │   ├── test_simulator_scenarios.py
 │   ├── test_phase*.py
 │   └── ...
@@ -1118,9 +1136,13 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-07-02 18:39 | (pending) | feat(genesis): Phase 323 외부 시뮬레이터 어댑터 안착 — BlueSky·U-TRAFMAN 호환 import/export (드래프트 #463·#465·#469 통합, #469 코어 채택) | simulation/external_sim_adapter.py, tests/test_external_sim_adapter.py, docs/standards/EXTERNAL_SIM_ADAPTER_SPEC.md, ROADMAP.md, docs/SIMULATOR_GENESIS_PLAN.md |
+| 2026-07-02 18:22 | `b1608182` | Merge remote-tracking branch 'origin/main' into tmp/pr464-sync | .githooks/pre-commit, .github/workflows/airgap-audit.yml, .github/workflows/canonical_hash.yml, .github/workflows/ci.yml, .github/workflows/deploy-pages.yml, .github/workflows/desktop-build.yml … |
+| 2026-07-02 17:13 | `9b7e9d03` | fix(ci): restore MAVLink TX code dropped in merge + fastapi test guard | src/hardware/onboard_bridge.py, tests/test_auth_revocation.py |
 | 2026-07-02 12:21 | `a0e8a876` | test(e2e): 격상 후속 — maturity 회귀 2건의 beta 표본 교체 (CI RED 회복) | tests/e2e/test_simulator_beta_subset.py, tests/e2e/test_simulator_maturity.py |
 | 2026-07-02 12:14 | `bb539e10` | feat(transcendence): Phase 211-260 3개 트랙 sandbox 가능분 — production +18·다중 관제사 WS·부하 100 실증 | CHANGELOG.md, ROADMAP.md, docs/SDACS_API.md, docs/badges/maturity.svg, docs/sdacs.d.ts, docs/simulator.html … |
 | 2026-07-02 11:48 | `6e3c3967` | chore: 종합 감사 6차원 — README 수치 동기·중복 문서 상호참조·INDEX 전수·위생·actions v5 | .github/workflows/airgap-audit.yml, .github/workflows/canonical_hash.yml, .github/workflows/ci.yml, .github/workflows/deploy-pages.yml, .github/workflows/desktop-build.yml, .github/workflows/security.yml … |
+| 2026-07-02 11:41 | `97e46c35` | Merge remote-tracking branch 'origin/dependabot/npm_and_yarn/playwright-1.61.1' | package.json |
 | 2026-07-01 20:55 | `6273075c` | fix(simulator): file:// 직접 열기 감지 안내 배너 — "실행 안 됨" 해결 | docs/maritime_detection_simulator.html, docs/simulator.html, docs/swarm_3d_simulator.html, maritime_detection_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-07-01 20:44 | `f68ab051` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | outputs/EXECUTION_LOG_2026-06-19.md, outputs/REMAINING_ISSUES_2026-06-19.md, simulation/energy_aware_planner.py, simulation/llm_atc_production.py, simulation/onboard_rl_bench.py, simulation/plugin_sdk.py |
 | 2026-07-01 16:30 | `07d6aac4` | test(maritime): 탐지·식별 스모크 timeout 20s → 45s (느린 CI 헤드리스 플레이크) | tests/e2e/smoke_maritime.mjs |
@@ -1129,6 +1151,10 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 | 2026-06-30 10:45 | `872d6965` | fix(security): starlette CVE-2026-54283(높음)·54282(낮음) 대응 — 1.2.1 → 1.3.1 | CHANGELOG.md, docs/security/CVE-2026-54283.md, requirements.lock.txt, requirements.txt |
 | 2026-06-26 14:07 | `f85298ef` | feat(odyssey): 46차 Standards 정책 추적 도구 3종 (Phase 478·479·480) — Track 종결 | CHANGELOG.md, ROADMAP.md, docs/standards/SDACS_IFALPA_RPAS_OPINION.md, docs/standards/SDACS_STANDARDS_QUARTERLY_REPORT_TEMPLATE.md, docs/standards/STANDARDS_WATCH_PROCEDURE.md, scripts/standards_conformance_check.py … |
 | 2026-06-26 13:43 | `8d37add9` | feat(odyssey): 45차 Standards WG 의견서 3종 (Phase 475 FAA·476 JARUS·477 IFALPA) | CHANGELOG.md, ROADMAP.md, docs/standards/SDACS_FAA_UTM_OPINION.md, docs/standards/SDACS_IFALPA_RPAS_OPINION.md, docs/standards/SDACS_JARUS_WG105_OPINION.md, docs/standards/SDACS_STANDARDS_CONTRIBUTION_DASHBOARD.md … |
+| 2026-06-26 11:10 | `2c9903c` | docs: 일일 헬스체크 + GENESIS 301·306 stale 마커 정직 재분류 | STATUS_REPORT.md, docs/SIMULATOR_GENESIS_PLAN.md |
+| 2026-06-26 09:14 | `57e0beb` | test(transcendence): Phase 211-220 production 코어 12→30 격상 | README.md, ROADMAP.md, tests/e2e/test_simulator_production_core_30.py |
+| 2026-06-26 08:16 | `85833b2` | feat(standards): Phase 474 — EUROCAE WG-105 군집 ConOps 의견서 작성 완료 | ROADMAP.md, docs/standards/EUROCAE_WG105_SWARM_CONOPS_OPINION.md, simulation/eurocae_wg105_opinion.py, simulation/wg_opinion_portfolio.py, tests/test_eurocae_wg105_opinion.py, tests/test_wg_opinion_portfolio.py |
+| 2026-06-26 00:13 | `031eab7` | test(fl-v2): federated_learning_v2 엣지케이스 6건 추가 — 커버리지 95%→100% | tests/test_phase311_330.py |
 | 2026-06-25 19:43 | `e16eb580` | feat(odyssey): 44차 Phase 474 GUTMA Harmony WG 의견서 | CHANGELOG.md, ROADMAP.md, docs/standards/SDACS_GUTMA_HARMONY_OPINION.md, tests/test_phase_474_gutma_opinion.py |
 | 2026-06-25 19:10 | `3e4948f8` | feat(odyssey): 43차 🌟 Phase 500 SDACS Centennial 선언 + Phase 471·472·491 통합 | CHANGELOG.md, README.md, ROADMAP.md, docs/CONTINUUM_CENTENNIAL_DECLARATION.md, docs/CONTINUUM_NEXT_GENERATION.md, docs/standards/SDACS_ICAO_RPASP_OPINION.md … |
 | 2026-06-25 13:23 | `35bdf8d2` | feat(odyssey): 42차 ROADMAP 3종 (Phase 468 캡스톤·483 Three.js·490 디지털 유산) + README 최신화 | CHANGELOG.md, README.md, ROADMAP.md, docs/CONTINUUM_DIGITAL_LEGACY.md, docs/curriculum/CAPSTONE_STANDARD.md, docs/maintenance/THREEJS_UPGRADE_PLAN.md … |

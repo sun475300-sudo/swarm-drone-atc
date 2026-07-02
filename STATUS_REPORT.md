@@ -1,6 +1,30 @@
 # SDACS 종합 진척 보고서
 
-*Last updated: 2026-06-25 — 메인 브랜치 정리·정확화 완료. 단일 프로세스 회귀 **6,733 pass / 270 skip / 0 fail** (7,003 collected). AIM Phase 691-700 정밀검사 9라운드 **242 테스트** 완료, A* 경로계획 결정적 최적화(대표 시뮬 KPI 바이트 동일). 이전 기록(2026-06-12): 200 Phase 완료 + TRANSCENDENCE 201-207, 407 API(93/98/110/103), E2E 263/264, 종합 4,443 pass / 0 fail.*
+> **Last updated: 2026-06-26** — 일일 헬스체크 + GENESIS 플랜 정직성 재분류.
+>
+> | 항목 | 값 |
+> |---|---|
+> | 전체 회귀 (pytest-xdist 병렬, 2026-06-26) | **8,338 pass / 279 skip / 0 fail** (8,612 collected, 193s) |
+> | GENESIS stale 마커 재분류 | Phase 301(`AIR_SAFETY_ACT_MATRIX.md`)·306(`generate_rtm.py`, 60건 PASS) — 산출물·테스트 존재하나 ✅ 미표기였던 2건 완료 반영 |
+> | 단일 프로세스 회귀 (2026-06-25) | **6,733 pass / 270 skip / 0 fail** (7,003 collected) |
+> | AIM Phase 691-700 정밀검사 | 9라운드 **242 테스트** 완료 |
+> | A* 경로계획 | 결정적 최적화 (대표 시뮬 KPI 바이트 동일) |
+> | 이전 기록 (2026-06-12) | 200 Phase 완료 + TRANSCENDENCE 201-207, 407 API(93/98/110/103), E2E 263/264, 종합 4,443 pass / 0 fail |
+
+## 📑 목차 (Table of Contents)
+
+| 섹션 | 내용 |
+|---|---|
+| [𝟏 200 Phase 완료](#𝟏-200-phase-완료-sdacs--unity) | 트랙별 Phase·E2E 누적 |
+| [📊 최종 측정](#-최종-측정) | 코드·API·테스트·빌드 지표 |
+| [🎉 50 Phase 전체 완료](#-50-phase-전체-완료-mega-1-9--hyper-11-50) | MEGA 1-9 + HYPER 11-50 |
+| [🎯 핵심 KPI](#-핵심-kpi-실제-측정값) | 실측 vs 목표 (2026 Q4) |
+| [📦 본 세션 머지 PR 15개](#-본-세션-머지-pr-15개) | PR별 변경·영향 |
+| [❌ Close된 중복 PR 7개](#-close된-중복-pr-7개) | 중복 시도 정리 |
+| [📈 트랙별 상세](#-트랙별-상세) | Track A~F 진척 |
+| [🔬 발견·해결한 핵심 결함](#-발견해결한-핵심-결함) | main 손상·LAANC·airgap |
+| [🎯 잔여 5항목](#-잔여-5항목-사용자-환경-의존) | 사용자 환경 의존 |
+| [🔗 핵심 링크](#-핵심-링크) | Roadmap·Plan·데모·GitHub |
 
 ## 𝟏 200 Phase 완료 (SDACS = Unity)
 
@@ -32,6 +56,8 @@
 
 ## 🎉 50 Phase 전체 완료 (MEGA 1-9 + HYPER 11-50)
 
+> 아래는 200 Phase 달성 이전의 **50 Phase 마일스톤** 기록입니다 (위 "200 Phase" 표의 부분집합, 당시 누적 E2E 기준).
+
 | 트랙 | Phase 범위 | 통과 E2E |
 |---|---|:-:|
 | **MEGA** | 1-9 (ATC·TAC·CIN·CAM·MIS·INJ·ANA·AUD·MOB) | 61 |
@@ -42,25 +68,25 @@
 
 
 
-> **📋 신규: Phase 5 MIS 임무 계획** — 5종 템플릿(수색·정찰·배달·농업 Voronoi·의료) + 자동 진행 추적 + 진행률 패널.
->
-> **📊 신규: Phase 7 ANA 분석 강화** — 누적 위협 히트맵(100×100·decay 0.992) + 5s KPI 슬라이딩 윈도우 + **LaTeX 표 자동 출력** (논문 §Results 직접 삽입).
->
-> **📱 신규: Phase 9 MOB 모바일/PWA** — viewport-fit + 터치 제스처(더블탭 선택·길게누르기 HOLD) + `manifest.webmanifest` + Service Worker(오프라인 캐시) + 모바일 자동 LOD.
->
-> **🎥 Phase 4 CAM 카메라 모드** — FPV 1인칭(드론 head, FOV 75°) · 추격캠(spring damping) · 측면 뷰. 7개 프리셋 + 단축키 1-7.
->
-> **🌬 신규: Phase 8 AUD 환경 사운드** — Web Audio 바람 화이트노이즈(풍속 비례) · 우천 노이즈 · 배터리 임계 알람(880Hz).
->
-> **🎬 Phase 3 CIN 시네마틱** — 동적 태양 24h(시간대별 RGB·자동 흐름) · 비/눈 입자 시스템(5K rain + 3K snow) · MediaRecorder 화면 녹화(WebM/MP4 자동 코덱).
->
-> **💥 신규: Phase 6 INJ 장애 주입** — GPS 손실 / 모터 페일 / 통신 두절 / 배터리 급강하 + ROGUE spawn + 동적 NFZ + 시나리오 EMP/EMI 일괄 + 통계 카운터 + 전체 해제.
->
-> **🎯 Phase 2 TAC 전술 시각화** — 예측 비행경로 라인(8초 fade) + CPA 충돌점 마커(TTC 색상) + 속도 벡터 화살표.
->
-> **🎮 Phase 1 ATC 관제 콘솔** — HOLD/RTB/REROUTE/ALT±/SPD±/TURN/CLEAR + 한국어 TTS + Web Audio 비프 + 시안 발광 링 + CSV 감사 로그.
->
-> Playwright E2E **61/62 통과** (ATC 10 + TAC 9 + CIN+INJ 17 + CAM+AUD 10 + MIS+ANA+MOB 15), 회귀 **4,140/4,140 통과**. 마스터 플랜: [`docs/SIMULATOR_MEGA_PLAN.md`](docs/SIMULATOR_MEGA_PLAN.md) · 상세: [`docs/SIMULATOR_PHASE_PLANS.md`](docs/SIMULATOR_PHASE_PLANS.md)
+<details>
+<summary><strong>📋 MEGA Phase 1-9 기능 상세</strong> (클릭하여 펼치기)</summary>
+
+| Phase | 기능 | 상세 |
+|---|---|---|
+| **🎮 Phase 1 ATC** | 관제 콘솔 | HOLD/RTB/REROUTE/ALT±/SPD±/TURN/CLEAR + 한국어 TTS + Web Audio 비프 + 시안 발광 링 + CSV 감사 로그 |
+| **🎯 Phase 2 TAC** | 전술 시각화 | 예측 비행경로 라인(8초 fade) + CPA 충돌점 마커(TTC 색상) + 속도 벡터 화살표 |
+| **🎬 Phase 3 CIN** | 시네마틱 | 동적 태양 24h(시간대별 RGB·자동 흐름) · 비/눈 입자 시스템(5K rain + 3K snow) · MediaRecorder 화면 녹화(WebM/MP4 자동 코덱) |
+| **🎥 Phase 4 CAM** | 카메라 모드 | FPV 1인칭(드론 head, FOV 75°) · 추격캠(spring damping) · 측면 뷰. 7개 프리셋 + 단축키 1-7 |
+| **📋 Phase 5 MIS** 신규 | 임무 계획 | 5종 템플릿(수색·정찰·배달·농업 Voronoi·의료) + 자동 진행 추적 + 진행률 패널 |
+| **💥 Phase 6 INJ** 신규 | 장애 주입 | GPS 손실 / 모터 페일 / 통신 두절 / 배터리 급강하 + ROGUE spawn + 동적 NFZ + 시나리오 EMP/EMI 일괄 + 통계 카운터 + 전체 해제 |
+| **📊 Phase 7 ANA** 신규 | 분석 강화 | 누적 위협 히트맵(100×100·decay 0.992) + 5s KPI 슬라이딩 윈도우 + **LaTeX 표 자동 출력** (논문 §Results 직접 삽입) |
+| **🌬 Phase 8 AUD** 신규 | 환경 사운드 | Web Audio 바람 화이트노이즈(풍속 비례) · 우천 노이즈 · 배터리 임계 알람(880Hz) |
+| **📱 Phase 9 MOB** 신규 | 모바일/PWA | viewport-fit + 터치 제스처(더블탭 선택·길게누르기 HOLD) + `manifest.webmanifest` + Service Worker(오프라인 캐시) + 모바일 자동 LOD |
+
+**검증:** Playwright E2E **61/62 통과** (ATC 10 + TAC 9 + CIN+INJ 17 + CAM+AUD 10 + MIS+ANA+MOB 15), 회귀 **4,140/4,140 통과**.
+**플랜:** 마스터 [`docs/SIMULATOR_MEGA_PLAN.md`](docs/SIMULATOR_MEGA_PLAN.md) · 상세 [`docs/SIMULATOR_PHASE_PLANS.md`](docs/SIMULATOR_PHASE_PLANS.md)
+
+</details>
 
 ## 🎯 핵심 KPI (실제 측정값)
 

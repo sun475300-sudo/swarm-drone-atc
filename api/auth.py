@@ -131,11 +131,48 @@ def create_token(
     return f"{header}.{body}.{sig}"
 
 
+# ---------------------------------------------------------------------------
+# Revocation registry (P1-B enhancement)
+# ---------------------------------------------------------------------------
+# In-memory blocklist of revoked JTIs (insertion-ordered dict for FIFO eviction).
+# For multi-instance deployments swap this for a Redis SET with per-key TTL.
+_REVOKED_JTIS: dict[str, None] = {}
+_MAX_REVOKED_JTIS = 100_000
+
+
+def revoke_token(jti: str) -> None:
+    """Add a JWT ID (jti claim) to the revocation blocklist.
+
+    Subsequent ``verify_token`` calls for any token bearing this jti will
+    raise HTTPException(401, detail="token revoked"). Idempotent. Empty
+    jti is a no-op. Evicts oldest entry when at capacity.
+    """
+    if not jti:
+        return
+    if jti in _REVOKED_JTIS:
+        return
+    if len(_REVOKED_JTIS) >= _MAX_REVOKED_JTIS:
+        oldest = next(iter(_REVOKED_JTIS))
+        del _REVOKED_JTIS[oldest]
+    _REVOKED_JTIS[jti] = None
+
+
+def is_revoked(jti: str) -> bool:
+    """Return True if the given jti has been revoked."""
+    return bool(jti) and jti in _REVOKED_JTIS
+
+
+def _reset_revocation_for_tests() -> None:
+    """Test-only helper to clear the blocklist between cases."""
+    _REVOKED_JTIS.clear()
+
+
 def verify_token(token: str) -> dict[str, Any]:
     """Validate an HS256 JWT and return its payload.
 
     Raises:
-        HTTPException(401): if the token is malformed, expired, or has a bad signature.
+        HTTPException(401): if the token is malformed, expired, has a bad
+            signature, or has been revoked.
     """
     parts = token.split(".")
     if len(parts) != 3:
@@ -163,6 +200,9 @@ def verify_token(token: str) -> dict[str, Any]:
 
     if int(time.time()) > payload.get("exp", 0):
         raise HTTPException(status_code=401, detail="token expired")
+
+    if is_revoked(payload.get("jti", "")):
+        raise HTTPException(status_code=401, detail="token revoked")
 
     return payload
 
@@ -341,6 +381,15 @@ async def refresh_token(body: RefreshRequest) -> TokenResponse:
 async def whoami(ctx: AuthContext = Depends(require_auth)) -> dict:
     """Return the authenticated user's identity and role."""
     return {"sub": ctx.sub, "role": ctx.role.value}
+
+
+@auth_router.post("/logout", summary="Revoke current token")
+async def logout(ctx: AuthContext = Depends(require_auth)) -> dict:
+    """Revoke the JWT used in this request so it cannot be reused before expiry."""
+    if ctx.jti:
+        revoke_token(ctx.jti)
+    _audit(ctx.sub, ctx.role.value, "logout", outcome="ok")
+    return {"success": True}
 
 
 @auth_router.get("/audit", summary="Audit log (admin only)")

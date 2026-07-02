@@ -181,10 +181,14 @@ def test_shipped_portfolio_is_honest_about_shortfall():
     assert not report.is_band_complete
 
 
-def test_shipped_blocker_is_proposed_change():
-    # 현 포트폴리오의 최대 발목은 제안 변경(WG-02) redline 미완.
-    rolled = blocking_criteria()
-    assert rolled[0][0] == "WG-02"
+def test_shipped_blocker_is_submission_channel():
+    # Phase 474 가 EUROCAE redline(WG-02)을 완성한 뒤로, 포트폴리오의 최대
+    # 발목은 제출 채널·기한(WG-06)으로 정직하게 이동했다 — WG-06 은 3건 전부에서
+    # 미완(외부 회람 기한 의존)이라 빈도 최다. WG-02 는 ISO·JARUS 2건만 막는다.
+    rolled = dict(blocking_criteria())
+    assert rolled["WG-06"] == 3
+    assert max(rolled.values()) == rolled["WG-06"]
+    assert rolled["WG-02"] == 2
 
 
 # --- 매니페스트 ------------------------------------------------------------

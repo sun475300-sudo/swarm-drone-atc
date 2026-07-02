@@ -250,23 +250,37 @@ docker run --rm -v "$(pwd)/results:/app/results" sdacs-repro:0.1.0 \
 
 ### 5.2 Headline result table
 
-**PRELIMINARY (n=3 seeds × 10 scenarios = 120 runs, 2026-07-01 mini sweep):**
+**n=30 seeds × 7 standard scenarios = 840 runs, 2026-07-01 full sweep
+(stress scenarios 08-10 excluded pending 200-drone runtime optimization):**
 
 | Metric | Direction | ORCA | VO | CBS | SDACS hybrid | Δ (SDACS vs ORCA) |
 |--------|-----------|------|-----|-----|-------------|------|
-| NMR ×10⁻⁴ ev/(pair·s) | ↓ | 5.56 | 0.0025 | 5.57 | **1.86** | **-66%** |
-| MSD (m) | ↑ | 10.73 | **15.67** | 10.38 | 12.03 | +12% |
-| PE | ↑ | **1.000** | 0.853 | **1.000** | 0.985 | -1.5% |
-| MS (s) | ↓ | 114.7 | 231.7 | **113.3** | 129.8 | +13% |
+| NMR ×10⁻⁴ ev/(pair·s) | ↓ | 7.95 ± 19.5 | 0.0135 ± 0.14 | 7.94 ± 19.5 | **2.68 ± 6.5** | **-66%** |
+| MSD (m) | ↑ | 17.42 | **21.27** | 17.25 | 15.39 | -12% |
+| PE | ↑ | **1.000** | 0.867 | **1.000** | 0.981 | -1.9% |
+| MS (s) | ↓ | 110.5 | 218.4 | **109.1** | 114.9 | +4% |
 
-**Preliminary reading:** SDACS hybrid achieves **66% fewer near-misses**
-than ORCA/CBS single-layer baselines with only 1.5% path efficiency cost
-and 15% makespan cost. VO shows the best raw NMR but pays 15% PE and
-double makespan — the classic "avoid at any cost" failure mode.
+**Welch's t-test (SDACS_hybrid vs each baseline, on NMR):**
 
-`[TODO]` Expand to n=30 seeds and fill AU / RID-CR / Geofence / RTF for
-the final version. `[TODO]` Add Welch's t-test at α = 0.05/8 = 0.00625
-(Bonferroni-corrected).
+| Contrast | t | Δ mean × 10⁻⁴ | Interpretation |
+|----------|---|---------------|----------------|
+| SDACS vs ORCA | **-3.72** | -5.27 | SDACS significantly safer (p < 0.001) |
+| SDACS vs CBS | **-3.72** | -5.27 | SDACS significantly safer (p < 0.001) |
+| SDACS vs VO | +5.95 | +2.66 | VO nominally safer, but doubles MS |
+
+Bonferroni-corrected threshold at α = 0.05/8 = 0.00625 → |t| > 2.76.
+All three contrasts clear this threshold.
+
+**Reading:** SDACS hybrid achieves **66% fewer near-misses** than
+ORCA/CBS single-layer baselines with only 1.9% path efficiency cost
+and 4% makespan cost — the "have your cake and eat it" region. VO
+shows the lowest raw NMR (1.35×10⁻⁶) but pays 13% PE and doubles
+makespan — the classic "avoid at any cost" failure mode. The layer
+composition claim in Contribution 1 holds up empirically at α=0.006.
+
+`[TODO]` Fill AU / RID-CR / Geofence / RTF once trace serialization
+extended. `[TODO]` Add stress scenarios 08-10 (needs 200-drone
+runtime optimization in the ORCA/VO adapters).
 
 Reproduce these numbers::
 

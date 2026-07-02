@@ -46,7 +46,7 @@
 <summary><b>25개 섹션 바로가기 — 클릭하여 펼치기 / Jump to section (click to expand)</b></summary>
 
 - [📣 공개 프로젝트 설명 자료 / Public Project Materials](#-공개-프로젝트-설명-자료--public-project-materials-2026-06-18)
-- [📊 개발 진척 현황 / Development Progress](#-개발-진척-현황--development-progress-2026-07-01)
+- [📊 개발 진척 현황 / Development Progress](#-개발-진척-현황--development-progress-2026-07-02)
 - [📦 배포 파일 다운로드 / Distribution Files](#-배포-파일-다운로드--distribution-files-v150--200-phase-unity)
 - [📄 최종 보고서 다운로드 / Final Report Downloads](#-최종-보고서-다운로드--final-report-downloads)
 - [🐳 Docker로 실행하기 / Run with Docker](#-docker로-실행하기--run-with-docker)

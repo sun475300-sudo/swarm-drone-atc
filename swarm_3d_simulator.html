@@ -3,7 +3,30 @@
 
 <head>
     <meta charset="UTF-8">
+    <!-- file:// 직접 열기(더블클릭) 감지 안내 — ES module(three.js)은 브라우저 보안(CORS)상
+         file:// 에서 로드 불가. http 서버 또는 GitHub Pages 라이브 사이트 필요.
+         non-module 인라인 스크립트라 module import 실패와 무관하게 항상 실행됨. -->
+    <script>
+      if (location.protocol === 'file:') {
+        window.addEventListener('DOMContentLoaded', function () {
+          var o = document.createElement('div');
+          o.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#03050a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif;padding:24px;';
+          o.innerHTML = '<div style="max-width:600px;text-align:center;line-height:1.7;">'
+            + '<div style="font-size:44px;margin-bottom:12px;">🛰</div>'
+            + '<h2 style="color:#60a5fa;margin:0 0 12px;">로컬 서버가 필요합니다</h2>'
+            + '<p style="color:#94a3b8;margin:0 0 18px;">이 시뮬레이터는 Three.js ES 모듈을 사용하므로 파일을 직접 더블클릭(<code style="color:#fbbf24;">file://</code>)하면 브라우저 보안 정책(CORS)으로 실행되지 않습니다.</p>'
+            + '<div style="background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:16px;text-align:left;font-family:monospace;font-size:13px;color:#cbd5e1;">'
+            + '# 이 폴더에서 로컬 서버 실행 후 접속:<br>python3 -m http.server 8000<br><span style="color:#22c55e;"># → http://localhost:8000/swarm_3d_simulator.html</span></div>'
+            + '<p style="margin:18px 0 0;"><a href="https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html" style="color:#60a5fa;">또는 온라인 라이브 사이트에서 바로 실행 →</a></p>'
+            + '</div>';
+          document.body.appendChild(o);
+        });
+      }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <!-- CSP: 시뮬레이터는 vendor three.js (local) + 인라인 모듈 스크립트 + Google Fonts + Web Worker(blob) + MediaRecorder(blob) + ws_bridge(ws://) 사용.
+         'unsafe-inline'/'unsafe-eval' 은 인라인 스크립트와 WebGPU 셰이더 컴파일을 위해 필수. object-src 'none' + frame-ancestors 'none' 으로 XSS/clickjacking 표면 축소. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' ws: wss:; worker-src 'self' blob:; object-src 'none'; base-uri 'self';">
     <meta name="theme-color" content="#03050a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1906,8 +1929,11 @@
         }
 
         // 특정 위치·고도의 실효 바람 벡터 계산 (정밀 모델)
+        // getWindAt 반환 스크래치: 드론당 매 프레임 호출되므로 객체 재할당 대신 재사용.
+        // 유일 호출부(updateDrone)는 즉시 스칼라로만 소비하고 객체를 보존하지 않음.
+        const _windScratch = { x: 0, z: 0, y: 0 };
         function getWindAt(wx, wy, wz) {
-            if (!windEnabled) return { x: 0, z: 0, y: 0 };
+            if (!windEnabled) { _windScratch.x = 0; _windScratch.z = 0; _windScratch.y = 0; return _windScratch; }
             let wx_ = weather.baseWind.x;
             let wz_ = weather.baseWind.z;
             let wy_ = 0;
@@ -1918,8 +1944,10 @@
             wx_ *= altFactor;
             wz_ *= altFactor;
 
-            // ── 풍속 전단 레이어: 고도별 급격한 풍향 변화 ──
-            weather.windShearLayers.forEach(layer => {
+            // ── 풍속 전단 레이어: 고도별 급격한 풍향 변화 (인덱스 루프: 클로저 할당 제거) ──
+            const shear = weather.windShearLayers;
+            for (let i = 0; i < shear.length; i++) {
+                const layer = shear[i];
                 const altDiff = Math.abs(wy - layer.alt);
                 if (altDiff < 30) {
                     const influence = 1 - altDiff / 30;
@@ -1928,7 +1956,7 @@
                     // 전단 경계에서 난기류 증가
                     wy_ += (Math.random() - 0.5) * influence * 3;
                 }
-            });
+            }
 
             // 돌풍 추가
             wx_ += weather.gustDir.x * weather.gustIntensity;
@@ -1943,7 +1971,9 @@
             }
 
             // ── 마이크로버스트: 급강하풍 + 수평 발산 ──
-            weather.microbursts.forEach(mb => {
+            const microbursts = weather.microbursts;
+            for (let i = 0; i < microbursts.length; i++) {
+                const mb = microbursts[i];
                 const dx = wx - mb.x, dz = wz - mb.z;
                 const d = Math.sqrt(dx * dx + dz * dz);
                 if (d < mb.radius && mb.currentStrength > 0) {
@@ -1962,10 +1992,12 @@
                         wy_ -= mb.currentStrength * ratio * 0.3;
                     }
                 }
-            });
+            }
 
             // ── 이동 폭풍셀: 회전풍 + 난기류 ──
-            weather.stormCells.forEach(sc => {
+            const stormCells = weather.stormCells;
+            for (let i = 0; i < stormCells.length; i++) {
+                const sc = stormCells[i];
                 const dx = wx - sc.x, dz = wz - sc.z;
                 const d = Math.sqrt(dx * dx + dz * dz);
                 if (d < sc.radius) {
@@ -1981,18 +2013,21 @@
                     wx_ += (Math.random() - 0.5) * intensity * 0.8;
                     wz_ += (Math.random() - 0.5) * intensity * 0.8;
                 }
-            });
+            }
 
             // 열 상승기류 구역
-            weather.thermalZones.forEach(tz => {
+            const thermals = weather.thermalZones;
+            for (let i = 0; i < thermals.length; i++) {
+                const tz = thermals[i];
                 const dx = wx - tz.x, dz = wz - tz.z;
                 const d = Math.sqrt(dx * dx + dz * dz);
                 if (d < tz.radius) {
                     wy_ += tz.strength * (1 - d / tz.radius);
                 }
-            });
+            }
 
-            return { x: wx_, z: wz_, y: wy_ };
+            _windScratch.x = wx_; _windScratch.z = wz_; _windScratch.y = wy_;
+            return _windScratch;
         }
 
         // ===== Event Log =====
@@ -2366,6 +2401,13 @@
             cinRecorder.mediaRecorder.stop();
             cinRecorder.recording = false;
             cinRecorder.mediaRecorder = null;
+            // 스트림 트랙을 명시적으로 종료 — captureStream 트랙이 활성 상태로 남으면
+            // 메모리/캡처 리소스 누수. mr.stop() 만으로는 트랙이 자동 정지하지 않음.
+            if (cinRecorder.stream) {
+                try { cinRecorder.stream.getTracks().forEach(t => t.stop()); }
+                catch (e) { /* 트랙 없거나 이미 정지 */ }
+                cinRecorder.stream = null;
+            }
             const ind = document.getElementById('rec-indicator');
             if (ind) ind.classList.remove('rec-active');
             return true;
@@ -2414,6 +2456,11 @@
                     injStats.batteryDrain++;
                     logEvent('fail', `🔋 ${d.id} 배터리 급강하 (${d.batteryDrainRate}%/s, ${dur}s)`);
                     break;
+                default:
+                    // 진단성: 미지원 type 은 silent no-op 대신 명시적 경고 (디버깅 보조).
+                    // 지원 셋: GPS_LOSS · MOTOR_FAIL · COMMS_LOSS · BATTERY_DRAIN
+                    logEvent('info', `⚠ injectFault: 미지원 type '${type}' (지원: GPS_LOSS · MOTOR_FAIL · COMMS_LOSS · BATTERY_DRAIN)`);
+                    return null;
             }
             return d;
         }
@@ -6521,12 +6568,35 @@
                 return q[0] === drone;
             },
             release(drone) {
-                const padName = drone.goalPad.name;
+                // 안전 수정 (2차 점검 #3): 큐에 없는 드론 release 시 상태 부패 방지.
+                // - goalPad 가 null/변경된 경우 가드
+                // - 큐에서 발견된 경우에만 상태 갱신
+                const padName = drone.goalPad && drone.goalPad.name;
+                if (!padName) {
+                    // 갈 곳 없는 드론 — 큐 미진입이라 release 의미 없음. 상태만 정리.
+                    drone.landingQueued = false;
+                    drone.landingSlot = -1;
+                    return false;
+                }
                 const q = this.queues[padName];
+                if (!q) {
+                    drone.landingQueued = false;
+                    drone.landingSlot = -1;
+                    return false;
+                }
                 const idx = q.indexOf(drone);
-                if (idx >= 0) q.splice(idx, 1);
-                drone.landingQueued = false;
-                drone.landingSlot = -1;
+                if (idx >= 0) {
+                    q.splice(idx, 1);
+                    drone.landingQueued = false;
+                    drone.landingSlot = -1;
+                    return true;
+                }
+                // 큐에 없으면 상태가 이미 동기 — landingQueued 만 안전 정리
+                if (drone.landingQueued) {
+                    drone.landingQueued = false;
+                    drone.landingSlot = -1;
+                }
+                return false;
             },
             clear() { LANDING_PADS.forEach(p => this.queues[p.name] = []); },
         };
@@ -6623,14 +6693,22 @@
             // 풍속 보상 계수: 강풍일수록 더 적극적으로 보상
             const rawWindSpd = Math.sqrt(w.x * w.x + w.z * w.z);
             // 풍속 이력 저장 (이동평균 → 난기류 감쇠)
-            if (!d._windHistory) d._windHistory = [];
-            d._windHistory.push({ x: w.x, z: w.z, y: w.y });
-            if (d._windHistory.length > 10) d._windHistory.shift();
-            // 이동평균 바람 (난기류 고주파 필터링)
-            const avgWind = d._windHistory.reduce((a, v) => ({ x: a.x + v.x, z: a.z + v.z, y: a.y + v.y }), { x: 0, z: 0, y: 0 });
-            avgWind.x /= d._windHistory.length;
-            avgWind.z /= d._windHistory.length;
-            avgWind.y /= d._windHistory.length;
+            // 링버퍼 + 스칼라 누적: 매 프레임 객체 할당 제거(기존 reduce는 드론당 ~11객체/프레임 생성)
+            // 순서 무관 평균이므로 기존 FIFO 평균과 수치 동일.
+            if (!d._windHist) {
+                d._windHist = { xs: new Float32Array(10), zs: new Float32Array(10), ys: new Float32Array(10), n: 0, idx: 0, avg: { x: 0, z: 0, y: 0 } };
+            }
+            const _wh = d._windHist;
+            _wh.xs[_wh.idx] = w.x; _wh.zs[_wh.idx] = w.z; _wh.ys[_wh.idx] = w.y;
+            _wh.idx = (_wh.idx + 1) % 10;
+            if (_wh.n < 10) _wh.n++;
+            let _whSx = 0, _whSz = 0, _whSy = 0;
+            for (let _wi = 0; _wi < _wh.n; _wi++) { _whSx += _wh.xs[_wi]; _whSz += _wh.zs[_wi]; _whSy += _wh.ys[_wi]; }
+            // 이동평균 바람 (난기류 고주파 필터링) — 재사용 객체
+            const avgWind = _wh.avg;
+            avgWind.x = _whSx / _wh.n;
+            avgWind.z = _whSz / _wh.n;
+            avgWind.y = _whSy / _wh.n;
 
             // 보상된 바람 벡터: 예측 가능한 바람은 사전 상쇄, 난기류만 잔여
             const windCompensation = Math.min(0.7, rawWindSpd * 0.04); // 최대 70% 보상
@@ -7053,7 +7131,14 @@
             let lineCount = 0;
 
             let frameConflicts = 0, frameNear = 0, frameCollisions = 0;
-            const airborne = drones.filter(d => d.phase !== 'GROUNDED' && d.phase !== 'FAILED');
+            // airborne: 매 프레임 새 배열 할당 대신 정적 버퍼 재사용
+            if (!apfCollisionAvoidance._airborne) apfCollisionAvoidance._airborne = [];
+            const airborne = apfCollisionAvoidance._airborne;
+            airborne.length = 0;
+            for (let _ai = 0; _ai < drones.length; _ai++) {
+                const _ad = drones[_ai];
+                if (_ad.phase !== 'GROUNDED' && _ad.phase !== 'FAILED') airborne.push(_ad);
+            }
 
             // ── 강풍 모드: 풍속에 따라 APF 반발력 증폭 ──
             const windSpd = Math.sqrt(weather.baseWind.x ** 2 + weather.baseWind.z ** 2) + weather.gustIntensity;
@@ -7068,19 +7153,43 @@
             const conflictCooldown = apfCollisionAvoidance._conflictCooldown;
 
             // ─── Spatial Hash: O(N·k) 이웃 탐색 ───
+            // 컨테이너(grid Map·repForce Map·processed Set)·셀 배열·힘 객체를 프레임 간 재사용.
+            // 매 프레임 .clear() 후 재구축하므로 동작은 기존과 동일, GC 할당만 제거.
             const cellSize = EVADE_DIST;
-            const grid = new Map();
+            if (!apfCollisionAvoidance._grid) {
+                apfCollisionAvoidance._grid = new Map();
+                apfCollisionAvoidance._cellPool = [];
+                apfCollisionAvoidance._repForce = new Map();
+                apfCollisionAvoidance._processed = new Set();
+            }
+            const grid = apfCollisionAvoidance._grid;
+            grid.clear();
+            const cellPool = apfCollisionAvoidance._cellPool;
+            let cellPoolIdx = 0;
             airborne.forEach(d => {
                 const cx = Math.floor(d.wx / cellSize), cz = Math.floor(d.wz / cellSize);
                 const key = `${cx},${cz}`;
-                if (!grid.has(key)) grid.set(key, []);
-                grid.get(key).push(d);
+                let cell = grid.get(key);
+                if (!cell) {
+                    cell = cellPool[cellPoolIdx] || (cellPool[cellPoolIdx] = []);
+                    cell.length = 0;
+                    cellPoolIdx++;
+                    grid.set(key, cell);
+                }
+                cell.push(d);
             });
 
-            // 각 드론에 누적 회피 벡터 초기화 (속도 보정용)
-            const repForce = new Map();
-            airborne.forEach(d => repForce.set(d, { fx: 0, fz: 0, fy: 0 }));
-            const processed = new Set(); // 중복 쌍 방지
+            // 각 드론에 누적 회피 벡터 초기화 (속도 보정용) — 힘 객체는 드론에 부착해 재사용
+            const repForce = apfCollisionAvoidance._repForce;
+            repForce.clear();
+            airborne.forEach(d => {
+                let f = d._apfRF;
+                if (!f) f = d._apfRF = { fx: 0, fz: 0, fy: 0 };
+                else { f.fx = 0; f.fz = 0; f.fy = 0; }
+                repForce.set(d, f);
+            });
+            const processed = apfCollisionAvoidance._processed; // 중복 쌍 방지
+            processed.clear();
 
             airborne.forEach(a => {
                 const cx = Math.floor(a.wx / cellSize), cz = Math.floor(a.wz / cellSize);
@@ -7262,7 +7371,10 @@
             stats.collisions += frameCollisions;
 
             // 쿨다운 맵 정리: 10초 이상 오래된 항목 제거 (메모리 누수 방지)
-            if (simTime % 10 < 0.02) {
+            // 결정적 간격으로 트리거 — 기존 simTime%10<0.02 는 가변 dt 에서 누락 가능(에이전트 보고 #3).
+            if (!apfCollisionAvoidance._lastCleanup) apfCollisionAvoidance._lastCleanup = 0;
+            if (simTime - apfCollisionAvoidance._lastCleanup >= 10.0) {
+                apfCollisionAvoidance._lastCleanup = simTime;
                 for (const map of [cooldown, nearCooldown, conflictCooldown]) {
                     for (const [k, t] of map) {
                         if (simTime - t > 10) map.delete(k);
@@ -7298,18 +7410,35 @@
         }
 
         // ===== UI Updates =====
+        // HUD DOM 참조 캐시 (lazy init) — updateStatsUI 매 틱 호출되며 8개 getElementById 반복 → 1회 lookup 후 재사용.
+        // 마이크로 최적화이지만 매 프레임 핫경로의 트리 워크를 제거 (대규모 군집·저사양 기기에서 누적 가치).
+        let _hudEls = null;
         function updateStatsUI() {
+            if (!_hudEls) {
+                _hudEls = {
+                    active: document.getElementById('stat-active'),
+                    conflicts: document.getElementById('stat-conflicts'),
+                    near: document.getElementById('stat-near'),
+                    collisions: document.getElementById('stat-collisions'),
+                    advisories: document.getElementById('stat-advisories'),
+                    battery: document.getElementById('stat-battery'),
+                    wind: document.getElementById('stat-wind'),
+                    simTime: document.getElementById('sim-time'),
+                    roleStats: document.getElementById('role-stats'),
+                    roleLegend: document.getElementById('role-legend'),
+                };
+            }
             const airborne = drones.filter(d => d.phase !== 'GROUNDED');
-            document.getElementById('stat-active').textContent = airborne.length;
-            document.getElementById('stat-conflicts').textContent = stats.conflicts;
-            document.getElementById('stat-near').textContent = stats.nearMisses;
-            document.getElementById('stat-collisions').textContent = stats.collisions;
-            document.getElementById('stat-advisories').textContent = stats.advisories;
+            _hudEls.active.textContent = airborne.length;
+            _hudEls.conflicts.textContent = stats.conflicts;
+            _hudEls.near.textContent = stats.nearMisses;
+            _hudEls.collisions.textContent = stats.collisions;
+            _hudEls.advisories.textContent = stats.advisories;
             const avgBat = drones.length ? (drones.reduce((s, d) => s + d.battery, 0) / drones.length) : 0;
-            document.getElementById('stat-battery').textContent = Math.round(avgBat) + '%';
+            _hudEls.battery.textContent = Math.round(avgBat) + '%';
             // 풍속 표시 (마이크로버스트·결빙 상태 포함)
             const windSpd = Math.sqrt(weather.baseWind.x ** 2 + weather.baseWind.z ** 2) + weather.gustIntensity;
-            const windEl = document.getElementById('stat-wind');
+            const windEl = _hudEls.wind;
             if (windEl) {
                 let windText = windEnabled ? windSpd.toFixed(1) : '—';
                 if (weather.microbursts.length > 0) windText += ' MB' + weather.microbursts.length;
@@ -7320,10 +7449,10 @@
                 windEl.style.fontSize = windSpd > 8 ? '13px' : '15px'; // 데이터 많으면 축소
             }
             const m = Math.floor(simTime / 60), s = Math.floor(simTime % 60);
-            document.getElementById('sim-time').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            _hudEls.simTime.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
             // 직군별 현황
-            const roleEl = document.getElementById('role-stats');
+            const roleEl = _hudEls.roleStats;
             if (roleEl) {
                 const counts = {};
                 DRONE_ROLES.forEach(r => counts[r.id] = { total: 0, flying: 0, role: r });
@@ -7341,7 +7470,7 @@
                 }).join('');
 
                 // 직군 범례 (사이드패널)
-                const legendEl = document.getElementById('role-legend');
+                const legendEl = _hudEls.roleLegend;
                 if (legendEl && !legendEl.dataset.init) {
                     legendEl.dataset.init = '1';
                     legendEl.innerHTML = DRONE_ROLES.map(r => {
@@ -8402,13 +8531,32 @@
                     ctx.beginPath(); ctx.arc(x, y, r + 3, 0, Math.PI * 2); ctx.stroke();
                 }
             }
-            // CPA 충돌쌍 마커 (예측 최근접점)
+            // CPA 충돌쌍 마커 + TTC/이격거리 라벨 (예측 최근접점, 위험도 3단계 색상)
+            // 위험도: <NEAR_MISS_DIST(8m)·이른 TTC=적색, 중간=주황, 여유=황색
             if (showConflictViz) {
+                ctx.font = '9px JetBrains Mono, monospace';
                 for (const c of _cvLabelData) {
                     const cx = toX(c.x / SCALE), cy = toY(c.z / SCALE);
-                    ctx.strokeStyle = c.cpa < NEAR_MISS_DIST ? '#ff4040' : '#ffaa40';
-                    ctx.lineWidth = 1.2;
-                    ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.stroke();
+                    const ttc = (typeof c.ttc === 'number' && Number.isFinite(c.ttc)) ? c.ttc : -1;
+                    const cpa = (typeof c.cpa === 'number' && Number.isFinite(c.cpa)) ? c.cpa : -1;
+                    // 위험도 등급: 0(critical) / 1(warn) / 2(advisory)
+                    const sev = (cpa >= 0 && cpa < NEAR_MISS_DIST && ttc >= 0 && ttc < 4)
+                        ? 0 : ((cpa >= 0 && cpa < NEAR_MISS_DIST) || (ttc >= 0 && ttc < 6)) ? 1 : 2;
+                    const color = sev === 0 ? '#ff4040' : sev === 1 ? '#ffaa40' : '#ffd450';
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = sev === 0 ? 1.8 : 1.2;
+                    ctx.beginPath(); ctx.arc(cx, cy, sev === 0 ? 6 : 5, 0, Math.PI * 2); ctx.stroke();
+                    // TTC / 이격 라벨 — sev≤1만 (캔버스 혼잡 회피)
+                    if (sev <= 1 && (ttc >= 0 || cpa >= 0)) {
+                        const ttcTxt = ttc >= 0 ? ttc.toFixed(1) + 's' : '?';
+                        const cpaTxt = cpa >= 0 ? Math.round(cpa) + 'm' : '?';
+                        const label = ttcTxt + ' · ' + cpaTxt;
+                        const lw = ctx.measureText(label).width;
+                        ctx.fillStyle = 'rgba(2,5,10,0.7)';
+                        ctx.fillRect(cx + 7, cy - 6, lw + 4, 11);
+                        ctx.fillStyle = color;
+                        ctx.fillText(label, cx + 9, cy + 3);
+                    }
                 }
             }
             // 고도 컬러맵 레전드
@@ -8721,12 +8869,19 @@
                 _cvLabels.push(sp);
             }
             // 필요분 갱신, 초과분 숨김(재사용 위해 dispose하지 않음)
+            // 위험도 3단계 색상: critical(<NEAR_MISS_DIST & TTC<4s) / warn / advisory
             for (let i = 0; i < _cvLabels.length; i++) {
                 const sp = _cvLabels[i];
                 if (i < need) {
                     const c = _cvLabelData[i];
-                    const danger = c.cpa < NEAR_MISS_DIST;
-                    _drawPooledLabel(sp, `${c.ttc.toFixed(1)}s · ${c.cpa.toFixed(0)}m`, danger ? '#ff4040' : '#ffcc40', 7);
+                    const ttcVal = (typeof c.ttc === 'number' && Number.isFinite(c.ttc)) ? c.ttc : -1;
+                    const cpaVal = (typeof c.cpa === 'number' && Number.isFinite(c.cpa)) ? c.cpa : -1;
+                    const isCritical = cpaVal >= 0 && cpaVal < NEAR_MISS_DIST && ttcVal >= 0 && ttcVal < 4;
+                    const isWarn = (cpaVal >= 0 && cpaVal < NEAR_MISS_DIST) || (ttcVal >= 0 && ttcVal < 6);
+                    const color = isCritical ? '#ff4040' : isWarn ? '#ffaa40' : '#ffd450';
+                    const ttcTxt = ttcVal >= 0 ? ttcVal.toFixed(1) + 's' : '?';
+                    const cpaTxt = cpaVal >= 0 ? cpaVal.toFixed(0) + 'm' : '?';
+                    _drawPooledLabel(sp, `${ttcTxt} · ${cpaTxt}`, color, isCritical ? 8 : 7);
                     sp.position.set(c.x, c.y, c.z);
                     sp.visible = true;
                 } else {
@@ -8735,25 +8890,65 @@
             }
         }
 
-        // --- 조치(어드바이저리) 빌보드 — 단계별 아이콘 점멸 (EVADE/HOLD/RTL) ---
+        // --- 조치(어드바이저리) 빌보드 — 단계별 아이콘 점멸 (5단계: EVADE/HOLD/RTL/CLIMB/DESCEND/TURN) ---
+        // phase 기반(EVADING/HOLDING/RTL) + 동적 신호 기반(CLIMB·DESCEND·TURN) 조합.
+        // 우선순위: EVADE > HOLD > RTL > CLIMB/DESCEND > TURN (한 드론 1 아이콘만 표시).
         const advisoryGroup = new THREE.Group(); scene.add(advisoryGroup);
-        const ADV_ICON = { EVADING: '⚠ 회피', HOLDING: '⏸ 체공', RTL: '↩ 귀환' };
-        const ADV_COLOR = { EVADING: '#ff3d00', HOLDING: '#3b82f6', RTL: '#ec407a' };
-        const _advPools = {}; // phase → {pool:[], idx:0} (텍스트가 텍스처에 구워지므로 단계별 풀 분리)
-        function _adv(phase) {
-            const p = _advPools[phase] || (_advPools[phase] = { pool: [], idx: 0 });
+        const ADV_ICON = {
+            EVADING: '⚠ 회피', HOLDING: '⏸ 체공', RTL: '↩ 귀환',
+            CLIMB: '⬆ 상승', DESCEND: '⬇ 하강', TURN: '↻ 선회',
+        };
+        const ADV_COLOR = {
+            EVADING: '#ff3d00', HOLDING: '#3b82f6', RTL: '#ec407a',
+            CLIMB: '#22c55e', DESCEND: '#a855f7', TURN: '#f59e0b',
+        };
+        const _advPools = {}; // key → {pool:[], idx:0} (텍스트가 텍스처에 구워지므로 단계별 풀 분리)
+        function _adv(key) {
+            const p = _advPools[key] || (_advPools[key] = { pool: [], idx: 0 });
             let s = p.pool[p.idx];
-            if (!s) { s = makeTextSprite(ADV_ICON[phase], ADV_COLOR[phase], 9); s.scale.set(3, 0.9, 1); advisoryGroup.add(s); p.pool.push(s); }
+            if (!s) { s = makeTextSprite(ADV_ICON[key], ADV_COLOR[key], 9); s.scale.set(3, 0.9, 1); advisoryGroup.add(s); p.pool.push(s); }
             p.idx++; return s;
         }
+        // 드론별 분류: 단일 최우선 advisory key 반환(없으면 null).
+        // CLIMB/DESCEND: vy 임계 ±0.7m/s, TURN: 헤딩 변화율 임계 ±15°/s.
+        const ADV_VY_THRESHOLD = 0.7;
+        const ADV_TURN_THRESHOLD = 15; // °/s
+        function _classifyAdvisory(d) {
+            if (d.phase === 'EVADING') return 'EVADING';
+            if (d.phase === 'HOLDING') return 'HOLDING';
+            if (d.phase === 'RTL') return 'RTL';
+            // 동적 신호는 ENROUTE/CRUISE 등 일반 비행 상태에서만 표시
+            if (d.phase === 'GROUNDED' || d.phase === 'FAILED' || d.phase === 'LANDING') return null;
+            const vy = d.vy || 0;
+            if (vy > ADV_VY_THRESHOLD) return 'CLIMB';
+            if (vy < -ADV_VY_THRESHOLD) return 'DESCEND';
+            // 헤딩 변화율 — _prevHeading은 이 함수가 직접 갱신(저빈도 호출, 드론별 ~1Hz)
+            // 안전성: dt 가 0 에 가까우면 |dh/dt| 가 폭주 → TURN 오탐. dt >= 0.5s 강제.
+            if (typeof d._prevHeading === 'number' && typeof d._prevHeadingT === 'number') {
+                const dh = ((d.heading - d._prevHeading + 540) % 360) - 180; // signed delta
+                const dt = simTime - d._prevHeadingT;
+                if (dt >= 0.5 && Math.abs(dh / dt) > ADV_TURN_THRESHOLD) return 'TURN';
+            }
+            return null;
+        }
+        let _advHeadingTickT = 0;
         function updateAdvisoryOverlay(t) {
             for (const k in _advPools) { const p = _advPools[k]; for (let i = 0; i < p.idx; i++) p.pool[i].visible = false; p.idx = 0; }
             if (!showAdvisory || megaMode) return; // 대규모는 빌보드 생략(성능)
             const pulse = 0.55 + Math.sin(t * 8) * 0.4;
+            // 헤딩 변화율 측정용 ~1Hz 샘플 (TURN 분류 안정화 — 매 프레임이면 노이즈로 오탐)
+            const sampleHeading = simTime - _advHeadingTickT >= 1.0;
+            if (sampleHeading) _advHeadingTickT = simTime;
             let c = 0;
             for (const d of drones) {
-                if (c >= 40 || !ADV_ICON[d.phase]) continue;
-                const s = _adv(d.phase);
+                if (c >= 40) {
+                    if (sampleHeading) { d._prevHeading = d.heading; d._prevHeadingT = simTime; }
+                    continue;
+                }
+                const key = _classifyAdvisory(d);
+                if (sampleHeading) { d._prevHeading = d.heading; d._prevHeadingT = simTime; }
+                if (!key) continue;
+                const s = _adv(key);
                 s.position.set(d.group.position.x, d.group.position.y + 1.3, d.group.position.z);
                 s.material.opacity = pulse;
                 s.visible = true; c++;
@@ -9263,6 +9458,15 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                 if (!Array.isArray(data.frames) || data.frames.length === 0) {
                     throw new Error('frames 비어있음');
                 }
+                // 프레임 shape 검증 — applyFrame 이 f.t (number) 와 f.d (배열의 배열)
+                // 를 가정하므로, 외부 신뢰 없는 JSON 에서 깨진 프레임을 차단.
+                // 각 frame: { t: number, d: [[wx,wy,wz,phase,battery], ...] }
+                for (let i = 0; i < data.frames.length; i++) {
+                    const fr = data.frames[i];
+                    if (!fr || typeof fr.t !== 'number' || !Number.isFinite(fr.t) || !Array.isArray(fr.d)) {
+                        throw new Error(`frame[${i}] 무결성 위반 (t/d 누락)`);
+                    }
+                }
                 // 시나리오 매칭 시도
                 if (data.scenario) {
                     const sel = document.getElementById('scenario-select');
@@ -9307,10 +9511,18 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
 
         function applyFrame(idx) {
             const f = recorder.frames[idx];
-            if (!f) return;
+            // 무결성 가드: 외부 importMission JSON 의 잘못된 프레임 방어
+            // (자체 startRecording 산출물은 항상 올바른 shape).
+            if (!f || !Array.isArray(f.d) || typeof f.t !== 'number') return;
             for (let i = 0; i < drones.length && i < f.d.length; i++) {
                 const dr = drones[i], s = f.d[i];
-                dr.wx = s[0]; dr.wy = s[1]; dr.wz = s[2]; dr.phase = s[3]; dr.battery = s[4];
+                if (!Array.isArray(s) || s.length < 5) continue;
+                const wx = +s[0], wy = +s[1], wz = +s[2];
+                const battery = +s[4];
+                if (!Number.isFinite(wx) || !Number.isFinite(wy) || !Number.isFinite(wz)) continue;
+                dr.wx = wx; dr.wy = wy; dr.wz = wz;
+                dr.phase = (typeof s[3] === 'string') ? s[3] : 'GROUNDED';
+                dr.battery = Number.isFinite(battery) ? battery : 0;
                 dr.group.position.set(dr.wx * SCALE, dr.wy * SCALE * 3, dr.wz * SCALE);
                 const col = (PHASES[dr.phase] || PHASES.GROUNDED).color;
                 if (dr.body) {  // 대규모 모드: 색상은 syncInstances가 phase로 적용
@@ -9319,9 +9531,11 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                     if (dr.rotor) dr.rotor.material.color.setHex(col);
                 }
             }
-            const mm = String(Math.floor(f.t / 60)).padStart(2, '0');
-            const ss = String(Math.floor(f.t % 60)).padStart(2, '0');
-            document.getElementById('replay-time').textContent = mm + ':' + ss;
+            const tSec = Number.isFinite(f.t) ? f.t : 0;
+            const mm = String(Math.floor(tSec / 60)).padStart(2, '0');
+            const ss = String(Math.floor(tSec % 60)).padStart(2, '0');
+            const tEl = document.getElementById('replay-time');
+            if (tEl) tEl.textContent = mm + ':' + ss;
         }
 
         function enterReplay() {
@@ -11314,7 +11528,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             'stats', 'simTime', 'simRunning', 'droneCount', 'weather', 'airborne', 'failed', 'landed',
             'startSim', 'stopSim', 'selectDrone', 'deselectDrone', 'getSelected', 'hoverDrone', 'clearHover',
             'multiSelect', 'clearMulti', 'multiSelection', 'setAnalysisView', 'analysisMode',
-            'megaMode', 'instanceCount', 'visibleInstances', 'megaCull', 'perf', 'replayFrames',
+            'megaMode', 'instanceCount', 'visibleInstances', 'megaCull', 'perf', 'replayFrames', 'replayState',
             'selectScenario', 'setLayer', 'layers', 'lang', 'setLang', 'availableLangs',
             'exportMission', 'importMission', 'triggerMissionImport',
             'openGallery', 'closeGallery', 'galleryOpen', 'scenarioCategories', 'reportDataURL',
@@ -11337,7 +11551,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             'arEnter', 'arExit', 'arAddPin', 'arClearPins', 'arEnabled', 'arPins',
             'xrSupported', 'xrPresenting',
             'dtwinDecodeGPI', 'dtwinApplyGPI', 'dtwinSetOrigin', 'enableDtwin', 'dtwinEnabled', 'dtwinStats',
-            'wsConnected', 'wsFrames', 'liveMode', 'goLive', 'replaySeek', 'replayStep', 'replay', 'dni', 'conflictPairs',
+            'wsConnected', 'wsFrames', 'liveMode', 'goLive', 'replaySeek', 'replayStep', 'replayState', 'replay', 'dni', 'conflictPairs',
         ]);
         // STELLAR Phase 51-100 접두사 / 키워드 → mock
         const _MATURITY_MOCK_PREFIXES = ['stellar51', 'rlhf', 'causal', 'explain', 'gpu100k',
@@ -11412,6 +11626,19 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
             set megaCull(v) { megaCull = !!v; },
             get megaCull() { return megaCull; },
             get replayFrames() { return recorder.frames.length; },
+            // 리플레이 상태 read-only 스냅샷 (멀티뷰 커서 동기 E2E·외부 UI 진단용)
+            get replayState() {
+                const total = recorder.frames.length;
+                const idx = Math.max(0, Math.min(replayIdx, total - 1));
+                const cur = total > 0 ? recorder.frames[idx] : null;
+                const last = total > 0 ? recorder.frames[total - 1] : null;
+                return {
+                    mode: !!replayMode, playing: !!replayPlaying,
+                    idx, total, speed: replaySpeed,
+                    cursorT: replayMode && cur ? cur.t : simTime,  // 멀티뷰 커서 동기 시각
+                    headT: last ? last.t : 0,
+                };
+            },
             get dni() { return { ...dniStats, objects: externalObjs.length }; },
             replaySeek(idx) { enterReplay(); replayIdx = Math.max(0, Math.min(idx, recorder.frames.length - 1)); applyFrame(replayIdx); return replayIdx; },
             goLive,

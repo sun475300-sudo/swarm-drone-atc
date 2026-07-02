@@ -20,7 +20,7 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 
-async def _run_simulation(drones: int, seed: int, port: int):
+async def _run_simulation(drones: int, seed: int, port: int, host: str = "127.0.0.1"):
     """시뮬레이션을 실행하면서 WebSocket으로 스냅샷 스트리밍."""
     try:
         import websockets
@@ -33,7 +33,7 @@ async def _run_simulation(drones: int, seed: int, port: int):
 
     backend = get_apf_backend_info()
     gpu_name = backend.get("gpu", "CPU") or "CPU"
-    print(f"🛸 WebSocket 브릿지 시작: {drones}기, port={port} [{gpu_name}]")
+    print(f"🛸 WebSocket 브릿지 시작: {drones}기, host={host} port={port} [{gpu_name}]")
 
     clients: set = set()
 
@@ -44,7 +44,12 @@ async def _run_simulation(drones: int, seed: int, port: int):
         finally:
             clients.discard(websocket)
 
-    await websockets.serve(handler, "0.0.0.0", port)
+    # 보안: 기본은 loopback 만(127.0.0.1). 외부 노출은 명시적 --host 0.0.0.0 또는
+    # SDACS_WS_HOST 환경변수로 옵트인. 인증 없는 텔레메트리 스트림이 같은 LAN 의
+    # 임의 클라이언트에게 노출되는 것을 차단.
+    await websockets.serve(handler, host, port)
+    if host in ("0.0.0.0", "::"):
+        print(f"⚠ ws://{host}:{port} 모든 인터페이스 노출 — LAN 내 임의 청취 가능")
     print(f"📡 ws://localhost:{port} 대기 중...")
 
     cfg = {"drones": {"default_count": drones}}
@@ -119,9 +124,16 @@ def main():
     parser.add_argument("--drones", type=int, default=50)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--port", type=int, default=8765)
+    # 보안: 기본 loopback. SDACS_WS_HOST 환경변수로도 옵트인 가능.
+    parser.add_argument(
+        "--host",
+        type=str,
+        default=os.environ.get("SDACS_WS_HOST", "127.0.0.1"),
+        help="바인딩 호스트 (기본 127.0.0.1 loopback; 외부 노출은 0.0.0.0 명시)",
+    )
     args = parser.parse_args()
 
-    asyncio.run(_run_simulation(args.drones, args.seed, args.port))
+    asyncio.run(_run_simulation(args.drones, args.seed, args.port, args.host))
 
 
 if __name__ == "__main__":

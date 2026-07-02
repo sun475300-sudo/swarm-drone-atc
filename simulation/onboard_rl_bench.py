@@ -67,8 +67,8 @@ class DeviceSpec:
                 f"category must be one of {DEVICE_CATEGORIES}, "
                 f"got {self.category!r}"
             )
-        if self.compute_capability_tflops < 0:
-            raise ValueError("compute_capability_tflops must be >= 0")
+        if self.compute_capability_tflops <= 0:
+            raise ValueError("compute_capability_tflops must be > 0")
         if self.memory_gb <= 0:
             raise ValueError("memory_gb must be > 0")
         if self.power_watts <= 0:
@@ -123,15 +123,11 @@ class BenchReport:
 
     def __post_init__(self) -> None:
         if not isinstance(self.benchmarks, tuple):
-            object.__setattr__(self, "benchmarks", tuple(self.benchmarks))
+            raise TypeError("benchmarks must be a tuple")
         if not isinstance(self.realtime_capable, tuple):
-            object.__setattr__(
-                self, "realtime_capable", tuple(self.realtime_capable),
-            )
+            raise TypeError("realtime_capable must be a tuple")
         if not isinstance(self.recommendations, tuple):
-            object.__setattr__(
-                self, "recommendations", tuple(self.recommendations),
-            )
+            raise TypeError("recommendations must be a tuple")
 
 
 # ---------------------------------------------------------------------------

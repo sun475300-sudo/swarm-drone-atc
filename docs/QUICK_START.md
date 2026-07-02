@@ -13,9 +13,18 @@ https://sun475300-sudo.github.io/swarm-drone-atc/swarm_3d_simulator.html
 
 ### B) 로컬 단독 HTML (오프라인 가능)
 
-1. [`swarm_3d_simulator.html`](../swarm_3d_simulator.html) 다운로드
-2. 더블 클릭 → 기본 브라우저에서 즉시 실행
-3. 인터넷 연결 시 Three.js CDN 자동 로드
+ES module 기반 Three.js 파일은 `file://` 더블클릭으로 열면 브라우저 CORS 정책에 막힙니다. 로컬 HTTP 서버로 여세요.
+
+```powershell
+cd swarm-drone-atc
+python -m http.server 8123
+```
+
+그 다음 브라우저에서:
+
+```
+http://localhost:8123/swarm_3d_simulator.html
+```
 
 ### C) 데스크탑 앱 (Win/Mac/Linux)
 

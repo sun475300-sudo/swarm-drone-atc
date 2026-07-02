@@ -8,7 +8,25 @@ $ErrorActionPreference = "Stop"
 # 설정
 # ─────────────────────────────────────────────────────────────
 $ProjectRoot = $PSScriptRoot
-$Python = "C:\Users\user\AppData\Local\Programs\Python\Python311\python.exe"
+
+# Python 3 자동 탐지 — 하드코딩 경로 제거(환경마다 설치 위치/버전이 달라 실행 실패의 원인이었음).
+#   1) py 런처로 Python 3 실제 경로 해석 → 2) PATH의 python/python3 → 3) 사용자별 기본 설치 경로 폴백
+$Python = $null
+if (Get-Command py -ErrorAction SilentlyContinue) {
+    try { $Python = (& py -3 -c "import sys; print(sys.executable)" 2>$null).Trim() } catch { $Python = $null }
+}
+if (-not $Python -or -not (Test-Path $Python)) {
+    foreach ($cand in @("python", "python3")) {
+        $c = Get-Command $cand -ErrorAction SilentlyContinue
+        if ($c) { $Python = $c.Source; break }
+    }
+}
+if (-not $Python -or -not (Test-Path $Python)) {
+    foreach ($v in @("Python313", "Python312", "Python311", "Python310")) {
+        $p = "C:\Users\$env:USERNAME\AppData\Local\Programs\Python\$v\python.exe"
+        if (Test-Path $p) { $Python = $p; break }
+    }
+}
 $DashUrl = "http://127.0.0.1:8050"
 $SimV2 = Join-Path $ProjectRoot "docs\swarm_3d_simulator_v2.html"
 $HubPage = Join-Path $ProjectRoot "docs\go.html"
@@ -32,9 +50,9 @@ function Test-Port($Port) {
 # 1. Python 환경 확인
 # ─────────────────────────────────────────────────────────────
 Write-Banner "1. Python 환경 확인"
-if (-not (Test-Path $Python)) {
-    Write-Host "[ERROR] Python을 찾을 수 없습니다: $Python" -ForegroundColor Red
-    Write-Host "winget install Python.Python.3.11 실행 필요" -ForegroundColor Yellow
+if (-not $Python -or -not (Test-Path $Python)) {
+    Write-Host "[ERROR] Python 3을 찾을 수 없습니다." -ForegroundColor Red
+    Write-Host "python.org 설치 후 'Add to PATH' 체크, 또는 winget install Python.Python.3.11 실행 필요" -ForegroundColor Yellow
     exit 1
 }
 & $Python --version

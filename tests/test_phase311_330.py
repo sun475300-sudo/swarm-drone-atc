@@ -457,3 +457,47 @@ class TestFederatedLearningV2:
         fl = FederatedLearningV2()
         s = fl.summary()
         assert s["total_rounds"] == 0
+
+    def test_local_train_unknown_client_returns_inf(self):
+        fl = FederatedLearningV2(model_dim=10)
+        assert fl.local_train("ghost") == float("inf")
+
+    def test_aggregate_empty_returns_inf(self):
+        fl = FederatedLearningV2(model_dim=10)
+        assert fl.aggregate([]) == float("inf")
+        assert fl.get_convergence() == []
+
+    def test_aggregate_skips_client_with_none_weights(self):
+        # 모든 참여자가 None 가중치면 inf(빈 목록)와 달리 0.0 반환·전역 0화 — 동작 고정
+        fl = FederatedLearningV2(model_dim=4, dp_epsilon=float("inf"))
+        fl.register_client("d1", data_size=100)
+        fl._clients["d1"].model_weights = None
+        assert fl.aggregate(["d1"]) == 0.0
+        assert fl.get_global_model().total_rounds == 1
+
+    def test_aggregate_without_dp_is_exact_weighted_average(self):
+        # dp_epsilon=inf → 노이즈 없는 데이터크기 가중 평균(else 분기)
+        import numpy as np
+        fl = FederatedLearningV2(model_dim=4, dp_epsilon=float("inf"))
+        fl.register_client("big", data_size=300)
+        fl.register_client("small", data_size=100)
+        fl._clients["big"].model_weights = np.ones(4)
+        fl._clients["small"].model_weights = np.zeros(4)
+        fl._clients["big"].local_loss = 0.0
+        fl._clients["small"].local_loss = 0.0
+        fl.aggregate(["big", "small"])
+        np.testing.assert_allclose(fl.get_global_model().weights, np.full(4, 0.75))
+
+    def test_scaffold_method_falls_back_to_weighted_average(self):
+        fl = FederatedLearningV2(model_dim=6, method=AggregationMethod.SCAFFOLD)
+        for i in range(2):
+            fl.register_client(f"d{i}")
+        fl.run_round(fraction=1.0)
+        assert fl.summary()["method"] == "scaffold"
+        assert fl.get_global_model().total_rounds == 1
+
+    def test_get_global_model_returns_current_model(self):
+        fl = FederatedLearningV2(model_dim=8)
+        gm = fl.get_global_model()
+        assert gm.version == 0
+        assert gm.weights.shape == (8,)

@@ -1136,7 +1136,9 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-07-02 18:39 | (pending) | feat(genesis): Phase 323 외부 시뮬레이터 어댑터 안착 — BlueSky·U-TRAFMAN 호환 import/export (드래프트 #463·#465·#469 통합, #469 코어 채택) | simulation/external_sim_adapter.py, tests/test_external_sim_adapter.py, docs/standards/EXTERNAL_SIM_ADAPTER_SPEC.md, ROADMAP.md, docs/SIMULATOR_GENESIS_PLAN.md |
 | 2026-07-02 18:22 | `b1608182` | Merge remote-tracking branch 'origin/main' into tmp/pr464-sync | .githooks/pre-commit, .github/workflows/airgap-audit.yml, .github/workflows/canonical_hash.yml, .github/workflows/ci.yml, .github/workflows/deploy-pages.yml, .github/workflows/desktop-build.yml … |
+| 2026-07-02 17:13 | `9b7e9d03` | fix(ci): restore MAVLink TX code dropped in merge + fastapi test guard | src/hardware/onboard_bridge.py, tests/test_auth_revocation.py |
 | 2026-07-02 11:41 | `97e46c35` | Merge remote-tracking branch 'origin/dependabot/npm_and_yarn/playwright-1.61.1' | package.json |
 | 2026-07-01 20:55 | `6273075c` | fix(simulator): file:// 직접 열기 감지 안내 배너 — "실행 안 됨" 해결 | docs/maritime_detection_simulator.html, docs/simulator.html, docs/swarm_3d_simulator.html, maritime_detection_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
 | 2026-07-01 20:44 | `f68ab051` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | outputs/EXECUTION_LOG_2026-06-19.md, outputs/REMAINING_ISSUES_2026-06-19.md, simulation/energy_aware_planner.py, simulation/llm_atc_production.py, simulation/onboard_rl_bench.py, simulation/plugin_sdk.py |
@@ -1147,6 +1149,7 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 | 2026-06-26 14:07 | `f85298ef` | feat(odyssey): 46차 Standards 정책 추적 도구 3종 (Phase 478·479·480) — Track 종결 | CHANGELOG.md, ROADMAP.md, docs/standards/SDACS_IFALPA_RPAS_OPINION.md, docs/standards/SDACS_STANDARDS_QUARTERLY_REPORT_TEMPLATE.md, docs/standards/STANDARDS_WATCH_PROCEDURE.md, scripts/standards_conformance_check.py … |
 | 2026-06-26 13:43 | `8d37add9` | feat(odyssey): 45차 Standards WG 의견서 3종 (Phase 475 FAA·476 JARUS·477 IFALPA) | CHANGELOG.md, ROADMAP.md, docs/standards/SDACS_FAA_UTM_OPINION.md, docs/standards/SDACS_IFALPA_RPAS_OPINION.md, docs/standards/SDACS_JARUS_WG105_OPINION.md, docs/standards/SDACS_STANDARDS_CONTRIBUTION_DASHBOARD.md … |
 | 2026-06-26 11:10 | `2c9903c` | docs: 일일 헬스체크 + GENESIS 301·306 stale 마커 정직 재분류 | STATUS_REPORT.md, docs/SIMULATOR_GENESIS_PLAN.md |
+| 2026-06-26 00:13 | `031eab7` | test(fl-v2): federated_learning_v2 엣지케이스 6건 추가 — 커버리지 95%→100% | tests/test_phase311_330.py |
 | 2026-06-25 19:43 | `e16eb580` | feat(odyssey): 44차 Phase 474 GUTMA Harmony WG 의견서 | CHANGELOG.md, ROADMAP.md, docs/standards/SDACS_GUTMA_HARMONY_OPINION.md, tests/test_phase_474_gutma_opinion.py |
 | 2026-06-25 19:10 | `3e4948f8` | feat(odyssey): 43차 🌟 Phase 500 SDACS Centennial 선언 + Phase 471·472·491 통합 | CHANGELOG.md, README.md, ROADMAP.md, docs/CONTINUUM_CENTENNIAL_DECLARATION.md, docs/CONTINUUM_NEXT_GENERATION.md, docs/standards/SDACS_ICAO_RPASP_OPINION.md … |
 | 2026-06-25 13:23 | `35bdf8d2` | feat(odyssey): 42차 ROADMAP 3종 (Phase 468 캡스톤·483 Three.js·490 디지털 유산) + README 최신화 | CHANGELOG.md, README.md, ROADMAP.md, docs/CONTINUUM_DIGITAL_LEGACY.md, docs/curriculum/CAPSTONE_STANDARD.md, docs/maintenance/THREEJS_UPGRADE_PLAN.md … |

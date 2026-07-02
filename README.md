@@ -86,13 +86,13 @@
 
 > **2026-06-24 로컬 재검증:** `ruff` 전체 통과 · Python 테스트는 단일 프로세스(`pytest -n 0`)에서 클린 통과 · AIM 정밀검사 242개 통과. 대표 실행 `100 drones / 60s / seed 42`에서 **45 collisions · 87 near misses · 95.9% conflict resolution**이 측정되었습니다(상세 수치는 아래 [현재 로컬 검증](#-현재-로컬-검증--current-local-validation-2026-06-24) 표 참조). 현재 결과는 안전 인증이 아니라 연구용 시뮬레이터의 개선 기준선입니다.
 
-> **최신 변경 (2026-06-24)** — Phase 691-700 AIM 모듈 정밀검사 9라운드(Round 4–12) 완료: NaN/Inf 바이패스 차단(`math.isfinite` 가드), CAVOK 위양성 NO-GO 수정, 캡슐화 누수 방지, fail-closed 안전 설계, 방어적 복사, 중복 거부 — 10개 소스 파일 강화 + 242개 전용 테스트 추가.
+> **최신 점검 (2026-07-02 12:32 KST)** — `main`은 `origin/main`과 일치(`a9259053`)하며 Pages·Canonical Hash·Security Audit는 GREEN입니다. 단, 최신 GitHub Actions `CI`는 Python 3.10/3.11/3.12 테스트 잡에서 RED입니다: `fastapi` 설치 누락, `LostLinkConfig` import 불일치, Electron LTS 정책 테스트가 repo pin `43` vs 기대값 `39`로 실패합니다.
 >
 > 📜 200 Phase 통합 · API Maturity 정직성 체계 · 이전 버전 이력 등 상세 변경 내역은 [CHANGELOG.md](CHANGELOG.md)를 참조하세요.
 
 ---
 
-## 📊 개발 진척 현황 / Development Progress (2026-07-01)
+## 📊 개발 진척 현황 / Development Progress (2026-07-02)
 
 | 트랙 | 범위 | 진척 | 핵심 산출물 |
 |---|---|---|---|
@@ -109,7 +109,7 @@
 
 > 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)(실행 일정)
 
-### 🚧 미완료 작업 / Open Work Items (2026-06-25 코드베이스 전수 감사)
+### 🚧 미완료 작업 / Open Work Items (2026-07-02 GitHub·CI 재점검)
 
 <details>
 <summary><b>📋 전수 감사 상세 펼치기 — 환경의존 / 코드완료 / 잔여 작업 (클릭)</b></summary>
@@ -266,12 +266,17 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 | [🌌 SIMULATOR_MEGA_PLAN.md](docs/SIMULATOR_MEGA_PLAN.md) ~ [POST_UNIVERSE_PLAN](docs/SIMULATOR_POST_UNIVERSE_PLAN.md) | 200 Phase 5단계 로드맵 |
 | [📋 CHANGELOG.md](CHANGELOG.md) | v1.0-1.5 통합 버전 이력 |
 
-### ✅ 현재 로컬 검증 / Current Local Validation (2026-06-24)
+### ✅ 현재 검증 스냅샷 / Current Validation Snapshot (2026-07-02)
 
 | 항목 | 결과 |
 |---|---|
+| GitHub main 동기화 | **로컬 `main` = `origin/main` = `a9259053`** |
+| Pages / Canonical Hash / Security Audit | **GREEN** (2026-07-02 12:21 KST push 기준) |
+| GitHub Actions CI | **RED** — 3개 Python 잡(3.10/3.11/3.12) 모두 실패 |
+| CI 실패 요약 | `fastapi` 미설치, `src.hardware.onboard_bridge.LostLinkConfig` import 불일치, Electron LTS 정책 테스트가 pin `43` vs 기대 `39`로 실패 |
+| CI 테스트 진행도 | **9,063 pass · 282 skip · 4 fail · 2 collection errors** (coverage 87.71%, 실패 전 집계) |
 | Ruff 정적 검사 | **전체 통과** |
-| Python 테스트 | **7,003 collected · 6,733 pass · 270 skip · 0 fail** (단일 프로세스 `pytest -n 0`, 224s) |
+| 마지막 로컬 단일 프로세스 Python 테스트 | **7,003 collected · 6,733 pass · 270 skip · 0 fail** (2026-06-24, `pytest -n 0`, 224s) |
 | AIM 정밀검사 | **242 pass** (Phase 691-700, 9 rounds) |
 | 대표 시뮬레이션 | **100 drones · 60s · seed 42** |
 | 안전 KPI | **45 collisions · 87 near misses · 95.9% conflict resolution** |

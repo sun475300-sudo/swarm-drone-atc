@@ -22,7 +22,7 @@
     "test-server": "python -m http.server 8123"
   },
   "devDependencies": {
-    "electron": "^43.0.0",
+    "electron": "^39.8.5",
     "electron-builder": "^26.15.3",
     "playwright": "1.61.1"
   },

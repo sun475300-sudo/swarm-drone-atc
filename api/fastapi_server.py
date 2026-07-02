@@ -48,7 +48,7 @@ except ImportError as exc:  # pragma: no cover
     ) from exc
 
 LOGGER = logging.getLogger("sdacs.fastapi")
-API_VERSION = "1.1.0"
+API_VERSION = "1.5.0"
 
 
 # --- In-memory state (replace with Redis/Postgres in P714) ---
@@ -191,6 +191,10 @@ def _normalize_live_telemetry(payload: dict[str, Any]) -> dict[str, Any]:
     drone_id = str(payload.get("drone_id") or payload.get("id") or "").strip()
     if not drone_id:
         raise ValueError("telemetry payload missing drone_id")
+    # 보안: drone_id 길이 제한 — 무한 ID 생성으로 numeric_drone_id() 매핑이
+    # 메모리를 무한정 점유하는 DoS 방어.
+    if len(drone_id) > 64:
+        raise ValueError("telemetry drone_id too long (max 64)")
 
     if "position" in payload:
         position = np.asarray(payload["position"], dtype=float)
@@ -208,6 +212,9 @@ def _normalize_live_telemetry(payload: dict[str, Any]) -> dict[str, Any]:
         )
     if position.shape != (3,):
         raise ValueError("telemetry position must be length-3")
+    # 보안: NaN/Infinity 차단 — 그리드 인덱싱 시 무한 메모리 할당·인덱스 오류 방지.
+    if not np.all(np.isfinite(position)):
+        raise ValueError("telemetry position contains NaN/Infinity")
 
     if "velocity" in payload:
         velocity = np.asarray(payload["velocity"], dtype=float)
@@ -225,6 +232,8 @@ def _normalize_live_telemetry(payload: dict[str, Any]) -> dict[str, Any]:
         )
     if velocity.shape != (3,):
         raise ValueError("telemetry velocity must be length-3")
+    if not np.all(np.isfinite(velocity)):
+        raise ValueError("telemetry velocity contains NaN/Infinity")
 
     return {
         "drone_id": drone_id,

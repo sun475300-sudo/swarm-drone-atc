@@ -13,10 +13,14 @@ TelemetryCompressor (Phase 642)의 무손실/유계 손실 속성을 무작위 �
 from __future__ import annotations
 
 import numpy as np
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from simulation.telemetry_compression import TelemetryCompressor, TelemetryFrame
+
+# H-01 fix (2026-06-19): Hypothesis 1,000+ 케이스 = 수십 초 소요. CI fast 레인 제외.
+pytestmark = pytest.mark.slow
 
 QUANT_MM = 10.0
 QUANT_M = QUANT_MM / 1000.0

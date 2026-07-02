@@ -13,6 +13,12 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 COPY . .
 
+# 보안: 비루트 사용자로 전환 — 컨테이너 탈출 시 호스트 root 노출 방지
+# (Dockerfile.reproducible 과 동일 UID 1000 으로 정렬, helm runAsUser 와 일치)
+RUN useradd --system --create-home --uid 1000 sdacs && \
+    chown -R sdacs:sdacs /app
+USER sdacs
+
 EXPOSE 8050
 ENV PYTHONUNBUFFERED=1 PYTHONIOENCODING=utf-8
 

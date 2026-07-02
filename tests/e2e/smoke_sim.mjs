@@ -83,6 +83,15 @@ try {
   ok(perf && perf.drones === 1000 && perf.megaMode === true && perf.drawCalls > 0 && perf.drawCalls < perf.drones && Number.isFinite(perf.fps) && perf.visibleInstances > 0,
     `B6 성능 측정 (DC=${perf.drawCalls} < 1000대, fps=${perf.fps}, vis=${perf.visibleInstances})`);
 
+  // 8b'. 회귀 임계 가드 (docs/PERF_MEGA_SWARM.md §6) — InstancedMesh + APF 공간해시 회귀 탐지
+  // 헤드리스 SwiftShader 기준선: DC ≤ 800, visibleInstances == drones (100% 노출).
+  // cpuMs 임계는 첫 측정 1회만 보고 판단하면 워밍업 노이즈에 약하므로 비교적 보수적인 ≤ 8.0.
+  const drawCallsOk = perf.drawCalls <= 800;
+  const visOk = perf.visibleInstances === perf.drones;
+  const cpuOk = !Number.isFinite(perf.cpuMs) || perf.cpuMs <= 8.0;
+  ok(drawCallsOk && visOk && cpuOk,
+    `B6 회귀 임계 (DC=${perf.drawCalls}≤800, vis=${perf.visibleInstances}/${perf.drones}, cpuMs=${perf.cpuMs}≤8.0)`);
+
   // 8c. B4 다중 선택 — 여러 드론 선택 후 집계 패널 동작
   await page.evaluate(() => window._sdacs.selectScenario('route_conflict'));
   await page.waitForTimeout(400);

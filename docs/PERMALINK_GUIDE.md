@@ -48,7 +48,7 @@
 
 4. **Zenodo가 자동으로 아카이빙**
    - 보통 1~5분 내 아카이브 완료
-   - DOI 형태: `10.5281/zenodo.XXXXXXX`
+   - DOI 형태: `<TBD-DOI>`
    - 예: `https://doi.org/10.5281/zenodo.10234567`
 
 5. **CITATION.cff 업데이트**

@@ -1,5 +1,7 @@
 # KS 국가표준 제안 적합성 게이트 (ODYSSEY Phase 471)
 
+> **자매 산출물 (Phase 471 이중 트랙)**: 본 문서는 *기계 검증 게이트 트랙* (`simulation/ks_standard_proposal.py` 정합). 제출용 산문 트랙은 [`SDACS_KS_PROPOSAL_UAS_CR.md`](SDACS_KS_PROPOSAL_UAS_CR.md) — 두 트랙은 상보적이며 서로 대체하지 않는다.
+
 > SDACS 군집 드론 공역통제 접근을 한국산업표준(KS)으로 제안할 준비가 됐는지를
 > **결정적으로 판정**하는 자문 게이트. 구현: [`simulation/ks_standard_proposal.py`](../../simulation/ks_standard_proposal.py)
 

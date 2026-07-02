@@ -165,6 +165,49 @@
 | [beta/README.md](beta/README.md) | 베타 운영 (P720) |
 | [maritime_detection_technical.md](maritime_detection_technical.md) | 해양 시뮬 기술 (P728) |
 
+## 🏛 표준화·정책 기고 (ODYSSEY Phase 461-480)
+
+| 문서 | 설명 |
+|---|---|
+| [SDACS_STANDARDS_CONTRIBUTION_DASHBOARD.md](standards/SDACS_STANDARDS_CONTRIBUTION_DASHBOARD.md) | Phase 470 — 18 표준 정합 종합 대시보드 (분기 갱신) |
+| [SDACS_ASTM_F38_PROPOSAL.md](standards/SDACS_ASTM_F38_PROPOSAL.md) | Phase 461 — ASTM F38 기고 초안 (SDACS-TM-1/2/3 시험 방법) |
+| [SDACS_ISO_TC20_SC16_TRACKER.md](standards/SDACS_ISO_TC20_SC16_TRACKER.md) | Phase 462 — ISO/TC 20/SC 16 표준 동향 추적 매트릭스 |
+| [SDACS_KDRONE_POLICY_PROPOSAL.md](standards/SDACS_KDRONE_POLICY_PROPOSAL.md) | Phase 463 — K-드론 정책 제안서 (산문 트랙, 자매: K_DRONE_POLICY_PROPOSAL.md 게이트) |
+| [SDACS_SWARM_SAFETY_WHITEPAPER.md](standards/SDACS_SWARM_SAFETY_WHITEPAPER.md) | Phase 464 — 5계층 안전망 백서 (산문 트랙, 자매: SWARM_SAFETY_STANDARD_WHITEPAPER.md 게이트) |
+| [SDACS_BENCHMARK_SUITE.md](standards/SDACS_BENCHMARK_SUITE.md) | Phase 465 — SDACS-SBS-10 공개 표준 시나리오 10종 |
+| [SDACS_KS_PROPOSAL_UAS_CR.md](standards/SDACS_KS_PROPOSAL_UAS_CR.md) | Phase 471 — KS X UAS-CR-1 국가표준 제안 (산문 트랙) |
+| [SDACS_ICAO_RPASP_OPINION.md](standards/SDACS_ICAO_RPASP_OPINION.md) | Phase 472 — ICAO RPASP 의견서 |
+| [SDACS_GUTMA_HARMONY_OPINION.md](standards/SDACS_GUTMA_HARMONY_OPINION.md) | Phase 474 — GUTMA Harmony WG 의견서 |
+| [SDACS_FAA_UTM_OPINION.md](standards/SDACS_FAA_UTM_OPINION.md) | Phase 475 — FAA UTM ConOps v2.0 의견서 |
+| [SDACS_JARUS_WG105_OPINION.md](standards/SDACS_JARUS_WG105_OPINION.md) | Phase 476 — JARUS WG-105 SORA v2.5 의견서 |
+| [SDACS_IFALPA_RPAS_OPINION.md](standards/SDACS_IFALPA_RPAS_OPINION.md) | Phase 477 — IFALPA RPAS 의견서 (유인-무인 통합) |
+| [SDACS_STANDARDS_QUARTERLY_REPORT_TEMPLATE.md](standards/SDACS_STANDARDS_QUARTERLY_REPORT_TEMPLATE.md) | Phase 480 — 표준화 활동 분기 보고 템플릿 |
+| `scripts/standards_conformance_check.py` | Phase 478 — 표준 산출물 정합성 자동 점검 (CI 게이트) |
+| [STANDARDS_WATCH_PROCEDURE.md](standards/STANDARDS_WATCH_PROCEDURE.md) | Phase 479 — 표준 변경 분기 모니터링 절차 |
+
+## ♾️ Continuum — 장기 지속성 (ODYSSEY Phase 481-500)
+
+| 문서 | 설명 |
+|---|---|
+| [CONTINUUM_CENTENNIAL_DECLARATION.md](CONTINUUM_CENTENNIAL_DECLARATION.md) | 🌟 Phase 500 — SDACS Centennial 선언 (Phase 1-500 통합 회고 + 100년 비전) |
+| [CONTINUUM_DIGITAL_LEGACY.md](CONTINUUM_DIGITAL_LEGACY.md) | Phase 490 — 2036년 재현 가능성 체크리스트 |
+| [CONTINUUM_ARCHIVE_REDUNDANCY.md](CONTINUUM_ARCHIVE_REDUNDANCY.md) | Phase 489 — 3중 아카이브 (Zenodo·SWH·대학) |
+| [CONTINUUM_SUCCESSION_PROTOCOL.md](CONTINUUM_SUCCESSION_PROTOCOL.md) | Phase 487 — 유지보수자 승계 규약 (BDFL→위원회) |
+| [CONTINUUM_SECURITY_SLA.md](CONTINUUM_SECURITY_SLA.md) | Phase 488 — CVE 대응 SLA (CRITICAL 6h/HIGH 72h) |
+| [CONTINUUM_DEPENDABOT_POLICY.md](CONTINUUM_DEPENDABOT_POLICY.md) | Phase 481 — 의존성 자동 갱신 3-Tier 정책 |
+| [CONTINUUM_ELECTRON_LTS_TRACKING.md](CONTINUUM_ELECTRON_LTS_TRACKING.md) | Phase 484 — Electron LTS 추적 정책 |
+| [CONTINUUM_NEXT_GENERATION.md](CONTINUUM_NEXT_GENERATION.md) | Phase 491-499 — 차세대 트랙 공모·이양 절차 |
+| [maintenance/THREEJS_UPGRADE_PLAN.md](maintenance/THREEJS_UPGRADE_PLAN.md) | Phase 483 — Three.js r162→r170 업그레이드 리허설 |
+| [maintenance/STALE_BRANCHES_CLEANUP.md](maintenance/STALE_BRANCHES_CLEANUP.md) | 원격 브랜치 정리 가이드 + 안전 스크립트 |
+
+## 🔬 연구 조사 · 교육 · 보안 기록
+
+| 문서 | 설명 |
+|---|---|
+| [research/RL_GENERALIZATION_SURVEY.md](research/RL_GENERALIZATION_SURVEY.md) | Phase 451 — RL 일반화 + EASA AI Roadmap 인증 가능 ML 조사 |
+| [curriculum/CAPSTONE_STANDARD.md](curriculum/CAPSTONE_STANDARD.md) | Phase 468 — 15주 대학 캡스톤 표준 커리큘럼 (산문 트랙) |
+| [security/CVE-2026-54283.md](security/CVE-2026-54283.md) | starlette CVE 대응 감사 기록 (Phase 488 SLA dogfooding) |
+
 ## 🌐 라이브 데모
 
 - [GitHub Pages 메인](https://sun475300-sudo.github.io/swarm-drone-atc/)

@@ -16,15 +16,15 @@
     "pack": "electron-builder --dir",
     "build:simulator": "python scripts/build_simulator.py",
     "build:simulator:check": "python scripts/build_simulator.py --check",
-    "smoke": "SIM_URL=http://localhost:8123/swarm_3d_simulator.html node tests/e2e/smoke_sim.mjs",
-    "smoke:maritime": "SIM_URL=http://localhost:8123/maritime_detection_simulator.html node tests/e2e/smoke_maritime.mjs",
+    "smoke": "node tests/e2e/smoke_sim.mjs",
+    "smoke:maritime": "node tests/e2e/smoke_maritime.mjs",
     "pw:install": "playwright install chromium",
-    "test-server": "python3 -m http.server 8123"
+    "test-server": "python -m http.server 8123"
   },
   "devDependencies": {
-    "electron": "^39.8.5",
-    "electron-builder": "^25.0.0",
-    "playwright": "1.56.1"
+    "electron": "^43.0.0",
+    "electron-builder": "^26.15.3",
+    "playwright": "1.61.1"
   },
   "build": {
     "appId": "com.sdacs.simulator",
@@ -46,9 +46,42 @@
     "asarUnpack": [
       "vendor/three/**/*"
     ],
+    "extraResources": [
+      {
+        "from": "dist-python/sdacs-backend",
+        "to": "sdacs-backend",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }],
-      "artifactName": "SDACS-Simulator-${version}-Setup.${ext}"
+      "target": [
+        {
+          "target": "nsis-web",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "SDACS-Simulator-${version}-${arch}.${ext}"
+    },
+    "nsisWeb": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SDACS Simulator"
+    },
+    "portable": {
+      "artifactName": "SDACS-Simulator-${version}-portable.exe"
     },
     "nsis": {
       "oneClick": false,
@@ -60,14 +93,29 @@
       "shortcutName": "SDACS Simulator"
     },
     "mac": {
-      "target": [{ "target": "dmg", "arch": ["x64", "arm64"] }],
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
       "category": "public.app-category.developer-tools",
       "artifactName": "SDACS-Simulator-${version}-${arch}.${ext}",
       "hardenedRuntime": false,
       "gatekeeperAssess": false
     },
     "linux": {
-      "target": [{ "target": "AppImage", "arch": ["x64"] }],
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "category": "Science",
       "artifactName": "SDACS-Simulator-${version}-${arch}.${ext}"
     },
@@ -77,5 +125,8 @@
       "repo": "swarm-drone-atc",
       "releaseType": "draft"
     }
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
   }
 }

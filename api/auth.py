@@ -31,7 +31,27 @@ from pydantic import BaseModel, Field
 
 LOGGER = logging.getLogger("sdacs.auth")
 
-_JWT_SECRET = os.environ.get("SDACS_JWT_SECRET", "dev-insecure-secret-change-in-prod")
+# 보안: SDACS_PROD=1 (또는 truthy 값) 환경변수 옵트인 시 SDACS_JWT_SECRET 누락을
+# 명시적 RuntimeError 로 거부. 개발(default) 모드에서는 약한 dev 키를 사용하지만
+# 경고를 1회 emit 해 운영 환경에서 누락을 사일런트로 넘어가지 않게 함.
+def _resolve_jwt_secret() -> str:
+    secret = os.environ.get("SDACS_JWT_SECRET")
+    prod = os.environ.get("SDACS_PROD", "").strip().lower() in {"1", "true", "yes", "on"}
+    if secret:
+        return secret
+    if prod:
+        raise RuntimeError(
+            "SDACS_JWT_SECRET 환경변수가 SDACS_PROD 모드에서 필수입니다. "
+            "강한 무작위 비밀(>=32바이트)을 설정하세요."
+        )
+    LOGGER.warning(
+        "⚠ SDACS_JWT_SECRET 미설정 — 개발용 약한 키 사용 중. "
+        "운영 배포 시 SDACS_PROD=1 + 강한 비밀 설정 필수."
+    )
+    return "dev-insecure-secret-change-in-prod"
+
+
+_JWT_SECRET = _resolve_jwt_secret()
 _TOKEN_TTL_S = int(os.environ.get("SDACS_TOKEN_TTL_S", "3600"))
 
 
@@ -111,17 +131,64 @@ def create_token(
     return f"{header}.{body}.{sig}"
 
 
+# ---------------------------------------------------------------------------
+# Revocation registry (P1-B enhancement)
+# ---------------------------------------------------------------------------
+# In-memory blocklist of revoked JTIs (insertion-ordered dict for FIFO eviction).
+# For multi-instance deployments swap this for a Redis SET with per-key TTL.
+_REVOKED_JTIS: dict[str, None] = {}
+_MAX_REVOKED_JTIS = 100_000
+
+
+def revoke_token(jti: str) -> None:
+    """Add a JWT ID (jti claim) to the revocation blocklist.
+
+    Subsequent ``verify_token`` calls for any token bearing this jti will
+    raise HTTPException(401, detail="token revoked"). Idempotent. Empty
+    jti is a no-op. Evicts oldest entry when at capacity.
+    """
+    if not jti:
+        return
+    if jti in _REVOKED_JTIS:
+        return
+    if len(_REVOKED_JTIS) >= _MAX_REVOKED_JTIS:
+        oldest = next(iter(_REVOKED_JTIS))
+        del _REVOKED_JTIS[oldest]
+    _REVOKED_JTIS[jti] = None
+
+
+def is_revoked(jti: str) -> bool:
+    """Return True if the given jti has been revoked."""
+    return bool(jti) and jti in _REVOKED_JTIS
+
+
+def _reset_revocation_for_tests() -> None:
+    """Test-only helper to clear the blocklist between cases."""
+    _REVOKED_JTIS.clear()
+
+
 def verify_token(token: str) -> dict[str, Any]:
     """Validate an HS256 JWT and return its payload.
 
     Raises:
-        HTTPException(401): if the token is malformed, expired, or has a bad signature.
+        HTTPException(401): if the token is malformed, expired, has a bad
+            signature, or has been revoked.
     """
     parts = token.split(".")
     if len(parts) != 3:
         raise HTTPException(status_code=401, detail="malformed token")
 
     header_b64, body_b64, sig_b64 = parts
+    # 알고리즘 명시 검증 (defense in depth) — alg=none / alg=RS256 등 변조 차단.
+    # 자체 _sign 이 항상 HS256 이라 잘못된 alg 는 서명 mismatch 로 자동 차단되지만,
+    # 명시 검증으로 향후 다른 sign 경로가 추가되어도 안전 유지.
+    try:
+        header = json.loads(_b64url_decode(header_b64))
+    except Exception as exc:
+        raise HTTPException(status_code=401, detail="malformed token header") from exc
+    if header.get("alg") != "HS256":
+        raise HTTPException(status_code=401, detail="unsupported token algorithm")
+
     expected_sig = _sign(header_b64, body_b64, _JWT_SECRET)
     if not hmac.compare_digest(sig_b64, expected_sig):
         raise HTTPException(status_code=401, detail="invalid token signature")
@@ -133,6 +200,9 @@ def verify_token(token: str) -> dict[str, Any]:
 
     if int(time.time()) > payload.get("exp", 0):
         raise HTTPException(status_code=401, detail="token expired")
+
+    if is_revoked(payload.get("jti", "")):
+        raise HTTPException(status_code=401, detail="token revoked")
 
     return payload
 
@@ -311,6 +381,15 @@ async def refresh_token(body: RefreshRequest) -> TokenResponse:
 async def whoami(ctx: AuthContext = Depends(require_auth)) -> dict:
     """Return the authenticated user's identity and role."""
     return {"sub": ctx.sub, "role": ctx.role.value}
+
+
+@auth_router.post("/logout", summary="Revoke current token")
+async def logout(ctx: AuthContext = Depends(require_auth)) -> dict:
+    """Revoke the JWT used in this request so it cannot be reused before expiry."""
+    if ctx.jti:
+        revoke_token(ctx.jti)
+    _audit(ctx.sub, ctx.role.value, "logout", outcome="ok")
+    return {"success": True}
 
 
 @auth_router.get("/audit", summary="Audit log (admin only)")

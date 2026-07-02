@@ -58,13 +58,30 @@
     "win": {
       "target": [
         {
-          "target": "nsis",
+          "target": "nsis-web",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
           "arch": [
             "x64"
           ]
         }
       ],
-      "artifactName": "SDACS-Simulator-${version}-Setup.${ext}"
+      "artifactName": "SDACS-Simulator-${version}-${arch}.${ext}"
+    },
+    "nsisWeb": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SDACS Simulator"
+    },
+    "portable": {
+      "artifactName": "SDACS-Simulator-${version}-portable.exe"
     },
     "nsis": {
       "oneClick": false,

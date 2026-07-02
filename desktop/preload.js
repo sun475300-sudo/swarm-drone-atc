@@ -20,4 +20,10 @@ contextBridge.exposeInMainWorld('sdacs', {
 
   // 윈도우 수 query
   windowsCount: () => ipcRenderer.invoke('windows-count'),
+
+  // 백엔드 부팅 상태 (splash.html 이 구독)
+  onBackendStatus: (cb) => ipcRenderer.on('backend-status', (_e, p) => cb(p)),
+
+  // 백엔드 정보 조회 (홈에서 Dash URL 링크 표시용)
+  backendInfo: () => ipcRenderer.invoke('backend-info'),
 });

@@ -185,9 +185,11 @@
 - [x] **GENESIS 368** ✅ 에너지 인식 임무 계획 — `simulation/energy_aware_planner.py` 배터리 모델·에너지 비용·귀환점 산정·최적 경로·충전 스케줄, 48건 PASS
 
 **GitHub 운영**
-- [x] **열린 PR 정리 (2026-06-25)** ✅ — 일일점검 중복 draft 23건 close(ODYSSEY 작업은 #449로 일원화) + dependabot 8건 병합(GitHub Actions 5 + pyyaml·matplotlib·pydantic-core) + 로컬 브랜치 1개(`main`)로 축소. **#449(ODYSSEY 10개 Phase) main 안착 완료** → 잔여 열린 PR 9건(메이저 의존성 4 + 리베이스 중 2 + #283 perf + 기타)
+- [x] **열린 PR 정리 (2026-06-25)** ✅ — 일일점검 중복 draft 23건 close(ODYSSEY 작업은 #449로 일원화) + dependabot 8건 병합(GitHub Actions 5 + pyyaml·matplotlib·pydantic-core) + 로컬 브랜치 1개(`main`)로 축소. **#449(ODYSSEY 10개 Phase) main 안착 완료**
+- [ ] **열린 PR 재점검 (2026-07-02)** — 열린 PR 8건 모두 draft. 충돌/dirty 7건: #457, #461, #462, #463, #464, #465, #480. #469는 `UNSTABLE` 상태이므로 병합 전 리베이스·CI 재검증 필요
 - [x] **저장소 루트 `LICENSE` 추가 (2026-06-25)** ✅ — MIT 라이선스 파일 생성, README 배지 링크 정상화
-- [x] **main CI RED 회복 (2026-06-25)** ✅ — `ci.yml` checkout `fetch-depth: 0`(code_archaeology 전체 이력 파싱) → CI GREEN 실측
+- [x] **main CI RED 회복 (2026-06-25)** ✅ — `ci.yml` checkout `fetch-depth: 0`(code_archaeology 전체 이력 파싱) → 당시 CI GREEN 실측
+- [ ] **main CI RED 재발 (2026-07-02)** — 최신 run `28563001397` 실패: `fastapi` 누락, `LostLinkConfig` export/API 불일치, Electron LTS 테스트 기대값(39)과 repo pin(43) 불일치. Pages·Canonical Hash·Security Audit는 GREEN
 - [ ] `main` branch protection 활성화 — required checks 지정 (직접 push 차단은 현 작업 워크플로에 영향 → 사용자 확인 필요)
 
 **기술 부채 (정직성 공시)**

@@ -2,6 +2,9 @@
 
 ## Completed / 완료
 
+<details>
+<summary><b>✅ 완료 Phase 1-700 전체 목록 펼치기 (클릭)</b></summary>
+
 ### Phase 1-470: Core System (완료)
 - SimPy 이산 이벤트 시뮬레이션 엔진
 - AirspaceController 1Hz 충돌 감지/해결
@@ -116,6 +119,8 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 - [x] 비행 추적 서비스 (`flight_following.py`)
 - [x] 통합 AIM 브리핑 서비스 (`aim_briefing.py`)
 - [x] 후-비행 보고서 통합기 (`post_flight_report.py`)
+
+</details>
 
 ---
 

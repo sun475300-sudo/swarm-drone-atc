@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import pytest
 
+pytest.importorskip("fastapi", reason="fastapi required for auth revocation tests")
+
 from api import auth as auth_module
 from api.auth import (
     Role,

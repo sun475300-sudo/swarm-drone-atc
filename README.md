@@ -9,6 +9,9 @@
 [![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.12-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
+<details>
+<summary><b>📊 프로젝트 상태 배지 10종 — 펼치기 (Phase · API · E2E · Tests · Modules · Tracks · LOC …)</b></summary>
+
 [![Phase](https://img.shields.io/badge/Phase-200%20%E2%9C%93-purple?style=for-the-badge&logo=rocket)](docs/phase_matrix.html)
 [![SDACS Unity](https://img.shields.io/badge/Phase_200-%F0%9D%9F%8F_Unity-ec407a?style=for-the-badge&logo=infinity)](docs/SIMULATOR_POST_UNIVERSE_PLAN.md)
 [![API](https://img.shields.io/badge/__sdacs-407_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
@@ -19,6 +22,9 @@
 [![Modules](https://img.shields.io/badge/Modules-950+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
 [![LOC](https://img.shields.io/badge/Total-160K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
+
+</details>
+
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 **Mokpo National University, Dept. of Drone Mechanical Engineering — Capstone Design (2026)**
@@ -105,6 +111,9 @@
 
 ### 🚧 미완료 작업 / Open Work Items (2026-06-25 코드베이스 전수 감사)
 
+<details>
+<summary><b>📋 전수 감사 상세 펼치기 — 환경의존 / 코드완료 / 잔여 작업 (클릭)</b></summary>
+
 > **전수 감사 결과**: 기존 `[ ]` 항목 다수가 실제로는 **이미 구현된 stale 마커**였습니다. 코드와 1:1 대조해 ① 환경 의존(코드 불가) ② 코드 완료(실재 모듈 확인) ③ 잔여 코드 작업으로 정직 재분류했습니다.
 
 #### 🔒 환경 의존 — 코드로 완료 불가 (사용자 HW · 외부 기관 · 실 배포 · 차세대 기수)
@@ -184,6 +193,8 @@
 **기술 부채 (정직성 공시)**
 - [ ] mock 110종 + speculative 103종 — 전체 목록·격상 난이도: [`docs/TECH_DEBT_LEDGER.md`](docs/TECH_DEBT_LEDGER.md) (자동 생성)
 - [x] **Electron `^39.8.5` 빌드 (2026-06-25)** ✅ — 로컬 Windows NSIS 빌드 검증(electron 39.8.10 · `dist-desktop/SDACS-Simulator-1.5.0-Setup.exe` 92 MB). dependabot #426(electron 42 메이저)은 검토 대기
+
+</details>
 
 ---
 
@@ -551,7 +562,7 @@ SDACS는 이 단순한 발상에서 출발했습니다. 20대의 관제 드론�
 | **Concurrent Drones** | **100+** | 20대: 충돌 0, 50대: avg 15, 100대: avg 29 |
 | **Deployment Time** | **30 min** | No fixed infrastructure required |
 | **Multi-Language Coverage** | **50+ Languages** | Phase 521-660: Zig, Rust, Go, C++, Kotlin, Nim, OCaml, F#, Swift, TS, Scala, Haskell, Lua, Julia, Dart, Elixir, R, Octave, Perl, Ruby, VHDL, Prolog, Fortran, Ada, COBOL and more |
-| **Test Collection** | **7,000+ tests** | Automated pytest collection across 980+ Python files and 230+ test files |
+| **Test Collection** | **7,000+ tests** | Automated pytest collection across 980+ Python files and 290+ test files |
 <div align="center">
 <img src="docs/images/imgur/wHuMIfM.png" alt="기존 방식 대비 SDACS 성능 비교" width="750"/>
 <br/><sub>기존 Rule-based Static ATC vs SDACS Swarm Autonomous — 주요 KPI 비교</sub>
@@ -777,7 +788,7 @@ swarm-drone-atc/
 ├── api/                             # FastAPI server skeleton / API glue
 ├── chatbot/                         # chatbot and simulation adapters
 ├── benchmarks/                      # reproducible benchmark scenarios
-├── tests/                           # 105 test files + e2e smoke
+├── tests/                           # 290+ test files + e2e smoke
 │   ├── test_simulator_scenarios.py
 │   ├── test_phase*.py
 │   └── ...

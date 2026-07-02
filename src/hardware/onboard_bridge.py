@@ -80,22 +80,34 @@ class TelemetrySnapshot:
     mode: str
     armed: bool
     gps_fix_type: int
+    # Optional attitude (radians, from MAVLink ATTITUDE msg). NaN when no
+    # ATTITUDE frame has been received yet.
+    roll_rad: float = float("nan")
+    pitch_rad: float = float("nan")
+    yaw_rad: float = float("nan")
+    attitude_ts_ns: int = 0
 
     def to_json(self) -> str:
         """``to_json`` 동작을 수행한다."""
-        return json.dumps(
-            {
-                "drone_id": self.drone_id,
-                "t_ns": self.timestamp_ns,
-                "pos": {"lat": self.lat_deg, "lon": self.lon_deg, "alt": self.alt_msl_m},
-                "vel": {"x": self.vx_mps, "y": self.vy_mps, "z": self.vz_mps},
-                "head": self.heading_deg,
-                "bat": self.battery_pct,
-                "mode": self.mode,
-                "armed": self.armed,
-                "fix": self.gps_fix_type,
+        payload = {
+            "drone_id": self.drone_id,
+            "t_ns": self.timestamp_ns,
+            "pos": {"lat": self.lat_deg, "lon": self.lon_deg, "alt": self.alt_msl_m},
+            "vel": {"x": self.vx_mps, "y": self.vy_mps, "z": self.vz_mps},
+            "head": self.heading_deg,
+            "bat": self.battery_pct,
+            "mode": self.mode,
+            "armed": self.armed,
+            "fix": self.gps_fix_type,
+        }
+        if self.attitude_ts_ns > 0 and not math.isnan(self.roll_rad):
+            payload["att"] = {
+                "roll": self.roll_rad,
+                "pitch": self.pitch_rad,
+                "yaw": self.yaw_rad,
+                "t_ns": self.attitude_ts_ns,
             }
-        )
+        return json.dumps(payload)
 
 
 @dataclass(frozen=True)
@@ -133,6 +145,11 @@ class MavlinkAdapter:
         # Most recent ATTITUDE.yaw, already converted to [0, 360) degrees. Used
         # as a heading fallback when GLOBAL_POSITION_INT.hdg is unavailable.
         self._last_attitude_yaw_deg: float | None = None
+        self._last_attitude_roll: float = float("nan")
+        self._last_attitude_pitch: float = float("nan")
+        self._last_attitude_yaw: float = float("nan")
+        self._last_attitude_ts_ns: int = 0
+        self._last_heartbeat_monotonic_s: float = 0.0
 
     async def connect(self) -> None:
         # Deferred import so tests can import this module without pymavlink installed.
@@ -221,6 +238,10 @@ class MavlinkAdapter:
                 self._last_attitude_yaw_deg = self._yaw_rad_to_deg(
                     float(getattr(msg, "yaw", 0.0))
                 )
+                self._last_attitude_roll = float(getattr(msg, "roll", float("nan")))
+                self._last_attitude_pitch = float(getattr(msg, "pitch", float("nan")))
+                self._last_attitude_yaw = float(getattr(msg, "yaw", float("nan")))
+                self._last_attitude_ts_ns = time.time_ns()
             elif mtype == "SYS_STATUS":
                 br = getattr(msg, "battery_remaining", -1)
                 self._last_sys_status_battery_pct = float(br) if br >= 0 else -1.0
@@ -230,6 +251,7 @@ class MavlinkAdapter:
                     getattr(msg, "custom_mode", 0),
                 )
                 self._last_heartbeat_armed = bool(getattr(msg, "base_mode", 0) & 0x80)
+                self._last_heartbeat_monotonic_s = time.monotonic()
             elif mtype == "GPS_RAW_INT":
                 self._last_gps_fix_type = int(getattr(msg, "fix_type", 0))
 
@@ -254,7 +276,94 @@ class MavlinkAdapter:
             mode=self._last_heartbeat_mode,
             armed=self._last_heartbeat_armed,
             gps_fix_type=self._last_gps_fix_type,
+            roll_rad=self._last_attitude_roll,
+            pitch_rad=self._last_attitude_pitch,
+            yaw_rad=self._last_attitude_yaw,
+            attitude_ts_ns=self._last_attitude_ts_ns,
         )
+
+    def heartbeat_age_s(self, now_monotonic_s: float | None = None) -> float:
+        """Return seconds since the last HEARTBEAT (math.inf if never seen)."""
+        if self._last_heartbeat_monotonic_s <= 0.0:
+            return float("inf")
+        now = now_monotonic_s if now_monotonic_s is not None else time.monotonic()
+        return max(0.0, now - self._last_heartbeat_monotonic_s)
+
+    async def send_position_target_local_ned(
+        self,
+        north_m: float,
+        east_m: float,
+        down_m: float,
+        yaw_rad: float | None = None,
+        vx_mps: float = 0.0,
+        vy_mps: float = 0.0,
+        vz_mps: float = 0.0,
+    ) -> bool:
+        """Send SET_POSITION_TARGET_LOCAL_NED (advisory -> position cmd)."""
+        if self._connection is None:
+            raise RuntimeError("not connected")
+        try:
+            from pymavlink import mavutil  # type: ignore
+        except ImportError:
+            LOGGER.error("pymavlink unavailable; cannot send position target")
+            return False
+        use_yaw = yaw_rad is not None
+        type_mask = 0b101111000000 if not use_yaw else 0b100111000000
+        send_fn = getattr(
+            self._connection.mav, "set_position_target_local_ned_send", None
+        )
+        if send_fn is None:
+            LOGGER.error("MAVLink dialect missing set_position_target_local_ned")
+            return False
+        try:
+            send_fn(
+                int(time.monotonic() * 1000) & 0xFFFFFFFF,
+                self._connection.target_system,
+                self._connection.target_component,
+                mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+                type_mask,
+                float(north_m),
+                float(east_m),
+                float(down_m),
+                float(vx_mps),
+                float(vy_mps),
+                float(vz_mps),
+                0.0, 0.0, 0.0,
+                float(yaw_rad) if use_yaw else 0.0,
+                0.0,
+            )
+        except Exception as exc:  # noqa: BLE001
+            LOGGER.error("set_position_target_local_ned wire error: %s", exc)
+            return False
+        return True
+
+    async def set_mode_message(self, custom_mode: int) -> bool:
+        """Send dedicated SET_MODE message (ArduPilot canonical path)."""
+        if self._connection is None:
+            raise RuntimeError("not connected")
+        try:
+            from pymavlink import mavutil  # type: ignore
+        except ImportError:
+            LOGGER.error("pymavlink unavailable; cannot set_mode")
+            return False
+        base_mode = mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED
+        send_fn = getattr(self._connection.mav, "set_mode_send", None)
+        if send_fn is None:
+            LOGGER.error("MAVLink dialect missing set_mode_send")
+            return False
+        send_fn(self._connection.target_system, base_mode, int(custom_mode))
+        deadline = time.monotonic() + COMMAND_ACK_TIMEOUT_S
+        while time.monotonic() < deadline:
+            msg = self._connection.recv_match(type="HEARTBEAT", blocking=False)
+            if msg is not None and int(getattr(msg, "custom_mode", -1)) == int(custom_mode):
+                self._last_heartbeat_mode = self._decode_mode(
+                    getattr(msg, "base_mode", 0),
+                    getattr(msg, "custom_mode", 0),
+                )
+                return True
+            await asyncio.sleep(0.05)
+        LOGGER.warning("set_mode_message no HEARTBEAT echo within %ss", COMMAND_ACK_TIMEOUT_S)
+        return False
 
     _COMMAND_MAP: dict = {
         "TAKEOFF": (
@@ -359,6 +468,123 @@ class MavlinkAdapter:
         if self._connection is not None:
             self._connection.close()
             self._connection = None
+
+
+# --- Lost-Link state machine (MAVLINK_SPEC.md §6) ---
+
+LOST_LINK_HOLD_TIMEOUT_S = 3.0
+LOST_LINK_RTL_AFTER_S = 30.0
+LOST_LINK_LAND_RADIUS_M = 50.0
+ARDUPILOT_MODE_LOITER = 5
+ARDUPILOT_MODE_RTL = 6
+ARDUPILOT_MODE_LAND = 9
+
+
+class LostLinkPhase:
+    """Phase name marker."""
+
+    NORMAL = "NORMAL"
+    HOLDING = "HOLDING"
+    RTL = "RTL"
+    LANDING = "LANDING"
+
+
+@dataclass
+class LostLinkConfig:
+    """``LostLinkConfig`` parameters."""
+
+    hold_timeout_s: float = LOST_LINK_HOLD_TIMEOUT_S
+    rtl_after_s: float = LOST_LINK_RTL_AFTER_S
+    land_radius_m: float = LOST_LINK_LAND_RADIUS_M
+    rtl_altitude_m: float = 80.0
+
+
+class LostLinkStateMachine:
+    """Track heartbeat freshness and emit 3-phase Lost-Link transitions."""
+
+    def __init__(
+        self,
+        config: LostLinkConfig | None = None,
+        *,
+        home_position: tuple[float, float, float] | None = None,
+    ) -> None:
+        """Initialize."""
+        self.config = config or LostLinkConfig()
+        self.phase: str = LostLinkPhase.NORMAL
+        self._silence_started_s: float | None = None
+        self._home = home_position
+
+    def set_home(self, lat_deg: float, lon_deg: float, alt_m: float) -> None:
+        """Set home (used for LANDING radius)."""
+        self._home = (lat_deg, lon_deg, alt_m)
+
+    def update(
+        self,
+        heartbeat_age_s: float,
+        snapshot: TelemetrySnapshot | None,
+        now_s: float | None = None,
+    ) -> str | None:
+        """Advance machine; return new phase on transition else None."""
+        now = now_s if now_s is not None else time.monotonic()
+
+        if heartbeat_age_s <= self.config.hold_timeout_s:
+            if self.phase != LostLinkPhase.NORMAL:
+                self.phase = LostLinkPhase.NORMAL
+                self._silence_started_s = None
+                return LostLinkPhase.NORMAL
+            return None
+
+        if self._silence_started_s is None:
+            self._silence_started_s = now - heartbeat_age_s
+
+        silence_age = now - self._silence_started_s
+
+        if (
+            self.phase in (LostLinkPhase.HOLDING, LostLinkPhase.RTL)
+            and snapshot is not None
+            and self._home is not None
+            and self._distance_to_home_m(snapshot) <= self.config.land_radius_m
+        ):
+            self.phase = LostLinkPhase.LANDING
+            return LostLinkPhase.LANDING
+
+        if silence_age >= self.config.rtl_after_s and self.phase != LostLinkPhase.RTL:
+            if self.phase != LostLinkPhase.LANDING:
+                self.phase = LostLinkPhase.RTL
+                return LostLinkPhase.RTL
+            return None
+
+        if (
+            heartbeat_age_s > self.config.hold_timeout_s
+            and self.phase == LostLinkPhase.NORMAL
+        ):
+            self.phase = LostLinkPhase.HOLDING
+            return LostLinkPhase.HOLDING
+
+        return None
+
+    def _distance_to_home_m(self, snapshot: TelemetrySnapshot) -> float:
+        """Equirectangular distance from home (m)."""
+        if self._home is None:
+            return float("inf")
+        h_lat, h_lon, h_alt = self._home
+        d_lat_m = (snapshot.lat_deg - h_lat) * 111_320.0
+        d_lon_m = (
+            (snapshot.lon_deg - h_lon)
+            * 111_320.0
+            * math.cos(math.radians((snapshot.lat_deg + h_lat) / 2.0))
+        )
+        d_alt_m = snapshot.alt_msl_m - h_alt
+        return math.sqrt(d_lat_m * d_lat_m + d_lon_m * d_lon_m + d_alt_m * d_alt_m)
+
+    @staticmethod
+    def mode_for_phase(phase: str) -> int | None:
+        """Map phase -> ArduPilot custom_mode int."""
+        return {
+            LostLinkPhase.HOLDING: ARDUPILOT_MODE_LOITER,
+            LostLinkPhase.RTL: ARDUPILOT_MODE_RTL,
+            LostLinkPhase.LANDING: ARDUPILOT_MODE_LAND,
+        }.get(phase)
 
 
 # --- Ground-link adapter (replaceable) ---

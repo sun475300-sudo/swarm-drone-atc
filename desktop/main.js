@@ -5,6 +5,7 @@
 const { app, BrowserWindow, Menu, shell, ipcMain, screen } = require('electron');
 const path = require('node:path');
 const bridge = require('./backend_bridge');
+const updater = require('./auto_updater');
 
 const isDev = !app.isPackaged;
 const repoRoot = isDev ? path.join(__dirname, '..') : path.join(process.resourcesPath, 'app');
@@ -184,6 +185,8 @@ function buildMenu() {
     {
       label: '도움말 / Help',
       submenu: [
+        { label: '업데이트 확인 / Check for Updates', click: () => updater.checkForUpdatesManually(mainWin) },
+        { type: 'separator' },
         { label: 'GitHub 저장소', click: () => shell.openExternal('https://github.com/sun475300-sudo/swarm-drone-atc') },
         { label: '랜딩 페이지(Live)', click: () => shell.openExternal('https://sun475300-sudo.github.io/swarm-drone-atc/') },
         { type: 'separator' },
@@ -214,6 +217,8 @@ async function createMainWindow() {
     _broadcastBackendStatus(`백엔드 준비 완료 (port ${result.port})`);
     // 3) 홈으로 전환
     if (mainWin && !mainWin.isDestroyed()) mainWin.loadFile(path.join(__dirname, 'home.html'));
+    // 4) 자동 업데이트 확인 시작 (dev 모드에서는 no-op)
+    updater.initAutoUpdater(mainWin);
   } else {
     // 폴백: HTML-only 홈. 홈이 backendInfo() 로 상태를 확인해 안내 표시.
     console.warn('[main] backend failed:', result.reason);

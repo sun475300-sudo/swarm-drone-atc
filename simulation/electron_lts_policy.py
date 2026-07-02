@@ -52,10 +52,11 @@ RELEASE_CADENCE_WEEKS = 8
 
 # 상류 최신 stable major 의 *수동 스냅샷*. 리포에 상류 캘린더가 없으므로 본
 # 상수를 정직한 단일 출처로 둔다. 갱신 시 날짜를 함께 고친다.
-#   2026-06-19 기준 Electron 최신 stable = 42 (리포 Dependabot PR #277 이
-#   39→42 를 제안 중 = 상류가 42 를 내놓았다는 실측 증거).
-OBSERVED_LATEST_STABLE_MAJOR = 42
-OBSERVED_LATEST_AS_OF = "2026-06-19"
+#   2026-07-02 기준 Electron 최신 stable = 43 (npm dist-tag ``latest`` =
+#   43.0.0, 42.x 는 한 major 뒤로 밀림. 리포 Dependabot 이 devDependencies
+#   electron 을 ^43.0.0 으로 상향 = 상류가 43 을 stable 로 내놓았다는 실측 증거).
+OBSERVED_LATEST_STABLE_MAJOR = 43
+OBSERVED_LATEST_AS_OF = "2026-07-02"
 
 # 리포 핀 출처.
 _PACKAGE_JSON = "package.json"
@@ -243,11 +244,11 @@ def shipped_runtime(repo_root: str | Path | None = None) -> ElectronRuntime | No
 
 # 정책 동작을 보이는 결정적 예시(창 내부 → EOL 전 구간).
 _DEMO_RUNTIMES: tuple[ElectronRuntime, ...] = (
-    ElectronRuntime(42, 42),  # CURRENT
-    ElectronRuntime(41, 42),  # SUPPORTED
-    ElectronRuntime(40, 42),  # ENDING
-    ElectronRuntime(39, 42),  # EOL (리포 현 핀)
-    ElectronRuntime(32, 39),  # EOL (현 32→39 표류 교훈)
+    ElectronRuntime(43, 43),  # CURRENT (리포 현 핀)
+    ElectronRuntime(42, 43),  # SUPPORTED
+    ElectronRuntime(41, 43),  # ENDING
+    ElectronRuntime(40, 43),  # EOL
+    ElectronRuntime(32, 39),  # EOL (과거 32→39 표류 교훈)
 )
 
 

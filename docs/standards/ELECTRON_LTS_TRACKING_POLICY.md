@@ -51,20 +51,20 @@ Electron 은 상류 공시상 **최신 3개 stable major** 에만 보안 패치�
 리포에는 상류 릴리스 캘린더가 없으므로 최신 major 는 *수동 스냅샷 상수* 로
 둔다. 이를 최신으로 *포장*하지 않고 날짜를 함께 명시한다.
 
-- `OBSERVED_LATEST_STABLE_MAJOR = 42` (`OBSERVED_LATEST_AS_OF = 2026-06-19`)
-- 근거: 리포 Dependabot PR #277 이 electron `39 → 42` 를 제안 중 = 상류가 42 를
+- `OBSERVED_LATEST_STABLE_MAJOR = 43` (`OBSERVED_LATEST_AS_OF = 2026-07-02`)
+- 근거: npm dist-tag `latest = 43.0.0`(42.x 는 한 major 뒤로 밀림). 리포
+  Dependabot 이 electron 을 `^43.0.0` 으로 상향 = 상류가 43 을 stable 로
   내놓았다는 실측 증거.
 
 상류가 새 major 를 내면 본 상수와 날짜를 함께 갱신한다.
 
 ## 정직 공시 (현 상태)
 
-`python -m simulation.electron_lts_policy --status` 판정 **`UPGRADE_NOW (EOL, lag=3)`**:
+`python -m simulation.electron_lts_policy --status` 판정 **`WITHIN_SLA (CURRENT, lag=0)`**:
 
-- 현 핀 `^39.8.5`(major 39) 은 스냅샷 최신 42 대비 3 major 뒤 → 지원 창(3) 밖.
-- 즉 현재 데스크탑 빌드 타깃은 **보안 백포트가 끊긴 EOL 런타임**이다.
-- 적체 Dependabot PR #277(`electron 39 → 42`)을 회귀 게이트(Phase 481) 통과
-  확인 후 머지하면 `CURRENT` 로 복귀한다.
+- 현 핀 `^43.0.0`(major 43) 은 스냅샷 최신 43 과 동일 → 지원 창(3) 최상단.
+- 즉 현재 데스크탑 빌드 타깃은 **최신 stable 로 보안 패치를 수신**한다.
+- 과거 `39`(EOL) 표류는 Dependabot 의 `electron → ^43.0.0` 상향 머지로 해소됨.
 
 ### 교훈 — 32 → 39 표류
 

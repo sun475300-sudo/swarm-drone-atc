@@ -173,25 +173,25 @@ def test_policy_matrix_covers_window_boundary():
 
 # --- shipped_runtime / read_pinned_major -----------------------------------
 def test_read_pinned_major_from_repo():
-    # 리포 package.json 의 electron 핀이 실제로 읽힌다(현 ^39.8.5).
+    # 리포 package.json 의 electron 핀이 실제로 읽힌다(현 ^43.0.0).
     major = read_pinned_major(_repo_root())
-    assert major == 39
+    assert major == 43
 
 
 def test_shipped_runtime_reflects_repo_pin():
     runtime = shipped_runtime()
     assert runtime is not None
-    assert runtime.pinned_major == 39
+    assert runtime.pinned_major == 43
     assert runtime.latest_stable_major == OBSERVED_LATEST_STABLE_MAJOR
 
 
-def test_shipped_runtime_honest_eol_disclosure():
-    # 정직 공시: 현 핀 39 는 최신 42 대비 EOL → UPGRADE_NOW.
+def test_shipped_runtime_honest_current_disclosure():
+    # 정직 공시: 현 핀 43 은 최신 stable 43 = CURRENT → WITHIN_SLA.
     runtime = shipped_runtime()
     assert runtime is not None, "package.json electron 핀을 읽지 못함"
     result = assess(runtime)
-    assert result.tier == TIER_EOL
-    assert result.action == ACTION_UPGRADE_NOW
+    assert result.tier == TIER_CURRENT
+    assert result.action == ACTION_WITHIN_SLA
 
 
 def test_read_pinned_major_missing_file(tmp_path):
@@ -259,8 +259,8 @@ def test_cli_policy(capsys):
 def test_cli_status_reports_repo_pin(capsys):
     assert main(["--status"]) == 0
     out = capsys.readouterr().out
-    assert "Electron 39" in out
-    assert ACTION_UPGRADE_NOW in out
+    assert "Electron 43" in out
+    assert ACTION_WITHIN_SLA in out
 
 
 def test_cli_demo(capsys):

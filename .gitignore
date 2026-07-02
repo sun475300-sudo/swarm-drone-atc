@@ -82,3 +82,9 @@ htmlcov/
 .pytest_cache/
 pytest-cache-files-*/
 scripts/recordings/
+
+# 세션 산출물·재생성 가능 sweep 결과 (2026-07 정리 — ablation 등 문서 참조분은 유지)
+outputs/
+results/full_sweep/
+results/mini_sweep/
+results/comparison/

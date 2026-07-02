@@ -11,12 +11,12 @@
 
 [![Phase](https://img.shields.io/badge/Phase-200%20%E2%9C%93-purple?style=for-the-badge&logo=rocket)](docs/phase_matrix.html)
 [![SDACS Unity](https://img.shields.io/badge/Phase_200-%F0%9D%9F%8F_Unity-ec407a?style=for-the-badge&logo=infinity)](docs/SIMULATOR_POST_UNIVERSE_PLAN.md)
-[![API](https://img.shields.io/badge/__sdacs-407_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
-[![E2E](https://img.shields.io/badge/E2E-263%2F264_pass-22c55e?style=for-the-badge&logo=playwright&logoColor=white)](tests/e2e/)
+[![API](https://img.shields.io/badge/__sdacs-408_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
+[![E2E](https://img.shields.io/badge/E2E-283_collected-22c55e?style=for-the-badge&logo=playwright&logoColor=white)](tests/e2e/)
 [![Roadmap](https://img.shields.io/badge/Roadmap_691--755-94%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
-[![Tests](https://img.shields.io/badge/Python_tests-8%2C365_pass_%C2%B7_228_skip-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Python_tests-8%2C962_collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![v1.5.0](https://img.shields.io/badge/Desktop-v1.5.0_(Win%2FMac%2FLinux)-7c3aed?style=for-the-badge&logo=electron&logoColor=white)](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
-[![Modules](https://img.shields.io/badge/Modules-950+-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
+[![Modules](https://img.shields.io/badge/Modules-1%2C094--9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
 [![LOC](https://img.shields.io/badge/Total-160K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
@@ -99,7 +99,7 @@
 | **F** 산학·사업화 | P746-755 | 🟢 90% | K-UAM·해수부·산림청·KISA·라이선싱·창업 docs (P755·LOI는 사용자 환경) |
 | **G** TRANSCENDENCE | 시뮬 201-300 | 🟡 11% | 201-210·226 완료 — 성숙도 정직성·API 수명주기·GPS→ENU 정밀 검증 |
 | **H** GENESIS | 시뮬 301-400 | 🟢 50% | 인증 301-319·플러그인SDK(321)·CITATION(330)·교육(381-389)·**Phase 400 Legacy 선언**·V2X·자가치유·**RL벤치·LLM관제·5G NTN·GPS거부·에너지계획**(361-368) 완료 — 실 지역 실증·양방향 디지털트윈만 잔여(실 HW) |
-| **I** ODYSSEY | 시뮬 401-500 | 🟡 49% | FAA/EASA/ICAO 정렬(402-411)·RL/EASA AI(452-460, V&V·SafetyCase·Lifecycle)·연합 운영(`federation_*` 19모듈)·표준/Continuum(461-500)·**#449 10 Phase 안착** 완료 — GUTMA·해외 제출·차세대 기수만 잔여(외부) |
+| **I** ODYSSEY | 시뮬 401-500 | 🟡 49% | FAA/EASA/ICAO 정렬(402-411)·RL/EASA AI(452-460, V&V·SafetyCase·Lifecycle)·연합 운영(`federation_*` 17모듈)·표준/Continuum(461-500)·**#449 10 Phase 안착** 완료 — GUTMA·해외 제출·차세대 기수만 잔여(외부) |
 
 > 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)(실행 일정)
 
@@ -132,7 +132,7 @@
 - [ ] 시뮬레이터 Track Ⅰ — CPA TTC 라벨·위험도 색상·어드바이저리 빌보드 점멸 (기반 advisory/ttc/replay는 HTML 구현됨, **고도화·마감 검증** 잔여)
 - [ ] TRANSCENDENCE 211-220 — production API 12→30 격상 (시뮬레이터 성숙도)
 - [ ] TRANSCENDENCE 241-260 — 다중 사용자 WS 관제 서버·부하 100명 (런타임 인프라)
-- [ ] ODYSSEY 426-427 — 2-인스턴스 연합 E2E·고스트 렌더링 (federation 백엔드 19모듈 완비, Playwright 다중페이지 E2E만 잔여)
+- [ ] ODYSSEY 426-427 — 2-인스턴스 연합 E2E·고스트 렌더링 (federation 백엔드 17모듈 완비, Playwright 다중페이지 E2E만 잔여)
 - [x] **GENESIS 320** ✅ 4대 SW계획서 — `docs/certification/SOFTWARE_PLANS.md` (SDP/SVP/SCMP/SQAP, DO-178C §4.3, 실제 프로세스 근거)
 - [ ] `main` branch protection — required checks 지정 (직접 push 차단은 워크플로 영향 → 사용자 확인)
 

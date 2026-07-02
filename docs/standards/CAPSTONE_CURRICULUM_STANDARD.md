@@ -1,5 +1,7 @@
 # 대학 캡스톤 표준 커리큘럼 제안 — 군집 드론 공역 통제 시스템 설계
 
+> **자매 산출물 (Phase 468 이중 트랙)**: 본 문서는 *기계 검증 게이트 트랙* (`simulation/capstone_curriculum_standard.py` 정합). 제출용 산문 트랙은 [`CAPSTONE_STANDARD.md`](../curriculum/CAPSTONE_STANDARD.md) — 두 트랙은 상보적이며 서로 대체하지 않는다.
+
 > **ODYSSEY Phase 468** · Standards & Policy 트랙(461-480)
 > 적합성 게이트: [`simulation/capstone_curriculum_standard.py`](../../simulation/capstone_curriculum_standard.py)
 > 강의 슬라이드 산출물(GENESIS Phase 383): [`docs/slides_deck.md`](../slides_deck.md)

@@ -3,6 +3,8 @@
 *ODYSSEY Track 🏛 Standards & Policy — Phase 468 산출물*
 *GENESIS Phase 383 (15주 강의 슬라이드) 확장*
 *Created: 2026-06-25 · 학부 4학년 1학기 캡스톤 표준 제안*
+> **자매 산출물 (Phase 468 이중 트랙)**: 본 문서는 *제출용 산문 트랙*. 기계 검증 게이트 트랙은 [`CAPSTONE_CURRICULUM_STANDARD.md`](../standards/CAPSTONE_CURRICULUM_STANDARD.md) + `simulation/capstone_curriculum_standard.py` (결정적 준비도 판정·회귀 테스트 포함) — 두 트랙은 상보적이며 서로 대체하지 않는다.
+
 
 > **목적**: SDACS 가 목포대 캡스톤(2026) 에서 실증한 200+ Phase 자산을 기반으로, **무인이동체·드론·UAS·UTM** 영역의 대학 학부 4학년 캡스톤 과목의 **표준 커리큘럼** 을 제안한다. 다른 대학(항공대·서울대 우주공학·KAIST 항공우주·인하대 항공우주·세종대 항공우주 등) 채택 가능 형태.
 

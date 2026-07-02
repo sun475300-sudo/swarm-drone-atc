@@ -2,6 +2,8 @@
 
 *ODYSSEY Track 🏛 Standards & Policy — Phase 463 산출물*
 *Created: 2026-06-25 · 국토교통부 제출 형식*
+> **자매 산출물 (Phase 463 이중 트랙)**: 본 문서는 *제출용 산문 트랙*. 기계 검증 게이트 트랙은 [`K_DRONE_POLICY_PROPOSAL.md`](K_DRONE_POLICY_PROPOSAL.md) + `simulation/k_drone_policy_proposal.py` (결정적 준비도 판정·회귀 테스트 포함) — 두 트랙은 상보적이며 서로 대체하지 않는다.
+
 
 > **정직성 공시**: 본 제안서는 SDACS 연구 산출물 기반 *정책 권고 초안* 이며, 실제 국토부 제출은 사용자 환경(목포대 캡스톤·산학·인증) 의존. 본 문서는 제출 형식 + SDACS 정렬 자산 매핑을 제공한다.
 

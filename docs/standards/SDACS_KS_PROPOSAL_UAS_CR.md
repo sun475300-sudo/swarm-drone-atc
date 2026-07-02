@@ -2,6 +2,8 @@
 
 *ODYSSEY Track 🏛 Standards & Policy — Phase 471 산출물*
 *Created: 2026-06-25 · KSA (한국표준협회) 경유 제안 양식*
+> **자매 산출물 (Phase 471 이중 트랙)**: 본 문서는 *제출용 산문 트랙*. 기계 검증 게이트 트랙은 [`KS_STANDARD_PROPOSAL_GATE.md`](KS_STANDARD_PROPOSAL_GATE.md) + `simulation/ks_standard_proposal.py` (결정적 준비도 판정·회귀 테스트 포함) — 두 트랙은 상보적이며 서로 대체하지 않는다.
+
 
 > **정직성 공시**: 본 제안서는 SDACS 연구 산출물 기반 *KS X 표준 제안 초안* 이며, 실 KSA 제출은 사용자 환경(목포대 산학·KSA 회원 등록·표준위원회 참여)에 의존. 본 문서는 *기술 자산 정렬 + KS 제안 양식* 을 제공한다.
 

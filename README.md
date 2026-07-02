@@ -1118,6 +1118,7 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-07-02 12:21 | `a0e8a876` | test(e2e): 격상 후속 — maturity 회귀 2건의 beta 표본 교체 (CI RED 회복) | tests/e2e/test_simulator_beta_subset.py, tests/e2e/test_simulator_maturity.py |
 | 2026-07-02 12:14 | `bb539e10` | feat(transcendence): Phase 211-260 3개 트랙 sandbox 가능분 — production +18·다중 관제사 WS·부하 100 실증 | CHANGELOG.md, ROADMAP.md, docs/SDACS_API.md, docs/badges/maturity.svg, docs/sdacs.d.ts, docs/simulator.html … |
 | 2026-07-02 11:48 | `6e3c3967` | chore: 종합 감사 6차원 — README 수치 동기·중복 문서 상호참조·INDEX 전수·위생·actions v5 | .github/workflows/airgap-audit.yml, .github/workflows/canonical_hash.yml, .github/workflows/ci.yml, .github/workflows/deploy-pages.yml, .github/workflows/desktop-build.yml, .github/workflows/security.yml … |
 | 2026-07-01 20:55 | `6273075c` | fix(simulator): file:// 직접 열기 감지 안내 배너 — "실행 안 됨" 해결 | docs/maritime_detection_simulator.html, docs/simulator.html, docs/swarm_3d_simulator.html, maritime_detection_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |

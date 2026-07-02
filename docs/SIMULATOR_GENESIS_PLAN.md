@@ -31,12 +31,12 @@
 
 *시뮬레이터/관제 스택을 한국 항공 규제 체계에 정렬. 기존 자산: `src/utm/`(K-UTM·LAANC·ICAO Doc 10019), `docs/track_f/p749_security_audit.md`(KISA CSAP)*
 
-- **Phase 301** 항공안전법·드론활용촉진법 적합성 매트릭스 — 조항 ↔ SDACS 기능 매핑 문서
+- **Phase 301** ✅ 항공안전법·드론활용촉진법 적합성 매트릭스 — `docs/certification/AIR_SAFETY_ACT_MATRIX.md` (항공안전법 §127·129·131·131의2 + 드론활용촉진법 §6·11·15 조항 ↔ SDACS 모듈 매핑·성숙도 표기·면책 고지) (2026-06-12)
 - **Phase 302** ✅ SORA 자동 계산기 — `_sdacs.soraAssess()` (JARUS 2.0 iGRC/완화/ARC→SAIL 결정적 구현, production 등급, E2E 6건) (2026-06-12)
 - **Phase 303** ✅ 비행계획 신고 양식 자동 생성 — `simulation/flight_plan_filing.py` + `docs/certification/FLIGHT_PLAN_FORM.md` (Drone One-Stop 비행승인 신청서 결정적 생성·승인필요 판정·JSON/텍스트 export, 18건 PASS) (2026-06-18)
 - **Phase 304** ✅ KC 전파인증 요건 체크리스트 — `simulation/kc_certification.py` (전파법 §58-2 적합성평가 결정적 분류: 셀룰러→적합인증·비면허 특정소출력→적합등록·면허대역/한도초과→적합인증, 모듈별 집계 + 유형별 제출서류 + JSON/텍스트 export, 23건 PASS) (2026-06-14)
 - **Phase 305** ✅ DO-178C/ED-12C 소프트웨어 수명주기 갭 분석 — `docs/certification/DO178C_GAP_ANALYSIS.md` (DAL-D 목표·추적성·격상 로드맵) (2026-06-18)
-- **Phase 306** 요구사항 추적 매트릭스(RTM) 자동 생성 격상 — `scripts/generate_rtm.py` → 5계층 안전망 커버리지
+- **Phase 306** ✅ 요구사항 추적 매트릭스(RTM) 자동 생성 격상 — `scripts/generate_rtm.py` (5계층 안전망 ↔ 요구사항 ↔ 테스트 추적성 CSV/MD/JSON export, `tests/test_rtm_generator.py` 60건 PASS) (2026-06-05)
 - **Phase 307** ✅ 사고 보고 양식 (항철위 표준) 자동 작성 — `simulation/accident_report.py` + `docs/certification/ACCIDENT_REPORT_FORM.md` (ARAIB 사고/준사고/안전장애 결정적 분류·시뮬 로그 변환·안전권고 자동 생성·JSON/텍스트 export, 19건 PASS) (2026-06-18)
 - **Phase 308** ✅ 보험 요율 산정 인터페이스 — `simulation/insurance_rate_quote.py` + `docs/certification/INSURANCE_API_SPEC.md` (항공사업법 §70 스펙·결정적 요율 산정, 33건 PASS) (2026-06-18)
 - **Phase 309** ✅ 조종자 자격(1~4종) 요건 ↔ 시뮬 교육 모드 매핑 — `simulation/pilot_certification.py` (MTOW 기준 종별 결정적 분류·종별 교육/시험 요건·조종자 준비도 판정·JSON/텍스트 export, 24건 PASS / 문서 `PILOT_LICENSE_MAPPING.md` §6 격상) (2026-06-15)

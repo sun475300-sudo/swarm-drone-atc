@@ -25,7 +25,6 @@
 | [🔬 발견·해결한 핵심 결함](#-발견해결한-핵심-결함) | main 손상·LAANC·airgap |
 | [🎯 잔여 5항목](#-잔여-5항목-사용자-환경-의존) | 사용자 환경 의존 |
 | [🔗 핵심 링크](#-핵심-링크) | Roadmap·Plan·데모·GitHub |
->>>>>>> origin/main
 
 ## 𝟏 200 Phase 완료 (SDACS = Unity)
 

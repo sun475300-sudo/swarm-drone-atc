@@ -1136,6 +1136,7 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-07-03 | (pending) | feat(standards): ISO/TC 20/SC 16 23629 의견서 redline 완성 — Standards 잔여 마지막 1건, 집합 운영 의도 제안 + Phase 473 포트폴리오 위임 재사용 (WG-06 외부 기한 PARTIAL 천장 → NEEDS_WORK 0.95 정직 공시) | simulation/iso_tc20_sc16_opinion.py, docs/standards/ISO_TC20_SC16_23629_OPINION.md, tests/test_iso_tc20_sc16_opinion.py, simulation/wg_opinion_portfolio.py, tests/test_wg_opinion_portfolio.py, docs/standards/WG_OPINION_PORTFOLIO.md, ROADMAP.md |
 | 2026-07-02 18:39 | (pending) | feat(genesis): Phase 323 외부 시뮬레이터 어댑터 안착 — BlueSky·U-TRAFMAN 호환 import/export (드래프트 #463·#465·#469 통합, #469 코어 채택) | simulation/external_sim_adapter.py, tests/test_external_sim_adapter.py, docs/standards/EXTERNAL_SIM_ADAPTER_SPEC.md, ROADMAP.md, docs/SIMULATOR_GENESIS_PLAN.md |
 | 2026-07-02 18:22 | `b1608182` | Merge remote-tracking branch 'origin/main' into tmp/pr464-sync | .githooks/pre-commit, .github/workflows/airgap-audit.yml, .github/workflows/canonical_hash.yml, .github/workflows/ci.yml, .github/workflows/deploy-pages.yml, .github/workflows/desktop-build.yml … |
 | 2026-07-02 17:13 | `9b7e9d03` | fix(ci): restore MAVLink TX code dropped in merge + fastapi test guard | src/hardware/onboard_bridge.py, tests/test_auth_revocation.py |

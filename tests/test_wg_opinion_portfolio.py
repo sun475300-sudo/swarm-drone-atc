@@ -182,14 +182,13 @@ def test_shipped_portfolio_is_honest_about_shortfall():
 
 
 def test_shipped_blocker_is_submission_channel():
-    # EUROCAE(Phase 474)·ISO(잔여 완결) redline(WG-02) 완성 뒤로, 포트폴리오의
-    # 최대 발목은 제출 채널·기한(WG-06)으로 정직하게 이동했다 — WG-06 은 3건
-    # 전부에서 미완(외부 회람·검토 기한 의존)이라 빈도 최다. WG-02 는 JARUS
-    # 1건만 막는다(redline 산문 수준 PARTIAL).
+    # 3건 전부 redline(WG-02) 완성 뒤로(JARUS 는 jarus_sora_opinion 위임),
+    # 포트폴리오의 잔여 발목은 제출 채널·기한(WG-06)뿐이다 — 3건 전부에서
+    # 미완(외부 회람·검토 기한 의존). sandbox 에서 보완 가능한 발목은 없다.
     rolled = dict(blocking_criteria())
     assert rolled["WG-06"] == 3
     assert max(rolled.values()) == rolled["WG-06"]
-    assert rolled["WG-02"] == 1
+    assert "WG-02" not in rolled
 
 
 # --- 매니페스트 ------------------------------------------------------------

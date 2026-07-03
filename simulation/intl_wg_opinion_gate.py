@@ -298,22 +298,19 @@ def assess(letter: OpinionLetter) -> OpinionAssessment:
 def shipped_letter() -> OpinionLetter:
     """현재 준비 중인 실제 후보 의견서(정직한 자가 공시).
 
-    SDACS 가 JARUS SORA 초안에 다는 군집 운용(swarm operation) 보완 의견을
-    상정한다. 대상·기술 근거·유형 분류는 이미 갖췄으나, 실행 가능한 제안 변경
-    문안(WG-02)이 아직 산문 수준에 머물러 PARTIAL, 공식 NB 채널·기한(WG-06)은
-    미확인(UNMET) — 격상 없이 NEEDS_WORK 로 드러낸다.
+    SDACS 가 JARUS SORA 초안에 다는 군집 운용(swarm operation) 보완 의견.
+    작성 모듈(`jarus_sora_opinion`)이 동봉 의견서 문서를 실제로 작성해 실행
+    가능한 redline(WG-02)까지 완성했으므로, 본 함수는 그 작성 결과를 *위임
+    재사용*하며(DRY — 상태 하드코딩 복제 0) 디스크 증거로부터 도출한다:
+    WG-01~WG-05 MET, WG-06 은 WG 회람 기한 외부 의존으로 PARTIAL 상한 →
+    NEEDS_WORK(점수 0.95). redline 완성으로 산문 초안(0.8) 대비 정직하게
+    격상되었다.
     """
-    return OpinionLetter(
-        target="JARUS SORA — 군집 운용(swarm) 보완 의견",
-        statuses={
-            "WG-01": STATUS_MET,      # 대상 문서·절 지정 완료
-            "WG-02": STATUS_PARTIAL,  # 제안 변경이 redline 미완(산문 수준)
-            "WG-03": STATUS_MET,      # SDACS 시뮬 데이터 결속
-            "WG-04": STATUS_MET,      # te 분류
-            "WG-05": STATUS_MET,      # 소속 공개
-            "WG-06": STATUS_UNMET,    # NB 채널·기한 미확인
-        },
-    )
+    # 지연 임포트 — jarus_sora_opinion 이 본 모듈의 게이트 계약(OpinionLetter·
+    # assess 등)을 임포트하므로 모듈 최상위 임포트는 순환을 만든다.
+    from simulation.jarus_sora_opinion import authored_letter
+
+    return authored_letter()
 
 
 def criteria_manifest() -> dict[str, Any]:

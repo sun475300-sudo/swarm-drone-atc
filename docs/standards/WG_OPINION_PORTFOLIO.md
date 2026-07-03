@@ -28,7 +28,8 @@ Phase 472(`intl_wg_opinion_gate`)가 *의견서 한 건*의 제출 적합성을 
 
 - **판정 위임(DRY)**: 의견서별 적합성은 전적으로 Phase 472 `assess` 가 결정하며,
   본 모듈은 판정 로직을 복제하지 않습니다. 첫 후보(JARUS SORA)는 Phase 472
-  `shipped_letter()` 를 그대로 *재사용*합니다(복제 0).
+  `shipped_letter()` 를 그대로 *재사용*합니다(복제 0) — 472 는 작성 모듈
+  `jarus_sora_opinion` 의 문서 증거 도출에 위임합니다.
 - **정직한 자가 공시**: `portfolio()` 는 현재 준비 중인 실제 3건 후보를 격상
   없이 등록합니다. 따라서 현 진행도는 의도적으로 낮게 표면화됩니다.
 - **발목 요건 롤업**: 제출 불가 후보들에서 어떤 기준이 가장 흔히 미완인지
@@ -40,25 +41,24 @@ Phase 472(`intl_wg_opinion_gate`)가 *의견서 한 건*의 제출 적합성을 
 
 | # | 대상 | 판정(Phase 472) | 출처 |
 |---|---|---|---|
-| 1 | JARUS SORA — 군집 운용 보완 의견 | `NEEDS_WORK` | Phase 472 `shipped_letter` 재사용 |
+| 1 | JARUS SORA — 군집 운용 보완 의견 | `NEEDS_WORK` | Phase 472 `shipped_letter` 재사용 → `jarus_sora_opinion` 위임(작성 완료) |
 | 2 | EUROCAE WG-105 — 군집 ConOps 부속 의견 | `NEEDS_WORK` | Phase 474 `eurocae_wg105_opinion` 위임(작성 완료) |
 | 3 | ISO/TC 20/SC 16 — 23629 시리즈 의견 | `NEEDS_WORK` | `iso_tc20_sc16_opinion` 위임(작성 완료) |
 
-**현 밴드 진행도: `진행 중 (0.0%)` — 제출 가능 0/3.** EUROCAE·ISO 두 건은
-실행 가능한 제안 변경(WG-02) redline 까지 작성 완료(각 0.95)이나, 공식
-회람·체계적 검토 *기한*(WG-06)이 외부 일정에 의존해 PARTIAL 상한으로 고정
-됩니다(준비도 ≠ 제출). JARUS 는 제안 변경(WG-02)이 산문 수준(PARTIAL)입니다.
+**현 밴드 진행도: `진행 중 (0.0%)` — 제출 가능 0/3.** 세 건 모두 실행 가능한
+제안 변경(WG-02) redline 까지 작성 완료(각 0.95)이나, 공식 회람·체계적 검토
+*기한*(WG-06)이 외부 일정에 의존해 PARTIAL 상한으로 고정됩니다(준비도 ≠
+제출). `READY_TO_SUBMIT` 은 외부 기한 확정 후에만 가능합니다.
 
 ### 발목 잡는 요건 (제출 불가 후보 기준 미완 빈도)
 
 | 기준 | 심각도 | 발목 건수 |
 |---|---|:-:|
 | WG-06 NB 채널·기한 | RECOMMENDED | 3 |
-| WG-02 제안 변경 redline | CRITICAL | 1 |
 
-→ **제출 채널·기한(WG-06)이 세 후보 공통의 잔여 발목**이나 외부 일정 의존으로
-sandbox 에서 해소 불가(정직 천장)이며, sandbox 에서 보완 가능한 항목은
-JARUS 의 제안 변경(WG-02) redline 완성뿐입니다.
+→ **제출 채널·기한(WG-06)이 세 후보 공통의 유일한 잔여 발목**이나 외부 일정
+의존으로 sandbox 에서 해소 불가(정직 천장)입니다 — sandbox 에서 보완 가능한
+발목은 더 이상 없습니다(3건 redline 전부 작성 완료).
 
 ## 4. CLI
 

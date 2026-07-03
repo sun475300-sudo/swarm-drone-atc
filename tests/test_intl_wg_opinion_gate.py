@@ -145,9 +145,9 @@ def test_partial_credits_half_weight():
 
 
 def test_shipped_letter_score_is_exact():
-    # WG-02 PARTIAL(weight 2) + WG-06 UNMET(weight 1), 총가중 10:
-    # credit = 10 - 0.5*2 - 1*1 = 8.0 → 0.8.
-    assert assess(shipped_letter()).score == 0.8
+    # redline 완성(jarus_sora_opinion 위임) 후: WG-06 PARTIAL(weight 1)만 미완,
+    # 총가중 10: credit = 10 - 0.5*1 = 9.5 → 0.95.
+    assert assess(shipped_letter()).score == 0.95
 
 
 def test_score_deterministic():
@@ -218,10 +218,11 @@ def test_manifest_lists_all_criteria_and_matrix():
 
 # --- 현 후보 정직성 --------------------------------------------------------
 def test_shipped_letter_is_needs_work():
-    # 격상 없이 현 상태를 정직 공시: NEEDS_WORK (WG-02 부분·WG-06 미충족).
+    # 격상 없이 현 상태를 정직 공시: NEEDS_WORK (redline 완성 후 잔여 미완은
+    # WG-06 외부 회람 기한 PARTIAL 천장뿐 — CRITICAL 은 전부 충족).
     result = assess(shipped_letter())
     assert result.verdict == VERDICT_NEEDS_WORK
-    assert "WG-02" in result.partial_critical
+    assert result.partial_critical == ()
     assert "WG-06" in result.other_incomplete
     assert result.unmet_critical == ()
 

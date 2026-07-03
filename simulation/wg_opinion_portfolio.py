@@ -46,7 +46,6 @@ from dataclasses import dataclass
 from typing import Any
 
 from simulation.eurocae_wg105_opinion import authored_letter as _eurocae_authored
-from simulation.iso_tc20_sc16_opinion import authored_letter as _iso_authored
 from simulation.intl_wg_opinion_gate import (
     CRITERIA,
     STATUS_MET,
@@ -58,6 +57,7 @@ from simulation.intl_wg_opinion_gate import (
     assess,
     shipped_letter,
 )
+from simulation.iso_tc20_sc16_opinion import authored_letter as _iso_authored
 
 # 밴드 471-480 이 명시한 국제 의견서 목표 수("의견서 3건").
 BAND_TARGET = 3

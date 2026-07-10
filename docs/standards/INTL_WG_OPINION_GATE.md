@@ -55,16 +55,20 @@ PARTIAL 은 `any_incomplete=True` 를 강제하므로 모순 조합은 표에서
 ## 4. 정직한 자가 공시
 
 현재 준비 중인 실제 후보 의견서(`shipped_letter()`)는 SDACS 가 **JARUS SORA**
-초안에 다는 군집 운용(swarm operation) 보완 의견이다. 격상 없이 판정하면:
+초안에 다는 군집 운용(swarm operation) 보완 의견이다. 상태는 작성 모듈
+(`jarus_sora_opinion`)의 동봉 문서
+([`JARUS_SORA_SWARM_OPINION.md`](JARUS_SORA_SWARM_OPINION.md)) 디스크 증거로부터
+위임 도출한다(하드코딩 스냅샷 0). 격상 없이 판정하면:
 
 ```
-판정: NEEDS_WORK (80.0%)
-  WG-01 MET · WG-02 PARTIAL · WG-03 MET · WG-04 MET · WG-05 MET · WG-06 UNMET
-  → 부분 CRITICAL: WG-02(제안 변경이 redline 미완) · 보완 권장: WG-06(NB 채널·기한 미확인)
+판정: NEEDS_WORK (95.0%)
+  WG-01 MET · WG-02 MET · WG-03 MET · WG-04 MET · WG-05 MET · WG-06 PARTIAL
+  → 부분 권장: WG-06(회원기관 채널 문서화 ○ · 회람 기한 외부 의존 ✗)
 ```
 
-대상·기술 근거·유형 분류는 갖췄으나 실행 가능한 제안 변경 문안이 아직 산문
-수준이고 공식 NB 채널·기한이 미확인이므로 **제출 전 보완 필요**임을 정직히 드러낸다.
+redline(WG-02) 완성으로 산문 초안(80.0%) 대비 정직하게 격상되었으나, 공식
+회람 *기한* 이 JARUS WG 일정에 의존하므로 **제출 전 보완 필요**(외부 기한
+확정 대기)임을 정직히 드러낸다.
 
 ## 5. 성격
 

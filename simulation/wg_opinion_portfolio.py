@@ -24,8 +24,9 @@ Standards & Policy 트랙(Phase 461-480) 밴드 `471-480`("국내 표준(KS) 제
   결정한다. 본 모듈은 집계·롤업만 더한다.
 - **정직한 자가 공시**: `portfolio()` 는 현재 준비 중인 실제 3건 후보를 격상
   없이 등록한다 — 첫 건(JARUS SORA)은 Phase 472 `shipped_letter` 를 *재사용*
-  (복제 0)하고, 잔여 2건(EUROCAE WG-105·ISO/TC 20/SC 16)은 초안 단계 그대로
-  드러낸다. 따라서 현 밴드 진행도는 의도적으로 낮게 표면화된다.
+  (복제 0)하고, 잔여 2건(EUROCAE WG-105·ISO/TC 20/SC 16)은 각 작성 모듈
+  (Phase 474 `eurocae_wg105_opinion`·`iso_tc20_sc16_opinion`)의 문서 증거
+  도출 결과를 위임 재사용한다. 따라서 현 밴드 진행도는 격상 없이 표면화된다.
 - **발목 잡는 요건 롤업**: 제출 불가 의견서들에서 *어떤 기준이 가장 흔히*
   미완인지 집계해, 보완 노력을 어디에 집중할지 결정적으로 안내한다.
 
@@ -48,8 +49,6 @@ from simulation.eurocae_wg105_opinion import authored_letter as _eurocae_authore
 from simulation.intl_wg_opinion_gate import (
     CRITERIA,
     STATUS_MET,
-    STATUS_PARTIAL,
-    STATUS_UNMET,
     VERDICT_NEEDS_WORK,
     VERDICT_NOT_READY,
     VERDICT_READY_TO_SUBMIT,
@@ -58,6 +57,7 @@ from simulation.intl_wg_opinion_gate import (
     assess,
     shipped_letter,
 )
+from simulation.iso_tc20_sc16_opinion import authored_letter as _iso_authored
 
 # 밴드 471-480 이 명시한 국제 의견서 목표 수("의견서 3건").
 BAND_TARGET = 3
@@ -144,22 +144,15 @@ def _eurocae_wg105_letter() -> OpinionLetter:
 
 
 def _iso_tc20_letter() -> OpinionLetter:
-    """잔여 후보 ②: ISO/TC 20/SC 16 23629 시리즈 의견(초기 초안).
+    """잔여 후보 ②: ISO/TC 20/SC 16 23629 시리즈 의견.
 
-    기여 의향·대상 시리즈는 식별했으나 절/줄 지정(WG-01)·제안 변경(WG-02)이
-    아직 미완(UNMET) — CRITICAL 미충족으로 NOT_READY 정직 공시(가장 이른 단계).
+    작성 모듈(`iso_tc20_sc16_opinion`)이 동봉 의견서 문서를 실제로 작성해
+    실행 가능한 redline(WG-02)까지 완성했다. 본 함수는 그 작성 결과를 *위임만*
+    하며(DRY — 상태 하드코딩 복제 0) 디스크 증거로부터 도출한다: WG-01~WG-05
+    MET, WG-06 은 체계적 검토 기한 외부 의존으로 PARTIAL 상한 → NEEDS_WORK
+    (점수 0.95). redline 완성으로 초기 초안(NOT_READY) 대비 정직하게 격상되었다.
     """
-    return OpinionLetter(
-        target="ISO/TC 20/SC 16 — 23629 시리즈 의견",
-        statuses={
-            "WG-01": STATUS_UNMET,    # 절/줄 지정 미완
-            "WG-02": STATUS_UNMET,    # 제안 변경 미작성
-            "WG-03": STATUS_PARTIAL,  # 기술 근거 일부만 결속
-            "WG-04": STATUS_MET,      # 유형 분류는 결정
-            "WG-05": STATUS_MET,      # 소속 공개
-            "WG-06": STATUS_UNMET,    # NB 채널 미확인
-        },
-    )
+    return _iso_authored()
 
 
 def portfolio() -> tuple[PortfolioEntry, ...]:

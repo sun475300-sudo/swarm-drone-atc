@@ -41,24 +41,24 @@ Phase 472(`intl_wg_opinion_gate`)가 *의견서 한 건*의 제출 적합성을 
 | # | 대상 | 판정(Phase 472) | 출처 |
 |---|---|---|---|
 | 1 | JARUS SORA — 군집 운용 보완 의견 | `NEEDS_WORK` | Phase 472 `shipped_letter` 재사용 |
-| 2 | EUROCAE WG-105 — 군집 ConOps 부속 의견 | `NEEDS_WORK` | 본 모듈 등록(초안) |
-| 3 | ISO/TC 20/SC 16 — 23629 시리즈 의견 | `NOT_READY` | 본 모듈 등록(초기 초안) |
+| 2 | EUROCAE WG-105 — 군집 ConOps 부속 의견 | `NEEDS_WORK` | Phase 474 `eurocae_wg105_opinion` 위임(작성 완료) |
+| 3 | ISO/TC 20/SC 16 — 23629 시리즈 의견 | `NEEDS_WORK` | `iso_tc20_sc16_opinion` 위임(작성 완료) |
 
-**현 밴드 진행도: `진행 중 (0.0%)` — 제출 가능 0/3.** 세 후보 모두 실행 가능한
-제안 변경(WG-02) redline 이 미완이며, 공식 NB 채널·기한(WG-06)이 미확인입니다.
-가장 이른 단계인 ISO 의견은 절/줄 지정(WG-01)·제안 변경(WG-02)이 아직 작성 전
-이라 CRITICAL 미충족으로 `NOT_READY` 입니다.
+**현 밴드 진행도: `진행 중 (0.0%)` — 제출 가능 0/3.** EUROCAE·ISO 두 건은
+실행 가능한 제안 변경(WG-02) redline 까지 작성 완료(각 0.95)이나, 공식
+회람·체계적 검토 *기한*(WG-06)이 외부 일정에 의존해 PARTIAL 상한으로 고정
+됩니다(준비도 ≠ 제출). JARUS 는 제안 변경(WG-02)이 산문 수준(PARTIAL)입니다.
 
 ### 발목 잡는 요건 (제출 불가 후보 기준 미완 빈도)
 
 | 기준 | 심각도 | 발목 건수 |
 |---|---|:-:|
-| WG-02 제안 변경 redline | CRITICAL | 3 |
 | WG-06 NB 채널·기한 | RECOMMENDED | 3 |
-| WG-01 절/줄 지정 | CRITICAL | 1 |
-| WG-03 기술 근거 결속 | CRITICAL | 1 |
+| WG-02 제안 변경 redline | CRITICAL | 1 |
 
-→ **제안 변경(WG-02) redline 작성이 세 후보 모두를 막는 최우선 보완 항목**입니다.
+→ **제출 채널·기한(WG-06)이 세 후보 공통의 잔여 발목**이나 외부 일정 의존으로
+sandbox 에서 해소 불가(정직 천장)이며, sandbox 에서 보완 가능한 항목은
+JARUS 의 제안 변경(WG-02) redline 완성뿐입니다.
 
 ## 4. CLI
 

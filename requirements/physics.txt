@@ -1,2 +1,2 @@
 mavsdk>=2.0
-pymavlink>=2.4
+pymavlink>=2.4.49

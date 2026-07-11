@@ -26,5 +26,7 @@ httpx>=0.27
 pytest>=9.0.3,<10
 pytest-cov>=7.0
 pytest-asyncio>=1.4
+# pyproject addopts 가 -n auto --dist loadfile 을 강제 — xdist 없으면 pytest 실행 자체가 불가
+pytest-xdist>=3.5
 # Property-based testing (A1-05). APF 단조성 / cutoff / clamp 불변성 검증.
 hypothesis>=6.100

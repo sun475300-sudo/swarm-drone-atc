@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
 [![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
-[![NumPy](https://img.shields.io/badge/NumPy-1.26-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
+[![NumPy](https://img.shields.io/badge/NumPy-2.0-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 **Mokpo National University, Dept. of Drone Mechanical Engineering — Capstone Design (2026)**
@@ -62,7 +62,7 @@ All figures are simulation measurements under fixed seeds (research baseline, no
 | **Concurrent drones** | **100+** | See swarm-scale table below |
 | **Deployment time** | **30 min** | No fixed infrastructure required |
 
-> Representative run (`100 drones / 60 s / seed 42`, local re-verification 2026-06-18): **45 collisions · 87 near misses · 95.9% conflict resolution**. Automated test collection: **5,444 pass / 270 skip / 0 fail** across 830+ Python modules and 110+ test files.
+> Representative run (`100 drones / 60 s / seed 42`, local re-verification 2026-06-18): **45 collisions · 87 near misses · 95.9% conflict resolution**. Automated test collection: **9,152 collected / 0 collection errors** (2026-07-11) across 1,100+ Python modules and 305 test files.
 
 ---
 

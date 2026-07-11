@@ -33,6 +33,8 @@ dash==2.17.1
 pytest==9.0.3
 pytest-cov==7.1.0
 pytest-asyncio==1.4.0
+pytest-xdist==3.8.0
+execnet==2.1.2
 
 # ── API (P711/P712) ───────────────────────────────────────────────────────
 fastapi==0.139.0

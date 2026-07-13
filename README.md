@@ -5,7 +5,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
-[![Dash](https://img.shields.io/badge/Dash-2.17-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
+[![Dash](https://img.shields.io/badge/Dash-4.1-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
 [![NumPy](https://img.shields.io/badge/NumPy-2.0-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-1.13-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
 
@@ -17,7 +17,7 @@
 [![API](https://img.shields.io/badge/__sdacs-408_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
 [![E2E](https://img.shields.io/badge/E2E-295_collected-22c55e?style=for-the-badge&logo=playwright&logoColor=white)](tests/e2e/)
 [![Roadmap](https://img.shields.io/badge/Roadmap_691--755-94%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
-[![Tests](https://img.shields.io/badge/Python_tests-9%2C152_collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Python_tests-9%2C156_collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![v1.5.0](https://img.shields.io/badge/Desktop-v1.5.0_(Win%2FMac%2FLinux)-7c3aed?style=for-the-badge&logo=electron&logoColor=white)](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
 [![Modules](https://img.shields.io/badge/Modules-1%2C117--9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
@@ -275,7 +275,7 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 | GitHub main 동기화 | **`origin/main` = `cae8098`** (pymavlink ≥2.4.49 dependabot 병합 반영) |
 | GitHub Actions CI (`ci.yml`, main) | **GREEN — 8회 연속 success** (2026-07-11 04:56 UTC nightly 포함, 실측) |
 | 직전 RED 이력 | 07-02 RED 3건(`fastapi` 누락·`LostLinkConfig` 불일치·Electron 핀 43 vs 39)은 `9b7e9d0`·`a184385`·`251cdc7` 로 07-04 해소 |
-| Python 테스트 수집 | **9,152 collected · 수집 오류 0** (2026-07-11 클린 컨테이너 실측) |
+| Python 테스트 수집 | **9,156 collected · 수집 오류 0** (2026-07-13 클린 컨테이너 실측, dash 4.1·plotly 6.9 lock 반영) |
 | Playwright E2E 수집 | **295 collected** (tests/e2e) |
 | `_sdacs` API 성숙도 | **production 112 · beta 80 · mock 110 · speculative 103** (헤드리스 라이브 실측 2026-07-11) |
 | Ruff 정적 검사 | **전체 통과** |
@@ -1131,7 +1131,7 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 <div align="center">
 **Made with dedication by Sunwoo Jang**
 **장선우 · 국립 목포대학교 드론기계공학과**
-**Phase 700 · 1,117 modules · 9,152 Tests Collected · 50+ Languages · 250K+ LOC**
+**Phase 700 · 1,117 modules · 9,156 Tests Collected · 50+ Languages · 250K+ LOC**
 </div>
 
 ## 변경 이력 (Changelog)

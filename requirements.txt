@@ -9,9 +9,10 @@ tqdm>=4.66
 
 # Visualization
 matplotlib>=3.10.9
-plotly>=5.22
+# plotly 6.x 직렬화(bdata)는 dash 2.x 내장 plotly.js가 못 읽음 — dash>=3 필수
+plotly>=6.0
 seaborn>=0.13
-dash>=2.17
+dash>=3.0
 
 # API (P711/P712)
 fastapi>=0.139.0

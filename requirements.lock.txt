@@ -54,3 +54,21 @@ packaging==26.2
 jinja2==3.1.6
 markupsafe==2.1.5
 typing-extensions==4.16.0
+
+# dash 4.x / plotly 6.x 전이 의존성 (2026-07-13 로컬 렌더 검증 조합 기준)
+blinker==1.9.0
+certifi==2026.2.25
+charset-normalizer==3.4.7
+click==8.1.8
+colorama==0.4.6
+flask==3.1.3
+idna==3.11
+importlib-metadata==9.0.0
+itsdangerous==2.2.0
+narwhals==2.19.0
+nest-asyncio==1.6.0
+requests==2.33.1
+retrying==1.4.2
+urllib3==2.6.3
+werkzeug==3.1.8
+zipp==3.23.0

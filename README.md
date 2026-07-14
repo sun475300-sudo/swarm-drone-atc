@@ -1138,6 +1138,7 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-07-13 | `aa3ede6` | docs: 10차 감사 — 문서 수치 드리프트 13건 정정 (Modules 배지 오타·federation 19→17·성숙도 94/98→112/80·사본 크기 636/84 KB·시나리오 9→13·Test files 235→306) | README.md, README.en.md, CLAUDE.md |
 | 2026-07-13 | `c375c09` | docs(readme): main 병합(#495-#502 dash 4.1·plotly 6.9·pytest 9.1.1 등) 반영 — Dash 배지 2.17→4.1 + 테스트 수집 9,156 재동기 | README.md, README.en.md |
 | 2026-07-11 | `8f09b58` | fix: 9차 감사 — maritime 사본 동기(visualization stale 복원) + pytest-xdist 요구사항 추가 + README 실측 12건 정정 (배지·성숙도 표·스냅샷·pending 해시) | README.md, README.en.md, requirements.txt, requirements.lock.txt, visualization/maritime_detection_simulator.html |
 | 2026-07-10 18:47 | `d980eb4` | docs(readme): 8차 감사 — stale 'CI RED' 점검 문구를 현행 GREEN 상태로 정정 + 배지 실측 동기 | README.md |

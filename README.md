@@ -19,7 +19,7 @@
 [![Roadmap](https://img.shields.io/badge/Roadmap_691--755-94%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
 [![Tests](https://img.shields.io/badge/Python_tests-9%2C156_collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![v1.5.0](https://img.shields.io/badge/Desktop-v1.5.0_(Win%2FMac%2FLinux)-7c3aed?style=for-the-badge&logo=electron&logoColor=white)](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
-[![Modules](https://img.shields.io/badge/Modules-1%2C117--9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
+[![Modules](https://img.shields.io/badge/Modules-1%2C117-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
 [![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
 [![LOC](https://img.shields.io/badge/Total-250K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
 
@@ -134,7 +134,7 @@
 - [x] **GENESIS 342-380 (SW)** V2X·양방향 디지털트윈·자가치유 — `v2x_*.py`(3)·`digital_twin_*.py`(5)·`swarm_self_healing`(`tests/track_genesis/`)
 - [x] **GENESIS 395-400** Phase 400 레거시 선언 — `legacy_declaration.py`·`legacy_readiness.py`·`maturity_assessment.py`·`handover_checklist.py`·`archive_redundancy/strategy.py`·`ecosystem_sustainability.py`
 - [x] **ODYSSEY 402-409·411·452-460·473** — #449 안착 + ML V&V(458)·Safety Case(459)·Lifecycle Governance(460) 적합성 게이트 (215 테스트 PASS)
-- [x] **ODYSSEY 421-430 연합 운영** — `federation_*.py` 19 모듈 (discovery·handover·split-brain·trust·mesh·NOTAM 등)
+- [x] **ODYSSEY 421-430 연합 운영** — `federation_*.py` 17 모듈 (discovery·handover·split-brain·trust·mesh·NOTAM 등)
 - [x] **ODYSSEY 461-492·500 표준/Continuum** — `standardization_tracker`·`ks_standard_proposal`·`wg_opinion_portfolio`·`track_handover_policy`·`centennial_declaration`
 
 #### 🔨 잔여 코드 작업 (doable — 시각화 폴리시·인프라)
@@ -210,7 +210,7 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 
 | 플랫폼 | 파일명 | 용량 | 상태 |
 |---|---|---|---|
-| **Windows NSIS** | `SDACS-Simulator-1.5.0-Setup.exe` | ~80 MB | 🔄 `v1.5.0` 태그 푸시 시 자동 |
+| **Windows NSIS** | `SDACS-Simulator-1.5.0-Setup.exe` | ~92 MB | 🔄 `v1.5.0` 태그 푸시 시 자동 |
 | **macOS Intel** | `SDACS-Simulator-1.5.0-x64.dmg` | ~95 MB | 🔄 `v1.5.0` 태그 푸시 시 자동 |
 | **macOS Apple Silicon** | `SDACS-Simulator-1.5.0-arm64.dmg` | ~95 MB | 🔄 `v1.5.0` 태그 푸시 시 자동 |
 | **Linux x86_64** | `SDACS-Simulator-1.5.0-x86_64.AppImage` | 105 MB | ✅ 로컬 빌드 검증 완료, Releases 자동 |
@@ -222,8 +222,8 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 ### 🛰 웹 시뮬레이터 (로컬 서버 또는 온라인으로 실행)
 | 파일 | 용량 | 다운로드 | 라이브 |
 |---|---|---|---|
-| 군집 드론 ATC (200 Phase) | 540 KB | [📥 swarm_3d_simulator.html](swarm_3d_simulator.html) | [🌐 Live](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html) |
-| 해양 소형선 감지 (HYPER 11 ATC 포함) | 75 KB | [📥 maritime_detection_simulator.html](maritime_detection_simulator.html) | [🌐 Live](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html) |
+| 군집 드론 ATC (200 Phase) | 636 KB | [📥 swarm_3d_simulator.html](swarm_3d_simulator.html) | [🌐 Live](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html) |
+| 해양 소형선 감지 (HYPER 11 ATC 포함) | 84 KB | [📥 maritime_detection_simulator.html](maritime_detection_simulator.html) | [🌐 Live](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html) |
 | PWA Manifest | 1.6 KB | [📥 manifest.webmanifest](manifest.webmanifest) | — |
 | Service Worker (오프라인) | 1.4 KB | [📥 sdacs-sw.js](sdacs-sw.js) | — |
 
@@ -272,7 +272,7 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 
 | 항목 | 결과 |
 |---|---|
-| GitHub main 동기화 | **`origin/main` = `cae8098`** (pymavlink ≥2.4.49 dependabot 병합 반영) |
+| GitHub main 동기화 | **`origin/main` = `a4fd0e6`** (dash 4.1·plotly 6.9·urllib3 2.7.0 등 dependabot 일괄 병합 반영) |
 | GitHub Actions CI (`ci.yml`, main) | **GREEN — 8회 연속 success** (2026-07-11 04:56 UTC nightly 포함, 실측) |
 | 직전 RED 이력 | 07-02 RED 3건(`fastapi` 누락·`LostLinkConfig` 불일치·Electron 핀 43 vs 39)은 `9b7e9d0`·`a184385`·`251cdc7` 로 07-04 해소 |
 | Python 테스트 수집 | **9,156 collected · 수집 오류 0** (2026-07-13 클린 컨테이너 실측, dash 4.1·plotly 6.9 lock 반영) |
@@ -318,9 +318,9 @@ window._sdacs.apiMaturity('cesiumGlobalInit'); // → 'mock'
 window._sdacs.maturityReport();            // → { total, counts, byApi }
 ```
 
-> 분류 대상 405 항목 (production 94 + beta 98 + mock 110 + speculative 103) + 분류 헬퍼 3 (`apiMaturity`·`maturityReport` 등) = **총 408 항목** — 2026-06-17 라이브 페이지 실측 (`scripts/extract_sdacs_api.py --check` 게이트 GREEN).
+> 분류 대상 405 항목 (production 112 + beta 80 + mock 110 + speculative 103) + 분류 헬퍼 3 (`apiMaturity`·`maturityReport` 등) = **총 408 항목** — 헤드리스 라이브 실측 (`scripts/extract_sdacs_api.py --check` 게이트 GREEN, 18종 검증-후-격상 반영).
 
-**핵심 메시지**: SDACS의 *실용 가치*는 94개 production-grade API(드론 관제 핵심)에 있으며, 나머지는 ATC 시뮬레이터의 *가능한 기능 차원*을 정의하는 참조 매트릭스다.
+**핵심 메시지**: SDACS의 *실용 가치*는 112개 production-grade API(드론 관제 핵심)에 있으며, 나머지는 ATC 시뮬레이터의 *가능한 기능 차원*을 정의하는 참조 매트릭스다.
 
 ---
 
@@ -804,7 +804,7 @@ swarm-drone-atc/
 ├── config/                          # Configuration
 │   ├── default_simulation.yaml
 │   ├── monte_carlo.yaml
-│   └── scenario_params/             # 9 scenario definitions
+│   └── scenario_params/             # 13 scenario definitions (10 기본 + UAM 3)
 │
 ├── main.py                          # CLI entry point
 └── scripts/                         # Utility scripts
@@ -977,8 +977,9 @@ python main.py simulate --duration 60 --drones 100 --seed 42
 ### Latest Verified Result
 | Scope | Result |
 |---|---|
-| Test files | **235** `test_*.py` files (`tests/` 전체) |
-| Full Python suite | **7,003 collected · 6,733 pass · 270 skip · 0 fail** (단일 프로세스 `pytest -n 0`, 224s) |
+| Test files | **306** `test_*.py` files (`tests/` 전체, 2026-07-13 실측) |
+| Full Python collection | **9,156 collected · 수집 오류 0** (2026-07-13 클린 컨테이너) |
+| Full Python suite (단일 프로세스 스냅샷) | **7,003 collected · 6,733 pass · 270 skip · 0 fail** (2026-06-24 `pytest -n 0`, 224s) |
 | Static analysis | **Ruff all checks passed** |
 | Representative simulation | **45 collisions · 87 near misses · 95.9% conflict resolution** |
 

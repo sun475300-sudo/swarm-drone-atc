@@ -237,7 +237,7 @@ Known gaps include hardware-in-the-loop flight validation (pending physical Pixh
 
 MIT License — developed for academic and educational purposes.
 
-> **Note.** A standalone `LICENSE` file at the repository root is pending (tracked as an open work item in the Korean README); until it is added, the MIT badge link above is a placeholder.
+> **Note.** A standalone MIT `LICENSE` file is present at the repository root (added 2026-06-25); the MIT badge link above resolves to it. `pyproject.toml` and `package.json` also declare **MIT**.
 
 ---
 

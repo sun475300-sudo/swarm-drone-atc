@@ -75,7 +75,9 @@
 
 ---
 
-> **🌟 최신 업데이트 (2026-06-25 · 🌟 Phase 500 SDACS Centennial 선언 + ODYSSEY 19 Phase 통합)** — **본 세션의 정점: Phase 500 Centennial 선언** (Phase 1-500 통합 회고 + 영구 아카이브 동결 + 100년 비전). 🏛 **Standards & Policy** 461 ASTM F38·462 ISO/TC 20/SC 16·463 K-드론 정책·464 군집 안전 백서·**470 표준 대시보드 (18 표준 정합)**·**471 KS X UAS-CR-1 제안**·**472 ICAO RPASP 의견서** / 🔬 **Research** 451 RL 일반화 + EASA AI Roadmap 조사 / ♾️ **Continuum** 481 Dependabot·482 브라우저 카나리·484 Electron LTS·487 승계 규약·488 보안 SLA·489 아카이브 이중화·490 디지털 유산·**491-499 차세대 트랙 공모·이양**·**500 Centennial 선언** / 🎓 **Education** 468 캡스톤 표준 / 🛠 **Maintenance** 483 Three.js 업그레이드 리허설. 🔐 **7차 정밀점검**: `airspace_controller` TelemetryMessage NaN/None 가드 + agent 5건 중 4건 거짓 양성 차단. 🎨 **시뮬레이터 최적화**: HUD 캐싱 + CSP + JWT alg + pre-commit hook. 🗃 **거버넌스**: 411 원격 브랜치 정리(83 안전 삭제 후보). 📦 **6 사본 md5 동기**.
+> **🌟 최신 업데이트 (2026-07-14 · 8·9·10차 종합 감사 + 의존성 스택 현행화)** — `main` 은 dependabot 일괄 병합으로 **dash 4.1 · plotly 6.9 · pytest 9.1.1 · urllib3 2.7.0 · anyio 4.14.2** 등 최신 스택에 동기됐습니다. 🔍 **8·9·10차 정밀 감사**: 문서 수치 드리프트(배지·API 성숙도 112/80·시뮬 사본 크기·`federation_*` 17 모듈·테스트 수집 **9,156**)를 헤드리스/CLI 실측 기준으로 전수 정정, 검증-후-격상으로 production API 94→**112** 반영. 🛠 **회복**: `pytest-xdist` 요구사항 누락(클린 설치 시 pytest 불가)·maritime `visualization/` 사본 stale 복구. ✅ `main` CI 는 **2026-07-04 이후 연속 GREEN** (nightly ci.yml 실측, 최근 07-13 success). 📦 시뮬레이터 6 사본 md5 동기 유지.
+>
+> 📜 이전 정점 — **Phase 500 SDACS Centennial 선언** (Phase 1-500 통합 회고 + 영구 아카이브 동결 + 100년 비전), Standards & Policy(461-472)·Continuum(481-500)·Education(468) 트랙 상세는 [CHANGELOG.md](CHANGELOG.md)를 참조하세요.
 
 ## 📣 공개 프로젝트 설명 자료 / Public Project Materials (2026-06-18)
 
@@ -86,7 +88,7 @@
 
 > **2026-06-24 로컬 재검증:** `ruff` 전체 통과 · Python 테스트는 단일 프로세스(`pytest -n 0`)에서 클린 통과 · AIM 정밀검사 242개 통과. 대표 실행 `100 drones / 60s / seed 42`에서 **45 collisions · 87 near misses · 95.9% conflict resolution**이 측정되었습니다(상세 수치는 아래 [현재 로컬 검증](#-현재-로컬-검증--current-local-validation-2026-06-24) 표 참조). 현재 결과는 안전 인증이 아니라 연구용 시뮬레이터의 개선 기준선입니다.
 
-> **최신 점검 (2026-07-10)** — `main` CI 는 **2026-07-04 이후 연속 GREEN** (nightly ci.yml 7회 연속 success 실측). 2026-07-02 에 관찰됐던 테스트 잡 RED 3건(fastapi 설치 누락·`LostLinkConfig` import 불일치·Electron 정책 핀 43 vs 39)은 후속 커밋(`9b7e9d0` MAVLink/fastapi 가드 · `a184385` electron 39.8.5 정책 핀 복원 · `251cdc7` dependabot major 범프 차단)으로 모두 해소되었습니다.
+> **최신 점검 (2026-07-14)** — `main` CI 는 **2026-07-04 이후 연속 GREEN** (nightly ci.yml 실측, 최근 07-13 success). 2026-07-02 에 관찰됐던 테스트 잡 RED 3건(fastapi 설치 누락·`LostLinkConfig` import 불일치·Electron 정책 핀 43 vs 39)은 후속 커밋(`9b7e9d0` MAVLink/fastapi 가드 · `a184385` electron 39.8.5 정책 핀 복원 · `251cdc7` dependabot major 범프 차단)으로 모두 해소됐고, 이후 dash 4.1·plotly 6.9 메이저 범프 병합에서도 3개 Python 잡(3.10/3.11/3.12) GREEN 이 실증되었습니다.
 >
 > 📜 200 Phase 통합 · API Maturity 정직성 체계 · 이전 버전 이력 등 상세 변경 내역은 [CHANGELOG.md](CHANGELOG.md)를 참조하세요.
 
@@ -1138,6 +1140,7 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-07-14 | `fe2b048` | docs(readme): 최신화 — '최신 업데이트' 배너 2026-06-25→07-14 현행화 (8·9·10차 감사 + dash 4.1·plotly 6.9 의존성 스택 반영), CI 점검 문구 갱신 | README.md |
 | 2026-07-13 | `aa3ede6` | docs: 10차 감사 — 문서 수치 드리프트 13건 정정 (Modules 배지 오타·federation 19→17·성숙도 94/98→112/80·사본 크기 636/84 KB·시나리오 9→13·Test files 235→306) | README.md, README.en.md, CLAUDE.md |
 | 2026-07-13 | `c375c09` | docs(readme): main 병합(#495-#502 dash 4.1·plotly 6.9·pytest 9.1.1 등) 반영 — Dash 배지 2.17→4.1 + 테스트 수집 9,156 재동기 | README.md, README.en.md |
 | 2026-07-11 | `8f09b58` | fix: 9차 감사 — maritime 사본 동기(visualization stale 복원) + pytest-xdist 요구사항 추가 + README 실측 12건 정정 (배지·성숙도 표·스냅샷·pending 해시) | README.md, README.en.md, requirements.txt, requirements.lock.txt, visualization/maritime_detection_simulator.html |

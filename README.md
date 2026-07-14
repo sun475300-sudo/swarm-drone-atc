@@ -1140,6 +1140,7 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 ## 변경 이력 (Changelog)
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-07-14 17:42 | `757d338` | docs(readme): 최신화 — 최신 업데이트 배너 현행화 (8·9·10차 감사 + 의존성 스택) | README.md |
 | 2026-07-14 | `fe2b048` | docs(readme): 최신화 — '최신 업데이트' 배너 2026-06-25→07-14 현행화 (8·9·10차 감사 + dash 4.1·plotly 6.9 의존성 스택 반영), CI 점검 문구 갱신 | README.md |
 | 2026-07-13 | `aa3ede6` | docs: 10차 감사 — 문서 수치 드리프트 13건 정정 (Modules 배지 오타·federation 19→17·성숙도 94/98→112/80·사본 크기 636/84 KB·시나리오 9→13·Test files 235→306) | README.md, README.en.md, CLAUDE.md |
 | 2026-07-13 | `c375c09` | docs(readme): main 병합(#495-#502 dash 4.1·plotly 6.9·pytest 9.1.1 등) 반영 — Dash 배지 2.17→4.1 + 테스트 수집 9,156 재동기 | README.md, README.en.md |

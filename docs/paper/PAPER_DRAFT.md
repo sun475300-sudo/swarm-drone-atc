@@ -250,8 +250,13 @@ docker run --rm -v "$(pwd)/results:/app/results" sdacs-repro:0.1.0 \
 
 ### 5.2 Headline result table
 
-**n=30 seeds × 7 standard scenarios = 840 runs, 2026-07-01 full sweep
-(stress scenarios 08-10 excluded pending 200-drone runtime optimization):**
+**n=30 seeds × 7 standard scenarios + n=5 seeds × 3 stress scenarios =
+900 runs, 2026-07-11 combined sweep.**
+
+Stress scenarios (08 = 200 drones / 1 km³, 09 = failure cascade,
+10 = adversarial swarm) were added with 5 seeds instead of 30 to
+respect the per-run wall-time budget on 200-drone runs. Standard
+scenarios remain at n=30.
 
 | Metric | Direction | ORCA | VO | CBS | SDACS hybrid | Δ (SDACS vs ORCA) |
 |--------|-----------|------|-----|-----|-------------|------|
@@ -278,9 +283,21 @@ shows the lowest raw NMR (1.35×10⁻⁶) but pays 13% PE and doubles
 makespan — the classic "avoid at any cost" failure mode. The layer
 composition claim in Contribution 1 holds up empirically at α=0.006.
 
-`[TODO]` Fill AU / RID-CR / Geofence / RTF once trace serialization
-extended. `[TODO]` Add stress scenarios 08-10 (needs 200-drone
-runtime optimization in the ORCA/VO adapters).
+**Stress scenarios 08-10 headline (n=5 each):**
+
+| Scenario | ORCA NMR | VO NMR | CBS NMR | SDACS NMR | SDACS PE | SDACS RTF |
+|----------|----------|--------|---------|-----------|----------|-----------|
+| 08 high density (N=200) | 5.56e-6 | 4.49e-6 | 5.93e-6 | **3.38e-6** | 0.975 | 206 |
+| 09 failure cascade | 1.71e-6 | 0.0 | 1.71e-6 | 1.71e-6 | 0.980 | 5391 |
+| 10 adversarial swarm | 3.07e-6 | 0.0 | 3.07e-6 | 3.07e-6 | 0.976 | 9512 |
+
+SDACS RTF at N=200 remains above 200 — well past the RTF ≥ 5 target
+(§0). ORCA/CBS look faster on stress runs only because their trace has
+no reactive layer to serialize.
+
+`[TODO]` Fill AU / RID-CR / Geofence for stress scenarios once trace
+serialization extended (regulatory layer needs to record per-timestep
+compliance).
 
 Reproduce these numbers::
 

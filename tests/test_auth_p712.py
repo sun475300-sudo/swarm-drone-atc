@@ -93,10 +93,15 @@ class TestJWT:
 
 class TestPasswordHash:
     def test_consistent(self):
-        assert _hash_pw("abc") == _hash_pw("abc")
+        salt = b"fixed-test-salt-"
+        assert _hash_pw("abc", salt) == _hash_pw("abc", salt)
 
     def test_different_passwords(self):
-        assert _hash_pw("abc") != _hash_pw("xyz")
+        salt = b"fixed-test-salt-"
+        assert _hash_pw("abc", salt) != _hash_pw("xyz", salt)
+
+    def test_salt_makes_same_password_differ(self):
+        assert _hash_pw("abc", b"salt-one--------") != _hash_pw("abc", b"salt-two--------")
 
 
 # ---------------------------------------------------------------------------

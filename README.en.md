@@ -62,7 +62,7 @@ All figures are simulation measurements under fixed seeds (research baseline, no
 | **Concurrent drones** | **100+** | See swarm-scale table below |
 | **Deployment time** | **30 min** | No fixed infrastructure required |
 
-> Representative run (`100 drones / 60 s / seed 42`, local re-verification 2026-06-18): **45 collisions · 87 near misses · 95.9% conflict resolution**. Automated test collection: **9,156 collected / 0 collection errors** (2026-07-13) across 1,100+ Python modules and 306 test files.
+> Representative run (`100 drones / 60 s / seed 42`, local re-verification 2026-06-18): **45 collisions · 87 near misses · 95.9% conflict resolution**. Automated test collection: **9,591 collected / 0 collection errors** (2026-07-21, CI clean container; identical on Python 3.10/3.11/3.12) across 1,118 Python files and 306 test files.
 
 ---
 
@@ -135,7 +135,7 @@ The project-canonical formula is `resolution_rate = 1 − collisions / (conflict
 
 ```
 swarm-drone-atc/
-├── simulation/            # Layers 1 & 3: core runtime + experiments (450+ modules)
+├── simulation/            # Layers 1 & 3: core runtime + experiments (586 modules)
 │   ├── simulator.py       # SwarmSimulator orchestrator
 │   ├── drone_agent.py     # DroneAgent 10 Hz SimPy process
 │   ├── wind_model.py      # constant / variable-gust / shear
@@ -144,7 +144,7 @@ swarm-drone-atc/
 ├── src/airspace_control/  # Layer 2: AirspaceController, avoidance, planning
 ├── visualization/         # Dash / Plotly 3D visualizer
 ├── docs/                  # GitHub Pages + plans + certification docs
-├── tests/                 # 110+ test files + e2e smoke
+├── tests/                 # 306 test files + e2e smoke
 ├── config/                # default_simulation.yaml, monte_carlo.yaml, scenario_params/
 ├── main.py                # CLI entry point
 └── swarm_3d_simulator.html# standalone Three.js web simulator
@@ -179,7 +179,16 @@ docker run --rm -p 8050:8050 sdacs        # dashboard on http://localhost:8050
 
 ### Browser simulator
 
-Open [`swarm_3d_simulator.html`](swarm_3d_simulator.html) directly, or use the [hosted live version](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html). No build step required.
+> ⚠️ **Do not open the HTML file by double-clicking it (`file://`).** The simulator loads three.js as an ES module, so opening the file directly is blocked by the browser's CORS policy and **nothing will render.** Use one of the methods below.
+
+| Method | Command | Notes |
+|---|---|---|
+| **① Double-click (Windows)** | `RUN_SIMULATOR.bat` in the repo root | Starts a local server and opens the browser automatically |
+| **② CLI (any OS)** | `python scripts/serve.py` (swarm) · `python scripts/serve.py --page maritime` (maritime) | Opens `http://localhost:8123` |
+| **③ Desktop app** | Install the [v1.5.0 build](docs/V1_5_0_RELEASE_INSTRUCTIONS.md) | No server needed, bundled with Electron |
+| **④ Online** | [Hosted live version](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html) | Runs instantly, no install |
+
+No build step required.
 
 ---
 

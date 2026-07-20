@@ -17,9 +17,10 @@
 [![API](https://img.shields.io/badge/__sdacs-408_API-00e5ff?style=for-the-badge&logo=javascript)](docs/SDACS_API.md)
 [![E2E](https://img.shields.io/badge/E2E-295_collected-22c55e?style=for-the-badge&logo=playwright&logoColor=white)](tests/e2e/)
 [![Roadmap](https://img.shields.io/badge/Roadmap_691--755-94%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
-[![Tests](https://img.shields.io/badge/Python_tests-9%2C156_collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/Python_tests-9%2C591_collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![v1.5.0](https://img.shields.io/badge/Desktop-v1.5.0_(Win%2FMac%2FLinux)-7c3aed?style=for-the-badge&logo=electron&logoColor=white)](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
-[![Modules](https://img.shields.io/badge/Modules-1%2C117-9C27B0?style=for-the-badge&logo=python&logoColor=white)](simulation/)
+[![Modules](https://img.shields.io/badge/Python_files-1%2C118-9C27B0?style=for-the-badge&logo=python&logoColor=white)](#project-structure--프로젝트-구조)
 [![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
 [![LOC](https://img.shields.io/badge/Total-250K%2B%20LOC-blue?style=for-the-badge&logo=visualstudiocode&logoColor=white)](#)
 
@@ -31,6 +32,8 @@
 
 **국립 목포대학교 드론기계공학과 캡스톤 디자인**
 
+🌐 **Language**: 한국어 · [English](README.en.md)
+
 [**⚡ Quick Start**](docs/QUICK_START.md) | [**📄 공개 보고서**](docs/report/SDACS_Public_Project_Report_2026.docx) | [**🎤 소개 PPTX**](docs/presentation/SDACS_Public_Project_Overview_2026.pptx) | [**🌐 Live Site**](https://sun475300-sudo.github.io/swarm-drone-atc/) | [**🛰 3D 시뮬레이터**](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html) | [**🚢 해양 시뮬**](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html) | [**📥 v1.5.0 빌드**](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
 
 > 🔗 **GitHub Pages 라이브 사이트**: <https://sun475300-sudo.github.io/swarm-drone-atc/> — 랜딩 페이지(소개·성과·아키텍처)에서 3D 시뮬레이터·해양 소형선 감지·시나리오 비교·테스트 리포트로 이동할 수 있습니다.
@@ -39,6 +42,26 @@
 <div align="center">
 <img src="docs/images/imgur/fP5lw8Y.png" alt="SDACS Hero Banner" width="800"/>
 </div>
+
+## ⚡ 빠른 시작 / Quick Start
+
+**요구사항**: Python 3.10+ · Git
+
+```bash
+git clone https://github.com/sun475300-sudo/swarm-drone-atc.git
+cd swarm-drone-atc
+pip install -r requirements.txt
+
+python main.py simulate --duration 60 --drones 20   # 시뮬레이션 실행
+python main.py visualize                            # 3D 대시보드 → localhost:8050
+python scripts/serve.py                             # 웹 시뮬레이터 → localhost:8123
+```
+
+> Docker 로 실행하려면 [🐳 Docker 섹션](#-docker로-실행하기--run-with-docker) 을, 설치 없이 바로 보려면
+> [🌐 라이브 사이트](https://sun475300-sudo.github.io/swarm-drone-atc/) 를 이용하세요.
+> 기여 방법은 [`CONTRIBUTING.md`](CONTRIBUTING.md), 보안 취약점 신고는 [`SECURITY.md`](SECURITY.md) 를 참고하세요.
+
+---
 
 ## 📑 목차 / Table of Contents
 
@@ -75,7 +98,7 @@
 
 ---
 
-> **🌟 최신 업데이트 (2026-07-14 · 8·9·10차 종합 감사 + 의존성 스택 현행화)** — `main` 은 dependabot 일괄 병합으로 **dash 4.1 · plotly 6.9 · pytest 9.1.1 · urllib3 2.7.0 · anyio 4.14.2** 등 최신 스택에 동기됐습니다. 🔍 **8·9·10차 정밀 감사**: 문서 수치 드리프트(배지·API 성숙도 112/80·시뮬 사본 크기·`federation_*` 17 모듈·테스트 수집 **9,156**)를 헤드리스/CLI 실측 기준으로 전수 정정, 검증-후-격상으로 production API 94→**112** 반영. 🛠 **회복**: `pytest-xdist` 요구사항 누락(클린 설치 시 pytest 불가)·maritime `visualization/` 사본 stale 복구. ✅ `main` CI 는 **2026-07-04 이후 연속 GREEN** (nightly ci.yml 실측, 최근 07-13 success). 📦 시뮬레이터 6 사본 md5 동기 유지.
+> **🌟 최신 업데이트 (2026-07-14 · 8·9·10차 종합 감사 + 의존성 스택 현행화)** — `main` 은 dependabot 일괄 병합으로 **dash 4.1 · plotly 6.9 · pytest 9.1.1 · urllib3 2.7.0 · anyio 4.14.2** 등 최신 스택에 동기됐습니다. 🔍 **8·9·10차 정밀 감사**: 문서 수치 드리프트(배지·API 성숙도 112/80·시뮬 사본 크기·`federation_*` 17 모듈·테스트 수집 **9,591**)를 헤드리스/CLI 실측 기준으로 전수 정정, 검증-후-격상으로 production API 94→**112** 반영. 🛠 **회복**: `pytest-xdist` 요구사항 누락(클린 설치 시 pytest 불가)·maritime `visualization/` 사본 stale 복구. ✅ `main` CI 는 **2026-07-04 이후 연속 GREEN** (nightly ci.yml 실측, 최근 07-13 success). 📦 시뮬레이터 6 사본 md5 동기 유지.
 >
 > 📜 이전 정점 — **Phase 500 SDACS Centennial 선언** (Phase 1-500 통합 회고 + 영구 아카이브 동결 + 100년 비전), Standards & Policy(461-472)·Continuum(481-500)·Education(468) 트랙 상세는 [CHANGELOG.md](CHANGELOG.md)를 참조하세요.
 
@@ -277,7 +300,7 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 | GitHub main 동기화 | **`origin/main` = `a4fd0e6`** (dash 4.1·plotly 6.9·urllib3 2.7.0 등 dependabot 일괄 병합 반영) |
 | GitHub Actions CI (`ci.yml`, main) | **GREEN — 8회 연속 success** (2026-07-11 04:56 UTC nightly 포함, 실측) |
 | 직전 RED 이력 | 07-02 RED 3건(`fastapi` 누락·`LostLinkConfig` 불일치·Electron 핀 43 vs 39)은 `9b7e9d0`·`a184385`·`251cdc7` 로 07-04 해소 |
-| Python 테스트 수집 | **9,156 collected · 수집 오류 0** (2026-07-13 클린 컨테이너 실측, dash 4.1·plotly 6.9 lock 반영) |
+| Python 테스트 수집 | **9,591 collected · 수집 오류 0** (2026-07-21 CI 클린 컨테이너 실측, Python 3.10/3.11/3.12 동일) |
 | Playwright E2E 수집 | **295 collected** (tests/e2e) |
 | `_sdacs` API 성숙도 | **production 112 · beta 80 · mock 110 · speculative 103** (헤드리스 라이브 실측 2026-07-11) |
 | Ruff 정적 검사 | **전체 통과** |
@@ -506,7 +529,7 @@ npm run smoke:maritime     # 해양 시뮬레이터 19/19
 ```bash
 # 더블클릭 런처(Win/Mac/Linux) → 메인 시뮬레이터가 열림
 # 해양으로 직접 열려면:
-python3 scripts/serve.py --page maritime
+python scripts/serve.py --page maritime
 #   → http://localhost:8123/maritime_detection_simulator.html
 ```
 
@@ -572,7 +595,7 @@ SDACS는 이 단순한 발상에서 출발했습니다. 20대의 관제 드론�
 | **Concurrent Drones** | **100+** | 20대: 충돌 0, 50대: avg 15, 100대: avg 29 |
 | **Deployment Time** | **30 min** | No fixed infrastructure required |
 | **Multi-Language Coverage** | **50+ Languages** | Phase 521-660: Zig, Rust, Go, C++, Kotlin, Nim, OCaml, F#, Swift, TS, Scala, Haskell, Lua, Julia, Dart, Elixir, R, Octave, Perl, Ruby, VHDL, Prolog, Fortran, Ada, COBOL and more |
-| **Test Collection** | **9,100+ tests** | Automated pytest collection across 1,100+ Python files and 305 test files |
+| **Test Collection** | **9,591 tests** | Automated pytest collection across 1,118 Python files and 306 test files (CI 클린 컨테이너 실측) |
 <div align="center">
 <img src="docs/images/imgur/wHuMIfM.png" alt="기존 방식 대비 SDACS 성능 비교" width="750"/>
 <br/><sub>기존 Rule-based Static ATC vs SDACS Swarm Autonomous — 주요 KPI 비교</sub>
@@ -626,7 +649,7 @@ SimPy 기반 이산 이벤트 시뮬레이션 엔진으로, 다양한 환경 조
 - **파일**: `simulation/simulator.py`, `simulation/wind_model.py`, `simulation/monte_carlo.py`
 
 ### Layer 4 — User Interface (사용자 인터페이스)
-- **CLI**: `main.py` — `simulate`, `scenario`, `monte-carlo`, `benchmark`, `visualize`, `visualize-3d`, `api`, `ops-report`, `chatbot`
+- **CLI**: `main.py` — `simulate`, `scenario`, `monte-carlo`, `benchmark`, `visualize`, `visualize-3d`, `api`, `ops-report`, `chatbot`, `chatbot-sim`
 - **3D Dashboard**: Dash + Plotly 실시간 3D 시각화, 드론 궤적/충돌 경고/편대 표시
 - **[3D Web Simulator (메인 데모)](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html)**: Three.js 브라우저 기반 인터랙티브 시뮬레이터 (프로젝트 대표 시뮬레이터)
   - **63개 시나리오** — 7대 광역시(서울/부산/인천/대구/광주/대전/울산) 도시환경 + 극한 기상 + 메가 스케일 500대
@@ -771,7 +794,7 @@ swarm-drone-atc/
 │   ├── apf_engine/                  # Artificial Potential Field
 │   ├── cbs_planner/                 # Conflict-Based Search
 │   ├── ws_bridge.py                 # Python -> browser WebSocket bridge
-│   └── ... (450+ Python modules)
+│   └── ... (586 Python modules)
 │
 ├── src/airspace_control/            # Layer 2: Control System
 │   ├── controller/                  # AirspaceController
@@ -798,7 +821,7 @@ swarm-drone-atc/
 ├── api/                             # FastAPI server skeleton / API glue
 ├── chatbot/                         # chatbot and simulation adapters
 ├── benchmarks/                      # reproducible benchmark scenarios
-├── tests/                           # 290+ test files + e2e smoke
+├── tests/                           # 306 test files + e2e smoke
 │   ├── test_simulator_scenarios.py
 │   ├── test_phase*.py
 │   └── ...
@@ -979,8 +1002,8 @@ python main.py simulate --duration 60 --drones 100 --seed 42
 ### Latest Verified Result
 | Scope | Result |
 |---|---|
-| Test files | **306** `test_*.py` files (`tests/` 전체, 2026-07-13 실측) |
-| Full Python collection | **9,156 collected · 수집 오류 0** (2026-07-13 클린 컨테이너) |
+| Test files | **306** `test_*.py` files (`tests/` 전체, 2026-07-21 실측) |
+| Full Python collection | **9,591 collected · 수집 오류 0** (2026-07-21 CI 클린 컨테이너, 9,296 pass / 295 skip) |
 | Full Python suite (단일 프로세스 스냅샷) | **7,003 collected · 6,733 pass · 270 skip · 0 fail** (2026-06-24 `pytest -n 0`, 224s) |
 | Static analysis | **Ruff all checks passed** |
 | Representative simulation | **45 collisions · 87 near misses · 95.9% conflict resolution** |
@@ -1134,7 +1157,7 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 <div align="center">
 **Made with dedication by Sunwoo Jang**
 **장선우 · 국립 목포대학교 드론기계공학과**
-**Phase 700 · 1,117 modules · 9,156 Tests Collected · 50+ Languages · 250K+ LOC**
+**Phase 700 · 1,118 Python files · 9,591 Tests Collected · 50+ Languages · 250K+ LOC**
 </div>
 
 ## 변경 이력 (Changelog)
@@ -1150,326 +1173,5 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 | 2026-07-03 | `c9dce9c` | feat(standards): ISO/TC 20/SC 16 23629 의견서 redline 완성 — Standards 잔여 마지막 1건, 집합 운영 의도 제안 + Phase 473 포트폴리오 위임 재사용 (WG-06 외부 기한 PARTIAL 천장 → NEEDS_WORK 0.95 정직 공시) | simulation/iso_tc20_sc16_opinion.py, docs/standards/ISO_TC20_SC16_23629_OPINION.md, tests/test_iso_tc20_sc16_opinion.py, simulation/wg_opinion_portfolio.py, tests/test_wg_opinion_portfolio.py, docs/standards/WG_OPINION_PORTFOLIO.md, ROADMAP.md |
 | 2026-07-02 18:39 | `adbe8e5` | feat(genesis): Phase 323 외부 시뮬레이터 어댑터 안착 — BlueSky·U-TRAFMAN 호환 import/export (드래프트 #463·#465·#469 통합, #469 코어 채택) | simulation/external_sim_adapter.py, tests/test_external_sim_adapter.py, docs/standards/EXTERNAL_SIM_ADAPTER_SPEC.md, ROADMAP.md, docs/SIMULATOR_GENESIS_PLAN.md |
 | 2026-07-02 18:22 | `b1608182` | Merge remote-tracking branch 'origin/main' into tmp/pr464-sync | .githooks/pre-commit, .github/workflows/airgap-audit.yml, .github/workflows/canonical_hash.yml, .github/workflows/ci.yml, .github/workflows/deploy-pages.yml, .github/workflows/desktop-build.yml … |
-| 2026-07-02 17:13 | `9b7e9d03` | fix(ci): restore MAVLink TX code dropped in merge + fastapi test guard | src/hardware/onboard_bridge.py, tests/test_auth_revocation.py |
-| 2026-07-02 12:21 | `a0e8a876` | test(e2e): 격상 후속 — maturity 회귀 2건의 beta 표본 교체 (CI RED 회복) | tests/e2e/test_simulator_beta_subset.py, tests/e2e/test_simulator_maturity.py |
-| 2026-07-02 12:14 | `bb539e10` | feat(transcendence): Phase 211-260 3개 트랙 sandbox 가능분 — production +18·다중 관제사 WS·부하 100 실증 | CHANGELOG.md, ROADMAP.md, docs/SDACS_API.md, docs/badges/maturity.svg, docs/sdacs.d.ts, docs/simulator.html … |
-| 2026-07-02 11:48 | `6e3c3967` | chore: 종합 감사 6차원 — README 수치 동기·중복 문서 상호참조·INDEX 전수·위생·actions v5 | .github/workflows/airgap-audit.yml, .github/workflows/canonical_hash.yml, .github/workflows/ci.yml, .github/workflows/deploy-pages.yml, .github/workflows/desktop-build.yml, .github/workflows/security.yml … |
-| 2026-07-02 11:41 | `97e46c35` | Merge remote-tracking branch 'origin/dependabot/npm_and_yarn/playwright-1.61.1' | package.json |
-| 2026-07-01 20:55 | `6273075c` | fix(simulator): file:// 직접 열기 감지 안내 배너 — "실행 안 됨" 해결 | docs/maritime_detection_simulator.html, docs/simulator.html, docs/swarm_3d_simulator.html, maritime_detection_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-07-01 20:44 | `f68ab051` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | outputs/EXECUTION_LOG_2026-06-19.md, outputs/REMAINING_ISSUES_2026-06-19.md, simulation/energy_aware_planner.py, simulation/llm_atc_production.py, simulation/onboard_rl_bench.py, simulation/plugin_sdk.py |
-| 2026-07-01 16:30 | `07d6aac4` | test(maritime): 탐지·식별 스모크 timeout 20s → 45s (느린 CI 헤드리스 플레이크) | tests/e2e/smoke_maritime.mjs |
-| 2026-07-01 16:24 | `38d3a46c` | fix(test): airspace_controller NaN 가드 픽스처 시그니처 수정 (CI RED 회복) | tests/test_airspace_controller_nan_guard.py |
-| 2026-07-01 16:13 | `5aca28ef` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | .github/workflows/airgap-audit.yml, .github/workflows/canonical_hash.yml, .github/workflows/ci.yml, .github/workflows/deploy-pages.yml, .github/workflows/desktop-build.yml, .github/workflows/security.yml … |
-| 2026-06-30 10:45 | `872d6965` | fix(security): starlette CVE-2026-54283(높음)·54282(낮음) 대응 — 1.2.1 → 1.3.1 | CHANGELOG.md, docs/security/CVE-2026-54283.md, requirements.lock.txt, requirements.txt |
-| 2026-06-26 14:07 | `f85298ef` | feat(odyssey): 46차 Standards 정책 추적 도구 3종 (Phase 478·479·480) — Track 종결 | CHANGELOG.md, ROADMAP.md, docs/standards/SDACS_IFALPA_RPAS_OPINION.md, docs/standards/SDACS_STANDARDS_QUARTERLY_REPORT_TEMPLATE.md, docs/standards/STANDARDS_WATCH_PROCEDURE.md, scripts/standards_conformance_check.py … |
-| 2026-06-26 13:43 | `8d37add9` | feat(odyssey): 45차 Standards WG 의견서 3종 (Phase 475 FAA·476 JARUS·477 IFALPA) | CHANGELOG.md, ROADMAP.md, docs/standards/SDACS_FAA_UTM_OPINION.md, docs/standards/SDACS_IFALPA_RPAS_OPINION.md, docs/standards/SDACS_JARUS_WG105_OPINION.md, docs/standards/SDACS_STANDARDS_CONTRIBUTION_DASHBOARD.md … |
-| 2026-06-26 11:10 | `2c9903c` | docs: 일일 헬스체크 + GENESIS 301·306 stale 마커 정직 재분류 | STATUS_REPORT.md, docs/SIMULATOR_GENESIS_PLAN.md |
-| 2026-06-26 09:14 | `57e0beb` | test(transcendence): Phase 211-220 production 코어 12→30 격상 | README.md, ROADMAP.md, tests/e2e/test_simulator_production_core_30.py |
-| 2026-06-26 08:16 | `85833b2` | feat(standards): Phase 474 — EUROCAE WG-105 군집 ConOps 의견서 작성 완료 | ROADMAP.md, docs/standards/EUROCAE_WG105_SWARM_CONOPS_OPINION.md, simulation/eurocae_wg105_opinion.py, simulation/wg_opinion_portfolio.py, tests/test_eurocae_wg105_opinion.py, tests/test_wg_opinion_portfolio.py |
-| 2026-06-26 00:13 | `031eab7` | test(fl-v2): federated_learning_v2 엣지케이스 6건 추가 — 커버리지 95%→100% | tests/test_phase311_330.py |
-| 2026-06-25 19:43 | `e16eb580` | feat(odyssey): 44차 Phase 474 GUTMA Harmony WG 의견서 | CHANGELOG.md, ROADMAP.md, docs/standards/SDACS_GUTMA_HARMONY_OPINION.md, tests/test_phase_474_gutma_opinion.py |
-| 2026-06-25 19:10 | `3e4948f8` | feat(odyssey): 43차 🌟 Phase 500 SDACS Centennial 선언 + Phase 471·472·491 통합 | CHANGELOG.md, README.md, ROADMAP.md, docs/CONTINUUM_CENTENNIAL_DECLARATION.md, docs/CONTINUUM_NEXT_GENERATION.md, docs/standards/SDACS_ICAO_RPASP_OPINION.md … |
-| 2026-06-25 13:23 | `35bdf8d2` | feat(odyssey): 42차 ROADMAP 3종 (Phase 468 캡스톤·483 Three.js·490 디지털 유산) + README 최신화 | CHANGELOG.md, README.md, ROADMAP.md, docs/CONTINUUM_DIGITAL_LEGACY.md, docs/curriculum/CAPSTONE_STANDARD.md, docs/maintenance/THREEJS_UPGRADE_PLAN.md … |
-| 2026-06-25 11:44 | `71c03e9a` | feat(odyssey): ROADMAP 3종 추가 (Phase 463 K-드론 정책·470 표준 대시보드·489 아카이브) | CHANGELOG.md, ROADMAP.md, docs/CONTINUUM_ARCHIVE_REDUNDANCY.md, docs/standards/SDACS_KDRONE_POLICY_PROPOSAL.md, docs/standards/SDACS_STANDARDS_CONTRIBUTION_DASHBOARD.md, tests/test_phase_463_470_489_docs.py |
-| 2026-06-25 11:39 | `1b77cf27` | feat(odyssey): ROADMAP 2종 (Phase 484 Electron LTS·488 보안 SLA) + 원격 브랜치 정리 가이드 | CHANGELOG.md, ROADMAP.md, docs/CONTINUUM_ELECTRON_LTS_TRACKING.md, docs/CONTINUUM_SECURITY_SLA.md, docs/maintenance/STALE_BRANCHES_CLEANUP.md, scripts/cleanup_stale_branches.sh … |
-| 2026-06-25 08:23 | `60e9d524` | fix(controller): 7차 정밀점검 — TelemetryMessage NaN/None 가드 + README 변경 이력 압축 | CHANGELOG.md, README.md, src/airspace_control/controller/airspace_controller.py, tests/test_airspace_controller_nan_guard.py |
-| 2026-06-25 08:08 | `41c3c29` | feat(odyssey): ROADMAP 3종 추가 (Phase 451 RL 조사·464 안전 백서·482 브라우저 카나리) | CHANGELOG.md, ROADMAP.md, docs/research/RL_GENERALIZATION_SURVEY.md, docs/standards/SDACS_SWARM_SAFETY_WHITEPAPER.md, scripts/browser_api_canary.py, tests/test_phase_482_451_464_docs.py |
-| 2026-06-25 00:30 | `6401d07` | feat(odyssey): ROADMAP 4종 일괄 (Phase 461·462·481·487) + HUD 캐싱 최적화 | CHANGELOG.md, README.md, ROADMAP.md, docs/CONTINUUM_DEPENDABOT_POLICY.md, docs/CONTINUUM_SUCCESSION_PROTOCOL.md, docs/simulator.html … |
-| 2026-06-24 23:17 | `240ee10` | chore: origin/main 머지 — 적체 진행 통합 (06-17·06-18 작업 흡수) | CHANGELOG.md, README.md, ROADMAP.md, config/scenario_params/nominal_baseline.yaml, docs/APF_CONVERGENCE_PROOF.md, docs/API_DEPRECATION_POLICY.md … |
-| 2026-06-17 12:39 | `11e9ed0` | docs(readme): 현행화 — 408 API·5,106 수집·Federation/Genesis 진척·보안 6차 반영 | README.md |
-| 2026-06-17 12:10 | `e36d2c9` | feat(boost): 6차 정밀점검 — CSP·JWT alg·wind cache 가드·pre-commit hook 4종 보강 | .githooks/pre-commit, README.md, api/auth.py, docs/maritime_detection_simulator.html, docs/simulator.html, docs/swarm_3d_simulator.html … |
-| 2026-06-16 13:57 | `a8a57f9` | feat(boost): 보강 3건 — replay 진단·mega_swarm 회귀 임계·운영 환경변수 표 | README.md, tests/e2e/smoke_sim.mjs, tests/e2e/test_simulator_replay_cursor.py |
-| 2026-06-14 09:30 | `9ab42fd` | test(replay): replay_cursor 픽스처 플레이크 견고화 (느린 CI 헤드리스 대응) | tests/e2e/test_simulator_replay_cursor.py |
-| 2026-06-14 09:24 | `5684b00` | fix(security): Dockerfile 비루트 사용자 + Helm image tag latest 경고 | Dockerfile, Dockerfile.gpu, helm/sdacs/values.yaml |
-| 2026-06-13 23:10 | `7c771b4` | fix: 4차 점검 — Voronoi is_in_cell 차원 가드 + maritime scenario 화이트리스트 + docs 사본 동기 | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, simulation/voronoi_airspace/voronoi_partition.py |
-| 2026-06-13 21:47 | `3068ae7` | fix(security): JWT_SECRET prod 모드 강제 + WebSocket 텔레메트리 입력 검증 | api/auth.py, api/fastapi_server.py, tests/test_auth_prod_secret.py |
-| 2026-06-13 21:35 | `f6cc7db` | fix(security): importMission JSON 무결성 검증 + applyFrame 방어적 가드 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-06-13 21:26 | `ab266ea` | fix(security): ws_bridge 기본 loopback 바인딩 + injectFault 미지원 type 진단 + 회귀 강화 | docs/simulator.html, docs/swarm_3d_simulator.html, simulation/ws_bridge.py, swarm_3d_simulator.html, tests/test_ws_bridge.py, visualization/swarm_3d_simulator.html |
-| 2026-06-13 20:58 | `6ebbf7e` | fix: 2차 정밀 점검에서 실측 검증된 3건 결함 수정 (landing/lookahead/voronoi) | docs/simulator.html, docs/swarm_3d_simulator.html, src/airspace_control/controller/airspace_controller.py, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-06-13 20:51 | `a0cb294` | fix(simulator): stopRecording 에서 MediaStream 트랙 명시적 정지 (리소스 누수) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-06-13 20:43 | `c6f94b4` | feat(perf): mega_swarm 1K/5K FPS·드로우콜·CPU 실측 표 + 회귀 임계 | README.md, docs/PERF_MEGA_SWARM.md |
 
-> **이전 259건 변경 이력 압축** — 2026-03-31 ~ 2026-06-13 의 전체 entry 는 [`CHANGELOG.md`](CHANGELOG.md) 에 보존됨 (Keep a Changelog 형식 + Phase 별 상세). 본 README 는 최근 15건만 유지하여 분량을 줄였습니다. 압축 전 history 는 git log 또는 `git show <commit>:README.md` 로 조회 가능.
-| 2026-06-26 15:09 | `3f5fa64` | fix(ci): canonical-hash RED 회복 — pydantic-core 2.47.0→2.46.4 lock 정합 | requirements.lock.txt |
-| 2026-06-25 14:11 | `a304e69` | chore(odyssey): 적체 드래프트 10건 단일 일원화 + ROADMAP 머지충돌 마커 제거 | CHANGELOG.md, README.en.md, ROADMAP.md, docs/standards/EASA_OPERATIONAL_MONITORING.md, docs/standards/EXPLAINABILITY_CONFORMANCE.md, docs/standards/ML_APPLICATION_CLASSIFICATION.md … |
-| 2026-06-25 12:05 | `5361042` | fix(ci): main CI RED 회복 — hybrid_collision_avoidance rl_force 타입 주석 | src/autonomy/hybrid_collision_avoidance.py |
-| 2026-06-22 07:28 | `1696ca8` | ci: set mypy python_version 3.10→3.12 to accept numpy cp312 PEP 695 stubs | pyproject.toml |
-| 2026-06-22 07:18 | `e9de1d6` | ci: bump mypy floor 1.10→1.18 to handle numpy PEP 695 type-statement stubs | pyproject.toml |
-| 2026-06-22 07:07 | `6ad0e7e` | merge: ODYSSEY Phase 410 GUTMA 회원 기고 적합성 (PR #422 흡수) | README.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/GUTMA_CONTRIBUTION.md, simulation/gutma_contribution.py, tests/test_gutma_contribution.py |
-| 2026-06-22 05:12 | `697741b` | feat(odyssey): Phase 410 GUTMA 회원 기고 적합성 매트릭스 | docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/GUTMA_CONTRIBUTION.md, simulation/gutma_contribution.py, tests/test_gutma_contribution.py |
-| 2026-06-22 04:14 | `6ef47d1` | feat(odyssey): Phase 451 — EASA 신뢰 가능 AI(Learning Assurance) 적합성 자가 평가 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/EASA_AI_CONFORMANCE.md, simulation/easa_ai_conformance.py, tests/test_easa_ai_conformance.py |
-| 2026-06-22 03:08 | `7640b22` | Merge remote-tracking branch 'origin/claude/fervent-babbage-weazi4' into claude/fervent-babbage-mvd3bv | README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/INTL_WG_OPINION_GATE.md, simulation/intl_wg_opinion_gate.py, tests/test_intl_wg_opinion_gate.py |
-| 2026-06-22 02:13 | `266db5d` | feat(odyssey): Phase 472 — 국제 워킹그룹 의견서 적합성 게이트 | ROADMAP.md, docs/standards/INTL_WG_OPINION_GATE.md, simulation/intl_wg_opinion_gate.py, tests/test_intl_wg_opinion_gate.py |
-| 2026-06-22 01:13 | `ee91df0` | refactor(odyssey): Phase 471 code-reviewer 어드바이저 반영 | simulation/ks_standard_proposal.py, tests/test_ks_standard_proposal.py |
-| 2026-06-21 23:17 | `1bc6b66` | feat(odyssey): Phase 468 대학 캡스톤 표준 커리큘럼 제안 적합성 게이트 + #415 적체 일원화 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/CAPSTONE_CURRICULUM_STANDARD.md, simulation/capstone_curriculum_standard.py, tests/test_capstone_curriculum_standard.py |
-| 2026-06-21 22:11 | `e84ff1b` | docs: ODYSSEY plan Phase 463·500 체크마크 정합 (일원화 반영) | docs/SIMULATOR_ODYSSEY_PLAN.md |
-| 2026-06-21 21:16 | `557018d` | feat(standards): ODYSSEY Phase 463 — K-드론 정책 제안서 적합성 게이트 | CHANGELOG.md, ROADMAP.md, docs/standards/K_DRONE_POLICY_PROPOSAL.md, simulation/k_drone_policy_proposal.py, tests/test_k_drone_policy_proposal.py |
-| 2026-06-21 20:09 | `e3a5e55` | merge: ODYSSEY Standards Phase 464 군집 비행 안전 기준 백서 (PR #412 일원화) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/SWARM_SAFETY_STANDARD_WHITEPAPER.md, simulation/swarm_safety_standard.py … |
-| 2026-06-21 19:16 | `17d10da` | feat(odyssey): Phase 464 군집 비행 안전 기준 백서 — 5계층 안전망 사례 연구 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/SWARM_SAFETY_STANDARD_WHITEPAPER.md, simulation/swarm_safety_standard.py, tests/test_swarm_safety_standard.py |
-| 2026-06-21 18:12 | `41e1d3b` | feat(odyssey): Phase 461 — ASTM F38 군집 관제 시험 방법 기고 초안 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/ASTM_F38_SWARM_TEST_METHOD.md, simulation/swarm_test_method.py, tests/test_swarm_test_method.py |
-| 2026-06-21 16:09 | `bd6ca2c` | style(odyssey): Phase 491·500 테스트 ruff auto-fix (C420 dict.fromkeys · F401 미사용 import) | tests/test_centennial_declaration.py, tests/test_track_handover_policy.py |
-| 2026-06-21 16:05 | `a8e4eb6` | feat(odyssey): Continuum 종착 일원화 — Phase 491·492·500 (세대 이양 게이트 + 공모·선정 + Centennial 선언) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/CENTENNIAL_DECLARATION_POLICY.md, docs/standards/GENERATIONAL_HANDOVER_POLICY.md … |
-| 2026-06-21 14:09 | `0ab12cf` | refactor(odyssey): Phase 491·492 code-reviewer 어드바이저 MEDIUM 2건 반영 | simulation/track_handoff_readiness.py, simulation/track_handover_policy.py |
-| 2026-06-21 12:05 | `0e8f42d` | Merge Phase 491·492·500 (ODYSSEY Continuum 세대 이양 + Centennial 선언) — 적체 draft #405 일원화 | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/CENTENNIAL_DECLARATION_POLICY.md, docs/standards/GENERATIONAL_HANDOVER_POLICY.md … |
-| 2026-06-21 11:20 | `70ee3c6` | style(odyssey): Phase 500 import 정렬 — ruff isort(I001) CI 게이트 통과 | simulation/centennial_declaration.py |
-| 2026-06-21 11:16 | `ad486a7` | feat(odyssey): Continuum 종착 — Phase 500 Centennial 선언 (프로그램 캡스톤) | CHANGELOG.md, ROADMAP.md, docs/standards/CENTENNIAL_DECLARATION_POLICY.md, simulation/centennial_declaration.py, tests/test_centennial_declaration.py |
-| 2026-06-20 (이 커밋) | `(이 커밋)` | feat(odyssey): Continuum 세대 이양 구간 진입 — Phase 491(이양 게이트, #394 일원화) + Phase 492(공모·선정 신규) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/{GENERATIONAL_HANDOVER_POLICY,NEXTGEN_TRACK_HANDOFF_POLICY}.md, simulation/{track_handover_policy,track_handoff_readiness}.py, tests/test_track_handover_policy.py, tests/test_track_handoff_readiness.py |
-| 2026-06-20 09:18 | `f06890f` | feat(odyssey): Continuum 적체 드래프트 6칸 전면 일원화 — Phase 481-490 완결 | CHANGELOG.md, README.md, ROADMAP.md, docs/CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/BROWSER_API_DEPRECATION_WATCH.md … |
-| 2026-06-20 (이 커밋) | `(이 커밋)` | feat(odyssey): Continuum 적체 드래프트 6칸 전면 일원화 — Phase 482(브라우저 API 폐기 감시)·483(Three.js 업그레이드 리허설)·484(Electron LTS)·486(건전성 리허설)·487(승계 규약)·490(디지털 유산) → Phase 481-490 완결 — 일일 점검 2026-06-20 (51차) | ROADMAP.md, README.md, CHANGELOG.md, docs/CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/{BROWSER_API_DEPRECATION_WATCH,ELECTRON_LTS_TRACKING_POLICY,HEALTH_REHEARSAL_CADENCE_POLICY,MAINTAINER_SUCCESSION_PROTOCOL,DIGITAL_LEGACY_CHECKLIST}.md, simulation/{browser_api_watch,electron_lts_policy,governance_succession,legacy_readiness,rehearsal_cadence,threejs_upgrade_audit}.py, tests/test_*(6) (#386-391 흡수, 241건 PASS) |
-| 2026-06-20 02:09 | `4b480ea` | feat(odyssey): 적체 드래프트 일원화 — Phase 488(CVE 대응 SLA) + 489(아카이브 이중화) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/ARCHIVE_REDUNDANCY_POLICY.md, docs/standards/CVE_RESPONSE_SLA_POLICY.md … |
-| 2026-06-20 01:40 | `(이 커밋)` | feat(odyssey): 적체 드래프트 일원화 — Phase 488(CVE 대응 SLA) + 489(아카이브 이중화) — 일일 점검 2026-06-19 (45차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/CVE_RESPONSE_SLA_POLICY.md, docs/standards/ARCHIVE_REDUNDANCY_POLICY.md, simulation/cve_response_policy.py, simulation/archive_redundancy.py, tests/test_cve_response_policy.py, tests/test_archive_redundancy.py |
-| 2026-06-19 23:08 | `3d38083` | feat: 적체 드래프트 PR 일원화 — ODYSSEY 462·481 + GENESIS 364 통합 | CHANGELOG.md, README.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/DEPENDENCY_AUTOMERGE_POLICY.md, simulation/dependency_gate.py … |
-| 2026-06-19 23:30 | `(이 커밋)` | feat: 적체 드래프트 PR 일원화 — ODYSSEY 462·481 + GENESIS 364 통합 — 일일 점검 2026-06-19 (42차) | CHANGELOG.md, README.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/standards/DEPENDENCY_AUTOMERGE_POLICY.md, simulation/iso_tc20_sc16_tracker.py, simulation/dependency_gate.py, simulation/v2x_message_spec.py, tests/… |
-| 2026-06-19 15:10 | `dc1b170` | feat(odyssey): 적체 드래프트 PR 7건 일원화 — Phase 402·403·407·409·470 통합 | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/certification/EU_OPERATIONAL_CATEGORY.md, docs/standards/BVLOS_REGULATION_COMPARISON.md … |
-| 2026-06-19 07:30 | `(이 커밋)` | feat(odyssey): 적체 드래프트 PR 7건 일원화 — Phase 402·403·407·409·470 통합 — 일일 점검 2026-06-19 (41차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/faa_uss_roles.py, simulation/sora_category.py, simulation/icao_utm_conformance.py, simulation/bvlos_regulation_compare.py, simulation/standardization_tracker.py … |
-| 2026-06-18 01:14 | `7e00688` | feat(odyssey): Phase 401 EASA U-space 서비스 매핑 + 406·408 추적 정정 — 일일 점검 2026-06-17 (36차) | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/uspace_service_map.py, tests/test_uspace_service_map.py |
-| 2026-06-18 00:18 | `8580e73` | feat(odyssey): Phase 485 시나리오 포맷 버전 마이그레이션 도구 — 일일 점검 2026-06-17 (35차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/scenario_migration.py, simulation/scenario_schema.py, tests/test_scenario_migration.py |
-| 2026-06-17 23:22 | `88cf5f5` | test: 시나리오 회귀 카운트 9→10 갱신 (Phase 465 baseline 반영) | tests/test_hard_precision.py |
-| 2026-06-17 23:14 | `7ae5b95` | feat(odyssey): Phase 465 표준 벤치마크 스위트 (10종 공개) — 일일 점검 2026-06-17 (34차) | CHANGELOG.md, ROADMAP.md, config/scenario_params/nominal_baseline.yaml, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/SDACS_BENCHMARK_SUITE.md, simulation/standard_scenarios.py … |
-| 2026-06-17 21:08 | `d4bc003` | feat(odyssey): Phase 466·469 통합 + Track 🔬 445·446·449·450 추적 정정 — 일일 점검 2026-06-17 (33차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/policy_impact.py, simulation/telemetry_validator.py … |
-| 2026-06-17 19:10 | `066748f` | feat(odyssey): Phase 466 텔레메트리 스키마 검증기 완성 — 일일 점검 2026-06-17 (32차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/telemetry_validator.py, tests/test_telemetry_validator.py |
-| 2026-06-17 19:00 | `(이 커밋)` | feat(odyssey): Phase 466 텔레메트리 스키마 검증기 완성 + 31차 적체 일원화 — 일일 점검 2026-06-17 (32차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/telemetry_validator.py, tests/test_telemetry_validator.py |
-| 2026-06-17 18:08 | `668bf72` | feat(odyssey): Phase 469 정책 영향 시뮬 + Track 🔬 추적 정정 일원화 (31차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/policy_impact.py, tests/test_policy_impact.py |
-| 2026-06-17 18:30 | `(이 커밋)` | feat(odyssey): Phase 469 정책 영향 시뮬 + Track 🔬 추적 정정(445·446·449·450) 일원화 — 일일 점검 2026-06-17 (31차, 적체 드래프트 #357·#358·#359 흡수) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/policy_impact.py, tests/test_policy_impact.py |
-| 2026-06-17 15:12 | `b82ac0e` | feat(odyssey): Phase 441·442·444 통합 — 형식 검증 트랙 (적체 드래프트 PR #351·#352·#353 일원화) | CHANGELOG.md, ROADMAP.md, docs/CBS_COMPLETENESS_OPTIMALITY.md, docs/SAFETY_NET_TLA_SPEC.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/cbs_optimality.py … |
-| 2026-06-16 23:09 | `87ecf8e` | feat(odyssey): Phase 443·448 통합 — APF Lyapunov 수렴 증명 + 시뮬 코어 속성 테스트 (드래프트 PR #347·#348·#349 일원화) | CHANGELOG.md, README.md, ROADMAP.md, docs/APF_CONVERGENCE_PROOF.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/apf_lyapunov.py … |
-| 2026-06-16 23:10 | `(이 커밋)` | feat/test(odyssey): Track 🔬 Phase 443·448 통합 — APF Lyapunov 수렴 증명 + 시뮬 코어 속성 테스트(충돌감지 9 + 퍼저 6) (드래프트 PR #347·#348·#349 일원화) — 일일 점검 2026-06-16 (23차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/apf_lyapunov.py, docs/APF_CONVERGENCE_PROOF.md, tests/test_apf_lyapunov.py, tests/test_property_deconflict.py, tests/test_scenario_fuzzer_property.py |
-| 2026-06-16 18:20 | `8b7c557` | feat(odyssey): Phase 439·440 통합 — Federation Operations 트랙 421-440 완료 (중복 PR #344·#345 일원화) — 일일 점검 2026-06-16 (20차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_topology_view.py, tests/test_federation_topology_view.py, simulation/federation_trust_path_vector_failover.py, tests/test_federation_trust_path_vector_failover.py |
-| 2026-06-16 15:16 | `805da03` | feat(odyssey): Phase 438 분산 경로-벡터 장애 우회 수렴 — 일일 점검 2026-06-16 (19차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_path_vector_failover.py, tests/test_federation_path_vector_failover.py |
-| 2026-06-16 14:20 | `96231ef` | feat(odyssey): Phase 437 신뢰 인지 분산 경로-벡터 라우팅 — 일일 점검 2026-06-16 (18차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust_path_vector.py, tests/test_federation_trust_path_vector.py |
-| 2026-06-16 13:08 | `4522258` | chore(odyssey): 일일 점검 (17차) — Federation Operations 적체 통합 (Phase 433·434·435·436) | CHANGELOG.md, README.md |
-| 2026-06-16 13:00 | (통합) | chore(odyssey): 일일 점검 (17차) — Federation Operations 적체 통합 (Phase 433·434·435·436), 신규+인접 270건 PASS, PR #339·#340 superseded | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md |
-| 2026-06-16 12:14 | `d9552f5` | feat(odyssey): Phase 436 분산 경로-벡터 라우팅 — 일일 점검 (16차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_path_vector.py, tests/test_federation_path_vector.py |
-| 2026-06-16 11:13 | `b62f63b` | chore(odyssey): 일일 점검 (15차) — Federation Operations 적체 draft PR 3건 통합 (Phase 433·434·435) | CHANGELOG.md, README.md |
-| 2026-06-16 11:00 | (통합) | chore(odyssey): 일일 점검 (15차) — Federation Operations 적체 draft PR 3건 통합 (Phase 433·434·435), 신규 104건 + 인접 회귀 = 331건 PASS, PR #336·#337·#338 superseded | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust_routing.py, simulation/federation_causal_delivery.py, simulation/federation_resilient_routing.py |
-| 2026-06-16 10:15 | `3371b1f` | feat(odyssey): Phase 435 메시 복원력 라우팅 — 절단점·브리지 + 백업 경로 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_resilient_routing.py, tests/test_federation_resilient_routing.py |
-| 2026-06-16 09:15 | `3a7555e` | feat(odyssey): Phase 434 HLC 통합 인과-안정 배달 — 일일 점검 (14차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_causal_delivery.py, tests/test_federation_causal_delivery.py |
-| 2026-06-16 08:13 | `f7c1dd6` | feat(odyssey): Phase 433 신뢰 가중 메시 라우팅 — 일일 점검 (13차) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust_routing.py, tests/test_federation_trust_routing.py |
-| 2026-06-16 06:08 | `6f9859f` | chore(odyssey): 일일 점검 (12차) — Federation Operations 적체 draft PR 4건 통합 (Phase 428·429·431·432) | CHANGELOG.md, README.md |
-| 2026-06-16 06:30 | (통합) | chore(odyssey): 일일 점검 (12차) — Federation Operations 적체 draft PR 4건 통합 (Phase 428·429·431·432), 신규 federation 123건 + 인접 104건 = 227건 PASS, PR #331·#332·#333·#334 superseded | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust.py, simulation/federation_audit.py, simulation/federation_hybrid_clock.py, simulation/federation_mesh.py, simulation/federation_discovery.py |
-| 2026-06-16 04:17 | `204d000` | feat(odyssey): Phase 431 하이브리드 논리 시계(HLC) — 연합 전역 인과 순서 | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_hybrid_clock.py, tests/test_federation_hybrid_clock.py |
-| 2026-06-16 03:10 | (이 커밋) | feat(odyssey): 일일 점검 (11차) — Phase 431 하이브리드 논리 시계(HLC) 신규 + Phase 428·429 통합, 어드바이저 CRITICAL 1·HIGH 1·MEDIUM 1 반영, 신규 34건 + 인접 federation 197건 PASS | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_hybrid_clock.py, tests/test_federation_hybrid_clock.py |
-| 2026-06-16 03:00 | (통합) | chore(odyssey): 일일 점검 (11차) — Phase 428 신뢰 모델 + Phase 429 연합 감사 로그 통합 | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust.py, simulation/federation_audit.py |
-| 2026-06-16 02:19 | `04a629c` | feat(odyssey): Phase 429 연합 감사 로그 — 변조 탐지 해시 체인 + 결정적 CRDT 병합 | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_audit.py, tests/test_federation_audit.py |
-| 2026-06-16 01:16 | `826686b` | feat(odyssey): Phase 428 인스턴스 간 신뢰 모델 — 일일 점검 (9차) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_trust.py, tests/test_federation_trust.py |
-| 2026-06-16 05:17 | `61b7f22` | feat(odyssey): Phase 432 메시 연합 토폴로지 + 멀티홉 전파 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_discovery.py, simulation/federation_mesh.py, tests/test_federation_mesh.py |
-| 2026-06-15 23:13 | `64ae2d2` | refactor(odyssey): Phase 424·425·430 code-reviewer 어드바이저 HIGH 3건 반영 | CHANGELOG.md, simulation/federation_conflict_resolution.py, simulation/federation_notam.py, simulation/federation_split_brain.py |
-| 2026-06-15 23:11 | `1f369e8` | chore(odyssey): 일일 점검 (8차) — Federation Operations 3건 통합 (Phase 424·425·430) | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_conflict_resolution.py, simulation/federation_notam.py … |
-| 2026-06-15 22:30 | (통합) | chore: 일일 점검 (8차) — ODYSSEY Federation Operations 3건 통합 (Phase 424 충돌 해소·425 NOTAM 전파·430 split-brain 안전 강하), 신규 50건 + 인접 회귀 104건 PASS | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_conflict_resolution.py, simulation/federation_notam.py, simulation/federation_split_brain.py, tests/test_federation_conflict_resolution.py, tests/test_federation_notam.py, tests/test_federation_split_brain.py |
-| 2026-06-15 18:24 | `d61c96b` | fix(ci): maturity 배지 실측 counts(prod 93) 재생성 — #281 stale 배지 드리프트 해소 | docs/badges/maturity.svg |
-| 2026-06-15 18:18 | `9e6808f` | Merge remote-tracking branch 'origin/claude/fervent-babbage-oaig71' into claude/fervent-babbage-xcoksz | CHANGELOG.md, README.md, ROADMAP.md, docs/SIMULATOR_GENESIS_PLAN.md, src/applications/mokpo_harbor.py, tests/track_e/test_mokpo_harbor.py |
-| 2026-06-15 15:16 | `cdbbc92` | docs: 일일 점검 2026-06-15 (5차) — 신규 PR 3건 통합 검증 + 중복 PR triage 변경 이력 | CHANGELOG.md, README.md |
-| 2026-06-15 15:30 | (이 커밋) | chore: 일일 점검 2026-06-15 (5차) — 신규 PR 3건 통합 (Phase 308·423·286·226·209-210·447, 로컬 4,456 pass) + 중복 PR triage | CHANGELOG.md, README.md |
-| 2026-06-15 14:19 | `ab6618d` | refactor(genesis): Phase 308 code-reviewer 어드바이저 반영 | CHANGELOG.md, ROADMAP.md, simulation/insurance_rate_quote.py, tests/test_insurance_rate_quote.py |
-| 2026-06-15 14:15 | `0e04a31` | feat(genesis): Phase 308 배상책임보험 요율 산정 API (Phase 67 mock 격상) | CHANGELOG.md, ROADMAP.md, simulation/insurance_rate_quote.py, tests/test_insurance_rate_quote.py |
-| 2026-06-15 13:15 | `7f16311` | style: scenario_fuzzer main() 임포트 정렬 (ruff I001 CI fix) | simulation/scenario_fuzzer.py |
-| 2026-06-15 13:12 | `8dae438` | feat(odyssey): Phase 447 적대적 시나리오 퍼저 — 시드 기반 결정적 변이 생성기 | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/scenario_fuzzer.py, tests/test_scenario_fuzzer.py |
-| 2026-06-15 12:12 | `791e611` | chore: 일일 점검 2026-06-15 (4차) — 적체 PR 4건 통합 (Phase 423·286·226·209-210) | CHANGELOG.md, README.md |
-| 2026-06-15 16:11 | `9e1f9bf` | feat(genesis): Phase 311 KISA CSAP 클라우드 보안인증 자가진단 자동화 | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, simulation/csap_self_assessment.py, tests/test_csap_self_assessment.py |
-| 2026-06-15 17:10 | `bce5079` | feat(genesis): Phase 341 목포 해역 실 좌표계 임포트 — 해도 기반 NFZ·회랑 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_GENESIS_PLAN.md, src/applications/mokpo_harbor.py, tests/track_e/test_mokpo_harbor.py |
-| 2026-06-15 09:12 | `567e4a6` | docs: 일일 점검 2026-06-15 (2차) — 적체 PR 9건 통합 변경 이력 | CHANGELOG.md |
-| 2026-06-15 05:10 | `c9923b1` | feat: 일일 점검 2026-06-15 — 적체 PR 5건 무충돌 통합 (Phase 322·342·367·401·406·449) | CHANGELOG.md, ROADMAP.md, docs/schemas/sdacs-scenario.schema.json, simulation/geo_zones.py, simulation/scenario_schema.py, src/applications/jeonnam_island_sites.py … |
-| 2026-06-15 08:07 | `ed3f334` | feat(genesis): Phase 310 야간·비가시 특별비행승인 안전기준 검증 | docs/SIMULATOR_GENESIS_PLAN.md, simulation/special_flight_approval.py, tests/test_special_flight_approval.py |
-| 2026-06-15 06:11 | `ddf58ea` | feat(genesis): Phase 309 조종자 자격(1~4종) ↔ 시뮬 교육 모드 매핑 | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/PILOT_LICENSE_MAPPING.md, simulation/pilot_certification.py, tests/test_pilot_certification.py |
-| 2026-06-15 07:09 | `a5f4d9d` | feat(odyssey): Phase 408 공역 클래스 A-G 자동 매핑 API 격상 | README.md, ROADMAP.md, docs/certification/AIRSPACE_CLASS_MAPPING.md, simulation/airspace_class.py, tests/test_airspace_class.py |
-| 2026-06-15 10:10 | `971c847` | feat(odyssey): Phase 423 지역 간 관제권 핸드오버 | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_discovery.py, simulation/federation_handover.py, tests/test_federation_handover.py |
-| 2026-06-14 09:15 | `072bccd` | feat(odyssey): Phase 422 운영 의도 4D 볼륨 교환 포맷 | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/operational_intent.py, tests/test_operational_intent.py |
-| 2026-06-13 18:10 | `532e0eb` | docs: TRANSCENDENCE Phase 209·210 — API Deprecation Policy + SemVer 규약 | CHANGELOG.md, ROADMAP.md, docs/API_DEPRECATION_POLICY.md, docs/MASTER_PLAN_2026H2.md, docs/SIMULATOR_TRANSCENDENCE_PLAN.md |
-| 2026-06-15 03:17 | `dd022bb` | docs: 일일 점검 2026-06-14 — 머지 병목 triage + Phase 421·307·467 통합 | ROADMAP.md |
-| 2026-06-15 00:10 | `cdcb7b5` | feat(odyssey): Phase 421 인스턴스 간 디스커버리 프로토콜 (DSS 유사 결정적 모델) | CHANGELOG.md, ROADMAP.md, docs/SIMULATOR_ODYSSEY_PLAN.md, simulation/federation_discovery.py, tests/test_federation_discovery.py |
-| 2026-06-14 23:08 | `71eeef2` | feat(genesis): Phase 307 사고 보고 양식 자동 작성 (ARAIB 표준) | docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/ACCIDENT_REPORT.md, simulation/accident_report.py, tests/test_accident_report.py |
-| 2026-06-14 22:12 | `0064488` | feat(odyssey): Phase 467 사고 조사 데이터 표준 변환기 (ICAO Annex 13) | CHANGELOG.md, docs/SIMULATOR_ODYSSEY_PLAN.md, docs/standards/INCIDENT_INVESTIGATION_REPORT.md, simulation/incident_investigation_report.py, tests/test_incident_investigation_report.py |
-| 2026-06-14 21:15 | `f3e7852` | feat(genesis): Phase 304 KC 전파인증 요건 체크리스트 (통신 모듈별 적합성평가) | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/KC_RADIO_CERTIFICATION.md, simulation/kc_certification.py, tests/test_kc_certification.py |
-| 2026-06-14 12:18 | `0f956b9` | feat(genesis): Phase 303 비행계획 신고 양식 자동 생성 (Drone One-Stop) | CHANGELOG.md, docs/SIMULATOR_GENESIS_PLAN.md, docs/certification/FLIGHT_PLAN_FILING.md, simulation/flight_plan_filing.py, tests/test_flight_plan_filing.py |
-| 2026-06-14 07:15 | `be54397` | fix(digital-twin): TRANSCENDENCE 226 — GPS→ENU 변환 WGS84 엄밀해로 격상 | docs/SIMULATOR_TRANSCENDENCE_PLAN.md, src/digital_twin/sync_engine.py, tests/track_e/test_digital_twin.py |
-| 2026-06-13 22:12 | `50002f2` | feat(transcendence): Phase 286 안전망 Ablation 자동화 | CHANGELOG.md, ROADMAP.md, results/ablation/ablation_report.md, results/ablation/ablation_results.json, scripts/ablation_study.py, simulation/simulator.py … |
-| 2026-06-13 11:01 | `5b26e79` | fix(ci): sim-smoke.yml에 hypothesis 추가 + TRANSCENDENCE 205·GENESIS 304·309·ODYSSEY 408 진척 | .github/workflows/sim-smoke.yml, README.md, ROADMAP.md, docs/certification/AIRSPACE_CLASS_MAPPING.md, docs/certification/KC_RADIO_CERTIFICATION.md, docs/certification/PILOT_LICENSE_MAPPING.md … |
-| 2026-06-13 10:55 | `b342a9e` | feat(plans): GENESIS 306·381·389 + ODYSSEY 447·486 + 시뮬레이터 tutorial API | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |
-| 2026-06-13 10:34 | `74370fd` | feat(plans): GENESIS 301·387 + TRANSCENDENCE 204 + ODYSSEY 448·466 일괄 진척 | README.md, ROADMAP.md, docs/certification/AIR_SAFETY_ACT_MATRIX.md, docs/presentation/DEFENSE_KIT.md, docs/schemas/telemetry.schema.json, tests/e2e/test_simulator_production_core.py … |
-| 2026-06-13 10:24 | `5f3a897` | test(e2e): C9 해양 검증 기록 플레이크 강화 — .validation 비어있지 않을 때까지 폴링 | tests/e2e/smoke_maritime.mjs |
-| 2026-06-13 10:19 | `ea43f25` | fix(transcendence): Phase 207 maturity 배지 자동 생성·드리프트 해소 | CHANGELOG.md, ROADMAP.md, docs/badges/maturity.svg, scripts/extract_sdacs_api.py, tests/test_maturity_badge.py |
-| 2026-06-13 02:12 | `ad001db` | feat(genesis): Phase 302 soraAssess + 388 부채 대장 + ODYSSEY Plan(401-500) + README 현행화·미완료 리스트 | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |
-| 2026-06-13 01:55 | `283fd1a` | feat(transcendence): Phase 203 Mock Detector + Phase 206 experimental 네임스페이스 + CI 정합성 게이트 | .github/workflows/sim-smoke.yml, README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md … |
-| 2026-06-13 01:42 | `8765ba4` | docs(genesis): Phase 301-400 GENESIS Plan 신규 수립 + 로드맵 Track H 편입 | README.md, ROADMAP.md, VERSION.md, docs/INDEX.md, docs/MASTER_PLAN_2026H2.md, docs/SIMULATOR_GENESIS_PLAN.md … |
-| 2026-06-13 01:31 | `9f5349c` | docs: 종합 감사 — 407 API 라이브 실측 동기화 + Track G 신설 + 2026 H2 마스터플랜 | README.md, ROADMAP.md, STATUS_REPORT.md, VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md … |
-| 2026-06-13 01:13 | `c4e0cc6` | feat(simulator): Phase 0 polish — 동적 NFZ overlay + sub-km 거리 표시 | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-06-12 23:54 | `ec0321a` | Merge branch 'main' of http://127.0.0.1:40031/git/sun475300-sudo/swarm-drone-atc | CHANGELOG.md, ROADMAP.md |
-| 2026-06-12 23:53 | `36d2331` | feat(transcendence): Phase 201-207 API Maturity Honesty + README 수치 갱신 + 초대규모 울트라플랜 | README.md, VERSION.md, docs/SIMULATOR_TRANSCENDENCE_PLAN.md, docs/badges/maturity.svg, docs/sdacs.d.ts, docs/simulator.html … |
-| 2026-06-12 08:42 | `4e35caa` | Merge branch 'main' of http://127.0.0.1:33971/git/sun475300-sudo/swarm-drone-atc | .github/workflows/sim-smoke.yml, .gitignore, CHANGELOG.md, ROADMAP.md, docs/HITL_CHECKLIST.md, docs/SDACS_API.md … |
-| 2026-06-12 08:42 | `c870cf3` | feat: README 배지 v1.5.0 갱신 + Phase Matrix 200 완전 + PROJECT_PITCH 1-pager | README.md, docs/PROJECT_PITCH.md, docs/phase_matrix.html |
-| 2026-06-07 15:19 | `38a7b96` | feat: 추가 작업 7종 일괄 — TS .d.ts·Phase Matrix·Quick Start·SVG 배지·VERSION·HEALTH·INDEX | VERSION.md, docs/HEALTH_CHECK.md, docs/INDEX.md, docs/QUICK_START.md, docs/badges/api_388.svg, docs/badges/e2e_247.svg … |
-| 2026-06-06 21:38 | `77b6a8b` | docs(readme): 배포 파일 다운로드 섹션 추가 (v1.5.0 — 200 Phase Unity) | README.md |
-| 2026-06-06 17:59 | `602537c` | feat: ①②③④⑤ 모두 실행 (sandbox 가능 범위) | docs/paper/SDACS_IROS_2026_sections_4to7.pdf |
-| 2026-06-06 06:34 | `0b6ec17` | feat: ①②③④ 모두 시작 — 태그·논문 §Discussion·캡스톤 DOCX·HITL+베타 스캐폴드 | docs/beta/v1_5_PILOT_KICKOFF.md, docs/hardware/pixhawk_sdacs_hitl.md, docs/paper/latex/sections_4to7.tex, docs/report/SDACS_Capstone_Report_v200.docx, scripts/generate_capstone_report.py |
-| 2026-06-06 06:26 | `97a79a6` | chore(gitignore): scripts/recordings/ 추가 (Playwright 임시 녹화 출력) | .gitignore |
-| 2026-06-06 06:26 | `5902e37` | feat: ① 데모 영상 자동 녹화 + ② Pages 동기화 + ③ v1.5.0 가이드 + ④ Post-200 트랙 | docs/POST_200_DIRECTIONS.md, docs/V1_5_0_RELEASE_INSTRUCTIONS.md, docs/demo/sdacs_200phase_showcase.webm, scripts/record_showcase_demo.py |
-| 2026-06-06 01:08 | `6402352` | feat: 200 Phase 통합 showcase + 통합 회귀 + CI 갱신 | .github/workflows/sim-smoke.yml, docs/demo/all_phases_showcase.js, tests/e2e/test_simulator_200phase_integration.py |
-| 2026-06-06 00:47 | `05c8200` | docs: Phase 200 완료 마무리 — SDACS_API 388 항목 + CHANGELOG + STATUS_REPORT | CHANGELOG.md, STATUS_REPORT.md, docs/SDACS_API.md |
-| 2026-06-05 23:46 | `eed47c9` | feat(simulator): POST-UNIVERSE Phase 151-200 일괄 — Phase 200 = SDACS = 𝟏 (Unity) 도달 | docs/SIMULATOR_POST_UNIVERSE_PLAN.md, docs/simulator.html, docs/swarm_3d_simulator.html, package.json, swarm_3d_simulator.html, tests/e2e/test_simulator_post_universe.py … |
-| 2026-06-05 23:33 | `33be50b` | chore: package v1.3.0 → v1.4.0 + README 150 Phase + Universe OS 마일스톤 명시 | README.md, package.json |
-| 2026-06-05 23:32 | `117eab3` | feat(simulator): ULTIMATE Phase 111-150 일괄 — 150 Phase 전부 완료 (Phase 150 = Universe OS) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_ultimate111_150.py, visualization/swarm_3d_simulator.html |
-| 2026-06-05 23:28 | `a52c306` | feat(simulator): ULTIMATE Phase 101-110 (Performance Beyond) + ULTIMATE Plan 작성 | docs/SIMULATOR_ULTIMATE_PLAN.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_ultimate101_110.py, visualization/swarm_3d_simulator.html |
-| 2026-06-05 17:55 | `8921e1d` | chore: package v1.2.0 → v1.3.0 — STELLAR Phase 52-100 통합 (100 Phase 완료) | package.json |
-| 2026-06-05 17:54 | `4c0dcd6` | feat(simulator): STELLAR Phase 52-100 일괄 49개 — 100 Phase 전부 완료 | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_stellar.py, visualization/swarm_3d_simulator.html |
-| 2026-06-05 15:24 | `cf25c25` | feat: 통합 마감 사이클 — ROADMAP·v1.2 노트·STELLAR 플랜·데모 mission·STELLAR Phase 51 시드 | ROADMAP.md, docs/INDEX.md, docs/RELEASE_NOTES_v1.2.0.md, docs/SIMULATOR_STELLAR_PLAN.md, docs/demo/sample_search_rescue.sdacs-mission, docs/simulator.html … |
-| 2026-06-05 15:12 | `781cd25` | docs: 50 Phase 완료 후속 작업 — API 재생성·CHANGELOG·v1.2 빌드·논문 표 | CHANGELOG.md, docs/SDACS_API.md, docs/paper/SDACS_50_Phases_Results.tex, package.json |
-| 2026-06-05 14:38 | `c2ceda1` | feat(simulator): HYPER Phase 32-50 일괄 19개 완료 — MEGA 9 + HYPER 41 = 50 Phase 통합 | README.md, STATUS_REPORT.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_phase32_50.py … |
-| 2026-06-05 14:13 | `db2c4e4` | feat(simulator): HYPER Phase 18+26+29+30+31 일괄 — AR·Acoustic·Forecast·UTM Fed·PQC | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_ar_acoustic_etc.py, visualization/swarm_3d_simulator.html |
-| 2026-06-05 13:51 | `84641b5` | feat(simulator): HYPER Phase 13+16+22+24+25 일괄 — WebGPU·CRDT·Digital Twin·NOTAM·Battery Aging | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_5phases.py, visualization/swarm_3d_simulator.html |
-| 2026-06-05 13:29 | `6af3107` | feat(simulator): HYPER Phase 27 Counter-UAS + Phase 23 Wind Field Grid | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_cuas_wind.py, visualization/swarm_3d_simulator.html |
-| 2026-06-05 13:12 | `37ea702` | feat(simulator): HYPER Phase 21 적대 드론 정책 + Phase 28 Swarm Choreography | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_adversarial_choreo.py, visualization/swarm_3d_simulator.html |
-| 2026-06-05 12:54 | `487abd1` | feat(simulator): HYPER Phase 17 WebXR + Phase 19 Mission Recorder 공유 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_xr_mission.py, visualization/swarm_3d_simulator.html |
-| 2026-06-05 12:40 | `4b7df4d` | chore(gitignore): electron-builder 빌드 부산물 루트 main.js/preload.js 차단 | .gitignore |
-| 2026-06-05 12:38 | `c3fca2f` | feat(simulator): HYPER Phase 20 — AI Copilot 자연어 → ATC 명령 분해 | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_copilot.py, visualization/swarm_3d_simulator.html |
-| 2026-06-05 12:33 | `7c3de01` | feat(desktop): HYPER Phase 12 — Electron 멀티 윈도우 + IPC 시간축 동기 + ATC 브로드캐스트 | README.md, desktop/main.js, desktop/preload.js, docs/maritime_detection_simulator.html, docs/simulator.html, docs/swarm_3d_simulator.html … |
-| 2026-06-05 10:05 | `d16b6f2` | feat(simulator): HYPER Phase 14 시나리오 갤러리 + Phase 15 KO/EN/JA/ZH 4언어 | README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_gallery_i18n.py, visualization/swarm_3d_simulator.html |
-| 2026-06-05 09:46 | `d26d4d5` | feat(maritime): HYPER Phase 11 — 해양 ATC 명령 콘솔 동등 이식 | README.md, docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/test_maritime_atc.py, visualization/maritime_detection_simulator.html |
-| 2026-06-05 09:41 | `4ea7956` | docs: HYPER 플랜 Phase 10-50 + SDACS_API 92항목 자동문서 + RELEASE_GUIDE + 사본 동기화 | README.md, docs/RELEASE_GUIDE.md, docs/SDACS_API.md, docs/SIMULATOR_HYPER_PLAN.md, visualization/maritime_detection_simulator.html |
-| 2026-06-05 09:19 | `a77c3f3` | feat(self-feedback): 데스크탑 v1.1 빌드 + 해양 PWA + CI 3-job 강화 | .github/workflows/sim-smoke.yml, README.md, desktop/home.html, docs/manifest.webmanifest, docs/maritime_detection_simulator.html, docs/sdacs-sw.js … |
-| 2026-06-04 21:47 | `3db57ec` | feat(simulator): Phase 5 MIS + Phase 7 ANA + Phase 9 MOB — MEGA 플랜 9 Phase 전부 완료 | README.md, STATUS_REPORT.md, docs/manifest.webmanifest, docs/sdacs-sw.js, docs/simulator.html, docs/swarm_3d_simulator.html … |
-| 2026-06-04 20:13 | `6192d6d` | feat(simulator): Phase 4 CAM 카메라 모드 + Phase 8 AUD 환경 사운드 | README.md, STATUS_REPORT.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_cam_aud.py … |
-| 2026-06-04 20:03 | `9b8fe22` | feat(simulator): Phase 3 CIN 시네마틱 + Phase 6 INJ 장애 주입 일괄 구현 | README.md, STATUS_REPORT.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/test_simulator_cin_inj.py … |
-| 2026-06-04 19:41 | `547a5d1` | feat(simulator): Phase 2 TAC 전술 시각화 + MEGA 마스터 플랜 | README.md, STATUS_REPORT.md, docs/SIMULATOR_MEGA_PLAN.md, docs/SIMULATOR_PHASE_PLANS.md, docs/simulator.html, docs/swarm_3d_simulator.html … |
-| 2026-06-04 19:17 | `eecfd81` | feat(simulator): Phase 1 ATC 관제사 명령 콘솔 + 한국어 TTS + Web Audio 경보 | README.md, STATUS_REPORT.md, docs/SIMULATOR_ULTRA_PLAN.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html … |
-| 2026-06-04 18:40 | `002336b` | ci(desktop): tag push에서 항상 공개 Release 발행 + paths 필터 분리 | .github/workflows/desktop-build.yml |
-| 2026-06-04 18:33 | `6ff357e` | docs: 본 세션 PR 15개 main 머지 완료 반영 — ROADMAP·README·ULTRA_PLAN·STATUS_REPORT 일괄 갱신 | README.md, ROADMAP.md, STATUS_REPORT.md, docs/ULTRA_PLAN.md |
-| 2026-06-04 18:19 | `b9103ec` | Merge remote-tracking branch 'origin/main' into feat/roadmap-p730-p733 | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/maritime_eoir_adapter.md, docs/paper/contribution_outline.md, docs/poster/README.md … |
-| 2026-06-04 18:19 | `bd25cac` | Merge remote-tracking branch 'origin/main' into feat/p735-eoir-adapter | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md … |
-| 2026-06-04 18:18 | `61b8b22` | Merge remote-tracking branch 'origin/main' into feat/p734-multiview-sync | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md … |
-| 2026-06-04 18:17 | `fc582c0` | fix: swarm_3d HTML conflict 해소 — replay API + conflictPairs union | swarm_3d_simulator.html |
-| 2026-06-04 18:16 | `25b0396` | Merge remote-tracking branch 'origin/main' into feat/p734-replay-scrubber | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md … |
-| 2026-06-04 18:16 | `637e515` | fix: ROADMAP conflict 마커 잔존 정리 (base 채택) | ROADMAP.md |
-| 2026-06-04 18:15 | `bbd98eb` | Merge remote-tracking branch 'origin/main' into feat/p732-cpa-spatial-hash | README.md, ROADMAP.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md … |
-| 2026-06-04 18:15 | `09a5da6` | Merge remote-tracking branch 'origin/main' into feat/p731-layer-panel-merge | README.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md, docs/slides/README.md … |
-| 2026-06-04 18:14 | `e8a347c` | Merge remote-tracking branch 'origin/main' into docs/p701-p710-ultraplan | README.md, src/closed_net/airgap_mode.py |
-| 2026-06-04 16:12 | `f1d0378` | Merge remote-tracking branch 'origin/main' into feat/p735-eoir-adapter | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
-| 2026-06-04 16:13 | `899d6d2` | Merge remote-tracking branch 'origin/main' into feat/roadmap-p730-p733 | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
-| 2026-06-04 16:11 | `da9096b` | fix(P744): airgap 감사가 운영 API 엔드포인트 오탐 — blocklist만 검사 | src/closed_net/airgap_mode.py |
-| 2026-06-04 16:04 | `f8e6fd8` | Merge remote-tracking branch 'origin/main' into docs/p701-p710-ultraplan | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
-| 2026-06-04 16:06 | `744f305` | Merge remote-tracking branch 'origin/main' into feat/p731-layer-panel-merge | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
-| 2026-06-04 16:07 | `b55b421` | Merge remote-tracking branch 'origin/main' into feat/p732-cpa-spatial-hash | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
-| 2026-06-04 16:08 | `f7a29d1` | Merge remote-tracking branch 'origin/main' into feat/p734-replay-scrubber | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
-| 2026-06-04 16:08 | `2cae80c` | Merge remote-tracking branch 'origin/main' into feat/p734-multiview-sync | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
-| 2026-06-04 16:03 | `1d5bcaa` | Merge remote-tracking branch 'origin/main' into feat/track-e-test-coverage | .github/workflows/airgap-audit.yml, CONTRIBUTING.md, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py … |
-| 2026-06-04 16:01 | `337d835` | Merge remote-tracking branch 'origin/main' into feat/contributing-index-extras | .github/workflows/airgap-audit.yml, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py, config/scenario_params/uam/k_uam_grand_challenge.yaml … |
-| 2026-06-04 16:00 | `4b1c4e7` | Merge remote-tracking branch 'origin/main' into feat/paper-slides-eval | .github/workflows/airgap-audit.yml, README.md, ROADMAP.md, STATUS_REPORT.md, benchmarks/baselines/sdacs/adapter.py, config/scenario_params/uam/k_uam_grand_challenge.yaml … |
-| 2026-06-04 15:59 | `d278477` | Merge remote-tracking branch 'origin/main' into feat/final-polish | README.md, ROADMAP.md, benchmarks/baselines/sdacs/adapter.py, config/scenario_params/uam/k_uam_grand_challenge.yaml, docs/beta/README.md, docs/hardware/README.md … |
-| 2026-06-04 15:58 | `55193ee` | Merge remote-tracking branch 'origin/main' into feat/track-e-finale | README.md, ROADMAP.md, benchmarks/baselines/sdacs/adapter.py, docs/beta/README.md, docs/hardware/README.md, docs/hardware/environmental_test.md … |
-| 2026-06-04 15:47 | `cf27396` | Merge remote-tracking branch 'origin/main' into feat/track-b-paper-master | README.md, benchmarks/baselines/sdacs/adapter.py, results/comparison/01_corridor_crossing/cbs/seed42.json, results/comparison/01_corridor_crossing/cbs/seed43.json, results/comparison/01_corridor_crossing/cbs/seed44.json, results/comparison/01_corridor_crossing/cbs/seed45.json … |
-| 2026-06-04 15:19 | `9d9baa9` | fix: SDACS adapter LAANC 지연 분포 [80,150] → [80,120] (테스트 정합) | benchmarks/baselines/sdacs/adapter.py |
-| 2026-06-04 15:07 | `d66dcc4` | fix: main 병합 충돌 마커 해소 — a576460 botched merge 복구 | README.md, ROADMAP.md, api/auth.py, api/fastapi_server.py, benchmarks/baselines/sdacs/adapter.py, results/comparison/COMPARISON_REPORT.md … |
-| 2026-06-04 11:09 | `32e00be` | feat: 울트라플랜 대규모 실행 — Track A 실기·B 후반·C 베타·E PoC·F 산학 일괄 | ROADMAP.md, docs/beta/README.md, docs/hardware/README.md, docs/hardware/environmental_test.md, docs/hardware/failsafe_logic.md, docs/hardware/fmea_report.md … |
-| 2026-06-04 12:28 | `4fb5b86` | fix(P743): mypy dict-item — overhead_pct float ↔ int 충돌 해결 | src/quantum/pqc_telemetry.py |
-| 2026-06-04 12:17 | `d2f8a22` | feat: 울트라플랜 SP4-5 일괄 — P740/742/743/744/750/751/754 + Track E/F 확장 | ROADMAP.md, config/scenario_params/uam/k_uam_grand_challenge.yaml, docs/track_e/p743_pqc_overhead.md, docs/track_f/p754_mentoring.md, src/applications/__init__.py, src/applications/agri_spray.py … |
-| 2026-06-04 13:02 | `996d322` | feat: 울트라플랜 최종 마무리 — STATUS_REPORT + 차트·CI·CHANGELOG | .github/workflows/airgap-audit.yml, ROADMAP.md, STATUS_REPORT.md, docs/CHANGELOG.md, docs/poster/assets/pareto_front.png, docs/poster/assets/results_nmr_msd_bar.png … |
-| 2026-06-04 13:51 | `7376e33` | feat: P707 §4-§7 LaTeX + P710 Marp 슬라이드 + P742 평가기 + README 진척 | README.md, ROADMAP.md, docs/paper/latex/sections_4to7.tex, docs/slides/donggang_2026_ko.md, scripts/uam_evaluator.py, tests/track_e/test_uam_evaluator.py |
-| 2026-06-04 14:18 | `d21ad22` | feat: docs INDEX + UAM 시나리오 2종 + 알고리즘 비교 + CONTRIBUTING/PR 정리 | CONTRIBUTING.md, config/scenario_params/uam/evtol_emergency.yaml, config/scenario_params/uam/urban_dense.yaml, docs/INDEX.md, docs/PR_CLEANUP.md, scripts/compare_baselines_ext.py |
-| 2026-06-04 14:51 | `ec6f9fe` | docs: README 최신화 — Phase 755 배지 + 7트랙 진척 현황 표 | README.md |
-| 2026-06-04 14:48 | `0382904` | ci: re-trigger (flaky adapter encoding + audit.sh mode, PR #93 same main success) | - |
-| 2026-06-04 14:38 | `2081602` | docs: 종합 점검 보고서 (HEALTH_CHECK) — 소스·시뮬레이터·배포 위치 | docs/HEALTH_CHECK.md |
-| 2026-06-04 08:22 | `0ad4e1e` | docs: SDACS Ultra Plan + P701 논문 outline + P710 포스터/슬라이드 스켈레톤 | ROADMAP.md, docs/ULTRA_PLAN.md, docs/paper/contribution_outline.md, docs/poster/README.md, docs/poster/donggang_2026_ko.md, docs/slides/README.md |
-| 2026-06-03 23:19 | `3e020ee` | feat(P731): 공역 레이어 패널 중복 통합 — layer-* 제거, tg-* 단일 소스화 | ROADMAP.md, swarm_3d_simulator.html |
-| 2026-06-04 06:22 | `972a3d3` | feat(P732): 대규모 CPA 충돌예측 공간 해시 복원 (B2) | ROADMAP.md, swarm_3d_simulator.html |
-| 2026-06-04 06:29 | `7138f1c` | ci: re-trigger smoke (flaky maritime C9, main pass + PR #88 pass) | - |
-| 2026-06-04 06:25 | `87ebe64` | feat(P734): 리플레이 타임라인 키보드 스크러버 + 외부 API | ROADMAP.md, swarm_3d_simulator.html |
-| 2026-06-04 09:44 | `cf64eec` | feat(P734): 멀티뷰 동기화 — 분석뷰 차트에 시간축 cursor | ROADMAP.md, swarm_3d_simulator.html |
-| 2026-06-04 10:07 | `6620d54` | feat(P735): 해양 EO/IR 어댑터 패턴 — 외부 SDK hook + synth fallback | ROADMAP.md, docs/maritime_eoir_adapter.md, maritime_detection_simulator.html |
-| 2026-06-03 22:07 | `34ab0c3` | test: ws_bridge fake mock을 새 SwarmSimulator 인터페이스에 맞춤 | tests/test_ws_bridge.py |
-| 2026-06-03 21:57 | `c072d6c` | feat: P733 ws_bridge LIVE 모드 + ws_bridge 인터페이스 정합성 수정 | simulation/ws_bridge.py, swarm_3d_simulator.html |
-| 2026-06-03 21:50 | `1e80c65` | feat: ROADMAP 진행 현황 표 + Track E/F 신설 + P730 UI i18n(KO/EN) | ROADMAP.md, swarm_3d_simulator.html |
-| 2026-06-03 19:39 | `426b9e7` | ci: desktop-build setup-node 캐시 비활성화 (lock 파일 부재로 실패) | .github/workflows/desktop-build.yml |
-| 2026-06-03 13:12 | `3295124` | feat: 병렬 세션의 고유 작업 통합 (Track A SW + P706 결과 + 벤치마크 schema) | benchmarks/_schema/manifest.schema.json, results/p706_comparison_3sc_5seed.csv, results/p706_summary.json, scripts/compare_baselines.py, simulation/environmental_scenario.py, simulation/failsafe_manager.py … |
-| 2026-06-03 12:39 | `cd82157` | Merge remote-tracking branch 'origin/claude/dazzling-maxwell-5AnBo' | .github/workflows/security.yml, README.md, ROADMAP.md, db/migrations/001_initial_schema.sql, helm/sdacs/.helmignore, helm/sdacs/Chart.yaml … |
-| 2026-06-03 12:32 | `b8bb893` | feat: SDACS Electron 데스크탑 앱 — .bat 런처 폐기 + 3-OS 자동 빌드 | .github/workflows/desktop-build.yml, .gitignore, README.md, ROADMAP.md, desktop/home.html, desktop/main.js … |
-| 2026-06-03 12:13 | `d510a1c` | fix: OCaml type_safe_protocol에 'type message' 정의 추가 (CI 3.10/3.11/3.12 그린화) | src/ocaml/type_safe_protocol.ml |
-| 2026-06-03 12:01 | `73d48f8` | feat: P730(B5) 해양 시뮬레이터 UI 국제화(KO/EN 토글) | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
-| 2026-06-03 11:57 | `2f43895` | feat: P729(B3) 대규모 모드 글로우 인스턴싱 + ROADMAP Track D 신설 | ROADMAP.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-06-03 11:51 | `b113fbe` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | README.md, ROADMAP.md, api/auth.py, api/fastapi_server.py, benchmarks/baselines/sdacs/adapter.py, main.py … |
-| 2026-06-03 11:44 | `4173b45` | docs: D2 해양 시뮬레이터 기술 문서 + README 링크 | README.md, docs/maritime_detection_technical.md |
-| 2026-06-03 11:42 | `4a7ec26` | feat: B4 드론 다중 선택(Shift+클릭) + 집계 패널 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/smoke_sim.mjs, visualization/swarm_3d_simulator.html |
-| 2026-06-03 11:36 | `c9493a2` | feat: 두 시뮬레이터 상호 네비게이션 링크(군집↔해양) | docs/maritime_detection_simulator.html, docs/simulator.html, docs/swarm_3d_simulator.html, maritime_detection_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-06-03 11:34 | `74d002a` | feat: C9 해양 시나리오별 검증 기록 + CSV 내보내기 | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
-| 2026-06-03 11:30 | `abc3915` | perf: O2→B10 CPA 라벨 스프라이트 풀 재사용 (GC 압력 해소) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/TEST_LOG.md, visualization/swarm_3d_simulator.html |
-| 2026-06-03 11:28 | `00a94ca` | feat: B6 대규모 성능 측정 — draw call·FPS·삼각형 HUD + _sdacs.perf API | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/smoke_sim.mjs, visualization/swarm_3d_simulator.html |
-| 2026-06-03 11:24 | `a638221` | feat: 해양 EO/IR 카메라 뷰(C3) + 해안선·항로·선박 3D 디테일(C7) | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
-| 2026-06-03 11:02 | `93cafb2` | feat: 해양 시뮬레이터 PNG/CSV 리포트(C6) + README 해양 섹션(D2) | README.md, docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
-| 2026-06-03 10:59 | `9540f48` | feat: 해양 시나리오 3종(C8) + 스왐 경로효율 per-leg 수정(O3→B9) | docs/simulator.html, docs/swarm_3d_simulator.html, maritime_detection_simulator.html, swarm_3d_simulator.html, tests/e2e/TEST_LOG.md, visualization/swarm_3d_simulator.html |
-| 2026-06-03 10:56 | `88e76b4` | feat: 해양 시뮬레이터 실용성 강화 — C1 레이더 물리 + C2 AIS·레이더 융합 + C4 COLREG + C5 트랙 상세 | docs/maritime_detection_simulator.html, maritime_detection_simulator.html, tests/e2e/smoke_maritime.mjs |
-| 2026-05-29 20:34 | `a2bbc54` | fix: numpy 배열 선언에 shape-무관 타입주석 (Python 3.10 mypy 그린화) | src/boids_swarm.py, src/sensor_fusion.py |
-| 2026-05-29 20:09 | `e4172d3` | fix: test_ws_bridge가 Python 3.10에서 깨지던 asyncio 루프 패턴 교체 | tests/test_ws_bridge.py |
-| 2026-05-29 19:38 | `01495f7` | fix: BatteryPredictor.should_rtl가 numpy bool 대신 파이썬 bool 반환 | simulation/battery_predictor.py |
-| 2026-05-29 19:29 | `3c63e82` | fix: 누락 폴리글랏 레퍼런스 파일 전체 복원 (118개 추가, 총 147) | src/ada/safety_critical.adb, src/asm/crc32_checksum.asm, src/clojure/event_stream.clj, src/cpp/apf_simd.cpp, src/cpp/formation_gan_engine.cpp, src/cpp/hil_physics.cpp … |
-| 2026-05-29 19:08 | `fafe3cb` | fix: 누락된 폴리글랏 참조 파일 29개 복원 (CI test 잡 그린화) | src/ada/tmr_voter_v2.adb, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj, src/cobol/legacy_atc_bridge.cob, src/cpp/particle_filter.cpp, src/dart/flutter_dashboard.dart … |
-| 2026-05-29 18:35 | `e6e75ca` | test: 해양 시뮬레이터 헤드리스 스모크 + CI 등록 + 랜딩 카드 | .github/workflows/sim-smoke.yml, docs/index.html, tests/e2e/smoke_maritime.mjs |
-| 2026-05-29 10:20 | `8ed7fc3` | feat: 해양 소형선 감지·식별 전용 시뮬레이터 (maritime_detection_simulator.html) | .github/workflows/deploy-pages.yml, README.md, docs/maritime_detection_simulator.html, maritime_detection_simulator.html |
-| 2026-05-29 10:14 | `208974a` | docs: 스모크 테스트 로그 + 버그 리스트(TEST_LOG.md) + 미해결 항목 코드 주석 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/TEST_LOG.md, visualization/swarm_3d_simulator.html |
-| 2026-05-29 09:27 | `e57192d` | feat: 각 드론 세부 쿼드콥터 모델링 (본체 허브+4암+4링+회전 프롭) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-05-29 09:23 | `3a59a91` | chore: package.json 추적(강제) — 로컬 npm 실행 스크립트 활성화 | package.json |
-| 2026-05-29 09:23 | `a831ba3` | feat: 로컬 실행/빌드 지원 — serve.py 런처 + npm 스크립트 + 오프라인 벤더링 | README.md, scripts/serve.py, scripts/vendor_three.sh |
-| 2026-05-29 09:21 | `bb9c50f` | feat: 외부 드론·조류 인식 가시화 + 탐지 스로틀 시간기반 안정화 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-06-03 11:55 | `0fd32dd` | fix: numpy 2.4.x mypy assignment 오류 type: ignore 추가 | src/boids_swarm.py, src/sensor_fusion.py |
-| 2026-06-03 11:42 | `bea5a20` | fix: OCaml type message 추가 + ws_bridge 이벤트루프 수정 | src/ocaml/type_safe_protocol.ml, tests/test_ws_bridge.py |
-| 2026-06-03 11:31 | `d3b5837` | fix: ruff I001 import 정렬 수정 (src/monitoring/metrics.py) | src/monitoring/metrics.py |
-| 2026-06-02 09:18 | `d84bb85` | docs: update README with Phase 521-660 multi-language coverage and latest stats | README.md |
-| 2026-06-02 10:20 | `main` | docs: README 최신 내용으로 업데이트 (Phase 521-660 다중 언어 반영, 배지/통계 갱신) | README.md |
-| 2026-06-02 09:17 | `c5b2111` | feat: add 68 multi-language stub files and fix BatteryPredictor numpy bool | simulation/battery_predictor.py, src/ada/safety_critical.adb, src/ada/tmr_voter_v2.adb, src/asm/crc32_checksum.asm, src/assembly/kalman_filter.asm, src/clojure/event_sourcing_v2.clj … |
-| 2026-06-02 08:38 | `687ff34` | fix: typing-extensions 4.12.2→4.15.0 (pydantic 2.13.4 호환성) | requirements.lock.txt |
-| 2026-06-02 08:36 | `55169dd` | fix: requirements.lock.txt에 fastapi 스택 추가 (CI test_auth_p712 ERROR 수정) | requirements.lock.txt |
-| 2026-06-02 08:34 | `a1c5006` | fix: fastapi를 requirements.txt에 추가 + test_auth_p712 import guard (CI fix) | requirements.txt, tests/test_auth_p712.py |
-| 2026-06-02 08:26 | `785d450` | chore: 500드론 부하 테스트 결과 추가 (P717 참고용) | results/load_test_500drones.json |
-| 2026-06-02 08:25 | `4861860` | feat: P706 W2 SDACS 어댑터 + P712 OAuth2/RBAC + P717 부하 테스트 | ROADMAP.md, api/auth.py, api/fastapi_server.py, benchmarks/baselines/sdacs/adapter.py, results/comparison/COMPARISON_REPORT.md, results/comparison/comparison_report.json … |
-| 2026-05-29 08:55 | `21df76e` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | - |
-| 2026-05-29 08:55 | `e86c4ae` | docs: README에 라이브 사이트(랜딩) 링크 추가 + 시뮬레이터 기능 갱신 | README.md |
-| 2026-05-29 08:44 | `a5277c3` | feat: DnI 식별 정확도 모델 — 클래스별 정확도 + 오분류 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-05-29 07:58 | `2e50ab6` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | api/fastapi_server.py, benchmarks/baselines/cbs/adapter.py, benchmarks/baselines/orca/adapter.py, benchmarks/baselines/sdacs/adapter.py, benchmarks/baselines/vo/adapter.py, chatbot/engine/llm_engine.py … |
-| 2026-05-29 07:54 | `afa66c2` | fix: code-reviewer 지적 반영 (HIGH 4 + MEDIUM/LOW) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-05-29 07:42 | `a0eefaf` | fix: 미정의 resetConflictViz 로드 크래시 수정 + 충돌위험 히트맵 (Bundle 9) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-05-29 07:36 | `44de98a` | fix: docs/index.html 데모 CTA를 v2 → 메인 시뮬레이터(simulator.html)로 교체 | docs/index.html |
-| 2026-05-28 21:03 | `5af1f16` | feat: 외부 탐지·식별(조류·비협조 드론) + ATC 통제드론 쿼드콥터 비주얼 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/smoke_sim.mjs, visualization/swarm_3d_simulator.html |
-| 2026-05-28 20:54 | `df7cce2` | docs: simulation/drone_agent.py 핵심 함수 docstring 보강 (Bundle 6 / 부채) | simulation/drone_agent.py |
-| 2026-05-28 20:52 | `83ff46e` | feat: 단축키 + 도움말 오버레이 + 패널상태 저장 (Bundle 5 / F) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-05-28 20:50 | `b774a77` | feat: 분리간격 위반 경보 + 단계별 조치 아이콘 (Bundle 4 / A) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-05-28 20:47 | `38014bc` | feat: 대규모 프러스텀 컬링·LOD + 성능 HUD (Bundle 3) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-05-28 20:45 | `fb75f43` | feat: 세션 리포트 HTML/MD 내보내기 (Bundle 2) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-05-28 20:42 | `160f9fb` | feat: 뷰 프리셋·추적캠 + 드론 검색/필터 (Bundle 1) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-05-28 20:15 | `312bcb7` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | .claude/update-changelog.py, CLAUDE.md, README.md, api/fastapi_server.py, archive/polyglot/ada/safety_critical.adb, archive/polyglot/ada/tmr_voter_v2.adb … |
-| 2026-05-28 20:06 | `558145b` | feat: 대규모 GPU 군집 InstancedMesh (Phase 2) — 1k~10k 단일 드로우콜 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, tests/e2e/smoke_sim.mjs, visualization/swarm_3d_simulator.html |
-| 2026-05-28 19:40 | `0523742` | test: 시뮬레이터 헤드리스 스모크 + CI (Phase 5) + README 기능 반영 | .github/workflows/sim-smoke.yml, README.md, tests/e2e/smoke_sim.mjs |
-| 2026-05-28 19:37 | `c58711d` | feat: 리플레이·타임라인 (Phase 3) — 상태 레코더 + 스크러버 재생 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-05-28 19:34 | `412ab36` | feat: 리포트·내보내기 (Phase 4) — 4분할 PNG / CSV / KPI 복사 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-05-28 19:30 | `d5a2ef0` | feat: 상세 패널/툴팁 확장 + Phase 1 잔여(회랑·고도레이어 토글, CPA 라벨, Q2 오버레이) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-05-28 15:58 | `c3db825` | docs: simulation/simulator.py 주석 샘플 — 핵심 함수/클래스 docstring 보강 | simulation/simulator.py |
-| 2026-05-28 15:55 | `4f0fe99` | feat: 충돌·공역 관제 시각화 + 웨이포인트·이동경로 (Phase 1) | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-05-28 15:40 | `71e34fd` | docs: Codex 핸드오프용 SDACS 전체 상세 실행 계획 추가 | docs/CODEX_PLAN.md |
-| 2026-05-28 15:36 | `7d7b1a4` | feat: 시뮬레이터 4분할 분석 뷰(2x2 대시보드) 추가 | docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-05-28 14:56 | `0611b62` | feat: 드론 라이브 상태 툴팁 + 클릭 상세 패널 추가 및 메인 시뮬레이터 진입점 일원화 | .github/workflows/deploy-pages.yml, README.md, docs/simulator.html, docs/swarm_3d_simulator.html, swarm_3d_simulator.html, visualization/swarm_3d_simulator.html |
-| 2026-05-20 13:50 | `593745d` | ci: trigger rerun to verify Python 3.10 stability | - |
-| 2026-05-19 08:37 | `3a9ff98` | ci: drop --require-hashes from canonical_hash workflow | .github/workflows/canonical_hash.yml |
-| 2026-05-19 08:28 | `b15d590` | fix: sort imports in drone_agent.py to satisfy CI ruff I001 | simulation/drone_agent.py |
-| 2026-05-19 08:24 | `aeb710a` | feat: integrate 3 RuView-inspired modules for outdoor swarm context | simulation/csi_attention_fusion.py, simulation/meridian_calibrator.py, simulation/passive_rf_detector.py, tests/test_ruview_integrations.py |
-| 2026-05-18 22:19 | `13b987f` | fix: resolve shallow copy bug in NAS and boost test coverage to 87% | simulation/neural_architecture_search.py, tests/analytics/test_metrics.py, tests/test_onboard_bridge.py, tests/test_ws_bridge.py |
-| 2026-05-18 21:07 | `05d9e44` | perf: enable full GPU power and parallel test execution | config/monte_carlo.yaml, pyproject.toml, simulation/apf_engine/__init__.py, simulation/apf_engine/apf_gpu.py |
-| 2026-04-27 15:58 | `810611f` | Merge remote-tracking branch 'origin/main' into claude/atc-auto-batch-20260425-180304 | .gitignore, README.md, SECURITY.md, benchmarks/CITATION.bib, benchmarks/DATASET_CARD.md, benchmarks/LICENSE … |
-| 2026-04-19 10:49 | `46ce01a` | fix: IntegrationTestResult/Outcome alias 추가 (import 호환성) | simulation/integration_test_framework.py |
-| 2026-04-19 10:46 | `eb57c87` | merge: 원격 린터 변경과 회귀 복구 병합 | .claude/launch.json, .dockerignore, .github/workflows/ci.yml, .github/workflows/deploy-pages.yml, .gitignore, .pre-commit-config.yaml … |
-| 2026-04-19 10:45 | `c18da0c` | fix: restore 커밋(6510cb3) 회귀 7건 복구 + 테스트 44→0 실패 | .github/workflows/ci.yml, CLAUDE.md, simulation/flight_plan_validator.py, simulation/integration_test_framework.py, simulation/multi_agent_coordination.py, simulation/simulator.py … |
-| 2026-04-09 18:16 | `54ddcb7` | docs: 전체 작업 백업 문서 생성 (2026-04-02) | docs/WORK_BACKUP_2026-04-02.md |
-| 2026-04-06 16:46 | `0c9dcea` | fix: CLAUDE.md 테스트 수 동기화 + CI ops-report 동적 수집 | .github/workflows/ci.yml, CLAUDE.md |
-| 2026-04-02 17:28 | `3bddf7c` | docs: README 시나리오 결과 테이블 + CI/CD 파이프라인 사양 추가 | README.md |
-| 2026-04-02 12:15 | `a99203a` | docs: README 전체 시스템 정밀 기술 사양 5개 섹션 추가 | README.md |
-| 2026-04-02 | `c744c51` | fix: CBS 플래너 타임아웃 추가 + 테스트 실패 2건 수정 | simulation/cbs_planner/cbs.py, simulation/config_schema.py, tests/test_phase16_17.py |
-| 2026-04-02 | `bc02fef` | docs: README 전체 시스템 정밀 기술 사양 11개 섹션 추가 | README.md |
-| 2026-04-02 | `16fccd8` | merge: fix-test-failures-50 + code-review-8fv1B 브랜치 병합 | 13 files |
-| 2026-04-01 22:11 | `886aadf` | fix: DeprecationWarning 68건 → 0건 + pytest 수집 경고 제거 | simulation/autonomous_landing.py, simulation/integration_test_framework.py, tests/test_phase300_310.py |
-| 2026-04-01 12:20 | `9c18568` | fix: 대규모 테스트 실패 50건 → 0건 수정 | config/monte_carlo.yaml, simulation/apf_engine/apf.py, simulation/multi_agent_coordination.py, src/airspace_control/agents/drone_profiles.py, src/airspace_control/agents/drone_state.py, tests/test_apf.py … |
-| 2026-04-01 08:07 | `bec9f89` | fix: 의존성 버전 동기화 + DeprecationWarning 수정 | pyproject.toml, simulation/waypoint_optimizer.py |
-| 2026-03-31 22:04 | `671990e` | fix: 충돌 해결률(CR) 0% 버그 수정 — CONFLICT/NEAR_MISS 이벤트 누락 | simulation/simulator.py |
-| 2026-03-31 20:22 | `cee81bc` | fix: 비행 계획 검증기 최소 고도 불일치 수정 (10m→30m) | simulation/flight_plan_validator.py |
-| 2026-03-31 19:41 | `824c7f4` | perf: 성능 최적화 4건 — 캐시/해싱/큐/윈도우 개선 | simulation/simulator.py, simulation/spatial_hash.py, src/airspace_control/controller/airspace_controller.py |
-| 2026-03-31 19:35 | `be11619` | refactor: 핵심 함수 테스트 17개 추가 + 매직 넘버 상수화 | simulation/simulator.py, tests/test_core_functions.py |
-| 2026-03-31 19:31 | `e821fe7` | fix: 잔여 broad exception 3건 → 특정 예외 타입으로 교체 | simulation/decision_tree_atc.py, simulation/event_architecture.py, simulation/regulation_updater.py |
-| 2026-03-31 19:28 | `c7cbef3` | test: CBS 플래너 edge case 테스트 11개 추가 (8→19) | tests/test_cbs.py |
-| 2026-03-31 19:24 | `edadaff` | ci: CI/CD 통합 및 pytest-timeout 설정 | .github/workflows/ci.yml, .github/workflows/python-app.yml, pyproject.toml, requirements.txt |
-| 2026-03-31 19:21 | `fd8c5c1` | deps: pydantic>=2.0 추가 — config_schema.py YAML 검증에 필수 | requirements.txt |
-| 2026-03-31 19:20 | `e0703ae` | fix: 테스트 실패 20건 → 0건 수정 + 잔여 코드 품질 개선 | chatbot/app.py, main.py, simulation/batch_simulator.py, simulation/cbs_planner/cbs.py, simulation/simulator.py, simulation/voronoi_airspace/voronoi_partition.py … |
-| 2026-03-31 18:33 | `b32e122` | docs: README 대규모 편집 — 품질 개선 및 일관성 확보 | README.md |
+> 전체 커밋 로그 331건은 [`CHANGELOG.md`](CHANGELOG.md#커밋-로그-자동-기록) 에 보존됩니다. 위 표는 최근 10건 발췌입니다.

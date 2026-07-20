@@ -305,19 +305,62 @@ require_admin = require_role(Role.ADMIN)
 @dataclass
 class _UserRecord:
     sub: str
-    password_hash: str
+    salt: bytes
+    password_hash: bytes
     role: Role
 
 
-def _hash_pw(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+# 보안: 단일 라운드 SHA-256 은 GPU 무차별 대입에 무력하므로 솔트 + PBKDF2 스트레칭
+# 으로 대체. 라운드 수는 OWASP 권고치. stdlib 전용 설계 제약(모듈 docstring) 유지.
+_PBKDF2_ROUNDS = 600_000
 
 
-_USERS: dict[str, _UserRecord] = {
-    "admin": _UserRecord("admin", _hash_pw("admin123"), Role.ADMIN),
-    "operator": _UserRecord("operator", _hash_pw("op123"), Role.OPERATOR),
-    "viewer": _UserRecord("viewer", _hash_pw("view123"), Role.VIEWER),
+def _hash_pw(password: str, salt: bytes) -> bytes:
+    return hashlib.pbkdf2_hmac("sha256", password.encode(), salt, _PBKDF2_ROUNDS)
+
+
+# 보안: 기본 자격증명은 개발 편의용. SDACS_PROD=1 에서는 환경변수 주입을 강제해
+# 기본 비밀번호로 운영에 배포되는 사고를 차단한다 (_resolve_jwt_secret 과 동일 패턴).
+_DEV_DEFAULT_PASSWORDS = {
+    "admin": "admin123",
+    "operator": "op123",
+    "viewer": "view123",
 }
+
+
+def _resolve_password(username: str) -> str:
+    env_key = f"SDACS_{username.upper()}_PASSWORD"
+    password = os.environ.get(env_key)
+    prod = os.environ.get("SDACS_PROD", "").strip().lower() in {"1", "true", "yes", "on"}
+    if password:
+        return password
+    if prod:
+        raise RuntimeError(
+            f"{env_key} 환경변수가 SDACS_PROD 모드에서 필수입니다. "
+            "기본 개발 자격증명은 운영 환경에서 사용할 수 없습니다."
+        )
+    LOGGER.warning(
+        "⚠ %s 미설정 — 개발용 기본 자격증명 사용 중. "
+        "운영 배포 시 SDACS_PROD=1 + 강한 비밀번호 설정 필수.",
+        env_key,
+    )
+    return _DEV_DEFAULT_PASSWORDS[username]
+
+
+def _build_users() -> dict[str, _UserRecord]:
+    roles = {"admin": Role.ADMIN, "operator": Role.OPERATOR, "viewer": Role.VIEWER}
+    users: dict[str, _UserRecord] = {}
+    for name, role in roles.items():
+        salt = os.urandom(16)
+        users[name] = _UserRecord(name, salt, _hash_pw(_resolve_password(name), salt), role)
+    return users
+
+
+_USERS: dict[str, _UserRecord] = _build_users()
+
+# 미등록 사용자 로그인 시도에도 동일한 PBKDF2 비용을 지불하기 위한 더미 자격.
+_USER_ENUM_GUARD_SALT = os.urandom(16)
+_USER_ENUM_GUARD_HASH = _hash_pw(uuid.uuid4().hex, _USER_ENUM_GUARD_SALT)
 
 
 # ---------------------------------------------------------------------------
@@ -356,7 +399,12 @@ auth_router = APIRouter(prefix="/auth", tags=["auth"])
 async def issue_token(body: TokenRequest) -> TokenResponse:
     """Password-grant: exchange credentials for a JWT."""
     user = _USERS.get(body.username)
-    if user is None or user.password_hash != _hash_pw(body.password):
+    # 보안: 사용자 부재 시에도 더미 해시를 계산해 사용자 열거(timing) 를 막고,
+    # 비교는 상수 시간 hmac.compare_digest 로 수행한다.
+    salt = user.salt if user is not None else _USER_ENUM_GUARD_SALT
+    candidate = _hash_pw(body.password, salt)
+    expected = user.password_hash if user is not None else _USER_ENUM_GUARD_HASH
+    if user is None or not hmac.compare_digest(candidate, expected):
         _audit(body.username, "", "login", outcome="denied")
         raise HTTPException(status_code=401, detail="invalid credentials")
     token = create_token(user.sub, user.role)

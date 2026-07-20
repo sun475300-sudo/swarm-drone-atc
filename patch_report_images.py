@@ -15,7 +15,9 @@ if 'def add_img(' in src:
 
 helper_code = (
     "\n"
-    "IMG_DIR = r'C:\\Users\\sun47\\Desktop\\swarm-drone-atc\\.claude\\worktrees\\stupefied-hugle\\v5_images'\n"
+    "import os\n"
+    "REPO_ROOT = os.path.dirname(os.path.abspath(__file__))\n"
+    "IMG_DIR = os.path.join(REPO_ROOT, 'v5_images')\n"
     "IMG = {\n"
     "    'g0':  'c6f3b3d148e074da06cbee1afedfc120699640e4.png',\n"
     "    'g1':  '78cb17427a601bb078076de230d1279ef505df5a.png',\n"

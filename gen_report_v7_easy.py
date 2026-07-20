@@ -116,7 +116,8 @@ def add_term(term, easy_explanation):
 
 
 # ── 이미지 매핑 ─────────────────────────────────────
-IMG_DIR = r'C:\Users\sun47\Desktop\swarm-drone-atc\.claude\worktrees\stupefied-hugle\v5_images'
+REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
+IMG_DIR = os.path.join(REPO_ROOT, "v5_images")
 IMG = {
     'g0':  'c6f3b3d148e074da06cbee1afedfc120699640e4.png',
     'g1':  '78cb17427a601bb078076de230d1279ef505df5a.png',
@@ -948,6 +949,8 @@ r.font.color.rgb = RGBColor(0x77, 0x77, 0x77)
 # ═══════════════════════════════════════════════════
 # 저장
 # ═══════════════════════════════════════════════════
-path = r'C:\Users\sun47\Desktop\SDACS_최종보고서_v7_일반인용.docx'
+OUT_DIR = os.path.join(REPO_ROOT, "docs", "report")
+os.makedirs(OUT_DIR, exist_ok=True)
+path = os.path.join(OUT_DIR, "SDACS_Final_Report_v7_Easy.docx")
 doc.save(path)
 print(f'Saved: {path}')

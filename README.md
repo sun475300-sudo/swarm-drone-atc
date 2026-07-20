@@ -18,7 +18,7 @@
 [![E2E](https://img.shields.io/badge/E2E-295_collected-22c55e?style=for-the-badge&logo=playwright&logoColor=white)](tests/e2e/)
 [![Roadmap](https://img.shields.io/badge/Roadmap_691--755-94%25-brightgreen?style=for-the-badge&logo=checkmarx)](ROADMAP.md)
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/Python_tests-9%2C156_collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Python_tests-9%2C591_collected-success?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![v1.5.0](https://img.shields.io/badge/Desktop-v1.5.0_(Win%2FMac%2FLinux)-7c3aed?style=for-the-badge&logo=electron&logoColor=white)](docs/V1_5_0_RELEASE_INSTRUCTIONS.md)
 [![Modules](https://img.shields.io/badge/Python_files-1%2C118-9C27B0?style=for-the-badge&logo=python&logoColor=white)](#project-structure--프로젝트-구조)
 [![Tracks](https://img.shields.io/badge/Tracks_A--F-6_parallel-FF5722?style=for-the-badge&logo=github&logoColor=white)](ROADMAP.md)
@@ -98,7 +98,7 @@ python scripts/serve.py                             # 웹 시뮬레이터 → lo
 
 ---
 
-> **🌟 최신 업데이트 (2026-07-14 · 8·9·10차 종합 감사 + 의존성 스택 현행화)** — `main` 은 dependabot 일괄 병합으로 **dash 4.1 · plotly 6.9 · pytest 9.1.1 · urllib3 2.7.0 · anyio 4.14.2** 등 최신 스택에 동기됐습니다. 🔍 **8·9·10차 정밀 감사**: 문서 수치 드리프트(배지·API 성숙도 112/80·시뮬 사본 크기·`federation_*` 17 모듈·테스트 수집 **9,156**)를 헤드리스/CLI 실측 기준으로 전수 정정, 검증-후-격상으로 production API 94→**112** 반영. 🛠 **회복**: `pytest-xdist` 요구사항 누락(클린 설치 시 pytest 불가)·maritime `visualization/` 사본 stale 복구. ✅ `main` CI 는 **2026-07-04 이후 연속 GREEN** (nightly ci.yml 실측, 최근 07-13 success). 📦 시뮬레이터 6 사본 md5 동기 유지.
+> **🌟 최신 업데이트 (2026-07-14 · 8·9·10차 종합 감사 + 의존성 스택 현행화)** — `main` 은 dependabot 일괄 병합으로 **dash 4.1 · plotly 6.9 · pytest 9.1.1 · urllib3 2.7.0 · anyio 4.14.2** 등 최신 스택에 동기됐습니다. 🔍 **8·9·10차 정밀 감사**: 문서 수치 드리프트(배지·API 성숙도 112/80·시뮬 사본 크기·`federation_*` 17 모듈·테스트 수집 **9,591**)를 헤드리스/CLI 실측 기준으로 전수 정정, 검증-후-격상으로 production API 94→**112** 반영. 🛠 **회복**: `pytest-xdist` 요구사항 누락(클린 설치 시 pytest 불가)·maritime `visualization/` 사본 stale 복구. ✅ `main` CI 는 **2026-07-04 이후 연속 GREEN** (nightly ci.yml 실측, 최근 07-13 success). 📦 시뮬레이터 6 사본 md5 동기 유지.
 >
 > 📜 이전 정점 — **Phase 500 SDACS Centennial 선언** (Phase 1-500 통합 회고 + 영구 아카이브 동결 + 100년 비전), Standards & Policy(461-472)·Continuum(481-500)·Education(468) 트랙 상세는 [CHANGELOG.md](CHANGELOG.md)를 참조하세요.
 
@@ -300,7 +300,7 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 | GitHub main 동기화 | **`origin/main` = `a4fd0e6`** (dash 4.1·plotly 6.9·urllib3 2.7.0 등 dependabot 일괄 병합 반영) |
 | GitHub Actions CI (`ci.yml`, main) | **GREEN — 8회 연속 success** (2026-07-11 04:56 UTC nightly 포함, 실측) |
 | 직전 RED 이력 | 07-02 RED 3건(`fastapi` 누락·`LostLinkConfig` 불일치·Electron 핀 43 vs 39)은 `9b7e9d0`·`a184385`·`251cdc7` 로 07-04 해소 |
-| Python 테스트 수집 | **9,156 collected · 수집 오류 0** (2026-07-13 클린 컨테이너 실측, dash 4.1·plotly 6.9 lock 반영) |
+| Python 테스트 수집 | **9,591 collected · 수집 오류 0** (2026-07-21 CI 클린 컨테이너 실측, Python 3.10/3.11/3.12 동일) |
 | Playwright E2E 수집 | **295 collected** (tests/e2e) |
 | `_sdacs` API 성숙도 | **production 112 · beta 80 · mock 110 · speculative 103** (헤드리스 라이브 실측 2026-07-11) |
 | Ruff 정적 검사 | **전체 통과** |
@@ -595,7 +595,7 @@ SDACS는 이 단순한 발상에서 출발했습니다. 20대의 관제 드론�
 | **Concurrent Drones** | **100+** | 20대: 충돌 0, 50대: avg 15, 100대: avg 29 |
 | **Deployment Time** | **30 min** | No fixed infrastructure required |
 | **Multi-Language Coverage** | **50+ Languages** | Phase 521-660: Zig, Rust, Go, C++, Kotlin, Nim, OCaml, F#, Swift, TS, Scala, Haskell, Lua, Julia, Dart, Elixir, R, Octave, Perl, Ruby, VHDL, Prolog, Fortran, Ada, COBOL and more |
-| **Test Collection** | **9,156 tests** | Automated pytest collection across 1,118 Python files and 306 test files (클린 컨테이너 실측) |
+| **Test Collection** | **9,591 tests** | Automated pytest collection across 1,118 Python files and 306 test files (CI 클린 컨테이너 실측) |
 <div align="center">
 <img src="docs/images/imgur/wHuMIfM.png" alt="기존 방식 대비 SDACS 성능 비교" width="750"/>
 <br/><sub>기존 Rule-based Static ATC vs SDACS Swarm Autonomous — 주요 KPI 비교</sub>
@@ -1003,7 +1003,7 @@ python main.py simulate --duration 60 --drones 100 --seed 42
 | Scope | Result |
 |---|---|
 | Test files | **306** `test_*.py` files (`tests/` 전체, 2026-07-21 실측) |
-| Full Python collection | **9,156 collected · 수집 오류 0** (2026-07-13 클린 컨테이너) |
+| Full Python collection | **9,591 collected · 수집 오류 0** (2026-07-21 CI 클린 컨테이너, 9,296 pass / 295 skip) |
 | Full Python suite (단일 프로세스 스냅샷) | **7,003 collected · 6,733 pass · 270 skip · 0 fail** (2026-06-24 `pytest -n 0`, 224s) |
 | Static analysis | **Ruff all checks passed** |
 | Representative simulation | **45 collisions · 87 near misses · 95.9% conflict resolution** |
@@ -1157,7 +1157,7 @@ MIT License — 전문은 [`LICENSE`](LICENSE) 참조. [`pyproject.toml`](pyproj
 <div align="center">
 **Made with dedication by Sunwoo Jang**
 **장선우 · 국립 목포대학교 드론기계공학과**
-**Phase 700 · 1,118 Python files · 9,156 Tests Collected · 50+ Languages · 250K+ LOC**
+**Phase 700 · 1,118 Python files · 9,591 Tests Collected · 50+ Languages · 250K+ LOC**
 </div>
 
 ## 변경 이력 (Changelog)

@@ -62,7 +62,7 @@ All figures are simulation measurements under fixed seeds (research baseline, no
 | **Concurrent drones** | **100+** | See swarm-scale table below |
 | **Deployment time** | **30 min** | No fixed infrastructure required |
 
-> Representative run (`100 drones / 60 s / seed 42`, local re-verification 2026-06-18): **45 collisions · 87 near misses · 95.9% conflict resolution**. Automated test collection: **9,591 collected / 0 collection errors** (2026-07-21) across 1,118 Python files and 306 test files.
+> Representative run (`100 drones / 60 s / seed 42`, local re-verification 2026-06-18): **45 collisions · 87 near misses · 95.9% conflict resolution**. Automated test collection: **9,156 collected / 0 collection errors** (2026-07-13, clean container) across 1,118 Python files and 306 test files.
 
 ---
 

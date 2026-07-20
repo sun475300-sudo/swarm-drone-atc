@@ -19,7 +19,7 @@ from pptx.oxml.ns import qn
 from pptx.util import Emu, Inches, Pt
 
 # ── 경로 설정 ────────────────────────────────────────
-REPO_ROOT = r"C:\Users\sun47\Desktop\swarm-drone-atc\.claude\worktrees\stupefied-hugle"
+REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
 IMG_DIR = os.path.join(REPO_ROOT, "v5_images")
 OUT_DIR = os.path.join(REPO_ROOT, "docs", "presentation")
 OUT_PATH = os.path.join(OUT_DIR, "SDACS_Presentation_v7.pptx")

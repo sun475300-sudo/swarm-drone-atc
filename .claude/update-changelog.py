@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """
-PostToolUse hook: git push 후 README.md 변경 이력 자동 업데이트
+PostToolUse hook: git push 후 CHANGELOG.md 커밋 로그 자동 업데이트
 - [changelog] 마커가 있는 커밋은 건너뜀 (무한 루프 방지)
 - 최신 항목이 표 상단에 위치 (newest-first)
+
+기록 대상은 CHANGELOG.md 다. 과거에는 README.md 에 직접 append 했으나 표가
+331행(README 의 23%)까지 자라 문서를 압도했으므로 CHANGELOG.md 로 이관했다.
+README 에는 최근 10건 발췌만 수동 유지한다.
 """
 import json
 import os
@@ -10,8 +14,10 @@ import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
 
-README_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "README.md")
-SECTION_HEADER = "## 변경 이력 (Changelog)"
+CHANGELOG_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "CHANGELOG.md"
+)
+SECTION_HEADER = "## 커밋 로그 (자동 기록)"
 TABLE_HEADER   = "| 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |"
 TABLE_SEP      = "| --- | --- | --- | --- |"
 SKIP_MARKER    = "[changelog]"
@@ -34,12 +40,12 @@ def main():
 
     # ── 2. 무한루프 방지 (changelog 자동커밋 무시) ──────────
     latest_msg = run(["git", "log", "-1", "--format=%s"],
-                     cwd=os.path.dirname(README_PATH)).stdout.strip()
+                     cwd=os.path.dirname(CHANGELOG_PATH)).stdout.strip()
     if SKIP_MARKER in latest_msg:
         sys.exit(0)
 
     # ── 3. 커밋 정보 수집 ────────────────────────────────────
-    repo = os.path.dirname(README_PATH)
+    repo = os.path.dirname(CHANGELOG_PATH)
     h    = run(["git", "log", "-1", "--format=%h"],  cwd=repo).stdout.strip()
     msg  = run(["git", "log", "-1", "--format=%s"],  cwd=repo).stdout.strip()
     files_raw = run(
@@ -53,8 +59,8 @@ def main():
     kst = datetime.now(timezone(timedelta(hours=9))).strftime("%Y-%m-%d %H:%M")
     entry = f"| {kst} | `{h}` | {msg} | {files} |"
 
-    # ── 4. README.md 업데이트 ────────────────────────────────
-    with open(README_PATH, encoding="utf-8") as f:
+    # ── 4. CHANGELOG.md 업데이트 ─────────────────────────────
+    with open(CHANGELOG_PATH, encoding="utf-8") as f:
         content = f.read()
 
     if SECTION_HEADER in content:
@@ -91,15 +97,15 @@ def main():
         else:
             content = content.rstrip() + f"\n\n{SECTION_HEADER}\n\n{TABLE_HEADER}\n{TABLE_SEP}\n{entry}\n"
 
-    with open(README_PATH, "w", encoding="utf-8") as f:
+    with open(CHANGELOG_PATH, "w", encoding="utf-8") as f:
         f.write(content)
 
     # ── 5. 자동 커밋 & 푸시 ──────────────────────────────────
-    run(["git", "add", README_PATH], cwd=repo)
+    run(["git", "add", CHANGELOG_PATH], cwd=repo)
     run(["git", "commit", "-m", f"docs: 변경 이력 업데이트 {kst} {SKIP_MARKER}"], cwd=repo)
     run(["git", "push"], cwd=repo)
 
-    print(f"[changelog] README.md 업데이트 완료: {h} {kst}", file=sys.stderr)
+    print(f"[changelog] CHANGELOG.md 업데이트 완료: {h} {kst}", file=sys.stderr)
 
 
 if __name__ == "__main__":

@@ -34,6 +34,10 @@ dev = [
     "mypy>=1.18",
     "ruff>=0.4",
     "hypothesis>=6.100",
+    # api/ 테스트는 fastapi 부재 시 importorskip 으로 조용히 건너뛴다.
+    # CI 는 .[dev] 만 설치하므로 여기에 없으면 auth/RBAC 회귀 65건이 전부 무력화된다.
+    "fastapi>=0.115",
+    "httpx>=0.27",
 ]
 gpu = [
     "torch>=2.0",

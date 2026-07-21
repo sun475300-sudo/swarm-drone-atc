@@ -16,7 +16,9 @@
 
 </div>
 
-> **Scope & honesty note.** SDACS is a **research-grade discrete-event simulator** with a browser-based 3D visualizer. The results reported below are simulation measurements obtained under fixed seeds; they constitute an improvement baseline for research, **not** a safety certification. A live API-maturity classifier (`window._sdacs.maturityReport()`) discloses which capabilities are production-grade versus deterministic mocks. See [`docs/TECH_DEBT_LEDGER.md`](docs/TECH_DEBT_LEDGER.md) for the full technical-debt disclosure.
+> **Scope & honesty note.** SDACS is a **research-grade discrete-event simulator** with a browser-based 3D visualizer. The results reported below are simulation measurements obtained under fixed seeds; they constitute an improvement baseline for research, **not** a safety certification. A live API-maturity classifier (`window._sdacs.maturityReport()`) discloses which capabilities are production-grade versus deterministic mocks — see [API Maturity Disclosure](#api-maturity-disclosure) below and [`docs/TECH_DEBT_LEDGER.md`](docs/TECH_DEBT_LEDGER.md) for the full technical-debt disclosure.
+
+> **This English README is abridged.** The Korean [`README.md`](README.md) is the complete reference. Topics covered there but not here: the Electron desktop application (3-OS builds), the maritime detection simulator, GPU acceleration, Docker production environment variables, the full five-layer safety-net breakdown, the multi-language module architecture (50+ languages), development phase history, and the testbed strategy. Numeric claims in both files are kept in sync against measured repository data.
 
 ---
 
@@ -131,6 +133,29 @@ The project-canonical formula is `resolution_rate = 1 − collisions / (conflict
 
 ---
 
+## API Maturity Disclosure
+
+> **Read this before citing or building on SDACS.** The browser simulator exposes 200 phases of functionality, and we state plainly that **many of them are deterministic mocks or stubs**, not validated implementations. `window._sdacs.maturityReport()` returns the live classification at runtime.
+
+| Tier | Count | Meaning |
+|---|:-:|---|
+| 🟢 **production** | 112 | Measured, regression-tested, real algorithms (MEGA core ATC/TAC/MIS/INJ, wind-field, forecasting) |
+| 🔵 **beta** | 80 | Functional + E2E-verified, some external dependencies (HYPER Copilot, adversarial, C-UAS, PQC) |
+| 🟡 **mock** | 110 | Deterministic mock implementation, interface stable only (STELLAR RLHF, Cesium, QKD) |
+| ⚪ **speculative** | 103 | Forward-looking stubs; only call-safety is guaranteed (ULTIMATE / POST-UNIVERSE) |
+
+Classified entries 405 (112 + 80 + 110 + 103) + 3 classifier helpers (`apiMaturity`, `maturityReport`) = **408 total**, extracted live by `scripts/extract_sdacs_api.py --check`. Full reference: [`docs/SDACS_API.md`](docs/SDACS_API.md); technical-debt ledger: [`docs/TECH_DEBT_LEDGER.md`](docs/TECH_DEBT_LEDGER.md).
+
+```javascript
+window._sdacs.apiMaturity('atcCommand');       // → 'production'
+window._sdacs.apiMaturity('cesiumGlobalInit'); // → 'mock'
+window._sdacs.maturityReport();                // → { total, counts, byApi }
+```
+
+**Bottom line:** SDACS's practical value lies in the **112 production-grade APIs** covering the drone-control core. The remaining tiers define the *possible feature space* of the ATC simulator as a reference matrix — they are not claims of working capability.
+
+---
+
 ## Project Structure
 
 ```
@@ -194,7 +219,7 @@ No build step required.
 
 ## Testing
 
-CI (`.github/workflows/ci.yml`) runs a Python 3.10 / 3.11 / 3.12 matrix: syntax lint (`flake8 --select=E9,F63,F7,F82`), `pytest tests/ -v --tb=short --timeout=60`, core-module import checks, and PR smoke/perf reports. Headless browser smoke tests for the simulators live under `tests/e2e/` and run via `.github/workflows/sim-smoke.yml`.
+CI (`.github/workflows/ci.yml`) runs a Python 3.10 / 3.11 / 3.12 matrix: lint (`ruff check src/ simulation/ --select=E9,F63,F7,F82,W,I`), `pytest tests/ --tb=short -q` with a **hard 80% coverage gate** (`--cov=src --cov=simulation --cov-fail-under=80`), `mypy src/ --error-summary` type checking, core-module import checks, and PR smoke/perf reports. Headless browser smoke tests for the simulators live under `tests/e2e/` and run via `.github/workflows/sim-smoke.yml`.
 
 ---
 

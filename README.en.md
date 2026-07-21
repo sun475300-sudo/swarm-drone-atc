@@ -4,7 +4,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![SimPy](https://img.shields.io/badge/SimPy-4.1-4CAF50?style=for-the-badge)](https://simpy.readthedocs.io/)
-[![Dash](https://img.shields.io/badge/Dash-4.1-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
+[![Dash](https://img.shields.io/badge/Dash-4.4-00A0DC?style=for-the-badge&logo=plotly)](https://dash.plotly.com/)
 [![NumPy](https://img.shields.io/badge/NumPy-2.0-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 

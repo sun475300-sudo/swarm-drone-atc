@@ -124,7 +124,7 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 
 ---
 
-## Progress Snapshot / 진행 현황 (2026-06-26 기준)
+## Progress Snapshot / 진행 현황 (2026-07-21 기준)
 
 | 트랙 | 완료 | 진행률 | 핵심 산출물 |
 |---|---|---|---|
@@ -149,7 +149,7 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 > 표 마지막 3행의 **시뮬레이터 Phase 201-500 (TRANSCENDENCE·GENESIS·ODYSSEY)** 는 **별도 집계**이며 현재 21%·50%·49% 로 진행 중입니다 — 이 범위를 합산한 전체 완료율이 아닙니다.
 
 **코어 트랙 잔여 4항목** (사용자 환경 의존): P755(창업) + Track A 실기 검증 + P707 실측 그래프 + P709 IROS 투고
-**시뮬 Phase 201-500 잔여**: 아래 [In Progress](#in-progress--진행-예정) 의 미체크 항목 참조 (대부분 실 HW·외부 기관 의존)
+**시뮬 Phase 201-500 잔여**: 아래 "In Progress / 진행 예정" 절의 미체크 항목 참조 (대부분 실 HW·외부 기관 의존)
 (P711 React MVP는 2026-06-09 `frontend/` 통합으로 완료 — 마지막 코드 로드맵 항목 종료)
 
 ## In Progress / 진행 예정

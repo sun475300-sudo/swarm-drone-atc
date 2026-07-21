@@ -194,7 +194,7 @@ No build step required.
 
 ## Testing
 
-CI (`.github/workflows/ci.yml`) runs a Python 3.10 / 3.11 / 3.12 matrix: syntax lint (`flake8 --select=E9,F63,F7,F82`), `pytest tests/ -v --tb=short --timeout=60`, core-module import checks, and PR smoke/perf reports. Headless browser smoke tests for the simulators live under `tests/e2e/` and run via `.github/workflows/sim-smoke.yml`.
+CI (`.github/workflows/ci.yml`) runs a Python 3.10 / 3.11 / 3.12 matrix: lint (`ruff check src/ simulation/ --select=E9,F63,F7,F82,W,I`), `pytest tests/ --tb=short -q` with a **hard 80% coverage gate** (`--cov=src --cov=simulation --cov-fail-under=80`), `mypy src/ --error-summary` type checking, core-module import checks, and PR smoke/perf reports. Headless browser smoke tests for the simulators live under `tests/e2e/` and run via `.github/workflows/sim-smoke.yml`.
 
 ---
 

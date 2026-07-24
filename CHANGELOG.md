@@ -942,6 +942,7 @@
 
 | 날짜/시간 (KST) | 커밋 | 작업 내용 | 수정 파일 |
 | --- | --- | --- | --- |
+| 2026-07-24 21:11 | `ba77fa42` | Merge remote-tracking branch 'origin/main' into claude/ruview-wifi-analysis-2YG4p | README.en.md, README.md, ROADMAP.md, STATUS_REPORT.md, results/stress_sweep/08_stress_high_density__cbs__0.json, results/stress_sweep/08_stress_high_density__cbs__1.json … |
 | 2026-07-21 09:13 | `ad9e52c5` | docs(readme): Dash 배지 4.1→4.4 드리프트 정정 (병행 세션 dash 4.4.0 범프 반영) | README.en.md, README.md |
 | 2026-07-14 17:42 | `757d338` | docs(readme): 최신화 — 최신 업데이트 배너 현행화 (8·9·10차 감사 + 의존성 스택) | README.md |
 | 2026-07-14 | `757d338` | docs(readme): 최신화 — '최신 업데이트' 배너 2026-06-25→07-14 현행화 (8·9·10차 감사 + dash 4.1·plotly 6.9 의존성 스택 반영), CI 점검 문구 갱신 | README.md |

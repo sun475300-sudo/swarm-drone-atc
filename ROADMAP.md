@@ -124,7 +124,7 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 
 ---
 
-## Progress Snapshot / 진행 현황 (2026-06-26 기준)
+## Progress Snapshot / 진행 현황 (2026-07-21 기준)
 
 | 트랙 | 완료 | 진행률 | 핵심 산출물 |
 |---|---|---|---|
@@ -138,14 +138,18 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 | **MEGA Plan** (시뮬 Phase 1-9) | 100% | ████████████ | ATC·TAC·CIN·CAM·MIS·INJ·ANA·AUD·MOB |
 | **HYPER Plan** (시뮬 Phase 10-50) | 100% | ████████████ | 41개 추가 Phase (해양 ATC · VR · AI Copilot · 적대 · C-UAS · 행성 등) |
 | **STELLAR~POST-UNIVERSE** (시뮬 Phase 51-200) | 100% | ████████████ | Phase 200 = 𝟏 (Unity) · Phase 51 LLM Multi-Agent 격상 (단, 다수 mock/speculative — maturity 공시) |
-| **TRANSCENDENCE** (시뮬 Phase 201-300) | 10% | █░░░░░░░░░░░ | Phase 201-208 Maturity Honesty 완료 (분류·Mock Detector·experimental·beta·production 회귀) |
+| **TRANSCENDENCE** (시뮬 Phase 201-300) | 21% | ██░░░░░░░░░░ | Phase 201-220·226 완료 — Maturity Honesty (분류·Mock Detector·experimental·beta·production 회귀) · API 수명주기 · GPS→ENU 정밀 검증 |
 | **GENESIS** (시뮬 Phase 301-400) | 50% | ██████░░░░░░ | 301-319·321-322·330·341-342·361-368·381-400 완료 — 인증·CSAP·감항·플러그인SDK·CITATION·RTM자동생성·RL벤치·LLM관제·NTN링크·GPS거부·에너지계획·V2X·자가치유·교육·레거시선언 |
 | **ODYSSEY** (시뮬 Phase 401-500) | 49% | ██████░░░░░░ | 402-411·447-448·452-460·461-500 완료 — FAA/EASA/ICAO·RL/AI(V&V·SafetyCase·Lifecycle)·연합운영·표준·Continuum (#449 안착) |
 
 **총 Phase 691-755 (65개) 중 61개 완료 = 94%** (Phase 1-690 포함 시 전체 751/755 = **99.5%**)
-**+ 시뮬레이터 MEGA 9 + HYPER 41 = 50 Phase 100% 완료** (총 800 Phase 중 796 완료 = **99.5%**)
+**+ 시뮬레이터 MEGA 9 + HYPER 41 + STELLAR~POST-UNIVERSE 150 = 200 Phase 100% 완료** (코어 755 + 시뮬 200 = **955 Phase 중 951 완료 = 99.6%**)
 
-**잔여 4항목** (사용자 환경 의존): P755(창업) + Track A 실기 검증 + P707 실측 그래프 + P709 IROS 투고
+> ⚠️ **집계 범위 주의:** 위 99.6% 는 **코어 Phase 1-755 + 시뮬레이터 Phase 1-200** 범위입니다.
+> 표 마지막 3행의 **시뮬레이터 Phase 201-500 (TRANSCENDENCE·GENESIS·ODYSSEY)** 는 **별도 집계**이며 현재 21%·50%·49% 로 진행 중입니다 — 이 범위를 합산한 전체 완료율이 아닙니다.
+
+**코어 트랙 잔여 4항목** (사용자 환경 의존): P755(창업) + Track A 실기 검증 + P707 실측 그래프 + P709 IROS 투고
+**시뮬 Phase 201-500 잔여**: 아래 "In Progress / 진행 예정" 절의 미체크 항목 참조 (대부분 실 HW·외부 기관 의존)
 (P711 React MVP는 2026-06-09 `frontend/` 통합으로 완료 — 마지막 코드 로드맵 항목 종료)
 
 ## In Progress / 진행 예정

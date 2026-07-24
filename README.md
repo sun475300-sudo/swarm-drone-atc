@@ -293,12 +293,12 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 | [🌌 SIMULATOR_MEGA_PLAN.md](docs/SIMULATOR_MEGA_PLAN.md) ~ [POST_UNIVERSE_PLAN](docs/SIMULATOR_POST_UNIVERSE_PLAN.md) | 200 Phase 5단계 로드맵 |
 | [📋 CHANGELOG.md](CHANGELOG.md) | v1.0-1.5 통합 버전 이력 |
 
-### ✅ 현재 검증 스냅샷 / Current Validation Snapshot (2026-07-11)
+### ✅ 현재 검증 스냅샷 / Current Validation Snapshot (2026-07-21)
 
 | 항목 | 결과 |
 |---|---|
-| GitHub main 동기화 | **`origin/main` = `a4fd0e6`** (dash 4.1·plotly 6.9·urllib3 2.7.0 등 dependabot 일괄 병합 반영) |
-| GitHub Actions CI (`ci.yml`, main) | **GREEN — 8회 연속 success** (2026-07-11 04:56 UTC nightly 포함, 실측) |
+| GitHub main 동기화 | **`origin/main` = `e42645d`** (PR #509 병합 — 저장소 위생·보안 자격증명 제거·문서 재기준선 반영) |
+| GitHub Actions CI (`ci.yml`, main) | **GREEN — 최근 15회 연속 success** (2026-07-20 16:04 UTC PR #509 병합 포함, `gh run list` 실측) |
 | 직전 RED 이력 | 07-02 RED 3건(`fastapi` 누락·`LostLinkConfig` 불일치·Electron 핀 43 vs 39)은 `9b7e9d0`·`a184385`·`251cdc7` 로 07-04 해소 |
 | Python 테스트 수집 | **9,591 collected · 수집 오류 0** (2026-07-21 CI 클린 컨테이너 실측, Python 3.10/3.11/3.12 동일) |
 | Playwright E2E 수집 | **295 collected** (tests/e2e) |
@@ -885,10 +885,12 @@ swarm-drone-atc/
 |------|------|
 | Checkout | `actions/checkout@v4` |
 | Python Setup | `actions/setup-python@v5` (매트릭스) |
-| Cache pip | pip 캐시 (requirements.txt 해시 기반) |
-| Install | `pip install -r requirements.txt` + flake8 |
-| Lint | `flake8 --select=E9,F63,F7,F82` (구문 오류만) |
-| Test | `pytest tests/ -v --tb=short --timeout=60` |
+| Cache pip | pip 캐시 (`pyproject.toml` 해시 기반) |
+| Install | `pip install torch --index-url .../whl/cpu` + `pip install ".[dev]"` |
+| Lint | `ruff check src/ simulation/ --select=E9,F63,F7,F82,W,I` |
+| Test | `pytest tests/ --tb=short -q --cov=src --cov=simulation --cov-fail-under=80` (**커버리지 게이트 80%**) |
+| Coverage Upload | `coverage.xml` 아티팩트 (Python 3.11, 30일 보존) |
+| Type Check | `mypy src/ --error-summary` |
 | Import Check | 핵심 3개 모듈 임포트 검증 |
 | Smoke Report | PR 시 JSON 리포트 생성 + 아티팩트 업로드 |
 | Perf Summary | PR 시 성능 요약 JSON 생성 |

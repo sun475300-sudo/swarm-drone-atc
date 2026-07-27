@@ -20,7 +20,7 @@ pandas==2.2.2
 scipy==1.13.1
 pyyaml==6.0.3
 joblib==1.5.3
-tqdm==4.66.4
+tqdm==4.69.1
 
 # ── Visualization (only if Dash UI is in scope; the headless reproducible
 #    image can drop these — see Dockerfile.reproducible) ───────────────────

@@ -3,10 +3,16 @@ import pytest
 
 from simulation.power_analysis import (
     PowerResult,
+    ProportionComparison,
     cohens_h,
+    compare_resolution_rates,
     proportion_power,
     required_sample_size,
+    resolution_rate,
+    resolution_rate_comparison_report,
     resolution_rate_power_report,
+    two_proportion_power,
+    wilson_interval,
 )
 
 pytestmark = pytest.mark.unit
@@ -83,6 +89,62 @@ class TestRequiredSampleSize:
     def test_invalid_proportion_raises_at_boundary(self):
         with pytest.raises(ValueError):
             required_sample_size(p0=0.8, p1=1.2)
+
+
+class TestObservedResolutionRate:
+    def test_rate_uses_project_formula(self):
+        assert resolution_rate(conflicts=95, collisions=5) == pytest.approx(0.95)
+
+    def test_no_events_is_treated_as_safe(self):
+        assert resolution_rate(conflicts=0, collisions=0) == 1.0
+
+    def test_negative_counts_are_rejected(self):
+        with pytest.raises(ValueError):
+            resolution_rate(conflicts=-1, collisions=0)
+
+
+class TestWilsonInterval:
+    def test_interval_contains_observed_rate(self):
+        low, high = wilson_interval(successes=95, total=100)
+        assert 0.0 <= low <= 0.95 <= high <= 1.0
+
+    def test_zero_total_returns_uninformative_interval(self):
+        assert wilson_interval(successes=0, total=0) == (0.0, 1.0)
+
+    def test_successes_cannot_exceed_total(self):
+        with pytest.raises(ValueError):
+            wilson_interval(successes=11, total=10)
+
+
+class TestObservedComparison:
+    def test_clear_improvement_is_significant(self):
+        result = compare_resolution_rates(
+            baseline_conflicts=70,
+            baseline_collisions=30,
+            candidate_conflicts=96,
+            candidate_collisions=4,
+        )
+        assert isinstance(result, ProportionComparison)
+        assert result.candidate_rate > result.baseline_rate
+        assert result.significant
+        assert result.p_value < 0.001
+
+    def test_identical_rates_are_not_significant(self):
+        result = compare_resolution_rates(90, 10, 90, 10)
+        assert result.difference == pytest.approx(0.0)
+        assert result.p_value == pytest.approx(1.0)
+        assert not result.significant
+
+    def test_power_increases_with_event_count(self):
+        small = two_proportion_power(0.8, 0.9, 50)
+        large = two_proportion_power(0.8, 0.9, 500)
+        assert large > small
+
+    def test_comparison_report_contains_inference(self):
+        report = resolution_rate_comparison_report(70, 30, 96, 4)
+        assert "Wilson" in report
+        assert "p-value" in report
+        assert "유의함" in report
 
 
 class TestResolutionRatePowerReport:

@@ -14,6 +14,7 @@ on:
       - 'manifest.webmanifest'
       - 'sdacs-sw.js'
       - 'tests/e2e/**'
+      - 'simulation/ws_bridge.py'
       - 'scripts/extract_sdacs_api.py'
       - '.github/workflows/sim-smoke.yml'
   pull_request:
@@ -26,6 +27,7 @@ on:
       - 'manifest.webmanifest'
       - 'sdacs-sw.js'
       - 'tests/e2e/**'
+      - 'simulation/ws_bridge.py'
       - 'scripts/extract_sdacs_api.py'
       - '.github/workflows/sim-smoke.yml'
   workflow_dispatch:
@@ -73,8 +75,11 @@ jobs:
       - name: Install Playwright + Chromium
         run: |
           npm init -y >/dev/null 2>&1 || true
-          npm install -D playwright@1.56.1
+          npm install -D playwright@1.62.0
           npx playwright install --with-deps chromium
+
+      - name: Install federation bridge runtime
+        run: python3 -m pip install numpy simpy scipy pyyaml websockets
 
       - name: Serve simulator
         run: |
@@ -93,6 +98,11 @@ jobs:
         env:
           SIM_URL: http://localhost:8123/maritime_detection_simulator.html
         run: node tests/e2e/smoke_maritime.mjs
+
+      - name: Run two-instance federation smoke test
+        env:
+          SDACS_PYTHON: python3
+        run: node tests/e2e/federation_two_instance.mjs
 
   smoke-pytest:
     name: Python Playwright E2E (200 Phase 통합 — MEGA·HYPER·STELLAR·ULTIMATE·POST-UNIVERSE)

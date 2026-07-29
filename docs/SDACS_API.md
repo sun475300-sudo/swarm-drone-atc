@@ -1,15 +1,15 @@
 # 📚 `window._sdacs` API — Phase 200 (Unity) 완료 시점
 
-*자동 생성: 2026-07-02 (`scripts/extract_sdacs_api.py` 라이브 실측 추출 · maturity 등급 포함)*
+*자동 생성: 2026-07-30 (`scripts/extract_sdacs_api.py` 라이브 실측 추출 · maturity 등급 포함)*
 
-**총 408 항목** (maturity 분류 대상 405 + 분류 헬퍼 3) — MEGA 10 + HYPER 40 + STELLAR 50 + ULTIMATE 50 + POST-UNIVERSE 50 = **200 Phase**
+**총 414 항목** (maturity 분류 대상 411 + 분류 헬퍼 3) — MEGA 10 + HYPER 40 + STELLAR 50 + ULTIMATE 50 + POST-UNIVERSE 50 = **200 Phase**
 
 ## 🎯 성숙도 분포 (Phase 201-207 정직성 공시)
 
 | 등급 | 개수 | 의미 |
 |---|:-:|---|
 | 🟢 production | 112 | 실측 검증 + 회귀 + 실 알고리즘 |
-| 🔵 beta | 80 | 기능 동작 + E2E 검증, 일부 외부 의존 |
+| 🔵 beta | 86 | 기능 동작 + E2E 검증, 일부 외부 의존 |
 | 🟡 mock | 110 | 결정적 mock, 인터페이스만 안정 |
 | ⚪ speculative | 103 | 미래 비전 스텁, 호출 안전성만 보장 |
 | 🛠 helper | 3 | `apiMaturity` · `maturityReport` 분류기 자체 |
@@ -84,6 +84,7 @@
 | `method` | **`cloudBurstScale`** | 🟡 mock |
 | `get` | **`cloudBurstState`** | 🟡 mock |
 | `get` | **`conflictPairs`** | 🔵 beta |
+| `method` | **`connectFederationPeer`** | 🔵 beta |
 | `method` | **`consciousness143Experiment`** | ⚪ speculative |
 | `value` | **`controls`** | 🔵 beta |
 | `method` | **`copilotExecute`** | 🔵 beta |
@@ -148,6 +149,11 @@
 | `get` | **`eyeTrackPointCount`** | 🟡 mock |
 | `method` | **`faa138Part108`** | ⚪ speculative |
 | `get` | **`failed`** | 🟢 production |
+| `get` | **`federationGhostCount`** | 🔵 beta |
+| `get` | **`federationGhosts`** | 🔵 beta |
+| `get` | **`federationInfo`** | 🔵 beta |
+| `get` | **`federationPeerConnected`** | 🔵 beta |
+| `get` | **`federationPeerFrames`** | 🔵 beta |
 | `get` | **`fedLearnHistory`** | 🟡 mock |
 | `method` | **`fedLearnRound`** | 🟡 mock |
 | `get` | **`fedLearnState`** | 🟡 mock |

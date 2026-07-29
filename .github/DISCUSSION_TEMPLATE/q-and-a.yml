@@ -1,0 +1,19 @@
+title: "[Q&A] "
+labels:
+  - q-and-a
+body:
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "OS, Python/Node version, commit"
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+    validations:
+      required: true
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What you already tried

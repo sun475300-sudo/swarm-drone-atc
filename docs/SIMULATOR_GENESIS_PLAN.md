@@ -54,15 +54,15 @@
 - **Phase 321** 플러그인 SDK v1 — `_sdacs.registerPlugin()` (시나리오·센서·UI 패널 주입 인터페이스)
 - **Phase 322** 시나리오 마켓플레이스 포맷 — `.sdacs-scenario` 스키마 + 검증기
 - **Phase 323** ✅ 외부 시뮬레이터 어댑터 스펙 공개 — BlueSky·U-TRAFMAN 호환 import/export — `simulation/external_sim_adapter.py` + `docs/standards/EXTERNAL_SIM_ADAPTER_SPEC.md` (중립 교환 모델 IR·등거리 투영·결정적 물질화 `seed` 재현성·BlueSky `.scn` CRE/DEST 왕복·U-TRAFMAN 비행계획 JSON·`scenario_schema` 호환 역변환·CLI 3종, 35건 PASS) (2026-06-26)
-- **Phase 324** npm 패키지 `@sdacs/core` 분리 — 충돌 감지(CPA·APF) 순수 JS 모듈 추출
-- **Phase 325** PyPI 패키지 `sdacs-sim` — SwarmSimulator 코어 배포
-- **Phase 326** GitHub Discussions 운영 체계 + 이슈 템플릿 정비
-- **Phase 327** Good First Issue 큐레이션 20건 + 멘토링 라벨
+- **Phase 324** ✅ npm 패키지 `@sdacs/core` 분리 — 충돌 감지(CPA·APF) 순수 ESM·TypeScript 선언·8건 단위·npm pack dry-run (2026-07-30, 실제 registry publish는 릴리스 관리자 작업)
+- **Phase 325** ✅ Python wheel 공개 준비 — SwarmSimulator 코어·CLI·런타임 자산 격리 설치 검증 (2026-07-30, 실제 PyPI publish는 릴리스 관리자 작업)
+- **Phase 326** ✅ GitHub Discussions 운영 자산 + 이슈/PR 템플릿 정비 (2026-07-30, 저장소 설정에서 Discussions 활성화 필요)
+- **Phase 327** ✅ Good First Issue 큐레이션 20건 + 멘토링 이슈 폼 (2026-07-30, 라벨·실제 이슈 생성은 관리자 작업)
 - **Phase 328** 다국어 문서 확장 — README EN 완역 (기존 25언어 i18n 위)
 - **Phase 329** 데모 갤러리 사이트 — Pages에 시나리오별 영상·스크린샷 자동 게시
 - **Phase 330** 학술 인용 추적 — CITATION.cff + Zenodo DOI 연동 (TRANSCENDENCE 283 연계)
-- **Phase 331-335** 플러그인 레퍼런스 구현 3종 (기상 데이터 소스·커스텀 드론 모델·KPI 위젯)
-- **Phase 336-340** v2.0 API 안정화 선언 — SemVer 보장 + deprecation 1년 정책
+- **Phase 331-335** ✅ 플러그인 레퍼런스 구현 3종 (결정적 기상 데이터 소스·검증형 커스텀 드론 모델·불변 KPI 위젯, 테스트 7건, 2026-07-30)
+- **Phase 336-340** ✅ v2.0 API 안정화 정책 — SemVer 보장 + production API deprecation 1년 정책 + 추출 CI 게이트 (실제 v2.0 태그 발행은 릴리스 절차)
 
 **산출물**: 플러그인 SDK + 2개 패키지 레지스트리 배포 + 커뮤니티 인프라
 

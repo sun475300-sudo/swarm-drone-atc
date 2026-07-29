@@ -19,6 +19,7 @@ import http.server
 import json
 import re
 import socketserver
+import sys
 import threading
 from pathlib import Path
 
@@ -281,6 +282,8 @@ def render_ledger(data: dict) -> str:
 
 
 def main() -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="문서 불일치 시 exit 1 (재생성 안 함)")
     parser.add_argument("--ledger", action="store_true", help="docs/TECH_DEBT_LEDGER.md 도 재생성")

@@ -61,17 +61,19 @@ SDACS는 단일 애플리케이션이 아니라 같은 도메인을 여러 깊�
 
 ## 현재 상태
 
-마지막 저장소 점검일은 **2026-07-30 (KST)** 이며 당시 최신 커밋은 [`09831d84`](https://github.com/sun475300-sudo/swarm-drone-atc/commit/09831d847c1fc00fa6ac8f2878a1b33be9746cc2)입니다. 이후 커밋은 `git log -1 --oneline origin/main`으로 확인합니다.
+마지막 저장소 점검일은 **2026-07-30 (KST)** 입니다. 최신 소스와 자동 검증 결과는 [`main`](https://github.com/sun475300-sudo/swarm-drone-atc/commits/main) 및 [GitHub Actions](https://github.com/sun475300-sudo/swarm-drone-atc/actions)을 기준으로 확인합니다.
 
 | 상태 | 항목 | 확인 결과 |
 |:---:|---|---|
 | ✅ | 프로젝트 버전 | `pyproject.toml`과 `package.json` 기준 `1.5.0` |
 | ✅ | 기본 브랜치 | `main` — 로컬 HEAD와 `origin/main`이 기준 커밋에서 일치 |
-| 🔄 | GitHub Actions | 최신 커밋의 Security Audit, Canonical Hash Verification, Dependency Graph, Pages 배포 성공. CI와 Simulator Smoke Test는 점검 시점에 진행 중 |
+| ✅ | GitHub Actions | Python 3.10/3.11/3.12 CI, 보안 감사, canonical hash, 시뮬레이터 스모크 및 Pages 배포 게이트 운영 |
 | ✅ | GitHub Pages | 루트, 3D 시뮬레이터, 해양 시뮬레이터 HTTP 200 확인 |
 | ✅ | 웹 릴리스 | [SDACS Web Simulator (2026-07-30)](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/simulator-web-2026-07-30)에 검증 가능한 정적 ZIP 공개 |
 | ✅ | Python 회귀 | Python 3.10 / 3.11 / 3.12, 제한 린트, mypy, 커버리지 80% 게이트 통과 |
 | ✅ | Python 패키지 | wheel 설치 후 `sdacs --help`, 시나리오 목록, 2대·0.2초 시뮬레이션 스모크 실행 성공 |
+| ✅ | JavaScript 코어 패키지 | `packages/core`의 CPA·APF 순수 ESM 8건 통과, `@sdacs/core` npm tarball dry-run 성공 |
+| ✅ | 연합 브라우저 E2E | `ws_bridge` 2개와 Chromium 2페이지에서 상호 LIVE·인접 공역 고스트 6/4대 렌더링 성공 |
 | ✅ | 로컬 정적 산출물 | 정본 HTML, 사본 3개, `build/simulator/` 2개의 동기화 및 `python scripts/build_simulator.py --check` 성공 |
 | ⏳ | 데스크톱 앱 | Electron 3-OS 빌드 워크플로는 있으나 Releases에 설치 파일은 아직 없음 |
 | ⏳ | 실환경 검증 | Pixhawk·Jetson·RTK·HITL·실비행·규제 승인 근거는 아직 없음 |
@@ -474,7 +476,7 @@ python -m http.server 8123 --directory build/simulator
 
 브라우저에서 `http://localhost:8123/`를 열면 `simulator.html`로 이동합니다. `build/simulator/`는 메인 시뮬레이터, manifest, service worker, 로컬 Three.js vendor 파일을 포함합니다.
 
-직접 빌드하지 않으려면 [정적 웹 시뮬레이터 ZIP](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/simulator-web-2026-07-30/SDACS-Simulator-Web-2026-07-30.zip)을 다운로드해 HTTP 서버나 정적 호스팅에 압축 해제합니다. 검증 SHA-256은 `ECE0F076F0A54D6A4204148CA8B6E5D09855AA40324EFB008859A7B473D081F6`입니다.
+직접 빌드하지 않으려면 [정적 웹 시뮬레이터 ZIP](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/simulator-web-2026-07-30/SDACS-Simulator-Web-2026-07-30.zip)을 다운로드해 HTTP 서버나 정적 호스팅에 압축 해제합니다. 검증 SHA-256은 `0C16EB7E1B1D75B00B53A126E22B346D3ECDFF2F3ECE4FCC26DD78B6A81666DA`입니다.
 
 GitHub Pages는 `main`의 `docs/`를 배포합니다. `.github/workflows/deploy-pages.yml`이 정본 시뮬레이터와 Three.js vendor 파일을 `docs/`에 동기화한 뒤 배포합니다.
 
@@ -565,6 +567,9 @@ npm run test-server
 $env:SIM_URL='http://localhost:8123/swarm_3d_simulator.html'
 npm run smoke
 npm run smoke:maritime
+npm run smoke:federation
+npm run test:core
+npm run pack:core
 
 cd frontend
 npm test
@@ -577,6 +582,7 @@ npm run build
 |---|---|
 | `ci.yml` | Python 3.10/3.11/3.12 테스트, 제한 린트, mypy, 커버리지, benchmark |
 | `sim-smoke.yml` | Playwright 브라우저 E2E와 Python E2E |
+| `ecosystem-packages.yml` | `@sdacs/core` 단위·npm pack과 Python wheel 격리 설치·CLI 스모크 |
 | `canonical_hash.yml` | 벤치마크 시나리오 canonical hash |
 | `security.yml` | 의존성·정적 보안 감사 |
 | `airgap-audit.yml` | 폐쇄망 정책 점검 |
@@ -723,11 +729,13 @@ docker compose logs sdacs
 
 | 우선순위 | 작업 | 상태·이유 |
 |---|---|---|
-| 높음 | 의존성 업데이트 PR 검토·병합 | Dependabot PR [#512](https://github.com/sun475300-sudo/swarm-drone-atc/pull/512)~[#518](https://github.com/sun475300-sudo/swarm-drone-atc/pulls?q=is%3Aopen%20is%3Apr) 대기. `numpy`·Playwright·GitHub Actions는 CI/E2E 재검증 후 병합 필요 |
+| 높음 | 의존성 업데이트 지속 검증 | PR #512~#518은 2026-07-30 병합 완료. 이후 Dependabot PR은 CI·보안·시뮬레이터 회귀 통과 후 병합 |
 | 높음 | 데스크톱 공개 릴리스 발행 | 정적 웹 ZIP은 공개됐지만 데스크톱 설치 파일은 아직 없음. 태그 기반 3-OS 빌드와 산출물 검증 필요 |
 | 높음 | `main` 브랜치 보호 설정 | GitHub API 기준 branch protection 미설정. 필수 CI·리뷰·관리자 우회 정책을 결정해야 함 |
 | 높음 | 설치 프로필 일원화 | `pyproject.toml`, requirements, lock의 API·개발·재현 의존성 범위를 정리하고 자동 동기화 필요 |
-| 중간 | Python 패키지 공개 마무리 | 로컬 휠에 `main.py`·런타임 패키지·시나리오 YAML을 포함하고 독립 환경에서 `sdacs --help`·시나리오 목록·짧은 시뮬레이션을 검증함. PyPI 실제 발행, 버전 정책, `visualize-3d` 정적 웹 자산의 휠 포함 방식은 아직 결정 필요 |
+| 중간 | npm·PyPI 공개 마무리 | `@sdacs/core` CPA/APF 패키지와 Python wheel을 각각 dry-run·격리 설치로 검증함. npm 조직/프로비넌스, PyPI 프로젝트명·토큰, 정식 태그 발행은 릴리스 관리자 작업 |
+| 중간 | 커뮤니티 기능 활성화 | 이슈·PR·Discussions 양식과 Good First Issue 20건은 저장소에 준비됨. GitHub Discussions 활성화, 라벨 생성, 실제 이슈 발행은 관리자 권한 필요 |
+| 중간 | 영문 README·갤러리 자동화 | `README.en.md`는 실행 중심 요약본이며 한국어 README 전체와 동등하지 않음. 시나리오 갤러리는 구현됐지만 영상·스크린샷 자동 게시 파이프라인은 후속 |
 | 중간 | FastAPI 운영화 | 인메모리 상태를 Redis/PostgreSQL, 인증 키 관리, WebSocket 인증, 관측성, 배포 환경으로 교체하거나 범위를 제한해야 함 |
 | 중간 | React 인증 강화 | `localStorage` JWT를 httpOnly cookie + CSRF 구조로 전환하고 E2E 보안 회귀 추가 필요 |
 | 중간 | 벤치마크 계약 완성 | 문서가 기대하는 `expected_results.yaml`과 시나리오 템플릿을 추가하거나 오래된 설명을 정정해야 함 |

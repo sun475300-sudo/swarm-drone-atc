@@ -85,6 +85,12 @@ scripts/recordings/
 
 # 세션 산출물·재생성 가능 sweep 결과 (2026-07 정리 — ablation 등 문서 참조분은 유지)
 outputs/
+
+# Local wheel/CLI validation environments and artifacts.
+output/package-check-*/
+output/package-check-venv-*/
+output/playwright/
+.playwright-cli/
 results/full_sweep/
 results/mini_sweep/
 results/comparison/

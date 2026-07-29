@@ -1,0 +1,57 @@
+id: "02_dense_intersection"
+name: "Dense Intersection"
+version: "1.0.0"
+category: "standard"
+difficulty: "medium"
+
+duration_seconds: 240
+dt_seconds: 1.0
+
+airspace:
+  bounds_m:
+    x: [0, 1500]
+    y: [0, 1500]
+    z: [50, 250]
+  volume_m3: 450_000_000
+  capacity_max_agents: 20
+
+agents:
+  count: 16
+  kinematics:
+    max_speed_m_s: 15.0
+    max_accel_m_s2: 5.0
+    turn_rate_deg_s: 30.0
+  spawn_pattern: "four_streams_orthogonal"   # 4 streams of 4 drones each
+  goal_pattern: "opposite_side"
+
+obstacles:
+  static: []
+  dynamic: []
+
+weather:
+  wind: { mean_m_s: 2.0, gust_m_s: 4.0, direction_deg: 90.0 }
+  visibility_m: 10000
+  precipitation_mm_per_h: 0.0
+
+communications:
+  quality: "perfect"
+  packet_loss: 0.0
+  blackout_windows_s: []
+
+regulatory:
+  remote_id_required: true
+  laanc_volume_class: "G"
+  geofences: []
+
+success_criteria:
+  NMR_max: 5.0e-4
+  MSD_min_m: 5.0
+  geofence_violations_max: 0
+  RID_CR_min: 0.999
+
+expected_baseline_performance:
+  NMR: 8.0e-5
+  MSD_m: 6.5
+  PE: 0.88
+  MS_s: 145.0
+  RTF: 9.0

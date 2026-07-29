@@ -1,0 +1,47 @@
+version: 1
+
+canonical_seeds:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  - 17
+  - 18
+  - 19
+  - 20
+  - 21
+  - 22
+  - 23
+  - 24
+  - 25
+  - 26
+  - 27
+  - 28
+  - 29
+
+reference_sweep:
+  description: "Core paper sweep: 7 standard benchmark scenarios x 2 methods x 30 seeds = 420 runs"
+  scenarios:
+    - 01_corridor_crossing
+    - 02_dense_intersection
+    - 03_emergency_landing
+    - 04_no_fly_zone
+    - 05_weather_diversion
+    - 06_priority_aircraft
+    - 07_communication_loss
+  methods:
+    - orca
+    - sdacs_hybrid

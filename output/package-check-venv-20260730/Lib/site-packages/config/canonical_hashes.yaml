@@ -1,0 +1,53 @@
+# Canonical SHA256 manifest for reproducibility CI
+#
+# Each entry pins the SHA256 of the JSON output produced by:
+#   bash scripts/reproduce/run_one.sh <scenario> <method> <seed>
+#
+# The CI job .github/workflows/canonical_hash.yml re-runs these cells on every
+# push to main and fails if the resulting hash does not match.
+#
+# Adding or updating an entry:
+#   1. Run the cell on reference hardware inside the reproducible Docker image.
+#   2. Capture the SHA: sha256sum results/<scenario>/<method>/seed<N>.json
+#   3. Put the captured value under `sha256:` and set `status: pinned`.
+#   4. Update `captured_on` to today's date and `captured_commit` to the
+#      `git rev-parse HEAD` of the run.
+#
+# Entries with `status: pending` are skipped by CI (job logs a notice instead
+# of failing). This lets us land the workflow and the manifest schema before
+# the first reference capture is finalized.
+
+version: 1
+generator: scripts/reproduce/run_one.sh
+hash_algo: sha256
+
+# Smallest subset that still exercises the deterministic path end-to-end.
+# Pick one scenario per concern category so a regression surfaces fast without
+# burning a full reference sweep on every push.
+cells:
+  - scenario: 01_corridor_crossing
+    method: sdacs_hybrid
+    seed: 42
+    status: pending
+    sha256: null
+    captured_on: null
+    captured_commit: null
+    notes: "Smoke cell. Should be the very first canonical hash frozen."
+
+  - scenario: 02_dense_intersection
+    method: sdacs_hybrid
+    seed: 0
+    status: pending
+    sha256: null
+    captured_on: null
+    captured_commit: null
+    notes: "Stress-side smoke. Adds geometry+density coverage."
+
+  - scenario: 07_communication_loss
+    method: sdacs_hybrid
+    seed: 7
+    status: pending
+    sha256: null
+    captured_on: null
+    captured_commit: null
+    notes: "Exercises the degraded-comms fallback path."

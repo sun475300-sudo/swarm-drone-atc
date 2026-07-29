@@ -1,0 +1,101 @@
+# 공역 구역 정의
+
+zones:
+  - id: "A"
+    name: "A구역 - 서북"
+    bounds:
+      x: [-5.0, 0.0]
+      y: [0.0, 5.0]
+    altitude_band:
+      min_m: 30.0
+      max_m: 120.0
+    priority: 3
+    type: GENERAL
+
+  - id: "B"
+    name: "B구역 - 동북"
+    bounds:
+      x: [0.0, 5.0]
+      y: [0.0, 5.0]
+    altitude_band:
+      min_m: 30.0
+      max_m: 120.0
+    priority: 3
+    type: GENERAL
+
+  - id: "C"
+    name: "C구역 - 서남"
+    bounds:
+      x: [-5.0, 0.0]
+      y: [-5.0, 0.0]
+    altitude_band:
+      min_m: 30.0
+      max_m: 120.0
+    priority: 3
+    type: GENERAL
+
+  - id: "D"
+    name: "D구역 - 동남"
+    bounds:
+      x: [0.0, 5.0]
+      y: [-5.0, 0.0]
+    altitude_band:
+      min_m: 30.0
+      max_m: 120.0
+    priority: 3
+    type: GENERAL
+
+  - id: "NFZ_CENTER"
+    name: "비행 금지 구역 - 중심"
+    bounds:
+      x: [-0.5, 0.5]
+      y: [-0.5, 0.5]
+    altitude_band:
+      min_m: 0.0
+      max_m: 120.0
+    priority: 0
+    type: NO_FLY
+
+corridors:
+  - id: "COR_EW"
+    name: "동서 주요 회랑"
+    waypoints:
+      - [-5.0, 0.0, 60.0]
+      - [-2.5, 0.0, 60.0]
+      - [0.0, 0.0, 60.0]
+      - [2.5, 0.0, 60.0]
+      - [5.0, 0.0, 60.0]
+    width_m: 200.0
+    altitude_band:
+      min_m: 55.0
+      max_m: 65.0
+
+  - id: "COR_NS"
+    name: "남북 주요 회랑"
+    waypoints:
+      - [0.0, -5.0, 80.0]
+      - [0.0, -2.5, 80.0]
+      - [0.0, 0.0, 80.0]
+      - [0.0, 2.5, 80.0]
+      - [0.0, 5.0, 80.0]
+    width_m: 200.0
+    altitude_band:
+      min_m: 75.0
+      max_m: 85.0
+
+landing_pads:
+  - id: "PAD_NW"
+    position: [-3.0, 3.0, 0.0]
+    capacity: 5
+  - id: "PAD_NE"
+    position: [3.0, 3.0, 0.0]
+    capacity: 5
+  - id: "PAD_SW"
+    position: [-3.0, -3.0, 0.0]
+    capacity: 5
+  - id: "PAD_SE"
+    position: [3.0, -3.0, 0.0]
+    capacity: 5
+  - id: "PAD_CENTER"
+    position: [0.0, 0.0, 0.0]
+    capacity: 10

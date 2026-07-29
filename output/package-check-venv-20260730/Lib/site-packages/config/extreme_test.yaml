@@ -1,0 +1,12 @@
+drones:
+  default_count: 100
+failure_injection:
+  comms_loss_rate: 0.05
+  drone_failure_rate: 0.1
+simulation:
+  duration_s: 30
+weather:
+  wind_models:
+  - direction_deg: 180
+    speed_ms: 20
+    type: constant

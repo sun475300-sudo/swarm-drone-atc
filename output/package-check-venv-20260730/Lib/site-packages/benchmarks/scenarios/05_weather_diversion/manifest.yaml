@@ -1,0 +1,57 @@
+id: "05_weather_diversion"
+name: "Weather Diversion"
+version: "1.0.0"
+category: "standard"
+difficulty: "hard"
+
+duration_seconds: 300
+dt_seconds: 1.0
+
+airspace:
+  bounds_m: { x: [0, 1500], y: [0, 1500], z: [50, 300] }
+  volume_m3: 562_500_000
+  capacity_max_agents: 20
+
+agents:
+  count: 12
+  kinematics: { max_speed_m_s: 15.0, max_accel_m_s2: 5.0, turn_rate_deg_s: 30.0 }
+  spawn_pattern: "random_distributed"
+  goal_pattern: "delivery_endpoints"
+
+obstacles:
+  static: []
+  dynamic:
+    - id: "storm_cell_1"
+      type: "moving_cylinder"
+      radius_m: 200
+      altitude_band_m: [0, 300]
+      motion: { type: "linear", start_m: [200, 200], end_m: [1300, 1300], duration_s: 300 }
+      severity: "hard_no_entry"        # treat as time-varying NFZ
+
+weather:
+  wind: { mean_m_s: 8.0, gust_m_s: 12.0, direction_deg: 45.0 }
+  visibility_m: 5000
+  precipitation_mm_per_h: 6.0
+
+communications:
+  quality: "noisy"
+  packet_loss: 0.05
+  blackout_windows_s: []
+
+regulatory:
+  remote_id_required: true
+  laanc_volume_class: "G"
+  geofences: []
+
+success_criteria:
+  NMR_max: 5.0e-4
+  MSD_min_m: 5.0
+  geofence_violations_max: 0           # storm = dynamic NFZ, count violations
+  RID_CR_min: 0.99                     # noisy comms, lower bound
+
+expected_baseline_performance:
+  NMR: 1.5e-4
+  MSD_m: 6.0
+  PE: 0.74                             # significant detour
+  MS_s: 220.0
+  RTF: 7.0

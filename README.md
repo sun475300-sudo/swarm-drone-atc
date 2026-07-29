@@ -220,6 +220,20 @@ python scripts/serve.py --no-browser --port 8123
 
 `file://`로 HTML을 직접 열면 ES module과 브라우저 CORS 정책 때문에 Three.js가 로드되지 않을 수 있습니다. HTTP 서버, GitHub Pages, 또는 Electron 앱으로 실행하세요.
 
+브라우저 시뮬레이터는 기본적으로 내장 데모 데이터를 사용합니다. Python `SwarmSimulator`의 스냅샷을 받으려면 WebSocket 브리지를 별도 실행하고 `?live=1`로 연결을 명시하세요.
+
+```bash
+# 터미널 1: 기본 ws://127.0.0.1:8765
+python -m pip install websockets
+python simulation/ws_bridge.py --drones 50
+
+# 터미널 2: 정적 시뮬레이터
+python scripts/serve.py --no-browser --port 8123
+# 브라우저에서 http://127.0.0.1:8123/swarm_3d_simulator.html?live=1 열기
+```
+
+브리지는 기본적으로 loopback에만 바인딩됩니다. 인증 없는 텔레메트리를 외부 네트워크에 노출하지 마세요.
+
 ### 3. Dash 대시보드와 API
 
 ```bash
@@ -685,7 +699,7 @@ docker compose logs sdacs
 | 목적 | 문서 |
 |---|---|
 | 전체 문서 색인 | [docs/INDEX.md](docs/INDEX.md) |
-| 시스템 아키텍처 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| 시스템 아키텍처 | [docs/architecture.md](docs/architecture.md) |
 | 웹 시뮬레이터 API와 성숙도 | [docs/SDACS_API.md](docs/SDACS_API.md) |
 | 평가 메트릭 | [docs/paper/EVALUATION_METRICS.md](docs/paper/EVALUATION_METRICS.md) |
 | 재현성 가이드 | [docs/REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md) |
@@ -711,7 +725,7 @@ docker compose logs sdacs
 | 높음 | 데스크톱 공개 릴리스 발행 | 정적 웹 ZIP은 공개됐지만 데스크톱 설치 파일은 아직 없음. 태그 기반 3-OS 빌드와 산출물 검증 필요 |
 | 높음 | `main` 브랜치 보호 설정 | GitHub API 기준 branch protection 미설정. 필수 CI·리뷰·관리자 우회 정책을 결정해야 함 |
 | 높음 | 설치 프로필 일원화 | `pyproject.toml`, requirements, lock의 API·개발·재현 의존성 범위를 정리하고 자동 동기화 필요 |
-| 중간 | Python 콘솔 스크립트 패키징 정리 | `pyproject.toml`의 `sdacs = main:main` 선언과 실제 설치 산출물이 불일치해 설치된 `sdacs` 명령이 `main` 모듈을 찾지 못함. 현재는 `python main.py` 사용 |
+| 중간 | Python 패키지 공개 마무리 | 로컬 휠에 `main.py`·런타임 패키지·시나리오 YAML을 포함하고 독립 환경에서 `sdacs --help`·시나리오 목록·짧은 시뮬레이션을 검증함. PyPI 실제 발행, 버전 정책, `visualize-3d` 정적 웹 자산의 휠 포함 방식은 아직 결정 필요 |
 | 중간 | FastAPI 운영화 | 인메모리 상태를 Redis/PostgreSQL, 인증 키 관리, WebSocket 인증, 관측성, 배포 환경으로 교체하거나 범위를 제한해야 함 |
 | 중간 | React 인증 강화 | `localStorage` JWT를 httpOnly cookie + CSRF 구조로 전환하고 E2E 보안 회귀 추가 필요 |
 | 중간 | 벤치마크 계약 완성 | 문서가 기대하는 `expected_results.yaml`과 시나리오 템플릿을 추가하거나 오래된 설명을 정정해야 함 |

@@ -1,0 +1,17 @@
+scenario: s07_adversarial_intrusion
+description: "적대적 드론 침입 — 탐지 지연시간 및 오탐율 검증"
+
+drone_count: 50
+simulation_duration_min: 15
+intrusion:
+  count: 3                     # 침입 드론 수
+  start_time_min: 5.0
+  behavior:
+    RANDOM_WALK: 0.4
+    BEELINE_HIGH_DENSITY: 0.4  # 고밀도 구역 직행
+    LOITER: 0.2
+
+success_criteria:
+  detection_rate_min: 0.95
+  detection_latency_p90_s: 5.0
+  false_positive_rate_pct_max: 0.1

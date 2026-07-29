@@ -1,0 +1,22 @@
+scenario: s01_normal_high_density
+description: "정상 고밀도 교통 — 처리량 한계 및 기준선 충돌률 검증"
+
+drone_count: 100
+simulation_duration_min: 10
+arrival_rate_per_min: 20       # Poisson 도착률
+area_km2: 100
+
+drone_profile_distribution:
+  COMMERCIAL_DELIVERY: 0.6
+  SURVEILLANCE: 0.3
+  EMERGENCY: 0.1
+
+route_generation:
+  type: random_od              # 랜덤 출발-목적지 쌍
+  min_distance_km: 1.0
+  max_distance_km: 8.0
+
+success_criteria:
+  collision_count: 0
+  conflict_resolution_rate_min: 0.995
+  route_efficiency_max: 1.15

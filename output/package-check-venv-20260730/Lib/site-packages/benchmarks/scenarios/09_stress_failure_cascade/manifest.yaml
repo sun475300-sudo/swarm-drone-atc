@@ -1,0 +1,64 @@
+id: "09_stress_failure_cascade"
+name: "Stress: Failure Cascade"
+version: "1.0.0"
+category: "stress"
+difficulty: "hard"
+
+duration_seconds: 300
+dt_seconds: 1.0
+
+airspace:
+  bounds_m: { x: [0, 1500], y: [0, 1500], z: [50, 250] }
+  volume_m3: 450_000_000
+  capacity_max_agents: 50
+
+agents:
+  count: 40
+  kinematics: { max_speed_m_s: 15.0, max_accel_m_s2: 5.0, turn_rate_deg_s: 30.0 }
+  spawn_pattern: "delivery_grid"
+  goal_pattern: "delivery_endpoints"
+
+events:
+  # 10 % drones lose control authority (still broadcasting)
+  - at_s: 50
+    type: "control_loss"
+    fraction: 0.10
+    behavior: "drift_with_wind"
+  # 5 % brick mid-flight (drop from broadcast, freeze in last position)
+  - at_s: 120
+    type: "brick"
+    fraction: 0.05
+    behavior: "freeze_and_silence"
+
+obstacles:
+  static: []
+  dynamic: []
+
+weather:
+  wind: { mean_m_s: 5.0, gust_m_s: 7.0, direction_deg: 90.0 }
+  visibility_m: 10000
+  precipitation_mm_per_h: 0.0
+
+communications:
+  quality: "noisy"
+  packet_loss: 0.05
+  blackout_windows_s: []
+
+regulatory:
+  remote_id_required: true
+  laanc_volume_class: "G"
+  geofences: []
+
+success_criteria:
+  NMR_max: 1.0e-3
+  MSD_min_m: 4.5
+  geofence_violations_max: 0
+  RID_CR_min: 0.95                    # bricked drones fall off the broadcast
+  cascading_failure_count_max: 0      # no surviving drone may collide due to a failure
+
+expected_baseline_performance:
+  NMR: 6.0e-4
+  MSD_m: 5.0
+  PE: 0.73
+  MS_s: 250.0
+  RTF: 6.0

@@ -1,0 +1,60 @@
+id: "10_stress_adversarial_swarm"
+name: "Stress: Adversarial Swarm"
+version: "1.0.0"
+category: "stress"
+difficulty: "hard"
+
+duration_seconds: 300
+dt_seconds: 1.0
+
+airspace:
+  bounds_m: { x: [0, 1500], y: [0, 1500], z: [50, 250] }
+  volume_m3: 450_000_000
+  capacity_max_agents: 50
+
+agents:
+  count: 30                            # cooperative SDACS-controlled drones
+  kinematics: { max_speed_m_s: 15.0, max_accel_m_s2: 5.0, turn_rate_deg_s: 30.0 }
+  spawn_pattern: "delivery_grid"
+  goal_pattern: "delivery_endpoints"
+
+intruders:
+  count: 8                             # NON-cooperative — ignore SDACS
+  ignores_remote_id: true
+  ignores_conflict_resolution: true
+  injection_pattern: "random_walk_through_volume"
+  injection_at_s: 60                   # appear together
+  speed_m_s: 12.0
+
+obstacles:
+  static: []
+  dynamic: []
+
+weather:
+  wind: { mean_m_s: 1.0, gust_m_s: 2.0, direction_deg: 0.0 }
+  visibility_m: 10000
+  precipitation_mm_per_h: 0.0
+
+communications:
+  quality: "perfect"
+  packet_loss: 0.0
+  blackout_windows_s: []
+
+regulatory:
+  remote_id_required: true             # cooperative side; intruders violate
+  laanc_volume_class: "G"
+  geofences: []
+
+success_criteria:
+  NMR_max: 2.0e-3                     # intruder-induced near-misses allowed
+  MSD_min_m: 4.0                      # further relaxed — defensive only
+  geofence_violations_max: 0
+  RID_CR_min: 0.999                   # cooperative drones must stay compliant
+  cooperative_collision_count_max: 0  # ZERO cooperative-cooperative collisions
+
+expected_baseline_performance:
+  NMR: 1.2e-3
+  MSD_m: 4.5
+  PE: 0.68
+  MS_s: 270.0
+  RTF: 6.5

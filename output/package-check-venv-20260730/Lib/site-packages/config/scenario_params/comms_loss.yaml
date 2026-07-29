@@ -1,0 +1,16 @@
+scenario: s05_comms_loss
+description: "통신 두절 시나리오 — Lost-link 프로토콜 검증"
+
+drone_count: 50
+
+comms_loss:
+  trigger_time_range: [30, 300]
+  affected_drone_count_range: [1, 10]
+  duration_range_s: [30, 180]
+
+lost_link_protocol:
+  phase1_loiter_s: 30           # 1단계: 호버링
+  phase2_rtl_altitude_m: 80.0   # 2단계: RTL 고도
+  phase3_land: true              # 3단계: 착륙
+
+simulation_duration_s: 600

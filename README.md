@@ -718,6 +718,7 @@ docker compose logs sdacs
 | 논문 기여와 투고 준비 | [docs/paper/contribution_outline.md](docs/paper/contribution_outline.md) |
 | 사업화·산학 트랙 | [docs/track_f/README.md](docs/track_f/README.md) |
 | 장기 로드맵 | [ROADMAP.md](ROADMAP.md) |
+| 외부 실행 체크리스트 | [docs/EXTERNAL_EXECUTION_CHECKLIST.md](docs/EXTERNAL_EXECUTION_CHECKLIST.md) |
 | 변경 이력 | [CHANGELOG.md](CHANGELOG.md) |
 | 버전 정책 | [VERSION.md](VERSION.md) |
 

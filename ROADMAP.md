@@ -151,6 +151,9 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 
 ## In Progress / 진행 예정
 
+> 실제 장비, 관리자 권한, 외부 기관 제출이 필요한 미완료 항목은
+> [외부 실행 체크리스트](docs/EXTERNAL_EXECUTION_CHECKLIST.md)의 순서와 증빙 기준을 따른다.
+
 > Phase 691부터는 3개 트랙(하드웨어 실기화 · 연구 논문화 · 배포 서비스화)을 **병렬로** 진행.
 > Phase 736부터는 Track E(확장 연구) · Track F(산학 실증) 추가 신설.
 > 각 Phase는 2~5일 단위로 잘라 사용자 개인 스프린트에 할당.

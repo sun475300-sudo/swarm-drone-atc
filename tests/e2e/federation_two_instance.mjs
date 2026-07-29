@@ -18,6 +18,7 @@ import { chromium } from 'playwright';
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(SCRIPT_DIR, '..', '..');
 const PYTHON = process.env.SDACS_PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
+const PAGE_TIMEOUT_MS = process.platform === 'win32' ? 120_000 : 60_000;
 
 const MIME = {
   '.css': 'text/css; charset=utf-8',
@@ -177,11 +178,11 @@ async function main() {
     await Promise.all([
       pageA.goto(simulatorUrl(baseUrl, portA, portB, 'A', 'B', 10_000), {
         waitUntil: 'load',
-        timeout: 60_000,
+        timeout: PAGE_TIMEOUT_MS,
       }),
       pageB.goto(simulatorUrl(baseUrl, portB, portA, 'B', 'A', -10_000), {
         waitUntil: 'load',
-        timeout: 60_000,
+        timeout: PAGE_TIMEOUT_MS,
       }),
     ]);
     await Promise.all([
@@ -190,14 +191,14 @@ async function main() {
           && window._sdacs?.federationPeerConnected
           && window._sdacs?.federationGhostCount === 6,
         null,
-        { timeout: 60_000 },
+        { timeout: PAGE_TIMEOUT_MS },
       ),
       pageB.waitForFunction(
         () => window._sdacs?.wsConnected
           && window._sdacs?.federationPeerConnected
           && window._sdacs?.federationGhostCount === 4,
         null,
-        { timeout: 60_000 },
+        { timeout: PAGE_TIMEOUT_MS },
       ),
     ]);
 

@@ -60,6 +60,8 @@ node_modules/
 package.json
 # frontend(P711 React MVP) 매니페스트는 추적 필요 — 전역 package.json 무시에서 예외
 !frontend/package.json
+# 공개 ESM 코어 패키지 매니페스트도 배포·CI 검증에 필요
+!packages/core/package.json
 
 # Electron-builder artifacts at repo root (정본은 desktop/main.js, desktop/preload.js)
 # electron-builder 빌드 중 entry point 복사본을 루트에 남기는 부작용 차단

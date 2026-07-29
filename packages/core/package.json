@@ -1,0 +1,52 @@
+{
+  "name": "@sdacs/core",
+  "version": "1.5.0",
+  "description": "Pure JavaScript CPA collision prediction and APF avoidance primitives for SDACS",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./cpa": {
+      "types": "./index.d.ts",
+      "import": "./src/cpa.js"
+    },
+    "./apf": {
+      "types": "./index.d.ts",
+      "import": "./src/apf.js"
+    }
+  },
+  "files": [
+    "src",
+    "index.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "pack:check": "npm pack --dry-run"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "keywords": [
+    "drone",
+    "utm",
+    "collision-avoidance",
+    "cpa",
+    "apf"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sun475300-sudo/swarm-drone-atc.git",
+    "directory": "packages/core"
+  }
+}

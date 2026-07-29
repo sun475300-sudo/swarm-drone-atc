@@ -61,13 +61,13 @@ SDACS는 단일 애플리케이션이 아니라 같은 도메인을 여러 깊�
 
 ## 현재 상태
 
-마지막 저장소 점검일은 **2026-07-30 (KST)** 이며 당시 최신 커밋은 [`ecb20059`](https://github.com/sun475300-sudo/swarm-drone-atc/commit/ecb2005919e0a360feeb607bb878d8a31d50e0e1)입니다. 이후 커밋은 `git log -1 --oneline origin/main`으로 확인합니다.
+마지막 저장소 점검일은 **2026-07-30 (KST)** 이며 당시 최신 커밋은 [`09831d84`](https://github.com/sun475300-sudo/swarm-drone-atc/commit/09831d847c1fc00fa6ac8f2878a1b33be9746cc2)입니다. 이후 커밋은 `git log -1 --oneline origin/main`으로 확인합니다.
 
 | 상태 | 항목 | 확인 결과 |
 |:---:|---|---|
 | ✅ | 프로젝트 버전 | `pyproject.toml`과 `package.json` 기준 `1.5.0` |
 | ✅ | 기본 브랜치 | `main` — 로컬 HEAD와 `origin/main`이 기준 커밋에서 일치 |
-| 🔄 | GitHub Actions | 최신 커밋의 CI, Security Audit, Canonical Hash Verification, Pages 배포가 점검 시점에 진행 중. 직전 완료 기준 `8832407e`는 모두 성공 |
+| 🔄 | GitHub Actions | 최신 커밋의 Security Audit, Canonical Hash Verification, Dependency Graph, Pages 배포 성공. CI와 Simulator Smoke Test는 점검 시점에 진행 중 |
 | ✅ | GitHub Pages | 루트, 3D 시뮬레이터, 해양 시뮬레이터 HTTP 200 확인 |
 | ✅ | 웹 릴리스 | [SDACS Web Simulator (2026-07-30)](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/simulator-web-2026-07-30)에 검증 가능한 정적 ZIP 공개 |
 | ✅ | Python 회귀 | Python 3.10 / 3.11 / 3.12, 제한 린트, mypy, 커버리지 80% 게이트 통과 |

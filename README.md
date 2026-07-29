@@ -61,18 +61,19 @@ SDACS는 단일 애플리케이션이 아니라 같은 도메인을 여러 깊�
 
 ## 현재 상태
 
-마지막 저장소 점검일은 **2026-07-30 (KST)** 입니다. 정확한 최신 커밋은 `git log -1 --oneline origin/main`으로 확인합니다.
+마지막 저장소 점검일은 **2026-07-30 (KST)** 이며 당시 최신 커밋은 [`ecb20059`](https://github.com/sun475300-sudo/swarm-drone-atc/commit/ecb2005919e0a360feeb607bb878d8a31d50e0e1)입니다. 이후 커밋은 `git log -1 --oneline origin/main`으로 확인합니다.
 
-| 항목 | 확인 결과 |
-|---|---|
-| 프로젝트 버전 | `pyproject.toml`과 `package.json` 기준 `1.5.0` |
-| 기본 브랜치 | `main` — 로컬과 `origin/main` 동기화 상태에서 점검 |
-| GitHub Actions | 최신 `main` 푸시의 CI, Security Audit, Canonical Hash Verification, Pages 배포 모두 성공 |
-| GitHub Pages | 루트, 3D 시뮬레이터, 해양 시뮬레이터 HTTP 200 확인 |
-| 정적 시뮬레이터 산출물 | `python scripts/build_simulator.py` 및 `--check` 성공. `build/simulator/` 생성 확인 |
-| 다운로드 가능한 웹 패키지 | [SDACS Web Simulator (2026-07-30)](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/simulator-web-2026-07-30)에 정적 ZIP 공개 |
-| Python 회귀 | 최신 CI가 Python 3.10 / 3.11 / 3.12 매트릭스에서 성공. 린트·mypy·커버리지 80% 게이트 포함 |
-| 데스크톱 앱 | Electron 빌드 설정과 3-OS GitHub Actions 워크플로는 존재하지만, 현재 GitHub Releases에는 SDACS 앱 설치 파일이 공개되어 있지 않음 |
+| 상태 | 항목 | 확인 결과 |
+|:---:|---|---|
+| ✅ | 프로젝트 버전 | `pyproject.toml`과 `package.json` 기준 `1.5.0` |
+| ✅ | 기본 브랜치 | `main` — 로컬 HEAD와 `origin/main`이 기준 커밋에서 일치 |
+| 🔄 | GitHub Actions | 최신 커밋의 CI, Security Audit, Canonical Hash Verification, Pages 배포가 점검 시점에 진행 중. 직전 완료 기준 `8832407e`는 모두 성공 |
+| ✅ | GitHub Pages | 루트, 3D 시뮬레이터, 해양 시뮬레이터 HTTP 200 확인 |
+| ✅ | 웹 릴리스 | [SDACS Web Simulator (2026-07-30)](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/simulator-web-2026-07-30)에 검증 가능한 정적 ZIP 공개 |
+| ✅ | Python 회귀 | Python 3.10 / 3.11 / 3.12, 제한 린트, mypy, 커버리지 80% 게이트 통과 |
+| ⚠️ | 로컬 정적 산출물 | 정본 HTML 변경 후 사본 3개와 `build/simulator/` 2개가 미동기화되어 현재 `python scripts/build_simulator.py --check` 실패 |
+| ⏳ | 데스크톱 앱 | Electron 3-OS 빌드 워크플로는 있으나 Releases에 설치 파일은 아직 없음 |
+| ⏳ | 실환경 검증 | Pixhawk·Jetson·RTK·HITL·실비행·규제 승인 근거는 아직 없음 |
 
 상태표는 특정 시점의 스냅샷입니다. 장기 진행률과 오래된 Phase 수치는 [ROADMAP.md](ROADMAP.md) 및 과거 점검 문서보다 현재 코드, CI, 이 README의 검증 절을 우선해 판단하세요.
 
@@ -530,8 +531,8 @@ python -m pytest tests/ -q
 `pyproject.toml`의 기본 pytest 설정은 `pytest-xdist` 병렬 실행, `src`·`simulation` 커버리지, 80% 하한을 포함합니다. 빠른 단일 테스트가 필요하면 대상 파일을 명시하세요.
 
 ```bash
-python -m pytest tests/test_simulator.py -q
-python -m pytest tests/test_fastapi_server.py -q
+python -m pytest tests/test_simulator_scenarios.py -q
+python -m pytest tests/test_api_server_smoke.py -q
 ```
 
 ### 웹·프론트엔드
@@ -705,14 +706,17 @@ docker compose logs sdacs
 
 | 우선순위 | 작업 | 상태·이유 |
 |---|---|---|
+| 높음 | 정적 시뮬레이터 사본 동기화 | 현재 정본 변경으로 사본 3개와 `build/simulator/` 2개가 오래된 상태. `python scripts/build_simulator.py` 실행 후 `--check` 통과 필요 |
 | 높음 | 의존성 업데이트 PR 검토·병합 | Dependabot PR [#512](https://github.com/sun475300-sudo/swarm-drone-atc/pull/512)~[#518](https://github.com/sun475300-sudo/swarm-drone-atc/pulls?q=is%3Aopen%20is%3Apr) 대기. `numpy`·Playwright·GitHub Actions는 CI/E2E 재검증 후 병합 필요 |
 | 높음 | 데스크톱 공개 릴리스 발행 | 정적 웹 ZIP은 공개됐지만 데스크톱 설치 파일은 아직 없음. 태그 기반 3-OS 빌드와 산출물 검증 필요 |
 | 높음 | `main` 브랜치 보호 설정 | GitHub API 기준 branch protection 미설정. 필수 CI·리뷰·관리자 우회 정책을 결정해야 함 |
 | 높음 | 설치 프로필 일원화 | `pyproject.toml`, requirements, lock의 API·개발·재현 의존성 범위를 정리하고 자동 동기화 필요 |
+| 중간 | Python 콘솔 스크립트 패키징 정리 | `pyproject.toml`의 `sdacs = main:main` 선언과 실제 설치 산출물이 불일치해 설치된 `sdacs` 명령이 `main` 모듈을 찾지 못함. 현재는 `python main.py` 사용 |
 | 중간 | FastAPI 운영화 | 인메모리 상태를 Redis/PostgreSQL, 인증 키 관리, WebSocket 인증, 관측성, 배포 환경으로 교체하거나 범위를 제한해야 함 |
 | 중간 | React 인증 강화 | `localStorage` JWT를 httpOnly cookie + CSRF 구조로 전환하고 E2E 보안 회귀 추가 필요 |
 | 중간 | 벤치마크 계약 완성 | 문서가 기대하는 `expected_results.yaml`과 시나리오 템플릿을 추가하거나 오래된 설명을 정정해야 함 |
 | 중간 | 실기·HITL·현장 데이터 검증 | 하드웨어 계획 문서는 있으나 Pixhawk·Jetson·RTK·실비행·외부 기관 연동은 소프트웨어 CI로 대체할 수 없음 |
+| 중간 | 버전·Phase 메타데이터 정합화 | `package.json` 설명의 `v1.4 / 150 Phase`와 실제 버전 `1.5.0`, 200-Phase E2E 표현을 하나의 기준으로 통일해야 함 |
 | 중간 | 문서 정합성 정리 | 오래된 Phase/릴리스/테스트 수치를 포함한 보조 문서를 현재 코드와 README 기준으로 검토·정리해야 함 |
 | 낮음 | deprecated 워크플로 제거 | `pages.yml`, `python-app.yml`의 보존 필요성을 확인하고 대체 경로만 남길지 결정 필요 |
 | 낮음 | 오래된 운영 이슈 정리 | [#409](https://github.com/sun475300-sudo/swarm-drone-atc/issues/409)는 2026-06-21의 수동 점검 이슈로, 현재 상태 확인 후 종료 또는 갱신 필요 |

@@ -64,11 +64,42 @@ markers = [
     "gpu: GPU 가속 테스트",
 ]
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.setuptools]
+py-modules = ["main"]
+include-package-data = true
 
-[tool.setuptools.package-dir]
-"" = "src"
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+    "api*",
+    "benchmarks*",
+    "chatbot*",
+    "config*",
+    "simulation*",
+    "src*",
+    "visualization*",
+]
+exclude = [
+    "archive*",
+    "build*",
+    "dist*",
+    "docs*",
+    "node_modules*",
+    "output*",
+    "tests*",
+]
+
+[tool.setuptools.package-data]
+config = ["*.yaml", "*.yml", "scenario_params/**/*.yaml", "scenario_params/**/*.yml"]
+benchmarks = [
+    "*.md",
+    "*.json",
+    "*.yaml",
+    "*.yml",
+    "scenarios/**/*.json",
+    "scenarios/**/*.yaml",
+    "scenarios/**/*.yml",
+]
 
 [tool.mypy]
 python_version = "3.12"

@@ -11215,7 +11215,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         if (mobConfig.isMobile) {
             applyMobileLOD();
         }
-        if ('serviceWorker' in navigator) {
+        // localhost 개발 서버는 최신 HTML/CSS를 즉시 검증해야 하므로 캐시를 등록하지 않는다.
+        // 정적 배포(HTTPS)에서만 오프라인 캐시를 활성화한다.
+        if ('serviceWorker' in navigator && location.protocol === 'https:') {
             navigator.serviceWorker.register('sdacs-sw.js').catch(() => {/* offline cache 선택사항 */});
         }
 

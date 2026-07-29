@@ -69,7 +69,7 @@ python scripts/serve.py                             # 웹 시뮬레이터 → lo
 <summary><b>25개 섹션 바로가기 — 클릭하여 펼치기 / Jump to section (click to expand)</b></summary>
 
 - [📣 공개 프로젝트 설명 자료 / Public Project Materials](#-공개-프로젝트-설명-자료--public-project-materials-2026-06-18)
-- [📊 개발 진척 현황 / Development Progress](#-개발-진척-현황--development-progress-2026-07-10)
+- [📊 개발 진척 현황 / Development Progress](#-개발-진척-현황--development-progress-2026-07-30)
 - [📦 배포 파일 다운로드 / Distribution Files](#-배포-파일-다운로드--distribution-files-v150--200-phase-unity)
 - [📄 최종 보고서 다운로드 / Final Report Downloads](#-최종-보고서-다운로드--final-report-downloads)
 - [🐳 Docker로 실행하기 / Run with Docker](#-docker로-실행하기--run-with-docker)
@@ -109,15 +109,15 @@ python scripts/serve.py                             # 웹 시뮬레이터 → lo
 | **공개 프로젝트 설명 보고서** (DOCX, 5페이지) | 일반 대중 · 학생 · 심사위원 · 공공기관 | [📥 SDACS_Public_Project_Report_2026.docx](docs/report/SDACS_Public_Project_Report_2026.docx) |
 | **공개 프로젝트 소개 발표자료** (PPTX, 10장) | 발표 · 수업 · 프로젝트 소개 | [📥 SDACS_Public_Project_Overview_2026.pptx](docs/presentation/SDACS_Public_Project_Overview_2026.pptx) |
 
-> **2026-06-24 로컬 재검증:** `ruff` 전체 통과 · Python 테스트는 단일 프로세스(`pytest -n 0`)에서 클린 통과 · AIM 정밀검사 242개 통과. 대표 실행 `100 drones / 60s / seed 42`에서 **45 collisions · 87 near misses · 95.9% conflict resolution**이 측정되었습니다(상세 수치는 아래 [현재 로컬 검증](#-현재-로컬-검증--current-local-validation-2026-06-24) 표 참조). 현재 결과는 안전 인증이 아니라 연구용 시뮬레이터의 개선 기준선입니다.
+> **2026-06-24 로컬 재검증:** `ruff` 전체 통과 · Python 테스트는 단일 프로세스(`pytest -n 0`)에서 클린 통과 · AIM 정밀검사 242개 통과. 대표 실행 `100 drones / 60s / seed 42`에서 **45 collisions · 87 near misses · 95.9% conflict resolution**이 측정되었습니다(상세 수치는 아래 [현재 검증 스냅샷](#-현재-검증-스냅샷--current-validation-snapshot-2026-07-30) 표 참조). 현재 결과는 안전 인증이 아니라 연구용 시뮬레이터의 개선 기준선입니다.
 
-> **최신 점검 (2026-07-14)** — `main` CI 는 **2026-07-04 이후 연속 GREEN** (nightly ci.yml 실측, 최근 07-13 success). 2026-07-02 에 관찰됐던 테스트 잡 RED 3건(fastapi 설치 누락·`LostLinkConfig` import 불일치·Electron 정책 핀 43 vs 39)은 후속 커밋(`9b7e9d0` MAVLink/fastapi 가드 · `a184385` electron 39.8.5 정책 핀 복원 · `251cdc7` dependabot major 범프 차단)으로 모두 해소됐고, 이후 dash 4.1·plotly 6.9 메이저 범프 병합에서도 3개 Python 잡(3.10/3.11/3.12) GREEN 이 실증되었습니다.
+> **최신 점검 (2026-07-30)** — `main`은 `origin/main`과 일치(`647fc93b`)하며, `ci.yml`은 최근 30회 조회 범위가 모두 GREEN입니다. 최신 완료 CI run `30424444540`(2026-07-29 05:13 UTC)은 Python 3.10/3.11/3.12에서 모두 `9296 passed · 295 skipped`, coverage 87.75%, ruff 통과로 끝났습니다. 열린 PR은 8건(Dependabot 7건 + 문서 draft #510)이며, 현재 `DIRTY`/`UNSTABLE` PR은 없습니다.
 >
 > 📜 200 Phase 통합 · API Maturity 정직성 체계 · 이전 버전 이력 등 상세 변경 내역은 [CHANGELOG.md](CHANGELOG.md)를 참조하세요.
 
 ---
 
-## 📊 개발 진척 현황 / Development Progress (2026-07-10)
+## 📊 개발 진척 현황 / Development Progress (2026-07-30)
 
 | 트랙 | 범위 | 진척 | 핵심 산출물 |
 |---|---|---|---|
@@ -134,7 +134,7 @@ python scripts/serve.py                             # 웹 시뮬레이터 → lo
 
 > 상세: [`ROADMAP.md`](ROADMAP.md) · [`STATUS_REPORT.md`](STATUS_REPORT.md) · [`docs/INDEX.md`](docs/INDEX.md)(문서 마스터 인덱스) · [`docs/MASTER_PLAN_2026H2.md`](docs/MASTER_PLAN_2026H2.md)(실행 일정)
 
-### 🚧 미완료 작업 / Open Work Items (2026-07-11 GitHub·CI 재점검)
+### 🚧 미완료 작업 / Open Work Items (2026-07-30 GitHub·CI 재점검)
 
 <details>
 <summary><b>📋 전수 감사 상세 펼치기 — 환경의존 / 코드완료 / 잔여 작업 (클릭)</b></summary>

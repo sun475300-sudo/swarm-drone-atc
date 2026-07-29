@@ -212,9 +212,10 @@ python scripts/serve.py                             # 웹 시뮬레이터 → lo
 **GitHub 운영**
 - [x] **열린 PR 정리 (2026-06-25)** ✅ — 일일점검 중복 draft 23건 close(ODYSSEY 작업은 #449로 일원화) + dependabot 8건 병합(GitHub Actions 5 + pyyaml·matplotlib·pydantic-core) + 로컬 브랜치 1개(`main`)로 축소. **#449(ODYSSEY 10개 Phase) main 안착 완료**
 - [x] **열린 PR 재점검·정리 (2026-07-11 완료)** ✅ — 07-02 당시 draft 8건(#457~#480, #469 UNSTABLE)은 #479 재구성 병합·중복 close 로 전부 정리. 현재 열린 PR **1건**(#494, 감사 트랙)만 유지
+- [ ] **열린 PR 대기열 재점검 (2026-07-30)** — 열린 PR **8건**: Dependabot 7건(`#512` setup-python 7, `#513` Playwright 1.62.0, `#514` certifi, `#515` numpy 2.2.6, `#516` pytz, `#517` tqdm, `#518` narwhals) + 문서 draft `#510`. 현재 `DIRTY`/`UNSTABLE` PR은 0건이나, 병합 전 개별 CI·호환성 검토 필요
 - [x] **저장소 루트 `LICENSE` 추가 (2026-06-25)** ✅ — MIT 라이선스 파일 생성, README 배지 링크 정상화
 - [x] **main CI RED 회복 (2026-06-25)** ✅ — `ci.yml` checkout `fetch-depth: 0`(code_archaeology 전체 이력 파싱) → 당시 CI GREEN 실측
-- [x] **main CI RED 회복 (2026-07-04 완료)** ✅ — 07-02 RED 3건(`fastapi` 누락·`LostLinkConfig` 불일치·Electron 핀 43 vs 39)은 `9b7e9d0`·`a184385`·`251cdc7` 로 해소. 이후 nightly ci.yml **8회 연속 success** (2026-07-11 실측)
+- [x] **main CI RED 회복 (2026-07-04 완료)** ✅ — 07-02 RED 3건(`fastapi` 누락·`LostLinkConfig` 불일치·Electron 핀 43 vs 39)은 `9b7e9d0`·`a184385`·`251cdc7` 로 해소. 2026-07-30 재점검 기준 `ci.yml` 최근 **30회 조회 범위 전부 success** (최신 run `30424444540`)
 - [ ] `main` branch protection 활성화 — required checks 지정 (직접 push 차단은 현 작업 워크플로에 영향 → 사용자 확인 필요)
 
 **기술 부채 (정직성 공시)**

@@ -294,17 +294,17 @@ GitHub `main` 브랜치에 직접 커밋된 배포 파일. 별도 빌드 없이 
 | [🌌 SIMULATOR_MEGA_PLAN.md](docs/SIMULATOR_MEGA_PLAN.md) ~ [POST_UNIVERSE_PLAN](docs/SIMULATOR_POST_UNIVERSE_PLAN.md) | 200 Phase 5단계 로드맵 |
 | [📋 CHANGELOG.md](CHANGELOG.md) | v1.0-1.5 통합 버전 이력 |
 
-### ✅ 현재 검증 스냅샷 / Current Validation Snapshot (2026-07-21)
+### ✅ 현재 검증 스냅샷 / Current Validation Snapshot (2026-07-30)
 
 | 항목 | 결과 |
 |---|---|
-| GitHub main 동기화 | **`origin/main` = `e42645d`** (PR #509 병합 — 저장소 위생·보안 자격증명 제거·문서 재기준선 반영) |
-| GitHub Actions CI (`ci.yml`, main) | **GREEN — 최근 15회 연속 success** (2026-07-20 16:04 UTC PR #509 병합 포함, `gh run list` 실측) |
+| GitHub main 동기화 | **로컬 `main` = `origin/main` = `647fc93b`** (PR #511 병합 이후 기준) |
+| GitHub Actions CI (`ci.yml`, main) | **GREEN — 최근 30회 조회 범위 전부 success** (최신 run `30424444540`, 2026-07-29 05:13 UTC schedule) |
 | 직전 RED 이력 | 07-02 RED 3건(`fastapi` 누락·`LostLinkConfig` 불일치·Electron 핀 43 vs 39)은 `9b7e9d0`·`a184385`·`251cdc7` 로 07-04 해소 |
-| Python 테스트 수집 | **9,591 collected · 수집 오류 0** (2026-07-21 CI 클린 컨테이너 실측, Python 3.10/3.11/3.12 동일) |
+| Python 테스트 | **9,296 pass · 295 skip · 수집 오류 0** (2026-07-29 CI 클린 컨테이너 실측, Python 3.10/3.11/3.12 동일) |
 | Playwright E2E 수집 | **295 collected** (tests/e2e) |
 | `_sdacs` API 성숙도 | **production 112 · beta 80 · mock 110 · speculative 103** (헤드리스 라이브 실측 2026-07-11) |
-| Ruff 정적 검사 | **전체 통과** |
+| Ruff 정적 검사 | **전체 통과** (`src/`, `simulation/`) |
 | 마지막 로컬 단일 프로세스 Python 테스트 | **7,003 collected · 6,733 pass · 270 skip · 0 fail** (2026-06-24, `pytest -n 0`, 224s) |
 | AIM 정밀검사 | **242 pass** (Phase 691-700, 9 rounds) |
 | 대표 시뮬레이션 | **100 drones · 60s · seed 42** |
@@ -1006,9 +1006,9 @@ python main.py simulate --duration 60 --drones 100 --seed 42
 | Scope | Result |
 |---|---|
 | Test files | **306** `test_*.py` files (`tests/` 전체, 2026-07-21 실측) |
-| Full Python collection | **9,591 collected · 수집 오류 0** (2026-07-21 CI 클린 컨테이너, 9,296 pass / 295 skip) |
+| Full Python collection | **9,591 collected · 9,296 pass · 295 skip · 0 fail · 수집 오류 0** (2026-07-29 CI 클린 컨테이너, Python 3.10/3.11/3.12 동일) |
 | Full Python suite (단일 프로세스 스냅샷) | **7,003 collected · 6,733 pass · 270 skip · 0 fail** (2026-06-24 `pytest -n 0`, 224s) |
-| Static analysis | **Ruff all checks passed** |
+| Static analysis | **Ruff all checks passed** (`src/`, `simulation/`) |
 | Representative simulation | **45 collisions · 87 near misses · 95.9% conflict resolution** |
 
 ---

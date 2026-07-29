@@ -1,76 +1,85 @@
-# SDACS 사이트 영구 배포 가이드
+# SDACS 배포 가이드
 
-**목표**: PC·터미널이 꺼져 있어도 언제든 접속 가능한 영구 URL 확보
-**방식**: GitHub Pages (GitHub 서버에서 호스팅, 24/7 자동 운영)
-**최종 URL**: https://sun475300-sudo.github.io/swarm-drone-atc/
+마지막 정리: **2026-07-30**. 이 문서는 `main`의 현재 배포 경로만 설명합니다. 과거 릴리스 수치나 로컬 산출물 존재 여부는 배포 성공의 증거가 아닙니다.
 
----
+## 1. GitHub Pages: 정적 웹 사이트와 시뮬레이터
 
-## 현재 상태 (Claude가 준비 완료한 것)
+공개 주소: <https://sun475300-sudo.github.io/swarm-drone-atc/>
 
-1. `sdacs-official-site/` 의 새 파일(simulator.html, scenarios.html, test-report.html, CNAME 등)을 `docs/` 로 **병합 완료** (기존 파일은 보존, 신규 파일만 추가)
-2. `.github/workflows/deploy-pages.yml` 워크플로가 이미 `docs/` 배포하도록 설정되어 있음
-3. 배포 자동화 배치 파일 `DEPLOY_PAGES.bat` 작성 완료
+Pages는 `main` 브랜치의 `docs/` 디렉터리를 배포합니다. `.github/workflows/deploy-pages.yml`은 메인 시뮬레이터 정본과 Three.js vendor 파일을 `docs/`로 동기화한 후 Pages artifact를 배포합니다.
 
----
+### 배포 전 로컬 확인
 
-## 사용자가 할 일 (1단계, 약 30초)
+```bash
+python scripts/build_simulator.py
+python scripts/build_simulator.py --check
+```
 
-### 방법 1: 더블클릭 (권장)
+`--check`이 성공하면 다음 사본과 정적 산출물이 정본과 일치합니다.
 
-1. 파일 탐색기에서 `E:\GitHub\swarm-drone-atc\DEPLOY_PAGES.bat` 더블클릭
-2. 검은 창이 뜨면서 자동으로 실행:
-   - index.lock 정리
-   - `git add` → `git commit` → `git push origin main`
-3. 마지막에 "Push complete!" 메시지가 나오면 완료
+- `visualization/swarm_3d_simulator.html`
+- `docs/swarm_3d_simulator.html`
+- `docs/simulator.html`
+- `build/simulator/`
 
-> `git push` 단계에서 GitHub 인증 창이 뜰 수 있습니다. 처음 한 번만 로그인하면 이후에는 저장됩니다. GitHub Desktop이 설치되어 있으면 자동으로 인증이 연결됩니다.
+### Pages 배포 절차
 
-### 방법 2: GitHub Desktop GUI
+```bash
+git status
+git add <변경 파일>
+git commit -m "docs: update deployment content"
+git push origin main
+```
 
-1. GitHub Desktop 실행
-2. 좌측에서 `swarm-drone-atc` 리포 선택
-3. 하단에 변경된 파일 목록이 보이면 → "Commit to main" 클릭
-4. 상단 `Push origin` 버튼 클릭
+푸시 뒤 Actions의 `Deploy SDACS to GitHub Pages` 완료를 확인합니다.
 
----
+- 사이트: <https://sun475300-sudo.github.io/swarm-drone-atc/>
+- 메인 시뮬레이터: <https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html>
+- 해양 시뮬레이터: <https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html>
 
-## 배포 확인 (약 2~3분 후)
+GitHub Pages는 정적 호스팅입니다. FastAPI, WebSocket, 데이터베이스가 필요한 서비스는 별도 ASGI 호스팅 환경에 배포해야 합니다.
 
-1. **Actions 탭**: https://github.com/sun475300-sudo/swarm-drone-atc/actions
-   - `Deploy SDACS to GitHub Pages` 워크플로가 초록색 ✓ 로 완료되면 성공
-2. **영구 URL**: https://sun475300-sudo.github.io/swarm-drone-atc/
-   - 이때부터 PC 꺼도, 터미널 닫아도, 인터넷만 되면 누구나 접속 가능
+## 2. 정적 시뮬레이터만 배포하기
 
-> **최초 1회**: Settings → Pages 메뉴에서 Source = "GitHub Actions" 로 설정되어 있는지 확인 필요.
-> 이미 설정되어 있으면 그냥 넘어가세요. https://github.com/sun475300-sudo/swarm-drone-atc/settings/pages
+```bash
+python scripts/build_simulator.py
+python -m http.server 8123 --directory build/simulator
+```
 
----
+`build/simulator/` 전체를 정적 호스팅 서비스에 업로드합니다. `simulator.html`, `vendor/three/`, `manifest.webmanifest`, `sdacs-sw.js`를 함께 유지해야 합니다.
 
-## 임시 Cloudflare 터널 URL vs GitHub Pages
+HTML 파일을 `file://`로 직접 열면 ES module/CORS 문제로 Three.js가 로드되지 않을 수 있습니다.
 
-| 항목 | Cloudflare Quick Tunnel | GitHub Pages |
-|---|---|---|
-| PC 꺼짐 | ✗ 접속 불가 | ✓ 접속 가능 |
-| 터미널 닫힘 | ✗ 접속 불가 | ✓ 접속 가능 |
-| URL 고정 | ✗ 재시작 시 변경 | ✓ 영구 고정 |
-| HTTPS | ✓ | ✓ |
-| 비용 | 무료 | 무료 |
-| 세션 한도 | 있음 | 없음 (100GB/월 트래픽) |
+## 3. Electron 데스크톱 패키지
 
----
+```bash
+npm ci
+npm run build:simulator
+npm run pack
+npm run dist:win
+```
 
-## 문제 해결
+- Windows: `npm run dist:win`
+- macOS: `npm run dist:mac` (macOS에서 실행)
+- Linux: `npm run dist:linux` (Linux에서 실행)
 
-**Q. 배치파일에서 `git push` 실패**
-- GitHub 계정 로그인이 필요합니다. GitHub Desktop을 한 번 실행해서 로그인하면 Git Credential Manager가 저장합니다.
+산출물은 `dist-desktop/`에 생성되며 Git에서 제외됩니다. 현재 GitHub Releases에는 SDACS 앱 설치 파일이 공개되어 있지 않으므로, 배포하려면 새 버전 태그와 GitHub Actions 릴리스가 필요합니다.
 
-**Q. "remote rejected" 또는 "non-fast-forward"**
-- 원격 브랜치가 앞서 있는 상황입니다. `git pull --rebase origin main` 실행 후 DEPLOY_PAGES.bat 재실행.
+## 4. GitHub Release 발행
 
-**Q. Pages URL 접속 시 404**
-- Actions 빌드가 아직 안 끝났거나, Settings → Pages → Source = "GitHub Actions" 가 아닌 상태입니다.
+`v*` 태그를 푸시하면 `.github/workflows/desktop-build.yml`이 Windows·macOS·Linux 빌드를 실행하고 성공한 산출물을 GitHub Release에 첨부하도록 구성돼 있습니다.
 
----
+```bash
+git tag -a vX.Y.Z -m "SDACS vX.Y.Z"
+git push origin vX.Y.Z
+```
 
-*작성: 2026-04-20, Claude*
+태그 전에는 최소한 다음을 확인합니다.
+
+```bash
+python scripts/build_simulator.py --check
+ruff check src/ simulation/
+python -m pytest tests/ -q
+```
+
+릴리스 페이지에서 각 OS 산출물, 설치·실행 여부, 코드 서명 정책을 확인한 뒤 공개합니다.

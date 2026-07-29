@@ -89,3 +89,9 @@ results/full_sweep/
 results/mini_sweep/
 results/comparison/
 results/stress_sweep/
+
+# Local Sites worktrees/build outputs. These directories can contain nested
+# Git repositories plus generated node_modules/.next/.wrangler content; keep
+# deployable archives such as sites/sdacs-deploy.tgz tracked instead.
+sites/sdacs/
+sites/sdacs-wsl-build/

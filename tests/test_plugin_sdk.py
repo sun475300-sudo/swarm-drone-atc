@@ -365,6 +365,7 @@ class TestCLI:
             [sys.executable, "-m", "simulation.plugin_sdk", "--list", "--json"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=30,
         )
         assert result.returncode == 0
@@ -376,6 +377,7 @@ class TestCLI:
             [sys.executable, "-m", "simulation.plugin_sdk"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=30,
         )
         assert result.returncode != 0

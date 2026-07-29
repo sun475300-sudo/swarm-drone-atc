@@ -1,0 +1,59 @@
+name: Bug report
+description: Report a reproducible SDACS defect.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Do not include credentials, tokens, personal data, or restricted flight data.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Python simulation engine
+        - Web simulator
+        - Maritime simulator
+        - API / frontend
+        - Desktop application
+        - Packaging / deployment
+        - Documentation
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: "v1.5.0 or git SHA"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include exact commands, scenario, seed, and browser or Python version.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and logs
+      render: shell
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched existing issues and pull requests.
+          required: true
+        - label: I removed secrets and sensitive operational data.
+          required: true

@@ -85,7 +85,19 @@ scripts/recordings/
 
 # 세션 산출물·재생성 가능 sweep 결과 (2026-07 정리 — ablation 등 문서 참조분은 유지)
 outputs/
+
+# Local wheel/CLI validation environments and artifacts.
+output/package-check-*/
+output/package-check-venv-*/
+output/playwright/
+.playwright-cli/
 results/full_sweep/
 results/mini_sweep/
 results/comparison/
 results/stress_sweep/
+
+# Local Sites worktrees/build outputs. These directories can contain nested
+# Git repositories plus generated node_modules/.next/.wrangler content; keep
+# deployable archives such as sites/sdacs-deploy.tgz tracked instead.
+sites/sdacs/
+sites/sdacs-wsl-build/

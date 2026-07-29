@@ -1,0 +1,41 @@
+name: Feature proposal
+description: Propose a scoped, testable capability.
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the operational or research problem, not only the desired UI.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Measurable outcome
+      description: State an acceptance criterion, KPI, or reproducible test.
+    validations:
+      required: true
+  - type: dropdown
+    id: maturity
+    attributes:
+      label: Intended maturity
+      options:
+        - Production
+        - Beta
+        - Research / experimental
+        - Documentation only
+    validations:
+      required: true
+  - type: textarea
+    id: design
+    attributes:
+      label: Proposed design and affected files
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety, security, and compatibility impact
+    validations:
+      required: true

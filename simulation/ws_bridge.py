@@ -33,7 +33,10 @@ async def _run_simulation(drones: int, seed: int, port: int, host: str = "127.0.
 
     backend = get_apf_backend_info()
     gpu_name = backend.get("gpu", "CPU") or "CPU"
-    print(f"🛸 WebSocket 브릿지 시작: {drones}기, host={host} port={port} [{gpu_name}]")
+    print(
+        f"[SDACS] WebSocket 브릿지 시작: {drones}기, host={host} port={port} [{gpu_name}]",
+        flush=True,
+    )
 
     clients: set = set()
 
@@ -49,8 +52,11 @@ async def _run_simulation(drones: int, seed: int, port: int, host: str = "127.0.
     # 임의 클라이언트에게 노출되는 것을 차단.
     await websockets.serve(handler, host, port)
     if host in ("0.0.0.0", "::"):
-        print(f"⚠ ws://{host}:{port} 모든 인터페이스 노출 — LAN 내 임의 청취 가능")
-    print(f"📡 ws://localhost:{port} 대기 중...")
+        print(
+            f"[WARNING] ws://{host}:{port} 모든 인터페이스 노출: LAN 내 임의 청취 가능",
+            flush=True,
+        )
+    print(f"[READY] ws://{host}:{port} 대기 중", flush=True)
 
     cfg = {"drones": {"default_count": drones}}
     sim = SwarmSimulator(seed=seed, scenario_cfg=cfg)

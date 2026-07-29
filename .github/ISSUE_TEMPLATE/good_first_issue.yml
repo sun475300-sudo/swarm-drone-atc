@@ -1,0 +1,30 @@
+name: Good First Issue proposal
+description: Claim or refine one item from docs/community/GOOD_FIRST_ISSUES.md.
+title: "[GFI] "
+labels:
+  - good first issue
+  - mentoring
+body:
+  - type: input
+    id: backlog
+    attributes:
+      label: Backlog ID
+      placeholder: GFI-01
+    validations:
+      required: true
+  - type: textarea
+    id: approach
+    attributes:
+      label: Proposed approach
+      description: Identify the smallest files and tests you expect to change.
+    validations:
+      required: true
+  - type: checkboxes
+    id: agreement
+    attributes:
+      label: Contribution agreement
+      options:
+        - label: I will keep the change scoped to the selected backlog item.
+          required: true
+        - label: I will add or update the stated verification.
+          required: true

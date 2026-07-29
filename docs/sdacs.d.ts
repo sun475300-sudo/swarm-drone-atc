@@ -1,6 +1,6 @@
 // SDACS Simulator window._sdacs TypeScript Declaration File
-// 자동 생성: 2026-07-02 (scripts/extract_sdacs_api.py 라이브 실측 추출)
-// 총 408개 API — 200 Phase + TRANSCENDENCE Phase 201-207 (Maturity)
+// 자동 생성: 2026-07-30 (scripts/extract_sdacs_api.py 라이브 실측 추출)
+// 총 414개 API — 200 Phase + TRANSCENDENCE Phase 201-207 (Maturity)
 // 성숙도: window._sdacs.maturityReport() 로 production/beta/mock/speculative 조회
 
 declare global {
@@ -39,6 +39,12 @@ declare global {
     /** [getter · beta] */ readonly wsConnected: any;
     /** [getter · beta] */ readonly wsFrames: any;
     /** [getter · beta] */ readonly liveMode: any;
+    /** [beta] */ connectFederationPeer(...args: any[]): any;
+    /** [getter · beta] */ readonly federationPeerConnected: any;
+    /** [getter · beta] */ readonly federationPeerFrames: any;
+    /** [getter · beta] */ readonly federationGhostCount: any;
+    /** [getter · beta] */ readonly federationGhosts: any;
+    /** [getter · beta] */ readonly federationInfo: any;
     /** [getter · production] */ readonly perf: any;
     /** [accessor · production] */ megaCull: any;
     /** [getter · production] */ readonly replayFrames: any;

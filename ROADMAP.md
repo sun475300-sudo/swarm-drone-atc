@@ -124,14 +124,14 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 
 ---
 
-## Progress Snapshot / 진행 현황 (2026-07-21 기준)
+## Progress Snapshot / 진행 현황 (2026-07-30 기준)
 
 | 트랙 | 완료 | 진행률 | 핵심 산출물 |
 |---|---|---|---|
 | Phase 1-690 (Core·이론·AI·HW·UTM·AIM) | 100% | ████████████ | 690 phases 모두 완료 |
 | **Track A** (P691-700, 실기 드론) | 100% | ████████████ | docs 가이드 10종 완비 (실기 검증은 사용자 HW 환경) |
 | **Track B** (P701-710, 논문화) | 100% | ████████████ | 30편 서베이·LaTeX §1-§7·포스터·슬라이드·투고 가이드 |
-| **Track C** (P711-720, 서비스화) | 90% | ███████████░ | P712-P720 완료 (P711 React는 별도 PR #87) |
+| **Track C** (P711-720, 서비스화) | 100% | ████████████ | FastAPI·React·인증·실시간 채널·저장소·배포·관측성 완료 |
 | **Track D** (P721-735, 웹 시뮬레이터) | 100% | ████████████ | 군집·해양 3D + Electron + i18n + LIVE + CPA + 멀티뷰 + EO/IR |
 | **Track E** (P736-745, 확장 연구) | 100% | ████████████ | RL·UAS-T·LiDAR·DR·디지털트윈·Raft HA·UAM·양자·폐쇄망·LLM |
 | **Track F** (P746-755, 산학 실증) | 90% | ███████████░ | P746-P754 docs 완비 (P755 창업·LOI는 사용자 환경) |
@@ -142,11 +142,8 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 | **GENESIS** (시뮬 Phase 301-400) | 50% | ██████░░░░░░ | 301-319·321-322·330·341-342·361-368·381-400 완료 — 인증·CSAP·감항·플러그인SDK·CITATION·RTM자동생성·RL벤치·LLM관제·NTN링크·GPS거부·에너지계획·V2X·자가치유·교육·레거시선언 |
 | **ODYSSEY** (시뮬 Phase 401-500) | 49% | ██████░░░░░░ | 402-411·447-448·452-460·461-500 완료 — FAA/EASA/ICAO·RL/AI(V&V·SafetyCase·Lifecycle)·연합운영·표준·Continuum (#449 안착) |
 
-**총 Phase 691-755 (65개) 중 61개 완료 = 94%** (Phase 1-690 포함 시 전체 751/755 = **99.5%**)
-**+ 시뮬레이터 MEGA 9 + HYPER 41 + STELLAR~POST-UNIVERSE 150 = 200 Phase 100% 완료** (코어 755 + 시뮬 200 = **955 Phase 중 951 완료 = 99.6%**)
-
-> ⚠️ **집계 범위 주의:** 위 99.6% 는 **코어 Phase 1-755 + 시뮬레이터 Phase 1-200** 범위입니다.
-> 표 마지막 3행의 **시뮬레이터 Phase 201-500 (TRANSCENDENCE·GENESIS·ODYSSEY)** 는 **별도 집계**이며 현재 21%·50%·49% 로 진행 중입니다 — 이 범위를 합산한 전체 완료율이 아닙니다.
+> Phase 번호와 체크 비율은 개발 이력을 보존하기 위한 지표이며 제품·실증 성숙도를 뜻하지 않습니다.
+> 현재 실행 가능 범위, 배포 파일, 검증 결과와 실제 남은 작업은 [README.md](README.md)의 상태표와 GitHub CI를 우선합니다.
 
 **코어 트랙 잔여 4항목** (사용자 환경 의존): P755(창업) + Track A 실기 검증 + P707 실측 그래프 + P709 IROS 투고
 **시뮬 Phase 201-500 잔여**: 아래 "In Progress / 진행 예정" 절의 미체크 항목 참조 (대부분 실 HW·외부 기관 의존)
@@ -216,11 +213,11 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **P727** — 해양 소형선 감지 시뮬레이터 신설 — 레이더 물리(C1)·AIS융합(C2)·EO/IR(C3)·COLREG(C4)·트랙상세(C5)·리포트(C6)·해안선(C7)·시나리오8종(C8)·검증기록(C9) (2026-06-03)
 - [x] **P728** — 해양 기술 문서(`docs/maritime_detection_technical.md`) + 헤드리스 스모크 17/17 (2026-06-03)
 - [x] **P729** — 대규모 모드 글로우 InstancedMesh(B3, 1k~10k 단일 드로우콜) — main `2f43895` 반영 + 본 세션 docs 보강 (2026-06-04)
-- [x] **P730** — UI 국제화 KO/EN 토글 (PR #81 머지 대기, 모바일·터치는 후속)
+- [x] **P730** — UI 국제화 KO/EN 토글 (PR #81 병합 완료, 모바일 반응형 레이아웃 후속 반영)
 - [x] **P731** — 공역 레이어 패널 중복 통합(O1) — 우측 'Airspace Layers'(layer-*) 5종 제거, tg-* 단일 소스 통합 (PR #84, 2026-06-03)
-- [x] **P732** — 대규모 CPA 공간 해시 복원 (PR #88 머지 대기)
+- [x] **P732** — 대규모 CPA 공간 해시 복원 (PR #88 병합 완료)
 - [x] **P733** — `ws_bridge` LIVE 토글 — applyLiveData + _WS_PHASE_MAP + ws-status 인디케이터 (PR #81, 2026-06-03)
-- [x] **P734** — 키보드 스크러버 + 멀티뷰 동기화 (PR #89·#91 머지 대기 + 다른 세션 PR #86)
+- [x] **P734** — 키보드 스크러버 + 멀티뷰 동기화 (PR #89·#91 병합 완료)
 - [x] **P735** — 해양 EO/IR 어댑터 패턴 — `registerEOIRSource()`/`selectEOIRSource()` 외부 SDK hook + synth fallback. `docs/maritime_eoir_adapter.md` (PR #92, 2026-06-03)
 
 ### Track E — 확장 연구·기술 심화 (Phase 736-745)
@@ -293,10 +290,15 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 319** 🏭 테스트 절차서 (DO-178C §6) — `simulation/test_procedures.py` 검증 5단계×15 점검항목 파일시스템 증거 자동 점검 + `tests/test_test_procedures.py` 신규 검증 23건 PASS (커버리지 0%→충족, 2026-06-25)
 - [x] **Phase 320** 🏭 4대 SW계획서(SDP/SVP/SCMP/SQAP) — `docs/certification/SOFTWARE_PLANS.md` (DO-178C §4.3, SDACS 실제 개발·검증·형상·QA 프로세스 근거 명문화; 존재 점검은 Phase 314 PLANNING 영역)
 - [x] **Phase 322** 🌍 `.sdacs-scenario` 스키마 + 검증기 — `simulation/scenario_schema.py` + `docs/schemas/sdacs-scenario.schema.json`, 20건 PASS (2026-06-15)
-- [x] **Phase 321** 🌍 플러그인 SDK v1 — `simulation/plugin_sdk.py` PluginType 7종 enum·PluginMeta frozen dataclass·PluginRegistry 등록/해제/의존 해결/실행 파이프라인, MappingProxyType 불변 레지스트리, CLI --list/--register/--resolve/--json, 50건 PASS (2026-06-26)
+- [x] **Phase 321** 🌍 플러그인 SDK v1 — `simulation/plugin_sdk.py` PluginType 5종 enum·PluginMeta frozen dataclass·PluginRegistry 등록/해제/의존 해결, CLI --list/--validate/--deps/--json, 50건 PASS (2026-06-26)
+- [x] **Phase 324** 🌍 `@sdacs/core` npm 패키지 — CPA 3D 최근접점·충돌쌍 탐색과 APF 인력/척력·풍속/고밀도 파라미터·속도 클램프를 의존성 없는 순수 ESM으로 분리, TypeScript 선언·입력 불변/결정성 단위 8건·`npm pack --dry-run` 검증 (2026-07-30)
+- [x] **Phase 325** 🌍 Python wheel 공개 준비 — `main.py`·런타임 패키지·시나리오/벤치마크 자산 포함, 격리 설치 후 `sdacs --help`·시나리오 목록·짧은 시뮬레이션 및 `websockets` 런타임 의존성 검증. 실제 PyPI 발행은 릴리스 관리자 작업 (2026-07-30)
+- [x] **Phase 326-327** 🌍 커뮤니티 운영 자산 — 구조화 이슈 폼 3종·PR 체크리스트·Discussions 양식 2종·파일/완료기준이 명시된 Good First Issue 20건 큐레이션. Discussions/라벨/실제 이슈 활성화는 GitHub 관리자 작업 (2026-07-30)
+- [x] **Phase 331-335** 🌍 플러그인 레퍼런스 — 결정적 기상 센서·검증형 의료배송 드론 프로파일·불변 KPI 요약 플러그인 3종과 레지스트리/경계 테스트 7건 (2026-07-30)
+- [x] **Phase 336-340** 🌍 API 안정화 정책 — `docs/API_SEMVER_POLICY.md`·`docs/API_DEPRECATION_POLICY.md`와 `_sdacs` 성숙도/API 추출 CI 게이트로 SemVer·production 1년 유예 계약 명문화. 실제 v2.0 태그 발행은 릴리스 절차로 분리
 - [x] **Phase 330** 🌍 CITATION.cff + 인용 검증 — `CITATION.cff` CFF 1.2.0 + `simulation/citation_validator.py` CFF 파서·BibTeX/APA 변환·필수필드 검증, CLI --validate/--bibtex/--apa/--json, 43건 PASS (2026-06-26)
 - [x] **Phase 323** 🌍 외부 시뮬레이터 어댑터 — `simulation/external_sim_adapter.py` + `docs/standards/EXTERNAL_SIM_ADAPTER_SPEC.md` BlueSky `.scn`·U-TRAFMAN JSON 호환 import/export, 중립 교환 모델 IR·등거리 투영·결정적 물질화·import 경계 검증, CLI 3종, 35건 PASS (2026-06-26)
-- [ ] **Phase 322·324-340** 🌍 Ecosystem & Open Source 잔여 — `@sdacs/core` npm·`sdacs-sim` PyPI 실 퍼블리싱·v2.0 API 안정화 *(2026-07-30 로컬 휠·`sdacs` 진입점·시나리오/벤치마크 자산 패키징 검증 완료, 실제 레지스트리 공개와 정적 웹 자산 배포 방식은 잔여; 어댑터 스펙 공개는 Phase 323 ✅ 안착)*
+- [ ] **Phase 328-329 + Registry Publish** 🌍 Ecosystem 잔여 — `README.en.md` 전체 내용 동등화·시나리오 영상/스크린샷 자동 갤러리 게시·npm/PyPI 실제 발행·GitHub Discussions/라벨 활성화. 코드 패키지·정책·템플릿은 완료됐으며 잔여는 콘텐츠 제작 또는 관리자 토큰/설정 의존
 - [x] **Phase 341** 🏙 목포 해역 실 좌표계 임포트 — `src/applications/mokpo_harbor.py` 해도 기반 NFZ 4종(부두·대교·지형·정박지)·회랑 3종 결정적 배치 + 레이 캐스팅 NFZ 판정·회랑 충돌 검사, 8건 PASS (2026-06-15)
 - [x] **Phase 342** 🏙 전남 도서(신안·완도) 의료 배송 거점 DB — `src/applications/jeonnam_island_sites.py` 실 좌표·거점·Haversine ETA, 7건 PASS (2026-06-15)
 - [ ] **Phase 341-360** 🏙 Real Deployment — 목포 해역 실 좌표·전남 도서 의료 배송·90일 파일럿 백서
@@ -365,7 +367,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 438** 🛰 분산 경로-벡터 장애 우회 수렴 — `simulation/federation_path_vector_failover.py` Phase 436/437(고정 메시 1회 수렴)·Phase 435(중앙 구조 분석)의 공백인 *인스턴스 장애 후 분산 재수렴*을 모사하는 `PathVectorFailover`. 살아남은 인접 위에서 Phase 436 수렴을 인접 어댑터로 무수정 재사용해 장애 전후 비교: `rerouted`·`lost_routes`·`is_reroutable`·`surviving_path`·`reconvergence_rounds`. 경로-벡터 전체 경로 광고라 재수렴 = 콜드스타트 고정점, Phase 435 백업 경로·절단점과 교차 검증, 무작위성 0·순수 추가, code-reviewer 어드바이저 HIGH 2건 반영, 22건 PASS (2026-06-16)
 - [x] **Phase 439** 🛰 신뢰 한정 도달성 통합 토폴로지 — `simulation/federation_topology_view.py` Phase 432 메시 연결성 + Phase 428 신뢰를 합쳐, 한 origin 관점에서 연합 목적지를 도달성 품질로 분류하는 읽기 전용 관측 뷰 `FederationTopologyView`(SELF·DIRECT·RELAYED_TRUSTED·RELAYED_RISKY·UNREACHABLE). Phase 433이 *최소 비용 경로 하나*를 고른다면 본 모듈은 *신뢰 중계만 거치는 경로의 존재성*을 답한다(3+ 인스턴스 중계에서만 의미). `avoid_untrusted_route`(알려진 불신만 회피)보다 엄격히 각 중계가 적극 신뢰여야 하는 상보적 포스처. `reachability_class`·`classify`·`trusted_path`·`trusted_reach`·`risky_reach`·`summary`, 무작위성 0·순수 추가, code-reviewer 어드바이저 HIGH 3건 반영, 27건 PASS (2026-06-16)
 - [x] **Phase 440** 🛰 신뢰 인지 분산 경로-벡터 장애 우회 수렴 — `simulation/federation_trust_path_vector_failover.py` 연합 라우팅 2×2 격자(홉만/신뢰 인지 × 고정 메시/장애 후 재수렴)의 마지막 빈 칸을 메우는 `TrustPathVectorFailover`. Phase 438(홉만 장애 우회)과 Phase 437(신뢰 인지 고정 메시)을 결합해, 장애 집합을 제거한 살아남은 인접 위에서 Phase 437 신뢰 인지 경로-벡터를 다시 수렴시켜 장애 전후 *신뢰 가중* 경로를 비교: `rerouted`·`lost_routes`·`is_reroutable`·`surviving_path`·`reconvergence_rounds`·`summary`. 핵심 불변식: 무관찰(균일 0.5)이면 Phase 438 장애 분석과 정확히 동일(2×2 격자 모서리), 도달성은 신뢰 무관·Phase 438 동일(신뢰는 *어느 우회로*만 가름). Phase 435 교차 검증·콜드스타트 등가성, 무작위성 0·순수 추가, code-reviewer 어드바이저 HIGH 1건 반영, 27건 PASS (2026-06-16) — **🛰 Federation Operations(421-440) 트랙 완료**
-- [ ] **Phase 426-427** 🛰 Federation Operations 잔여 — 2-인스턴스 연합 E2E(Playwright 다중 페이지)·인접 공역 고스트 렌더링(HTML 시뮬레이터 의존, 사용자 환경) / HLC 통합 글로벌 순서 토폴로지는 차기 트랙 후보로 이월
+- [x] **Phase 426-427** 🛰 Federation Operations — 2개 `ws_bridge`·2개 브라우저 인스턴스 상호 LIVE 연결, 인접 공역 오프셋 고스트 렌더링 및 Playwright 다중 페이지 E2E 완료 (`tests/e2e/test_federation_two_instance.py`, 2026-07-30). HLC 통합 글로벌 순서 토폴로지는 차기 트랙 후보로 이월
 - [x] **Phase 443** 🔬 APF 수렴성 수학 증명 — `simulation/apf_lyapunov.py` + `docs/APF_CONVERGENCE_PROOF.md`. APF 힘 법칙이 보존 포텐셜의 음의 기울기 `F = -∇U`(인력 piecewise 이차/원뿔 C¹ + FIRAS 척력)임을 명시하고, 양정치·radially unbounded Lyapunov 후보로 과감쇠 흐름 `dU/dt = −‖∇U‖² ≤ 0` + LaSalle 전역 수렴(국소 최소·속도 증폭 비보존항 한계 명시)을 형식 문서화. `apf.py` 무수정 순수 추가. code-reviewer 어드바이저 HIGH 2건 반영(속도 증폭 비보존성·데드밴드 정합). 16건 PASS (2026-06-16)
 - [x] **Phase 447** 🔬 시나리오 fuzzing — `tests/e2e/test_simulator_fuzz.py` NFZ·ATC·SORA 140케이스 (2026-06-12)
 - [x] **Phase 448** 🔬 속성 기반 테스트 — `tests/test_property_telemetry.py` Hypothesis 1,150+ 케이스 (2026-06-12) · **시뮬 코어 불변식 확장(2026-06-16)**: `tests/test_property_deconflict.py` 4D 경로 충돌 감지 코어 `PathDeconflict` 9개 불변식(결정성·삽입순서 무관·보간 볼록성/클램프·충돌 술어 일관·시각 정렬·수직 분리·단일/동일 경로, 1,170+케이스) + `tests/test_scenario_fuzzer_property.py` Phase 447 적대적 퍼저 6개 불변식(스키마 보존·입력 불변성·시드 결정성·분포 재정규화·route 순서·adversarial 단방향 편향, 1,350케이스). code-reviewer 어드바이저 반영, 15건 PASS

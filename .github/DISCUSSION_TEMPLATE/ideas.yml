@@ -1,0 +1,23 @@
+title: "[Idea] "
+labels:
+  - ideas
+body:
+  - type: markdown
+    attributes:
+      value: Early ideas belong here before they become scoped feature issues.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Operational or research problem
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence, references, or comparable systems
+  - type: textarea
+    id: experiment
+    attributes:
+      label: Smallest useful experiment
+    validations:
+      required: true

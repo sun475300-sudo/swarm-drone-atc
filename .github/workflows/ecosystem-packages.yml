@@ -1,0 +1,72 @@
+name: Ecosystem Package Verification
+
+on:
+  push:
+    paths:
+      - 'packages/core/**'
+      - 'pyproject.toml'
+      - 'requirements.txt'
+      - 'requirements.lock.txt'
+      - 'main.py'
+      - 'simulation/**'
+      - 'src/**'
+      - 'config/**'
+      - 'benchmarks/**'
+      - '.github/workflows/ecosystem-packages.yml'
+  pull_request:
+    paths:
+      - 'packages/core/**'
+      - 'pyproject.toml'
+      - 'requirements.txt'
+      - 'requirements.lock.txt'
+      - 'main.py'
+      - 'simulation/**'
+      - 'src/**'
+      - 'config/**'
+      - 'benchmarks/**'
+      - '.github/workflows/ecosystem-packages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  npm-core:
+    name: '@sdacs/core test and pack'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Unit tests
+        working-directory: packages/core
+        run: npm test
+      - name: Publish artifact dry-run
+        working-directory: packages/core
+        run: npm pack --dry-run
+
+  python-wheel:
+    name: Python wheel install and CLI smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Build wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --wheel
+      - name: Install wheel in an isolated environment
+        run: |
+          python -m venv /tmp/sdacs-wheel
+          /tmp/sdacs-wheel/bin/python -m pip install dist/*.whl
+      - name: Verify CLI and packaged runtime assets
+        run: |
+          /tmp/sdacs-wheel/bin/sdacs --help
+          /tmp/sdacs-wheel/bin/sdacs scenario --list
+          /tmp/sdacs-wheel/bin/python -c "import main, simulation, websockets; print('wheel imports OK')"

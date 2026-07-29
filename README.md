@@ -71,7 +71,8 @@ SDACS는 단일 애플리케이션이 아니라 같은 도메인을 여러 깊�
 | ✅ | GitHub Pages | 루트, 3D 시뮬레이터, 해양 시뮬레이터 HTTP 200 확인 |
 | ✅ | 웹 릴리스 | [SDACS Web Simulator (2026-07-30)](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/simulator-web-2026-07-30)에 검증 가능한 정적 ZIP 공개 |
 | ✅ | Python 회귀 | Python 3.10 / 3.11 / 3.12, 제한 린트, mypy, 커버리지 80% 게이트 통과 |
-| ⚠️ | 로컬 정적 산출물 | 정본 HTML 변경 후 사본 3개와 `build/simulator/` 2개가 미동기화되어 현재 `python scripts/build_simulator.py --check` 실패 |
+| ✅ | Python 패키지 | wheel 설치 후 `sdacs --help`, 시나리오 목록, 2대·0.2초 시뮬레이션 스모크 실행 성공 |
+| ✅ | 로컬 정적 산출물 | 정본 HTML, 사본 3개, `build/simulator/` 2개의 동기화 및 `python scripts/build_simulator.py --check` 성공 |
 | ⏳ | 데스크톱 앱 | Electron 3-OS 빌드 워크플로는 있으나 Releases에 설치 파일은 아직 없음 |
 | ⏳ | 실환경 검증 | Pixhawk·Jetson·RTK·HITL·실비행·규제 승인 근거는 아직 없음 |
 
@@ -174,6 +175,8 @@ python -m pip install -e .
 | 논문 재현용 고정 버전 | `python -m pip install -r requirements.lock.txt` |
 
 `requirements.lock.txt`는 재현 실험용 버전 고정 파일입니다. 일반 개발자는 `pyproject.toml` 또는 `requirements.txt`를 사용하고, 의존성을 갱신할 때 잠금 파일도 함께 재생성해야 합니다.
+
+editable 또는 wheel 설치 후에는 `python main.py <command>`와 같은 콘솔 진입점인 `sdacs <command>`도 사용할 수 있습니다.
 
 ### Node.js 환경
 
@@ -720,7 +723,6 @@ docker compose logs sdacs
 
 | 우선순위 | 작업 | 상태·이유 |
 |---|---|---|
-| 높음 | 정적 시뮬레이터 사본 동기화 | 현재 정본 변경으로 사본 3개와 `build/simulator/` 2개가 오래된 상태. `python scripts/build_simulator.py` 실행 후 `--check` 통과 필요 |
 | 높음 | 의존성 업데이트 PR 검토·병합 | Dependabot PR [#512](https://github.com/sun475300-sudo/swarm-drone-atc/pull/512)~[#518](https://github.com/sun475300-sudo/swarm-drone-atc/pulls?q=is%3Aopen%20is%3Apr) 대기. `numpy`·Playwright·GitHub Actions는 CI/E2E 재검증 후 병합 필요 |
 | 높음 | 데스크톱 공개 릴리스 발행 | 정적 웹 ZIP은 공개됐지만 데스크톱 설치 파일은 아직 없음. 태그 기반 3-OS 빌드와 산출물 검증 필요 |
 | 높음 | `main` 브랜치 보호 설정 | GitHub API 기준 branch protection 미설정. 필수 CI·리뷰·관리자 우회 정책을 결정해야 함 |

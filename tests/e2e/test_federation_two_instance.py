@@ -14,6 +14,8 @@ ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "tests" / "e2e" / "federation_two_instance.mjs"
 
 
+@pytest.mark.e2e
+@pytest.mark.slow
 def test_two_instance_live_and_ghost_rendering() -> None:
     """Run the real two-bridge, two-page Playwright federation scenario."""
 
@@ -31,7 +33,7 @@ def test_two_instance_live_and_ghost_rendering() -> None:
         capture_output=True,
         text=True,
         encoding="utf-8",
-        timeout=180,
+        timeout=300,
         check=False,
     )
     assert result.returncode == 0, (

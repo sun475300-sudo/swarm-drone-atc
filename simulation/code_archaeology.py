@@ -135,7 +135,7 @@ def parse_phase_commits(repo_path: str = ".") -> tuple[PhaseCommit, ...]:
         if not phase_matches:
             continue
 
-        phase_ids = tuple(sorted(set(int(p) for p in phase_matches)))
+        phase_ids = tuple(sorted({int(p) for p in phase_matches}))
         commits.append(PhaseCommit(
             commit_hash=commit_hash[:8],
             date=date_short,

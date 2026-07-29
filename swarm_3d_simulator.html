@@ -31,6 +31,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23030508' stroke='%2300e5ff' stroke-width='4'/%3E%3Cpath d='M18 32h28M32 18v28' stroke='%2300e5ff' stroke-width='4'/%3E%3C/svg%3E">
     <style id="mobile-style">
         @media (max-width: 1024px) {
             .hud-overlay, #drone-detail, .hud-side-panel { font-size: 12px !important; }
@@ -1044,6 +1045,94 @@
             cursor: pointer;
         }
     </style>
+    <style id="responsive-layout-style">
+        /* 좁은 화면에서는 3D 공역을 우선하고, 보조 패널은 접힌 서랍으로 제공한다. */
+        @media (max-width: 760px) {
+            .hud-top {
+                display: block;
+                min-height: 98px;
+                padding: 8px 12px 6px;
+            }
+            .hud-title {
+                max-width: calc(100vw - 88px);
+                padding-right: 0;
+                font-size: 11px;
+                line-height: 1.35;
+                letter-spacing: 1px;
+            }
+            .hud-subtitle { display: none; }
+            .hud-stats {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 4px;
+                margin-top: 7px;
+            }
+            .hud-stats .stat-box { min-width: 0; padding: 3px 4px; border-radius: 4px; }
+            .hud-stats .stat-box:nth-child(n + 5) { display: none; }
+            .stat-label { overflow: hidden; font-size: 6px; letter-spacing: 0.35px; text-overflow: ellipsis; white-space: nowrap; }
+            .stat-value { font-size: 12px; }
+            #ws-status {
+                position: absolute;
+                top: 8px;
+                right: 51px;
+                margin: 0 !important;
+                padding: 3px 5px !important;
+                font-size: 8px !important;
+            }
+            #lang-btn {
+                position: absolute;
+                top: 8px;
+                right: 12px;
+                margin: 0 !important;
+                min-width: 30px !important;
+                min-height: 28px !important;
+                padding: 3px 6px !important;
+                font-size: 9px !important;
+            }
+            #role-stats-bar { display: none !important; }
+            .hud-left, .hud-right {
+                top: 110px;
+                bottom: 42px;
+                width: min(340px, calc(100vw - 48px));
+                max-width: calc(100vw - 48px);
+            }
+            .hud-left { left: 8px; }
+            .hud-right { right: 8px; }
+            /* overflow 스크롤 컨테이너 안에서도 토글을 누를 수 있도록 48px 조작 폭을 남긴다. */
+            .hud-left.collapsed { transform: translateX(calc(-100% + 48px)); }
+            .hud-right.collapsed { transform: translateX(calc(100% - 48px)); }
+            .panel-toggle { top: 8px; min-width: 36px; min-height: 36px; padding: 4px; }
+            .panel-toggle.left { right: 4px; }
+            .panel-toggle.right { left: 4px; }
+            .hud-bottom-log {
+                bottom: 34px;
+                left: 8px;
+                width: calc(100vw - 16px);
+                height: 142px;
+            }
+            .hud-analytics {
+                bottom: 182px;
+                left: 8px;
+                right: 8px;
+                height: 142px;
+            }
+            .hud-bottom { padding: 6px 12px; }
+            .hud-bottom .hud-info-text { font-size: 7px; letter-spacing: 0.35px; }
+            #drone-detail { left: 8px !important; right: 8px !important; max-width: none !important; }
+        }
+        /* 중간 폭에서는 운용 판단에 직접 필요한 KPI만 유지해 제목과 상태 바의 줄바꿈을 막는다. */
+        @media (min-width: 761px) and (max-width: 1360px) {
+            .hud-top { padding: 10px 12px; }
+            .hud-title { font-size: 12px; letter-spacing: 1px; }
+            .hud-subtitle { font-size: 8px; }
+            .hud-stats { gap: 5px; flex-wrap: nowrap; }
+            .hud-stats .stat-secondary { display: none; }
+            .hud-stats .stat-box { padding: 3px 6px; }
+            .stat-label { font-size: 7px; }
+            .stat-value { font-size: 13px; }
+            #role-stats-bar { left: 238px !important; right: 270px !important; }
+        }
+    </style>
 </head>
 
 <body>
@@ -1073,7 +1162,7 @@
                 <div class="stat-label" data-i18n="collisions">충돌</div>
                 <div class="stat-value" id="stat-collisions" style="color:#ef4444;">0</div>
             </div>
-            <div class="stat-box">
+            <div class="stat-box stat-secondary">
                 <div class="stat-label" data-i18n="advisories">회피 명령</div>
                 <div class="stat-value" id="stat-advisories" style="color:#a78bfa;">0</div>
             </div>
@@ -1081,15 +1170,15 @@
                 <div class="stat-label" data-i18n="battery">평균 배터리</div>
                 <div class="stat-value" id="stat-battery" style="color:#10b981;">100%</div>
             </div>
-            <div class="stat-box" style="border-color:rgba(0,229,255,0.4);">
+            <div class="stat-box stat-secondary" style="border-color:rgba(0,229,255,0.4);">
                 <div class="stat-label" data-i18n="atc">관제 드론</div>
                 <div class="stat-value" style="color:#00e5ff;">13</div>
             </div>
-            <div class="stat-box">
+            <div class="stat-box stat-secondary">
                 <div class="stat-label" data-i18n="wind">풍속</div>
                 <div class="stat-value" id="stat-wind" style="color:#60a5fa;">0.0</div>
             </div>
-            <div class="stat-box" style="border-color:rgba(0,255,136,0.4);background:rgba(0,255,136,0.08);">
+            <div class="stat-box stat-secondary" style="border-color:rgba(0,255,136,0.4);background:rgba(0,255,136,0.08);">
                 <div class="stat-label" data-i18n="gpu">GPU</div>
                 <div class="stat-value" style="color:#00ff88;font-size:11px;">RTX 5070 Ti</div>
             </div>
@@ -1101,7 +1190,7 @@
     </div>
 
     <!-- HUD: 직군별 드론 현황 바 -->
-    <div class="hud-overlay hud-interactive"
+    <div id="role-stats-bar" class="hud-overlay hud-interactive"
         style="top:52px;left:240px;right:280px;padding:4px 12px;display:flex;justify-content:center;gap:4px;flex-wrap:wrap;overflow:hidden;max-height:28px;z-index:11;">
         <div id="role-stats" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;"></div>
     </div>
@@ -9914,9 +10003,28 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
         // 패널 접힘 상태 localStorage 저장/복원
         (function persistPanels() {
             const map = [['#panel-left', 'toggle-left'], ['#panel-right', 'toggle-right'], ['.hud-bottom-log', 'btn-toggle-log'], ['#analytics-panel', 'btn-toggle-analytics']];
+            const syncPanelLabels = () => {
+                const left = document.getElementById('panel-left');
+                const right = document.getElementById('panel-right');
+                const log = document.querySelector('.hud-bottom-log');
+                const analytics = document.getElementById('analytics-panel');
+                document.getElementById('toggle-left').textContent = left?.classList.contains('collapsed') ? '▶' : '◀';
+                document.getElementById('toggle-right').textContent = right?.classList.contains('collapsed') ? '◀' : '▶';
+                document.getElementById('btn-toggle-log').textContent = log?.classList.contains('collapsed') ? '▲' : '▼';
+                document.getElementById('btn-toggle-analytics').textContent = analytics?.classList.contains('collapsed') ? '▲' : '▼';
+            };
             for (const [sel] of map) {
                 try { if (localStorage.getItem('sdacs_collapse_' + sel) === '1') document.querySelector(sel)?.classList.add('collapsed'); } catch (_) { }
             }
+            // 모바일 첫 방문에서는 3D 공역을 가리지 않도록 보조 패널을 접어 둔다.
+            if (window.matchMedia('(max-width: 760px)').matches) {
+                for (const [sel] of map) {
+                    try {
+                        if (localStorage.getItem('sdacs_collapse_' + sel) === null) document.querySelector(sel)?.classList.add('collapsed');
+                    } catch (_) { document.querySelector(sel)?.classList.add('collapsed'); }
+                }
+            }
+            syncPanelLabels();
             for (const [sel, btnId] of map) {
                 document.getElementById(btnId)?.addEventListener('click', () => {
                     setTimeout(() => { try { localStorage.setItem('sdacs_collapse_' + sel, document.querySelector(sel)?.classList.contains('collapsed') ? '1' : '0'); } catch (_) { } }, 0);
@@ -10315,10 +10423,10 @@ ul{list-style:none;padding:0;font-size:12px;max-height:340px;overflow:auto}li{pa
                                         if (a.priority <= b.priority) {
                                             // a 우선 → b가 양보
                                             b.targetAlt = Math.max(20, Math.min(MAX_ALT, b.wy + (bIdx % 2 === 0 ? altShift : -altShift)));
-                                            b.wy += (b.targetAlt > b.wy ? 1 : -1) * PHYSICS.maxClimbRate * 0.3 * apfDt * 60;
+                                            b.wy += (b.targetAlt > b.wy ? 1 : -1) * PHYSICS.maxClimbRate * 0.3;
                                         } else {
                                             a.targetAlt = Math.max(20, Math.min(MAX_ALT, a.wy + (aIdx % 2 === 0 ? altShift : -altShift)));
-                                            a.wy += (a.targetAlt > a.wy ? 1 : -1) * PHYSICS.maxClimbRate * 0.3 * apfDt * 60;
+                                            a.wy += (a.targetAlt > a.wy ? 1 : -1) * PHYSICS.maxClimbRate * 0.3;
                                         }
                                         a.wy = Math.max(10, Math.min(MAX_ALT, a.wy));
                                         b.wy = Math.max(10, Math.min(MAX_ALT, b.wy));
@@ -10828,8 +10936,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
                 if (mapped) d.phase = mapped;
             }
         }
-        // 자동 연결 시도 (ws_bridge.py 실행 중이면 연결됨)
-        connectWebSocket();
+        // 데모 실행은 외부 브리지에 접속하지 않는다. 실데이터 사용자는 ?live=1로 명시적으로 연결한다.
+        if (new URLSearchParams(window.location.search).get('live') === '1') connectWebSocket();
         _updateWsStatus();
 
         // ===== Animation Loop =====

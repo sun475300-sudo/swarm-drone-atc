@@ -596,7 +596,7 @@ def _main() -> None:
             print(f"  학습 목표: {s.learning_goal}")
             print(f"  난이도: {get_preset(s.preset_id).name}")
             print(f"  소요 시간: ~{s.estimated_minutes}분")
-            print(f"\n  단계:")
+            print("\n  단계:")
             for i, step in enumerate(s.steps, 1):
                 print(f"    {i}. {step}")
 

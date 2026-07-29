@@ -125,3 +125,14 @@ def test_ppo_config_is_frozen() -> None:
     cfg = PPOConfig()
     with pytest.raises(FrozenInstanceError):
         cfg.learning_rate = 1.0  # type: ignore[misc]
+
+
+def test_environment_is_accepted_by_stable_baselines3_when_available() -> None:
+    """학습 의존성이 설치된 환경에서는 SB3가 정식 Gymnasium Env로 받아야 한다."""
+    gymnasium = pytest.importorskip("gymnasium")
+    sb3 = pytest.importorskip("stable_baselines3")
+    env = SDACSGymEnv(n_drones=2, max_neighbors=1, seed=1)
+
+    assert isinstance(env, gymnasium.Env)
+    model = sb3.PPO("MlpPolicy", env, n_steps=8, batch_size=8, device="cpu")
+    assert model.get_env() is not None

@@ -32,7 +32,6 @@ import math
 import struct
 import uuid
 from dataclasses import dataclass
-from typing import Union
 
 import numpy as np
 
@@ -159,7 +158,7 @@ class EmergencyAlert:
             )
 
 
-V2XMessageUnion = Union[DroneBasicSafetyMessage, EmergencyAlert]
+V2XMessageUnion = DroneBasicSafetyMessage | EmergencyAlert
 
 
 # ── 코덱 ─────────────────────────────────────────────────────────────────
@@ -401,10 +400,11 @@ class V2XChannel:
 
     def stats(self) -> V2XChannelStats:
         """현재 채널 통계를 반환한다."""
-        if self._total_sent == 0:
-            rate = 1.0
-        else:
-            rate = self._total_received / self._total_sent
+        rate = (
+            1.0
+            if self._total_sent == 0
+            else self._total_received / self._total_sent
+        )
         return V2XChannelStats(
             total_sent=self._total_sent,
             total_received=self._total_received,

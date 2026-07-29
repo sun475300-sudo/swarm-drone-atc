@@ -15,9 +15,28 @@ GPU/SB3 없이도 reset/step/observation/reward 계약이 완전히 동작한다
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from gymnasium import Env as _GymEnvBase
+else:
+    try:
+        from gymnasium import Env as _GymEnvBase
+    except ImportError:
+        class _GymEnvBase:
+            """gymnasium 미설치 환경에서 rollout 계약만 유지하는 최소 폴백."""
+
+            metadata: dict[str, list[str]] = {}
+
+            def reset(
+                self,
+                *,
+                seed: int | None = None,
+                options: dict[str, Any] | None = None,
+            ) -> None:
+                return None
 
 # --- 환경 물리 상수 (모든 단위 SI) ---
 DT_S: float = 0.1  # 10Hz 제어 주기, DroneAgent와 동일
@@ -62,7 +81,7 @@ class TrainingStats:
     rewards_history: list[float] = field(default_factory=list)
 
 
-class SDACSGymEnv:
+class SDACSGymEnv(_GymEnvBase):
     """SwarmSimulator의 충돌 회피 의사결정을 모사하는 경량 Gym 환경.
 
     자기 드론(index 0)을 행동으로 제어하여 목표까지 이동시키되,
@@ -83,6 +102,7 @@ class SDACSGymEnv:
         max_steps: int = DEFAULT_MAX_STEPS,
     ) -> None:
         """SDACSGymEnv 인스턴스를 초기화한다."""
+        super().__init__()
         if n_drones < 1:
             raise ValueError("n_drones must be >= 1")
         self.scenario = scenario
@@ -103,11 +123,17 @@ class SDACSGymEnv:
 
     # --- Gym 핵심 API ---
 
-    def reset(self, *, seed: int | None = None) -> tuple[np.ndarray, dict[str, Any]]:
+    def reset(
+        self,
+        *,
+        seed: int | None = None,
+        options: dict[str, Any] | None = None,
+    ) -> tuple[np.ndarray, dict[str, Any]]:
         """환경을 초기 상태로 리셋."""
         # 명시적 seed가 오면 재시드, 아니면 기존 RNG를 advance한다(Gym 시맨틱).
         # 생성자 seed는 __init__에서 한 번만 적용 — 동일 seed 환경은 첫 에피소드를 재현하되
         # 학습 중 반복 reset은 서로 다른 에피소드를 생성한다.
+        super().reset(seed=seed, options=options)
         if seed is not None:
             self._rng = np.random.default_rng(seed)
         self._step_count = 0

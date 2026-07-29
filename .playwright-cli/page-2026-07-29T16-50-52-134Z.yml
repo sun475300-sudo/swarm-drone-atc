@@ -1,0 +1,306 @@
+- generic [active]:
+  - generic:
+    - generic: SDACS — 군집드론 공역통제 3D 시뮬레이터
+    - generic:
+      - generic:
+        - generic: 활성 드론
+        - generic: "0"
+      - generic:
+        - generic: 충돌 위험
+        - generic: "0"
+      - generic:
+        - generic: 근접 경고
+        - generic: "0"
+      - generic:
+        - generic: 충돌
+        - generic: "0"
+      - generic "WebSocket 상태 (LIVE = ws_bridge 연결 / DEMO = 내장 시뮬)": ● DEMO
+      - button "KO"
+  - generic [ref=f1e3]:
+    - button "▶" [ref=f1e4] [cursor=pointer]
+    - generic [ref=f1e5]:
+      - generic [ref=f1e6]: 시뮬레이션 제어
+      - generic [ref=f1e8]:
+        - generic [ref=f1e9]:
+          - generic [ref=f1e10]: 시나리오 선택
+          - button "시나리오 선택" [ref=f1e11] [cursor=pointer]: 🖼 갤러리
+        - combobox [ref=f1e12]:
+          - option "기본 (50대)" [selected]
+          - option "고밀도 (150대)"
+          - option "대규모 이륙 (100대)"
+          - option "초대형 군집 (250대)"
+          - option "메가 군집 1K (InstancedMesh)"
+          - option "메가 군집 5K (InstancedMesh)"
+          - option "메가 군집 10K (InstancedMesh)"
+          - option "비상 장애 (80대)"
+          - option "배터리 위기 (100대)"
+          - option "연쇄 장애 (80대)"
+          - option "통신 두절 (60대)"
+          - option "복합 장애 (100대)"
+          - option "경로 충돌 (100대)"
+          - option "NFZ 포화 (120대)"
+          - option "혼합 교통 (120대)"
+          - option "회랑 혼잡 (150대)"
+          - option "교차 교통 (120대)"
+          - option "기상 교란 (50대)"
+          - option "강풍 폭우 (60대)"
+          - option "안개 저시정 (70대)"
+          - option "열 상승기류 (80대)"
+          - option "침입 드론 (70대)"
+          - option "군집 침입 (100대)"
+          - option "GPS 스푸핑 (80대)"
+          - option "수색 구조 (40대)"
+          - option "택배 러시 (150대)"
+          - option "편대 비행 (50대)"
+          - option "극한 스트레스 (200대)"
+          - option "최종 시험 (250대)"
+          - option "극한기상 지옥 (200대)"
+          - option "마이크로버스트 (150대)"
+          - option "태풍급 강풍 (200대)"
+          - option "결빙 폭풍 (150대)"
+          - option "다중셀 폭풍 (200대)"
+          - option "서울 배송 (200대)"
+          - option "서울 긴급 (120대)"
+          - option "서울 빌딩협곡 (150대)"
+          - option "부산 배송 (200대)"
+          - option "부산 긴급 (120대)"
+          - option "부산 해운대협곡 (150대)"
+          - option "인천 배송 (200대)"
+          - option "인천 긴급 (120대)"
+          - option "인천 송도협곡 (150대)"
+          - option "대구 배송 (200대)"
+          - option "대구 긴급 (120대)"
+          - option "대구 범어협곡 (150대)"
+          - option "광주 배송 (200대)"
+          - option "광주 긴급 (120대)"
+          - option "광주 상무협곡 (150대)"
+          - option "대전 배송 (200대)"
+          - option "대전 긴급 (120대)"
+          - option "대전 둔산협곡 (150대)"
+          - option "울산 배송 (200대)"
+          - option "울산 긴급 (120대)"
+          - option "울산 산업협곡 (150대)"
+          - option "메가 군집 (500대)"
+          - option "메가 폭풍 (500대)"
+          - option "도심 러시아워 (400대)"
+          - option "군사 훈련 (300대)"
+          - option "재난 대응 (350대)"
+          - option "UAM 회랑 (200대)"
+          - option "야간 작전 (150대)"
+          - option "다기관 합동 (300대)"
+          - option "대규모 택배 (500대)"
+          - option "전영역 종합 (400대)"
+          - option "총력전 (500대)"
+      - generic [ref=f1e13]:
+        - generic [ref=f1e14]: "시뮬레이션 속도: 1.0x"
+        - slider [ref=f1e15] [cursor=pointer]: "1"
+      - generic [ref=f1e16]:
+        - button "시작" [ref=f1e17] [cursor=pointer]
+        - button "일시정지" [ref=f1e18] [cursor=pointer]
+        - button "초기화" [ref=f1e19] [cursor=pointer]
+      - button "📊 분석 뷰 (4분할)" [ref=f1e21] [cursor=pointer]
+      - generic [ref=f1e22]:
+        - button "📷 PNG" [ref=f1e23] [cursor=pointer]
+        - button "📑 CSV" [ref=f1e24] [cursor=pointer]
+        - button "📋 KPI" [ref=f1e25] [cursor=pointer]
+      - generic [ref=f1e26]:
+        - button "📄 HTML" [ref=f1e27] [cursor=pointer]
+        - button "📝 MD" [ref=f1e28] [cursor=pointer]
+      - generic [ref=f1e29]:
+        - button "📼 임무 저장" [ref=f1e30] [cursor=pointer]
+        - button "📼 임무 로드" [ref=f1e31] [cursor=pointer]
+      - generic [ref=f1e32]:
+        - generic [ref=f1e33]: 경과 시간
+        - generic [ref=f1e34]: 00:00
+      - generic [ref=f1e35]:
+        - button "🔇 음성 OFF" [ref=f1e36] [cursor=pointer]
+        - button "📋 로그" [ref=f1e37] [cursor=pointer]
+      - button "🌬 환경음 OFF" [ref=f1e39] [cursor=pointer]
+      - generic [ref=f1e40]:
+        - generic [ref=f1e41]: 🎬 시네마틱 (CIN)
+        - generic [ref=f1e42] [cursor=pointer]:
+          - checkbox "동적 태양 12.0h" [ref=f1e43]
+          - text: 동적 태양
+          - generic [ref=f1e44]: 12.0h
+        - slider [ref=f1e45]: "12"
+        - generic [ref=f1e46] [cursor=pointer]:
+          - checkbox "자동 시간 흐름 (0.05h/s)" [ref=f1e47]
+          - text: 자동 시간 흐름 (0.05h/s)
+        - generic [ref=f1e48] [cursor=pointer]:
+          - checkbox "🌧 비" [ref=f1e49]
+          - text: 🌧 비
+        - generic [ref=f1e50] [cursor=pointer]:
+          - checkbox "❄ 눈" [ref=f1e51]
+          - text: ❄ 눈
+        - button "🔴 녹화" [ref=f1e53] [cursor=pointer]
+      - generic [ref=f1e55]:
+        - generic [ref=f1e56]: 📋 임무 계획 (MIS)
+        - combobox [ref=f1e57]:
+          - option "🔍 수색 (4×4 격자)" [selected]
+          - option "🛸 정찰 (8 원형 궤도)"
+          - option "📦 배달 (A→B 직선)"
+          - option "🌾 농업 방제 (Voronoi)"
+          - option "🚑 의료 우선순위"
+        - generic [ref=f1e58]:
+          - button "📋 임무 할당" [ref=f1e59] [cursor=pointer]
+          - button "🟢 전체 해제" [ref=f1e60] [cursor=pointer]
+      - generic [ref=f1e61]:
+        - generic [ref=f1e62]: 📊 분석 강화 (ANA)
+        - generic [ref=f1e63] [cursor=pointer]:
+          - checkbox "누적 위협 히트맵 (10s 감쇠)" [ref=f1e64]
+          - text: 누적 위협 히트맵 (10s 감쇠)
+        - button "📐 LaTeX 표" [ref=f1e66] [cursor=pointer]
+      - generic [ref=f1e67]:
+        - generic [ref=f1e68]:
+          - generic [ref=f1e69]: 💥 장애 주입 (INJ)
+          - generic [ref=f1e70]: —
+        - generic [ref=f1e71]:
+          - button "📡 GPS" [ref=f1e72] [cursor=pointer]
+          - button "⚙️ 모터" [ref=f1e73] [cursor=pointer]
+          - button "📵 통신" [ref=f1e74] [cursor=pointer]
+          - button "🔋 배터리" [ref=f1e75] [cursor=pointer]
+          - button "👹 ROGUE" [ref=f1e76] [cursor=pointer]
+          - button "⚠️ 동NFZ" [ref=f1e77] [cursor=pointer]
+          - button "🌃 EMP" [ref=f1e78] [cursor=pointer]
+          - button "📡 EMI" [ref=f1e79] [cursor=pointer]
+          - button "🟢 전체 해제" [ref=f1e80] [cursor=pointer]
+    - generic [ref=f1e81]:
+      - generic [ref=f1e82]: 🔍 외부 탐지·식별 (조류·비협조)
+      - generic [ref=f1e84] [cursor=pointer]:
+        - checkbox "외부 객체 탐지 활성" [checked] [ref=f1e85]
+        - text: 외부 객체 탐지 활성
+      - generic [ref=f1e86]:
+        - generic [ref=f1e87]:
+          - generic [ref=f1e88]: 탐지 완료
+          - generic [ref=f1e89]: "0"
+        - generic [ref=f1e90]:
+          - generic [ref=f1e91]: 🐦 조류
+          - generic [ref=f1e92]: "0"
+        - generic [ref=f1e93]:
+          - generic [ref=f1e94]: 식별 완료
+          - generic [ref=f1e95]: "0"
+        - generic [ref=f1e96]:
+          - generic [ref=f1e97]: 평균 탐지
+          - generic [ref=f1e98]: 0.00s
+      - generic [ref=f1e99]:
+        - generic [ref=f1e100]: 식별 정확도
+        - generic [ref=f1e101]: 100.0%
+      - generic [ref=f1e102]: ●정상 ●미등록 ●위험 ●조류
+    - generic [ref=f1e103]:
+      - generic [ref=f1e104]: 🎥 뷰 · 검색
+      - textbox "드론 검색 (ID/직군) → Enter" [ref=f1e106]
+      - generic [ref=f1e107]:
+        - button "기본" [ref=f1e108] [cursor=pointer]
+        - button "탑다운" [ref=f1e109] [cursor=pointer]
+        - button "추적" [ref=f1e110] [cursor=pointer]
+        - button "오빗" [ref=f1e111] [cursor=pointer]
+      - generic [ref=f1e112]:
+        - button "🎥 FPV" [ref=f1e113] [cursor=pointer]
+        - button "🏁 추격" [ref=f1e114] [cursor=pointer]
+        - button "↔ 측면" [ref=f1e115] [cursor=pointer]
+      - combobox [ref=f1e117]:
+        - option "전체 단계" [selected]
+        - option "지상"
+        - option "이륙"
+        - option "비행"
+        - option "체공"
+        - option "착륙"
+        - option "회피"
+        - option "귀환"
+        - option "장애"
+      - generic [ref=f1e118]:
+        - text: 배터리≤
+        - slider [ref=f1e119]: "100"
+        - generic [ref=f1e120]: 100%
+    - generic [ref=f1e121]:
+      - generic [ref=f1e122]: ⏱ 리플레이 타임라인
+      - slider [ref=f1e124] [cursor=pointer]: "0"
+      - generic [ref=f1e125]:
+        - button "▶" [ref=f1e126] [cursor=pointer]
+        - button "● LIVE" [ref=f1e127] [cursor=pointer]
+        - generic [ref=f1e128]: LIVE
+      - generic [ref=f1e129]:
+        - button "1×" [ref=f1e130] [cursor=pointer]
+        - button "2×" [ref=f1e131] [cursor=pointer]
+        - button "4×" [ref=f1e132] [cursor=pointer]
+    - generic [ref=f1e133]:
+      - generic [ref=f1e134]: 공역·관제 레이어
+      - generic [ref=f1e136] [cursor=pointer]:
+        - checkbox "충돌 예측선 (CPA)" [checked] [ref=f1e137]
+        - text: 충돌 예측선 (CPA)
+      - generic [ref=f1e138] [cursor=pointer]:
+        - checkbox "회피 어드바이저리" [checked] [ref=f1e139]
+        - text: 회피 어드바이저리
+      - generic [ref=f1e140] [cursor=pointer]:
+        - checkbox "웨이포인트·이동경로" [checked] [ref=f1e141]
+        - text: 웨이포인트·이동경로
+      - generic [ref=f1e142] [cursor=pointer]:
+        - checkbox "예측 비행경로 (8초)" [checked] [ref=f1e143]
+        - text: 예측 비행경로 (8초)
+      - generic [ref=f1e144] [cursor=pointer]:
+        - checkbox "속도 벡터 화살표" [ref=f1e145]
+        - text: 속도 벡터 화살표
+      - generic [ref=f1e146] [cursor=pointer]:
+        - checkbox "CPA 충돌점 마커 + TTC" [checked] [ref=f1e147]
+        - text: CPA 충돌점 마커 + TTC
+      - generic [ref=f1e148] [cursor=pointer]:
+        - checkbox "NFZ 비행금지구역" [checked] [ref=f1e149]
+        - text: NFZ 비행금지구역
+      - generic [ref=f1e150] [cursor=pointer]:
+        - checkbox "복도/회랑" [checked] [ref=f1e151]
+        - text: 복도/회랑
+      - generic [ref=f1e152] [cursor=pointer]:
+        - checkbox "고도 레이어 (9단)" [checked] [ref=f1e153]
+        - text: 고도 레이어 (9단)
+      - generic [ref=f1e154] [cursor=pointer]:
+        - checkbox "ATC 관제망" [checked] [ref=f1e155]
+        - text: ATC 관제망
+      - generic [ref=f1e156] [cursor=pointer]:
+        - checkbox "근접/충돌선" [checked] [ref=f1e157]
+        - text: 근접/충돌선
+      - generic [ref=f1e158] [cursor=pointer]:
+        - checkbox "침입 드론 트레일" [checked] [ref=f1e159]
+        - text: 침입 드론 트레일
+      - generic [ref=f1e160] [cursor=pointer]:
+        - checkbox "대규모 컬링·LOD" [checked] [ref=f1e161]
+        - text: 대규모 컬링·LOD
+      - generic [ref=f1e162] [cursor=pointer]:
+        - checkbox "충돌위험 히트맵 (분석뷰)" [ref=f1e163]
+        - text: 충돌위험 히트맵 (분석뷰)
+    - generic [ref=f1e164]:
+      - generic [ref=f1e165]: 비행 상태 범례
+      - generic [ref=f1e167]: GROUNDED (지상 대기)
+      - generic [ref=f1e170]: TAKEOFF (이륙)
+      - generic [ref=f1e173]: ENROUTE (비행 중)
+      - generic [ref=f1e176]: HOLDING (체공)
+      - generic [ref=f1e179]: LANDING (착륙)
+      - generic [ref=f1e182]: EVADING (회피)
+      - generic [ref=f1e185]: FAILED (장애)
+      - generic [ref=f1e188]: RTL (귀환)
+      - generic [ref=f1e192]: ATC 관제 드론 (9대)
+      - text: 직군별 드론 (20종)
+  - generic [ref=f1e196]:
+    - button "◀" [ref=f1e197] [cursor=pointer]
+    - generic [ref=f1e198]: 편대 추적기
+  - button "?" [ref=f1e203] [cursor=pointer]
+  - generic [ref=f1e206]:
+    - generic [ref=f1e208]: 이벤트 기록
+    - button "초기화" [ref=f1e209] [cursor=pointer]
+    - button "▲" [ref=f1e210] [cursor=pointer]
+  - generic [ref=f1e212]:
+    - generic [ref=f1e213]: 분석
+    - generic:
+      - button "BAT" [ref=f1e214] [cursor=pointer]
+      - button "NRG" [ref=f1e215] [cursor=pointer]
+      - button "COL" [ref=f1e216] [cursor=pointer]
+      - button "THR" [ref=f1e217] [cursor=pointer]
+      - button "ATC" [ref=f1e218] [cursor=pointer]
+      - button "TPS" [ref=f1e219] [cursor=pointer]
+      - button "PHS" [ref=f1e220] [cursor=pointer]
+    - button "▲" [ref=f1e221] [cursor=pointer]
+  - generic:
+    - generic: SDACS v2.0 — APF 충돌 회피 | NFZ 비행금지구역 | 복도 공역 제어
+    - generic:
+      - text: "60 FPS | CPU:0ms GPU:0ms APF:-ms WRK | DRN:0 | DC:0 | 드래그: 회전 | 스크롤: 줌 |"
+      - link "🚢 해양 소형선 감지":
+        - /url: maritime_detection_simulator.html

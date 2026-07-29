@@ -369,7 +369,7 @@ def main() -> None:
         seed=args.seed,
     )
 
-    print(f"=== Hybrid Collision Avoidance Evaluation (Phase 362) ===")
+    print("=== Hybrid Collision Avoidance Evaluation (Phase 362) ===")
     print(f"Drones: {args.drones}, Steps: {result.total_steps}, Seed: {args.seed}")
     print(f"Collisions:        {result.collisions}")
     print(f"Near Misses:       {result.near_misses}")

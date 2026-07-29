@@ -218,10 +218,11 @@ def audit(
 
     # 빌드 export 를 하나도 파싱 못 하면(벤더 빌드 부재/형식 오류) 감사 불가 →
     # 절대 GREEN 으로 가지 않는다(정직성: 감사 안 한 것을 통과로 포장 금지).
-    if not exports:
-        verdict = VERDICT_BREAK
-    else:
-        verdict = _verdict_for(missing, watch_hits)
+    verdict = (
+        VERDICT_BREAK
+        if not exports
+        else _verdict_for(missing, watch_hits)
+    )
 
     reasons: list[str] = []
     if not exports:

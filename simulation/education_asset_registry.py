@@ -18,9 +18,10 @@ import argparse
 import json
 import pathlib
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 _REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 

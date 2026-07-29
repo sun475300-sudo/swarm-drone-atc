@@ -48,6 +48,8 @@ python -m http.server 8123 --directory build/simulator
 
 `build/simulator/` 전체를 정적 호스팅 서비스에 업로드합니다. `simulator.html`, `vendor/three/`, `manifest.webmanifest`, `sdacs-sw.js`를 함께 유지해야 합니다.
 
+사전 빌드된 파일은 [SDACS-Simulator-Web-2026-07-30.zip](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/simulator-web-2026-07-30/SDACS-Simulator-Web-2026-07-30.zip)에서 받을 수 있습니다. SHA-256: `ECE0F076F0A54D6A4204148CA8B6E5D09855AA40324EFB008859A7B473D081F6`.
+
 HTML 파일을 `file://`로 직접 열면 ES module/CORS 문제로 Three.js가 로드되지 않을 수 있습니다.
 
 ## 3. Electron 데스크톱 패키지

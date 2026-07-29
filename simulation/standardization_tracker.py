@@ -236,7 +236,7 @@ def validate_registry(registry: tuple[Contribution, ...] = REGISTRY) -> Validati
 
 def status_rollup(registry: tuple[Contribution, ...] = REGISTRY) -> dict[str, int]:
     """상태별 기고 수를 STATUS_ORDER 순으로 집계한다(0 포함)."""
-    counts = {status: 0 for status in STATUS_ORDER}
+    counts = dict.fromkeys(STATUS_ORDER, 0)
     for entry in registry:
         if entry.status in counts:
             counts[entry.status] += 1

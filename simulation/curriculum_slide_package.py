@@ -275,7 +275,7 @@ def generate_syllabus() -> str:
 
     for w in pkg.weeks:
         lines.append(f"[{w.week_id:>2}주] [{w.category}] {w.topic}")
-        lines.append(f"      학습 목표:")
+        lines.append("      학습 목표:")
         for obj in w.objectives:
             lines.append(f"        - {obj}")
         lines.append(f"      SDACS 모듈: {', '.join(w.sdacs_modules)}")
@@ -356,16 +356,16 @@ def _main() -> None:
             }, ensure_ascii=False, indent=2))
         else:
             print(f"[{w.week_id}주] {w.topic} ({w.category})")
-            print(f"\n  학습 목표:")
+            print("\n  학습 목표:")
             for obj in w.objectives:
                 print(f"    - {obj}")
-            print(f"\n  SDACS 모듈:")
+            print("\n  SDACS 모듈:")
             for mod in w.sdacs_modules:
                 print(f"    - {mod}")
-            print(f"\n  실습:")
+            print("\n  실습:")
             for ex in w.exercises:
                 print(f"    - {ex}")
-            print(f"\n  슬라이드 개요:")
+            print("\n  슬라이드 개요:")
             for i, sec in enumerate(w.slide_outline, 1):
                 print(f"    {i}. {sec}")
             print(f"\n  관련 Phase: {', '.join(str(p) for p in w.related_phases)}")
@@ -396,7 +396,7 @@ def _main() -> None:
         else:
             print("=== 커리큘럼 통계 ===")
             print(f"  총 주차: {stats['total_weeks']}")
-            print(f"  카테고리별:")
+            print("  카테고리별:")
             for cat, cnt in stats["by_category"].items():
                 print(f"    {cat}: {cnt}주")
             print(f"  총 학습 목표: {stats['total_objectives']}")

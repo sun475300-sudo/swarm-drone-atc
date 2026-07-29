@@ -24,9 +24,10 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from dataclasses import dataclass, field, replace
+from collections.abc import Callable
+from dataclasses import dataclass, replace
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 __all__ = [
     "AtcCommand",

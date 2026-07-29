@@ -1,0 +1,644 @@
+- generic:
+  - generic:
+    - generic:
+      - generic: SDACS — 군집드론 공역통제 3D 시뮬레이터
+      - generic: "Swarm Drone Airspace Control System — Capstone: Mokpo National University"
+    - generic:
+      - generic:
+        - generic: 활성 드론
+        - generic: "2"
+      - generic:
+        - generic: 충돌 위험
+        - generic: "0"
+      - generic:
+        - generic: 근접 경고
+        - generic: "0"
+      - generic:
+        - generic: 충돌
+        - generic: "0"
+      - generic:
+        - generic: 회피 명령
+        - generic: "0"
+      - generic:
+        - generic: 평균 배터리
+        - generic: 93%
+      - generic:
+        - generic: 관제 드론
+        - generic: "13"
+      - generic:
+        - generic: 풍속
+        - generic: —
+      - generic:
+        - generic: GPU
+        - generic: RTX 5070 Ti
+      - generic "WebSocket 상태 (LIVE = ws_bridge 연결 / DEMO = 내장 시뮬)": ● DEMO
+      - button "KO"
+  - generic [ref=e230]:
+    - generic "택배" [ref=e665]:
+      - generic [ref=e666]: 📦
+      - generic [ref=e667]: 0/2
+    - generic "물류" [ref=e668]:
+      - generic [ref=e669]: 🚚
+      - generic [ref=e670]: 1/3
+    - generic "음식배달" [ref=e671]:
+      - generic [ref=e672]: 🍔
+      - generic [ref=e673]: 0/3
+    - generic "농업" [ref=e674]:
+      - generic [ref=e675]: 🌾
+      - generic [ref=e676]: 0/3
+    - generic "산림" [ref=e677]:
+      - generic [ref=e678]: 🌲
+      - generic [ref=e679]: 0/3
+    - generic "환경감시" [ref=e680]:
+      - generic [ref=e681]: 🌍
+      - generic [ref=e682]: 0/3
+    - generic "촬영" [ref=e683]:
+      - generic [ref=e684]: 📷
+      - generic [ref=e685]: 0/3
+    - generic "방송" [ref=e686]:
+      - generic [ref=e687]: 🎥
+      - generic [ref=e688]: 0/2
+    - generic "측량" [ref=e689]:
+      - generic [ref=e690]: 🗺️
+      - generic [ref=e691]: 0/2
+    - generic "정찰" [ref=e692]:
+      - generic [ref=e693]: 🔍
+      - generic [ref=e694]: 0/2
+    - generic "순찰" [ref=e695]:
+      - generic [ref=e696]: 🛡️
+      - generic [ref=e697]: 0/2
+    - generic "군사" [ref=e698]:
+      - generic [ref=e699]: ⚔️
+      - generic [ref=e700]: 0/2
+    - generic "응급" [ref=e701]:
+      - generic [ref=e702]: 🚑
+      - generic [ref=e703]: 0/2
+    - generic "의료수송" [ref=e704]:
+      - generic [ref=e705]: 💊
+      - generic [ref=e706]: 0/2
+    - generic "소방" [ref=e707]:
+      - generic [ref=e708]: 🚒
+      - generic [ref=e709]: 0/2
+    - generic "건설" [ref=e710]:
+      - generic [ref=e711]: 🏗️
+      - generic [ref=e712]: 0/2
+    - generic "시설점검" [ref=e713]:
+      - generic [ref=e714]: 🔧
+      - generic [ref=e715]: 0/2
+    - generic "광업" [ref=e716]:
+      - generic [ref=e717]: ⛏️
+      - generic [ref=e718]: 0/2
+    - generic "UAM택시" [ref=e719]:
+      - generic [ref=e720]: 🚖
+      - generic [ref=e721]: 0/2
+    - generic "UAM셔틀" [ref=e722]:
+      - generic [ref=e723]: 🛩️
+      - generic [ref=e724]: 0/2
+    - generic "연구" [ref=e725]:
+      - generic [ref=e726]: 🔬
+      - generic [ref=e727]: 0/2
+    - generic "통신중계" [ref=e728]:
+      - generic [ref=e729]: 📡
+      - generic [ref=e730]: 1/2
+  - generic [ref=e4]:
+    - button "◀" [ref=e5] [cursor=pointer]
+    - generic [ref=e6]:
+      - generic [ref=e7]: 시뮬레이션 제어
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - generic [ref=e11]: 시나리오 선택
+          - button "시나리오 선택" [ref=e12] [cursor=pointer]: 🖼 갤러리
+        - combobox [ref=e13]:
+          - option "기본 (50대)" [selected]
+          - option "고밀도 (150대)"
+          - option "대규모 이륙 (100대)"
+          - option "초대형 군집 (250대)"
+          - option "메가 군집 1K (InstancedMesh)"
+          - option "메가 군집 5K (InstancedMesh)"
+          - option "메가 군집 10K (InstancedMesh)"
+          - option "비상 장애 (80대)"
+          - option "배터리 위기 (100대)"
+          - option "연쇄 장애 (80대)"
+          - option "통신 두절 (60대)"
+          - option "복합 장애 (100대)"
+          - option "경로 충돌 (100대)"
+          - option "NFZ 포화 (120대)"
+          - option "혼합 교통 (120대)"
+          - option "회랑 혼잡 (150대)"
+          - option "교차 교통 (120대)"
+          - option "기상 교란 (50대)"
+          - option "강풍 폭우 (60대)"
+          - option "안개 저시정 (70대)"
+          - option "열 상승기류 (80대)"
+          - option "침입 드론 (70대)"
+          - option "군집 침입 (100대)"
+          - option "GPS 스푸핑 (80대)"
+          - option "수색 구조 (40대)"
+          - option "택배 러시 (150대)"
+          - option "편대 비행 (50대)"
+          - option "극한 스트레스 (200대)"
+          - option "최종 시험 (250대)"
+          - option "극한기상 지옥 (200대)"
+          - option "마이크로버스트 (150대)"
+          - option "태풍급 강풍 (200대)"
+          - option "결빙 폭풍 (150대)"
+          - option "다중셀 폭풍 (200대)"
+          - option "서울 배송 (200대)"
+          - option "서울 긴급 (120대)"
+          - option "서울 빌딩협곡 (150대)"
+          - option "부산 배송 (200대)"
+          - option "부산 긴급 (120대)"
+          - option "부산 해운대협곡 (150대)"
+          - option "인천 배송 (200대)"
+          - option "인천 긴급 (120대)"
+          - option "인천 송도협곡 (150대)"
+          - option "대구 배송 (200대)"
+          - option "대구 긴급 (120대)"
+          - option "대구 범어협곡 (150대)"
+          - option "광주 배송 (200대)"
+          - option "광주 긴급 (120대)"
+          - option "광주 상무협곡 (150대)"
+          - option "대전 배송 (200대)"
+          - option "대전 긴급 (120대)"
+          - option "대전 둔산협곡 (150대)"
+          - option "울산 배송 (200대)"
+          - option "울산 긴급 (120대)"
+          - option "울산 산업협곡 (150대)"
+          - option "메가 군집 (500대)"
+          - option "메가 폭풍 (500대)"
+          - option "도심 러시아워 (400대)"
+          - option "군사 훈련 (300대)"
+          - option "재난 대응 (350대)"
+          - option "UAM 회랑 (200대)"
+          - option "야간 작전 (150대)"
+          - option "다기관 합동 (300대)"
+          - option "대규모 택배 (500대)"
+          - option "전영역 종합 (400대)"
+          - option "총력전 (500대)"
+      - generic [ref=e14]:
+        - generic [ref=e15]: "시뮬레이션 속도: 1.0x"
+        - slider [ref=e16] [cursor=pointer]: "1"
+      - generic [ref=e17]:
+        - button "시작" [active] [ref=e18] [cursor=pointer]
+        - button "일시정지" [ref=e19] [cursor=pointer]
+        - button "초기화" [ref=e20] [cursor=pointer]
+      - button "📊 분석 뷰 (4분할)" [ref=e22] [cursor=pointer]
+      - generic [ref=e23]:
+        - button "📷 PNG" [ref=e24] [cursor=pointer]
+        - button "📑 CSV" [ref=e25] [cursor=pointer]
+        - button "📋 KPI" [ref=e26] [cursor=pointer]
+      - generic [ref=e27]:
+        - button "📄 HTML" [ref=e28] [cursor=pointer]
+        - button "📝 MD" [ref=e29] [cursor=pointer]
+      - generic [ref=e30]:
+        - button "📼 임무 저장" [ref=e31] [cursor=pointer]
+        - button "📼 임무 로드" [ref=e32] [cursor=pointer]
+      - generic [ref=e33]:
+        - generic [ref=e34]: 경과 시간
+        - generic [ref=e35]: 00:00
+      - generic [ref=e36]:
+        - button "🔇 음성 OFF" [ref=e37] [cursor=pointer]
+        - button "📋 로그" [ref=e38] [cursor=pointer]
+      - button "🌬 환경음 OFF" [ref=e40] [cursor=pointer]
+      - generic [ref=e41]:
+        - generic [ref=e42]: 🎬 시네마틱 (CIN)
+        - generic [ref=e43] [cursor=pointer]:
+          - checkbox "동적 태양 12.0h" [ref=e44]
+          - text: 동적 태양
+          - generic [ref=e45]: 12.0h
+        - slider [ref=e46]: "12"
+        - generic [ref=e47] [cursor=pointer]:
+          - checkbox "자동 시간 흐름 (0.05h/s)" [ref=e48]
+          - text: 자동 시간 흐름 (0.05h/s)
+        - generic [ref=e49] [cursor=pointer]:
+          - checkbox "🌧 비" [ref=e50]
+          - text: 🌧 비
+        - generic [ref=e51] [cursor=pointer]:
+          - checkbox "❄ 눈" [ref=e52]
+          - text: ❄ 눈
+        - button "🔴 녹화" [ref=e54] [cursor=pointer]
+      - generic [ref=e56]:
+        - generic [ref=e57]: 📋 임무 계획 (MIS)
+        - combobox [ref=e58]:
+          - option "🔍 수색 (4×4 격자)" [selected]
+          - option "🛸 정찰 (8 원형 궤도)"
+          - option "📦 배달 (A→B 직선)"
+          - option "🌾 농업 방제 (Voronoi)"
+          - option "🚑 의료 우선순위"
+        - generic [ref=e59]:
+          - button "📋 임무 할당" [ref=e60] [cursor=pointer]
+          - button "🟢 전체 해제" [ref=e61] [cursor=pointer]
+        - generic [ref=e731]: 진행 중 임무 없음
+      - generic [ref=e62]:
+        - generic [ref=e63]: 📊 분석 강화 (ANA)
+        - generic [ref=e64] [cursor=pointer]:
+          - checkbox "누적 위협 히트맵 (10s 감쇠)" [ref=e65]
+          - text: 누적 위협 히트맵 (10s 감쇠)
+        - button "📐 LaTeX 표" [ref=e67] [cursor=pointer]
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]: 💥 장애 주입 (INJ)
+          - generic [ref=e71]: 📡:0 ⚙️:0 📵:0 🔋:0 👹:0 ⚠️:0
+        - generic [ref=e72]:
+          - button "📡 GPS" [ref=e73] [cursor=pointer]
+          - button "⚙️ 모터" [ref=e74] [cursor=pointer]
+          - button "📵 통신" [ref=e75] [cursor=pointer]
+          - button "🔋 배터리" [ref=e76] [cursor=pointer]
+          - button "👹 ROGUE" [ref=e77] [cursor=pointer]
+          - button "⚠️ 동NFZ" [ref=e78] [cursor=pointer]
+          - button "🌃 EMP" [ref=e79] [cursor=pointer]
+          - button "📡 EMI" [ref=e80] [cursor=pointer]
+          - button "🟢 전체 해제" [ref=e81] [cursor=pointer]
+    - generic [ref=e82]:
+      - generic [ref=e83]: 🔍 외부 탐지·식별 (조류·비협조)
+      - generic [ref=e85] [cursor=pointer]:
+        - checkbox "외부 객체 탐지 활성" [checked] [ref=e86]
+        - text: 외부 객체 탐지 활성
+      - generic [ref=e87]:
+        - generic [ref=e88]:
+          - generic [ref=e89]: 탐지 완료
+          - generic [ref=e90]: "12"
+        - generic [ref=e91]:
+          - generic [ref=e92]: 🐦 조류
+          - generic [ref=e93]: "8"
+        - generic [ref=e94]:
+          - generic [ref=e95]: 식별 완료
+          - generic [ref=e96]: "0"
+        - generic [ref=e97]:
+          - generic [ref=e98]: 평균 탐지
+          - generic [ref=e99]: 0.00s
+      - generic [ref=e100]:
+        - generic [ref=e101]: 식별 정확도
+        - generic [ref=e102]: 100.0%
+      - generic [ref=e103]: ●정상 ●미등록 ●위험 ●조류
+    - generic [ref=e104]:
+      - generic [ref=e105]: 🎥 뷰 · 검색
+      - textbox "드론 검색 (ID/직군) → Enter" [ref=e107]
+      - generic [ref=e108]:
+        - button "기본" [ref=e109] [cursor=pointer]
+        - button "탑다운" [ref=e110] [cursor=pointer]
+        - button "추적" [ref=e111] [cursor=pointer]
+        - button "오빗" [ref=e112] [cursor=pointer]
+      - generic [ref=e113]:
+        - button "🎥 FPV" [ref=e114] [cursor=pointer]
+        - button "🏁 추격" [ref=e115] [cursor=pointer]
+        - button "↔ 측면" [ref=e116] [cursor=pointer]
+      - combobox [ref=e118]:
+        - option "전체 단계" [selected]
+        - option "지상"
+        - option "이륙"
+        - option "비행"
+        - option "체공"
+        - option "착륙"
+        - option "회피"
+        - option "귀환"
+        - option "장애"
+      - generic [ref=e119]:
+        - text: 배터리≤
+        - slider [ref=e120]: "100"
+        - generic [ref=e121]: 100%
+    - generic [ref=e122]:
+      - generic [ref=e123]: ⏱ 리플레이 타임라인
+      - slider [ref=e125] [cursor=pointer]: "0"
+      - generic [ref=e126]:
+        - button "▶" [ref=e127] [cursor=pointer]
+        - button "● LIVE" [ref=e128] [cursor=pointer]
+        - generic [ref=e129]: LIVE
+      - generic [ref=e130]:
+        - button "1×" [ref=e131] [cursor=pointer]
+        - button "2×" [ref=e132] [cursor=pointer]
+        - button "4×" [ref=e133] [cursor=pointer]
+    - generic [ref=e134]:
+      - generic [ref=e135]: 공역·관제 레이어
+      - generic [ref=e137] [cursor=pointer]:
+        - checkbox "충돌 예측선 (CPA)" [checked] [ref=e138]
+        - text: 충돌 예측선 (CPA)
+      - generic [ref=e139] [cursor=pointer]:
+        - checkbox "회피 어드바이저리" [checked] [ref=e140]
+        - text: 회피 어드바이저리
+      - generic [ref=e141] [cursor=pointer]:
+        - checkbox "웨이포인트·이동경로" [checked] [ref=e142]
+        - text: 웨이포인트·이동경로
+      - generic [ref=e143] [cursor=pointer]:
+        - checkbox "예측 비행경로 (8초)" [checked] [ref=e144]
+        - text: 예측 비행경로 (8초)
+      - generic [ref=e145] [cursor=pointer]:
+        - checkbox "속도 벡터 화살표" [ref=e146]
+        - text: 속도 벡터 화살표
+      - generic [ref=e147] [cursor=pointer]:
+        - checkbox "CPA 충돌점 마커 + TTC" [checked] [ref=e148]
+        - text: CPA 충돌점 마커 + TTC
+      - generic [ref=e149] [cursor=pointer]:
+        - checkbox "NFZ 비행금지구역" [checked] [ref=e150]
+        - text: NFZ 비행금지구역
+      - generic [ref=e151] [cursor=pointer]:
+        - checkbox "복도/회랑" [checked] [ref=e152]
+        - text: 복도/회랑
+      - generic [ref=e153] [cursor=pointer]:
+        - checkbox "고도 레이어 (9단)" [checked] [ref=e154]
+        - text: 고도 레이어 (9단)
+      - generic [ref=e155] [cursor=pointer]:
+        - checkbox "ATC 관제망" [checked] [ref=e156]
+        - text: ATC 관제망
+      - generic [ref=e157] [cursor=pointer]:
+        - checkbox "근접/충돌선" [checked] [ref=e158]
+        - text: 근접/충돌선
+      - generic [ref=e159] [cursor=pointer]:
+        - checkbox "침입 드론 트레일" [checked] [ref=e160]
+        - text: 침입 드론 트레일
+      - generic [ref=e161] [cursor=pointer]:
+        - checkbox "대규모 컬링·LOD" [checked] [ref=e162]
+        - text: 대규모 컬링·LOD
+      - generic [ref=e163] [cursor=pointer]:
+        - checkbox "충돌위험 히트맵 (분석뷰)" [ref=e164]
+        - text: 충돌위험 히트맵 (분석뷰)
+    - generic [ref=e165]:
+      - generic [ref=e166]: 비행 상태 범례
+      - generic [ref=e168]: GROUNDED (지상 대기)
+      - generic [ref=e171]: TAKEOFF (이륙)
+      - generic [ref=e174]: ENROUTE (비행 중)
+      - generic [ref=e177]: HOLDING (체공)
+      - generic [ref=e180]: LANDING (착륙)
+      - generic [ref=e183]: EVADING (회피)
+      - generic [ref=e186]: FAILED (장애)
+      - generic [ref=e189]: RTL (귀환)
+      - generic [ref=e193]: ATC 관제 드론 (9대)
+      - text: 직군별 드론 (20종)
+      - generic [ref=e297]:
+        - generic [ref=e298]: 📦 택배
+        - generic [ref=e301]: 🚚 물류
+        - generic [ref=e304]: 🍔 음식배달
+        - generic [ref=e307]: 🌾 농업
+        - generic [ref=e310]: 🌲 산림
+        - generic [ref=e313]: 🌍 환경감시
+        - generic [ref=e316]: 📷 촬영
+        - generic [ref=e319]: 🎥 방송
+        - generic [ref=e322]: 🗺️ 측량
+        - generic [ref=e325]: 🔍 정찰
+        - generic [ref=e328]: 🛡️ 순찰
+        - generic [ref=e331]: ⚔️ 군사
+        - generic [ref=e334]: 🚑 응급
+        - generic [ref=e337]: 💊 의료수송
+        - generic [ref=e340]: 🚒 소방
+        - generic [ref=e343]: 🏗️ 건설
+        - generic [ref=e346]: 🔧 시설점검
+        - generic [ref=e349]: ⛏️ 광업
+        - generic [ref=e352]: 🚖 UAM택시
+        - generic [ref=e355]: 🛩️ UAM셔틀
+        - generic [ref=e358]: 🔬 연구
+        - generic [ref=e361]: 📡 통신중계
+  - generic [ref=e197]:
+    - button "▶" [ref=e198] [cursor=pointer]
+    - generic [ref=e199]:
+      - generic [ref=e200]: 편대 추적기
+      - generic [ref=e203]:
+        - generic [ref=e733] [cursor=pointer]:
+          - generic [ref=e734]:
+            - generic [ref=e735]: 🚚 DR-001
+            - generic [ref=e737]: 물류 · 이륙
+          - generic [ref=e738]:
+            - generic [ref=e739]: ALT 0m · SPD 0m/s · HDG 90°
+            - generic [ref=e740]: 87%
+        - generic [ref=e743] [cursor=pointer]:
+          - generic [ref=e744]:
+            - generic [ref=e745]: 📡 DR-043
+            - generic [ref=e747]: 통신중계 · 이륙
+          - generic [ref=e748]:
+            - generic [ref=e749]: ALT 0m · SPD 0m/s · HDG 0°
+            - generic [ref=e750]: 90%
+        - generic [ref=e753] [cursor=pointer]:
+          - generic [ref=e754]:
+            - generic [ref=e755]: 🍔 DR-002
+            - generic [ref=e757]: 음식배달 · 지상 대기
+          - generic [ref=e758]:
+            - generic [ref=e759]: ALT 0m · SPD 0m/s · HDG 46°
+            - generic [ref=e760]: 99%
+        - generic [ref=e763] [cursor=pointer]:
+          - generic [ref=e764]:
+            - generic [ref=e765]: 🌾 DR-003
+            - generic [ref=e767]: 농업 · 지상 대기
+          - generic [ref=e768]:
+            - generic [ref=e769]: ALT 0m · SPD 0m/s · HDG 52°
+            - generic [ref=e770]: 95%
+        - generic [ref=e773] [cursor=pointer]:
+          - generic [ref=e774]:
+            - generic [ref=e775]: 🌲 DR-004
+            - generic [ref=e777]: 산림 · 지상 대기
+          - generic [ref=e778]:
+            - generic [ref=e779]: ALT 0m · SPD 0m/s · HDG 76°
+            - generic [ref=e780]: 86%
+        - generic [ref=e783] [cursor=pointer]:
+          - generic [ref=e784]:
+            - generic [ref=e785]: 🌍 DR-005
+            - generic [ref=e787]: 환경감시 · 지상 대기
+          - generic [ref=e788]:
+            - generic [ref=e789]: ALT 0m · SPD 0m/s · HDG 276°
+            - generic [ref=e790]: 87%
+        - generic [ref=e793] [cursor=pointer]:
+          - generic [ref=e794]:
+            - generic [ref=e795]: 📷 DR-006
+            - generic [ref=e797]: 촬영 · 지상 대기
+          - generic [ref=e798]:
+            - generic [ref=e799]: ALT 0m · SPD 0m/s · HDG 310°
+            - generic [ref=e800]: 97%
+        - generic [ref=e803] [cursor=pointer]:
+          - generic [ref=e804]:
+            - generic [ref=e805]: 🎥 DR-007
+            - generic [ref=e807]: 방송 · 지상 대기
+          - generic [ref=e808]:
+            - generic [ref=e809]: ALT 0m · SPD 0m/s · HDG 110°
+            - generic [ref=e810]: 96%
+        - generic [ref=e813] [cursor=pointer]:
+          - generic [ref=e814]:
+            - generic [ref=e815]: 🗺️ DR-008
+            - generic [ref=e817]: 측량 · 지상 대기
+          - generic [ref=e818]:
+            - generic [ref=e819]: ALT 0m · SPD 0m/s · HDG 73°
+            - generic [ref=e820]: 86%
+        - generic [ref=e823] [cursor=pointer]:
+          - generic [ref=e824]:
+            - generic [ref=e825]: 🔍 DR-009
+            - generic [ref=e827]: 정찰 · 지상 대기
+          - generic [ref=e828]:
+            - generic [ref=e829]: ALT 0m · SPD 0m/s · HDG 338°
+            - generic [ref=e830]: 91%
+        - generic [ref=e833] [cursor=pointer]:
+          - generic [ref=e834]:
+            - generic [ref=e835]: 🛡️ DR-010
+            - generic [ref=e837]: 순찰 · 지상 대기
+          - generic [ref=e838]:
+            - generic [ref=e839]: ALT 0m · SPD 0m/s · HDG 27°
+            - generic [ref=e840]: 96%
+        - generic [ref=e843] [cursor=pointer]:
+          - generic [ref=e844]:
+            - generic [ref=e845]: ⚔️ DR-011
+            - generic [ref=e847]: 군사 · 지상 대기
+          - generic [ref=e848]:
+            - generic [ref=e849]: ALT 0m · SPD 0m/s · HDG 67°
+            - generic [ref=e850]: 99%
+        - generic [ref=e853] [cursor=pointer]:
+          - generic [ref=e854]:
+            - generic [ref=e855]: 🚑 DR-012
+            - generic [ref=e857]: 응급 · 지상 대기
+          - generic [ref=e858]:
+            - generic [ref=e859]: ALT 0m · SPD 0m/s · HDG 134°
+            - generic [ref=e860]: 94%
+        - generic [ref=e863] [cursor=pointer]:
+          - generic [ref=e864]:
+            - generic [ref=e865]: 💊 DR-013
+            - generic [ref=e867]: 의료수송 · 지상 대기
+          - generic [ref=e868]:
+            - generic [ref=e869]: ALT 0m · SPD 0m/s · HDG 88°
+            - generic [ref=e870]: 99%
+        - generic [ref=e873] [cursor=pointer]:
+          - generic [ref=e874]:
+            - generic [ref=e875]: 🚒 DR-014
+            - generic [ref=e877]: 소방 · 지상 대기
+          - generic [ref=e878]:
+            - generic [ref=e879]: ALT 0m · SPD 0m/s · HDG 42°
+            - generic [ref=e880]: 100%
+        - generic [ref=e883] [cursor=pointer]:
+          - generic [ref=e884]:
+            - generic [ref=e885]: 🏗️ DR-015
+            - generic [ref=e887]: 건설 · 지상 대기
+          - generic [ref=e888]:
+            - generic [ref=e889]: ALT 0m · SPD 0m/s · HDG 205°
+            - generic [ref=e890]: 93%
+        - generic [ref=e893] [cursor=pointer]:
+          - generic [ref=e894]:
+            - generic [ref=e895]: 🔧 DR-016
+            - generic [ref=e897]: 시설점검 · 지상 대기
+          - generic [ref=e898]:
+            - generic [ref=e899]: ALT 0m · SPD 0m/s · HDG 357°
+            - generic [ref=e900]: 88%
+        - generic [ref=e903] [cursor=pointer]:
+          - generic [ref=e904]:
+            - generic [ref=e905]: ⛏️ DR-017
+            - generic [ref=e907]: 광업 · 지상 대기
+          - generic [ref=e908]:
+            - generic [ref=e909]: ALT 0m · SPD 0m/s · HDG 132°
+            - generic [ref=e910]: 95%
+        - generic [ref=e913] [cursor=pointer]:
+          - generic [ref=e914]:
+            - generic [ref=e915]: 🚖 DR-018
+            - generic [ref=e917]: UAM택시 · 지상 대기
+          - generic [ref=e918]:
+            - generic [ref=e919]: ALT 0m · SPD 0m/s · HDG 308°
+            - generic [ref=e920]: 86%
+        - generic [ref=e923] [cursor=pointer]:
+          - generic [ref=e924]:
+            - generic [ref=e925]: 🛩️ DR-019
+            - generic [ref=e927]: UAM셔틀 · 지상 대기
+          - generic [ref=e928]:
+            - generic [ref=e929]: ALT 0m · SPD 0m/s · HDG 161°
+            - generic [ref=e930]: 91%
+        - generic [ref=e933] [cursor=pointer]:
+          - generic [ref=e934]:
+            - generic [ref=e935]: 🔬 DR-020
+            - generic [ref=e937]: 연구 · 지상 대기
+          - generic [ref=e938]:
+            - generic [ref=e939]: ALT 0m · SPD 0m/s · HDG 58°
+            - generic [ref=e940]: 95%
+        - generic [ref=e943] [cursor=pointer]:
+          - generic [ref=e944]:
+            - generic [ref=e945]: 📡 DR-021
+            - generic [ref=e947]: 통신중계 · 지상 대기
+          - generic [ref=e948]:
+            - generic [ref=e949]: ALT 0m · SPD 0m/s · HDG 106°
+            - generic [ref=e950]: 93%
+        - generic [ref=e953] [cursor=pointer]:
+          - generic [ref=e954]:
+            - generic [ref=e955]: 📦 DR-022
+            - generic [ref=e957]: 택배 · 지상 대기
+          - generic [ref=e958]:
+            - generic [ref=e959]: ALT 0m · SPD 0m/s · HDG 231°
+            - generic [ref=e960]: 87%
+        - generic [ref=e963] [cursor=pointer]:
+          - generic [ref=e964]:
+            - generic [ref=e965]: 🚚 DR-023
+            - generic [ref=e967]: 물류 · 지상 대기
+          - generic [ref=e968]:
+            - generic [ref=e969]: ALT 0m · SPD 0m/s · HDG 293°
+            - generic [ref=e970]: 93%
+        - generic [ref=e973] [cursor=pointer]:
+          - generic [ref=e974]:
+            - generic [ref=e975]: 🍔 DR-024
+            - generic [ref=e977]: 음식배달 · 지상 대기
+          - generic [ref=e978]:
+            - generic [ref=e979]: ALT 0m · SPD 0m/s · HDG 280°
+            - generic [ref=e980]: 96%
+        - generic [ref=e983] [cursor=pointer]:
+          - generic [ref=e984]:
+            - generic [ref=e985]: 🌾 DR-025
+            - generic [ref=e987]: 농업 · 지상 대기
+          - generic [ref=e988]:
+            - generic [ref=e989]: ALT 0m · SPD 0m/s · HDG 89°
+            - generic [ref=e990]: 91%
+        - generic [ref=e993] [cursor=pointer]:
+          - generic [ref=e994]:
+            - generic [ref=e995]: 🌲 DR-026
+            - generic [ref=e997]: 산림 · 지상 대기
+          - generic [ref=e998]:
+            - generic [ref=e999]: ALT 0m · SPD 0m/s · HDG 287°
+            - generic [ref=e1000]: 91%
+        - generic [ref=e1003] [cursor=pointer]:
+          - generic [ref=e1004]:
+            - generic [ref=e1005]: 🌍 DR-027
+            - generic [ref=e1007]: 환경감시 · 지상 대기
+          - generic [ref=e1008]:
+            - generic [ref=e1009]: ALT 0m · SPD 0m/s · HDG 317°
+            - generic [ref=e1010]: 91%
+        - generic [ref=e1013] [cursor=pointer]:
+          - generic [ref=e1014]:
+            - generic [ref=e1015]: 📷 DR-028
+            - generic [ref=e1017]: 촬영 · 지상 대기
+          - generic [ref=e1018]:
+            - generic [ref=e1019]: ALT 0m · SPD 0m/s · HDG 70°
+            - generic [ref=e1020]: 90%
+        - generic [ref=e1023] [cursor=pointer]:
+          - generic [ref=e1024]:
+            - generic [ref=e1025]: 🎥 DR-029
+            - generic [ref=e1027]: 방송 · 지상 대기
+          - generic [ref=e1028]:
+            - generic [ref=e1029]: ALT 0m · SPD 0m/s · HDG 61°
+            - generic [ref=e1030]: 92%
+        - generic [ref=e1033]: ... 외 20대
+  - button "?" [ref=e204] [cursor=pointer]
+  - generic [ref=e206]:
+    - generic [ref=e207]:
+      - generic [ref=e209]: 이벤트 기록
+      - button "초기화" [ref=e210] [cursor=pointer]
+      - button "▼" [ref=e211] [cursor=pointer]
+    - generic [ref=e212]:
+      - generic [ref=e1034]: "[00:00]🛫 DR-043 [통신중계] 이륙 개시"
+      - generic [ref=e1035]: "[00:00]🛫 DR-001 [물류] 이륙 개시"
+      - generic [ref=e1036]: "[00:00]📡 📡 외부 객체 감지 — 식별 중…"
+      - generic [ref=e1037]: "[00:00]📡 📡 외부 객체 감지 — 식별 중…"
+      - generic [ref=e1038]: "[00:00]📡 📡 외부 객체 감지 — 식별 중…"
+      - generic [ref=e1039]: "[00:00]📡 📡 외부 객체 감지 — 식별 중…"
+      - generic [ref=e1040]: "[00:00]📡 📡 외부 객체 감지 — 식별 중…"
+      - generic [ref=e1041]: "[00:00]📡 📡 외부 객체 감지 — 식별 중…"
+      - generic [ref=e1042]: "[00:00]📡 📡 외부 객체 감지 — 식별 중…"
+      - generic [ref=e1043]: "[00:00]📡 📡 외부 객체 감지 — 식별 중…"
+      - generic [ref=e1044]: "[00:00]📡 📡 외부 객체 감지 — 식별 중…"
+      - generic [ref=e1045]: "[00:00]📡 📡 외부 객체 감지 — 식별 중…"
+      - generic [ref=e1046]: "[00:00]📡 📡 외부 객체 감지 — 식별 중…"
+      - generic [ref=e1047]: "[00:00]📡 📡 외부 객체 감지 — 식별 중…"
+      - generic [ref=e1048]: "[00:00]ℹ️ 시뮬레이션 시작"
+  - generic [ref=e215]:
+    - generic [ref=e217]: 분석
+    - generic [ref=e218]:
+      - button "BAT" [ref=e219] [cursor=pointer]
+      - button "NRG" [ref=e220] [cursor=pointer]
+      - button "COL" [ref=e221] [cursor=pointer]
+      - button "THR" [ref=e222] [cursor=pointer]
+      - button "ATC" [ref=e223] [cursor=pointer]
+      - button "TPS" [ref=e224] [cursor=pointer]
+      - button "PHS" [ref=e225] [cursor=pointer]
+    - button "▼" [ref=e226] [cursor=pointer]
+  - generic:
+    - generic: SDACS v2.0 — APF 충돌 회피 | NFZ 비행금지구역 | 복도 공역 제어
+    - generic:
+      - text: "61 FPS | CPU:0.3ms GPU:6.7ms APF:8.7ms GPU⚡ | DRN:50 | DC:1375 | 드래그: 회전 | 스크롤: 줌 |"
+      - link "🚢 해양 소형선 감지":
+        - /url: maritime_detection_simulator.html

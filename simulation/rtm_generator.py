@@ -313,10 +313,11 @@ def _build_links(
     links: list[TraceabilityLink] = []
     for req in requirements:
         mod_path, test_path = module_map.get(req.id, ("", ""))
-        if not mod_path:
-            status = UNCOVERED
-        else:
-            status = _resolve_status(mod_path, test_path, repo_root)
+        status = (
+            UNCOVERED
+            if not mod_path
+            else _resolve_status(mod_path, test_path, repo_root)
+        )
         links.append(TraceabilityLink(
             req_id=req.id,
             module_path=mod_path,

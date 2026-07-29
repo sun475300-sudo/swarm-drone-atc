@@ -40,10 +40,11 @@ from __future__ import annotations
 
 import json
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 # 리포 루트 — 증거 경로는 이 기준의 상대 경로로 보관한다.
 _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -202,7 +203,7 @@ def assess(states: Mapping[str, str]) -> KsAssessment:
     # 만족된 공허참(vacuous truth)이므로 1.0 — verdict(READY)와 정합.
     weighted = 0.0
     denom = 0
-    for cid, state in normalized.items():
+    for _cid, state in normalized.items():
         if state == STATE_NOT_APPLICABLE:
             continue
         denom += 1

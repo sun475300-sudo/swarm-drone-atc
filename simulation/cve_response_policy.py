@@ -181,10 +181,11 @@ class CveResponse:
 
     def summary(self) -> str:
         """사람이 읽는 한 줄 요약."""
-        if self.remediate_days is None:
-            sla = "SLA 없음"
-        else:
-            sla = f"접수 {self.ack_days}일·해결 {self.remediate_days}일"
+        sla = (
+            "SLA 없음"
+            if self.remediate_days is None
+            else f"접수 {self.ack_days}일·해결 {self.remediate_days}일"
+        )
         pin = " · 핀 갱신 필요" if self.pin_refresh_required else ""
         return (f"{self.decision} ({self.severity}, {sla}{pin}): "
                 f"{'; '.join(self.reasons)}")
@@ -239,10 +240,11 @@ def assess(report: CveReport) -> CveResponse:
     else:
         reasons.append("상류 수정 없음 — 완화책 적용 후 패치 추적(핀 갱신 보류)")
 
-    if eff in (SEVERITY_CRITICAL, SEVERITY_HIGH):
-        decision = DECISION_PATCH_NOW
-    else:
-        decision = DECISION_SCHEDULED
+    decision = (
+        DECISION_PATCH_NOW
+        if eff in (SEVERITY_CRITICAL, SEVERITY_HIGH)
+        else DECISION_SCHEDULED
+    )
 
     return CveResponse(
         decision, severity, ack_days, remediate_days, pin_refresh,

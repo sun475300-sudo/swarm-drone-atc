@@ -1,0 +1,617 @@
+- generic [active] [ref=e1]:
+  - link "본문 바로가기" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - navigation [ref=e3]:
+    - generic [ref=e4]:
+      - link "SDACS Home" [ref=e5] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e6]: SD
+        - generic [ref=e7]: SDACS
+      - list [ref=e8]:
+        - listitem [ref=e9]:
+          - link "문제" [ref=e10] [cursor=pointer]:
+            - /url: "#problem"
+        - listitem [ref=e11]:
+          - link "소개" [ref=e12] [cursor=pointer]:
+            - /url: "#about"
+        - listitem [ref=e13]:
+          - link "성과" [ref=e14] [cursor=pointer]:
+            - /url: "#results"
+        - listitem [ref=e15]:
+          - link "기능" [ref=e16] [cursor=pointer]:
+            - /url: "#features"
+        - listitem [ref=e17]:
+          - link "아키텍처" [ref=e18] [cursor=pointer]:
+            - /url: "#architecture"
+        - listitem [ref=e19]:
+          - link "보고서" [ref=e20] [cursor=pointer]:
+            - /url: "#reports"
+        - listitem [ref=e21]:
+          - link "갤러리" [ref=e22] [cursor=pointer]:
+            - /url: "#gallery"
+        - listitem [ref=e23]:
+          - link "리소스" [ref=e24] [cursor=pointer]:
+            - /url: "#resources"
+      - generic [ref=e25]:
+        - button "Toggle language" [ref=e26] [cursor=pointer]: EN
+        - button "Toggle theme" [ref=e27] [cursor=pointer]
+  - main [ref=e30]:
+    - generic [ref=e32]:
+      - generic [ref=e33]: Capstone Design 2026 · 목포대학교 드론기계공학과
+      - heading [level=1] [ref=e36]:
+        - generic [ref=e37]: SDACS군집드론 공역통제 자동화 시스템
+      - paragraph [ref=e38]: APF + WebGPU 기반 실시간 충돌 회피. 100대 동시 관제, 90초 선제 예측, 38,400회 Monte Carlo 검증.
+      - generic [ref=e39]:
+        - link "보고서 다운로드" [ref=e40] [cursor=pointer]:
+          - /url: report/SDACS_Final_Report_v6.docx
+        - link "메인 3D 시뮬레이터 열기" [ref=e45] [cursor=pointer]:
+          - /url: simulator.html
+        - link "해양 소형선 감지 시뮬레이터" [ref=e49] [cursor=pointer]:
+          - /url: maritime_detection_simulator.html
+        - link "GitHub 저장소" [ref=e55] [cursor=pointer]:
+          - /url: https://github.com/sun475300-sudo/swarm-drone-atc
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - generic [ref=e61]: 97.8%
+          - generic [ref=e62]: 충돌 해결률
+        - generic [ref=e63]:
+          - generic [ref=e64]: < 1.2s
+          - generic [ref=e65]: 평균 응답시간
+        - generic [ref=e66]:
+          - generic [ref=e67]: 12.22×
+          - generic [ref=e68]: GPU 가속비
+        - generic [ref=e69]:
+          - generic [ref=e70]: 38,400
+          - generic [ref=e71]: MC 시뮬 실행수
+    - generic [ref=e73]:
+      - generic [ref=e74]:
+        - generic [ref=e75]: 문제 정의
+        - heading "도심 하늘의 사각지대" [level=2] [ref=e76]
+        - paragraph [ref=e77]: 드론은 폭발적으로 늘었는데, 관제는 아직 사람이 합니다.
+      - generic [ref=e78]:
+        - generic [ref=e79]:
+          - generic [ref=e80]: 90만+
+          - heading "국내 등록 드론" [level=4] [ref=e81]
+          - paragraph [ref=e82]: 지상 120m 이하 저고도 공역을 공유하는 민간·공공 드론 수
+        - generic [ref=e83]:
+          - generic [ref=e84]: 67%
+          - heading "레이더 사각지대" [level=4] [ref=e85]
+          - paragraph [ref=e86]: 도심 저고도는 건물 차폐·멀티패스로 지상 레이더가 닿지 않습니다.
+        - generic [ref=e87]:
+          - generic [ref=e88]: 5분
+          - heading "수동 관제 반응시간" [level=4] [ref=e89]
+          - paragraph [ref=e90]: 충돌 위험 감지 → 회피 지시까지 걸리는 평균 시간
+    - generic [ref=e92]:
+      - generic [ref=e93]:
+        - generic [ref=e94]: About
+        - heading "프로젝트 소개" [level=2] [ref=e95]
+        - paragraph [ref=e96]: 하늘의 신호등 — 드론이 스스로 만드는 이동형 가상 레이더 돔
+      - generic [ref=e97]:
+        - generic [ref=e98]: "\"레이더를 땅에 설치하는 대신, 드론 자체가 레이더가 되면 어떨까?\""
+        - paragraph [ref=e99]:
+          - strong [ref=e100]: SDACS
+          - text: 는 이 단순한 발상에서 출발했습니다. 20대의 관제 드론이 공중에 올라가 그물망처럼 연결된 감시 체계
+          - strong [ref=e101]: (이동형 가상 레이더 돔)
+          - text: 를 스스로 만들어, 도심 하늘을 자동으로 감시하고 충돌을 미리 막는 시스템입니다.
+        - paragraph [ref=e102]:
+          - text: 지금 이 순간에도 전국에서
+          - strong [ref=e103]: 90만 대 이상
+          - text: 의 드론이 같은 낮은 하늘(지상 120m 이하)을 공유하고 있습니다. 도심 저고도의
+          - strong [ref=e104]: 67%
+          - text: 는 기존 레이더의 사각지대이고, 수동 관제의 평균 반응시간은 5분입니다. SDACS는 이 문제를
+          - strong [ref=e105]: 분산형 APF 충돌 회피
+          - text: 와
+          - strong [ref=e106]: CPA 기반 90초 선제 예측
+          - text: 으로 해결합니다.
+        - paragraph [ref=e107]:
+          - text: SimPy 이산 이벤트 엔진 위에서
+          - strong [ref=e108]: 2,668개의 자동화 테스트
+          - text: 와
+          - strong [ref=e109]: 38,400회 Monte Carlo 검증
+          - text: 을 거쳤으며, 7대 광역시 도시환경 63개 시나리오에서 충돌 해결률 97.8% 이상, 응답 지연 1초 미만을 달성했습니다.
+    - generic [ref=e111]:
+      - generic [ref=e112]:
+        - generic [ref=e113]: Key Results
+        - heading "주요 성과" [level=2] [ref=e114]
+        - paragraph [ref=e115]: 실측 기반 KPI — Monte Carlo 38,400회 검증 완료
+      - generic [ref=e116]:
+        - generic [ref=e117]:
+          - generic [ref=e118]: 🎯
+          - generic [ref=e119]: 97.8%
+          - generic [ref=e120]: 충돌 해결률
+          - generic [ref=e121]: 100대 동시 비행 기준1 − collisions/(conflicts + collisions)
+        - generic [ref=e122]:
+          - generic [ref=e123]: ⚡
+          - generic [ref=e124]: < 1.2s
+          - generic [ref=e125]: 응답 시간
+          - generic [ref=e126]: 6종 Resolution AdvisoryCLIMB · DESCEND · TURN · EVADE · HOLD
+        - generic [ref=e127]:
+          - generic [ref=e128]: 🚀
+          - generic [ref=e129]: 12.22×
+          - generic [ref=e130]: GPU 가속비
+          - generic [ref=e131]: 500대 기준 CPU 대비RTX 5070 Ti · PyTorch CUDA
+        - generic [ref=e132]:
+          - generic [ref=e133]: 🧪
+          - generic [ref=e134]: 2,668
+          - generic [ref=e135]: 자동화 테스트
+          - generic [ref=e136]: pytest — 엔진·관제·에이전트 계층 커버리지
+    - generic [ref=e138]:
+      - generic [ref=e139]:
+        - generic [ref=e140]: Features
+        - heading "핵심 기능" [level=2] [ref=e141]
+        - paragraph [ref=e142]: SDACS를 구성하는 여섯 개의 기둥
+      - generic [ref=e143]:
+        - generic [ref=e144]:
+          - generic [ref=e145]: 🧭
+          - heading "분산형 APF 회피" [level=3] [ref=e146]
+          - paragraph [ref=e147]: 인공 포텐셜 필드로 드론마다 인력(목적지) + 척력(타 기체·지형)을 10Hz로 계산해 개별 회피
+        - generic [ref=e148]:
+          - generic [ref=e149]: ⏱️
+          - heading "CPA 90초 선제 예측" [level=3] [ref=e150]
+          - paragraph [ref=e151]: Closest Point of Approach 기반 90초 앞 충돌 위험을 미리 찾고, RA 6종 중 적합한 것을 발행
+        - generic [ref=e152]:
+          - generic [ref=e153]: 🗺️
+          - heading "Voronoi 공역 분할" [level=3] [ref=e154]
+          - paragraph [ref=e155]: AirspaceController가 동적 Voronoi 분할로 책임 공역을 배정 — 충돌 영역 감소
+        - generic [ref=e156]:
+          - generic [ref=e157]: 🌬️
+          - heading "바람 적응 제어" [level=3] [ref=e158]
+          - paragraph [ref=e159]: WindModel(난류 + 평균풍)을 APF 척력에 주입해 강풍·돌풍 상황에서도 안정적인 경로
+        - generic [ref=e160]:
+          - generic [ref=e161]: 🧠
+          - heading "ML 충돌 예측 (옵션)" [level=3] [ref=e162]
+          - paragraph [ref=e163]: PyTorch FP16 추론 + PPO 강화학습 회피 정책(ONNX 내보내기) — 고밀도 시나리오 보강
+        - generic [ref=e164]:
+          - generic [ref=e165]: 🖥️
+          - heading "WebGPU 3D 시각화" [level=3] [ref=e166]
+          - paragraph [ref=e167]: 브라우저만 있으면 돌아가는 Three.js + WGSL 시뮬레이터 — 설치 없이 즉시 검증
+    - generic [ref=e169]:
+      - generic [ref=e170]:
+        - generic [ref=e171]: Architecture
+        - heading "3-Layer + UI 아키텍처" [level=2] [ref=e172]
+        - paragraph [ref=e173]: 드론 에이전트 · 공역 관제 · 시뮬레이션 엔진 · 사용자 인터페이스
+      - img "SDACS 4-layer system architecture diagram" [ref=e175]
+      - generic [ref=e176]:
+        - generic [ref=e177]:
+          - generic [ref=e178]: Layer 1
+          - heading "드론 에이전트" [level=4] [ref=e179]
+          - paragraph [ref=e180]: 10Hz SimPy 프로세스. 위치·속도·배터리 갱신, FSM 전이 (Idle → Takeoff → Cruise → Avoid → Landing)
+        - generic [ref=e181]:
+          - generic [ref=e182]: Layer 2
+          - heading "공역 관제" [level=4] [ref=e183]
+          - paragraph [ref=e184]: 1Hz AirspaceController. CPA 기반 90초 예측, Voronoi 분할, 6종 Resolution Advisory 자동 발행
+        - generic [ref=e185]:
+          - generic [ref=e186]: Layer 3
+          - heading "시뮬레이션 엔진" [level=4] [ref=e187]
+          - paragraph [ref=e188]: SwarmSimulator + WindModel + Monte Carlo. 384 config × 100 seeds = 38,400 run 검증
+        - generic [ref=e189]:
+          - generic [ref=e190]: Layer 4
+          - heading "사용자 인터페이스" [level=4] [ref=e191]
+          - paragraph [ref=e192]: CLI (main.py) + Dash 3D 시각화 + Three.js WebGPU 웹 시뮬레이터
+    - generic [ref=e194]:
+      - generic [ref=e195]:
+        - generic [ref=e196]: Tech Stack
+        - heading "기술 스택" [level=2] [ref=e197]
+        - paragraph [ref=e198]: 검증된 오픈소스만 — Python·PyTorch·WebGPU 중심
+      - generic [ref=e199]:
+        - generic [ref=e200]:
+          - generic [ref=e201]: 🐍
+          - generic [ref=e202]:
+            - text: Python 3.11
+            - generic [ref=e203]: SimPy · NumPy · SciPy
+        - generic [ref=e204]:
+          - generic [ref=e205]: 🔥
+          - generic [ref=e206]:
+            - text: PyTorch + CUDA
+            - generic [ref=e207]: APF · CBS · Voronoi GPU
+        - generic [ref=e208]:
+          - generic [ref=e209]: 🧬
+          - generic [ref=e210]:
+            - text: FastAPI + WebSocket
+            - generic [ref=e211]: REST + realtime bridge
+        - generic [ref=e212]:
+          - generic [ref=e213]: 📊
+          - generic [ref=e214]:
+            - text: Dash + Plotly
+            - generic [ref=e215]: 3D 대시보드 · KPI
+        - generic [ref=e216]:
+          - generic [ref=e217]: 🌐
+          - generic [ref=e218]:
+            - text: Three.js + WebGPU
+            - generic [ref=e219]: WGSL compute shader
+        - generic [ref=e220]:
+          - generic [ref=e221]: 🐳
+          - generic [ref=e222]:
+            - text: Docker + NVIDIA
+            - generic [ref=e223]: 재현 가능한 GPU 빌드
+        - generic [ref=e224]:
+          - generic [ref=e225]: 🧪
+          - generic [ref=e226]:
+            - text: pytest
+            - generic [ref=e227]: 2,668 automated tests
+        - generic [ref=e228]:
+          - generic [ref=e229]: 🚀
+          - generic [ref=e230]:
+            - text: GitHub Actions
+            - generic [ref=e231]: CI · Pages deploy
+      - table [ref=e234]:
+        - caption [ref=e235]: GPU 가속 벤치마크 — RTX 5070 Ti (16GB), seed=42, 5회 평균
+        - rowgroup [ref=e236]:
+          - row [ref=e237]:
+            - columnheader "드론 수" [ref=e238]
+            - columnheader "CPU (ms)" [ref=e239]
+            - columnheader "GPU (ms)" [ref=e240]
+            - columnheader "가속비" [ref=e241]
+        - rowgroup [ref=e242]:
+          - row [ref=e243]:
+            - cell "50" [ref=e244]
+            - cell "11.19" [ref=e245]
+            - cell "13.04" [ref=e246]
+            - cell "0.86×" [ref=e247]
+          - row [ref=e248]:
+            - cell "100" [ref=e249]
+            - cell "42.74" [ref=e250]
+            - cell "18.06" [ref=e251]
+            - cell "2.37×" [ref=e252]
+          - row [ref=e253]:
+            - cell "200" [ref=e254]
+            - cell "188.68" [ref=e255]
+            - cell "28.13" [ref=e256]
+            - cell "6.71×" [ref=e257]
+          - row [ref=e258]:
+            - cell "500" [ref=e259]
+            - cell "1192.47" [ref=e260]
+            - cell "97.57" [ref=e261]
+            - cell "12.22×" [ref=e262]
+          - row [ref=e263]:
+            - cell "1000" [ref=e264]
+            - cell "N/A" [ref=e265]
+            - cell "193.95" [ref=e266]
+            - cell "—" [ref=e267]
+    - generic [ref=e269]:
+      - generic [ref=e270]:
+        - generic [ref=e271]: Timeline
+        - heading "프로젝트 일정" [level=2] [ref=e272]
+        - paragraph [ref=e273]: 캡스톤 디자인 2026 · 프로포절부터 최종 발표까지
+      - generic [ref=e274]:
+        - generic [ref=e275]:
+          - generic [ref=e276]: "2025.09"
+          - generic [ref=e277]: 주제 선정 · 프로포절
+          - generic [ref=e278]: 문제 공간 정의, 기존 UTM 기술 조사, APF + WebGPU 방향 확정
+        - generic [ref=e279]:
+          - generic [ref=e280]: "2025.11"
+          - generic [ref=e281]: 시뮬레이션 엔진 v1
+          - generic [ref=e282]: SimPy 기반 SwarmSimulator + Rule-based ATC 베이스라인
+        - generic [ref=e283]:
+          - generic [ref=e284]: "2026.01"
+          - generic [ref=e285]: 중간발표 · APF/CBS 통합
+          - generic [ref=e286]: APF 분산 회피 + CBS 충돌탐지 통합, 100대 시나리오 첫 실측
+        - generic [ref=e287]:
+          - generic [ref=e288]: "2026.03"
+          - generic [ref=e289]: Monte Carlo 38,400회
+          - generic [ref=e290]: 7대 광역시 · 63 시나리오 · 384 config × 100 seeds 완료
+        - generic [ref=e291]:
+          - generic [ref=e292]: "2026.04"
+          - generic [ref=e293]: 현재 — 보고서/웹사이트/최종발표 준비
+          - generic [ref=e294]: v6 기술보고서 · v7 일반인용 보고서 · 공식 웹사이트 배포
+        - generic [ref=e295]:
+          - generic [ref=e296]: "2026.06"
+          - generic [ref=e297]: 최종 제출 · 논문 투고
+          - generic [ref=e298]: 캡스톤 최종 심사, KSAS/IEEE 논문 투고 준비
+    - generic [ref=e300]:
+      - generic [ref=e301]:
+        - generic [ref=e302]: Reports
+        - heading "보고서 다운로드" [level=2] [ref=e303]
+        - paragraph [ref=e304]: 동일한 내용 · 15개 시각 자료 — 독자층에 따라 선택하세요
+      - generic [ref=e305]:
+        - generic [ref=e306]:
+          - generic [ref=e307]: v6 — Technical
+          - heading "기술 상세 보고서" [level=3] [ref=e308]
+          - paragraph [ref=e309]: 개발자 · 심사위원 · 공학 전문가
+          - list [ref=e310]:
+            - listitem [ref=e311]: ✓ APF 인력/척력 벡터장 수식
+            - text: ✓
+            - listitem [ref=e312]: ✓ CBS 제약 전파 알고리즘
+            - text: ✓
+            - listitem [ref=e313]: ✓ CPA 90초 look-ahead 수학
+            - text: ✓
+            - listitem [ref=e314]: ✓ 특허 분석 + 벤치마크
+            - text: ✓
+            - listitem [ref=e315]: ✓ 1.6 MB · 15개 figure
+            - text: ✓
+          - link "v6.docx" [ref=e316] [cursor=pointer]:
+            - /url: report/SDACS_Final_Report_v6.docx
+        - generic [ref=e317]:
+          - generic [ref=e318]: v7 — Easy
+          - heading "일반인용 보고서" [level=3] [ref=e319]
+          - paragraph [ref=e320]: 비전공자 · 일반 청중 · 발표 대상
+          - list [ref=e321]:
+            - listitem [ref=e322]: ✓ 자석 · 신호등 · 카풀앱 비유
+            - text: ✓
+            - listitem [ref=e323]: ✓ 한 줄 요약 박스 + 용어 사전
+            - text: ✓
+            - listitem [ref=e324]: ✓ "1000번 중 999번 안전" 숫자 번역
+            - text: ✓
+            - listitem [ref=e325]: ✓ 철새 떼 · 게임 GPU 일상 예시
+            - text: ✓
+            - listitem [ref=e326]: ✓ 1.6 MB · 동일 15개 figure
+            - text: ✓
+          - link "v7.docx" [ref=e327] [cursor=pointer]:
+            - /url: report/SDACS_Final_Report_v7_Easy.docx
+      - generic [ref=e329]:
+        - generic [ref=e330]: Patent Filing Package
+        - heading "특허 출원 패키지" [level=3] [ref=e331]
+        - paragraph [ref=e332]: 변리사 · 심사관 · 투자자
+        - list [ref=e333]:
+          - listitem [ref=e334]: ✓ 발명신고서 (v3)
+          - text: ✓
+          - listitem [ref=e335]: ✓ 특허 청구범위 초안 (독립항 3, 종속항 12)
+          - text: ✓
+          - listitem [ref=e336]: ✓ 요약서 및 대표도면 설명
+          - text: ✓
+          - listitem [ref=e337]: ✓ 선행기술 조사 보고서 (KIPRIS, Google)
+          - text: ✓
+          - listitem [ref=e338]: ✓ 시스템 다이어그램 (Mermaid)
+          - text: ✓
+        - generic [ref=e339]:
+          - link "발명신고서" [ref=e340] [cursor=pointer]:
+            - /url: patent/SDACS_발명신고서_v3.docx
+          - link "청구범위" [ref=e341] [cursor=pointer]:
+            - /url: patent/SDACS_Draft_Patent_Claims.docx
+          - link "선행기술조사" [ref=e342] [cursor=pointer]:
+            - /url: patent/SDACS_Prior_Art_Search_Report.docx
+          - link "다이어그램" [ref=e343] [cursor=pointer]:
+            - /url: patent/SDACS_System_Diagrams.html
+      - generic [ref=e344]:
+        - text: "추가 자료:"
+        - link "교수 미팅용 브리핑 (pptx)" [ref=e345] [cursor=pointer]:
+          - /url: patent/SDACS_Professor_Briefing.pptx
+        - text: ·
+        - link "Monte Carlo 검증 (xlsx)" [ref=e346] [cursor=pointer]:
+          - /url: patent/SDACS_MonteCarlo_Summary.xlsx
+        - text: ·
+        - link "출원 로드맵 및 예산 (xlsx)" [ref=e347] [cursor=pointer]:
+          - /url: patent/SDACS_Filing_Roadmap_Budget.xlsx
+        - text: ·
+        - link "Capstone Deck (pptx)" [ref=e348] [cursor=pointer]:
+          - /url: presentation/SDACS_Capstone_Presentation.pptx
+        - text: ·
+        - link "정부기관 발표자료" [ref=e349] [cursor=pointer]:
+          - /url: government_presentation.md
+        - text: ·
+        - link "정부기관 발표 스크립트" [ref=e350] [cursor=pointer]:
+          - /url: government_presentation_script.md
+        - text: ·
+        - link "사용자 매뉴얼" [ref=e351] [cursor=pointer]:
+          - /url: docs/user-manual.html
+        - text: ·
+        - link "GPU Benchmark" [ref=e352] [cursor=pointer]:
+          - /url: docs/gpu-benchmark.html
+    - generic [ref=e354]:
+      - generic [ref=e355]:
+        - generic [ref=e356]: Gallery
+        - heading "이미지 갤러리" [level=2] [ref=e357]
+        - paragraph [ref=e358]: 아키텍처 · 알고리즘 · 성능 벤치마크 15종 (클릭하여 크게 보기)
+      - generic [ref=e359]:
+        - generic [ref=e360]:
+          - img "Hero Banner" [ref=e361]
+          - generic [ref=e362]: 01. Hero Banner
+        - generic [ref=e363]:
+          - img "System Architecture" [ref=e364]
+          - generic [ref=e365]: 02. System Architecture
+        - generic [ref=e366]:
+          - img "Detection Pipeline" [ref=e367]
+          - generic [ref=e368]: 03. Detection Pipeline
+        - generic [ref=e369]:
+          - img "Algorithm Flow" [ref=e370]
+          - generic [ref=e371]: 04. Algorithm Flow
+        - generic [ref=e372]:
+          - img "Flight Phase FSM" [ref=e373]
+          - generic [ref=e374]: 05. Flight Phase FSM
+        - generic [ref=e375]:
+          - img "Sensor Fusion" [ref=e376]
+          - generic [ref=e377]: 06. Sensor Fusion
+        - generic [ref=e378]:
+          - img "Performance Comparison" [ref=e379]
+          - generic [ref=e380]: 07. Performance Comparison
+        - generic [ref=e381]:
+          - img "Drone as Radar" [ref=e382]
+          - generic [ref=e383]: 08. Drone as Radar
+        - generic [ref=e384]:
+          - img "Distributed APF" [ref=e385]
+          - generic [ref=e386]: 09. Distributed APF
+        - generic [ref=e387]:
+          - img "Multi Layer Safety" [ref=e388]
+          - generic [ref=e389]: 10. Multi-Layer Safety
+        - generic [ref=e390]:
+          - img "Weather Adaptive" [ref=e391]
+          - generic [ref=e392]: 11. Weather Adaptive
+        - generic [ref=e393]:
+          - img "Scenario KPI Radar" [ref=e394]
+          - generic [ref=e395]: 12. Scenario KPI Radar
+        - generic [ref=e396]:
+          - img "Advisory Latency" [ref=e397]
+          - generic [ref=e398]: 13. Advisory Latency
+        - generic [ref=e399]:
+          - img "Throughput vs Drones" [ref=e400]
+          - generic [ref=e401]: 14. Throughput vs Drones
+        - generic [ref=e402]:
+          - img "Conflict Resolution Heatmap" [ref=e403]
+          - generic [ref=e404]: 15. Conflict Resolution Heatmap
+    - generic [ref=e406]:
+      - generic [ref=e407]:
+        - generic [ref=e408]: Resources
+        - heading "리소스 허브" [level=2] [ref=e409]
+        - paragraph [ref=e410]: 프로젝트의 모든 페이지를 한곳에서 — 시뮬레이터, 문서, 보고서, 발표 자료
+      - generic [ref=e411]:
+        - heading "시뮬레이터" [level=3] [ref=e412]
+        - generic [ref=e413]:
+          - link "🚀 LATEST 메인 3D 시뮬레이터 Three.js r175 + PBR + 후처리. 4개 카메라 모드, 5개 시나리오, 실시간 KPI." [ref=e414] [cursor=pointer]:
+            - /url: simulator.html
+            - generic [ref=e415]: 🚀
+            - generic [ref=e416]: LATEST
+            - heading "메인 3D 시뮬레이터" [level=4] [ref=e417]
+            - paragraph [ref=e418]: Three.js r175 + PBR + 후처리. 4개 카메라 모드, 5개 시나리오, 실시간 KPI.
+          - link "🚢 NEW 해양 소형선 감지 대형 모선 레이더·AIS로 7~15m 소형선 탐지·식별. CPA/TCPA 경보, 5개 시나리오." [ref=e419] [cursor=pointer]:
+            - /url: maritime_detection_simulator.html
+            - generic [ref=e420]: 🚢
+            - generic [ref=e421]: NEW
+            - heading "해양 소형선 감지" [level=4] [ref=e422]
+            - paragraph [ref=e423]: 대형 모선 레이더·AIS로 7~15m 소형선 탐지·식별. CPA/TCPA 경보, 5개 시나리오.
+          - link "📋 오프라인 데모 백업 발표 라이브 시연 실패 시 사용하는 정적 백업 페이지." [ref=e424] [cursor=pointer]:
+            - /url: offline_demo_backup.html
+            - generic [ref=e425]: 📋
+            - heading "오프라인 데모 백업" [level=4] [ref=e426]
+            - paragraph [ref=e427]: 발표 라이브 시연 실패 시 사용하는 정적 백업 페이지.
+      - generic [ref=e428]:
+        - heading "문서" [level=3] [ref=e429]
+        - generic [ref=e430]:
+          - link "📖 사용자 매뉴얼 설치, CLI, 시나리오, GPU, Docker, REST API, FAQ." [ref=e431] [cursor=pointer]:
+            - /url: docs/user-manual.html
+            - generic [ref=e432]: 📖
+            - heading "사용자 매뉴얼" [level=4] [ref=e433]
+            - paragraph [ref=e434]: 설치, CLI, 시나리오, GPU, Docker, REST API, FAQ.
+          - link "🏗️ 시스템 아키텍처 4-Layer 아키텍처, 데이터 흐름, GPU 가속 모듈 설명." [ref=e435] [cursor=pointer]:
+            - /url: docs/architecture.html
+            - generic [ref=e436]: 🏗️
+            - heading "시스템 아키텍처" [level=4] [ref=e437]
+            - paragraph [ref=e438]: 4-Layer 아키텍처, 데이터 흐름, GPU 가속 모듈 설명.
+          - link "⚡ GPU Benchmark RTX 5070 Ti — APF 엔진 CPU vs GPU 성능 비교 리포트." [ref=e439] [cursor=pointer]:
+            - /url: docs/gpu-benchmark.html
+            - generic [ref=e440]: ⚡
+            - heading "GPU Benchmark" [level=4] [ref=e441]
+            - paragraph [ref=e442]: RTX 5070 Ti — APF 엔진 CPU vs GPU 성능 비교 리포트.
+          - link "📐 특허 시스템 다이어그램 Mermaid 기반 특허 도면 시각화 (10종)." [ref=e443] [cursor=pointer]:
+            - /url: patent/SDACS_System_Diagrams.html
+            - generic [ref=e444]: 📐
+            - heading "특허 시스템 다이어그램" [level=4] [ref=e445]
+            - paragraph [ref=e446]: Mermaid 기반 특허 도면 시각화 (10종).
+      - generic [ref=e447]:
+        - heading "테스트 & 분석" [level=3] [ref=e448]
+        - generic [ref=e449]:
+          - link "📊 시나리오 비교 대시보드 7개 시나리오 충돌/해결률/경고 Chart.js 시각화." [ref=e450] [cursor=pointer]:
+            - /url: scenario_comparison.html
+            - generic [ref=e451]: 📊
+            - heading "시나리오 비교 대시보드" [level=4] [ref=e452]
+            - paragraph [ref=e453]: 7개 시나리오 충돌/해결률/경고 Chart.js 시각화.
+          - link "🧪 pytest 테스트 리포트 2,823+ 테스트 케이스 자동화 검증 결과." [ref=e454] [cursor=pointer]:
+            - /url: test_report.html
+            - generic [ref=e455]: 🧪
+            - heading "pytest 테스트 리포트" [level=4] [ref=e456]
+            - paragraph [ref=e457]: 2,823+ 테스트 케이스 자동화 검증 결과.
+      - generic [ref=e458]:
+        - heading "발표 자료" [level=3] [ref=e459]
+        - generic [ref=e460]:
+          - link "🎤 최종 발표 스크립트 Capstone 최종 발표 진행 스크립트." [ref=e461] [cursor=pointer]:
+            - /url: docs/presentation-script.html
+            - generic [ref=e462]: 🎤
+            - heading "최종 발표 스크립트" [level=4] [ref=e463]
+            - paragraph [ref=e464]: Capstone 최종 발표 진행 스크립트.
+          - link "🎓 중간 발표 스크립트 Capstone 중간 발표 진행 스크립트." [ref=e465] [cursor=pointer]:
+            - /url: docs/midterm-presentation-script.html
+            - generic [ref=e466]: 🎓
+            - heading "중간 발표 스크립트" [level=4] [ref=e467]
+            - paragraph [ref=e468]: Capstone 중간 발표 진행 스크립트.
+          - link "📄 발표 핸드아웃 (A4) A4 1장 분량 인쇄용 요약 핸드아웃." [ref=e469] [cursor=pointer]:
+            - /url: handout.html
+            - generic [ref=e470]: 📄
+            - heading "발표 핸드아웃 (A4)" [level=4] [ref=e471]
+            - paragraph [ref=e472]: A4 1장 분량 인쇄용 요약 핸드아웃.
+          - link "🔗 빠른 접속 허브 (QR) QR 코드 하나로 시뮬레이터, 보고서, GitHub 모두 연결." [ref=e473] [cursor=pointer]:
+            - /url: go.html
+            - generic [ref=e474]: 🔗
+            - heading "빠른 접속 허브 (QR)" [level=4] [ref=e475]
+            - paragraph [ref=e476]: QR 코드 하나로 시뮬레이터, 보고서, GitHub 모두 연결.
+    - generic [ref=e478]:
+      - heading "직접 3D로 확인해 보세요" [level=2] [ref=e479]
+      - paragraph [ref=e480]: 브라우저에서 100대 군집드론이 스스로 충돌을 회피하는 장면을 바로 재생할 수 있습니다.
+      - generic [ref=e481]:
+        - link "메인 3D 시뮬레이터" [ref=e482] [cursor=pointer]:
+          - /url: simulator.html
+        - link "시나리오 비교" [ref=e486] [cursor=pointer]:
+          - /url: scenario_comparison.html
+        - link "테스트 리포트" [ref=e489] [cursor=pointer]:
+          - /url: test_report.html
+        - link "전체 리소스" [ref=e494] [cursor=pointer]:
+          - /url: "#resources"
+  - contentinfo [ref=e501]:
+    - generic [ref=e502]:
+      - generic [ref=e503]:
+        - generic [ref=e504]:
+          - generic [ref=e505]:
+            - generic [ref=e506]: SD
+            - generic [ref=e507]: SDACS
+          - paragraph [ref=e508]: Swarm Drone Airspace Control System 군집드론 공역통제 자동화 시스템 Mokpo National University Dept. of Drone Mechanical Engineering Capstone Design (2026)
+        - generic [ref=e509]:
+          - heading "프로젝트" [level=4] [ref=e510]
+          - list [ref=e511]:
+            - listitem [ref=e512]:
+              - link "GitHub" [ref=e513] [cursor=pointer]:
+                - /url: https://github.com/sun475300-sudo/swarm-drone-atc
+            - listitem [ref=e514]:
+              - link "Report v6" [ref=e515] [cursor=pointer]:
+                - /url: report/SDACS_Final_Report_v6.docx
+            - listitem [ref=e516]:
+              - link "Report v7 (Easy)" [ref=e517] [cursor=pointer]:
+                - /url: report/SDACS_Final_Report_v7_Easy.docx
+            - listitem [ref=e518]:
+              - link "Technical Report v3" [ref=e519] [cursor=pointer]:
+                - /url: report/SDACS_Technical_Report_v3.docx
+            - listitem [ref=e520]:
+              - link "Main 3D Simulator" [ref=e521] [cursor=pointer]:
+                - /url: simulator.html
+            - listitem [ref=e522]:
+              - link "시나리오 비교" [ref=e523] [cursor=pointer]:
+                - /url: scenario_comparison.html
+            - listitem [ref=e524]:
+              - link "Test Report" [ref=e525] [cursor=pointer]:
+                - /url: test_report.html
+            - listitem [ref=e526]:
+              - link "핸드아웃" [ref=e527] [cursor=pointer]:
+                - /url: handout.html
+            - listitem [ref=e528]:
+              - link "빠른 접속 허브" [ref=e529] [cursor=pointer]:
+                - /url: go.html
+        - generic [ref=e530]:
+          - heading "문서" [level=4] [ref=e531]
+          - list [ref=e532]:
+            - listitem [ref=e533]:
+              - link "Architecture" [ref=e534] [cursor=pointer]:
+                - /url: docs/architecture.html
+            - listitem [ref=e535]:
+              - link "사용자 매뉴얼" [ref=e536] [cursor=pointer]:
+                - /url: docs/user-manual.html
+            - listitem [ref=e537]:
+              - link "GPU Benchmark" [ref=e538] [cursor=pointer]:
+                - /url: docs/gpu-benchmark.html
+            - listitem [ref=e539]:
+              - link "최종 발표 스크립트" [ref=e540] [cursor=pointer]:
+                - /url: docs/presentation-script.html
+            - listitem [ref=e541]:
+              - link "중간 발표 스크립트" [ref=e542] [cursor=pointer]:
+                - /url: docs/midterm-presentation-script.html
+            - listitem [ref=e543]:
+              - link "오프라인 데모" [ref=e544] [cursor=pointer]:
+                - /url: offline_demo_backup.html
+            - listitem [ref=e545]:
+              - link "특허 다이어그램" [ref=e546] [cursor=pointer]:
+                - /url: patent/SDACS_System_Diagrams.html
+        - generic [ref=e547]:
+          - heading "Author" [level=4] [ref=e548]
+          - list [ref=e549]:
+            - listitem [ref=e550]: 장선우 · Jang Sunwoo
+            - listitem [ref=e551]:
+              - link "@sun475300-sudo" [ref=e552] [cursor=pointer]:
+                - /url: https://github.com/sun475300-sudo
+            - listitem [ref=e553]:
+              - link "sun475300@gmail.com" [ref=e554] [cursor=pointer]:
+                - /url: mailto:sun475300@gmail.com
+            - listitem [ref=e555]: MIT License
+      - generic [ref=e556]:
+        - generic [ref=e557]: © 2026 SDACS Project · Released under MIT License
+        - generic [ref=e558]:
+          - link "GitHub" [ref=e559] [cursor=pointer]:
+            - /url: https://github.com/sun475300-sudo/swarm-drone-atc
+          - link "Email" [ref=e562] [cursor=pointer]:
+            - /url: mailto:sun475300@gmail.com
+  - button "Back to top"

@@ -369,7 +369,7 @@ def _main() -> None:
             print(f"  Origin URL: {result.origin_url}")
             print(f"  Visit Type: {result.visit_type}")
             print(f"  API: {result.api_endpoint}")
-            print(f"\n  실행 명령:")
+            print("\n  실행 명령:")
             print(f"    {result.curl_command}")
 
     elif args.checklist:

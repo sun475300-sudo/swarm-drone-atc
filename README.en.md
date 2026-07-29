@@ -26,6 +26,7 @@ The repository was audited on **2026-07-30 (KST)**. Use `git log -1 --oneline or
 | GitHub Actions | The latest `main` push completed CI, Security Audit, Canonical Hash Verification, and Pages deployment successfully |
 | GitHub Pages | Root, 3D simulator, and maritime simulator returned HTTP 200 |
 | Static simulator artifact | `python scripts/build_simulator.py` and `--check` completed successfully; `build/simulator/` was generated |
+| Downloadable web package | The [SDACS Web Simulator (2026-07-30)](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/simulator-web-2026-07-30) static ZIP is published |
 | Python regression | Latest CI passed on Python 3.10, 3.11, and 3.12 with lint, mypy, and an 80% coverage gate |
 | Desktop app | Electron packaging and a three-OS workflow exist, but no SDACS desktop installer is currently published in GitHub Releases |
 
@@ -86,6 +87,8 @@ python -m http.server 8123 --directory build/simulator
 
 `build/simulator/` contains the simulator, manifest, service worker, and local Three.js vendor files, so it can be copied to a static host. GitHub Pages deploys `docs/`; `.github/workflows/deploy-pages.yml` synchronizes the canonical simulator and vendor files before publishing.
 
+For a prebuilt artifact, download [SDACS-Simulator-Web-2026-07-30.zip](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/simulator-web-2026-07-30/SDACS-Simulator-Web-2026-07-30.zip), extract it, and serve it over HTTP or a static host. SHA-256: `ECE0F076F0A54D6A4204148CA8B6E5D09855AA40324EFB008859A7B473D081F6`.
+
 ## Desktop packaging
 
 ```bash
@@ -130,7 +133,7 @@ The `window._sdacs` reference distinguishes production, beta, mock, and speculat
 | Priority | Work item | Reason |
 |---|---|---|
 | High | Review and merge dependency PRs | Dependabot PRs [#512](https://github.com/sun475300-sudo/swarm-drone-atc/pull/512) through [#518](https://github.com/sun475300-sudo/swarm-drone-atc/pulls?q=is%3Aopen%20is%3Apr) remain open; NumPy, Playwright, and GitHub Actions need CI/E2E review |
-| High | Publish a desktop release | Packaging is configured, but no SDACS desktop installer is currently downloadable from GitHub Releases |
+| High | Publish a desktop release | A static web ZIP is published, but no SDACS desktop installer is currently downloadable from GitHub Releases |
 | High | Protect `main` | GitHub reports no branch-protection rule; required checks, reviews, and administrator-bypass policy need a decision |
 | Medium | Productionize or explicitly scope the FastAPI service | Replace in-memory state with persistent infrastructure, or keep it clearly limited to experimentation |
 | Medium | Hardware/HITL/field validation | Pixhawk, Jetson, RTK, real-flight, and partner integrations cannot be replaced by software CI |

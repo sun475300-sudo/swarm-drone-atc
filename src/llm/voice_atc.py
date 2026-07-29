@@ -51,6 +51,15 @@ Reject unsafe or ambiguous commands by returning {"action": "REJECT", "reason": 
 """
 
 
+def _extract_text_content(content: list[Any]) -> str:
+    """Anthropic 응답 블록 중 텍스트 블록만 안전하게 결합한다."""
+    return "\n".join(
+        text
+        for block in content
+        if isinstance((text := getattr(block, "text", None)), str)
+    )
+
+
 def transcribe_audio(audio_path: str, language: str = "ko") -> tuple[str, float]:
     """Whisper STT — 음성 파일을 텍스트로 변환."""
     try:
@@ -77,7 +86,7 @@ def parse_command_claude(transcript: str, api_key: str) -> dict[str, Any]:
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": transcript}],
     )
-    text = msg.content[0].text  # type: ignore[attr-defined]
+    text = _extract_text_content(msg.content)
     try:
         return json.loads(text)
     except json.JSONDecodeError:

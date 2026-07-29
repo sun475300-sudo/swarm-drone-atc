@@ -70,7 +70,7 @@ class SemVer:
     patch: int
 
     @classmethod
-    def parse(cls, version: str) -> "SemVer | None":
+    def parse(cls, version: str) -> SemVer | None:
         """버전 문자열을 파싱한다. 실패하면 None.
 
         허용:

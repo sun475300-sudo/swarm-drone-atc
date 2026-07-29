@@ -221,7 +221,7 @@ def decode(frame: bytes) -> BsmMessage:
 # --- v2x_communication.V2XMessage 어댑터 (해당 모듈 읽기 전용) --------------
 
 
-def from_v2x_message(msg: "V2XMessage", station_id: int, sequence: int) -> BsmMessage:
+def from_v2x_message(msg: V2XMessage, station_id: int, sequence: int) -> BsmMessage:
     """`v2x_communication.V2XMessage` 를 정규 BSM 메시지로 변환한다.
 
     `V2XMessage.sender` 는 문자열이라 와이어 정수 식별자(station_id)를 명시 인자로 받는다.

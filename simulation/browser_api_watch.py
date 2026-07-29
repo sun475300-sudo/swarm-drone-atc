@@ -43,9 +43,10 @@ from __future__ import annotations
 
 import json
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 # 스냅샷 기준일. 표준화 상태는 이 날짜의 수동 관측이다(라이브 피드 없음).
 SNAPSHOT_AS_OF = "2026-06-19"

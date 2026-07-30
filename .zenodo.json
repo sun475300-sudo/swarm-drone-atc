@@ -29,8 +29,10 @@
     "multi-agent simulation"
   ],
   "communities": [
-    { "identifier": "zenodo" }
+    { "identifier": "zenodo" },
+    { "identifier": "robotics" }
   ],
+  "version": "1.5.0",
   "language": "kor",
   "related_identifiers": [
     {
@@ -44,5 +46,5 @@
       "resource_type": "publication-technicalnote"
     }
   ],
-  "notes": "Capstone Design final presentation: 2026-04-23. Repository auto-archives on GitHub Release tag. For citation, use the DOI provided by Zenodo once the first release is tagged."
+  "notes": "Capstone Design final presentation: 2026-04-23. Repository auto-archives on GitHub Release tag. For citation, use the DOI provided by Zenodo once the first release is tagged. This software is a research and education platform; all performance figures are simulation evidence and are not the basis for flight-safety certification or operational approval."
 }

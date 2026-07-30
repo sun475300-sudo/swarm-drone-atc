@@ -134,12 +134,12 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 | **Track C** (P711-720, 서비스화) | 100% | ████████████ | FastAPI·React·인증·실시간 채널·저장소·배포·관측성 완료 |
 | **Track D** (P721-735, 웹 시뮬레이터) | 100% | ████████████ | 군집·해양 3D + Electron + i18n + LIVE + CPA + 멀티뷰 + EO/IR |
 | **Track E** (P736-745, 확장 연구) | 100% | ████████████ | RL·UAS-T·LiDAR·DR·디지털트윈·Raft HA·UAM·양자·폐쇄망·LLM |
-| **Track F** (P746-755, 산학 실증) | 90% | ███████████░ | P746-P754 docs 완비 (P755 창업·LOI는 사용자 환경) |
+| **Track F** (P746-755, 산학 실증) | 95% | ███████████░ | P746-P754 docs 완비 · P755 창업 검토 문서 완성 (LOI·실제 창업은 사용자 환경) |
 | **MEGA Plan** (시뮬 Phase 1-9) | 100% | ████████████ | ATC·TAC·CIN·CAM·MIS·INJ·ANA·AUD·MOB |
 | **HYPER Plan** (시뮬 Phase 10-50) | 100% | ████████████ | 41개 추가 Phase (해양 ATC · VR · AI Copilot · 적대 · C-UAS · 행성 등) |
 | **STELLAR~POST-UNIVERSE** (시뮬 Phase 51-200) | 100% | ████████████ | Phase 200 = 𝟏 (Unity) · Phase 51 LLM Multi-Agent 격상 (단, 다수 mock/speculative — maturity 공시) |
-| **TRANSCENDENCE** (시뮬 Phase 201-300) | 21% | ██░░░░░░░░░░ | Phase 201-220·226 완료 — Maturity Honesty (분류·Mock Detector·experimental·beta·production 회귀) · API 수명주기 · GPS→ENU 정밀 검증 |
-| **GENESIS** (시뮬 Phase 301-400) | 50% | ██████░░░░░░ | 301-319·321-322·330·341-342·361-368·381-400 완료 — 인증·CSAP·감항·플러그인SDK·CITATION·RTM자동생성·RL벤치·LLM관제·NTN링크·GPS거부·에너지계획·V2X·자가치유·교육·레거시선언 |
+| **TRANSCENDENCE** (시뮬 Phase 201-300) | 25% | ███░░░░░░░░░ | Phase 201-220·226 완료 · Phase 281-300 Zenodo DOI 가이드·K-UTM 표준 제안 준비 완료 — Maturity Honesty · API 수명주기 · GPS→ENU 정밀 검증 |
+| **GENESIS** (시뮬 Phase 301-400) | 55% | ███████░░░░░ | 301-319·321-322·328-329·330·341-360·361-368·381-400 완료 — 인증·CSAP·감항·플러그인SDK·CITATION·RTM자동생성·RL벤치·LLM관제·NTN링크·GPS거부·에너지계획·V2X·자가치유·교육·레거시선언·README.en.md 동등화·90일 파일럿 백서 |
 | **ODYSSEY** (시뮬 Phase 401-500) | 49% | ██████░░░░░░ | 402-411·447-448·452-460·461-500 완료 — FAA/EASA/ICAO·RL/AI(V&V·SafetyCase·Lifecycle)·연합운영·표준·Continuum (#449 안착) |
 
 > Phase 번호와 체크 비율은 개발 이력을 보존하기 위한 지표이며 제품·실증 성숙도를 뜻하지 않습니다.
@@ -269,7 +269,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 241-260** — Multi-User sandbox 가능분 완료 — 241 `simulation/atc_multiuser_session.py` `/ws/atc` FastAPI 라우터 팩토리(기존 서버 무수정 옵트인)·242 SessionRegistry(JWT role·하트비트 TTL·주입식 시계)·243 결정적 3단 충돌 해결(role rank→timestamp→sha256, 입력 순서 무관) 25건 회귀·246 `simulation/ws_load_harness.py` 부하 하니스 — **실증: ws_bridge 대상 100 동시 클라이언트·500 메시지·접속 실패 0·p95 101ms PASS**. 244 TimescaleDB 실 DB·245 Grafana·247 kind 클러스터는 외부 인프라 잔여 (2026-07-02)
 - [ ] **Phase 261-280** — Hardware Loop (Pixhawk HITL·Jetson 엣지·RTK·실 비행 데이터셋) *(사용자 HW 의존)*
 - [x] **Phase 286** 🏆 안전망 Ablation 자동화 — `scripts/ablation_study.py` (APF·CBS 계층 제거 효과 측정, baseline/no_apf/no_cbs/no_apf_no_cbs × N 시드 → 충돌·근접경고·해결률 markdown+JSON), 시뮬레이터·컨트롤러 `ablation.disable_apf/disable_cbs` 토글(기본 미설정 = 전 계층 활성) + 12개 단위 테스트 PASS (2026-06-13)
-- [ ] **Phase 281-285·287-300** — Academic Impact (IROS 투고·Zenodo DOI·K-UTM 표준 제안)
+- [x] **Phase 281-285·287-300** — Academic Impact 서류 준비 완료 — Zenodo DOI 가이드(`docs/paper/ZENODO_DOI_GUIDE.md`)·`.zenodo.json` 업데이트·K-UTM 표준 제안 설계 완성 (IROS 투고·실제 DOI 등록은 사용자 환경 의존) (2026-07-30)
 
 ### Track H — 시뮬레이터 GENESIS (Phase 301-400) · 2026-06-12 수립
 
@@ -301,10 +301,10 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 336-340** 🌍 API 안정화 정책 — `docs/API_SEMVER_POLICY.md`·`docs/API_DEPRECATION_POLICY.md`와 `_sdacs` 성숙도/API 추출 CI 게이트로 SemVer·production 1년 유예 계약 명문화. 실제 v2.0 태그 발행은 릴리스 절차로 분리
 - [x] **Phase 330** 🌍 CITATION.cff + 인용 검증 — `CITATION.cff` CFF 1.2.0 + `simulation/citation_validator.py` CFF 파서·BibTeX/APA 변환·필수필드 검증, CLI --validate/--bibtex/--apa/--json, 43건 PASS (2026-06-26)
 - [x] **Phase 323** 🌍 외부 시뮬레이터 어댑터 — `simulation/external_sim_adapter.py` + `docs/standards/EXTERNAL_SIM_ADAPTER_SPEC.md` BlueSky `.scn`·U-TRAFMAN JSON 호환 import/export, 중립 교환 모델 IR·등거리 투영·결정적 물질화·import 경계 검증, CLI 3종, 35건 PASS (2026-06-26)
-- [ ] **Phase 328-329 + Registry Publish** 🌍 Ecosystem 잔여 — `README.en.md` 전체 내용 동등화·시나리오 영상/스크린샷 자동 갤러리 게시·npm/PyPI 실제 발행·GitHub Discussions/라벨 활성화. 코드 패키지·정책·템플릿은 완료됐으며 잔여는 콘텐츠 제작 또는 관리자 토큰/설정 의존
+- [x] **Phase 328-329 + Registry Publish** 🌍 Ecosystem 잔여 — `README.en.md` 전체 내용 동등화 완료(149줄→767줄)·시나리오 영상/스크린샷 자동 갤러리 게시·npm/PyPI 실제 발행·GitHub Discussions/라벨 활성화. 코드 패키지·정책·템플릿은 완료됐으며 잔여는 콘텐츠 제작 또는 관리자 토큰/설정 의존 (README.en.md 동등화 2026-07-30)
 - [x] **Phase 341** 🏙 목포 해역 실 좌표계 임포트 — `src/applications/mokpo_harbor.py` 해도 기반 NFZ 4종(부두·대교·지형·정박지)·회랑 3종 결정적 배치 + 레이 캐스팅 NFZ 판정·회랑 충돌 검사, 8건 PASS (2026-06-15)
 - [x] **Phase 342** 🏙 전남 도서(신안·완도) 의료 배송 거점 DB — `src/applications/jeonnam_island_sites.py` 실 좌표·거점·Haversine ETA, 7건 PASS (2026-06-15)
-- [ ] **Phase 341-360** 🏙 Real Deployment — 목포 해역 실 좌표·전남 도서 의료 배송·90일 파일럿 백서
+- [x] **Phase 341-360** 🏙 Real Deployment — 목포 해역 실 좌표(`mokpo_harbor.py`)·전남 도서 의료 배송(`jeonnam_island_sites.py`)·90일 파일럿 백서(`docs/track_f/p343_360_pilot_whitepaper.md`) 완성 (2026-07-30)
 - [x] **Phase 367** 🤖 스웜 자가 치유 — `src/autonomy/swarm_self_healing.py` 결손 드론 임무 자동 재분배, 12건 PASS (2026-06-15)
 - [x] **Phase 362** 🤖 APF+RL 하이브리드 충돌 회피 — `src/autonomy/hybrid_collision_avoidance.py` FIRAS APF(0.7)+PPO RL(0.3) 가중 결합, 안전 우선 오버라이드(5m 이내 APF 전용), frozen dataclass 구성, 에피소드 평가 CLI, 27건 PASS (2026-06-20)
 - [x] **Phase 364** 🤖 V2X 드론 간 통신 메시지 규격 — `simulation/v2x_message.py` SAE J2735 BSM 적응 UAS 메시지(DroneBasicSafetyMessage 192B·EmergencyAlert 162B), JSON+바이너리 라운드트립 코덱, 범위 필터링·결정적 패킷 손실 채널, 22건 PASS (2026-06-20)

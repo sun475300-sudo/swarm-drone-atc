@@ -32,7 +32,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23030508' stroke='%2300e5ff' stroke-width='4'/%3E%3Cpath d='M18 32h28M32 18v28' stroke='%2300e5ff' stroke-width='4'/%3E%3C/svg%3E">
-    <style id="mobile-style">
+        <style id="mobile-style">
         @media (max-width: 1024px) {
             .hud-overlay, #drone-detail, .hud-side-panel { font-size: 12px !important; }
             .ctrl-btn, .atc-btn, .av-toggle { min-height: 32px; }
@@ -45,632 +45,694 @@
     </style>
     <title>SDACS — 군집드론 공역통제 3D 시뮬레이터</title>
     <style>
+        /* ============================================================
+           SDACS Design System v2.0
+           CSS 변수 기반 통합 팔레트 · 글래스모피즘 · 사이버펑크 HUD
+           ============================================================ */
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
-        * {
+        :root {
+            /* ── 색상 팔레트 ── */
+            --bg-base:        #020408;
+            --bg-surface:     rgba(6, 10, 20, 0.94);
+            --bg-surface-2:   rgba(8, 14, 28, 0.88);
+            --bg-hover:       rgba(0, 229, 255, 0.10);
+            --bg-active:      rgba(0, 229, 255, 0.20);
+
+            --primary:        #00e5ff;
+            --primary-dim:    rgba(0, 229, 255, 0.18);
+            --primary-glow:   rgba(0, 229, 255, 0.35);
+            --primary-border: rgba(0, 229, 255, 0.25);
+
+            --accent:         #a78bfa;
+            --accent-dim:     rgba(167, 139, 250, 0.15);
+            --accent-border:  rgba(167, 139, 250, 0.35);
+
+            --success:        #10b981;
+            --success-dim:    rgba(16, 185, 129, 0.12);
+            --success-border: rgba(16, 185, 129, 0.35);
+
+            --warn:           #f59e0b;
+            --warn-dim:       rgba(245, 158, 11, 0.12);
+            --warn-border:    rgba(245, 158, 11, 0.35);
+
+            --danger:         #ef4444;
+            --danger-dim:     rgba(239, 68, 68, 0.10);
+            --danger-border:  rgba(239, 68, 68, 0.35);
+
+            --near:           #ff6d00;
+            --near-dim:       rgba(255, 109, 0, 0.12);
+
+            --info:           #3b82f6;
+            --info-dim:       rgba(59, 130, 246, 0.12);
+
+            --fed:            #22d3ee;
+            --fed-dim:        rgba(34, 211, 238, 0.10);
+
+            /* ── 텍스트 ── */
+            --text-primary:   #e2eaf4;
+            --text-secondary: #8aa4c0;
+            --text-muted:     #4a6785;
+            --text-dim:       #2a4060;
+
+            /* ── 테두리 ── */
+            --border-subtle:  rgba(255, 255, 255, 0.04);
+            --border-panel:   rgba(0, 229, 255, 0.14);
+            --border-strong:  rgba(0, 229, 255, 0.30);
+
+            /* ── 그림자 ── */
+            --shadow-panel:   0 8px 32px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(0, 229, 255, 0.06);
+            --shadow-card:    0 4px 16px rgba(0, 0, 0, 0.40);
+            --shadow-glow:    0 0 20px rgba(0, 229, 255, 0.20);
+
+            /* ── 타이포그래피 ── */
+            --font-mono:      'JetBrains Mono', ui-monospace, monospace;
+            --font-sans:      'Inter', system-ui, sans-serif;
+
+            /* ── 반경 ── */
+            --radius-sm:      4px;
+            --radius-md:      8px;
+            --radius-lg:      12px;
+            --radius-xl:      16px;
+
+            /* ── 전환 ── */
+            --transition-fast:   0.12s ease;
+            --transition-normal: 0.22s ease;
+            --transition-slow:   0.35s ease;
+
+            /* ── 블러 ── */
+            --blur-panel:     blur(16px) saturate(1.4);
+            --blur-light:     blur(8px);
+        }
+
+        /* ── 리셋 ── */
+        *, *::before, *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
         body {
-            background: #030508;
+            background: var(--bg-base);
             overflow: hidden;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-sans);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
         }
 
+        /* ── 캔버스 컨테이너 ── */
         #canvas-container {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             z-index: 1;
         }
 
+        /* ── HUD 공통 ── */
         .hud-overlay {
             position: fixed;
             z-index: 10;
             pointer-events: none;
         }
+        .hud-interactive { pointer-events: auto; }
 
-        .hud-interactive {
-            pointer-events: auto;
-        }
-
+        /* ── 상단 HUD ── */
         .hud-top {
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 12px 20px;
-            background: linear-gradient(to bottom, rgba(3, 5, 8, 0.95), transparent);
+            top: 0; left: 0; right: 0;
+            padding: 10px 18px;
+            background: linear-gradient(to bottom, rgba(2, 4, 8, 0.97) 0%, rgba(2, 4, 8, 0.60) 70%, transparent 100%);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 12px;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.06);
         }
 
         .hud-title {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
+            font-family: var(--font-mono);
+            font-size: 12px;
             font-weight: 700;
-            color: #00e5ff;
-            letter-spacing: 2px;
-            text-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+            color: var(--primary);
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            text-shadow: 0 0 24px var(--primary-glow), 0 0 48px rgba(0, 229, 255, 0.12);
         }
 
         .hud-subtitle {
-            font-size: 9px;
-            color: #4a6785;
-            letter-spacing: 1.5px;
-            margin-top: 2px;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: var(--font-mono);
+            font-size: 8px;
+            color: var(--text-muted);
+            letter-spacing: 1.8px;
+            margin-top: 3px;
+            text-transform: uppercase;
         }
 
+        /* ── 통계 박스 ── */
         .hud-stats {
             display: flex;
-            gap: 10px;
+            gap: 6px;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .stat-box {
-            padding: 4px 10px;
-            border: 1px solid rgba(0, 229, 255, 0.2);
-            border-radius: 6px;
-            background: rgba(0, 229, 255, 0.05);
+            padding: 5px 11px;
+            border: 1px solid var(--primary-border);
+            border-radius: var(--radius-md);
+            background: var(--primary-dim);
             text-align: center;
+            backdrop-filter: var(--blur-light);
+            transition: border-color var(--transition-fast), background var(--transition-fast);
+            min-width: 52px;
+        }
+        .stat-box:hover {
+            border-color: var(--primary);
+            background: var(--bg-hover);
+        }
+        .stat-box.stat-secondary {
+            border-color: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
         }
 
         .stat-label {
-            font-size: 8px;
-            color: #4a6785;
-            letter-spacing: 1px;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: var(--font-mono);
+            font-size: 7.5px;
+            color: var(--text-muted);
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
         }
 
         .stat-value {
+            font-family: var(--font-mono);
             font-size: 15px;
             font-weight: 700;
-            color: #00e5ff;
-            font-family: 'JetBrains Mono', monospace;
+            color: var(--primary);
+            line-height: 1.2;
+            margin-top: 1px;
         }
 
-        .hud-right {
-            top: 76px;
-            right: 12px;
-            bottom: 216px;
-            width: 260px;
-            overflow-y: auto;
-            transition: transform 0.3s ease;
+        /* ── 패널 공통 ── */
+        .panel-base {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-panel);
+            border-radius: var(--radius-lg);
+            backdrop-filter: var(--blur-panel);
+            box-shadow: var(--shadow-panel);
         }
 
+        .panel-header {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-header-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 0 6px var(--primary-glow);
+            flex-shrink: 0;
+        }
+
+        .panel-header-text {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+        }
+
+        /* ── 패널 토글 버튼 ── */
         .panel-toggle {
             position: absolute;
             top: 8px;
-            padding: 3px 8px;
-            border: 1px solid rgba(0,229,255,0.3);
-            border-radius: 4px;
-            background: rgba(6,10,19,0.92);
-            color: #00e5ff;
-            font-size: 12px;
+            padding: 3px 7px;
+            border: 1px solid var(--primary-border);
+            border-radius: var(--radius-sm);
+            background: var(--bg-surface);
+            color: var(--primary);
+            font-size: 11px;
             cursor: pointer;
             pointer-events: auto;
             z-index: 20;
-            font-family: 'JetBrains Mono', monospace;
-            transition: all 0.2s;
+            font-family: var(--font-mono);
+            transition: all var(--transition-fast);
+            backdrop-filter: var(--blur-light);
         }
-
         .panel-toggle:hover {
-            background: rgba(0,229,255,0.15);
+            background: var(--bg-hover);
+            border-color: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
         }
+        .panel-toggle.left  { right: -30px; }
+        .panel-toggle.right { left: -30px; }
 
-        .panel-toggle.left {
-            right: -30px;
-        }
-
-        .panel-toggle.right {
-            left: -30px;
-        }
-
+        /* ── 함대 패널 ── */
         .fleet-panel {
-            background: rgba(6, 10, 19, 0.92);
-            border: 1px solid rgba(0, 229, 255, 0.15);
-            border-radius: 10px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-panel);
+            border-radius: var(--radius-lg);
             overflow: hidden;
             height: 100%;
             display: flex;
             flex-direction: column;
-            backdrop-filter: blur(12px);
+            backdrop-filter: var(--blur-panel);
+            box-shadow: var(--shadow-panel);
         }
 
         .fleet-header {
             padding: 10px 14px;
-            border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+            border-bottom: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
             gap: 8px;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.04), transparent);
         }
 
         .fleet-header-dot {
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: #00e5ff;
+            background: var(--primary);
+            box-shadow: 0 0 6px var(--primary-glow);
         }
 
         .fleet-header-text {
-            font-size: 10px;
-            font-weight: 600;
-            color: #00e5ff;
-            font-family: 'JetBrains Mono', monospace;
-            letter-spacing: 1.5px;
+            font-family: var(--font-mono);
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
         }
 
         .fleet-list {
             flex: 1;
             overflow-y: auto;
-            padding: 6px;
+            padding: 4px 0;
         }
 
-        .fleet-list::-webkit-scrollbar {
-            width: 4px;
-        }
-
+        .fleet-list::-webkit-scrollbar { width: 3px; }
+        .fleet-list::-webkit-scrollbar-track { background: transparent; }
         .fleet-list::-webkit-scrollbar-thumb {
-            background: #1a2d4a;
+            background: rgba(0, 229, 255, 0.20);
             border-radius: 2px;
         }
 
-        .drone-card {
-            padding: 8px 10px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            margin-bottom: 4px;
-            background: rgba(255, 255, 255, 0.02);
-            transition: all 0.2s;
+        .fleet-item {
+            padding: 5px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             cursor: pointer;
-            font-size: 10px;
+            border-bottom: 1px solid var(--border-subtle);
+            transition: background var(--transition-fast);
         }
+        .fleet-item:hover { background: var(--bg-hover); }
+        .fleet-item.selected { background: var(--primary-dim); }
 
-        .drone-card:hover {
-            background: rgba(0, 229, 255, 0.05);
-            border-color: rgba(0, 229, 255, 0.2);
-        }
-
-        .drone-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 4px;
-        }
-
-        .drone-id {
-            font-size: 10px;
-            font-weight: 700;
-            color: #e0e8f0;
-            font-family: 'JetBrains Mono', monospace;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .drone-status-dot {
-            width: 6px;
-            height: 6px;
+        .fleet-dot {
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
+            flex-shrink: 0;
         }
 
-        .drone-badge {
-            font-size: 8px;
-            padding: 1px 6px;
-            border-radius: 10px;
+        .fleet-name {
+            font-family: var(--font-mono);
+            font-size: 10px;
             font-weight: 600;
-            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+            flex: 1;
         }
 
-        .drone-progress {
-            height: 2px;
-            border-radius: 2px;
-            background: rgba(255, 255, 255, 0.05);
-            margin-top: 4px;
-            overflow: hidden;
+        .fleet-status {
+            font-family: var(--font-mono);
+            font-size: 8px;
+            color: var(--text-muted);
         }
 
-        .drone-progress-bar {
-            height: 100%;
-            border-radius: 2px;
-            transition: width 0.5s linear;
-        }
-
-        @keyframes blink-card {
-
-            0%,
-            100% {
-                opacity: 1;
-                border-color: rgba(239, 68, 68, 0.4);
-            }
-
-            50% {
-                opacity: 0.5;
-                border-color: rgba(239, 68, 68, 0.8);
-            }
-        }
-
-        .drone-card-expired {
-            animation: blink-card 0.7s ease-in-out infinite;
-            background: rgba(239, 68, 68, 0.06) !important;
-        }
-
-        .drone-card.selected {
-            background: rgba(0, 229, 255, 0.12) !important;
-            border-color: rgba(0, 229, 255, 0.55) !important;
-            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
-        }
-
-        /* Drone detail panel */
-        .hud-detail {
-            top: 84px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 272px;
-            max-height: calc(100vh - 320px);
-            overflow-y: auto;
-            background: rgba(6, 10, 19, 0.94);
-            border: 1px solid rgba(0, 229, 255, 0.35);
-            border-radius: 8px;
-            box-shadow: 0 0 24px rgba(0, 229, 255, 0.15);
-            padding: 10px 12px;
+        /* ── 드론 상세 패널 ── */
+        #drone-detail {
+            position: fixed;
+            z-index: 30;
+            min-width: 200px;
+            max-width: 280px;
+            padding: 12px;
+            background: var(--bg-surface);
+            border: 1px solid var(--primary-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-panel), 0 0 30px rgba(0, 229, 255, 0.08);
+            backdrop-filter: var(--blur-panel);
+            pointer-events: auto;
         }
 
         .hud-multi {
-            position: absolute;
-            top: 84px;
-            right: 12px;
-            width: 210px;
-            background: rgba(19, 12, 4, 0.94);
-            border: 1px solid rgba(245, 158, 11, 0.45);
-            border-radius: 8px;
-            box-shadow: 0 0 24px rgba(245, 158, 11, 0.15);
-            padding: 10px 12px;
+            position: fixed;
             z-index: 30;
+            min-width: 180px;
+            padding: 10px 12px;
+            background: var(--bg-surface);
+            border: 1px solid var(--warn-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-panel);
+            backdrop-filter: var(--blur-panel);
         }
-        .hud-multi .multi-title { font-size: 12px; font-weight: 700; color: #f59e0b; margin-bottom: 8px; }
-        .hud-multi .md-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; padding: 2px 0; }
-        .hud-multi .md-k { color: #8a7a5a; }
+        .hud-multi .multi-title {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--warn);
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .hud-multi .md-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            padding: 2px 0;
+        }
+        .hud-multi .md-k { color: var(--text-muted); }
         .hud-multi .md-v { color: #e8dcc8; font-weight: 600; }
 
         .detail-close {
             position: absolute;
-            top: 6px;
-            right: 6px;
-            width: 18px;
-            height: 18px;
-            line-height: 16px;
+            top: 8px; right: 8px;
+            width: 20px; height: 20px;
+            line-height: 18px;
             text-align: center;
             background: none;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #4a6785;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            color: var(--text-muted);
             font-size: 10px;
-            border-radius: 4px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: var(--font-mono);
+            transition: all var(--transition-fast);
         }
-
         .detail-close:hover {
-            border-color: #00e5ff;
-            color: #00e5ff;
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-dim);
         }
 
         .detail-title {
+            font-family: var(--font-mono);
             font-size: 12px;
             font-weight: 700;
-            color: #e0e8f0;
-            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 6px;
             margin-bottom: 2px;
-            padding-right: 22px;
+            padding-right: 24px;
         }
 
         .detail-sub {
-            font-size: 9px;
-            color: #4a6785;
-            font-family: 'JetBrains Mono', monospace;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
+            font-family: var(--font-mono);
+            font-size: 8.5px;
+            color: var(--text-muted);
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
         }
 
         .detail-section {
-            font-size: 8px;
-            color: #00e5ff;
-            letter-spacing: 1.5px;
-            font-family: 'JetBrains Mono', monospace;
-            margin: 8px 0 3px;
-            opacity: 0.85;
+            font-family: var(--font-mono);
+            font-size: 7.5px;
+            color: var(--primary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin: 10px 0 4px;
+            opacity: 0.80;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .detail-section::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-panel);
         }
 
         .detail-row {
             display: flex;
             justify-content: space-between;
             align-items: baseline;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 10px;
-            padding: 1px 0;
+            padding: 2px 0;
+            border-bottom: 1px solid var(--border-subtle);
         }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-row .k { color: var(--text-muted); }
+        .detail-row .v { color: var(--text-primary); font-weight: 600; }
 
-        .detail-row .k {
-            color: #4a6785;
-        }
-
-        .detail-row .v {
-            color: #cdd9e8;
-            font-weight: 600;
-        }
-
-        /* ===== ATC 관제 콘솔 (Phase 1A) ===== */
+        /* ── ATC 관제 콘솔 ── */
         .atc-panel {
-            margin-top: 8px;
-            padding: 6px;
-            border: 1px solid rgba(0, 229, 255, 0.4);
-            border-radius: 4px;
+            margin-top: 10px;
+            padding: 8px;
+            border: 1px solid var(--primary-border);
+            border-radius: var(--radius-md);
             background: linear-gradient(180deg, rgba(0, 229, 255, 0.06), rgba(0, 229, 255, 0.02));
         }
 
         .atc-panel-title {
+            font-family: var(--font-mono);
             font-size: 8px;
-            color: #00e5ff;
-            letter-spacing: 1.5px;
-            font-family: 'JetBrains Mono', monospace;
-            margin-bottom: 4px;
+            color: var(--primary);
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-
         .atc-panel-title .atc-state {
-            color: #f59e0b;
+            color: var(--warn);
             font-weight: 700;
         }
 
         .atc-btn-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 3px;
+            gap: 4px;
         }
 
         .atc-btn {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 9px;
             font-weight: 700;
-            padding: 4px 0;
-            border: 1px solid rgba(0, 229, 255, 0.5);
-            background: rgba(0, 20, 30, 0.4);
-            color: #00e5ff;
+            padding: 5px 0;
+            border: 1px solid var(--primary-border);
+            background: rgba(0, 20, 40, 0.50);
+            color: var(--primary);
             cursor: pointer;
-            border-radius: 3px;
+            border-radius: var(--radius-sm);
             letter-spacing: 0.5px;
-            transition: all 0.12s;
+            transition: all var(--transition-fast);
+            text-align: center;
         }
-
         .atc-btn:hover {
-            background: rgba(0, 229, 255, 0.18);
-            box-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+            background: var(--bg-hover);
+            border-color: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
         }
-
         .atc-btn:active { transform: translateY(1px); }
 
         .atc-btn.atc-warn {
-            color: #f59e0b;
-            border-color: rgba(245, 158, 11, 0.5);
+            color: var(--warn);
+            border-color: var(--warn-border);
         }
-        .atc-btn.atc-warn:hover { background: rgba(245, 158, 11, 0.16); }
+        .atc-btn.atc-warn:hover { background: var(--warn-dim); }
 
         .atc-btn.atc-danger {
-            color: #ef4444;
-            border-color: rgba(239, 68, 68, 0.5);
+            color: var(--danger);
+            border-color: var(--danger-border);
         }
-        .atc-btn.atc-danger:hover { background: rgba(239, 68, 68, 0.18); }
+        .atc-btn.atc-danger:hover { background: var(--danger-dim); }
 
         .atc-btn.atc-clear {
             grid-column: 1 / 4;
-            background: rgba(16, 185, 129, 0.1);
-            color: #10b981;
-            border-color: rgba(16, 185, 129, 0.5);
+            background: var(--success-dim);
+            color: var(--success);
+            border-color: var(--success-border);
         }
         .atc-btn.atc-clear:hover { background: rgba(16, 185, 129, 0.22); }
 
-        /* ATC 명령 로그 패널 */
+        /* ── ATC 명령 로그 ── */
         #atc-log {
             position: fixed;
-            left: 10px;
-            bottom: 76px;
-            width: 260px;
-            max-height: 180px;
+            left: 10px; bottom: 76px;
+            width: 260px; max-height: 180px;
             overflow-y: auto;
-            padding: 6px 8px;
-            background: rgba(8, 14, 24, 0.84);
-            border: 1px solid rgba(0, 229, 255, 0.3);
-            border-radius: 4px;
-            font-family: 'JetBrains Mono', monospace;
+            padding: 8px 10px;
+            background: var(--bg-surface-2);
+            border: 1px solid var(--primary-border);
+            border-radius: var(--radius-md);
+            font-family: var(--font-mono);
             font-size: 9px;
-            color: #cdd9e8;
+            color: var(--text-primary);
             z-index: 30;
-            backdrop-filter: blur(8px);
+            backdrop-filter: var(--blur-panel);
             display: none;
         }
-
-        #atc-log.has-cmds { display: block; }
-
-        #atc-log-title {
-            font-size: 8px;
-            color: #00e5ff;
-            letter-spacing: 1.5px;
-            margin-bottom: 4px;
-            display: flex;
-            justify-content: space-between;
+        #atc-log::-webkit-scrollbar { width: 3px; }
+        #atc-log::-webkit-scrollbar-thumb {
+            background: rgba(0, 229, 255, 0.20);
+            border-radius: 2px;
         }
-
-        #atc-log-list { max-height: 140px; overflow-y: auto; }
 
         .atc-log-row {
-            display: flex;
-            gap: 6px;
-            padding: 1px 0;
-            border-bottom: 1px dotted rgba(74, 103, 133, 0.2);
+            padding: 2px 0;
+            border-bottom: 1px solid var(--border-subtle);
+            line-height: 1.5;
         }
-        .atc-log-row .t { color: #4a6785; }
-        .atc-log-row .d { color: #f59e0b; font-weight: 600; }
-        .atc-log-row .c { color: #00e5ff; }
+        .atc-log-row .t { color: var(--text-muted); }
+        .atc-log-row .d { color: var(--warn); font-weight: 600; }
+        .atc-log-row .c { color: var(--primary); }
 
-        /* ATC 카운터 (상단 헤더) */
+        /* ── ATC 카운터 배지 ── */
         #atc-count-badge {
             display: none;
-            padding: 2px 8px;
-            background: rgba(0, 229, 255, 0.12);
-            border: 1px solid rgba(0, 229, 255, 0.5);
-            border-radius: 10px;
-            color: #00e5ff;
-            font-family: 'JetBrains Mono', monospace;
+            padding: 2px 9px;
+            background: var(--primary-dim);
+            border: 1px solid var(--primary-border);
+            border-radius: 12px;
+            color: var(--primary);
+            font-family: var(--font-mono);
             font-size: 9px;
             font-weight: 700;
         }
         #atc-count-badge.active { display: inline-block; }
 
-        /* 음성/사운드 토글 (헤더) */
+        /* ── 오디오 버튼 ── */
         .atc-audio-btn {
-            background: rgba(0, 229, 255, 0.06);
-            border: 1px solid rgba(0, 229, 255, 0.3);
-            color: #00e5ff;
-            font-family: 'JetBrains Mono', monospace;
+            background: var(--primary-dim);
+            border: 1px solid var(--primary-border);
+            color: var(--primary);
+            font-family: var(--font-mono);
             font-size: 9px;
-            padding: 2px 6px;
+            padding: 3px 7px;
             cursor: pointer;
-            border-radius: 3px;
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-fast);
         }
-        .atc-audio-btn.off { color: #4a6785; border-color: rgba(74, 103, 133, 0.3); }
-        .atc-audio-btn:hover { background: rgba(0, 229, 255, 0.15); }
+        .atc-audio-btn.off {
+            color: var(--text-muted);
+            border-color: rgba(74, 103, 133, 0.25);
+            background: transparent;
+        }
+        .atc-audio-btn:hover { background: var(--bg-hover); }
 
-        /* Phase 3 CIN — 녹화 인디케이터 */
+        /* ── 녹화 인디케이터 ── */
         #rec-indicator.rec-active {
-            background: #ef4444 !important;
-            box-shadow: 0 0 8px #ef4444;
+            background: var(--danger) !important;
+            box-shadow: 0 0 10px var(--danger);
             animation: rec-pulse 1s infinite ease-in-out;
         }
         @keyframes rec-pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+            50% { opacity: 0.25; }
         }
 
+        /* ── 로그 이상 드론 배지 ── */
         .detail-rogue {
             margin-top: 8px;
-            padding: 3px 6px;
-            border-radius: 4px;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
             font-size: 9px;
             font-weight: 700;
             text-align: center;
-            font-family: 'JetBrains Mono', monospace;
         }
 
-        /* Drone live hover tooltip */
+        /* ── 드론 호버 툴팁 ── */
         .drone-tooltip {
             position: fixed;
             z-index: 30;
             pointer-events: none;
-            min-width: 150px;
-            max-width: 220px;
-            padding: 7px 9px;
-            background: rgba(6, 10, 19, 0.96);
-            border: 1px solid rgba(0, 229, 255, 0.45);
-            border-radius: 6px;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55);
-            font-family: 'JetBrains Mono', monospace;
+            min-width: 160px;
+            max-width: 230px;
+            padding: 8px 10px;
+            background: var(--bg-surface);
+            border: 1px solid var(--primary-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-panel);
+            font-family: var(--font-mono);
+            backdrop-filter: var(--blur-panel);
         }
 
         .tt-title {
             font-size: 10px;
             font-weight: 700;
-            color: #e0e8f0;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 5px;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
         }
 
         .tt-row {
             display: flex;
             justify-content: space-between;
             font-size: 9px;
-            padding: 1px 0;
+            padding: 1.5px 0;
         }
+        .tt-row .k { color: var(--text-muted); }
+        .tt-row .v { color: var(--text-secondary); font-weight: 600; }
 
-        .tt-row .k {
-            color: #4a6785;
-        }
-
-        .tt-row .v {
-            color: #cdd9e8;
-            font-weight: 600;
-        }
-
-        /* Analysis View (2x2 dashboard) */
+        /* ── 분석 뷰 (2×2 대시보드) ── */
         #analysis-view {
             position: fixed;
-            left: 0;
-            right: 0;
-            top: 70px;
-            bottom: 0;
+            inset: 70px 0 0 0;
             z-index: 9;
-            background: #03050a;
+            background: var(--bg-base);
             display: none;
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr;
             gap: 8px;
             padding: 8px;
         }
-
-        #analysis-view.active {
-            display: grid;
-        }
+        #analysis-view.active { display: grid; }
 
         .av-cell {
             display: flex;
             flex-direction: column;
-            border: 1px solid rgba(0, 229, 255, 0.18);
-            border-radius: 8px;
-            background: rgba(6, 10, 19, 0.6);
+            border: 1px solid var(--border-panel);
+            border-radius: var(--radius-lg);
+            background: var(--bg-surface);
             overflow: hidden;
-            min-height: 0;
-            min-width: 0;
+            min-height: 0; min-width: 0;
+            box-shadow: var(--shadow-card);
+            backdrop-filter: var(--blur-light);
         }
 
         .av-head {
-            font: 700 11px 'JetBrains Mono', monospace;
-            color: #00e5ff;
-            letter-spacing: 1px;
-            padding: 6px 10px;
-            border-bottom: 1px solid rgba(0, 229, 255, 0.12);
+            font: 700 11px var(--font-mono);
+            color: var(--primary);
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            padding: 7px 12px;
+            border-bottom: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
             gap: 6px;
             flex: 0 0 auto;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.04), transparent);
         }
 
         .av-body {
             flex: 1 1 auto;
             position: relative;
-            min-height: 0;
-            min-width: 0;
+            min-height: 0; min-width: 0;
         }
-
-        .av-body canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        #av-q1 .av-body {
-            background: transparent;
-        }
+        .av-body canvas { width: 100%; height: 100%; display: block; }
+        #av-q1 .av-body { background: transparent; }
 
         .av-kpi {
             display: grid;
@@ -682,85 +744,78 @@
         }
 
         .kpi-card {
-            border: 1px solid rgba(0, 229, 255, 0.15);
-            border-radius: 6px;
-            background: rgba(0, 229, 255, 0.04);
-            padding: 6px 9px;
+            border: 1px solid var(--border-panel);
+            border-radius: var(--radius-md);
+            background: var(--primary-dim);
+            padding: 8px 10px;
+            transition: border-color var(--transition-fast);
         }
+        .kpi-card:hover { border-color: var(--primary); }
 
         .kpi-label {
-            font: 8px 'JetBrains Mono', monospace;
-            color: #4a6785;
-            letter-spacing: 1px;
+            font: 8px var(--font-mono);
+            color: var(--text-muted);
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
         }
 
         .kpi-value {
-            font: 700 17px 'JetBrains Mono', monospace;
-            color: #00e5ff;
+            font: 700 18px var(--font-mono);
+            color: var(--primary);
+            margin-top: 2px;
         }
 
-        body.analysis #panel-left,
-        body.analysis #panel-right,
-        body.analysis .hud-bottom-log,
-        body.analysis #analytics-panel,
-        body.analysis .hud-bottom,
-        body.analysis #drone-detail,
-        body.analysis #drone-tooltip {
-            display: none !important;
-        }
-
+        /* ── 분석 뷰 토글 ── */
         .av-toggle {
             display: flex;
             align-items: center;
             gap: 6px;
             font-size: 10px;
-            color: #cdd9e8;
-            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
             padding: 2px 0;
             cursor: pointer;
         }
+        .av-toggle input { accent-color: var(--primary); cursor: pointer; }
 
-        .av-toggle input {
-            accent-color: #00e5ff;
-            cursor: pointer;
-        }
-
+        /* ── 하단 HUD ── */
         .hud-bottom {
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 10px 20px;
-            background: linear-gradient(to top, rgba(3, 5, 8, 0.95), transparent);
+            bottom: 0; left: 0; right: 0;
+            padding: 8px 18px;
+            background: linear-gradient(to top, rgba(2, 4, 8, 0.97) 0%, rgba(2, 4, 8, 0.60) 70%, transparent 100%);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            border-top: 1px solid rgba(0, 229, 255, 0.05);
         }
 
         .hud-info-text {
-            font-size: 9px;
-            color: #3a5575;
-            font-family: 'JetBrains Mono', monospace;
-            letter-spacing: 1px;
+            font-family: var(--font-mono);
+            font-size: 8.5px;
+            color: var(--text-dim);
+            letter-spacing: 1.2px;
         }
 
-        /* Event log */
+        /* ── 이벤트 로그 패널 ── */
         .event-log-panel {
-            background: rgba(6, 10, 19, 0.92);
-            border: 1px solid rgba(0, 229, 255, 0.15);
-            border-radius: 10px;
-            backdrop-filter: blur(12px);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-panel);
+            border-radius: var(--radius-lg);
+            backdrop-filter: var(--blur-panel);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             height: 100%;
+            box-shadow: var(--shadow-panel);
         }
 
         .event-log-header {
-            padding: 8px 12px;
-            border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+            padding: 7px 12px;
+            border-bottom: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
             gap: 8px;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.04), transparent);
         }
 
         .event-log-list {
@@ -768,186 +823,165 @@
             overflow-y: auto;
             padding: 6px 10px;
             font-size: 9px;
-            font-family: 'JetBrains Mono', monospace;
-            line-height: 1.6;
+            font-family: var(--font-mono);
+            line-height: 1.65;
         }
-
-        .event-log-list::-webkit-scrollbar {
-            width: 3px;
-        }
-
+        .event-log-list::-webkit-scrollbar { width: 3px; }
         .event-log-list::-webkit-scrollbar-thumb {
-            background: #1a2d4a;
+            background: rgba(0, 229, 255, 0.18);
             border-radius: 2px;
         }
 
         .ev {
-            padding: 3px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            padding: 2.5px 0;
+            border-bottom: 1px solid var(--border-subtle);
         }
+        .ev:last-child { border-bottom: none; }
+        .ev-time      { color: var(--text-dim); margin-right: 6px; }
+        .ev-collision { color: var(--danger); font-weight: 700; }
+        .ev-near      { color: var(--near); }
+        .ev-evade     { color: var(--warn); }
+        .ev-advisory  { color: var(--accent); }
+        .ev-comms     { color: var(--info); }
+        .ev-fail      { color: var(--danger); font-weight: 700; }
+        .ev-rogue     { color: #ff0044; font-weight: 700; }
+        .ev-info      { color: var(--text-muted); }
+        .ev-takeoff   { color: #ffd700; }
+        .ev-landing   { color: var(--near); }
 
-        .ev-time {
-            color: #3a5575;
-            margin-right: 6px;
-        }
-
-        .ev-collision {
-            color: #ef4444;
-        }
-
-        .ev-near {
-            color: #ff6d00;
-        }
-
-        .ev-evade {
-            color: #f59e0b;
-        }
-
-        .ev-advisory {
-            color: #a78bfa;
-        }
-
-        .ev-comms {
-            color: #3b82f6;
-        }
-
-        .ev-fail {
-            color: #ef4444;
-            font-weight: 700;
-        }
-
-        .ev-rogue {
-            color: #ff0044;
-        }
-
-        .ev-info {
-            color: #4a6785;
-        }
-
-        .ev-takeoff {
-            color: #ffd700;
-        }
-
-        .ev-landing {
-            color: #f97316;
-        }
-
-        /* Bottom event log bar */
+        /* ── 하단 이벤트 로그 바 ── */
         .hud-bottom-log {
-            bottom: 32px;
-            left: 12px;
-            width: 300px;
-            height: 170px;
-            transition: height 0.3s ease;
+            bottom: 32px; left: 12px;
+            width: 300px; height: 175px;
+            transition: height var(--transition-slow);
         }
-        .hud-bottom-log.collapsed {
-            height: 28px;
-        }
-        .hud-bottom-log.collapsed .event-log-list {
-            display: none;
-        }
-        .log-toggle-btn {
-            background: none; border: 1px solid rgba(255,255,255,0.1);
-            color: #f59e0b; font-size: 10px; padding: 0 6px; border-radius: 3px;
-            cursor: pointer; line-height: 18px; font-family: 'JetBrains Mono', monospace;
-        }
-        .log-toggle-btn:hover { border-color: #f59e0b; }
+        .hud-bottom-log.collapsed { height: 30px; }
+        .hud-bottom-log.collapsed .event-log-list { display: none; }
 
-        /* Analytics graphs panel */
+        .log-toggle-btn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            color: var(--warn);
+            font-size: 10px;
+            padding: 0 7px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            line-height: 18px;
+            font-family: var(--font-mono);
+            transition: all var(--transition-fast);
+        }
+        .log-toggle-btn:hover { border-color: var(--warn); background: var(--warn-dim); }
+
+        /* ── 분석 그래프 패널 ── */
         .hud-analytics {
-            bottom: 32px;
-            left: 324px;
-            right: 284px;
-            height: 170px;
-            transition: height 0.3s ease;
+            bottom: 32px; left: 324px; right: 284px;
+            height: 175px;
+            transition: height var(--transition-slow);
         }
-        .hud-analytics.collapsed {
-            height: 28px;
-        }
-        .hud-analytics.collapsed .analytics-body {
-            display: none;
-        }
+        .hud-analytics.collapsed { height: 30px; }
+        .hud-analytics.collapsed .analytics-body { display: none; }
+
         .analytics-panel {
-            background: rgba(6, 10, 19, 0.92);
-            border: 1px solid rgba(0, 229, 255, 0.15);
-            border-radius: 10px;
-            backdrop-filter: blur(12px);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-panel);
+            border-radius: var(--radius-lg);
+            backdrop-filter: var(--blur-panel);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             height: 100%;
+            box-shadow: var(--shadow-panel);
         }
+
         .analytics-header {
-            padding: 4px 8px;
-            border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+            padding: 5px 10px;
+            border-bottom: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
             gap: 4px;
             flex-wrap: nowrap;
-            min-height: 24px;
+            min-height: 26px;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.04), transparent);
         }
+
         .analytics-tabs {
-            display: flex; gap: 2px; margin-left: 8px; overflow-x: auto; flex-shrink: 1; min-width: 0;
+            display: flex; gap: 3px; margin-left: 8px;
+            overflow-x: auto; flex-shrink: 1; min-width: 0;
         }
         .analytics-tabs button {
-            background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.15);
-            color: #4a6785; font-size: 8px; padding: 2px 5px; border-radius: 3px;
-            cursor: pointer; font-family: 'JetBrains Mono', monospace;
+            background: rgba(0, 229, 255, 0.04);
+            border: 1px solid var(--border-panel);
+            color: var(--text-muted);
+            font-size: 8px; padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-family: var(--font-mono);
             white-space: nowrap; flex-shrink: 0;
+            transition: all var(--transition-fast);
         }
+        .analytics-tabs button:hover { color: var(--primary); border-color: var(--primary-border); }
         .analytics-tabs button.active {
-            background: rgba(0,229,255,0.15); color: #00e5ff; border-color: rgba(0,229,255,0.4);
+            background: var(--primary-dim);
+            color: var(--primary);
+            border-color: var(--primary-border);
         }
+
         .analytics-body {
             flex: 1; display: flex; padding: 6px; gap: 4px; overflow: hidden;
         }
-        .chart-canvas {
-            flex: 1; min-width: 0;
-        }
 
-        /* Left panel */
+        .chart-canvas { flex: 1; min-width: 0; }
+
+        /* ── 왼쪽 패널 ── */
         .hud-left {
-            top: 76px;
-            left: 12px;
-            bottom: 216px;
-            width: 220px;
+            top: 76px; left: 12px; bottom: 220px;
+            width: 224px;
             overflow-y: auto;
-            transition: transform 0.3s ease;
+            transition: transform var(--transition-slow);
+        }
+        .hud-left::-webkit-scrollbar { width: 3px; }
+        .hud-left::-webkit-scrollbar-thumb {
+            background: rgba(0, 229, 255, 0.15);
+            border-radius: 2px;
         }
 
-        .hud-left.collapsed {
-            transform: translateX(-232px);
+        /* ── 오른쪽 패널 ── */
+        .hud-right {
+            top: 76px; right: 12px; bottom: 220px;
+            width: 264px;
+            overflow-y: auto;
+            transition: transform var(--transition-slow);
+        }
+        .hud-right::-webkit-scrollbar { width: 3px; }
+        .hud-right::-webkit-scrollbar-thumb {
+            background: rgba(0, 229, 255, 0.15);
+            border-radius: 2px;
         }
 
-        .hud-right.collapsed {
-            transform: translateX(272px);
-        }
-
+        .hud-left.collapsed  { transform: translateX(-236px); }
+        .hud-right.collapsed { transform: translateX(276px); }
         .hud-left.collapsed > :not(.panel-toggle),
-        .hud-right.collapsed > :not(.panel-toggle) {
-            visibility: hidden;
-        }
+        .hud-right.collapsed > :not(.panel-toggle) { visibility: hidden; }
+        .hud-left.collapsed, .hud-right.collapsed { overflow: hidden; }
 
-        .hud-left.collapsed,
-        .hud-right.collapsed {
-            overflow: hidden;
-        }
-
+        /* ── 컨트롤 패널 ── */
         .ctrl-panel {
-            background: rgba(6, 10, 19, 0.92);
-            border: 1px solid rgba(0, 229, 255, 0.15);
-            border-radius: 10px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-panel);
+            border-radius: var(--radius-lg);
             padding: 12px;
-            backdrop-filter: blur(12px);
+            backdrop-filter: var(--blur-panel);
             margin-bottom: 10px;
+            box-shadow: var(--shadow-card);
         }
 
         .ctrl-title {
-            font-size: 9px;
-            color: #00e5ff;
-            font-family: 'JetBrains Mono', monospace;
-            letter-spacing: 1.5px;
-            margin-bottom: 8px;
+            font-family: var(--font-mono);
+            font-size: 8.5px;
+            color: var(--primary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -956,103 +990,344 @@
         .ctrl-row {
             display: flex;
             justify-content: space-between;
-            padding: 3px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border-subtle);
         }
+        .ctrl-row:last-child { border-bottom: none; }
 
         .ctrl-label {
             font-size: 9px;
-            color: #4a6785;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
         }
 
         .ctrl-value {
             font-size: 9px;
-            color: #c8d6e5;
-            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
             font-weight: 600;
         }
 
+        /* ── 범례 ── */
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 2px 0;
+            gap: 7px;
+            padding: 2.5px 0;
         }
-
         .legend-dot {
-            width: 7px;
-            height: 7px;
+            width: 7px; height: 7px;
             border-radius: 50%;
+            flex-shrink: 0;
         }
-
         .legend-text {
             font-size: 9px;
-            color: #6a8baa;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
         }
 
-        /* Controls */
+        /* ── 컨트롤 버튼 ── */
         .ctrl-btn {
-            padding: 5px 10px;
-            border: 1px solid rgba(0, 229, 255, 0.3);
-            border-radius: 4px;
-            background: rgba(0, 229, 255, 0.08);
-            color: #00e5ff;
+            padding: 6px 12px;
+            border: 1px solid var(--primary-border);
+            border-radius: var(--radius-sm);
+            background: var(--primary-dim);
+            color: var(--primary);
             font-size: 10px;
             cursor: pointer;
-            font-family: 'JetBrains Mono', monospace;
-            transition: all 0.2s;
+            font-family: var(--font-mono);
+            transition: all var(--transition-fast);
+            letter-spacing: 0.5px;
         }
-
         .ctrl-btn:hover {
-            background: rgba(0, 229, 255, 0.2);
+            background: var(--bg-hover);
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
         }
-
+        .ctrl-btn:active { transform: translateY(1px); }
         .ctrl-btn.active {
-            background: rgba(0, 229, 255, 0.25);
-            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+            background: var(--bg-active);
+            border-color: var(--primary);
+            box-shadow: 0 0 12px var(--primary-glow);
         }
-
         .ctrl-btn.danger {
-            border-color: rgba(239, 68, 68, 0.4);
-            color: #ef4444;
-            background: rgba(239, 68, 68, 0.08);
+            border-color: var(--danger-border);
+            color: var(--danger);
+            background: var(--danger-dim);
         }
-
         .ctrl-btn.danger:hover {
-            background: rgba(239, 68, 68, 0.2);
+            background: rgba(239, 68, 68, 0.20);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.30);
         }
+        .ctrl-btn.warn {
+            border-color: var(--warn-border);
+            color: var(--warn);
+            background: var(--warn-dim);
+        }
+        .ctrl-btn.warn:hover { background: rgba(245, 158, 11, 0.22); }
 
+        /* ── 셀렉트 & 레인지 ── */
         .ctrl-select,
         .ctrl-range {
             width: 100%;
-            padding: 4px 6px;
-            border: 1px solid rgba(0, 229, 255, 0.2);
-            border-radius: 4px;
-            background: rgba(0, 229, 255, 0.05);
-            color: #c8d6e5;
+            padding: 5px 8px;
+            border: 1px solid var(--primary-border);
+            border-radius: var(--radius-sm);
+            background: rgba(0, 229, 255, 0.04);
+            color: var(--text-secondary);
             font-size: 10px;
-            font-family: 'JetBrains Mono', monospace;
-            margin-top: 4px;
+            font-family: var(--font-mono);
+            margin-top: 5px;
+            transition: border-color var(--transition-fast);
+            outline: none;
         }
-
-        .ctrl-select option {
-            background: #0a1628;
-        }
+        .ctrl-select:focus { border-color: var(--primary); }
+        .ctrl-select option { background: #0a1628; color: var(--text-primary); }
 
         .ctrl-range {
             -webkit-appearance: none;
             height: 4px;
             padding: 0;
             cursor: pointer;
+            background: rgba(0, 229, 255, 0.15);
         }
-
         .ctrl-range::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 12px;
-            height: 12px;
+            width: 13px; height: 13px;
             border-radius: 50%;
-            background: #00e5ff;
+            background: var(--primary);
             cursor: pointer;
+            box-shadow: 0 0 6px var(--primary-glow);
+            transition: transform var(--transition-fast);
+        }
+        .ctrl-range::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        /* ── 스크롤바 공통 ── */
+        ::-webkit-scrollbar { width: 3px; height: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 229, 255, 0.18); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 229, 255, 0.35); }
+
+        /* ── 애니메이션 ── */
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(-4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse-ring {
+            0%   { box-shadow: 0 0 0 0 var(--primary-glow); }
+            70%  { box-shadow: 0 0 0 8px transparent; }
+            100% { box-shadow: 0 0 0 0 transparent; }
+        }
+        @keyframes slide-in-right {
+            from { transform: translateX(20px); opacity: 0; }
+            to   { transform: translateX(0); opacity: 1; }
+        }
+
+        .fade-in { animation: fade-in 0.25s ease; }
+        .slide-in { animation: slide-in-right 0.25s ease; }
+
+        /* ── HUD 상태 배지 ── */
+        .hud-status-badge {
+            margin-left: 8px;
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            font: 600 11px var(--font-mono);
+            align-self: center;
+            letter-spacing: 0.5px;
+        }
+        .hud-status-demo {
+            background: var(--warn-dim);
+            border: 1px solid var(--warn-border);
+            color: var(--warn);
+        }
+        .hud-status-live {
+            background: var(--success-dim);
+            border: 1px solid var(--success-border);
+            color: var(--success);
+        }
+        .hud-status-fed {
+            background: var(--fed-dim);
+            border: 1px solid rgba(34, 211, 238, 0.35);
+            color: var(--fed);
+        }
+
+        /* ── 언어 버튼 ── */
+        .hud-lang-btn {
+            margin-left: 8px;
+            padding: 4px 10px;
+            background: var(--primary-dim);
+            border: 1px solid var(--primary-border);
+            border-radius: var(--radius-sm);
+            color: var(--primary);
+            font: 600 11px var(--font-mono);
+            cursor: pointer;
+            align-self: center;
+            transition: all var(--transition-fast);
+        }
+        .hud-lang-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        /* ── 직군 현황 바 ── */
+        .hud-role-bar {
+            top: 52px;
+            left: 240px;
+            right: 280px;
+            padding: 4px 12px;
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            flex-wrap: wrap;
+            overflow: hidden;
+            max-height: 28px;
+            z-index: 11;
+        }
+
+        /* ── 시나리오 갤러리 버튼 ── */
+        .ctrl-btn-gallery {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            padding: 2px 7px;
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: 1px solid var(--accent-border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .ctrl-btn-gallery:hover {
+            background: rgba(167, 139, 250, 0.25);
+            box-shadow: 0 0 8px rgba(167, 139, 250, 0.30);
+        }
+
+        /* ── 시나리오 갤러리 모달 ── */
+        #scenario-gallery-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(2, 4, 8, 0.92);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+        .gallery-modal-inner {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-panel);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-panel), 0 0 60px rgba(0, 229, 255, 0.08);
+            padding: 24px;
+            max-width: 800px;
+            width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .gallery-modal-title {
+            font: 700 14px var(--font-mono);
+            color: var(--primary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .gallery-card {
+            border: 1px solid var(--border-panel);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            background: rgba(0, 229, 255, 0.02);
+        }
+        .gallery-card:hover {
+            border-color: var(--primary);
+            background: var(--primary-dim);
+            box-shadow: 0 0 16px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+        .gallery-card-title {
+            font: 700 11px var(--font-mono);
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .gallery-card-desc {
+            font: 9px var(--font-mono);
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .gallery-card-tag {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font: 8px var(--font-mono);
+            border: 1px solid;
+        }
+        .gallery-card-tag.tag-default  { color: var(--primary); border-color: var(--primary-border); background: var(--primary-dim); }
+        .gallery-card-tag.tag-danger   { color: var(--danger);  border-color: var(--danger-border);  background: var(--danger-dim); }
+        .gallery-card-tag.tag-warn     { color: var(--warn);    border-color: var(--warn-border);    background: var(--warn-dim); }
+        .gallery-card-tag.tag-accent   { color: var(--accent);  border-color: var(--accent-border);  background: var(--accent-dim); }
+        .gallery-card-tag.tag-success  { color: var(--success); border-color: var(--success-border); background: var(--success-dim); }
+
+        /* ── 스플래시 / 로딩 화면 ── */
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: var(--bg-base);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            transition: opacity 0.6s ease;
+        }
+        #loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loading-logo {
+            font: 700 28px var(--font-mono);
+            color: var(--primary);
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            text-shadow: 0 0 40px var(--primary-glow), 0 0 80px rgba(0, 229, 255, 0.10);
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { text-shadow: 0 0 40px var(--primary-glow), 0 0 80px rgba(0, 229, 255, 0.10); }
+            50%       { text-shadow: 0 0 60px rgba(0, 229, 255, 0.60), 0 0 120px rgba(0, 229, 255, 0.20); }
+        }
+        .loading-sub {
+            font: 10px var(--font-mono);
+            color: var(--text-muted);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .loading-bar-wrap {
+            width: 240px;
+            height: 2px;
+            background: rgba(0, 229, 255, 0.10);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .loading-bar {
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: loading-scan 1.6s infinite ease-in-out;
+        }
+        @keyframes loading-scan {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(300%); }
         }
     </style>
     <style id="responsive-layout-style">
@@ -1192,18 +1467,14 @@
                 <div class="stat-label" data-i18n="gpu">GPU</div>
                 <div class="stat-value" style="color:#00ff88;font-size:11px;">RTX 5070 Ti</div>
             </div>
-            <div id="ws-status" title="WebSocket 상태 (LIVE = ws_bridge 연결 / DEMO = 내장 시뮬)"
-                style="margin-left:8px;padding:4px 10px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.4);border-radius:4px;color:#f59e0b;font:600 11px 'JetBrains Mono',monospace;align-self:center;letter-spacing:0.5px;">● DEMO</div>
-            <div id="federation-status" title="인접 SDACS 인스턴스 연합 상태"
-                style="display:none;margin-left:6px;padding:4px 10px;background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.35);border-radius:4px;color:#22d3ee;font:600 11px 'JetBrains Mono',monospace;align-self:center;letter-spacing:0.5px;">FED OFF</div>
-            <button id="lang-btn" title="Language / 언어"
-                style="margin-left:8px;padding:4px 10px;background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.4);border-radius:4px;color:#00e5ff;font:600 11px 'JetBrains Mono',monospace;cursor:pointer;align-self:center;">KO</button>
+            <div id="ws-status" class="hud-status-badge hud-status-demo" title="WebSocket 상태 (LIVE = ws_bridge 연결 / DEMO = 내장 시뮬)">● DEMO</div>
+            <div id="federation-status" class="hud-status-badge hud-status-fed" title="인접 SDACS 인스턴스 연합 상태" style="display:none;">FED OFF</div>
+            <button id="lang-btn" class="hud-lang-btn" title="Language / 언어">KO</button>
         </div>
     </div>
 
     <!-- HUD: 직군별 드론 현황 바 -->
-    <div id="role-stats-bar" class="hud-overlay hud-interactive"
-        style="top:52px;left:240px;right:280px;padding:4px 12px;display:flex;justify-content:center;gap:4px;flex-wrap:wrap;overflow:hidden;max-height:28px;z-index:11;">
+    <div id="role-stats-bar" class="hud-overlay hud-interactive hud-role-bar">
         <div id="role-stats" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;"></div>
     </div>
 
@@ -1213,13 +1484,13 @@
         <!-- Controls -->
         <div class="ctrl-panel">
             <div class="ctrl-title">
-                <div style="width:6px;height:6px;border-radius:50%;background:#00e5ff;"></div>
+                <div class="panel-header-dot"></div>
                 시뮬레이션 제어
             </div>
             <div style="margin-bottom:8px;">
                 <label class="ctrl-label" style="display:flex;justify-content:space-between;align-items:center;">
                     <span>시나리오 선택</span>
-                    <button id="btn-scenario-gallery" style="font-size:9px;padding:2px 6px;background:rgba(168,85,247,0.12);color:#a855f7;border:1px solid rgba(168,85,247,0.4);border-radius:3px;cursor:pointer;" title="시나리오 갤러리 (Phase 14)">🖼 갤러리</button>
+                    <button id="btn-scenario-gallery" class="ctrl-btn-gallery" title="시나리오 갤러리">🖼 갤러리</button>
                 </label>
                 <select class="ctrl-select" id="scenario-select">
                     <optgroup label="기본">
@@ -1522,7 +1793,7 @@
         <!-- Legend -->
         <div class="ctrl-panel">
             <div class="ctrl-title">
-                <div style="width:6px;height:6px;border-radius:50%;background:#00e5ff;"></div>
+                <div class="panel-header-dot"></div>
                 비행 상태 범례
             </div>
             <div class="legend-item">
@@ -1683,7 +1954,7 @@
     <div class="hud-overlay hud-analytics hud-interactive" id="analytics-panel">
         <div class="analytics-panel">
             <div class="analytics-header">
-                <div style="width:6px;height:6px;border-radius:50%;background:#00e5ff;"></div>
+                <div class="panel-header-dot"></div>
                 <div style="font-size:9px;font-weight:600;color:#00e5ff;font-family:'JetBrains Mono',monospace;letter-spacing:1px;white-space:nowrap;">분석</div>
                 <div class="analytics-tabs" id="chart-tabs">
                     <button class="active" data-chart="battery">BAT</button>

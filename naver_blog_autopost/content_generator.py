@@ -1,5 +1,6 @@
 import os
 import random
+import json
 from google import genai
 from google.genai import types
 
@@ -17,6 +18,9 @@ TOPICS = [
 
 def generate_post_content(api_key):
     """Gemini API를 사용하여 드론 축구 주제의 블로그 글을 생성합니다."""
+    if not api_key or len(api_key) < 10:
+        return None
+
     # 랜덤 주제 선택
     topic = random.choice(TOPICS)
     
@@ -48,7 +52,7 @@ def generate_post_content(api_key):
         # Gemini API 호출
         client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.0-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
@@ -56,20 +60,13 @@ def generate_post_content(api_key):
         )
         
         # JSON 결과 파싱
-        import json
         result = json.loads(response.text)
         result["topic"] = topic
         return result
         
     except Exception as e:
         print(f"❌ AI 콘텐츠 생성 실패: {e}")
-        # 실패 시 기본 포스팅 데이터 반환
-        return {
-            "title": "드론축구의 매력, 함께 알아볼까요?",
-            "body": "안녕하세요! 광주 임페리얼 윙스입니다.\n\n오늘은 드론축구의 매력에 대해 이야기해보려고 합니다.\n드론축구는 단순히 조종하는 것을 넘어 팀워크와 전략이 필요한 스포츠입니다.\n\n관심 있으신 분들은 언제든 연락주세요!",
-            "hashtags": "#드론축구 #광주드론축구 #임페리얼윙스",
-            "topic": "기본 템플릿"
-        }
+        return None
 
 if __name__ == "__main__":
     # 테스트용
@@ -77,8 +74,8 @@ if __name__ == "__main__":
     if api_key:
         print("AI 글 생성 테스트 중...")
         content = generate_post_content(api_key)
-        print(f"선택된 주제: {content.get('topic')}")
-        print(f"제목: {content.get('title')}")
-        print(f"본문 미리보기: {content.get('body')[:100]}...")
+        if content:
+            print(f"선택된 주제: {content.get('topic')}")
+            print(f"제목: {content.get('title')}")
     else:
         print("GEMINI_API_KEY 환경 변수가 설정되지 않았습니다.")

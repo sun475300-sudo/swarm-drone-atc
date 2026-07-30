@@ -58,7 +58,7 @@ drone_blog_autopost/
 
 ### AI 자동 생성 사용 (선택)
 1. [Google AI Studio](https://aistudio.google.com) 에서 Gemini API 키 발급
-2. **계정 설정** 탭 → Gemini API Key 입력
+2. **계정 설정** 탭 → Gemini API Key 입력 (⚠️ 코드를 직접 수정하지 마세요!)
 3. 이후 포스팅 시 AI가 새로운 드론 축구 글을 자동 생성
 
 ---

@@ -120,6 +120,8 @@
         }
       ],
       "category": "Science",
+      "desktopName": "sdacs-simulator",
+      "syncDesktopName": true,
       "artifactName": "SDACS-Simulator-${version}-${arch}.${ext}"
     },
     "publish": {

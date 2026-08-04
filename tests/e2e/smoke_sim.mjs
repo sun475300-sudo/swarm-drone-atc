@@ -102,6 +102,30 @@ try {
   const cleared = await page.evaluate(() => window._sdacs.multiSelection.length);
   ok(cleared === 0, 'B4 다중 선택 해제');
 
+  // 8d. 모바일 레이아웃 — 가로 넘침과 도움말/로그 토글 겹침 회귀 방지
+  const mobileCtx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
+  const mobilePage = await mobileCtx.newPage();
+  const mobileErrors = [];
+  mobilePage.on('pageerror', e => mobileErrors.push(e.message));
+  await mobilePage.goto(URL, { waitUntil: 'load', timeout: 60000 });
+  await mobilePage.waitForFunction(() => window._sdacs?.droneCount > 0, { timeout: 45000 });
+  const mobileLayout = await mobilePage.evaluate(() => {
+    const help = document.getElementById('btn-help')?.getBoundingClientRect();
+    const logToggle = document.getElementById('btn-toggle-log')?.getBoundingClientRect();
+    const overlaps = help && logToggle && !(
+      help.right <= logToggle.left || help.left >= logToggle.right ||
+      help.bottom <= logToggle.top || help.top >= logToggle.bottom
+    );
+    return {
+      width: document.documentElement.scrollWidth,
+      viewport: innerWidth,
+      overlaps: !!overlaps,
+    };
+  });
+  ok(mobileLayout.width <= mobileLayout.viewport && !mobileLayout.overlaps && mobileErrors.length === 0,
+    `모바일 레이아웃 (폭 ${mobileLayout.width}/${mobileLayout.viewport}, 도움말 겹침 없음)`);
+  await mobileCtx.close();
+
   // 9. 페이지 런타임 에러 없음
   ok(pageErrors.length === 0, `런타임 에러 0건${pageErrors.length ? ' → ' + pageErrors.join(' | ') : ''}`);
 } catch (e) {

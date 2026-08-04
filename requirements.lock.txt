@@ -55,7 +55,7 @@ pytz==2026.3.post1
 six==1.16.0
 packaging==26.2
 jinja2==3.1.6
-markupsafe==2.1.5
+markupsafe==3.0.3
 typing-extensions==4.16.0
 
 # dash 4.x / plotly 6.x 전이 의존성 (2026-07-13 로컬 렌더 검증 조합 기준)

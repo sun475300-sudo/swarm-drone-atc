@@ -16,7 +16,7 @@
 # ── Core simulation ───────────────────────────────────────────────────────
 numpy==2.2.6
 simpy==4.1.2
-pandas==2.2.2
+pandas==2.3.3
 scipy==1.13.1
 pyyaml==6.0.3
 websockets==13.1
@@ -55,13 +55,13 @@ pytz==2026.3.post1
 six==1.16.0
 packaging==26.2
 jinja2==3.1.6
-markupsafe==2.1.5
+markupsafe==3.0.3
 typing-extensions==4.16.0
 
 # dash 4.x / plotly 6.x 전이 의존성 (2026-07-13 로컬 렌더 검증 조합 기준)
 blinker==1.9.0
 certifi==2026.7.22
-charset-normalizer==3.4.7
+charset-normalizer==3.4.9
 click==8.1.8
 colorama==0.4.6
 flask==3.1.3

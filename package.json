@@ -28,7 +28,7 @@
   "devDependencies": {
     "electron": "^39.8.5",
     "electron-builder": "^26.15.3",
-    "playwright": "1.62.0"
+    "playwright": "1.62.1"
   },
   "build": {
     "appId": "com.sdacs.simulator",

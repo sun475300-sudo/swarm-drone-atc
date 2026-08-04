@@ -57,15 +57,15 @@ SDACS는 단일 애플리케이션이 아니라 같은 도메인을 여러 깊�
 
 ## 현재 상태
 
-마지막 저장소 점검일은 **2026-07-30 (KST)** 입니다. 최신 소스와 자동 검증 결과는 [`main`](https://github.com/sun475300-sudo/swarm-drone-atc/commits/main) 및 [GitHub Actions](https://github.com/sun475300-sudo/swarm-drone-atc/actions)을 기준으로 확인합니다.
+마지막 저장소 점검일은 **2026-08-04 (KST)** 입니다. 최신 소스와 자동 검증 결과는 [`main`](https://github.com/sun475300-sudo/swarm-drone-atc/commits/main) 및 [GitHub Actions](https://github.com/sun475300-sudo/swarm-drone-atc/actions)을 기준으로 확인합니다.
 
 | 상태 | 항목 | 확인 결과 |
 |:---:|---|---|
 | ✅ | 프로젝트 버전 | `pyproject.toml`과 `package.json` 기준 `1.5.0` |
-| ✅ | 기본 브랜치 | `main` — 브랜치 통합 완료 |
+| ✅ | 기본 브랜치 | `main` — 유효한 기능·유지보수 PR 통합 완료 |
 | ✅ | GitHub Actions | Python 3.10/3.11/3.12 CI, 보안 감사, 시뮬레이터 스모크 및 Pages 배포 게이트 운영 |
 | ✅ | 디자인 시스템 | v2.0 적용 완료 (CSS 변수 기반 글래스모피즘 HUD) |
-| ✅ | 웹 릴리스 | [v1.5.0 Release](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/v1.5.0) 정적 웹 ZIP (`SDACS-Simulator-Web-v1.5.0.zip`) |
+| ✅ | 웹 릴리스 | [v1.5.0 정적 웹 ZIP](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/v1.5.0/SDACS-Simulator-Web-v1.5.0.zip) (`SHA-256 b035348e…0e3a8d2`) |
 | ✅ | 데스크톱 앱 | [v1.5.0 Release](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/v1.5.0) Linux AppImage (`SDACS-Simulator-1.5.0-x86_64.AppImage`) |
 | ✅ | Python 회귀 | Python 3.10 / 3.11 / 3.12, 제한 린트, mypy, 커버리지 80% 게이트 통과 |
 | ✅ | 연합 브라우저 E2E | `ws_bridge` 2개와 Chromium 2페이지 상호 LIVE 고스트 렌더링 성공 |
@@ -202,7 +202,7 @@ python scripts/build_simulator.py
 
 ### Electron 데스크톱 앱 빌드
 ```bash
-npm ci
+npm install
 npm run dist:linux   # Linux AppImage 빌드
 npm run dist:win     # Windows NSIS 빌드
 npm run dist:mac     # macOS DMG 빌드
@@ -272,19 +272,21 @@ npm run smoke
 | 논문 기여와 투고 준비 | [docs/paper/contribution_outline.md](docs/paper/contribution_outline.md) |
 | 사업화·산학 트랙 | [docs/track_f/README.md](docs/track_f/README.md) |
 | 장기 로드맵 | [ROADMAP.md](ROADMAP.md) |
+| 외부 실행·증빙 체크리스트 | [docs/EXTERNAL_EXECUTION_CHECKLIST.md](docs/EXTERNAL_EXECUTION_CHECKLIST.md) |
 
 ## 현재 남은 작업
 
-아래 항목은 2026-07-30 기준 저장소 점검 후 정리한 **미완성 작업 리스트**입니다.
+아래 항목은 2026-08-04 기준 코드·CI·GitHub 설정 점검 후 남은 **외부 실행 또는 운영 작업**입니다. 저장소에 구현 파일이 있다는 사실만으로 실증·제출·인증이 완료된 것으로 보지 않습니다.
 
-- [ ] **GitHub 계정 및 권한 설정**
+- [ ] **저장소 운영과 배포 채널**
   - `main` 브랜치 보호 설정 (필수 CI 및 리뷰 요구)
-  - GitHub Discussions 활성화 및 커뮤니티 라벨 적용
-  - Dependabot PR 지속적 검증 및 병합
+  - Windows NSIS와 macOS DMG의 실제 장비 설치 검증 및 공개 릴리스
+  - `@sdacs/core` npm 패키지와 Python wheel의 실제 레지스트리 발행
+  - 대표 시나리오 스크린샷·영상 갤러리 자동 게시
 - [ ] **연구 논문 및 DOI**
-  - Zenodo 연동 및 GitHub Release DOI 자동 발급 완료하기
-  - ORCID 등록 및 K-UTM 표준화 초안(TTA) 제안서 작성
-  - IROS 2026 PaperCept 계정 등록 및 투고 준비
+  - Zenodo 아카이브·DOI 발급 후 `CITATION.cff`와 논문에 반영
+  - 고정 시드 기준선·ablation 실측과 논문 수치 교차 검증
+  - IROS 또는 목표 학회 실제 투고와 K-UTM 표준 제안 채널 접수
 - [ ] **실제 환경 및 하드웨어 (Phase 261-380)**
   - Pixhawk·Jetson·RTK 하드웨어 루프 통합 (SITL/HITL)
   - 양방향 디지털 트윈 구축 (실제 비행 데이터와 시뮬레이터 연동)

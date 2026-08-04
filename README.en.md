@@ -57,15 +57,15 @@ SDACS is not a single application, but a suite of tools exploring the same domai
 
 ## Current Status
 
-The last repository health check date is **2026-07-30 (KST)**. Verify the latest source and automated validation results against [`main`](https://github.com/sun475300-sudo/swarm-drone-atc/commits/main) and [GitHub Actions](https://github.com/sun475300-sudo/swarm-drone-atc/actions).
+The last repository health check date is **2026-08-04 (KST)**. Verify the latest source and automated validation results against [`main`](https://github.com/sun475300-sudo/swarm-drone-atc/commits/main) and [GitHub Actions](https://github.com/sun475300-sudo/swarm-drone-atc/actions).
 
 | Status | Item | Result |
 |:---:|---|---|
 | ✅ | Project Version | `1.5.0` in `pyproject.toml` and `package.json` |
-| ✅ | Default Branch | `main` — Branch consolidation complete |
+| ✅ | Default Branch | `main` — All valid feature and maintenance PRs consolidated |
 | ✅ | GitHub Actions | Python 3.10/3.11/3.12 CI, security audit, simulator smoke & Pages deployment gates active |
 | ✅ | Design System | v2.0 applied (CSS variable-based Glassmorphism HUD) |
-| ✅ | Web Release | Static Web ZIP (`SDACS-Simulator-Web-v1.5.0.zip`) published in [v1.5.0 Release](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/v1.5.0) |
+| ✅ | Web Release | [v1.5.0 static Web ZIP](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/v1.5.0/SDACS-Simulator-Web-v1.5.0.zip) (`SHA-256 b035348e…0e3a8d2`) |
 | ✅ | Desktop App | Linux AppImage (`SDACS-Simulator-1.5.0-x86_64.AppImage`) published in [v1.5.0 Release](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/v1.5.0) |
 | ✅ | Python Regression | Python 3.10/3.11/3.12, strict lint, mypy, 80% coverage gates passed |
 | ✅ | Federated Browser E2E | Mutual LIVE ghost rendering successful across 2 `ws_bridge` instances and 2 Chromium pages |
@@ -202,7 +202,7 @@ python scripts/build_simulator.py
 
 ### Electron Desktop App Build
 ```bash
-npm ci
+npm install
 npm run dist:linux   # Build Linux AppImage
 npm run dist:win     # Build Windows NSIS
 npm run dist:mac     # Build macOS DMG
@@ -272,19 +272,21 @@ npm run smoke
 | Paper Contribution & Submission Prep | [docs/paper/contribution_outline.md](docs/paper/contribution_outline.md) |
 | Commercialization & Industry Track | [docs/track_f/README.md](docs/track_f/README.md) |
 | Long-term Roadmap | [ROADMAP.md](ROADMAP.md) |
+| External Execution & Evidence Checklist | [docs/EXTERNAL_EXECUTION_CHECKLIST.md](docs/EXTERNAL_EXECUTION_CHECKLIST.md) |
 
 ## Remaining Tasks
 
-The following is a list of **incomplete tasks** identified during the repository health check on 2026-07-30.
+The following **external execution and operations tasks** remain after the code, CI, and GitHub configuration audit on 2026-08-04. The presence of implementation files in the repository does not prove field validation, submission, or certification.
 
-- [ ] **GitHub Account & Permission Setup**
+- [ ] **Repository Operations & Distribution Channels**
   - Enable `main` branch protection (require CI and reviews)
-  - Enable GitHub Discussions and apply community labels
-  - Continuously validate and merge Dependabot PRs
+  - Validate Windows NSIS and macOS DMG installation on physical systems, then publish them
+  - Publish `@sdacs/core` and the Python wheel to their package registries
+  - Automatically publish the representative-scenario screenshot and video gallery
 - [ ] **Research Papers & DOI**
-  - Complete Zenodo integration and automate GitHub Release DOI issuance
-  - Register ORCID and draft K-UTM standardization proposal (TTA)
-  - Register for IROS 2026 PaperCept account and prepare submission
+  - Create the Zenodo archive and DOI, then update `CITATION.cff` and the paper
+  - Re-run fixed-seed baselines and ablations and cross-check every paper figure
+  - Submit to IROS or the selected venue and file through the K-UTM standards channel
 - [ ] **Real-world Environment & Hardware (Phase 261-380)**
   - Integrate Pixhawk, Jetson, RTK hardware-in-the-loop (SITL/HITL)
   - Build bi-directional digital twin (link real flight data with simulator)

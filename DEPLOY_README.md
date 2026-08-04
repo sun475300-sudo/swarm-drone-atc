@@ -1,6 +1,6 @@
 # SDACS 배포 가이드
 
-마지막 정리: **2026-07-30**. 이 문서는 `main`의 현재 배포 경로만 설명합니다. 과거 릴리스 수치나 로컬 산출물 존재 여부는 배포 성공의 증거가 아닙니다.
+마지막 정리: **2026-08-04**. 이 문서는 `main`의 현재 배포 경로만 설명합니다. 과거 릴리스 수치나 로컬 산출물 존재 여부는 배포 성공의 증거가 아닙니다.
 
 ## 1. GitHub Pages: 정적 웹 사이트와 시뮬레이터
 
@@ -48,14 +48,18 @@ python -m http.server 8123 --directory build/simulator
 
 `build/simulator/` 전체를 정적 호스팅 서비스에 업로드합니다. `simulator.html`, `vendor/three/`, `manifest.webmanifest`, `sdacs-sw.js`를 함께 유지해야 합니다.
 
-사전 빌드된 파일은 [SDACS-Simulator-Web-2026-07-30.zip](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/simulator-web-2026-07-30/SDACS-Simulator-Web-2026-07-30.zip)에서 받을 수 있습니다. SHA-256: `0C16EB7E1B1D75B00B53A126E22B346D3ECDFF2F3ECE4FCC26DD78B6A81666DA`.
+사전 빌드된 파일은 [SDACS-Simulator-Web-v1.5.0.zip](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/v1.5.0/SDACS-Simulator-Web-v1.5.0.zip)에서 받을 수 있습니다.
+
+- 파일 크기: `597,394 bytes`
+- SHA-256: `B035348E4AF60D21392EBB9149E7B71DD4B7A8395D783890B6A07DF1E0E3A8D2`
+- ZIP 내부 `simulator/simulator.html`은 릴리스 시점의 정적 빌드 정본과 해시가 일치함을 확인했습니다.
 
 HTML 파일을 `file://`로 직접 열면 ES module/CORS 문제로 Three.js가 로드되지 않을 수 있습니다.
 
 ## 3. Electron 데스크톱 패키지
 
 ```bash
-npm ci
+npm install
 npm run build:simulator
 npm run pack
 npm run dist:win
@@ -65,7 +69,11 @@ npm run dist:win
 - macOS: `npm run dist:mac` (macOS에서 실행)
 - Linux: `npm run dist:linux` (Linux에서 실행)
 
-산출물은 `dist-desktop/`에 생성되며 Git에서 제외됩니다. 현재 GitHub Releases에는 SDACS 앱 설치 파일이 공개되어 있지 않으므로, 배포하려면 새 버전 태그와 GitHub Actions 릴리스가 필요합니다.
+산출물은 `dist-desktop/`에 생성되며 Git에서 제외됩니다. [v1.5.0 Release](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/v1.5.0)에는 Linux AppImage가 공개되어 있습니다.
+
+- Linux: [SDACS-Simulator-1.5.0-x86_64.AppImage](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/v1.5.0/SDACS-Simulator-1.5.0-x86_64.AppImage)
+- SHA-256: `364B01BA1953F95FF4C849834BFC82F59F6F6319C0BDCF007BABEBC2A3D911B1`
+- Windows NSIS와 macOS DMG는 워크플로 대상이지만, 현재 공개 릴리스에는 첨부되지 않았습니다. 각 운영체제 실제 장비에서 설치 검증 후 공개해야 합니다.
 
 ## 4. GitHub Release 발행
 

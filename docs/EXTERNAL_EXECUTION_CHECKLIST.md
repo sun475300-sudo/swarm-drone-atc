@@ -38,11 +38,12 @@
 
 ## Phase 328-329 생태계 공개
 
-- [ ] `README.en.md`를 한국어 README와 기능·제약 수준까지 동등화한다.
+- [x] `README.en.md`를 한국어 README와 기능·제약 수준까지 동등화한다. (2026-08-04 재점검)
 - [ ] 대표 시나리오 스크린샷·영상 갤러리 자동 생성 작업을 배포한다.
 - [ ] npm 조직과 provenance를 설정하고 `@sdacs/core`를 실제 발행한다.
 - [ ] PyPI 프로젝트와 trusted publisher를 설정하고 Python wheel을 실제 발행한다.
-- [ ] GitHub Discussions, 라벨, Good First Issue를 저장소 설정에서 활성화한다.
+- [x] GitHub Discussions와 기본 커뮤니티 라벨을 저장소 설정에서 활성화한다. (2026-08-04 API 점검)
+- [ ] 완료 기준이 명시된 Good First Issue를 실제 공개·운영한다.
 - [ ] 완료 증빙: npm/PyPI 버전 URL, GitHub 설정 화면 또는 API 결과, 갤러리 배포 URL.
 
 ## Phase 341-360 실제 배포

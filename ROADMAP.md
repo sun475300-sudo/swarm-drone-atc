@@ -124,7 +124,7 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 
 ---
 
-## Progress Snapshot / 진행 현황 (2026-07-30 기준)
+## Progress Snapshot / 진행 현황 (2026-08-04 기준)
 
 | 트랙 | 완료 | 진행률 | 핵심 산출물 |
 |---|---|---|---|
@@ -139,13 +139,13 @@ TypeScript, Swift, Kotlin, PHP, Haskell, COBOL, R, Perl, Scheme, Octave
 | **HYPER Plan** (시뮬 Phase 10-50) | 100% | ████████████ | 41개 추가 Phase (해양 ATC · VR · AI Copilot · 적대 · C-UAS · 행성 등) |
 | **STELLAR~POST-UNIVERSE** (시뮬 Phase 51-200) | 100% | ████████████ | Phase 200 = 𝟏 (Unity) · Phase 51 LLM Multi-Agent 격상 (단, 다수 mock/speculative — maturity 공시) |
 | **TRANSCENDENCE** (시뮬 Phase 201-300) | 25% | ███░░░░░░░░░ | Phase 201-220·226 완료 · Phase 281-300 Zenodo DOI 가이드·K-UTM 표준 제안 준비 완료 — Maturity Honesty · API 수명주기 · GPS→ENU 정밀 검증 |
-| **GENESIS** (시뮬 Phase 301-400) | 55% | ███████░░░░░ | 301-319·321-322·328-329·330·341-360·361-368·381-400 완료 — 인증·CSAP·감항·플러그인SDK·CITATION·RTM자동생성·RL벤치·LLM관제·NTN링크·GPS거부·에너지계획·V2X·자가치유·교육·레거시선언·README.en.md 동등화·90일 파일럿 백서 |
+| **GENESIS** (시뮬 Phase 301-400) | 55% | ███████░░░░░ | 301-319·321-322·330·341-360·361-368·381-400 완료 — 인증·CSAP·감항·플러그인SDK·CITATION·RTM자동생성·RL벤치·LLM관제·NTN링크·GPS거부·에너지계획·V2X·자가치유·교육·레거시선언·README.en.md 동등화·90일 파일럿 백서 (328-329 실제 레지스트리 발행은 잔여) |
 | **ODYSSEY** (시뮬 Phase 401-500) | 49% | ██████░░░░░░ | 402-411·447-448·452-460·461-500 완료 — FAA/EASA/ICAO·RL/AI(V&V·SafetyCase·Lifecycle)·연합운영·표준·Continuum (#449 안착) |
 
 > Phase 번호와 체크 비율은 개발 이력을 보존하기 위한 지표이며 제품·실증 성숙도를 뜻하지 않습니다.
 > 현재 실행 가능 범위, 배포 파일, 검증 결과와 실제 남은 작업은 [README.md](README.md)의 상태표와 GitHub CI를 우선합니다.
 
-**코어 트랙 잔여 4항목** (사용자 환경 의존): P755(창업) + Track A 실기 검증 + P707 실측 그래프 + P709 IROS 투고
+**외부 실행 잔여** (사용자 환경·권한 의존): P755(창업) + Track A 실기 검증 + P707 실측 그래프 + P709 IROS 투고 + Phase 328-329 레지스트리·갤러리 공개 + 현장 파일럿·디지털 트윈 보정
 **시뮬 Phase 201-500 잔여**: 아래 "In Progress / 진행 예정" 절의 미체크 항목 참조 (대부분 실 HW·외부 기관 의존)
 (P711 React MVP는 2026-06-09 `frontend/` 통합으로 완료 — 마지막 코드 로드맵 항목 종료)
 
@@ -301,7 +301,7 @@ SITL에서 검증된 제어 스택을 실제 하드웨어로 이식.
 - [x] **Phase 336-340** 🌍 API 안정화 정책 — `docs/API_SEMVER_POLICY.md`·`docs/API_DEPRECATION_POLICY.md`와 `_sdacs` 성숙도/API 추출 CI 게이트로 SemVer·production 1년 유예 계약 명문화. 실제 v2.0 태그 발행은 릴리스 절차로 분리
 - [x] **Phase 330** 🌍 CITATION.cff + 인용 검증 — `CITATION.cff` CFF 1.2.0 + `simulation/citation_validator.py` CFF 파서·BibTeX/APA 변환·필수필드 검증, CLI --validate/--bibtex/--apa/--json, 43건 PASS (2026-06-26)
 - [x] **Phase 323** 🌍 외부 시뮬레이터 어댑터 — `simulation/external_sim_adapter.py` + `docs/standards/EXTERNAL_SIM_ADAPTER_SPEC.md` BlueSky `.scn`·U-TRAFMAN JSON 호환 import/export, 중립 교환 모델 IR·등거리 투영·결정적 물질화·import 경계 검증, CLI 3종, 35건 PASS (2026-06-26)
-- [x] **Phase 328-329 + Registry Publish** 🌍 Ecosystem 잔여 — `README.en.md` 전체 내용 동등화 완료(149줄→767줄)·시나리오 영상/스크린샷 자동 갤러리 게시·npm/PyPI 실제 발행·GitHub Discussions/라벨 활성화. 코드 패키지·정책·템플릿은 완료됐으며 잔여는 콘텐츠 제작 또는 관리자 토큰/설정 의존 (README.en.md 동등화 2026-07-30)
+- [ ] **Phase 328-329 + Registry Publish** 🌍 Ecosystem 공개 — `README.en.md` 내용 동등화와 GitHub Discussions·기본 커뮤니티 라벨 활성화는 완료. 시나리오 영상/스크린샷 자동 갤러리 게시, npm/PyPI 실제 발행, 공개 Good First Issue 운영은 콘텐츠 제작 또는 관리자 토큰·설정이 필요해 잔여 (상태 점검 2026-08-04)
 - [x] **Phase 341** 🏙 목포 해역 실 좌표계 임포트 — `src/applications/mokpo_harbor.py` 해도 기반 NFZ 4종(부두·대교·지형·정박지)·회랑 3종 결정적 배치 + 레이 캐스팅 NFZ 판정·회랑 충돌 검사, 8건 PASS (2026-06-15)
 - [x] **Phase 342** 🏙 전남 도서(신안·완도) 의료 배송 거점 DB — `src/applications/jeonnam_island_sites.py` 실 좌표·거점·Haversine ETA, 7건 PASS (2026-06-15)
 - [x] **Phase 341-360** 🏙 Real Deployment — 목포 해역 실 좌표(`mokpo_harbor.py`)·전남 도서 의료 배송(`jeonnam_island_sites.py`)·90일 파일럿 백서(`docs/track_f/p343_360_pilot_whitepaper.md`) 완성 (2026-07-30)

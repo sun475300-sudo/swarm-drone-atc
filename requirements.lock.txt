@@ -26,7 +26,7 @@ tqdm==4.69.1
 # ── Visualization (only if Dash UI is in scope; the headless reproducible
 #    image can drop these — see Dockerfile.reproducible) ───────────────────
 matplotlib==3.10.9
-plotly==6.9.0
+plotly==7.1.0
 seaborn==0.13.2
 dash==4.4.0
 

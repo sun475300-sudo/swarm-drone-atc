@@ -7,7 +7,9 @@
          file:// 에서 로드 불가. http 서버 또는 GitHub Pages 라이브 사이트 필요.
          non-module 인라인 스크립트라 module import 실패와 무관하게 항상 실행됨. -->
     <script>
-      if (location.protocol === 'file:') {
+      // 일반 브라우저의 file:// 직접 열기만 차단한다. Electron은 preload에서
+      // window.sdacs.isElectron을 노출하고 webSecurity=false로 로컬 ESM을 허용한다.
+      if (location.protocol === 'file:' && !(window.sdacs && window.sdacs.isElectron)) {
         window.addEventListener('DOMContentLoaded', function () {
           var o = document.createElement('div');
           o.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#03050a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif;padding:24px;';

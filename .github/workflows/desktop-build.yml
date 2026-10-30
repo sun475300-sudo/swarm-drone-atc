@@ -52,6 +52,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Smoke packaged desktop app (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          npm run smoke:desktop:app
+          node tests/e2e/smoke_desktop_app.mjs --portable
+
       - name: Build (macOS)
         if: matrix.os == 'macos-latest'
         run: npm run dist:mac

@@ -5,7 +5,8 @@
     <meta charset="UTF-8" />
     <!-- file:// 직접 열기 감지 안내 — ES module(three.js)은 CORS 상 file:// 로드 불가. http 서버 필요. -->
     <script>
-      if (location.protocol === 'file:') {
+      // Electron 패키지는 file:// 기반이지만 preload + 로컬 ESM 허용 정책으로 정상 실행된다.
+      if (location.protocol === 'file:' && !(window.sdacs && window.sdacs.isElectron)) {
         window.addEventListener('DOMContentLoaded', function () {
           var o = document.createElement('div');
           o.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#02060d;color:#e2e8f0;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif;padding:24px;';
@@ -1178,8 +1179,9 @@
         initScenario('normal');
         running = true;
 
-        // Phase 9 MOB — Service Worker 등록 (오프라인 실행)
-        if ('serviceWorker' in navigator) {
+        // Phase 9 MOB — HTTPS 정적 배포에서만 오프라인 캐시를 등록한다.
+        // Electron(file://)에서는 로컬 app.asar 문서를 가로채지 않아야 한다.
+        if ('serviceWorker' in navigator && location.protocol === 'https:') {
             navigator.serviceWorker.register('sdacs-sw.js').catch(() => {});
         }
 

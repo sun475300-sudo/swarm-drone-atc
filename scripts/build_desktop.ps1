@@ -1,12 +1,13 @@
 # SDACS Desktop - one-command build script
 # Usage:
-#   .\scripts\build_desktop.ps1                # Full build (Python backend + Electron NSIS)
-#   .\scripts\build_desktop.ps1 -SkipPython    # electron-builder only (reuse existing backend)
-#   .\scripts\build_desktop.ps1 -Clean         # Clean previous artifacts first
+#   .\scripts\build_desktop.ps1                  # Standalone Electron app (recommended)
+#   .\scripts\build_desktop.ps1 -IncludePython   # Python Dash backend included
+#   .\scripts\build_desktop.ps1 -Clean           # Clean previous artifacts first
 #
 # Outputs:
-#   dist-python/sdacs-backend/*                    (PyInstaller backend, ~4.6GB with torch)
-#   dist-desktop/SDACS-Simulator-<VER>-Setup.exe   (NSIS installer)
+#   dist-python/sdacs-backend/*                         (optional PyInstaller backend)
+#   dist-desktop/SDACS-Simulator-<VER>-x64.exe           (NSIS installer)
+#   dist-desktop/SDACS-Simulator-<VER>-portable.exe      (portable app)
 #
 # Note:
 #   - Unsigned build. Windows SmartScreen warning expected on first install.
@@ -15,7 +16,7 @@
 
 [CmdletBinding()]
 param(
-    [switch]$SkipPython,
+    [switch]$IncludePython,
     [switch]$Clean,
     [ValidateSet('win', 'mac', 'linux', 'dir')]
     [string]$Target = 'win'
@@ -40,39 +41,56 @@ try {
         Write-Host ""
     }
 
-    if (-not $SkipPython) {
+    if ($IncludePython) {
         Write-Host "[2/4] Bundling Python backend (PyInstaller)..." -ForegroundColor Yellow
-        $piInstalled = python -m pip show pyinstaller 2>$null
+        $python = Get-Command python -ErrorAction SilentlyContinue
+        if (-not $python) {
+            throw "Python is not installed or is not on PATH. Install Python 3.11+ or omit -IncludePython."
+        }
+        & $python.Source --version | Out-Host
+        if ($LASTEXITCODE -ne 0) {
+            throw "The python command is not executable. Install Python 3.11+ or omit -IncludePython."
+        }
+        $piInstalled = & $python.Source -m pip show pyinstaller 2>$null
         if (-not $piInstalled) {
             Write-Host "  PyInstaller not installed -> installing..." -ForegroundColor Yellow
-            python -m pip install pyinstaller
+            & $python.Source -m pip install pyinstaller
         }
-        python -m PyInstaller desktop/backend.spec --clean --noconfirm --distpath dist-python --workpath build-python
+        & $python.Source -m PyInstaller desktop/backend.spec --clean --noconfirm --distpath dist-python --workpath build-python
         if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed" }
         Write-Host "  OK: dist-python/sdacs-backend/sdacs-backend.exe" -ForegroundColor Green
         Write-Host ""
     } else {
-        Write-Host "[2/4] Skipping Python backend (reusing dist-python)" -ForegroundColor Gray
-        if (-not (Test-Path 'dist-python/sdacs-backend/sdacs-backend.exe')) {
-            throw "dist-python/sdacs-backend/sdacs-backend.exe missing -- rerun without -SkipPython"
+        Write-Host "[2/4] Standalone mode (JavaScript simulation engine)" -ForegroundColor Yellow
+        if (Test-Path 'dist-python/sdacs-backend/sdacs-backend.exe') {
+            Write-Host "  Existing Python backend found and will also be bundled." -ForegroundColor Green
+        } else {
+            Write-Host "  Python backend omitted. The full 3D simulator remains available offline." -ForegroundColor Gray
         }
         Write-Host ""
     }
 
     Write-Host "[3/4] Verifying npm dependencies..." -ForegroundColor Yellow
-    if (-not (Test-Path 'node_modules/electron-updater')) {
-        Write-Host "  electron-updater not installed -> npm install..." -ForegroundColor Yellow
-        npm install --no-audit --no-fund --progress=false
+    $builder = Join-Path $repoRoot 'node_modules/.bin/electron-builder.cmd'
+    if (-not (Test-Path $builder)) {
+        $npm = Get-Command npm.cmd -ErrorAction SilentlyContinue
+        if (-not $npm) { $npm = Get-Command npm -ErrorAction SilentlyContinue }
+        if (-not $npm) {
+            throw "npm is not available. Install Node.js LTS (including npm), then rerun this script."
+        }
+        Write-Host "  node_modules missing -> npm install..." -ForegroundColor Yellow
+        & $npm.Source install --no-audit --no-fund --progress=false
+        if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
     }
     Write-Host "  OK: node_modules ready" -ForegroundColor Green
     Write-Host ""
 
     Write-Host "[4/4] Running electron-builder ($Target)..." -ForegroundColor Yellow
     switch ($Target) {
-        'win'   { npm run dist:win }
-        'mac'   { npm run dist:mac }
-        'linux' { npm run dist:linux }
-        'dir'   { npm run pack }
+        'win'   { & $builder --config desktop/electron-builder.config.cjs --win nsis portable }
+        'mac'   { & $builder --config desktop/electron-builder.config.cjs --mac dmg }
+        'linux' { & $builder --config desktop/electron-builder.config.cjs --linux AppImage }
+        'dir'   { & $builder --config desktop/electron-builder.config.cjs --dir }
     }
     if ($LASTEXITCODE -ne 0) { throw "electron-builder failed" }
     Write-Host ""
@@ -84,6 +102,12 @@ try {
         Sort-Object LastWriteTime -Descending |
         Select-Object -First 6 Name, @{n='Size'; e={ "{0:N1} MB" -f ($_.Length / 1MB) }}, LastWriteTime |
         Format-Table -AutoSize
+
+    $executables = Get-ChildItem dist-desktop -Filter '*.exe' -File -ErrorAction SilentlyContinue
+    if ($executables) {
+        Write-Host "SHA-256:" -ForegroundColor Cyan
+        $executables | Get-FileHash -Algorithm SHA256 | Select-Object Path, Hash | Format-Table -AutoSize
+    }
 
     Write-Host ""
     Write-Host "Next steps:" -ForegroundColor Cyan

@@ -57,7 +57,7 @@ SDACS는 단일 애플리케이션이 아니라 같은 도메인을 여러 깊�
 
 ## 현재 상태
 
-마지막 저장소 점검일은 **2026-08-04 (KST)** 입니다. 최신 소스와 자동 검증 결과는 [`main`](https://github.com/sun475300-sudo/swarm-drone-atc/commits/main) 및 [GitHub Actions](https://github.com/sun475300-sudo/swarm-drone-atc/actions)을 기준으로 확인합니다.
+마지막 저장소·데스크톱 패키징 점검일은 **2026-10-30 (KST)** 입니다. 최신 원격 소스와 자동 검증 결과는 [`main`](https://github.com/sun475300-sudo/swarm-drone-atc/commits/main) 및 [GitHub Actions](https://github.com/sun475300-sudo/swarm-drone-atc/actions)을 기준으로 확인합니다.
 
 | 상태 | 항목 | 확인 결과 |
 |:---:|---|---|
@@ -66,7 +66,7 @@ SDACS는 단일 애플리케이션이 아니라 같은 도메인을 여러 깊�
 | ✅ | GitHub Actions | Python 3.10/3.11/3.12 CI, 보안 감사, 시뮬레이터 스모크 및 Pages 배포 게이트 운영 |
 | ✅ | 디자인 시스템 | v2.0 적용 완료 (CSS 변수 기반 글래스모피즘 HUD) |
 | ✅ | 웹 릴리스 | [v1.5.0 정적 웹 ZIP](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/v1.5.0/SDACS-Simulator-Web-v1.5.0.zip) (`SHA-256 b035348e…0e3a8d2`) |
-| ✅ | 데스크톱 앱 | [v1.5.0 Release](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/v1.5.0) Linux AppImage (`SDACS-Simulator-1.5.0-x86_64.AppImage`) |
+| ✅ | 데스크톱 앱 | Linux AppImage 공개. Windows x64 NSIS 설치형·포터블은 2026-10-30 로컬 빌드, 설치/실행/제거, WebGL 렌더 스모크 통과 (공개 릴리스·코드 서명은 미완료) |
 | ✅ | Python 회귀 | Python 3.10 / 3.11 / 3.12, 제한 린트, mypy, 커버리지 80% 게이트 통과 |
 | ✅ | 연합 브라우저 E2E | `ws_bridge` 2개와 Chromium 2페이지 상호 LIVE 고스트 렌더링 성공 |
 | ⏳ | 실환경 검증 | Pixhawk·Jetson·RTK·HITL·실비행·규제 승인 근거는 향후 과제 (Phase 261-280) |
@@ -82,7 +82,7 @@ SDACS는 단일 애플리케이션이 아니라 같은 도메인을 여러 깊�
 | Python 3D 대시보드 | `python main.py visualize` | 8050 | Python |
 | API·WebSocket 통합 개발 | `python main.py api` | 8000 | Python API 의존성 |
 | React 공역 관리자 UI | `cd frontend && npm run dev` | 3000 | Node.js |
-| 설치형 데스크톱 앱 | `npm start` 또는 `./SDACS-Simulator-*.AppImage` | - | Node.js + Electron |
+| 독립 실행형 데스크톱 앱 | Windows 설치형/포터블 EXE 또는 Linux AppImage | - | 사전 빌드 파일은 별도 런타임 불필요 |
 | 전체 스택 컨테이너 데모 | `docker compose up` | 8050 | Docker |
 
 ## 아키텍처와 데이터 흐름
@@ -160,9 +160,12 @@ python scripts/serve.py --no-browser --port 8123
 # 브라우저에서 http://127.0.0.1:8123/swarm_3d_simulator.html?live=1 열기
 ```
 
-### 3. 데스크톱 앱 (Linux)
+### 3. 데스크톱 앱
 
-GitHub Releases에서 `SDACS-Simulator-1.5.0-x86_64.AppImage`를 다운로드하여 실행합니다.
+Windows 빌드 산출물은 두 종류입니다. 설치 없이 실행하려면 `SDACS-Simulator-1.5.0-portable.exe`, 일반 설치는 `SDACS-Simulator-1.5.0-x64.exe`를 사용합니다. 서명되지 않은 개발 빌드이므로 첫 실행 시 SmartScreen 경고가 표시될 수 있습니다.
+
+Linux는 GitHub Releases에서 `SDACS-Simulator-1.5.0-x86_64.AppImage`를 다운로드하여 실행합니다.
+
 ```bash
 chmod +x SDACS-Simulator-1.5.0-x86_64.AppImage
 ./SDACS-Simulator-1.5.0-x86_64.AppImage
@@ -201,10 +204,22 @@ python scripts/build_simulator.py
 ```
 
 ### Electron 데스크톱 앱 빌드
+Windows에서는 아래 한 명령이 캐논 군집 ATC 시뮬레이터를 포함한 NSIS 설치형과 포터블 EXE를 함께 만듭니다. 기본 빌드는 내장 JavaScript 시뮬레이션 엔진만 사용하며 Python 없이 오프라인 실행됩니다.
+
+```powershell
+npm install
+powershell -ExecutionPolicy Bypass -File scripts/build_desktop.ps1 -Clean
+
+# 선택: Dash/Python 백엔드까지 번들 (Python 3.11+와 대용량 디스크 필요)
+powershell -ExecutionPolicy Bypass -File scripts/build_desktop.ps1 -Clean -IncludePython
+```
+
+다른 운영체제의 직접 빌드 명령은 다음과 같습니다.
+
 ```bash
 npm install
 npm run dist:linux   # Linux AppImage 빌드
-npm run dist:win     # Windows NSIS 빌드
+npm run dist:win     # Windows NSIS + portable EXE 빌드
 npm run dist:mac     # macOS DMG 빌드
 ```
 
@@ -217,7 +232,7 @@ npm run dist:mac     # macOS DMG 빌드
 | `benchmark --output` | `results/` 권장 | 방법·시나리오·시드별 JSON |
 | `ops-report` | `data/e2e_reports/` | JSON, Markdown, manifest JSON |
 | 웹 빌드 | `build/simulator/` | 정적 배포 패키지 |
-| Electron 빌드 | `dist-desktop/` | 데스크톱 앱 패키지 |
+| Electron Windows 빌드 | `dist-desktop/` | `*-x64.exe` 설치형, `*-portable.exe` 포터블, `win-unpacked/` 검증용 전개본 |
 
 ## 검증과 CI
 
@@ -235,6 +250,17 @@ npm run test-server &
 $env:SIM_URL='http://localhost:8123/swarm_3d_simulator.html'
 npm run smoke
 ```
+
+### 데스크톱 앱 스모크
+```powershell
+npm run pack
+npm run smoke:desktop:app
+
+# npm run dist:win 완료 후 포터블 래퍼 기동도 확인
+node tests/e2e/smoke_desktop_app.mjs --portable
+```
+
+첫 검증은 패키지 전개본을 실제 Electron으로 열어 preload API, 캐논 시뮬레이터 진입, WebGL draw call, 50대 초기 시나리오, 비어 있지 않은 캡처, 시뮬레이션 시간 진행과 페이지 오류를 확인합니다. 두 번째 검증은 포터블 압축 해제 래퍼가 실제 Electron 프로세스를 시작하는지 확인하고 프로세스 트리를 정리합니다.
 
 ## 저장소 지도
 
@@ -255,10 +281,11 @@ npm run smoke
 - SimPy Python 엔진, Three.js 웹 엔진, 해양 시뮬레이터는 서로 다른 런타임이며 상태와 물리 모델이 자동 동기화되지 않습니다.
 - 하드웨어·SITL·HITL·규제·표준 모듈의 파일 존재는 실제 장비 연결, 기관 승인, 인증 완료를 의미하지 않습니다.
 - `benchmarks/`에는 manifest와 설명이 있지만 일부 과거 문서가 언급하는 시나리오별 `expected_results.yaml`은 현재 트리에 없습니다.
+- Windows/macOS 데스크톱 패키지는 현재 코드 서명·공증되지 않았습니다. 연구용 로컬 빌드와 공개 배포 가능한 서명 릴리스는 구분해야 합니다.
 
 ## 문제 해결
 
-- **HTML을 열었는데 Three.js가 표시되지 않음**: `file://` 대신 HTTP로 서빙하세요 (`python scripts/serve.py`).
+- **브라우저에서 HTML을 직접 열었는데 Three.js가 표시되지 않음**: 일반 브라우저의 `file://` 대신 HTTP로 서빙하세요 (`python scripts/serve.py`). Electron 앱은 로컬 자산을 직접 로드하도록 구성되어 있습니다.
 - **한글 로그 깨짐**: Windows Terminal 또는 PowerShell에서 `$env:PYTHONIOENCODING='utf-8'` 설정 후 실행하세요.
 - **웹 빌드 정합성 검사 실패**: 루트 정본 HTML을 수정한 뒤 사본을 수동 편집하지 말고 `python scripts/build_simulator.py`를 다시 실행하세요.
 
@@ -276,11 +303,11 @@ npm run smoke
 
 ## 현재 남은 작업
 
-아래 항목은 2026-08-04 기준 코드·CI·GitHub 설정 점검 후 남은 **외부 실행 또는 운영 작업**입니다. 저장소에 구현 파일이 있다는 사실만으로 실증·제출·인증이 완료된 것으로 보지 않습니다.
+아래 항목은 2026-10-30 기준 코드·로컬 Windows 패키징·GitHub 설정 점검 후 남은 **외부 실행 또는 운영 작업**입니다. 저장소에 구현 파일이 있다는 사실만으로 실증·제출·인증이 완료된 것으로 보지 않습니다.
 
 - [ ] **저장소 운영과 배포 채널**
   - `main` 브랜치 보호 설정 (필수 CI 및 리뷰 요구)
-  - Windows NSIS와 macOS DMG의 실제 장비 설치 검증 및 공개 릴리스
+  - Windows/macOS 코드 서명·공증, Windows EXE 공개 릴리스, macOS DMG 실제 장비 설치 검증
   - `@sdacs/core` npm 패키지와 Python wheel의 실제 레지스트리 발행
   - 대표 시나리오 스크린샷·영상 갤러리 자동 게시
 - [ ] **연구 논문 및 DOI**

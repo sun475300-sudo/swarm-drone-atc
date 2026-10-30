@@ -1,14 +1,16 @@
 // SDACS Simulator — Electron 메인 프로세스 (HYPER Phase 12)
 // 멀티 윈도우 지원 + IPC 시간축 동기
-// - 단일 모드: 홈 → 시뮬레이터 카드 선택
+// - 단일 모드: 캐논 군집 ATC 시뮬레이터 즉시 실행 (홈은 메뉴에서 선택)
 // - 분할 모드: 군집 + 해양 동시 표시, IPC 브로드캐스트로 sim time 동기
-const { app, BrowserWindow, Menu, shell, ipcMain, screen } = require('electron');
+const { app, BrowserWindow, Menu, shell, ipcMain, screen, session } = require('electron');
 const path = require('node:path');
 const bridge = require('./backend_bridge');
 const updater = require('./auto_updater');
 
 const isDev = !app.isPackaged;
-const repoRoot = isDev ? path.join(__dirname, '..') : path.join(process.resourcesPath, 'app');
+// app.getAppPath()는 개발 모드에서는 저장소 루트, 패키지에서는 app.asar 경로를 반환한다.
+// process.resourcesPath/app를 직접 조합하면 설치본의 메뉴/분할 모드가 파일을 찾지 못한다.
+const repoRoot = app.getAppPath();
 
 let mainWin = null;
 let secondaryWin = null;     // HYPER Phase 12: 분할 모드용
@@ -16,6 +18,19 @@ const allWins = new Set();   // IPC 브로드캐스트 대상
 
 // 백엔드 상태 — splash.html / home.html 이 backendInfo() 로 조회
 let backendState = { ok: false, port: bridge.DEFAULT_PORT, reason: 'not-started' };
+
+async function clearStaleWebCaches() {
+  // 구버전이 등록한 Service Worker가 app.asar의 file:// 문서에 캐시된
+  // "Offline" 응답을 돌려주는 사례가 있다. 데스크톱 앱은 로컬 자산을 직접
+  // 사용하므로 SW/Cache Storage만 정리하고 사용자 설정은 보존한다.
+  try {
+    await session.defaultSession.clearStorageData({
+      storages: ['serviceworkers', 'cachestorage'],
+    });
+  } catch (error) {
+    console.warn('[main] stale web cache cleanup failed:', error && error.message);
+  }
+}
 
 function _wpOpts(extra) {
   return Object.assign({
@@ -60,7 +75,9 @@ function createWindow(opts) {
     if (win === mainWin) mainWin = null;
     if (win === secondaryWin) secondaryWin = null;
   });
-  if (isDev) win.webContents.openDevTools({ mode: 'detach' });
+  if (isDev && process.env.SDACS_DEVTOOLS === '1') {
+    win.webContents.openDevTools({ mode: 'detach' });
+  }
   return win;
 }
 
@@ -197,14 +214,16 @@ function buildMenu() {
 }
 
 async function createMainWindow() {
-  // 1) 스플래시부터 표시 — Python 백엔드 부팅 대기 UX
+  // 1) 캐논 시뮬레이터를 즉시 표시한다. Python 백엔드는 선택 기능이므로
+  // 앱 시작을 막지 않고 백그라운드에서 준비 상태만 갱신한다.
   mainWin = createWindow({
-    title: 'SDACS Simulator',
-    file: path.join(__dirname, 'splash.html'),
+    title: 'SDACS — 군집드론 공역통제 3D 시뮬레이터',
+    file: _baseFile('swarm_3d_simulator.html'),
   });
   Menu.setApplicationMenu(buildMenu());
+  updater.initAutoUpdater(mainWin);
 
-  // 2) Python 백엔드 spawn (병렬)
+  // 2) 선택형 Python 백엔드 spawn
   _broadcastBackendStatus('Python 시뮬레이션 엔진 부팅 중… (최대 30초)');
   const result = await bridge.startBackend({
     isPackaged: !isDev,
@@ -215,19 +234,10 @@ async function createMainWindow() {
 
   if (result.ok) {
     _broadcastBackendStatus(`백엔드 준비 완료 (port ${result.port})`);
-    // 3) 홈으로 전환
-    if (mainWin && !mainWin.isDestroyed()) mainWin.loadFile(path.join(__dirname, 'home.html'));
-    // 4) 자동 업데이트 확인 시작 (dev 모드에서는 no-op)
-    updater.initAutoUpdater(mainWin);
   } else {
-    // 폴백: HTML-only 홈. 홈이 backendInfo() 로 상태를 확인해 안내 표시.
+    // 내장 JavaScript 엔진만으로도 캐논 시뮬레이터는 완전히 실행된다.
     console.warn('[main] backend failed:', result.reason);
     _broadcastBackendStatus(`백엔드 부팅 실패(${result.reason}). HTML-only 모드로 진행합니다.`, 'error');
-    if (mainWin && !mainWin.isDestroyed()) {
-      setTimeout(() => {
-        if (mainWin && !mainWin.isDestroyed()) mainWin.loadFile(path.join(__dirname, 'home.html'));
-      }, 1500);
-    }
   }
 }
 
@@ -236,7 +246,10 @@ if (!gotLock) {
   app.quit();
 } else {
   app.on('second-instance', () => { if (mainWin) { if (mainWin.isMinimized()) mainWin.restore(); mainWin.focus(); } });
-  app.whenReady().then(createMainWindow);
+  app.whenReady().then(async () => {
+    await clearStaleWebCaches();
+    await createMainWindow();
+  });
   app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createMainWindow(); });
 

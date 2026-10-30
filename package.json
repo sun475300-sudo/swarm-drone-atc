@@ -10,16 +10,17 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --enable-logging",
-    "dist": "electron-builder",
-    "dist:win": "electron-builder --win nsis",
-    "dist:mac": "electron-builder --mac dmg",
-    "dist:linux": "electron-builder --linux AppImage",
-    "pack": "electron-builder --dir",
+    "dist": "electron-builder --config desktop/electron-builder.config.cjs",
+    "dist:win": "electron-builder --config desktop/electron-builder.config.cjs --win nsis portable",
+    "dist:mac": "electron-builder --config desktop/electron-builder.config.cjs --mac dmg",
+    "dist:linux": "electron-builder --config desktop/electron-builder.config.cjs --linux AppImage",
+    "pack": "electron-builder --config desktop/electron-builder.config.cjs --dir",
     "build:simulator": "python scripts/build_simulator.py",
     "build:simulator:check": "python scripts/build_simulator.py --check",
     "smoke": "node tests/e2e/smoke_sim.mjs",
     "smoke:maritime": "node tests/e2e/smoke_maritime.mjs",
     "smoke:federation": "node tests/e2e/federation_two_instance.mjs",
+    "smoke:desktop:app": "node tests/e2e/smoke_desktop_app.mjs --packaged",
     "test:core": "npm --prefix packages/core test",
     "pack:core": "npm --prefix packages/core run pack:check",
     "pw:install": "playwright install chromium",
@@ -60,9 +61,10 @@
       }
     ],
     "win": {
+      "icon": "docs/favicon-512.png",
       "target": [
         {
-          "target": "nsis-web",
+          "target": "nsis",
           "arch": [
             "x64"
           ]

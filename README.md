@@ -8,10 +8,11 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Version](https://img.shields.io/badge/Version-1.5.0-8b5cf6?style=for-the-badge)](VERSION.md)
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml)
+[![Desktop Build](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/desktop-build.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/desktop-build.yml)
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-22c55e?style=for-the-badge&logo=github)](https://sun475300-sudo.github.io/swarm-drone-atc/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-[**3D 시뮬레이터 실행**](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html) · [해양 탐지 시뮬레이터](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html) · [웹 패키지 다운로드](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/v1.5.0) · [문서 색인](docs/INDEX.md) · [English](README.en.md)
+[**웹 3D 시뮬레이터 바로 실행**](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html) · [Linux AppImage 다운로드](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/v1.5.0/SDACS-Simulator-1.5.0-x86_64.AppImage) · [Windows 앱 직접 빌드](#electron-데스크톱-앱-빌드) · [전체 릴리스](https://github.com/sun475300-sudo/swarm-drone-atc/releases) · [문서 색인](docs/INDEX.md) · [English](README.en.md)
 
 </div>
 
@@ -19,8 +20,20 @@
 
 > **성격과 범위**: SDACS는 SimPy 기반 이산 이벤트 시뮬레이터와 브라우저 3D 시각화 도구를 중심으로 한 연구·교육용 프로젝트입니다. 여기의 성능 수치, 시나리오, 규제·표준 모듈은 시뮬레이션 또는 프로토타입 검증값이며 실제 비행 안전 인증, 운항 승인, 규제 적합성 판정, 상용 관제 서비스의 근거가 아닙니다.
 
+## 바로 실행하거나 다운로드하기
+
+| 경로 | 공개·검증 상태 | 시작 |
+|---|---|---|
+| 웹 3D 시뮬레이터 | GitHub Pages에서 공개 운영 | [브라우저에서 실행](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html) |
+| Linux x64 데스크톱 앱 | v1.5.0 AppImage 공개 릴리스 | [AppImage 직접 다운로드](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/v1.5.0/SDACS-Simulator-1.5.0-x86_64.AppImage) |
+| Windows x64 데스크톱 앱 | NSIS 설치형·포터블 로컬 빌드와 CI 스모크 통과, 공개 릴리스·코드 서명 미완료 | [`scripts/build_desktop.ps1`](#electron-데스크톱-앱-빌드) |
+| macOS 데스크톱 앱 | CI에서 Intel·Apple Silicon DMG 빌드, 실제 장비 설치·공증·공개 릴리스 미완료 | [Desktop Build CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/desktop-build.yml) |
+
+> Windows와 macOS 파일은 현재 영구 공개 다운로드로 제공되지 않습니다. GitHub Actions 산출물은 검증용이며 보존 기간이 제한되고, Windows 로컬 산출물은 무서명 개발 빌드라 SmartScreen 경고가 표시될 수 있습니다.
+
 ## 목차
 
+- [바로 실행하거나 다운로드하기](#바로-실행하거나-다운로드하기)
 - [프로젝트 한눈에 보기](#프로젝트-한눈에-보기)
 - [현재 상태](#현재-상태)
 - [어떤 실행 화면을 선택할까?](#어떤-실행-화면을-선택할까)
@@ -57,16 +70,16 @@ SDACS는 단일 애플리케이션이 아니라 같은 도메인을 여러 깊�
 
 ## 현재 상태
 
-마지막 저장소·데스크톱 패키징 점검일은 **2026-10-30 (KST)** 입니다. 최신 원격 소스와 자동 검증 결과는 [`main`](https://github.com/sun475300-sudo/swarm-drone-atc/commits/main) 및 [GitHub Actions](https://github.com/sun475300-sudo/swarm-drone-atc/actions)을 기준으로 확인합니다.
+마지막 저장소·데스크톱 배포 가시성 점검일은 **2026-11-01 (KST)** 입니다. 최신 원격 소스와 자동 검증 결과는 [`main`](https://github.com/sun475300-sudo/swarm-drone-atc/commits/main) 및 [GitHub Actions](https://github.com/sun475300-sudo/swarm-drone-atc/actions)을 기준으로 확인합니다.
 
 | 상태 | 항목 | 확인 결과 |
 |:---:|---|---|
 | ✅ | 프로젝트 버전 | `pyproject.toml`과 `package.json` 기준 `1.5.0` |
 | ✅ | 기본 브랜치 | `main` — 유효한 기능·유지보수 PR 통합 완료 |
-| ✅ | GitHub Actions | Python 3.10/3.11/3.12 CI, 보안 감사, 시뮬레이터 스모크 및 Pages 배포 게이트 운영 |
+| ✅ | GitHub Actions | Python 3.10/3.11/3.12 CI, 보안 감사, 시뮬레이터 스모크, Pages 배포와 [3-OS 데스크톱 빌드](https://github.com/sun475300-sudo/swarm-drone-atc/actions/runs/41038538075) 운영 |
 | ✅ | 디자인 시스템 | v2.0 적용 완료 (CSS 변수 기반 글래스모피즘 HUD) |
 | ✅ | 웹 릴리스 | [v1.5.0 정적 웹 ZIP](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/v1.5.0/SDACS-Simulator-Web-v1.5.0.zip) (`SHA-256 b035348e…0e3a8d2`) |
-| ✅ | 데스크톱 앱 | Linux AppImage 공개. Windows x64 NSIS 설치형·포터블은 2026-10-30 로컬 빌드, 설치/실행/제거, WebGL 렌더 스모크 통과 (공개 릴리스·코드 서명은 미완료) |
+| ✅ | 데스크톱 앱 | [Linux AppImage 공개](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/v1.5.0). Windows x64 NSIS 설치형·포터블은 2026-10-30 로컬 설치/실행/제거와 WebGL 렌더 스모크 통과. macOS는 CI 빌드만 확인 (Windows/macOS 공개 릴리스·서명·공증 미완료) |
 | ✅ | Python 회귀 | Python 3.10 / 3.11 / 3.12, 제한 린트, mypy, 커버리지 80% 게이트 통과 |
 | ✅ | 연합 브라우저 E2E | `ws_bridge` 2개와 Chromium 2페이지 상호 LIVE 고스트 렌더링 성공 |
 | ⏳ | 실환경 검증 | Pixhawk·Jetson·RTK·HITL·실비행·규제 승인 근거는 향후 과제 (Phase 261-280) |
@@ -82,7 +95,7 @@ SDACS는 단일 애플리케이션이 아니라 같은 도메인을 여러 깊�
 | Python 3D 대시보드 | `python main.py visualize` | 8050 | Python |
 | API·WebSocket 통합 개발 | `python main.py api` | 8000 | Python API 의존성 |
 | React 공역 관리자 UI | `cd frontend && npm run dev` | 3000 | Node.js |
-| 독립 실행형 데스크톱 앱 | Windows 설치형/포터블 EXE 또는 Linux AppImage | - | 사전 빌드 파일은 별도 런타임 불필요 |
+| 독립 실행형 데스크톱 앱 | 공개 Linux AppImage 또는 로컬 Windows 설치형/포터블 EXE | - | 사전 빌드 파일은 별도 런타임 불필요 |
 | 전체 스택 컨테이너 데모 | `docker compose up` | 8050 | Docker |
 
 ## 아키텍처와 데이터 흐름
@@ -162,14 +175,14 @@ python scripts/serve.py --no-browser --port 8123
 
 ### 3. 데스크톱 앱
 
-Windows 빌드 산출물은 두 종류입니다. 설치 없이 실행하려면 `SDACS-Simulator-1.5.0-portable.exe`, 일반 설치는 `SDACS-Simulator-1.5.0-x64.exe`를 사용합니다. 서명되지 않은 개발 빌드이므로 첫 실행 시 SmartScreen 경고가 표시될 수 있습니다.
-
-Linux는 GitHub Releases에서 `SDACS-Simulator-1.5.0-x86_64.AppImage`를 다운로드하여 실행합니다.
+Linux x64는 [v1.5.0 AppImage](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/v1.5.0/SDACS-Simulator-1.5.0-x86_64.AppImage)를 공개 다운로드할 수 있습니다.
 
 ```bash
 chmod +x SDACS-Simulator-1.5.0-x86_64.AppImage
 ./SDACS-Simulator-1.5.0-x86_64.AppImage
 ```
+
+Windows 빌드 산출물은 두 종류입니다. 설치 없이 실행하려면 `SDACS-Simulator-1.5.0-portable.exe`, 일반 설치는 `SDACS-Simulator-1.5.0-x64.exe`를 사용합니다. 현재 영구 공개 다운로드는 없으며 아래 [Electron 데스크톱 앱 빌드](#electron-데스크톱-앱-빌드) 절차로 직접 생성합니다. 서명되지 않은 개발 빌드이므로 첫 실행 시 SmartScreen 경고가 표시될 수 있습니다.
 
 ## CLI 명령 전체
 
@@ -207,7 +220,7 @@ python scripts/build_simulator.py
 Windows에서는 아래 한 명령이 캐논 군집 ATC 시뮬레이터를 포함한 NSIS 설치형과 포터블 EXE를 함께 만듭니다. 기본 빌드는 내장 JavaScript 시뮬레이션 엔진만 사용하며 Python 없이 오프라인 실행됩니다.
 
 ```powershell
-npm install
+npm ci
 powershell -ExecutionPolicy Bypass -File scripts/build_desktop.ps1 -Clean
 
 # 선택: Dash/Python 백엔드까지 번들 (Python 3.11+와 대용량 디스크 필요)
@@ -217,7 +230,7 @@ powershell -ExecutionPolicy Bypass -File scripts/build_desktop.ps1 -Clean -Inclu
 다른 운영체제의 직접 빌드 명령은 다음과 같습니다.
 
 ```bash
-npm install
+npm ci
 npm run dist:linux   # Linux AppImage 빌드
 npm run dist:win     # Windows NSIS + portable EXE 빌드
 npm run dist:mac     # macOS DMG 빌드
@@ -252,6 +265,9 @@ npm run smoke
 ```
 
 ### 데스크톱 앱 스모크
+
+[![Desktop Build](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/desktop-build.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/desktop-build.yml)
+
 ```powershell
 npm run pack
 npm run smoke:desktop:app
@@ -303,9 +319,10 @@ node tests/e2e/smoke_desktop_app.mjs --portable
 
 ## 현재 남은 작업
 
-아래 항목은 2026-10-30 기준 코드·로컬 Windows 패키징·GitHub 설정 점검 후 남은 **외부 실행 또는 운영 작업**입니다. 저장소에 구현 파일이 있다는 사실만으로 실증·제출·인증이 완료된 것으로 보지 않습니다.
+아래 항목은 2026-11-01 기준 코드·로컬 Windows 패키징·GitHub 공개 상태 점검 후 남은 **외부 실행 또는 운영 작업**입니다. 저장소에 구현 파일이 있다는 사실만으로 실증·제출·인증이 완료된 것으로 보지 않습니다.
 
 - [ ] **저장소 운영과 배포 채널**
+  - GitHub About에 프로젝트 설명, Pages 홈페이지, `drone`, `simulation`, `utm`, `electron`, `airspace` 토픽 등록
   - `main` 브랜치 보호 설정 (필수 CI 및 리뷰 요구)
   - Windows/macOS 코드 서명·공증, Windows EXE 공개 릴리스, macOS DMG 실제 장비 설치 검증
   - `@sdacs/core` npm 패키지와 Python wheel의 실제 레지스트리 발행

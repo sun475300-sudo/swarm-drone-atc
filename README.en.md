@@ -8,10 +8,11 @@ Automated Airspace Control System for Swarm Drones · Capstone Design, Dept. of 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Version](https://img.shields.io/badge/Version-1.5.0-8b5cf6?style=for-the-badge)](VERSION.md)
 [![CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/ci.yml)
+[![Desktop Build](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/desktop-build.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/desktop-build.yml)
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-22c55e?style=for-the-badge&logo=github)](https://sun475300-sudo.github.io/swarm-drone-atc/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-[**Launch 3D Simulator**](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html) · [Maritime Detection Simulator](https://sun475300-sudo.github.io/swarm-drone-atc/maritime_detection_simulator.html) · [Download Web Package](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/v1.5.0) · [Documentation Index](docs/INDEX.md) · [한국어](README.md)
+[**Launch Web 3D Simulator**](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html) · [Download Linux AppImage](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/v1.5.0/SDACS-Simulator-1.5.0-x86_64.AppImage) · [Build Windows App](#electron-desktop-app-build) · [All Releases](https://github.com/sun475300-sudo/swarm-drone-atc/releases) · [Documentation Index](docs/INDEX.md) · [한국어](README.md)
 
 </div>
 
@@ -19,8 +20,20 @@ Automated Airspace Control System for Swarm Drones · Capstone Design, Dept. of 
 
 > **Scope & Nature**: SDACS is a research and educational project centered around a SimPy-based discrete-event simulator and a browser-based 3D visualization tool. The performance metrics, scenarios, and regulatory/standard modules provided here are for simulation or prototype validation purposes only and do not serve as a basis for actual flight safety certification, operational approval, regulatory compliance, or commercial ATC services.
 
+## Run or Download Now
+
+| Path | Public & Validation Status | Start |
+|---|---|---|
+| Web 3D simulator | Publicly hosted on GitHub Pages | [Launch in browser](https://sun475300-sudo.github.io/swarm-drone-atc/simulator.html) |
+| Linux x64 desktop app | Public v1.5.0 AppImage release | [Direct AppImage download](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/v1.5.0/SDACS-Simulator-1.5.0-x86_64.AppImage) |
+| Windows x64 desktop app | NSIS installer and portable build passed local install/UI/WebGL and CI smoke tests; public release and code signing remain pending | [`scripts/build_desktop.ps1`](#electron-desktop-app-build) |
+| macOS desktop app | Intel and Apple Silicon DMGs build in CI; physical-device install, notarization, and public release remain pending | [Desktop Build CI](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/desktop-build.yml) |
+
+> Windows and macOS binaries are not currently permanent public downloads. GitHub Actions artifacts are validation outputs with limited retention, and local Windows outputs are unsigned development builds that may trigger SmartScreen.
+
 ## Table of Contents
 
+- [Run or Download Now](#run-or-download-now)
 - [Project at a Glance](#project-at-a-glance)
 - [Current Status](#current-status)
 - [Which Interface Should I Choose?](#which-interface-should-i-choose)
@@ -57,16 +70,16 @@ SDACS is not a single application, but a suite of tools exploring the same domai
 
 ## Current Status
 
-The last repository health check date is **2026-08-04 (KST)**. Verify the latest source and automated validation results against [`main`](https://github.com/sun475300-sudo/swarm-drone-atc/commits/main) and [GitHub Actions](https://github.com/sun475300-sudo/swarm-drone-atc/actions).
+The last repository and desktop-distribution visibility review was completed on **2026-11-01 (KST)**. Verify the latest source and automated validation results against [`main`](https://github.com/sun475300-sudo/swarm-drone-atc/commits/main) and [GitHub Actions](https://github.com/sun475300-sudo/swarm-drone-atc/actions).
 
 | Status | Item | Result |
 |:---:|---|---|
 | ✅ | Project Version | `1.5.0` in `pyproject.toml` and `package.json` |
 | ✅ | Default Branch | `main` — All valid feature and maintenance PRs consolidated |
-| ✅ | GitHub Actions | Python 3.10/3.11/3.12 CI, security audit, simulator smoke & Pages deployment gates active |
+| ✅ | GitHub Actions | Python 3.10/3.11/3.12 CI, security audit, simulator smoke, Pages deployment, and [3-OS desktop build](https://github.com/sun475300-sudo/swarm-drone-atc/actions/runs/41038538075) gates active |
 | ✅ | Design System | v2.0 applied (CSS variable-based Glassmorphism HUD) |
 | ✅ | Web Release | [v1.5.0 static Web ZIP](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/v1.5.0/SDACS-Simulator-Web-v1.5.0.zip) (`SHA-256 b035348e…0e3a8d2`) |
-| ✅ | Desktop App | Linux AppImage (`SDACS-Simulator-1.5.0-x86_64.AppImage`) published in [v1.5.0 Release](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/v1.5.0) |
+| ✅ | Desktop App | [Linux AppImage is public](https://github.com/sun475300-sudo/swarm-drone-atc/releases/tag/v1.5.0). Windows x64 NSIS and portable outputs passed local install/run/uninstall and WebGL smoke tests on 2026-10-30. macOS is CI-build-only (Windows/macOS public release, signing, and notarization remain pending) |
 | ✅ | Python Regression | Python 3.10/3.11/3.12, strict lint, mypy, 80% coverage gates passed |
 | ✅ | Federated Browser E2E | Mutual LIVE ghost rendering successful across 2 `ws_bridge` instances and 2 Chromium pages |
 | ⏳ | Real-world Validation | Pixhawk, Jetson, RTK, HITL, real-flight, and regulatory approval evidence are future tasks (Phase 261-280) |
@@ -82,7 +95,7 @@ The last repository health check date is **2026-08-04 (KST)**. Verify the latest
 | Python 3D Dashboard | `python main.py visualize` | 8050 | Python |
 | API & WebSocket Integration | `python main.py api` | 8000 | Python API dependencies |
 | React Airspace Manager UI | `cd frontend && npm run dev` | 3000 | Node.js |
-| Installable Desktop App | `npm start` or `./SDACS-Simulator-*.AppImage` | - | Node.js + Electron |
+| Standalone Desktop App | Public Linux AppImage or locally built Windows installer/portable EXE | - | Prebuilt files require no separate runtime |
 | Full-stack Container Demo | `docker compose up` | 8050 | Docker |
 
 ## Architecture & Data Flow
@@ -160,13 +173,16 @@ python scripts/serve.py --no-browser --port 8123
 # Open http://127.0.0.1:8123/swarm_3d_simulator.html?live=1 in your browser
 ```
 
-### 3. Desktop App (Linux)
+### 3. Desktop App
 
-Download `SDACS-Simulator-1.5.0-x86_64.AppImage` from GitHub Releases and run it.
+Linux x64 users can download the public [v1.5.0 AppImage](https://github.com/sun475300-sudo/swarm-drone-atc/releases/download/v1.5.0/SDACS-Simulator-1.5.0-x86_64.AppImage) and run it.
+
 ```bash
 chmod +x SDACS-Simulator-1.5.0-x86_64.AppImage
 ./SDACS-Simulator-1.5.0-x86_64.AppImage
 ```
+
+Windows builds produce `SDACS-Simulator-1.5.0-portable.exe` for no-install use and `SDACS-Simulator-1.5.0-x64.exe` for normal installation. There is no permanent public Windows download yet; create them with the [Electron desktop build](#electron-desktop-app-build) instructions below. These unsigned development builds may trigger SmartScreen.
 
 ## Full CLI Commands
 
@@ -201,11 +217,24 @@ python scripts/build_simulator.py
 ```
 
 ### Electron Desktop App Build
+
+On Windows, one command builds both the NSIS installer and portable EXE. The default package uses the built-in JavaScript simulation engine and runs offline without Python.
+
+```powershell
+npm ci
+powershell -ExecutionPolicy Bypass -File scripts/build_desktop.ps1 -Clean
+
+# Optional: bundle the Dash/Python backend (Python 3.11+ and substantial disk space required)
+powershell -ExecutionPolicy Bypass -File scripts/build_desktop.ps1 -Clean -IncludePython
+```
+
+Direct commands for other operating systems:
+
 ```bash
-npm install
-npm run dist:linux   # Build Linux AppImage
-npm run dist:win     # Build Windows NSIS
-npm run dist:mac     # Build macOS DMG
+npm ci
+npm run dist:linux   # Linux AppImage
+npm run dist:win     # Windows NSIS + portable EXE
+npm run dist:mac     # macOS DMG
 ```
 
 ## Outputs & Generated Files
@@ -217,7 +246,7 @@ npm run dist:mac     # Build macOS DMG
 | `benchmark --output` | `results/` | JSON by method/scenario/seed |
 | `ops-report` | `data/e2e_reports/` | JSON, Markdown, manifest JSON |
 | Web Build | `build/simulator/` | Static deployment package |
-| Electron Build | `dist-desktop/` | Desktop app packages |
+| Electron Windows Build | `dist-desktop/` | `*-x64.exe` installer, `*-portable.exe`, and `win-unpacked/` validation tree |
 
 ## Validation & CI
 
@@ -235,6 +264,20 @@ npm run test-server &
 $env:SIM_URL='http://localhost:8123/swarm_3d_simulator.html'
 npm run smoke
 ```
+
+### Desktop App Smoke
+
+[![Desktop Build](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/desktop-build.yml/badge.svg)](https://github.com/sun475300-sudo/swarm-drone-atc/actions/workflows/desktop-build.yml)
+
+```powershell
+npm run pack
+npm run smoke:desktop:app
+
+# After npm run dist:win, verify that the portable wrapper launches the real Electron process
+node tests/e2e/smoke_desktop_app.mjs --portable
+```
+
+The packaged-app check validates Electron preload availability, the canonical simulator entry point, WebGL draw calls, a 50-drone initial scenario, a nonblank capture, advancing simulation time, and page errors. The portable check verifies that the extraction wrapper launches the real Electron process and cleans up the process tree.
 
 ## Repository Map
 
@@ -255,6 +298,7 @@ npm run smoke
 - The SimPy Python engine, Three.js web engine, and maritime simulator are separate runtimes; their state and physical models do not synchronize automatically.
 - The presence of hardware, SITL, HITL, regulatory, and standard modules does not imply actual equipment connection, institutional approval, or completed certification.
 - While `benchmarks/` contains manifests and descriptions, the scenario-specific `expected_results.yaml` mentioned in some older documents is not present in the current tree.
+- Windows and macOS desktop packages are not currently code-signed or notarized. Keep locally validated research builds distinct from public, signed distribution releases.
 
 ## Troubleshooting
 
@@ -276,11 +320,12 @@ npm run smoke
 
 ## Remaining Tasks
 
-The following **external execution and operations tasks** remain after the code, CI, and GitHub configuration audit on 2026-08-04. The presence of implementation files in the repository does not prove field validation, submission, or certification.
+The following **external execution and operations tasks** remain after the code, local Windows packaging, and public GitHub-state review on 2026-11-01. The presence of implementation files in the repository does not prove field validation, submission, or certification.
 
 - [ ] **Repository Operations & Distribution Channels**
+  - Add a repository description, Pages homepage, and `drone`, `simulation`, `utm`, `electron`, and `airspace` topics in GitHub About
   - Enable `main` branch protection (require CI and reviews)
-  - Validate Windows NSIS and macOS DMG installation on physical systems, then publish them
+  - Sign and publish the Windows EXE; validate, sign/notarize, and publish the macOS DMG on physical hardware
   - Publish `@sdacs/core` and the Python wheel to their package registries
   - Automatically publish the representative-scenario screenshot and video gallery
 - [ ] **Research Papers & DOI**
